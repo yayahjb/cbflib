@@ -613,7 +613,7 @@ int cbf_make_child (cbf_node **child, cbf_node *node, CBF_NODETYPE type, const c
 
   if (type == CBF_LINK)
 
-    return NULL;
+    return CBF_ARGUMENT;
     
 
     /* Follow any links */

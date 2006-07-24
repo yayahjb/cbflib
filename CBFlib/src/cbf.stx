@@ -9,7 +9,12 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef __GNUC__
+#ifdef USEMALLOCH
 #include <malloc.h>
+#endif
+#endif
 
 #include "cbf.h"
 #include "cbf_tree.h"
