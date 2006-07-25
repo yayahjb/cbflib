@@ -1,9 +1,9 @@
 <HTML>
 <HEAD>
-<TITLE>cbfext98 v.04</TITLE>
+<TITLE>cbfext98 v0.6</TITLE>
 </HEAD>
 <body bgcolor="#FAFAFF" text="#0808A0"
-BACKGROUND="../html_graphics/cbflibbackground.jpg"">
+BACKGROUND="../html_graphics/cbflibbackground.jpg">
 <font color="#0808A0">
 <H1>
 # <a href="http://www.iucr.org/iucr-top/welcome.html">
@@ -29,9 +29,10 @@ ALT="[CBFlib]" ALIGN=MIDDLE></A> #
 #                     and Image-supporting CIF (imgCIF)                      #
 #                                Dictionary                                  #
 #                                                                            #
-#                          Version of 1998-08-11                             #
+#                              Version 0.6.0                                 #
+#                              of 1999-01-14                                 #
 #                                                                            #
-#                              Adapted from the                              #
+#                             Adapted from the                               #
 #                                                                            #
 #                       imgCIF Workshop, BNL Oct 1997                        #
 #                                                                            #
@@ -52,8 +53,7 @@ ALT="[CBFlib]" ALIGN=MIDDLE></A> #
 #                                                                            #
 ##############################################################################
 #                                                                            #
-# V. 0.4 is a _proposed_ revised draft of the CBF dictionary for support of  #
-# ASCII-encoded binary sections using a MIME-like convention.                #
+#       V. 0.6.0 is a _proposed_ revised draft of the CBF dictionary.        #
 #                                                                            #
 # These revisions by:  Herbert J. Bernstein, yaya@bernstein-plus-sons.com    #
 ##############################################################################
@@ -63,7 +63,7 @@ data_cbfext98.dict
 
 
     _dictionary.title           cbfext98.dic
-    _dictionary.version         0.4
+    _dictionary.version         0.6.0
     _dictionary.datablock_id    cbfext98.dic
 
 ##############################################################################
@@ -75,63 +75,139 @@ data_cbfext98.dict
 #
 #        category  <a href="#ARRAY_DATA">ARRAY_DATA</a>
 #
-#                  <a href="#_array_data.array_id">_array_data.array_id</a>
-#                  <a href="#_array_data.binary_id">_array_data.binary_id</a>
-#                  <a href="#_array_data.data">_array_data.data</a>
+#                  <a href="#_array_data.array_id" >_array_data.array_id</a>
+#                  <a href="#_array_data.binary_id" >_array_data.binary_id</a>
+#                  <a href="#_array_data.data" >_array_data.data</a>
 #        
 #        category  <a href="#ARRAY_STRUCTURE">ARRAY_STRUCTURE</a>
 #        
-#                  <a href="#_array_structure.id">_array_structure.id</a>       
-#                  <a href="#_array_structure.byte_order">_array_structure.byte_order</a>       
-#                  <a href="#_array_structure.compression_type">_array_structure.compression_type</a>         
-#                  <a href="#_array_structure.encoding_type">_array_structure.encoding_type</a>
+#                  <a href="#_array_structure.id" >_array_structure.id</a>
+#                  <a href="#_array_structure.byte_order" >_array_structure.byte_order</a>
+#                  <a href="#_array_structure.compression_type" >_array_structure.compression_type</a>
+#                  <a href="#_array_structure.encoding_type" >_array_structure.encoding_type</a>
 #        
 #        category  <a href="#ARRAY_STRUCTURE_LIST">ARRAY_STRUCTURE_LIST</a>
 #        
-#                  <a href="#_array_structure_list.array_id">_array_structure_list.array_id</a>        
-#                  <a href="#_array_structure_list.dimension">_array_structure_list.dimension</a>        
-#                  <a href="#_array_structure_list.index">_array_structure_list.index</a>        
-#                  <a href="#_array_structure_list.precedence">_array_structure_list.precedence</a>        
-#                  <a href="#_array_structure_list.direction">_array_structure_list.direction</a>
+#                  <a href="#_array_structure_list.array_id" >_array_structure_list.array_id</a>
+#                  <a href="#_array_structure_list.dimension" >_array_structure_list.dimension</a>
+#                  <a href="#_array_structure_list.index" >_array_structure_list.index</a>
+#                  <a href="#_array_structure_list.precedence" >_array_structure_list.precedence</a>
+#                  <a href="#_array_structure_list.direction" >_array_structure_list.direction</a>
 #
 #        category  <a href="#ARRAY_ELEMENT_SIZE">ARRAY_ELEMENT_SIZE</a>
 #        
-#                  <a href="#_array_element_size.array_id">_array_element_size.array_id</a>
-#                  <a href="#_array_element_size.index">_array_element_size.index</a>
-#                  <a href="#_array_element_size.size">_array_element_size.size</a>
+#                  <a href="#_array_element_size.array_id" >_array_element_size.array_id</a>
+#                  <a href="#_array_element_size.index" >_array_element_size.index</a>
+#                  <a href="#_array_element_size.size" >_array_element_size.size</a>
 #        
 #        category  <a href="#ARRAY_INTENSITIES">ARRAY_INTENSITIES</a>
 #        
-#                  <a href="#_array_intensities.array_id">_array_intensities.array_id</a>
-#                  <a href="#_array_intensities.binary_id">_array_intensities.binary_id</a>
-#                  <a href="#_array_intensities.gain">_array_intensities.gain</a>
-#                  <a href="#_array_intensities.gain_esd">_array_intensities.gain_esd</a>
-#                  <a href="#_array_intensities.linearity">_array_intensities.linearity</a>
-#                  <a href="#_array_intensities.offset">_array_intensities.offset</a>
-#                  <a href="#_array_intensities.scaling">_array_intensities.scaling</a>
-#                  <a href="#_array_intensities.overload">_array_intensities.overload</a>
-#                  <a href="#_array_intensities.undefined_value">_array_intensities.undefined_value</a>
+#                  <a href="#_array_intensities.array_id" >_array_intensities.array_id</a>
+#                  <a href="#_array_intensities.binary_id" >_array_intensities.binary_id</a>
+#                  <a href="#_array_intensities.gain" >_array_intensities.gain</a>
+#                  <a href="#_array_intensities.gain_esd" >_array_intensities.gain_esd</a>
+#                  <a href="#_array_intensities.linearity" >_array_intensities.linearity</a>
+#                  <a href="#_array_intensities.offset" >_array_intensities.offset</a>
+#                  <a href="#_array_intensities.scaling" >_array_intensities.scaling</a>
+#                  <a href="#_array_intensities.overload" >_array_intensities.overload</a>
+#                  <a href="#_array_intensities.undefined_value" >_array_intensities.undefined_value</a>
 #
-#        category  <a href="#DIFFRN_FRAME_DATA">DIFFRN_FRAME_DATA</a>
+#        category  <a href="#AXIS">AXIS</a>
 #        
-#                  <a href="#_diffrn_frame_data.array_id">_diffrn_frame_data.array_id</a>
-#                  <a href="#_diffrn_frame_data.binary_id">_diffrn_frame_data.binary_id</a>
-#                  <a href="#_diffrn_frame_data.detector_element_id">_diffrn_frame_data.detector_element_id</a>
-#                  <a href="#_diffrn_frame_data.id">_diffrn_frame_data.id</a>
+#                  <a href="#_axis.depends_on" >_axis.depends_on</a>
+#                  <a href="#_axis.equipment" >_axis.equipment</a>
+#                  <a href="#_axis.id" >_axis.id</a></a>
+#                  <a href="#_axis.offset[1]" >_axis.offset[1]</a>
+#                  <a href="#_axis.offset[2]" >_axis.offset[2]</a>
+#                  <a href="#_axis.offset[3]" >_axis.offset[3]</a>
+#                  <a href="#_axis.type" >_axis.type</a>
+#                  <a href="#_axis.vector[1]" >_axis.vector[1]</a>
+#                  <a href="#_axis.vector[2]" >_axis.vector[2]</a>
+#                  <a href="#_axis.vector[3]" >_axis.vector[3]</a>
+#
+#        category  <a href="#DIFFRN_DETECTOR">DIFFRN_DETECTOR</a>
+#        
+#                  <a href="#_diffrn_detector.details" >_diffrn_detector.details</a>
+#                  <a href="#_diffrn_detector.detector" >_diffrn_detector.detector</a>
+#                  <a href="#_diffrn_detector.diffrn_id" >_diffrn_detector.diffrn_id</a>
+#                  <a href="#_diffrn_detector.dtime" >_diffrn_detector.dtime</a>
+#                  <a href="#_diffrn_detector.id" >_diffrn_detector.id</a>
+#                  <a href="#_diffrn_detector.number_of_axes" >_diffrn_detector.number_of_axes</a>
+#                  <a href="#_diffrn_detector.type" >_diffrn_detector.type</a>
+#
+#        category  <a href="#DIFFRN_DETECTOR_AXIS">DIFFRN_DETECTOR_AXIS</a>
+#        
+#                  <a href="#_diffrn_detector_axis.id" >_diffrn_detector_axis.id</a>    
+#                  <a href="#_diffrn_detector_axis.id" >_diffrn_detector_axis.axis_id</a>
 #        
 #        category  <a href="#DIFFRN_DETECTOR_ELEMENT">DIFFRN_DETECTOR_ELEMENT</a>
 #
-#                  <a href="#_diffrn_detector_element.id">_diffrn_detector_element.id</a>
-#                  <a href="#_diffrn_detector_element.detector_id">_diffrn_detector_element.detector_id</a>
+#                  <a href="#_diffrn_detector_element.center[1]" >_diffrn_detector_element.center[1]</a>
+#                  <a href="#_diffrn_detector_element.center[2]" >_diffrn_detector_element.center[2]</a>
+#                  <a href="#_diffrn_detector_element.id" >_diffrn_detector_element.id</a>
+#                  <a href="#_diffrn_detector_element.detector_id" >_diffrn_detector_element.detector_id</a>
+#
+#        category  <a href="#DIFFRN_FRAME_DATA">DIFFRN_FRAME_DATA</a>
 #        
-#        category  <a href="#DIFFRN_DETECTOR">DIFFRN_DETECTOR</a>
+#                  <a href="#_diffrn_frame_data.array_id" >_diffrn_frame_data.array_id</a>
+#                  <a href="#_diffrn_frame_data.binary_id" >_diffrn_frame_data.binary_id</a>
+#                  <a href="#_diffrn_frame_data.detector_element_id" >_diffrn_frame_data.detector_element_id</a>
+#                  <a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a>
 #        
-#                  <a href="#_diffrn_detector.id">_diffrn_detector.id</a>
+#        category  <a href="#DIFFRN_MEASUREMENT">DIFFRN_MEASUREMENT</a>
+#        
+#                  <a href="#_diffrn_measurement.diffrn_id" >_diffrn_measurement.diffrn_id</a>
+#                  <a href="#_diffrn_measurement.details" >_diffrn_measurement.details</a>
+#                  <a href="#_diffrn_measurement.device" >_diffrn_measurement.device</a>
+#                  <a href="#_diffrn_measurement.device_details" >_diffrn_measurement.device_details</a>
+#                  <a href="#_diffrn_measurement.device_type" >_diffrn_measurement.device_type</a>
+#                  <a href="#_diffrn_measurement.id" >_diffrn_measurement.id</a>
+#                  <a href="#_diffrn_measurement.method" >_diffrn_measurement.method</a>
+#                  <a href="#_diffrn_measurement.number_of_axes" >_diffrn_measurement.number_of_axes</a>
+#                  <a href="#_diffrn_measurement.specimen_support" >_diffrn_measurement.specimen_support</a>
+#
+#        category  <a href="#DIFFRN_MEASUREMENT_AXIS">DIFFRN_MEASUREMENT_AXIS</a>
+#        
+#                  <a href="#_diffrn_measurement_axis.id" >_diffrn_measurement_axis.id</a>
+#                  <a href="#_diffrn_measurement_axis.id" >_diffrn_measurement_axis.axis_id</a>
 #        
 #        category  <a href="#DIFFRN_REFLN">DIFFRN_REFLN</a>
 #        
-#                  <a href="#_diffrn_refln.frame_id">_diffrn_refln.frame_id</a>
+#                  <a href="#_diffrn_refln.frame_id" >_diffrn_refln.frame_id</a>
+#
+#        category  <a href="#DIFFRN_SCAN">DIFFRN_SCAN</a>
 #        
+#                  <a href="#_diffrn_scan.id" >_diffrn_scan.id</a>
+#                  <a href="#_diffrn_scan.integration_time" >_diffrn_scan.integration_time</a>
+#                  <a href="#_diffrn_scan.frame_id_start" >_diffrn_scan.frame_id_start</a>
+#                  <a href="#_diffrn_scan.frame_id_end" >_diffrn_scan.frame_id_end</a>
+#                  <a href="#_diffrn_scan.frames" >_diffrn_scan.frames</a>
+#
+#        category  <a href="#DIFFRN_SCAN_AXIS">DIFFRN_SCAN_AXIS</a>
+#        
+#                  <a href="#_diffrn_scan_axis.scan_id" >_diffrn_scan_axis.scan_id</a>
+#                  <a href="#_diffrn_scan_axis.axis_id" >_diffrn_scan_axis.axis_id</a>
+#                  <a href="#_diffrn_scan_axis.angle_start" >_diffrn_scan_axis.angle_start</a>
+#                  <a href="#_diffrn_scan_axis.angle_range" >_diffrn_scan_axis.angle_range</a>
+#                  <a href="#_diffrn_scan_axis.angle_increment" >_diffrn_scan_axis.angle_increment</a>
+#                  <a href="#_diffrn_scan_axis.displacement_start" >_diffrn_scan_axis.displacement_start</a>
+#                  <a href="#_diffrn_scan_axis.displacement_range" >_diffrn_scan_axis.displacement_range</a>
+#                  <a href="#_diffrn_scan_axis.displacement_increment" >_diffrn_scan_axis.displacement_increment</a>
+#
+#        category  <a href="#DIFFRN_SCAN_FRAME">DIFFRN_SCAN_FRAME</a>
+#        
+#                  <a href="#_diffrn_scan_frame.scan_id" >_diffrn_scan_frame.scan_id</a>
+#                  <a href="#_diffrn_scan_frame.integration_time" >_diffrn_scan_frame.integration_time</a>
+#                  <a href="#_diffrn_scan_frame.frame_id" >_diffrn_scan_frame.frame_id</a>
+#                  <a href="#_diffrn_scan_frame.frame_number" >_diffrn_scan_frame.frame_number</a>
+#
+#        category  <a href="#DIFFRN_SCAN_FRAME_AXIS">DIFFRN_SCAN_FRAME_AXIS</a>
+#        
+#                  <a href="#_diffrn_scan_frame_axis.frame_id" >_diffrn_scan_frame_axis.frame_id</a>
+#                  <a href="#_diffrn_scan_frame_axis.axis_id" >_diffrn_scan_frame_axis.axis_id</a>
+#                  <a href="#_diffrn_scan_frame_axis.angle" >_diffrn_scan_frame_axis.angle</a>
+#                  <a href="#_diffrn_scan_frame_axis.displacement" >_diffrn_scan_frame_axis.displacement</a>
+#
 ##############################################################################
 
 ####################
@@ -156,6 +232,18 @@ data_cbfext98.dict
                code      char
 '[_,.;:&quot;&amp;&lt;&gt;/\{}'`~!@#$%A-Za-z0-9*|+-]*'
 ;              code item types/single words ...
+;
+               ucode      uchar
+'[_,.;:&quot;&amp;&lt;&gt;/\{}'`~!@#$%A-Za-z0-9*|+-]*'
+;              code item types/single words (case insensitive)
+;
+               line      char
+'[][ \t_(),.;:&quot;&amp;&lt;&gt;/\{}'`~!@#$%A-Za-z0-9*|+-]*'
+;              code item types / multi-word items  ...
+;
+               uline     uchar
+'[][ \t_(),.;:&quot;&amp;&lt;&gt;/\{}'`~!@#$%A-Za-z0-9*|+-]*'
+;              code item types / multi-word items (case insensitive)
 ;
                text      char
 '[][ \n\t()_,.;:&quot;&amp;&lt;&gt;/\{}'`~!@#$%?+=*A-Za-z0-9|^-]*'
@@ -209,6 +297,10 @@ data_cbfext98.dict
              'inclusive_group'
 ;             Categories that describe array data.
 ;
+             'axis_group'
+             'inclusive_group'
+;             Categories that describe axes.
+;
              'diffrn_group'
              'inclusive_group'
 ;            Categories that describe details of the diffraction experiment.
@@ -223,6 +315,52 @@ data_cbfext98.dict
     _dictionary_history.version
     _dictionary_history.update
     _dictionary_history.revision
+
+   0.6.0   1999-01-14
+;
+   Remove redundant information for ENC_NONE data (HJB)
+
+   + After the D5 remove binary section identifier, size and
+ compresssion type.
+
+   + Add Control-L to header.
+;
+   0.5.1   1999-01-03
+;
+   Cleanup of typos and syntax errors (HJB)
+
+   + Cleanup example details for DIFFRN_SCAN category.
+
+   + Add missing quote marks for _diffrn_scan.id definition.
+;
+
+   0.5   1999-01-01
+;
+   Modifications for axis definitions and reduction of binary header (HJB)
+
+   + Restored <a href="#_diffrn_detector.diffrn_id" >_diffrn_detector.diffrn_id</a> to DIFFRN_DETECTOR KEY.
+
+   + Added AXIS category.
+
+   + Brought complete DIFFRN_DETECTOR and DIFFRN_MEASUREMENT categories
+ in from cif_mm.dic for clarity.
+
+   + changed _array_structure.encoding_type from type code to uline and
+ added X-Binary-Element-Type to MIME header.
+
+   + added detector beam center <a href="#_diffrn_detector_element.center[1]" >_diffrn_detector_element.center[1]</a> and 
+<a href="#_diffrn_detector_element.center[2]" >_diffrn_detector_element.center[2]</a>
+
+   + corrected item name of <a href="#_diffrn_refln.frame_id" >_diffrn_refln.frame_id</a>
+
+   + replace reference to _array_intensities.undefined by 
+ _array_intensities.undefined_value
+
+   + replace references to _array_intensity.scaling with 
+ _array_intensities.scaling
+
+   + added DIFFRN_SCAN... categories
+;
 
    0.4   1998-08-11
 ;
@@ -242,11 +380,11 @@ data_cbfext98.dict
    +  Added binary type, which is a text field containing a variant on
       MIME encoded data.
       
-   +  Changed type of <a href="#_array_data.data">_array_data.data</a> to binary and specified internal
+   +  Changed type of <a href="#_array_data.data" >_array_data.data</a> to binary and specified internal
       structure of raw binary data.
       
-   +  Added <a href="#_array_data.binary_id">_array_data.binary_id</a>, and made 
-      <a href="#_diffrn_frame_data.binary_id">_diffrn_frame_data.binary_id</a> and <a href="#_array_intensities.binary_id">_array_intensities.binary_id</a>
+   +  Added <a href="#_array_data.binary_id" >_array_data.binary_id</a>, and made 
+      <a href="#_diffrn_frame_data.binary_id" >_diffrn_frame_data.binary_id</a> and <a href="#_array_intensities.binary_id" >_array_intensities.binary_id</a>
       into pointers to this item.
 ;
 
@@ -259,10 +397,10 @@ data_cbfext98.dict
       changes were made in implementing the workshop draft.  Category 
       DIFFRN_ARRAY_DATA was renamed to DIFFRN_FRAME_DATA.  Category 
       DIFFRN_FRAME_TYPE was renamed to DIFFRN_DETECTOR_ELEMENT.   The 
-      parent item for <a href="#_diffrn_frame_data.array_id">_diffrn_frame_data.array_id</a> was changed from 
+      parent item for <a href="#_diffrn_frame_data.array_id" >_diffrn_frame_data.array_id</a> was changed from 
       array_structure_list.array_id to array_structure.id. Item 
       _diffrn_detector.array_id was deleted.  
-   +  Added data item <a href="#_diffrn_frame_data.binary_id">_diffrn_frame_data.binary_id</a> to identify data groups 
+   +  Added data item <a href="#_diffrn_frame_data.binary_id" >_diffrn_frame_data.binary_id</a> to identify data groups 
       within a binary section.  The formal identification of the binary section
       is still fuzzy.  
 ;
@@ -315,8 +453,8 @@ save_ARRAY_DATA
     _category.id                   array_data
     _category.mandatory_code       no
      loop_
-    _category_key.name             '<a href="#_array_data.array_id">_array_data.array_id</a>'
-                                   '<a href="#_array_data.binary_id">_array_data.binary_id</a>'
+    _category_key.name             '<a href="#_array_data.array_id" >_array_data.array_id</a>'
+                                   '<a href="#_array_data.binary_id" >_array_data.binary_id</a>'
     loop_
     _category_group.id             'inclusive_group'
                                    'array_data_group'
@@ -346,9 +484,9 @@ save_ARRAY_DATA
 ;
 
         loop_
-        <a href="#_array_data.array_id">_array_data.array_id</a>
-        <a href="#_array_data.binary_id">_array_data.binary_id</a>
-        <a href="#_array_data.data">_array_data.data</a>
+        <a href="#_array_data.array_id" >_array_data.array_id</a>
+        <a href="#_array_data.binary_id" >_array_data.binary_id</a>
+        <a href="#_array_data.data" >_array_data.data</a>
         image_1 1
         ;
         --CIF-BINARY-FORMAT-SECTION--
@@ -383,46 +521,48 @@ save_ARRAY_DATA
 save_
 
 
-save_<a name="_array_data.array_id">_array_data.array_id</a>
+save_<a name="_array_data.array_id" >_array_data.array_id</a>
     _item_description.description
-;             This item is a pointer to <a href="#_array_structure.id">_array_structure.id</a> in the
+;             This item is a pointer to <a href="#_array_structure.id" >_array_structure.id</a> in the
               ARRAY_STRUCTURE category. 
 ;
-    _item.name                  '<a href="#_array_data.array_id">_array_data.array_id</a>'
+    _item.name                  '<a href="#_array_data.array_id" >_array_data.array_id</a>'
     _item.category_id             array_data
     _item.mandatory_code          yes
     _item_type.code               code
 save_
 
-save_<a name="_array_data.binary_id">_array_data.binary_id</a>
+save_<a name="_array_data.binary_id" >_array_data.binary_id</a>
     _item_description.description
 ;             This item is an integer identifier which, along with
-              <a href="#_array_data.array_id">_array_data.array_id</a> should uniquely identify the 
+              <a href="#_array_data.array_id" >_array_data.array_id</a> should uniquely identify the 
               particular block of data array.
               
-              If <a href="#_array_data.binary_id">_array_data.binary_id</a> is not explicitly given,
+              If <a href="#_array_data.binary_id" >_array_data.binary_id</a> is not explicitly given,
               it defaults to 1.
               
-              The value of <a href="#_array_data.binary_id">_array_data.binary_id</a> distinguishes
+              The value of <a href="#_array_data.binary_id" >_array_data.binary_id</a> distinguishes
               among multiple sets of data with the same array
               structure.
               
               If the MIME header of the data array specifies a 
               value for X-Binary-Id, these values should be equal.
 ;
+     loop_
     _item.name                  
     _item.category_id             
     _item.mandatory_code          
-             '<a href="#_array_data.binary_id">_array_data.binary_id</a>'            array_data      
+             '<a href="#_array_data.binary_id" >_array_data.binary_id</a>'            array_data      
                                                                 implicit
-             '<a href="#_diffrn_frame_data.binary_id">_diffrn_frame_data.binary_id</a>'     diffrn_frame_data
+             '<a href="#_diffrn_frame_data.binary_id" >_diffrn_frame_data.binary_id</a>'     diffrn_frame_data
                                                                 implicit
-             '<a href="#_array_intensities.binary_id">_array_intensities.binary_id</a>'     array_intensities
+             '<a href="#_array_intensities.binary_id" >_array_intensities.binary_id</a>'     array_intensities
                                                                 implicit
+     loop_
     _item_linked.child_name
     _item_linked.parent_name
-             '<a href="#_diffrn_frame_data.binary_id">_diffrn_frame_data.binary_id</a>'     '<a href="#_array_data.binary_id">_array_data.binary_id</a>'
-             '<a href="#_array_intensities.binary_id">_array_intensities.binary_id</a>'     '<a href="#_array_data.binary_id">_array_data.binary_id</a>'
+             '<a href="#_diffrn_frame_data.binary_id" >_diffrn_frame_data.binary_id</a>'     '<a href="#_array_data.binary_id" >_array_data.binary_id</a>'
+             '<a href="#_array_intensities.binary_id" >_array_intensities.binary_id</a>'     '<a href="#_array_data.binary_id" >_array_data.binary_id</a>'
 
     _item_default.value           1
     _item_type.code               int
@@ -435,9 +575,9 @@ save_<a name="_array_data.binary_id">_array_data.binary_id</a>
 save_
 
 
-save_<a name="_array_data.data">_array_data.data</a>
+save_<a name="_array_data.data" >_array_data.data</a>
     _item_description.description
-;             The value of <a href="#_array_data.data">_array_data.data</a> contains the array data 
+;             The value of <a href="#_array_data.data" >_array_data.data</a> contains the array data 
               encapsulated in a STAR string.
               
               The representation used is a variant on the
@@ -466,36 +606,33 @@ save_<a name="_array_data.data">_array_data.data</a>
               the header and after the sequence:
                     
               Octet   Hex   Decimal  Purpose
+                0     0C       12    (ctrl-L) Page break
                 1     1A       26    (ctrl-Z) Stop listings in MS-DOS
                 2     04       04    (Ctrl-D) Stop listings in UNIX
                 3     D5      213    Binary section begins
-                4..11                Binary Section Identifier
-                                     (See <a href="#_array_data.binary_id">_array_data.binary_id</a>)
-                                     64-bit, little endian
-               12..19                8+ the size (n) of the 
-                                     binary section in octets
-                                     (i.e. the offset  from octet
-                                     20 to the first byte following
-                                     the data)
-               20..27                Compression type:
-                                       CBF_NONE       0x0040 (64)
-                                       CBF_CANONICAL  0x0050 (80)
-                                       CBF_PACKED     0x0060 (96)
-               28..28+n-1            Binary data (n octets)
-               
-              Only bytes 28..28+n-1 are encoded for an imgCIF file
-              using the indicated Content-Transfer-Encoding.
+
+              None of these octets are included in the calculation of
+              the message size, nor in the calculation of the
+              message digest.
                              
               The X-Binary-Size header specifies the size of the
               equivalent binary data in octets.  If compression was
               used, this size is the size after compression, including
               any book-keeping fields, but not the 8 bytes for the
-              compression type.
+              compression type.  No portion of the header is included
+              in the calculation of the size.
+
+              The X-Binary-Element-Type header specifies the type of
+              binary data in the octets, using the same descriptive
+              phrases as in _array_structure.encoding_type.  The default
+              value is "unsigned 32-bit integer".
               
               An MD5 message digest may, optionally, be used. The &quot;RSA Data
               Security, Inc. MD5 Message-Digest Algorithm&quot; should be used.
+              No portion of the header is included in the calculation of the
+              message digest.
 
-              If the Transfer encoding is &quot;X-BASE-8&quot;, &quot;X-BASE-10&quot;, or
+              If the Transfer Encoding is &quot;X-BASE-8&quot;, &quot;X-BASE-10&quot;, or
               &quot;X-BASE-16&quot;, the data is presented as octal, decimal or
               hexadecimal data organized into lines or words.  Each word
               is created by composing octets of data in fixed groups of
@@ -553,7 +690,7 @@ save_<a name="_array_data.data">_array_data.data</a>
               &quot;wrapped&quot; with a terminating &quot;=&quot; (i.e. the MIME conventions
               for an implicit line terminator are never used).
 ;
-    _item.name                  '<a href="#_array_data.data">_array_data.data</a>'
+    _item.name                  '<a href="#_array_data.data" >_array_data.data</a>'
     _item.category_id             array_data
     _item.mandatory_code          yes
     _item_type.code               binary
@@ -573,7 +710,7 @@ save_ARRAY_STRUCTURE
 ;
     _category.id                   array_structure
     _category.mandatory_code       no
-    _category_key.name             '<a href="#_array_structure.id">_array_structure.id</a>'
+    _category_key.name             '<a href="#_array_structure.id" >_array_structure.id</a>'
     loop_
     _category_group.id             'inclusive_group'
                                    'array_data_group'
@@ -590,35 +727,35 @@ save_ARRAY_STRUCTURE
      save_
 
 
-save_<a name="_array_structure.id">_array_structure.id</a>
+save_<a name="_array_structure.id" >_array_structure.id</a>
     _item_description.description
-;             The value of <a href="#_array_structure.id">_array_structure.id</a> must uniquely identify 
+;             The value of <a href="#_array_structure.id" >_array_structure.id</a> must uniquely identify 
               each item of array data. 
 ;
     loop_
     _item.name                  
     _item.category_id             
     _item.mandatory_code          
-             '<a href="#_array_structure.id">_array_structure.id</a>'              array_structure      yes
-             '<a href="#_array_data.array_id">_array_data.array_id</a>'             array_data           yes
-             '<a href="#_array_structure_list.array_id">_array_structure_list.array_id</a>'   array_structure_list yes
-             '<a href="#_array_intensities.array_id">_array_intensities.array_id</a>'      array_intensities    yes
-             '<a href="#_diffrn_frame_data.array_id">_diffrn_frame_data.array_id</a>'      diffrn_frame_data    yes
+             '<a href="#_array_structure.id" >_array_structure.id</a>'              array_structure      yes
+             '<a href="#_array_data.array_id" >_array_data.array_id</a>'             array_data           yes
+             '<a href="#_array_structure_list.array_id" >_array_structure_list.array_id</a>'   array_structure_list yes
+             '<a href="#_array_intensities.array_id" >_array_intensities.array_id</a>'      array_intensities    yes
+             '<a href="#_diffrn_frame_data.array_id" >_diffrn_frame_data.array_id</a>'      diffrn_frame_data    yes
  
 
     _item_type.code               code
      loop_
     _item_linked.child_name
     _item_linked.parent_name
-             '<a href="#_array_data.array_id">_array_data.array_id</a>'             '<a href="#_array_structure.id">_array_structure.id</a>'
-             '<a href="#_array_structure_list.array_id">_array_structure_list.array_id</a>'   '<a href="#_array_structure.id">_array_structure.id</a>'
-             '<a href="#_array_intensities.array_id">_array_intensities.array_id</a>'      '<a href="#_array_structure.id">_array_structure.id</a>'
-             '<a href="#_diffrn_frame_data.array_id">_diffrn_frame_data.array_id</a>'      '<a href="#_array_structure.id">_array_structure.id</a>'
+             '<a href="#_array_data.array_id" >_array_data.array_id</a>'             '<a href="#_array_structure.id" >_array_structure.id</a>'
+             '<a href="#_array_structure_list.array_id" >_array_structure_list.array_id</a>'   '<a href="#_array_structure.id" >_array_structure.id</a>'
+             '<a href="#_array_intensities.array_id" >_array_intensities.array_id</a>'      '<a href="#_array_structure.id" >_array_structure.id</a>'
+             '<a href="#_diffrn_frame_data.array_id" >_diffrn_frame_data.array_id</a>'      '<a href="#_array_structure.id" >_array_structure.id</a>'
 
      save_
 
 
-save_<a name="_array_structure.byte_order">_array_structure.byte_order</a>
+save_<a name="_array_structure.byte_order" >_array_structure.byte_order</a>
     _item_description.description
 ;
                The order of bytes for integer values which require more
@@ -631,7 +768,7 @@ save_<a name="_array_structure.byte_order">_array_structure.byte_order</a>
                depending on a compiler switch.)
 ;
 
-    _item.name                     '<a href="#_array_structure.byte_order">_array_structure.byte_order</a>'
+    _item.name                     '<a href="#_array_structure.byte_order" >_array_structure.byte_order</a>'
     _item.category_id               array_structure
     _item.mandatory_code            yes 
     _item_type.code                 code
@@ -651,13 +788,13 @@ save_<a name="_array_structure.byte_order">_array_structure.byte_order</a>
      save_
 
 
-save_<a name="_array_structure.compression_type">_array_structure.compression_type</a> 
+save_<a name="_array_structure.compression_type" >_array_structure.compression_type</a> 
     _item_description.description
 ;
               Type of data compression method used to compress the array
               data. 
 ;
-    _item.name                   '<a href="#_array_structure.compression_type">_array_structure.compression_type</a>'
+    _item.name                   '<a href="#_array_structure.compression_type" >_array_structure.compression_type</a>'
     _item.category_id             array_structure
     _item.mandatory_code          no 
     _item_type.code               code
@@ -667,7 +804,7 @@ save_<a name="_array_structure.compression_type">_array_structure.compression_ty
                                   'none'
 ;
         Data are stored in normal format as defined by 
-        <a href="#_array_structure.encoding_type">_array_structure.encoding_type</a> and   <a href="#_array_structure.byte_order">_array_structure.byte_order</a>.
+        <a href="#_array_structure.encoding_type" >_array_structure.encoding_type</a> and   <a href="#_array_structure.byte_order" >_array_structure.byte_order</a>.
 ;
                                 'byte_offsets'
 ;
@@ -676,27 +813,27 @@ save_<a name="_array_structure.compression_type">_array_structure.compression_ty
     save_
 
 
-save_<a name="_array_structure.encoding_type">_array_structure.encoding_type</a>
+save_<a name="_array_structure.encoding_type" >_array_structure.encoding_type</a>
     _item_description.description
 ;
                Data encoding of a single element of array data. 
 ;
 
-    _item.name                '<a href="#_array_structure.encoding_type">_array_structure.encoding_type</a>'
+    _item.name                '<a href="#_array_structure.encoding_type" >_array_structure.encoding_type</a>'
     _item.category_id          array_structure
     _item.mandatory_code       yes 
-    _item_type.code            code
+    _item_type.code            uline
      loop_
     _item_enumeration.value   
-                              'unsigned_8_bit_integer'
-                              'signed_8_bit_integer'
-                              'unsigned_16_bit_integer'
-                              'signed_16_bit_integer'
-                              'unsigned_32_bit_integer'
-                              'signed_32_bit_integer'
-                              '32_bit_real_ieee'
-                              '64_bit_real_ieee'
-                              '32_bit_complex_ieee'
+                              'unsigned 8-bit integer'
+                              'signed 8-bit integer'
+                              'unsigned 16-bit integer'
+                              'signed 16-bit_integer'
+                              'unsigned 32-bit integer'
+                              'signed 32-bit integer'
+                              'signed 32-bit real IEEE'
+                              'signed 64-bit real IEEE'
+                              'signed 32-bit complex IEEE'
      save_
 
 
@@ -714,8 +851,8 @@ save_ARRAY_STRUCTURE_LIST
     _category.id                   array_structure_list
     _category.mandatory_code       no
      loop_
-    _category_key.name             '<a href="#_array_structure_list.array_id">_array_structure_list.array_id</a>'
-                                   '<a href="#_array_structure_list.index">_array_structure_list.index</a>'
+    _category_key.name             '<a href="#_array_structure_list.array_id" >_array_structure_list.array_id</a>'
+                                   '<a href="#_array_structure_list.index" >_array_structure_list.index</a>'
     loop_
     _category_group.id             'inclusive_group'
                                    'array_data_group'
@@ -730,37 +867,37 @@ save_ARRAY_STRUCTURE_LIST
 ;
 ;
         loop_
-       <a href="#_array_structure_list.array_id">_array_structure_list.array_id</a>  
-       <a href="#_array_structure_list.index">_array_structure_list.index</a>
-       <a href="#_array_structure_list.dimension">_array_structure_list.dimension</a> 
-       <a href="#_array_structure_list.precedence">_array_structure_list.precedence</a> 
-       <a href="#_array_structure_list.direction">_array_structure_list.direction</a>
+       <a href="#_array_structure_list.array_id" >_array_structure_list.array_id</a>  
+       <a href="#_array_structure_list.index" >_array_structure_list.index</a>
+       <a href="#_array_structure_list.dimension" >_array_structure_list.dimension</a> 
+       <a href="#_array_structure_list.precedence" >_array_structure_list.precedence</a> 
+       <a href="#_array_structure_list.direction" >_array_structure_list.direction</a>
         image_1   1    1300    1     increasing
         image_1   2    1200    2     decreasing
 ;
      save_
 
 
-save_<a name="_array_structure_list.array_id">_array_structure_list.array_id</a>
+save_<a name="_array_structure_list.array_id" >_array_structure_list.array_id</a>
     _item_description.description
 ;             
-              This item is a pointer to <a href="#_array_structure.id">_array_structure.id</a> in the
+              This item is a pointer to <a href="#_array_structure.id" >_array_structure.id</a> in the
               ATOM_STRUCTURE category. 
 ;
-    _item.name                  '<a href="#_array_structure_list.array_id">_array_structure_list.array_id</a>'
+    _item.name                  '<a href="#_array_structure_list.array_id" >_array_structure_list.array_id</a>'
     _item.category_id             array_structure_list
     _item.mandatory_code          yes
     _item_type.code               code
 save_
 
 
-save_<a name="_array_structure_list.dimension">_array_structure_list.dimension</a>
+save_<a name="_array_structure_list.dimension" >_array_structure_list.dimension</a>
     _item_description.description
 ;              
                The number of elements stored in the array structure in this 
                dimension.
 ;
-    _item.name                '<a href="#_array_structure_list.dimension">_array_structure_list.dimension</a>'
+    _item.name                '<a href="#_array_structure_list.dimension" >_array_structure_list.dimension</a>'
     _item.category_id          array_structure_list
     _item.mandatory_code       yes 
     _item_type.code            int
@@ -771,7 +908,7 @@ save_<a name="_array_structure_list.dimension">_array_structure_list.dimension</
                             .  1
      save_
 
-save_<a name="_array_structure_list.index">_array_structure_list.index</a>
+save_<a name="_array_structure_list.index" >_array_structure_list.index</a>
     _item_description.description
 ;              
                Identifies the one-based index of the row or column in the
@@ -781,17 +918,17 @@ save_<a name="_array_structure_list.index">_array_structure_list.index</a>
     _item.name                
     _item.category_id          
     _item.mandatory_code       
-           '<a href="#_array_structure_list.index">_array_structure_list.index</a>'        array_structure_list   yes
-           '<a href="#_array_structure_list.precedence">_array_structure_list.precedence</a>'   array_structure_list   yes
-           '<a href="#_array_element_size.index">_array_element_size.index</a>'          array_element_size     yes
+           '<a href="#_array_structure_list.index" >_array_structure_list.index</a>'        array_structure_list   yes
+           '<a href="#_array_structure_list.precedence" >_array_structure_list.precedence</a>'   array_structure_list   yes
+           '<a href="#_array_element_size.index" >_array_element_size.index</a>'          array_element_size     yes
 
     _item_type.code            int
 
      loop_
     _item_linked.child_name
     _item_linked.parent_name
-          '<a href="#_array_structure_list.precedence">_array_structure_list.precedence</a>'  '<a href="#_array_structure_list.index">_array_structure_list.index</a>'
-          '<a href="#_array_element_size.index">_array_element_size.index</a>'         '<a href="#_array_structure_list.index">_array_structure_list.index</a>'
+          '<a href="#_array_structure_list.precedence" >_array_structure_list.precedence</a>'  '<a href="#_array_structure_list.index" >_array_structure_list.index</a>'
+          '<a href="#_array_element_size.index" >_array_element_size.index</a>'         '<a href="#_array_structure_list.index" >_array_structure_list.index</a>'
      loop_
     _item_range.maximum           
     _item_range.minimum           
@@ -800,16 +937,16 @@ save_<a name="_array_structure_list.index">_array_structure_list.index</a>
      save_
 
 
-save_<a name="_array_structure_list.precedence">_array_structure_list.precedence</a>
+save_<a name="_array_structure_list.precedence" >_array_structure_list.precedence</a>
     _item_description.description
 ;
                Identifies the rank order in which this array index changes 
                with respect to other array indices.  The precedence of 1  
                indicates the index which changes fastest.
 
-               This item is a pointer to item <a href="#_array_structure_list.index">_array_structure_list.index</a>.
+               This item is a pointer to item <a href="#_array_structure_list.index" >_array_structure_list.index</a>.
 ;
-    _item.name                '<a href="#_array_structure_list.precedence">_array_structure_list.precedence</a>'
+    _item.name                '<a href="#_array_structure_list.precedence" >_array_structure_list.precedence</a>'
     _item.category_id          array_structure_list
     _item.mandatory_code       yes 
     _item_type.code            int
@@ -821,12 +958,12 @@ save_<a name="_array_structure_list.precedence">_array_structure_list.precedence
      save_
 
 
-save_<a name="_array_structure_list.direction">_array_structure_list.direction</a>
+save_<a name="_array_structure_list.direction" >_array_structure_list.direction</a>
     _item_description.description
 ;
               Identifies the direction in which this array index changes.
 ;
-    _item.name                '<a href="#_array_structure_list.direction">_array_structure_list.direction</a>'
+    _item.name                '<a href="#_array_structure_list.direction" >_array_structure_list.direction</a>'
     _item.category_id          array_structure_list
     _item.mandatory_code       yes 
     _item_type.code            int
@@ -858,8 +995,8 @@ save_ARRAY_ELEMENT_SIZE
     _category.id                   array_element_size
     _category.mandatory_code       no
      loop_
-    _category_key.name             '<a href="#_array_element_size.array_id">_array_element_size.array_id</a>'
-                                   '<a href="#_array_element_size.index">_array_element_size.index</a>'
+    _category_key.name             '<a href="#_array_element_size.array_id" >_array_element_size.array_id</a>'
+                                   '<a href="#_array_element_size.index" >_array_element_size.index</a>'
     loop_
     _category_group.id             'inclusive_group'
                                    'array_data_group'
@@ -872,49 +1009,49 @@ save_ARRAY_ELEMENT_SIZE
 ;
 ;
         loop_
-       <a href="#_array_element_size.array_id">_array_element_size.array_id</a>  
-       <a href="#_array_element_size.index">_array_element_size.index</a>
-       <a href="#_array_element_size.size">_array_element_size.size</a>
+       <a href="#_array_element_size.array_id" >_array_element_size.array_id</a>  
+       <a href="#_array_element_size.index" >_array_element_size.index</a>
+       <a href="#_array_element_size.size" >_array_element_size.size</a>
         image_1   1    1.22e-6
         image_1   2    1.22e-6
 ;
      save_
 
 
-save_<a name="_array_element_size.array_id">_array_element_size.array_id</a>
+save_<a name="_array_element_size.array_id" >_array_element_size.array_id</a>
     _item_description.description
 ;             
-              This item is a pointer to <a href="#_array_structure.id">_array_structure.id</a> in the
+              This item is a pointer to <a href="#_array_structure.id" >_array_structure.id</a> in the
               ATOM_STRUCTURE category. 
 ;
-    _item.name                  '<a href="#_array_element_size.array_id">_array_element_size.array_id</a>'
+    _item.name                  '<a href="#_array_element_size.array_id" >_array_element_size.array_id</a>'
     _item.category_id             array_element_size
     _item.mandatory_code          yes
     _item_type.code               code
 save_
 
 
-save_<a name="_array_element_size.index">_array_element_size.index</a>
+save_<a name="_array_element_size.index" >_array_element_size.index</a>
     _item_description.description
 ;             
-              This item is a pointer to <a href="#_array_structure_list.index">_array_structure_list.index</a> in the
+              This item is a pointer to <a href="#_array_structure_list.index" >_array_structure_list.index</a> in the
               ATOM_STRUCTURE_LIST category. 
 ;
-    _item.name                  '<a href="#_array_element_size.index">_array_element_size.index</a>'
+    _item.name                  '<a href="#_array_element_size.index" >_array_element_size.index</a>'
     _item.category_id             array_element_size
     _item.mandatory_code          yes
     _item_type.code               code
 save_
 
 
-save_<a name="_array_element_size.size">_array_element_size.size</a>
+save_<a name="_array_element_size.size" >_array_element_size.size</a>
     _item_description.description
 ;
                The size in meters of an image element in this 
                dimension. This supposes that the elements are arranged
-               on a regular.
+               on a regular grid.
 ;
-    _item.name                 '<a href="#_array_element_size.size">_array_element_size.size</a>'
+    _item.name                 '<a href="#_array_element_size.size" >_array_element_size.size</a>'
     _item.category_id          array_element_size
     _item.mandatory_code       yes 
     _item_type.code            float
@@ -941,8 +1078,8 @@ save_ARRAY_INTENSITIES
     _category.id                   array_intensities
     _category.mandatory_code       no
     loop_
-    _category_key.name             '<a href="#_array_intensities.array_id">_array_intensities.array_id</a>'
-                                   '<a href="#_array_intensities.binary_id">_array_intensities.binary_id</a>'
+    _category_key.name             '<a href="#_array_intensities.array_id" >_array_intensities.array_id</a>'
+                                   '<a href="#_array_intensities.binary_id" >_array_intensities.binary_id</a>'
     loop_
     _category_group.id             'inclusive_group'
                                    'array_data_group'
@@ -954,48 +1091,48 @@ save_ARRAY_INTENSITIES
 ;
 ;
         loop_
-        <a href="#_array_intensities.array_id">_array_intensities.array_id</a>
-        <a href="#_array_intensities.linearity">_array_intensities.linearity</a> 
-        <a href="#_array_intensities.gain">_array_intensities.gain</a>      
-        <a href="#_array_intensities.overload">_array_intensities.overload</a>  
-        _array_intensities.undefined 
+        <a href="#_array_intensities.array_id" >_array_intensities.array_id</a>
+        <a href="#_array_intensities.linearity" >_array_intensities.linearity</a> 
+        <a href="#_array_intensities.gain" >_array_intensities.gain</a>      
+        <a href="#_array_intensities.overload" >_array_intensities.overload</a>  
+        <a href="#_array_intensities.undefined_value" >_array_intensities.undefined_value</a> 
         image_1   linear  1.2    655535   0
 ;
 
     save_
 
-save_<a name="_array_intensities.array_id">_array_intensities.array_id</a>
+save_<a name="_array_intensities.array_id" >_array_intensities.array_id</a>
     _item_description.description
 ;             
-              This item is a pointer to <a href="#_array_structure.id">_array_structure.id</a> in the
+              This item is a pointer to <a href="#_array_structure.id" >_array_structure.id</a> in the
               ATOM_STRUCTURE category. 
 ;
-    _item.name                  '<a href="#_array_intensities.array_id">_array_intensities.array_id</a>'
+    _item.name                  '<a href="#_array_intensities.array_id" >_array_intensities.array_id</a>'
     _item.category_id             array_intensities
     _item.mandatory_code          yes
     _item_type.code               code
 save_
 
-save_<a name="_array_intensities.binary_id">_array_intensities.binary_id</a>
+save_<a name="_array_intensities.binary_id" >_array_intensities.binary_id</a>
     _item_description.description
-;             This item is a pointer to <a href="#_array_data.binary_id">_array_data.binary_id</a> in the
+;             This item is a pointer to <a href="#_array_data.binary_id" >_array_data.binary_id</a> in the
               ARRAY_STRUCTURE category. 
 ;
-    _item.name                  '<a href="#_array_intensities.binary_id">_array_intensities.binary_id</a>'
+    _item.name                  '<a href="#_array_intensities.binary_id" >_array_intensities.binary_id</a>'
     _item.category_id             array_intensities
     _item.mandatory_code          implicit
     _item_type.code               int
 save_
 
 
-save_<a name="_array_intensities.gain">_array_intensities.gain</a>
+save_<a name="_array_intensities.gain" >_array_intensities.gain</a>
     _item_description.description
 ;              
                Detector &quot;gain&quot;. The factor by which linearized 
                intensity values should be divided to produce
                counts.
 ;
-    _item.name                '<a href="#_array_intensities.gain">_array_intensities.gain</a>'
+    _item.name                '<a href="#_array_intensities.gain" >_array_intensities.gain</a>'
     _item.category_id          array_intensities
     _item.mandatory_code       yes
     _item_type.code            float
@@ -1005,29 +1142,29 @@ save_<a name="_array_intensities.gain">_array_intensities.gain</a>
                             .   0.0
      loop_
     _item_related.related_name
-    _item_related.function_code  '<a href="#_array_intensities.gain">_array_intensities.gain</a>'
+    _item_related.function_code  '<a href="#_array_intensities.gain" >_array_intensities.gain</a>'
                                  'associated_value'
     save_
 
-save_<a name="_array_intensities.gain_esd">_array_intensities.gain_esd</a>
+save_<a name="_array_intensities.gain_esd" >_array_intensities.gain_esd</a>
     _item_description.description
 ;              
               The estimated standard deviation in detector &quot;gain&quot;.
 ;
-    _item.name                '<a href="#_array_intensities.gain_esd">_array_intensities.gain_esd</a>'
+    _item.name                '<a href="#_array_intensities.gain_esd" >_array_intensities.gain_esd</a>'
     _item.category_id          array_intensities
     _item.mandatory_code       yes
     _item_type.code            float
 
      loop_
     _item_related.related_name
-    _item_related.function_code  '<a href="#_array_intensities.gain">_array_intensities.gain</a>'
+    _item_related.function_code  '<a href="#_array_intensities.gain" >_array_intensities.gain</a>'
                                  'associated_esd'
     save_
 
 
 
-save_<a name="_array_intensities.linearity">_array_intensities.linearity</a>
+save_<a name="_array_intensities.linearity" >_array_intensities.linearity</a>
     _item_description.description
 ;
                The intensity linearity scaling used from raw intensity
@@ -1036,32 +1173,32 @@ save_<a name="_array_intensities.linearity">_array_intensities.linearity</a>
                'linear' is obvious
 
                'offset'  means that the value defined by 
-               '<a href="#_array_intensities.offset">_array_intensities.offset</a>' should be added to each
+               '<a href="#_array_intensities.offset" >_array_intensities.offset</a>' should be added to each
                 element value.  
 
                'scaling' means that the value defined by 
-               '_array_intensity.scaling' should be multiplied with each 
+               '_array_intensities.scaling' should be multiplied with each 
                element value.  
 
                'scaling_offset' is the combination of the two previous cases, 
                with the scale factor applied before the offset value.
 
                'sqrt_scaled' means that the square root of raw 
-               intensities multiplied by '_array_intensity.scaling' is
+               intensities multiplied by '_array_intensities.scaling' is
                calculated and stored, perhaps rounded to the nearest 
                integer. Thus, linearization involves dividing the stored
-               values by '_array_intensity.scaling' and squaring the 
+               values by '_array_intensities.scaling' and squaring the 
                result. 
 
                'logarithmic_scaled' means that the logarithm based 10 of
-               raw intensities multiplied by '_array_intensity.scaling' 
+               raw intensities multiplied by '_array_intensities.scaling' 
                is calculated and stored, perhaps rounded to the nearest 
                integer. Thus, linearization involves dividing the stored
-               values by '_array_intensity.scaling' and calculating 10
+               values by '_array_intensities.scaling' and calculating 10
                to the power of this number.
 ;
 
-    _item.name                 '<a href="#_array_intensities.linearity">_array_intensities.linearity</a>'
+    _item.name                 '<a href="#_array_intensities.linearity" >_array_intensities.linearity</a>'
     _item.category_id          array_intensities
     _item.mandatory_code       yes
     _item_type.code            code
@@ -1071,12 +1208,12 @@ save_<a name="_array_intensities.linearity">_array_intensities.linearity</a>
                               'linear' .
                               'offset'           
 ;
-               The value defined by  '<a href="#_array_intensities.offset">_array_intensities.offset</a>' should 
+               The value defined by  '<a href="#_array_intensities.offset" >_array_intensities.offset</a>' should 
                be added to each element value.  
 ;
                               'scaling'
 ;
-               The value defined by '_array_intensity.scaling' should be 
+               The value defined by '_array_intensities.scaling' should be 
                multiplied with each element value.  
 ;
                               'scaling_offset'   
@@ -1087,179 +1224,609 @@ save_<a name="_array_intensities.linearity">_array_intensities.linearity</a>
                               'sqrt_scaled'      
 ;
                The square root of raw intensities multiplied by 
-               '_array_intensity.scaling' is calculated and stored, 
+               '_array_intensities.scaling' is calculated and stored, 
                perhaps rounded to the nearest integer. Thus, 
                linearization involves dividing the stored
-               values by '_array_intensity.scaling' and squaring the 
+               values by '_array_intensities.scaling' and squaring the 
                result. 
 ;
                               'logarithmic_scaled'
 ;
                The logarithm based 10 of raw intensities multiplied by 
-               '_array_intensity.scaling'  is calculated and stored, 
+               '_array_intensities.scaling'  is calculated and stored, 
                perhaps rounded to the nearest integer. Thus, 
                linearization involves dividing the stored values by 
-               '_array_intensity.scaling' and calculating 10 to the 
+               '_array_intensities.scaling' and calculating 10 to the 
                power of this number.
 ;
 
     save_
 
-save_<a name="_array_intensities.offset">_array_intensities.offset</a>
+save_<a name="_array_intensities.offset" >_array_intensities.offset</a>
     _item_description.description
 ;
                Offset value to add to array element values in the manner
-               described by item <a href="#_array_intensities.linearity">_array_intensities.linearity</a>.
+               described by item <a href="#_array_intensities.linearity" >_array_intensities.linearity</a>.
 ;
-    _item.name                 '<a href="#_array_intensities.offset">_array_intensities.offset</a>'
+    _item.name                 '<a href="#_array_intensities.offset" >_array_intensities.offset</a>'
     _item.category_id          array_intensities
     _item.mandatory_code       no
     _item_type.code            float
     save_
 
-save_<a name="_array_intensities.scaling">_array_intensities.scaling</a>
+save_<a name="_array_intensities.scaling" >_array_intensities.scaling</a>
     _item_description.description
 ;
                Multiplicative scaling value to be applied to array data
-               in the manner described by item <a href="#_array_intensities.linearity">_array_intensities.linearity</a>.
+               in the manner described by item <a href="#_array_intensities.linearity" >_array_intensities.linearity</a>.
 ;
-    _item.name                 '<a href="#_array_intensities.scaling">_array_intensities.scaling</a>'
+    _item.name                 '<a href="#_array_intensities.scaling" >_array_intensities.scaling</a>'
     _item.category_id          array_intensities
     _item.mandatory_code       no
     _item_type.code            float
     save_
 
 
-save_<a name="_array_intensities.overload">_array_intensities.overload</a>
+save_<a name="_array_intensities.overload" >_array_intensities.overload</a>
     _item_description.description
 ;
                The saturation intensity level for this data array.
 ;
-    _item.name                 '<a href="#_array_intensities.overload">_array_intensities.overload</a>'
+    _item.name                 '<a href="#_array_intensities.overload" >_array_intensities.overload</a>'
     _item.category_id          array_intensities
     _item.mandatory_code       no
     _item_type.code            float
     save_
 
-save_<a name="_array_intensities.undefined_value">_array_intensities.undefined_value</a>
+save_<a name="_array_intensities.undefined_value" >_array_intensities.undefined_value</a>
     _item_description.description
 ;
                A value to be substituted for undefined values in 
                the data array.
 ;
-    _item.name                 '<a href="#_array_intensities.undefined_value">_array_intensities.undefined_value</a>'
+    _item.name                 '<a href="#_array_intensities.undefined_value" >_array_intensities.undefined_value</a>'
     _item.category_id          array_intensities
     _item.mandatory_code       no
     _item_type.code            float
     save_
 
 
-#####################
-# <a name="DIFFRN_FRAME_DATA">DIFFRN_FRAME_DATA</a> #
-#####################
+########
+# <a name="AXIS">AXIS</a> #
+########
 
-
-save_DIFFRN_FRAME_DATA
+save_AXIS
     _category.description
 ;
-              Data items in the DIFFRN_FRAME_DATA category record
-              the details about each frame of data.  A frame may
-              hold 
+     Data items in the AXIS category record the information required
+     to describe the various goniometer, detector, source and other
+     axes needed to specify a data collection.  The location of each
+     axis is specified by two vectors: the axis itself, given as a unit
+     vector, and an offset to the base of the unit vector.  These vectors
+     are referenced to a right-handed laboratory coordinate system with
+     its origin in the sample:
+     
+                             | Y (to complete right-handed system)
+                             |
+                             |
+                             |
+                             |
+                             |
+                             |________________X
+                            /       principal goniometer axis
+                           /
+                          /
+                         /
+                        /
+                       /Z (to source)
+
+
+
+                                                      
+     Axis 1 (X): The X-axis is aligned to the mechanical axis pointing from
+     the sample along the  principal axis of the goniometer.
+     
+     Axis 2 (Y): The Y-axis completes an orthogonal right-handed system
+     defined by the X-axis and the Z-axis (see below).
+     
+     Axis 3 (Z): The Z-axis is derived from the source axis which goes from 
+     the sample to the source.  The Z-axis is the component of the source axis
+     in the direction of the source  orthogonal to the X-axis in the plane 
+     defined by the X-axis and the source axis.
+          
+     These axes are based on the goniometer, not on the orientation of the 
+     detector, gravity, etc.  The vectors necessary to specify all other
+     axes are given by sets of three components in the order (X, Y, Z).
+     If the axis involved is a rotation axis, it is right handed, i.e. as
+     one views the object to be rotated from the origin (the tail) of the 
+     unit vector, the rotation is clockwise.  If a translation axis is
+     specified, the direction of the unit vector specifies the sense of
+     positive translation.
+     
+     For simplicity, all rotations are given in degrees and all translation
+     are given in mm.
+     
+     Axes may be dependent on one another.  The X-axis is the only goniometer
+     axis the direction of which is strictly connected to the hardware.  All
+     other axes are specified by the positions they would assume when the
+     axes upon which they depend are at their zero points.
+     
+     When specifying detector axes, the axis is given to the beam center.
+     The location of the beam center on the detector should be given in the
+     DIFFRN_DETECTOR category in distortion-corrected mm from the (0,0) corner
+     of the detector.
 ;
-    _category.id                   diffrn_frame_data
+    _category.id                   axis
     _category.mandatory_code       no
      loop_
-    _category_key.name             '<a href="#_diffrn_frame_data.id">_diffrn_frame_data.id</a>'
-                                   '<a href="#_diffrn_frame_data.detector_element_id">_diffrn_frame_data.detector_element_id</a>'
-    loop_
-    _category_group.id             'inclusive_group'
-                                   'array_data_group'
+    _category_key.name          '<a href="#_axis.id" >_axis.id</a>' 
+                                '_axis.equipment'               
+     loop_
+    _category_group.id           'inclusive_group'
+                                 'axis_group'
+                                 'diffrn_group'
     loop_
     _category_examples.detail
     _category_examples.case
 ;
-        Example 1: A frame containing data from 4 frame elements.
-                   Each frame element has a common array configuration
-                   'array_1' described in ARRAY_STRUCTURE and related
-                   categories.  The data for each detector element is 
-                   stored in four groups of binary data in the
-                   ARRAY_DATA category, linked by the array_id and
-                   binary_id
+        Example 1:
+        
+        This example show the axis specification of the axes of a kappa
+        geometry goniometer (See "X-Ray Structure Deptermination, A Practical
+        Guide", 2nd ed. by  G. H. Stout, L. H. Jensen, Wiley Interscience,
+        1989, 453 pp, p 134.).
+        
+        There are three axies specified, and no offsets.  The outermost axis,
+        omega, is pointed along the X-axis.  The next innermost axis, kappa,
+        is at a 50 dgeree angle to the X-axis, pointed away from the source.
+        The innermost axis, phi, aligns with the X-axis when omega and
+        phi are at their zero-points.  If T-omega, T-kappa and T-phi
+        are the ttransormation matrixes derived from the axis settings,
+        the complete transformation would be:
+            x' = (T-omega) (T-kappa) (T-phi) x
+;
+;
+         loop_
+        <a href="#_axis.id" >_axis.id</a>
+        <a href="#_axis.type" >_axis.type</a>
+        <a href="#_axis.equipment" >_axis.equipment</a>
+        <a href="#_axis.depends_on" >_axis.depends_on</a>
+        <a href="#_axis.vector[1]" >_axis.vector[1]</a> <a href="#_axis.vector[2]" >_axis.vector[2]</a> <a href="#_axis.vector[3]" >_axis.vector[3]</a>
+        omega rotation goniometer     .    1        0        0
+        kappa rotation goniometer omega    -.64279  0       -.76604
+        phi   rotation goniometer kappa    1        0        0   
+;
+
+;
+        Example 2:
+        
+        This example show the axis specification of the axes of a
+        detector, source and gravity.  We have juggled the order as a
+        reminder that the ordering of presentation of tokens is not
+        significant.  We have taken the center of rotation of the detector
+        to be 68 millimeters in the direction away from the source.
 ;
 ;
         loop_
-        <a href="#_diffrn_frame_data.id">_diffrn_frame_data.id</a>
-        <a href="#_diffrn_frame_data.detector_element_id">_diffrn_frame_data.detector_element_id</a>
-        <a href="#_diffrn_frame_data.array_id">_diffrn_frame_data.array_id</a>
-        <a href="#_diffrn_frame_data.binary_id">_diffrn_frame_data.binary_id</a>
-        frame_1   d1_ccd_1  array_1  1  
-        frame_1   d1_ccd_2  array_1  2 
-        frame_1   d1_ccd_3  array_1  3 
-        frame_1   d1_ccd_3  array_1  4 
+        <a href="#_axis.id" >_axis.id</a>
+        <a href="#_axis.type" >_axis.type</a>
+        <a href="#_axis.equipment" >_axis.equipment</a>
+        <a href="#_axis.depends_on" >_axis.depends_on</a>
+        <a href="#_axis.vector[1]" >_axis.vector[1]</a> <a href="#_axis.vector[2]" >_axis.vector[2]</a> <a href="#_axis.vector[3]" >_axis.vector[3]</a>
+        _axis.offset[1] _axis.offset[2] _axis.offset[3]
+        source       .        source     .       0     0     1   . . .
+        gravity      .        gravity    .       0    -1     0   . . .
+        tranz     translation detector rotz      0     0     1   0 0 -68
+        twotheta  rotation    detector   .       1     0     0   . . .
+        roty      rotation    detector twotheta  0     1     0   0 0 -68
+        rotz      rotation    detector roty      0     0     1   0 0 -68
 ;
 
-    save_
 
-
-save_<a name="_diffrn_frame_data.array_id">_diffrn_frame_data.array_id</a>
-    _item_description.description
-;             
-              This item is a pointer to <a href="#_array_structure.id">_array_structure.id</a> in the
-              ARRAY_STRUCTURE category. 
-;
-    _item.name                  '<a href="#_diffrn_frame_data.array_id">_diffrn_frame_data.array_id</a>'
-    _item.category_id             diffrn_frame_data
-    _item.mandatory_code          yes
-    _item_type.code               code
-save_
-
-     
-save_<a name="_diffrn_frame_data.binary_id">_diffrn_frame_data.binary_id</a>
-    _item_description.description
-;             This item is a pointer to <a href="#_array_data.binary_id">_array_data.binary_id</a> in the
-              ARRAY_STRUCTURE category. 
-;
-    _item.name                  '<a href="#_diffrn_frame_data.binary_id">_diffrn_frame_data.binary_id</a>'
-    _item.category_id             diffrn_frame_data
-    _item.mandatory_code          implicit
-    _item_type.code               int
 save_
 
 
-
-save_<a name="_diffrn_frame_data.detector_element_id">_diffrn_frame_data.detector_element_id</a>
+save_<a name="_axis.depends_on" >_axis.depends_on</a>
     _item_description.description
-;             
-               This item is a pointer to _diffrn_frame_element.id
-               in the DIFFRN_FRAME_ELEMENT category. 
+;             The value of  <a href="#_axis.type" >_axis.type</a></a> specifies next next outermost
+              axis upon which this axis depends.
+              
+              This item is a point to axis.id in the same category.
 ;
-    _item.name                  '<a href="#_diffrn_frame_data.detector_element_id">_diffrn_frame_data.detector_element_id</a>'
-    _item.category_id             diffrn_frame_data
-    _item.mandatory_code          yes
-    _item_type.code               code
-save_
+    _item.name                      '_axis.depends_on'
+    _item.category_id                 axis
+    _item.mandatory_code              no
 
+     save_
 
-save_<a name="_diffrn_frame_data.id">_diffrn_frame_data.id</a>
+save_<a name="_axis.equipment" >_axis.equipment</a>
     _item_description.description
-;             
-              The value of <a href="#_diffrn_frame_data.id">_diffrn_frame_data.id</a> must uniquely identify
-              each complete frame of data.
+;             The value of  <a href="#_axis.type" >_axis.type</a></a> specifies the type of equipment
+              using the axis:  goniometer, detector, gravity, source
+              or general
 ;
+    _item.name                      '_axis.equipment'
+    _item.category_id                 axis
+    _item.mandatory_code              no
+    _item_type.code                   ucode
+    _item_default.value               general
      loop_
-    _item.name                
-    _item.category_id          
-    _item.mandatory_code       
-           '<a href="#_diffrn_frame_data.id">_diffrn_frame_data.id</a>'        diffrn_frame_data  yes
-           '<a href="#_diffrn_refln.frame_id">_diffrn_refln.frame_id</a>'       diffrn_refln       yes
+    _item_enumeration.value
+    _item_enumeration.detail   goniometer
+                              'equipment used to orient or position samples'
+                               detector
+                              'equipment used to detect reflections'
+                               general
+                              'equipment used for general purposes'
+                               gravity
+                              'axis specifying the downward direction'
+                               source
+                              'axis specifying the direction sample to source'
+
+     save_
+
+save_<a name="_axis.offset[1]" >_axis.offset[1]</a>
+    _item_description.description
+;              The [1] element of the 3 element vector used to specify
+               the offset to the base of a rotation or translation axis.
+               
+               The vector is specified in millimeters
+;
+    _item.name                  '_axis.offset[1]'
+    _item.category_id             axis
+    _item.mandatory_code          no
+    _item_default.value           0.0
+    _item_sub_category.id         vector
+    _item_type.code               float
+    _item_units.code              millimetres
+     save_
+
+save_<a name="_axis.offset[2]" >_axis.offset[2]</a>
+    _item_description.description
+;              The [2] element of the 3 element vector used to specify
+               the offset to the base of a rotation or translation axis.
+               
+               The vector is specified in millimeters
+;
+    _item.name                  '_axis.offset[2]'
+    _item.category_id             axis
+    _item.mandatory_code          no
+    _item_default.value           0.0
+    _item_sub_category.id         vector
+    _item_type.code               float
+    _item_units.code              millimetres
+     save_
+
+save_<a name="_axis.offset[3]" >_axis.offset[3]</a>
+    _item_description.description
+;              The [3] element of the 3 element vector used to specify
+               the offset to the base of a rotation or translation axis.
+               
+               The vector is specified in millimeters
+;
+    _item.name                  '_axis.offset[3]'
+    _item.category_id             axis
+    _item.mandatory_code          no
+    _item_default.value           0.0
+    _item_sub_category.id         vector
+    _item_type.code               float
+    _item_units.code              millimetres
+     save_
+
+save_<a name="_axis.id" >_axis.id</a></a>
+    _item_description.description
+;             The value of <a href="#_axis.id" >_axis.id</a> must uniquely identify
+              each axis relevant to the experiment.  Note that multiple
+              pieces of equipment may share the same axis (e.g. a twotheta
+              arm), so that the category key for AXIS also includes the
+              equipment.
+;
+    loop_
+    _item.name
+    _item.category_id
+    _item.mandatory_code
+         '<a href="#_axis.id" >_axis.id</a>'                         axis                   yes
+         '<a href="#_diffrn_detector_axis.axis_id" >_diffrn_detector_axis.axis_id</a>'    diffrn_detector_axis   yes
+         '<a href="#_diffrn_measurement_axis.axis_id" >_diffrn_measurement_axis.axis_id</a>' diffrn_measurment-axis yes
+         '<a href="#_diffrn_scan_axis.axis_id" >_diffrn_scan_axis.axis_id</a>'        diffrn_scan_axis       yes
+         '<a href="_diffrn_scan_frame_axis.axis_id" >_diffrn_scan_frame_axis.axis_id</a>'  diffrn_scan_frame_axis yes
+
     _item_type.code               code
      loop_
     _item_linked.child_name
     _item_linked.parent_name
-           '<a href="#_diffrn_refln.frame_id">_diffrn_refln.frame_id</a>'   '<a href="#_diffrn_frame_data.id">_diffrn_frame_data.id</a>'
+         '<a href="#_axis.depends_on" >_axis.depends_on</a>'                   '<a href="#_axis.id" >_axis.id</a>'
+         '<a href="#_diffrn_detector_axis.axis_id" >_diffrn_detector_axis.axis_id</a>'      '<a href="#_axis.id" >_axis.id</a>'
+         '<a href="#_diffrn_measurement_axis.axis_id" >_diffrn_measurement_axis.axis_id</a>'   '<a href="#_axis.id" >_axis.id</a>'
+         '<a href="_diffrn_scan_axis.axis_id" >_diffrn_scan_axis.axis_id</a>'          '<a href="#_axis.id" >_axis.id</a>'      
+         '<a href="_diffrn_scan_frame_axis.axis_id" >_diffrn_scan_frame_axis.axis_id</a>'    '<a href="#_axis.id" >_axis.id</a>'
 
+     save_
+
+save_<a name="_axis.type" >_axis.type</a>
+    _item_description.description
+;             The value of <a href="#_axis.type" >_axis.type</a></a> specifies the type of
+              axis:  rotation, translation (or general when the type is
+              not relevant, as for gravity)
+;
+    _item.name                      '_axis.type'
+    _item.category_id                 axis
+    _item.mandatory_code              no
+    _item_type.code                   ucode
+    _item_default.value               general
+     loop_
+    _item_enumeration.value
+    _item_enumeration.detail      rotation
+                                 'right-handed axis of rotation'
+                                  translation
+                                 'translation in the direction of the axis'
+                                  general
+                                 'axis for which the type is not relevant'
+
+     save_
+
+
+save_<a name="_axis.vector[1]" >_axis.vector[1]</a>
+    _item_description.description
+;              The [1] element of the 3 element vector used to specify
+               the direction of a rotation or translation axis.
+               The vector should be normalized to be a unit vector.
+;
+    _item.name                  '<a href="#_axis.vector[1]" >_axis.vector[1]</a>'
+    _item.category_id             axis
+    _item.mandatory_code          no
+    _item_default.value           0.0
+    _item_sub_category.id         vector
+    _item_type.code               float
+     save_
+
+save_<a name="_axis.vector[2]" >_axis.vector[2]</a>
+    _item_description.description
+;              The [2] element of the 3 element vector used to specify
+               the direction of a rotation or translation axis.
+               The vector should be normalized to be a unit vector.
+;
+    _item.name                  '<a href="#_axis.vector[2]" >_axis.vector[2]</a>'
+    _item.category_id             axis
+    _item.mandatory_code          no
+    _item_default.value           0.0
+    _item_sub_category.id         vector
+    _item_type.code               float
+     save_
+
+save_<a name="_axis.vector[3]" >_axis.vector[3]</a>
+    _item_description.description
+;              The [3] element of the 3 element vector used to specify
+               the direction of a rotation or translation axis.
+               The vector should be normalized to be a unit vector, and
+               is dimensionless.
+;
+    _item.name                  '<a href="#_axis.vector[3]" >_axis.vector[3]</a>'
+    _item.category_id             axis
+    _item.mandatory_code          no
+    _item_default.value           0.0
+    _item_sub_category.id         vector
+    _item_type.code               float
+     save_
+
+
+
+
+##########################################################################
+#  The following is a restatement of the mmCIF DIFFRN_DETECTOR and       #
+#  DIFFRN_MEASUREMENT categories, modified for the CBF/imgCIF extensions #
+##########################################################################
+
+###################
+# <a name="DIFFRN_DETECTOR">DIFFRN_DETECTOR</a> #
+###################
+
+save_DIFFRN_DETECTOR
+    _category.description
+;              Data items in the DIFFRN_DETECTOR category describe the 
+               detector used to measure the scattered radiation, including
+               any analyser and post-sample collimation.
+;
+    _category.id                  diffrn_detector
+    _category.mandatory_code      no
+     loop_
+    _category_key.name          '<a href="#_diffrn_detector.diffrn_id" >_diffrn_detector.diffrn_id</a>'
+                                '<a href="#_diffrn_detector.id" >_diffrn_detector.id</a>'
+     loop_
+    _category_group.id           'inclusive_group'
+                                 'diffrn_group'
+     loop_
+    _category_examples.detail
+    _category_examples.case
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+;
+    Example 1 - based on PDB entry 5HVP and laboratory records for the
+                structure corresponding to PDB entry 5HVP
+;
+;
+    <a href="#_diffrn_detector.diffrn_id" >_diffrn_detector.diffrn_id</a>             'd1'
+    <a href="#_diffrn_detector.detector" >_diffrn_detector.detector</a>              'multiwire'
+    <a href="#_diffrn_detector.type" >_diffrn_detector.type</a>                  'Siemens'
+;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     save_
+
+save_<a name="_diffrn_detector.details" >_diffrn_detector.details</a>
+    _item_description.description
+;              A description of special aspects of the radiation detector.
+;
+    _item.name                  '<a href="#_diffrn_detector.details" >_diffrn_detector.details</a>'
+    _item.category_id             diffrn_detector
+    _item.mandatory_code          no
+    _item_aliases.alias_name    '_diffrn_detector_details'
+    _item_aliases.dictionary      cif_core.dic
+    _item_aliases.version         2.0.1
+    _item_type.code               text
+    _item_examples.case
+;                                 Need new example here.
+;
+     save_
+
+save_<a name="_diffrn_detector.detector" >_diffrn_detector.detector</a>
+    _item_description.description
+;              The general class of the radiation detector.
+;
+    _item.name                  '<a href="#_diffrn_detector.detector" >_diffrn_detector.detector</a>'
+    _item.category_id             diffrn_detector
+    _item.mandatory_code          no
+     loop_
+    _item_aliases.alias_name
+    _item_aliases.dictionary
+    _item_aliases.version       '_diffrn_radiation_detector'
+                                  cifdic.c91
+                                  1.0
+                                '_diffrn_detector'
+                                  cif_core.dic
+                                  2.0
+    _item_type.code               text
+     loop_
+    _item_examples.case          'photographic film'
+                                 'scintillation counter'
+                                 'CCD plate'
+                                 'BF~3~ counter'
+     save_
+
+save_<a name="_diffrn_detector.diffrn_id" >_diffrn_detector.diffrn_id</a>
+    _item_description.description
+;              This data item is a pointer to _diffrn.id in the DIFFRN
+               category.
+
+               The value of _diffrn.id uniquely defines a set of
+               diffraction data.
+;
+    _item.name                  '<a href="#_diffrn_detector.diffrn_id" >_diffrn_detector.diffrn_id</a>'
+    _item.mandatory_code          yes
+     save_
+
+save_<a name="_diffrn_detector.dtime" >_diffrn_detector.dtime</a>
+    _item_description.description
+;              The deadtime in microseconds of the detectors used to measure
+               the diffraction intensities.
+;
+    _item.name                  '<a href="#_diffrn_detector.dtime" >_diffrn_detector.dtime</a>'
+    _item.category_id             diffrn_detector
+    _item.mandatory_code          no
+     loop_
+    _item_aliases.alias_name
+    _item_aliases.dictionary
+    _item_aliases.version       '_diffrn_radiation_detector_dtime'
+                                  cifdic.c91
+                                  1.0
+                                '_diffrn_detector_dtime'
+                                  cif_core.dic
+                                  2.0
+     loop_  
+    _item_range.maximum           
+    _item_range.minimum            .    0.0
+                                  0.0   0.0
+    _item_type.code               float
+    _item_units.code              microseconds
+     save_
+
+save_<a name="_diffrn_detector.id" >_diffrn_detector.id</a>
+    _item_description.description
+;             
+               The value of <a href="#_diffrn_detector.id" >_diffrn_detector.id</a> must uniquely identify
+               each detector used to collect each diffraction data set.
+
+               If the value of <a href="#_diffrn_detector.id" >_diffrn_detector.id</a> is not given, it is
+               implicitly equal to the value of <a href="#_diffrn_detector.diffrn_id" >_diffrn_detector.diffrn_id</a>
+;
+     loop_
+    _item.name                 
+    _item.category_id
+    _item.mandatory_code
+             '<a href="#_diffrn_detector.id" >_diffrn_detector.id</a>'         diffrn_detector       implicit
+             '<a href="#_diffrn_detector_axis.id" >_diffrn_detector_axis.id</a>'    diffrn_detector_axis       yes
+     loop_
+    _item_linked.child_name
+    _item_linked.parent_name
+             '<a href="#_diffrn_detector_axis.id" >_diffrn_detector_axis.id</a>'     '_diffrn_detector.id'
+
+    _item_type.code               code
 save_
 
+save_<a name="_diffrn_detector.number_of_axes" >_diffrn_detector.number_of_axes</a>
+    _item_description.description
+;             
+               The value of <a href="#_diffrn_detector.number_of_axes" >_diffrn_detector.number_of_axes</a> gives the 
+               number of axes  of the positioner for the detector identified 
+               by  <a href="#_diffrn_detector.id" >_diffrn_detector.id</a>
+
+               The desription of each axis should be provided by entries 
+               in DIFFRN_DETECTOR_AXIS.
+;
+    _item.name                  '<a href="#_diffrn_detector.number_of_axes" >_diffrn_detector.number_of_axes</a>'
+    _item.category_id             diffrn_detector
+    _item.mandatory_code          no
+     loop_
+    _item_range.maximum
+    _item_range.minimum           .   1
+                                  1   1
+    _item_type.code               int
+save_
+
+
+save_<a name="_diffrn_detector.type" >_diffrn_detector.type</a>
+    _item_description.description
+;              The make, model or name of the detector device used.
+;
+    _item.name                  '<a href="#_diffrn_detector.type" >_diffrn_detector.type</a>'
+    _item.category_id             diffrn_detector
+    _item.mandatory_code          no
+    _item_aliases.alias_name    '_diffrn_detector_type'
+    _item_aliases.dictionary      cif_core.dic
+    _item_aliases.version         2.0.1
+    _item_type.code               text
+     save_
+
+########################
+# <a name="DIFFRN_DETECTOR_AXIS" >DIFFRN_DETECTOR_AXIS</a> #
+########################
+
+save_DIFFRN_DETECTOR_AXIS
+    _category.description
+;
+     Data items in the DIFFRN_DETECTOR_AXIS category associate
+     axes with detectors.
+;
+    _category.id                   diffrn_detector_axis
+    _category.mandatory_code       no
+     loop_
+    _category_key.name          '<a href="#_diffrn_detector_axis.id" >_diffrn_detector_axis.id</a>'
+                                '_diffrn_detector_axis.axis_id'
+     loop_
+    _category_group.id           'inclusive_group'
+                                 'diffrn_group'
+save_
+
+save_<a name="_diffrn_detector_axis.id" >_diffrn_detector_axis.id</a>
+    _item_description.description
+;
+               This data item is a pointer to <a href="#_diffrn_detector.id" >_diffrn_detector.id</a> in
+               the DIFFRN_DETECTOR category.
+;
+    _item.name                  '<a href="#_diffrn_detector_axis.id" >_diffrn_detector_axis.id</a>'
+    _item.category_id             diffrn_detector_axis
+    _item.mandatory_code          yes
+save_
+
+save__diffrn_detector_axis.axis_id
+    _item_description.description
+;
+               This data item is a pointer to <a href="#_axis.id" >_axis.id</a> in
+               the AXIS category.
+;
+    _item.name                  '_diffrn_detector_axis.axis_id'
+    _item.category_id             diffrn_detector_axis
+    _item.mandatory_code          yes
+    _item_type.code               code
+save_
 
 ###########################
 # <a name="DIFFRN_DETECTOR_ELEMENT">DIFFRN_DETECTOR_ELEMENT</a> #
@@ -1284,8 +1851,8 @@ save_DIFFRN_DETECTOR_ELEMENT
     _category.id                   diffrn_detector_element
     _category.mandatory_code       no
      loop_
-    _category_key.name             '<a href="#_diffrn_detector_element.id">_diffrn_detector_element.id</a>'
-                                   '<a href="#_diffrn_detector_element.detector_id">_diffrn_detector_element.detector_id</a>'
+    _category_key.name             '<a href="#_diffrn_detector_element.id" >_diffrn_detector_element.id</a>'
+                                   '<a href="#_diffrn_detector_element.detector_id" >_diffrn_detector_element.detector_id</a>'
     loop_
     _category_group.id             'inclusive_group'
                                    'array_data_group'
@@ -1293,89 +1860,477 @@ save_DIFFRN_DETECTOR_ELEMENT
     _category_examples.detail
     _category_examples.case
 ;
-        Example 1: Detector d1 is composed of four CCD detector elements.
+        Example 1: Detector d1 is composed of four CCD detector elements,
+        each 200 mm by 200 mm, arranged in a square. in the pattern
+                    
+                   1     2
+                      *
+                   3     4
+
+        Note that the beam center is slightly off of each of the
+        detector elements, just beyond the lower right corner of 1,
+        the lower left corner of 2, the upper right corner of 3 and
+        the upper left corner of 4.
 ;
 ;
         loop_
-        <a href="#_diffrn_detector_element.id">_diffrn_detector_element.id</a>
-        <a href="#_diffrn_detector_element.detector_id">_diffrn_detector_element.detector_id</a>
-        d1     d1_ccd_1  
-        d1     d1_ccd_2  
-        d1     d1_ccd_3        
-        d1     d1_ccd_3  
+        <a href="#_diffrn_detector_element.id" >_diffrn_detector_element.id</a>
+        <a href="#_diffrn_detector_element.detector_id" >_diffrn_detector_element.detector_id</a>
+        <a href="#_diffrn_detector_element.center[1]" >_diffrn_detector_element.center[1]</a>
+        <a href="#_diffrn_detector_element.center[2]" >_diffrn_detector_element.center[2]</a>
+        d1     d1_ccd_1  201.5 -1.5
+        d1     d1_ccd_2  -1.8  -1.5
+        d1     d1_ccd_3  201.6 201.4    
+        d1     d1_ccd_4  -1.7  201.5
 ;
 
     save_
 
 
-save_<a name="_diffrn_detector_element.id">_diffrn_detector_element.id</a>
+save_<a name="_diffrn_detector_element.center[1]" >_diffrn_detector_element.center[1]</a>
     _item_description.description
 ;             
-              The value of <a href="#_diffrn_detector_element.id">_diffrn_detector_element.id</a> must uniquely identify
+              The value of <a href="#_diffrn_detector_element.center[1]" >_diffrn_detector_element.center[1]</a> is the X component
+              of the distortion-corrected beam-center in mm from the
+              (0, 0) (lower left) corner of the detector element viewed from 
+              the sample side.
+;
+    _item.name                  '<a href="#_diffrn_detector_element.center[1]" >_diffrn_detector_element.center[1]</a>'
+    _item.category_id             diffrn_detector_element
+    _item.mandatory_code          no
+    _item_default.value           0.0
+    _item_sub_category.id         vector
+    _item_type.code               float
+    _item_units.code              millimetres
+
+    save_
+    
+save_<a name="_diffrn_detector_element.center[2]" >_diffrn_detector_element.center[2]</a>
+    _item_description.description
+;             
+              The value of <a href="#_diffrn_detector_element.center[2]" >_diffrn_detector_element.center[2]</a> is the Y component
+              of the distortion-corrected beam-center in mm from the
+              (0, 0) (lower left) corner of the detector element viewed from 
+              the sample side.
+;
+    _item.name                  '<a href="#_diffrn_detector_element.center[2]" >_diffrn_detector_element.center[2]</a>'
+    _item.category_id             diffrn_detector_element
+    _item.mandatory_code          no
+    _item_default.value           0.0
+    _item_sub_category.id         vector
+    _item_type.code               float
+    _item_units.code              millimetres
+
+    save_
+
+save_<a name="_diffrn_detector_element.id" >_diffrn_detector_element.id</a>
+    _item_description.description
+;             
+              The value of <a href="#_diffrn_detector_element.id" >_diffrn_detector_element.id</a> must uniquely identify
               each element of a detector.
 ;
      loop_
     _item.name                
     _item.category_id          
     _item.mandatory_code       
-           '<a href="#_diffrn_detector_element.id">_diffrn_detector_element.id</a>'
+           '<a href="#_diffrn_detector_element.id" >_diffrn_detector_element.id</a>'
            diffrn_detector_element
            yes
     _item_type.code               code
      loop_
     _item_linked.child_name
     _item_linked.parent_name
-           '<a href="#_diffrn_frame_data.detector_element_id">_diffrn_frame_data.detector_element_id</a>'
-           '<a href="#_diffrn_detector_element.id">_diffrn_detector_element.id</a>'
+           '<a href="#_diffrn_frame_data.detector_element_id" >_diffrn_frame_data.detector_element_id</a>'
+           '<a href="#_diffrn_detector_element.id" >_diffrn_detector_element.id</a>'
 
 save_
 
-save_<a name="_diffrn_detector_element.detector_id">_diffrn_detector_element.detector_id</a>
+save_<a name="_diffrn_detector_element.detector_id" >_diffrn_detector_element.detector_id</a>
     _item_description.description
 ;             
-               This item is a pointer to <a href="#_diffrn_detector.id">_diffrn_detector.id</a>
+               This item is a pointer to <a href="#_diffrn_detector.id" >_diffrn_detector.id</a>
                in the DIFFRN_DETECTOR category. 
 ;
-    _item.name                  '<a href="#_diffrn_detector_element.detector_id">_diffrn_detector_element.detector_id</a>'
+    _item.name                  '<a href="#_diffrn_detector_element.detector_id" >_diffrn_detector_element.detector_id</a>'
     _item.category_id             diffrn_detector_element
     _item.mandatory_code          yes
     _item_type.code               code
 save_
 
-#
-#               Modifications to existing mmCIF categories ...
-#
 
-###################
-# <a name="DIFFRN_DETECTOR">DIFFRN_DETECTOR</a> #
-###################
+#####################
+# <a name="DIFFRN_FRAME_DATA" >DIFFRN_FRAME_DATA</a> #
+#####################
 
 
-save_DIFFRN_DETECTOR
-    _category.description 
+save_DIFFRN_FRAME_DATA
+    _category.description
 ;
-     This category redefinition has been added to extend the key of 
-     the standard DIFFRN_DETECTOR category.
+              Data items in the DIFFRN_FRAME_DATA category record
+              the details about each frame of data. 
 ;
-    _category.id                   diffrn_detector
+    _category.id                   diffrn_frame_data
     _category.mandatory_code       no
-    _category_key.name             '<a href="#_diffrn_detector.id">_diffrn_detector.id</a>'
+     loop_
+    _category_key.name             '<a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a>'
+                                   '<a href="#_diffrn_frame_data.detector_element_id" >_diffrn_frame_data.detector_element_id</a>'
+    loop_
+    _category_group.id             'inclusive_group'
+                                   'array_data_group'
+    loop_
+    _category_examples.detail
+    _category_examples.case
+;
+        Example 1: A frame containing data from 4 frame elements.
+                   Each frame element has a common array configuration
+                   'array_1' described in ARRAY_STRUCTURE and related
+                   categories.  The data for each detector element is 
+                   stored in four groups of binary data in the
+                   ARRAY_DATA category, linked by the array_id and
+                   binary_id
+;
+;
+        loop_
+        <a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a>
+        <a href="#_diffrn_frame_data.detector_element_id" >_diffrn_frame_data.detector_element_id</a>
+        <a href="#_diffrn_frame_data.array_id" >_diffrn_frame_data.array_id</a>
+        <a href="#_diffrn_frame_data.binary_id" >_diffrn_frame_data.binary_id</a>
+        frame_1   d1_ccd_1  array_1  1  
+        frame_1   d1_ccd_2  array_1  2 
+        frame_1   d1_ccd_3  array_1  3 
+        frame_1   d1_ccd_3  array_1  4 
+;
+
+    save_
+
+
+save_<a name="_diffrn_frame_data.array_id" >_diffrn_frame_data.array_id</a>
+    _item_description.description
+;             
+              This item is a pointer to <a href="#_array_structure.id" >_array_structure.id</a> in the
+              ARRAY_STRUCTURE category. 
+;
+    _item.name                  '<a href="#_diffrn_frame_data.array_id" >_diffrn_frame_data.array_id</a>'
+    _item.category_id             diffrn_frame_data
+    _item.mandatory_code          yes
+    _item_type.code               code
+save_
+
+     
+save_<a name="_diffrn_frame_data.binary_id" >_diffrn_frame_data.binary_id</a>
+    _item_description.description
+;             This item is a pointer to <a href="#_array_data.binary_id" >_array_data.binary_id</a> in the
+              ARRAY_STRUCTURE category. 
+;
+    _item.name                  '<a href="#_diffrn_frame_data.binary_id" >_diffrn_frame_data.binary_id</a>'
+    _item.category_id             diffrn_frame_data
+    _item.mandatory_code          implicit
+    _item_type.code               int
+save_
+
+
+
+save_<a name="_diffrn_frame_data.detector_element_id" >_diffrn_frame_data.detector_element_id</a>
+    _item_description.description
+;             
+               This item is a pointer to _diffrn_detector_element.id
+               in the DIFFRN_DETECTOR_ELEMENT category. 
+;
+    _item.name                  '<a href="#_diffrn_frame_data.detector_element_id" >_diffrn_frame_data.detector_element_id</a>'
+    _item.category_id             diffrn_frame_data
+    _item.mandatory_code          yes
+    _item_type.code               code
+save_
+
+
+save_<a name="_diffrn_frame_data.id" >_diffrn_frame_data.id</a>
+    _item_description.description
+;             
+              The value of <a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a> must uniquely identify
+              each complete frame of data.
+;
+     loop_
+    _item.name                
+    _item.category_id          
+    _item.mandatory_code       
+           '<a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a>'        diffrn_frame_data  yes
+           '<a href="#_diffrn_refln.frame_id" >_diffrn_refln.frame_id</a>'       diffrn_refln       yes
+           '<a href="#_diffrn_scan.frame_id_start" >_diffrn_scan.frame_id_start</a>'  diffrn_refln       yes
+           '<a href="#_diffrn_scan.frame_id_end" >_diffrn_scan.frame_id_end</a>'    diffrn_refln       yes
+           '<a href="#_diffrn_scan_frame.frame_id" >_diffrn_scan_frame.frame_id</a>'  diffrn_refln       yes
+           '<a href="#_diffrn_scan_frame_axis.frame_id" >_diffrn_scan_frame_axis.frame_id</a>'  
+                                          diffrn_refln       yes
+    _item_type.code               code
+     loop_
+    _item_linked.child_name
+    _item_linked.parent_name
+           '<a href="#_diffrn_refln.frame_id" >_diffrn_refln.frame_id</a>'        '<a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a>'
+           '<a href="#_diffrn_scan.frame_id_start" >_diffrn_scan.frame_id_start</a>'   '<a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a>'
+           '<a href="#_diffrn_scan.frame_id_end" >_diffrn_scan.frame_id_end</a>'     '<a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a>'
+           '<a href="#_diffrn_scan_frame.frame_id" >_diffrn_scan_frame.frame_id</a>'   '<a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a>'
+           '<a href="#_diffrn_scan_frame_axis.frame_id" >_diffrn_scan_frame_axis.frame_id</a>'
+                                           '<a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a>'
+
+save_
+
+
+########################
+## <a name="DIFFRN_MEASUREMENT" >DIFFRN_MEASUREMENT</a> ##
+########################
+
+save_DIFFRN_MEASUREMENT
+    _category.description
+;              Data items in the DIFFRN_MEASUREMENT category record details
+               about the device used to orient and/or position the crystal
+               during data measurement and the manner in which the diffraction
+               data were measured.
+;
+    _category.id                  diffrn_measurement
+    _category.mandatory_code      no
+    _category_key.name          '<a href="#_diffrn_measurement.diffrn_id" >_diffrn_measurement.diffrn_id</a>'
+     loop_
+    _category_group.id           'inclusive_group'
+                                 'diffrn_group'
+     loop_
+    _category_examples.detail
+    _category_examples.case
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+;
+    Example 1 - based on PDB entry 5HVP and laboratory records for the
+                structure corresponding to PDB entry 5HVP
+;
+;
+    <a href="#_diffrn_measurement.diffrn_id" >_diffrn_measurement.diffrn_id</a>          'd1'
+    <a href="#_diffrn_measurement.device" >_diffrn_measurement.device</a>             '3-circle camera'
+    <a href="#_diffrn_measurement.device_type" >_diffrn_measurement.device_type</a>        'Supper model x'
+    <a href="#_diffrn_measurement.device_details" >_diffrn_measurement.device_details</a>     'none'
+    <a href="#_diffrn_measurement.method" >_diffrn_measurement.method</a>             'omega scan'
+    <a href="#_diffrn_measurement.details" >_diffrn_measurement.details</a>
+    ; 440 frames, 0.20 degrees, 150 sec, detector distance 12 cm, detector
+      angle 22.5 degrees
+    ;
+;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+;
+    Example 2 - based on data set TOZ of Willis, Beckwith & Tozer [(1991).
+                Acta Cryst. C47, 2276-2277].
+;
+;
+    <a href="#_diffrn_measurement.diffrn_id" >_diffrn_measurement.diffrn_id</a>       's1'
+    <a href="#_diffrn_measurement.device_type" >_diffrn_measurement.device_type</a>     'Philips PW1100/20 diffractometer'
+    <a href="#_diffrn_measurement.method" >_diffrn_measurement.method</a>          \q/2\q
+;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     save_
+
+save_<a name="_diffrn_measurement.diffrn_id" >_diffrn_measurement.diffrn_id</a>
+    _item_description.description
+;              This data item is a pointer to _diffrn.id in the DIFFRN 
+               category.
+;
+    _item.name                  '<a href="#_diffrn_measurement.diffrn_id" >_diffrn_measurement.diffrn_id</a>'
+    _item.mandatory_code          yes
+     save_
+
+save_<a name="_diffrn_measurement.details" >_diffrn_measurement.details</a>
+    _item_description.description
+;              A description of special aspects of the intensity measurement.
+;
+    _item.name                  '<a href="#_diffrn_measurement.details" >_diffrn_measurement.details</a>'
+    _item.category_id             diffrn_measurement
+    _item.mandatory_code          no
+    _item_aliases.alias_name    '_diffrn_measurement_details'
+    _item_aliases.dictionary      cif_core.dic
+    _item_aliases.version         2.0.1
+    _item_type.code               text
+    _item_examples.case
+;                                 440 frames, 0.20 degrees, 150 sec, detector
+                                  distance 12 cm, detector angle 22.5 degrees
+;
+     save_
+
+save_<a name="_diffrn_measurement.device" >_diffrn_measurement.device</a>
+    _item_description.description
+;              The general class of  goniometer or device used to support and
+               orient the specimen.
+;
+    _item.name                  '<a href="#_diffrn_measurement.device" >_diffrn_measurement.device</a>'
+    _item.category_id             diffrn_measurement
+    _item.mandatory_code          no
+    _item_aliases.alias_name    '_diffrn_measurement_device'
+    _item_aliases.dictionary      cif_core.dic
+    _item_aliases.version         2.0.1
+    _item_type.code               text
+     loop_
+    _item_examples.case          '3-circle camera'
+                                 '4-circle camera'
+                                 'kappa-geometry camera'
+                                 'oscillation camera'
+                                 'precession camera'
+     save_
+
+save_<a name="_diffrn_measurement.device_details" >_diffrn_measurement.device_details</a>
+    _item_description.description
+;              A description of special aspects of the device used to measure
+               the diffraction intensities.
+;
+    _item.name                  '<a href="#_diffrn_measurement.device_details" >_diffrn_measurement.device_details</a>'
+    _item.category_id             diffrn_measurement
+    _item.mandatory_code          no
+    _item_aliases.alias_name    '_diffrn_measurement_device_details'
+    _item_aliases.dictionary      cif_core.dic
+    _item_aliases.version         2.0.1
+    _item_type.code               text
+    _item_examples.case
+;                                 Need new example here.
+;
+     save_
+
+save_<a name="_diffrn_measurement.device_type" >_diffrn_measurement.device_type</a>
+    _item_description.description
+;              The make, model or name of the measurement device
+               (goniometer) used.
+;
+    _item.name                  '<a href="#_diffrn_measurement.device_type" >_diffrn_measurement.device_type</a>'
+    _item.category_id             diffrn_measurement
+    _item.mandatory_code          no
+    _item_aliases.alias_name    '_diffrn_measurement_device_type'
+    _item_aliases.dictionary      cif_core.dic
+    _item_aliases.version         2.0.1
+    _item_type.code               text
+     loop_
+    _item_examples.case          'Supper model q'
+                                 'Huber model r'
+                                 'Enraf-Nonius model s'
+                                 'homemade'
+     save_
+
+
+save_<a name="_diffrn_measurement.id" >_diffrn_measurement.id</a>
+    _item_description.description
+;             
+               The value of <a href="#_diffrn_measurement.id" >_diffrn_measurement.id</a> must uniquely identify
+               the set of mechanical characteristics of the device used to 
+               orient and/or  position the sample used during collect each 
+               diffraction data set.
+
+               If the value of <a href="#_diffrn_measurement.id" >_diffrn_measurement.id</a> is not given, it is
+               implicitly equal to the value of <a href="#_diffrn_measurement.diffrn_id" >_diffrn_measurement.diffrn_id</a>
+;
+     loop_
+    _item.name                 
+    _item.category_id
+    _item.mandatory_code
+             '<a href="#_diffrn_measurement.id" >_diffrn_measurement.id</a>'      diffrn_measurement     implicit
+             '<a href="#_diffrn_measurement_axis.id" >_diffrn_measurement_axis.id</a>' diffrn_measurement_axis     yes
+     loop_
+    _item_linked.child_name
+    _item_linked.parent_name
+             '<a href="#_diffrn_measurement_axis.id" >_diffrn_measurement_axis.id</a>'  '<a href="#_diffrn_measurement.id" >_diffrn_measurement.id</a>'
+
+    _item_type.code               code
+     save_
+
+save_<a name="_diffrn_measurement.method" >_diffrn_measurement.method</a>
+    _item_description.description
+;              Method used to measure intensities.
+;
+    _item.name                  '<a href="#_diffrn_measurement.method" >_diffrn_measurement.method</a>'
+    _item.category_id             diffrn_measurement
+    _item.mandatory_code          no
+    _item_aliases.alias_name    '_diffrn_measurement_method'
+    _item_aliases.dictionary      cif_core.dic
+    _item_aliases.version         2.0.1
+    _item_type.code               text
+    _item_examples.case          'profile data from theta/2theta scans'
+     save_
+
+save_<a name="_diffrn_measurement.number_of_axes" >_diffrn_measurement.number_of_axes</a>
+    _item_description.description
+;             
+               The value of <a href="#_diffrn_measurement.number_of_axes" >_diffrn_detector.number_of_axes</a> gives the 
+               number of axes of the positioner for the goniometer or
+               other sample orientation or positioning device  identified 
+               by  <a href="#_diffrn_measurement.id" >_diffrn_measurement.id</a>
+
+               The description of the axes should be provided by entries in 
+               DIFFRN_MEASUREMENT_AXIS.
+;
+    _item.name                  '<a href="#_diffrn_measurement.number_of_axes" >_diffrn_measurement.number_of_axes</a>'
+    _item.category_id             diffrn_measurement
+    _item.mandatory_code          no
+     loop_
+    _item_range.maximum
+    _item_range.minimum           .   1
+                                  1   1
+    _item_type.code               int
+save_
+
+
+
+save_<a name="_diffrn_measurement.specimen_support" >_diffrn_measurement.specimen_support</a>
+    _item_description.description
+;              The physical device used to support the crystal during data
+               collection.
+;
+    _item.name                  '<a href="#_diffrn_measurement.specimen_support" >_diffrn_measurement.specimen_support</a>'
+    _item.category_id             diffrn_measurement
+    _item.mandatory_code          no
+    _item_aliases.alias_name    '_diffrn_measurement_specimen_support'
+    _item_aliases.dictionary      cif_core.dic
+    _item_aliases.version         2.0.1
+    _item_type.code               text
+     loop_
+    _item_examples.case          'glass capillary'
+                                 'quartz capillary'
+                                 'fiber'
+                                 'metal loop'
+     save_
+
+
+###########################
+# <a name="DIFFRN_MEASUREMENT_AXIS">DIFFRN_MEASUREMENT_AXIS</a> #
+###########################
+
+save_DIFFRN_MEASUREMENT_AXIS
+    _category.description
+;
+     Data items in the DIFFRN_MEASUREMENT_AXIS category associates
+     axes with goniometers.
+;
+    _category.id                   diffrn_measurement_axis
+    _category.mandatory_code       no
+     loop_
+    _category_key.name          '<a href="#_diffrn_measurement_axis.id" >_diffrn_measurement_axis.id</a>'
+                                '<a href="#_diffrn_measurement_axis.axis_id" >_diffrn_measurement_axis.axis_id</a>'
      loop_
     _category_group.id           'inclusive_group'
                                  'diffrn_group'
 save_
 
-save_<a name="_diffrn_detector.id">_diffrn_detector.id</a>
+save_<a name="_diffrn_measurement_axis.id" >_diffrn_measurement_axis.id</a>
     _item_description.description
-;             
-               The value of <a href="#_diffrn_detector.id">_diffrn_detector.id</a> must uniquely identify
-               each detector used to collect each diffraction data set.
 ;
-    _item.name                  '<a href="#_diffrn_detector.id">_diffrn_detector.id</a>'
-    _item.category_id             diffrn_detector
+               This data item is a pointer to <a href="#_diffrn_measurement.id" >_diffrn_measurement.id</a> in
+               the DIFFRN_MEASUREMENT category.
+;
+    _item.name                  '<a href="#_diffrn_measurement_axis.id" >_diffrn_measurement_axis.id</a>'
+    _item.category_id             diffrn_measurement_axis
+    _item.mandatory_code          yes
+save_
+
+save_<a name="_diffrn_measurement_axis.axis_id" >_diffrn_measurement_axis.axis_id</a>
+    _item_description.description
+;
+               This data item is a pointer to <a href="#_axis.id" >_axis.id</a> in
+               the AXIS category.
+;
+    _item.name                  '<a href="#_diffrn_measurement_axis.axis_id" >_diffrn_measurement_axis.axis_id</a>'
+    _item.category_id             diffrn_measurement_axis
     _item.mandatory_code          yes
     _item_type.code               code
 save_
+
 
 ################
 # <a name="DIFFRN_REFLN">DIFFRN_REFLN</a> #
@@ -1389,23 +2344,505 @@ save_DIFFRN_REFLN
 ;
     _category.id                   diffrn_refln
     _category.mandatory_code       no
-    _category_key.name             '<a href="#_diffrn_refln.frame_id">_diffrn_refln.frame_id</a>'
+    _category_key.name             '<a href="#_diffrn_refln.frame_id" >_diffrn_refln.frame_id</a>'
      loop_
     _category_group.id           'inclusive_group'
                                  'diffrn_group'
 save_
 
-save_<a name="_diffrn_refln.frame_id">_diffrn_refln.frame_id</a>
+save_<a name="_diffrn_refln.frame_id" >_diffrn_refln.frame_id</a>
     _item_description.description
 ;             
-               This item is a pointer to <a href="#_diffrn_frame_data.id">_diffrn_frame_data.id</a>
+               This item is a pointer to <a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a>
                in the DIFFRN_FRAME_DATA category. 
 ;
-    _item.name                  '_diffrn_frame_data.frame_id'
-    _item.category_id             diffrn_frame_data
+    _item.name                  '<a href="#_diffrn_refln.frame_id" >_diffrn_refln.frame_id</a>'
+    _item.category_id             diffrn_refln
     _item.mandatory_code          yes
     _item_type.code               code
 save_
+
+###############
+# <a name="DIFFRN_SCAN">DIFFRN_SCAN</a> #
+###############
+
+save_DIFFRN_SCAN
+    _category.description 
+;
+     Data items in the DIFFRN_SCAN category secribe the parameters of one
+     or more scans, relating axis positions to frames
+
+;
+    _category.id                   diffrn_scan
+    _category.mandatory_code       no
+    _category_key.name             '<a href="#_diffrn_scan.id" >_diffrn_scan.id</a>'
+     loop_
+    _category_group.id           'inclusive_group'
+                                 'diffrn_group'
+     loop_
+    _category_examples.detail
+    _category_examples.case
+;
+
+    Example 1:
+
+   This example is derived from a suggestion by R. M. Sweet
+
+   The vector of each axis is not given here, because it is provided in
+   the proposed AXIS category.  By making _diffrn_scan_axis.scan_id and
+   _diffrn_scan_axis.axis_id keys of the DIFFRN_SCAN_AXIS category,
+   an arbitrary number of scanning and fixed axes can be specified for a 
+   scan.  We have specified three rotation axes and one translation axis 
+   at non-zero values, with one axis stepping.  There is no reason why 
+   more axes could not have been specified to step.   We have specified
+   range information, but note that it is redundant from the  number of 
+   frames and the increment, so we could drop the token.
+
+   We have specified both the sweep data and the data for a single frame.
+ 
+;
+;
+      _diffrn_scan.id                   1
+      _diffrn_scan.integration_time    3.0
+      _diffrn_scan.frame_id_start      mad_L2_000
+      _diffrn_scan.frame_id_end        mad_L2_200
+      _diffrn_scan.frames              201
+
+       loop_
+      _diffrn_scan_axis.scan_id
+      _diffrn_scan_axis.axis_id
+      _diffrn_scan_axis.angle_start
+      _diffrn_scan_axis.angle_range
+      _diffrn_scan_axis.angle_increment
+      _diffrn_scan_axis.displacement_start
+      _diffrn_scan_axis.displacement_range
+      _diffrn_scan_axis.displacement_increment
+
+       1 omega 200.0 20.0 0.1 . . . 
+       1 kappa -40.0  0.0 0.0 . . . 
+       1 phi   127.5  0.0 0.0 . . . 
+       1 tranz  . . .   2.3 0.0 0.0 
+
+      _diffrn_scan_frame.scan_id                   1
+      _diffrn_scan_frame.integration_time    3.0
+      _diffrn_scan_frame.frame_id            mad_L2_018
+      _diffrn_scan_frame.frame_number        18
+
+      loop_
+      _diffrn_scan_frame_axis.frame_id
+      _diffrn_scan_frame_axis.axis_id
+      _diffrn_scan_frame_axis.angle
+      _diffrn_scan_frame_axis.displacement
+
+       mad_L2_018 omega 201.8  . 
+       mad_L2_018 kappa -40.0  . 
+       mad_L2_018 phi   127.5  . 
+       mad_L2_018 tranz  .    2.3 
+
+;
+       save_
+
+save_<a name="_diffrn_scan.id" >_diffrn_scan.id</a>
+    _item_description.description
+;             The value of <a href="#_diffrn_scan.id" >_diffrn_scan.id</a> must uniquely identify each
+              scan.  The identifier is used to tie together all the 
+              information about the scan.
+;
+     loop_
+    _item.name                
+    _item.category_id          
+    _item.mandatory_code       
+       '<a href="#_diffrn_scan.id" >_diffrn_scan.id</a>'                 diffrn_scan             yes
+       '<a href="#_diffrn_scan_axis.scan_id" >_diffrn_scan_axis.scan_id</a>'       diffrn_scan_axis        yes
+       '<a href="#_diffrn_scan_frame.scan_id" >_diffrn_scan_frame.scan_id</a>'      diffrn_scan_frame       yes
+    _item_type.code               code
+     loop_
+    _item_linked.child_name
+    _item_linked.parent_name
+       '<a href="#_diffrn_scan_axis.scan_id" >_diffrn_scan_axis.scan_id</a>'          '<a href="#_diffrn_scan.id" >_diffrn_scan.id</a>'
+       '<a href="#_diffrn_scan_frame.scan_id" >_diffrn_scan_frame.scan_id</a>'         '<a href="#_diffrn_scan.id" >_diffrn_scan.id</a>'
+
+save_
+
+save_<a name="_diffrn_scan.integration_time" >_diffrn_scan.integration_time</a>
+    _item_description.description
+;
+               The time in seconds to integrate each step of the scan.
+;
+    _item.name                 '<a href="#_diffrn_scan.integration_time" >_diffrn_scan.integration_time</a>'
+    _item.category_id          diffrn_scan
+    _item.mandatory_code       yes 
+    _item_type.code            float
+    _item_units.code           'seconds'
+     loop_
+    _item_range.maximum           
+    _item_range.minimum           
+                            .   0.0
+     save_
+
+save_<a name="_diffrn_scan.frame_id_start" >_diffrn_scan.frame_id_start</a>
+    _item_description.description
+;
+               The value of this data item is the identifier of the
+               first frame in the scan.
+
+               This item is a pointer to <a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a> in the
+               DIFFRN_FRAME_DATA category.
+;
+    _item.name                 '<a href="#_diffrn_scan.frame_id_start" >_diffrn_scan.frame_id_start</a>'
+    _item.category_id          diffrn_scan
+    _item.mandatory_code       yes
+     save_
+
+save_<a name="_diffrn_scan.frame_id_end" >_diffrn_scan.frame_id_end</a>
+    _item_description.description
+;
+               The value of this data item is the identifier of the
+               last frame in the scan.
+
+               This item is a pointer to <a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a> in the
+               DIFFRN_FRAME_DATA category.
+;
+    _item.name                 '<a href="#_diffrn_scan.frame_id_end" >_diffrn_scan.frame_id_end</a>'
+    _item.category_id          diffrn_scan
+    _item.mandatory_code       yes 
+     save_
+
+
+save_<a name="_diffrn_scan.frames" >_diffrn_scan.frames</a>
+    _item_description.description
+;
+               The value of this data item is the number of frames in
+               the scan
+
+;
+    _item.name                 '<a href="#_diffrn_scan.frames" >_diffrn_scan.frames</a>'
+    _item.category_id          diffrn_scan
+    _item.mandatory_code       no 
+    _item_type.code            int
+     loop_
+    _item_range.maximum           
+    _item_range.minimum           
+                            .   1
+                            1   1
+     save_
+
+
+####################
+# <a name="DIFFRN_SCAN_AXIS">DIFFRN_SCAN_AXIS</a> #
+####################
+
+save_DIFFRN_SCAN_AXIS
+    _category.description 
+;
+     Data items in the DIFFRN_SCAN_AXIS category describes the settings of
+     axes for particular scans.  Unspecified axes are assumed to be at
+     their zero points.
+
+;
+    _category.id                   diffrn_scan_axis
+    _category.mandatory_code       no
+     loop_
+    _category_key.name            
+                                  '<a href="#_diffrn_scan_axis.scan_id" >_diffrn_scan_axis.scan_id</a>'
+                                  '<a href="#_diffrn_scan_axis.axis_id" >_diffrn_scan_axis.axis_id</a>'
+     loop_
+    _category_group.id           'inclusive_group'
+                                 'diffrn_group'
+     save_
+
+save_<a name="_diffrn_scan_axis.scan_id" >_diffrn_scan_axis.scan_id</a>
+    _item_description.description
+;
+               The value of this data item is the identifier of the
+               the scan for which axis settings are being specified.
+
+               Multiple axes may be specified for the same value of
+               <a href="#_diffrn_scan.id" >_diffrn_scan.id</a>
+
+               This item is a pointer to <a href="#_diffrn_scan.id" >_diffrn_scan.id</a> in the
+               DIFFRN_SCAN category.
+;
+    _item.name                 '<a href="#_diffrn_scan_axis.scan_id" >_diffrn_scan_axis.scan_id</a>'
+    _item.category_id          diffrn_scan_axis
+    _item.mandatory_code       yes
+     save_
+
+save_<a name="_diffrn_scan_axis.axis_id" >_diffrn_scan_axis.axis_id</a>
+    _item_description.description
+;
+               The value of this data item is the identifier of one of
+               the axes for the scan for which  settings are being specified.
+
+               Multiple axes may be specified for the same value of
+               <a href="#_diffrn_scan.id" >_diffrn_scan.id</a>
+
+               This item is a pointer to <a href="#_axis.id" >_axis.id</a> in the
+               AXIS category.
+;
+    _item.name                 '<a href="#_diffrn_scan_axis.axis_id" >_diffrn_scan_axis.axis_id</a>'
+    _item.category_id          diffrn_scan_axis
+    _item.mandatory_code       yes
+     save_
+
+save_<a name="_diffrn_scan_axis.angle_start" >_diffrn_scan_axis.angle_start</a>
+    _item_description.description
+;
+               The starting position for the specified axis in degrees
+;
+    _item.name                 '<a href="#_diffrn_scan_axis.angle_start" >_diffrn_scan_axis.angle_start</a>'
+    _item.category_id          diffrn_scan_axis
+    _item_default.value        0.0
+    _item.mandatory_code       no 
+    _item_type.code            float
+    _item_units.code           'degrees'
+     save_
+
+save_<a name="_diffrn_scan_axis.angle_range" >_diffrn_scan_axis.angle_range</a>
+    _item_description.description
+;
+               The range from the starting position for the specified axis 
+               in degrees.
+;
+    _item.name                 '<a href="#_diffrn_scan_axis.angle_range" >_diffrn_scan_axis.angle_range</a>'
+    _item.category_id          diffrn_scan_axis
+    _item_default.value        0.0
+    _item.mandatory_code       no 
+    _item_type.code            float
+    _item_units.code           'degrees'
+     save_
+
+
+save_<a name="_diffrn_scan_axis.angle_increment" >_diffrn_scan_axis.angle_increment</a>
+    _item_description.description
+;
+               The increment for each step for the specified axis 
+               in degrees.
+;
+    _item.name                 '<a href="#_diffrn_scan_axis.angle_increment" >_diffrn_scan_axis.angle_increment</a>'
+    _item.category_id          diffrn_scan_axis
+    _item_default.value        0.0
+    _item.mandatory_code       no 
+    _item_type.code            float
+    _item_units.code           'degrees'
+     save_
+
+save_<a name="_diffrn_scan_axis.displacement_start" >_diffrn_scan_axis.displacement_start</a>
+    _item_description.description
+;
+               The starting position for the specified axis in millimetres
+;
+    _item.name                 '<a href="#_diffrn_scan_axis.displacement_start" >_diffrn_scan_axis.displacement_start</a>'
+    _item.category_id          diffrn_scan_axis
+    _item_default.value        0.0
+    _item.mandatory_code       no 
+    _item_type.code            float
+    _item_units.code           'millimetres'
+     save_
+
+save_<a name="_diffrn_scan_axis.displacement_range" >_diffrn_scan_axis.displacement_range</a>
+    _item_description.description
+;
+               The range from the starting position for the specified axis 
+               in millimetres.
+;
+    _item.name                 '<a href="#_diffrn_scan_axis.displacement_range" >_diffrn_scan_axis.displacement_range</a>'
+    _item.category_id          diffrn_scan_axis
+    _item_default.value        0.0
+    _item.mandatory_code       no 
+    _item_type.code            float
+    _item_units.code           'millimetres'
+     save_
+
+
+save_<a name="_diffrn_scan_axis.displacement_increment" >_diffrn_scan_axis.displacement_increment</a>
+    _item_description.description
+;
+               The increment for each step for the specified axis 
+               in millimetres.
+;
+    _item.name                 '<a href="#_diffrn_scan_axis.displacement_increment" >_diffrn_scan_axis.displacement_increment</a>'
+    _item.category_id          diffrn_scan_axis
+    _item_default.value        0.0
+    _item.mandatory_code       no 
+    _item_type.code            float
+    _item_units.code           'millimetres'
+     save_
+
+#####################
+# <a name="DIFFRN_SCAN_FRAME">DIFFRN_SCAN_FRAME</a> #
+#####################
+
+save_DIFFRN_SCAN_FRAME
+    _category.description 
+;
+     Data items in the DIFFRN_SCAN_FRAME category describes the settings of
+     axes for particular frames.  Unspecified axes are assumed to be at
+     their zero points.
+
+;
+    _category.id                   diffrn_scan_frame
+    _category.mandatory_code       no
+     loop_
+    _category_key.name            
+                                  '<a href="#_diffrn_scan_frame.scan_id" >_diffrn_scan_frame.scan_id</a>'
+                                  '<a href="#_diffrn_scan_frame.frame_id" >_diffrn_scan_frame.frame_id</a>'
+     loop_
+    _category_group.id           'inclusive_group'
+                                 'diffrn_group'
+     save_
+
+save_<a name="_diffrn_scan_frame.scan_id" >_diffrn_scan_frame.scan_id</a>
+    _item_description.description
+;             The value of <a href="#_diffrn_scan_frame.scan_id" >_diffrn_scan_frame.scan_id</a> must identifies the scan
+              containing this frame.
+
+              This item is a pointer to _diffrn_scan.id in the
+              DIFFRN_SCAN category.
+;
+     loop_
+    _item.name             '_diffrn_scan_frame.scan_id'    
+    _item.category_id        diffrn_scan_frame        
+    _item.mandatory_code     yes     
+     save_
+
+save_<a name="_diffrn_scan_frame.integration_time" >_diffrn_scan_frame.integration_time</a>
+    _item_description.description
+;
+               The time in seconds to integrate this step of the scan.
+;
+    _item.name                 '<a href="#_diffrn_scan_frame.integration_time" >_diffrn_scan_frame.integration_time</a>'
+    _item.category_id          diffrn_scan_frame
+    _item.mandatory_code       yes 
+    _item_type.code            float
+    _item_units.code           'seconds'
+     loop_
+    _item_range.maximum           
+    _item_range.minimum           
+                            .   0.0
+     save_
+
+save_<a name="_diffrn_scan_frame.frame_id" >_diffrn_scan_frame.frame_id</a>
+    _item_description.description
+;
+               The value of this data item is the identifier of the
+               frame being examined.
+
+               This item is a pointer to <a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a> in the
+               DIFFRN_FRAME_DATA category.
+;
+    _item.name                 '<a href="#_diffrn_scan_frame.frame_id" >_diffrn_scan_frame.frame_id</a>'
+    _item.category_id          diffrn_scan_frame
+    _item.mandatory_code       yes 
+     save_
+
+
+save_<a name="_diffrn_scan_frame.frame_number" >_diffrn_scan_frame.frame_number</a>
+    _item_description.description
+;
+               The value of this data item is the number of the frames within
+               the scan
+
+;
+    _item.name                 '<a href="#_diffrn_scan_frame.frame_number" >_diffrn_scan_frame.frame_number</a>'
+    _item.category_id          diffrn_scan_frame
+    _item.mandatory_code       no 
+    _item_type.code            int
+     loop_
+    _item_range.maximum           
+    _item_range.minimum           
+                            .   0
+                            0   0
+     save_
+
+
+##########################
+# <a name="DIFFRN_SCAN_FRAME_AXIS">DIFFRN_SCAN_FRAME_AXIS</a> #
+##########################
+
+save_DIFFRN_SCAN_FRAME_AXIS
+    _category.description 
+;
+     Data items in the DIFFRN_SCAN_FRAME_AXIS category describes the settings of
+     axes for particular frames.  Unspecified axes are assumed to be at
+     their zero points.
+
+;
+    _category.id                   diffrn_scan_frame_axis
+    _category.mandatory_code       no
+     loop_
+    _category_key.name            
+                                  '<a href="#_diffrn_scan_frame_axis.frame_id" >_diffrn_scan_frame_axis.frame_id</a>'
+                                  '<a href="#_diffrn_scan_frame_axis.axis_id" >_diffrn_scan_frame_axis.axis_id</a>'
+     loop_
+    _category_group.id           'inclusive_group'
+                                 'diffrn_group'
+     save_
+
+save_<a name="_diffrn_scan_frame_axis.frame_id" >_diffrn_scan_frame_axis.frame_id</a>
+    _item_description.description
+;
+               The value of this data item is the identifier of the
+               the frame for which axis settings are being specified.
+
+               Multiple axes may be specified for the same value of
+               <a href="#_diffrn_scan_frame.frame_id" >_diffrn_scan_frame.frame_id</a>
+
+               This item is a pointer to <a href="#_diffrn_frame_data.id" >_diffrn_frame_data.id</a> in the
+               DIFFRN_FRAME_DATE category.
+;
+    _item.name                 '<a href="#_diffrn_scan_frame_axis.frame_id" >_diffrn_scan_frame_axis.frame_id</a>'
+    _item.category_id          diffrn_scan_frame_axis
+    _item.mandatory_code       yes
+     save_
+
+save_<a name="_diffrn_scan_frame_axis.axis_id" >_diffrn_scan_frame_axis.axis_id</a>
+    _item_description.description
+;
+               The value of this data item is the identifier of one of
+               the axes for the frame for which settings are being specified.
+
+               Multiple axes may be specified for the same value of
+               <a href="#_diffrn_scan_frame.id" >_diffrn_scan_frame.frame_id</a>
+
+               This item is a pointer to <a href="#_axis.id" >_axis.id</a> in the
+               AXIS category.
+;
+    _item.name                 '<a href="#_diffrn_scan_frame_axis.axis_id" >_diffrn_scan_frame_axis.axis_id</a>'
+    _item.category_id          diffrn_scan_frame_axis
+    _item.mandatory_code       yes
+     save_
+
+save_<a name="_diffrn_scan_frame_axis.angle" >_diffrn_scan_frame_axis.angle</a>
+    _item_description.description
+;
+               The setting of the specified axis in degrees for this frame
+;
+    _item.name                 '<a href="#_diffrn_scan_frame_axis.angle" >_diffrn_scan_frame_axis.angle</a>'
+    _item.category_id          diffrn_scan_frame_axis
+    _item_default.value        0.0
+    _item.mandatory_code       no 
+    _item_type.code            float
+    _item_units.code           'degrees'
+     save_
+
+
+save_<a name="_diffrn_scan_frame_axis.displacement" >_diffrn_scan_frame_axis.displacement</a>
+    _item_description.description
+;
+               The setting of the specified axis in millimetres for this
+               frame
+;
+    _item.name                 '<a href="#_diffrn_scan_frame_axis.displacement" >_diffrn_scan_frame_axis.displacement</a>'
+    _item.category_id          diffrn_scan_frame_axis
+    _item_default.value        0.0
+    _item.mandatory_code       no 
+    _item_type.code            float
+    _item_units.code           'millimetres'
+     save_
+
+
+
 #
 </PRE>
 </BODY>

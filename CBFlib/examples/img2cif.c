@@ -1,6 +1,6 @@
 /**********************************************************************
  *          img2cif -- convert an image file to a cif file            *
- *          Version 0.4   15 November 1998                            *
+ *          Version 0.6   26 December 1998                             *
  *                                                                    *
  *          based on makecbf by Paul Ellis                            *
  *          revisions by H. J. Bernstein                              *
@@ -47,7 +47,7 @@
  *    decimal, hexamdecimal or octal encoding for an ascii cif        *
  *    or "none" for a binary cbf                                      *
  *                                                                    *
- *  -b direction (forward or backwards, default: backwards)           *
+ *  -b direction (forward or backwards, default: natural direction)   *
  *    specifies the direction of mapping of bytes into words          *
  *    for decimal, hexadecimal or octal output, marked by '>' for     *
  *    forward or '<' for backwards as the second character of each    *
@@ -184,7 +184,7 @@
  {int err; \
   err = (x); \
   if (err) { \
-    fprintf(stderr,"\nCBFlib fatal error %x \n",err); \
+    fprintf(stderr,"\nCBFlib fatal error %d \n",err); \
     exit(-1); \
   } \
  }
@@ -387,10 +387,6 @@ int main (int argc, char *argv [])
      }
   }
 
-     /* Set up for decimal, hexadecimal or octal output */
-  if (!bytedir)
-     bytedir = ENC_BACKWARD;
- 
      /* Set up for Compression */
   
   if (!compression) 
@@ -735,7 +731,7 @@ int main (int argc, char *argv [])
 
     /* Save the binary data */
 
-  cbf_failnez (cbf_set_integerarray (cbf, compression, 0, 1,
+  cbf_failnez (cbf_set_integerarray (cbf, compression, 1,
                                  &img_pixel (img, 0, 0), sizeof (int), 1,
                                  img_rows (img) * img_columns (img)))
   

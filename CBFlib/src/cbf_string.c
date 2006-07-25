@@ -1,9 +1,10 @@
 /**********************************************************************
  * cbf_string -- case-insensitive string comparisons                  *
  *                                                                    *
- * Version 0.9 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
@@ -162,4 +163,3 @@ int cbf_cistrncmp (const char *s1, const char *s2, size_t n)
 }
 
 #endif
-

@@ -1,10 +1,10 @@
 /**********************************************************************
  * cbf_read_mime -- read MIME-encoded binary sections                 *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *       Herbert J. Bernstein (yaya@bernstein-plus-sons.com) and      *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
@@ -166,103 +166,100 @@ extern "C" {
 
 int cbf_mime_temp (cbf_node *column, unsigned int row)
 {
-  cbf_file *infile;
+  cbf_file *file;
   
-  cbf_file *tempfile;
+  cbf_file *temp_file;
   
-  long start;
+  long start, temp_start;
   
-  long size;
+  size_t size;
   
-  long id;
-  
-  const char *intext;
+  int id, bits, sign, type, checked_digest;
 
   unsigned int compression;
   
-  int errorcode;
-
-  char text [(((sizeof (void *) +
-                sizeof (long int) * 2 +
-                sizeof (int)) * CHAR_BIT) >> 2) + 16];
-                
-  char digest [25];
+  char old_digest [25], *new_digest, digest [25];
 
   
-    /* Get the value */
+    /* Check the value */
 
-  cbf_failnez (cbf_get_columnrow (&intext, column, row))
-
-  if (!intext)
+  if (!cbf_is_mimebinary (column, row))
 
     return CBF_ASCII;
 
-  
-    /* Parse the value */
 
-  if (*intext != CBF_TOKEN_MIME_BIN)
-
-    return CBF_ARGUMENT;
+    /* Parse it */
 
   size = 0;
-
-  sscanf (intext + 1, " %lx %p %lx %lx", &id, &infile, &start, &size);
   
-  if (size == 0 || !infile)
-
-    return CBF_FORMAT;
-
+  cbf_failnez (cbf_get_bintext (column, row, &type,
+                                &id, &file, &start, &size, &checked_digest, 
+                                old_digest, &bits, &sign, &compression))
+  
 
     /* Position the file at the start of the mime section */
 
-  cbf_failnez (cbf_set_fileposition (infile, start, SEEK_SET))
+  cbf_failnez (cbf_set_fileposition (file, start, SEEK_SET))
 
 
     /* Get the temporary file */
 
-  cbf_failnez (cbf_open_temporary (column->context, &tempfile))
+  cbf_failnez (cbf_open_temporary (column->context, &temp_file))
 
 
     /* Move to the end of the temporary file */
 
-  if (cbf_set_fileposition (tempfile, 0, SEEK_END))
-
-    return CBF_FILESEEK | cbf_delete_fileconnection (&tempfile);
+  cbf_onfailnez (cbf_set_fileposition (temp_file, 0, SEEK_END),
+                 cbf_delete_fileconnection (&temp_file))
 
 
     /* Get the starting location */
 
-  if (cbf_get_fileposition (tempfile, &start))
+  cbf_onfailnez (cbf_get_fileposition (temp_file, &temp_start),
+                 cbf_delete_fileconnection (&temp_file))
+    
 
-    return CBF_FILETELL | cbf_delete_fileconnection (&tempfile);
+    /* Calculate a new digest if necessary */
+    
+  if (cbf_is_base64digest (old_digest) && (file->read_headers & MSG_DIGEST) 
+                                       && !checked_digest)
+
+    new_digest = digest;
+    
+  else
+  
+    new_digest = NULL;
     
 
     /* Decode the binary data to the temporary file */
     
-  digest [0] = '\0';
+  cbf_onfailnez (cbf_read_mime (file, temp_file, 
+                                      NULL, NULL, old_digest, new_digest),
+                 cbf_delete_fileconnection (&temp_file))
 
-  cbf_onfailnez (cbf_read_mime (infile, tempfile, NULL, NULL, digest),
-                 cbf_delete_fileconnection (&tempfile))
+
+    /* Check the digest */
+    
+  if (new_digest)
+  
+    if (strcmp (old_digest, new_digest) == 0)
+    
+      checked_digest = 1;
+      
+    else
                  
+      return CBF_FORMAT | cbf_delete_fileconnection (&temp_file);
 
+  
     /* Replace the connection */
     
-  sprintf (text, "%lx %p %lx %lx", id, tempfile, start, size);
-
-  intext = cbf_copy_string (NULL, text, CBF_TOKEN_TMP_BIN);
-
-  if (intext)
-  {
-    errorcode = cbf_set_columnrow (column, row, intext);
-
-    if (errorcode)
-    {
-      cbf_free_string (NULL, intext);
-
-      return errorcode | cbf_delete_fileconnection (&tempfile);
-    }
-  }
-
+  cbf_onfailnez (cbf_set_bintext (column, row, CBF_TOKEN_TMP_BIN,
+                                  id, temp_file, temp_start, size, 
+                                  checked_digest, old_digest, bits,
+                                                              sign,
+                                                              compression),
+                    cbf_delete_fileconnection (&temp_file))
+ 
 
     /* Success */
     
@@ -275,7 +272,8 @@ int cbf_mime_temp (cbf_node *column, unsigned int row)
 int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
                                      size_t     *size,
                                      long       *id,
-                                     char       *digest)
+                                     char       *old_digest,
+                                     char       *new_digest)
 {
   int encoding;
   
@@ -283,8 +281,6 @@ int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
 
   unsigned int compression;
 
-  char infile_digest[25];
-  
   
     /* Read the header */
     
@@ -293,31 +289,36 @@ int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
   file_size = 0;
     
   cbf_failnez (cbf_parse_mimeheader (infile, &encoding, 
-                                             &file_size, id, digest,
-                                             &compression))
+                                             &file_size, id, 
+                                             old_digest,
+                                             &compression,
+                                             NULL, NULL))
                                              
   if (file_size <= 0)
-  
+
     return CBF_FORMAT;
 
-  cbf_failnez (cbf_put_integer (outfile, (int) compression, 0, 64))
-  
-  
+
+    /* Discard any bits in the buffers */
+    
+  cbf_failnez (cbf_reset_bits (outfile))
+
+
     /* Decode the binary data */
     
   switch (encoding)
   {
     case ENC_QP:
     
-      cbf_failnez (cbf_fromqp \
-        (infile, outfile, file_size, NULL, infile_digest))
+      cbf_failnez (cbf_fromqp (infile, outfile, file_size, NULL, 
+                               new_digest))
 
       break;
       
     case ENC_BASE64:
     
-      cbf_failnez (cbf_frombase64 \
-        (infile, outfile, file_size, NULL, infile_digest))
+      cbf_failnez (cbf_frombase64 (infile, outfile, file_size, NULL, 
+                                   new_digest))
 
       break;
       
@@ -325,8 +326,8 @@ int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
     case ENC_BASE10:
     case ENC_BASE16:
     
-      cbf_failnez (cbf_frombasex \
-        (infile, outfile, file_size, NULL, infile_digest))
+      cbf_failnez (cbf_frombasex (infile, outfile, file_size, NULL, 
+                                  new_digest))
 
       break;
       
@@ -335,13 +336,17 @@ int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
       return CBF_FORMAT;
   }
 
-  if (digest[0] &&
-   (infile->read_headers & MSG_DIGEST) &&
-   (strcmp (digest, infile_digest) != 0)) return CBF_FORMAT;
+
+    /* Flush the buffers */
+
+  cbf_failnez (cbf_flush_bits (outfile))
+
+
+    /* Size (excluding the encoding) */
 
   if (size)
   
-    *size = file_size+8;
+    *size = file_size;
     
     
     /* Success */
@@ -349,122 +354,153 @@ int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
   return 0;
 }
 
-  /* Skip whitespace and comments in a MIME header */  
-  /* Derived from mpack routine SkipWhitespace     */ 
 
-  /* 
-     line is a pointer to a pointer to a null-terminated single line
-     curpoint is a pointer to a pointer to the current position in line
-     nblen is a pointer to the non-blank length of line
-     freshline is a pointer to a logical, 1 if a fresh line is loaded
-  */
-     
+  /* Is the line blank? */
 
-int cbf_skip_whitespace (cbf_file *file, char **line, 
-      char **curpoint, unsigned int *nblen, int *freshline )
-
+int cbf_is_blank (const char *line)
 {
-      char *c = *curpoint;     
+  if (line)
+  
+    for (; *line; line++)
+    
+      if (!isspace (*line))
+      
+        return 0;
+        
+  return 1;
+}
 
-      int  comment_level = 0;
+/* Find non-blank length of a line */
 
-      if (freshline) *freshline = 0;
+int cbf_nblen (const char *line, int *nblen)
+{
+  register char *myline;
 
-      while (isspace (*c)|| *c == '\n' || *c == '\r' 
-             || *c == '(' || *c == '\0') {
+  register int mylen;
 
-        if (c >= (*line)+(*nblen) || *c == '\0') {
+  *nblen = mylen = 0;
 
-          *curpoint = 0;
+  
 
-          cbf_failnez (cbf_read_line (file, (const char **)line, nblen))
+  if (!(myline = (char *)line)) return 1;
 
-          *curpoint = c = *line;
+  for (; *myline; myline++)
 
-          if (*nblen==0 || (*c != ' ' && *c != '\t')) {
+    if (!isspace (*myline)) mylen = myline-(char *)line+1;
 
-            if (freshline) *freshline = 1;
+  *nblen = mylen;
 
-            return 0;
+  return 0;
+  
+}
 
+
+  /* Skip whitespace and comments */ 
+
+int cbf_skip_whitespace (cbf_file *file, const char **line, 
+                                         const char **curpoint, 
+                                         int        *freshline)
+{
+  static const char end = '\0';
+  
+  const char *c;     
+
+  int comment_level;
+
+
+    /* Repeating the end of a line? */
+
+  if (*freshline)
+  {
+    *curpoint = &end;
+    
+    return 0;
+  }
+
+  c = *curpoint;
+
+  comment_level = 0;
+  
+  while (isspace (*c) || *c == '(' || *c == '\0')
+
+    if (*c == '\0')
+    {
+      cbf_failnez (cbf_read_line (file, line))
+
+      c = *line;
+
+      if (cbf_is_blank (c) || (*c != ' ' && *c != '\t'))
+      {
+        *freshline = 1;
+
+        *curpoint = &end;
+
+        return 0;
+      }
+    } 
+    else 
+    
+      if (*c == '(')
+      {
+        c++;
+
+        comment_level++;
+
+        while (comment_level)
+        {
+          switch (*c)
+          {
+            case '\0':
+
+              cbf_failnez (cbf_read_line (file, line))
+
+              c = *line;
+
+              if (cbf_is_blank (c) || (*c != ' ' && *c != '\t'))
+              {
+                *freshline = 1;
+
+                *curpoint = &end;
+
+                return 0;
+              }
+
+              break;
+
+            case '\\':
+
+              c++;
+
+              break;
+
+            case '(':              
+
+              comment_level++;                
+
+              break;
+
+            case ')':
+
+              comment_level--;
+
+              break;
           }
-
-        } else if (*c == '(') {
 
           c++;
-
-          comment_level++;
-
-          while (comment_level) {
-
-            switch (*c) {
-
-	      case '\0':
-
-                *curpoint = 0;
-
-                cbf_failnez (cbf_read_line (file, (const char **)line, nblen))
-
-                *curpoint = c = *line;
-
-                if (*nblen==0 || (*c != ' ' && *c != '\t')) {
-
-                  if (freshline) *freshline = 1;
-
-                  return 0;
-
-                }
-
-                break;
-
-	      case '\\':
-
-                c++;
-
-                break;
-
-              case '(':              
-
-                comment_level++;                
-
-                break;
-
-              case ')':
-
-                comment_level--;
-
-                break;
-
-            }
-
-            c++;
-
-          }
-
         }
-
-        else  c++;
-
       }
+      else  
+      
+        c++;
 
-      if (c >= (*line)+(*nblen) || *c == '\0' ) {
+  *freshline = 0;
 
-        *curpoint = 0;
+  *curpoint = c;
 
-        cbf_failnez (cbf_read_line (file, (const char **)line, nblen))
 
-        *curpoint = c = *line;
-
-        if (freshline) *freshline = 1;
-
-      } else {
-
-        *curpoint = c;
-
-      }
-
-      return 0;
-
+    /* Success */
+    
+  return 0;
 }
   
 
@@ -474,29 +510,32 @@ int cbf_skip_whitespace (cbf_file *file, char **line,
      Content-Transfer-Encoding:
      X-Binary-Size:
      X-Binary-ID:
+     X-Binary-Element-Type:
      Content-MD5: */
      
 int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
                                           size_t     *size,
                                           long       *id,
                                           char       *digest,
-                                 unsigned int        *compression)
+                                 unsigned int        *compression,
+                                          int        *bits,
+                                          int        *sign)
 {
   static const char *value [] = {
   
-    "Content-Type:",
-    "Content-Transfer-Encoding:",
-    "X-Binary-Size:",
-    "X-Binary-ID:",
-    "Content-MD5:"
+    "Content-Type:",                /* State 0 */
+    "Content-Transfer-Encoding:",   /* State 1 */
+    "X-Binary-Size:",               /* State 2 */
+    "X-Binary-ID:",                 /* State 3 */
+    "X-Binary-Element-Type:",       /* State 4 */
+    "Content-MD5:"                  /* State 5 */
   
     };
 
-  char *line, *c;
+  const char *line, *c;
   
-  int state, comment_level, line_count, i,  freshline, quoteoff;
-
-  unsigned int nblen;
+  int state, continuation, item, line_count, fresh_line, quote, text_bits, 
+      count, failure, nblen;
   
   
     /* Defaults */
@@ -520,330 +559,414 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
   if (compression)
 
     *compression = CBF_NONE;
+    
+  if (bits)
+  
+    *bits = 0;
+    
+  if (sign)
+  
+    *sign = -1;
   
   
     /* Read the file line by line */
     
   state = -1;
   
-  comment_level = 0;
-
   line_count = 0;
 
-  freshline = 0;
+  fresh_line = 0;
 
-    
-  do
+  nblen = 1;
+
+  while (nblen)
   {
-
-    if (! freshline ) cbf_failnez (cbf_read_line \
-      (file, (const char **)&line, &nblen))
-
-    freshline = 0;
+    if (!fresh_line)
     
+      cbf_failnez (cbf_read_line (file, &line))
+
+    cbf_nblen(line, &nblen);
+      
+    fresh_line = 0;
+
     line_count++;
 
-    /* Check for valid header-ness of line */
+     /* Check for premature terminations */
+ 
+    if ( (line[0] == ';') || 
+      ( cbf_cistrncmp(line,"--CIF-BINARY-FORMAT-SECTION--",29) == 0 ) )
 
-            if (nblen == 0) return 0;
-
-	    for (i = 0; i < nblen; i++) {
-
-		if (line[i] == ':' ||
-		    line[i] <= ' ' || line[i] >= '\177') break;
-	    }
-
-	    if (i == 0 || line[i] != ':') {
-
-		/* Check for header continuation line */
-
-		if ((line_count == 1 && i == 0) ||
-                  (line[0] != ' ' && line[0] != '\t')) {
-
-		    /* Not a valid header stop reading input. */
-		    
-		    return CBF_FORMAT;
-		}
-	    }
+      return CBF_FORMAT;
 
 
-
-      /* Continuation line? */
-
-    if (state != -1)
-
-      if ( nblen > 0 && isspace (line [0]))
-
-        c = line;
-
-      else
-
-        state = -1;
-
-
-      /* Look for the entries we are interested in */
+      /* Check for a header continuation line */
       
-    if (state == -1)
+    continuation = line [0] == ' ' || line [0] == '\t';
 
-      for (state = 4; state > -1; state--)
+
+      /* Check for a new item */
+      
+    if (continuation)
+
+      item = 0;
+      
+    else
+    {
+      for (c = line; *c != ':' && *c > 32 && *c < 127; c++);
+      
+      item = c != line && *c == ':';
+    }
+          
+
+      /* Check for the end of the header */
+
+    if (line_count > 1 && cbf_is_blank (line))
+            
+      return 0;
+
+
+      /* Check for valid header-ness of line */
+      
+    if (!item && (line_count == 1 || !continuation))
+
+      return CBF_FORMAT;
+        
+
+       /* Look for the entries we are interested in */
+      
+    c = line;
+
+    if (item)
+
+      for (state = 5; state > -1; state--)
 
         if (cbf_cistrncmp (line, value [state], strlen (value [state])) 
                            == 0)
 
         {
           c = line + strlen (value [state]);
-
+          
           break;
         }
+       
+
+      /* Skip past comments and whitespace */
         
-        
-    if (state != -1)
-    {
-        /* Skip past comments and whitespace */
-        
-      cbf_failnez(cbf_skip_whitespace (file, &line, &c, &nblen, &freshline ))
-     
-        /* Get the value */
+    cbf_failnez (cbf_skip_whitespace (file, &line, &c, &fresh_line))
       
-      if (*c)
-      {
-        switch (state)
-        {
-          case 0:
-        
-              /* Content */
+
+      /* Get the value */
+      
+    switch (state)
+    {
+      case 0:
+          
+          /* Content */
               
-            if ((cbf_cistrncmp (c, "application/", 12) != 0)
-              && ( cbf_cistrncmp(c, "image/", 6) != 0) 
-              && ( cbf_cistrncmp(c, "text/", 5) != 0 )
-              && ( cbf_cistrncmp(c, "audio/", 6) != 0 )
-              && ( cbf_cistrncmp(c, "video/", 6) != 0 ) ) {   
+        if (cbf_cistrncmp (c, "application/", 12) != 0 &&
+            cbf_cistrncmp (c, "image/",        6) != 0 &&
+            cbf_cistrncmp (c, "text/",         5) != 0 &&
+            cbf_cistrncmp (c, "audio/",        6) != 0 &&
+            cbf_cistrncmp (c, "video/",        6) != 0)
 
-              return CBF_FORMAT;
+          return CBF_FORMAT;
 
-            } else {
+              
+        while (*c)
+        {
+            /* Skip to the end of the section (a semicolon) */
+              
+          while (*c)
+              
+            if (*c == '\"')
+            {
+              c++;
 
-              /* Scan for conversions */
+              while (*c)
 
-              freshline = 0;
+                if (*c == '\"')
+                {
+                  c++;
 
-              while (c && (c < line+nblen) && *c && *c != ';' && 
-                     (!freshline) ) {
+                  break;
+                }
+                else
+                {
+                  if (*c == '\\')
 
-                while (*c && !isspace(*c) && *c != '(' && *c != ';') {
+                    c++;
+
+                  if (*c)
+
+                    c++;
+                }
+            }
+            else 
+
+              if (*c == '(')
+
+                cbf_failnez (cbf_skip_whitespace (file, &line, &c, 
+                                                        &fresh_line))
+
+              else
+
+                if (*c == ';')
+                {
+                  c++;
+
+                  break;
+                }
+                else
 
                   c++;
 
-                }
+            
+            /* We are at the end of the section or the end of the item */
+              
+          cbf_failnez (cbf_skip_whitespace (file, &line, &c, 
+                                                  &fresh_line))
 
-                cbf_failnez(cbf_skip_whitespace \
-                   (file, &line, &c, &nblen, &freshline))
+          if (cbf_cistrncmp (c, "conversions", 11) == 0) 
+          {
+            c += 11;
 
-	      }
+            cbf_failnez (cbf_skip_whitespace (file, &line, &c, 
+                                                    &fresh_line))
 
-              /* we are either positioned at a semicolon, or
-                 at the start of a new line.  A semicolon at the start of
-                 a line would mark the end of a text section             */
+            if (*c == '=') 
+            {
+              c++;
 
-              if (c && (!freshline) && c != line && *c == ';') {
+              cbf_failnez (cbf_skip_whitespace (file, &line, &c, 
+                                                      &fresh_line))
 
-                c++;
+              if (compression) 
+              {
+                quote = 0;
 
-                /* scan for parameters    */
+                if (*c == '\"')
+                      
+                  quote = 1;
+                      
+                *compression = CBF_NONE;
 
-                while ( *c ) {
+                if (cbf_cistrncmp (c + quote, "x-cbf_packed", 12) == 0)
 
-                  cbf_failnez(cbf_skip_whitespace \
-                    (file, &line, &c, &nblen, &freshline))
+                  *compression = CBF_PACKED;
 
-                  if ( freshline || ( !c ) || (c == line) ) break;
+                if (cbf_cistrncmp (c + quote, "x-cbf_canonical", 15) == 0)
+                      
+                  *compression = CBF_CANONICAL;
 
-                  if (! cbf_cistrncmp(c, "conversions",11)  ) {
+                if (cbf_cistrncmp (c + quote, "x-cbf_byte_offset", 17) == 0)
+  
+                  *compression = CBF_BYTE_OFFSET;
 
-                    c += 11;
+                if (cbf_cistrncmp (c + quote, "x-cbf_predictor", 15) == 0)
 
-                    cbf_failnez(cbf_skip_whitespace \
-                      (file, &line, &c, &nblen, &freshline))
-
-                    if (freshline || ( !c ) || (c == line) ) break;
-
-                    if (*c == '=' ) {
-
-                      c++;
-
-                      cbf_failnez(cbf_skip_whitespace \
-                        (file, &line, &c, &nblen, &freshline))
-
-                      if (freshline || ( !c ) || (c == line) ) break;
-
-                      quoteoff = 0;
-
-                      if (*c == '\"') quoteoff++;
-
-                      if (compression) *compression = CBF_NONE;
-
-                      if(!cbf_cistrncmp(c+quoteoff, "x-cbf_packed", 12))
-                        if (compression) *compression = CBF_PACKED;
-
-                      if(!cbf_cistrncmp(c+quoteoff, "x-cbf_canonical", 15))
-                        if (compression) *compression = CBF_CANONICAL;
-
-                      if(!cbf_cistrncmp(c+quoteoff, "x-cbf_byte_offset", 17))
-                        if (compression) *compression = CBF_BYTE_OFFSET;
-
-                      if(!cbf_cistrncmp(c+quoteoff, "x-cbf_predictor", 15))
-                        if (compression) *compression = CBF_PREDICTOR;
-
-                    }
-                  }
-
-                  while ( *c && *c != ';') {
-
-                    if ( *c == '\"') {
-
-                      ++c;
-
-                      while (*c && *c != '\"') {
-
-		        if (*c == '\\') {
-
-			++c;
-
-			if (!*c) break;
-
-
-		        }
-
-		        ++c;
-
-                      }
-
-                      if (!*c) break;
-
-	            } else {
-
-                      if (*c == '(') {
-                        cbf_failnez(cbf_skip_whitespace \
-                          (file, &line, &c, &nblen, &freshline))
-
-                        if (freshline) break;
-
-		      } else {
-
-                        ++c;
-
-	              }
-
-                    }
-
-                  }
-
-		}
-
+                  *compression = CBF_PREDICTOR;
               }
-              
             }
-            state = -1;
-            
-            break;
-          
-          case 1:
-        
-              /* Binary encoding */
-              
-            if (encoding)
-            {
-              if (cbf_cistrncmp (c, "Quoted-Printable", 16) == 0)
-              
-                if (isspace (c [16]) || c [16] == '(')
-              
-                  *encoding = ENC_QP;
-                
-              if (cbf_cistrncmp (c, "Base64", 6) == 0)
-              
-                if (isspace (c [6]) || c [6] == '(')
-              
-                  *encoding = ENC_BASE64;
-                
-              if (cbf_cistrncmp (c, "X-Base8", 7) == 0)
-
-                if (isspace (c [7]) || c [7] == '(')
-              
-                  *encoding = ENC_BASE8;
-                
-              if (cbf_cistrncmp (c, "X-Base10", 8) == 0)
-              
-                if (isspace (c [8]) || c [8] == '(')
-              
-                  *encoding = ENC_BASE10;
-                
-              if (cbf_cistrncmp (c, "X-Base16", 8) == 0)
-              
-                if (isspace (c [8]) || c [8] == '(')
-              
-                  *encoding = ENC_BASE16;
-
-              if (cbf_cistrncmp (c, "7bit", 4) == 0 ||
-                  cbf_cistrncmp (c, "8bit", 4) == 0)
-              
-                if (isspace (c [4]) || c [4] == '(')
-              
-                  *encoding = ENC_NONE;
-
-              if (cbf_cistrncmp (c, "Binary", 6) == 0)
-              
-                if (isspace (c [6]) || c [6] == '(')
-              
-                  *encoding = ENC_NONE;
-            }
-            
-            break;
-          
-          case 2:
-          
-              /* Binary size */
-            
-            if (size)
-          
-              *size = atol (c);
-            
-            break;
-          
-          case 3:
-
-              /* Binary ID */
-          
-            if (id)
-
-              *id = atol (c);
-              
-            break;
-            
-          case 4:
-
-              /* Message digest */
-            
-            if (digest)
-            {
-              strncpy (digest, c, 24);
-              
-              digest [24] = '\0';
-            }
-            
-            break;
+          }
         }
-      }
-    }
-    
-      /* Blank line? */
-
-    if (line_count > 1)
           
-      while (isspace (*line))
-    
-        line++;
+      state = -1;
+          
+      break;
+
+      case 1:
+        
+          /* Binary encoding */
+              
+        if (encoding)
+        {
+           failure = 1;
+
+           quote = 0;
+
+           if (*c == '\"')
+                      
+              quote = 1;
+
+          if (cbf_cistrncmp (c+quote, "Quoted-Printable", 16) == 0)
+              
+            if (isspace (c [16]) || c [16] == '(' 
+              || (quote && c [16] == '\"')) {
+
+              failure = 0;
+              
+              *encoding = ENC_QP;
+            }
+                
+          if (cbf_cistrncmp (c+quote, "Base64", 6) == 0)
+              
+            if (isspace (c [6]) || c [6] == '(' || (quote && c [16] == '\"')) {
+
+              failure = 0;
+              
+              *encoding = ENC_BASE64;
+            }
+                
+          if (cbf_cistrncmp (c+quote, "X-Base8", 7) == 0)
+
+            if (isspace (c [7]) || c [7] == '(' || (quote && c [16] == '\"')) {
+
+              failure = 0;
+              
+              *encoding = ENC_BASE8;
+            }
+                
+          if (cbf_cistrncmp (c+quote, "X-Base10", 8) == 0)
+              
+            if (isspace (c [8]) || c [8] == '(' || (quote && c [16] == '\"')) {
+
+              failure = 0;
+              
+              *encoding = ENC_BASE10;
+            }
+                
+          if (cbf_cistrncmp (c+quote, "X-Base16", 8) == 0)
+              
+            if (isspace (c [8]) || c [8] == '(' || (quote && c [16] == '\"')) {
+
+              failure = 0;
+              
+              *encoding = ENC_BASE16;
+            }
+
+          if (cbf_cistrncmp (c+quote, "7bit", 4) == 0 ||
+              cbf_cistrncmp (c+quote, "8bit", 4) == 0)
+              
+            if (isspace (c [4]) || c [4] == '(' || (quote && c [16] == '\"')) {
+
+              failure = 0;
+              
+              *encoding = ENC_NONE;
+            }
+
+          if (cbf_cistrncmp (c+quote, "Binary", 6) == 0)
+              
+            if (isspace (c [6]) || c [6] == '(' || (quote && c [16] == '\"')) {
+
+              failure = 0;
+              
+              *encoding = ENC_NONE;
+            }
+        }
+
+        if (failure) return CBF_FORMAT;
+        
+        break;
+          
+      case 2:
+          
+          /* Binary size */
+            
+        if (size)
+          
+          *size = atol (c);
+            
+        break;
+          
+      case 3:
+
+          /* Binary ID */
+          
+        if (id)
+
+          *id = atol (c);
+              
+        break;
+            
+      case 4:
+          
+          /* Binary element type (signed/unsigned ?-bit integer) */
+
+        failure = 3;
+
+        while (*c)
+        {
+          quote = 0;
+
+          cbf_failnez (cbf_skip_whitespace (file, &line, &c, 
+                                                  &fresh_line))
+	  if (*c == '\"') {
+
+            if (quote) break;
+
+            c++;
+
+            quote++;
+	  }
+          
+          if (failure == 3) {
+
+            if (cbf_cistrncmp (c, "signed", 6) == 0)
+            {
+              c += 6;
+            
+              if (sign) *sign = 1;
+
+              failure --;
+            }
+          
+            if (cbf_cistrncmp (c, "unsigned", 8) == 0)
+            {
+              c += 8;
+              
+              if (sign) *sign = 0;
+
+              failure --;
+            }
+          }
+          
+          if (failure == 2) {
+
+            count = 0;
+            
+            sscanf (c, "%d-%n", &text_bits, &count);
+              
+            if (cbf_cistrncmp (c+count, "bit", 3 ) == 0)
+
+              if (count && text_bits > 0 && text_bits <= 64)
+              {
+                c += count;
+            
+                if (bits) *bits = text_bits;
+
+                failure --;
+              }
+          }
+
+          if (failure == 1) {
+
+            if (cbf_cistrncmp (c, "integer", 7 ) == 0) failure--;
+
+          }
+
+          if (*c)
+          
+            c++;
+        }
+        
+        if (failure) return CBF_FORMAT;
+ 
+        break;
+          
+      case 5:
+
+          /* Message digest */
+            
+        if (digest)
+        {
+          strncpy (digest, c, 24);
+              
+          digest [24] = '\0';
+        }
+            
+        break;
+    }
   }
-  while (*line);
 
 
     /* Success */

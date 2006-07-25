@@ -1,11 +1,12 @@
 /**********************************************************************
  * cbf_write -- write files                                           *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
-
+  
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -490,16 +491,16 @@ int cbf_write_node (const cbf_node *node, cbf_file *file, int isbuffer)
   {
     case CBF_ROOT:
 
-      cbf_failnez (cbf_write_string (file, "###CBF: VERSION 0.4\n"))
+      cbf_failnez (cbf_write_string (file, "###CBF: VERSION 0.6\n"))
     
       if (file->write_encoding & ENC_NONE)
 
         cbf_failnez (cbf_write_string (file, 
-                             "# CBF file written by cbflib v0.4\n"))
+                             "# CBF file written by cbflib v0.6\n"))
       else
 
         cbf_failnez (cbf_write_string (file, 
-                             "# CIF file written by cbflib v0.4\n"))
+                             "# CIF file written by cbflib v0.6\n"))
 
       break;
 
@@ -530,9 +531,9 @@ int cbf_write_node (const cbf_node *node, cbf_file *file, int isbuffer)
       cbf_failnez (cbf_write_node (node->child [count], file, isbuffer))
 
 
-    /* Success */
+    /* Flush the buffers */
 
-  return 0;
+  return cbf_flush_characters (file);
 }
 
 
@@ -541,6 +542,3 @@ int cbf_write_node (const cbf_node *node, cbf_file *file, int isbuffer)
 }
 
 #endif
-
-
-

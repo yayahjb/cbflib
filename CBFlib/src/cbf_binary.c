@@ -1,11 +1,12 @@
 /**********************************************************************
  * cbf_binary -- handle simple binary values                          *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
- 
+  
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -122,6 +123,7 @@ extern "C" {
 
 #include "cbf.h"
 #include "cbf_tree.h"
+#include "cbf_codes.h"
 #include "cbf_compress.h"
 #include "cbf_context.h"
 #include "cbf_binary.h"
@@ -133,15 +135,232 @@ extern "C" {
 #include <limits.h>
 
 
+  /* Parse a binary text value */
+  
+int cbf_get_bintext (cbf_node  *column, unsigned int row,
+                     int       *type,
+                     int       *id, 
+                     cbf_file **file,
+                     long      *start,
+                     size_t    *size,
+                     int       *checked_digest,
+                     char      *digest,
+                     int       *bits,
+                     int       *sign,
+            unsigned int       *compression)
+{
+  cbf_file *file_text;
+
+  long start_text, size_text;
+
+  int id_text, type_text, checked_digest_text, bits_text, sign_text;
+
+  unsigned int compression_text;
+  
+  char digest_text [25];
+
+  const char *text;
+
+
+    /* Check that the value is binary */
+
+  if (!cbf_is_binary (column, row))
+
+    return CBF_ASCII;
+
+
+    /* Get the value */
+
+  cbf_failnez (cbf_get_columnrow (&text, column, row))
+    
+    
+    /* Parse it */
+    
+  type_text = *text;
+
+  sscanf (text + 1, " %x %p %lx %lx %d %24s %x %d %u", 
+                      &id_text, 
+                      &file_text, 
+                      &start_text, 
+                      &size_text, 
+                      &checked_digest_text, 
+                       digest_text, 
+                      &bits_text, 
+                      &sign_text,
+                      &compression_text);
+
+
+    /* Copy the values */
+    
+  if (type)
+  
+    *type = type_text;
+    
+  if (id)
+  
+    *id = id_text;
+    
+  if (file)
+  
+    *file = file_text;
+    
+  if (start)
+  
+    *start = start_text;
+   
+  if (size)
+ 
+    *size = size_text;
+   
+  if (checked_digest)
+  
+    *checked_digest = checked_digest_text;
+    
+  if (digest)
+  
+    strcpy (digest, digest_text);
+    
+  if (bits)
+  
+    *bits = bits_text;
+    
+  if (sign)
+  
+    *sign = sign_text;
+
+  if (compression)
+
+    *compression = compression_text;
+    
+    
+    /* Success */
+    
+  return 0;
+}  
+   
+
+  /* Set a binary text value */
+  
+int cbf_set_bintext (cbf_node *column, unsigned int row,
+                     int         type,
+                     int         id, 
+                     cbf_file   *file,
+                     long        start,
+                     long        size,
+                     int         checked_digest,
+                     const char *digest,
+                     int         bits,
+                     int         sign,
+            unsigned int         compression)
+{
+  char text [(((sizeof (void *) +
+                sizeof (long int) * 2 +
+                sizeof (int) * 3) * CHAR_BIT) >> 2) + 55];
+                
+  const char *new_text;
+
+  int errorcode;
+  
+
+    /* Check that the digest has the correct format */
+    
+  if (!cbf_is_base64digest (digest))
+  {
+    digest = "------------------------";
+    
+    checked_digest = 0;
+  }
+
+
+    /* Create the new text */                
+
+  sprintf (text, "%x %p %lx %lx %1d %24s %x %d %u", 
+                   id, 
+                   file, 
+                   start, 
+                   size, 
+                   checked_digest != 0,
+                   digest, 
+                   bits, 
+                   sign,
+                   compression);
+    
+  new_text = cbf_copy_string (NULL, text, type);
+
+  if (!new_text)
+    
+    return CBF_ALLOC;
+
+
+    /* Add a new connection to the file */
+
+  cbf_onfailnez (cbf_add_fileconnection (&file, NULL),
+                 cbf_free_string (NULL, new_text))
+
+
+    /* Set the new value */
+
+  errorcode = cbf_set_columnrow (column, row, new_text, 1);
+
+  if (errorcode)
+  {
+    cbf_free_string (NULL, new_text);
+    
+    return errorcode | cbf_delete_fileconnection (&file);
+  }
+
+  
+    /* Success */
+    
+  return 0;
+}
+
+
   /* Is this a binary value? */
 
-int cbf_is_binary (const char *value)
+int cbf_is_binary (cbf_node *column, unsigned int row)
 {
-  if (value)
+  const char *text;
+  
+  
+    /* Get the value */
 
-    return *value == CBF_TOKEN_BIN     || 
-           *value == CBF_TOKEN_TMP_BIN || 
-           *value == CBF_TOKEN_MIME_BIN;
+  if (cbf_get_columnrow (&text, column, row))
+  
+    return 0;
+  
+  if (text)
+
+    return (*text == CBF_TOKEN_BIN     || 
+            *text == CBF_TOKEN_TMP_BIN || 
+            *text == CBF_TOKEN_MIME_BIN);
+      
+      
+    /* Fail */
+
+  return 0;
+}
+
+
+  /* Is this an encoded binary value? */
+
+int cbf_is_mimebinary (cbf_node *column, unsigned int row)
+{
+  const char *text;
+  
+  
+    /* Get the value */
+
+  if (cbf_get_columnrow (&text, column, row))
+  
+   return 0;
+  
+  if (text)
+
+    return (*text == CBF_TOKEN_MIME_BIN);
+        
+      
+    /* Fail */
 
   return 0;
 }
@@ -149,106 +368,87 @@ int cbf_is_binary (const char *value)
 
   /* Free a value */
 
-int cbf_free_value (cbf_context *context, const char **value)
+int cbf_free_value (cbf_context *context, cbf_node *column, unsigned int row)
 {
   cbf_file *file;
 
-  int binary_id;
-
-  long start;
-  
-  long size;
-
   const char *text;
 
-  char text0;
-
+  int is_binary, type;
 
 
     /* Check the argument */
 
-  if (!value)
+  if (!column)
 
     return CBF_ARGUMENT;
-
-  text = *value;
-
-  if (!text)
-
-    return 0;
-
-
-    /* Is the value ascii? */
-
-  text0 = *text;
-
-  if (!cbf_is_binary (text))
-  {
-      /* Free the value */
-
-    cbf_free_string (NULL, *value);
-
-    *value = NULL;
-
-    return 0;
-  }
-
-
-    /* Parse the (binary) value */
-
-  size = 0;
-
-  sscanf (text + 1, " %x %p %lx %lx", &binary_id, &file, &start, &size);
-
-  if (size == 0 || !file)
-
-    return CBF_FORMAT;
-
-
-    /* Free the value */
-
-  cbf_free_string (NULL, *value);
-
-  *value = NULL;
+    
+    
+    /* Is the value binary? */
+    
+  is_binary = cbf_is_binary (column, row);
   
 
-    /* Free the binary section */
+    /* Parse the (binary) value */
+    
+  if (is_binary)
+      
+    cbf_failnez (cbf_get_bintext (column, row, &type, NULL, &file, NULL, 
+                                           NULL, NULL, NULL, NULL, NULL, NULL))
 
-  if (text0 == CBF_TOKEN_TMP_BIN)
+    
+    /* Get the ASCII value */
 
-    return cbf_close_temporary (context, &file);
+  cbf_failnez (cbf_get_columnrow (&text, column, row))
+  
 
-  return cbf_delete_fileconnection (&file);
+    /* Set the value to null */
+      
+  cbf_failnez (cbf_set_columnrow (column, row, NULL, 0))
+    
+
+    /* And free it */
+
+  cbf_free_string (NULL, text);
+
+  if (is_binary)
+
+    if (type == CBF_TOKEN_TMP_BIN)
+
+      cbf_failnez (cbf_close_temporary (context, &file))
+      
+    else
+
+      cbf_failnez (cbf_delete_fileconnection (&file))
+  
+  
+    /* Success */
+    
+  return 0;
 }
 
 
   /* Set a binary value */
 
 int cbf_set_binary (cbf_node *column, unsigned int row,
-                    unsigned int compression, size_t repeat,
-                    int binary_id, void *value, size_t elsize, int elsign,
+                    unsigned int compression,  int binary_id, 
+                    void *value, size_t elsize, int elsign,
                     size_t nelem)
 {
   cbf_file *tempfile;
 
-  const char *newvalue;
-
-  char digest[25];
-
-  int errorcode;
+  char digest [25];
   
   size_t size;
   
-  char text [(((sizeof (void *) +
-                sizeof (long int) * 2 +
-                sizeof (int)) * CHAR_BIT) >> 2) + 16 + 38];
-
   long start;
+  
+  int bits;
 
 
     /* Remove the old value */
 
-  cbf_failnez (cbf_set_columnrow (column, row, NULL))
+  cbf_failnez (cbf_set_columnrow (column, row, NULL, 1))
 
 
     /* Get the temporary file */
@@ -273,45 +473,102 @@ int cbf_set_binary (cbf_node *column, unsigned int row,
     /* Add the binary data to the temporary file */
 
   cbf_onfailnez (cbf_compress (value, elsize, elsign, nelem,
-                               compression, repeat, tempfile,
-                               &size, digest),
+                               compression, tempfile,
+                               &size, &bits, digest),
                  cbf_delete_fileconnection (&tempfile))
 
 
     /* Set the value */
-
-  sprintf (text, "%x %p %lx %lx %25s %x %x", binary_id, tempfile, start, 
-                                  (long) size, digest, elsize, elsign);
-
-  newvalue = cbf_copy_string (NULL, text, CBF_TOKEN_TMP_BIN);
-
-  if (newvalue)
-
-    errorcode = cbf_set_columnrow (column, row, newvalue);
-
-  else
-
-    errorcode = CBF_ALLOC;
-
-  if (errorcode)
-  {
-    cbf_free_string (NULL, newvalue);
-
-    return errorcode | cbf_delete_fileconnection (&tempfile);
-  }
+    
+  cbf_onfailnez (cbf_set_bintext (column, row, CBF_TOKEN_TMP_BIN,
+                                  binary_id, tempfile, start, size,
+                                  1, digest, bits, elsign != 0, compression),
+                 cbf_delete_fileconnection (&tempfile))
 
 
     /* Success */
 
   return 0;
 }
-
     
+
+  /* Check the message digest */
+  
+int cbf_check_digest (cbf_node *column, unsigned int row)
+{
+  cbf_file *file;
+
+  long start;
+  
+  size_t size;
+
+  char old_digest [25], new_digest [25];
+
+  int id, bits, sign, type, checked_digest;
+
+  unsigned int compression;
+
+
+    /* Parse the value */
+    
+  cbf_failnez (cbf_get_bintext (column, row, &type, &id, &file, 
+                                &start, &size, &checked_digest, 
+                                old_digest, &bits, &sign, &compression))
+
+
+    /* Recalculate and compare the digest? */
+
+  if ((file->read_headers & MSG_DIGEST) && !checked_digest)
+  
+    if (cbf_is_base64digest (old_digest))
+    {
+        /* Is it encoded? */
+    
+      if (cbf_is_mimebinary (column, row))
+      {
+          /* Convert the value to a normal binary value */
+      
+        cbf_failnez (cbf_mime_temp (column, row))
+    
+    
+          /* Rerun the function */
+
+        return cbf_check_digest (column, row);
+      }
+
+
+        /* Position the file */
+
+      cbf_failnez (cbf_set_fileposition (file, start, SEEK_SET))
+
+        /* Recalculate and check the digest */
+
+      cbf_failnez (cbf_md5digest (file, size, new_digest))
+
+      if (strcmp (old_digest, new_digest) != 0)
+                 
+        return CBF_FORMAT;
+      
+      
+        /* Change the text to show that the digest has been checked */
+      
+      cbf_failnez (cbf_set_bintext (column, row, type,
+                                    id, file, start, size,
+                                    1, new_digest, bits, sign, compression))
+    }
+  
+  
+    /* Success */
+    
+  return 0;
+}
+
+
   /* Get the parameters of a binary value */
   
 int cbf_binary_parameters (cbf_node *column, 
                            unsigned int row, unsigned int *compression,
-                           size_t *repeat, int *binary_id, 
+                           int *id, 
                            int *eltype, size_t *elsize, 
                            int *elsigned, 
                            int *elunsigned,
@@ -322,31 +579,21 @@ int cbf_binary_parameters (cbf_node *column,
 
   long start;
 
-  long size;
+  size_t size, file_elsize, file_nelem;
 
-  const char *text;
-
-  char text_digest [25];
-
-  size_t text_elsize;
-
-  int text_elsign;
-
-  int errorcode;
-
-    /* Get the value */
-
-  cbf_failnez (cbf_get_columnrow (&text, column, row))
-
-  if (!text)
-
-    return CBF_ASCII;
-
+  int text_bits, errorcode;
   
-    /* Parse the value */
+  
+    /* Check the digest (this will also decode it if necessary) */
+
+  cbf_failnez (cbf_check_digest (column, row))
+  
+
+    /* Is it an encoded binary section? */
     
-  if (*text == CBF_TOKEN_MIME_BIN)
+  if (cbf_is_mimebinary (column, row))
   {
+
       /* Convert the value to a normal binary value */
       
     cbf_failnez (cbf_mime_temp (column, row))
@@ -356,49 +603,63 @@ int cbf_binary_parameters (cbf_node *column,
 
     return cbf_binary_parameters (column, row, 
                                   compression,
-                                  repeat, binary_id, 
+                                  id, 
                                   eltype, elsize, 
                                   elsigned, elunsigned,
                                   nelem,
                                   minelem, maxelem);
   }
 
-  if (*text != CBF_TOKEN_BIN && *text != CBF_TOKEN_TMP_BIN)
 
-    return CBF_ASCII;
+    /* Parse the value */
 
-  size = 0;
-
-  sscanf (text + 1, " %x %p %lx %lx %25s %x %x", 
-          binary_id, &file, &start, &size, 
-          text_digest, &text_elsize, &text_elsign);
-  
-  if (size == 0 || !file)
-
-    return CBF_FORMAT;
+  cbf_failnez (cbf_get_bintext (column, row, NULL,
+                                id, &file, &start, &size, NULL,
+                                NULL, &text_bits, NULL, compression))
 
 
     /* Position the file at the start of the binary section */
-
+    
   cbf_failnez (cbf_set_fileposition (file, start, SEEK_SET))
 
   
     /* Get the parameters */
 
-  errorcode = cbf_decompress_parameters (eltype, elsize, elsigned, elunsigned, 
-                                         nelem, minelem, maxelem,
-                                         compression, repeat, &size, file);
+  errorcode = cbf_decompress_parameters (eltype, &file_elsize, elsigned, 
+                                         elunsigned, 
+                                         &file_nelem, minelem, maxelem,
+                                         *compression, file);
 
-  if ( *elsize == 0 ) *elsize = text_elsize;
+  if (!errorcode)
+  {
+    if (elsize)
+  
+      if (file_elsize > 0)
+  
+        *elsize = file_elsize;
+        
+      else
+
+        *elsize = (text_bits + CHAR_BIT - 1) / CHAR_BIT;    
+        
+    if (nelem)
+    
+      if (file_nelem > 0)
+      
+        *nelem = file_nelem;
+        
+      else
+      
+        *nelem = (size * 8) / text_bits;
+  }
 
   return errorcode;
-
 }
 
                    
   /* Get a binary value */
   
-int cbf_get_binary (cbf_node *column, unsigned int row, int *binary_id,
+int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
                     void *value, size_t elsize, int elsign,
                     size_t nelem, size_t *nelem_read)
 {
@@ -406,89 +667,63 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *binary_id,
 
   long start;
 
-  long size;
-
-  const char *text;
-
-  char text_digest [25];
-
-  size_t text_elsize;
-
-  int text_elsign;
-
-  int id_file, eltype_file, elsigned_file, elunsigned_file, 
-                            minelem_file, maxelem_file;
+  int eltype_file, elsigned_file, elunsigned_file, 
+                   minelem_file, maxelem_file, bits, sign;
 
   unsigned int compression;
 
-  size_t nelem_file, repeat;
+  size_t nelem_file;
 
 
-    /* Get the value */
+    /* Check the digest (this will also decode it if necessary) */
 
-  cbf_failnez (cbf_get_columnrow (&text, column, row))
-
-  if (!text)
-
-    return CBF_ASCII;
-
+  cbf_failnez (cbf_check_digest (column, row))
   
-    /* Parse the value */
 
-  if (*text == CBF_TOKEN_MIME_BIN)
+    /* Is it an encoded binary section? */
+    
+  if (cbf_is_mimebinary (column, row))
   {
       /* Convert the value to a normal binary value */
       
     cbf_failnez (cbf_mime_temp (column, row))
     
     
-      /* Rerun the functionm */
+      /* Rerun the function */
 
     return cbf_get_binary (column, row, 
-                           binary_id,
-                           value, elsize, elsign,
+                           id, value, elsize, elsign,
                            nelem, nelem_read);
   }
 
-  if (*text != CBF_TOKEN_BIN && *text != CBF_TOKEN_TMP_BIN)
 
-    return CBF_ASCII;
+    /* Parse the value */
 
-  size = 0;
-
-  sscanf (text + 1, " %x %p %lx %lx %25s %x %x", 
-          &id_file, &file, &start, &size, 
-          text_digest, &text_elsize, &text_elsign);
-
-  if (size == 0 || !file)
-
-    return CBF_FORMAT;
-
+  cbf_failnez (cbf_get_bintext (column, row, NULL,
+                                id, &file, &start, NULL, 
+                                 NULL, NULL, &bits, &sign, &compression))
+  
 
     /* Position the file at the start of the binary section */
 
   cbf_failnez (cbf_set_fileposition (file, start, SEEK_SET))
 
   
+    
     /* Get the parameters and position the file */
 
   cbf_failnez (cbf_decompress_parameters (&eltype_file, NULL,
-                                      &elsigned_file, &elunsigned_file,
-                                      &nelem_file,
-                                      &minelem_file, &maxelem_file,
-                                      &compression, &repeat, 
-                                      NULL, file))
+                                          &elsigned_file, &elunsigned_file,
+                                          &nelem_file,
+                                          &minelem_file, &maxelem_file,
+                                          compression, 
+                                          file))
 
-  if (binary_id)
-
-    *binary_id = id_file;
-
-  if (elsize == 0) elsize = text_elsize;
 
     /* Decompress the binary data */
 
   return cbf_decompress (value, elsize, elsign, nelem, nelem_read,
-                         compression, repeat, file);
+                         compression, bits, sign, file);
 }
 
                     
@@ -497,4 +732,3 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *binary_id,
 }
 
 #endif
-

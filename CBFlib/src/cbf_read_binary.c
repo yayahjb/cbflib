@@ -1,9 +1,10 @@
 /**********************************************************************
  * read_binary -- read a binary header                                *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
@@ -131,9 +132,12 @@ extern "C" {
 
   /* Parse a binary header looking for the size and id */
      
-int cbf_parse_binaryheader (cbf_file *file, size_t *size, long *id)
+int cbf_parse_binaryheader (cbf_file *file, size_t *size, 
+                                              long *id,
+                                      unsigned int *compression,
+                                               int  mime)
 {
-  unsigned int file_size;
+  unsigned int file_size, file_compression;
   
   int file_id, c;
   
@@ -175,6 +179,9 @@ int cbf_parse_binaryheader (cbf_file *file, size_t *size, long *id)
           
   cbf_failnez (cbf_reset_bits (file))
 
+    /* If there was a mime header, there is no id,  size or compression */
+
+  if (mime) return 0;
 
     /* id */
 
@@ -192,6 +199,14 @@ int cbf_parse_binaryheader (cbf_file *file, size_t *size, long *id)
   if (size)
      
     *size = file_size;
+
+    /* Compression Type */
+          
+  cbf_failnez (cbf_get_integer (file, (int *) &file_compression, 0, 64))
+     
+  if (compression)
+     
+    *compression = file_compression;
 
 
     /* Success */

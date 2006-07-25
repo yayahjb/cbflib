@@ -1,10 +1,10 @@
 /**********************************************************************
  * cbf_compress -- compression and decompression                      *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *           Paul Ellis (ellis@ssrl.slac.stanford.edu) and            *
- *        Herbert J. Bernstein (yaya@bernstein-plus-sons.com)         *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
@@ -53,8 +53,8 @@
  **********************************************************************/
  
 /**********************************************************************
- *                             The IUCr Policy                        *
- *                                    on                              *
+ *                          The IUCr Policy                           *
+ *                                 on                                 *
  *     the Use of the Crystallographic Information File (CIF)         *
  *                                                                    *
  * The Crystallographic Information File (Hall, Allen & Brown,        *
@@ -139,192 +139,173 @@ extern "C" {
 
   /* Compress an array */
 
-int cbf_compress (void *buf, size_t elsize, int elsign, size_t nelem,
-                             unsigned int compression, size_t repeat,
-                             cbf_file *file, size_t *compressedsize,
-                             char *digest)
+int cbf_compress (void         *source, 
+                  size_t        elsize, 
+                  int           elsign, 
+                  size_t        nelem,
+                  unsigned int  compression, 
+                  cbf_file     *file, 
+                  size_t       *compressedsize,
+                  int          *bits, 
+                  char         *digest)
 {
-  MD5_CTX context;
-
-  unsigned char buffer[64];
-
-  size_t done;
-
   int errorcode;
+  
+  size_t size;
+
 
     /* Discard any bits in the buffers */
     
   cbf_failnez (cbf_reset_bits (file))
+  
+  if (compressedsize)
+  
+    *compressedsize = 0;
 
 
-    /* Write the coding id (64 bits) */
+    /* Start a digest? */
     
-  cbf_failnez (cbf_put_integer (file, compression, 0, 64))
+  if (digest)
+  
+    cbf_failnez (cbf_start_digest (file))
 
-  if (digest) {
-
-    MD5Init (&context);
-
-    file->digest_buffer = buffer;
-
-    file->digest_bpoint = buffer;
-
-    file->context = &context;
-
-  }
 
   errorcode = 0;
+  
+  size = 0;
 
   switch (compression)
   {
     case CBF_CANONICAL:
     
-      errorcode = cbf_compress_canonical (buf, elsize, elsign, nelem,
-                                     compression, repeat, file, 
-                                     compressedsize);
+      errorcode = cbf_compress_canonical (source, elsize, elsign, nelem,
+                                          compression, file, 
+                                          &size, bits);
       break;
 
     case CBF_PACKED:
     case 0:
 
-      errorcode = cbf_compress_packed (buf, elsize, elsign, nelem,
-                                  compression, repeat, file,
-                                  compressedsize);
+      errorcode = cbf_compress_packed (source, elsize, elsign, nelem,
+                                       compression, file,
+                                       &size, bits);
       break;
 
     case CBF_BYTE_OFFSET:
     
-      errorcode = cbf_compress_byte_offset (buf, elsize, elsign, nelem,
-                                       compression, repeat, file, 
-                                       compressedsize);
+      errorcode = cbf_compress_byte_offset (source, elsize, elsign, nelem,
+                                            compression, file, 
+                                            &size, bits);
       break;
 
     case CBF_PREDICTOR:
     
-      errorcode = cbf_compress_predictor (buf, elsize, elsign, nelem,
-                                     compression, repeat, file, 
-                                     compressedsize);
+      errorcode = cbf_compress_predictor (source, elsize, elsign, nelem,
+                                          compression, file, 
+                                          &size, bits);
       break;
 
     case CBF_NONE:
     
-      errorcode = cbf_compress_none (buf, elsize, elsign, nelem,
-                                compression, repeat, file, 
-                                compressedsize);
+      errorcode = cbf_compress_none (source, elsize, elsign, nelem,
+                                     compression, file, 
+                                     &size, bits);
       break;
 
   default:
+  
       errorcode = CBF_ARGUMENT;
   }
+  
+  
+    /* Add the compressed size */
+    
+  if (compressedsize)
+  
+    *compressedsize += size;
 
-  if (digest) {
 
-    if ((file->digest_bpoint) - (file->digest_buffer) > 0 ) {
+    /* Flush the buffers */
 
-      MD5Update (file->context, file->digest_buffer, 
-        ((file->digest_bpoint)-(file->digest_buffer)));    
+  errorcode |= cbf_flush_bits (file);
+  
 
-      done = fwrite(file->digest_buffer, 1, 
-        ((file->digest_bpoint)-(file->digest_buffer)), file->stream);
+    /* Get the digest? */
+    
+  if (digest)
+  
+     errorcode |= cbf_end_digest (file, digest);
 
-      if (done <  ((file->digest_bpoint)-(file->digest_buffer))) {
 
-        errorcode |= CBF_FILEWRITE;
+    /* Done */
 
-      }
-
-    }
-
-    file->digest_bpoint = file->digest_buffer = NULL;
-
-    cbf_failnez(cbf_md5context_to64(file->context, digest))
-
-    file->context = NULL;
-
-  }
-
-    /* Fail */
   return errorcode;
 }
 
 
   /* Get the parameters of an array (read up to the start of the table) */
   
-int cbf_decompress_parameters (int *eltype, size_t *elsize, 
-                               int *elsigned, int *elunsigned,
-                               size_t *nelem, 
-                               int *minelem, int *maxelem,
-                               unsigned int *compression,
-                               size_t *repeat,
-                               long *size,
-                               cbf_file *file)
+int cbf_decompress_parameters (int          *eltype, 
+                               size_t       *elsize, 
+                               int          *elsigned, 
+                               int          *elunsigned,
+                               size_t       *nelem, 
+                               int          *minelem, 
+                               int          *maxelem,
+                               unsigned int  compression,
+                               cbf_file     *file)
 {
   unsigned int compression_file, nelem_file;
 
   int errorcode, minelement_file, maxelement_file, 
-                 elsigned_file, elunsigned_file;
-
-  int repeat_file;
+                   elsigned_file, elunsigned_file;
 
 
     /* Discard any bits in the buffers */
 
   cbf_failnez (cbf_reset_bits (file));
   
+   /* Check compression type */
 
-    /* Read the compression id (64 bits) */
-
-  cbf_failnez (cbf_get_integer (file, (int *) &compression_file, 0, 64))
-
-  if (compression_file != CBF_CANONICAL   &&
-      compression_file != CBF_PACKED      &&
-      compression_file != CBF_BYTE_OFFSET &&
-      compression_file != CBF_PREDICTOR   &&
-      compression_file != CBF_NONE)
+  if (compression != CBF_CANONICAL   &&
+      compression != CBF_PACKED      &&
+      compression != CBF_BYTE_OFFSET &&
+      compression != CBF_PREDICTOR   &&
+      compression != CBF_NONE)
 
     return CBF_FORMAT;
 
-  if (compression_file == CBF_NONE) {
-
+  if (compression == CBF_NONE)
+  {
     nelem_file = 0;
-    if (size) {
-      nelem_file = ( *size -8  + (sizeof(int)-1) )/ (sizeof(int));
-    }
-    minelement_file = 0;
-    maxelement_file = 0;
-    repeat_file = 0;
 
-  } else { 
+    minelement_file = maxelement_file = 0;
+  } 
+  else 
+  { 
+      /* Read the number of elements (64 bits) */
 
-
-    /* Read the number of elements (64 bits) */
-
-  cbf_failnez (cbf_get_integer (file, (int *) &nelem_file, 0, 64))
+    cbf_failnez (cbf_get_integer (file, (int *) &nelem_file, 0, 64))
 
 
-    /* Read the minimum element (64 bits) */
+      /* Read the minimum element (64 bits) */
 
-  errorcode = cbf_get_integer (file, &minelement_file, 1, 64);
+    errorcode = cbf_get_integer (file, &minelement_file, 1, 64);
 
-  if (errorcode && errorcode != CBF_OVERFLOW)
+    if (errorcode && errorcode != CBF_OVERFLOW)
 
-    return errorcode;
-
-
-    /* Read the maximum element (64 bits) */
-
-  errorcode = cbf_get_integer (file, &maxelement_file, 1, 64);
-
-  if (errorcode && errorcode != CBF_OVERFLOW)
-
-    return errorcode;
+      return errorcode;
 
 
-    /* Read the repeat length (64 bits) */
+      /* Read the maximum element (64 bits) */
 
-  cbf_failnez (cbf_get_integer (file, &repeat_file, 0, 64))
+    errorcode = cbf_get_integer (file, &maxelement_file, 1, 64);
 
+    if (errorcode && errorcode != CBF_OVERFLOW)
+
+      return errorcode;
   }
+
 
     /* Update the element sign, type, minimum, maximum and number */
 
@@ -346,10 +327,6 @@ int cbf_decompress_parameters (int *eltype, size_t *elsize,
   
     *elunsigned = elunsigned_file;
 
-  if (compression)
-
-    *compression = compression_file;
-
   if (eltype)
   
     *eltype = CBF_INTEGER;
@@ -360,7 +337,7 @@ int cbf_decompress_parameters (int *eltype, size_t *elsize,
       
     if (minelement_file == 0 && maxelement_file == 0)
       
-      *elsize = sizeof (int);
+      *elsize = 0;
       
     else
 
@@ -396,10 +373,6 @@ int cbf_decompress_parameters (int *eltype, size_t *elsize,
   
     *maxelem = maxelement_file;
 
-  if (repeat)
-
-    *repeat = repeat_file;
-
   if (nelem)
   
     *nelem = nelem_file;
@@ -413,43 +386,48 @@ int cbf_decompress_parameters (int *eltype, size_t *elsize,
 
   /* Decompress an array (from the start of the table) */
 
-int cbf_decompress (void *buf, size_t elsize, int elsign, 
-                               size_t nelem, size_t *nelem_read,
-                               unsigned int compression, 
-                               size_t repeat, cbf_file *file)
+int cbf_decompress (void         *destination, 
+                    size_t        elsize, 
+                    int           elsign, 
+                    size_t        nelem, 
+                    size_t       *nelem_read,
+                    unsigned int  compression,
+                    int           bits, 
+                    int           sign,
+                    cbf_file     *file)
 {
   switch (compression)
   {
     case CBF_CANONICAL:
     
-      return cbf_decompress_canonical (buf, elsize, elsign, nelem,
+      return cbf_decompress_canonical (destination, elsize, elsign, nelem,
                                        nelem_read, compression, 
-                                       repeat, file);
+                                       file);
 
     case CBF_PACKED:
     case 0:
 
-      return cbf_decompress_packed (buf, elsize, elsign, nelem,
+      return cbf_decompress_packed (destination, elsize, elsign, nelem,
                                     nelem_read, compression, 
-                                    repeat, file);
+                                    file);
 
     case CBF_BYTE_OFFSET:
     
-      return cbf_decompress_byte_offset (buf, elsize, elsign, nelem,
+      return cbf_decompress_byte_offset (destination, elsize, elsign, nelem,
                                          nelem_read, compression, 
-                                         repeat, file);
+                                         file);
 
     case CBF_PREDICTOR:
     
-      return cbf_decompress_predictor (buf, elsize, elsign, nelem,
+      return cbf_decompress_predictor (destination, elsize, elsign, nelem,
                                        nelem_read, compression,
-                                       repeat, file);
+                                       file);
 
     case CBF_NONE:
     
-      return cbf_decompress_none (buf, elsize, elsign, nelem,
+      return cbf_decompress_none (destination, elsize, elsign, nelem, 
                                   nelem_read, compression, 
-                                  repeat, file);
+                                  bits, sign, file);
   }
 
 
@@ -464,6 +442,3 @@ int cbf_decompress (void *buf, size_t elsize, int elsign,
 }
 
 #endif
-
-
-

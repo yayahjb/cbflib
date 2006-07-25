@@ -1,0 +1,2779 @@
+{\rtf1\mac\deff2 {\fonttbl{\f0\fswiss Chicago;}{\f2\froman New York;}{\f3\fswiss Geneva;}{\f4\fmodern Monaco;}{\f13\fnil Zapf Dingbats;}{\f14\fnil Bookman;}{\f15\fnil N Helvetica Narrow;}{\f16\fnil Palatino;}{\f18\fnil Zapf Chancery;}{\f20\froman Times;}
+{\f21\fswiss Helvetica;}{\f22\fmodern Courier;}{\f23\ftech Symbol;}{\f33\fnil Avant Garde;}{\f34\fnil New Century Schlbk;}{\f200\fnil LockFont;}{\f201\fnil Mishawaka Bold;}{\f256\fnil Mishawaka;}{\f1109\fnil Trebuchet MS;}{\f2001\fnil Arial;}
+{\f2005\fnil Courier New;}{\f2010\fnil Times New Roman;}{\f2011\fnil Wingdings;}{\f2421\fnil Impact;}{\f2515\fnil MT Extra;}{\f4513\fnil Comic Sans MS;}{\f4538\fnil Arial Black;}{\f7203\fnil Verdana;}{\f12171\fnil Georgia;}{\f32525\fnil VT100;}}
+{\colortbl\red0\green0\blue0;\red0\green0\blue255;\red0\green255\blue255;\red0\green255\blue0;\red255\green0\blue255;\red255\green0\blue0;\red255\green255\blue0;\red255\green255\blue255;}{\stylesheet{\s243\tqc\tx4320\tqr\tx8640 \sbasedon0\snext243 
+footer;}{\sbasedon222\snext0 Normal;}}{\info{\title CBFlib.msw}{\subject An API for CBF/imgCIF}{\author Paul J. Ellis and Herbert J. Bernstein}{\*\verscomm 0.6}}\widowctrl\ftnbj\fracwidth \sectd \sbknone\pgnlcrm\linemod0\linex0\cols1\endnhere\titlepg 
+{\footer \pard\plain \s243\tqc\tx4320\tqr\tx8640 {\f20 CBFlib 0.6\tab \tab Page - \chpgn }\par 
+}\pard\plain \qc {{\pict\macpict\picw211\pich106\picscaled 
+10a300000000009e01321101a10064000c574f524400000000009e01320e0000004501000a00000000009e01320aaa55aa55aa55aa5574008e006500e6007c00fd006500f2006800f0006600ee006a00ed006900ea006c00eb006d00e8006f00e9007100e6007200e9007500e7007600eb007800ea007800ed007b00ee0079
+00f0007c00f2007900f3007b00f6007800f6007800f9007600f9007500fc007300fa007100fd006f00fa006d00fc006c00f9006900f9006a00f7006700f6006800f4006500f20e0000011109aa55aa55aa55aa5570008e006500e6007c00fd006500f2006800f0006600ee006a00ed006900ea006c00eb006d00e8006f00e9
+007100e6007200e9007500e7007600eb007800ea007800ed007b00ee007900f0007c00f2007900f3007b00f6007800f6007800f9007600f9007500fc007300fa007100fd006f00fa006d00fc006c00f9006900f9006a00f7006700f6006800f4006500f20e000000450a77dd77dd77dd77dd74008e005300ce007e00f90053
+00e4005800e1005500dc005b00db005a00d5006000d6006100d1006600d4006900ce006c00d3007100d0007200d6007700d5007700db007c00dc007900e1007e00e4007900e7007c00ec007700ed007700f2007200f1007100f7006c00f4006900f9006600f4006100f7006000f1005a00f2005b00ed005600ec005900e700
+5300e40e000001110977dd77dd77dd77dd70008e005300ce007e00f9005300e4005800e1005500dc005b00db005a00d5006000d6006100d1006600d4006900ce006c00d3007100d0007200d6007700d5007700db007c00dc007900e1007e00e4007900e7007c00ec007700ed007700f2007200f1007100f7006c00f4006900
+f9006600f4006100f7006000f1005a00f2005b00ed005600ec005900e7005300e40e000000450affeeffbbffeeffbb74008e002d00a1007f00f3002d00ca003700c4003100bb003c00b9003a00ae004500b0004700a6005000ab005600a1005c00ab006500a5006800b0007200ae007100b9007b00bb007600c4007f00ca00
+7600d0007c00d9007100dc007200e6006900e4006600ef005d00e9005600f3005000ea004700f0004500e4003a00e6003c00dc003200da003700d1002d00ca0e0000011109ffeeffbbffeeffbb70008e002d00a1007f00f3002d00ca003700c4003100bb003c00b9003a00ae004500b0004700a6005000ab005600a1005c00
+ab006500a5006800b0007200ae007100b9007b00bb007600c4007f00ca007600d0007c00d9007100dc007200e6006900e4006600ef005d00e9005600f3005000ea004700f0004500e4003a00e6003c00dc003200da003700d1002d00ca0e000000450affffffffffffffff74008e00000045009d00e2000000940011008800
+070076001c00710019005e002c00600031004d00420057004f0045005b0056006c004c007100600085005d0082007100960076008c0087009d0094008c009f009800b1008300b5008500c9007200c6006d00db005b00cf004f00e2004300d0003200dd002d00c6001900ca001c00b6000900b2001200a0000000940e000001
+1109ffffffffffffffff70008e00000045009d00e2000000940011008800070076001c00710019005e002c00600031004d00420057004f0045005b0056006c004c007100600085005d0082007100960076008c0087009d0094008c009f009800b1008300b5008500c9007200c6006d00db005b00cf004f00e2004300d00032
+00dd002d00c6001900ca001c00b6000900b2001200a0000000940e000000450add77dd77dd77dd777400220034005a006a0075003f007500340064004e005a006a006400600075003f00750e000000217000220034005a006a0075003f007500340064004e005a006a006400600075003f00750e00000045740026002c0074
+007300b1002c0093004000740060007400730093006000b1003f00b1002c00930e00000021700026002c0074007300b1002c0093004000740060007400730093006000b1003f00b1002c00930e000000450affffffffffffffff740022003400b1006a00cc003f00b1003400c3004e00cc006a00c3006000b1003f00b10e00
+000021700022003400b1006a00cc003f00b1003400c3004e00cc006a00c3006000b1003f00b10e000000450add77dd77dd77dd7774002200190093004000c4002e009300190093002000b1003600c4004000b2002e00930e0000002170002200190093004000c4002e009300190093002000b1003600c4004000b2002e0093
+0e000000450aaa55aa55aa55aa557400220019006300400094002e009400190094002000770036006300400075002e00940e000000217000220019006300400094002e009400190094002000770036006300400075002e00940e000000450affffffffffffffff740022005f0092008600c30072009200860092008000b000
+6a00c3005f00b1007200920e00000021700022005f0092008600c30072009200860092008000b0006a00c3005f00b1007200920e00000045740022005f006200860093007200930086009300800076006a0062005f0074007200930e00000021700022005f006200860093007200930086009300800076006a0062005f0074
+007200930e00000045340017002f008400930e00000199380e0000001e0a00000000000000003400290038003c00420e00000199380e0000001e340029004a003c00540e00000199380e0000001e340044004a005700540e00000199380e0000001e340044005c005700660e00000199380e0000001e34005f004a00720054
+0e00000199380e0000001e34005f005c007200660e00000199380e0000001e340044006e005700780e00000199380e0000001e34005f0077007200810e00000199380e000000450aaa55aa55aa55aa5574008e006400e6007b00fd006400f2006700f0006500ee006900ed006800ea006b00eb006c00e8006e00e9007000e6
+007100e9007400e7007500eb007700ea007700ed007a00ee007800f0007b00f2007800f3007a00f6007700f6007700f9007500f9007400fc007200fa007000fd006e00fa006c00fc006b00f9006800f9006900f7006600f6006700f4006400f20e0000011109aa55aa55aa55aa5570008e006400e6007b00fd006400f20067
+00f0006500ee006900ed006800ea006b00eb006c00e8006e00e9007000e6007100e9007400e7007500eb007700ea007700ed007a00ee007800f0007b00f2007800f3007a00f6007700f6007700f9007500f9007400fc007200fa007000fd006e00fa006c00fc006b00f9006800f9006900f7006600f6006700f4006400f20e
+000000450a77dd77dd77dd77dd74008e005300ce007e00f9005300e4005800e1005500dc005b00db005a00d5006000d6006100d1006600d4006900ce006c00d3007100d0007200d6007700d5007700db007c00dc007900e1007e00e4007900e7007c00ec007700ed007700f2007200f1007100f7006c00f4006900f9006600
+f4006100f7006000f1005a00f2005b00ed005600ec005900e7005300e40e000001110977dd77dd77dd77dd70008e005300ce007e00f9005300e4005800e1005500dc005b00db005a00d5006000d6006100d1006600d4006900ce006c00d3007100d0007200d6007700d5007700db007c00dc007900e1007e00e4007900e700
+7c00ec007700ed007700f2007200f1007100f7006c00f4006900f9006600f4006100f7006000f1005a00f2005b00ed005600ec005900e7005300e40e000000450affeeffbbffeeffbb74008e002d00a1007f00f3002d00ca003700c4003100bb003c00b9003a00ae004500b0004700a6005000ab005600a1005c00ab006500
+a5006800b0007200ae007100b9007b00bb007600c4007f00ca007600d0007c00d9007100dc007200e6006900e4006600ef005d00e9005600f3005000ea004700f0004500e4003a00e6003c00dc003200da003700d1002d00ca0e0000011109ffeeffbbffeeffbb70008e002d00a1007f00f3002d00ca003700c4003100bb00
+3c00b9003a00ae004500b0004700a6005000ab005600a1005c00ab006500a5006800b0007200ae007100b9007b00bb007600c4007f00ca007600d0007c00d9007100dc007200e6006900e4006600ef005d00e9005600f3005000ea004700f0004500e4003a00e6003c00dc003200da003700d1002d00ca0e000000450affff
+ffffffffffff74008e00000045009d00e2000000940011008800070076001c00710019005e002c00600031004d00420057004f0045005b0056006c004c007100600085005d0082007100960076008c0087009d0094008c009f009800b1008300b5008500c9007200c6006d00db005b00cf004f00e2004300d0003200dd002d
+00c6001900ca001c00b6000900b2001200a0000000940e0000011109ffffffffffffffff70008e00000045009d00e2000000940011008800070076001c00710019005e002c00600031004d00420057004f0045005b0056006c004c007100600085005d0082007100960076008c0087009d0094008c009f009800b1008300b5
+008500c9007200c6006d00db005b00cf004f00e2004300d0003200dd002d00c6001900ca001c00b6000900b2001200a0000000940e000000450add77dd77dd77dd777400220034005a006a0075003f007500340064004e005a006a006400600075003f00750e000000217000220034005a006a0075003f007500340064004e
+005a006a006400600075003f00750e00000045740026002b0074007200b1002b0093003f0074005f007400720093005f00b1003e00b1002b00930e00000021700026002b0074007200b1002b0093003f0074005f007400720093005f00b1003e00b1002b00930e000000450affffffffffffffff740022003300b1006900cc
+003e00b1003300c3004d00cc006900c3005f00b1003e00b10e00000021700022003300b1006900cc003e00b1003300c3004d00cc006900c3005f00b1003e00b10e000000450add77dd77dd77dd7774002200180092003f00c3002d009200180092001f00b0003500c3003f00b1002d00920e0000002170002200180092003f
+00c3002d009200180092001f00b0003500c3003f00b1002d00920e000000450aaa55aa55aa55aa5574002200180063003f0094002d009400180094001f007700350063003f0075002d00940e0000002170002200180063003f0094002d009400180094001f007700350063003f0075002d00940e000000450affffffffffff
+ffff740022005e0092008500c30071009200850092007f00b0006900c3005e00b1007100920e00000021700022005e0092008500c30071009200850092007f00b0006900c3005e00b1007100920e00000045740022005e0062008500930071009300850093007f007600690062005e0074007100930e00000021700022005e
+0062008500930071009300850093007f007600690062005e0074007100930e00000045340016002f008300930e00000199380e0000001e0a00000000000000003400280038003b00420e00000199380e0000001e340028004a003b00540e00000199380e0000001e340043004a005600540e00000199380e0000001e340043
+005c005600660e00000199380e0000001e34005e004a007100540e00000199380e0000001e34005e005c007100660e00000199380e0000001e340043006e005600780e00000199380e0000001e34005e0077007100810e0000019938a10096000c0100000001000000000000000e000000452c000c00150948656c76657469
+636103001504010d005c2e00040000ff002b0672064342466c6962a00097a10096000c0100000001000000000000000e000000cd28006e0001064342466c6962a00097ff}}{\f20 \par 
+}\pard \qc {\f20 \par 
+}{\b\f20 An API for CBF/imgCIF\par 
+Crystallographic Binary Files with ASCII Support\par 
+}{\f20 \par 
+Version 0.6\par 
+13 January 1999\par 
+\par 
+\par 
+\par 
+by\par 
+\par 
+}\pard \qc {\b\f20\fs28 Paul J. Ellis}{\f20 \par 
+}\pard \qc {\f20 Stanford Synchrotron Radiation Laboratory\par 
+ellis@ssrl.slac.stanford.edu \par 
+\par 
+and\par 
+\par 
+}\pard \qc {\b\f20\fs28 Herbert J. Bernstein}{\f20 \par 
+}\pard \qc {\f20 Bernstein + Sons\par 
+yaya@bernstein-plus-sons.com \par 
+}\pard {\f20 \par 
+\par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 Before using this software, please read the following notices for important disclaimers and the IUCr Policy on the Use of the Crystallographic Information File (CIF) and for other important information. \par 
+}\pard {\f20 \par 
+\par 
+\par 
+}\pard \qc {\b\f20 CBFlib Notices}{\f20 \par 
+}\pard {\f20 \par 
+}\pard {\f20\fs20 The following notice applies to this work as a whole and to the works included within it: \par 
+\par 
+}\pard {\f20\fs20 \tab Creative endeavors depend on the lively exchange of ideas. There are laws and customs which establish rights and responsibilities for authors and the users of what authors cre
+ate. This notice is not intended to prevent you from using the software and documents in this package, but to ensure that there are no  misunderstandings about terms and conditions of such use.   Please read the following notice carefully. If you do not un
+derstand any portion of this notice, please seek appropriate professional legal advice before making use of the software and documents included in this software package. In addition to whatever other steps you may be obliged to take to respect the intellec
+tual property rights of the various parties involved, if you do make use of the software and documents in this package, please give credit where credit is due by citing this package, its authors and the URL or other source from which you obtained it, or eq
+uivalent primary references in the literature with the same authors. \par 
+}\pard {\f20\fs20 \par 
+}\pard {\f20\fs20 \tab Some of the software and documents included within this software package are the intellectual property of various parties, and placement in this package does not in any way imply that 
+any such rights have in any way been waived or diminished. \par 
+}\pard {\f20\fs20 \par 
+}\pard {\f20\fs20 \tab With respect to any software or documents for which a copyright exists, }{\b\f20\fs20 ALL RIGHTS ARE RESERVED TO THE OWNERS OF SUCH COPYRIGHT. }{\f20\fs20 \par 
+}\pard {\f20\fs20 \par 
+}\pard {\f20\fs20 \tab 
+Even though the authors of the various documents and software found here have made a good faith effort to ensure that the documents are correct and that the software performs according to its documentation, and we would greatly appreciate hearing of any p
+roblems you may encounter, the programs and documents any files created by the programs are provided **AS IS** without any warranty as to correctness, merchantability or fitness for any particular or general use.   }{\b\f20\fs20 
+THE RESPONSIBILITY FOR ANY ADVERSE CONSEQUENCES FROM THE USE OF PROGRAMS OR DOCUMENTS OR ANY FILE OR FILES CREATED BY USE OF THE PROGRAMS OR DOCUMENTS LIES SOLELY WITH THE USERS OF THE PROGRAMS OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE PROG
+RAMS OR DOCUMENTS.}{\f20\fs20  \par 
+}\pard {\f20\fs20 \par 
+\par 
+}\pard \qc {\f20\fs20 \page }{\b\f20\fs20 The IUCr Policy\par 
+}\pard \qc {\b\f20\fs20 on\par 
+he Use of the Crystallographic Information File (CIF)\par 
+}\pard {\f20\fs20 \par 
+}\pard {\f20\fs20 The Cry
+stallographic Information File (Hall, Allen & Brown, 1991) is, as of January 1992, the recommended method for submitting publications to Acta Crystallographica Section C. The International Union of Crystallography holds the Copyright on the CIF, and has ap
+plied for Patents on the STAR File syntax which is the basis for the CIF format. \par 
+}\pard {\f20\fs20 \par 
+}\pard {\f20\fs20 It is a principal objective of the IUCr to promote the use of CIF for the exchange and storage of scientific data.  The IUCr's sponsorship of the CIF development was motivated by its responsibility to its scientific journals,\par 
+which set the standards in crystallographic publishing. The IUCr intends that CIFs will be used increasingly for  electronic submission of manuscripts to these journals in future. The IUCr recognises that, if the CIF and the\par 
+}\pard {\f20\fs20 STAR File are to be adopted as a means for universal data exchange, the syntax of these files must be strictly and  uniformly adhered to. Even small deviations from the syntax would ultimately cause the demise of the universal file co
+ncept. Through its Copyrights and Patents the IUCr has taken the steps needed to ensure strict conformance with this syntax. \par 
+}\pard {\f20\fs20 \par 
+The IUCr policy on the use of the CIF and STAR File processes is as follows: \par 
+\par 
+}\pard \li720 {\f20\fs20 \tab 
+1.  CIFs and STAR Files may be generated, stored or transmitted, without permission or charge, provided their purpose is not specifically for profit or commercial gain, and provided that the published syntax is strictly adhered to. \par 
+}\pard \li720 {\f20\fs20 \par 
+}\pard \li720 {\f20\fs20 \tab 2.  Computer software may be developed for use with CIFs or STAR files
+, without permission or charge, provided it is distributed in the public domain. This condition also applies to software for which a charge is made, provided that its primary function is for use with files that satisfy condition 1 and that it is distribute
+d as a minor component of a larger package of software. \par 
+}\pard \li720 {\f20\fs20 \par 
+}\pard \li720 {\f20\fs20 \tab 3.  Permission will be granted for the use of CIFs and STAR Files for specific commercial purposes (such as databases or network exchange processes), and for the distribution of commercial CIF/STAR
+ software, on written application to the IUCr Executive Secretary, 2 Abbey Square, Chester CH1 2HU, England.  The nature, terms and duration of the licences granted will be determined by the IUCr Executive and Finance Committees. \par 
+}\pard {\f20\fs20 \par 
+}\pard {\f20\fs20 In summary, the IUCr wishes to promote the use of the STAR File concepts as a standard universal data file. It will insist on strict compliance with the published syntax for all applications. To assist with this compliance, the\par 
+IUCr provides public domain software for checking the logical integrity of a CIF, and for validating the data name definitions contained within a CIF. Detailed information on this software, and the associated dictionaries, may be\par 
+}\pard {\f20\fs20 obtained from the IUCr Office at 5 Abbey Square, Chester CH1 2HU, England. \par 
+\par 
+\par 
+\par 
+\par 
+}\pard \qc {\b\f20\fs20 \page CBFlib V0.1 Notice}{\f20\fs20 \par 
+}\pard {\f20\fs20 \par 
+The following Diclaimer Notice applies to CBFlib V0.1, from which this version is derived. \par 
+\par 
+}\pard {\f20\fs20 \tab The items furnished herewith were developed under the sponsorship of the U.S. Government. Neither the U.S., nor the U.S. D.O.E., nor the Le
+land Stanford Junior University, nor their employees, makes any warranty, express or implied, or assumes any liability or responsibility for accuracy,  completeness or usefulness of any information, apparatus, product or process disclosed, or represents th
+at its use will not infringe privately-owned rights. Mention of any product, its manufacturer, or suppliers shall not, nor is it intended to, imply approval, disapproval, or fitness for any particular use. The U.S. and the University at all times retain th
+e right to use and disseminate the furnished items for any purpose whatsoever.\par 
+}\pard {\f20\fs20 \par 
+Notice 91 02 01\par 
+\par 
+\par 
+\par 
+\par 
+}\pard \qc {\b\f20\fs20 CIFPARSE Notice}{\f20\fs20 \par 
+}\pard {\f20\fs20 \par 
+}\pard {\f20\fs20 
+Portions of this software are loosely based on the CIFPARSE software package from the NDB at Rutgers University (see http://ndbserver.rutgers.edu/NDB/mmcif/software). CIFPARSE is part of the NDBQUERY application, a program component of the Nucleic Acid Dat
+abase Project [ H. M. Berman, W. K. Olson, D. L. Beveridge, J. K. Westbrook, A. Gelbin, T. Demeny, S. H. Shieh, A. R. Srinivasan, and B. Sc
+hneider. (1992). The Nucleic Acid Database: A Comprehensive Relational Database of Three-Dimensional Structures of Nucleic Acids. Biophys J., 63, 751-759.], whose cooperation is gratefully acknowledged, especially in the form of design concepts created by 
+J. Westbrook. \par 
+}\pard {\f20\fs20 \par 
+Please be aware of the following notice in the CIFPARSE API: \par 
+\par 
+}\pard {\f20\fs20        This software is provided }{\b\f20\fs20 WITHOUT WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE OR ANY OTHER WARRANTY, EXPRESS OR IMPLIED. RUTGERS MAKE NO REPRESENTATIO
+N OR WARRANTY THAT THE SOFTWARE WILL NOT INFRINGE ANY PATENT, COPYRIGHT OR OTHER PROPRIETARY RIGHT.}{\f20\fs20  \par 
+}\pard {\f20\fs20 \par 
+\par 
+}\pard \qc {\f20\fs20 \page }{\b\f20\fs20 MPACK Notice}{\f20\fs20 \par 
+}\pard {\f20\fs20 \par 
+}\pard {\f20\fs20 Portions of this library are adapted from the "mpack/munpack version 1.5" routines, written by John G. Myers.  Mpack and munpack are utilities for encoding and decoding (respectively) binary files in MIME (Multipurpose\par 
+}\pard {\f20\fs20 Internet Mail Extensions) format mail messages. The mpack software used is (C) Copyright 1993,1994 by Carnegie Mellon University, All Rights Reserved, and is subject to the following notice: \par 
+}\pard {\f20\fs20 \par 
+}\pard {\f20\fs20 
+       Permission to use, copy, modify, distribute, and sell this software and its documentation for any purpose is hereby granted without fee, provided that the above copyright notice appear in all copies and that both that copyright notice and this permi
+ssion notice appear in supporting documentation, and that the name of Carnegie Mellon University not be used in advertising or publicity pertaining to distribution of the software without specific, written prior permission. Carnegie Mello
+n University makes no representations about the suitability of this software for any purpose. It is provided "as is" without express or implied warranty.   }{\b\f20\fs20 
+CARNEGIE MELLON UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR 
+ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,  DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.}{\f20\fs20  \par 
+}\pard {\f20\fs20 \par 
+\par 
+}\pard \qc {\b\f20\fs20 MD5 Notice}{\f20\fs20 \par 
+}\pard {\f20\fs20 \par 
+}\pard {\f20\fs20 The following notice applies to the message digest software in md5.h and md5.c which are optionally used by this library. To that extent, this library is a work "derived from the RSA Data Security, Inc. MD5 Message-Digest Algorithm". 
+\par 
+}\pard {\f20\fs20 \par 
+}\pard {\f20\fs20 The software in md5.h and md5.c is Copyright (C) 1991-2, RSA Data Security, Inc. Created 1991. All rights reserved, and is subject to the following notice: \par 
+}\pard {\f20\fs20 \par 
+}\pard {\f20\fs20 
+       License to copy and use this software is granted provided that it is identified as the "RSA Data Security, Inc. MD5 Message-Digest Algorithm" in all material mentioning or referencing this software or this function.   License is also granted to make
+ and use derivative works provided that such works are identified as "derived from the RSA Data Security, Inc. MD5 Message-Digest Algorithm" in all material mentioning or referencing the derived work.   RSA Data Security, Inc. makes no repre
+sentations concerning either the merchantability of this software or the suitability of this software for any particular purpose. It is provided "as is" without express or implied warranty of any kind.   These notices must be retained in any copies of any 
+part of this documentation and/or software. \par 
+}\pard {\f20\fs20 \par 
+}\pard \qc {\b\f20 \page Version History}{\f20 \par 
+}\pard {\f20 \par 
+\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx1000\clshdng0\cellx2080\clshdng0\cellx2728\clshdng0\cellx8128\pard \intbl {\b\f20 Version \cell Date\tab \cell }\pard \intbl {\b\f20 By\cell }\pard \intbl {\b\f20 Description\cell }\pard \intbl {\f20 \row 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx784\clshdng0\cellx2080\clshdng0\cellx2728\clshdng0\cellx8128\pard \intbl {\f20 0.1\cell }\pard \intbl {\f20 Apr. 1998\cell }\pard \intbl {\f20 PJE\cell }\pard \intbl {\f20 
+This was the first CBFlib release. It supported binary CBF files using binary strings. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 0.2\cell }\pard \intbl {\f20 Aug. 1998\cell }\pard \intbl {\f20 HJB\cell }\pard \intbl {\f20 
+This release added ascii imgCIF support using MIME-encoded binary sections, added the option of MIME headers for the binary strings was well. MIME code adapted from mpack 1.5. Added hooks needed for \par 
+}\pard \intbl {\f20 DDL1-style names without categories. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 0.3\cell }\pard \intbl {\f20 Sep. 1998\cell }\pard \intbl {\f20 PJE\cell }\pard \intbl {\f20 
+This release cleaned up the changes made for version 0.2, allowing multi-threaded use of the code, and removing dependence on the mpack package. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 0.4\cell }\pard \intbl {\f20 Nov. 1998\cell }\pard \intbl {
+\f20 HJB\cell }\pard \intbl {\f20 This release merged much of the message digest code into the general file reading and writing to reduce the number of passes.
+ More consistency checking between the MIME header and the binary header was introduced. The size in the MIME header was adjusted to agree with the version 0.2 documentation. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 0.5\cell }\pard \intbl {\f20 
+Dec. 1998\cell }\pard \intbl {\f20 PJE\cell }\pard \intbl {\f20 This release greatly increased the speed of processing by allowing for deferred digest evaluation. \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx784\clshdng0
+\cellx2080\clshdng0\cellx2728\clshdng0\cellx8128\pard \intbl {\f20 0.6\cell }\pard \intbl {\f20 Jan. 1999\cell }\pard \intbl {\f20 HJB\cell }\pard \intbl {\f20 
+This release removed the redundant information (binary id, size, compression id) from a binary header when there is a MIME header, removed the unused repeat argument, and made the memory allocation 
+for buffering and tables with many rows sensitive to the current memory allocation already used. \cell }\pard \intbl {\f20 \row }\pard {\b\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard \qc {\b\f20 Known Problems}{\f20 \par 
+}\pard {\f20 \par 
+}\pard {\f20 This version does not have support for byte-offset or predictor compression. Code is needed to support array sub-sections.  \par 
+}\pard {\f20 \par 
+}\pard {\b\f20 \page }{\b\f20\fs28 Foreword}{\f20 \par 
+}\pard {\f20 \par 
+\par 
+}\pard {\f20 
+In order to work with CBFlib, you need the source code, in the form of a compressed tar, CBFlib.tar.Z. Uncompress this file. Place it in an otherwise empty directory, and unpack it with tar. You will also need Paul Ellis's sample MAR345 image, example.ma
+r2300, as sample data. This file can also be found at http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/. Place that file in the top level directory (one level up from the source code).   Adjust the definition of CC in Makefile to point to your C c
+ompiler, and then \par 
+}\pard {\f20 \par 
+}\pard \li720 {\b\f20 make all \par 
+make tests \par 
+}\pard {\f20 \par 
+}\pard {\f20 This release has been tested on an SGI under IRIX 6.4 and on a PowerPC under Linux-ppc 2.1.24. \par 
+}\pard {\f20 \par 
+}\pard {\f20 We have included examples of CBF/imgCIF files produced by CBFlib, an updated version of John Westbrook's DDL2-compliant CBF Extensions Dictionary, and of Andy Hammersley's CBF definition, updated to become a DRAFT CBF/ImgCIF DEFINITION. 
+\par 
+}\pard {\f20 \par 
+}\pard {\f20 This is just a proposal. Please be careful about basing any code on this until and unless there has been a general agreement. \par 
+\sect }\sectd \sbkodd\pgnlcrm\linemod0\linex0\cols1\endnhere {\footer \pard\plain \s243\tqc\tx4320\tqr\tx8640 {\f20 CBFlib 0.6\tab \tab Page - \chpgn \par 
+}}\pard\plain {\f20 \par 
+}\pard \qc {\b\f20\fs28 Contents}{\f20 \par 
+}\pard {\f20 \par 
+}\pard \tx1080\tqr\tx7560 {\f20 1. Introduction \tab 1\par 
+\par 
+2. Function descriptions \tab 3\par 
+\par 
+\tab 2.1 General description \par 
+\tab 2.1.1 CBF handles \par 
+\tab 2.1.2 Return values \par 
+\par 
+\tab 2.2 Reading and writing files containing binary sections \par 
+\tab 2.2.1 Reading binary sections \par 
+\tab 2.2.2 Writing binary sections \par 
+\tab 2.2.3 Summary of reading and writing files containing binary sections \par 
+\par 
+\tab 2.3 Function prototypes \par 
+\tab 2.3.1 }{\b\f20 cbf_make_handle}{\f20  \par 
+\tab 2.3.2 }{\b\f20 cbf_free_handle}{\f20  \par 
+\tab 2.3.3 }{\b\f20 cbf_read_file}{\f20  \par 
+\tab 2.3.4 }{\b\f20 cbf_write_file}{\f20  \par 
+\tab 2.3.5 }{\b\f20 cbf_new_datablock}{\f20  \par 
+\tab 2.3.6 }{\b\f20 cbf_force_new_datablock}{\f20  \par 
+\tab 2.3.7 }{\b\f20 cbf_new_category}{\f20  \par 
+\tab 2.3.8 }{\b\f20 cbf_force_new_category}{\f20  \par 
+\tab 2.3.9 }{\b\f20 cbf_new_column}{\f20  \par 
+\tab 2.3.10 }{\b\f20 cbf_new_row}{\f20  \par 
+\tab 2.3.11 }{\b\f20 cbf_insert_row}{\f20  \par 
+\tab 2.3.12 }{\b\f20 cbf_delete_row}{\f20  \par 
+\tab 2.3.13 }{\b\f20 cbf_set_datablockname}{\f20  \par 
+\tab 2.3.14 }{\b\f20 cbf_reset_datablocks}{\f20  \par 
+\tab 2.3.15 }{\b\f20 cbf_reset_datablock}{\f20  \par 
+\tab 2.3.16 }{\b\f20 cbf_reset_category}{\f20  \par 
+\tab 2.3.17 }{\b\f20 cbf_remove_datablock}{\f20  \par 
+\tab 2.3.18 }{\b\f20 cbf_remove_category}{\f20  \par 
+\tab 2.3.19 }{\b\f20 cbf_remove_column}{\f20  \par 
+\tab 2.3.20 }{\b\f20 cbf_remove_row}{\f20  \par 
+\tab 2.3.21 }{\b\f20 cbf_rewind_datablock}{\f20  \par 
+\tab 2.3.22 }{\b\f20 cbf_rewind_category}{\f20  \par 
+\tab 2.3.23 }{\b\f20 cbf_rewind_column}{\f20  \par 
+\tab 2.3.24 }{\b\f20 cbf_rewind_row}{\f20  \par 
+\tab 2.3.25 }{\b\f20 cbf_next_datablock}{\f20  \par 
+\tab 2.3.26 }{\b\f20 cbf_next_category}{\f20  \par 
+\tab 2.3.27 }{\b\f20 cbf_next_column}{\f20  \par 
+\tab 2.3.28 }{\b\f20 cbf_next_row}{\f20  \par 
+\tab 2.3.29 }{\b\f20 cbf_find_datablock}{\f20  \par 
+\tab 2.3.30 }{\b\f20 cbf_find_category}{\f20  \par 
+\tab 2.3.31 }{\b\f20 cbf_find_column}{\f20  \par 
+\tab 2.3.32 }{\b\f20 cbf_find_row}{\f20  \par 
+\tab 2.3.33 }{\b\f20 cbf_find_nextrow}{\f20  \par 
+\tab 2.3.34 }{\b\f20 cbf_count_datablocks}{\f20  \par 
+\tab 2.3.35 }{\b\f20 cbf_count_categories}{\f20  \par 
+\tab 2.3.36 }{\b\f20 cbf_count_columns}{\f20  \par 
+\tab 2.3.37 }{\b\f20 cbf_count_rows}{\f20  \par 
+\tab 2.3.38 }{\b\f20 cbf_select_datablock}{\f20  \par 
+\tab 2.3.39 }{\b\f20 cbf_select_category}{\f20  \par 
+\tab 2.3.40 }{\b\f20 cbf_select_column}{\f20  \par 
+\tab 2.3.41 }{\b\f20 cbf_select_row}{\f20  \par 
+\tab 2.3.42 }{\b\f20 cbf_datablock_name}{\f20  \par 
+\tab 2.3.43 }{\b\f20 cbf_category_name}{\f20  \par 
+\tab 2.3.44 }{\b\f20 cbf_column_name}{\f20  \par 
+\tab 2.3.45 }{\b\f20 cbf_row_number}{\f20  \par 
+\tab 2.3.46 }{\b\f20 cbf_get_value}{\f20  \par 
+\tab 2.3.47 }{\b\f20 cbf_set_value}{\f20  \par 
+\tab 2.3.48 }{\b\f20 cbf_get_integervalue}{\f20  \par 
+\tab 2.3.49 }{\b\f20 cbf_set_integervalue}{\f20  \par 
+\tab 2.3.50 }{\b\f20 cbf_get_doublevalue}{\f20  \par 
+\tab 2.3.51 }{\b\f20 cbf_set_doublevalue}{\f20  \par 
+\tab 2.3.52 }{\b\f20 cbf_get_integerarrayparameters}{\f20  \par 
+\tab 2.3.53 }{\b\f20 cbf_get_integerarray}{\f20  \par 
+\tab 2.3.54 }{\b\f20 cbf_set_integerarray}{\f20  \par 
+\tab 2.3.55 }{\b\f20 cbf_failnez}{\f20  \par 
+\tab 2.3.56 }{\b\f20 cbf_onfailnez}{\f20  \par 
+\par 
+3. File format \tab 63\par 
+\par 
+\tab 3.1 General description \par 
+\par 
+\tab 3.2 Format of the binary sections \par 
+\tab 3.2.1 Format of imgCIF binary sections \par 
+\tab 3.2.2 Format of CBF binary sections \par 
+\par 
+\tab 3.3 Compression schemes \par 
+\tab 3.3.1 Canonical-code compression \par 
+\tab 3.3.2 CCP4-style compression \par 
+\par 
+4. Installation \tab 69\par 
+\par 
+5. Example programs \tab 71\par 
+}\pard {\f20 \par 
+}\pard {\f20 \par 
+\sect }\sectd \sbkodd\pgnrestart\linemod0\linex0\cols1\endnhere \pard\plain {\b\f20\fs28 1. Introduction}{\f20 \par 
+}\pard {\f20 \par 
+\par 
+}\pard {\f20 CBFlib is a library of ANSI-C functions providing a simple mechanism for accessing Crystallographic Binary Files (CBF files) and Image-
+supporting CIF (imgCIF) files. The CBFlib API is loosely based on the CIFPARSE API for mmCIF files. Like CIFPARSE, CBFlib does not perform any semantic integrity checks and simply provides functions to create, read, modify and write CBF binary data files a
+nd imgCIF ASCII data files. \par 
+}\pard {\f20 \par 
+}\pard {\f20 \par 
+\sect }\sectd \sbkodd\linemod0\linex0\cols1\endnhere \pard\plain {\b\f20\fs28 2. Function descriptions}{\f20 \par 
+}\pard {\f20 \par 
+}{\b\f20 2.1 General description}{\f20 \par 
+\par 
+}\pard {\f20 Almost all of the CBFlib functions receive a value of type cbf_handle (a CBF handle) as the first argument. \par 
+}\pard {\f20 \par 
+All functions return an integer equal to 0 for success or an error code for failure.\par 
+\par 
+\par 
+}{\b\f20 2.1.1 CBF handles}{\f20 \par 
+\par 
+}\pard {\f20 CBFlib permits a program to use multiple CBF objects simultaneously. To identify the CBF object on which a function will operate, CBFlib uses a value of type cbf_handle. \par 
+}\pard {\f20 \par 
+}\pard {\f20 All functions in the library except }{\b\f20 cbf_make_handle}{\f20  expect a value of type cbf_handle as the first argument. \par 
+}\pard {\f20 \par 
+The function }{\b\f20 cbf_make_handle}{\f20  creates and initializes a new CBF handle. \par 
+\par 
+}\pard {\f20 The function }{\b\f20 cbf_free_handle}{\f20  destroys a handle and frees all memory associated with the corresponding CBF object.\par 
+}\pard {\f20 \par 
+\par 
+2.1.2 Return values\par 
+\par 
+}\pard {\f20 All of the CBFlib functions return 0 on success and an error code on failure. The error codes are: \par 
+}\pard {\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 \~\~CBF_FORMAT\cell }\pard \intbl {\f20 \~\~The file format is invalid \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200
+\pard \intbl {\f20 \~\~CBF_ALLOC\cell }\pard \intbl {\f20 \~\~Memory allocation failed \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_ARGUMENT\cell }\pard \intbl {\f20 \~\~Invalid function argument \cell }\pard \intbl {\f20 \row }\pard \intbl 
+{\f20 \~\~CBF_ASCII\cell }\pard \intbl {\f20 \~\~The value is ASCII (not binary) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_BINARY\cell }\pard \intbl {\f20 \~\~The value is binary (not ASCII) \cell }\pard \intbl {\f20 \row }\pard \intbl {
+\f20 \~\~CBF_BITCOUNT\cell }\pard \intbl {\f20 \~\~The expected number of bits does  not match the actual number written \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_ENDOFDATA\cell }\pard \intbl {\f20 \~\~
+The end of the data was reached before the end of the array \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILECLOSE\cell }\pard \intbl {\f20 \~\~File close error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILEOPEN\cell }\pard 
+\intbl {\f20 \~\~File open error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILEREAD\cell }\pard \intbl {\f20 \~\~File read error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILESEEK\cell }\pard \intbl {\f20 \~\~
+File seek error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILETELL\cell }\pard \intbl {\f20 \~\~File tell error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILEWRITE\cell }\pard \intbl {\f20 \~\~File write error \cell 
+}\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_IDENTICAL\cell }\pard \intbl {\f20 \~\~A data block with the new name already exists \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_NOTFOUND\cell }\pard \intbl {\f20 \~\~
+The data block, category, column or row does not exist \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 \~\~CBF_OVERFLOW\cell }\pard \intbl {\f20 \~\~
+The number read cannot fit into the destination argument. The destination hasbeen set to the nearest value. \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}\pard {\f20 If more than one error has occurred, the error code is the logical OR of the individual error codes.\par 
+}\pard {\f20 \par 
+2.2 Reading and writing files containing binary sections\par 
+\par 
+2.2.1 Reading binary sections\par 
+\par 
+\par 
+}\pard {\f20 The current version of CBFlib only decompresses a binary section from disk when requested by the program. \par 
+}\pard {\f20 \par 
+}\pard {\f20 When a file containing one or more binary sections is read, CBFlib saves the file pointer and the position of the binary section within the file and then jumps past the binary section. When the program attempts to access the binary d
+ata, CBFlib sets the file position back to the start  of the binary section and then reads the data. \par 
+}\pard {\f20 \par 
+For this scheme to work: \par 
+\par 
+1. The file must be a random-access file opened in binary mode (fopen ( ," rb")).\par 
+}\pard {\f20 2. The program must not close the file. CBFlib will close the file using fclose ( ) when it is no longer needed. \par 
+}\pard {\f20 \par 
+}\pard {\f20 At present, this also means that a program cant read a file and then write back to the same file. This restriction will be eliminated in a future version. \par 
+}\pard {\f20 \par 
+When reading an imgCIF vs a CBF, the difference is detected automatically. \par 
+\par 
+\par 
+}{\b\f20 2.2.2 Writing binary sections\par 
+}{\f20 \par 
+}\pard {\f20 When a program passes CBFlib a binary value, the data is compressed to a temporary file. If the CBF object is subsequently written to a file, the data is simply copied from the temporary file to the output file. \par 
+}\pard {\f20 \par 
+}\pard {\f20 The output file can be of any type. If the program indicates to CBFlib that the file is a random-access and readable, CBFlib will conserve disk space by closing the temporary file and using the output file as the loca
+tion at which the binary value is stored. \par 
+}\pard {\f20 \par 
+For this option to work: \par 
+\par 
+}\pard {\f20 1. The file must be a random-access file opened in binary update mode (fopen ( , "w+b")).\par 
+2. The program must not close the file. CBFlib will close the file using fclose ( ) when it is no longer needed. \par 
+}\pard {\f20 \par 
+If this option is not used: \par 
+\par 
+1. CBFlib will continue using the temporary file.\par 
+2. CBFlib will not close the file. This is the responsibility of the main program. \par 
+\par 
+}{\b\f20 2.2.3 Summary of reading and writing files containing binary sections\par 
+}{\f20 \par 
+1. Open disk files to read using the mode "rb". \par 
+}\pard {\f20 2. If possible, open disk files to write using the mode "w+b" and tell CBFlib that it can use the file as a buffer.\par 
+}\pard {\f20 3. Do not close any files read by CBFlib or written by CBFlib with buffering turned on.\par 
+}\pard {\f20 4. Do not attempt to read from a file, then write to the same file.\par 
+}{\b\f20 \sect }\sectd \sbkodd\linemod0\linex0\cols1\endnhere \pard\plain {\b\f20 2.3 Function prototypes\par 
+}{\f20 \par 
+2.3.1 }{\b\f20 cbf_make_handle}{\f20  \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_make_handle}{\f20  (cbf_handle *}{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_make_handle}{\f20  creates and initializes a new internal CBF object. All other CBFlib functions operating on this object receive the CBF handle as the first argument. \par 
+}\pard {\f20 \par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 Pointer to a CBF handle. \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.2 }{\b\f20 cbf_free_handle}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.2 }{\b\f20 cbf_free_handle}{\f20  \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_free_handle}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_free_handle}{\f20  destroys the CBF object specified by the }{\i\f20 handle}{\f20  and \par 
+frees all associated memory. \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle to free. \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.1 }{\b\f20 cbf_make_handle}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.3 }{\b\f20 cbf_read_file}{\f20 \par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 #include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_read_file}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , FILE *}{\i\f20 file}{\f20 , int }{\i\f20 headers}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\b\f20 cbf_read_file}{\f20  reads the CBF or CIF file }{\i\f20 file}{\f20  into the CBF object \par 
+specified by }{\i\f20 handle}{\f20 . \par 
+\par 
+}{\i\f20 headers}{\f20  controls the interprestation of binary section headers of imgCIF \par 
+files. \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 MSG_DIGEST:\cell }\pard \intbl {\f20 Instructs CBFlib to check that the digest of the binary section matches any head
+er value. If the digests do not match, the call will return CBF_FORMAT. This evaluation and comparison is delayed (a "lazy" evaluation) to ensure maximal processing efficiency. If an immediately evaluation is required, see MSG_DIGESTNOW, below. \cell 
+}\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 MSG_DIGESTNOW:\cell }\pard \intbl {\f20 
+Instructs CBFlib to check that the digest of the binary section matches any header value.  If the digests do not match, the call will return CBF_FORMAT. This evaluation and comparison is performed during initial parsing of the section to ensure timel
+y error reporting at the expense of processing efficiency. If a more efficient delayed ("lazy") evaluation is required, see MSG_DIGESTNOW, below. \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard 
+\intbl {\f20 MSG_NODIGEST: \cell }\pard \intbl {\f20 Do not check the digest (default). \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}\pard {\f20 CBFlib defers reading binary sections as long as possible. In the current version of CBFlib, this means that: \par 
+}\pard {\f20 \par 
+1. The }{\i\f20 file}{\f20  must be a random-access file opened in binary mode (fopen ( , "rb")).\par 
+}\pard {\f20 2. The program must not close the }{\i\f20 file}{\f20 . CBFlib will close the }{\i\f20 file}{\f20  using  fclose ( ) when it is no longer needed. \par 
+}\pard {\f20 \par 
+These restrictions may change in a future release. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20\fs14 \par 
+}\pard \tx2160 {\f20\fs14 \~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+file}{\f20 \cell }\pard \intbl {\f20 Pointer to a file descriptor.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 headers}{\f20 \cell }\pard \intbl {\f20 
+Controls interprestation of binary section headers. \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 2.3.4 }{\b\f20 cbf_write_file}{\f20 \par 
+}\pard {\f20 \page 2.3.4 }{\b\f20 cbf_write_file}{\f20  \par 
+}\pard {\f20 \par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+}\pard \fi-720\li720 {\f20 int }{\b\f20 cbf_write_file}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , FILE *}{\i\f20 file}{\f20 , int }{\i\f20 readable}{\f20 , int  }{\i\f20 ciforcbf}{\f20 , int }{\i\f20 headers}{\f20 , int }{\i\f20 encoding}{\f20 ); \par 
+}\pard {\f20 \par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_write_file}{\f20  writes the CBF object specified by }{\i\f20 handle}{\f20  into the file }{\i\f20 file}{\f20 . \par 
+\par 
+Unlike }{\b\f20 cbf_read_file}{\f20 , the }{\i\f20 file}{\f20  does not have to be random-access. \par 
+\par 
+}\pard {\f20 If the }{\i\f20 file}{\f20  is random-access and readable, }{\i\f20 readable}{\f20  can be set to non-0 to indicate to CBFlib that the }{\i\f20 file}{\f20  can be used as a buffer to conserve disk space. If the }{\i\f20 file}{\f20 
+ is not random-access or not readable, }{\i\f20 readable}{\f20  must be 0. \par 
+}\pard {\f20 \par 
+}\pard {\f20 If }{\i\f20 readable}{\f20  is non-0, CBFlib will close the }{\i\f20 file}{\f20  when it is no longer required otherwise this is the responsibility of the program. \par 
+}\pard {\f20 \par 
+}{\i\f20 ciforcbf}{\f20  selects the format in which the binary sections are written: \par 
+\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 CIF\cell }\pard \intbl {\f20 Write an imgCIF file. \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 CBF
+\cell }\pard \intbl {\f20 Write a CBF file (default). }{\i\f20 headers}{\f20  selects the type of header used in  CBF binary sections and selects whether message digests are generated. \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+The value of }{\i\f20 headers}{\f20  can be a logical OR of any of: \par 
+\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 MIME_HEADERS\cell }\pard \intbl {\f20 Use MIME-type headers (default). \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200
+\pard \intbl {\f20 MIME_NOHEADERS\cell }\pard \intbl {\f20 Use a simple ASCII headers. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 MSG_DIGEST\cell }\pard \intbl {\f20 Generate message digests for binary data validation. \cell }\pard \intbl {\f20 
+\row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 MSG_NODIGEST\cell }\pard \intbl {\f20 Do not generate message digests (default). \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}\pard {\i\f20 encoding}{\f20  selects the type of encoding used for binary sections and the type of line-termination in imgCIF files. The value can be a logical OR of any of: \par 
+}\pard {\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 ENC_BASE64\cell }\pard \intbl {\f20 Use BASE64 encoding (default). \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard 
+\intbl {\f20 ENC_QP\cell }\pard \intbl {\f20 Use QUOTED-PRINTABLE encoding. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_BASE8\cell }\pard \intbl {\f20 Use BASE8 (octal) encoding. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_BASE10
+\cell }\pard \intbl {\f20 Use BASE10 (decimal) encoding. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_BASE16\cell }\pard \intbl {\f20 Use BASE16 (hexadecimal) encoding. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_FORWARD\cell }\pard 
+\intbl {\f20 For BASE8, BASE10 or BASE16 encoding, map bytes to words forward (1234) (default on little-endian machines). \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_BACKWARD\cell }\pard \intbl {\f20 
+Map bytes to words backward (4321) (default on big-endian machines). \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_CRTERM\cell }\pard \intbl {\f20 Terminate lines with CR. \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0
+\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 ENC_LFTERM\cell }\pard \intbl {\f20 Terminate lines with LF (default). \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}\pard \keep\keepn {\b\f20 ARGUMENTS}{\f20 \par 
+}\pard \fi-1080\li1080\keep\keepn {\f20 \~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \keep\keepn\intbl {\i\f20 handle}{\f20 \cell }\pard \keep\keepn\intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0
+\cellx8200\pard \keep\keepn\intbl {\i\f20 file}{\f20 \cell }\pard \keep\keepn\intbl {\f20 Pointer to a file descriptor.\cell }\pard \intbl {\f20 \row }\pard \keep\keepn\intbl {\i\f20 readable}{\f20 \cell }\pard \keep\keepn\intbl {\f20 
+If non-0: this file is random-access and readable and can be used as a buffer. \cell }\pard \intbl {\f20 \row }\pard \keep\keepn\intbl {\i\f20 ciforcbf}{\f20 \cell }\pard \keep\keepn\intbl {\f20 
+Selects the format in which the binary sections are written (CIF/CBF). \cell }\pard \intbl {\f20 \row }\pard \keep\keepn\intbl {\i\f20 headers}{\f20 \cell }\pard \keep\keepn\intbl {\f20 
+Selects the type of header in CBF binary sections and message digest  generation. \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \keep\keepn\intbl {\i\f20 encoding}{\f20 \cell }\pard 
+\keep\keepn\intbl {\f20 Selects the type of encoding used for binary sections and the type of line-termination in imgCIF files. \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.3 }{\b\f20 cbf_read_file}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.5 }{\b\f20 cbf_new_datablock}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_new_datablock}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char *}{\i\f20 datablockname}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_new_datablock}{\f20  creates a new data block with name }{\i\f20 datablockname}{\f20  and makes it the current data block. \par 
+}\pard {\f20 \par 
+}\pard {\f20 If a data block with this name already exists, the existing data block becomes the current data block. \par 
+}\pard {\f20 \par 
+}\pard {\b\f20 ARGUMENTS\line }{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+datablockname}{\f20 \cell }\pard \intbl {\f20 The name of the new data block. \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.6 }{\b\f20 cbf_force_new_datablock}{\f20 \par 
+2.3.7 }{\b\f20 cbf_new_category}{\f20 \par 
+2.3.8 }{\b\f20 cbf_force_new_category}{\f20 \par 
+2.3.9 }{\b\f20 cbf_new_column}{\f20 \par 
+2.3.10 }{\b\f20 cbf_new_row}{\f20 \par 
+2.3.11 }{\b\f20 cbf_insert_row}{\f20 \par 
+2.3.12 }{\b\f20 cbf_set_datablockname}{\f20 \par 
+2.3.17 }{\b\f20 cbf_remove_datablock}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.6 }{\b\f20 cbf_force_new_data_block}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+}\pard \fi-720\li720 {\f20 int }{\b\f20 cbf_force_new_datablock}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char *}{\i\f20 datablockname}{\f20 ); \par 
+}\pard {\f20 \par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_force_new_datablock}{\f20  creates a new data block with name }{\i\f20 datablockname}{\f20  and makes it the current data block. Duplicate data block names are allowed. \par 
+}\pard {\f20 \par 
+}\pard {\f20 Even if a data block with this name already exists, a new data block is created and becomes the current data block. \par 
+}\pard {\f20 \par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+datablockname}{\f20 \cell }\pard \intbl {\f20 The name of the new data block. \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.5 }{\b\f20 cbf_new_datablock}{\f20 \par 
+2.3.7 }{\b\f20 cbf_new_category}{\f20 \par 
+2.3.8 }{\b\f20 cbf_force_new_category}{\f20 \par 
+2.3.9 }{\b\f20 cbf_new_column}{\f20 \par 
+2.3.10 }{\b\f20 cbf_new_row}{\f20 \par 
+2.3.11 }{\b\f20 cbf_insert_row}{\f20 \par 
+2.3.12 }{\b\f20 cbf_set_datablockname}{\f20 \par 
+2.3.17 }{\b\f20 cbf_remove_datablock}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.7 }{\b\f20 cbf_new_category}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_new_category}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char *}{\i\f20 categoryname}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_new_category}{\f20  creates a new category in the current data block with name }{\i\f20 categoryname}{\f20  and makes it the current category. \par 
+}\pard {\f20 \par 
+}\pard {\f20 If a category with this name already exists, the existing category becomes the current category. \par 
+}\pard {\f20 \par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+categoryname}{\f20 \cell }\pard \intbl {\f20 The name of the new category. \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.5 }{\b\f20 cbf_new_datablock}{\f20 \par 
+2.3.6 }{\b\f20 cbf_force_new_datablock}{\f20 \par 
+2.3.8 }{\b\f20 cbf_force_new_category}{\f20 \par 
+2.3.9 }{\b\f20 cbf_new_column}{\f20 \par 
+2.3.10 }{\b\f20 cbf_new_row}{\f20 \par 
+2.3.11 }{\b\f20 cbf_insert_row}{\f20 \par 
+2.3.18 }{\b\f20 cbf_remove_category}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.8 }{\b\f20 cbf_force_new_category}{\f20  \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_force_new_category}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char *}{\i\f20 categoryname}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_force_new_category}{\f20  creates a new category in the current data block with name }{\i\f20 categoryname}{\f20  and makes it the current category. Duplicate category names are allowed. \par 
+}\pard {\f20 \par 
+}\pard {\f20 Even if a category with this name already exists, a new category of the same name is created and becomes the current category. The allows for the creation of unlooped tag/value lists drawn from the same category. \par 
+}\pard {\f20 \par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+categoryname}{\f20 \cell }\pard \intbl {\f20 The name of the new category. \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.5 }{\b\f20 cbf_new_datablock}{\f20 \par 
+2.3.6 }{\b\f20 cbf_force_new_datablock}{\f20 \par 
+2.3.7 }{\b\f20 cbf_new_category}{\f20 \par 
+2.3.9 }{\b\f20 cbf_new_column}{\f20 \par 
+2.3.10 }{\b\f20 cbf_new_row}{\f20 \par 
+2.3.11 }{\b\f20 cbf_insert_row}{\f20 \par 
+2.3.18 }{\b\f20 cbf_remove_category}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.9 }{\b\f20 cbf_new_column}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_new_column}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char *}{\i\f20 columnname}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_new_column}{\f20  creates a new column in the current category with name }{\i\f20 columnname}{\f20  and makes it the current column. \par 
+}\pard {\f20 \par 
+}\pard {\f20 If a column with this name already exists, the existing column becomes the current category. \par 
+}\pard {\f20 \par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+columnname}{\f20 \cell }\pard \intbl {\f20 The name of the new column.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.5 }{\b\f20 cbf_new_datablock}{\f20 \par 
+2.3.6 }{\b\f20 cbf_force_new_datablock}{\f20 \par 
+2.3.7 }{\b\f20 cbf_new_category}{\f20 \par 
+2.3.8 }{\b\f20 cbf_force_new_category}{\f20 \par 
+2.3.10 }{\b\f20 cbf_new_row}{\f20 \par 
+2.3.11 }{\b\f20 cbf_insert_row}{\f20 \par 
+2.3.19 }{\b\f20 cbf_remove_column}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.10 }{\b\f20 cbf_new_row}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_new_row}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_new_row}{\f20  adds a new row to the current category and makes it the current row. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.5 }{\b\f20 cbf_new_datablock}{\f20 \par 
+2.3.6 }{\b\f20 cbf_force_new_datablock}{\f20 \par 
+2.3.7 }{\b\f20 cbf_new_category}{\f20 \par 
+2.3.8 }{\b\f20 cbf_force_new_category}{\f20 \par 
+2.3.9 }{\b\f20 cbf_new_column}{\f20 \par 
+2.3.11 }{\b\f20 cbf_insert_row}{\f20 \par 
+2.3.12 }{\b\f20 cbf_delete_row}{\f20 \par 
+2.3.20 }{\b\f20 cbf_remove_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.11 }{\b\f20 cbf_insert_row}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_insert_row}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , unsigned int }{\i\f20 rownumber}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_insert_row}{\f20  adds a new row to the current category. The new row is inserted as row }{\i\f20 rownumber}{\f20  and existing rows starting from }{\i\f20 rownumber}{\f20  are moved up by 1. The new row becomes the current row. \par 
+}\pard {\f20 \par 
+If the category has fewer than }{\i\f20 rownumber}{\f20  rows, the function returns CBF_NOTFOUND. \par 
+\par 
+The row numbers start from 0. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+rownumber}{\f20 \cell }\pard \intbl {\f20 The row number of the new row.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.5 }{\b\f20 cbf_new_datablock}{\f20 \par 
+2.3.6 }{\b\f20 cbf_force_new_datablock}{\f20 \par 
+2.3.7 }{\b\f20 cbf_new_category}{\f20 \par 
+2.3.8 }{\b\f20 cbf_force_new_category}{\f20 \par 
+2.3.9 }{\b\f20 cbf_new_column}{\f20 \par 
+2.3.10 }{\b\f20 cbf_new_row}{\f20 \par 
+2.3.12 }{\b\f20 cbf_delete_row}{\f20 \par 
+2.3.20 }{\b\f20 cbf_remove_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.12 }{\b\f20 cbf_delete_row}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_delete_row}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , unsigned int }{\i\f20 rownumber}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_delete_row}{\f20  deletes a row from the current category. Rows starting from }{\i\f20 rownumber}{\f20  +1 are moved down by 1. If the current row was higher than }{\i\f20 rownumber}{\f20 
+, or if the current row is the last row, it will also move down by 1. \par 
+}\pard {\f20 \par 
+The row numbers start from 0. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+rownumber}{\f20 \cell }\pard \intbl {\f20 The number of the row to delete.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.10 }{\b\f20 cbf_new_row}{\f20 \par 
+2.3.11 }{\b\f20 cbf_insert_row}{\f20 \par 
+2.3.17 }{\b\f20 cbf_remove_datablock}{\f20 \par 
+2.3.18 }{\b\f20 cbf_remove_category}{\f20 \par 
+2.3.19 }{\b\f20 cbf_remove_column}{\f20 \par 
+2.3.20 }{\b\f20 cbf_remove_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.13 }{\b\f20 cbf_set_datablockname}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_set_datablockname}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char *}{\i\f20 datablockname}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_set_datablockname}{\f20  changes the name of the current data block to }{\i\f20 datablockname}{\f20 . \par 
+\par 
+}\pard {\f20 If a data block with this name already exists (comparison is case-insensitive), the function returns CBF_IDENTICAL. \par 
+}\pard {\f20 \par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+datablockname}{\f20 \cell }\pard \intbl {\f20 The new data block name.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.5 }{\b\f20 cbf_new_datablock}{\f20 \par 
+2.3.14 }{\b\f20 cbf_reset_datablocks}{\f20 \par 
+2.3.15 }{\b\f20 cbf_reset_datablock}{\f20 \par 
+2.3.17 }{\b\f20 cbf_remove_datablock}{\f20 \par 
+2.3.42 }{\b\f20 cbf_datablock_name}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.14 }{\b\f20 cbf_reset_datablocks}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_reset_datablocks}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_reset_datablocks}{\f20  deletes all categories from all data blocks. \par 
+\par 
+The current data block does not change. \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.15 }{\b\f20 cbf_reset_datablock}{\f20 \par 
+2.3.18 }{\b\f20 cbf_remove_category}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.15 }{\b\f20 cbf_reset_datablock}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_reset_datablock}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_reset_datablock}{\f20  deletes all categories from the current data block. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.14 }{\b\f20 cbf_reset_datablocks}{\f20 \par 
+2.3.18 }{\b\f20 cbf_remove_category}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.16 }{\b\f20 cbf_reset_category}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_reset_category}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_reset_category}{\f20  deletes all columns and rows from current category. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.16 }{\b\f20 cbf_reset_category}{\f20 \par 
+2.3.19 }{\b\f20 cbf_remove_column}{\f20 \par 
+2.3.20 }{\b\f20 cbf_remove_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.17 }{\b\f20 cbf_remove_datablock}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_remove_datablock}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_remove_datablock}{\f20  deletes the current data block. \par 
+\par 
+The current data block becomes undefined. \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.5 }{\b\f20 cbf_new_datablock}{\f20 \par 
+2.3.6 }{\b\f20 cbf_force_new_datablock}{\f20 \par 
+2.3.18 }{\b\f20 cbf_remove_category}{\f20 \par 
+2.3.19 }{\b\f20 cbf_remove_column}{\f20 \par 
+2.3.20 }{\b\f20 cbf_remove_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.18 }{\b\f20 cbf_remove_category}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_remove_category}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_remove_category}{\f20  deletes the current category. \par 
+\par 
+The current category becomes undefined. \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.7 }{\b\f20 cbf_new_category}{\f20 \par 
+2.3.8 }{\b\f20 cbf_force_new_category}{\f20 \par 
+2.3.17 }{\b\f20 cbf_remove_datablock}{\f20 \par 
+2.3.19 }{\b\f20 cbf_remove_column}{\f20 \par 
+2.3.20 }{\b\f20 cbf_remove_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.19 }{\b\f20 cbf_remove_column}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_remove_column}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_remove_column}{\f20  deletes the current column. \par 
+\par 
+The current column becomes undefined. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\~\par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.9 }{\b\f20 cbf_new_column}{\f20 \par 
+2.3.17 }{\b\f20 cbf_remove_datablock}{\f20 \par 
+2.3.18 }{\b\f20 cbf_remove_category}{\f20 \par 
+2.3.20 }{\b\f20 cbf_remove_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.20 }{\b\f20 cbf_remove_row}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_remove_row}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_remove_row}{\f20  deletes the current row in the current category. \par 
+\par 
+}\pard {\f20 If the current row was the last row, it will move down by 1, otherwise, it will remain the same. \par 
+}\pard {\f20 \par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.10 }{\b\f20 cbf_new_row}{\f20 \par 
+2.3.11 }{\b\f20 cbf_insert_row}{\f20 \par 
+2.3.17 }{\b\f20 cbf_remove_datablock}{\f20 \par 
+2.3.18 }{\b\f20 cbf_remove_category}{\f20 \par 
+2.3.19 }{\b\f20 cbf_remove_column}{\f20 \par 
+2.3.12 }{\b\f20 cbf_delete_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.21 }{\b\f20 cbf_rewind_datablock}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_rewind_datablock}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_rewind_datablock}{\f20  makes the first data block the current data block. \par 
+\par 
+If there are no data blocks, the function returns CBF_NOTFOUND. \par 
+\par 
+The current category becomes undefined. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.22 }{\b\f20 cbf_rewind_category}{\f20 \par 
+2.3.19 }{\b\f20 cbf_rewind_column}{\f20 \par 
+2.3.24 }{\b\f20 cbf_rewind_row}{\f20 \par 
+2.3.25 }{\b\f20 cbf_next_datablock}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.22 }{\b\f20 cbf_rewind_category}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_rewind_category}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_rewind_category}{\f20  makes the first category in the current data block the current category. \par 
+}\pard {\f20 \par 
+If there are no categories, the function returns CBF_NOTFOUND. \par 
+\par 
+The current column and row become undefined. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.21 }{\b\f20 cbf_rewind_datablock}{\f20 \par 
+2.3.19 }{\b\f20 cbf_rewind_column}{\f20 \par 
+2.3.24 }{\b\f20 cbf_rewind_row}{\f20 \par 
+2.3.26 }{\b\f20 cbf_next_category}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.23 }{\b\f20 cbf_rewind_column}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_rewind_column}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_rewind_column}{\f20  makes the first column in the current category the current column. \par 
+\par 
+If there are no columns, the function returns CBF_NOTFOUND. \par 
+\par 
+The current row is not affected. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.21 }{\b\f20 cbf_rewind_datablock}{\f20 \par 
+2.3.22 }{\b\f20 cbf_rewind_category}{\f20 \par 
+2.3.24 }{\b\f20 cbf_rewind_row}{\f20 \par 
+2.3.27 }{\b\f20 cbf_next_column}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.24 }{\b\f20 cbf_rewind_row}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_rewind_row}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_rewind_row}{\f20  makes the first row in the current category the current row. \par 
+\par 
+If there are no rows, the function returns CBF_NOTFOUND. \par 
+\par 
+The current column is not affected. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.21 }{\b\f20 cbf_rewind_datablock}{\f20 \par 
+2.3.22 }{\b\f20 cbf_rewind_category}{\f20 \par 
+2.3.19 }{\b\f20 cbf_rewind_column}{\f20 \par 
+2.3.28 }{\b\f20 cbf_next_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.25 }{\b\f20 cbf_next_datablock}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_next_datablock}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_next_datablock}{\f20  makes the data block following the current data block the current data block. \par 
+}\pard {\f20 \par 
+If there are no more data blocks, the function returns CBF_NOTFOUND. \par 
+\par 
+The current category becomes undefined. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.21 }{\b\f20 cbf_rewind_datablock}{\f20 \par 
+2.3.26 }{\b\f20 cbf_next_category}{\f20 \par 
+2.3.27 }{\b\f20 cbf_next_column}{\f20 \par 
+2.3.28 }{\b\f20 cbf_next_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.26 }{\b\f20 cbf_next_category}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_next_category}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_next_category}{\f20  makes the category following the current category in the current data block the current category. \par 
+}\pard {\f20 \par 
+If there are no more categories, the function returns CBF_NOTFOUND. \par 
+\par 
+The current column and row become undefined. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.22 }{\b\f20 cbf_rewind_category}{\f20 \par 
+2.3.25 }{\b\f20 cbf_next_datablock}{\f20 \par 
+2.3.27 }{\b\f20 cbf_next_column}{\f20 \par 
+2.3.27 }{\b\f20 cbf_next_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.27 }{\b\f20 cbf_next_column}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_next_column}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_next_column}{\f20  makes the column following the current column in the current category the current column. \par 
+}\pard {\f20 \par 
+If there are no more columns, the function returns CBF_NOTFOUND. \par 
+\par 
+The current row is not affected. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.19 }{\b\f20 cbf_rewind_column}{\f20 \par 
+2.3.25 }{\b\f20 cbf_next_datablock}{\f20 \par 
+2.3.26 }{\b\f20 cbf_next_category}{\f20 \par 
+2.3.28 }{\b\f20 cbf_next_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.28 }{\b\f20 cbf_next_row}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_next_row}{\f20  (cbf_handle }{\i\f20 handle}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_next_row}{\f20  makes the row following the current row in the current category the current row. \par 
+}\pard {\f20 \par 
+If there are no more rows, the function returns CBF_NOTFOUND. \par 
+\par 
+The current column is not affected. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\par 
+}\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.24 }{\b\f20 cbf_rewind_row}{\f20 \par 
+2.3.25 }{\b\f20 cbf_next_datablock}{\f20 \par 
+2.3.26 }{\b\f20 cbf_next_category}{\f20 \par 
+2.3.27 }{\b\f20 cbf_next_column}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.29 }{\b\f20 cbf_find_datablock}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_find_datablock}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char *}{\i\f20 datablockname}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_find_datablock}{\f20  makes the data block with name }{\i\f20 datablockname}{\f20  the current data block. \par 
+}\pard {\f20 \par 
+The comparison is case-insensitive. \par 
+\par 
+If the data block does not exist, the function returns CBF_NOTFOUND. \par 
+\par 
+The current category becomes undefined. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+datablockname}{\f20 \cell }\pard \intbl {\f20 The name of the data block to find.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.21 }{\b\f20 cbf_rewind_datablock}{\f20 \par 
+2.3.25 }{\b\f20 cbf_next_datablock}{\f20 \par 
+2.3.30 }{\b\f20 cbf_find_category}{\f20 \par 
+2.3.31 }{\b\f20 cbf_find_column}{\f20 \par 
+2.3.32 }{\b\f20 cbf_find_row}{\f20 \par 
+2.3.42 }{\b\f20 cbf_datablock_name}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.30 }{\b\f20 cbf_find_category}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_find_category}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char *}{\i\f20 categoryname}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_find_category}{\f20  makes the category in the current data block with name \par 
+}{\i\f20 categoryname}{\f20  the current category. \par 
+\par 
+The comparison is case-insensitive. \par 
+\par 
+If the category does not exist, the function returns CBF_NOTFOUND. \par 
+\par 
+The current column and row become undefined. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+categoryname}{\f20 \cell }\pard \intbl {\f20 The name of the category to find.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.22 }{\b\f20 cbf_rewind_category}{\f20 \par 
+2.3.26 }{\b\f20 cbf_next_category}{\f20 \par 
+2.3.29 }{\b\f20 cbf_find_datablock}{\f20 \par 
+2.3.31 }{\b\f20 cbf_find_column}{\f20 \par 
+2.3.32 }{\b\f20 cbf_find_row}{\f20 \par 
+2.3.43 }{\b\f20 cbf_category_name}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.31 }{\b\f20 cbf_find_column}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_find_column}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char *}{\i\f20 columnname}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_find_column}{\f20  makes the columns in the current category with name }{\i\f20 columnname}{\f20  the current column. \par 
+}\pard {\f20 \par 
+The comparison is case-insensitive. \par 
+\par 
+If the column does not exist, the function returns CBF_NOTFOUND. \par 
+\par 
+The current row is not affected. \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+columnname}{\f20 \cell }\pard \intbl {\f20 The name of column to find.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.19 }{\b\f20 cbf_rewind_column}{\f20 \par 
+2.3.27 }{\b\f20 cbf_next_column}{\f20 \par 
+2.3.29 }{\b\f20 cbf_find_datablock}{\f20 \par 
+2.3.30 }{\b\f20 cbf_find_category}{\f20 \par 
+2.3.32 }{\b\f20 cbf_find_row}{\f20 \par 
+2.3.44 }{\b\f20 cbf_column_name}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.32 }{\b\f20 cbf_find_row}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_find_row}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char *}{\i\f20 value}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_find_row}{\f20  makes the first row in the current column with value }{\i\f20 value}{\f20  the current row. \par 
+\par 
+The comparison is case-sensitive. \par 
+\par 
+If a matching row does not exist, the function returns CBF_NOTFOUND. \par 
+\par 
+The current column is not affected. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+value}{\f20 \cell }\pard \intbl {\f20 The value of the row to find.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.24 }{\b\f20 cbf_rewind_row}{\f20 \par 
+2.3.28 }{\b\f20 cbf_next_row}{\f20 \par 
+2.3.29 }{\b\f20 cbf_find_datablock}{\f20 \par 
+2.3.30 }{\b\f20 cbf_find_category}{\f20 \par 
+2.3.31 }{\b\f20 cbf_find_column}{\f20 \par 
+2.3.33 }{\b\f20 cbf_find_nextrow}{\f20 \par 
+2.3.46 }{\b\f20 cbf_get_value}{\f20 \par 
+\par 
+\par 
+\par 
+}\pard {\f20 \page 2.3.33 }{\b\f20 cbf_find_nextrow}{\f20 \par 
+}\pard {\f20 \par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_find_nextrow}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char *}{\i\f20 value}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_find_nextrow}{\f20  makes the makes the next row in the current column with value }{\i\f20 value}{\f20  the current row. The search starts from the row following the last row found with }{\b\f20 cbf_find_row}{\f20  or }{\b\f20 
+cbf_find_nextrow}{\f20 , or from the current row if the current row was defined using any other function. \par 
+}\pard {\f20 \par 
+The comparison is case-sensitive. \par 
+\par 
+If no more matching rows exist, the function returns CBF_NOTFOUND. \par 
+\par 
+The current column is not affected. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+value}{\f20 \cell }\pard \intbl {\f20 the value to search for.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.24 }{\b\f20 cbf_rewind_row}{\f20 \par 
+2.3.28 }{\b\f20 cbf_next_row}{\f20 \par 
+2.3.29 }{\b\f20 cbf_find_datablock}{\f20 \par 
+2.3.30 }{\b\f20 cbf_find_category}{\f20 \par 
+2.3.31 }{\b\f20 cbf_find_column}{\f20 \par 
+2.3.32 }{\b\f20 cbf_find_row}{\f20 \par 
+2.3.46 }{\b\f20 cbf_get_value}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.34 }{\b\f20 cbf_count_datablocks}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_count_datablocks}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , unsigned int *}{\i\f20 datablocks}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_count_datablocks}{\f20  puts the number of data blocks in *}{\i\f20 datablocks}{\f20  . \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+datablocks}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination data block count.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.35 }{\b\f20 cbf_count_categories}{\f20 \par 
+2.3.36 }{\b\f20 cbf_count_columns}{\f20 \par 
+2.3.37 }{\b\f20 cbf_count_rows}{\f20 \par 
+2.3.38 }{\b\f20 cbf_select_datablock}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.35 }{\b\f20 cbf_count_categories}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_count_categories}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , unsigned int *}{\i\f20 categories}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_count_categories}{\f20  puts the number of categories in the current data block in *}{\i\f20 categories}{\f20 . \par 
+}\pard {\f20 \par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\~}{\i\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+categories}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination category count.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.34 }{\b\f20 cbf_count_datablocks}{\f20 \par 
+2.3.36 }{\b\f20 cbf_count_columns}{\f20 \par 
+2.3.37 }{\b\f20 cbf_count_rows}{\f20 \par 
+2.3.39 }{\b\f20 cbf_select_category}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.36 }{\b\f20 cbf_count_columns}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_count_columns}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , unsigned int *}{\i\f20 columns}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_count_columns}{\f20  puts the number of columns in the current category in \par 
+*}{\i\f20 columns}{\f20 . \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+columns}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination column count.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.34 }{\b\f20 cbf_count_datablocks}{\f20 \par 
+2.3.35 }{\b\f20 cbf_count_categories}{\f20 \par 
+2.3.37 }{\b\f20 cbf_count_rows}{\f20 \par 
+2.3.40 }{\b\f20 cbf_select_column}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.37 }{\b\f20 cbf_count_rows}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_count_rows}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , unsigned int *}{\i\f20 rows}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_count_rows}{\f20  puts the number of rows in the current category in *}{\i\f20 rows}{\f20 \par 
+ . \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+rows}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination row count.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.34 }{\b\f20 cbf_count_datablocks}{\f20 \par 
+2.3.35 }{\b\f20 cbf_count_categories}{\f20 \par 
+2.3.36 }{\b\f20 cbf_count_columns}{\f20 \par 
+2.3.41 }{\b\f20 cbf_select_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.38 }{\b\f20 cbf_select_datablock}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_select_datablock}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , unsigned int }{\i\f20 datablock}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_select_datablock}{\f20  selects data block number }{\i\f20 datablock}{\f20  as the current data block. \par 
+\par 
+The first data block is number 0. \par 
+\par 
+If the data block does not exist, the function returns CBF_NOTFOUND. \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+datablock}{\f20 \cell }\pard \intbl {\f20 Number of the data block to select.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.34 }{\b\f20 cbf_count_datablocks}{\f20 \par 
+2.3.39 }{\b\f20 cbf_select_category}{\f20 \par 
+2.3.40 }{\b\f20 cbf_select_column}{\f20 \par 
+2.3.41 }{\b\f20 cbf_select_row}{\f20  \par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.39 }{\b\f20 cbf_select_category}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_select_category}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , unsigned int }{\i\f20 category}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_select_category}{\f20  selects category number }{\i\f20 category}{\f20  in the current data block as the current category. \par 
+}\pard {\f20 \par 
+The first category is number 0. \par 
+\par 
+The current column and row become undefined. \par 
+\par 
+If the category does not exist, the function returns CBF_NOTFOUND. \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+category}{\f20 \cell }\pard \intbl {\f20 Number of the category to select.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.35 }{\b\f20 cbf_count_categories}{\f20 \par 
+2.3.38 }{\b\f20 cbf_select_datablock}{\f20 \par 
+2.3.40 }{\b\f20 cbf_select_column}{\f20 \par 
+2.3.41 }{\b\f20 cbf_select_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.40 }{\b\f20 cbf_select_column}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_select_column}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , unsigned int }{\i\f20 column}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_select_column}{\f20  selects column number }{\i\f20 column}{\f20  in the current category as the current column. \par 
+}\pard {\f20 \par 
+The first column is number 0. \par 
+\par 
+The current row is not affected \par 
+\par 
+If the column does not exist, the function returns CBF_NOTFOUND. \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+column}{\f20 \cell }\pard \intbl {\f20 Number of the column to select.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.36 }{\b\f20 cbf_count_columns}{\f20 \par 
+2.3.38 }{\b\f20 cbf_select_datablock}{\f20 \par 
+2.3.39 }{\b\f20 cbf_select_category}{\f20 \par 
+2.3.41 }{\b\f20 cbf_select_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.41 }{\b\f20 cbf_select_row}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_select_row}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , unsigned int }{\i\f20 row}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_select_row}{\f20  selects row number }{\i\f20 row}{\f20  in the current category as the current row. \par 
+\par 
+The first row is number 0. \par 
+\par 
+The current column is not affected \par 
+\par 
+If the row does not exist, the function returns CBF_NOTFOUND. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+row}{\f20 \cell }\pard \intbl {\f20 Number of the row to select.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.37 }{\b\f20 cbf_count_rows}{\f20 \par 
+2.3.38 }{\b\f20 cbf_select_datablock}{\f20 \par 
+2.3.39 }{\b\f20 cbf_select_category}{\f20 \par 
+2.3.40 }{\b\f20 cbf_select_column}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.42 }{\b\f20 cbf_datablock_name}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_datablock_name}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char **}{\i\f20 datablockname}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_datablock_name}{\f20  sets *}{\i\f20 datablockname}{\f20  to point to the name of the current data block. \par 
+\par 
+}\pard {\f20 The data block name will be valid as long as the data block exists and has not been renamed. \par 
+}\pard {\f20 \par 
+The name must not be modified by the program in any way. \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+datablockname}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination data block name pointer.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.29 }{\b\f20 cbf_find_datablock}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.43 }{\b\f20 cbf_category_name}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_category_name}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char **}{\i\f20 categoryname}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_category_name}{\f20  sets *}{\i\f20 categoryname}{\f20  to point to the name of the current category of the current data block. \par 
+}\pard {\f20 \par 
+The category name will be valid as long as the category exists. \par 
+\par 
+The name must not be modified by the program in any way. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+categoryname}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination category name pointer.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.30 }{\b\f20 cbf_find_category}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.44 }{\b\f20 cbf_column_name}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_column_name}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char **}{\i\f20 columnname}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_column_name}{\f20  sets *}{\i\f20 columnname}{\f20  to point to the name of the current column of the current category. \par 
+}\pard {\f20 \par 
+The column name will be valid as long as the column exists. \par 
+\par 
+The name must not be modified by the program in any way. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+columnname}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination column name pointer.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.31 }{\b\f20 cbf_find_column}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.45 }{\b\f20 cbf_row_number}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_row_number}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , unsigned int *}{\i\f20 row}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_row_number}{\f20  sets *}{\i\f20 row}{\f20  to the number of the current row of the current \par 
+category. \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+row}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination row number.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.41 }{\b\f20 cbf_select_row}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.46 }{\b\f20 cbf_get_value}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_get_value}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char **}{\i\f20 value}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_get_value}{\f20  sets *}{\i\f20 value}{\f20  to point to the ASCII value of the item at the current column and row. \par 
+}\pard {\f20 \par 
+If the }{\i\f20 value}{\f20  is not ASCII, the function returns CBF_BINARY. \par 
+\par 
+The }{\i\f20 value}{\f20  will be valid as long as the item exists and has not been set to a new value. \par 
+\par 
+The }{\i\f20 value}{\f20  must not be modified by the program in any way. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+value}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination value pointer.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.47 }{\b\f20 cbf_set_value}{\f20 \par 
+2.3.48 }{\b\f20 cbf_get_integervalue}{\f20 \par 
+2.3.50 }{\b\f20 cbf_get_doublevalue}{\f20 \par 
+2.3.52 }{\b\f20 cbf_get_integerarrayparameters}{\f20 \par 
+2.3.53 }{\b\f20 cbf_get_integerarray}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.47 }{\b\f20 cbf_set_value}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_set_value}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char *}{\i\f20 value}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_set_value}{\f20  sets the item at the current column and row to the ASCII value }{\i\f20 value}{\f20 . \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+value}{\f20 \cell }\pard \intbl {\f20 ASCII value.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.46 }{\b\f20 cbf_get_value}{\f20 \par 
+2.3.49 }{\b\f20 cbf_set_integervalue}{\f20 \par 
+2.3.51 }{\b\f20 cbf_set_doublevalue}{\f20 \par 
+2.3.54 }{\b\f20 cbf_set_integerarray}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.48 }{\b\f20 cbf_get_integervalue}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_get_integervalue}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , int *}{\i\f20 number}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_get_integervalue}{\f20  sets *}{\i\f20 number}{\f20  to the value of the ASCII item at the current column and row interpreted as a decimal integer. \par 
+}\pard {\f20 \par 
+If the value is not ASCII, the function returns CBF_BINARY. \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 \~CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {
+\i\f20 number}{\f20 \cell }\pard \intbl {\f20 pointer to the number.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.46 }{\b\f20 cbf_get_value}{\f20 \par 
+2.3.49 }{\b\f20 cbf_set_integervalue}{\f20 \par 
+2.3.50 }{\b\f20 cbf_get_doublevalue}{\f20 \par 
+2.3.52 }{\b\f20 cbf_get_integerarrayparameters}{\f20 \par 
+2.3.53 }{\b\f20 cbf_get_integerarray}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.49 }{\b\f20 cbf_set_integervalue}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_set_integervalue}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , int }{\i\f20 number}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_set_integervalue}{\f20  sets the item at the current column and row to the integer value }{\i\f20 number}{\f20  written as a decimal ASCII string. \par 
+}\pard {\f20 \par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+number}{\f20 \cell }\pard \intbl {\f20 Integer value.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.46 }{\b\f20 cbf_get_value}{\f20 \par 
+2.3.47 }{\b\f20 cbf_set_value}{\f20 \par 
+2.3.48 }{\b\f20 cbf_get_integervalue}{\f20 \par 
+2.3.49 }{\b\f20 cbf_set_integervalue}{\f20 \par 
+2.3.51 }{\b\f20 cbf_set_doublevalue}{\f20 \par 
+2.3.54 }{\b\f20 cbf_set_integerarray}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.50 }{\b\f20 cbf_get_doublevalue}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_get_doublevalue}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , double *}{\i\f20 number}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_get_doublevalue}{\f20  sets *}{\i\f20 number}{\f20  to the value of the ASCII item at the current column and row interpreted as a decimal floating-point number. \par 
+}\pard {\f20 \par 
+If the value is not ASCII, the function returns CBF_BINARY. \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+number}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination number.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.46 }{\b\f20 cbf_get_value}{\f20 \par 
+2.3.48 }{\b\f20 cbf_get_integervalue}{\f20 \par 
+2.3.51 }{\b\f20 cbf_set_doublevalue}{\f20 \par 
+2.3.52 }{\b\f20 cbf_get_integerarrayparameters}{\f20 \par 
+2.3.53 }{\b\f20 cbf_get_integerarray}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.51 }{\b\f20 cbf_set_doublevalue}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+int }{\b\f20 cbf_set_doublevalue}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , const char *}{\i\f20 format}{\f20 , double }{\i\f20 number}{\f20 ); \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}{\b\f20 cbf_set_doublevalue}{\f20  sets the item at the current column and row to the \par 
+floating-point value }{\i\f20 number}{\f20  written as an ASCII string with the format \par 
+specified by }{\i\f20 format}{\f20  as appropriate for the printf function. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+format}{\f20 \cell }\pard \intbl {\f20 Format for the number.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 number}{\f20 \cell }\pard \intbl {\f20 Floating-point value.\cell }\pard 
+\intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.46 }{\b\f20 cbf_get_value}{\f20 \par 
+2.3.47 }{\b\f20 cbf_set_value}{\f20 \par 
+2.3.49 }{\b\f20 cbf_set_integervalue}{\f20 \par 
+2.3.50 }{\b\f20 cbf_get_doublevalue}{\f20 \par 
+2.3.54 }{\b\f20 cbf_set_integerarray}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.52 }{\b\f20 cbf_get_integerarrayparameters}{\f20 \par 
+\par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+}\pard \fi-720\li720 {\f20 int }{\b\f20 cbf_get_integerarrayparameters}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , unsigned int * }{\i\f20 compression}{\f20 , int *}{\i\f20 binary_id}{\f20 , size_t *}{\i\f20 elsize}{\f20 , int *}{\i\f20 elsigned}{\f20 
+, int *}{\i\f20 elunsigned}{\f20 , size_t *}{\i\f20 elements}{\f20 , int *}{\i\f20 minelement}{\f20 , int *}{\i\f20 maxelement)}{\f20 ; \par 
+}\pard {\f20 \par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_get_integerarrayparameters}{\f20  sets *}{\i\f20 compression}{\f20 , *}{\i\f20 binary_id}{\f20 , *}{\i\f20 elsize}{\f20 , *}{\i\f20 elsigned}{\f20 , *}{\i\f20 elunsigned}{\f20 , *}{\i\f20 elements}{\f20 , *}{\i\f20 minelement}{\f20 
+ and *}{\i\f20 maxelement}{\f20  to values read from the binary value of the item at the current column and row.   This provides all the arguments needed for a subsequent call to }{\b\f20 cbf_set_integerarray}{\f20 
+, if a copy of the arry is to be made into another CIF or CBF. \par 
+}\pard {\f20 \par 
+If the value is not binary, the function returns CBF_ASCII. \par 
+\par 
+}{\b\f20 ARGUMENTS\par 
+}{\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+compression}{\f20 \cell }\pard \intbl {\f20 Compression method used.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elsize}{\f20 \cell }\pard \intbl {\f20 Size in bytes of each array element.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 
+binary_id}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination integer binary identifier.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elsigned}{\f20 \cell }\pard \intbl {\f20 Po
+inter to an integer. Set to 1 if the elements can be read as signed integers.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elunsigned}{\f20 \cell }\pard \intbl {\f20 Pointer to an integer. Set to 1 if the elements can be read as unsigned integers.
+\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elements}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination number of elements.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 minelement}{\f20 \cell }\pard \intbl {\f20 
+Pointer to the destination smallest element.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 maxelement}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination largest element.\cell 
+}\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 RETURN VALUE}{\f20  \par 
+\par 
+Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.46 }{\b\f20 cbf_get_value}{\f20 \par 
+2.3.48 }{\b\f20 cbf_get_integervalue}{\f20 \par 
+2.3.50 }{\b\f20 cbf_get_doublevalue}{\f20 \par 
+2.3.53 }{\b\f20 cbf_get_integerarray}{\f20 \par 
+2.3.54 }{\b\f20 cbf_set_integerarray}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.53 }{\b\f20 cbf_get_integerarray}{\f20 \par 
+\par 
+}{\b\f20 PROTOTYPE}{\f20  }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 #include "cbf.h"\par 
+\par 
+}\pard \fi-720\li720 {\f20 int }{\b\f20 cbf_get_integerarray}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , int *}{\i\f20 binary_id}{\f20 , void *}{\i\f20 array}{\f20 ,  size_t }{\i\f20 elsize}{\f20 , int }{\i\f20 elsigned}{\f20 , size_t }{\i\f20 elements}{
+\f20 , size_t *}{\i\f20 elements_read}{\f20 ); \par 
+}\pard {\f20 \par 
+}{\b\f20 DESCRIPTION}{\f20  }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\b\f20 cbf_get_integerarray}{\f20  reads the binary value of the item at the current column and row into an integer }{\i\f20 array}{\f20 . The array consists of elements }{\i\f20 elements}{\f20  of }{\i\f20 elsize}{\f20  bytes each, starting at }{
+\i\f20 array}{\f20 . The elements are signed if }{\i\f20 elsigned}{\f20  is non-0 and unsigned otherwise. *}{\i\f20 binary_id}{\f20  is set to the binary section identifier and *}{\i\f20 elements_read}{\f20  to the number of elements actually read. }{
+\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 If any element in the binary data cant fit into the destination element, the destination is set the nearest possible value. }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 If the value is not binary, the function returns CBF_ASCII. }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 If the requested number of elements cant be read, the function will read as many as it can and then return CBF_ENDOFDATA. }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 Currently, the destination }{\i\f20 array}{\f20  must consist of chars, shorts or ints (signed or unsigned). If }{\i\f20 elsize}{\f20  is not equal to sizeof (char), sizeof (short) or sizeof (int), the function returns CBF_ARGUMENT. }{
+\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 
+An additional restriction in the current version of CBFlib is that values too large to fit in an int are not correctly decompressed. As an example, if the machine with 32-bit ints is reading an array containing a value outside the range 0 .. 2^32-1 (unsign
+ed) or -2^31 .. 2^31-1 (signed), the array will not be correctly decompressed. This restriction will be removed in a future release. \par 
+}\pard {\f20 \par 
+}{\b\f20 ARGUMENTS}{\f20\fs14 \par 
+}\pard {\f20\fs14 \~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+binary_id}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination integer binary identifier.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 array}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination array.\cell }\pard \intbl {\f20 \row 
+}\pard \intbl {\i\f20 elsize}{\f20 \cell }\pard \intbl {\f20 Size in bytes of each destination array element.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elsigned}{\f20 \cell }\pard \intbl {\f20 
+Set to non-0 if the destination array elements are signed.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elements}{\f20 \cell }\pard \intbl {\f20 The number of elements to read.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0
+\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 elements_read}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination number of elements actually read.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 RETURN VALUE}{\f20  }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 Returns an error code on failure or 0 for success.\par 
+}{\b\f20 \par 
+SEE ALSO}{\f20  }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 2.3.46 }{\b\f20 cbf_get_value}{\f20 \par 
+2.3.48 }{\b\f20 cbf_get_integervalue}{\f20 \par 
+2.3.50 }{\b\f20 cbf_get_doublevalue}{\f20 \par 
+2.3.52 }{\b\f20 cbf_get_integerarrayparameters}{\f20 \par 
+2.3.54 }{\b\f20 cbf_set_integerarray}{\f20 \par 
+}\pard {\b\f20 \page }{\f20 2.3.54 }{\b\f20 cbf_set_integerarray}{\f20 \par 
+}\pard {\f20 \par 
+}{\b\f20 PROTOTYPE}{\f20  }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 #include "cbf.h"\par 
+\par 
+}\pard \fi-720\li720 {\f20 int }{\b\f20 cbf_set_integerarray}{\f20  (cbf_handle }{\i\f20 handle}{\f20 , unsigned int }{\i\f20 compression}{\f20 , int}{\i\f20 binary_id}{\f20 , void *}{\i\f20 array}{\f20 , size_t }{\i\f20 elsize}{\f20 , int }{\i\f20 
+elsigned}{\f20 , size_t }{\i\f20 elements}{\f20 ); \par 
+}\pard {\f20 \par 
+}{\b\f20 DESCRIPTION}{\f20  }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\b\f20 cbf_set_integerarray}{\f20  sets the binary value of the item at the current column and row to an integer }{\i\f20 array}{\f20 . The }{\i\f20 array}{\f20  consists of elements}{\i\f20 elements}{\f20  of }{\i\f20 elsize}{\f20 
+ bytes each, starting at }{\i\f20 array}{\f20 . The elements are signed if }{\i\f20 elsigned}{\f20  is non-0 and unsigned otherwise. }{\i\f20 binary_id}{\f20  is the binary section identifier. \par 
+}\pard {\f20 \par 
+}\pard {\f20 The }{\i\f20 array}{\f20  will be compressed using the compression scheme specifed by}{\i\f20 compression}{\f20 .  Currently, the available schemes are: \par 
+}\pard {\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 CBF_CANONICAL\cell }\pard \intbl {\f20 Canonical-code compression (section 3.3.1)\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0
+\cellx8200\pard \intbl {\f20 CBF_PACKED\cell }\pard \intbl {\f20 CCP4-style packing (section 3.3.2) \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 CBF_NONE\cell }\pard \intbl {\f20 
+No compression. }{\b\f20 NOTE:}{\f20  This scheme is by far the slowest of the three and uses much more disk space. It is intended for routine use with small arrays only. With large arrays (like images) it should be used only for debugging. \cell }\pard 
+\intbl {\f20 \row }\pard {\f20 \par 
+}\pard {\f20 The values compressed are limited to 64 bits. If any element in the }{\i\f20 array}{\f20  is larger than 64 bits, the value compressed is the nearest 64-bit value. \par 
+}\pard {\f20 \par 
+}\pard {\f20 Currently, the source }{\i\f20 array}{\f20  must consist of chars, shorts or ints (signed or unsigned). If }{\i\f20 elsize}{\f20  is not equal to sizeof (char), sizeof (short) or sizeof (int), the function returns CBF_ARGUMENT. \par 
+}\pard {\f20 \par 
+}{\b\f20 ARGUMENTS}{\b\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
+compression}{\f20 \cell }\pard \intbl {\f20 Compression method to use.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 binary_id}{\f20 \cell }\pard \intbl {\f20 Integer binary identifier.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 array}{
+\f20 \cell }\pard \intbl {\f20 Pointer to the source array.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elsize}{\f20 \cell }\pard \intbl {\f20 Size in bytes of each source array element.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elsigned
+}{\f20 \cell }\pard \intbl {\f20 Set to non-0 if the source array elements are signed.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 elements}{\f20 \cell }\pard \intbl {\f20 
+The number of elements in the }{\i\f20 array}{\f20 . \cell }\pard \intbl {\f20 \row }\pard {\b\f20 \par 
+RETURN VALUE}{\f20  }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 Returns an error code on failure or 0 for success. \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  }{\f20\fs14 \par 
+}\pard {\f20\fs14 \par 
+}\pard {\f20 2.3.47 }{\b\f20 cbf_set_value}{\f20 \par 
+2.3.49 }{\b\f20 cbf_set_integervalue}{\f20 \par 
+2.3.51 }{\b\f20 cbf_set_doublevalue}{\f20 \par 
+2.3.52 }{\b\f20 cbf_get_integerarrayparameters}{\f20 \par 
+2.3.53 }{\b\f20 cbf_get_integerarray}{\f20 \par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.55 }{\b\f20 cbf_failnez}{\f20 \par 
+\par 
+\par 
+}{\b\f20 DEFINITION}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+#define }{\b\f20 cbf_failnez}{\f20 (}{\i\f20 f}{\f20 ) \{int err; err = (}{\i\f20 f}{\f20 ); if (err) return err; \} \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_failnez}{\f20  is a macro used for error propagation throughout CBFlib.  }{\b\f20 cbf_failnez}{\f20  executes the function }{\i\f20 f}{\f20  and saves the returned error value.   If the error value is non-0, }{\b\f20 cbf_failnez}{\f20 
+ executes a return with the error value as argument. If CBFDEBUG is defined, then a report of the error is also printed to the standard error stream, stderr, in the form \par 
+}\pard {\f20 \par 
+CBFlib error }{\i\f20 f}{\f20  in "symbol" \par 
+\par 
+where }{\i\f20 f}{\f20  is the decimal value of the error and symbol is the symbolic form. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\~\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 f}{\f20 \cell }\pard \intbl {\f20 Integer error value.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.56 }{\b\f20 cbf_onfailnez}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}\pard {\f20 2.3.56 }{\b\f20 cbf_onfailnez}{\f20 \par 
+\par 
+\par 
+}{\b\f20 DEFINITION}{\f20  \par 
+\par 
+#include "cbf.h"\par 
+\par 
+#define }{\b\f20 cbf_onfailnez}{\f20 (}{\i\f20 f}{\f20 ,}{\i\f20 c}{\f20 ) \{int err; err = (}{\i\f20 f}{\f20 ); if (err) \{\{}{\i\f20 c}{\f20 ; \}return err; \}\} \par 
+\par 
+}{\b\f20 DESCRIPTION}{\f20  \par 
+\par 
+}\pard {\b\f20 cbf_onfailnez}{\f20  is a macro used for error propagation throughout CBFlib.   }{\b\f20 cbf_onfailnez}{\f20  executes the function }{\i\f20 f}{\f20  and saves the returned error value. If the error value is non-0, }{\b\f20 cbf_failnez}{
+\f20  executes first the statement }{\i\f20 c}{\f20  and then a return with the error value as argument. If CBFDEBUG is defined, then a report of the error is also printed to the standard error stream, stderr, in the form \par 
+}\pard {\f20 \par 
+CBFlib error }{\i\f20 f}{\f20  in "symbol" \par 
+\par 
+where }{\i\f20 f}{\f20  is the decimal value of the error and symbol is the symbolic form. \par 
+\par 
+}{\b\f20 ARGUMENTS}{\f20 \par 
+\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 f}{\f20 \cell }\pard \intbl {\f20 integer function to execute.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard 
+\intbl {\i\f20 c}{\f20 \cell }\pard \intbl {\f20 statement to execute on failure.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+}{\b\f20 SEE ALSO}{\f20  \par 
+\par 
+2.3.55 }{\b\f20 cbf_failnez}{\f20 \par 
+\par 
+\par 
+\par 
+\par 
+}\pard {\b\f20 \page }{\f20 \par 
+}{\b\f20\fs28 \sect }\sectd \sbkodd\linemod0\linex0\cols1\endnhere \pard\plain {\b\f20\fs28 3. File format}{\f20 \par 
+}\pard {\f20 \par 
+}{\b\f20 3.1 General description}{\f20 \par 
+\par 
+}\pard {\f20 With the exception of the binary sections, a CBF file is an mmCIF-format ASCII file, so a CBF file with no binary sections is a CIF fil
+e. An imgCIF file has any binary sections encoded as CIF-format ASCII strings and is a CIF file whether or not it contains binary sections. In most cases, CBFlib can also be used to access normal CIF files as well as CBF and imgCIF files. \par 
+}\pard {\f20 \par 
+\par 
+}{\b\f20 3.2 Format of the binary sections}{\f20 \par 
+\par 
+}\pard {\f20 Before getting to the binary data itself, there are some preliminaries to allow a smooth transition from the conventions of CIF to those of raw or encoded streams of "octets" (8-bit bytes). The binary data is given as the essential par
+t of a specially formatted semicolon-delimited CIF multi-line text string. This text string is the value associated with the tag "_array_data.data". \par 
+}\pard {\f20 \par 
+The specific format of the binary sections differs between an imgCIF and a CBF file. \par 
+\par 
+\par 
+}{\b\f20 3.2.1 Format of imgCIF binary sections}{\f20 \par 
+\par 
+}\pard {\f20 Each binary section is encoded as a ;-delimited string. Within the text string, the conventions developed for transmitting email messages including binary attachments are followed. There is secondary ASCII header information, formatt
+ed as Multipurpose Internet Mail Extensions (MIME) headers (see RFCs 2045-49 by Freed, et. al). The boundary marker for the beginning of all this is the special string \par 
+}\pard {\f20 \par 
+--CIF-BINARY-FORMAT-SECTION--\par 
+\par 
+}\pard {\f20 
+at the beginning of a line. The initial "--" says that this is a MIME  boundary. We cannot put "###" in front of it and conform to MIME  conventions. Immediately after the boundary marker are MIME headers,  describing some useful information we will need t
+o process the binary section. MIME headers can appear i
+n different orders, and can be very confusing (look at the raw contents of a email message with attachments), but there is only one header which is has to be understood to process an imgCIF: "Content-Transfer-Encoding". If the value given on this header is
+ "BINARY", this is a CBF and the data will be presented as raw binary, containing a count (in the header described in 3.2.2 Format of CBF binary sections) so we'll know when to start looking for more information. \par 
+}\pard {\f20 \par 
+}\pard {\f20 If the value given for "Content-Tranfer-E
+ncoding" is one of the real encodings: "BASE64", "QUOTED-PRINTABLE", "X-BASE8", "X-BASE10" or "X-BASE16", the file is an imgCIF, and we'll need some other the other headers to process the encoded binary data properly. It is a good practice to give headers 
+in all cases. The meanings of various encodings is given in the CBF extensions dictionary, cbfext98.dic. \par 
+}\pard {\f20 \par 
+The "Content-Type" header tells us what sort of data we have (currently \par 
+}\pard {\f20 always "application/octet-stream" for a miscellaneous stream of binary data) and, optionally, the conversions that were applied to the original data. In this case we have compressed the data with the "CBF-PACKED" algorithm. \par 
+}\pard {\f20 \par 
+}\pard {\f20 The "X-Binary-ID" header should contain the same value as was given for "_array_data.}{\i\f20 binary_id}{\f20 ". \par 
+}\pard {\f20 \par 
+}\pard {\f20 
+The "X-Binary-Size" header gives the expected size of the binary data.  This is the size after any compressions, but before any ascii encodings.  This is useful in making a simple check for a missing portion of this file. The 8 bytes for the Compression ty
+pe (see below) are not counted in this field, so the value of "X-Binary-Size" is 8 less than the quantity in bytes 12-19 of raw binary data ( 3.2.2 Format of CBF binary \par 
+}\pard {\f20 sections). \par 
+\par 
+}\pard {\f20 The optional "Content-MD5" header provides a much more sophisticated check on the integrity of the binary data. Note that this check value is applied to the data after the 8 bytes for the Compression type. \par 
+}\pard {\f20 \par 
+}\pard {\f20 A blank line separator immediately precedes the start of the encoded binary data. Blank spaces may be added prior to the preceding "line separator" if desired (e.g. to force word or block alignment). \par 
+}\pard {\f20 \par 
+Because CBFLIB may jump foreward in the file from the MIME header, the \par 
+}\pard {\f20 
+length of encoded data cannot be greater than the value defined by "X-Binary-Size" (except when "X-Binary-Size" is zero, which means that the size is unknown). At exactly the byte following the full binary section as defined by the length value is the end 
+of binary section identifier. This consists of the line-termination sequence followed by: \par 
+}\pard {\f20 \par 
+\par 
+--CIF-BINARY-FORMAT-SECTION----\par 
+;\par 
+\par 
+\par 
+}\pard {\f20 
+with each of these lines followed by a line-termination sequence. This brings us back into a normal CIF environment. This identifier is, in a sense, redundant because the binary data length value tells the a program how many bytes to jump over to the end o
+f the binary data. This redundancy has been deliberately added for error checking, and for possible file recovery in the case of a corrupted file and this identifier must be present at the end of every block of binary data. \par 
+}\pard {\f20 \par 
+\par 
+}{\b\f20 3.2.2 Format of CBF binary sections}{\f20 \par 
+\par 
+}\pard {\f20 In a CBF file, each binary section is encoded as a ;-delimited string, starting with an arbitrary number of pure-ASCII characters. \par 
+}\pard {\f20 \par 
+}\pard {\b\f20 Note:}{\f20 
+ For historical reasons, CIFlib has the option of writing simple header and footer sections: "START OF BINARY SECTION" at the start of a binary section and "END OF BINARY SECTION" at the end of a binary section, or writing MIME-type header and footer secti
+ons (3.2.1 Format of imgCIF binary sections). If the simple header is used, the actual ASCII text is ignored when the binary section is read. Use of the simple binary header is deprecated. \par 
+}\pard {\f20 \par 
+The MIME header is recommended. \par 
+\par 
+}\pard {\f20 Between the ASCII header and the actual CBF binary data is a series of bytes ("octets") to try to stop the listing of the header, bytes which define the binary identifier which should match the "}{\i\f20 binary_id}{\f20 
+" defined in the header, and bytes which define the length of the binary section.\par 
+}\pard {\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx1360\clshdng0\cellx2800\clshdng0\cellx4240\clshdng0\cellx8200\pard \intbl {\b\f20 Octet \cell Hex \cell Decimal \cell }\pard \intbl {\b\f20 Purpose \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 
+\clshdng0\cellx1360\clshdng0\cellx2800\clshdng0\cellx4240\clshdng0\cellx8200\pard \intbl {\f20 \~\~1 \cell \~\~oD \cell \~\~12 \cell }\pard \intbl {\f20 \~\~(ctrl-L) End of Page \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~2 \cell \~\~1A \cell 
+\~\~26 \cell }\pard \intbl {\f20 \~\~(ctrl-Z) Stop listings in MS-DOS \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~3 \cell \~\~04 \cell \~\~04 \cell }\pard \intbl {\f20 \~\~(Ctrl-D) Stop listings in UNIX \cell }\pard \intbl {\f20 \row }\pard 
+\intbl {\f20 \~\~4 \cell \~\~D5 \cell \~\~213 \cell }\pard \intbl {\f20 \~\~Binary section begins \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx1360\clshdng0\cellx2800\clshdng0\cellx4240\clshdng0\cellx8200\pard \intbl {\f20 \~
+\~5..5+n-1\cell \~\~\~\cell \~\~\~\cell }\pard \intbl {\f20 \~\~Binary data (n octets) \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\par 
+NOTE: When a MIME header is used, only bytes 5..5+n-1 are considered in \par 
+}\pard {\f20 computing the size and the message digest, and only these bytes are encoded for the equivalent imgCIF file using the indicated Content-Transfer-Encoding. \par 
+}\pard {\f20 \par 
+}\pard {\f20 If no MIME header has been requested (a deprecated use), then bytes 5 through 28 are used for three 8-byte words to hold the }{\i\f20 binary_id}{\f20 , the size and the compression type: \par 
+}\pard {\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8560\pard \intbl {\f20 \~\~5..12 \cell }\pard \intbl {\f20 Binary Section Identifier (See _array_data.}{\i\f20 binary_id}{\f20 ) 64-bit, little endian \cell }\pard \intbl {\f20 \row }\trowd 
+\trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8560\pard \intbl {\f20 \~\~13..20 \cell }\pard \intbl {\f20 The size (n) of the binary section in octets (i.e. the offset from octet 29 to the first byte following the data) \cell }\pard \intbl {\f20 
+\row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8560\pard \intbl {\f20 \~\~21..28\cell }\pard \intbl {\f20 Compression type:\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx4960\clshdng0\cellx7480\pard \intbl {\f20 \cell \~\~CBF_NONE \cell \~\~0x0040 (64) \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx4960\clshdng0
+\cellx7480\pard \intbl {\f20 \cell \~\~CBF_CANONICAL \cell \~\~0x0050 (80) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \cell \~\~CBF_PACKED \cell \~\~0x0060 (96) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \cell \~\~CBF_BYTE_OFFSET \cell \~
+\~0x0070 (112) \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx4960\clshdng0\cellx7480\pard \intbl {\f20 \cell \~\~CBF_PREDICTOR \cell \~\~0x0080 (128) \cell }\pard \intbl {\f20 \row }\pard {\f20 \~\~... \tab 
+\~\~\~\par 
+\par 
+The binary data then follows in bytes 29 through 29+n-1. \par 
+\par 
+The binary characters serve specific purposes: \par 
+\par 
+\par 
+*\tab The Control-L (from-feed) will terminate printing of the current page on \par 
+most operating systems. \par 
+\par 
+*\tab The Control-Z will stop the listing of the file on MS-DOS type operating \par 
+systems. \par 
+\par 
+*\tab The Control-D will stop the listing of the file on Unix type operating systems. \par 
+\par 
+*\tab The unsigned byte value 213 (decimal) is binary 11010101. (Octal 325, \par 
+}\pard {\f20 and hexadecimal D5). This has the eighth bit set so can be used for error checking on 7-bit transmission. It is also asymmetric, but with the first bit also set in the case that the bit order could be reversed (which is not a known concern). 
+\par 
+}\pard {\f20 \par 
+*\tab (The carriage return, line-feed pair before the START_OF_BIN and other \par 
+}\pard {\f20 lines can also be used to check that the file has not been corrupted e.g. by being sent by ftp in ASCII mode.) \par 
+}\pard {\f20 \par 
+\par 
+\par 
+}\pard {\f20 At present three compression schemes are implemented are defined: CBF_NONE (for no compression), CBF_CANONICAL (for and entropy-coding scheme based on the can
+onical-code algorithm described by Moffat, et al. (International Journal of High Speed Electronics and Systems, Vol 8, No 1 (1997) 179-231)) and CBF_PACKED for a CCP4-style packing scheme. Othercompression schemes will be added to this list in the future. 
+\par 
+}\pard {\f20 \par 
+\par 
+}\pard {\f20 For historical reasons, CBFlib can read or write a binary string without a MIME header. The structure of a binary string with simple headers is: \par 
+}\pard {\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx1360\clshdng0\cellx2800\clshdng0\cellx4240\clshdng0\cellx8200\pard \intbl {\b\f20 Byte\cell }\pard \intbl {\b\f20 ASCII Symbol\cell Decimal Value\cell }\pard \intbl {\b\f20 Description\cell }\pard \intbl {\f20 
+\row }\trowd \trgaph80\trleft-80 \clshdng0\cellx1360\clshdng0\cellx2800\clshdng0\cellx4240\clshdng0\cellx8200\pard \intbl {\f20 \~\~1\cell \~\~;\cell \~\~59\cell }\pard \intbl {\f20 Initial ; delimiter\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~
+\~2\cell }\pard \intbl {\f20 carriage-return\cell }\pard \intbl {\f20 \~\~13\cell }\pard \intbl {\f20 The CBF new-line code is carriage-return, line-feed\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~3\cell line-feed\cell \~\~10\cell }\pard 
+\intbl {\f20 \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~4\cell \~\~S\cell \~\~83\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~5\cell \~\~T\cell \~\~84\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {
+\f20 \row }\pard \intbl {\f20 \~\~6\cell \~\~A\cell \~\~65\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~7\cell \~\~R\cell \~\~83\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~8
+\cell \~\~T\cell \~\~84\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~9\cell \~\~\cell \~\~32\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~10\cell \~\~O\cell \~\~79\cell }\pard 
+\intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~11\cell \~\~F\cell \~\~70\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~12\cell \~\~\cell \~\~32\cell }\pard \intbl {\f20 \~\~\cell }\pard 
+\intbl {\f20 \row }\pard \intbl {\f20 \~\~13\cell \~\~B\cell \~\~66\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~14\cell \~\~I\cell \~\~73\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {
+\f20 \~\~15\cell \~\~N\cell \~\~78\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~16\cell \~\~A\cell \~\~65\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~17\cell \~\~R\cell \~\~83
+\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~18\cell \~\~Y\cell \~\~89\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~19\cell \~\~\cell \~\~32\cell }\pard \intbl {\f20 \~\~\cell 
+}\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~20\cell \~\~S\cell \~\~83\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~21\cell \~\~E\cell \~\~69\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard 
+\intbl {\f20 \~\~22\cell \~\~C\cell \~\~67\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~23\cell \~\~T\cell \~\~84\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~24\cell \~\~I
+\cell \~\~73\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~25\cell \~\~O\cell \~\~79\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~26\cell \~\~N\cell \~\~78\cell }\pard \intbl {
+\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~27\cell }\pard \intbl {\f20 carriage-return\cell }\pard \intbl {\f20 \~\~13\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~28\cell \~\~line-feed\cell \~\~
+10\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~29\cell \~\~form-feed\cell \~\~12\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~30\cell \~\~substitute\cell \~\~26\cell }\pard 
+\intbl {\f20 Stop the listing of the file in MS-DOS\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~31\cell }\pard \intbl {\f20 \~\~end-of-transmission\cell }\pard \intbl {\f20 \~\~4\cell }\pard \intbl {\f20 Stop the listing of the file in unix
+\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~32\cell \~\~\cell \~\~213\cell }\pard \intbl {\f20 First non-ASCII value\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~33 .. 40\cell \~\~\cell \~\~\cell }\pard \intbl {\f20 
+Binary section identifier (64-bit little-endien)\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~41 .. 48\cell \~\~\cell \~\~\cell }\pard \intbl {\f20 Offset from byte 57 to the first ASCII character following the binary data\cell }\pard \intbl {
+\f20 \row }\pard \intbl {\f20 \~\~49 .. 56\cell \~\~\cell \~\~\cell }\pard \intbl {\f20 Compression type\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 57 .. 57+ n-1\cell \~\~\cell }\pard \intbl {\f20 Binary data (n bytes)\cell }\pard \intbl {\f20 
+\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~57 + n \cell }\pard \intbl {\f20 \~\~carriage-return\cell }\pard \intbl {\f20 \~\~13\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~58 + n \cell \~\~line-feed
+\cell \~\~10\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~59 + n \cell \~\~E\cell \~\~69\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~60 + n \cell \~\~N\cell \~\~78\cell }\pard 
+\intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~61 + n \cell \~\~D\cell \~\~68\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~62 + n \cell \~\~\cell \~\~32\cell }\pard \intbl {\f20 \~\~\cell 
+}\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~63 + n \cell \~\~O\cell \~\~79\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~64 + n \cell \~\~F\cell \~\~70\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row 
+}\pard \intbl {\f20 \~\~65 + n \cell \~\~\cell \~\~32\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~66 + n \cell \~\~B\cell \~\~66\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~
+67 + n \cell \~\~I\cell \~\~73\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~68 + n \cell \~\~N\cell \~\~78\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~69 + n \cell \~\~A\cell 
+\~\~65\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~70 + n \cell \~\~R\cell \~\~83\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~71 + n \cell \~\~Y\cell \~\~89\cell }\pard 
+\intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~72 + n \cell \~\~\cell \~\~32\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~73 + n \cell \~\~S\cell \~\~83\cell }\pard \intbl {\f20 \~\~\cell 
+}\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~74 + n \cell \~\~E\cell \~\~69\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~75 + n \cell \~\~C\cell \~\~67\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row 
+}\pard \intbl {\f20 \~\~76 + n \cell \~\~T\cell \~\~84\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~77 + n \cell \~\~I\cell \~\~73\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~
+78 + n \cell \~\~O\cell \~\~79\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~79 + n \cell \~\~N\cell \~\~78\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~80 + n \cell }\pard 
+\intbl {\f20 \~\~carriage-return\cell }\pard \intbl {\f20 \~\~13\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~81 + n \cell \~\~line-feed\cell \~\~10\cell }\pard \intbl {\f20 \~\~\cell }\pard \intbl {\f20 \row 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx1360\clshdng0\cellx2800\clshdng0\cellx4240\clshdng0\cellx8200\pard \intbl {\f20 \~\~82 + n \cell \~\~;\cell \~\~59\cell }\pard \intbl {\f20 Final ; delimiter\cell }\pard \intbl {\f20 \row }\pard {\b\f20 \par 
+\par 
+3.3 Compression schemes}{\f20 \par 
+\par 
+}\pard {\f20 Two schemes for lossless compression of integer arrays (such as images) have been implemented in this version of CBFlib: \par 
+}\pard {\f20 \par 
+1. An entropy-encoding scheme using canonical coding\par 
+2. A CCP4-style packing scheme. \par 
+\par 
+}\pard {\f20 Both encode the difference (or error) between the current element in the array and the prior element. Parameters required for more sophisticated predictors have been included in the compression
+ functions and will be used in a future version of the library. \par 
+}\pard {\f20 \par 
+}{\b\f20 3.3.1 Canonical-code compression}{\f20 \par 
+\par 
+}\pard {\f20 
+The canonical-code compression scheme encodes errors in two ways: directly or indirectly. Errors are coded directly using a symbol corresponding to the error value. Errors are coded indirectly using a symbol for the number of bits in the (signed) error, fo
+llowed by the error iteslf. \par 
+}\pard {\f20 \par 
+}\pard {\f20 At the start of the compression, CBFlib constructs a table containing a set of symbols, one for each of the 2^}{\f20\up6 n}{\f20  direct codes from -2^}{\f20\up6 (n-1)}{\f20  .. 2^}{\f20\up6 (n-1)}{\f20 
+-1, one for a stop code, and one for each of the maxbits-n indirect codes, where n is chosen at compress time and maxbits is the maximum number of bits in an error. CBFlib then assigns to each symbol a bit-code, using a shorter bit code for the more common
+ symbols and a longer bit code for the less common symbols. The bit-code lengths are calculated using a Huffman-type algorithm, and the actual bit-codes are constructed using the canonical-code algorithm described by Moffat, et al. (
+International Journal of High Speed Electronics and Systems, Vol 8, No 1 (1997) 179-231). \par 
+}\pard {\f20 \par 
+The structure of the compressed data is: \par 
+\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2080\clshdng0\cellx8200\pard \intbl {\b\f20 Byte\cell }\pard \intbl {\b\f20 Value \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2080\clshdng0\cellx8200\pard \intbl {\f20 \~\~1 .. 8
+\cell }\pard \intbl {\f20 \~\~Number of elements (64-bit little-endian number)\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~9 .. 16\cell }\pard \intbl {\f20 \~\~Minimum element\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~17 .. 24\cell 
+}\pard \intbl {\f20 \~\~Maximum element\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~25 .. 32\cell }\pard \intbl {\f20 \~\~(reserved for future use)\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~33\cell }\pard \intbl {\f20 \~\~
+Number of bits directly coded, n \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~34\cell }\pard \intbl {\f20 \~\~Maximum number of bits encoded, maxbits \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~35 .. 35+2^}{\f20\up6 n}{\f20 -1\cell 
+}\pard \intbl {\f20 \~\~Number of bits in each direct code\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~35+2^}{\f20\up6 n}{\f20 \cell }\pard \intbl {\f20 \~\~Number of bits in the stop code\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~
+35+2^}{\f20\up6 n}{\f20 +1 .. 35+2^}{\f20\up6 n}{\f20 +maxbits-n \cell }\pard \intbl {\f20 \~\~Number of bits in each indirect code\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2080\clshdng0\cellx8200\pard \intbl {\f20 \~\~
+35+2^}{\f20\up6 n }{\f20 + \par 
+}\pard \intbl {\f20 maxbits-n+1 .. \cell }\pard \intbl {\f20 \~\~Coded data\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20 3.3.2 CCP4-style compression}{\f20 \par 
+\par 
+}\pard {\f20 The CCP4-style compression writes the errors in blocks . Each block begins with a 6-bit code. The number of errors in the block is 2^n, where n is the value in bits 0 .. 2. Bits 3 .. 5 encode the number of bits in each error:\par 
+}\pard {\f20 \par 
+\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2080\clshdng0\cellx4240\pard \qc\keep\keepn\intbl {\b\f20 Value in bits 3 .. 5\cell Number of bits\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2080\clshdng0\cellx4240\pard 
+\qc\keep\keepn\intbl {\b\f20 in each error\cell \cell }\pard \intbl {\f20 \row }\pard \qc\keep\keepn\intbl {\f20 0\cell 0\cell }\pard \intbl {\f20 \row }\pard \qc\keep\keepn\intbl {\f20 1\cell 4\cell }\pard \intbl {\f20 \row }\pard \qc\keep\keepn\intbl {
+\f20 2\cell 5\cell }\pard \intbl {\f20 \row }\pard \qc\keep\keepn\intbl {\f20 3\cell 6\cell }\pard \intbl {\f20 \row }\pard \qc\keep\keepn\intbl {\f20 4\cell 7\cell }\pard \intbl {\f20 \row }\pard \qc\keep\keepn\intbl {\f20 5\cell 8\cell }\pard \intbl {
+\f20 \row }\pard \qc\keep\keepn\intbl {\f20 6\cell 16\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2080\clshdng0\cellx4240\pard \qc\keep\keepn\intbl {\f20 7\cell 65\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+The structure of the compressed data is:\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2080\clshdng0\cellx8200\pard \intbl {\b\f20 Byte\cell }\pard \intbl {\b\f20 Value\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2080\clshdng0\cellx8200\pard \intbl {\f20 \~\~1 .. 8
+\cell }\pard \intbl {\f20 \~\~Number of elements (64-bit little-endian number)\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~9 .. 16\cell }\pard \intbl {\f20 \~\~Minumum element (currently unused)\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 
+\~\~17 .. 24\cell }\pard \intbl {\f20 \~\~Maximum element (currently unused)\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~25 .. 32\cell }\pard \intbl {\f20 \~\~(reserved for future use)\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 
+\clshdng0\cellx2080\clshdng0\cellx8200\pard \intbl {\f20 \~\~33 ..\cell }\pard \intbl {\f20 \~\~Coded data\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}{\b\f20\fs28 \sect }\sectd \sbkodd\linemod0\linex0\cols1\endnhere \pard\plain {\b\f20\fs28 4. Installation}{\f20 \par 
+}\pard {\f20 \par 
+\par 
+}\pard {\f20 
+CBFlib should be built on a disk with at least 40 megabytes of free space. First create the top-level directory (called, say, CBFlib_0.6).   CBFlib_0.6.tar.Z is a compressed tar of the code as it now stands.  Uncompress this file, place it in the top level
+ directory, and unpack it with tar: \par 
+}\pard {\f20 \par 
+     tar xvf CBFLIB_0.6.tar\par 
+\par 
+\par 
+}\pard {\f20 To run the test programs, you will also need to put the MAR345 image example.mar2300 in the top-level directory.   The image can also be found at \par 
+}\pard {\f20 \par 
+http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/\par 
+\par 
+After unpacking the archive, the top-level directory should contain a makefile: \par 
+\par 
+\~\~Makefile\tab \~\~Makefile for unix \par 
+\par 
+and the subdirectories: \par 
+\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 \~\~src/\cell }\pard \intbl {\f20 CBFLIB source files \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 
+\~\~include/\cell }\pard \intbl {\f20 CBFLIB header files \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~examples/\cell }\pard \intbl {\f20 Example program source files \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~doc/\cell }\pard 
+\intbl {\f20 Documentation \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~lib/\cell }\pard \intbl {\f20 Compiled CBFLIB library \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~bin/\cell }\pard \intbl {\f20 Executable example programs \cell 
+}\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 \~\~html_images/\cell }\pard \intbl {\f20 JPEG images used in rendering the HTML files \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}\pard {\f20 For instructions on compiling and testing the library, go to the top-level directory and type: \par 
+}\pard {\f20 \par 
+     make\par 
+\par 
+}\pard {\f20 The CBFLIB source and header files are in the "src" and "include" subdirectories. The files are: \par 
+}\pard {\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2080\clshdng0\cellx4240\clshdng0\cellx8200\pard \intbl {\b\f20 src/\cell include/ \cell }\pard \intbl {\b\f20 Description \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2080\clshdng0
+\cellx4240\clshdng0\cellx8200\pard \intbl {\f20 cbf.c\cell cbf.h \cell }\pard \intbl {\f20 CBFLIB API functions \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_alloc.c\cell cbf_alloc.h \cell }\pard \intbl {\f20 Memory allocation functions \cell 
+}\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_ascii.c\cell cbf_ascii.h \cell }\pard \intbl {\f20 Function for writing ASCII values \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_binary.c\cell cbf_binary.h \cell }\pard \intbl {\f20 
+Functions for binary values \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_byte_offset.c\cell cbf_byte_offset.h \cell }\pard \intbl {\f20 Byte-offset compression (not implemented) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_canonical.c
+\cell cbf_canonical.h \cell }\pard \intbl {\f20 Canonical-code compression \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_codes.c\cell cbf_codes.h \cell }\pard \intbl {\f20 Encoding and message digest functions \cell }\pard \intbl {\f20 \row 
+}\pard \intbl {\f20 cbf_compress.c\cell cbf_compress.h \cell }\pard \intbl {\f20 General compression routines \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_context.c\cell cbf_context.h \cell }\pard \intbl {\f20 Control of temporary files \cell 
+}\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_file.c\cell cbf_file.h \cell }\pard \intbl {\f20 File in/out functions \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_lex.c\cell cbf_lex.h \cell }\pard \intbl {\f20 Lexical analyser \cell }\pard 
+\intbl {\f20 \row }\pard \intbl {\f20 cbf_packed.c\cell cbf_packed.h \cell }\pard \intbl {\f20 CCP4-style packing compression \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_predictor.c\cell cbf_predictor.h \cell }\pard \intbl {\f20 
+Predictor-Huffman compression (not implemented) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_read_binary.c\cell cbf_read_binary.h \cell }\pard \intbl {\f20 Read binary headers \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_read_mime.c
+\cell cbf_read_mime.h \cell }\pard \intbl {\f20 Read MIME-encoded binary sections \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_string.c\cell cbf_string.h \cell }\pard \intbl {\f20 Case-insensitive string comparisons \cell }\pard \intbl {\f20 
+\row }\pard \intbl {\f20 cbf_stx.c\cell cbf_stx.h \cell }\pard \intbl {\f20 Parser \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_tree.c\cell cbf_tree.h \cell }\pard \intbl {\f20 CBF tree-structure functions \cell }\pard \intbl {\f20 \row }\pard 
+\intbl {\f20 cbf_uncompressed.c\cell cbf_uncompressed.h \cell }\pard \intbl {\f20 Uncompressed binary sections \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_write.c\cell cbf_write.h \cell }\pard \intbl {\f20 Functions for writing \cell }\pard 
+\intbl {\f20 \row }\pard \intbl {\f20 cbf_write_binary.c\cell cbf_write_binary.h \cell }\pard \intbl {\f20 Write binary sections \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf.stx\cell \~\~\~\cell }\pard \intbl {\f20 
+bison grammar to define cbf_stx.c (see WARNING) \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2080\clshdng0\cellx4240\clshdng0\cellx8200\pard \intbl {\f20 md5c.c\cell md5.h, global.h\cell }\pard \intbl {\f20 
+RSA message digest software from mpack \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}\pard \tx10340 {\b\f20 WARNING:}{\f20 
+  Do not rebuild the parser, cbf_stx.c, from the bison grammar, cbf.stx, unless absolutely necessary. There is a problem with the file bison.simple in the standard bison release. If you must rebuild cbf_stx.c using bison, you will need cbf_PARSER.simple as
+ a replacement for bison.simple. See the cbf_PARSER.simple instructions.  In the "examples" subdirectory, there are 2 additional files used by the example program (section 5) for reading MAR300, MAR345 or ADSC CCD images: \par 
+}\pard {\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx4960\clshdng0\cellx8200\pard \intbl {\f20 img.c\cell img.h\cell }\pard \intbl {\f20 Simple image library \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+and the example programs themselves: \par 
+\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 makecbf.c\cell }\pard \intbl {\f20 Make a CBF file from an image \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard 
+\intbl {\f20 img2cif.c\cell }\pard \intbl {\f20 Make an imgCIF or CBF from an image \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 cif2cbf.c\cell }\pard \intbl {\f20 
+Copy a CIF/CBF to a CIF/CBF \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+The documentation files are in the "doc" subdirectory: \par 
+\par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 CBFlib.html\cell }\pard \intbl {\f20 This document (HTML) \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {
+\f20 CBFlib.txt\cell }\pard \intbl {\f20 This document (ASCII) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 CBFlib_NOTICES.html\cell }\pard \intbl {\f20 Important NOTICES -- PLEASE READ \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 
+CBFlib_NOTICES.txt\cell }\pard \intbl {\f20 Important NOTICES -- PLEASE READ \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 CBFlib.ps\cell }\pard \intbl {\f20 CBFLIB manual (PostScript) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 CBFlib.pdf
+\cell }\pard \intbl {\f20 CBFLIB manual (PDF) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 CBFlib.rtf\cell }\pard \intbl {\f20 CBFLIB manual (RTF) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_definition_rev.txt\cell }\pard \intbl {\f20 
+Draft CBF/ImgCIF definition (ASCII) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbf_definition_rev.html\cell }\pard \intbl {\f20 Draft CBF/ImgCIF definition (HTML) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbfext98.html\cell }\pard \intbl 
+{\f20 Draft CBF/ImgCIF extensions dictionary (HTML) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 cbfext98.dic\cell }\pard \intbl {\f20 Draft CBF/ImgCIF extensions dictionary (ASCII) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ChangeLog\cell 
+}\pard \intbl {\f20 Summary of change history\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 MANIFEST\cell }\pard \intbl {\f20 List of files in this kit \cell }\pard \intbl {\f20 \row 
+}\pard {\f20 \par 
+\sect }\sectd \sbkodd\linemod0\linex0\cols1\endnhere \pard\plain {\b\f20 5. Example programs}{\f20 \par 
+\par 
+\par 
+}\pard {\f20 The example programs makecbf
+.c and img2cif.c read an image file from a MAR300, MAR345 or ADSC CCD detector and then uses CBFlib to convert it to CBF format (makecbf) or either imgCIF or CBF format (img2cif).  makecbf writes the CBF-format image to disk, reads it in again, and then co
+mpares it to the original. img2cif just writes the desired file.  makecbf works only from stated files on disk, so that random I/O can be used. img2cif includes code to process files from stdin and to stdout. \par 
+}\pard {\f20 \par 
+}\pard {\f20 makecbf.c is a good example of how many of th
+e CBFlib functions can be used. To compile makecbf on an alpha workstation running Digital unix or a Silicon Graphics workstation running irix (and on most other unix platforms as well), go to the src subdirectory of the main CBFlib directory and use the M
+akefile: \par 
+}\pard {\f20 \par 
+     make all\par 
+\par 
+\par 
+An example MAR345 image can be found at: \par 
+\par 
+     http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/\par 
+\par 
+\par 
+To run makecbf with the example image, type: \par 
+\par 
+     ./bin/makecbf example.mar2300 test.cbf\par 
+\par 
+\par 
+The program img2cif has the following command line interface: \par 
+                                                                 \par 
+}\pard {\f22\fs20  img2cif     [-i  input_image]                               \\\par 
+             [-o  output_cif]                                \\\par 
+             [-c  \{p[acked]|c[annonical]|[n[one]\}]           \\\par 
+             [-m  \{h[eaders]|n[oheaders]\}]                   \\\par 
+             [-d  \{d[igest]|n[odigest]\}]                     \\     \par 
+             [-e  \{b[ase64]|q[uoted-printable]|              \\          \par 
+                   d[ecimal]|h[exadecimal]|o[ctal]|n[one]\}]  \\      \par 
+             [-b  \{f[orward]|b[ackwards]\}]                   \\ \par 
+             [input_image] [output_cif]  \par 
+}\pard {\f20                                                                  \par 
+ the options are:                                                \par 
+                                                                 \par 
+ -i  input_image (default: stdin)                                 \par 
+     the input_image file in MAR300, MAR345 or ADSC CCD detector   \par 
+     format is given.  If no input_image file is specified or is   \par 
+     given as "-", an image is copied from stdin to a temporary file.\par 
+                                                                 \par 
+ -o  output_cif (default: stdout)                                 \par 
+     the output cif (if base64 or quoted-printable encoding is used) \par 
+     or cbf (if no encoding is used).  if no output_cif is specified \par 
+     or is given as "-", the output is written to stdout           \par 
+                                                                 \par 
+ -c  compression_scheme (packed, canonical or none, default packed)\par 
+                                                                 \par 
+ -m  [no]headers (default headers for cifs, noheaders for cbfs)\par 
+     selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996)\par 
+     headers within binary data value text fields.\par 
+                                                                 \par 
+ -d  [no]digest  (default md5 digest [R. Rivest, RFC 1321, April\par 
+     1992 using"RSA Data Security, Inc. MD5 Message-Digest\par 
+     Algorithm"] when MIME headers are selected)\par 
+                                                                 \par 
+ -e  encoding (base64, quoted-printable, decimal, hexadecimal,    \par 
+     octal or none, default: base64) specifies one of the standard \par 
+     MIME encodings (base64 or quoted-printable) or a non-standard \par 
+     decimal, hexamdecimal or octal encoding for an ascii cif      \par 
+     or "none" for a binary cbf                                    \par 
+                                                     \par 
+ -b  direction (forward or backwards, default: backwards)         \par 
+     specifies the direction of mapping of bytes into words        \par 
+     for decimal, hexadecimal or octal output, marked by '>' for   \par 
+     forward or '<' for backwards as the second character of each  \par 
+     line of output, and in '#' comment lines.                     \par 
+                                                                 \par 
+\par 
+\par 
+\par 
+}\pard {\f20 The test program cif2cbf uses the same command line options as img2cif, but accepts either a CIF or a CBF as input instead of an image file. \par 
+}\pard {\f20 \par 
+\par 
+}}

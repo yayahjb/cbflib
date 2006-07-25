@@ -15,27 +15,18 @@ extern "C" {
 
 int cbf_mime_temp (cbf_node *column, unsigned int row);
 
+  /* Find non-blank length of a line */
+
+int cbf_nblen (const char *line, int *nblen);
 
   /* Convert a MIME-encoded binary section to a normal binary section */
      
 int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
                                      size_t     *size,
                                      long       *id,
-                                     char       *digest);
+                                     char       *old_digest,
+                                     char       *new_digest);
   
-  /* Skip whitespace and comments in a MIME header */  
-  /* Derived from mpack routine SkipWhitespace     */ 
-
-  /* 
-     line is a pointer to a pointer to a null-terminated single line
-     curpoint is a pointer to a pointer to the current position in line
-     nblen is a pointer to the non-blank length of line
-     freshline is a pointer to a logical, 1 if a fresh line is loaded
-  */
-     
-
-int cbf_skip_whitespace (cbf_file *file, char **line, 
-      char **curpoint, unsigned int *nblen, int *freshline );
 
   /* Parse the MIME header looking for values of type:
   
@@ -49,7 +40,9 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
                                           size_t     *size,
                                           long       *id,
                                           char       *digest,
-                                 unsigned int        *compression);
+                                 unsigned int        *compression,
+                                          int        *bits,
+                                          int        *sign);
 
 
 #ifdef __cplusplus

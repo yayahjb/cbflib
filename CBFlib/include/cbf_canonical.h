@@ -15,17 +15,25 @@ extern "C" {
 
   /* Compress an array */
 
-int cbf_compress_canonical (void *buf, size_t elsize, int elsign, size_t nelem,
-                            unsigned int compression, size_t repeat,
-                            cbf_file *file, size_t *binsize);
+int cbf_compress_canonical (void         *source, 
+                            size_t        elsize, 
+                            int           elsign, 
+                            size_t        nelem, 
+                            unsigned int  compression,
+                            cbf_file     *file, 
+                            size_t       *compressedsize,
+                            int          *storedbits);
 
 
   /* Decompress an array (from the start of the table) */
 
-int cbf_decompress_canonical (void *buf, size_t elsize, int elsign, 
-                              size_t nelem, size_t *nelem_read,
-                              unsigned int compression, 
-                              size_t repeat, cbf_file *file);
+int cbf_decompress_canonical (void         *destination, 
+                              size_t        elsize, 
+                              int           elsign, 
+                              size_t        nelem, 
+                              size_t       *nelem_read,
+                              unsigned int  compression, 
+                              cbf_file     *file);
 
 
 #ifdef __cplusplus

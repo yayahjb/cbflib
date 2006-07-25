@@ -1,13 +1,14 @@
 /**********************************************************************
  * cbf_packed -- Packing compression                                  *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
- *                                 NOTICE                             *
+ *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
  * are laws and customs which establish rights and responsibilities   *
  * for authors and the users of what authors create.  This notice     *
@@ -52,8 +53,8 @@
  **********************************************************************/
  
 /**********************************************************************
- *                             The IUCr Policy                        *
- *                                    on                              *
+ *                          The IUCr Policy                           *
+ *                                 on                                 *
  *     the Use of the Crystallographic Information File (CIF)         *
  *                                                                    *
  * The Crystallographic Information File (Hall, Allen & Brown,        *
@@ -274,7 +275,8 @@ int cbf_pack_chunk (cbf_packed_data *data, int size, int chunk,
     
     for (count = chunk; count; count--, index++)
 
-      cbf_failnez (cbf_put_bits (file, data->offset [index & 127], cbf_packed_bits [size]))
+      cbf_failnez (cbf_put_bits (file, data->offset [index & 127], 
+                                       cbf_packed_bits [size]))
   }
 
 
@@ -385,14 +387,18 @@ int cbf_pack_nextchunk (cbf_packed_data *data, cbf_file *file,
 
   /* Compress an array */
   
-int cbf_compress_packed (void *buf, size_t elsize, int elsign, size_t nelem,
-                         unsigned int compression, size_t repeat,
-                         cbf_file *file, size_t *compressedsize)
+int cbf_compress_packed (void         *source, 
+                         size_t        elsize, 
+                         int           elsign, 
+                         size_t        nelem, 
+                         unsigned int  compression, 
+                         cbf_file     *file, 
+                         size_t       *compressedsize,
+                         int          *storedbits)
 {
   unsigned int minelement, maxelement;
 
-  unsigned int count, element, lastelement,
-           unsign, sign, limit;
+  unsigned int count, element, lastelement, unsign, sign, limit;
 
   unsigned char *unsigned_char_data;
   
@@ -424,37 +430,37 @@ int cbf_compress_packed (void *buf, size_t elsize, int elsign, size_t nelem,
   minelement = 0;
 
   maxelement = 0;
-
-
+ 
+ 
     /* Write the number of elements (64 bits) */
 
   cbf_onfailnez (cbf_put_integer (file, nelem, 0, 64),
-             cbf_free ((void **) data, NULL))
+                 cbf_free ((void **) data, NULL))
 
 
     /* Write the minimum element (64 bits) */
 
   cbf_onfailnez (cbf_put_integer (file, minelement, elsign, 64),
-             cbf_free ((void **) data, NULL))
+                 cbf_free ((void **) data, NULL))
 
 
     /* Write the maximum element (64 bits) */
 
   cbf_onfailnez (cbf_put_integer (file, maxelement, elsign, 64),
-             cbf_free ((void **) data, NULL))
+                 cbf_free ((void **) data, NULL))
 
 
-    /* Write the repeat size (64 bits) */
+    /* Write the reserved entry (64 bits) */
 
-  cbf_onfailnez (cbf_put_integer (file, repeat, 0, 64),
-               cbf_free ((void **) data, NULL))
+  cbf_onfailnez (cbf_put_integer (file, 0, 0, 64),
+                 cbf_free ((void **) data, NULL))
 
-  bitcount = 5 * 64;
+  bitcount = 4 * 64;
   
 
     /* Initialise the pointers */
 
-  unsigned_char_data = (unsigned char *) buf;
+  unsigned_char_data = (unsigned char *) source;
 
 
     /* Maximum limit (unsigned) is 64 bits */
@@ -464,12 +470,20 @@ int cbf_compress_packed (void *buf, size_t elsize, int elsign, size_t nelem,
     sign = 1 << CBF_SHIFT63;
 
     limit = ~-(sign << 1);
+
+    if (storedbits)
+    
+      *storedbits = 64;
   }
   else
   {
     sign = 1 << (elsize * CHAR_BIT - 1);
 
     limit = ~0;
+
+    if (storedbits)
+    
+      *storedbits = elsize * CHAR_BIT;
   }
 
 
@@ -539,7 +553,7 @@ int cbf_compress_packed (void *buf, size_t elsize, int elsign, size_t nelem,
         /* Write the next block as economically as possible */
 
       cbf_onfailnez (cbf_pack_nextchunk (data, file, &chunkbits),
-                 cbf_free ((void **) data, NULL))
+                     cbf_free ((void **) data, NULL))
                  
       bitcount += chunkbits;
     }
@@ -551,18 +565,15 @@ int cbf_compress_packed (void *buf, size_t elsize, int elsign, size_t nelem,
   }
 
 
-    /* Flush the buffer */
+    /* Flush the buffers */
 
   while (data->offsets > 0)
   {
     cbf_onfailnez (cbf_pack_nextchunk (data, file, &chunkbits),
-               cbf_free ((void **) data, NULL))
+                   cbf_free ((void **) data, NULL))
                
     bitcount += chunkbits;
   }
-
-  cbf_onfailnez (cbf_put_integer (file, 0, 0, 7),
-             cbf_free ((void **) data, NULL))
 
 
     /* Return the number of characters written */
@@ -580,10 +591,13 @@ int cbf_compress_packed (void *buf, size_t elsize, int elsign, size_t nelem,
 
   /* Decompress an array */
 
-int cbf_decompress_packed (void *buf, size_t elsize, int elsign, 
-                           size_t nelem, size_t *nelem_read,
-                           unsigned int compression, 
-                           size_t repeat, cbf_file *file)
+int cbf_decompress_packed (void         *destination, 
+                           size_t        elsize, 
+                           int           elsign, 
+                           size_t        nelem, 
+                           size_t       *nelem_read,
+                           unsigned int  compression, 
+                           cbf_file     *file)
 {
   unsigned int next, pixel, pixelcount;
 
@@ -607,7 +621,7 @@ int cbf_decompress_packed (void *buf, size_t elsize, int elsign,
 
     /* Initialise the pointer */
 
-  unsigned_char_data = (unsigned char *) buf;
+  unsigned_char_data = (unsigned char *) destination;
 
 
     /* Maximum limit (unsigned) is 64 bits */
@@ -655,6 +669,11 @@ int cbf_decompress_packed (void *buf, size_t elsize, int elsign,
   for (count = 1; count < count64; count++)
         
     last_element [count] = 0;
+
+
+    /* Discard the reserved entry (64 bits) */
+
+  cbf_failnez (cbf_get_integer (file, NULL, 0, 64))
 
 
     /* Read the elements */
@@ -775,6 +794,3 @@ int cbf_decompress_packed (void *buf, size_t elsize, int elsign,
 }
 
 #endif
-
-
-

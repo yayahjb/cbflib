@@ -13,7 +13,10 @@ extern "C" {
 
   /* Parse a binary header looking for the size and id */
      
-int cbf_parse_binaryheader (cbf_file *file, size_t *size, long *id);
+int cbf_parse_binaryheader (cbf_file *file, size_t *size, 
+                                              long *id,
+                                      unsigned int *compression,
+                                               int mime);
 
 
 #ifdef __cplusplus

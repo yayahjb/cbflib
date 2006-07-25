@@ -1,10 +1,10 @@
 /**********************************************************************
  * cbf_tree -- handle cbf nodes                                       *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *           Paul Ellis (ellis@ssrl.slac.stanford.edu) and            *
- *        Herbert J. Bernstein (yaya@bernstein-plus-sons.com)         *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
@@ -267,7 +267,7 @@ int cbf_make_new_node (cbf_node **node, CBF_NODETYPE type,
       /* Add a context connection */
 
     cbf_onfailnez (cbf_add_contextconnection (&(*node)->context), 
-               cbf_free ((void **) node, NULL))
+                   cbf_free ((void **) node, NULL))
 
 
       /* Name the node */
@@ -322,7 +322,8 @@ int cbf_free_node (cbf_node *node)
 
           if (node->parent->children > count)
           
-            memmove (node->parent->child + count, node->parent->child + count + 1,
+            memmove (node->parent->child + count, 
+                     node->parent->child + count + 1,
                     (node->parent->children - count) * sizeof (cbf_node *));
 
         break;
@@ -354,7 +355,7 @@ int cbf_free_node (cbf_node *node)
 
 int cbf_set_children (cbf_node *node, unsigned int children)
 {
-  unsigned int count, new_size;
+  unsigned int count, new_size, kblock;
 
   int errorcode;
 
@@ -372,6 +373,17 @@ int cbf_set_children (cbf_node *node, unsigned int children)
 
     return 0;
     
+    /* Compute a target new size */
+
+  kblock = 16;
+
+  if (children > 128*2) kblock = 128;
+
+  if (children > 512*2) kblock = 512;
+
+  new_size = (((int)((children -1)/kblock)))*kblock+kblock;
+
+  if (new_size < children) new_size = children;
 
     /* Decrease the number of children? */
 
@@ -385,7 +397,7 @@ int cbf_set_children (cbf_node *node, unsigned int children)
 
       if (node->type == CBF_COLUMN)
     
-        errorcode |= cbf_set_columnrow (node, count, NULL);
+        errorcode |= cbf_set_columnrow (node, count, NULL, 1);
 
       else
 
@@ -406,22 +418,19 @@ int cbf_set_children (cbf_node *node, unsigned int children)
 
     node->children = children;
 
+    if (new_size < node->child_size )
+      cbf_failnez (cbf_realloc ((void * *) &node->child, &node->child_size,
+                                           sizeof (cbf_node  *), new_size))
+
     return errorcode;
   }
 
 
     /* Increase the number of children */
 
-  if (children > node->child_size + 4)
-
-    new_size = children + 4;
-
-  else
-
-    new_size = ((children + 2) * 3) / 2;
-
-  cbf_failnez (cbf_realloc ((void **) &node->child, &node->child_size,
-                                          sizeof (cbf_node *), new_size))
+  if (new_size > node->child_size)
+    cbf_failnez (cbf_realloc ((void **) &node->child, &node->child_size,
+                                        sizeof (cbf_node *), new_size))
 
   node->children = children;
 
@@ -1142,7 +1151,8 @@ int cbf_shift_link (cbf_node *link)
 
     /* Shift the children */
 
-  memmove (link->child, link->child + 1, (link->children - 1) * sizeof (cbf_node *));
+  memmove (link->child, link->child + 1, 
+          (link->children - 1) * sizeof (cbf_node *));
 
   link->child [link->children - 1] = link->link;
 
@@ -1155,7 +1165,8 @@ int cbf_shift_link (cbf_node *link)
 
   /* Set the value of a row */
 
-int cbf_set_columnrow (cbf_node *column, unsigned int row, const char *value)
+int cbf_set_columnrow (cbf_node *column, unsigned int row,
+                                         const char *value, int free)
 {
     /* Follow any links */
 
@@ -1183,10 +1194,14 @@ int cbf_set_columnrow (cbf_node *column, unsigned int row, const char *value)
     cbf_failnez (cbf_set_children (column, row + 1))
 
 
-    /* Set the value */
+    /* Remove the old value */
 
-  cbf_failnez (cbf_free_value (column->context, \
-               (const char **) &(column->child [row])))
+  if (free)
+
+    cbf_failnez (cbf_free_value (column->context, column, row))
+
+
+    /* Set the new value */
 
   column->child [row] = (cbf_node *) value;
 
@@ -1305,7 +1320,7 @@ int cbf_delete_columnrow (cbf_node *column, unsigned int row)
 
     /* Free the value */
 
-  cbf_failnez (cbf_set_columnrow (column, row, NULL))
+  cbf_failnez (cbf_set_columnrow (column, row, NULL, 1))
 
 
     /* Move any values further down the column */
@@ -1313,7 +1328,7 @@ int cbf_delete_columnrow (cbf_node *column, unsigned int row)
   if (row < column->children - 1)
 
     memmove (column->child + row, column->child + row + 1,
-               sizeof (cbf_node *) * (column->children - row - 1));
+             sizeof (cbf_node *) * (column->children - row - 1));
 
   column->child [column->children - 1] = NULL;
 
@@ -1342,7 +1357,7 @@ int cbf_add_columnrow (cbf_node *column, const char *value)
 
     /* Add the value */
 
-  return cbf_set_columnrow (column, column->children, value);
+  return cbf_set_columnrow (column, column->children, value, 1);
 }
 
 
@@ -1351,4 +1366,3 @@ int cbf_add_columnrow (cbf_node *column, const char *value)
 }
 
 #endif
-

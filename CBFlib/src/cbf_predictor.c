@@ -1,10 +1,10 @@
 /**********************************************************************
  * cbf_predictor -- Predictor-Huffman compression (not implemented)   *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *       Herbert J. Bernstein (yaya@bernstein-plus-sons.com) and      *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
@@ -82,7 +82,7 @@
  * The IUCr policy on the use of the CIF and STAR File processes is   *
  * as follows:                                                        *
  * _________________________________________________________________  *
- *                                                                    *    
+ *                                                                    *
  *  * 1 CIFs and STAR Files may be generated, stored or transmitted,  *
  *    without permission or charge, provided their purpose is not     *
  *    specifically for profit or commercial gain, and provided that   *
@@ -131,10 +131,14 @@ extern "C" {
 
   /* Compress and array with the Predictor-Huffman algorithm */
   
-int cbf_compress_predictor (void *buf, size_t elsize, int elsign, 
-                            size_t nelem, unsigned int compression, 
-                            size_t repeat, cbf_file *file,
-                            size_t *compressedsize)
+int cbf_compress_predictor (void         *source, 
+                            size_t        elsize, 
+                            int           elsign, 
+                            size_t        nelem, 
+                            unsigned int  compression, 
+                            cbf_file     *file, 
+                            size_t       *compressedsize,
+                            int          *storedbits)
 {
   fprintf (stderr,
       "\n*** Predictor-Huffman Algorithm Not Implemented Yet -- Abort ***\n");
@@ -147,10 +151,13 @@ int cbf_compress_predictor (void *buf, size_t elsize, int elsign,
 
   /* Decompress an array with the Predictor-Huffman algorithm */
 
-int cbf_decompress_predictor (void *buf, size_t elsize, int elsign, 
-                              size_t nelem, size_t *nelem_read,
-                              unsigned int compression,
-                              size_t repeat, cbf_file *file)
+int cbf_decompress_predictor (void         *destination, 
+                              size_t        elsize, 
+                              int           elsign, 
+                              size_t        nelem, 
+                              size_t       *nelem_read,
+                              unsigned int  compression, 
+                              cbf_file     *file)
 {
   fprintf (stderr,
       "\n*** Predictor-Huffman Algorithm Not Implemented Yet -- Abort ***\n");
@@ -166,6 +173,3 @@ int cbf_decompress_predictor (void *buf, size_t elsize, int elsign,
 }
 
 #endif
-
-
-

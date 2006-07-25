@@ -1,0 +1,515 @@
+<HTML>
+<HEAD>
+<TITLE>CBFlib ChangeLog</TITLE>
+</HEAD>
+<body bgcolor="#FAFAFF" text="#000000" 
+BACKGROUND="../html_graphics/cbflibbackground.jpg">
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg"></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg"></a>
+<A HREF="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg" 
+ALT="[CBF/imgCIF]"></A>
+<hr>
+<CENTER>
+<IMG  SRC="../html_graphics/cbflibbig.jpg" ALT="">
+</CENTER>
+<font color="#0808A0">
+<H2 ALIGN=CENTER>CBFlib ChangeLog</H2>
+<CENTER>
+<B>An API for CBF/imgCIF<BR>
+Crystallographic Binary Files with ASCII Support</B><BR>
+Version 0.6<BR>
+13 January 1999<BR>
+<P>
+</CENTER>
+</font><font color="#000000">
+<P>
+<CENTER>
+by<BR>
+Paul J. Ellis<BR>
+Stanford Synchrotron Radiation Laboratory<BR>
+<A HREF="mailto:ellis@ssrl.slac.stanford.edu">ellis@ssrl.slac.stanford.edu</A>
+<P>
+and<BR>
+Herbert J. Bernstein<BR>
+Bernstein + Sons<BR>
+<A HREF="mailto:yaya@bernstein-plus-sons.com">yaya@bernstein-plus-sons.com</A>
+<P>
+</CENTER>
+<P>
+<HR>
+<H3 ALIGN=CENTER>
+Before using this software, please read the <BR>
+<A HREF = "CBFlib_NOTICES.html"> <IMG SRC="../html_graphics/noticeButton.jpg" ALT="NOTICE"></A><BR>
+for important disclaimers and the IUCr Policy
+ on the Use of the Crystallographic Information File (CIF) and for other important
+information.
+</H3> 
+<P>
+<HR>
+</font><font color="#0808A0">
+<h2 ALIGN=CENTER>Version History</H2>
+</font><font color="#000000">
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT>Version
+<TH ALIGN=LEFT>Date<TH ALIGN=LEFT>By<TH ALIGN=LEFT>Description
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;0.1<TD VALIGN=TOP>&nbsp;&nbsp;Apr. 1998<TD VALIGN=TOP>&nbsp;&nbsp;PJE<TD>&nbsp;&nbsp;This was the 
+first CBFlib release.  It
+supported binary CBF files using binary strings.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="#0.2">0.2</A><TD VALIGN=TOP>&nbsp;&nbsp;Aug. 1998<TD VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release 
+added ascii imgCIF support using MIME-encoded binary sections, added 
+the option of MIME headers for the binary strings was well.  MIME code 
+adapted from mpack 1.5.  Added hooks needed for DDL1-style names without 
+categories.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="#0.3">0.3</A><TD VALIGN=TOP>&nbsp;&nbsp;Sep. 1998<TD VALIGN=TOP>&nbsp;&nbsp;PJE<TD>&nbsp;&nbsp;This release 
+cleaned up the changes made for version 0.2, allowing multi-threaded use of 
+the code, and removing dependence on the mpack package.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="#0.4">0.4</A><TD VALIGN=TOP>&nbsp;&nbsp;Nov. 1998<TD VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release
+merged much of the message digest code into the general file reading and 
+writing to reduce the number of passes.  More consistency checking between the MIME header and the binary header was introduced.  The size in the MIME header was adjusted to agree with the version 0.2 documentation.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="#0.5">0.5</A><TD VALIGN=TOP>&nbsp;&nbsp;Dec. 1998<TD VALIGN=TOP>&nbsp;&nbsp;PJE<TD>&nbsp;&nbsp;This release
+greatly increased the speed of processing by allowing for deferred digest
+evaluation.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="#0.6">0.6</A><TD VALIGN=TOP>&nbsp;&nbsp;Jan. 1999<TD VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release
+removed the redundant information (binary id, size, compression id)
+from a binary header when there is a MIME header, removed the unused
+repeat argument, and made the memory allocation for buffering and
+tables with many rows sensitive to the current memory allocation already used.
+</TABLE>
+<HR>
+<H3><A NAME="0.6">Release 0.6</A>, Herbert J. Bernstein, 13 January 1999</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT>Source File<TH ALIGN=LEFT>Change
+
+<TR><TD VALIGN=TOP>cbf.c
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_set_integerarray<BR>
+<TR><TD VALIGN=TOP>cbf.h
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_set_integerarray<BR>
+<TR><TD VALIGN=TOP>cbf_binary.h
+<TD>&nbsp;&nbsp;carry compression id in text as argument to
+                 cbf_get/set_bintext, remove repeat as argument
+                 to cbf_set_binary<BR>
+<TR><TD VALIGN=TOP>cbf_binary.c
+<TD>&nbsp;&nbsp;carry compression id in text, rather than header,
+	                as an argument to cbf_get/set_bintext, remove
+	                repeat as argument to cbf_set_binary<BR>
+<TR><TD VALIGN=TOP>cbf_byte_offset.h
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_compress_byte_offset<BR>
+<TR><TD VALIGN=TOP>cbf_byte_offset.c
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_compress_byte_offset<BR>
+<TR><TD VALIGN=TOP>cbf_canonical.
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_compress_canonical<BR>
+<TR><TD VALIGN=TOP>cbf_canonical.c
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_compress_canonical<BR>
+<TR><TD VALIGN=TOP>cbf_compress.h
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_compress, change argument
+compression from pointer to value in cbf_decompress_parameters<BR>
+<TR><TD VALIGN=TOP>cbf_compress.c
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_compress, use compression as
+an input argument in cbf_decompress_parameters,
+ do not write compression id<BR>
+<TR><TD VALIGN=TOP>cbf_file.c
+<TD>&nbsp;&nbsp;tune buffer size allocations to current size<BR>
+<TR><TD VALIGN=TOP>cbf_lex.c
+<TD>&nbsp;&nbsp;carry compression in text, not header, suppress
+	                binary header when there is a MIME header<BR>
+<TR><TD VALIGN=TOP>cbf_packed.h
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_compress_packed<BR>
+<TR><TD VALIGN=TOP>cbf_packed.c
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_compress_packed<BR>
+<TR><TD VALIGN=TOP>cbf_predictor.h
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_compress_predictor<BR>
+<TR><TD VALIGN=TOP>cbf_predictor.c
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_compress_predictor<BR>
+<TR><TD VALIGN=TOP>cbf_read_binary.h
+<TD>&nbsp;&nbsp;make pointer to compression an argument 
+to cbf_parse_binaryheader<BR>
+<TR><TD VALIGN=TOP>cbf_read_binary.c
+<TD>&nbsp;&nbsp;carry compression in text, not header, suppress
+	                binary header when there is a MIME header<BR>
+<TR><TD VALIGN=TOP>cbf_read_mime.h
+<TD>&nbsp;&nbsp;add prototype for cbf_nblen<BR>
+<TR><TD VALIGN=TOP>cbf_read_mime.c
+<TD>&nbsp;&nbsp;carry compression in text, not header, suppress
+	                binary header when there is a MIME header, allow
+	                trailing blanks on header lines, test for early
+	                terminations, allow arbitrary spacing on element
+	                type, add cbf_nblen<BR>
+<TR><TD VALIGN=TOP>cbf_stx.c
+<TD>&nbsp;&nbsp;rebuilt from cbf.stx with bison 1.25<BR>
+<TR><TD VALIGN=TOP>cbf_tree.c
+<TD>&nbsp;&nbsp;tune allocation of memory for extra children
+	                to current use levels<BR>
+<TR><TD VALIGN=TOP>cbf_uncompressed.h
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_compress_none<BR>
+<TR><TD VALIGN=TOP>cbf_uncompressed.c
+<TD>&nbsp;&nbsp;remove argument repeat from cbf_compress_none<BR>
+<TR><TD VALIGN=TOP>cbf_write.c
+<TD>&nbsp;&nbsp;update version numbers in file headers<BR>
+<TR><TD VALIGN=TOP>cbf_write_binary.c
+<TD>&nbsp;&nbsp;carry compression in text, not header, suppress
+	                binary header when there is a MIME header,
+	                quote X-Binary-Element-Type<BR>
+</TABLE>
+<HR>
+<H3><A NAME="0.5">Release 0.5</A>, Paul J. Ellis, 5 December 1998</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT>Source File<TH ALIGN=LEFT>Change
+
+
+
+<TR><TD VALIGN=TOP>cbf.c
+<TD>&nbsp;&nbsp;Add option for immediate digest evaluation (MSG_DIGESTNOW)
+	       or deferred digest evaluation (MSG_DIGEST); adjust layout
+	       of error messages; remove unused repeat. <BR>
+<TR><TD VALIGN=TOP>cbf.stx
+<TD>&nbsp;&nbsp;Add new argument for cbf_set_columnrow.<BR>
+<TR><TD VALIGN=TOP>cbf_ascii.c
+<TD>&nbsp;&nbsp;Add buffer flush.<BR>
+<TR><TD VALIGN=TOP>cbf_binary.c
+<TD>&nbsp;&nbsp;Add call to cbf_codes.h; convert to use of cbf_get/set_bintext;
+	       digests saved in the text for deferred evaluation.<BR>
+<TR><TD VALIGN=TOP>cbf_byte_offset.c
+<TD>&nbsp;&nbsp;Add storedbits argument on compression; remove repeat
+	       on decompression.<BR>
+<TR><TD VALIGN=TOP>cbf_canonical.c
+<TD>&nbsp;&nbsp;Stylistic cleanup; add storedbits argument on compression; 
+	       remove repeat  on decompression.<BR>
+<TR><TD VALIGN=TOP>cbf_codes.c
+<TD>&nbsp;&nbsp;Add routines cbf_is_base64digest, cbf_md5digest_to64,
+	       flush buffers when done, general cleanup<BR>
+<TR><TD VALIGN=TOP>cbf_compress.c
+<TD>&nbsp;&nbsp;Add argument bits to cbf_compress and each actual compression
+	       routine, add bits and remove repeat on decompression.<BR>
+<TR><TD VALIGN=TOP>cbf_file.c
+<TD>&nbsp;&nbsp;Reorganize digest logic; remove nblen argument from
+	       cbf_read_line.<BR>
+<TR><TD VALIGN=TOP>cbf_lex.c
+<TD>&nbsp;&nbsp;Argument type and stylisic cleanup; allow for deferred digest
+	       evaluation, adjust binary size to agree with MIME size.<BR>
+<TR><TD VALIGN=TOP>cbf_packed.c
+<TD>&nbsp;&nbsp;Stylistic cleanup; add storedbits argument on compression; 
+	       remove repeat  on decompression.<BR>
+<TR><TD VALIGN=TOP>cbf_predictor.c
+<TD>&nbsp;&nbsp;Add storedbits argument on compression; remove repeat
+	       on decompression.<BR>
+<TR><TD VALIGN=TOP>cbf_read_mime.c
+<TD>&nbsp;&nbsp;Add binary element type logic; cleanup header scan; allow for
+	       deferred digest evaluation.<BR>
+<TR><TD VALIGN=TOP>cbf_tree.c
+<TD>&nbsp;&nbsp;Add argument free to cbf_set_columnrow.  If free is true,
+	       free the old value, otherwise a user responsibility.<BR>
+<TR><TD VALIGN=TOP>cbf_uncompressed.c
+<TD>&nbsp;&nbsp;Add storedbits argument on compression; remove repeat
+	       on decompression.<BR>
+<TR><TD VALIGN=TOP>cbf_write.c
+<TD>&nbsp;&nbsp;Add buffer flush.<BR>
+<TR><TD VALIGN=TOP>cbf_write_binary.c
+<TD>&nbsp;&nbsp;Reorganize digest calculation, adjust binary size by 8,
+	       add X-Binary-E;ement-Type.<BR>
+<TR><TD VALIGN=TOP>global.h
+<TD>&nbsp;&nbsp;Change definition of UINT4 from unsigned long int to
+               unsigned int.<BR>
+<TR><TD VALIGN=TOP>md5.c
+<TD>&nbsp;&nbsp;Mask 32 bits for longer words.<BR>
+</TABLE>
+
+<HR>
+<H3><A NAME="0.4">Release 0.4</A>, Herbert J. Bernstein, 15 November 1998</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT>Source File<TH ALIGN=LEFT>Change
+
+<TR><TD VALIGN=TOP>cbf_stx.c
+<TD>&nbsp;&nbsp;rebuilt from cbf.stx with bison 1.25<BR>
+<TR><TD VALIGN=TOP>cbf_binary.c
+<TD>&nbsp;&nbsp;add digest, elsize, elsign to text<BR>
+<TR><TD VALIGN=TOP>cbf_canonical.c
+<TD>&nbsp;&nbsp;remove write of compression id<BR>
+<TR><TD VALIGN=TOP>cbf_codes.h
+<TD>&nbsp;&nbspadd argument *digest to cbf_fromqp, cbf_frombase64,
+cbf_frombasex<BR>
+<TR><TD VALIGN=TOP>cbf_codes.c
+<TD>&nbsp;&nbsp;add mpack notice, add cbf_md5context_to64, add
+	                digest to cbf_from... <BR>
+<TR><TD VALIGN=TOP>cbf_compress.h
+<TD>&nbsp;&nbsp;add argument *digest to cbf_compress<BR>
+<TR><TD VALIGN=TOP>cbf_compress.c
+<TD>&nbsp;&nbsp;add digest to cbf_compress<BR>
+<TR><TD VALIGN=TOP>cbf_file.h
+<TD>&nbsp;&nbsp;add nscolumn, digest_buffer,
+                        digest_bpoint, context to cbf_file struct,
+                        add argument *nblen to cbf_read_line<BR>
+<TR><TD VALIGN=TOP>cbf_file.c
+<TD>&nbsp;&nbsp;add file->nscolumn, file->digest_buffer,
+                        file->digest_bpoint, update digest when writing<BR>
+<TR><TD VALIGN=TOP>cbf_lex.c
+<TD>&nbsp;&nbsp;add notices, compute digests on intial read<BR>
+<TR><TD VALIGN=TOP>cbf_packed.c 
+<TD>&nbsp;&nbsp;do not write compression id<BR>
+<TR><TD VALIGN=TOP>cbf_read_mime.h
+<TD>&nbsp;&nbsp;add prototype for cbf_skip_whitespace, add
+argument *compression to cbf_parse_mimeheader<BR>
+<TR><TD VALIGN=TOP>cbf_read_mime.c
+<TD>&nbsp;&nbsp;add notices, remove redundant digest calculation,
+	                adjust handling of compression id, add
+	                cbf_skip_whitespace, have cbf_parse_mimeheader
+	                return compression id, add checks for garbled
+	                files, allow more general headers<BR>
+<TR><TD VALIGN=TOP>cbf_uncompressed.c
+<TD>&nbsp;&nbsp;make uncompressed section free of headers<BR>
+<TR><TD VALIGN=TOP>cbf_write.c
+<TD>&nbsp;&nbsp;update version in headers<BR>
+<TR><TD VALIGN=TOP>cbf_write_binary.c
+<TD>&nbsp;&nbsp;carry digest, elsize, elsign in text rather
+	                than header<BR>
+</TABLE>
+
+<HR>
+<H3><A NAME="0.3">Release 0.3.1.1</A>, Paul J. Ellis, 21 September 1998</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT>Source File<TH ALIGN=LEFT>Change
+
+<TR><TD VALIGN=TOP>cbf.h 
+<TD>&nbsp;&nbsp;remove globals, add tolen CBF_TOKEN_MIME_BIN, change
+	            MIME_NOHEADERS to PLAIN_HEADERS, add HDR_DEFAULT,
+	            add arguments ciforcbf, headers, encoding to
+	            cbf_write_file, add argument headers to cbf_read_file,
+	            restore const in several places, merge
+	            int cbf_get_integerarrayparams into
+	            cbf_get_integerarrayparameters<BR>
+<TR><TD VALIGN=TOP>cbf.c 
+<TD>&nbsp;&nbsp; add notices, add argument headers to cbf_read_file
+	             to replace use of globals in release 0.2, add
+	             arguments ciforcbf, headers, encoding to cbf_write_file 
+	             to replace use of globals in release 0.2, restore 
+	             some uses of const, remove integerarrayparams and merge
+	             arguments into cbf_get_integerparameters, replace
+	             cbf_binary_params with cbf_binary_parameters with
+	             extended argument list<BR>
+<TR><TD VALIGN=TOP>cbf.stx 
+<TD>&nbsp;&nbsp;add notices, remove gcc use of malloc, define alloca(x)
+	             as NULL, and set large inital depth, adopts mods from
+	             cbf.stx.y in release 0.2<BR>
+<TR><TD VALIGN=TOP>cbf_alloc.c 
+<TD>&nbsp;&nbsp;add notices<BR>
+<TR><TD VALIGN=TOP>cbf_ascii.c 
+<TD>&nbsp;&nbsp;change use of range of token values to explicit
+	             symbolic tokens<BR>
+<TR><TD VALIGN=TOP>cbf_binary.h  
+<TD>&nbsp;&nbsp;merge cbf_binary_params into cbf_binary_parameters,
+	            remove cbf_write_binary<BR>
+<TR><TD VALIGN=TOP>cbf_binary.c 
+<TD>&nbsp;&nbsp;add cbf_read_mime.h, and CBF_TOKEN_MIME_BIN token,
+	             use cbf_set/get_fileposition, merge cbf_binary_params
+	             into cbf_binary_parameters, restore some uses of const,
+	             use cbf_decompress_parameters with extended argument list,
+	             use cbf_mime_temp, move cbf_write_binary to its own
+	             file.<BR>
+<TR><TD VALIGN=TOP>cbf_canonical.h 
+<TD>&nbsp;&nbsp;add argument binsize to cbf_compress_canonical,
+	            add argument repeat to cbf_decompress_canonical<BR>
+<TR><TD VALIGN=TOP>cbf_canonical.c 
+<TD>&nbsp;&nbsp;add notices, remove binbitcount, handle binsize as
+	             an argument<BR>
+<TR><TD VALIGN=TOP>cbf_codes.h 
+<TD>&nbsp;&nbsp;new header<BR>
+<TR><TD VALIGN=TOP>cbf_codes.c  
+<TD>&nbsp;&nbsp;revise notices, major cleanup.<BR>
+<TR><TD VALIGN=TOP>cbf_compress.c 
+<TD>&nbsp;&nbsp;add notices, add compressedsize argument, add repeat
+	             to decompression calls<BR>
+<TR><TD VALIGN=TOP>cbf_context.c 
+<TD>&nbsp;&nbsp;add notices<BR>
+<TR><TD VALIGN=TOP>cbf_compress.h  
+<TD>&nbsp;&nbsp;add argument compressedsize to cbf_compress,
+	             repeat to cbf_decompress<BR>
+<TR><TD VALIGN=TOP>cbf_file.h  
+<TD>&nbsp;&nbsp;map "text..." to "buffer..." in cbf_file, remove
+ 	             CBFbytedir, change cbf_set_textsize to cbf_set_buffersize,
+	             add cbf_reset_buffer, add cbf_get_buffer, change
+	             cbf_get/put_text to cbf_get/put_block, add
+	             cbf_get/set_position
+<TR><TD VALIGN=TOP>cbf_file.c  <BR>
+<TD>&nbsp;&nbsp;add notices, change file->text to file->buffer,
+	             file->text_size to file->buffer_size,
+	             file->text_used to file->buffer_used,
+	             file->read_headers, file->write_headers,
+	             file->write_encoding,  remove file->fpos, file->fend,
+	             add cbf_get/set_fileposition<BR>
+<TR><TD VALIGN=TOP>cbf_lex.c  
+<TD>&nbsp;&nbsp;read by buffers, move MIME processing later in the
+	             flow<BR>
+<TR><TD VALIGN=TOP>cbf_packed.h <BR>
+<TD>&nbsp;&nbsp;add compressedsize argument to cbf-compress-packed,
+	             repeat to cbf_decompress_packed, remove ..none,
+	             ..byte_off, ..predict<BR>
+<TR><TD VALIGN=TOP>cbf_packed.c
+<TD>&nbsp;&nbsp;add notices, add bitcount argument to cbf_pack_chunk<BR>
+<TR><TD VALIGN=TOP>cbf_predictor.h 
+<TD>&nbsp;&nbsp;new header<BR>
+<TR><TD VALIGN=TOP>cbf_predictor.c 
+<TD>&nbsp;&nbsp;New routine<BR>
+<TR><TD VALIGN=TOP>cbf_read_binary.h 
+<TD>&nbsp;&nbsp;new header<BR>
+<TR><TD VALIGN=TOP>cbf_read_binary.c 
+<TD>&nbsp;&nbsp;New routine<BR>
+<TR><TD VALIGN=TOP>cbf_read_mime.h 
+<TD>&nbsp;&nbsp;new header<BR>
+<TR><TD VALIGN=TOP>cbf_string.h  
+<TD>&nbsp;&nbsp;new header<BR>
+<TR><TD VALIGN=TOP>cbf_string.c 
+<TD>&nbsp;&nbsp;New routine, replacing string.c<BR>
+<TR><TD VALIGN=TOP>cbf_stx.c  
+<TD>&nbsp;&nbsp;Rebuild of cbf.stx with bison A2.6<BR>
+<TR><TD VALIGN=TOP>cbf_tree.h   
+<TD>&nbsp;&nbsp;remove CBF_INDEX, cbf_init_index, cbf_add_index,
+	              cleanup, add const<BR>
+<TR><TD VALIGN=TOP>cbf_tree.c  
+<TD>&nbsp;&nbsp;add notices, general cleanup, restore const, remove
+	             cbf_init_index, cbf_add_index<BR>
+<TR><TD VALIGN=TOP>cbf_uncompressed.h  
+<TD>&nbsp;&nbsp;new header<BR>
+<TR><TD VALIGN=TOP>cbf_uncompressed.c 
+<TD>&nbsp;&nbsp;New routine<BR>
+<TR><TD VALIGN=TOP>cbf_write.c
+<TD>&nbsp;&nbsp;add notices, change tests for "?" and ".",
+	             change range test on tokens to explicit list<BR>
+<TR><TD VALIGN=TOP>cbf_write_binary.h 
+<TD>&nbsp;&nbsp;new header<BR>
+
+<TR><TD VALIGN=TOP>cbf_write_binary.c 
+<TD>&nbsp;&nbsp;New routine<BR>
+<TR><TD VALIGN=TOP>global.h     
+<TD>&nbsp;&nbsp;new routine with part of md5.h<BR>
+<TR><TD VALIGN=TOP>md5c.c       
+<TD>&nbsp;&nbsp;use global.h<BR>
+<TR><TD VALIGN=TOP>md5.h        
+<TD>&nbsp;&nbsp;move portion of this header to global.h, from whence
+	             it came<BR>
+</TABLE>
+
+<HR>
+<H3><A NAME="0.2">Release 0.2</A>, Herbert J. Bernstein, 27 August 1998</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT>Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>cbf.h 
+<TD>&nbsp;&nbsp;Define CBF and CIF, add cbf_force_new_datablock,
+	               cbf_force_new_category, remove some uses of const,
+	               add, cbf_get_integerarrayparams, add
+	               globals CBForCIF, CIFCRterm, CIFNLterm, CBFbinsize,
+	               CBFmime, CBFdigest, CBFencoding, CBFelsize, CBFbytedir<BR>
+<TR><TD VALIGN=TOP>cbf.c  
+<TD>&nbsp;&nbsp;Define CBF and CIF, add cbf_force_new_datablock,
+	               cbf_force_new_category, remove some uses of const,
+	               add, cbf_get_integerarrayparams, add
+	               globals CBForCIF, CIFCRterm, CIFNLterm, CBFbinsize,
+	               CBFmime, CBFdigest, CBFencoding, 
+                       CBFelsize, CBFbytedir<BR>
+<TR><TD VALIGN=TOP>cbf.stx  
+<TD>&nbsp;&nbsp;Add malloc.h when using gcc<BR>
+<TR><TD VALIGN=TOP>cbf.stx.y  
+<TD>&nbsp;&nbsp;Version of cbf.stx with changes to allow DDL1<BR>
+<TR><TD VALIGN=TOP>cbf_ascii.c  
+<TD>&nbsp;&nbsp;Use symbols for tokens<BR>
+<TR><TD VALIGN=TOP>cbf_binary.h  
+<TD>&nbsp;&nbsp;Add cbf_binary_params<BR>
+<TR><TD VALIGN=TOP>cbf_binary.c  
+<TD>&nbsp;&nbsp;Add digest logic, change file position tracking<BR>
+<TR><TD VALIGN=TOP>cbf_canonical.c 
+<TD>&nbsp;&nbsp;Make writing repeat consistent; track binbitcount
+	               add cbf_binary_params, use cbf_decompress_params;
+	               allow MIME header<BR>
+<TR><TD VALIGN=TOP>cbf_codes.c  
+<TD>&nbsp;&nbsp;New routine adapted from mpack<BR>
+<TR><TD VALIGN=TOP>cbf_compress.h 
+<TD>&nbsp;&nbsp;Add cbf_decompress_params<BR>
+<TR><TD VALIGN=TOP>cbf_compress.c 
+<TD>&nbsp;&nbsp;Add hooks for CBF_NONE, CBF_BYTE_OFFSET,
+	               CBF_PREDICTOR, add cbf_decompress_params<BR>
+<TR><TD VALIGN=TOP>cbf_context.h  
+<TD>&nbsp;&nbsp;Remove const from cbf_copy_string<BR>
+<TR><TD VALIGN=TOP>cbf_context.c  
+<TD>&nbsp;&nbsp;Remove const from cbf_copy_string<BR>
+<TR><TD VALIGN=TOP>cbf_decode.c  
+<TD>&nbsp;&nbsp;New routine adapted from mpack<BR>
+<TR><TD VALIGN=TOP>cbf_file.h   
+<TD>&nbsp;&nbsp;Add files to record file position<BR>
+<TR><TD VALIGN=TOP>cbf_file.c  
+<TD>&nbsp;&nbsp;Track file position; allow writing CIFs and CBFs<BR>
+<TR><TD VALIGN=TOP>cbf_lex.c   
+<TD>&nbsp;&nbsp;Add mime processing; add DDL1 support; process "."<BR>
+<TR><TD VALIGN=TOP>cbf_mime.c  
+<TD>&nbsp;&nbsp;New routine<BR>
+<TR><TD VALIGN=TOP>cbf_packed.h  
+<TD>&nbsp;&nbsp;Add cbf_compress_none, cbf_decompress_none,
+	               cbf_compress_byte_off, cbf_decompress_byte_off,
+	               cbf_compress_predict, cbf_decompress_predict<BR>
+<TR><TD VALIGN=TOP>cbf_packed.c  
+<TD>&nbsp;&nbsp;Add cbf_compress_none, cbf_decompress_none,
+	               dummy cbf_compress_byte_off, dummy 
+	               cbf_decompress_byte_off, dummy cbf_compress_predict, 
+	               dummy cbf_decompress_predict;  ensure consistent 
+	               writing of repeat<BR>
+<TR><TD VALIGN=TOP>cbf_part.h  
+<TD>&nbsp;&nbsp;New header adapted from mpack<BR>
+<TR><TD VALIGN=TOP>cbf_part.c  
+<TD>&nbsp;&nbsp;New routine adapted from pack<BR>
+<TR><TD VALIGN=TOP>cbf_stx.c  
+<TD>&nbsp;&nbsp;rebuilt with correct bison parser from cbf.stx.y<BR>
+<TR><TD VALIGN=TOP>cbf_tree.c   
+<TD>&nbsp;&nbsp;added cbf_make_new_node, cbf_find_last_child,
+	               cbf_name_new_node, cbf_add_new_child, 
+	               cbf_make_new_child, cbf_init_index,
+	               cbf_add_index; report CBF_ARGUMENT for 
+	               cbf_make_child for type CBF_LINK;
+ 	               removed some uses of const<BR>
+<TR><TD VALIGN=TOP>cbf_write.c  
+<TD>&nbsp;&nbsp;Added symbols for parse tokens; recognize ".";
+	               adjusted file header line to conform to documentation;
+	               removed some uses of const<BR>
+<TR><TD VALIGN=TOP>cif2cbf.c  
+<TD>&nbsp;&nbsp;New program<BR>
+<TR><TD VALIGN=TOP>common.h   
+<TD>&nbsp;&nbsp;New header from mpack<BR>
+<TR><TD VALIGN=TOP>img2cif.c  
+<TD>&nbsp;&nbsp;New program<BR>
+<TR><TD VALIGN=TOP>makecbf.c  
+<TD>&nbsp;&nbsp;Add local_exit and change cbf_failnez to facilitate
+	               debugging, add _array_intensities.binary_id,
+                       _array_data.binary.id<BR>
+<TR><TD VALIGN=TOP>md5.h     
+<TD>&nbsp;&nbsp;New header from mpack<BR>
+<TR><TD VALIGN=TOP>md5c.c    
+<TD>&nbsp;&nbsp;New routine from mpack<BR>
+<TR><TD VALIGN=TOP>string.c    
+<TD>&nbsp;&nbsp;New routine from mpack<BR>
+<TR><TD VALIGN=TOP>uudecode.c  
+<TD>&nbsp;&nbsp;New routine from mpack<BR>
+
+</TABLE>
+
+<HR>
+<H3>Release 0.1, Paul J. Ellis, 17 April 1998</H3>
+<P>
+This was the first CBFlib release.  It
+supported binary CBF files using binary strings.
+<HR>
+<HR>
+Updated 19 January 1999.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
+yaya@bernstein-plus-sons.com</A>
+</font>
+</BODY>
+</HTML>

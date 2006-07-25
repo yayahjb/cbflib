@@ -1,9 +1,9 @@
 /**********************************************************************
  * cbf_alloc -- memory allocation                                     *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *          By Paul Ellis (ellis@ssrl.slac.stanford.edu) and          *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
@@ -82,7 +82,7 @@
  * The IUCr policy on the use of the CIF and STAR File processes is   *
  * as follows:                                                        *
  * _________________________________________________________________  *
- *                                                                    * 
+ *                                                                    *
  *  * 1 CIFs and STAR Files may be generated, stored or transmitted,  *
  *    without permission or charge, provided their purpose is not     *
  *    specifically for profit or commercial gain, and provided that   *
@@ -279,4 +279,3 @@ int cbf_free (void **old_block, size_t *old_nelem)
 }
 
 #endif
-

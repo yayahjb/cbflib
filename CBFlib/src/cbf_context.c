@@ -1,13 +1,14 @@
 /**********************************************************************
  * cbf_context -- handle cbf contexts                                 *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
- *                                 NOTICE                             *
+ *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
  * are laws and customs which establish rights and responsibilities   *
  * for authors and the users of what authors create.  This notice     *
@@ -349,7 +350,8 @@ const char *cbf_copy_string (cbf_context *context, const char *string,
 
     if (type)
     {
-      if (cbf_alloc ((void **) &new_string, NULL, sizeof (char), strlen (string) + 2) == 0)
+      if (cbf_alloc ((void **) &new_string, NULL, 
+                      sizeof (char), strlen (string) + 2) == 0)
       {
         *new_string = type;
         
@@ -388,4 +390,3 @@ void cbf_free_string (cbf_context *context, const char *string)
 }
 
 #endif
-

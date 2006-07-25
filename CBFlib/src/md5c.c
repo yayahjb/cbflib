@@ -68,7 +68,9 @@ static unsigned char PADDING[64] = {
 
 /* ROTATE_LEFT rotates x left n bits.
  */
-#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32-(n))))
+/* #define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32-(n)))) */
+
+#define ROTATE_LEFT(x, n) (((x) << (n)) | (((x) & 0x0FFFFFFFF) >> (32 - (n))))
 
 /* FF, GG, HH, and II transformations for rounds 1, 2, 3, and 4.
 Rotation is separate from addition to prevent recomputation.
@@ -118,15 +120,18 @@ unsigned char *input;                                /* input block */
 unsigned int inputLen;                     /* length of input block */
 {
   unsigned int i, index, partLen;
+  UINT4 I1, I2, S;
 
   /* Compute number of bytes mod 64 */
   index = (unsigned int)((context->count[0] >> 3) & 0x3F);
 
   /* Update number of bits */
-  if ((context->count[0] += ((UINT4)inputLen << 3))
-   < ((UINT4)inputLen << 3))
- context->count[1]++;
-  context->count[1] += ((UINT4)inputLen >> 29);
+  I1 = ((UINT4) inputLen) << 3;
+  I2 = ((UINT4) context->count [0]);
+  context->count[0] = S = I1 + I2;
+  if (((~S & (I1 | I2)) | (I1 & I2)) & 0x080000000)
+    context->count[1]++;
+  context->count[1] += ((UINT4) inputLen >> 29);
 
   partLen = 64 - index;
 
@@ -163,7 +168,6 @@ MD5_CTX *context;                                       /* context */
 
   /* Save number of bits */
   Encode (bits, context->count, 8);
-
   /* Pad out to 56 mod 64.
 */
   index = (unsigned int)((context->count[0] >> 3) & 0x3f);
