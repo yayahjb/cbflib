@@ -54,7 +54,7 @@ _diffrn_detector.number_of_axes
 # category DIFFRN_DETECTOR_AXIS
 
 loop_
-_diffrn_detector_axis.id
+_diffrn_detector_axis.detector_id
 _diffrn_detector_axis.axis_id
  MAR345-SN26 DETECTOR_X
  MAR345-SN26 DETECTOR_Y
@@ -93,7 +93,7 @@ _diffrn_measurement.method
 # category DIFFRN_MEASUREMENT_AXIS
 
 loop_
-_diffrn_measurement_axis.id
+_diffrn_measurement_axis.measurement_id
 _diffrn_measurement_axis.axis_id
  GONIOMETER GONIOMETER_PHI
  GONIOMETER GONIOMETER_KAPPA

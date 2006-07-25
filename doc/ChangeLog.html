@@ -19,8 +19,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <B>An API for CBF/imgCIF<BR>
 Crystallographic Binary Files with ASCII Support</B><BR>
-Version 0.6<BR>
-13 January 1999<BR>
+Version 0.7.2.1<BR>
+7 May 2001<BR>
 <P>
 </CENTER>
 </font><font color="#000000">
@@ -83,12 +83,92 @@ removed the redundant information (binary id, size, compression id)
 from a binary header when there is a MIME header, removed the unused
 repeat argument, and made the memory allocation for buffering and
 tables with many rows sensitive to the current memory allocation already used.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="#0.6.1">0.6.1</A><TD VALIGN=TOP>&nbsp;&nbsp;Feb. 2001<TD VALIGN=TOP>&nbsp;&nbsp;HP (per HJB)<TD>&nbsp;&nbsp;This release
+fixed a memory leak due to misallocation by size of cbf_handle instead of cbf_handle_struct
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="#0.7">0.7</A><TD VALIGN=TOP>&nbsp;&nbsp;Mar. 2001<TD VALIGN=TOP>&nbsp;&nbsp;PJE<TD>&nbsp;&nbsp;This release
+added high-level instructions based on the imgCIF dictionary
+version 1.1.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="#0.7.1">0.7.1</A><TD VALIGN=TOP>&nbsp;&nbsp;Mar. 2001<TD VALIGN=TOP>&nbsp;&nbsp;PJE<TD>&nbsp;&nbsp;The high-level functions were revised to permit future expansion to
+files with multiple images.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="#0.7.2">0.7.2</A><TD VALIGN=TOP>&nbsp;&nbsp;Apr. 2001<TD VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release
+adjusted cbf_cimple.c to conform to cif_img.dic version 1.1.3
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="#0.7.2.1">0.7.2.1</A><TD 
+VALIGN=TOP>&nbsp;&nbsp;May 2001<TD 
+VALIGN=TOP>&nbsp;&nbsp;PJE<TD>&nbsp;&nbsp;This release
+corrected an if nesting error in the prior mod to cbf_cimple.c.
+</TABLE>
+<HR>
+<H3><A NAME="0.7.2.1">Release 0.7.2.1</A>, Paul J. Ellis, 7 May 
+2001</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>cbf_simple.c
+<TD>&nbsp;&nbsp;corrected nesting in if statements introduced for 
+the prior mod.
+</TABLE>
+<HR>
+<H3><A NAME="0.7.2">Release 0.7.2</A>, Herbert J. Bernstein, 22 April 2001</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>cbf_simple.c
+<TD>&nbsp;&nbsp;changed _diffrn_measurement_axis.id (now deprecated) to _diffrn_measurement_axis.measurement_id
+and _diffrn_detector_axis.id (now deprecated) to _diffrn_detector_axis.detector_id, but allowed old forms
+as aliases.
+</TABLE>
+<HR>
+<H3><A NAME="0.7.1">Release 0.7.1</A>, Paul J. Ellis, 30 March 2001</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>cbf_simple.c
+<TD>&nbsp;&nbsp;add reserved argument to various routines;
+in cbf_update_pixel use index2 instead of index1;
+add new routine cbf_get_pixel_normal; 
+in cbf_get_pixel_area, shift by (-0.5,-0.5)<BR>
+
+</TABLE>
+<HR>
+<H3><A NAME="0.7.1">Release 0.7.1</A>, Paul J. Ellis, 13 March 2001</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>cbf.c
+<TD>&nbsp;&nbsp;remove unused declaration of little.
+<TR><TD VALIGN=TOP>cbf.h
+<TD>&nbsp;&nbsp;add definitions of CBF_UNDEFINED and CBF_NOTIMPLEMENTED.
+<TR><TD VALIGN=TOP>cbf_binary.c
+<TD>&nbsp;&nbsp;cast type argument to (char) in cbf_copy-string call.
+<TR><TD VALIGN=TOP>cbf_compress.c
+<TD>&nbsp;&nbsp;remove unused declaration of compression_file.
+<TR><TD VALIGN=TOP>cbf_simple.c
+<TD>&nbsp;&nbsp;add this new routine for higher level calls.
+<TR><TD VALIGN=TOP>cbf_simple.h
+<TD>&nbsp;&nbsp;add this new header for higher level calls.
+<TR><TD VALIGN=TOP>cbf_uncompressed.c
+<TD>&nbsp;&nbsp;remove unused declaration of bit.
+</TABLE>
+
+<HR>
+<H3><A NAME="0.6.1">Release 0.6.1</A>, H. Powell (per Herbert J. Bernstein), 23 February 2001</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+
+<TR><TD VALIGN=TOP>cbf.c
+<TD>&nbsp;&nbsp;fix memory leak as corrected by H. Powell<BR>
 </TABLE>
 <HR>
 <H3><A NAME="0.6">Release 0.6</A>, Herbert J. Bernstein, 13 January 1999</H3>
 <P>
 <TABLE>
-<TR><TH ALIGN=LEFT>Source File<TH ALIGN=LEFT>Change
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
 
 <TR><TD VALIGN=TOP>cbf.c
 <TD>&nbsp;&nbsp;remove argument repeat from cbf_set_integerarray<BR>
@@ -164,7 +244,7 @@ to cbf_parse_binaryheader<BR>
 <H3><A NAME="0.5">Release 0.5</A>, Paul J. Ellis, 5 December 1998</H3>
 <P>
 <TABLE>
-<TR><TH ALIGN=LEFT>Source File<TH ALIGN=LEFT>Change
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
 
 
 
@@ -225,7 +305,7 @@ to cbf_parse_binaryheader<BR>
 </TABLE>
 
 <HR>
-<H3><A NAME="0.4">Release 0.4</A>, Herbert J. Bernstein, 15 November 1998</H3>
+<H3><A NAME="0.4" WIDTH="18%">Release 0.4</A>, Herbert J. Bernstein, 15 November 1998</H3>
 <P>
 <TABLE>
 <TR><TH ALIGN=LEFT>Source File<TH ALIGN=LEFT>Change
@@ -237,7 +317,7 @@ to cbf_parse_binaryheader<BR>
 <TR><TD VALIGN=TOP>cbf_canonical.c
 <TD>&nbsp;&nbsp;remove write of compression id<BR>
 <TR><TD VALIGN=TOP>cbf_codes.h
-<TD>&nbsp;&nbspadd argument *digest to cbf_fromqp, cbf_frombase64,
+<TD>&nbsp;&nbsp;add argument *digest to cbf_fromqp, cbf_frombase64,
 cbf_frombasex<BR>
 <TR><TD VALIGN=TOP>cbf_codes.c
 <TD>&nbsp;&nbsp;add mpack notice, add cbf_md5context_to64, add
@@ -276,7 +356,7 @@ argument *compression to cbf_parse_mimeheader<BR>
 </TABLE>
 
 <HR>
-<H3><A NAME="0.3">Release 0.3.1.1</A>, Paul J. Ellis, 21 September 1998</H3>
+<H3><A NAME="0.3" WIDTH="18%">Release 0.3.1.1</A>, Paul J. Ellis, 21 September 1998</H3>
 <P>
 <TABLE>
 <TR><TH ALIGN=LEFT>Source File<TH ALIGN=LEFT>Change
@@ -401,7 +481,7 @@ argument *compression to cbf_parse_mimeheader<BR>
 </TABLE>
 
 <HR>
-<H3><A NAME="0.2">Release 0.2</A>, Herbert J. Bernstein, 27 August 1998</H3>
+<H3><A NAME="0.2" WIDTH="18%">Release 0.2</A>, Herbert J. Bernstein, 27 August 1998</H3>
 <P>
 <TABLE>
 <TR><TH ALIGN=LEFT>Source File<TH ALIGN=LEFT>Change
@@ -508,7 +588,7 @@ This was the first CBFlib release.  It
 supported binary CBF files using binary strings.
 <HR>
 <HR>
-Updated 19 January 1999.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
+Updated 8 May 2001.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
 yaya@bernstein-plus-sons.com</A>
 </font>
 </BODY>
