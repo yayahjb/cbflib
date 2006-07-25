@@ -387,15 +387,18 @@ int img_read_smvdata (img_handle img, FILE *file)
 
       sign = 1;
 
-  if (sign)
+  if (sign) {
 
-    if (size < sizeof (int))
+    if (size < sizeof (int)) {
 
       sign = -(1 << (size * 8));
 
-    else
+    } else {
 
       sign = 0;
+    }
+
+  }
 
 
     /* Get the image size */
@@ -707,15 +710,18 @@ int img_write_smv (img_object   *img,
   {
     value = *pixel++;
       
-    if (((unsigned int) value) >= (unsigned int) limit)
+    if (((unsigned int) value) >= (unsigned int) limit) {
       
-      if (value < 0)
+      if (value < 0) {
         
         value = 0;
           
-      else
+      } else {
       
         value = (int) limit;
+      }
+
+    }
       
     if (little)
 
@@ -1296,10 +1302,10 @@ int img_read_mar345header (img_handle img, FILE *file, int *org_data)
 
 int img_read_mar345data (img_handle img, FILE *file, int *org_data)
 {
-  int *O_data;
+  int *O_data = NULL;
 
   int count, C, a, x, y, PACK, pixels, pixel, get, in, incount,
-      pixcount, init, next, need;
+      pixcount=0, init, next, need;
 
   int *cimg;
 

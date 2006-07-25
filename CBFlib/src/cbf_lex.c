@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_lex -- lexical scanner for CBF tokens                          *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -189,7 +189,7 @@ int cbf_return_text (int code, YYSTYPE *val, const char *text, char type)
 int cbf_lex (YYSTYPE *val, cbf_file *file)
 {
   int data, loop, item, column, comment, string, ascii, 
-      l, c, count, reprocess, errorcode, mime, encoding, bits, sign,
+      c, cprev, count, reprocess, errorcode, mime, encoding, bits, sign,
       checked_digest;
 
   long id, position;
@@ -209,7 +209,9 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
   cbf_errornez (cbf_reset_buffer (file), val)
   
-  l = c = file->last_read;
+  c = file->last_read;
+
+  cprev = '\0';
   
   column = c == '.';
   
@@ -225,13 +227,13 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
   {
     cbf_errornez (cbf_get_buffer (file, &line, &length), val)
     
-    if (reprocess)
+    if (reprocess) {
 
       reprocess = 0;
 
-    else
-    {
-      l = c;
+    } else {
+
+      cprev = c;
 
       c = cbf_read_character (file);
     }
@@ -248,18 +250,21 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
         
        /* DATA ([Dd][Aa][Tt][Aa][_][^[:space:]]*) */
     
-    if (data)
+    if (data) {
 
-      if (length < 5)
+      if (length < 5) {
 
          data = toupper (c) == "DATA_" [length];
 
-      else
+      } else {
 
         if (isspace (c) || c == EOF)
 
           return cbf_return_text (DATA, val, &line [5], 0);
    
+      }
+
+    }
    
        /* LOOP ([Ll][Oo][Oo][Pp][_]) */
      
@@ -275,17 +280,17 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
    
        /* ITEM ([_][^[:space:]\.]+) */
      
-    if (item)
+    if (item) {
 
-      if (length == 0)
+      if (length == 0) {
 
         item = c == '_';
 
-      else
-      {
+      } else {
+
         item = !isspace (c) && c != '.' && c != '#' && c != EOF;
 
-        if (length >= 2 && !item)
+        if (length >= 2 && !item) {
 
           if (c == '.')
 
@@ -294,7 +299,11 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
           else
 
             return cbf_return_text (ITEM, val, &line [1], 0);
+        }
+
       }
+
+    }
 
    
       /* COLUMN (\.[^[:space:]]+) */
@@ -308,15 +317,23 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
   
       /* STRING ([\'][^'\n]*[\'\n])|(([\"][^"\n]*[\"\n])) */
      
-    if (string)
+    if (string) {
 
-      if (length == 0)
+      if (length == 0) {
 
-        string = c == '\'' || c == '"';
+        string = (c == '\'' || c == '"');
 
-      else
+      } else {
 
-        if (c == line [0] || c == '\n' || c == EOF)
+        if ((cprev == line [0] && isspace(c)) || c == '\n' || c == EOF) {
+
+          if ( cprev == line [0] && file->buffer_used > 0 ) {
+
+            file->buffer_used--;
+
+            file->buffer [file->buffer_used] = '\0';
+
+          }
 
           if (line [0] == '\'')
 
@@ -327,11 +344,14 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
             return cbf_return_text (STRING, val, &line [1],
                                                   CBF_TOKEN_DQSTRING);
+        }
 
+      }
 
+    }
        /* COMMENT ([#][^\n]*) */
      
-    if (comment)
+    if (comment) {
 
       if (length == 0)
 
@@ -342,13 +362,13 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
         if (c == '\n' || c == EOF)
 
           return cbf_return_text (COMMENT, val, &line [1], 0);
-
+    }
 
        /* WORD ([^[:space:]]+) */
      
-    if (!data && !loop && !item && !comment && !string && !column)
+    if (!data && !loop && !item && !comment && !string && !column) {
 
-      if (length && (isspace (c) || c == EOF))
+      if (length && (isspace (c) || c == EOF)) {
 
           /* Missing value? */
 
@@ -359,6 +379,10 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
         else
         
           return cbf_return_text (WORD, val, &line [0], CBF_TOKEN_WORD);
+
+      }
+
+    }
 
 
       /* semicolon-delimited STRING (^;[^\n]*[\n])([^;][^\n]*[\n])*(;) */
@@ -400,13 +424,13 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
             /* Read the next character */
             
-          l = c;
-         
+          cprev = c;
+
           c = cbf_read_character (file);
           
           ascii = isgraph (c) || isspace (c);
         }
-        while ((l != '\n' || c != ';') && !mime && ascii);
+        while ((cprev != '\n' || c != ';') && !mime && ascii);
 
 
           /* Plain ASCII string */
@@ -594,7 +618,7 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
           
         do
         {
-          l = c;
+          cprev = c;
         
           c = cbf_read_character (file);
           
@@ -602,7 +626,7 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
           
             cbf_errornez (CBF_FILEREAD, val)
         }
-        while (l != '\n' || c != ';');
+        while (cprev != '\n' || c != ';');
 
 
           /* Check the element size and sign */
@@ -631,8 +655,8 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
         
           strcpy (digest, "------------------------");
           
-        sprintf (out_line, "%x %p %lx %lx %d %s %x %d %u", 
-                            id, file, position, size, checked_digest, 
+        sprintf (out_line, "%lx %p %lx %lx %d %s %x %d %u", 
+                            id, file, position, (unsigned long) size, checked_digest, 
                             digest, bits, sign, compression);
         
         if (encoding == ENC_NONE)

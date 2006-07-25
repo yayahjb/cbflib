@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_read_mime -- read MIME-encoded binary sections                 *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -563,7 +563,7 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
   const char *line, *c;
   
   int state, continuation, item, line_count, fresh_line, quote, text_bits, 
-      count, failure;
+      count, failure=0;
       
   size_t nblen;
   

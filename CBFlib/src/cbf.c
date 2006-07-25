@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf -- cbflib API functions                                        *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -1953,15 +1953,18 @@ int cbf_get_value (cbf_handle handle, const char **value)
 
   cbf_failnez (cbf_get_columnrow (&text, handle->node, handle->row))
 
-  if (value)
+  if (value) {
   
-    if (text)
+    if (text) {
 
       *value = text + 1;
       
-    else
+    } else {
     
       *value = NULL;
+    }
+
+  } 
 
 
     /* Success */
@@ -2012,6 +2015,81 @@ int cbf_set_value (cbf_handle handle, const char *value)
 
   return 0;
 }
+
+
+  /* Set the ascii type value of the current (row, column) entry */
+  
+int cbf_set_typeofvalue (cbf_handle handle, const char *typeofvalue)
+{
+  char *text;
+  
+    /* Check the arguments */
+
+  if (!handle)
+
+    return CBF_ARGUMENT;
+    
+    /* Is the value binary? */
+
+  if (cbf_is_binary (handle->node, handle->row))
+
+    return CBF_BINARY;
+
+    /* Get the value */
+
+  cbf_failnez (cbf_get_columnrow ((const char **)(&text), handle->node, handle->row))
+
+  cbf_failnez (cbf_set_value_type(text, typeofvalue))
+
+    /* Success */
+
+  return 0;
+}
+
+  /* Get the ascii type of value of the current (row, column) entry */
+  
+int cbf_get_typeofvalue (cbf_handle handle, const char **typeofvalue)
+{
+  const char *text;
+  
+    /* Check the arguments */
+
+  if (!handle)
+
+    return CBF_ARGUMENT;
+    
+    /* Is the value binary? */
+
+  if (cbf_is_binary (handle->node, handle->row)) {
+
+    *typeofvalue = "bnry";
+
+    return 0;
+
+  }
+    /* Get the value */
+
+  cbf_failnez (cbf_get_columnrow (&text, handle->node, handle->row))
+
+  if (typeofvalue) {
+  
+    if (text) {
+
+      cbf_failnez (cbf_get_value_type(text, typeofvalue))
+
+    } else {
+    
+      *typeofvalue = NULL;
+
+    }
+
+  }
+
+    /* Success */
+
+  return 0;
+}
+
 
 
   /* Get the (int) numeric value of the current (row, column) entry */

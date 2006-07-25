@@ -1,72 +1,73 @@
-                                CBFlib README
+                                     CBFlib
 
-                 Information for CBFlib 0.7.2.3, 2 October 2002
+                                     README
 
-                                     by
-                                Paul J. Ellis
-                  Stanford Synchrotron Radiation Laboratory
-                        ellis@ssrl.slac.stanford.edu
+                  Information for CBFlib 0.7.4, 12 January 2004
 
-                                     and
-                            Herbert J. Bernstein
-                              Bernstein + Sons
-                        yaya@bernstein-plus-sons.com
+                                       by
+                                  Paul J. Ellis
+                    Stanford Synchrotron Radiation Laboratory
+                          ellis@ssrl.slac.stanford.edu
 
-  ------------------------------------------------------------------------
+                                       and
+                              Herbert J. Bernstein
+                                Bernstein + Sons
+                          yaya@bernstein-plus-sons.com
+     ______________________________________________________________________
 
-                Before using this software, please read the
-                                  [NOTICE]
-       for important disclaimers and the IUCr Policy on the Use of the
-  Crystallographic Information File (CIF) and other important information.
+                   Before using this software, please read the
+                                     NOTICE 
+for important disclaimers and the IUCr Policy on the Use of the Crystallographic
+             Information File (CIF) and other important information.
+     ______________________________________________________________________
 
-  ------------------------------------------------------------------------
+   CBFLIB  is  a  library of ANSI-C functions providing a simple mechanism for
+   accessing  Crystallographic  Binary  Files (CBF files) and Image-supporting
+   CIF (imgCIF) files. The CBFLIB API is loosely based on the CIFPARSE API for
+   mmCIF  files. Like CIFPARSE, CBFLIB does not perform any semantic integrity
+   checks  and simply provides functions to create, read, modify and write CBF
+   binary data files and imgCIF ASCII data files.
 
-CBFLIB is a library of ANSI-C functions providing a simple mechanism for
-accessing Crystallographic Binary Files (CBF files) and Image-supporting CIF
-(imgCIF) files. The CBFLIB API is loosely based on the CIFPARSE API for
-mmCIF files. Like CIFPARSE, CBFLIB does not perform any semantic integrity
-checks and simply provides functions to create, read, modify and write CBF
-binary data files and imgCIF ASCII data files.
+  Installation
 
-Installation
+   CBFLIB  should be built on a disk with at least 40 megabytes of free space.
+   First create the top-level directory (called, say, CBFlib).
 
-CBFLIB should be built on a disk with at least 40 megabytes of free space.
-First create the top-level directory (called, say, CBFlib).
+   In  order  to  work  with CBFlib, you need the source code in the form of a
+   "gzipped" tar, CBFlib.tar.gz. Place this file in the otherwise empty CBFlib
+   directory you just created.
 
-In order to work with CBFlib, you need the source code in the form of a
-"gzipped" tar, CBFlib.tar.gz. Place this file in the otherwise empty 
-CBFlib directory you just created.
-
-Uncompress this file:
+   Uncompress this file:
 
      gunzip CBFlib.tar.gz
 
-Unpack it with tar:
+   Unpack it with tar:
 
      tar xvf CBFlib.tar
 
-To run the test programs, you will also need Paul Ellis's sample MAR345
-image, example.mar2300, as sample data. This file can also be found at
-http://smb.slac.stanford.edu/~ellis/. Place that file in the top level 
-CBFlib directory.
+   To  run  the  test  programs, you will also need Paul Ellis's sample MAR345
+   image,  example.mar2300,  as  sample  data.  This file can also be found at
+   http://smb.slac.stanford.edu/~ellis/.  Place  that  file  in  the top level
+   CBFlib directory.
 
-After unpacking the archive, the top-level directory should contain a
-makefile "Makefile" and the subdirectories
+   After  unpacking  the  archive,  the  top-level  directory should contain a
+   makefile "Makefile" and the subdirectories
 
-         src/          CBFLIB source files
-         include/      CBFLIB header files
-         examples/     Example program source files
-         doc/          Documentation
-         lib/          Compiled CBFLIB library
-         bin/          Executable example programs
-         html_images/  JPEG images used in rendering the HTML files
+               src/                   CBFLIB source files
+             include/                 CBFLIB header files
+            examples/            Example program source files
+               doc/                      Documentation
+               lib/                 Compiled CBFLIB library
+               bin/               Executable example programs
+           html_images/   JPEG images used in rendering the HTML files
 
-For instructions on compiling and testing the library, go to the top-level
-directory and type:
+   For  instructions on compiling and testing the library, go to the top-level
+   directory and type:
 
      make
 
-Please refer to the manual doc/CBFlib.html for more detailed information.
-  ------------------------------------------------------------------------
-  ------------------------------------------------------------------------
-Updated 2 October 2002. yaya@bernstein-plus-sons.com
+   Please refer to the manual doc/CBFlib.html for more detailed information.
+     ______________________________________________________________________
+     ______________________________________________________________________
+
+   Updated 12 January 2004. yaya@bernstein-plus-sons.com

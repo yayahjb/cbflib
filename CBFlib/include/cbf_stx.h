@@ -4,15 +4,15 @@ typedef union
   const char  *text;
   cbf_node    *node;
 } YYSTYPE;
-#define	DATA	258
-#define	LOOP	259
-#define	ITEM	260
-#define	CATEGORY	261
-#define	COLUMN	262
-#define	STRING	263
-#define	WORD	264
-#define	BINARY	265
-#define	UNKNOWN	266
-#define	COMMENT	267
-#define	ERROR	268
+#define	DATA	257
+#define	LOOP	258
+#define	ITEM	259
+#define	CATEGORY	260
+#define	COLUMN	261
+#define	STRING	262
+#define	WORD	263
+#define	BINARY	264
+#define	UNKNOWN	265
+#define	COMMENT	266
+#define	ERROR	267
 

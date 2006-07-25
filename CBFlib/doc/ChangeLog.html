@@ -19,8 +19,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <B>An API for CBF/imgCIF<BR>
 Crystallographic Binary Files with ASCII Support</B><BR>
-Version 0.7.3<BR>
-2 October 2002<BR>
+Version 0.7.4<BR>
+12 January 2004<BR>
 <P>
 </CENTER>
 </font><font color="#000000">
@@ -29,12 +29,32 @@ Version 0.7.3<BR>
 by<BR>
 Paul J. Ellis<BR>
 Stanford Synchrotron Radiation Laboratory<BR>
-<A HREF="mailto:ellis@ssrl.slac.stanford.edu">ellis@ssrl.slac.stanford.edu</A>
+<script language="javascript" type="text/javascript">
+<!-- 
+      var name = "ellis@";
+      var domain = "ssrl.slac.stanford";
+      var domext = ".edu";
+      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + name + domain + domext+"</a>"); 
+// -->
+</script>
+<noscript>
+ellis&#64;ssrl.slac.stanford&#46;edu
+</noscript>
 <P>
 and<BR>
 Herbert J. Bernstein<BR>
 Bernstein + Sons<BR>
-<A HREF="mailto:yaya@bernstein-plus-sons.com">yaya@bernstein-plus-sons.com</A>
+<script language="javascript" type="text/javascript">
+<!-- 
+      var name = "yaya@";
+      var domain = "bernstein-plus-sons";
+      var domext = ".com";
+      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + name + domain + domext+"</a>"); 
+// -->
+</script>
+<noscript>
+yaya&#64;bernstein-plus-sons&#46;com
+</noscript>
 <P>
 </CENTER>
 <P>
@@ -108,6 +128,82 @@ VALIGN=TOP>&nbsp;&nbsp;PJE<TD>&nbsp;&nbsp;This release
 modified cbf_simple.c to reorder image data on read so that the 
 indices are always increasing in memory (this behavior was 
 undefined previously).
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.4">0.7.4</A><TD
+VALIGN=TOP>&nbsp;&nbsp;Jan 2004<TD
+VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release fixes a parse error for 
+quoted strings, adds code to get and set character string types, and removes compiler warnings
+
+</TABLE>
+
+<HR>
+<H3><A NAME="0.7.4">Release 0.7.4</A>, Herbert J. Bernstein, 12 January 
+2004</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>cbf.c
+<TD>&nbsp;&nbsp;added cbf_set_typeofvalue, cbf_get_typeofvalue; added
+braces for nested if-else to remove a compiler warning.
+<TR><TD VALIGN=TOP>cbf_ascii.c
+<TD>&nbsp;&nbsp;added
+braces to remove a compiler warnings.
+<TR><TD VALIGN=TOP>cbf_binary.c
+<TD>&nbsp;&nbsp;added
+braces to remove a compiler warnings.
+<TR><TD VALIGN=TOP>cbf_canonical.c
+<TD>&nbsp;&nbsp;added
+braces to remove a compiler warnings.
+<TR><TD VALIGN=TOP>cbf_compress.c
+<TD>&nbsp;&nbsp;added
+braces to remove a compiler warnings.
+<TR><TD VALIGN=TOP>cbf_file.c
+<TD>&nbsp;&nbsp;simplied dynamic array logic
+and went to straight doubling; added
+braces to remove a compiler warnings.
+<TR><TD VALIGN=TOP>cbf_lex.c
+<TD>&nbsp;&nbsp;changed parse of quoted
+strings to allow for embedded quote marks;
+removed unused variables; fixed mismatch
+of formats; added braces to remove a compiler warnings.
+<TR><TD VALIGN=TOP>cbf_packed.c
+<TD>&nbsp;&nbsp;added
+braces to remove a compiler warnings; intialized
+variables.
+<TR><TD VALIGN=TOP>cbf_simple.c
+<TD>&nbsp;&nbsp;typed default typed variable;
+removed unused variables; added
+braces to remove a compiler warnings; intialized
+variables.
+<TR><TD VALIGN=TOP>cbf_uncompressed.c
+<TD>&nbsp;&nbsp;added
+braces to remove a compiler warnings.
+<TR><TD VALIGN=TOP>cbf_write.c
+<TD>&nbsp;&nbsp;added internal functions 
+cbf_get_value_type and cbf_set_value_type
+for typeofvalue functions; updated magic number
+and set magic number to match dictionary, not
+CBFlib version; initialized variable.
+<TR><TD VALIGN=TOP>cbf.h
+<TD>&nbsp;&nbsp;added new external
+typeofvalue function prototypes;
+added notices.
+<TR><TD VALIGN=TOP>cbf_write.h
+<TD>&nbsp;&nbsp;added new value_type function
+prototypes.
+<TR><TD VALIGN=TOP>cif2cbf.c
+<TD>&nbsp;&nbsp;added code to transfer typeofvalue
+from input to output to fix handling of nulls;
+increased buffer to 8192 and called it BUFSIZ;
+changed from tmpnam to mkstemp to remove warning;
+unlinked temporary file; added braces to remove
+compiler warnings.
+<TR><TD VALIGN=TOP>img2cif.c
+<TD>&nbsp;&nbsp;added code to transfer typeofvalue
+from input to output to fix handling of nulls;
+increased buffer to 8192 and called it BUFSIZ;
+changed from tmpnam to mkstemp to remove warning;
+unlinked temporary file; removed unused variables.
 </TABLE>
 <HR>
 <H3><A NAME="0.7.3">Release 0.7.3</A>, Paul J. Ellis, 2 October 
@@ -611,8 +707,19 @@ This was the first CBFlib release.  It
 supported binary CBF files using binary strings.
 <HR>
 <HR>
-Updated 7 November 2002.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
-yaya@bernstein-plus-sons.com</A>
+Updated 12 January 2004.  
+<script language="javascript" type="text/javascript">
+<!-- 
+      var name = "yaya@";
+      var domain = "bernstein-plus-sons";
+      var domext = ".com";
+      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + 
+name + domain + domext+"</a>"); 
+// -->
+</script>
+<noscript>
+yaya&#64;bernstein-plus-sons&#46;com
+</noscript>
 </font>
 </BODY>
 </HTML>
