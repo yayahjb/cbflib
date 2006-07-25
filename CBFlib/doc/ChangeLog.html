@@ -19,8 +19,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <B>An API for CBF/imgCIF<BR>
 Crystallographic Binary Files with ASCII Support</B><BR>
-Version 0.7.2.1<BR>
-7 May 2001<BR>
+Version 0.7.3<BR>
+2 October 2002<BR>
 <P>
 </CENTER>
 </font><font color="#000000">
@@ -101,7 +101,30 @@ adjusted cbf_cimple.c to conform to cif_img.dic version 1.1.3
 VALIGN=TOP>&nbsp;&nbsp;May 2001<TD 
 VALIGN=TOP>&nbsp;&nbsp;PJE<TD>&nbsp;&nbsp;This release
 corrected an if nesting error in the prior mod to cbf_cimple.c.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="#0.7.3">0.7.3</A><TD 
+VALIGN=TOP>&nbsp;&nbsp;Oct. 2002<TD 
+VALIGN=TOP>&nbsp;&nbsp;PJE<TD>&nbsp;&nbsp;This release
+modified cbf_simple.c to reorder image data on read so that the 
+indices are always increasing in memory (this behavior was 
+undefined previously).
 </TABLE>
+<HR>
+<H3><A NAME="0.7.3">Release 0.7.3</A>, Paul J. Ellis, 2 October 
+2002</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>cbf_simple.c
+<TD>&nbsp;&nbsp;modified cbf_get_image to reorder the
+image data on read so that the indices are always 
+increasing in memory (this behavior was undefined 
+previously).
+</TABLE>
+<P>
+Note:  Early versions of Release 0.7.3 carried the version number
+0.7.2.3.  Other than the change in number on 7 Nov 2002, there is no 
+difference between these versions. 
 <HR>
 <H3><A NAME="0.7.2.1">Release 0.7.2.1</A>, Paul J. Ellis, 7 May 
 2001</H3>
@@ -588,7 +611,7 @@ This was the first CBFlib release.  It
 supported binary CBF files using binary strings.
 <HR>
 <HR>
-Updated 8 May 2001.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
+Updated 7 November 2002.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
 yaya@bernstein-plus-sons.com</A>
 </font>
 </BODY>

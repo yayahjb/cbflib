@@ -3,6 +3,8 @@
  *                                                                    *
  * Version 0.7.2 22 April 2001                                        *
  * Version 0.7.2.1 7 May 2001                                         *
+ * Version 0.7.2.2 17 July 2001                                       *
+ * Version 0.7.2.3 14 August 2002                                     *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -1058,11 +1060,14 @@ int cbf_get_image (cbf_handle    handle,
                    size_t        ndim1,
                    size_t        ndim2)
 {
-  const char *array_id;
+  const char *direction_string, *array_id;
+  
+  int code, done [3], precedence, direction [3], binary_id, dir1, dir2, 
+      index1, index2, start1, end1, inc1, start2, end2, inc2;
 
-  int binary_id;
+  size_t nelem_read, dim1, dim2;
 
-  size_t nelem_read;
+  char tmp [32], *pixel, *pixel2, *last;
 
   if (reserved != 0)
 
@@ -1070,7 +1075,81 @@ int cbf_get_image (cbf_handle    handle,
 
   cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
 
-                                       
+
+    /* Get the index dimensions */
+    
+  cbf_failnez (cbf_get_image_size (handle, reserved, element_number,
+                                   &dim1, &dim2))
+                                   
+                                   
+    /* Check that the fast dimensions correspond */
+    
+  if (dim2 != ndim2)
+  
+    return CBF_ARGUMENT;
+
+    
+    /* Get the index directions from the array_structure_list category */
+
+  done [1] = done [2] = 0;
+
+  direction [1] = direction [2] = 1;
+
+  cbf_failnez (cbf_find_category (handle, "array_structure_list"))
+  cbf_failnez (cbf_find_column   (handle, "array_id"))
+
+  while (cbf_find_nextrow (handle, array_id) == 0)
+  {
+    cbf_failnez (cbf_find_column      (handle, "precedence"))
+    cbf_failnez (cbf_get_integervalue (handle, &precedence))
+
+    if (precedence < 1 || precedence > 2)
+
+      return CBF_FORMAT;
+
+    code = cbf_find_column (handle, "direction");
+    
+    if (code == 0)
+    {
+      cbf_failnez (cbf_get_value (handle, &direction_string))
+    
+      if (cbf_cistrcmp ("decreasing", direction_string) == 0)
+    
+        direction [precedence] = -1;
+    }
+    else
+    
+      if (code != CBF_NOTFOUND)
+      
+        return code;
+    
+    if (done [precedence])
+
+      return CBF_FORMAT;
+
+    done [precedence] = 1;
+
+    cbf_failnez (cbf_find_column (handle, "array_id"))
+  }
+
+  if (!done [1])
+
+    return CBF_NOTFOUND;
+
+  if (!done [2])
+  {
+    dir1 = direction [1];
+
+    dir2 = 1;
+  }
+  else
+  {
+    dir1 = direction [2];
+
+    dir2 = direction [1];
+  }
+
+
     /* Find the binary data */
   
   cbf_failnez (cbf_find_category (handle, "array_data"))
@@ -1088,6 +1167,68 @@ int cbf_get_image (cbf_handle    handle,
   cbf_failnez (cbf_get_integerarray (handle, &binary_id, 
                array, elsize, elsign, ndim1 * ndim2, &nelem_read))
 
+
+    /* Reorder the data if necessary */
+    
+#ifndef CBF_0721_READS
+
+  if (dir1 < 0 || dir2 < 0)
+  {
+    if (dir1 >= 0)
+    {
+      start1 = 0;
+      end1 = ndim1;
+      inc1 = 1;
+    }
+    else
+    {
+      start1 = ndim1 - 1;
+      end1 = -1;
+      inc1 = -1;
+    }
+
+    if (dir2 >= 0)
+    {
+      start2 = 0;
+      end2 = ndim2;
+      inc2 = 1;
+    }
+    else
+    {
+      start2 = ndim2 - 1;
+      end2 = -1;
+      inc2 = -1;
+    }
+    
+    pixel = (char *) array;
+    
+    for (index1 = start1; index1 != end1; index1 += inc1)
+    
+      for (index2 = start2; index2 != end2; index2 += inc2)
+      {
+        pixel2 = ((char *) array) + (index1 * ndim2 + index2) * elsize;
+
+        if (pixel < pixel2)
+
+          if (elsize == sizeof (int))
+          {
+            *((int *) tmp)    = *((int *) pixel);
+            *((int *) pixel)  = *((int *) pixel2);
+            *((int *) pixel2) = *((int *) tmp);
+          }
+          else
+          {
+            memcpy (tmp, pixel, elsize);
+            memcpy (pixel, pixel2, elsize);
+            memcpy (pixel2, tmp, elsize);
+          }
+
+        pixel += elsize;        
+      }
+  }
+
+#endif
+    
   if (ndim1 * ndim2 != nelem_read)
 
     return CBF_ENDOFDATA;
@@ -2394,12 +2535,12 @@ int cbf_update_pixel (cbf_detector detector, double index1,
     return CBF_ARGUMENT;
 
   detector->positioner->axis [detector->index [0]].start =
-        index1 * detector->increment [0] + detector->displacement [0];
+        index2 * detector->increment [0] + detector->displacement [0];
 
   if (detector->axes == 2)
 
     detector->positioner->axis [detector->index [1]].start =
-        index2 * detector->increment [1] + detector->displacement [1];
+        index1 * detector->increment [1] + detector->displacement [1];
 
   return 0;
 }

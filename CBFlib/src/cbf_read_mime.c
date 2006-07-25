@@ -397,13 +397,14 @@ int cbf_is_blank (const char *line)
   return 1;
 }
 
-/* Find non-blank length of a line */
 
-int cbf_nblen (const char *line, int *nblen)
+  /* Find non-blank length of a line */
+
+int cbf_nblen (const char *line, size_t *nblen)
 {
   register char *myline;
 
-  register int mylen;
+  register size_t mylen;
 
   *nblen = mylen = 0;
 
@@ -562,7 +563,9 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
   const char *line, *c;
   
   int state, continuation, item, line_count, fresh_line, quote, text_bits, 
-      count, failure, nblen;
+      count, failure;
+      
+  size_t nblen;
   
   
     /* Defaults */
@@ -612,13 +615,14 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
     
       cbf_failnez (cbf_read_line (file, &line))
 
-    cbf_nblen(line, &nblen);
+    cbf_nblen (line, &nblen);
       
     fresh_line = 0;
 
     line_count++;
 
-     /* Check for premature terminations */
+
+      /* Check for premature terminations */
  
     if ( (line[0] == ';') || 
       ( cbf_cistrncmp(line,"--CIF-BINARY-FORMAT-SECTION--",29) == 0 ) )

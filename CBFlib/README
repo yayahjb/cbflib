@@ -1,6 +1,6 @@
                                 CBFlib README
 
-                 Information for CBFlib 0.7.2.1, 7 May 2001
+                 Information for CBFlib 0.7.2.3, 2 October 2002
 
                                      by
                                 Paul J. Ellis
@@ -47,8 +47,8 @@ Unpack it with tar:
 
 To run the test programs, you will also need Paul Ellis's sample MAR345
 image, example.mar2300, as sample data. This file can also be found at
-http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/. Place that file
-in the top level CBFlib directory.
+http://smb.slac.stanford.edu/~ellis/. Place that file in the top level 
+CBFlib directory.
 
 After unpacking the archive, the top-level directory should contain a
 makefile "Makefile" and the subdirectories
@@ -69,4 +69,4 @@ directory and type:
 Please refer to the manual doc/CBFlib.html for more detailed information.
   ------------------------------------------------------------------------
   ------------------------------------------------------------------------
-Updated 8 May 2001. yaya@bernstein-plus-sons.com
+Updated 2 October 2002. yaya@bernstein-plus-sons.com

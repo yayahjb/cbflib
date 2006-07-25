@@ -1,9 +1,14 @@
+ [IUCr Home Page]    [CIF Home Page]   [CBF/imgCIF]
+
+  ------------------------------------------------------------------------
+
+
                               CBFlib ChangeLog
 
                             An API for CBF/imgCIF
               Crystallographic Binary Files with ASCII Support
-                               Version 0.7.2.1
-                                7 May 2001
+                                Version 0.7.3
+                               2 October 2002
 
                                      by
                                 Paul J. Ellis
@@ -26,58 +31,75 @@ Crystallographic Information File (CIF) and for other important information.
 
                                Version History
 
- Version Date       By         Description
-   0.1    Apr. 1998   PJE        This was the first CBFlib release. It
-                               supported binary CBF files using binary
-                               strings.
-   0.2    Aug. 1998   HJB        This release added ascii imgCIF support
-                               using MIME-encoded binary sections, added
-                               the option of MIME headers for the binary
-                               strings was well. MIME code adapted from
-                               mpack 1.5. Added hooks needed for DDL1-style
-                               names without categories.
-   0.3   Sep.  1998   PJE        This release cleaned up the changes made
-                               for version 0.2, allowing multi-threaded use
-                               of the code, and removing dependence on the
-                               mpack package.
-   0.4   Nov. 1998    HJB        This release merged much of the message
-                               digest code into the general file reading
-                               and writing to reduce the number of passes.
-                               More consistency checking between the MIME
-                               header and the binary header was introduced.
-                               The size in the MIME header was adjusted to
-                               agree with the version 0.2 documentation.
-   0.5   Dec. 1998    PJE        This release greatly increased the speed
-                               of processing by allowing for deferred
-                               digest evaluation.
-   0.6   Jan. 1999    HJB        This release removed the redundant
-                               information (binary id, size, compression
-                               id) from a binary header when there is a
-                               MIME header, removed the unused repeat
-                               argument, and made the memory allocation for
-                               buffering and tables with many rows
-                               sensitive to the current memory allocation
-                               already used.
-   0.6.1 Feb. 2001    HP (per    This release fixed a memory leak due to
-                        HJB)   misallocation by size of cbf_handle instead
-                               of cbf_handle_struct
-   0.7   Mar. 2001    PJE        This release added high-level instructions
-                               based on the imgCIF dictionary version 1.1.
-   0.7.1 Mar. 2001    PJE        The high-level functions were revised to
-                               permit future expansion to files with
-                               multiple images.
-   0.7.2 Apr. 2001    HJB        This release adjusted cbf_cimple.c to
-                               conform to cif_img.dic version 1.1.3
-   0.7.2.1 May 2001   PJE        This release corrected an if nesting  
-                               error in the prior mod to cbf_cimple.c.
-  
+ Version  Date       By         Description
+   0.1      Apr.       PJE        This was the first CBFlib release. It
+          1998                  supported binary CBF files using binary
+                                strings.
+   0.2      Aug.       HJB        This release added ascii imgCIF support
+          1998                  using MIME-encoded binary sections, added
+                                the option of MIME headers for the binary
+                                strings was well. MIME code adapted from
+                                mpack 1.5. Added hooks needed for
+                                DDL1-style names without categories.
+   0.3      Sep.       PJE        This release cleaned up the changes made
+          1998                  for version 0.2, allowing multi-threaded
+                                use of the code, and removing dependence on
+                                the mpack package.
+   0.4      Nov.       HJB        This release merged much of the message
+          1998                  digest code into the general file reading
+                                and writing to reduce the number of passes.
+                                More consistency checking between the MIME
+                                header and the binary header was
+                                introduced. The size in the MIME header was
+                                adjusted to agree with the version 0.2
+                                documentation.
+   0.5      Dec.       PJE        This release greatly increased the speed
+          1998                  of processing by allowing for deferred
+                                digest evaluation.
+   0.6      Jan.       HJB        This release removed the redundant
+          1999                  information (binary id, size, compression
+                                id) from a binary header when there is a
+                                MIME header, removed the unused repeat
+                                argument, and made the memory allocation
+                                for buffering and tables with many rows
+                                sensitive to the current memory allocation
+                                already used.
+   0.6.1    Feb.       HP (per    This release fixed a memory leak due to
+          2001       HJB)       misallocation by size of cbf_handle instead
+                                of cbf_handle_struct
+   0.7      Mar.       PJE        This release added high-level
+          2001                  instructions based on the imgCIF dictionary
+                                version 1.1.
+   0.7.1    Mar.       PJE        The high-level functions were revised to
+          2001                  permit future expansion to files with
+                                multiple images.
+   0.7.2    Apr.       HJB        This release adjusted cbf_cimple.c to
+          2001                  conform to cif_img.dic version 1.1.3
+   0.7.2.1  May        PJE        This release corrected an if nesting
+          2001                  error in the prior mod to cbf_cimple.c.
+   0.7.3    Oct.       PJE        This release modified cbf_simple.c to
+          2002                  reorder image data on read so that the
+                                indices are always increasing in memory
+                                (this behavior was undefined previously).
   ------------------------------------------------------------------------
+
+Release 0.7.3, Paul J. Ellis, 2 October 2002
+
+ Source File    Change
+ cbf_simple.c     modified cbf_get_image to reorder the image data on read
+                so that the indices are always increasing in memory (this
+                behavior was undefined previously).
+
+Note: Early versions of Release 0.7.3 carried the version number 0.7.2.3.
+Other than the change in number on 7 Nov 2002, there is no difference
+between these versions.
+  ------------------------------------------------------------------------
+
 Release 0.7.2.1, Paul J. Ellis, 7 May 2001
 
- Source File     Change
-   cbf_simple.c   corrected nesting in if statements introduced for the
-                 prior mod.
-
+ Source File    Change
+ cbf_simple.c     corrected nesting in if statements introduced for the
+                prior mod.
   ------------------------------------------------------------------------
 
 Release 0.7.2, Herbert J. Bernstein, 22 April 2001
@@ -396,4 +418,4 @@ This was the first CBFlib release. It supported binary CBF files using
 binary strings.
   ------------------------------------------------------------------------
   ------------------------------------------------------------------------
-Updated 8 May 2001. yaya@bernstein-plus-sons.com
+Updated 7 November 2002. yaya@bernstein-plus-sons.com

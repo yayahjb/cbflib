@@ -17,7 +17,7 @@ int cbf_mime_temp (cbf_node *column, unsigned int row);
 
   /* Find non-blank length of a line */
 
-int cbf_nblen (const char *line, int *nblen);
+int cbf_nblen (const char *line, size_t *nblen);
 
   /* Convert a MIME-encoded binary section to a normal binary section */
      
