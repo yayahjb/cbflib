@@ -9,9 +9,13 @@
  html_graphics               1	directory for CBFlib html graphics
  doc/CBFlib_NOTICES.html     1	Important NOTICES as HTML -- PLEASE READ
  doc/CBFlib_NOTICES.txt      1	Important NOTICES as text -- PLEASE READ
+ doc/CBFlib.html             1	CBFlib manual as html
  doc/CBFlib.ps               1	CBFlib manual as PostScript
  doc/CBFlib.pdf              1	CBFlib manual as PDF
- doc/CBFlib.html             1	CBFlib manual as html
+ doc/CBFlib.rtf              1	CBFlib manual as RTF
+ doc/CBFlib.txt              1	CBFlib manual as text
+ doc/ChangeLog.html          1	ChangeLog as html
+ doc/ChangeLog               1	ChangeLog as text
  doc/MANIFEST                1	List of files in this kit
  Makefile                    1	Unix makefile
  README                      1	Readme file

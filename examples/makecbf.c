@@ -1,7 +1,7 @@
 /**********************************************************************
  * makecbf -- convert an image file to a cbf file                     *
  *                                                                    *
- * Version 0.4  15 Novemberr 1998                                     *
+ * Version 0.6 26 December 1998                                        *
  *                                                                    *
  *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
  **********************************************************************/
@@ -495,7 +495,7 @@ int main (int argc, char *argv [])
 
     /* Save the binary data */
 
-  cbf_failnez (cbf_set_integerarray (cbf, CBF_PACKED, 0, 1,
+  cbf_failnez (cbf_set_integerarray (cbf, CBF_PACKED, 1,
                                  &img_pixel (img, 0, 0), sizeof (int), 1,
                                  img_rows (img) * img_columns (img)))
   
@@ -600,6 +600,7 @@ int main (int argc, char *argv [])
   cbf_failnez (cbf_find_column   (cbf, "array_id"))
   cbf_failnez (cbf_find_row      (cbf, array_id))
   cbf_failnez (cbf_find_column   (cbf, "data"))
+
 
     /* Read the binary data */
   

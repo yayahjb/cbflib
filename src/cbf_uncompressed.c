@@ -1,10 +1,10 @@
 /**********************************************************************
  * cbf_uncompressed -- uncompressed binary sections                   *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *       Herbert J. Bernstein (yaya@bernstein-plus-sons.com) and      *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
@@ -137,12 +137,16 @@ extern "C" {
 
   /* Copy an array without compression */
   
-int cbf_compress_none (void *buf, size_t elsize, int elsign, size_t nelem,
-                       unsigned int compression, size_t repeat,
-                       cbf_file *file, size_t *compressedsize)
+int cbf_compress_none (void         *source, 
+                       size_t        elsize, 
+                       int           elsign, 
+                       size_t        nelem, 
+                       unsigned int  compression, 
+                       cbf_file     *file, 
+                       size_t       *compressedsize,
+                       int          *storedbits)
 {
-  unsigned int count, element, unsign, sign, limit,
-               elbits;
+  unsigned int count, element, unsign, sign, limit, bits;
 
   unsigned char *unsigned_char_data;
   
@@ -158,28 +162,31 @@ int cbf_compress_none (void *buf, size_t elsize, int elsign, size_t nelem,
 
     /* Initialise the pointer */
 
-  unsigned_char_data = (unsigned char *) buf;
-
+  unsigned_char_data = (unsigned char *) source;
 
 
     /* Maximum limit (unsigned) is 64 bits */
 
   if (elsize * CHAR_BIT > 64)
   {
-    elbits = 64;
-    
     sign = 1 << CBF_SHIFT63;
 
     limit = ~-(sign << 1);
+    
+    bits = 64;
   }
   else
   {
-    elbits = elsize * CHAR_BIT;
-    
     sign = 1 << (elsize * CHAR_BIT - 1);
 
     limit = ~0;
+
+    bits = elsize * CHAR_BIT;
   }
+
+  if (storedbits)
+    
+    *storedbits = bits;
 
 
     /* Offset to make the value unsigned */
@@ -193,10 +200,9 @@ int cbf_compress_none (void *buf, size_t elsize, int elsign, size_t nelem,
     unsign = 0;
 
 
-
     /* Initialise the pointer */
     
-  unsigned_char_data = (unsigned char *) buf;
+  unsigned_char_data = (unsigned char *) source;
 
 
     /* Write the elements */
@@ -240,22 +246,17 @@ int cbf_compress_none (void *buf, size_t elsize, int elsign, size_t nelem,
         element = limit;
         
 
-      /* Write the element to the file unsigned*/
+      /* Write the element to the file */
 
-    cbf_failnez (cbf_put_integer (file, element-unsign, elsize , elbits))
+    cbf_failnez (cbf_put_integer (file, element - unsign, 0, bits))
   }
 
 
-    /* Flush the buffer */
-  
-  cbf_failnez (cbf_put_integer (file, 0, 0, 7))
-
-  
     /* Return the number of characters written */
     
   if (compressedsize)
   
-    *compressedsize = (nelem * elbits + 7 + 64) / 8;
+    *compressedsize = (nelem * bits + 7) / 8;
 
 
     /* Success */
@@ -266,39 +267,47 @@ int cbf_compress_none (void *buf, size_t elsize, int elsign, size_t nelem,
 
   /* Recover an array without decompression */
 
-int cbf_decompress_none (void *buf, size_t elsize, int elsign, 
-                           size_t nelem, size_t *nelem_read,
-                           unsigned int compression, 
-                           size_t repeat, cbf_file *file)
+int cbf_decompress_none (void         *destination, 
+                         size_t        elsize, 
+                         int           elsign, 
+                         size_t        nelem, 
+                         size_t       *nelem_read,
+                         unsigned int  compression, 
+                         int           data_bits, 
+                         int           data_sign,
+                         cbf_file     *file)
 {
-  unsigned int element, sign, unsign, limit, count,
-               fsigned, funsign, overflow;
+  unsigned int element, sign, unsign, limit, count, bit;
 
-  size_t elbits;
+  unsigned int data_unsign;
 
   unsigned char *unsigned_char_data;
 
-  int errorcode;
+  int errorcode, overflow;
 
 
     /* Is the element size valid? */
     
-  elbits = elsize * CHAR_BIT;
+  if (elsize != sizeof (int) &&
+      elsize != sizeof (short) &&
+      elsize != sizeof (char))
 
-  if ((elsize != sizeof (int) &&
-       elsize != sizeof (short) &&
-       elsize != sizeof (char)) ||
-       elbits > 64)
-      
+    return CBF_ARGUMENT;
+    
+    
+    /* Check the stored element size */
+    
+  if (data_bits < 1 || data_bits > 64)
+  
     return CBF_ARGUMENT;
 
 
     /* Initialise the pointer */
-    
-  unsigned_char_data = (unsigned char *) buf;
+
+  unsigned_char_data = (unsigned char *) destination;
 
 
-    /* Maximum limit (unsigned) is 64 bits */
+    /* Maximum limits */
     
   sign = 1 << (elsize * CHAR_BIT - 1);
     
@@ -309,19 +318,32 @@ int cbf_decompress_none (void *buf, size_t elsize, int elsign,
   else
     
     limit = ~-(1 << (elsize * CHAR_BIT));
-  
 
 
-    /* Offset to make the value unsigned */
+    /* Check the element size */
     
-  if (elsign)
+  if (data_bits < 1 || data_bits > 64)
   
-    unsign = sign;
-    
+    return CBF_FORMAT;
+  
+
+    /* Offsets to make the value unsigned */
+
+  if (data_sign)
+
+    data_unsign = sign;
+
   else
-  
-    unsign = 0;
 
+    data_unsign = 0;
+
+  if (elsign)
+
+    unsign = sign;
+
+  else
+
+    unsign = 0;
 
 
     /* Read the elements */
@@ -332,9 +354,10 @@ int cbf_decompress_none (void *buf, size_t elsize, int elsign,
 
   while (count < nelem)
   {
-      /* Get the next elbits bits of data */
+      /* Get the next element */
 
-    errorcode = cbf_get_integer (file, (int *) &element, elsize , elbits);
+    errorcode = cbf_get_integer (file, (int *) &element, 
+                                                data_sign, data_bits);
 
     if (errorcode)
 
@@ -354,7 +377,7 @@ int cbf_decompress_none (void *buf, size_t elsize, int elsign,
 
       /* Make the element unsigned */
 
-    element += unsign;
+    element += data_unsign;
 
 
       /* Limit the value to fit the element size */
@@ -418,6 +441,3 @@ int cbf_decompress_none (void *buf, size_t elsize, int elsign,
 }
 
 #endif
-
-
-

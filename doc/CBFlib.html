@@ -19,8 +19,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <B>An API for CBF/imgCIF<BR>
 Crystallographic Binary Files with ASCII Support</B><BR>
-Version 0.4<BR>
-15 November 1998<BR>
+Version 0.6<BR>
+13 January 1999<BR>
 <P>
 </CENTER>
 </font><font color="#000000">
@@ -43,7 +43,7 @@ Bernstein + Sons<BR>
 Before using this software, please read the <BR>
 <A HREF = "CBFlib_NOTICES.html"> <IMG SRC="../html_graphics/noticeButton.jpg" ALT="NOTICE"></A><BR>
 for important disclaimers and the IUCr Policy
- on the Use of the Crystallographic Information File (CIF) and other important
+ on the Use of the Crystallographic Information File (CIF) and for other important
 information.
 </H3> 
 <P>
@@ -60,19 +60,29 @@ information.
 first CBFlib release.  It
 supported binary CBF files using binary strings.
 <TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;0.2<TD VALIGN=TOP>&nbsp;&nbsp;Aug. 1998<TD VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release 
+<TD VALIGN=TOP>&nbsp;&nbsp;<A href="ChangeLog.html#0.2">0.2</A><TD VALIGN=TOP>&nbsp;&nbsp;Aug. 1998<TD VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release 
 added ascii imgCIF support using MIME-encoded binary sections, added 
 the option of MIME headers for the binary strings was well.  MIME code 
 adapted from mpack 1.5.  Added hooks needed for DDL1-style names without 
 categories.
 <TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;0.3<TD VALIGN=TOP>&nbsp;&nbsp;Sep. 1998<TD VALIGN=TOP>&nbsp;&nbsp;PJE<TD>&nbsp;&nbsp;This release 
+<TD VALIGN=TOP>&nbsp;&nbsp;<A href="ChangeLog.html#0.3">0.3</A><TD VALIGN=TOP>&nbsp;&nbsp;Sep. 1998<TD VALIGN=TOP>&nbsp;&nbsp;PJE<TD>&nbsp;&nbsp;This release 
 cleaned up the changes made for version 0.2, allowing multi-threaded use of 
 the code, and removing dependence on the mpack package.
 <TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;0.4<TD VALIGN=TOP>&nbsp;&nbsp;Nov. 1998<TD VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release
+<TD VALIGN=TOP>&nbsp;&nbsp;<A href="ChangeLog.html#0.4">0.4</A><TD VALIGN=TOP>&nbsp;&nbsp;Nov. 1998<TD VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release
 merged much of the message digest code into the general file reading and 
 writing to reduce the number of passes.  More consistency checking between the MIME header and the binary header was introduced.  The size in the MIME header was adjusted to agree with the version 0.2 documentation.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A href="ChangeLog.html#0.5">0.5</A><TD VALIGN=TOP>&nbsp;&nbsp;Dec. 1998<TD VALIGN=TOP>&nbsp;&nbsp;PJE<TD>&nbsp;&nbsp;This release
+greatly increased the speed of processing by allowing for deferred digest
+evaluation.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A href="ChangeLog.html#0.6">0.6</A><TD VALIGN=TOP>&nbsp;&nbsp;Jan. 1999<TD VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release
+removed the redundant information (binary id, size, compression id)
+from a binary header when there is a MIME header, removed the unused
+repeat argument, and made the memory allocation for buffering and
+tables with many rows sensitive to the current memory allocation already used.
 </TABLE>
 <HR>
 </font><font color="#0808A0">
@@ -81,22 +91,17 @@ writing to reduce the number of passes.  More consistency checking between the M
 <P>
 This version does not have support for byte-offset or predictor compression.
 Postscript versions of documents are not well-formatted, and the rtf versions
-are not ready yet.  The handling of CBF_NONE (uncompressed) binary sections
-has been chnaged for that of release 0.3, and may change yet again.  More
-work is needed to improve the efficiency of the code, especially when
-message digests are used.  Code is needed to support array sub-sections.
+are not ready yet.  Code is needed to support array sub-sections.
 Documentation of change history is needed.
 <HR><HR>
 </font><font color="#0808A0">
 <h2 ALIGN=CENTER>Foreword</H2>
 </font><font color="#000000">
 <P>
-In order to work with CBFlib, you need the source code, either in the form
+In order to work with CBFlib, you need the source code, in the form
 of a compressed tar, 
-<A HREF="../CBFlib.tar.Z">CBFlib.tar.Z</A>, or
-a compressed shell archive,
-<A HREF="../CBFlib.shar.Z">CBFlib.shar.Z</A>.  Uncompress this file.   Place it
-in an otherwise empty directory, and unpack it with tar or sh.  
+<A HREF="../CBFlib.tar.Z">CBFlib.tar.Z</A>.  Uncompress this file.   Place it
+in an otherwise empty directory, and unpack it with tar.  
 You will also need Paul Ellis's sample MAR345 image,
 <A HREF="../example.mar2300">example.mar2300</A>, as sample
 data.  This file can also be found at 
@@ -106,6 +111,7 @@ file in the top level directory (one level up from the source code).
 Adjust the definition of CC in
 Makefile to point to your C compiler, and then
 <P>
+<B>make all</B>
 <B>make tests</B>
 <P>
 This release has been tested on an SGI under IRIX 6.4 and on a PowerPC under
@@ -415,9 +421,21 @@ of imgCIF files.
 <TABLE>
 <TR>
 <TD VALIGN=TOP>&nbsp;&nbsp;MSG_DIGEST:
-<TD>&nbsp;&nbsp;Instructs the to check that the digest of the binary section matches any
-header value whenever the binary section is accessed.  If the digests do
-not match, the call will return CBF_FORMAT.
+<TD>&nbsp;&nbsp;Instructs CBFlib to check that the digest of the 
+binary section matches any
+header value.  If the digests do
+not match, the call will return CBF_FORMAT.  This evaluation and comparison
+is delayed (a &quot;lazy&quot; evaluation) to ensure maximal processing efficiency.
+If an immediately evaluation is required, see MSG_DIGESTNOW, below.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;MSG_DIGESTNOW:
+<TD>&nbsp;&nbsp;Instructs CBFlib to check that the digest of the 
+binary section matches any
+header value.  If the digests do
+not match, the call will return CBF_FORMAT.  This evaluation and comparison
+is performed during initial parsing of the section to ensure timely
+error reporting at the expense of processing efficiency.  
+If a more efficient delayed (&quot;lazy&quot;)  evaluation is required, see MSG_DIGESTNOW, below.
 <TR>
 <TD VALIGN=TOP>&nbsp;&nbsp;MSG_NODIGEST:
 <TD>&nbsp;&nbsp;Do not check the digest (default).
@@ -2094,7 +2112,6 @@ Returns an error code on failure or 0 for success.
 
 int cbf_get_integerarrayparameters (cbf_handle <i>handle</i>,
 unsigned int *<i>compression</i>,
-size_t *<i>repeat</i>,
 int *<i>binary_id</i>,
 size_t *<i>elsize</i>,
 int *<i>elsigned</i>, int *<i>elunsigned</i>,
@@ -2105,7 +2122,7 @@ int *<i>minelemen</i>t, int *<i>maxelemen</i>t);
 <B>DESCRIPTION</B>
 <P>
 cbf_get_integerarrayparameters sets *<i>compression</i>,
-*<i>repeat</i>, *<i>binary_id</i>, *<i>elsize</i>,
+ *<i>binary_id</i>, *<i>elsize</i>,
  *<i>elsigned</i>, *<i>elunsigned</i>,
  *<i>elements</i>, *<i>minelement</i>
  and *<i>maxelement</i>
@@ -2122,7 +2139,6 @@ If the value is not binary, the function returns CBF_ASCII.
 <TABLE>
 <TR><TD>&nbsp;&nbsp;<i>handle</i><TD>&nbsp;&nbsp;CBF handle.<BR>
 <TR><TD>&nbsp;&nbsp;<i>compression</i><TD>&nbsp;&nbsp;Compression method used.<BR>
-<TR><TD VALIGN=TOP>&nbsp;&nbsp;<i>repeat</i><TD>&nbsp;&nbsp;Second dimension for 2-dimensional arrays (currently unused)<BR>
 <TR><TD>&nbsp;&nbsp;<i>elsize</i><TD>&nbsp;&nbsp;Size in bytes of each array element.<BR>
 <TR><TD VALIGN=TOP>&nbsp;&nbsp;<i>binary_id</i><TD>&nbsp;&nbsp;Pointer to the destination integer binary identifier.<BR>
 <TR><TD VALIGN=TOP>&nbsp;&nbsp;<i>elsigned</i><TD>&nbsp;&nbsp;Pointer to an integer.  Set to 1 if the elements can be read as signed integers.<BR>
@@ -2222,7 +2238,6 @@ SEE ALSO
 
 int cbf_set_integerarray (cbf_handle <i>handle</i>,
 unsigned int <i>compression</i>,
-size_t <i>repeat</i>,
 int <i>binary_id</i>,
 void *<i>array</i>, size_t <i>elsize</i>, int <i>elsigned</i>,
 size_t <i>elements</i>);
@@ -2261,7 +2276,6 @@ CBF_ARGUMENT.
 <B>ARGUMENTS</B><BR>
 <TR><TD>&nbsp;&nbsp;<i>handle</i><TD>&nbsp;&nbsp;CBF handle.<BR>
 <TR><TD>&nbsp;&nbsp;<i>compression</i><TD>&nbsp;&nbsp;Compression method to use.<BR>
-<TR><TD>&nbsp;&nbsp;<i>repeat</i><TD>&nbsp;&nbsp;Second dimension for 2-dimensional arrays (currently unused)<BR>
 <TR><TD>&nbsp;&nbsp;<i>binary_id</i><TD>&nbsp;&nbsp;Integer binary identifier.<BR>
 <TR><TD>&nbsp;&nbsp;<i>array</i><TD>&nbsp;&nbsp;Pointer to the source array.<BR>
 <TR><TD>&nbsp;&nbsp;<i>elsize</i><TD>&nbsp;&nbsp;Size in bytes of each source array element.<BR>
@@ -2294,11 +2308,17 @@ Returns an error code on failure or 0 for success.
 cbf_failnez is a macro used for error propagation throughout CBFlib.  cbf_failnez 
 executes the function <i>f</i>
  and saves the returned error value.  If the error value is non-0, cbf_failnez executes 
-a return with the error value as argument.
+a return with the error value as argument.  If CBFDEBUG is defined, then a report of
+the error is also printed to the standard error stream, stderr, in the form
+<P>
+CBFlib error <i>f</i> in &quot;<i>symbol</i>&quot;
+<P>
+where <i>f</i> is the decimal value of the error and  <i>symbol</i> is the symbolic
+form.
 <P>
 <B>ARGUMENTS</B><BR>
 <TABLE>
-<TR><TD>&nbsp;&nbsp;<i>f</i><TD>&nbsp;&nbsp;Integer function to execute.<BR>
+<TR><TD>&nbsp;&nbsp;<i>f</i><TD>&nbsp;&nbsp;Integer error value.<BR>
 </TABLE>
 <P>
 <B>SEE ALSO</B>
@@ -2318,7 +2338,14 @@ cbf_onfailnez is a macro used for error propagation throughout CBFlib.
 cbf_onfailnez executes the function <i>f</i>
 and saves the returned error value.  If the error value is non-0, 
 cbf_failnez executes first the statement <i>c</i>
- and then a return with the error value as argument.
+ and then a return with the error value as argument.   If CBFDEBUG is defined,
+ then a report of
+the error is also printed to the standard error stream, stderr, in the form
+<P>
+CBFlib error <i>f</i> in &quot;<i>symbol</i>&quot;
+<P>
+where <i>f</i> is the decimal value of the error and  <i>symbol</i> is the symbolic
+form.
 <P>
 <B>ARGUMENTS</B><BR>
 <TABLE>
@@ -2467,25 +2494,23 @@ present at the end of every block of binary data.
 
 
 <P>
-In a CBF file, Each binary section is encoded as a ;-delimited string, 
+In a CBF file, each binary section is encoded as a ;-delimited string, 
 starting  with an 
 arbitrary number of pure-ASCII characters.
-
- Currently, CIFLIB has the option of writing simple
-
+<P>
+<B>Note:</B> For historical reasons, CIFlib has the option of writing simple
 header and footer sections: &quot;START OF BINARY SECTION&quot; at 
 the start of a binary section and
 &quot;END OF BINARY SECTION&quot; at the end of a binary section, 
 or writing MIME-type header
-and footer sections (
-<A HREF="3.2.1">3.2.1  Format of imgCIF binary sections</A>).  
+and footer sections (<A HREF="3.2.1">3.2.1  
+Format of imgCIF binary sections</A>).  
 If the simple header is used, the actual ASCII text is ignored when the 
-binary section is read.  If the MIME header is used, a cross-check
-is made between the information given in the binary section and
-the information in the MIME header, and a format error is returned if
-they do not agree.  Because of these extra checks, the MIME header is
+binary section is read.  <B>Use of the simple binary header is deprecated.</B>
+<P>
+The MIME header is
 recommended.
-<P><BR>
+<P>
 Between the ASCII header and the actual CBF binary data is a series of
 bytes (&quot;octets&quot;) to try to stop the listing of the header, 
 bytes which define the binary identifier which should match the 
@@ -2493,35 +2518,43 @@ bytes which define the binary identifier which should match the
 length of the binary section.<P><BR>
 <Table>             
 <TR><TH>             Octet   <TH>Hex   <TH>Decimal  <TH>Purpose
-<TR><TD>&nbsp;&nbsp;              1     <TD>&nbsp;&nbsp;1A       <TD>&nbsp;&nbsp;26    <TD>&nbsp;&nbsp;(ctrl-Z) Stop listings in MS-DOS
-<TR><TD>&nbsp;&nbsp;              2     <TD>&nbsp;&nbsp;04       <TD>&nbsp;&nbsp;04    <TD>&nbsp;&nbsp;(Ctrl-D) Stop listings in UNIX
-<TR><TD>&nbsp;&nbsp;              3     <TD>&nbsp;&nbsp;D5      <TD>&nbsp;&nbsp;213   <TD>&nbsp;&nbsp;Binary section begins
-<TR><TD VALIGN=TOP>&nbsp;&nbsp;              4..11  <TD>&nbsp;&nbsp;&nbsp;<TD>&nbsp;&nbsp;&nbsp; <TD>&nbsp;&nbsp;Binary Section Identifier<BR>
+<TR><TD>&nbsp;&nbsp;              1     <TD>&nbsp;&nbsp;0C       <TD>&nbsp;&nbsp;12    <TD>&nbsp;&nbsp;(ctrl-L) End of Page
+<TR><TD>&nbsp;&nbsp;              2     <TD>&nbsp;&nbsp;1A       <TD>&nbsp;&nbsp;26    <TD>&nbsp;&nbsp;(ctrl-Z) Stop listings in MS-DOS
+<TR><TD>&nbsp;&nbsp;              3     <TD>&nbsp;&nbsp;04       <TD>&nbsp;&nbsp;04    <TD>&nbsp;&nbsp;(Ctrl-D) Stop listings in UNIX
+<TR><TD>&nbsp;&nbsp;              4     <TD>&nbsp;&nbsp;D5      <TD>&nbsp;&nbsp;213   <TD>&nbsp;&nbsp;Binary section begins
+<TR><TD>&nbsp;&nbsp;             5..5+n-1<TD>&nbsp;&nbsp;&nbsp;<TD>&nbsp;&nbsp;&nbsp; <TD>&nbsp;&nbsp;Binary data (n octets)
+</TABLE><BR>
+<P>
+NOTE:  When a MIME header is used, only bytes 5..5+n-1 are considered in
+computing the size and the message digest, and only these bytes are
+encoded for the equivalent imgCIF file using the indicated 
+Content-Transfer-Encoding.
+<P>
+If no MIME header has been requested (a deprecated use), then bytes 5 through 28 are 
+used for three
+8-byte words to hold the binary_id, the size and the compression type:
+<P>
+<TABLE>
+<TR><TD VALIGN=TOP>&nbsp;&nbsp;              5..12  <TD>&nbsp;&nbsp;&nbsp;<TD>&nbsp;&nbsp;&nbsp; <TD>&nbsp;&nbsp;Binary Section Identifier<BR>
                                     (See _array_data.binary_id)<BR>
                                     64-bit, little endian
-<TR><TD VALIGN=TOP>&nbsp;&nbsp;             12..19 <TD>&nbsp;&nbsp;&nbsp;<TD>&nbsp;&nbsp;&nbsp; <TD>&nbsp;&nbsp;8+ the size (n) of the<BR>
+<TR><TD VALIGN=TOP>&nbsp;&nbsp;             13..20 <TD>&nbsp;&nbsp;&nbsp;<TD>&nbsp;&nbsp;&nbsp; <TD>&nbsp;&nbsp;The size (n) of the<BR>
                                     binary section in octets<BR>
                                     (i.e. the offset  from octet<BR>
-                                    20 to the first byte following<BR>
+                                    29 to the first byte following<BR>
                                     the data)
-<TR><TD VALIGN=TOP>&nbsp;&nbsp;             20..27<TD>&nbsp;&nbsp;&nbsp;<TD>&nbsp;&nbsp;&nbsp; <TD>&nbsp;&nbsp;Compression type:<BR>
+<TR><TD VALIGN=TOP>&nbsp;&nbsp;             21..28<TD>&nbsp;&nbsp;&nbsp;<TD>&nbsp;&nbsp;&nbsp; <TD>&nbsp;&nbsp;Compression type:<BR>
                                       <TABLE ALIGN=CENTER>
                                       <TR><TD>&nbsp;&nbsp;CBF_NONE       <TD>&nbsp;&nbsp;0x0040 (64)
                                       <TR><TD>&nbsp;&nbsp;CBF_CANONICAL  <TD>&nbsp;&nbsp;0x0050 (80)
                                       <TR><TD>&nbsp;&nbsp;CBF_PACKED     <TD>&nbsp;&nbsp;0x0060 (96)
                                       <TR><TD>&nbsp;&nbsp;CBF_BYTE_OFFSET <TD>&nbsp;&nbsp;0x0070 (112)
                                       <TR><TD>&nbsp;&nbsp;CBF_PREDICTOR   <TD>&nbsp;&nbsp;0x0080 (128)
-                                      <TR><TD>&nbsp;&nbsp;...            <TD>&nbsp;&nbsp;&NBSP;
+                                      <TR><TD>&nbsp;&nbsp;...            <TD>&nbsp;&nbsp;&nbsp;
                                       </TABLE>
-<TR><TD>&nbsp;&nbsp;             28..28+n-1<TD>&nbsp;&nbsp;&nbsp;<TD>&nbsp;&nbsp;&nbsp; <TD>&nbsp;&nbsp;Binary data (n octets)
-</TABLE><BR>
+</TABLE>
 <P>
-NOTE:  If a MIME header is used, only bytes 28..28+n-1 are considered in
-comouting the size and the message digest, and only these bytes are
-encoded for the equivalent imgCIF file using the indicated 
-Content-Transfer-Encoding.
-
-
+The binary data then follows in bytes 29 through 29+n-1.
 
 <P>
 
@@ -2529,6 +2562,10 @@ The binary characters serve specific purposes:
 <P>
 
 <ul type=circle>
+
+<li> The Control-L (from-feed) will terminate printing of the current page
+     on most operating systems.
+<P>
 
 <li> The Control-Z will stop the listing of the file on MS-DOS
      type operating systems.
@@ -2551,56 +2588,19 @@ The binary characters serve specific purposes:
      been corrupted e.g. by being sent by ftp in ASCII mode.)
 <P>
 
-<li> Bytes 4-11 define the binary id of the binary data. This id is
-     also used within the header sections, so that binary data
-     definitions can be matched to the binary data sections. 64-bits
-     allows many many more binary data sections to be addressed than can
-     conceivably be needed.
-<P>
-   
-<li> Bytes 12-19 define the length in bytes of the binary data plus the
-     flag word for the compression type (8 bytes). This information is 
-     critical
-     to recovering alignment with the CIF world, since the binary
-     data could easily include bytes which look like &quot;\n;&quot;
-     or the boundary marker.  The use of 64 bits provides for enormous 
-     expansion from present images sizes, but volume 
-     and higher dimensional data may need more than 32-bit sizes in the
-     future. 
-
-<P>
-     It is tempting to set this value to zero if this is the last binary information or 
-     header information in the file, but you could cause unpleasant warnings
-     in code that expects to be able to find the rest of a CIF.  This allows a program writing, for
-     example, a single compressed image to avoid having to rewind the
-     file to write the size of the compressed data. (For small files
-     compression within memory may be practical, and this may not be an
-     issue. However very large files exist where writing the compressed
-     data &quot;on the fly&quot; may be the only realistic method.)   This
-     should only be done for internal use within a group, and a cleanup
-     utility should be used to restore the missing data before
-     exporting it to groups which may have difficulty processing this
-     truncated file.  In any case, it is recommended that this value be set, as it permits concatenation of
-     files, and a file with a zero for this field is not a valid CBF.
-
-<P>
-     Since the data may have been compressed, knowing the numbers
-     of elements and size of each element does not necessarily tell a
-     program how many bytes to jump over, so here it is stored explicitly.
-     This also means that the reading program does not have to decode
-     information in the header section to move through the file.
 <P><BR>
-     Bytes 20-27 hold the flag for the compression type.  At present three
+      At present three compression schemes are implemented
      are defined:  CBF_NONE (for no compression), CBF_CANONICAL (for 
      and entropy-coding scheme based on the canonical-code algorithm 
      described by Moffat, <i>et al</i>. (<i>International 
      Journal of High Speed Electronics and Systems</i>, Vol 8, No 1 (1997)
-     179-231)) and CBF_PACKED for a CCP4-style packing scheme.  Flags for other
-     compression schemes, such as the two in this document will be added to
+     179-231)) and CBF_PACKED for a CCP4-style packing scheme.  Other
+     compression schemes will be added to
      this list in the future.
 </ul>
 <P>
-As written by CBFLIB, the structure of a binary section with simple
+For historical reasons, CBFlib can read or write a binary
+string without a MIME header.   The structure of a binary string with simple
 headers is:
 <P>
 <Table>
@@ -2633,12 +2633,12 @@ headers is:
 <tr><TD>&nbsp;&nbsp;26<TD>&nbsp;&nbsp;N<TD>&nbsp;&nbsp;78<TD>&nbsp;&nbsp;<BR>
 <tr><TD>&nbsp;&nbsp;27<TD>&nbsp;&nbsp;carriage-return<TD>&nbsp;&nbsp;13<TD>&nbsp;&nbsp;<BR>
 <tr><TD>&nbsp;&nbsp;28<TD>&nbsp;&nbsp;line-feed<TD>&nbsp;&nbsp;10<TD>&nbsp;&nbsp;<BR>
-<tr><TD>&nbsp;&nbsp;29<TD>&nbsp;&nbsp;form-feed<TD>&nbsp;&nbsp;10<TD>&nbsp;&nbsp;<BR>
+<tr><TD>&nbsp;&nbsp;29<TD>&nbsp;&nbsp;form-feed<TD>&nbsp;&nbsp;12<TD>&nbsp;&nbsp;<BR>
 <tr><TD>&nbsp;&nbsp;30<TD>&nbsp;&nbsp;substitute<TD>&nbsp;&nbsp;26<TD>&nbsp;&nbsp;Stop the listing of the file in MS-DOS<BR>
 <tr><TD>&nbsp;&nbsp;31<TD>&nbsp;&nbsp;end-of-transmission<TD>&nbsp;&nbsp;4<TD>&nbsp;&nbsp;Stop the listing of the file in unix<BR>
 <tr><TD>&nbsp;&nbsp;32<TD>&nbsp;&nbsp;<TD>&nbsp;&nbsp;213<TD>&nbsp;&nbsp;First non-ASCII value<BR>
 <tr><TD>&nbsp;&nbsp;33 .. 40<TD>&nbsp;&nbsp;<TD>&nbsp;&nbsp;<TD>&nbsp;&nbsp;Binary section identifier (64-bit little-endien)<BR>
-<tr><TD>&nbsp;&nbsp;41 .. 48<TD>&nbsp;&nbsp;<TD>&nbsp;&nbsp;<TD>&nbsp;&nbsp;Offset from byte 48 to the first ASCII character following the binary data<BR>
+<tr><TD>&nbsp;&nbsp;41 .. 48<TD>&nbsp;&nbsp;<TD>&nbsp;&nbsp;<TD>&nbsp;&nbsp;Offset from byte 57 to the first ASCII character following the binary data<BR>
 <tr><TD>&nbsp;&nbsp;49 .. 56<TD>&nbsp;&nbsp;<TD>&nbsp;&nbsp;<TD>&nbsp;&nbsp;Compression type<BR>
 <tr><td COLSPAN=2>57 .. 57 + <i>n</i>-1<TD>&nbsp;&nbsp;<TD>&nbsp;&nbsp;Binary data (<i>n</i>bytes)<BR>
 <tr><TD>&nbsp;&nbsp;57 + <i>n</i>
@@ -2788,13 +2788,13 @@ The structure of the compressed data is:<BR>
 <H4><A NAME="4.">4.  Installation</A></H4>
 <P>
 CBFlib should be built on a disk with at least 40 megabytes of free space.
-First create the top-level directory (called, say, CBFlib_0.4). 
-<A HREF="../CBFlib_0.4.tar.Z">CBFlib_0.4.tar.Z</A> is a compressed tar of 
+First create the top-level directory (called, say, CBFlib_0.6). 
+<A HREF="../CBFlib_0.6.tar.Z">CBFlib_0.6.tar.Z</A> is a compressed tar of 
 the code as it now stands.  Uncompress this file, place it in the top 
 level directory, and unpack it with tar:
 <P>
 <PRE>
-     tar xvf CBFLIB.tar
+     tar xvf CBFLIB_0.6.tar
 </PRE>
 <P>
 To run the test programs, you will also need to put the MAR345 image
@@ -2915,10 +2915,12 @@ The documentation files are in the "doc" subdirectory:
 <TR><TD>&nbsp;&nbsp;CBFlib_NOTICES.txt<TD>&nbsp;&nbsp;Important NOTICES -- PLEASE READ
 <TR><TD>&nbsp;&nbsp;CBFlib.ps<TD>&nbsp;&nbsp;CBFLIB manual (PostScript)
 <TR><TD>&nbsp;&nbsp;CBFlib.pdf<TD>&nbsp;&nbsp;CBFLIB manual (PDF)
+<TR><TD>&nbsp;&nbsp;CBFlib.rtf<TD>&nbsp;&nbsp;CBFLIB manual (RTF)
 <TR><TD>&nbsp;&nbsp;cbf_definition_rev.txt<TD>&nbsp;&nbsp;Draft CBF/ImgCIF definition (ASCII)
 <TR><TD>&nbsp;&nbsp;cbf_definition_rev.html<TD>&nbsp;&nbsp;Draft CBF/ImgCIF definition (HTML)
 <TR><TD>&nbsp;&nbsp;cbfext98.html<TD>&nbsp;&nbsp;Draft CBF/ImgCIF extensions dictionary (HTML)
 <TR><TD>&nbsp;&nbsp;cbfext98.dic<TD>&nbsp;&nbsp;Draft CBF/ImgCIF extensions dictionary (ASCII)
+<TR><TD>&nbsp;&nbsp;ChangeLog<TD>&nbsp;&nbsp;Summary of change history
 <TR><TD>&nbsp;&nbsp;MANIFEST<TD>&nbsp;&nbsp;List of files in this kit
 </TABLE>
 
@@ -2970,7 +2972,6 @@ The program img2cif has the following command line interface:
              [-d  {d[igest]|n[odigest]}]                     \     
              [-e  {b[ase64]|q[uoted-printable]|              \          
                    d[ecimal]|h[exadecimal]|o[ctal]|n[one]}]  \      
-             [-w  {2|3|4|6|8} ]                              \
              [-b  {f[orward]|b[ackwards]}]                   \ 
              [input_image] [output_cif]  
                                                                  
@@ -3001,12 +3002,7 @@ The program img2cif has the following command line interface:
      MIME encodings (base64 or quoted-printable) or a non-standard 
      decimal, hexamdecimal or octal encoding for an ascii cif      
      or "none" for a binary cbf                                    
-                                                                 
- -w  elsize (2, 3, 4, 6 or 8, default: 4) specifies the number of 
-     bytes per word for decimal, hexadecimal or octal output,      
-     marked by a 'D', 'H' or 'O' as the first character of each    
-     line of output, and in '#' comment lines.                     
-                                                                 
+                                                     
  -b  direction (forward or backwards, default: backwards)         
      specifies the direction of mapping of bytes into words        
      for decimal, hexadecimal or octal output, marked by '>' for   
@@ -3019,7 +3015,7 @@ The test program cif2cbf uses the same command line options as img2cif, but
 accepts either a CIF or a CBF as input instead of an image file.
 <HR>
 <HR>
-Updated 14 November 1998.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
+Updated 19 January 1999.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
 yaya@bernstein-plus-sons.com</A>
 </font>
 </BODY>

@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_lex -- lexical scanner for CBF tokens                          *
  *                                                                    *
- * Version 0.4 15 November 1998                                        *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu) and          *
- *          Herbert J. Bernstein (yaya@bernstein-plus-sons.com)       *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
- 
+  
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -124,6 +124,7 @@ extern "C" {
 #include "cbf.h"
 #include "cbf_compress.h"
 #include "cbf_lex.h"
+#include "cbf_codes.h"
 #include "cbf_file.h"
 #include "cbf_string.h"
 #include "cbf_read_binary.h"
@@ -161,22 +162,24 @@ int cbf_return_text (int code, YYSTYPE *val, const char *text, char type)
 int cbf_lex (YYSTYPE *val, cbf_file *file)
 {
   int data, loop, item, column, comment, string, ascii, 
-      l, c, count, reprocess, errorcode, mime, encoding;
+      l, c, count, reprocess, errorcode, mime, encoding, bits, sign,
+      checked_digest;
 
   long id, position;
   
-  unsigned int file_column;
+  unsigned int file_column, compression;
   
   size_t size, length, code_size;
   
-  char *line;
-
-  char outline [100];
-
-  char infile_digest [25], header_digest [25];
-
-  unsigned int infile_compression, header_compression;
+  const char *line;
     
+  char out_line [(((sizeof (void *) +
+                    sizeof (long int) * 2 +
+                    sizeof (int) * 3) * CHAR_BIT) >> 2) + 55];
+
+  char digest [25], new_digest [25];
+
+
   cbf_errornez (cbf_reset_buffer (file), val)
   
   l = c = file->last_read;
@@ -193,7 +196,7 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
   
   do
   {
-    cbf_errornez (cbf_get_buffer (file, (const char **) &line, &length), val)
+    cbf_errornez (cbf_get_buffer (file, &line, &length), val)
     
     if (reprocess)
 
@@ -356,8 +359,9 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
             
           if (c == '-')
           {
-            cbf_errornez (cbf_get_buffer \
-              (file, (const char **)&line, &length), val)
+            cbf_errornez (cbf_get_buffer (file, &line, &length), val)
+
+            cbf_nblen (line, &length);
             
             if (length > 29)
 
@@ -382,8 +386,7 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
           
         if (!mime && ascii)
         {
-          cbf_errornez (cbf_get_buffer \
-            (file, (const char **)&line, &length), val)
+          cbf_errornez (cbf_get_buffer (file, &line, &length), val)
         
           ((char *) line) [length - 1] = '\0';
 
@@ -394,8 +397,8 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
             if (strncmp (&line [count], "\n\\;", 3) == 0)
 
-              memmove (&line [count + 1], &line [count + 2],
-                                        length - count - 2);
+              memmove ((void *) &line [count + 1], 
+                       (void *) &line [count + 2], length - count - 2);
 
           return cbf_return_text (STRING, val, &line [1], 
                                                   CBF_TOKEN_SCSTRING);
@@ -403,8 +406,14 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
     
         encoding = ENC_NONE;
           
+        bits = 0;
+        
+        sign = -1;
+        
+        checked_digest = 0;
+        
 
-          /* Mime-encoded binary */
+          /* Mime header */
           
         if (mime)
         {
@@ -412,119 +421,148 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
           
           cbf_errornez (cbf_get_fileposition (file, &position), val)
           
+        
             /* Read the header */
-
-          header_digest[0] = '\0';
-
-          size = 0;
 
           cbf_errornez (cbf_parse_mimeheader (file, &encoding,
                                                     &size,
                                                     &id,
-                                                    header_digest,
-                                                    &header_compression), val)
+                                                    digest,
+                                                    &compression,
+                                                    &bits,
+                                                    &sign), val)
 
-            /* Position the file and check the digest */
 
-          errorcode = 0;
+            /* Check the digest? */
+            
+          if ((file->read_headers & MSG_DIGESTNOW) && 
+                                    cbf_is_base64digest (digest))
+          {
+              /* Recalculate the digest (note that this will decode the
+                 binary section but not save the result so this section
+                 is not very efficient) */
+              
+            code_size = 0;
 
-          code_size = 0;
-
-          switch (encoding)
-	  {
-
-            case ENC_QP:
+            switch (encoding)
+	    {
+              case ENC_QP:
     
-              cbf_errornez (cbf_fromqp \
-                (file, NULL, size, &code_size, infile_digest), val)
+                cbf_errornez (cbf_fromqp (file, NULL, size, &code_size, 
+                                                         new_digest), val)
 
-              break;
+                break;
       
-            case ENC_BASE64:
+              case ENC_BASE64:
     
-              cbf_errornez (cbf_frombase64 \
-                (file, NULL, size, &code_size, infile_digest), val)
+                cbf_errornez (cbf_frombase64 (file, NULL, size, &code_size, 
+                                                         new_digest), val)
 
-              break;
+                break;
       
-            case ENC_BASE8:
-            case ENC_BASE10:
-            case ENC_BASE16:
+              case ENC_BASE8:
+              case ENC_BASE10:
+              case ENC_BASE16:
     
-              cbf_errornez (cbf_frombasex \
-                (file, NULL, size, &code_size, infile_digest),val)
+                cbf_errornez (cbf_frombasex (file, NULL, size, &code_size, 
+                                                         new_digest),val)
 
-              break;
+                break;
 
-	    case ENC_NONE:
+	      case ENC_NONE:
 
-              cbf_errornez (cbf_parse_binaryheader \
-                (file, &code_size, &id), val)
+                cbf_errornez (cbf_parse_binaryheader (file, NULL, \
+                                                            NULL, \
+                                                            NULL, \
+                                                            mime), val)
 
-              code_size -= 8;
+                code_size = size;
 
-              cbf_errornez (cbf_get_fileposition (file, &position), val)
+                cbf_errornez (cbf_get_fileposition (file, &position), val)
 
-              cbf_errornez (cbf_reset_bits (file), val)
-
-              cbf_errornez (cbf_reset_buffer (file), val)
-
-              cbf_errornez (cbf_get_integer \
-                (file, (int *) &infile_compression, 0, 64), val)
-
-              if ((val->errorcode = cbf_md5digest \
-                (file, code_size, infile_digest)) != 0 ) return ERROR;
-
-              if (infile_compression != header_compression )
-                errorcode = CBF_FORMAT;
-
-              break;
+                cbf_errornez (cbf_md5digest (file, code_size, new_digest), 
+                                                              val)
+                                                                  
+                break;
 
              default:
     
-               errorcode =  CBF_FORMAT;
-          } /* end switch (encoding) */
+               cbf_errornez (CBF_FORMAT, val)
+            }
+            
+            
+              /* Check the number of characters read */
 
-          if ( ( size && ( size != code_size ) ) \
-            || (! code_size) ) errorcode |= CBF_FORMAT; 
+            if ((size && (size != code_size)) || code_size == 0)
 
-          if ( errorcode ) {
-            val->errorcode = errorcode;
+              cbf_errornez (CBF_FORMAT, val)
+              
 
-            return ERROR;
+              /* Compare the old digest to the new one */
 
+            if (strcmp (digest, new_digest) != 0)
+            
+              cbf_errornez (CBF_FORMAT | 2, val)
+
+            checked_digest = 1;
           }
+          else
+          {
+              /* Calculate the minimum number of characters in the data */
+              
+            if (encoding == ENC_NONE)
+            {
+              cbf_errornez (cbf_parse_binaryheader (file, NULL, NULL, NULL, \
+                                                                  mime), val)
+        
+              cbf_errornez (cbf_get_fileposition (file, &position), val)
 
-          size += 8;
+              code_size = size;
+            }
+            else
+            
+              if (encoding == ENC_QP)
 
-        } /* end if (mime) */
-
-        if ((! mime) && (! ascii)) {
-
-           cbf_errornez (cbf_parse_binaryheader \
-                (file, &size, &id), val)
-
-           code_size = size-8;
-
-           cbf_errornez (cbf_get_fileposition (file, &position), val)
-
-           cbf_errornez (cbf_reset_bits (file), val)
-
-           cbf_errornez (cbf_reset_buffer (file), val)
-
-           cbf_errornez (cbf_get_integer \
-             (file, (int *) &infile_compression, 0, 64), val)
-
-           if ((val->errorcode = cbf_md5digest \
-             (file, code_size, infile_digest)) != 0 ) return ERROR;
-
-	} /* end if ((! mime) && (! ascii)) */
+                code_size = size;
+              
+              else
+            
+                if (encoding == ENC_BASE64)
+              
+                  code_size = size * 8 / 6;
+                
+                else
+          
+                  code_size = size / 4;
 
 
+              /* Skip to the end of the data */
 
-          /* Skip to the end of the text data */
+            cbf_errornez (cbf_set_fileposition (file, code_size, SEEK_CUR), 
+                                                      val)
+          }
+        }
+        else
+        {
+            /* Simple binary */
+                      
+          cbf_errornez (cbf_parse_binaryheader (file, &size, \
+                                                      &id,   \
+                                                      &compression, mime), val)
+        
+          cbf_errornez (cbf_get_fileposition (file, &position), val)
 
-      
+          code_size = size;
+
+
+            /* Skip to the end of the data */
+
+          cbf_errornez (cbf_set_fileposition (file, code_size, SEEK_CUR), val)
+        }
+
+
+          /* Find the terminating semi-colon */
+
         c = 0;
           
         do
@@ -540,24 +578,44 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
         while (l != '\n' || c != ';');
 
 
+          /* Check the element size and sign */
+          
+        if (bits < 0 || bits > 64)
+        
+          cbf_errornez (CBF_FORMAT, val)
+        
+        if (bits == 0)
+        
+          bits = 32;
+          
+        if (sign == -1)
+        
+          sign = 1;
+
+
           /* Add a connection */
           
         cbf_errornez (cbf_add_fileconnection (&file, NULL), val)
         
-
-          /* Code the id, file, position and size */
+        
+          /* Code the id, file, position, size and digest */
           
-        sprintf (outline, "%x %p %lx %lx %s %x %x", \
-          id, file, position, size, infile_digest, 0, 0);
+        if (!cbf_is_base64digest (digest))
+        
+          strcpy (digest, "------------------------");
+          
+        sprintf (out_line, "%x %p %lx %lx %d %s %x %d %u", 
+                            id, file, position, size, checked_digest, 
+                            digest, bits, sign, compression);
         
         if (encoding == ENC_NONE)
         
-          errorcode = cbf_return_text (BINARY, val, &outline [0], 
+          errorcode = cbf_return_text (BINARY, val, out_line, 
                                                       CBF_TOKEN_BIN);
           
         else
         
-          errorcode = cbf_return_text (BINARY, val, &outline [0], 
+          errorcode = cbf_return_text (BINARY, val, out_line, 
                                                       CBF_TOKEN_MIME_BIN);
 
         if (errorcode == ERROR)
@@ -572,13 +630,8 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
       /* Add the character to the text */
       
     errorcode = cbf_save_character (file, c);
-
-    if (errorcode)
-    {
-      val->errorcode = errorcode;
-      
-      return ERROR;
-    }
+    
+    cbf_errornez (errorcode, val);
   }
   while (c != EOF);
   

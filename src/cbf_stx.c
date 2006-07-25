@@ -1,5 +1,5 @@
 
-/*  A Bison parser, made from cbf.stx
+/*  A Bison parser, made from ./src/cbf.stx
  by  GNU Bison version 1.25
   */
 
@@ -17,16 +17,16 @@
 #define	COMMENT	267
 #define	ERROR	268
 
-#line 1 "cbf.stx"
+#line 1 "./src/cbf.stx"
 
 
 /**********************************************************************
  * cbf.stx -- cbf parser                                              *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu) and          *
- *       Herbert J. Bernstein (yaya@bernstein-plus-sons.com)          *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
@@ -182,7 +182,7 @@ int cbf_syntax_error (const char *message)
 }
 
 
-#line 166 "cbf.stx"
+#line 166 "./src/cbf.stx"
 typedef union
 {
   int          errorcode;
@@ -911,7 +911,7 @@ case 11:
 {
                                                   yyval.node = yyvsp[-1].node;
 
-                                                  cbf_failnez (cbf_set_columnrow (yyval.node, 0, yyvsp[0].text))
+                                                  cbf_failnez (cbf_set_columnrow (yyval.node, 0, yyvsp[0].text, 1))
                                                 ;
     break;}
 case 12:
@@ -1239,4 +1239,3 @@ yyerrhandle:
 }
 
 #endif
-

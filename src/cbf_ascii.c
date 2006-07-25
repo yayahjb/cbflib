@@ -1,9 +1,10 @@
 /**********************************************************************
  * cbf_ascii -- write plain ASCII values                              *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
@@ -52,8 +53,8 @@
  **********************************************************************/
  
 /**********************************************************************
- *                        The IUCr Policy                             *
- *                                on                                  *
+ *                          The IUCr Policy                           *
+ *                                 on                                 *
  *     the Use of the Crystallographic Information File (CIF)         *
  *                                                                    *
  * The Crystallographic Information File (Hall, Allen & Brown,        *
@@ -276,9 +277,9 @@ int cbf_write_ascii (const char *string, cbf_file *file)
   }
 
 
-    /* Success */
+    /* Flush the buffer */
 
-  return 0;
+  return cbf_flush_characters (file);
 }
 
 

@@ -1,6 +1,6 @@
 /**********************************************************************
  *          cif2cbf -- convert a cif to a cbf file                    *
- *          Version 0.4 15 Novemberr 1998                             *
+ *          Version 0.6 26 December 1998                               *
  *                                                                    *
  *          Herbert J. Bernstein, Bernstein + Sons                    *
  *          P.O. Box 177, Bellport, NY 11713                          *
@@ -210,7 +210,7 @@
  {int err; \
   err = (x); \
   if (err) { \
-    fprintf(stderr,"CBFlib fatal error %x \n",err); \
+    fprintf(stderr,"CBFlib fatal error %d\n",err); \
     local_exit (-1); \
   } \
  }
@@ -521,12 +521,12 @@ int main (int argc, char *argv [])
 
              void * array;
              int binary_id, elsigned, elunsigned;
-             size_t elements,elements_read, elsize, repeat;
+             size_t elements,elements_read, elsize;
              int minelement, maxelement;
              unsigned int cifcompression;
 
              cbf_failnez(cbf_get_integerarrayparameters(
-               cif, &cifcompression, &repeat,
+               cif, &cifcompression,
                &binary_id, &elsize, &elsigned, &elunsigned,
                &elements, &minelement, &maxelement))
 	     if (array=malloc(elsize*elements)) {
@@ -535,7 +535,7 @@ int main (int argc, char *argv [])
                cif, &binary_id, array, elsize, elsigned,
                elements, &elements_read))
                cbf_failnez(cbf_set_integerarray(
-               cbf, compression, repeat,
+               cbf, compression,
                binary_id, array, elsize, elsigned, elements))
                free(array);
              } else {
@@ -579,10 +579,10 @@ int main (int argc, char *argv [])
 
    b = clock ();
    if (encoding == ENC_NONE) {
-     printf (" Time to write the CBF image: %.3fs\n", 
+     fprintf (stderr, " Time to write the CBF image: %.3fs\n", 
        ((b - a) * 1.0) / CLOCKS_PER_SEC); 
    } else {
-     printf (" Time to write the CIF image: %.3fs\n", 
+     fprintf (stderr, " Time to write the CIF image: %.3fs\n", 
        ((b - a) * 1.0) / CLOCKS_PER_SEC); 
    }
   

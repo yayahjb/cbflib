@@ -180,7 +180,7 @@ int cbf_get_columnrow (const char **value, const cbf_node *column,
   /* Set the value of a row */
 
 int cbf_set_columnrow (cbf_node *column, unsigned int row, 
-                       const char *value);
+                       const char *value, int free);
 
 
   /* Insert a value in a column */

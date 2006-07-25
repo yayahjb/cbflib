@@ -1,10 +1,10 @@
 /**********************************************************************
  * cbf_write_binary -- write binary sections                          *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *       Herbert J. Bernstein (yaya@bernstein-plus-sons.com) and      *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
@@ -82,7 +82,7 @@
  * The IUCr policy on the use of the CIF and STAR File processes is   *
  * as follows:                                                        *
  * _________________________________________________________________  *
- *                                                                    *      
+ *                                                                    *
  *  * 1 CIFs and STAR Files may be generated, stored or transmitted,  *
  *    without permission or charge, provided their purpose is not     *
  *    specifically for profit or commercial gain, and provided that   *
@@ -144,25 +144,15 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 {
   cbf_file *infile;
 
-  char infiledigest [25];
+  char digest [25], text [100];
   
   long start;
   
-  long size;
+  size_t size;
   
   unsigned int compression;
 
-  int binary_id, errorcode, elsize;
-
-  const char *intext;
-
-  size_t text_elsize;
-
-  int text_elsign;
-
-  char text [(((sizeof (void *) +
-                sizeof (long int) * 2 +
-                sizeof (int)) * CHAR_BIT) >> 2) + 16 + 36];
+  int id, bits, sign, type, checked_digest, elsize;
 
 
     /* Check the arguments */
@@ -179,58 +169,56 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
       ((file->write_encoding & ENC_NONE)   > 0) != 1)
 
     return CBF_ARGUMENT;
-
-
-    /* Get the value */
-
-  cbf_failnez (cbf_get_columnrow (&intext, column, row))
-
-  if (!intext)
-
-    return CBF_ASCII;
-
-  
-    /* Parse the value */
-
-  if (*intext != CBF_TOKEN_BIN && *intext != CBF_TOKEN_TMP_BIN)
+    
+  if (!cbf_is_binary (column, row))
 
     return CBF_ARGUMENT;
+    
+  if (cbf_is_mimebinary (column, row))
 
-  size = 0;
+    return CBF_ARGUMENT;
+    
 
-  infiledigest[0] = '\0';
+    /* Parse the value */
 
-  sscanf (intext + 1, " %x %p %lx %lx %25s %x %x",\
-     &binary_id, &infile, &start, &size, 
-     infiledigest, &text_elsize, &text_elsign);
-
-  if (size == 0 || !infile)
-
-    return CBF_FORMAT;
+  cbf_failnez (cbf_get_bintext (column, row, &type, &id, &infile,
+                                &start, &size, &checked_digest,
+                                 digest, &bits, &sign, &compression))
 
 
     /* Position the file at the start of the binary section */
 
   cbf_failnez (cbf_set_fileposition (infile, start, SEEK_SET))
   
+
+    /* Calculate the digest if necessary */
   
-  if ((infiledigest[0] == '\0') && (file->write_headers & MSG_DIGEST))
+  if (!cbf_is_base64digest (digest) && (file->write_headers & MSG_DIGEST))
   {
-    /* Discard any bits in the buffers */
+      /* Discard any bits in the buffers */
 
     cbf_failnez (cbf_reset_bits (infile))
 
-     /* Read the compression id (64 bits) to position properly */
-
-    cbf_failnez (cbf_get_integer (infile, (int *) &compression, 0, 64))
 
       /* Compute the message digest */
 
-    cbf_failnez (cbf_md5digest (infile, size-8, infiledigest))
+    cbf_failnez (cbf_md5digest (infile, size, digest))
       
+
       /* Go back to the start of the binary data */
 
     cbf_failnez (cbf_set_fileposition (infile, start, SEEK_SET))
+    
+    
+      /* Update the entry */
+      
+    checked_digest = 1;
+      
+    cbf_failnez (cbf_set_bintext (column, row, type,
+                                  id, infile, start, size,
+                                  checked_digest, digest, bits, 
+                                                          sign,
+                                                          compression))
   }
 
 
@@ -238,11 +226,13 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 
   cbf_failnez (cbf_reset_bits (infile))
 
-
-    /* Read the compression id (64 bits) */
-
-  cbf_failnez (cbf_get_integer (infile, (int *) &compression, 0, 64))
   
+    /* Do we need MIME headers? */
+    
+  if (compression == CBF_NONE && (file->write_headers & MIME_NOHEADERS))
+  
+    return CBF_ARGUMENT;
+    
 
     /* Write the header */
 
@@ -340,13 +330,37 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
               cbf_failnez (cbf_write_string (file, 
                       "Content-Transfer-Encoding: BINARY\n"))
 
-    sprintf (text, "X-Binary-Size: %u\n", size-8);
+    sprintf (text, "X-Binary-Size: %u\n", size);
     
     cbf_failnez (cbf_write_string (file, text))
 
-    sprintf (text, "X-Binary-ID: %d\n", binary_id);
+    sprintf (text, "X-Binary-ID: %d\n", id);
 
     cbf_failnez (cbf_write_string (file, text))
+    
+    if (sign)
+    
+      sprintf (text, "X-Binary-Element-Type: \"signed %d-bit integer\"\n", 
+                                                    bits);
+      
+    else
+
+      sprintf (text, "X-Binary-Element-Type: \"unsigned %d-bit integer\"\n", 
+                                                      bits);
+      
+    cbf_failnez (cbf_write_string (file, text))
+    
+    
+      /* Save the digest if we have one */
+
+    if (cbf_is_base64digest (digest))
+    {
+      sprintf (text, "Content-MD5: %24s\n", digest);
+
+      cbf_failnez (cbf_write_string (file, text))
+    }
+
+    cbf_failnez (cbf_write_string (file, "\n"))  
   }
   else
 
@@ -354,20 +368,6 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
     
     cbf_failnez (cbf_write_string (file, "START OF BINARY SECTION\n"))
     
-
-    /* Write the digest */
-  
-  if (file->write_headers & MSG_DIGEST)
-  {
-    cbf_failnez (cbf_write_string (file, "Content-MD5: "))
-    cbf_failnez (cbf_write_string (file, infiledigest))
-    cbf_failnez (cbf_write_string (file, "\n"))
-  }
-
-  if (file->write_headers & MIME_HEADERS)
-
-    cbf_failnez (cbf_write_string (file, "\n"))  
-
 
     /* Copy the binary section to the output file */
     
@@ -381,19 +381,30 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
     cbf_failnez (cbf_put_character (file, 213))
 
 
-      /* Discard any bits in the buffers */
+      /* Flush any bits in the buffers */
 
-    cbf_failnez (cbf_reset_bits (file))
-
-
-      /* Write the binary identifier (64 bits) */
-
-    cbf_failnez (cbf_put_integer (file, binary_id, 1, 64))
+    cbf_failnez (cbf_flush_bits (file))
 
 
-      /* Write the size of the binary section (64 bits) */
+      /* If no MIME header, write the necessary data here */
 
-    cbf_failnez (cbf_put_integer (file, size, 0, 64))
+    if ( !(file->write_headers & MIME_HEADERS) ) {
+
+
+        /* Write the binary identifier (64 bits) */
+
+      cbf_failnez (cbf_put_integer (file, id, 1, 64))
+
+
+        /* Write the size of the binary section (64 bits) */
+
+      cbf_failnez (cbf_put_integer (file, size, 0, 64))
+
+
+        /* Write the compression type (64 bits) */
+
+      cbf_failnez (cbf_put_integer (file, compression, 0, 64))
+    }
 
 
       /* Get the current point in the new file */
@@ -401,14 +412,9 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
     cbf_failnez (cbf_get_fileposition (file, &start))
 
 
-      /* Write the compression type (64 bits) */
-
-    cbf_failnez (cbf_put_integer (file, compression, 0, 64))
-
-
       /* Copy the binary section to the output file */
 
-    cbf_failnez (cbf_copy_file (file, infile, size - 8))
+    cbf_failnez (cbf_copy_file (file, infile, size))
   }
   else
   {
@@ -416,14 +422,9 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
       
     if (compression == CBF_NONE)
     {
-
-      elsize = text_elsize;
+      elsize = (bits + 4) / 8;
       
-      if (elsize < 1)
-      
-        elsize = 4;
-      
-      if (elsize == 5)
+      if (elsize < 1 || elsize == 5)
       
         elsize = 4;
         
@@ -448,39 +449,37 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 
     cbf_failnez (cbf_set_fileposition (infile, start, SEEK_SET))
 
-    /* Discard any bits in the buffers */
 
-    cbf_failnez (cbf_reset_bits (infile))
+      /* Flush any bits in the buffers */
 
-     /* Read the compression id (64 bits) to position properly */
+    cbf_failnez (cbf_flush_bits (infile))
 
-    cbf_failnez (cbf_get_integer (infile, (int *) &compression, 0, 64))
 
     if (file->write_encoding & ENC_QP)
   
-      cbf_failnez (cbf_toqp (infile, file, size-8))
+      cbf_failnez (cbf_toqp (infile, file, size))
 
     else
   
       if (file->write_encoding & ENC_BASE64)
   
-        cbf_failnez (cbf_tobase64 (infile, file, size-8))
+        cbf_failnez (cbf_tobase64 (infile, file, size))
 
       else
   
         if (file->write_encoding & ENC_BASE8)
   
-          cbf_failnez (cbf_tobasex (infile, file, size-8, elsize, 8))
+          cbf_failnez (cbf_tobasex (infile, file, size, elsize, 8))
 
         else
   
           if (file->write_encoding & ENC_BASE10)
   
-            cbf_failnez (cbf_tobasex (infile, file, size-8, elsize, 10))
+            cbf_failnez (cbf_tobasex (infile, file, size, elsize, 10))
 
           else
   
-            cbf_failnez (cbf_tobasex (infile, file, size-8, elsize, 16))
+            cbf_failnez (cbf_tobasex (infile, file, size, elsize, 16))
   }
 
 
@@ -496,36 +495,20 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
     cbf_failnez (cbf_write_string (file, "\nEND OF BINARY SECTION\n;\n"))
 
 
+    /* Flush the buffer */
+
+  cbf_failnez (cbf_flush_characters (file))
+
+
     /* Replace a connection to a temporary file? */
     
-  if (start != 0 && isbuffer && 
-      *intext == CBF_TOKEN_TMP_BIN && (file->write_encoding & ENC_NONE))
-  {
-    sprintf (text, "%x %p %lx %lx %25s %x %x", \
-      binary_id, file, start, size, infiledigest, elsize, text_elsign);
+  if (start  != 0               && 
+      isbuffer                  && 
+      type == CBF_TOKEN_TMP_BIN && (file->write_encoding & ENC_NONE))
 
-    intext = cbf_copy_string (NULL, text, CBF_TOKEN_BIN);
-
-    if (intext)
-    {
-        /* Add the new connection */
-
-      errorcode = cbf_add_fileconnection (&file, NULL);
-
-      if (!errorcode)
-      {
-        errorcode = cbf_set_columnrow (column, row, intext);
-
-        if (errorcode)
-
-          cbf_delete_fileconnection (&file);
-      }
-
-      if (errorcode)
-      
-        cbf_free_string (NULL, intext);
-    }
-  }
+    cbf_failnez (cbf_set_bintext (column, row, CBF_TOKEN_BIN,
+                                  id, file, start, size, checked_digest,
+                                  digest, bits, sign, compression))
 
 
     /* Success */
@@ -539,4 +522,3 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 }
 
 #endif
-

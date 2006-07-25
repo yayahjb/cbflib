@@ -2,10 +2,10 @@
  * cbf_codes -- convert between encoded and unencoded binary          *
  *              calculate message digest                              *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu) and          *
- *          Herbert J. Bernstein (yaya@bernstein-plus-sons.com)       *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
@@ -83,7 +83,7 @@
  * The IUCr policy on the use of the CIF and STAR File processes is   *
  * as follows:                                                        *
  * _________________________________________________________________  *
- *                                                                    * 
+ *                                                                    *
  *  * 1 CIFs and STAR Files may be generated, stored or transmitted,  *
  *    without permission or charge, provided their purpose is not     *
  *    specifically for profit or commercial gain, and provided that   *
@@ -94,7 +94,7 @@
  *    for which a charge is made, provided that its primary function  *
  *    is for use with files that satisfy condition 1 and that it is   *
  *    distributed as a minor component of a larger package of         *
- *    software.                                                       * 
+ *    software.                                                       *
  *  * 3 Permission will be granted for the use of CIFs and STAR Files *
  *    for specific commercial purposes (such as databases or network  *
  *    exchange processes), and for the distribution of commercial     *
@@ -118,7 +118,7 @@
 
 /**********************************************************************
  * Substantial portions of this code were derived from the mpack      *
- * routine codes.c, to which contains the following two notices       *
+ * routine codes.c, which contains the following two notices          *
  **********************************************************************/
 
 /**********************************************************************
@@ -148,6 +148,7 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR            *
  * PERFORMANCE OF THIS SOFTWARE.                                      *
  **********************************************************************/
+
 /**********************************************************************
  * Second  notice from mpack routine codes.c:                         *
  *                                                                    *
@@ -177,17 +178,78 @@ extern "C" {
 #include <string.h>
 #include <ctype.h>
 
-int cbf_md5context_to64(MD5_CTX *context, char *encoded_digest);
+
+  /* Check a 24-character base-64 MD5 digest */
+
+int cbf_is_base64digest (const char *encoded_digest)
+{
+  static char basis_64 [] =
+
+       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+       
+  if (!encoded_digest)
+  
+    return 0;
+
+  if (strlen (encoded_digest) != 24)
+
+    return 0;
+    
+  return strspn (encoded_digest, basis_64) == 22 &&
+                 encoded_digest [22] == '=' &&
+                 encoded_digest [23] == '=';
+}
+
+
+  /* Encode a 16-character MD5 digest in base-64 (25 characters) */
+
+int cbf_md5digest_to64 (char *encoded_digest, const unsigned char *digest)
+{
+  static char basis_64 [] =
+
+       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+  int todo;
+  
+  if (!encoded_digest || !digest)
+  
+    return CBF_ARGUMENT;
+  
+
+    /* Encode the 16 characters in base 64 */
+    
+  for (todo = 0; todo < 18; todo += 3)
+  {
+    encoded_digest [0] = basis_64 [((digest [todo + 0] >> 2) & 0x03f)];
+
+    if (todo < 15)
+    {
+      encoded_digest [1] = basis_64 [((digest [todo + 0] << 4) & 0x030) |
+                                     ((digest [todo + 1] >> 4) & 0x00f)];
+      encoded_digest [2] = basis_64 [((digest [todo + 1] << 2) & 0x03c) |
+                                     ((digest [todo + 2] >> 6) & 0x003)];
+      encoded_digest [3] = basis_64 [((digest [todo + 2])      & 0x03f)];
+    }
+    else
+    {
+      encoded_digest [1] = basis_64 [((digest [todo + 0] << 4) & 0x030)];
+
+      encoded_digest [2] = encoded_digest [3] = '=';
+    }
+
+    encoded_digest += 4;
+  } 
+  
+  *encoded_digest  = '\0';
+
+  return 0;
+}    
 
 
   /* Calculate the MD5 digest (25 characters) of a block of data */
 
 int cbf_md5digest (cbf_file *file, size_t size, char *digest)
 {
-  static char basis_64 [] =
-
-       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
   MD5_CTX context;
   
   unsigned char rawdigest [17];
@@ -222,8 +284,13 @@ int cbf_md5digest (cbf_file *file, size_t size, char *digest)
 
     size -= todo;
   }
+  
+  
+    /* Get the final digest */
     
-  cbf_failnez(cbf_md5context_to64(&context, digest))
+  MD5Final (rawdigest, &context);
+
+  cbf_md5digest_to64 (digest, rawdigest);
 
 
     /* Success */
@@ -296,7 +363,12 @@ int cbf_toqp (cbf_file *infile, cbf_file *outfile, size_t size)
 
     cbf_failnez (cbf_write_string (outfile, "=\n"))
 
-    
+
+    /* Flush the buffer */
+
+  cbf_failnez (cbf_flush_characters (outfile))
+
+   
     /* Success */
     
   return 0;
@@ -370,6 +442,11 @@ int cbf_tobase64 (cbf_file *infile, cbf_file *outfile, size_t size)
     cbf_failnez (cbf_write_character (outfile, '\n'))
 
     
+    /* Flush the buffer */
+
+  cbf_failnez (cbf_flush_characters (outfile))
+
+   
     /* Success */
     
   return 0;
@@ -553,10 +630,14 @@ int cbf_tobasex (cbf_file *infile, cbf_file *outfile, size_t size,
   
   if (outfile->column)
 
-
     cbf_failnez (cbf_write_character (outfile, '\n'))
 
     
+    /* Flush the buffer */
+
+  cbf_failnez (cbf_flush_characters (outfile))
+
+   
     /* Success */
 
   return 0;
@@ -571,23 +652,27 @@ int cbf_fromqp (cbf_file *infile, cbf_file *outfile, size_t size,
 {
   MD5_CTX context;
   
-  unsigned char buffer[64], *bpoint;
+  unsigned char buffer [64], rawdigest [17];
 
-  int c;
+  int c, bufsize;
   
   char val [3], *end;
     
   size_t count;
 
-  count = 0;
-  
-  val [2] = '\0';
 
     /* Initialise the MD5 context */
+    
+  if (digest)
 
-  MD5Init (&context);
+    MD5Init (&context);
 
-  bpoint = buffer;
+
+  bufsize = 0;    
+  
+  count = 0;
+    
+  val [2] = '\0';
 
   while (count < size)
   {
@@ -602,28 +687,7 @@ int cbf_fromqp (cbf_file *infile, cbf_file *outfile, size_t size,
       
       /* Decode it */
       
-    if (c != '=')
-    {    
-        /* Plain data */
-
-      *bpoint = c;
-
-      if (outfile) {
-
-        cbf_failnez (cbf_put_character (outfile, c))
-
-      }
-
-      if (((++bpoint)-buffer) > 63 ) {
-
-        MD5Update (&context, buffer, 64);
-
-        bpoint = buffer;
-      }
-
-      count++;
-    }
-    else
+    if (c == '=')
     {
         /* Get the second character */
         
@@ -655,37 +719,56 @@ int cbf_fromqp (cbf_file *infile, cbf_file *outfile, size_t size,
         if (end != &val [2])
         
           return CBF_FORMAT;
-          
-          
-          /* Save it */
-
-        *bpoint = c;
-        if (outfile) {
-          cbf_failnez (cbf_put_character (outfile, c))
-        }
-
-        if (((++bpoint)-buffer) > 63 ) {
-          MD5Update (&context, buffer, 64);
-          bpoint = buffer;
-        }
-
+      }
+    } 
+    
+    
+      /* Save it */
       
-        count++;
+    if (outfile)
+
+      cbf_failnez (cbf_put_character (outfile, c))
+
+    if (digest)
+    {
+      buffer [bufsize] = c;
+      
+      bufsize++;
+
+      if (bufsize > 63)
+      {
+        MD5Update (&context, buffer, 64);
+
+        bufsize = 0;
       }
     }
+
+    count++;
+  }
+  
+  
+    /* Get the digest */
+
+  if (digest)
+  {
+    if (bufsize)
+
+      MD5Update (&context, buffer, bufsize);
+
+    MD5Final (rawdigest, &context);
+
+    cbf_md5digest_to64 (digest, rawdigest);
   }
 
-  if ((bpoint - buffer) > 0 ) {
 
-    MD5Update (&context, buffer, (bpoint-buffer));    
+    /* Flush the buffer */
 
-  }
+  if (outfile)
+  
+    cbf_failnez (cbf_flush_characters (outfile))
 
-  if (digest) {
 
-    cbf_failnez(cbf_md5context_to64(&context, digest))
-
-  }
+    /* Save the number of characters read */
     
   if (readsize)
   
@@ -727,22 +810,25 @@ int cbf_frombase64 (cbf_file *infile, cbf_file *outfile, size_t size,
 
   MD5_CTX context;
   
-  unsigned char buffer[64], *bpoint;
+  unsigned char buffer [64], rawdigest [17];
     
-  int c [4], d [3];
+  int c [4], d [3], bufsize;
   
   int read, write;
     
   size_t count;
 
 
+    /* Initialise the MD5 context */
+    
+  if (digest)
+
+    MD5Init (&context);
+
+
   count = 0;
 
-    /* Initialise the MD5 context */
-
-  MD5Init (&context);
-
-  bpoint = buffer;
+  bufsize = 0;
   
   while (count < size)
   {
@@ -796,40 +882,54 @@ int cbf_frombase64 (cbf_file *infile, cbf_file *outfile, size_t size,
         
       /* Save the data */
       
-    for (write = 0; write < read; write++) {
-
-      *bpoint = (unsigned char) d [write];
-
-      if (outfile) {
+    for (write = 0; write < read; write++)
+    {
+      if (outfile)
 
         cbf_failnez (cbf_put_character (outfile, d [write]))
 
+      if (digest)
+      {
+        buffer [bufsize] = (unsigned char) d [write];
+      
+        bufsize++;
+
+        if (bufsize > 63)
+        {
+          MD5Update (&context, buffer, 64);
+
+          bufsize = 0;
+        }
       }
-
-      if (((++bpoint)-buffer) > 63 ) {
-
-         MD5Update (&context, buffer, 64);
-
-         bpoint = buffer;
-      }
-
     }
 
     count += read;
   }
 
-  if ((bpoint - buffer) > 0 ) {
 
-    MD5Update (&context, buffer, (bpoint-buffer));    
+    /* Get the digest */
 
+  if (digest)
+  {
+    if (bufsize)
+
+      MD5Update (&context, buffer, bufsize);
+
+    MD5Final (rawdigest, &context);
+
+    cbf_md5digest_to64 (digest, rawdigest);
   }
 
-  if (digest) {
 
-    cbf_failnez(cbf_md5context_to64(&context, digest))
+    /* Flush the buffer */
 
-  }
+  if (outfile)
+  
+    cbf_failnez (cbf_flush_characters (outfile))
 
+
+    /* Save the number of characters read */
+    
   if (readsize)
   
     *readsize = count;
@@ -849,9 +949,9 @@ int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size,
 {
   MD5_CTX context;
   
-  unsigned char buffer[64], *bpoint;
+  unsigned char buffer [64], rawdigest [17];
 
-  int c;
+  int c, bufsize;
   
   char val [80], *end;
  
@@ -875,12 +975,16 @@ int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size,
   valcount = 0;
   
   padding = 0;
+  
+  bufsize = 0;
+
 
     /* Initialise the MD5 context */
 
-  MD5Init (&context);
+  if (digest)
 
-  bpoint = buffer;
+    MD5Init (&context);
+
 
   while (count < size)
   {
@@ -1005,33 +1109,34 @@ int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size,
               
             read = elsize - padding / 2;
         
-            for (write = 0; write < read; write++){
+            for (write = 0; write < read; write++)
+            {
+              if (direction < 0)
+              
+                c = (unsigned char) ((l >> ((read - write - 1) * 8)) & 0x0ff);
 
-              if (direction < 0) {
+              else
 
-                *bpoint =  (unsigned char) 
-                  ((l >> ((read - write - 1) * 8)) & 0x0ff);
+                c = (unsigned char) ((l >> (write * 8)) & 0x0ff);
 
-              } else {
+              if (outfile)
+              
+                cbf_failnez (cbf_put_character (outfile, c))
 
-                *bpoint = (unsigned char)
-                  ((l >> (write * 8)) & 0x0ff);
+              if (digest)
+              {
+                buffer [bufsize] = (unsigned char) c;
+      
+                bufsize++;
 
-              }
-
-              if (outfile) {
-                  cbf_failnez (cbf_put_character (outfile, *bpoint))
-	      }
-
-	      if (((++bpoint)-buffer) > 63 ) {
-
+                if (bufsize > 63)
+                {
                   MD5Update (&context, buffer, 64);
 
-                  bpoint = buffer;
-
+                  bufsize = 0;
+                }
               }
-
-	    }
+            }
          
             count += read;
             
@@ -1042,18 +1147,30 @@ int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size,
     }
   }
 
-  if ((bpoint - buffer) > 0 ) {
 
-    MD5Update (&context, buffer, (bpoint-buffer));    
+    /* Get the digest */
 
+  if (digest)
+  {
+    if (bufsize)
+
+      MD5Update (&context, buffer, bufsize);
+
+    MD5Final (rawdigest, &context);
+
+    cbf_md5digest_to64 (digest, rawdigest);
   }
 
-  if (digest) {
 
-    cbf_failnez(cbf_md5context_to64(&context, digest))
+    /* Flush the buffer */
 
-  }
- 
+  if (outfile)
+  
+    cbf_failnez (cbf_flush_characters (outfile))
+
+
+    /* Save the number of characters read */
+    
   if (readsize)
   
     *readsize = count;
@@ -1064,48 +1181,8 @@ int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size,
   return 0;
 }  
 
-int cbf_md5context_to64(MD5_CTX *context, char *encoded_digest)
-{
-  static char basis_64 [] =
-       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-  unsigned char digest[18];
-
-  int i;
-
-  register char *p;
-
-  MD5Final(digest, context);
-
-  digest[sizeof(digest)-1] = digest[sizeof(digest)-2] = 0;
-
-  p = encoded_digest;
-
-  for (i=0; i < sizeof(digest); i+=3) {
-
-    *p++ = basis_64[digest[i]>>2];
-
-    *p++ = basis_64[((digest[i] & 0x3)<<4) | ((digest[i+1] & 0xF0)>>4)];
-
-    *p++ = basis_64[((digest[i+1] & 0xF)<<2) | ((digest[i+2] & 0xC0)>>6)];
-
-    *p++ = basis_64[digest[i+2] & 0x3F];
-
-    }
-
-    *p-- = '\0';
-
-    *p-- = '=';
-
-    *p-- = '=';
-
-    return 0;
-
-}    
-
 #ifdef __cplusplus
 
 }
 
 #endif
-

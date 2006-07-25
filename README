@@ -1,8 +1,6 @@
-                                   CBFlib
+                                CBFlib README
 
-                                   README
-
-                  Information for CBFlib, 15 November 1998
+                 Information for CBFlib 0.6, 13 January 1999
 
                                      by
                                 Paul J. Ellis
@@ -17,7 +15,7 @@
   ------------------------------------------------------------------------
 
                 Before using this software, please read the
-                         file doc/CBFlib_NOTICES.txt
+                                  [NOTICE]
        for important disclaimers and the IUCr Policy on the Use of the
   Crystallographic Information File (CIF) and other important information.
 
@@ -35,33 +33,33 @@ Installation
 CBFLIB should be built on a disk with at least 40 megabytes of free space.
 First create the top-level directory (called, say, CBFlib).
 
-In order to work with CBFlib, you need the source code, either in the form
-of a compressed tar, CBFlib.tar.Z, or a compressed shell archive,
-CBFlib.shar.Z. Place one of these files in the otherwise emptyCBFlib you
-just created. Uncompress this file. Unpack it with tar:
+In order to work with CBFlib, you need the source code in the form of a
+compressed tar, CBFlib.tar.Z. Place this file in the otherwise empty CBFlib
+directory you just created.
+
+Uncompress this file:
+
+     uncompress CBFlib.tar.Z
+
+Unpack it with tar:
 
      tar xvf CBFlib.tar
-
-if you selected the tar, or with the sh:
-
-     sh CBFlib.shar
 
 To run the test programs, you will also need Paul Ellis's sample MAR345
 image, example.mar2300, as sample data. This file can also be found at
 http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/. Place that file
-in the top level CBFlib directory. to put the MAR345 image "example.mar2300"
-in the top-level directory.
+in the top level CBFlib directory.
 
 After unpacking the archive, the top-level directory should contain a
 makefile "Makefile" and the subdirectories
 
-          src/         CBFLIB source files
-          include/     CBFLIB header files
-          examples/    Example program source files
-          doc/         Documentation
-          lib/         Compiled CBFLIB library
-          bin/         Executable example programs
-          html_images/ JPEG images used in rendering the HTML files
+         src/          CBFLIB source files
+         include/      CBFLIB header files
+         examples/     Example program source files
+         doc/          Documentation
+         lib/          Compiled CBFLIB library
+         bin/          Executable example programs
+         html_images/  JPEG images used in rendering the HTML files
 
 For instructions on compiling and testing the library, go to the top-level
 directory and type:
@@ -71,4 +69,4 @@ directory and type:
 Please refer to the manual doc/CBFlib.html for more detailed information.
   ------------------------------------------------------------------------
   ------------------------------------------------------------------------
-Updated 15 November 1998. yaya@bernstein-plus-sons.com
+Updated 18 January 1999. yaya@bernstein-plus-sons.com

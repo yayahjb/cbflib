@@ -1,9 +1,10 @@
 /**********************************************************************
  * cbf_canonical -- canonical-code compression                        *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
@@ -158,11 +159,10 @@ cbf_compress_node;
 
 typedef struct
 {
-  cbf_file *file;                /* File                           */
+  cbf_file    *file;             /* File                           */
 
   unsigned int bits;             /* Coded bits                     */
   unsigned int maxbits;          /* Maximum saved bits             */
-
   unsigned int endcode;          /* End-of-data code               */
 
   size_t       nodes;            /* Number of nodes                */
@@ -195,14 +195,12 @@ int cbf_make_compressdata (cbf_compress_data **data, cbf_file *file)
 
     /* Initialise */
 
-  (*data)->file = file;
+  (*data)->file     = file;
   
-  (*data)->bits     =
+  (*data)->bits     = 0;
   (*data)->maxbits  = 0;
-
   (*data)->endcode  = 0;
-
-  (*data)->nodes    = 
+  (*data)->nodes    = 0;
   (*data)->nextnode = 0;
  
   (*data)->node = NULL;
@@ -335,7 +333,8 @@ int cbf_put_table (cbf_compress_data *data, unsigned int *bitcount)
 
   endcode = 1 << data->bits;
 
-  for (codes = endcode + data->maxbits; data->node [codes].bitcount == 0; codes--);
+  for (codes = endcode + data->maxbits; data->node [codes].bitcount == 0; 
+       codes--);
 
   codes++;
     
@@ -363,8 +362,9 @@ int cbf_put_table (cbf_compress_data *data, unsigned int *bitcount)
 
       count = endcode + data->bits + 1;
 
-    cbf_failnez (cbf_put_integer \
-      (data->file, data->node [count].bitcount, 0, CBF_TABLEENTRYBITS))
+    cbf_failnez (cbf_put_integer (data->file, 
+                                  data->node [count].bitcount, 0, 
+                                  CBF_TABLEENTRYBITS))
 
     *bitcount += CBF_TABLEENTRYBITS;
   }
@@ -385,14 +385,14 @@ int cbf_get_table (cbf_compress_data *data)
 
     /* Coded bits */
 
-  cbf_failnez (cbf_get_integer \
-    (data->file, (int *) &bits, 0, CBF_TABLEENTRYBITS))
+  cbf_failnez (cbf_get_integer (data->file, (int *) &bits, 0, 
+                                CBF_TABLEENTRYBITS))
 
 
     /* Maximum number of bits */
 
-  cbf_failnez (cbf_get_integer \
-    (data->file, (int *) &maxbits, 0, CBF_TABLEENTRYBITS))
+  cbf_failnez (cbf_get_integer (data->file, (int *) &maxbits, 0, 
+                                CBF_TABLEENTRYBITS))
 
 
     /* Initialise the data */
@@ -411,7 +411,8 @@ int cbf_get_table (cbf_compress_data *data)
 
   for (count = 0; count <= endcode + maxbits; count++)
   {
-    cbf_failnez (cbf_get_integer (data->file, (int *) &bits, 0, CBF_TABLEENTRYBITS))
+    cbf_failnez (cbf_get_integer (data->file, (int *) &bits, 0, 
+                                  CBF_TABLEENTRYBITS))
 
     if (count == endcode + 1)
 
@@ -435,11 +436,10 @@ int cbf_put_stopcode (cbf_compress_data *data, unsigned int *bitcount)
   
   endcode = 1 << data->bits;
 
-  cbf_failnez (cbf_put_bits (data->file, (int *) data->node [endcode].bitcode,
-                                             data->node [endcode].bitcount))
+  cbf_failnez (cbf_put_bits (data->file, 
+                             (int *) data->node [endcode].bitcode,
+                                     data->node [endcode].bitcount))
 
-  cbf_failnez (cbf_put_integer (data->file, 0, 0, 7))
-     
   *bitcount = data->node [endcode].bitcount;
 
 
@@ -451,7 +451,8 @@ int cbf_put_stopcode (cbf_compress_data *data, unsigned int *bitcount)
 
   /* Insert a node into a tree */
 
-cbf_compress_node *cbf_insert_node (cbf_compress_node *tree, cbf_compress_node *node)
+cbf_compress_node *cbf_insert_node (cbf_compress_node *tree, 
+                                    cbf_compress_node *node)
 {
   if (tree)
   {
@@ -472,7 +473,8 @@ cbf_compress_node *cbf_insert_node (cbf_compress_node *tree, cbf_compress_node *
 
   /* Append a node to a list */
 
-cbf_compress_node *cbf_append_node (cbf_compress_node *list, cbf_compress_node *node)
+cbf_compress_node *cbf_append_node (cbf_compress_node *list, 
+                                    cbf_compress_node *node)
 {
   cbf_compress_node *next;
 
@@ -499,8 +501,8 @@ cbf_compress_node *cbf_order_node (cbf_compress_node *tree)
 {
   if (tree)
   
-    return cbf_append_node (cbf_append_node (cbf_order_node (tree->child [0]), tree),
-                                             cbf_order_node (tree->child [1]));
+    return cbf_append_node (cbf_append_node (cbf_order_node (tree->child [0]), 
+                                     tree),  cbf_order_node (tree->child [1]));
 
   return NULL;
 }
@@ -889,7 +891,7 @@ unsigned long cbf_count_bits (cbf_compress_data *data)
   
     /* Basic entries */
     
-  bitcount = 5 * 64;
+  bitcount = 4 * 64;
 
 
     /* How many symbols do we actually use? */
@@ -1086,7 +1088,7 @@ int cbf_put_code (cbf_compress_data *data, int code, unsigned int overflow,
   /* Count the values */
 
 int cbf_count_values (cbf_compress_data *data,
-                      void *buf, size_t elsize, int elsign, size_t nelem,
+                      void *source, size_t elsize, int elsign, size_t nelem,
                       int *minelem, int *maxelem)
 {
   int code;
@@ -1110,7 +1112,7 @@ int cbf_count_values (cbf_compress_data *data,
 
     /* Initialise the pointers */
 
-  unsigned_char_data = (unsigned char *) buf;
+  unsigned_char_data = (unsigned char *) source;
 
   node = data->node;
 
@@ -1279,14 +1281,18 @@ int cbf_count_values (cbf_compress_data *data,
 
   /* Compress an array */
 
-int cbf_compress_canonical (void *buf, size_t elsize, int elsign, size_t nelem,
-                            unsigned int compression, size_t repeat,
-                            cbf_file *file, size_t *binsize)
+int cbf_compress_canonical (void         *source, 
+                            size_t        elsize, 
+                            int           elsign, 
+                            size_t        nelem, 
+                            unsigned int  compression, 
+                            cbf_file     *file, 
+                            size_t       *binsize,
+                            int          *storedbits)
 {
   int code, minelement, maxelement;
 
-  unsigned int count, element, lastelement, bits,
-           unsign, sign, limit, endcode;
+  unsigned int count, element, lastelement, bits, unsign, sign, limit, endcode;
            
   unsigned long bitcount, expected_bitcount;
 
@@ -1311,14 +1317,14 @@ int cbf_compress_canonical (void *buf, size_t elsize, int elsign, size_t nelem,
   cbf_failnez (cbf_make_compressdata (&data, file))
 
   cbf_onfailnez (cbf_initialise_compressdata (data, 8, 0), 
-                   cbf_free_compressdata (data))
+                 cbf_free_compressdata (data))
 
 
     /* Count the symbols */
 
-  cbf_onfailnez (cbf_count_values (data, buf, elsize, elsign, nelem, 
-                               &minelement, &maxelement),
-                               cbf_free_compressdata (data))
+  cbf_onfailnez (cbf_count_values (data, source, elsize, elsign, nelem, 
+                                   &minelement, &maxelement),
+                                   cbf_free_compressdata (data))
 
 
     /* Generate the code lengths */
@@ -1335,32 +1341,32 @@ int cbf_compress_canonical (void *buf, size_t elsize, int elsign, size_t nelem,
     /* Count the expected number of bits */
 
   expected_bitcount = cbf_count_bits (data);
-
-
+  
+  
     /* Write the number of elements (64 bits) */
 
   cbf_onfailnez (cbf_put_integer (file, nelem, 0, 64),
-             cbf_free_compressdata (data))
+                 cbf_free_compressdata (data))
 
 
     /* Write the minimum element (64 bits) */
 
   cbf_onfailnez (cbf_put_integer (file, minelement, elsign, 64),
-             cbf_free_compressdata (data))
+                 cbf_free_compressdata (data))
 
 
     /* Write the maximum element (64 bits) */
 
   cbf_onfailnez (cbf_put_integer (file, maxelement, elsign, 64),
-             cbf_free_compressdata (data))
+                 cbf_free_compressdata (data))
 
 
-    /* Write the repeat size (64 bits) */
+    /* Write the reserved entry (64 bits) */
 
-  cbf_onfailnez (cbf_put_integer (file, repeat, 0, 64),
-               cbf_free_compressdata (data))
+  cbf_onfailnez (cbf_put_integer (file, 0, 0, 64),
+                 cbf_free_compressdata (data))
 
-  bitcount = 5 * 64;
+  bitcount = 4 * 64;
   
 
     /* Write the table */
@@ -1378,7 +1384,7 @@ int cbf_compress_canonical (void *buf, size_t elsize, int elsign, size_t nelem,
   
     /* Initialise the pointers */
 
-  unsigned_char_data = (unsigned char *) buf;
+  unsigned_char_data = (unsigned char *) source;
 
   node = data->node;
 
@@ -1390,12 +1396,20 @@ int cbf_compress_canonical (void *buf, size_t elsize, int elsign, size_t nelem,
     sign = 1 << CBF_SHIFT63;
 
     limit = ~-(sign << 1);
+    
+    if (storedbits)
+    
+      *storedbits = 64;
   }
   else
   {
     sign = 1 << (elsize * CHAR_BIT - 1);
 
     limit = ~0;
+
+    if (storedbits)
+    
+      *storedbits = elsize * CHAR_BIT;
   }
 
 
@@ -1463,8 +1477,8 @@ int cbf_compress_canonical (void *buf, size_t elsize, int elsign, size_t nelem,
       /* Write the (overflowed?) code */
 
     cbf_onfailnez (cbf_put_code (data, code, 
-               (element < lastelement) ^ (code < 0), &bits),
-                cbf_free_compressdata (data))
+                  (element < lastelement) ^ (code < 0), &bits),
+                   cbf_free_compressdata (data))
 
     bitcount += bits;
 
@@ -1513,10 +1527,13 @@ int cbf_compress_canonical (void *buf, size_t elsize, int elsign, size_t nelem,
 
   /* Decompress an array (from the start of the table) */
 
-int cbf_decompress_canonical (void *buf, size_t elsize, int elsign, 
-                              size_t nelem, size_t *nelem_read,
-                              unsigned int compression, 
-                              size_t repeat, cbf_file *file)
+int cbf_decompress_canonical (void         *destination, 
+                              size_t        elsize, 
+                              int           elsign, 
+                              size_t        nelem, 
+                              size_t       *nelem_read,
+                              unsigned int  compression, 
+                              cbf_file     *file)
 {
   unsigned int bits, element, sign, unsign, limit, count64, count;
 
@@ -1540,6 +1557,11 @@ int cbf_decompress_canonical (void *buf, size_t elsize, int elsign,
     return CBF_ARGUMENT;
 
 
+    /* Discard the reserved entry (64 bits) */
+
+  cbf_failnez (cbf_get_integer (file, NULL, 0, 64))
+
+
     /* Create and initialise the compression data */
 
   cbf_failnez (cbf_make_compressdata (&data, file))
@@ -1557,7 +1579,7 @@ int cbf_decompress_canonical (void *buf, size_t elsize, int elsign,
 
     /* Initialise the pointer */
 
-  unsigned_char_data = (unsigned char *) buf;
+  unsigned_char_data = (unsigned char *) destination;
 
 
     /* Maximum limit (unsigned) is 64 bits */
@@ -1695,6 +1717,3 @@ int cbf_decompress_canonical (void *buf, size_t elsize, int elsign,
 }
 
 #endif
-
-
-

@@ -22,17 +22,19 @@ ALT="[CBF/imgCIF]"></A>
 </font><font color="#000000">
 The following are examples of CBF and imgCIF files prodiced by CBFlib.
 All of these files were produced from the same MAR image file
-<a href="../example.mar2300">example.mar2300</a>
+<a href="../example.mar2300">example.mar2300</a> (3.6 MB)
 provided by Paul Ellis. Thanks to Bob Sweet at BNL for providing
 the computer access and disk space to store earlier versions of
 these examples.
 <P>
 The first example, 
 <a
-href="../makecbf.cbf">
-makecbf.cbf</a> (3.7 MB),
-is a CBF produced by Paul Ellis's test
-program makecbf.
+href="../makecbf.cbf.gz">
+makecbf.cbf.gz</a> (3.7 MB),
+is a compressed copy of a CBF produced by Paul Ellis's test
+program makecbf.  (The compression is just to help ensure
+binary transmission on the web; the compressed file is approximately 
+the same size as the original.)
 The binary data is CBF_PACKED compressed and carried as raw binary data.
 The loop for the binary data begins:
 <P>
@@ -49,20 +51,20 @@ Content-Type: application/octet-stream;
 Content-Transfer-Encoding: BINARY
 X-Binary-Size: 3745758
 X-Binary-ID: 1
+X-Binary-Element-Type: &quot;signed 32-bit integer&quot;
 Content-MD5: 1zsJjWPfol2GYl2V+QSXrw==
 
-
-U^^^^^^^f'9^^^^^`^^^^^^^8P^^^^^^^^^^^^^^^^^^^^^^^^^^^^^GqGqFA
+^L^Z^D&lt;D5&gt;^P&lt;B8&gt;P^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@
 
 </PRE>
 The second example,
 <a
-href="../img2cif_packed.cif">
-img2cif_packed.cif</a> (5.1 MB),
-is an imgCIF produced by the
+href="../img2cif_packed.cif.gz">
+img2cif_packed.cif.gz</a> (3.8 MB),
+is a compressed copy of an imgCIF produced by the
 program img2cif.
 The binary data is CBF_PACKED compressed, as in makecbf.cbf,  but is
-BASE64 encoded.
+cdBASE64 encoded.
 The loop for the binary data begins:
 <P>
 <PRE>
@@ -78,6 +80,7 @@ Content-Type: application/octet-stream;
 Content-Transfer-Encoding: BASE64
 X-Binary-Size: 3745758
 X-Binary-ID: 1
+X-Binary-Element-Type: "signed 32-bit integer"
 Content-MD5: 1zsJjWPfol2GYl2V+QSXrw==
 
 ELhQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADHcRzHcRxGQQwCZsGuAKUFAIhS93U8
@@ -87,14 +90,14 @@ EFa5G/3Gfq94GwLjHNE+gd8ndgf1foI+GN2LQIAneVRf9rXyCkwIyc/y/ILuHsdxHMdxHMdx
 HMdxGAURAGraeHhJh6ccYbjVMKH5Xxjq3wx6VNQ4sPPCAxNNMrb/BEsADjdtYzBLtS+VJMtJ
 </PRE>
 <P>
-Note that the message digest and reported binary  size are the same as for
+Note that the message digest and reported binary size are the same as for
 the raw binary data.
 <P>
 The third example, 
 <a
-href="../cif2cbf_ehcn.cif">
-cif2cbf_ehcn.cif</a> (42.3 MB),
-is an imgCIF produced by the
+href="../cif2cbf_ehcn.cif.gz">
+cif2cbf_ehcn.cif.gz</a> (6.8 MB),
+is a compressed copy of an imgCIF produced by the
 program cif2cbf from makecbf.cbf.
 The binary data has been uncompressed and is presented in hexadecimal
 format.  The loop begins:
@@ -112,6 +115,7 @@ Content-Type: application/octet-stream
 Content-Transfer-Encoding: X-BASE16
 X-Binary-Size: 21160000
 X-Binary-ID: 1
+X-Binary-Element-Type: "signed 32-bit integer"
 Content-MD5: R90b0TjnRy6ffuF/S+kkFA==
 
 # Hexadecimal encoding, byte 0, byte order ...4321
@@ -125,7 +129,7 @@ Note that the size and message digest have changed because of undoing the
 compression.
 <P>
 <HR>
-Updated 15 November 1998.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
+Updated 13 January 1999.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
 yaya@bernstein-plus-sons.com</A>
 
 </body>

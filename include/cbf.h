@@ -73,8 +73,9 @@ extern "C" {
 
 #define PLAIN_HEADERS   0x0001  /* Use plain ASCII headers            */
 #define MIME_HEADERS    0x0002  /* Use MIME headers                   */
-#define MSG_NODIGEST    0x0004  /* Use no message digest              */
-#define MSG_DIGEST      0x0008  /* Message Digest                     */
+#define MSG_NODIGEST    0x0004  /* Do not check message digests       */
+#define MSG_DIGEST      0x0008  /* Check message digests              */
+#define MSG_DIGESTNOW   0x0010  /* Check message digests immediately  */
 
 #define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)
 
@@ -100,14 +101,27 @@ extern "C" {
 #define ENC_CRTERM      0x0100  /* Terminate lines with CR             */
 #define ENC_LFTERM      0x0200  /* Terminate lines with LF             */
 
-#define ENC_DEFAULT (ENC_BASE64 | ENC_LFTERM)
+#define ENC_DEFAULT (ENC_BASE64 | ENC_LFTERM | ENC_FORWARD)
 
 
   /* Convenience definitions for functions returning error codes */
 
+#ifdef CBFDEBUG
+
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+                      "\nCBFlib error %d in \"x\"\n", err); return err; }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+                      "\nCBFlib error %d in \"x\"\n", err); \
+                         { c; } return err; }}
+
+#else
+
 #define cbf_failnez(f) { int err; err = (f); if (err) return err; }
 
 #define cbf_onfailnez(f,c) { int err; err = (f); if (err) {{ c; } return err; }}
+
+#endif
 
 
   /* cbf handle */
@@ -385,28 +399,37 @@ int cbf_set_doublevalue (cbf_handle handle, const char *format, double number);
 
   /* Get the parameters of the current (row, column) array entry */
   
-int cbf_get_integerarrayparameters (cbf_handle handle, 
+int cbf_get_integerarrayparameters (cbf_handle    handle, 
                                     unsigned int *compression,
-                                    size_t *repeat, int *binary_id, 
-                                    size_t *elsize, int *elsigned, 
-                                    int *elunsigned, size_t *nelem,
-                                    int *minelem, int *maxelem);
+                                    int          *id, 
+                                    size_t       *elsize, 
+                                    int          *elsigned, 
+                                    int          *elunsigned, 
+                                    size_t       *nelem, 
+                                    int          *minelem, 
+                                    int          *maxelem);
 
 
   /* Get the value of the current (row, column) array entry */
   
-int cbf_get_integerarray (cbf_handle handle,
-                          int *binary_id,
-                          void *value, size_t elsize, int elsigned,
-                          size_t nelem, size_t *nelem_read);
+int cbf_get_integerarray (cbf_handle  handle,
+                          int        *id,
+                          void       *value, 
+                          size_t      elsize, 
+                          int         elsign,
+                          size_t      nelem, 
+                          size_t     *nelem_read);
 
 
   /* Set the value of the current (row, column) array entry */
   
-int cbf_set_integerarray (cbf_handle handle,
-                          unsigned int compression, size_t repeat,
-                          int binary_id, void *value, size_t elsize,
-                          int elsigned, size_t nelem);
+int cbf_set_integerarray (cbf_handle    handle,
+                          unsigned int  compression, 
+                          int           id, 
+                          void         *value, 
+                          size_t        elsize,
+                          int           elsign, 
+                          size_t        nelem);
 
 
 #ifdef __cplusplus

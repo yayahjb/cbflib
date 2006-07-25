@@ -12,6 +12,16 @@ extern "C" {
 #include "cbf_file.h"
 
 
+  /* Check a 24-character base-64 MD5 digest */
+
+int cbf_is_base64digest (const char *encoded_digest);
+
+
+  /* Encode a 16-character MD5 digest in base-64 (25 characters) */
+
+int cbf_md5digest_to64 (char *encoded_digest, const unsigned char *digest);
+
+
   /* Calculate the MD5 digest (25 characters) of a block of data */
 
 int cbf_md5digest (cbf_file *file, size_t size, char *digest);

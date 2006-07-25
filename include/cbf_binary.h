@@ -11,20 +11,55 @@ extern "C" {
 #include "cbf_tree.h"
 
 
+  /* Parse a binary text value */
+  
+int cbf_get_bintext (cbf_node  *column, unsigned int row,
+                     int       *type,
+                     int       *id, 
+                     cbf_file **file,
+                     long      *start,
+                     size_t    *size,
+                     int       *checked_digest,
+                     char      *digest,
+                     int       *elsize,
+                     int       *elsign,
+            unsigned int       *compression);
+   
+
+  /* Set a binary text value */
+  
+int cbf_set_bintext (cbf_node *column, unsigned int row,
+                     int         type,
+                     int         id, 
+                     cbf_file   *file,
+                     long        start,
+                     long        size,
+                     int         checked_digest,
+                     const char *digest,
+                     int         elsize,
+                     int         elsign,
+            unsigned int         compression);
+
+
   /* Check for a binary value */
 
-int cbf_is_binary (const char *value);
+int cbf_is_binary (cbf_node *column, unsigned int row);
+
+
+  /* Is this an encoded binary value? */
+
+int cbf_is_mimebinary (cbf_node *column, unsigned int row);
 
 
   /* Free a value */
 
-int cbf_free_value (cbf_context *context, const char **value);
+int cbf_free_value (cbf_context *context, cbf_node *column, unsigned int row);
 
 
   /* Set a binary value */
   
 int cbf_set_binary (cbf_node *column, unsigned int row,
-                    unsigned int compression, size_t repeat,
+                    unsigned int compression,
                     int binary_id, void *value, size_t elsize, int elsign,
                     size_t nelem);
 
@@ -33,7 +68,7 @@ int cbf_set_binary (cbf_node *column, unsigned int row,
   
 int cbf_binary_parameters (cbf_node *column, 
                            unsigned int row, unsigned int *compression,
-                           size_t *repeat, int *binary_id, 
+                           int *binary_id, 
                            int *eltype, size_t *elsize, 
                            int *elsigned, 
                            int *elunsigned,

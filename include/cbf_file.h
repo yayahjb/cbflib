@@ -17,29 +17,24 @@ extern "C" {
 
 typedef struct
 {
-  FILE *stream;                 /* File pointer */
-
-  unsigned int connections;     /* Number of pointers to this structure */
-  int          bits [2];        /* Buffer for bitwise reads and writes  */
-  int          last_read;       /* The last character read              */
-  unsigned int line;            /* Current line                         */
-  unsigned int column;          /* Current column                       */
-  unsigned int nscolumn;        /* Last non-space column                */
-  size_t       buffer_size;     /* Size of the buffer                   */
-  size_t       buffer_used;     /* Number in use                        */
- 
-  char        *buffer;          /* Buffer                               */
-  char        *digest_buffer;   /* Buffer for digest calculation        */
-  char        *digest_bpoint;   /* Buffer pointer for digest            */
-  MD5_CTX     *context;         /* Conext pointer for digest            */
-
-  int          read_headers;    /* message digest control (reading)         */
-  int          write_headers;   /* message digest and header type (writing) */
-  int          write_encoding;  /* encoding and line terminations (writing) */
+  FILE        *stream;            /* File pointer                           */
+  unsigned int connections;       /* Number of pointers to this structure   */
+  int          bits [2];          /* Buffer for bitwise reads and writes    */
+  char         characters [64];   /* Buffer for character writes            */
+  size_t       characters_used;   /* Characters in the character buffer     */
+  int          last_read;         /* The last character read                */
+  unsigned int line;              /* Current line                           */
+  unsigned int column;            /* Current column                         */
+  char        *buffer;            /* Buffer                                 */
+  size_t       buffer_size;       /* Size of the buffer                     */
+  size_t       buffer_used;       /* Number in use                          */
+  int          read_headers;      /* message digest control (read)          */
+  int          write_headers;     /* message digest and header type (write) */
+  int          write_encoding;    /* encoding and line terminations (write) */
+  MD5_CTX     *digest;            /* message digest context                 */
 }
 cbf_file;
 
-  extern int CBFbytedir;
 
   /* Create and initialise a file */
 
@@ -124,9 +119,34 @@ int cbf_get_integer (cbf_file *file, int *val, int valsign, int bitcount);
 int cbf_put_integer (cbf_file *file, int val, int valsign, int bitcount);
 
 
-  /* Discard any remaining bits */
+  /* Initialize a message digest */
+  
+int cbf_start_digest (cbf_file *file);
+
+
+  /* Get the message digest */
+  
+int cbf_end_digest (cbf_file *file, char *digest);
+
+
+  /* Discard any bits in the buffers */
 
 int cbf_reset_bits (cbf_file *file);
+
+
+  /* Discard any characters in the character buffers */
+
+int cbf_reset_characters (cbf_file *file);
+
+
+  /* Flush any remaining bits (write) */
+
+int cbf_flush_bits (cbf_file *file);
+
+
+  /* Flush the character buffer (write) */
+
+int cbf_flush_characters (cbf_file *file);
 
 
   /* Get the next character */
@@ -161,7 +181,7 @@ int cbf_write_string (cbf_file *file, const char *string);
 
   /* Read a (CR/LF)-terminated line into the buffer */
 
-int cbf_read_line (cbf_file *file, const char **line, unsigned int *nblen);
+int cbf_read_line (cbf_file *file, const char **line);
 
 
   /* Read nelem characters into the buffer */

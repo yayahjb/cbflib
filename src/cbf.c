@@ -1,14 +1,14 @@
 /**********************************************************************
  * cbf -- cbflib API functions                                        *
  *                                                                    *
- * Version 0.4 15 November 1998                                       *
+ * Version 0.6 13 January 1999                                        *
  *                                                                    *
- *          By Paul Ellis (ellis@ssrl.slac.stanford.edu) and          *
+ *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  **********************************************************************/
   
 /**********************************************************************
- *                                 NOTICE                             *
+ *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
  * are laws and customs which establish rights and responsibilities   *
  * for authors and the users of what authors create.  This notice     *
@@ -194,7 +194,7 @@ int cbf_read_file (cbf_handle handle, FILE *stream, int headers)
 
     return CBF_ARGUMENT;
 
-  if ((headers & MSG_DIGEST) && (headers & MSG_NODIGEST))
+  if (((headers & (MSG_DIGEST | MSG_DIGESTNOW)) && (headers & MSG_NODIGEST)))
 
     return CBF_ARGUMENT;
 
@@ -215,9 +215,13 @@ int cbf_read_file (cbf_handle handle, FILE *stream, int headers)
 
     /* Defaults */
     
-  if ((headers & (MSG_DIGEST | MSG_NODIGEST)) == 0)
+  if ((headers & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW)) == 0)
 
-    headers |= (HDR_DEFAULT & (MSG_DIGEST | MSG_NODIGEST));
+    headers |= (HDR_DEFAULT & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW));
+
+  if (headers & MSG_DIGESTNOW)
+  
+    headers |= MSG_DIGEST;
 
 
     /* Copy the flags */
@@ -305,10 +309,13 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
   if (!handle)
 
     return CBF_ARGUMENT;
-
-  if (((headers  & MIME_HEADERS) && (headers  & PLAIN_HEADERS)) ||
-      ((headers  & MSG_DIGEST)   && (headers  & MSG_NODIGEST))   ||
-      ((encoding & ENC_FORWARD)  && (encoding & ENC_BACKWARD)))
+    
+  if (((headers  & MIME_HEADERS)  && (headers  & PLAIN_HEADERS)) ||
+      ((headers  & MSG_DIGEST)    && (headers  & MSG_NODIGEST))  ||
+      ((headers  & MSG_DIGEST)    && (headers  & PLAIN_HEADERS)) ||
+      ((headers  & MSG_DIGESTNOW) && (headers  & MSG_NODIGEST))  ||
+      ((headers  & MSG_DIGESTNOW) && (headers  & PLAIN_HEADERS)) ||
+      ((encoding & ENC_FORWARD)   && (encoding & ENC_BACKWARD)))
 
     return CBF_ARGUMENT;
     
@@ -334,13 +341,29 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     /* Defaults */
     
-  if ((headers & (MIME_HEADERS | MIME_NOHEADERS)) == 0)
+  if (headers & (MSG_DIGEST | MSG_DIGESTNOW))
+  
+    headers |= MIME_HEADERS;
+    
+  else
+    
+    if ((headers & (MIME_HEADERS | PLAIN_HEADERS)) == 0)
 
-    headers |= (HDR_DEFAULT & (MIME_HEADERS | MIME_NOHEADERS));
+      headers |= (HDR_DEFAULT & (MIME_HEADERS | PLAIN_HEADERS));
 
-  if ((headers & (MSG_DIGEST | MSG_NODIGEST)) == 0)
+  if (headers & PLAIN_HEADERS)
+  
+    headers |= MSG_NODIGEST;
+    
+  else
 
-    headers |= (HDR_DEFAULT & (MSG_DIGEST | MSG_NODIGEST));
+    if ((headers & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW)) == 0)
+
+      headers |= (HDR_DEFAULT & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW));
+
+  if (headers & MSG_DIGESTNOW)
+  
+    headers |= MSG_DIGEST;
 
   if ((encoding & (ENC_NONE   |
                    ENC_BASE8  |
@@ -361,17 +384,8 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
     encoding |= (ENC_DEFAULT & (ENC_CRTERM | ENC_LFTERM));
 
   if ((encoding & (ENC_FORWARD | ENC_BACKWARD)) == 0)
-  {
-    little = 1;
-
-    if (((char *) &little) [0])
-
-      encoding |= ENC_FORWARD;
-
-    else
-
-      encoding |= ENC_BACKWARD;
-  }
+  
+    encoding |= (ENC_DEFAULT & (ENC_FORWARD | ENC_BACKWARD));
 
 
     /* Copy the flags */
@@ -1408,6 +1422,7 @@ int cbf_select_datablock (cbf_handle handle, unsigned int datablock)
   return 0;
 }
 
+
   /* Make the specified category the current category */
 
 int cbf_select_category (cbf_handle handle, unsigned int category)
@@ -1630,16 +1645,16 @@ int cbf_find_nextrow (cbf_handle handle, const char *value)
 
   for (row = handle->search_row; row < rows; row++)
   {
+      /* Is the value ascii? */
+
+    if (cbf_is_binary (node, row))
+
+      continue;
+
+
       /* Get the value of the current row */
 
     cbf_failnez (cbf_get_columnrow (&text, node, row))
-
-
-      /* Is the value ascii? */
-
-    if (cbf_is_binary (text))
-
-      continue;
 
 
       /* Compare the values */
@@ -1901,20 +1916,26 @@ int cbf_get_value (cbf_handle handle, const char **value)
     return CBF_ARGUMENT;
 
     
+    /* Is the value binary? */
+
+  if (cbf_is_binary (handle->node, handle->row))
+
+    return CBF_BINARY;
+
+
     /* Get the value */
 
   cbf_failnez (cbf_get_columnrow (&text, handle->node, handle->row))
 
-
-    /* Is the value binary? */
-
-  if (cbf_is_binary (text))
-
-    return CBF_BINARY;
-
   if (value)
+  
+    if (text)
 
-    *value = text + 1;
+      *value = text + 1;
+      
+    else
+    
+      *value = NULL;
 
 
     /* Success */
@@ -1951,7 +1972,7 @@ int cbf_set_value (cbf_handle handle, const char *value)
     
     /* Set the new value */
 
-  errorcode = cbf_set_columnrow (handle->node, handle->row, value);
+  errorcode = cbf_set_columnrow (handle->node, handle->row, value, 1);
 
   if (errorcode)
   {
@@ -2063,16 +2084,16 @@ int cbf_set_doublevalue (cbf_handle handle, const char *format, double number)
 
   /* Get the parameters of the current (row, column) array entry */
   
-int cbf_get_integerarrayparameters (cbf_handle handle, 
+int cbf_get_integerarrayparameters (cbf_handle    handle, 
                                     unsigned int *compression,
-                                    size_t *repeat, int *binary_id, 
-                                    size_t *elsize, int *elsigned, 
-                                    int *elunsigned, size_t *nelem, 
-                                    int *minelem, int *maxelem)
+                                    int          *id, 
+                                    size_t       *elsize, 
+                                    int          *elsigned, 
+                                    int          *elunsigned, 
+                                    size_t       *nelem, 
+                                    int          *minelem, 
+                                    int          *maxelem)
 {
-  const char *text;
-
-
     /* Check the arguments */
 
   if (!handle)
@@ -2080,22 +2101,17 @@ int cbf_get_integerarrayparameters (cbf_handle handle,
     return CBF_ARGUMENT;
 
     
-    /* Get the value */
-
-  cbf_failnez (cbf_get_columnrow (&text, handle->node, handle->row))
-
-
     /* Is the value binary? */
 
-  if (!cbf_is_binary (text))
+  if (!cbf_is_binary (handle->node, handle->row))
 
     return CBF_ASCII;
 
 
     /* Get the parameters */
 
-  return cbf_binary_parameters (handle->node, handle->row, compression,
-                                repeat, binary_id, NULL, elsize,
+  return cbf_binary_parameters (handle->node, handle->row, 
+                                compression, id, NULL, elsize,
                                 elsigned, elunsigned, nelem,
                                 minelem, maxelem);
 }
@@ -2103,34 +2119,39 @@ int cbf_get_integerarrayparameters (cbf_handle handle,
 
   /* Get the value of the current (row, column) array entry */
   
-int cbf_get_integerarray (cbf_handle handle,
-                          int *binary_id,
-                          void *value, size_t elsize, int elsign,
-                          size_t nelem, size_t *nelem_read)
+int cbf_get_integerarray (cbf_handle  handle,
+                          int        *id,
+                          void       *value, 
+                          size_t      elsize, 
+                          int         elsign,
+                          size_t      nelem, 
+                          size_t     *nelem_read)
 {
   if (!handle)
 
     return CBF_ARGUMENT;
 
-  return cbf_get_binary (handle->node, handle->row, binary_id,
+  return cbf_get_binary (handle->node, handle->row, id,
                          value, elsize, elsign, nelem, nelem_read);
 }
 
 
   /* Set the value of the current (row, column) array entry */
   
-int cbf_set_integerarray (cbf_handle handle,
-                          unsigned int compression, size_t repeat,
-                          int binary_id, void *value, size_t elsize,
-                          int elsign, size_t nelem)
+int cbf_set_integerarray (cbf_handle    handle,
+                          unsigned int  compression, 
+                          int           id, 
+                          void         *value, 
+                          size_t        elsize,
+                          int           elsign, 
+                          size_t        nelem)
 {
   if (!handle)
 
     return CBF_ARGUMENT;
 
   return cbf_set_binary (handle->node, handle->row,
-                         compression, repeat,
-                         binary_id, value, elsize, elsign, nelem);
+                         compression, id, value, elsize, elsign, nelem);
 }
 
 
@@ -2139,7 +2160,7 @@ int cbf_set_integerarray (cbf_handle handle,
 void cbf_warning (const char *message)
 
 {
-  fprintf (stderr," CBFlib:  warning -- %s\n", message);
+  fprintf (stderr, " CBFlib: warning -- %s\n", message);
 }
 
 
@@ -2147,7 +2168,7 @@ void cbf_warning (const char *message)
 
 void cbf_error (const char *message)
 {
-  fprintf (stderr," CBFlib:  error -- %s\n", message);
+  fprintf (stderr, " CBFlib: error -- %s\n", message);
 }
 
 
