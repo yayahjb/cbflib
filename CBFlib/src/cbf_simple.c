@@ -1,12 +1,117 @@
 /**********************************************************************
  * cbf_simple -- cbflib simplified API functions                      *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term ‘this software’, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -51,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -82,7 +187,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -188,7 +293,18 @@ int cbf_get_diffrn_id (cbf_handle handle, const char **diffrn_id)
   return 0;
 }
 
-    
+
+  /* Get the diffrn.id entry, creating it if necessary */
+
+int cbf_require_diffrn_id (cbf_handle handle, const char **diffrn_id, const char *default_id)
+{
+  cbf_failnez (cbf_require_category (handle, "diffrn"));
+  cbf_failnez (cbf_require_column   (handle, "id"));
+  cbf_failnez (cbf_require_value    (handle, diffrn_id, default_id))
+
+  return 0;
+}
+
   /* Change the diffrn.id entry in all the categories */
 
 int cbf_set_diffrn_id (cbf_handle handle, const char *diffrn_id)
@@ -198,7 +314,8 @@ int cbf_set_diffrn_id (cbf_handle handle, const char *diffrn_id)
   static char *categories [] = { "diffrn_source",
                                  "diffrn_radiation",
                                  "diffrn_detector",
-                                 "diffrn_measurement", 0 },
+                                 "diffrn_measurement",
+                                 "diffrn_orient_matrix", 0 },
               **category;
 
   cbf_failnez (cbf_find_category (handle, "diffrn"))
@@ -225,6 +342,14 @@ int cbf_set_diffrn_id (cbf_handle handle, const char *diffrn_id)
     }
   }
 
+  if (!cbf_find_category (handle, "cell")) {
+
+    cbf_failnez (cbf_find_column  (handle, "entry_id"))
+
+    cbf_failnez (cbf_set_value    (handle, diffrn_id))
+
+  }
+
   return 0;
 }
 
@@ -240,7 +365,7 @@ int cbf_get_crystal_id (cbf_handle handle, const char **crystal_id)
   return 0;
 }
 
-    
+
   /* Change the diffrn.crystal_id entry */
 
 int cbf_set_crystal_id (cbf_handle handle, const char *crystal_id)
@@ -303,7 +428,7 @@ int cbf_set_wavelength (cbf_handle handle, double wavelength)
   cbf_failnez (cbf_find_column     (handle, "id"))
   cbf_failnez (cbf_find_row        (handle, wavelength_id))
   cbf_failnez (cbf_find_column     (handle, "wavelength"))
-  cbf_failnez (cbf_set_doublevalue (handle, "%.6g", wavelength))
+  cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", wavelength))
   cbf_failnez (cbf_find_column     (handle, "wt"))
   cbf_failnez (cbf_set_value       (handle, "1.0"))
 
@@ -357,9 +482,9 @@ int cbf_set_polarization (cbf_handle handle, double polarizn_source_ratio,
   cbf_failnez (cbf_find_column     (handle, "diffrn_id"))
   cbf_failnez (cbf_find_row        (handle, diffrn_id))
   cbf_failnez (cbf_find_column     (handle, "polarizn_source_ratio"))
-  cbf_failnez (cbf_set_doublevalue (handle, "%.6g", polarizn_source_ratio))
+  cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", polarizn_source_ratio))
   cbf_failnez (cbf_find_column     (handle, "polarizn_source_norm"))
-  cbf_failnez (cbf_set_doublevalue (handle, "%.6g", polarizn_source_norm))
+  cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", polarizn_source_norm))
 
   return 0;
 }
@@ -415,11 +540,11 @@ int cbf_set_divergence (cbf_handle handle, double div_x_source,
   cbf_failnez (cbf_find_column     (handle, "diffrn_id"))
   cbf_failnez (cbf_find_row        (handle, diffrn_id))
   cbf_failnez (cbf_find_column     (handle, "div_x_source"))
-  cbf_failnez (cbf_set_doublevalue (handle, "%.6g", div_x_source))
+  cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", div_x_source))
   cbf_failnez (cbf_find_column     (handle, "div_y_source"))
-  cbf_failnez (cbf_set_doublevalue (handle, "%.6g", div_y_source))
+  cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", div_y_source))
   cbf_failnez (cbf_find_column     (handle, "div_x_y_source"))
-  cbf_failnez (cbf_set_doublevalue (handle, "%.6g", div_x_y_source))
+  cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", div_x_y_source))
 
   return 0;
 }
@@ -500,6 +625,7 @@ int cbf_get_element_id (cbf_handle handle, unsigned int element_number,
   return 0;
 }
 
+  /* Get the array id for a given detector element */
 
 int cbf_get_array_id (cbf_handle handle, unsigned int element_number,
                                          const char **array_id)
@@ -507,13 +633,153 @@ int cbf_get_array_id (cbf_handle handle, unsigned int element_number,
   const char *element_id;
 
   cbf_failnez (cbf_get_element_id (handle, element_number, &element_id))
-  cbf_failnez (cbf_find_category  (handle, "diffrn_data_frame"))
+  if ( cbf_find_category  (handle, "diffrn_data_frame") ) {
+      cbf_failnez (cbf_find_category  (handle, "diffrn_frame_data"))
+  }
   cbf_failnez (cbf_find_column    (handle, "detector_element_id"))
   cbf_failnez (cbf_find_row       (handle, element_id))
   cbf_failnez (cbf_find_column    (handle, "array_id"))
   cbf_failnez (cbf_get_value      (handle, array_id))
 
   return 0;
+}
+
+  /* Get the pixel size of a detector element in a given direction */
+
+int cbf_get_pixel_size(cbf_handle handle, unsigned int element_number,
+                                          unsigned int axis_number,
+                                          double * psize)
+{
+  const char *array_id;
+  int        aid, precedence, axis_index;
+
+  cbf_failnez (cbf_get_array_id   (handle, element_number, &array_id))
+
+  cbf_failnez (cbf_find_category (handle, "array_structure_list"))
+  cbf_failnez (cbf_find_column   (handle, "array_id"))
+
+  precedence = 0;
+
+  while (cbf_find_nextrow (handle, array_id) == 0)
+  {
+    cbf_failnez (cbf_find_column      (handle, "precedence"))
+    cbf_failnez (cbf_get_integervalue (handle, &precedence))
+
+    if (precedence < 1 || precedence > 3)
+
+      return CBF_FORMAT;
+
+    cbf_failnez (cbf_find_column      (handle, "index"))
+    cbf_failnez (cbf_get_integervalue (handle, &axis_index))
+
+    if (precedence == axis_number) break;
+
+    cbf_failnez (cbf_find_column (handle, "array_id"))
+  }
+
+  if (precedence != axis_number ) return CBF_NOTFOUND;
+
+  if ( cbf_find_category  (handle, "array_element_size") == 0 ) {
+    cbf_failnez (cbf_rewind_row     (handle))
+    cbf_failnez (cbf_find_column    (handle, "array_id"))
+
+    while (!cbf_find_nextrow (handle, array_id)) {
+      cbf_failnez (cbf_find_column        (handle, "index"))
+      cbf_failnez (cbf_get_integervalue   (handle, &aid))
+        if (aid == axis_index) {
+          cbf_failnez (cbf_find_column       (handle, "size"))
+          cbf_failnez (cbf_get_doublevalue(handle, psize))
+          *psize *= 1.e3;
+          return 0;
+        }
+      cbf_failnez (cbf_find_column    (handle, "array_id"))
+    }
+  }
+
+  return CBF_NOTFOUND;
+
+}
+
+  /* Set the pixel size of a detector element in a given direction */
+
+int cbf_set_pixel_size(cbf_handle handle, unsigned int element_number,
+                                          unsigned int axis_number,
+                                          double psize)
+{
+  const char *array_id;
+  int        aid, precedence, axis_index;
+
+  cbf_failnez (cbf_get_array_id   (handle, element_number, &array_id))
+
+  cbf_failnez (cbf_find_category (handle, "array_structure_list"))
+  cbf_failnez (cbf_find_column   (handle, "array_id"))
+
+  precedence = 0;
+
+  while (cbf_find_nextrow (handle, array_id) == 0)
+  {
+    cbf_failnez (cbf_find_column      (handle, "precedence"))
+    cbf_failnez (cbf_get_integervalue (handle, &precedence))
+
+    if (precedence < 1 || precedence > 3)
+
+      return CBF_FORMAT;
+
+    cbf_failnez (cbf_find_column      (handle, "index"))
+    cbf_failnez (cbf_get_integervalue (handle, &axis_index))
+
+    if (precedence == axis_number) break;
+
+    cbf_failnez (cbf_find_column (handle, "array_id"))
+  }
+
+  if (precedence != axis_number ) return CBF_NOTFOUND;
+
+  if ( cbf_find_category  (handle, "array_element_size") != 0 ) {
+
+    cbf_failnez (cbf_new_category     (handle, "array_element_size" ))
+
+    cbf_failnez (cbf_new_column       (handle, "array_id" ))
+    cbf_failnez (cbf_set_value        (handle, array_id ))
+
+    cbf_failnez (cbf_new_column       (handle, "index" ))
+    cbf_failnez (cbf_set_integervalue (handle,  axis_index ))
+
+    cbf_failnez (cbf_new_column       (handle, "size" ))
+    cbf_failnez (cbf_set_doublevalue  (handle, "%-.15g", psize*1.e-3))
+
+    return 0;
+
+  } else {
+
+    cbf_failnez (cbf_rewind_row     (handle))
+    cbf_failnez (cbf_find_column    (handle, "array_id"))
+
+    while (!cbf_find_nextrow (handle, array_id)) {
+      cbf_failnez (cbf_find_column    (handle, "index"))
+      cbf_failnez (cbf_get_integervalue      (handle, &aid))
+        if (aid == axis_index) {
+          cbf_failnez (cbf_find_column       (handle, "size"))
+          cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", psize*1.e-3))
+          return 0;
+        }
+      cbf_failnez (cbf_find_column    (handle, "array_id"))
+    }
+  }
+
+  cbf_failnez (cbf_new_row            (handle))
+
+  cbf_failnez (cbf_find_column        (handle, "array_id" ))
+  cbf_failnez (cbf_set_value          (handle, array_id ))
+
+  cbf_failnez (cbf_find_column        (handle, "index" ))
+  cbf_failnez (cbf_set_integervalue   (handle, (int)axis_index ))
+
+  cbf_failnez (cbf_find_column        (handle, "size" ))
+  cbf_failnez (cbf_set_doublevalue    (handle, "%-.15g", psize*1.e-3 ))
+
+  return 0;
+
 }
 
 
@@ -557,9 +823,9 @@ int cbf_set_gain (cbf_handle handle, unsigned int element_number,
   cbf_failnez (cbf_find_column     (handle, "array_id"))
   cbf_failnez (cbf_find_row        (handle, array_id))
   cbf_failnez (cbf_find_column     (handle, "gain"))
-  cbf_failnez (cbf_set_doublevalue (handle, "%.6g", gain))
+  cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", gain))
   cbf_failnez (cbf_find_column     (handle, "gain_esd"))
-  cbf_failnez (cbf_set_doublevalue (handle, "%.6g", gain_esd))
+  cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", gain_esd))
 
   return 0;
 }
@@ -603,7 +869,7 @@ int cbf_set_overload (cbf_handle handle, unsigned int element_number,
   cbf_failnez (cbf_find_column     (handle, "array_id"))
   cbf_failnez (cbf_find_row        (handle, array_id))
   cbf_failnez (cbf_find_column     (handle, "overload"))
-  cbf_failnez (cbf_set_doublevalue (handle, "%.6g", overload))
+  cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", overload))
 
   return 0;
 }
@@ -611,7 +877,7 @@ int cbf_set_overload (cbf_handle handle, unsigned int element_number,
 
   /* Get the integration time */
 
-int cbf_get_integration_time (cbf_handle    handle, 
+int cbf_get_integration_time (cbf_handle    handle,
                               unsigned int  reserved,
                               double       *time)
 {
@@ -647,7 +913,7 @@ int cbf_set_integration_time (cbf_handle   handle,
   cbf_failnez (cbf_find_category   (handle, "diffrn_scan_frame"))
   cbf_failnez (cbf_find_column     (handle, "integration_time"))
   cbf_failnez (cbf_rewind_row      (handle))
-  cbf_failnez (cbf_set_doublevalue (handle, "%.6g", time))
+  cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", time))
 
   return 0;
 }
@@ -655,10 +921,10 @@ int cbf_set_integration_time (cbf_handle   handle,
 
   /* Convert gregorian to julian date (in days) */
 
-double cbf_gregorian_julian (int    year, 
-                             int    month, 
-                             int    day, 
-                             int    hour, 
+double cbf_gregorian_julian (int    year,
+                             int    month,
+                             int    day,
+                             int    hour,
                              int    minute,
                              double second)
 {
@@ -701,7 +967,7 @@ int cbf_get_timestamp (cbf_handle handle, unsigned int  reserved,
 
   if (time)
 
-    *time = (cbf_gregorian_julian (year, month, day, 
+    *time = (cbf_gregorian_julian (year, month, day,
                                        hour, minute, second)
              - 2440587.5) * 86400.0;
 
@@ -721,7 +987,7 @@ int cbf_get_datestamp (cbf_handle handle, unsigned int  reserved,
                                           int          *timezone)
 {
   const char *date;
-    
+
   char ftzsign;
 
   int fyear, fmonth, fday, fhour, fminute, ftzhour, ftzminute, parsed;
@@ -743,19 +1009,19 @@ int cbf_get_datestamp (cbf_handle handle, unsigned int  reserved,
 
     /* Parse the string */
 
-  fsecond = 
-  fyear   = 
-  fmonth  = 
-  fday    = 
-  fhour   = 
-  fminute = 
+  fsecond =
+  fyear   =
+  fmonth  =
+  fday    =
+  fhour   =
+  fminute =
   ftzsign =
-  ftzhour = 
+  ftzhour =
   ftzminute = 0;
 
-  parsed = sscanf (date, "%d-%d-%d%*c%d:%d:%lf%c%d:%d", 
+  parsed = sscanf (date, "%d-%d-%d%*c%d:%d:%lf%c%d:%d",
                                      &fyear, &fmonth, &fday, &fhour,
-                                     &fminute, &fsecond, 
+                                     &fminute, &fsecond,
                                      &ftzsign, &ftzhour, &ftzminute);
 
   if (parsed < 3 || (parsed == 7 && strchr (" \t\n", ftzsign) == NULL)
@@ -763,11 +1029,11 @@ int cbf_get_datestamp (cbf_handle handle, unsigned int  reserved,
 
     return CBF_FORMAT;
 
-  if (fyear < 0 || fyear > 9999 
-                || fmonth < 1 
-                || fmonth > 12 
-                || fday < 1 
-                || fday > 31 
+  if (fyear < 0 || fyear > 9999
+                || fmonth < 1
+                || fmonth > 12
+                || fday < 1
+                || fday > 31
                 || fhour < 0
                 || fhour > 23
                 || fminute < 0
@@ -811,19 +1077,19 @@ int cbf_get_datestamp (cbf_handle handle, unsigned int  reserved,
   /* Set the collection date and time (1) as seconds since January 1 1970 */
 
 int cbf_set_timestamp (cbf_handle handle, unsigned int reserved,
-                                          double       time, 
+                                          double       time,
                                           int          timezone,
                                           double       precision)
 {
   int month, monthstep, year, day, hour, minute;
 
   double second, date;
-    
+
   if (reserved != 0)
 
     return CBF_ARGUMENT;
 
-    
+
   date = time / 86400.0 + 2440587.5;
 
   if (date < 1721060.5 || date > 5373484.5)
@@ -837,7 +1103,7 @@ int cbf_set_timestamp (cbf_handle handle, unsigned int reserved,
   {
     month += monthstep;
 
-    if (cbf_gregorian_julian (month / 12, 
+    if (cbf_gregorian_julian (month / 12,
                              (month % 12) + 1, 1, 0, 0, 0) > date)
 
      month -= monthstep;
@@ -865,11 +1131,11 @@ int cbf_set_timestamp (cbf_handle handle, unsigned int reserved,
 
   second = date * 86400.0;
 
-    
+
     /* Set the new date */
 
   cbf_failnez (cbf_set_datestamp (handle, reserved, year, month, day,
-                                     hour, minute, second, 
+                                     hour, minute, second,
                                      timezone, precision))
 
   return 0;
@@ -899,11 +1165,11 @@ int cbf_set_datestamp (cbf_handle handle, unsigned int reserved,
 
     /* Print the date in CIF format */
 
-  if (year < 0 || year > 9999 
-               || month < 1 
-               || month > 12 
-               || day < 1 
-               || day > 31 
+  if (year < 0 || year > 9999
+               || month < 1
+               || month > 12
+               || day < 1
+               || day > 31
                || hour < 0
                || hour > 23
                || minute < 0
@@ -926,14 +1192,14 @@ int cbf_set_datestamp (cbf_handle handle, unsigned int reserved,
 
     nsf = (int) (-log10 (precision) + 0.5);
 
-  sprintf (date, "%04d-%02d-%02dT%02d:%02d:%0*.*f", year, month, day, 
+  sprintf (date, "%04d-%02d-%02dT%02d:%02d:%0*.*f", year, month, day,
                    hour, minute, nsf == 0 ? 2 : nsf + 3, nsf, second);
 
   if (timezone != CBF_NOTIMEZONE)
 
     sprintf (date + strlen (date), "%c%02d:%02d", timezone < 0 ? '-' : '+',
                                                   abs (timezone) / 60,
-                                                  abs (timezone) % 60); 
+                                                  abs (timezone) % 60);
 
 
     /* Update the diffrn_scan_frame category */
@@ -973,7 +1239,7 @@ int cbf_set_current_timestamp (cbf_handle handle, unsigned int reserved,
   /* Read an image */
 
 int cbf_get_image_size (cbf_handle    handle,
-                        unsigned int  reserved, 
+                        unsigned int  reserved,
                         unsigned int  element_number,
                         size_t       *ndim1,
                         size_t       *ndim2)
@@ -1051,17 +1317,17 @@ int cbf_get_image_size (cbf_handle    handle,
   /* Read a binary section into an image */
 
 int cbf_get_image (cbf_handle    handle,
-                   unsigned int  reserved, 
-                   unsigned int  element_number, 
-                   void         *array, 
-                   size_t        elsize, 
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   void         *array,
+                   size_t        elsize,
                    int           elsign,
                    size_t        ndim1,
                    size_t        ndim2)
 {
   const char *direction_string, *array_id;
-  
-  int code, done [3], precedence, direction [3], binary_id, dir1, dir2, 
+
+  int code, done [3], precedence, direction [3], binary_id, dir1, dir2,
       index1, index2, start1, end1, inc1, start2, end2, inc2;
 
   size_t nelem_read, dim1, dim2;
@@ -1076,18 +1342,18 @@ int cbf_get_image (cbf_handle    handle,
 
 
     /* Get the index dimensions */
-    
+
   cbf_failnez (cbf_get_image_size (handle, reserved, element_number,
                                    &dim1, &dim2))
-                                   
-                                   
+
+
     /* Check that the fast dimensions correspond */
-    
+
   if (dim2 != ndim2)
-  
+
     return CBF_ARGUMENT;
 
-    
+
     /* Get the index directions from the array_structure_list category */
 
   done [1] = done [2] = 0;
@@ -1107,21 +1373,21 @@ int cbf_get_image (cbf_handle    handle,
       return CBF_FORMAT;
 
     code = cbf_find_column (handle, "direction");
-    
+
     if (code == 0)
     {
       cbf_failnez (cbf_get_value (handle, &direction_string))
-    
+
       if (cbf_cistrcmp ("decreasing", direction_string) == 0)
-    
+
         direction [precedence] = -1;
     }
     else
-    
+
       if (code != CBF_NOTFOUND)
-      
+
         return code;
-    
+
     if (done [precedence])
 
       return CBF_FORMAT;
@@ -1150,7 +1416,7 @@ int cbf_get_image (cbf_handle    handle,
 
 
     /* Find the binary data */
-  
+
   cbf_failnez (cbf_find_category (handle, "array_data"))
   cbf_failnez (cbf_find_column   (handle, "array_id"))
   cbf_failnez (cbf_find_row      (handle, array_id))
@@ -1162,13 +1428,13 @@ int cbf_get_image (cbf_handle    handle,
   if (ndim1 * ndim2 <= 0)
 
     return CBF_ARGUMENT;
-  
-  cbf_failnez (cbf_get_integerarray (handle, &binary_id, 
+
+  cbf_failnez (cbf_get_integerarray (handle, &binary_id,
                array, elsize, elsign, ndim1 * ndim2, &nelem_read))
 
 
     /* Reorder the data if necessary */
-    
+
 #ifndef CBF_0721_READS
 
   if (dir1 < 0 || dir2 < 0)
@@ -1198,11 +1464,11 @@ int cbf_get_image (cbf_handle    handle,
       end2 = -1;
       inc2 = -1;
     }
-    
+
     pixel = (char *) array;
-    
+
     for (index1 = start1; index1 != end1; index1 += inc1)
-    
+
       for (index2 = start2; index2 != end2; index2 += inc2)
       {
         pixel2 = ((char *) array) + (index1 * ndim2 + index2) * elsize;
@@ -1224,12 +1490,201 @@ int cbf_get_image (cbf_handle    handle,
 
         }
 
-        pixel += elsize;        
+        pixel += elsize;
       }
   }
 
 #endif
-    
+
+  if (ndim1 * ndim2 != nelem_read)
+
+    return CBF_ENDOFDATA;
+
+  return 0;
+}
+
+
+  /* Read a binary section into an image */
+
+int cbf_get_real_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2)
+{
+  const char *direction_string, *array_id;
+
+  int code, done [3], precedence, direction [3], binary_id, dir1, dir2,
+      index1, index2, start1, end1, inc1, start2, end2, inc2;
+
+  size_t nelem_read, dim1, dim2;
+
+  char tmp [32], *pixel, *pixel2;
+
+  if (reserved != 0)
+
+    return CBF_ARGUMENT;
+
+  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+
+
+    /* Get the index dimensions */
+
+  cbf_failnez (cbf_get_image_size (handle, reserved, element_number,
+                                   &dim1, &dim2))
+
+
+    /* Check that the fast dimensions correspond */
+
+  if (dim2 != ndim2)
+
+    return CBF_ARGUMENT;
+
+
+    /* Get the index directions from the array_structure_list category */
+
+  done [1] = done [2] = 0;
+
+  direction [1] = direction [2] = 1;
+
+  cbf_failnez (cbf_find_category (handle, "array_structure_list"))
+  cbf_failnez (cbf_find_column   (handle, "array_id"))
+
+  while (cbf_find_nextrow (handle, array_id) == 0)
+  {
+    cbf_failnez (cbf_find_column      (handle, "precedence"))
+    cbf_failnez (cbf_get_integervalue (handle, &precedence))
+
+    if (precedence < 1 || precedence > 2)
+
+      return CBF_FORMAT;
+
+    code = cbf_find_column (handle, "direction");
+
+    if (code == 0)
+    {
+      cbf_failnez (cbf_get_value (handle, &direction_string))
+
+      if (cbf_cistrcmp ("decreasing", direction_string) == 0)
+
+        direction [precedence] = -1;
+    }
+    else
+
+      if (code != CBF_NOTFOUND)
+
+        return code;
+
+    if (done [precedence])
+
+      return CBF_FORMAT;
+
+    done [precedence] = 1;
+
+    cbf_failnez (cbf_find_column (handle, "array_id"))
+  }
+
+  if (!done [1])
+
+    return CBF_NOTFOUND;
+
+  if (!done [2])
+  {
+    dir1 = direction [1];
+
+    dir2 = 1;
+  }
+  else
+  {
+    dir1 = direction [2];
+
+    dir2 = direction [1];
+  }
+
+
+    /* Find the binary data */
+
+  cbf_failnez (cbf_find_category (handle, "array_data"))
+  cbf_failnez (cbf_find_column   (handle, "array_id"))
+  cbf_failnez (cbf_find_row      (handle, array_id))
+  cbf_failnez (cbf_find_column   (handle, "data"))
+
+
+    /* Read the binary data */
+
+  if (ndim1 * ndim2 <= 0)
+
+    return CBF_ARGUMENT;
+
+  cbf_failnez (cbf_get_realarray (handle, &binary_id,
+               array, elsize, ndim1 * ndim2, &nelem_read))
+
+
+    /* Reorder the data if necessary */
+
+#ifndef CBF_0721_READS
+
+  if (dir1 < 0 || dir2 < 0)
+  {
+    if (dir1 >= 0)
+    {
+      start1 = 0;
+      end1 = ndim1;
+      inc1 = 1;
+    }
+    else
+    {
+      start1 = ndim1 - 1;
+      end1 = -1;
+      inc1 = -1;
+    }
+
+    if (dir2 >= 0)
+    {
+      start2 = 0;
+      end2 = ndim2;
+      inc2 = 1;
+    }
+    else
+    {
+      start2 = ndim2 - 1;
+      end2 = -1;
+      inc2 = -1;
+    }
+
+    pixel = (char *) array;
+
+    for (index1 = start1; index1 != end1; index1 += inc1)
+
+      for (index2 = start2; index2 != end2; index2 += inc2)
+      {
+        pixel2 = ((char *) array) + (index1 * ndim2 + index2) * elsize;
+
+        if (pixel < pixel2) {
+
+          if (elsize == sizeof (int))
+          {
+            *((int *) tmp)    = *((int *) pixel);
+            *((int *) pixel)  = *((int *) pixel2);
+            *((int *) pixel2) = *((int *) tmp);
+          }
+          else
+          {
+            memcpy (tmp, pixel, elsize);
+            memcpy (pixel, pixel2, elsize);
+            memcpy (pixel2, tmp, elsize);
+          }
+
+        }
+
+        pixel += elsize;
+      }
+  }
+
+#endif
+
   if (ndim1 * ndim2 != nelem_read)
 
     return CBF_ENDOFDATA;
@@ -1244,13 +1699,15 @@ int cbf_set_image (cbf_handle    handle,
                    unsigned int  reserved,
                    unsigned int  element_number,
                    unsigned int  compression,
-                   void         *array, 
+                   void         *array,
                    size_t        elsize,
-                   int           elsign, 
+                   int           elsign,
                    size_t        ndim1,
                    size_t        ndim2)
 {
   const char *array_id;
+
+  char enctype[30];
 
   int binary_id, done [3], precedence, dimension [3];
 
@@ -1264,7 +1721,7 @@ int cbf_set_image (cbf_handle    handle,
     /* Update the array_structure_list category */
 
   if (ndim1 == 0)
-        
+
     dimension [2] = 1;
 
   else
@@ -1272,7 +1729,7 @@ int cbf_set_image (cbf_handle    handle,
     dimension [2] = ndim1;
 
   if (ndim2 == 0)
-        
+
     dimension [1] = 1;
 
   else
@@ -1309,11 +1766,18 @@ int cbf_set_image (cbf_handle    handle,
 
     /* Get the binary_id */
 
-  cbf_failnez (cbf_find_category    (handle, "array_data"))
-  cbf_failnez (cbf_find_column      (handle, "array_id"))
-  cbf_failnez (cbf_find_row         (handle, array_id))
-  cbf_failnez (cbf_find_column      (handle, "binary_id"))
-  cbf_failnez (cbf_get_integervalue (handle, &binary_id))
+  cbf_failnez (cbf_require_category (handle, "array_data"))
+  cbf_failnez (cbf_require_column   (handle, "array_id"))
+  cbf_failnez (cbf_rewind_row       (handle))
+  if (cbf_find_row (handle, array_id)) {
+    cbf_failnez (cbf_new_row(handle))
+    cbf_failnez (cbf_set_value(handle,array_id))
+  }
+  cbf_failnez (cbf_require_column   (handle, "binary_id"))
+  if (cbf_get_integervalue (handle, &binary_id)) {
+    binary_id = 1;
+    cbf_failnez (cbf_set_integervalue (handle, binary_id))
+  }
   cbf_failnez (cbf_find_column      (handle, "data"))
 
 
@@ -1322,6 +1786,203 @@ int cbf_set_image (cbf_handle    handle,
   cbf_failnez (cbf_set_integerarray (handle, compression, binary_id,
                                      array, elsize, elsign,
                                      dimension [1] * dimension [2]))
+
+    /* Update the array_structure category */
+
+  cbf_failnez (cbf_require_category (handle, "array_structure"))
+  cbf_failnez (cbf_require_column   (handle, "id"))
+  cbf_failnez (cbf_rewind_row       (handle))
+  if (cbf_find_row (handle, array_id)) {
+    cbf_failnez (cbf_new_row(handle))
+    cbf_failnez (cbf_set_value(handle,array_id))
+    cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+  }
+  cbf_failnez (cbf_require_column   (handle, "encoding_type"))
+  if (elsign) {
+    sprintf(enctype,"signed %d-bit integer", ((int)elsize)*8);
+  } else {
+    sprintf(enctype,"unsigned %d-bit integer", ((int)elsize)*8);
+  }
+  cbf_failnez (cbf_set_value        (handle,enctype))
+  cbf_failnez (cbf_set_typeofvalue  (handle,"dblq"))
+  cbf_failnez (cbf_require_column   (handle, "compression_type"))
+  switch (compression) {
+    case (CBF_NONE):
+      cbf_failnez (cbf_set_value      (handle,"none"))
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+      break;
+    case (CBF_CANONICAL):
+      cbf_failnez (cbf_set_value      (handle,"canonical")) break;
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+      break;
+    case (CBF_PACKED):
+      cbf_failnez (cbf_set_value      (handle,"packed")) break;
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+      break;
+    case (CBF_BYTE_OFFSET):
+      cbf_failnez (cbf_set_value      (handle,"byte_offsets")) break;
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+      break;
+    case (CBF_PREDICTOR):
+      cbf_failnez (cbf_set_value      (handle,"predictor")) break;
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+      break;
+    default:
+      cbf_failnez (cbf_set_value      (handle,".")) break;
+      cbf_failnez (cbf_set_typeofvalue(handle,"null"))
+      break;
+  }
+
+  cbf_failnez (cbf_require_column     (handle, "byte_order"))
+  cbf_failnez (cbf_set_value          (handle, "little_endian"))
+
+
+  return 0;
+}
+
+
+  /* Save a real image.  ndim1 is the slow dimension, ndim2 is fast. */
+
+int cbf_set_real_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2)
+{
+  const char *array_id;
+
+  char enctype[30];
+
+  int binary_id, done [3], precedence, dimension [3];
+
+  if (reserved != 0)
+
+    return CBF_ARGUMENT;
+
+  if ( elsize != 4 && elsize != 8 )
+
+    return CBF_ARGUMENT;
+
+  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+
+
+    /* Update the array_structure_list category */
+
+  if (ndim1 == 0)
+
+    dimension [2] = 1;
+
+  else
+
+    dimension [2] = ndim1;
+
+  if (ndim2 == 0)
+
+    dimension [1] = 1;
+
+  else
+
+    dimension [1] = ndim2;
+
+  done [1] = dimension [1] == 1;
+  done [2] = dimension [2] == 1;
+
+  cbf_failnez (cbf_find_category (handle, "array_structure_list"))
+  cbf_failnez (cbf_find_column   (handle, "array_id"))
+
+  while (cbf_find_nextrow (handle, array_id) == 0)
+  {
+    cbf_failnez (cbf_find_column      (handle, "precedence"))
+    cbf_failnez (cbf_get_integervalue (handle, &precedence))
+
+    if (precedence < 1 || precedence > 2)
+
+      return CBF_FORMAT;
+
+    cbf_failnez (cbf_find_column      (handle, "dimension"))
+    cbf_failnez (cbf_set_integervalue (handle, dimension [precedence]))
+
+    done [precedence] = 1;
+
+    cbf_failnez (cbf_find_column (handle, "array_id"))
+  }
+
+  if (!done [1] || !done [2])
+
+    return CBF_NOTFOUND;
+
+
+    /* Get the binary_id */
+
+  cbf_failnez (cbf_require_category (handle, "array_data"))
+  cbf_failnez (cbf_require_column   (handle, "array_id"))
+  cbf_failnez (cbf_rewind_row       (handle))
+  if (cbf_find_row (handle, array_id)) {
+    cbf_failnez (cbf_new_row(handle))
+    cbf_failnez (cbf_set_value(handle,array_id))
+  }
+  cbf_failnez (cbf_require_column   (handle, "binary_id"))
+  if (cbf_get_integervalue (handle, &binary_id)) {
+    binary_id = 1;
+    cbf_failnez (cbf_set_integervalue (handle, binary_id))
+  }
+  cbf_failnez (cbf_find_column      (handle, "data"))
+
+
+    /* Save the array */
+
+  cbf_failnez (cbf_set_realarray (handle, compression, binary_id,
+                                     array, elsize,
+                                     dimension [1] * dimension [2]))
+
+    /* Update the array_structure category */
+
+  cbf_failnez (cbf_require_category (handle, "array_structure"))
+  cbf_failnez (cbf_require_column   (handle, "id"))
+  cbf_failnez (cbf_rewind_row       (handle))
+  if (cbf_find_row (handle, array_id)) {
+    cbf_failnez (cbf_new_row(handle))
+    cbf_failnez (cbf_set_value(handle,array_id))
+    cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+  }
+  cbf_failnez (cbf_require_column   (handle, "encoding_type"))
+  sprintf(enctype,"signed %d-bit real IEEE", ((int)elsize)*8);
+  cbf_failnez (cbf_set_value        (handle,enctype))
+  cbf_failnez (cbf_set_typeofvalue  (handle,"dblq"))
+  cbf_failnez (cbf_require_column   (handle, "compression_type"))
+  switch (compression) {
+    case (CBF_NONE):
+      cbf_failnez (cbf_set_value      (handle,"none"))
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+      break;
+    case (CBF_CANONICAL):
+      cbf_failnez (cbf_set_value      (handle,"canonical")) break;
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+      break;
+    case (CBF_PACKED):
+      cbf_failnez (cbf_set_value      (handle,"packed")) break;
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+      break;
+    case (CBF_BYTE_OFFSET):
+      cbf_failnez (cbf_set_value      (handle,"byte_offsets")) break;
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+      break;
+    case (CBF_PREDICTOR):
+      cbf_failnez (cbf_set_value      (handle,"predictor")) break;
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+      break;
+    default:
+      cbf_failnez (cbf_set_value      (handle,".")) break;
+      cbf_failnez (cbf_set_typeofvalue(handle,"null"))
+      break;
+  }
+
+  cbf_failnez (cbf_require_column     (handle, "byte_order"))
+  cbf_failnez (cbf_set_value          (handle, "little_endian"))
+
 
   return 0;
 }
@@ -1347,32 +2008,35 @@ int cbf_get_axis_type (cbf_handle handle, const char *axis_id,
 
     return CBF_NOTFOUND;
 
-  if (toupper (*type) != 'T' && 
+  if (toupper (*type) != 'T' &&
       toupper (*type) != 'R' &&
       toupper (*type) != 'G')
 
     return CBF_FORMAT;
 
-  if (axis_type)
+  if (axis_type) {
 
-    if (toupper (*type) == 'T')
-        
+    if (toupper (*type) == 'T') {
+
       *axis_type = CBF_TRANSLATION_AXIS;
 
-    else
-    
-      if (toupper (*type) == 'R')
-        
+    } else {
+
+      if (toupper (*type) == 'R') {
+
         *axis_type = CBF_ROTATION_AXIS;
 
-      else
-                
+      } else {
+
         *axis_type = CBF_GENERAL_AXIS;
+      }
+    }
+  }
 
   return 0;
 }
 
-    
+
   /* Get an axis vector */
 
 int cbf_get_axis_vector (cbf_handle handle, const char *axis_id,
@@ -1421,9 +2085,9 @@ int cbf_get_axis_offset (cbf_handle handle, const char *axis_id,
 
   /* Get the setting of an axis */
 
-int cbf_get_axis_setting (cbf_handle handle, unsigned int  reserved, 
+int cbf_get_axis_setting (cbf_handle handle, unsigned int  reserved,
                                              const char   *axis_id,
-                                             double       *start, 
+                                             double       *start,
                                              double       *increment)
 {
   cbf_axis_type type;
@@ -1442,7 +2106,7 @@ int cbf_get_axis_setting (cbf_handle handle, unsigned int  reserved,
     return CBF_FORMAT;
 
 
-    /* Read from the diffrn_scan_axis and 
+    /* Read from the diffrn_scan_axis and
                      diffrn_scan_frame_axis categories */
 
   if (type == CBF_TRANSLATION_AXIS)
@@ -1482,7 +2146,7 @@ int cbf_get_axis_setting (cbf_handle handle, unsigned int  reserved,
 
 int cbf_set_axis_setting (cbf_handle handle, unsigned int  reserved,
                                              const char   *axis_id,
-                                             double        start, 
+                                             double        start,
                                              double        increment)
 {
   cbf_axis_type type;
@@ -1501,7 +2165,7 @@ int cbf_set_axis_setting (cbf_handle handle, unsigned int  reserved,
     return CBF_FORMAT;
 
 
-    /* Update the diffrn_scan_axis and 
+    /* Update the diffrn_scan_axis and
                   diffrn_scan_frame_axis categories */
 
   if (type == CBF_TRANSLATION_AXIS)
@@ -1510,17 +2174,17 @@ int cbf_set_axis_setting (cbf_handle handle, unsigned int  reserved,
     cbf_failnez (cbf_find_column     (handle, "axis_id"))
     cbf_failnez (cbf_find_row        (handle, axis_id))
     cbf_failnez (cbf_find_column     (handle, "displacement"))
-    cbf_failnez (cbf_set_doublevalue (handle, "%.6g", start))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", start))
 
     cbf_failnez (cbf_find_category   (handle, "diffrn_scan_axis"))
     cbf_failnez (cbf_find_column     (handle, "axis_id"))
     cbf_failnez (cbf_find_row        (handle, axis_id))
     cbf_failnez (cbf_find_column     (handle, "displacement_start"))
-    cbf_failnez (cbf_set_doublevalue (handle, "%.6g", start))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", start))
     cbf_failnez (cbf_find_column     (handle, "displacement_increment"))
-    cbf_failnez (cbf_set_doublevalue (handle, "%.6g", increment))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", increment))
     cbf_failnez (cbf_find_column     (handle, "displacement_range"))
-    cbf_failnez (cbf_set_doublevalue (handle, "%.6g", increment))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", increment))
   }
   else
   {
@@ -1528,17 +2192,17 @@ int cbf_set_axis_setting (cbf_handle handle, unsigned int  reserved,
     cbf_failnez (cbf_find_column     (handle, "axis_id"))
     cbf_failnez (cbf_find_row        (handle, axis_id))
     cbf_failnez (cbf_find_column     (handle, "angle"))
-    cbf_failnez (cbf_set_doublevalue (handle, "%.6g", start))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", start))
 
     cbf_failnez (cbf_find_category   (handle, "diffrn_scan_axis"))
     cbf_failnez (cbf_find_column     (handle, "axis_id"))
     cbf_failnez (cbf_find_row        (handle, axis_id))
     cbf_failnez (cbf_find_column     (handle, "angle_start"))
-    cbf_failnez (cbf_set_doublevalue (handle, "%.6g", start))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", start))
     cbf_failnez (cbf_find_column     (handle, "angle_increment"))
-    cbf_failnez (cbf_set_doublevalue (handle, "%.6g", increment))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", increment))
     cbf_failnez (cbf_find_column     (handle, "angle_range"))
-    cbf_failnez (cbf_set_doublevalue (handle, "%.6g", increment))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", increment))
   }
 
   return 0;
@@ -1549,7 +2213,7 @@ int cbf_set_axis_setting (cbf_handle handle, unsigned int  reserved,
 
 int cbf_make_positioner (cbf_positioner *positioner)
 {
-  cbf_failnez (cbf_alloc ((void **) positioner, NULL, 
+  cbf_failnez (cbf_alloc ((void **) positioner, NULL,
                sizeof (cbf_positioner_struct), 1))
 
   (*positioner)->matrix [0][0] = 1;
@@ -1582,9 +2246,9 @@ int cbf_make_positioner (cbf_positioner *positioner)
 int cbf_free_positioner (cbf_positioner positioner)
 {
   int errorcode;
-    
+
   size_t i;
-  
+
   if (positioner)
   {
     errorcode = 0;
@@ -1593,7 +2257,7 @@ int cbf_free_positioner (cbf_positioner positioner)
 
       errorcode |= cbf_free ((void **) &positioner->axis [i].name, NULL);
 
-    errorcode |= cbf_free ((void **) &positioner->axis, 
+    errorcode |= cbf_free ((void **) &positioner->axis,
                                      &positioner->axes);
 
     return errorcode | cbf_free ((void **) &positioner, NULL);
@@ -1606,14 +2270,14 @@ int cbf_free_positioner (cbf_positioner positioner)
   /* Add a positioner axis */
 
 int cbf_add_positioner_axis (cbf_positioner positioner,
-                             const char    *name, 
+                             const char    *name,
                              const char    *depends_on,
-                             cbf_axis_type  type, 
-                             double         vector1, 
-                             double         vector2, 
+                             cbf_axis_type  type,
+                             double         vector1,
+                             double         vector2,
                              double         vector3,
-                             double         offset1, 
-                             double         offset2, 
+                             double         offset1,
+                             double         offset2,
                              double         offset3,
                              double         start,
                              double         increment)
@@ -1647,14 +2311,14 @@ int cbf_add_positioner_axis (cbf_positioner positioner,
 
   if (depends_on)
 
-    errorcode = cbf_alloc ((void **) &axis.depends_on, NULL, 
+    errorcode = cbf_alloc ((void **) &axis.depends_on, NULL,
                                    strlen (depends_on) + 1, 1);
 
   if (errorcode)
 
     return errorcode | cbf_free ((void **) &axis.name, NULL);
 
-  errorcode = cbf_realloc ((void **) &(positioner->axis), 
+  errorcode = cbf_realloc ((void **) &(positioner->axis),
                                      &(positioner->axes),
                                 sizeof (cbf_axis_struct),
                                   positioner->axes + 1);
@@ -1733,13 +2397,13 @@ int cbf_read_positioner_axis (cbf_handle      handle,
   if (read_setting)
 
     cbf_failnez (cbf_get_axis_setting (handle, reserved, axis_id,
-                                          &start, 
+                                          &start,
                                           &increment))
-    
+
   cbf_failnez (cbf_add_positioner_axis (positioner,
-                       axis_id, 
+                       axis_id,
                        next_id,
-                       axis_type, 
+                       axis_type,
                        vector1, vector2, vector3,
                        offset1, offset2, offset3,
                        start, increment))
@@ -1747,7 +2411,7 @@ int cbf_read_positioner_axis (cbf_handle      handle,
   return 0;
 }
 
-                            
+
   /* Connect a set of positioner axes */
 
 int cbf_connect_axes (cbf_positioner positioner)
@@ -1806,7 +2470,7 @@ int cbf_connect_axes (cbf_positioner positioner)
   return 0;
 }
 
-                            
+
   /* Calculate a position given initial coordinates */
 
 int cbf_calculate_position (cbf_positioner positioner,
@@ -1878,7 +2542,7 @@ int cbf_calculate_position (cbf_positioner positioner,
       }
       else
       {
-        double s, x, y, z, w, 
+        double s, x, y, z, w,
                xx, yy, zz, xy, xz, xw, yz, yw, zw;
 
         double rotation [3][3], product [3][3];
@@ -1939,21 +2603,21 @@ int cbf_calculate_position (cbf_positioner positioner,
 
     positioner->matrix_is_valid = 1;
   }
-    
+
   if (final1)
 
     *final1 = positioner->matrix [0][0] * initial1 +
               positioner->matrix [0][1] * initial2 +
               positioner->matrix [0][2] * initial3 +
               positioner->matrix [0][3];
-    
+
   if (final2)
 
     *final2 = positioner->matrix [1][0] * initial1 +
               positioner->matrix [1][1] * initial2 +
               positioner->matrix [1][2] * initial3 +
               positioner->matrix [1][3];
-    
+
   if (final3)
 
     *final3 = positioner->matrix [2][0] * initial1 +
@@ -1998,13 +2662,13 @@ int cbf_calculate_initial_position (cbf_positioner positioner,
     *initial1 = positioner->matrix [0][0] * delta [0] +
                 positioner->matrix [1][0] * delta [1] +
                 positioner->matrix [2][0] * delta [2];
-    
+
   if (initial2)
 
     *initial2 = positioner->matrix [0][1] * delta [0] +
                 positioner->matrix [1][1] * delta [1] +
                 positioner->matrix [2][1] * delta [2];
-    
+
   if (initial3)
 
     *initial3 = positioner->matrix [0][2] * delta [0] +
@@ -2017,13 +2681,13 @@ int cbf_calculate_initial_position (cbf_positioner positioner,
 
   /* Construct a goniometer */
 
-int cbf_construct_goniometer (cbf_handle handle, 
+int cbf_construct_goniometer (cbf_handle handle,
                               cbf_goniometer *goniometer)
 {
   const char *diffrn_id, *id, *this_id, *axis_id;
 
   unsigned int row;
-    
+
   int errorcode;
 
 
@@ -2055,7 +2719,7 @@ int cbf_construct_goniometer (cbf_handle handle,
     {
         /* allow for aliases  _diffrn_measurement_axis.measurement_id
                               _diffrn_measurement_axis.id  (deprecated) */
-                            
+
       errorcode = cbf_find_column (handle, "measurement_id");
 
       if (errorcode)
@@ -2093,7 +2757,7 @@ int cbf_construct_goniometer (cbf_handle handle,
 
           errorcode = cbf_read_positioner_axis (handle,
                                                 0, /* reserved */
-                                                *goniometer, 
+                                                *goniometer,
                                                 axis_id, 1);
       }
   }
@@ -2144,7 +2808,7 @@ int cbf_get_rotation_axis (cbf_goniometer goniometer, unsigned int  reserved,
   for (axis = 0; axis < goniometer->axes; axis++)
 
     if (goniometer->axis [axis].type == CBF_ROTATION_AXIS)
-            
+
       if (goniometer->axis [axis].increment)
       {
         if (vector1)
@@ -2188,7 +2852,7 @@ int cbf_get_rotation_range (cbf_goniometer goniometer, unsigned int  reserved,
   for (axis = 0; axis < goniometer->axes; axis++)
 
     if (goniometer->axis [axis].type == CBF_ROTATION_AXIS)
-            
+
       if (goniometer->axis [axis].increment)
       {
         if (start)
@@ -2223,14 +2887,14 @@ int cbf_rotate_vector (cbf_goniometer goniometer, unsigned int reserved,
 
     return CBF_ARGUMENT;
 
-  cbf_failnez (cbf_calculate_position (goniometer, reserved, ratio, 0, 0, 0, 
+  cbf_failnez (cbf_calculate_position (goniometer, reserved, ratio, 0, 0, 0,
                                            &origin [0],
                                            &origin [1],
                                            &origin [2]))
 
-  cbf_failnez (cbf_calculate_position (goniometer, reserved, ratio, 
-                                           initial1, 
-                                           initial2, 
+  cbf_failnez (cbf_calculate_position (goniometer, reserved, ratio,
+                                           initial1,
+                                           initial2,
                                            initial3,
                                            &transformed [0],
                                            &transformed [1],
@@ -2293,8 +2957,8 @@ int cbf_get_reciprocal (cbf_goniometer goniometer, unsigned int reserved,
     /* Rotate the vector back to the 0 position of the goniometer */
 
   cbf_failnez (cbf_calculate_initial_position (goniometer, reserved, ratio,
-                                               ewald [0], 
-                                               ewald [1], 
+                                               ewald [0],
+                                               ewald [1],
                                                ewald [2],
                                                reciprocal1,
                                                reciprocal2,
@@ -2306,7 +2970,7 @@ int cbf_get_reciprocal (cbf_goniometer goniometer, unsigned int reserved,
 
   /* Construct a detector positioner */
 
-int cbf_construct_detector (cbf_handle    handle, 
+int cbf_construct_detector (cbf_handle    handle,
                             cbf_detector *detector,
                             unsigned int  element_number)
 {
@@ -2395,7 +3059,7 @@ int cbf_construct_detector (cbf_handle    handle,
 
   cbf_failnez (cbf_make_positioner (&positioner))
 
-  errorcode = cbf_alloc ((void **) detector, NULL, 
+  errorcode = cbf_alloc ((void **) detector, NULL,
                         sizeof (cbf_detector_struct), 1);
 
   for (row = errorcode = 0; !errorcode; row++)
@@ -2406,7 +3070,7 @@ int cbf_construct_detector (cbf_handle    handle,
     {
         /* allow for aliases  _diffrn_detector_axis.detector_id
                               _diffrn_detector_axis.id  (deprecated) */
-                            
+
       errorcode = cbf_find_column (handle, "detector_id");
 
       if (errorcode)
@@ -2443,7 +3107,7 @@ int cbf_construct_detector (cbf_handle    handle,
         if (!errorcode)
 
           errorcode = cbf_read_positioner_axis (handle, 0,
-                                                positioner, 
+                                                positioner,
                                                 axis_id, 1);
       }
   }
@@ -2453,12 +3117,254 @@ int cbf_construct_detector (cbf_handle    handle,
 
   if (!errorcode)
 
-    errorcode = cbf_read_positioner_axis (handle, 0, positioner, 
+    errorcode = cbf_read_positioner_axis (handle, 0, positioner,
                                                   surface_axis [0], 0);
 
   if (!errorcode && surface_axis [1])
 
-    errorcode = cbf_read_positioner_axis (handle, 0, positioner, 
+    errorcode = cbf_read_positioner_axis (handle, 0, positioner,
+                                                  surface_axis [1], 0);
+
+
+    /* Connect the axes */
+
+  if (!errorcode)
+
+    errorcode = cbf_connect_axes (positioner);
+
+  if (errorcode)
+  {
+    errorcode |= cbf_free_positioner (positioner);
+
+    return errorcode | cbf_free ((void **) detector, NULL);
+  }
+  
+    /* Insert the cbf handle and element into the dectector */
+    
+  (*detector)->handle = handle;
+
+  (*detector)->element = element_number;
+
+
+    /* Copy the start and increment values into the surface axes */
+
+  (*detector)->displacement [0] = displacement [0];
+  (*detector)->displacement [1] = displacement [1];
+
+  (*detector)->increment [0] = increment [0];
+  (*detector)->increment [1] = increment [1];
+
+  if (surface_axis [1])
+
+    (*detector)->axes = 2;
+
+  else
+
+    (*detector)->axes = 1;
+
+  for (axis = 0; axis < (*detector)->axes; axis++)
+
+    for (row = 0; row < positioner->axes; row++)
+
+      if (cbf_cistrcmp (positioner->axis [row].name,
+                        surface_axis [axis]) == 0)
+      {
+        (*detector)->index [axis] = row;
+
+        positioner->axis [row].increment = 0;
+
+        break;
+      }
+
+  (*detector)->positioner = positioner;
+
+  return 0;
+}
+
+
+  /* Construct a detector positioner, creating the necessary categories, and columns */
+
+int cbf_require_detector (cbf_handle    handle, cbf_detector      *detector,
+                                                unsigned int      element_number)
+{
+  int errorcode, precedence, prefound;
+
+  unsigned int row, axis;
+
+  const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
+
+  const char *surface_axis [2];
+
+  double displacement [2], increment [2];
+
+  cbf_positioner positioner;
+
+  if (!detector)
+
+    return CBF_ARGUMENT;
+
+
+    /* Get the detector id */
+
+  cbf_failnez (cbf_require_diffrn_id (handle, &diffrn_id, "DIFFRN_ID"))
+
+  cbf_failnez (cbf_require_category (handle, "diffrn_detector"))
+  cbf_failnez (cbf_require_column   (handle, "diffrn_id"))
+  if (cbf_find_row (handle, diffrn_id))  {
+  	 cbf_failnez(cbf_new_row(handle))
+  	 cbf_failnez(cbf_set_value(handle,diffrn_id))
+  }
+  cbf_failnez (cbf_require_column   (handle, "id"))
+  cbf_failnez (cbf_require_value    (handle, &id, diffrn_id))
+
+
+    /* Construct the detector surface */
+
+  cbf_failnez (cbf_get_array_id  (handle, element_number, &array_id))
+  cbf_failnez (cbf_require_category (handle, "array_structure_list"))
+  cbf_failnez (cbf_require_column   (handle, "array_id"))
+
+  surface_axis [0] = surface_axis [1] = NULL;
+  
+  prefound = 0;
+
+  while (cbf_find_nextrow (handle, array_id) == 0)
+  {
+    cbf_failnez (cbf_find_column      (handle, "precedence"))
+    cbf_failnez (cbf_get_integervalue (handle, &precedence))
+
+    if (precedence < 1 || precedence > 2)
+
+      return CBF_FORMAT;
+
+    if (surface_axis [precedence - 1])
+
+      return CBF_FORMAT;
+
+    cbf_failnez (cbf_find_column (handle, "axis_set_id"))
+    cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
+    cbf_failnez (cbf_find_column (handle, "array_id"))
+  }
+
+  if (prefound == 0) {
+    cbf_failnez (cbf_require_column  (handle, "array_id"))
+    cbf_failnez (cbf_new_row         (handle))
+    cbf_failnez (cbf_set_value       (handle, array_id))
+    cbf_failnez (cbf_require_column  (handle, "precedence"))
+    cbf_failnez (cbf_set_integervalue(handle,1))
+    cbf_failnez (cbf_require_column  (handle, "axis_set_id"))
+    cbf_failnez (cbf_require_value   (handle, &surface_axis [0], "ELEMENT_X"))
+
+    cbf_failnez (cbf_require_column  (handle,"array_id"))    
+    cbf_failnez (cbf_new_row         (handle))
+    cbf_failnez (cbf_set_value       (handle, array_id))
+    cbf_failnez (cbf_require_column  (handle, "precedence"))
+    cbf_failnez (cbf_set_integervalue(handle,2))
+    cbf_failnez (cbf_require_column  (handle, "axis_set_id"))
+    cbf_failnez (cbf_require_value   (handle, &surface_axis [1], "ELEMENT_Y"))
+  	
+  }
+
+  if (!surface_axis [0])
+
+    return CBF_FORMAT;
+
+  cbf_failnez (cbf_require_category   (handle, "array_structure_list_axis"))
+  cbf_failnez (cbf_require_column     (handle, "axis_set_id"))
+  cbf_failnez (cbf_require_row        (handle, surface_axis [0]))
+  cbf_failnez (cbf_require_column     (handle, "axis_id"))
+  cbf_failnez (cbf_require_value      (handle, &surface_axis [0], surface_axis[0]))
+  cbf_failnez (cbf_require_column     (handle, "displacement"))
+  cbf_failnez (cbf_require_doublevalue(handle, &displacement [0], 0.0))
+  cbf_failnez (cbf_require_column     (handle, "displacement_increment"))
+  cbf_failnez (cbf_require_doublevalue(handle, &(increment [0]), 0.0))
+
+  if (surface_axis [1])
+  {
+    cbf_failnez (cbf_require_column     (handle, "axis_set_id"))
+    cbf_failnez (cbf_require_row        (handle, surface_axis [1]))
+    cbf_failnez (cbf_require_column     (handle, "axis_id"))
+    cbf_failnez (cbf_require_value      (handle, &surface_axis [1], surface_axis[1]))
+    cbf_failnez (cbf_require_column     (handle, "displacement"))
+    cbf_failnez (cbf_require_doublevalue(handle, &displacement [1], 0.0))
+    cbf_failnez (cbf_require_column     (handle, "displacement_increment"))
+    cbf_failnez (cbf_require_doublevalue(handle, &(increment [1]), 0.0))
+  }
+
+
+    /* Construct the positioner */
+
+  cbf_failnez (cbf_make_positioner (&positioner))
+
+  errorcode = cbf_alloc ((void **) detector, NULL,
+                        sizeof (cbf_detector_struct), 1);
+
+  for (row = errorcode = 0; !errorcode; row++)
+  {
+    errorcode = cbf_require_category (handle, "diffrn_detector_axis");
+
+    if (!errorcode)
+    {
+        /* allow for aliases  _diffrn_detector_axis.detector_id
+                              _diffrn_detector_axis.id  (deprecated) */
+
+      errorcode = cbf_find_column (handle, "detector_id");
+
+      if (errorcode)
+
+        errorcode = cbf_find_column (handle, "id");
+
+      if (errorcode)
+      
+        errorcode = cbf_require_column (handle, "detector_id");
+      
+    }
+
+    if (!errorcode)
+    {
+      errorcode = cbf_select_row (handle, row);
+
+      if (errorcode == CBF_NOTFOUND)
+      {
+        errorcode = 0;
+
+        break;
+      }
+    }
+
+    if (!errorcode)
+
+      errorcode = cbf_get_value (handle, &this_id);
+
+    if (!errorcode)
+
+      if (cbf_cistrcmp (id, this_id) == 0)
+      {
+        errorcode = cbf_find_column (handle, "axis_id");
+
+        if (!errorcode)
+
+          errorcode = cbf_get_value (handle, &axis_id);
+
+        if (!errorcode)
+
+          errorcode = cbf_read_positioner_axis (handle, 0,
+                                                positioner,
+                                                axis_id, 1);
+      }
+  }
+
+
+    /* Add the surface axes */
+
+  if (!errorcode)
+
+    errorcode = cbf_read_positioner_axis (handle, 0, positioner,
+                                                  surface_axis [0], 0);
+
+  if (!errorcode && surface_axis [1])
+
+    errorcode = cbf_read_positioner_axis (handle, 0, positioner,
                                                   surface_axis [1], 0);
 
 
@@ -2496,7 +3402,7 @@ int cbf_construct_detector (cbf_handle    handle,
 
     for (row = 0; row < positioner->axes; row++)
 
-      if (cbf_cistrcmp (positioner->axis [row].name, 
+      if (cbf_cistrcmp (positioner->axis [row].name,
                         surface_axis [axis]) == 0)
       {
         (*detector)->index [axis] = row;
@@ -2510,6 +3416,7 @@ int cbf_construct_detector (cbf_handle    handle,
 
   return 0;
 }
+
 
 
   /* Free a detector */
@@ -2528,7 +3435,7 @@ int cbf_free_detector (cbf_detector detector)
 
   /* Update the pixel settings */
 
-int cbf_update_pixel (cbf_detector detector, double index1, 
+int cbf_update_pixel (cbf_detector detector, double index1,
                                              double index2)
 {
   if (!detector)
@@ -2551,7 +3458,7 @@ int cbf_update_pixel (cbf_detector detector, double index1,
 
 int cbf_get_beam_center (cbf_detector detector, double *index1,
                                                 double *index2,
-                                                double *center1, 
+                                                double *center1,
                                                 double *center2)
 {
   double pixel00 [3], pixel01 [3], pixel10 [3], m [2][2], det, index [2];
@@ -2622,6 +3529,147 @@ int cbf_get_beam_center (cbf_detector detector, double *index1,
     (a) = -(d01[0] d10[0])-1 (p00[0])
     (b)    (d01[1] d10[1])   (p00[1]) */
 }
+
+
+  /* Set the beam center */
+
+int cbf_set_beam_center (cbf_detector detector, double *index1,
+                                                double *index2,
+                                                double *center1,
+                                                double *center2)
+{
+  double oindex1, oindex2, ocenter1, ocenter2;
+  
+  double nindex1, nindex2, ncenter1, ncenter2;
+    
+  double psize1, psize2;
+  
+  unsigned int naxis1, naxis2;
+  
+  int sign1, sign2;
+  
+  cbf_handle handle;
+  
+  unsigned int element;
+  
+  if (!detector)
+
+    return CBF_ARGUMENT;
+
+  if (detector->axes < 2)
+
+    return CBF_NOTIMPLEMENTED;
+   
+  handle = detector->handle;
+  
+  element = detector->element;
+  
+  naxis1 = detector->index[1];
+  
+  naxis2 = detector->index[0];
+
+  sign1 = detector->increment[1]>0.0?1.0:-1.0;
+  
+  sign2 = detector->increment[0]>0.0?1.0:-1.0;
+
+  psize1 = detector->increment[1];
+  
+  psize2 = detector->increment[0];
+  
+  cbf_failnez(cbf_get_pixel_size(handle, element, 1, &psize1))
+  
+  cbf_failnez(cbf_get_pixel_size(handle, element, 2, &psize2))
+  
+  if (index1) {
+
+  	nindex1 = *index1;
+
+  } else {
+
+  	if (center1 && psize1 != 0.) nindex1 = sign1*(*center1)/psize1;
+
+  	else return CBF_ARGUMENT;
+  
+  }
+
+  if (index2) {
+
+  	nindex2 = *index2;
+
+  } else {
+
+  	if (center2 && psize2 != 0.) nindex2 = sign2*(*center2)/psize2;
+
+  	else return CBF_ARGUMENT;
+  
+  }
+  
+  if (center1) {
+
+  	ncenter1 = *center1;
+
+  } else {
+
+  	if (index1 && psize1 != 0.) ncenter1 = (*index1)*psize1;
+
+  	else return CBF_ARGUMENT;
+  
+  }
+
+  if (center2) {
+
+  	ncenter2 = *center2;
+
+  } else {
+
+  	if (index2 && psize2 != 0.) ncenter2 = (*index2)*psize2;
+
+  	else return CBF_ARGUMENT;
+  
+  }
+
+
+  cbf_failnez(cbf_get_beam_center(detector, &oindex1, &oindex2, &ocenter1, &ocenter2))
+  
+  cbf_failnez(cbf_find_category(handle, "axis"))
+  
+  cbf_failnez(cbf_find_column(handle, "id"))
+  
+  if (nindex1 != oindex1) {
+  
+    cbf_failnez(cbf_rewind_row(handle))
+
+    cbf_failnez(cbf_find_row(handle,detector->positioner->axis[naxis2].name))
+    
+    cbf_failnez(cbf_find_column(handle, "offset[1]"))
+    
+    cbf_failnez(cbf_set_doublevalue(handle, "%g", 
+    
+      nindex1*detector->increment[1] + detector->displacement[1]))    
+  	
+  }
+
+  cbf_failnez(cbf_find_column(handle, "id"))
+
+  if (ncenter2 != ocenter2) {
+  
+    cbf_failnez(cbf_rewind_row(handle))
+
+    cbf_failnez(cbf_find_row(handle,detector->positioner->axis[naxis2].name))
+    
+    cbf_failnez(cbf_find_column(handle, "offset[2]"))
+
+    cbf_failnez(cbf_set_doublevalue(handle, "%g", 
+
+      nindex2*detector->increment[0] + detector->displacement[0]))    
+    
+  	
+  }
+  
+  return 0;
+
+}
+
 
 
   /* Get the detector distance: shortest distance to the plane */
@@ -2723,7 +3771,7 @@ int cbf_get_pixel_normal (cbf_detector detector, double  index1,
   normal [1] = pixel01 [2] * pixel10 [0] - pixel10 [2] * pixel01 [0];
   normal [2] = pixel01 [0] * pixel10 [1] - pixel10 [0] * pixel01 [1];
 
-  length = normal [0] * normal [0] + 
+  length = normal [0] * normal [0] +
            normal [1] * normal [1] +
            normal [2] * normal [2];
 
@@ -2757,7 +3805,7 @@ int cbf_get_pixel_area (cbf_detector detector, double index1,
                                                double *projected_area)
 {
   double pixel00 [3], pixel01 [3], pixel10 [3], normal [3];
-    
+
   double length, length00;
 
   if (!detector)
@@ -2798,7 +3846,7 @@ int cbf_get_pixel_area (cbf_detector detector, double index1,
   normal [1] = pixel01 [2] * pixel10 [0] - pixel10 [2] * pixel01 [0];
   normal [2] = pixel01 [0] * pixel10 [1] - pixel10 [0] * pixel01 [1];
 
-  length = normal [0] * normal [0] + 
+  length = normal [0] * normal [0] +
            normal [1] * normal [1] +
            normal [2] * normal [2];
 
@@ -2824,14 +3872,371 @@ int cbf_get_pixel_area (cbf_detector detector, double index1,
 
     length00 = sqrt (length00);
 
-    *projected_area = fabs (pixel00 [0] * normal [0] + 
-                            pixel00 [1] * normal [1] + 
+    *projected_area = fabs (pixel00 [0] * normal [0] +
+                            pixel00 [1] * normal [1] +
                             pixel00 [2] * normal [2]) / length00;
   }
 
   return 0;
 }
 
+  /* Calcluate the size of a pixel from the detector element axis displacements */
+
+int cbf_get_inferred_pixel_size (cbf_detector detector,
+                                               unsigned int axis_number,
+                                               double *psize)
+{
+
+
+  if (!detector || axis_number < 1 || detector-> axes < axis_number )
+
+    return CBF_ARGUMENT;
+
+
+  *psize = fabs( (detector-> increment)[axis_number-1] );
+
+  return 0;
+
+}
+
+  /* Get the unit cell parameters */
+
+int cbf_get_unit_cell (cbf_handle handle, double cell[6], double cell_esd[6])
+{
+    cbf_failnez(cbf_find_category    (handle, "cell"))
+    cbf_failnez(cbf_rewind_row       (handle))
+
+    if (cell) {
+
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "length_a",    &(cell[0]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "length_b",    &(cell[1]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "length_c",    &(cell[2]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "angle_alpha", &(cell[3]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "angle_beta",  &(cell[4]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "angle_gamma", &(cell[5]),0.))
+
+    }
+
+    if (cell_esd) {
+
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "length_a_esd",    &(cell_esd[0]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "length_b_esd",    &(cell_esd[1]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "length_c_esd",    &(cell_esd[2]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "angle_alpha_esd", &(cell_esd[3]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "angle_beta_esd",  &(cell_esd[4]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "angle_gamma_esd", &(cell_esd[5]),0.))
+
+    }
+
+
+    return 0;
+
+}
+
+  /* Set the unit cell parameters */
+
+int cbf_set_unit_cell (cbf_handle handle, double cell[6], double cell_esd[6])
+{
+    const char * diffrn_id;
+    const char * entry_id;
+
+    cbf_failnez(cbf_get_diffrn_id    (handle, &diffrn_id))
+
+    cbf_failnez(cbf_require_category (handle, "cell"))
+    cbf_failnez(cbf_rewind_row       (handle))
+
+    cbf_failnez(cbf_require_column   (handle, "entry_id"))
+
+    entry_id = 0;
+    if (cbf_get_value(handle, &entry_id) ||
+        !entry_id || *entry_id == '\0') {
+      cbf_failnez(cbf_set_value      (handle, diffrn_id))
+    }
+
+    if (cell) {
+
+    cbf_failnez (cbf_require_column  (handle, "length_a"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell[0]))
+    cbf_failnez (cbf_require_column  (handle, "length_b"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell[1]))
+    cbf_failnez (cbf_require_column  (handle, "length_c"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell[2]))
+    cbf_failnez (cbf_require_column  (handle, "angle_alpha"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell[3]))
+    cbf_failnez (cbf_require_column  (handle, "angle_beta"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell[4]))
+    cbf_failnez (cbf_require_column  (handle, "angle_gamma"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell[5]))
+
+    }
+
+    if (cell_esd) {
+
+    cbf_failnez (cbf_require_column  (handle, "length_a_esd"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell_esd[0]))
+    cbf_failnez (cbf_require_column  (handle, "length_b_esd"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell_esd[1]))
+    cbf_failnez (cbf_require_column  (handle, "length_c_esd"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell_esd[2]))
+    cbf_failnez (cbf_require_column  (handle, "angle_alpha_esd"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell_esd[3]))
+    cbf_failnez (cbf_require_column  (handle, "angle_beta_esd"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell_esd[4]))
+    cbf_failnez (cbf_require_column  (handle, "angle_gamma_esd"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell_esd[5]))
+
+    }
+
+    return 0;
+
+}
+
+  /* Get the reciprocal cell parameters */
+
+int cbf_get_reciprocal_cell (cbf_handle handle, double cell[6], double cell_esd[6])
+{
+
+    cbf_failnez(cbf_find_category     (handle, "cell"))
+    cbf_failnez(cbf_rewind_row        (handle))
+
+    if (cell) {
+
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "reciprocal_length_a",    &(cell[0]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "reciprocal_length_b",    &(cell[1]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "reciprocal_length_c",    &(cell[2]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "reciprocal_angle_alpha", &(cell[3]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "reciprocal_angle_beta",  &(cell[4]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "reciprocal_angle_gamma", &(cell[5]),0.))
+
+    }
+
+    if (cell_esd) {
+
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "reciprocal_length_a_esd",    &(cell_esd[0]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "reciprocal_length_b_esd",    &(cell_esd[1]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "reciprocal_length_c_esd",    &(cell_esd[2]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "reciprocal_angle_alpha_esd", &(cell_esd[3]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "reciprocal_angle_beta_esd",  &(cell_esd[4]),0.))
+    cbf_failnez (cbf_require_column_doublevalue (handle,
+                        "reciprocal_angle_gamma_esd", &(cell_esd[5]),0.))
+    }
+
+
+    return 0;
+
+}
+
+  /* Set the reciprocal cell parameters */
+
+int cbf_set_reciprocal_cell (cbf_handle handle, double cell[6], double cell_esd[6])
+{
+    const char * diffrn_id;
+    const char * entry_id;
+
+    cbf_failnez(cbf_get_diffrn_id    (handle, &diffrn_id))
+
+    cbf_failnez(cbf_require_category (handle, "cell"))
+    cbf_failnez(cbf_rewind_row       (handle))
+
+    cbf_failnez(cbf_require_column   (handle, "entry_id"))
+
+    entry_id = 0;
+    if (cbf_get_value(handle, &entry_id) ||
+        !entry_id || *entry_id == '\0') {
+      cbf_failnez(cbf_set_value      (handle, diffrn_id))
+    }
+
+    if (cell) {
+
+    cbf_failnez (cbf_require_column  (handle, "reciprocal_length_a"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell[0]))
+    cbf_failnez (cbf_require_column  (handle, "reciprocal_length_b"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell[1]))
+    cbf_failnez (cbf_require_column  (handle, "reciprocal_length_c"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell[2]))
+    cbf_failnez (cbf_require_column  (handle, "reciprocal_angle_alpha"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell[3]))
+    cbf_failnez (cbf_require_column  (handle, "reciprocal_angle_beta"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell[4]))
+    cbf_failnez (cbf_require_column  (handle, "reciprocal_angle_gamma"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell[5]))
+
+    }
+
+    if (cell_esd) {
+
+    cbf_failnez (cbf_require_column  (handle, "reciprocal_length_a_esd"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell_esd[0]))
+    cbf_failnez (cbf_require_column  (handle, "reciprocal_length_b_esd"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell_esd[1]))
+    cbf_failnez (cbf_require_column  (handle, "reciprocal_length_c_esd"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell_esd[2]))
+    cbf_failnez (cbf_require_column  (handle, "reciprocal_angle_alpha_esd"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell_esd[3]))
+    cbf_failnez (cbf_require_column  (handle, "reciprocal_angle_beta_esd"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell_esd[4]))
+    cbf_failnez (cbf_require_column  (handle, "reciprocal_angle_gamma_esd"))
+    cbf_failnez (cbf_set_doublevalue (handle, "%-.15g", cell_esd[5]))
+
+    }
+
+    return 0;
+
+}
+
+  /* Compute a cell volume */
+
+int cbf_compute_cell_volume (double cell[6], double *volume) {
+
+  double degtorad;
+
+  degtorad = atan2(1.,1.)/45.;
+
+  *volume =  cell[0]*cell[1]*cell[2]*
+                     sqrt(1.
+                          - cos(cell[3]*degtorad)*cos(cell[3]*degtorad)
+                          - cos(cell[4]*degtorad)*cos(cell[4]*degtorad)
+                          - cos(cell[5]*degtorad)*cos(cell[5]*degtorad)
+                          + 2.*cos(cell[3]*degtorad)*cos(cell[4]*degtorad)*cos(cell[5]*degtorad));
+  return 0;
+
+}
+
+  /* Compute a reciprocal cell */
+
+int cbf_compute_reciprocal_cell (double cell[6], double rcell[6]){
+
+   double volume, degtorad, radtodeg;
+   #define acos_deg(x) (atan2(sqrt(1.-(x)*(x)),(x))*radtodeg)
+
+   cbf_compute_cell_volume (cell, &volume);
+
+   degtorad = atan2(1.,1.)/45.;
+   radtodeg = 1./degtorad;
+
+   if (volume <= 0. ) return CBF_ARGUMENT;
+
+   rcell[0] = cell[1]*cell[2]*sin(cell[3]*degtorad)/volume;
+
+   rcell[1] = cell[2]*cell[0]*sin(cell[4]*degtorad)/volume;
+
+   rcell[2] = cell[0]*cell[1]*sin(cell[5]*degtorad)/volume;
+
+   rcell[3] = acos_deg((cos(cell[4]*degtorad)*cos(cell[5]*degtorad) - cos(cell[3]*degtorad))/(sin(cell[4]*degtorad)*sin(cell[5]*degtorad)));
+
+   rcell[4] = acos_deg((cos(cell[5]*degtorad)*cos(cell[3]*degtorad) - cos(cell[4]*degtorad))/(sin(cell[5]*degtorad)*sin(cell[3]*degtorad)));
+
+   rcell[5] = acos_deg((cos(cell[3]*degtorad)*cos(cell[4]*degtorad) - cos(cell[5]*degtorad))/(sin(cell[3]*degtorad)*sin(cell[4]*degtorad)));
+
+   return 0;
+
+}
+
+  /* Get the orientation matrix entry */
+
+int cbf_get_orientation_matrix (cbf_handle handle, double ub_matrix[9])
+{
+
+  cbf_failnez(cbf_find_category    (handle, "diffrn_orient_matrix"));
+  cbf_failnez(cbf_rewind_row       (handle));
+
+  if (ub_matrix) {
+
+    cbf_failnez (cbf_find_column   (handle, "UB[1][1]"));
+    cbf_failnez (cbf_get_doublevalue     (handle, &(ub_matrix[0])));
+    cbf_failnez (cbf_find_column   (handle, "UB[1][2]"));
+    cbf_failnez (cbf_get_doublevalue     (handle, &(ub_matrix[1])));
+    cbf_failnez (cbf_find_column   (handle, "UB[1][3]"));
+    cbf_failnez (cbf_get_doublevalue     (handle, &(ub_matrix[2])));
+    cbf_failnez (cbf_find_column   (handle, "UB[2][1]"));
+    cbf_failnez (cbf_get_doublevalue     (handle, &(ub_matrix[3])));
+    cbf_failnez (cbf_find_column   (handle, "UB[2][2]"));
+    cbf_failnez (cbf_get_doublevalue     (handle, &(ub_matrix[4])));
+    cbf_failnez (cbf_find_column   (handle, "UB[2][3]"));
+    cbf_failnez (cbf_get_doublevalue     (handle, &(ub_matrix[5])));
+    cbf_failnez (cbf_find_column   (handle, "UB[3][1]"));
+    cbf_failnez (cbf_get_doublevalue     (handle, &(ub_matrix[6])));
+    cbf_failnez (cbf_find_column   (handle, "UB[3][2]"));
+    cbf_failnez (cbf_get_doublevalue     (handle, &(ub_matrix[7])));
+    cbf_failnez (cbf_find_column   (handle, "UB[3][3]"));
+    cbf_failnez (cbf_get_doublevalue     (handle, &(ub_matrix[8])));
+
+  }
+
+  return 0;
+
+}
+
+  /* Set the orientation matrix entry */
+
+int cbf_set_orientation_matrix (cbf_handle handle, double ub_matrix[9])
+{
+    const char * diffrn_id;
+    const char * UBdiffrn_id;
+
+    cbf_failnez(cbf_get_diffrn_id    (handle, &diffrn_id))
+
+    cbf_failnez(cbf_require_category (handle, "diffrn_orient_matrix"))
+    cbf_failnez(cbf_rewind_row       (handle))
+
+    cbf_failnez(cbf_require_column   (handle, "diffrn_id"))
+
+    UBdiffrn_id = 0;
+    if (cbf_get_value(handle, &UBdiffrn_id) ||
+        !UBdiffrn_id || *UBdiffrn_id == '\0') {
+      cbf_failnez(cbf_set_value      (handle, diffrn_id))
+    }
+
+
+  if (ub_matrix) {
+
+    cbf_failnez (cbf_require_column   (handle, "UB[1][1]"));
+    cbf_failnez (cbf_set_doublevalue     (handle, "%-.15g", ub_matrix[0]));
+    cbf_failnez (cbf_require_column   (handle, "UB[1][2]"));
+    cbf_failnez (cbf_set_doublevalue     (handle, "%-.15g", ub_matrix[1]));
+    cbf_failnez (cbf_require_column   (handle, "UB[1][3]"));
+    cbf_failnez (cbf_set_doublevalue     (handle, "%-.15g", ub_matrix[2]));
+    cbf_failnez (cbf_require_column   (handle, "UB[2][1]"));
+    cbf_failnez (cbf_set_doublevalue     (handle, "%-.15g", ub_matrix[3]));
+    cbf_failnez (cbf_require_column   (handle, "UB[2][2]"));
+    cbf_failnez (cbf_set_doublevalue     (handle, "%-.15g", ub_matrix[4]));
+    cbf_failnez (cbf_require_column   (handle, "UB[2][3]"));
+    cbf_failnez (cbf_set_doublevalue     (handle, "%-.15g", ub_matrix[5]));
+    cbf_failnez (cbf_require_column   (handle, "UB[3][1]"));
+    cbf_failnez (cbf_set_doublevalue     (handle, "%-.15g", ub_matrix[6]));
+    cbf_failnez (cbf_require_column   (handle, "UB[3][2]"));
+    cbf_failnez (cbf_set_doublevalue     (handle, "%-.15g", ub_matrix[7]));
+    cbf_failnez (cbf_require_column   (handle, "UB[3][3]"));
+    cbf_failnez (cbf_set_doublevalue     (handle, "%-.15g", ub_matrix[8]));
+
+  }
+
+  return 0;
+
+}
 
 #ifdef __cplusplus
 

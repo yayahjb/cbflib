@@ -1,12 +1,117 @@
 /**********************************************************************
  * cbf_write_binary -- write binary sections                          *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term Ôthis softwareÕ, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -51,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -82,7 +187,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -162,24 +267,24 @@ extern "C" {
 
 #include "cbf_write_binary.h"
 
-                
+
   /* Write a binary value */
-  
-int cbf_write_binary (cbf_node *column, unsigned int row, 
-                                        cbf_file *file, 
+
+int cbf_write_binary (cbf_node *column, unsigned int row,
+                                        cbf_file *file,
                                         int isbuffer)
 {
   cbf_file *infile;
 
   char digest [25], text [100];
-  
+
   long start;
-  
+
   size_t size;
-  
+
   unsigned int compression;
 
-  int id, bits, sign, type, checked_digest, elsize;
+  int id, bits, sign, type, checked_digest, elsize, realarray;
 
 
     /* Check the arguments */
@@ -187,39 +292,39 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
   if (!file)
 
     return CBF_ARGUMENT;
-    
-  if (((file->write_encoding & ENC_QP)     > 0) + 
-      ((file->write_encoding & ENC_BASE64) > 0) + 
-      ((file->write_encoding & ENC_BASE8)  > 0) + 
-      ((file->write_encoding & ENC_BASE10) > 0) + 
-      ((file->write_encoding & ENC_BASE16) > 0) + 
+
+  if (((file->write_encoding & ENC_QP)     > 0) +
+      ((file->write_encoding & ENC_BASE64) > 0) +
+      ((file->write_encoding & ENC_BASE8)  > 0) +
+      ((file->write_encoding & ENC_BASE10) > 0) +
+      ((file->write_encoding & ENC_BASE16) > 0) +
       ((file->write_encoding & ENC_NONE)   > 0) != 1)
 
     return CBF_ARGUMENT;
-    
+
   if (!cbf_is_binary (column, row))
 
     return CBF_ARGUMENT;
-    
+
   if (cbf_is_mimebinary (column, row))
 
     return CBF_ARGUMENT;
-    
+
 
     /* Parse the value */
 
   cbf_failnez (cbf_get_bintext (column, row, &type, &id, &infile,
                                 &start, &size, &checked_digest,
-                                 digest, &bits, &sign, &compression))
+                                 digest, &bits, &sign, &realarray, &compression))
 
 
     /* Position the file at the start of the binary section */
 
   cbf_failnez (cbf_set_fileposition (infile, start, SEEK_SET))
-  
+
 
     /* Calculate the digest if necessary */
-  
+
   if (!cbf_is_base64digest (digest) && (file->write_headers & MSG_DIGEST))
   {
       /* Discard any bits in the buffers */
@@ -230,22 +335,21 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
       /* Compute the message digest */
 
     cbf_failnez (cbf_md5digest (infile, size, digest))
-      
+
 
       /* Go back to the start of the binary data */
 
     cbf_failnez (cbf_set_fileposition (infile, start, SEEK_SET))
-    
-    
+
+
       /* Update the entry */
-      
+
     checked_digest = 1;
-      
+
     cbf_failnez (cbf_set_bintext (column, row, type,
                                   id, infile, start, size,
-                                  checked_digest, digest, bits, 
-                                                          sign,
-                                                          compression))
+                                  checked_digest, digest, bits,
+                                  sign,  realarray, compression))
   }
 
 
@@ -253,13 +357,13 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 
   cbf_failnez (cbf_reset_bits (infile))
 
-  
+
     /* Do we need MIME headers? */
-    
+
   if (compression == CBF_NONE && (file->write_headers & MIME_NOHEADERS))
-  
+
     return CBF_ARGUMENT;
-    
+
 
     /* Write the header */
 
@@ -271,113 +375,122 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
   if (file->write_headers & MIME_HEADERS)
   {
     cbf_failnez (cbf_write_string (file, "--CIF-BINARY-FORMAT-SECTION--\n"))
-    
+
     if (compression == CBF_NONE)
-    
-      cbf_failnez (cbf_write_string (file, 
+
+      cbf_failnez (cbf_write_string (file,
                                 "Content-Type: application/octet-stream\n"))
-      
+
     else
     {
-      cbf_failnez (cbf_write_string (file, 
+      cbf_failnez (cbf_write_string (file,
                                 "Content-Type: application/octet-stream;\n"))
- 
+
       switch (compression)
       {
         case CBF_PACKED:
-        
-          cbf_failnez (cbf_write_string (file, 
+
+          cbf_failnez (cbf_write_string (file,
                                 "     conversions=\"x-CBF_PACKED\"\n"))
 
           break;
-              
+
         case CBF_CANONICAL:
-        
-          cbf_failnez (cbf_write_string (file, 
+
+          cbf_failnez (cbf_write_string (file,
                                 "     conversions=\"x-CBF_CANONICAL\"\n"))
 
           break;
-              
+
         case CBF_BYTE_OFFSET:
-        
-          cbf_failnez (cbf_write_string (file, 
+
+          cbf_failnez (cbf_write_string (file,
                                 "     conversions=\"x-CBF_BYTE_OFFSET\"\n"))
 
           break;
-              
+
         case CBF_PREDICTOR:
-        
-          cbf_failnez (cbf_write_string (file, 
+
+          cbf_failnez (cbf_write_string (file,
                                 "     conversions=\"x-CBF_PREDICTOR\"\n"))
 
           break;
-              
+
         default:
-      
-          cbf_failnez (cbf_write_string (file, 
+
+          cbf_failnez (cbf_write_string (file,
                                 "     conversions=\"x-CBF_UNKNOWN\"\n"))
       }
     }
 
     if (file->write_encoding & ENC_QP)
-                                
-      cbf_failnez (cbf_write_string (file, 
+
+      cbf_failnez (cbf_write_string (file,
                       "Content-Transfer-Encoding: QUOTED-PRINTABLE\n"))
-                                
+
     else
-                  
+
       if (file->write_encoding & ENC_BASE64)
-                                
-        cbf_failnez (cbf_write_string (file, 
+
+        cbf_failnez (cbf_write_string (file,
                       "Content-Transfer-Encoding: BASE64\n"))
-                                
+
       else
-                  
+
         if (file->write_encoding & ENC_BASE8)
-                                
-          cbf_failnez (cbf_write_string (file, 
+
+          cbf_failnez (cbf_write_string (file,
                       "Content-Transfer-Encoding: X-BASE8\n"))
-                                
+
         else
-                  
+
           if (file->write_encoding & ENC_BASE10)
-                                
-            cbf_failnez (cbf_write_string (file, 
+
+            cbf_failnez (cbf_write_string (file,
                       "Content-Transfer-Encoding: X-BASE10\n"))
-                                
+
           else
-                  
+
             if (file->write_encoding & ENC_BASE16)
-                                
-              cbf_failnez (cbf_write_string (file, 
+
+              cbf_failnez (cbf_write_string (file,
                       "Content-Transfer-Encoding: X-BASE16\n"))
-                      
+
             else
-            
-              cbf_failnez (cbf_write_string (file, 
+
+              cbf_failnez (cbf_write_string (file,
                       "Content-Transfer-Encoding: BINARY\n"))
 
     sprintf (text, "X-Binary-Size: %lu\n", (long)size);
-    
+
     cbf_failnez (cbf_write_string (file, text))
 
     sprintf (text, "X-Binary-ID: %d\n", id);
 
     cbf_failnez (cbf_write_string (file, text))
-    
-    if (sign)
-    
-      sprintf (text, "X-Binary-Element-Type: \"signed %d-bit integer\"\n", 
+
+    if (realarray) {
+
+      sprintf (text, "X-Binary-Element-Type: \"signed %d-bit real IEEE\"\n",
                                                     bits);
-      
+
+    } else {
+
+    if (sign)
+
+      sprintf (text, "X-Binary-Element-Type: \"signed %d-bit integer\"\n",
+                                                    bits);
+
     else
 
-      sprintf (text, "X-Binary-Element-Type: \"unsigned %d-bit integer\"\n", 
-                                                      bits);
-      
+      sprintf (text, "X-Binary-Element-Type: \"unsigned %d-bit integer\"\n",
+                                                    bits);
+
+    }
+
     cbf_failnez (cbf_write_string (file, text))
-    
-    
+
+
       /* Save the digest if we have one */
 
     if (cbf_is_base64digest (digest))
@@ -387,21 +500,21 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
       cbf_failnez (cbf_write_string (file, text))
     }
 
-    cbf_failnez (cbf_write_string (file, "\n"))  
+    cbf_failnez (cbf_write_string (file, "\n"))
   }
   else
 
       /* Simple header */
-    
+
     cbf_failnez (cbf_write_string (file, "START OF BINARY SECTION\n"))
-    
+
 
     /* Copy the binary section to the output file */
-    
+
   if (file->write_encoding & ENC_NONE)
   {
-      /* Write the separators */  
-  
+      /* Write the separators */
+
     cbf_failnez (cbf_put_character (file, 12))
     cbf_failnez (cbf_put_character (file, 26))
     cbf_failnez (cbf_put_character (file, 4))
@@ -446,32 +559,32 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
   else
   {
       /* Read the element size with no compression? */
-      
+
     if (compression == CBF_NONE)
     {
       elsize = (bits + 4) / 8;
-      
+
       if (elsize < 1 || elsize == 5)
-      
+
         elsize = 4;
-        
+
       else
-        
+
         if (elsize == 7)
-      
+
           elsize = 6;
-          
+
         else
 
           if (elsize > 8)
-      
+
             elsize = 8;
     }
     else
-    
+
       elsize = 4;
-      
-      
+
+
       /* Go back to the start of the binary data */
 
     cbf_failnez (cbf_set_fileposition (infile, start, SEEK_SET))
@@ -483,29 +596,29 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 
 
     if (file->write_encoding & ENC_QP)
-  
+
       cbf_failnez (cbf_toqp (infile, file, size))
 
     else
-  
+
       if (file->write_encoding & ENC_BASE64)
-  
+
         cbf_failnez (cbf_tobase64 (infile, file, size))
 
       else
-  
+
         if (file->write_encoding & ENC_BASE8)
-  
+
           cbf_failnez (cbf_tobasex (infile, file, size, elsize, 8))
 
         else
-  
+
           if (file->write_encoding & ENC_BASE10)
-  
+
             cbf_failnez (cbf_tobasex (infile, file, size, elsize, 10))
 
           else
-  
+
             cbf_failnez (cbf_tobasex (infile, file, size, elsize, 16))
   }
 
@@ -514,11 +627,11 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 
   if (file->write_headers & MIME_HEADERS)
 
-    cbf_failnez (cbf_write_string (file, 
+    cbf_failnez (cbf_write_string (file,
                                "\n--CIF-BINARY-FORMAT-SECTION----\n;\n"))
-    
+
   else
-  
+
     cbf_failnez (cbf_write_string (file, "\nEND OF BINARY SECTION\n;\n"))
 
 
@@ -528,14 +641,14 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 
 
     /* Replace a connection to a temporary file? */
-    
-  if (start  != 0               && 
-      isbuffer                  && 
+
+  if (start  != 0               &&
+      isbuffer                  &&
       type == CBF_TOKEN_TMP_BIN && (file->write_encoding & ENC_NONE))
 
     cbf_failnez (cbf_set_bintext (column, row, CBF_TOKEN_BIN,
                                   id, file, start, size, checked_digest,
-                                  digest, bits, sign, compression))
+                                  digest, bits, sign, realarray, compression))
 
 
     /* Success */

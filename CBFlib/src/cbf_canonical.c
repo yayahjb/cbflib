@@ -1,12 +1,117 @@
 /**********************************************************************
  * cbf_canonical -- canonical-code compression                        *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term Ôthis softwareÕ, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -51,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -82,7 +187,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -223,13 +328,13 @@ int cbf_make_compressdata (cbf_compress_data **data, cbf_file *file)
     /* Initialise */
 
   (*data)->file     = file;
-  
+
   (*data)->bits     = 0;
   (*data)->maxbits  = 0;
   (*data)->endcode  = 0;
   (*data)->nodes    = 0;
   (*data)->nextnode = 0;
- 
+
   (*data)->node = NULL;
 
 
@@ -256,11 +361,11 @@ void cbf_free_compressdata (cbf_compress_data *data)
 
   /* Initialise compression data arrays */
 
-int cbf_initialise_compressdata (cbf_compress_data *data, unsigned int bits, 
+int cbf_initialise_compressdata (cbf_compress_data *data, unsigned int bits,
                                                           unsigned int maxbits)
 {
   size_t count;
-  
+
   cbf_compress_node *node;
 
 
@@ -354,28 +459,28 @@ int cbf_put_table (cbf_compress_data *data, unsigned int *bitcount)
   cbf_failnez (cbf_put_integer (data->file, data->bits, 0, CBF_TABLEENTRYBITS))
 
   *bitcount = CBF_TABLEENTRYBITS;
-  
+
 
     /* How many symbols do we actually use? */
 
   endcode = 1 << data->bits;
 
-  for (codes = endcode + data->maxbits; data->node [codes].bitcount == 0; 
+  for (codes = endcode + data->maxbits; data->node [codes].bitcount == 0;
        codes--);
 
   codes++;
-    
+
 
     /* Maximum bits used */
 
   if (codes > endcode + data->bits)
-    
+
     maxbits = codes - endcode - 1;
 
   else
 
     maxbits = data->bits;
- 
+
   cbf_failnez (cbf_put_integer (data->file, maxbits, 0, CBF_TABLEENTRYBITS))
 
   *bitcount += CBF_TABLEENTRYBITS;
@@ -389,8 +494,8 @@ int cbf_put_table (cbf_compress_data *data, unsigned int *bitcount)
 
       count = endcode + data->bits + 1;
 
-    cbf_failnez (cbf_put_integer (data->file, 
-                                  data->node [count].bitcount, 0, 
+    cbf_failnez (cbf_put_integer (data->file,
+                                  data->node [count].bitcount, 0,
                                   CBF_TABLEENTRYBITS))
 
     *bitcount += CBF_TABLEENTRYBITS;
@@ -412,13 +517,13 @@ int cbf_get_table (cbf_compress_data *data)
 
     /* Coded bits */
 
-  cbf_failnez (cbf_get_integer (data->file, (int *) &bits, 0, 
+  cbf_failnez (cbf_get_integer (data->file, (int *) &bits, 0,
                                 CBF_TABLEENTRYBITS))
 
 
     /* Maximum number of bits */
 
-  cbf_failnez (cbf_get_integer (data->file, (int *) &maxbits, 0, 
+  cbf_failnez (cbf_get_integer (data->file, (int *) &maxbits, 0,
                                 CBF_TABLEENTRYBITS))
 
 
@@ -438,7 +543,7 @@ int cbf_get_table (cbf_compress_data *data)
 
   for (count = 0; count <= endcode + maxbits; count++)
   {
-    cbf_failnez (cbf_get_integer (data->file, (int *) &bits, 0, 
+    cbf_failnez (cbf_get_integer (data->file, (int *) &bits, 0,
                                   CBF_TABLEENTRYBITS))
 
     if (count == endcode + 1)
@@ -450,7 +555,7 @@ int cbf_get_table (cbf_compress_data *data)
 
 
     /* Success */
-    
+
   return 0;
 }
 
@@ -460,10 +565,10 @@ int cbf_get_table (cbf_compress_data *data)
 int cbf_put_stopcode (cbf_compress_data *data, unsigned int *bitcount)
 {
   unsigned int endcode;
-  
+
   endcode = 1 << data->bits;
 
-  cbf_failnez (cbf_put_bits (data->file, 
+  cbf_failnez (cbf_put_bits (data->file,
                              (int *) data->node [endcode].bitcode,
                                      data->node [endcode].bitcount))
 
@@ -478,7 +583,7 @@ int cbf_put_stopcode (cbf_compress_data *data, unsigned int *bitcount)
 
   /* Insert a node into a tree */
 
-cbf_compress_node *cbf_insert_node (cbf_compress_node *tree, 
+cbf_compress_node *cbf_insert_node (cbf_compress_node *tree,
                                     cbf_compress_node *node)
 {
   if (tree)
@@ -493,14 +598,14 @@ cbf_compress_node *cbf_insert_node (cbf_compress_node *tree,
 
     return tree;
   }
-  
+
   return node;
 }
 
 
   /* Append a node to a list */
 
-cbf_compress_node *cbf_append_node (cbf_compress_node *list, 
+cbf_compress_node *cbf_append_node (cbf_compress_node *list,
                                     cbf_compress_node *node)
 {
   cbf_compress_node *next;
@@ -508,16 +613,16 @@ cbf_compress_node *cbf_append_node (cbf_compress_node *list,
   if (list)
   {
     next = list;
-    
+
     while (next->next)
-    
+
       next = next->next;
-      
+
     next->next = node;
-    
+
     return list;
   }
-  
+
   return node;
 }
 
@@ -527,8 +632,8 @@ cbf_compress_node *cbf_append_node (cbf_compress_node *list,
 cbf_compress_node *cbf_order_node (cbf_compress_node *tree)
 {
   if (tree)
-  
-    return cbf_append_node (cbf_append_node (cbf_order_node (tree->child [0]), 
+
+    return cbf_append_node (cbf_append_node (cbf_order_node (tree->child [0]),
                                      tree),  cbf_order_node (tree->child [1]));
 
   return NULL;
@@ -538,7 +643,7 @@ cbf_compress_node *cbf_order_node (cbf_compress_node *tree)
   /* Create an ordered list */
 
 cbf_compress_node *cbf_create_list (cbf_compress_data *data) {
-  
+
   unsigned int count, endcode, codes;
 
   cbf_compress_node *tree, *list, *node;
@@ -549,7 +654,7 @@ cbf_compress_node *cbf_create_list (cbf_compress_data *data) {
   endcode = 1 << data->bits;
 
   codes = endcode + data->maxbits + 1;
-  
+
   node = data->node;
 
   tree = NULL;
@@ -557,7 +662,7 @@ cbf_compress_node *cbf_create_list (cbf_compress_data *data) {
   for (count = 0; count < codes; count++)
 
     if (node [count].count)
-    
+
       tree = cbf_insert_node (tree, node + count);
 
   list = cbf_order_node (tree);
@@ -566,8 +671,8 @@ cbf_compress_node *cbf_create_list (cbf_compress_data *data) {
     /* Dismantle the tree */
 
   for (count = 0; count < codes; count++)
-  
-    node [count].child [0] = 
+
+    node [count].child [0] =
     node [count].child [1] = NULL;
 
   return list;
@@ -576,11 +681,11 @@ cbf_compress_node *cbf_create_list (cbf_compress_data *data) {
 
   /* Combine the two nodes with minimum count */
 
-cbf_compress_node *cbf_reduce_list (cbf_compress_data *data, 
+cbf_compress_node *cbf_reduce_list (cbf_compress_data *data,
                                     cbf_compress_node *list)
 {
   cbf_compress_node *node, *next, *cnext;
-   
+
 
     /* Construct a node */
 
@@ -606,7 +711,7 @@ cbf_compress_node *cbf_reduce_list (cbf_compress_data *data,
   if (next == NULL)
 
     return node;
-    
+
   if (node->count <= next->count)
 
     return node;
@@ -619,13 +724,13 @@ cbf_compress_node *cbf_reduce_list (cbf_compress_data *data,
   while (cnext->next)
 
     if (node->count < cnext->count || node->count > cnext->next->count)
-  
+
       cnext = cnext->next;
 
     else
 
       break;
-    
+
   node->next  = cnext->next;
   cnext->next = node;
 
@@ -662,7 +767,7 @@ int cbf_reverse_bitcodes (cbf_compress_data *data)
 
   codes = endcode + data->maxbits + 1;
 
-  
+
     /* Reverse the order of the bits in the code */
 
   for (node = 0; node < codes; node++)
@@ -679,17 +784,17 @@ int cbf_reverse_bitcodes (cbf_compress_data *data)
         index [1][0] = bit [1] % (sizeof (unsigned int) * CHAR_BIT);
         index [1][1] = bit [1] / (sizeof (unsigned int) * CHAR_BIT);
 
-        bit [0] = (data->node [node].bitcode [index [0][1]] 
+        bit [0] = (data->node [node].bitcode [index [0][1]]
                      >> (index [0][0])) & 1;
-        bit [1] = (data->node [node].bitcode [index [1][1]] 
+        bit [1] = (data->node [node].bitcode [index [1][1]]
                      >> (index [1][0])) & 1;
 
-        data->node [node].bitcode [index [0][1]] ^= (bit [0] ^ bit [1]) 
+        data->node [node].bitcode [index [0][1]] ^= (bit [0] ^ bit [1])
                      << index [0][0];
-        data->node [node].bitcode [index [1][1]] ^= (bit [0] ^ bit [1]) 
+        data->node [node].bitcode [index [1][1]] ^= (bit [0] ^ bit [1])
                      << index [1][0];
       }
- 
+
 
     /* Success */
 
@@ -740,7 +845,7 @@ int cbf_generate_canonicalcodes (cbf_compress_data *data)
   for (bits = CBF_MAXCODEBITS - 1; bits > 0; bits--)
   {
     count [1] = base [bits - 1];
-    
+
     base [bits - 1] = (base [bits] + count [0]) / 2;
 
     count [0] = count [1];
@@ -772,7 +877,7 @@ int cbf_compare_bitcodes (const void *void1, const void *void2)
   const cbf_compress_node *node1, *node2;
 
   const unsigned int *code1, *code2;
-  
+
   unsigned int bit, bits;
 
   node1 = (const cbf_compress_node *) void1;
@@ -780,7 +885,7 @@ int cbf_compare_bitcodes (const void *void1, const void *void2)
 
 
     /* Get the codes */
-  
+
   code1 = node1->bitcode;
   code2 = node2->bitcode;
 
@@ -837,18 +942,18 @@ int cbf_construct_tree (cbf_compress_data *data, cbf_compress_node **node,
   if (node == NULL)
   {
     nextnode = data->node;
-    
+
     node = &nextnode;
   }
 
-  
+
     /* Create the node */
 
   *root = data->node + data->nextnode;
 
   data->nextnode++;
 
-  
+
     /* Make the 0 branch then the 1 branch */
 
   if ((*node)->bitcount == bits)
@@ -859,7 +964,7 @@ int cbf_construct_tree (cbf_compress_data *data, cbf_compress_node **node,
   }
   else
 
-    cbf_failnez (cbf_construct_tree (data, node, bits + 1, 
+    cbf_failnez (cbf_construct_tree (data, node, bits + 1,
                  &(*root)->child [0]))
 
   if ((*node)->bitcount == bits)
@@ -870,7 +975,7 @@ int cbf_construct_tree (cbf_compress_data *data, cbf_compress_node **node,
   }
   else
 
-    cbf_failnez (cbf_construct_tree (data, node, bits + 1, 
+    cbf_failnez (cbf_construct_tree (data, node, bits + 1,
                  &(*root)->child [1]))
 
 
@@ -890,7 +995,7 @@ int cbf_setup_decode (cbf_compress_data *data, cbf_compress_node **start)
 
 
     /* Sort the nodes in order of the codes */
-    
+
   qsort (data->node, data->nextnode, sizeof (cbf_compress_node),
                                              cbf_compare_bitcodes);
 
@@ -914,10 +1019,10 @@ unsigned long cbf_count_bits (cbf_compress_data *data)
   endcode = 1 << data->bits;
 
   node = data->node;
-  
-  
+
+
     /* Basic entries */
-    
+
   bitcount = 4 * 64;
 
 
@@ -926,13 +1031,13 @@ unsigned long cbf_count_bits (cbf_compress_data *data)
   for (codes = endcode + data->maxbits; node [codes].bitcount == 0; codes--);
 
   codes++;
-    
+
 
     /* Compression table */
 
   if (codes > endcode + data->bits)
-    
-    bitcount += 2 * CBF_TABLEENTRYBITS + 
+
+    bitcount += 2 * CBF_TABLEENTRYBITS +
                 (codes - data->bits) * CBF_TABLEENTRYBITS;
 
   else
@@ -956,12 +1061,12 @@ unsigned long cbf_count_bits (cbf_compress_data *data)
 
   /* Read a code */
 
-int cbf_get_code (cbf_compress_data *data, cbf_compress_node *root, 
-                                                unsigned int *code, 
+int cbf_get_code (cbf_compress_data *data, cbf_compress_node *root,
+                                                unsigned int *code,
                                                 unsigned int *bitcount)
 {
   int bits0, bits1;
- 
+
     /* Decode the bitstream  */
 
   bits0 = data->file->bits [0];
@@ -988,7 +1093,7 @@ int cbf_get_code (cbf_compress_data *data, cbf_compress_node *root,
 
     bits1 >>= 1;
 
-    bits0--; 
+    bits0--;
   }
 
   data->file->bits [0] = bits0;
@@ -1057,7 +1162,7 @@ int cbf_put_code (cbf_compress_data *data, int code, unsigned int overflow,
     if ((m & -((int) endcode)) == 0)
     {
         /* Code the number */
-      
+
       node = data->node + (code & (endcode - 1));
 
       bits = node->bitcount;
@@ -1070,11 +1175,11 @@ int cbf_put_code (cbf_compress_data *data, int code, unsigned int overflow,
     }
 
       /* Count the number of bits */
-      
+
     bits = sizeof (int) * CHAR_BIT;
 
     while (((m >> (bits - 1)) & 1) == 0)
-    
+
       bits--;
 
     usecode = &code;
@@ -1103,7 +1208,7 @@ int cbf_put_code (cbf_compress_data *data, int code, unsigned int overflow,
     /* Write the number */
 
   cbf_put_bits (data->file, usecode, bits);
-    
+
   *bitcount = bits + node->bitcount;
 
 
@@ -1130,7 +1235,7 @@ int cbf_count_values (cbf_compress_data *data,
 
 
     /* Is the element size valid? */
-    
+
   if (elsize != sizeof (int) &&
       elsize != sizeof (short) &&
       elsize != sizeof (char))
@@ -1249,7 +1354,7 @@ int cbf_count_values (cbf_compress_data *data,
     else
     {
         /* Encode the offset */
-    
+
       m = (code ^ (code << 1));
 
       if ((m & -((int) endcode)) == 0)
@@ -1261,11 +1366,11 @@ int cbf_count_values (cbf_compress_data *data,
       else
       {
           /* Count the number of bits */
-      
+
         bitcount = sizeof (int) * CHAR_BIT;
 
         while (((m >> (bitcount - 1)) & 1) == 0)
-    
+
           bitcount--;
 
         node [endcode + bitcount].count++;
@@ -1274,7 +1379,7 @@ int cbf_count_values (cbf_compress_data *data,
 
 
       /* Update the previous element */
-        
+
     lastelement = element;
   }
 
@@ -1292,7 +1397,7 @@ int cbf_count_values (cbf_compress_data *data,
     *minelem = (int) minelement;
     *maxelem = (int) maxelement;
   }
-      
+
 
     /* End code */
 
@@ -1309,19 +1414,20 @@ int cbf_count_values (cbf_compress_data *data,
 
   /* Compress an array */
 
-int cbf_compress_canonical (void         *source, 
-                            size_t        elsize, 
-                            int           elsign, 
-                            size_t        nelem, 
-                            unsigned int  compression, 
-                            cbf_file     *file, 
+int cbf_compress_canonical (void         *source,
+                            size_t        elsize,
+                            int           elsign,
+                            size_t        nelem,
+                            unsigned int  compression,
+                            cbf_file     *file,
                             size_t       *binsize,
-                            int          *storedbits)
+                            int          *storedbits,
+                            int           realarray)
 {
   int code, minelement, maxelement;
 
   unsigned int count, element, lastelement, bits, unsign, sign, limit, endcode;
-           
+
   unsigned long bitcount, expected_bitcount;
 
   unsigned char *unsigned_char_data;
@@ -1332,7 +1438,7 @@ int cbf_compress_canonical (void         *source,
 
 
     /* Is the element size valid? */
-    
+
   if (elsize != sizeof (int) &&
       elsize != sizeof (short) &&
       elsize != sizeof (char))
@@ -1344,13 +1450,13 @@ int cbf_compress_canonical (void         *source,
 
   cbf_failnez (cbf_make_compressdata (&data, file))
 
-  cbf_onfailnez (cbf_initialise_compressdata (data, 8, 0), 
+  cbf_onfailnez (cbf_initialise_compressdata (data, 8, 0),
                  cbf_free_compressdata (data))
 
 
     /* Count the symbols */
 
-  cbf_onfailnez (cbf_count_values (data, source, elsize, elsign, nelem, 
+  cbf_onfailnez (cbf_count_values (data, source, elsize, elsign, nelem,
                                    &minelement, &maxelement),
                                    cbf_free_compressdata (data))
 
@@ -1369,8 +1475,8 @@ int cbf_compress_canonical (void         *source,
     /* Count the expected number of bits */
 
   expected_bitcount = cbf_count_bits (data);
-  
-  
+
+
     /* Write the number of elements (64 bits) */
 
   cbf_onfailnez (cbf_put_integer (file, nelem, 0, 64),
@@ -1395,21 +1501,21 @@ int cbf_compress_canonical (void         *source,
                  cbf_free_compressdata (data))
 
   bitcount = 4 * 64;
-  
+
 
     /* Write the table */
- 
+
   cbf_onfailnez (cbf_put_table (data, &bits), cbf_free_compressdata (data))
 
   bitcount += bits;
-  
+
 
     /* Generate the canonical bitcodes */
 
   cbf_onfailnez (cbf_generate_canonicalcodes (data), \
                  cbf_free_compressdata (data))
-  
-  
+
+
     /* Initialise the pointers */
 
   unsigned_char_data = (unsigned char *) source;
@@ -1424,9 +1530,9 @@ int cbf_compress_canonical (void         *source,
     sign = 1 << CBF_SHIFT63;
 
     limit = ~-(sign << 1);
-    
+
     if (storedbits)
-    
+
       *storedbits = 64;
   }
   else
@@ -1436,7 +1542,7 @@ int cbf_compress_canonical (void         *source,
     limit = ~0;
 
     if (storedbits)
-    
+
       *storedbits = elsize * CHAR_BIT;
   }
 
@@ -1505,7 +1611,7 @@ int cbf_compress_canonical (void         *source,
 
       /* Write the (overflowed?) code */
 
-    cbf_onfailnez (cbf_put_code (data, code, 
+    cbf_onfailnez (cbf_put_code (data, code,
                   (element < lastelement) ^ (code < 0), &bits),
                    cbf_free_compressdata (data))
 
@@ -1513,7 +1619,7 @@ int cbf_compress_canonical (void         *source,
 
 
       /* Update the previous element */
-        
+
     lastelement = element;
   }
 
@@ -1538,9 +1644,9 @@ int cbf_compress_canonical (void         *source,
 
 
     /* Calculate the number of characters written */
-    
+
   if (binsize)
-  
+
     *binsize = (bitcount + 7) / 8;
 
 
@@ -1556,13 +1662,14 @@ int cbf_compress_canonical (void         *source,
 
   /* Decompress an array (from the start of the table) */
 
-int cbf_decompress_canonical (void         *destination, 
-                              size_t        elsize, 
-                              int           elsign, 
-                              size_t        nelem, 
+int cbf_decompress_canonical (void         *destination,
+                              size_t        elsize,
+                              int           elsign,
+                              size_t        nelem,
                               size_t       *nelem_read,
-                              unsigned int  compression, 
-                              cbf_file     *file)
+                              unsigned int  compression,
+                              cbf_file     *file,
+                              int           realarray)
 {
   unsigned int bits, element, sign, unsign, limit, count64, count;
 
@@ -1578,7 +1685,7 @@ int cbf_decompress_canonical (void         *destination,
 
 
     /* Is the element size valid? */
-    
+
   if (elsize != sizeof (int) &&
       elsize != sizeof (short) &&
       elsize != sizeof (char))
@@ -1602,7 +1709,7 @@ int cbf_decompress_canonical (void         *destination,
 
 
     /* Set up the decode data */
-  
+
   cbf_onfailnez (cbf_setup_decode (data, &start), cbf_free_compressdata (data))
 
 
@@ -1654,7 +1761,7 @@ int cbf_decompress_canonical (void         *destination,
   last_element [0] = unsign;
 
   for (count = 1; count < count64; count++)
-        
+
     last_element [count] = 0;
 
 
@@ -1669,11 +1776,11 @@ int cbf_decompress_canonical (void         *destination,
     if (errorcode)
     {
       if (nelem_read)
-      
+
         *nelem_read = count;
 
       cbf_free_compressdata (data);
-      
+
       return errorcode;
     }
 
@@ -1727,7 +1834,7 @@ int cbf_decompress_canonical (void         *destination,
     /* Number read */
 
   if (nelem_read)
-  
+
     *nelem_read = count;
 
 

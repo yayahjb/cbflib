@@ -1,33 +1,140 @@
 
-/*  A Bison parser, made from ./src/cbf.stx
+/*  A Bison parser, made from ./src/cbf.stx.y
     by GNU Bison version 1.28  */
 
 #define YYBISON 1  /* Identify Bison output.  */
 
 #define	DATA	257
-#define	LOOP	258
-#define	ITEM	259
-#define	CATEGORY	260
-#define	COLUMN	261
-#define	STRING	262
-#define	WORD	263
-#define	BINARY	264
-#define	UNKNOWN	265
-#define	COMMENT	266
-#define	ERROR	267
+#define	SAVE	258
+#define	SAVEEND	259
+#define	LOOP	260
+#define	ITEM	261
+#define	CATEGORY	262
+#define	COLUMN	263
+#define	STRING	264
+#define	CBFWORD	265
+#define	BINARY	266
+#define	UNKNOWN	267
+#define	COMMENT	268
+#define	ERROR	269
 
-#line 1 "./src/cbf.stx"
+#line 1 "./src/cbf.stx.y"
 
 
 /**********************************************************************
  * cbf.stx -- cbf parser                                              *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term ‘this software’, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -72,7 +179,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -103,7 +210,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -208,7 +315,7 @@ int cbf_syntax_error (const char *message)
 }
 
 
-#line 193 "./src/cbf.stx"
+#line 298 "./src/cbf.stx.y"
 typedef union
 {
   int          errorcode;
@@ -225,11 +332,11 @@ typedef union
 
 
 
-#define	YYFINAL		34
+#define	YYFINAL		59
 #define	YYFLAG		-32768
-#define	YYNTBASE	14
+#define	YYNTBASE	16
 
-#define YYTRANSLATE(x) ((unsigned)(x) <= 267 ? yytranslate[x] : 31)
+#define YYTRANSLATE(x) ((unsigned)(x) <= 269 ? yytranslate[x] : 44)
 
 static const char yytranslate[] = {     0,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -258,97 +365,123 @@ static const char yytranslate[] = {     0,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
      2,     2,     2,     2,     2,     1,     3,     4,     5,     6,
-     7,     8,     9,    10,    11,    12,    13
+     7,     8,     9,    10,    11,    12,    13,    14,    15
 };
 
 #if YYDEBUG != 0
 static const short yyprhs[] = {     0,
-     0,     2,     3,     5,     8,    10,    12,    14,    17,    20,
-    23,    26,    29,    32,    35,    38,    41,    44,    47,    50,
-    52,    54,    56,    58,    60,    62,    64
+     0,     2,     3,     5,     8,    11,    13,    15,    17,    19,
+    21,    23,    25,    28,    31,    34,    37,    40,    43,    46,
+    49,    52,    55,    58,    61,    64,    67,    70,    73,    76,
+    79,    82,    85,    88,    91,    94,    97,   100,   102,   104,
+   106,   108,   110,   112,   114,   116
 };
 
-static const short yyrhs[] = {    17,
-     0,     0,    15,     0,    14,    26,     0,    16,     0,    20,
-     0,    24,     0,    17,    27,     0,    18,    28,     0,    17,
-    29,     0,    19,    30,     0,    17,    25,     0,    21,    27,
-     0,    23,    27,     0,    21,    29,     0,    23,    29,     0,
-    22,    28,     0,    23,    30,     0,    24,    30,     0,     4,
-     0,     3,     0,     6,     0,     7,     0,     5,     0,     8,
-     0,     9,     0,    10,     0
+static const short yyrhs[] = {    20,
+     0,     0,    17,     0,    16,    38,     0,    21,     5,     0,
+    18,     0,    25,     0,    29,     0,    22,     0,    39,     0,
+    32,     0,    36,     0,    20,    19,     0,    20,    40,     0,
+    23,    41,     0,    20,    42,     0,    24,    43,     0,    20,
+    37,     0,    26,    40,     0,    28,    40,     0,    26,    42,
+     0,    28,    42,     0,    27,    41,     0,    28,    43,     0,
+    29,    43,     0,    21,    40,     0,    30,    41,     0,    21,
+    42,     0,    31,    43,     0,    21,    37,     0,    33,    40,
+     0,    35,    40,     0,    33,    42,     0,    35,    42,     0,
+    34,    41,     0,    35,    43,     0,    36,    43,     0,     6,
+     0,     3,     0,     4,     0,     8,     0,     9,     0,     7,
+     0,    10,     0,    11,     0,    12,     0
 };
 
 #endif
 
 #if YYDEBUG != 0
 static const short yyrline[] = { 0,
-   235,   240,   245,   248,   253,   256,   259,   264,   269,   272,
-   279,   286,   293,   300,   311,   322,   335,   346,   353,   362,
-   365,   370,   375,   380,   385,   388,   391
+   353,   358,   363,   366,   371,   375,   378,   381,   384,   388,
+   391,   394,   400,   410,   415,   418,   425,   433,   440,   448,
+   459,   471,   484,   495,   502,   511,   516,   519,   526,   533,
+   540,   548,   559,   571,   584,   595,   603,   612,   615,   620,
+   624,   629,   634,   639,   642,   645
 };
 #endif
 
 
 #if YYDEBUG != 0 || defined (YYERROR_VERBOSE)
 
-static const char * const yytname[] = {   "$","error","$undefined.","DATA","LOOP",
-"ITEM","CATEGORY","COLUMN","STRING","WORD","BINARY","UNKNOWN","COMMENT","ERROR",
-"cbf","cbfstart","datablockstart","datablock","category","column","assignment",
-"loopstart","loopcategory","loopcolumn","loopassignment","loop","datablockname",
-"categoryname","columnname","itemname","value", NULL
+static const char * const yytname[] = {   "$","error","$undefined.","DATA","SAVE",
+"SAVEEND","LOOP","ITEM","CATEGORY","COLUMN","STRING","CBFWORD","BINARY","UNKNOWN",
+"COMMENT","ERROR","cbf","cbfstart","CbfThruDBName","SaveFrame","CbfThruDBElement",
+"SFThruSFElement","CbfThruSaveFrame","CbfThruCategory","CbfThruColumn","CbfThruAssignment",
+"CbfThruLoopStart","CbfThruLoopCategory","CbfThruLoopColumn","CbfThruLoopAssignment",
+"SFThruCategory","SFThruColumn","SFThruAssignment","SFThruLoopStart","SFThruLoopCategory",
+"SFThruLoopColumn","SFThruLoopAssignment","Loop","DataBlockName","SaveFrameName",
+"CategoryName","ColumnName","ItemName","Value", NULL
 };
 #endif
 
 static const short yyr1[] = {     0,
-    14,    15,    16,    16,    17,    17,    17,    18,    19,    19,
-    20,    21,    22,    22,    23,    23,    23,    24,    24,    25,
-    26,    27,    28,    29,    30,    30,    30
+    16,    17,    18,    18,    19,    20,    20,    20,    20,    21,
+    21,    21,    22,    23,    24,    24,    25,    26,    27,    27,
+    28,    28,    28,    29,    29,    30,    31,    31,    32,    33,
+    34,    34,    35,    35,    35,    36,    36,    37,    38,    39,
+    40,    41,    42,    43,    43,    43
 };
 
 static const short yyr2[] = {     0,
-     1,     0,     1,     2,     1,     1,     1,     2,     2,     2,
-     2,     2,     2,     2,     2,     2,     2,     2,     2,     1,
-     1,     1,     1,     1,     1,     1,     1
+     1,     0,     1,     2,     2,     1,     1,     1,     1,     1,
+     1,     1,     2,     2,     2,     2,     2,     2,     2,     2,
+     2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+     2,     2,     2,     2,     2,     2,     2,     1,     1,     1,
+     1,     1,     1,     1,     1,     1
 };
 
 static const short yydefact[] = {     2,
-     0,     3,     5,     1,     0,     0,     6,     0,     0,     0,
-     7,    21,     4,    20,    24,    22,    12,     8,    10,    23,
-     9,    25,    26,    27,    11,    13,    15,    17,    14,    16,
-    18,    19,     0,     0
+     0,     3,     6,     1,     9,     0,     0,     7,     0,     0,
+     0,     8,    39,     4,    40,    38,    43,    41,    13,     0,
+     0,     0,    11,     0,     0,     0,    12,    18,    10,    14,
+    16,    42,    15,    44,    45,    46,    17,    19,    21,    23,
+    20,    22,    24,    25,     5,    30,    26,    28,    27,    29,
+    31,    33,    35,    32,    34,    36,    37,     0,     0
 };
 
 static const short yydefgoto[] = {     1,
-     2,     3,     4,     5,     6,     7,     8,     9,    10,    11,
-    17,    13,    18,    21,    19,    25
+     2,     3,    19,     4,    20,     5,     6,     7,     8,     9,
+    10,    11,    12,    21,    22,    23,    24,    25,    26,    27,
+    28,    14,    29,    30,    33,    31,    37
 };
 
 static const short yypact[] = {-32768,
-     6,-32768,-32768,     7,    13,     8,-32768,     9,    13,    -5,
-     8,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
+    37,-32768,-32768,    28,-32768,    11,    31,-32768,     6,    11,
+    19,    31,-32768,-32768,-32768,-32768,-32768,-32768,-32768,    -1,
+    11,    31,-32768,     6,    11,    19,    31,-32768,-32768,-32768,
 -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
--32768,-32768,     2,-32768
+-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
+-32768,-32768,-32768,-32768,-32768,-32768,-32768,    22,-32768
 };
 
 static const short yypgoto[] = {-32768,
 -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
--32768,-32768,     0,    -2,    11,    12
+-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
+     8,-32768,-32768,    -9,     0,    -8,    -3
 };
 
 
-#define	YYLAST		23
+#define	YYLAST		43
 
 
-static const short yytable[] = {    15,
-    16,    34,    22,    23,    24,    33,    28,    26,    12,    29,
-    14,    15,    16,    15,    16,    22,    23,    24,    27,    20,
-    30,    31,    32
+static const short yytable[] = {    38,
+    39,    41,    42,    45,    16,    17,    18,    43,    44,    40,
+    47,    48,    17,    18,    51,    52,    54,    55,    50,    32,
+    49,    59,    56,    57,    53,    17,    18,    46,    34,    35,
+    36,    15,     0,    16,    17,    18,    58,     0,     0,    13,
+    34,    35,    36
 };
 
-static const short yycheck[] = {     5,
-     6,     0,     8,     9,    10,     0,     9,     8,     3,    10,
-     4,     5,     6,     5,     6,     8,     9,    10,     8,     7,
-    10,    10,    11
+static const short yycheck[] = {     9,
+     9,    11,    11,     5,     6,     7,     8,    11,    12,    10,
+    20,    20,     7,     8,    24,    24,    26,    26,    22,     9,
+    21,     0,    26,    27,    25,     7,     8,    20,    10,    11,
+    12,     4,    -1,     6,     7,     8,     0,    -1,    -1,     3,
+    10,    11,    12
 };
 #define YYPURE 1
 
@@ -917,12 +1050,12 @@ case 4:
     break;}
 case 5:
 {
-                                                  yyval.node = yyvsp[0].node;
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_SAVEFRAME))
                                                 ;
     break;}
 case 6:
 {
-                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_DATABLOCK))
+                                                  yyval.node = yyvsp[0].node;
                                                 ;
     break;}
 case 7:
@@ -932,36 +1065,70 @@ case 7:
     break;}
 case 8:
 {
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_DATABLOCK))
                                                 ;
     break;}
 case 9:
 {
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_COLUMN, yyvsp[0].text))
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_DATABLOCK))
                                                 ;
     break;}
 case 10:
 {
-                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, NULL))
-                                                  
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                  cbf_failnez (cbf_make_node   (&(yyval.node), CBF_SAVEFRAME, NULL, yyvsp[0].text))
                                                 ;
     break;}
 case 11:
+{
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_SAVEFRAME))
+                                                ;
+    break;}
+case 12:
+{
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_SAVEFRAME))
+                                                ;
+    break;}
+case 13:
+{
+
+                                                  cbf_failnez (cbf_add_new_child ( yyvsp[-1].node, yyvsp[0].node ))
+
+                                                  yyval.node = yyvsp[0].node;
+
+                                                ;
+    break;}
+case 14:
+{
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+                                                ;
+    break;}
+case 15:
+{
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_COLUMN, yyvsp[0].text))
+                                                ;
+    break;}
+case 16:
+{
+                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, NULL))
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                ;
+    break;}
+case 17:
 {
                                                   yyval.node = yyvsp[-1].node;
 
                                                   cbf_failnez (cbf_set_columnrow (yyval.node, 0, yyvsp[0].text, 1))
                                                 ;
     break;}
-case 12:
+case 18:
 {
                                                   cbf_failnez (cbf_make_node (&(yyval.node), CBF_LINK, NULL, NULL))
 
                                                   cbf_failnez (cbf_set_link (yyval.node, yyvsp[-1].node))
                                                 ;
     break;}
-case 13:
+case 19:
 {
                                                   cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
 
@@ -970,7 +1137,7 @@ case 13:
                                                   yyval.node = yyvsp[-1].node;
                                                 ;
     break;}
-case 14:
+case 20:
 {
                                                   cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_DATABLOCK))
 
@@ -981,10 +1148,10 @@ case 14:
                                                   yyval.node = yyvsp[-1].node;
                                                 ;
     break;}
-case 15:
+case 21:
 {
                                                   cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, NULL))
-                                                  
+
                                                   cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
 
                                                   cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
@@ -994,12 +1161,12 @@ case 15:
                                                   yyval.node = yyvsp[-1].node;
                                                 ;
     break;}
-case 16:
+case 22:
 {
                                                   cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_DATABLOCK))
 
                                                   cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_CATEGORY, NULL))
-                                                  
+
                                                   cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
 
                                                   cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
@@ -1009,7 +1176,7 @@ case 16:
                                                   yyval.node = yyvsp[-1].node;
                                                 ;
     break;}
-case 17:
+case 23:
 {
                                                   cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_COLUMN, yyvsp[0].text))
 
@@ -1020,55 +1187,168 @@ case 17:
                                                   yyval.node = yyvsp[-1].node;
                                                 ;
     break;}
-case 18:
-{
-                                                  yyval.node = yyvsp[-1].node;
-
-                                                  cbf_failnez (cbf_shift_link (yyval.node))
-
-                                                  cbf_failnez (cbf_add_columnrow (yyval.node, yyvsp[0].text))
-                                                ;
-    break;}
-case 19:
-{
-                                                  yyval.node = yyvsp[-1].node;
-
-                                                  cbf_failnez (cbf_shift_link (yyval.node))
-
-                                                  cbf_failnez (cbf_add_columnrow (yyval.node, yyvsp[0].text))
-                                                ;
-    break;}
-case 21:
-{
-                                                  yyval.text = yyvsp[0].text;
-                                                ;
-    break;}
-case 22:
-{
-                                                  yyval.text = yyvsp[0].text;
-                                                ;
-    break;}
-case 23:
-{
-                                                  yyval.text = yyvsp[0].text;
-                                                ;
-    break;}
 case 24:
 {
-                                                  yyval.text = yyvsp[0].text;
+                                                  yyval.node = yyvsp[-1].node;
+
+                                                  cbf_failnez (cbf_shift_link (yyval.node))
+
+                                                  cbf_failnez (cbf_add_columnrow (yyval.node, yyvsp[0].text))
                                                 ;
     break;}
 case 25:
 {
-                                                  yyval.text = yyvsp[0].text;
+                                                  yyval.node = yyvsp[-1].node;
+
+                                                  cbf_failnez (cbf_shift_link (yyval.node))
+
+                                                  cbf_failnez (cbf_add_columnrow (yyval.node, yyvsp[0].text))
                                                 ;
     break;}
 case 26:
 {
-                                                  yyval.text = yyvsp[0].text;
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
                                                 ;
     break;}
 case 27:
+{
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_COLUMN, yyvsp[0].text))
+                                                ;
+    break;}
+case 28:
+{
+                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, NULL))
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                ;
+    break;}
+case 29:
+{
+                                                  yyval.node = yyvsp[-1].node;
+
+                                                  cbf_failnez (cbf_set_columnrow (yyval.node, 0, yyvsp[0].text, 1))
+                                                ;
+    break;}
+case 30:
+{
+                                                  cbf_failnez (cbf_make_node (&(yyval.node), CBF_LINK, NULL, NULL))
+
+                                                  cbf_failnez (cbf_set_link (yyval.node, yyvsp[-1].node))
+                                                ;
+    break;}
+case 31:
+{
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+
+                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
+
+                                                  yyval.node = yyvsp[-1].node;
+                                                ;
+    break;}
+case 32:
+{
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_SAVEFRAME))
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_CATEGORY, yyvsp[0].text))
+
+                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
+
+                                                  yyval.node = yyvsp[-1].node;
+                                                ;
+    break;}
+case 33:
+{
+                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, NULL))
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+
+                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
+
+                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
+
+                                                  yyval.node = yyvsp[-1].node;
+                                                ;
+    break;}
+case 34:
+{
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_SAVEFRAME))
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_CATEGORY, NULL))
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+
+                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
+
+                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
+
+                                                  yyval.node = yyvsp[-1].node;
+                                                ;
+    break;}
+case 35:
+{
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_COLUMN, yyvsp[0].text))
+
+                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
+
+                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
+
+                                                  yyval.node = yyvsp[-1].node;
+                                                ;
+    break;}
+case 36:
+{
+                                                  yyval.node = yyvsp[-1].node;
+
+                                                  cbf_failnez (cbf_shift_link (yyval.node))
+
+                                                  cbf_failnez (cbf_add_columnrow (yyval.node, yyvsp[0].text))
+                                                ;
+    break;}
+case 37:
+{
+                                                  yyval.node = yyvsp[-1].node;
+
+                                                  cbf_failnez (cbf_shift_link (yyval.node))
+
+                                                  cbf_failnez (cbf_add_columnrow (yyval.node, yyvsp[0].text))
+                                                ;
+    break;}
+case 39:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 40:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 41:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 42:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 43:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 44:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 45:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 46:
 {
                                                   yyval.text = yyvsp[0].text;
                                                 ;

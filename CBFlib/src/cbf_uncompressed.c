@@ -1,12 +1,117 @@
 /**********************************************************************
  * cbf_uncompressed -- uncompressed binary sections                   *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term ‘this software’, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -51,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -82,7 +187,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -163,56 +268,85 @@ extern "C" {
 
 
   /* Copy an array without compression */
-  
-int cbf_compress_none (void         *source, 
-                       size_t        elsize, 
-                       int           elsign, 
-                       size_t        nelem, 
-                       unsigned int  compression, 
-                       cbf_file     *file, 
+
+int cbf_compress_none (void         *source,
+                       size_t        elsize,
+                       int           elsign,
+                       size_t        nelem,
+                       unsigned int  compression,
+                       cbf_file     *file,
                        size_t       *compressedsize,
-                       int          *storedbits)
+                       int          *storedbits,
+                       int           realarray)
 {
-  unsigned int count, element, unsign, sign, limit, bits;
+  unsigned int count, element[4], unsign, sign, limit, bits;
 
   unsigned char *unsigned_char_data;
-  
+
+  int numints, iint;
+
+  char * border;
+
+  char * rformat;
+
+
 
     /* Is the element size valid? */
-    
+
   if (elsize != sizeof (int) &&
+        elsize != 2* sizeof (int) &&
+      elsize != 4* sizeof (int) &&
       elsize != sizeof (short) &&
       elsize != sizeof (char))
 
     return CBF_ARGUMENT;
+
+    /* check for compatible real format */
+
+  if ( realarray ) {
+
+    cbf_failnez (cbf_get_local_real_format(&rformat) )
+
+    if ( strncmp(rformat,"ieee",4) ) return CBF_ARGUMENT;
+
+  }
+
+   bits = elsize * CHAR_BIT;
+
+   if (bits < 1 || bits > 64)
+
+     return CBF_ARGUMENT;
+
+   numints = (bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
 
 
     /* Initialise the pointer */
 
   unsigned_char_data = (unsigned char *) source;
 
+    /* Maximum limits */
 
-    /* Maximum limit (unsigned) is 64 bits */
+  sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
 
-  if (elsize * CHAR_BIT > 64)
-  {
-    sign = 1 << CBF_SHIFT63;
-
-    limit = ~-(sign << 1);
-    
-    bits = 64;
-  }
-  else
-  {
-    sign = 1 << (elsize * CHAR_BIT - 1);
+  if (elsize == sizeof (int))
 
     limit = ~0;
 
-    bits = elsize * CHAR_BIT;
-  }
+  else
+
+    if (numints == 1) {
+
+      limit = ~-(1 << (elsize * CHAR_BIT));
+
+    } else {
+
+      limit = ~-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT));
+
+    }
+
 
   if (storedbits)
-    
+
     *storedbits = bits;
 
 
@@ -226,65 +360,118 @@ int cbf_compress_none (void         *source,
 
     unsign = 0;
 
+    /* Get the local byte order */
+
+  if (realarray) {
+
+    cbf_get_local_real_byte_order(&border);
+
+  } else {
+
+    cbf_get_local_integer_byte_order(&border);
+
+  }
+
 
     /* Initialise the pointer */
-    
+
   unsigned_char_data = (unsigned char *) source;
 
 
     /* Write the elements */
-    
+
   for (count = 0; count < nelem; count++)
   {
       /* Get the next element */
-      
+
+    if (numints > 1) {
+
+      if (border[0] == 'b') {
+
+        for (iint = numints; iint; iint--) {
+
+            element[iint-1] = *((unsigned int *) unsigned_char_data);
+
+            unsigned_char_data += sizeof (int);
+
+        }
+
+      } else {
+
+        for (iint = 0; iint < numints; iint++) {
+
+            element[iint] = *((unsigned int *) unsigned_char_data);
+
+            unsigned_char_data += sizeof (int);
+        }
+      }
+
+    } else {
+
     if (elsize == sizeof (int))
-    
-      element = *((unsigned int *) unsigned_char_data);
-      
+
+      element[0] = *((unsigned int *) unsigned_char_data);
+
     else
-    
+
       if (elsize == sizeof (short))
-      
-        element = *((unsigned short *) unsigned_char_data);
-        
+
+        element[0] = *((unsigned short *) unsigned_char_data);
+
       else
-      
-        element = *unsigned_char_data;
-        
+
+        element[0] = *unsigned_char_data;
+
     unsigned_char_data += elsize;
+
+    }
 
 
       /* Make the element unsigned */
 
-    element += unsign;
+    element[0] += unsign;
 
 
       /* Limit the value to 64 bits */
 
-    if (element > limit) {
+    if (element[0] > limit) {
 
-      if (elsign && (int) (element - unsign) < 0)
+      if (elsign && (int) (element[0] - unsign) < 0)
 
-        element = 0;
+        element[0] = 0;
 
       else
 
-        element = limit;
-        
+        element[0] = limit;
+
     }
 
 
       /* Write the element to the file */
 
-    cbf_failnez (cbf_put_integer (file, element - unsign, 0, bits))
+    element[0] -=unsign;
+
+    if (numints > 1) {
+
+      for (iint = 0; iint < numints; iint++) {
+
+        cbf_failnez (cbf_put_integer (file, element[iint], 0,
+                     iint<(numints-1)?(CHAR_BIT*sizeof (int)):
+                     bits-(CHAR_BIT*sizeof (int))*iint ))
+      }
+
+    } else {
+
+      cbf_failnez (cbf_put_integer (file, element[0], 0, bits))
+
+    }
   }
 
 
     /* Return the number of characters written */
-    
+
   if (compressedsize)
-  
+
     *compressedsize = (nelem * bits + 7) / 8;
 
 
@@ -296,39 +483,60 @@ int cbf_compress_none (void         *source,
 
   /* Recover an array without decompression */
 
-int cbf_decompress_none (void         *destination, 
-                         size_t        elsize, 
-                         int           elsign, 
-                         size_t        nelem, 
+int cbf_decompress_none (void         *destination,
+                         size_t        elsize,
+                         int           elsign,
+                         size_t        nelem,
                          size_t       *nelem_read,
-                         unsigned int  compression, 
-                         int           data_bits, 
+                         unsigned int  compression,
+                         int           data_bits,
                          int           data_sign,
-                         cbf_file     *file)
+                         cbf_file     *file,
+                         int           realarray)
 {
-  unsigned int element, sign, unsign, limit, count;
+  unsigned int element[4], sign, unsign, limit, count;
 
   unsigned int data_unsign;
 
   unsigned char *unsigned_char_data;
 
-  int errorcode, overflow;
+  int errorcode, overflow, numints, iint;
 
+  char * border;
+
+  char * rformat;
+
+    /* prepare the errorcode */
+
+  errorcode = 0;
 
     /* Is the element size valid? */
-    
+
   if (elsize != sizeof (int) &&
+      elsize != 2* sizeof (int) &&
+      elsize != 4* sizeof (int) &&
       elsize != sizeof (short) &&
       elsize != sizeof (char))
 
     return CBF_ARGUMENT;
-    
-    
+
+    /* check for compatible real format */
+
+  if ( realarray ) {
+
+    cbf_failnez (cbf_get_local_real_format(&rformat) )
+
+    if ( strncmp(rformat,"ieee",4) ) return CBF_ARGUMENT;
+
+  }
+
     /* Check the stored element size */
-    
+
   if (data_bits < 1 || data_bits > 64)
-  
+
     return CBF_ARGUMENT;
+
+  numints = (data_bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
 
 
     /* Initialise the pointer */
@@ -337,24 +545,25 @@ int cbf_decompress_none (void         *destination,
 
 
     /* Maximum limits */
-    
-  sign = 1 << (elsize * CHAR_BIT - 1);
-    
+
+  sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
+
   if (elsize == sizeof (int))
-    
+
     limit = ~0;
-      
+
   else
-    
-    limit = ~-(1 << (elsize * CHAR_BIT));
 
+    if (numints == 1) {
 
-    /* Check the element size */
-    
-  if (data_bits < 1 || data_bits > 64)
-  
-    return CBF_FORMAT;
-  
+      limit = ~-(1 << (elsize * CHAR_BIT));
+
+    } else {
+
+      limit = ~-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT));
+
+    }
+
 
     /* Offsets to make the value unsigned */
 
@@ -374,6 +583,18 @@ int cbf_decompress_none (void         *destination,
 
     unsign = 0;
 
+    /* Get the local byte order */
+
+  if (realarray) {
+
+    cbf_get_local_real_byte_order(&border);
+
+  } else {
+
+    cbf_get_local_integer_byte_order(&border);
+
+  }
+
 
     /* Read the elements */
 
@@ -385,21 +606,35 @@ int cbf_decompress_none (void         *destination,
   {
       /* Get the next element */
 
-    errorcode = cbf_get_integer (file, (int *) &element, 
+    if (numints > 1 ) {
+
+      for (iint=0; iint < numints; iint++) {
+
+      errorcode |= cbf_get_integer (file, (int *)&(element[iint]),
+                                    iint<(numints-1)?0:data_sign,
+                                    iint<(numints-1)?(CHAR_BIT*sizeof (int)):
+                                      data_bits-(CHAR_BIT*sizeof (int))*iint);
+
+      }
+
+    } else {
+
+    errorcode |= cbf_get_integer (file, (int *)&(element[0]),
                                                 data_sign, data_bits);
+    }
 
     if (errorcode) {
 
-      if (errorcode == CBF_OVERFLOW)
+      if ((errorcode&CBF_OVERFLOW) == CBF_OVERFLOW)
 
         overflow = errorcode;
 
       else
       {
         if (nelem_read)
-      
+
           *nelem_read = count;
-        
+
         return errorcode | overflow;
       }
 
@@ -408,56 +643,81 @@ int cbf_decompress_none (void         *destination,
 
       /* Make the element unsigned */
 
-    element += data_unsign;
+    element[numints-1] += data_unsign;
 
 
       /* Limit the value to fit the element size */
 
-    if (element > limit)
+    if (element[numints-1] > limit)
     {
-      if (elsign && (int) (element - unsign) < 0)
-      
-        element = 0;
-        
+      if (elsign && (int) (element[numints-1] - unsign) < 0)
+
+        element[numints-1] = 0;
+
       else
-      
-        element = limit;
+
+        element[numints-1] = limit;
 
       overflow = CBF_OVERFLOW;
     }
-        
-        
+
+
       /* Make the element signed? */
-        
-    element -= unsign;
+
+    element[numints-1] -= unsign;
 
 
       /* Save the element */
-        
-    if (elsize == sizeof (int))
-      
-      *((unsigned int *) unsigned_char_data) = element;
-        
-    else
-      
-      if (elsize == sizeof (short))
-        
-        *((unsigned short *) unsigned_char_data) = element;
-          
+
+    if (numints > 1) {
+
+      if (border[0] == 'b') {
+
+        for (iint = numints; iint; iint--) {
+
+            *((unsigned int *) unsigned_char_data) = element[iint-1];
+
+            unsigned_char_data += sizeof (int);
+
+        }
+
+      } else {
+
+        for (iint = 0; iint < numints; iint++) {
+
+            *((unsigned int *) unsigned_char_data) = element[iint];
+
+            unsigned_char_data += sizeof (int);
+        }
+      }
+
+    } else {
+
+      if (elsize == sizeof (int))
+
+        *((unsigned int *) unsigned_char_data) = element[0];
+
       else
-        
-        *unsigned_char_data = element;
-          
-    unsigned_char_data += elsize;
-    
+
+        if (elsize == sizeof (short))
+
+          *((unsigned short *) unsigned_char_data) = element[0];
+
+        else
+
+          *unsigned_char_data = element[0];
+
+      unsigned_char_data += elsize;
+
+    }
+
     count++;
   }
 
-
     /* Number read */
-    
+
   if (nelem_read)
-  
+
     *nelem_read = count;
 
 

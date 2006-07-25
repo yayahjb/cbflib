@@ -1,12 +1,117 @@
 /**********************************************************************
  * cbf_simple -- cbflib simplified API functions                      *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    * 
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    * 
+ * This software                                                      *
+ * -------------                                                      *
+ * The term ‘this software’, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    * 
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    * 
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    * 
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    * 
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    * 
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    * 
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -199,6 +304,10 @@ typedef struct
   double displacement [2], increment [2];
 
   size_t axes, index [2];
+  
+  cbf_handle handle;
+  
+  int element;
 }
 cbf_detector_struct;
 
@@ -214,17 +323,23 @@ int cbf_read_template (cbf_handle handle, FILE *stream);
 
 int cbf_get_diffrn_id (cbf_handle handle, const char **diffrn_id);
 
-    
+
   /* Change the diffrn.id entry in all the categories */
 
 int cbf_set_diffrn_id (cbf_handle handle, const char *diffrn_id);
+
+
+  /* Change the diffrn.id entry, creating it if necessary */
+
+int cbf_require_diffrn_id (cbf_handle handle, const char **diffrn_id, 
+                                          const char *default_id);
 
 
   /* Get the diffrn.crystal_id entry */
 
 int cbf_get_crystal_id (cbf_handle handle, const char **crystal_id);
 
-    
+
   /* Change the diffrn.crystal_id entry */
 
 int cbf_set_crystal_id (cbf_handle handle, const char *crystal_id);
@@ -275,8 +390,27 @@ int cbf_count_elements (cbf_handle handle, unsigned int *elements);
 
 int cbf_get_element_id (cbf_handle handle, unsigned int element_number,
                                            const char **element_id);
-
                                            
+
+  /* Get the array id for a given detector element */
+
+int cbf_get_array_id (cbf_handle handle, unsigned int element_number,
+                                         const char **array_id);
+
+
+ /* Get the pixel size of a detector element in a given direction */
+
+int cbf_get_pixel_size(cbf_handle handle, unsigned int element_number,
+                                          unsigned int axis_number,
+                                          double * psize);
+  
+  /* Set the pixel size of a detector element in a given direction */
+
+int cbf_set_pixel_size(cbf_handle handle, unsigned int element_number,
+                                          unsigned int axis_number,
+                                          double psize);
+
+   
   /* Get the gain of a detector element */
 
 int cbf_get_gain (cbf_handle handle, unsigned int element_number,
@@ -312,7 +446,7 @@ int cbf_get_integration_time (cbf_handle handle, unsigned int reserved,
 int cbf_set_integration_time (cbf_handle handle, unsigned int reserved,
                                                  double time);
 
-                                                 
+ 
   /* Get the collection date and time (1) as seconds since January 1 1970 */
 
 int cbf_get_timestamp (cbf_handle handle, unsigned int  reserved,
@@ -352,7 +486,7 @@ int cbf_set_datestamp (cbf_handle handle, unsigned int reserved,
                                           int          timezone,
                                           double       precision);
 
-                                     
+   
   /* Set the collection date and time (3) as current time to the second */
 
 int cbf_set_current_timestamp (cbf_handle handle, unsigned int reserved,
@@ -380,6 +514,17 @@ int cbf_get_image (cbf_handle    handle,
                    size_t        ndim2);
 
 
+  /* Read a real image.  ndim1 is the slow dimension, ndim2 is fast. */
+
+int cbf_get_real_image (cbf_handle    handle,
+                   unsigned int  reserved, 
+                   unsigned int  element_number, 
+                   void         *array, 
+                   size_t        elsize, 
+                   size_t        ndim1,
+                   size_t        ndim2);
+
+
   /* Save an image.  ndim1 is the slow dimension, ndim2 is fast. */
 
 int cbf_set_image (cbf_handle    handle,
@@ -389,6 +534,18 @@ int cbf_set_image (cbf_handle    handle,
                    void         *array, 
                    size_t        elsize,
                    int           elsign, 
+                   size_t        ndim1,
+                   size_t        ndim2);
+
+
+  /* Save a real image.  ndim1 is the slow dimension, ndim2 is fast. */
+
+int cbf_set_real_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   unsigned int  compression,
+                   void         *array, 
+                   size_t        elsize,
                    size_t        ndim1,
                    size_t        ndim2);
 
@@ -465,6 +622,13 @@ int cbf_get_reciprocal (cbf_goniometer goniometer, unsigned int reserved,
 int cbf_construct_detector (cbf_handle    handle, 
                             cbf_detector *detector,
                             unsigned int  element_number);
+ 
+ 
+  /* Construct a detector positioner, creating the necessary categories, and columns */
+
+int cbf_require_detector (cbf_handle    handle, cbf_detector      *detector,
+                                                unsigned int      element_number);
+
 
 
   /* Free a detector */
@@ -478,6 +642,15 @@ int cbf_get_beam_center (cbf_detector detector, double *index1,
                                                 double *index2,
                                                 double *center1, 
                                                 double *center2);
+
+
+  /* Set the beam center */
+
+int cbf_set_beam_center (cbf_detector detector, double *index1,
+                                                double *index2,
+                                                double *center1,
+                                                double *center2);
+
 
 
   /* Get the detector distance */
@@ -516,6 +689,44 @@ int cbf_get_pixel_area (cbf_detector detector, double  index1,
                                                double  index2,
                                                double *area,
                                                double *projected_area);
+
+  /* Calcluate the size of a pixel from the detector element axis displacements */
+
+int cbf_get_inferred_pixel_size (cbf_detector detector, 
+                                               unsigned int axis_number,
+                                               double *psize);
+   
+  /* Get the unit cell parameters */
+  
+int cbf_get_unit_cell (cbf_handle handle, double cell[6], double cell_esd[6] );
+
+  /* Set the unit cell parameters */
+
+int cbf_set_unit_cell (cbf_handle handle, double cell[6], double cell_esd[6] );
+   
+  /* Get the reciprocal cell parameters */
+  
+int cbf_get_reciprocal_cell (cbf_handle handle, double cell[6], double cell_esd[6] );
+
+  /* Set the reciprocal cell parameters */
+
+int cbf_set_reciprocal_cell (cbf_handle handle, double cell[6], double cell_esd[6] );
+
+  /* Compute a cell volume */
+  
+int cbf_compute_cell_volume (double cell[6], double *volume);
+
+  /* Compute a reciprocal cell */
+  
+int cbf_compute_reciprocal_cell (double cell[6], double rcell[6]); 
+
+  /* Get the orientation matrix entry */
+
+int cbf_get_orientation_matrix (cbf_handle handle, double ub_matrix[9]);
+
+  /* Set the orientation matrix entry */
+
+int cbf_set_orientation_matrix (cbf_handle handle, double ub_matrix[9]);
 
 
 #ifdef __cplusplus

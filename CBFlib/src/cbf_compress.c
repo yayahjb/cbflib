@@ -1,12 +1,117 @@
 /**********************************************************************
  * cbf_compress -- compression and decompression                      *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term ‘this software’, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -51,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -82,7 +187,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -166,48 +271,49 @@ extern "C" {
 
   /* Compress an array */
 
-int cbf_compress (void         *source, 
-                  size_t        elsize, 
-                  int           elsign, 
+int cbf_compress (void         *source,
+                  size_t        elsize,
+                  int           elsign,
                   size_t        nelem,
-                  unsigned int  compression, 
-                  cbf_file     *file, 
+                  unsigned int  compression,
+                  cbf_file     *file,
                   size_t       *compressedsize,
-                  int          *bits, 
-                  char         *digest)
+                  int          *bits,
+                  char         *digest,
+                  int           realarray)
 {
   int errorcode;
-  
+
   size_t size;
 
 
     /* Discard any bits in the buffers */
-    
+
   cbf_failnez (cbf_reset_bits (file))
-  
+
   if (compressedsize)
-  
+
     *compressedsize = 0;
 
 
     /* Start a digest? */
-    
+
   if (digest)
-  
+
     cbf_failnez (cbf_start_digest (file))
 
 
   errorcode = 0;
-  
+
   size = 0;
 
   switch (compression)
   {
     case CBF_CANONICAL:
-    
+
       errorcode = cbf_compress_canonical (source, elsize, elsign, nelem,
-                                          compression, file, 
-                                          &size, bits);
+                                          compression, file,
+                                          &size, bits, realarray);
       break;
 
     case CBF_PACKED:
@@ -215,52 +321,52 @@ int cbf_compress (void         *source,
 
       errorcode = cbf_compress_packed (source, elsize, elsign, nelem,
                                        compression, file,
-                                       &size, bits);
+                                       &size, bits, realarray);
       break;
 
     case CBF_BYTE_OFFSET:
-    
+
       errorcode = cbf_compress_byte_offset (source, elsize, elsign, nelem,
-                                            compression, file, 
-                                            &size, bits);
+                                            compression, file,
+                                            &size, bits, realarray);
       break;
 
     case CBF_PREDICTOR:
-    
+
       errorcode = cbf_compress_predictor (source, elsize, elsign, nelem,
-                                          compression, file, 
-                                          &size, bits);
+                                          compression, file,
+                                          &size, bits, realarray);
       break;
 
     case CBF_NONE:
-    
+
       errorcode = cbf_compress_none (source, elsize, elsign, nelem,
-                                     compression, file, 
-                                     &size, bits);
+                                     compression, file,
+                                     &size, bits, realarray);
       break;
 
   default:
-  
+
       errorcode = CBF_ARGUMENT;
   }
-  
-  
+
+
     /* Add the compressed size */
-    
+
   if (compressedsize)
-  
+
     *compressedsize += size;
 
 
     /* Flush the buffers */
 
   errorcode |= cbf_flush_bits (file);
-  
+
 
     /* Get the digest? */
-    
+
   if (digest)
-  
+
      errorcode |= cbf_end_digest (file, digest);
 
 
@@ -271,27 +377,27 @@ int cbf_compress (void         *source,
 
 
   /* Get the parameters of an array (read up to the start of the table) */
-  
-int cbf_decompress_parameters (int          *eltype, 
-                               size_t       *elsize, 
-                               int          *elsigned, 
+
+int cbf_decompress_parameters (int          *eltype,
+                               size_t       *elsize,
+                               int          *elsigned,
                                int          *elunsigned,
-                               size_t       *nelem, 
-                               int          *minelem, 
+                               size_t       *nelem,
+                               int          *minelem,
                                int          *maxelem,
                                unsigned int  compression,
                                cbf_file     *file)
 {
   unsigned int nelem_file;
 
-  int errorcode, minelement_file, maxelement_file, 
+  int errorcode, minelement_file, maxelement_file,
                    elsigned_file, elunsigned_file;
 
 
     /* Discard any bits in the buffers */
 
   cbf_failnez (cbf_reset_bits (file));
-  
+
    /* Check compression type */
 
   if (compression != CBF_CANONICAL   &&
@@ -307,9 +413,9 @@ int cbf_decompress_parameters (int          *eltype,
     nelem_file = 0;
 
     minelement_file = maxelement_file = 0;
-  } 
-  else 
-  { 
+  }
+  else
+  {
       /* Read the number of elements (64 bits) */
 
     cbf_failnez (cbf_get_integer (file, (int *) &nelem_file, 0, 64))
@@ -336,36 +442,36 @@ int cbf_decompress_parameters (int          *eltype,
 
     /* Update the element sign, type, minimum, maximum and number */
 
-  elsigned_file = !(((unsigned) minelement_file) <= 
+  elsigned_file = !(((unsigned) minelement_file) <=
                     ((unsigned) maxelement_file) &&
                     ((signed)   minelement_file) >
                     ((signed)   maxelement_file));
 
-  elunsigned_file = !(((signed)   minelement_file) <= 
+  elunsigned_file = !(((signed)   minelement_file) <=
                       ((signed)   maxelement_file) &&
-                      ((unsigned) minelement_file) >  
+                      ((unsigned) minelement_file) >
                       ((unsigned) maxelement_file));
 
   if (elsigned)
-  
+
     *elsigned = elsigned_file;
 
   if (elunsigned)
-  
+
     *elunsigned = elunsigned_file;
 
   if (eltype)
-  
+
     *eltype = CBF_INTEGER;
 
   if (elsize) {
 
       /* Calculate the minimum number of bytes needed to hold the elements */
-      
+
     if (minelement_file == 0 && maxelement_file == 0) {
-      
+
       *elsize = 0;
-      
+
     } else {
 
       if ((!elsigned_file ||
@@ -374,24 +480,24 @@ int cbf_decompress_parameters (int          *eltype,
           (!elunsigned_file ||
           ((unsigned) minelement_file == (unsigned short) minelement_file &&
            (unsigned) maxelement_file == (unsigned short) maxelement_file))) {
-           
+
         if ((!elsigned_file ||
             ((signed) minelement_file == (signed char) minelement_file &&
              (signed) maxelement_file == (signed char) maxelement_file)) ||
              (!elunsigned_file ||
             ((unsigned) minelement_file == (unsigned char) minelement_file &&
              (unsigned) maxelement_file == (unsigned char) maxelement_file))) {
-             
+
           *elsize = sizeof (char);
-          
+
         } else {
 
           *elsize = sizeof (short);
-          
+
         }
 
       } else {
-        
+
         *elsize = sizeof (int);
 
       }
@@ -399,15 +505,15 @@ int cbf_decompress_parameters (int          *eltype,
   }
 
   if (minelem)
-  
+
     *minelem = minelement_file;
 
   if (maxelem)
-  
+
     *maxelem = maxelement_file;
 
   if (nelem)
-  
+
     *nelem = nelem_file;
 
 
@@ -419,48 +525,49 @@ int cbf_decompress_parameters (int          *eltype,
 
   /* Decompress an array (from the start of the table) */
 
-int cbf_decompress (void         *destination, 
-                    size_t        elsize, 
-                    int           elsign, 
-                    size_t        nelem, 
+int cbf_decompress (void         *destination,
+                    size_t        elsize,
+                    int           elsign,
+                    size_t        nelem,
                     size_t       *nelem_read,
                     unsigned int  compression,
-                    int           bits, 
+                    int           bits,
                     int           sign,
-                    cbf_file     *file)
+                    cbf_file     *file,
+                    int           realarray)
 {
   switch (compression)
   {
     case CBF_CANONICAL:
-    
+
       return cbf_decompress_canonical (destination, elsize, elsign, nelem,
-                                       nelem_read, compression, 
-                                       file);
+                                       nelem_read, compression,
+                                       file, realarray);
 
     case CBF_PACKED:
     case 0:
 
       return cbf_decompress_packed (destination, elsize, elsign, nelem,
-                                    nelem_read, compression, 
-                                    file);
+                                    nelem_read, compression,
+                                    file, realarray);
 
     case CBF_BYTE_OFFSET:
-    
+
       return cbf_decompress_byte_offset (destination, elsize, elsign, nelem,
-                                         nelem_read, compression, 
-                                         file);
+                                         nelem_read, compression,
+                                         file, realarray);
 
     case CBF_PREDICTOR:
-    
+
       return cbf_decompress_predictor (destination, elsize, elsign, nelem,
                                        nelem_read, compression,
-                                       file);
+                                       file, realarray);
 
     case CBF_NONE:
-    
-      return cbf_decompress_none (destination, elsize, elsign, nelem, 
-                                  nelem_read, compression, 
-                                  bits, sign, file);
+
+      return cbf_decompress_none (destination, elsize, elsign, nelem,
+                                  nelem_read, compression,
+                                  bits, sign, file, realarray);
   }
 
 

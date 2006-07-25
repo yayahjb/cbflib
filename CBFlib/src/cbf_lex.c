@@ -1,12 +1,117 @@
 /**********************************************************************
  * cbf_lex -- lexical scanner for CBF tokens                          *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term Ôthis softwareÕ, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -51,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -82,7 +187,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -163,7 +268,7 @@ extern "C" {
 
 
   /* Return an error code */
-  
+
 #define cbf_errornez(f,v) { if (((v)->errorcode = (f)) != 0) return ERROR; }
 
 
@@ -188,18 +293,18 @@ int cbf_return_text (int code, YYSTYPE *val, const char *text, char type)
 
 int cbf_lex (YYSTYPE *val, cbf_file *file)
 {
-  int data, loop, item, column, comment, string, ascii, 
+  int data, save, loop, item, column, comment, string, ascii,
       c, cprev, count, reprocess, errorcode, mime, encoding, bits, sign,
-      checked_digest;
+      checked_digest, real;
 
   long id, position;
-  
+
   unsigned int file_column, compression;
-  
+
   size_t size, length, code_size;
-  
+
   const char *line;
-    
+
   char out_line [(((sizeof (void *) +
                     sizeof (long int) * 2 +
                     sizeof (int) * 3) * CHAR_BIT) >> 2) + 55];
@@ -208,25 +313,25 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
 
   cbf_errornez (cbf_reset_buffer (file), val)
-  
+
   c = file->last_read;
 
   cprev = '\0';
-  
+
   column = c == '.';
-  
+
   comment = c == '#';
-  
+
   reprocess = (column || comment);
-  
-  data = loop = item = string = !reprocess;
-  
+
+  data = save = loop = item = string = !reprocess;
+
   comment = !column;
-  
+
   do
   {
     cbf_errornez (cbf_get_buffer (file, &line, &length), val)
-    
+
     if (reprocess) {
 
       reprocess = 0;
@@ -237,7 +342,7 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
       c = cbf_read_character (file);
     }
-    
+
 
       /* Discard spaces ([[:space:]]+) */
 
@@ -246,10 +351,10 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
       if (isspace (c))
 
          continue;
-            
-        
+
+
        /* DATA ([Dd][Aa][Tt][Aa][_][^[:space:]]*) */
-    
+
     if (data) {
 
       if (length < 5) {
@@ -261,13 +366,36 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
         if (isspace (c) || c == EOF)
 
           return cbf_return_text (DATA, val, &line [5], 0);
-   
+
       }
 
     }
-   
+
+
+       /* SAVE ([Ss][Aa][Vv][Ee][_][^[:space:]]*) */
+
+    if (save) {
+
+      if (length < 5) {
+
+         save = toupper (c) == "SAVE_" [length];
+
+      } else {
+
+        if (isspace (c) || c == EOF) {
+
+          if (length==5) return SAVEEND;
+
+          return cbf_return_text (SAVE, val, &line [5], 0);
+
+        }
+
+      }
+
+    }
+
        /* LOOP ([Ll][Oo][Oo][Pp][_]) */
-     
+
     if (loop)
     {
       loop = toupper (c) == "LOOP_" [length];
@@ -277,9 +405,9 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
         return LOOP;
     }
 
-   
+
        /* ITEM ([_][^[:space:]\.]+) */
-     
+
     if (item) {
 
       if (length == 0) {
@@ -288,35 +416,41 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
       } else {
 
-        item = !isspace (c) && c != '.' && c != '#' && c != EOF;
+        item = !isspace (c) && c != '.' && c != EOF;
 
         if (length >= 2 && !item) {
 
           if (c == '.')
 
             return cbf_return_text (CATEGORY, val, &line [1], 0);
-            
+
           else
 
-            return cbf_return_text (ITEM, val, &line [1], 0);
+            return cbf_return_text (ITEM, val, &line [0], 0);
         }
 
       }
 
     }
 
-   
+
       /* COLUMN (\.[^[:space:]]+) */
-     
+
     if (column)
 
-      if (isspace (c) || c == EOF)
+    {
+
+      column = (!isspace(c) && c != EOF);
+
+      if (!column)
 
         return cbf_return_text (COLUMN, val, &line [1], 0);
 
-  
+    }
+
+
       /* STRING ([\'][^'\n]*[\'\n])|(([\"][^"\n]*[\"\n])) */
-     
+
     if (string) {
 
       if (length == 0) {
@@ -325,9 +459,17 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
       } else {
 
-        if ((cprev == line [0] && isspace(c)) || c == '\n' || c == EOF) {
+        //  The string continues as long as we do not encounter a blank
+        //  after the quote mark in a position after the second position
 
-          if ( cprev == line [0] && file->buffer_used > 0 ) {
+        string = ( cprev != line[0] ||
+                   length < 2 ||
+                   !isspace(c))
+                  && ( c != '\n'  && c != EOF);
+
+        if ( !string )
+        {
+          if ( cprev == line[0] && file->buffer_used > 0 ) {
 
             file->buffer_used--;
 
@@ -337,9 +479,9 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
           if (line [0] == '\'')
 
-            return cbf_return_text (STRING, val, &line [1], 
+            return cbf_return_text (STRING, val, &line [1],
                                                   CBF_TOKEN_SQSTRING);
-            
+
           else
 
             return cbf_return_text (STRING, val, &line [1],
@@ -350,7 +492,7 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
     }
        /* COMMENT ([#][^\n]*) */
-     
+
     if (comment) {
 
       if (length == 0)
@@ -359,13 +501,18 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
       else
 
-        if (c == '\n' || c == EOF)
+      {
+        comment = (c != '\n' && c!= EOF);
+
+        if (! comment)
+
 
           return cbf_return_text (COMMENT, val, &line [1], 0);
+      }
     }
 
-       /* WORD ([^[:space:]]+) */
-     
+       /* CBFWORD ([^[:space:]]+) */
+
     if (!data && !loop && !item && !comment && !string && !column) {
 
       if (length && (isspace (c) || c == EOF)) {
@@ -373,12 +520,12 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
           /* Missing value? */
 
         if (length == 1 && (line [0] == '?' || line [0] == '.'))
-          
-          return cbf_return_text (WORD, val, &line [0], CBF_TOKEN_NULL);
-          
+
+          return cbf_return_text (CBFWORD, val, &line [0], CBF_TOKEN_NULL);
+
         else
-        
-          return cbf_return_text (WORD, val, &line [0], CBF_TOKEN_WORD);
+
+          return cbf_return_text (CBFWORD, val, &line [0], CBF_TOKEN_WORD);
 
       }
 
@@ -386,7 +533,7 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
 
       /* semicolon-delimited STRING (^;[^\n]*[\n])([^;][^\n]*[\n])*(;) */
-      
+
     if (length == 0 && c == ';')
     {
       cbf_errornez (cbf_get_filecoordinates (file, NULL, &file_column), val)
@@ -396,49 +543,49 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
           /* Save the position */
 
         cbf_errornez (cbf_get_fileposition (file, &position), val)
-        
+
         mime = 0;
 
         do
         {
             /* Save the character */
-            
+
           cbf_errornez (cbf_save_character (file, c), val)
-          
-          
+
+
             /* Check for a Mime boundary */
-            
+
           if (c == '-')
           {
             cbf_errornez (cbf_get_buffer (file, &line, &length), val)
 
             cbf_nblen (line, &length);
-            
+
             if (length > 29)
 
-              mime = cbf_cistrcmp (&line [length - 30], 
+              mime = cbf_cistrcmp (&line [length - 30],
                                    "\n--CIF-BINARY-FORMAT-SECTION--")
                                     == 0;
           }
 
 
             /* Read the next character */
-            
+
           cprev = c;
 
           c = cbf_read_character (file);
-          
+
           ascii = isgraph (c) || isspace (c);
         }
         while ((cprev != '\n' || c != ';') && !mime && ascii);
 
 
           /* Plain ASCII string */
-          
+
         if (!mime && ascii)
         {
           cbf_errornez (cbf_get_buffer (file, &line, &length), val)
-        
+
           ((char *) line) [length - 1] = '\0';
 
 
@@ -448,31 +595,33 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
             if (strncmp (&line [count], "\n\\;", 3) == 0)
 
-              memmove ((void *) &line [count + 1], 
+              memmove ((void *) &line [count + 1],
                        (void *) &line [count + 2], length - count - 2);
 
-          return cbf_return_text (STRING, val, &line [1], 
+          return cbf_return_text (STRING, val, &line [1],
                                                   CBF_TOKEN_SCSTRING);
         }
-    
+
         encoding = ENC_NONE;
-          
+
         bits = 0;
-        
+
         sign = -1;
-        
+
+        real = -1;
+
         checked_digest = 0;
-        
+
 
           /* Mime header */
-          
+
         if (mime)
         {
             /* Position */
-          
+
           cbf_errornez (cbf_get_fileposition (file, &position), val)
-          
-        
+
+
             /* Read the header */
 
           cbf_errornez (cbf_parse_mimeheader (file, &encoding,
@@ -481,46 +630,47 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
                                                     digest,
                                                     &compression,
                                                     &bits,
-                                                    &sign), val)
+                                                    &sign,
+                                                    &real), val)
 
 
             /* Check the digest? */
-            
-          if ((file->read_headers & MSG_DIGESTNOW) && 
+
+          if ((file->read_headers & MSG_DIGESTNOW) &&
                                     cbf_is_base64digest (digest))
           {
               /* Recalculate the digest (note that this will decode the
                  binary section but not save the result so this section
                  is not very efficient) */
-              
+
             code_size = 0;
 
             switch (encoding)
-	    {
+        {
               case ENC_QP:
-    
-                cbf_errornez (cbf_fromqp (file, NULL, size, &code_size, 
+
+                cbf_errornez (cbf_fromqp (file, NULL, size, &code_size,
                                                          new_digest), val)
 
                 break;
-      
+
               case ENC_BASE64:
-    
-                cbf_errornez (cbf_frombase64 (file, NULL, size, &code_size, 
+
+                cbf_errornez (cbf_frombase64 (file, NULL, size, &code_size,
                                                          new_digest), val)
 
                 break;
-      
+
               case ENC_BASE8:
               case ENC_BASE10:
               case ENC_BASE16:
-    
-                cbf_errornez (cbf_frombasex (file, NULL, size, &code_size, 
+
+                cbf_errornez (cbf_frombasex (file, NULL, size, &code_size,
                                                          new_digest),val)
 
                 break;
 
-	      case ENC_NONE:
+          case ENC_NONE:
 
                 cbf_errornez (cbf_parse_binaryheader (file, NULL, \
                                                             NULL, \
@@ -531,28 +681,28 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
 
                 cbf_errornez (cbf_get_fileposition (file, &position), val)
 
-                cbf_errornez (cbf_md5digest (file, code_size, new_digest), 
+                cbf_errornez (cbf_md5digest (file, code_size, new_digest),
                                                               val)
-                                                                  
+
                 break;
 
              default:
-    
+
                cbf_errornez (CBF_FORMAT, val)
             }
-            
-            
+
+
               /* Check the number of characters read */
 
             if ((size && (size != code_size)) || code_size == 0)
 
               cbf_errornez (CBF_FORMAT, val)
-              
+
 
               /* Compare the old digest to the new one */
 
             if (strcmp (digest, new_digest) != 0)
-            
+
               cbf_errornez (CBF_FORMAT | 2, val)
 
             checked_digest = 1;
@@ -560,47 +710,47 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
           else
           {
               /* Calculate the minimum number of characters in the data */
-              
+
             if (encoding == ENC_NONE)
             {
               cbf_errornez (cbf_parse_binaryheader (file, NULL, NULL, NULL, \
                                                                   mime), val)
-        
+
               cbf_errornez (cbf_get_fileposition (file, &position), val)
 
               code_size = size;
             }
             else
-            
+
               if (encoding == ENC_QP)
 
                 code_size = size;
-              
+
               else
-            
+
                 if (encoding == ENC_BASE64)
-              
+
                   code_size = size * 8 / 6;
-                
+
                 else
-          
+
                   code_size = size / 4;
 
 
               /* Skip to the end of the data */
 
-            cbf_errornez (cbf_set_fileposition (file, code_size, SEEK_CUR), 
+            cbf_errornez (cbf_set_fileposition (file, code_size, SEEK_CUR),
                                                       val)
           }
         }
         else
         {
             /* Simple binary */
-                      
+
           cbf_errornez (cbf_parse_binaryheader (file, &size, \
                                                       &id,   \
                                                       &compression, mime), val)
-        
+
           cbf_errornez (cbf_get_fileposition (file, &position), val)
 
           code_size = size;
@@ -615,77 +765,77 @@ int cbf_lex (YYSTYPE *val, cbf_file *file)
           /* Find the terminating semi-colon */
 
         c = 0;
-          
+
         do
         {
           cprev = c;
-        
+
           c = cbf_read_character (file);
-          
+
           if (c == EOF)
-          
+
             cbf_errornez (CBF_FILEREAD, val)
         }
         while (cprev != '\n' || c != ';');
 
 
           /* Check the element size and sign */
-          
+
         if (bits < 0 || bits > 64)
-        
+
           cbf_errornez (CBF_FORMAT, val)
-        
+
         if (bits == 0)
-        
+
           bits = 32;
-          
+
         if (sign == -1)
-        
+
           sign = 1;
 
 
           /* Add a connection */
-          
+
         cbf_errornez (cbf_add_fileconnection (&file, NULL), val)
-        
-        
+
+
           /* Code the id, file, position, size and digest */
-          
+
         if (!cbf_is_base64digest (digest))
-        
+
           strcpy (digest, "------------------------");
-          
-        sprintf (out_line, "%lx %p %lx %lx %d %s %x %d %u", 
-                            id, file, position, (unsigned long) size, checked_digest, 
-                            digest, bits, sign, compression);
-        
+
+        sprintf (out_line, "%lx %p %lx %lx %d %s %x %d %d %u",
+                            id, file, position, (unsigned long) size, checked_digest,
+                            digest, bits, sign, real<1?0:1, compression);
+
         if (encoding == ENC_NONE)
-        
-          errorcode = cbf_return_text (BINARY, val, out_line, 
+
+          errorcode = cbf_return_text (BINARY, val, out_line,
                                                       CBF_TOKEN_BIN);
-          
+
         else
-        
-          errorcode = cbf_return_text (BINARY, val, out_line, 
+
+          errorcode = cbf_return_text (BINARY, val, out_line,
                                                       CBF_TOKEN_MIME_BIN);
 
         if (errorcode == ERROR)
-        
+
           val->errorcode |= cbf_delete_fileconnection (&file);
-          
+
         return errorcode;
       }
     }
 
 
       /* Add the character to the text */
-      
+
     errorcode = cbf_save_character (file, c);
-    
+
     cbf_errornez (errorcode, val);
   }
   while (c != EOF);
-  
+
   return 0;
 }
 

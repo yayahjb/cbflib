@@ -54,6 +54,8 @@ int         img_read           (img_handle img, const char *name);
 int         img_free_handle    (img_handle img);
 int         img_delete_field   (img_handle img, const char *tag);
 const char *img_get_field      (img_handle img, const char *tag);
+int         img_get_next_field (img_handle img, const char **tag, const char **data, 
+                                                                  int *index);
 int         img_set_field      (img_handle img, const char *tag, const char *data);
 double      img_get_number     (img_handle img, const char *tag);
 int         img_set_number     (img_handle img, const char *tag, const char *format,

@@ -10,8 +10,21 @@ BACKGROUND="../html_graphics/cbflibbackground.jpg">
 <img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg"></a>
 <A HREF="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg" 
 ALT="[CBF/imgCIF]"></A>
+<a href="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg"></a>
 <hr>
 <CENTER>
+| <a href="http://www.iucr.org/iucr-top/welcome.html">IUCr Home Page</a>
+| <a href="http://www.iucr.org/iucr-top/cif/home.html">CIF Home Page</a>
+| <A HREF="cbf_definition_rev.html">CBF/imgCIF</a>
+| <a href="CBFlib.html">CBFlib</a>
+|<br />
+| <A HREF = "CBFlib_NOTICES.html">NOTICE</A>
+| <a href=gpl.txt>GPL</a>
+| <a href=lgpl.txt>LGPL</a>
+| <a href="cif_img.html">imgCIF dictionary</a>
+|<br />
+| <a href="http://arcib.dowling.edu/donation.shtml">Click Here to Make a Donation</a>
+|<P>
 <IMG  SRC="../html_graphics/cbflibbig.jpg" ALT="">
 </CENTER>
 <font color="#0808A0">
@@ -19,8 +32,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <B>An API for CBF/imgCIF<BR>
 Crystallographic Binary Files with ASCII Support</B><BR>
-Version 0.7.4<BR>
-12 January 2004<BR>
+Version 0.7.5<BR>
+15 April 2006<BR>
 <P>
 </CENTER>
 </font><font color="#000000">
@@ -29,17 +42,6 @@ Version 0.7.4<BR>
 by<BR>
 Paul J. Ellis<BR>
 Stanford Synchrotron Radiation Laboratory<BR>
-<script language="javascript" type="text/javascript">
-<!-- 
-      var name = "ellis@";
-      var domain = "ssrl.slac.stanford";
-      var domext = ".edu";
-      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + name + domain + domext+"</a>"); 
-// -->
-</script>
-<noscript>
-ellis&#64;ssrl.slac.stanford&#46;edu
-</noscript>
 <P>
 and<BR>
 Herbert J. Bernstein<BR>
@@ -55,7 +57,15 @@ Bernstein + Sons<BR>
 <noscript>
 yaya&#64;bernstein-plus-sons&#46;com
 </noscript>
+<p>
+&#169; Copyright 2006 Herbert J. Bernstein
 <P>
+<hr>
+<b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=gpl.txt>GPL</a>.
+<P>
+ ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS
+ OF THE <a href=lgpl.txt>LGPL<a/>.</b>
+
 </CENTER>
 <P>
 <HR>
@@ -133,6 +143,327 @@ undefined previously).
 VALIGN=TOP>&nbsp;&nbsp;Jan 2004<TD
 VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release fixes a parse error for 
 quoted strings, adds code to get and set character string types, and removes compiler warnings
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.5">0.7.5</A><TD
+VALIGN=TOP>&nbsp;&nbsp; Apr 2006<TD
+VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release cleans up some
+compiler warnings, corrects a parse error on quoted strings with
+a leading blank as adds the new routines for support of
+aliases, dictionaries and real arrays, higher level routines
+to get and set pixel sizes, do cell computations, and to set beam centers,
+improves support for conversion of images, picking up more data from
+headers.
+
+</TABLE>
+
+<HR>
+<H3><A NAME="0.7.5">Release 0.7.5</A>, Herbert J. Bernstein, 15 April 2006</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+
+
+<TR><TD VALIGN=TOP>cbf.c
+<TD>&nbsp;&nbsp;Revised header for open source licenses; added
+support for aliases, dictionaries and real arrays; added
+convenience routines to do searches with default creation
+of what is being searched for; added reference count and 
+dictionary link for cbf handles; added cbf_new_saveframe, 
+cbf_force_new_saveframe, cbf_set_saveframename,
+cbf_reset_saveframe, cbf_remove_saveframe, cbf_rewind_saveframe,
+cbf_rewind_blockitem, cbf_next_saveframe, cbf_next_blockitem,
+cbf_select_saveframe, cbf_select_blockitem, cbf_find_saveframe,
+cbf_require_row, cbf_require_nextrow, cbf_count_saveframes,
+cbf_count_blockitems, cbf_saveframe_name, cbf_require_value, 
+cbf_require_integervalue, cbf_require_doublevalue, 
+cbf_get_realarrayparameters, cbf_get_realarray, cbf_set_realarray,
+cbf_require_datablock, cbf_require_category, cbf_require_column, 
+cbf_require_column_value, cbf_require_column_integervalue, 
+cbf_require_column_doublevalue, cbf_get_local_integer_byte_order,
+cbf_get_local_real_byte_order, cbf_get_local_real_format,
+cbf_get_dictionary, cbf_set_dictionary, cbf_require_dictionary, 
+cbf_set_hashedvalue, cbf_find_hashedvalue, 
+cbf_convert_dictionary_definition, cbf_convert_dictionary, 
+cbf_find_tag, cbf_find_local_tag, cbf_srch_tag, 
+cbf_find_category_root, cbf_require_category_root,
+cbf_set_category_root, cbf_find_tag_root, cbf_require_tag_root,
+cbf_set_tag_root, cbf_find_tag_category, cbf_set_tag_category.
+
+
+<TR><TD VALIGN=TOP>cbf.h
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added definitions of CBF_API_VERSION  and CBF_DIC_VERSION;
+changed the debug versions of cbf_failnez and cbf_onfailnez
+to stringfy the argument; added dictionary and reference
+count to cbf_handle definition; added prototypes for
+cbf_new_saveframe, cbf_force_new_saveframe, cbf_set_saveframename,
+cbf_remove_saveframe, cbf_rewind_saveframe, cbf_rewind_blockitem, 
+cbf_next_saveframe, cbf_next_blockitem, cbf_saveframe_name,
+cbf_select_saveframe, cbf_select_blockitem, cbf_find_saveframe,
+cbf_require_row, cbf_require_nextrow, cbf_count_saveframes, 
+cbf_count_blockitems, cbf_require_value, 
+cbf_require_integervalue, cbf_require_doublevalue, 
+cbf_get_realarrayparameters, cbf_get_realarray, cbf_set_realarray, 
+cbf_require_datablock, cbf_require_category, cbf_require_column, 
+cbf_require_column_value, cbf_require_column_integervalue, 
+cbf_require_column_doublevalue, cbf_get_local_integer_byte_order, 
+cbf_get_local_real_byte_order, cbf_get_local_real_format, 
+cbf_get_dictionary, cbf_set_dictionary, cbf_require_dictionary,
+cbf_set_hashedvalue, cbf_find_hashedvalue, 
+cbf_convert_dictionary_definition, cbf_convert_dictionary, 
+cbf_find_tag, cbf_find_local_tag, cbf_srch_tag, 
+cbf_find_category_root, cbf_require_category_root, 
+cbf_set_category_root, cbf_find_tag_root, cbf_require_tag_root,
+cbf_set_tag_root, cbf_find_tag_category, cbf_set_tag_category,
+
+
+<TR><TD VALIGN=TOP>cbf_alloc.c
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+<TR><TD VALIGN=TOP>cbf_alloc.h
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+<TR><TD VALIGN=TOP>cbf_ascii.c
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+<TR><TD VALIGN=TOP>cbf_ascii.h
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+<TR><TD VALIGN=TOP>cbf_binary.c
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added support of real arrays.
+
+<TR><TD VALIGN=TOP>cbf_binary.h
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added support of real arrays.
+
+<TR><TD VALIGN=TOP>cbf_byte_offset.c
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+changed signature for support of real arrays; no actual
+changes to the code.
+
+
+<TR><TD VALIGN=TOP>cbf_byte_offset.h
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+changed signature for support of real arrays; no actual
+changes to the code.
+
+
+<TR><TD VALIGN=TOP>cbf_canonical.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+changed signatures for support of real arrays; no actual
+changes to the code.
+
+
+<TR><TD VALIGN=TOP>cbf_canonical.h
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+changed signatures for support of real arrays; no actual
+changes to the code.
+
+<TR><TD VALIGN=TOP>cbf_codes.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+<TR><TD VALIGN=TOP>cbf_codes.h	
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+<TR><TD VALIGN=TOP>cbf_compress.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added support of real arrays.
+
+<TR><TD VALIGN=TOP>cbf_compress.h	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added support of real arrays.
+
+<TR><TD VALIGN=TOP>cbf_context.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+<TR><TD VALIGN=TOP>cbf_context.h	
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+<TR><TD VALIGN=TOP>cbf_file.c
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added support of real arrays, making extensive changes
+to the handling of integers to get past 32 bit limits.
+
+
+<TR><TD VALIGN=TOP>cbf_file.h
+<TD>&nbsp;&nbsp;Revised header for open source licenses..
+
+<TR><TD VALIGN=TOP>cbf_lex.c
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added save frame support; required whitespace before a
+comment; changed WORD to CBFWORD; corrected quoted string
+parse to allow for a blank immediately after the opening 
+quote mark.
+
+<TR><TD VALIGN=TOP>cbf_lex.h
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+<TR><TD VALIGN=TOP>cbf_packed.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+changed signatures for support of real arrays; no actual
+changes to the code.
+
+<TR><TD VALIGN=TOP>cbf_packed.h	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+changed signatures for support of real arrays; no actual
+changes to the code.
+
+
+<TR><TD VALIGN=TOP>cbf_predictor.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+changed signatures for support of real arrays; no actual
+changes to the code.
+
+<TR><TD VALIGN=TOP>cbf_predictor.h	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+changed signatures for support of real arrays; no actual
+changes to the code.
+
+
+<TR><TD VALIGN=TOP>cbf_read_binary.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+
+<TR><TD VALIGN=TOP>cbf_read_binary.h	
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+
+<TR><TD VALIGN=TOP>cbf_read_mime.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added support for real arrays.
+
+<TR><TD VALIGN=TOP>cbf_read_mime.h	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added support for real arrays.
+
+
+<TR><TD VALIGN=TOP>cbf_simple.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+increased precision of all numbers to 15 digits;
+added support for cells and orientation matrices; built 
+in support for diffrn_frame_data as an alternative to 
+diffrn_data_frame; added new routines cbf_require_diffrn_id,
+cbf_get_pixel_size, cbf_set_pixel_size, cbf_get_real_image,
+cbf_set_real_image, int cbf_require_detector,
+cbf_set_beam_center, cbf_get_inferred_pixel_size,
+cbf_get_unit_cell, cbf_set_unit_cell, cbf_get_reciprocal_cell,
+cbf_set_reciprocal_cell, cbf_compute_cell_volume,
+cbf_compute_reciprocal_cell, cbf_get_orientation_matrix,
+cbf_set_orientation_matrix; added braces to deal with
+compiler warnings on dangling else.
+
+
+<TR><TD VALIGN=TOP>cbf_simple.h	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added prototypes for  cbf_require_diffrn_id, 
+cbf_get_array_id, cbf_get_pixel_size, cbf_set_pixel_size, 
+cbf_get_real_image, cbf_set_real_image, 
+cbf_require_detector, cbf_set_beam_center, 
+cbf_get_inferred_pixel_size, cbf_get_unit_cell, 
+cbf_set_unit_cell, cbf_get_reciprocal_cell, 
+cbf_set_reciprocal_cell, cbf_compute_cell_volume, 
+cbf_compute_reciprocal_cell, cbf_get_orientation_matrix, 
+cbf_set_orientation_matrix.
+
+
+
+<TR><TD VALIGN=TOP>cbf_string.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+<TR><TD VALIGN=TOP>cbf_string.h
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+
+<TR><TD VALIGN=TOP>cbf_stx.c	
+<TD>&nbsp;&nbsp;Rebuilt from new cbf.stx.y.
+
+
+<TR><TD VALIGN=TOP>cbf_stx.h	
+<TD>&nbsp;&nbsp;Changed WORD to CBFWORD; added SAVE and
+SAVEEND.
+
+
+<TR><TD VALIGN=TOP>cbf.stx.y	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+Revised grammar to support save frames and to be
+more comprehensible; changed name from cbf.stx
+
+
+<TR><TD VALIGN=TOP>cbf_tree.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added code to support save frames, allowing typed
+searches for children; added new routines cbf_find_typed_child,
+cbf_count_typed_children, cbf_compute_hashcode.
+
+
+<TR><TD VALIGN=TOP>cbf_tree.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added definition of CBF_SAVEFRAME as node type; added
+prototypes for cbf_find_typed_child, cbf_count_typed_children, 
+cbf_compute_hashcode.
+
+<TR><TD VALIGN=TOP>cbf.uncompressed.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+Added support for real arrays, and to remove 32 bit limits.
+
+<TR><TD VALIGN=TOP>cbf.uncompressed.h	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+Added support for real arrays.
+
+<TR><TD VALIGN=TOP>cbf.write.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added support for save frames and aliases; changed logic
+for single row categories to present item-by-item,
+instead of as a loop except for vectors and matrices,
+present matrices row by row; carried cbf handle through
+nest of calls.
+
+<TR><TD VALIGN=TOP>cbf.write.h	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+adjusted prototype of cbf_write_node to carry the
+cbf handle as the first argument.
+
+
+<TR><TD VALIGN=TOP>cbf.write_binary.c	
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added support for real arrays.
+
+<TR><TD VALIGN=TOP>cbf.write_binary.h	
+<TD>&nbsp;&nbsp;Revised header for open source licenses.
+
+
+<TR><TD VALIGN=TOP>Makefile
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+defined C++; added symbol RANLIB for use on systems that
+require a ranlib pass after creating a library with ar; 
+added build and tests of testcell and cif2c; added
+ADSC test case to tests of convert_image; updated list
+of contents of tar;changed cbf.stx to cbf.stx.y.
+
+<TR><TD VALIGN=TOP>connvert_image.c
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+added command line arguments for detector name, detector
+distance, rotation and reflection of the image; added
+usage report on errors; added code for axis transforms;
+added code to report image header fields; cleaned up PHI
+reporting; recovered pixel size and beam center from header;
+commented out most debug code.
+
+<TR><TD VALIGN=TOP>cif2cbf.c
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+renamed BUFSIZ as C2CBUFSIZ to remove a compiler warning;
+process save frames.
+
+<TR><TD VALIGN=TOP>img2cif.c
+<TD>&nbsp;&nbsp;Revised header for open source licenses;
+renamed BUFSIZ as I2CBUFSIZ to remove a compiler warning.
+
+<TR><TD VALIGN=TOP>testcell.C
+<TD>&nbsp;&nbsp;New program to test cell functions.
+
+<TR><TD VALIGN=TOP>cif2c.c
+<TD>&nbsp;&nbsp;New program to test cell functions.
 
 </TABLE>
 
@@ -707,7 +1038,7 @@ This was the first CBFlib release.  It
 supported binary CBF files using binary strings.
 <HR>
 <HR>
-Updated 12 January 2004.  
+Updated 1 March 2006.  
 <script language="javascript" type="text/javascript">
 <!-- 
       var name = "yaya@";

@@ -1,11 +1,115 @@
 /**********************************************************************
  * cbf.h -- cbflib basic API functions                                *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *  
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    * 
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    * 
+ * This software                                                      *
+ * -------------                                                      *
+ * The term ‘this software’, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    * 
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    * 
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    * 
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    * 
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    * 
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    * 
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
 
 /**********************************************************************
  *                               NOTICE                               *
@@ -165,6 +269,11 @@ extern "C" {
 #endif
 
 
+  /* API version and assumed dictionary version */
+  
+#define CBF_API_VERSION     "CBFlib v0.7.5"
+#define CBF_DIC_VERSION     "CBF: VERSION 1.3.2"
+
   /* Maximum line length */
 
 #define CBF_LINELENGTH 80
@@ -255,10 +364,10 @@ extern "C" {
 #ifdef CBFDEBUG
 
 #define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
-                      "\nCBFlib error %d in \"x\"\n", err); return err; }}
+                      "\nCBFlib error %d in " #x "\n", err); return err; }}
 
 #define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
-                      "\nCBFlib error %d in \"x\"\n", err); \
+                      "\nCBFlib error %d in " #x "\n", err); \
                          { c; } return err; }}
 
 #else
@@ -272,11 +381,13 @@ extern "C" {
 
   /* cbf handle */
 
-typedef struct
+typedef struct _cbf_handle_struct
 {
   cbf_node *node;
+  
+  struct _cbf_handle_struct *dictionary;
 
-  int row, search_row;
+  int refcount, row, search_row;
 }
 cbf_handle_struct;
 
@@ -313,9 +424,19 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
 int cbf_new_datablock (cbf_handle handle, const char *datablockname);
 
 
+  /* Add a save frame block */
+
+int cbf_new_saveframe (cbf_handle handle, const char *saveframename);
+
+
   /* Add a data block, allowing for duplicates */
 
 int cbf_force_new_datablock (cbf_handle handle, const char *datablockname);
+
+
+  /* Add a save frame, allowing for duplicates */
+
+int cbf_force_new_saveframe (cbf_handle handle, const char *saveframename);
 
 
   /* Add a category to the current data block */
@@ -353,6 +474,11 @@ int cbf_delete_row (cbf_handle handle, const int rownumber);
 int cbf_set_datablockname (cbf_handle handle, const char *datablockname);
 
 
+  /* Change the name of the current save frame */
+
+int cbf_set_saveframename (cbf_handle handle, const char *saveframename);
+
+
   /* Delete all categories from all the data blocks */
 
 int cbf_reset_datablocks (cbf_handle handle);
@@ -363,6 +489,11 @@ int cbf_reset_datablocks (cbf_handle handle);
 int cbf_reset_datablock (cbf_handle handle);
 
 
+  /* Delete all categories from the current save frame */
+
+int cbf_reset_saveframe (cbf_handle handle);
+
+
   /* Delete all columns and rows from the current category */
 
 int cbf_reset_category (cbf_handle handle);
@@ -371,6 +502,11 @@ int cbf_reset_category (cbf_handle handle);
   /* Delete the current data block */
 
 int cbf_remove_datablock (cbf_handle handle);
+
+
+  /* Delete the current save frame  */
+
+int cbf_remove_saveframe (cbf_handle handle);
 
 
   /* Delete the current category */
@@ -398,6 +534,16 @@ int cbf_rewind_datablock (cbf_handle handle);
 int cbf_rewind_category (cbf_handle handle);
 
 
+  /* Make the first save frame in the current data block the current category */
+
+int cbf_rewind_saveframe (cbf_handle handle);
+
+
+  /* Make the first category or save frame in the current data block the current category */
+
+int cbf_rewind_blockitem (cbf_handle handle, CBF_NODETYPE *type);
+
+
   /* Make the first column in the current category the current column */
 
 int cbf_rewind_column (cbf_handle handle);
@@ -412,10 +558,20 @@ int cbf_rewind_row (cbf_handle handle);
 
 int cbf_next_datablock (cbf_handle handle);
 
+  /* Make the next save frame in the current data block the current save frame */
+
+int cbf_next_saveframe (cbf_handle handle);
+
 
   /* Make the next category in the current data block the current category */
 
 int cbf_next_category (cbf_handle handle);
+
+
+  /* Make the next save frame or category the current data block or category */
+
+int cbf_next_blockitem (cbf_handle handle, CBF_NODETYPE * type);
+
 
 
   /* Make the next column in the current category the current column */
@@ -433,7 +589,12 @@ int cbf_next_row (cbf_handle handle);
 int cbf_find_datablock (cbf_handle handle, const char *datablockname);
 
 
-  /* Make the named category in the current data block the current category */
+  /* Make the named save frame in the current data block the current save frame */
+
+int cbf_find_saveframe (cbf_handle handle, const char *saveframe);
+
+
+  /* Make the named category in the current data block or save frame the current category */
 
 int cbf_find_category (cbf_handle handle, const char *categoryname);
 
@@ -447,20 +608,36 @@ int cbf_find_column (cbf_handle handle, const char *columnname);
 
 int cbf_find_row (cbf_handle handle, const char *value);
 
+  /* Make the first row with matching value the current row
+     creating it if necessary */
+
+int cbf_require_row (cbf_handle handle, const char *value);
 
   /* Make the next row with matching value the current row */
 
 int cbf_find_nextrow (cbf_handle handle, const char *value);
 
+  /* Make the next row with matching value the current row,
+     creating the row if necessary */
+
+int cbf_require_nextrow (cbf_handle handle, const char *value);
 
   /* Count the data blocks */
 
 int cbf_count_datablocks (cbf_handle handle, unsigned int *datablocks);
 
+  /* Count the save frames in the current data block */
+
+int cbf_count_saveframes (cbf_handle handle, unsigned int *saveframes);
 
   /* Count the categories in the current data block */
 
 int cbf_count_categories (cbf_handle handle, unsigned int *categories);
+
+
+  /* Count the items in the current data block */
+
+int cbf_count_blockitems (cbf_handle handle, unsigned int *blockitems);
 
 
   /* Count the columns in the current category */
@@ -478,9 +655,19 @@ int cbf_count_rows (cbf_handle handle, unsigned int *rows);
 int cbf_select_datablock (cbf_handle handle, unsigned int datablock);
 
 
+  /* Make the specified save frame the current save frame */
+
+int cbf_select_saveframe (cbf_handle handle, unsigned int saveframe);
+
+
   /* Make the specified category the current category */
 
 int cbf_select_category (cbf_handle handle, unsigned int category);
+
+
+  /* Make the specified category or save frame the current block item */
+
+int cbf_select_blockitem (cbf_handle handle, unsigned int item, CBF_NODETYPE * type);
 
 
   /* Make the specified column the current column */
@@ -497,6 +684,9 @@ int cbf_select_row (cbf_handle handle, unsigned int row);
   
 int cbf_datablock_name (cbf_handle handle, const char **datablockname);
 
+  /* Get the name of the current save frame */
+  
+int cbf_saveframe_name (cbf_handle handle, const char **saveframename);
 
   /* Get the name of the current category */
   
@@ -521,6 +711,13 @@ int cbf_get_value (cbf_handle handle, const char **value);
   /* Set the ascii value of the current (row, column) entry */
   
 int cbf_set_value (cbf_handle handle, const char *value);
+
+  /* Get the ascii value of the current (row, column) entry,
+     setting it to a default value if necessary */
+
+int cbf_require_value (cbf_handle handle, const char **value, 
+                                          const char *defaultvalue);
+
 
 
   /* Get the ascii type of value of the current (row, column) entry */
@@ -553,6 +750,29 @@ int cbf_set_integervalue (cbf_handle handle, int number);
 int cbf_set_doublevalue (cbf_handle handle, const char *format, double number);
 
 
+ /* Get the name of the current save frame */
+
+int cbf_saveframe_name (cbf_handle handle, const char **saveframename);
+
+
+  /* Get the ascii value of the current (row, column) entry,
+     setting it to a default value if necessary */
+
+int cbf_require_value (cbf_handle handle, const char **value, 
+                                          const char *defaultvalue);
+
+
+  /* Get the (integer) numeric value of the current (row, column) entry, setting it if necessary */
+  
+int cbf_require_integervalue (cbf_handle handle, int *number, int defaultvalue);
+
+
+  /* Get the (double) numeric value of the current (row, column) entry, setting it if necessary */
+  
+int cbf_require_doublevalue (cbf_handle handle, double *number, double defaultvalue);
+
+
+
   /* Get the parameters of the current (row, column) array entry */
   
 int cbf_get_integerarrayparameters (cbf_handle    handle, 
@@ -566,7 +786,7 @@ int cbf_get_integerarrayparameters (cbf_handle    handle,
                                     int          *maxelem);
 
 
-  /* Get the value of the current (row, column) array entry */
+  /* Get the integer value of the current (row, column) array entry */
   
 int cbf_get_integerarray (cbf_handle  handle,
                           int        *id,
@@ -576,8 +796,25 @@ int cbf_get_integerarray (cbf_handle  handle,
                           size_t      nelem, 
                           size_t     *nelem_read);
 
+  /* Get the real value of the current (row, column) array entry */
+  
+int cbf_get_realarray (cbf_handle  handle,
+                          int        *id,
+                          void       *value, 
+                          size_t      elsize, 
+                          size_t      nelem, 
+                          size_t     *nelem_read);
 
-  /* Set the value of the current (row, column) array entry */
+  /* Get the parameters of the current (row, column) array entry */
+
+int cbf_get_realarrayparameters (cbf_handle    handle,
+                                    unsigned int *compression,
+                                    int          *id,
+                                    size_t       *elsize,
+                                    size_t       *nelem);
+
+
+  /* Set the integer value of the current (row, column) array entry */
   
 int cbf_set_integerarray (cbf_handle    handle,
                           unsigned int  compression, 
@@ -586,6 +823,154 @@ int cbf_set_integerarray (cbf_handle    handle,
                           size_t        elsize,
                           int           elsign, 
                           size_t        nelem);
+
+  /* Set the real value of the current (row, column) array entry */
+  
+int cbf_set_realarray (cbf_handle    handle,
+                          unsigned int  compression, 
+                          int           id, 
+                          void         *value, 
+                          size_t        elsize,
+                          size_t        nelem);
+
+  /* Find a datablock, creating it if necessary */
+  
+int cbf_require_datablock (cbf_handle  handle,
+                             const char *datablockname);
+
+  /* Find a category, creating it if necessary */
+  
+int cbf_require_category (cbf_handle  handle,
+                             const char *categoryname);
+
+  /* Find a column, creating it if necessary */
+  
+int cbf_require_column (cbf_handle  handle,
+                             const char *columnname);
+   
+
+  /* Find a column value, return a default if necessary */
+  
+int cbf_require_column_value (cbf_handle  handle,
+                             const char *columnname,
+                             const char **value,
+                             const char *defaultvalue);
+
+  /* Find a column integer value, return a default if necessary */
+  
+int cbf_require_column_integervalue (cbf_handle  handle,
+                             const char *columnname,
+                             int *number,
+                             const int defaultvalue);
+
+  /* Find a column double value, return a default if necessary */
+  
+int cbf_require_column_doublevalue (cbf_handle  handle,
+                             const char *columnname,
+                             double *number,
+                             const double defaultvalue);
+
+  /* Get the local byte order of the default integer type */
+  
+int cbf_get_local_integer_byte_order (char ** byte_order);
+
+  /* Get the local byte order of the default real type */
+  
+int cbf_get_local_real_byte_order (char ** byte_order);
+
+  /* Get the local real format */
+  
+int cbf_get_local_real_format (char ** real_format );
+
+  /* Get the dictionary for a cbf */
+  
+int cbf_get_dictionary (cbf_handle handle, cbf_handle * dictionary);
+
+  /* Set the dictionary for a cbf */
+  
+int cbf_set_dictionary (cbf_handle handle, cbf_handle dictionary);
+
+  /* Get the dictionary for a cbf, or create one */
+  
+int cbf_require_dictionary (cbf_handle handle, cbf_handle * dictionary);
+
+  /* Put the value into the named column, updating the hash table links */
+
+int cbf_set_hashedvalue(cbf_handle handle, const char * value, 
+                                           const char * columnname);
+                                           
+  /* Find value in the named column, using the hash table links */
+
+int cbf_find_hashedvalue(cbf_handle handle, const char * value, 
+                                           const char * columnname);
+
+
+  /* Take a defintion from a dictionary and insert it into the
+      has tables of a cbf dictionary */
+
+int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, 
+                                           cbf_handle dictionary,
+                                           const char * name);
+                                           
+  /* Convert a DDL1 or DDL2 dictionary and add it to a CBF dictionary */
+
+int cbf_convert_dictionary (cbf_handle handle, cbf_handle dictionary );
+
+
+  /* Find the requested tag anywhere in the cbf, make it the current column */
+
+int cbf_find_tag (cbf_handle handle, const char *tag);
+
+  /* Find the requested tag in the cbf within the current
+  
+     save frame or data block, make it the current column */
+
+int cbf_find_local_tag (cbf_handle handle, const char *tag);
+
+  /* Find the requested category and column anywhere in the cbf, make it the current column */
+
+int cbf_srch_tag (cbf_handle handle, cbf_node *node, 
+                                     const char *categoryname, 
+                                     const char *columnname);
+
+  /* Find the root alias of a given category */
+  
+int cbf_find_category_root (cbf_handle handle, const char* categoryname,
+                                            const char** categoryroot);
+
+  /* Find the root alias of a given category, defaulting to the current one */
+  
+int cbf_require_category_root (cbf_handle handle, const char* categoryname,
+                                            const char** categoryroot);
+
+  /* Set the root alias of a given category */
+  
+int cbf_set_category_root (cbf_handle handle, const char* categoryname,
+                                            const char* categoryroot);
+
+  /* Find the root alias of a given tag */
+  
+int cbf_find_tag_root (cbf_handle handle, const char* tagname,
+                                            const char** tagroot);
+
+  /* Find the root alias of a given tag, defaulting to the current one */
+  
+int cbf_require_tag_root (cbf_handle handle, const char* tagname,
+                                            const char** tagroot);
+
+  /* Set the root alias of a given tag */
+  
+int cbf_set_tag_root (cbf_handle handle, const char* tagname,
+                                            const char* tagroot);
+
+  /* Find the category of a given tag */
+  
+int cbf_find_tag_category (cbf_handle handle, const char* tagname,
+                                            const char** categoryname);
+  /* Set category of a given tag */
+  
+int cbf_set_tag_category (cbf_handle handle, const char* tagname,
+                                            const char* categoryname);
 
 
 #ifdef __cplusplus

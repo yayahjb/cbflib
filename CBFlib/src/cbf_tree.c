@@ -1,12 +1,117 @@
 /**********************************************************************
  * cbf_tree -- handle cbf nodes                                       *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term Ôthis softwareÕ, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -51,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -82,7 +187,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -162,11 +267,11 @@ extern "C" {
 
   /* Make a new node */
 
-int cbf_make_node (cbf_node **node, CBF_NODETYPE type, 
+int cbf_make_node (cbf_node **node, CBF_NODETYPE type,
                    cbf_context *context, const char *name)
 {
   int errorcode;
-  
+
   if (!node)
 
     return CBF_ARGUMENT;
@@ -176,7 +281,7 @@ int cbf_make_node (cbf_node **node, CBF_NODETYPE type,
 
   cbf_failnez (cbf_alloc ((void **) node, NULL, sizeof (cbf_node), 1))
 
-    
+
     /* Initialise the node */
 
   (*node)->type = type;
@@ -186,7 +291,7 @@ int cbf_make_node (cbf_node **node, CBF_NODETYPE type,
   (*node)->link = NULL;
 
   (*node)->parent = NULL;
-      
+
   (*node)->children = 0;
 
   (*node)->child_size = 0;
@@ -209,13 +314,13 @@ int cbf_make_node (cbf_node **node, CBF_NODETYPE type,
       (*node)->context = context;
 
     else
-    
+
       (*node)->context = NULL;
 
 
       /* Add a context connection */
 
-    cbf_onfailnez (cbf_add_contextconnection (&(*node)->context), 
+    cbf_onfailnez (cbf_add_contextconnection (&(*node)->context),
                cbf_free ((void **) node, NULL))
 
 
@@ -226,7 +331,7 @@ int cbf_make_node (cbf_node **node, CBF_NODETYPE type,
     if (errorcode)
     {
       errorcode |= cbf_free_context (&(*node)->context);
-      
+
       return errorcode | cbf_free_node (*node);
     }
   }
@@ -240,11 +345,11 @@ int cbf_make_node (cbf_node **node, CBF_NODETYPE type,
 
   /* Make a new node allowing for duplicates */
 
-int cbf_make_new_node (cbf_node **node, CBF_NODETYPE type, 
+int cbf_make_new_node (cbf_node **node, CBF_NODETYPE type,
                        cbf_context *context, const char *name)
 {
   int errorcode;
-  
+
   if (!node)
 
     return CBF_ARGUMENT;
@@ -254,7 +359,7 @@ int cbf_make_new_node (cbf_node **node, CBF_NODETYPE type,
 
   cbf_failnez (cbf_alloc ((void **) node, NULL, sizeof (cbf_node), 1))
 
-    
+
     /* Initialise the node */
 
   (*node)->type = type;
@@ -264,7 +369,7 @@ int cbf_make_new_node (cbf_node **node, CBF_NODETYPE type,
   (*node)->link = NULL;
 
   (*node)->parent = NULL;
-      
+
   (*node)->children = 0;
 
   (*node)->child_size = 0;
@@ -287,13 +392,13 @@ int cbf_make_new_node (cbf_node **node, CBF_NODETYPE type,
       (*node)->context = context;
 
     else
-    
+
       (*node)->context = NULL;
 
 
       /* Add a context connection */
 
-    cbf_onfailnez (cbf_add_contextconnection (&(*node)->context), 
+    cbf_onfailnez (cbf_add_contextconnection (&(*node)->context),
                    cbf_free ((void **) node, NULL))
 
 
@@ -304,7 +409,7 @@ int cbf_make_new_node (cbf_node **node, CBF_NODETYPE type,
     if (errorcode)
     {
       errorcode |= cbf_free_context (&(*node)->context);
-      
+
       return errorcode | cbf_free_node (*node);
     }
   }
@@ -322,9 +427,9 @@ int cbf_free_node (cbf_node *node)
 {
   unsigned int count;
 
-  
+
     /* Check the arguments */
-    
+
   if (!node)
 
     return CBF_ARGUMENT;
@@ -348,8 +453,8 @@ int cbf_free_node (cbf_node *node)
         else
 
           if (node->parent->children > count)
-          
-            memmove (node->parent->child + count, 
+
+            memmove (node->parent->child + count,
                      node->parent->child + count + 1,
                     (node->parent->children - count) * sizeof (cbf_node *));
 
@@ -399,7 +504,7 @@ int cbf_set_children (cbf_node *node, unsigned int children)
   if (children == node->children)
 
     return 0;
-    
+
     /* Compute a target new size */
 
   kblock = 16;
@@ -417,13 +522,13 @@ int cbf_set_children (cbf_node *node, unsigned int children)
   if (children < node->children)
   {
     errorcode = 0;
-    
+
     for (count = children; count < node->children; count++)
 
         /* Free the child */
 
       if (node->type == CBF_COLUMN)
-    
+
         errorcode |= cbf_set_columnrow (node, count, NULL, 1);
 
       else
@@ -433,7 +538,7 @@ int cbf_set_children (cbf_node *node, unsigned int children)
           if (node->child [count])
           {
             node->child [count]->parent = NULL;
-        
+
             errorcode |= cbf_free_node (node->child [count]);
 
             node->child [count] = NULL;
@@ -466,7 +571,7 @@ int cbf_set_children (cbf_node *node, unsigned int children)
 
   return 0;
 }
-  
+
 
   /* Trace a link */
 
@@ -501,7 +606,7 @@ int cbf_find_child (cbf_node **child, const cbf_node *node, const char *name)
     /* Follow any links */
 
   node = cbf_get_link (node);
-  
+
 
     /* Check the arguments */
 
@@ -532,7 +637,7 @@ int cbf_find_child (cbf_node **child, const cbf_node *node, const char *name)
         if (!*namec && !*nodenamec)
         {
           if (child)
-          
+
             *child = node->child [count];
 
           return 0;
@@ -544,7 +649,7 @@ int cbf_find_child (cbf_node **child, const cbf_node *node, const char *name)
       if (name == node->child [count]->name)
       {
         if (child)
-        
+
           *child = node->child [count];
 
         return 0;
@@ -556,10 +661,79 @@ int cbf_find_child (cbf_node **child, const cbf_node *node, const char *name)
   return CBF_NOTFOUND;
 }
 
+  /* Find a child node by name and type */
+
+int cbf_find_typed_child (cbf_node **child, const cbf_node *node, const char *name, CBF_NODETYPE type)
+{
+  unsigned int count;
+
+  const char *namec, *nodenamec;
+
+
+    /* Follow any links */
+
+  node = cbf_get_link (node);
+
+
+    /* Check the arguments */
+
+  if (!node)
+
+    return CBF_ARGUMENT;
+
+
+    /* Is it a normal node? */
+
+  if (node->type == CBF_COLUMN)
+
+    return CBF_ARGUMENT;
+
+
+    /* Search the children */
+
+  for (count = 0; count < node->children; count++) {
+
+    if (name)
+    {
+      if ((node->child [count])->name && (node->child [count])->type == type)
+      {
+        for (namec = name, nodenamec = node->child [count]->name;
+            *namec && toupper (*nodenamec) == toupper (*namec);
+             namec++, nodenamec++);
+
+        if (!*namec && !*nodenamec)
+        {
+          if (child)
+
+            *child = node->child [count];
+
+          return 0;
+        }
+      }
+    }
+    else {
+
+      if (name == (node->child [count])->name && (node->child [count])->type == type)
+      {
+        if (child)
+
+          *child = node->child [count];
+
+        return 0;
+      }
+    }
+  }
+
+
+    /* Fail */
+
+  return CBF_NOTFOUND;
+}
+
 
   /* Find a child node, accepting the last match  */
 
-int cbf_find_last_child (cbf_node **child, const cbf_node *node, 
+int cbf_find_last_child (cbf_node **child, const cbf_node *node,
                          const char *name)
 {
   int count;
@@ -570,7 +744,7 @@ int cbf_find_last_child (cbf_node **child, const cbf_node *node,
     /* Follow any links */
 
   node = cbf_get_link (node);
-  
+
 
     /* Check the arguments */
 
@@ -601,7 +775,7 @@ int cbf_find_last_child (cbf_node **child, const cbf_node *node,
         if (!*namec && !*nodenamec)
         {
           if (child)
-          
+
             *child = node->child [count];
 
           return 0;
@@ -613,7 +787,7 @@ int cbf_find_last_child (cbf_node **child, const cbf_node *node,
       if (name == node->child [count]->name)
       {
         if (child)
-        
+
           *child = node->child [count];
 
         return 0;
@@ -628,7 +802,7 @@ int cbf_find_last_child (cbf_node **child, const cbf_node *node,
 
   /* Find a parent node */
 
-int cbf_find_parent (cbf_node **parent, const cbf_node *node, 
+int cbf_find_parent (cbf_node **parent, const cbf_node *node,
                      CBF_NODETYPE type)
 {
     /* Follow any links */
@@ -644,15 +818,15 @@ int cbf_find_parent (cbf_node **parent, const cbf_node *node,
 
 
     /* Find the parent */
-    
+
   while (node)
   {
     if (node->type == type)
     {
       if (parent)
-      
+
         *parent = (cbf_node *) node;
-      
+
       return 0;
     }
 
@@ -676,7 +850,7 @@ int cbf_count_children (unsigned int *children, const cbf_node *node)
 
 
     /* Check the arguments */
-    
+
   if (!children || !node)
 
     return CBF_ARGUMENT;
@@ -685,7 +859,41 @@ int cbf_count_children (unsigned int *children, const cbf_node *node)
     /* Success */
 
   *children = node->children;
-  
+
+  return 0;
+}
+
+
+  /* Count the number of children of a given type */
+
+int cbf_count_typed_children (unsigned int *children, const cbf_node *node, CBF_NODETYPE type)
+{
+
+  int i;
+
+    /* Follow any links */
+
+  node = cbf_get_link (node);
+
+
+    /* Check the arguments */
+
+  if (!children || !node || node->type == CBF_COLUMN)
+
+    return CBF_ARGUMENT;
+
+    /* Run through the children */
+
+  *children = 0;
+
+  for (i=0; i < node->children; i++) {
+
+    if ( (node->child[i])->type == type ) (*children)++;
+
+  }
+
+    /* Success */
+
   return 0;
 }
 
@@ -698,7 +906,7 @@ int cbf_child_index (unsigned int *index, const cbf_node *node)
 
   unsigned int child;
 
-  
+
     /* Follow any links */
 
   node = cbf_get_link (node);
@@ -747,7 +955,7 @@ int cbf_get_child (cbf_node **child, const cbf_node *node, unsigned int index)
     /* Follow any links */
 
   node = cbf_get_link (node);
-  
+
 
     /* Check the arguments */
 
@@ -768,7 +976,7 @@ int cbf_get_child (cbf_node **child, const cbf_node *node, unsigned int index)
   if (index < node->children)
   {
     if (child)
-          
+
       *child = node->child [index];
 
     return 0;
@@ -791,7 +999,7 @@ int cbf_get_name (const char **name, cbf_node *node)
 
 
     /* Check the arguments */
-      
+
   if (!node)
 
     return CBF_ARGUMENT;
@@ -824,11 +1032,11 @@ int cbf_name_node (cbf_node *node, const char *name)
 
 
     /* Check the arguments */
-      
+
   if (!node)
 
     return CBF_ARGUMENT;
-    
+
 
     /* Is there a sibling with this name? */
 
@@ -837,7 +1045,7 @@ int cbf_name_node (cbf_node *node, const char *name)
     if (cbf_find_child (NULL, node->parent, name) == 0)
 
       return CBF_IDENTICAL;
-      
+
 
     /* Replace the old name */
 
@@ -846,7 +1054,7 @@ int cbf_name_node (cbf_node *node, const char *name)
   node->name = name;
 
 
-    /* Success */      
+    /* Success */
 
   return 0;
 }
@@ -862,11 +1070,11 @@ int cbf_name_new_node (cbf_node *node, const char *name)
 
 
     /* Check the arguments */
-      
+
   if (!node)
 
     return CBF_ARGUMENT;
-    
+
 
     /* Replace the old name */
 
@@ -875,7 +1083,7 @@ int cbf_name_new_node (cbf_node *node, const char *name)
   node->name = (char *) name;
 
 
-    /* Success */      
+    /* Success */
 
   return 0;
 }
@@ -891,7 +1099,7 @@ int cbf_add_child (cbf_node *node, cbf_node *child)
 
 
     /* Check the first argument */
-    
+
   if (!node)
 
     return CBF_ARGUMENT;
@@ -903,14 +1111,14 @@ int cbf_add_child (cbf_node *node, cbf_node *child)
 
 
     /* Check the second argument */
-    
+
   if (!child)
 
     return CBF_ARGUMENT;
-    
+
 
     /* Is there already a child with this name? */
-    
+
   if (cbf_find_child (NULL, node, child->name) == 0)
 
     return CBF_IDENTICAL;
@@ -941,7 +1149,7 @@ int cbf_add_new_child (cbf_node *node, cbf_node *child)
 
 
     /* Check the first argument */
-    
+
   if (!node)
 
     return CBF_ARGUMENT;
@@ -953,7 +1161,7 @@ int cbf_add_new_child (cbf_node *node, cbf_node *child)
 
 
     /* Check the second argument */
-    
+
   if (!child)
 
     return CBF_ARGUMENT;
@@ -976,20 +1184,20 @@ int cbf_add_new_child (cbf_node *node, cbf_node *child)
 
   /* Make a new child node */
 
-int cbf_make_child (cbf_node **child, cbf_node *node, 
+int cbf_make_child (cbf_node **child, cbf_node *node,
                     CBF_NODETYPE type, const char *name)
 {
   cbf_node *newchild;
 
   int errorcode;
 
-  
+
     /* Check the type */
 
   if (type == CBF_LINK)
 
     return CBF_ARGUMENT;
-    
+
 
     /* Follow any links */
 
@@ -1003,7 +1211,7 @@ int cbf_make_child (cbf_node **child, cbf_node *node,
   if (errorcode == 0)
   {
     cbf_free_string (NULL, name);
-    
+
     return 0;
   }
 
@@ -1023,7 +1231,7 @@ int cbf_make_child (cbf_node **child, cbf_node *node,
     newchild->name = NULL;
 
     cbf_free_node (newchild);
-    
+
     return errorcode;
   }
 
@@ -1047,13 +1255,13 @@ int cbf_make_new_child (cbf_node **child, cbf_node *node,
 
   int errorcode;
 
-  
+
     /* Check the type */
 
   if (type == CBF_LINK)
 
     return CBF_ARGUMENT;
-    
+
 
     /* Follow any links */
 
@@ -1071,7 +1279,7 @@ int cbf_make_new_child (cbf_node **child, cbf_node *node,
     newchild->name = NULL;
 
     cbf_free_node (newchild);
-    
+
     return errorcode;
   }
 
@@ -1091,7 +1299,7 @@ int cbf_make_new_child (cbf_node **child, cbf_node *node,
 int cbf_set_link (cbf_node *link, cbf_node *node)
 {
     /* Check the arguments */
-    
+
   if (!link)
 
     return CBF_ARGUMENT;
@@ -1120,7 +1328,7 @@ int cbf_set_link (cbf_node *link, cbf_node *node)
 int cbf_add_link (cbf_node *link, cbf_node *child)
 {
     /* Check the arguments */
-    
+
   if (!link)
 
     return CBF_ARGUMENT;
@@ -1138,20 +1346,20 @@ int cbf_add_link (cbf_node *link, cbf_node *child)
   cbf_failnez (cbf_set_children (link, link->children + 1))
 
   link->child [link->children - 1] = child;
-  
+
 
     /* Success */
 
   return 0;
 }
-                                                  
+
 
   /* Set a link successively to each child link */
 
 int cbf_shift_link (cbf_node *link)
 {
     /* Check the arguments */
-    
+
   if (!link)
 
     return CBF_ARGUMENT;
@@ -1178,7 +1386,7 @@ int cbf_shift_link (cbf_node *link)
 
     /* Shift the children */
 
-  memmove (link->child, link->child + 1, 
+  memmove (link->child, link->child + 1,
           (link->children - 1) * sizeof (cbf_node *));
 
   link->child [link->children - 1] = link->link;
@@ -1201,7 +1409,7 @@ int cbf_set_columnrow (cbf_node *column, unsigned int row,
 
 
     /* Check the arguments */
-    
+
   if (!column)
 
     return CBF_ARGUMENT;
@@ -1241,7 +1449,7 @@ int cbf_set_columnrow (cbf_node *column, unsigned int row,
 
   /* Get the value of a row */
 
-int cbf_get_columnrow (const char **value, const cbf_node *column, 
+int cbf_get_columnrow (const char **value, const cbf_node *column,
                                            unsigned int row)
 {
     /* Follow any links */
@@ -1250,7 +1458,7 @@ int cbf_get_columnrow (const char **value, const cbf_node *column,
 
 
     /* Check the arguments */
-    
+
   if (!column)
 
     return CBF_ARGUMENT;
@@ -1282,7 +1490,7 @@ int cbf_get_columnrow (const char **value, const cbf_node *column,
 
   /* Inset a value into a column */
 
-int cbf_insert_columnrow (cbf_node *column, unsigned int row, 
+int cbf_insert_columnrow (cbf_node *column, unsigned int row,
                           const char *value)
 {
     /* Follow any links */
@@ -1312,7 +1520,7 @@ int cbf_insert_columnrow (cbf_node *column, unsigned int row,
 
     memmove (column->child + row + 1, column->child + row,
                sizeof (cbf_node *) * (column->children - row - 1));
-  
+
 
     /* Set the value */
 
@@ -1385,6 +1593,23 @@ int cbf_add_columnrow (cbf_node *column, const char *value)
     /* Add the value */
 
   return cbf_set_columnrow (column, column->children, value, 1);
+}
+
+  /* compute a hash code for a string */
+
+int cbf_compute_hashcode(const char *string, unsigned int *hashcode)
+{
+
+    int i;
+
+    *hashcode = 0;
+
+    for (i = 0; i<strlen(string); i++)
+    {
+        *hashcode = (((int)(toupper(string[i])))<<8)^((*hashcode)>>1);
+    }
+
+    return 0;
 }
 
 
