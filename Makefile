@@ -1,143 +1,361 @@
-#  Makefile for CBFlib
-#
+######################################################################
+#  Makefile - command file for make to create CBFlib                 #
+#                                                                    #
+# Version 0.4 15 November 1998                                       #
+#                                                                    #
+#             Paul Ellis (ellis@ssrl.slac.stanford.edu) and          #
+#          Herbert J. Bernstein (yaya@bernstein-plus-sons.com)       #
+#                                                                    #
+#                 PLEASE READ doc/CBFlib_NOTICES.txt                 #
+######################################################################
+
 
 #
-#  suffixes of files to be used or built
+# Set the compiler and flags
+#
+CC	= cc
+#CC	= gcc
+CFLAGS	= -g
+
+#
+# Program to use to pack shars
+#
+SHAR	= /usr/bin/shar
+#SHAR	= /usr/local/bin/gshar
+
+
+#
+# Directories
+#
+ROOT     = .
+LIB      = $(ROOT)/lib
+BIN      = $(ROOT)/bin
+SRC      = $(ROOT)/src
+INCLUDE  = $(ROOT)/include
+EXAMPLES = $(ROOT)/examples
+
+#
+# Include directories
+#
+INCLUDES = -I$(INCLUDE) -I$(SRC)
+
+######################################################################
+#  You should not need to make modifications below this line         #
+######################################################################
+
+#
+# Suffixes of files to be used or built
 #
 .SUFFIXES:	.c .o
 
 #
-#  select the C compiler and parser generator
+# Common dependencies
 #
-CC	=	gcc
-YACC	=	bison -y
-CFLAGS	=	-g
+COMMONDEP = Makefile
 
 #
-#  The source codes for the C compiler
+# Source files
 #
-CSRCS	=	cbf.c cbf_alloc.c cbf_ascii.c cbf_binary.c \
-		cbf_canonical.c cbf_compress.c cbf_context.c \
-		cbf_file.c cbf_lex.c cbf_packed.c cbf_stx.c cbf_tree.c \
-		cbf_write.c cbf_mime.c img.c cbf_codes.c md5c.c xmalloc.c \
-	 	cbf_decode.c cbf_part.c cbf_unixos.c string.c uudecode.c
+SOURCE   =  $(SRC)/cbf.c               \
+            $(SRC)/cbf_alloc.c         \
+            $(SRC)/cbf_ascii.c         \
+            $(SRC)/cbf_binary.c        \
+            $(SRC)/cbf_byte_offset.c   \
+            $(SRC)/cbf_canonical.c     \
+            $(SRC)/cbf_codes.c         \
+            $(SRC)/cbf_compress.c      \
+            $(SRC)/cbf_context.c       \
+            $(SRC)/cbf_file.c          \
+            $(SRC)/cbf_lex.c           \
+            $(SRC)/cbf_packed.c        \
+            $(SRC)/cbf_predictor.c     \
+            $(SRC)/cbf_read_binary.c   \
+            $(SRC)/cbf_read_mime.c     \
+            $(SRC)/cbf_string.c        \
+            $(SRC)/cbf_stx.c           \
+            $(SRC)/cbf_tree.c          \
+            $(SRC)/cbf_uncompressed.c  \
+            $(SRC)/cbf_write.c         \
+            $(SRC)/cbf_write_binary.c  \
+            $(SRC)/md5c.c
+            
+#
+# Default: instructions
+#
+default:
+	@echo ' '
+	@echo '***************************************************************'
+	@echo ' '
+	@echo ' PLEASE READ README and doc/CBFlib_NOTICES.txt'
+	@echo ' '
+	@echo ' Before making the CBF library and example programs, check'
+	@echo ' that the C compiler name and flags are correct:'
+	@echo ' '
+	@echo ' The current values are:'
+	@echo ' '
+	@echo '   $(CC) $(CFLAGS)'
+	@echo ' '
+	@echo ' To compile the CBF library and example programs type:'
+	@echo ' '
+	@echo '   make all'
+	@echo ' '
+	@echo ' To run a set of tests type:'
+	@echo ' '
+	@echo '   make tests'
+	@echo ' '
+	@echo ' The tests assume that "example.mar2300" is in this directory'
+	@echo ' This file can be obtained from'
+	@echo ' '
+	@echo '   http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/'
+	@echo ' '
+	@echo ' To clean up the directories type:'
+	@echo ' '
+	@echo '   make clean'
+	@echo ' '
+	@echo '***************************************************************'
+	@echo ' '
 
 #
-#  The header files used
+# Compile the library and examples
 #
-CHDRS	=	cbf.h cbf_alloc.h cbf_ascii.h cbf_binary.h cbf_canonical.h \
-		cbf_compress.h cbf_context.h cbf_file.h cbf_lex.h \
-		cbf_packed.h cbf_stx.h cbf_tree.h cbf_write.h img.h \
-		md5.h xmalloc.h cbf_part.h common.h
+all:	$(LIB) $(BIN)            \
+	$(LIB)/libcbf.a          \
+        $(BIN)/makecbf           \
+        $(BIN)/img2cif           \
+        $(BIN)/cif2cbf           \
+        clean
 
 #
-#  object files
+# Directories
 #
-OBJS	=	cbf.o cbf_alloc.o cbf_ascii.o cbf_binary.o \
-		cbf_canonical.o cbf_compress.o cbf_context.o \
-		cbf_file.o cbf_lex.o cbf_packed.o cbf_stx.o cbf_tree.o \
-		cbf_write.o cbf_mime.o img.o cbf_codes.o md5c.o xmalloc.o \
-		cbf_decode.o cbf_part.o cbf_unixos.o string.o uudecode.o
-.c.o:
-		$(CC) $(CFLAGS) -c $<
+$(LIB):
+	mkdir $(LIB)
 
-$(OBJS):	$(CHDRS)
+$(BIN):
+	mkdir $(BIN)
 
-cbf_stx.c \
-cbf_stx.h :	cbf.stx.y
-		$(YACC) -l -d cbf.stx.y
-		-mv -f cbf_stx.c cbf_stx.c.BAK
-		mv y.tab.c cbf_stx.c
-		-mv -f cbf_stx.h cbf_stx.h.BAK
-		mv y.tab.h cbf_stx.h
+#
+# CBF library
+#
+$(LIB)/libcbf.a: $(SOURCE) $(COMMONDEP)
+	-rm -f *.o
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	$(AR) cr $@ *.o
 
-makecbf.o:	makecbf.c
+#
+# makecbf example program
+#
+$(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(EXAMPLES)/img.c
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+              $(EXAMPLES)/makecbf.c $(EXAMPLES)/img.c -L$(LIB) \
+	      -lcbf -lcbf -lm -o $@
 
-img2cif.o:	img2cif.c
+#
+# img2cif example program
+#
+$(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(EXAMPLES)/img.c
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+              $(EXAMPLES)/img2cif.c $(EXAMPLES)/img.c -L$(LIB) \
+	      -lcbf -lcbf -lm -o $@
 
-cif2cbf.o:	cif2cbf.c
+#
+# cif2cbf example program
+#
+$(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(EXAMPLES)/img.c
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+              $(EXAMPLES)/cif2cbf.c $(EXAMPLES)/img.c -L$(LIB) \
+	      -lcbf -lcbf -lm -o $@
 
-makecbf:	$(OBJS) makecbf.o
-		$(CC) $(CFLAGS) -o makecbf makecbf.o $(OBJS) -lm
+#
+# Tests
+#
+tests:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf example.mar2300
+	$(BIN)/makecbf example.mar2300 makecbf.cbf
+	$(BIN)/img2cif -c packed -m headers -d digest \
+		-e base64 < example.mar2300 > img2cif_packed.cif
+	$(BIN)/img2cif -c canonical -m headers -d digest \
+		-e base64 < example.mar2300 > img2cif_canonical.cif
+	$(BIN)/img2cif -c packed -m headers -d digest \
+		-e none < example.mar2300 > img2cif_packed.cbf
+	$(BIN)/img2cif -c canonical -m headers -d digest \
+		-e none < example.mar2300 > img2cif_canonical.cbf
+	$(BIN)/img2cif -c canonical -m noheaders -d digest \
+		-e none < example.mar2300 > img2cif_raw.cbf
+	$(BIN)/cif2cbf -e none -c packed \
+		img2cif_canonical.cif cif2cbf_packed.cbf
+	$(BIN)/cif2cbf -e none -c canonical \
+		img2cif_packed.cif cif2cbf_canonical.cbf
+	-cmp cif2cbf_packed.cbf makecbf.cbf
+	-cmp cif2cbf_canonical.cbf img2cif_canonical.cbf
+
+#
+# Extra Tests
+#
+extra:	$(BIN)/cif2cbf makecbf.cbf
+	$(BIN)/cif2cbf -e hex -c none \
+		makecbf.cbf cif2cbf_ehcn.cif
+	$(BIN)/cif2cbf -e none -c packed \
+		cif2cbf_ehcn.cif cif2cbf_encp.cbf
+	-cmp makecbf.cbf cif2cbf_encp.cbf
 
 
-img2cif:	$(OBJS) img2cif.o
-		$(CC) $(CFLAGS) -o img2cif img2cif.o $(OBJS) -lm
+#
+# Remove all non-source files
+#
+empty:  clean
+	@-rm -f  $(LIB)/libcbf.a
+	@-rm -f  $(BIN)/makecbf
+	@-rm -f  $(BIN)/img2cif
+	@-rm -f  $(BIN)/cif2cbf
+	@-rm -f  makecbf.cbf
+	@-rm -f  img2cif_packed.cif
+	@-rm -f  img2cif_canonical.cif
+	@-rm -f  img2cif_packed.cbf
+	@-rm -f  img2cif_canonical.cbf
+	@-rm -f  img2cif_raw.cbf
+	@-rm -f  cif2cbf_packed.cbf
+	@-rm -f  cif2cbf_canonical.cbf
 
-cif2cbf:	$(OBJS) cif2cbf.o
-		$(CC) $(CFLAGS) -o cif2cbf cif2cbf.o $(OBJS) -lm
-
-tests:		makecbf img2cif cif2cbf ../example.mar2300
-		./makecbf ../example.mar2300 makecbf.cbf
-		./img2cif -c packed -m headers -d digest \
-			-e base64 < ../example.mar2300 > img2cif_packed.cif
-		./img2cif -c canonical -m headers -d digest \
-			-e base64 < ../example.mar2300 > img2cif_canonical.cif
-		./img2cif -c packed -m headers -d digest \
-			-e none < ../example.mar2300 > img2cif_packed.cbf
-		./img2cif -c canonical -m headers -d digest \
-			-e none < ../example.mar2300 > img2cif_canonical.cbf
-		./img2cif -c canonical -m noheaders -d digest \
-			-e none < ../example.mar2300 > img2cif_raw.cbf
-		./cif2cbf -e none -c packed \
-			img2cif_canonical.cif cif2cbf_packed.cbf
-		./cif2cbf -e none -c canonical \
-			img2cif_packed.cif cif2cbf_canonical.cbf
-		diff -a cif2cbf_packed.cbf makecbf.cbf
-		diff -a cif2cbf_canonical.cbf img2cif_canonical.cbf
-
-shars:		MANIFEST Makefile $(CSRCS) $(CHDRS) cbf.stx.y \
-		makecbf.c img2cif.c cif2cbf.c ../CBFlib_NOTICES.txt \
-		cbf_PARSER.simple COPYING.PARSER \
-		../CBFlib_NOTICES.html ../cbf_definition_rev.html \
-		../CBFlib.html ../cbfext98.html ../cbfext98.dic \
-		../cbf_definition_rev.txt ../CBFlib.txt
-		ln -s -f ../CBFlib_NOTICES.txt .
-		ln -s -f ../CBFlib_NOTICES.html .
-		ln -s -f ../cbf_definition_rev.html .
-		ln -s -f ../CBFlib.html .
-		ln -s -f ../cbfext98.html .
-		ln -s -f ../cbf_definition_rev.txt .
-		ln -s -f ../CBFlib.txt .
-		ln -s -f ../cbfext98.dic .
-		-/bin/rm -f Part*
-		-/bin/rm -f CBFlib.shar
-		-/bin/rm -f CBFlib.shar.Z
-		makekit  -iMANIFEST -oMANIFEST -h2 -p -s1000k
-		mv Part01 CBFlib.shar
-		compress CBFlib.shar
-		mv CBFlib.shar.Z ..
-
-postshar:
-		touch cbf_stx.c
-		touch cbf_stx.h
-		/bin/mv -f CBFlib_NOTICES.txt ..
-		/bin/mv -f CBFlib_NOTICES.html ..
-		/bin/mv -f cbf_definition_rev.html ..
-		/bin/mv -f CBFlib.html ..
-		/bin/mv -f cbfext98.html ..
-		/bin/mv -f cbf_definition_rev.txt ..
-		/bin/mv -f CBFlib.txt ..
-		/bin/mv -f cbfext98.dic ..
-		ln -s -f ../CBFlib_NOTICES.txt .
-		ln -s -f ../CBFlib_NOTICES.html .
-		ln -s -f ../cbf_definition_rev.html .
-		ln -s -f ../CBFlib.html .
-		ln -s -f ../cbfext98.html .
-		ln -s -f ../cbf_definition_rev.txt .
-		ln -s -f ../CBFlib.txt .
-		ln -s -f ../cbfext98.dic .
-		-/bin/rm -f ../index.html
-		ln -s ../cbf_definition_rev.html ../index.html
-		touch postshar
-
+#
+# Remove temporary files
+#
 clean:
-		-/bin/rm $(OBJS)
+	@-rm -f core 
+	@-rm -f *.o
+	@-rm -f *.u
 
-distclean:	clean
-		-/bin/rm cbf_stx.c
-		-/bin/rm cbf_stx.h
-		-/bin/rm *.cif
-		-/bin/rm *.cbf
-		-/bin/rm *.BAK
+#
+# Create a Shell Archive for distribution
+#
+
+shar:	doc/CBFlib_NOTICES.txt doc/CBFlib.ps doc/CBFlib.pdf doc/CBFlib.html \
+	 doc/MANIFEST Makefile README doc/cbf_definition_rev.txt \
+	 doc/cbf_definition_rev.html doc/cbfext98.dic doc/cbfext98.html \
+	 src/cbf.c include/cbf.h src/cbf_alloc.c include/cbf_alloc.h \
+	 src/cbf_ascii.c include/cbf_ascii.h src/cbf_binary.c \
+	 include/cbf_binary.h src/cbf_byte_offset.c include/cbf_byte_offset.h \
+	 src/cbf_canonical.c include/cbf_canonical.h src/cbf_codes.c \
+	 include/cbf_codes.h src/cbf_compress.c include/cbf_compress.h \
+	 src/cbf_context.c include/cbf_context.h src/cbf_file.c \
+	 include/cbf_file.h src/cbf_lex.c include/cbf_lex.h src/cbf_packed.c \
+	 include/cbf_packed.h src/cbf_predictor.c include/cbf_predictor.h \
+	 src/cbf_read_binary.c include/cbf_read_binary.h src/cbf_read_mime.c \
+	 include/cbf_read_mime.h src/cbf_string.c include/cbf_string.h \
+	 src/cbf_stx.c include/cbf_stx.h src/cbf_tree.c include/cbf_tree.h \
+	 src/cbf_uncompressed.c include/cbf_uncompressed.h src/cbf_write.c \
+	 include/cbf_write.h src/cbf_write_binary.c \
+	 include/cbf_write_binary.h src/cbf.stx examples/img.c \
+	 examples/img.h src/md5c.c src/global.h src/md5.h \
+	 examples/makecbf.c examples/img2cif.c examples/cif2cbf.c \
+	 README.html doc/CBFlib_NOTICES.html doc/example.html \
+	 html_graphics/CBFbackground.jpg \
+	 html_graphics/CBFbig.jpg \
+	 html_graphics/CBFbutton.jpg \
+	 html_graphics/cbflibbackground.jpg \
+	 html_graphics/cbflibbig.jpg \
+	 html_graphics/cbflibbutton.jpg \
+	 html_graphics/cifhome.jpg \
+	 html_graphics/iucrhome.jpg \
+	 html_graphics/noticeButton.jpg
+	-/bin/rm -f CBFlib.shar*
+	$(SHAR) -p -o CBFlib.shar -n CBFlib.shar -M -T \
+	 doc/CBFlib_NOTICES.txt doc/CBFlib.ps \
+	 -B doc/CBFlib.pdf -T doc/CBFlib.html \
+	 doc/MANIFEST Makefile README doc/cbf_definition_rev.txt \
+	 doc/cbf_definition_rev.html doc/cbfext98.dic doc/cbfext98.html \
+	 src/cbf.c include/cbf.h src/cbf_alloc.c include/cbf_alloc.h \
+	 src/cbf_ascii.c include/cbf_ascii.h src/cbf_binary.c \
+	 include/cbf_binary.h src/cbf_byte_offset.c include/cbf_byte_offset.h \
+	 src/cbf_canonical.c include/cbf_canonical.h src/cbf_codes.c \
+	 include/cbf_codes.h src/cbf_compress.c include/cbf_compress.h \
+	 src/cbf_context.c include/cbf_context.h src/cbf_file.c \
+	 include/cbf_file.h src/cbf_lex.c include/cbf_lex.h src/cbf_packed.c \
+	 include/cbf_packed.h src/cbf_predictor.c include/cbf_predictor.h \
+	 src/cbf_read_binary.c include/cbf_read_binary.h src/cbf_read_mime.c \
+	 include/cbf_read_mime.h src/cbf_string.c include/cbf_string.h \
+	 src/cbf_stx.c include/cbf_stx.h src/cbf_tree.c include/cbf_tree.h \
+	 src/cbf_uncompressed.c include/cbf_uncompressed.h src/cbf_write.c \
+	 include/cbf_write.h src/cbf_write_binary.c \
+	 include/cbf_write_binary.h src/cbf.stx examples/img.c \
+	 examples/img.h src/md5c.c src/global.h src/md5.h \
+	 examples/makecbf.c examples/img2cif.c examples/cif2cbf.c \
+	 README.html doc/CBFlib_NOTICES.html doc/example.html -B \
+	 html_graphics/CBFbackground.jpg \
+	 html_graphics/CBFbig.jpg \
+	 html_graphics/CBFbutton.jpg \
+	 html_graphics/cbflibbackground.jpg \
+	 html_graphics/cbflibbig.jpg \
+	 html_graphics/cbflibbutton.jpg \
+	 html_graphics/cifhome.jpg \
+	 html_graphics/iucrhome.jpg \
+	 html_graphics/noticeButton.jpg
+	mv CBFlib.shar.01 CBFlib.shar
+	compress CBFlib.shar
+
+#
+# Create a Tape Archive for distribution
+#
+
+tar:	doc/CBFlib_NOTICES.txt doc/CBFlib.ps doc/CBFlib.pdf doc/CBFlib.html \
+	 doc/MANIFEST Makefile README doc/cbf_definition_rev.txt \
+	 doc/cbf_definition_rev.html doc/cbfext98.dic doc/cbfext98.html \
+	 src/cbf.c include/cbf.h src/cbf_alloc.c include/cbf_alloc.h \
+	 src/cbf_ascii.c include/cbf_ascii.h src/cbf_binary.c \
+	 include/cbf_binary.h src/cbf_byte_offset.c include/cbf_byte_offset.h \
+	 src/cbf_canonical.c include/cbf_canonical.h src/cbf_codes.c \
+	 include/cbf_codes.h src/cbf_compress.c include/cbf_compress.h \
+	 src/cbf_context.c include/cbf_context.h src/cbf_file.c \
+	 include/cbf_file.h src/cbf_lex.c include/cbf_lex.h src/cbf_packed.c \
+	 include/cbf_packed.h src/cbf_predictor.c include/cbf_predictor.h \
+	 src/cbf_read_binary.c include/cbf_read_binary.h src/cbf_read_mime.c \
+	 include/cbf_read_mime.h src/cbf_string.c include/cbf_string.h \
+	 src/cbf_stx.c include/cbf_stx.h src/cbf_tree.c include/cbf_tree.h \
+	 src/cbf_uncompressed.c include/cbf_uncompressed.h src/cbf_write.c \
+	 include/cbf_write.h src/cbf_write_binary.c \
+	 include/cbf_write_binary.h src/cbf.stx examples/img.c \
+	 examples/img.h src/md5c.c src/global.h src/md5.h \
+	 examples/makecbf.c examples/img2cif.c examples/cif2cbf.c \
+	 README.html doc/CBFlib_NOTICES.html doc/example.html \
+	 html_graphics/CBFbackground.jpg \
+	 html_graphics/CBFbig.jpg \
+	 html_graphics/CBFbutton.jpg \
+	 html_graphics/cbflibbackground.jpg \
+	 html_graphics/cbflibbig.jpg \
+	 html_graphics/cbflibbutton.jpg \
+	 html_graphics/cifhome.jpg \
+	 html_graphics/iucrhome.jpg \
+	 html_graphics/noticeButton.jpg
+	-/bin/rm -f CBFlib.tar*
+	tar cvBf CBFlib.tar \
+	 doc/CBFlib_NOTICES.txt doc/CBFlib.ps \
+	 doc/CBFlib.pdf doc/CBFlib.html \
+	 doc/MANIFEST Makefile README doc/cbf_definition_rev.txt \
+	 doc/cbf_definition_rev.html doc/cbfext98.dic doc/cbfext98.html \
+	 src/cbf.c include/cbf.h src/cbf_alloc.c include/cbf_alloc.h \
+	 src/cbf_ascii.c include/cbf_ascii.h src/cbf_binary.c \
+	 include/cbf_binary.h src/cbf_byte_offset.c include/cbf_byte_offset.h \
+	 src/cbf_canonical.c include/cbf_canonical.h src/cbf_codes.c \
+	 include/cbf_codes.h src/cbf_compress.c include/cbf_compress.h \
+	 src/cbf_context.c include/cbf_context.h src/cbf_file.c \
+	 include/cbf_file.h src/cbf_lex.c include/cbf_lex.h src/cbf_packed.c \
+	 include/cbf_packed.h src/cbf_predictor.c include/cbf_predictor.h \
+	 src/cbf_read_binary.c include/cbf_read_binary.h src/cbf_read_mime.c \
+	 include/cbf_read_mime.h src/cbf_string.c include/cbf_string.h \
+	 src/cbf_stx.c include/cbf_stx.h src/cbf_tree.c include/cbf_tree.h \
+	 src/cbf_uncompressed.c include/cbf_uncompressed.h src/cbf_write.c \
+	 include/cbf_write.h src/cbf_write_binary.c \
+	 include/cbf_write_binary.h src/cbf.stx examples/img.c \
+	 examples/img.h src/md5c.c src/global.h src/md5.h \
+	 examples/makecbf.c examples/img2cif.c examples/cif2cbf.c \
+	 README.html doc/CBFlib_NOTICES.html doc/example.html \
+	 html_graphics/CBFbackground.jpg \
+	 html_graphics/CBFbig.jpg \
+	 html_graphics/CBFbutton.jpg \
+	 html_graphics/cbflibbackground.jpg \
+	 html_graphics/cbflibbig.jpg \
+         html_graphics/cbflibbutton.jpg \
+	 html_graphics/cifhome.jpg \
+	 html_graphics/iucrhome.jpg \
+	 html_graphics/noticeButton.jpg
+	compress CBFlib.tar
 
