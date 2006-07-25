@@ -1,10 +1,7 @@
 /**********************************************************************
  * cbf_simple -- cbflib simplified API functions                      *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
- * Version 0.7.2.1 7 May 2001                                         *
- * Version 0.7.2.2 17 July 2001                                       *
- * Version 0.7.2.3 14 August 2002                                     *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -665,7 +662,7 @@ double cbf_gregorian_julian (int    year,
                              int    minute,
                              double second)
 {
-  static days [] = {   0,  31,  59,  90, 120, 151,
+  static int days [] = {   0,  31,  59,  90, 120, 151,
                      181, 212, 243, 273, 304, 334, 365 };
 
   second += minute * 60.0 + hour * 3600.0 + (day - 1) * 86400.0;
@@ -791,7 +788,7 @@ int cbf_get_datestamp (cbf_handle handle, unsigned int  reserved,
   if (minute)   *minute   = fminute;
   if (second)   *second   = fsecond;
 
-  if (timezone)
+  if (timezone) {
 
     if (parsed > 7)
     {
@@ -804,6 +801,8 @@ int cbf_get_datestamp (cbf_handle handle, unsigned int  reserved,
     else
 
       *timezone = CBF_NOTIMEZONE;
+
+  }
 
   return 0;
 }
@@ -1067,7 +1066,7 @@ int cbf_get_image (cbf_handle    handle,
 
   size_t nelem_read, dim1, dim2;
 
-  char tmp [32], *pixel, *pixel2, *last;
+  char tmp [32], *pixel, *pixel2;
 
   if (reserved != 0)
 
@@ -1208,7 +1207,7 @@ int cbf_get_image (cbf_handle    handle,
       {
         pixel2 = ((char *) array) + (index1 * ndim2 + index2) * elsize;
 
-        if (pixel < pixel2)
+        if (pixel < pixel2) {
 
           if (elsize == sizeof (int))
           {
@@ -1222,6 +1221,8 @@ int cbf_get_image (cbf_handle    handle,
             memcpy (pixel, pixel2, elsize);
             memcpy (pixel2, tmp, elsize);
           }
+
+        }
 
         pixel += elsize;        
       }
@@ -1617,7 +1618,7 @@ int cbf_add_positioner_axis (cbf_positioner positioner,
                              double         start,
                              double         increment)
 {
-  int errorcode;
+  int errorcode = 0;
 
   cbf_axis_struct axis;
 
@@ -1763,7 +1764,7 @@ int cbf_connect_axes (cbf_positioner positioner)
 
     const char *depends_on = ".";
 
-    int count = 0, dest, search, found;
+    int dest, search, found;
 
     for (dest = ((int) positioner->axes) - 1; dest >= 0; dest--)
     {

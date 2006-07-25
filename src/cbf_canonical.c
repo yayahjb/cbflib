@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_canonical -- canonical-code compression                        *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -1011,7 +1011,7 @@ int cbf_get_code (cbf_compress_data *data, cbf_compress_node *root,
 
   *code -= data->endcode;
 
-  if (*code)
+  if (*code) {
 
     if (*code > data->maxbits)
 
@@ -1024,6 +1024,7 @@ int cbf_get_code (cbf_compress_data *data, cbf_compress_node *root,
       return cbf_get_bits (data->file, (int *) code, *code);
     }
 
+  }
 
     /* End code */
 
@@ -1212,7 +1213,7 @@ int cbf_count_values (cbf_compress_data *data,
 
       /* Limit the value to 64 bits */
 
-    if (element > limit)
+    if (element > limit) {
 
       if (elsign && (int) (element - unsign) < 0)
 
@@ -1221,7 +1222,7 @@ int cbf_count_values (cbf_compress_data *data,
       else
 
         element = limit;
-
+    }
 
       /* Update the minimum and maximum values */
 
@@ -1485,7 +1486,7 @@ int cbf_compress_canonical (void         *source,
 
       /* Limit the value to 64 bits */
 
-    if (element > limit)
+    if (element > limit) {
 
       if (elsign && (int) (element - unsign) < 0)
 
@@ -1494,6 +1495,7 @@ int cbf_compress_canonical (void         *source,
       else
 
         element = limit;
+    }
 
 
       /* Calculate the offset to save */
@@ -1685,7 +1687,7 @@ int cbf_decompress_canonical (void         *destination,
 
       /* Limit the value to fit the element size */
 
-    if (element > limit)
+    if (element > limit) {
 
       if (elsign && (int) (element - unsign) < 0)
 
@@ -1695,6 +1697,7 @@ int cbf_decompress_canonical (void         *destination,
 
         element = limit;
 
+    }
 
       /* Make the element signed? */
 

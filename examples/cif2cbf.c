@@ -1,9 +1,9 @@
 /**********************************************************************
  *          cif2cbf -- convert a cif to a cbf file                    *
- *          Version 0.7.2 22 April 2001                               *
+ *          Version 0.7.4 12 January 2004                             *
  *                                                                    *
  *          Herbert J. Bernstein, Bernstein + Sons                    *
- *          P.O. Box 177, Bellport, NY 11713                          *
+ *          5 Brewster Lane, Bellport, NY 11713-2803                  *
  *          yaya@bernstein-plus-sons.com                              *
  **********************************************************************/
  
@@ -230,7 +230,12 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#include <sys/errno.h>
 #include <unistd.h>
+
+#define BUFSIZ 8192
+
+int local_exit (int status);
 
 #undef cbf_failnez
 #define cbf_failnez(x) \
@@ -244,28 +249,20 @@
 
 void set_MP_terms(int crterm, int nlterm);
 
-char *tmpnam(char *s);
-
 int main (int argc, char *argv [])
 {
   FILE *in, *out, *file;
   clock_t a,b;
   cbf_handle cif;
   cbf_handle cbf;
-  int id, index;
-  size_t nelem_read;
-  double pixel_size, gain, wavelength, distance;
-  int overload, dimension [2], precedence [2];
-  const char *detector;
-  char *detector_char;
-  char detector_id [64];
-  const char *direction [2], *array_id;
   int c;
   int errflg = 0;
-  char *cifin, *cbfout, *ciftmp;
-  char tmpbuf[L_tmpnam];
+  char *cifin, *cbfout;
+  char ciftmp[19];
+  int ciftmpfd;
+  int ciftmpused;
   int nbytes;
-  char buf[2048];
+  char buf[BUFSIZ];
   unsigned int blocks, categories, blocknum, catnum;
   const char *datablock_name;
   const char *category_name;
@@ -299,7 +296,7 @@ int main (int argc, char *argv [])
      
    cifin = NULL;
    cbfout = NULL;
-   ciftmp = NULL;
+   ciftmpused = 0;
 
    while ((c = getopt(argc, argv, "i:o:c:m:d:e:b:")) != EOF) {
      switch (c) {
@@ -469,12 +466,18 @@ int main (int argc, char *argv [])
     /* Read the cif */
   
    if (!cifin || strcmp(cifin?cifin:"","-") == 0) {
-     ciftmp = strdup(tmpnam(&tmpbuf[0]));
-     if ( (file = fopen(ciftmp, "w+")) == NULL) {
-       fprintf(stderr,"Can't open temporary file %s.\n", ciftmp);
+     strcpy(ciftmp, "/tmp/cif2cbfXXXXXX");
+     if ((ciftmpfd = mkstemp(ciftmp)) == -1 ) {
+       fprintf(stderr,"Can't create temporary file %s.\n", ciftmp);
+       fprintf(stderr,"%s\n",strerror(errno));
        exit(1);
      }
-     while (nbytes = fread(buf, 1, 1024, stdin)) {
+     if ( (file = fdopen(ciftmpfd, "w+")) == NULL) {
+       fprintf(stderr,"Can't open temporary file %s.\n", ciftmp);
+       fprintf(stderr,"%s\n",strerror(errno));
+       exit(1);
+     }
+     while ((nbytes = fread(buf, 1, BUFSIZ, stdin))) {
        if(nbytes != fwrite(buf, 1, nbytes, file)) {
          fprintf(stderr,"Failed to write %s.\n", ciftmp);
          exit(1);
@@ -482,6 +485,7 @@ int main (int argc, char *argv [])
      }
      fclose(file);
      cifin = ciftmp;
+     ciftmpused = 1;
    }
    if ( cbf_make_handle (&cif) ) {
      fprintf(stderr,"Failed to create handle for input_cif\n");
@@ -498,6 +502,14 @@ int main (int argc, char *argv [])
    if (!(in = fopen (cifin, "rb"))) {
      fprintf (stderr,"Couldn't open the input CIF file %s\n", cifin);
      exit (1);
+   }
+
+   if (ciftmpused) {
+     if (unlink(ciftmp) != 0 ) {
+       fprintf(stderr,"cif2cif:  Can't unlink temporary file %s.\n", ciftmp);
+       fprintf(stderr,"%s\n",strerror(errno));
+       exit(1);
+     }
    }
 
    cbf_failnez (cbf_read_file (cif, in, MSG_DIGEST))
@@ -538,11 +550,14 @@ int main (int argc, char *argv [])
          cbf_failnez (cbf_new_row(cbf))
          cbf_rewind_column(cif);
          for (colnum = 0; colnum < columns; colnum++ ) {
+           const char *typeofvalue;
+
            cbf_failnez (cbf_select_column(cif, colnum))
            if ( ! cbf_get_value(cif, &value) ) {
-             
+             cbf_failnez (cbf_get_typeofvalue(cif, &typeofvalue))             
              cbf_failnez (cbf_select_column(cbf, colnum))
              cbf_failnez (cbf_set_value(cbf, value))
+             cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
 
            } else {
 
@@ -556,7 +571,7 @@ int main (int argc, char *argv [])
                cif, &cifcompression,
                &binary_id, &elsize, &elsigned, &elunsigned,
                &elements, &minelement, &maxelement))
-	     if (array=malloc(elsize*elements)) {
+	     if ((array=malloc(elsize*elements))) {
                cbf_failnez (cbf_select_column(cbf,colnum))
                cbf_failnez (cbf_get_integerarray(
                cif, &binary_id, array, elsize, elsigned,
@@ -567,8 +582,8 @@ int main (int argc, char *argv [])
                free(array);
              } else {
                fprintf(stderr,
-                 "\nFailed to allocate memory %d bytes",
-                 elsize*elements); 
+                 "\nFailed to allocate memory %ld bytes",
+                 (long) elsize*elements); 
                 exit(1);
              }
            }

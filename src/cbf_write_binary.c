@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_write_binary -- write binary sections                          *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -357,7 +357,7 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
               cbf_failnez (cbf_write_string (file, 
                       "Content-Transfer-Encoding: BINARY\n"))
 
-    sprintf (text, "X-Binary-Size: %u\n", size);
+    sprintf (text, "X-Binary-Size: %lu\n", (long)size);
     
     cbf_failnez (cbf_write_string (file, text))
 

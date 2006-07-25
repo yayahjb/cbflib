@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_binary -- handle simple binary values                          *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -438,17 +438,20 @@ int cbf_free_value (cbf_context *context, cbf_node *column, unsigned int row)
 
   cbf_free_string (NULL, text);
 
-  if (is_binary)
+  if (is_binary) {
 
-    if (type == CBF_TOKEN_TMP_BIN)
+    if (type == CBF_TOKEN_TMP_BIN) {
 
       cbf_failnez (cbf_close_temporary (context, &file))
       
-    else
+    } else {
 
       cbf_failnez (cbf_delete_fileconnection (&file))
-  
-  
+    }
+
+  }
+
+
     /* Success */
     
   return 0;
@@ -659,7 +662,7 @@ int cbf_binary_parameters (cbf_node *column,
 
   if (!errorcode)
   {
-    if (elsize)
+    if (elsize) {
   
       if (file_elsize > 0)
   
@@ -668,8 +671,9 @@ int cbf_binary_parameters (cbf_node *column,
       else
 
         *elsize = (text_bits + CHAR_BIT - 1) / CHAR_BIT;    
+    }
         
-    if (nelem)
+    if (nelem) {
     
       if (file_nelem > 0)
       
@@ -678,6 +682,9 @@ int cbf_binary_parameters (cbf_node *column,
       else
       
         *nelem = (size * 8) / text_bits;
+
+    }
+
   }
 
   return errorcode;

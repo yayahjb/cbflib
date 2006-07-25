@@ -1,6 +1,6 @@
 /**********************************************************************
  *          img2cif -- convert an image file to a cif file            *
- *          Version 0.7.2   22 April 2001                             *
+ *          Version 0.7.4   12 January 2004                           *
  *                                                                    *
  *          based on makecbf by Paul Ellis                            *
  *          revisions by H. J. Bernstein                              *
@@ -202,9 +202,10 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#include <sys/errno.h>
 #include <unistd.h>
 
-
+#define BUFSIZ 8192
 
 #undef cbf_failnez
 #define cbf_failnez(x) \
@@ -217,29 +218,26 @@
  }
 
 
-char *tmpnam(char *s);
-
 int main (int argc, char *argv [])
 {
-  FILE *in, *out, *file;
+  FILE  *out, *file;
   clock_t a,b;
-  img_handle img, cbf_img;
+  img_handle img;
   cbf_handle cbf;
-  int id, index;
-  unsigned int column, row;
-  size_t nelem_read;
   double pixel_size, gain, wavelength, distance;
   int overload, dimension [2], precedence [2];
   const char *detector;
   char *detector_char;
   char detector_id [64];
-  const char *direction [2], *array_id;
+  const char *direction [2];
   int c;
   int errflg = 0;
-  char *imgin, *imgout, *imgtmp;
-  char tmpbuf[L_tmpnam];
+  char *imgin, *imgout;
+  char imgtmp[19];
+  int imgtmpfd;
+  int imgtmpused;
   int nbytes;
-  char buf[2048];
+  char buf[BUFSIZ];
 
   int mime, digest, encoding, compression, bytedir, term, cbforcif;
     
@@ -265,8 +263,8 @@ int main (int argc, char *argv [])
  
  imgin = NULL;
  imgout = NULL;
- imgtmp = NULL;
-     
+ imgtmpused = 0;
+    
  while ((c = getopt(argc, argv, "i:o:c:m:d:e:b:")) != EOF)
  {
    switch (c) {
@@ -423,19 +421,26 @@ int main (int argc, char *argv [])
     /* Read the image */
   
   if (!imgin || strcmp(imgin?imgin:"","-") == 0) {
-    imgtmp = strdup(tmpnam(&tmpbuf[0]));
-    if ( (file = fopen(imgtmp, "w+")) == NULL) {
-       fprintf(stderr,"img2cif:  Can't open temporary file %s.\n", imgtmp);
-       exit(1);
-       }
-     while (nbytes = fread(buf, 1, 1024, stdin)) {
+    strcpy(imgtmp, "/tmp/img2cifXXXXXX");
+    if ((imgtmpfd = mkstemp(imgtmp)) == -1 ) {
+      fprintf(stderr,"Can't create temporary file %s.\n", imgtmp);
+      fprintf(stderr,"%s\n",strerror(errno));
+      exit(1);
+    }
+    if ( (file = fdopen(imgtmpfd, "w+")) == NULL) {
+      fprintf(stderr,"img2cif:  Can't open temporary file %s.\n", imgtmp);
+      fprintf(stderr,"%s\n",strerror(errno));
+      exit(1);
+    }
+    while ((nbytes = fread(buf, 1, 8192, stdin))) {
       if(nbytes != fwrite(buf, 1, nbytes, file)) {
-       fprintf(stderr,"img2cif:  Failed to write %s.\n", imgtmp);
-       exit(1);
-       }
+        fprintf(stderr,"img2cif:  Failed to write %s.\n", imgtmp);
+        exit(1);
+      }
     }
     fclose(file);
     imgin = imgtmp;
+    imgtmpused = 1;
   }
 
   img = img_make_handle ();
@@ -443,6 +448,13 @@ int main (int argc, char *argv [])
   a = clock ();
 
   cbf_failnez (img_read (img, imgin))
+  if ( imgtmpused ) {
+    if (unlink(imgtmp) != 0 ) {
+      fprintf(stderr,"img2cif:  Can't unlink temporary file %s.\n", imgtmp);
+      fprintf(stderr,"%s\n",strerror(errno));
+      exit(1);
+    }
+  }
 
   b = clock ();
 

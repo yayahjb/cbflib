@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_file -- file access (characterwise and bitwise)                *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -242,7 +242,7 @@ int cbf_add_fileconnection (cbf_file **file, FILE *stream)
 
     /* Does the file exist? */
 
-  if (*file)
+  if (*file) {
 
       /* Does the stream match? */
 
@@ -256,6 +256,8 @@ int cbf_add_fileconnection (cbf_file **file, FILE *stream)
 
       return 0;
     }
+
+  }
 
 
     /* Create a new file */
@@ -316,9 +318,6 @@ int cbf_file_connections (cbf_file *file)
 
 int cbf_set_buffersize (cbf_file *file, size_t size)
 {
-  unsigned int kblock;
-
-  size_t  new_size;
 
     /* Does the file exist? */
 
@@ -326,20 +325,10 @@ int cbf_set_buffersize (cbf_file *file, size_t size)
 
     return CBF_ARGUMENT;
 
-  kblock = 16;
-
-  if (size > 128*2) kblock = 128;
-
-  if (size > 512*2) kblock = 512;
-
-  if (size > 2048*2) kblock = 2048;
-
-  new_size = ((int)(size/kblock))*kblock+kblock;
-
     /* Is the size already close enough? */
 
   if (size > 0 && file->buffer_size >=  size && 
-                  file->buffer_size <= new_size)
+                  file->buffer_size <   2*size)
 
     return 0;
 
@@ -347,7 +336,7 @@ int cbf_set_buffersize (cbf_file *file, size_t size)
     /* Reallocate the buffer */
 
   return cbf_realloc ((void **) &file->buffer, 
-                                &file->buffer_size, sizeof (char), new_size);
+                                &file->buffer_size, sizeof (char), size);
 }
 
 
@@ -377,7 +366,7 @@ int cbf_reset_buffer (cbf_file *file)
 
 int cbf_save_character (cbf_file *file, int c)
 {
-  unsigned int new_size, kblock;
+  unsigned int new_size;
 
     /* Does the file exist? */
 
@@ -388,21 +377,13 @@ int cbf_save_character (cbf_file *file, int c)
 
     /* Expand the buffer? */
 
-  kblock = 16;
+  if (file->buffer_size < file->buffer_used+3) {
 
-  if (file->buffer_used+2 > 128*2) kblock = 128;
+    new_size = (file->buffer_used+3)*2;
 
-  if (file->buffer_used+2 > 512*2) kblock = 512;
-
-  if (file->buffer_used+2 > 2048*2) kblock = 2048;
-
-  new_size = (((int)((file->buffer_used+2)/kblock)))*kblock+kblock;
-
-  if (new_size < file->buffer_used+3) new_size = file->buffer_used+3;
-
-  if (new_size >= file->buffer_size)
-    cbf_failnez (cbf_set_buffersize (file, new_size))
-
+    if (new_size >= file->buffer_size)
+      cbf_failnez (cbf_set_buffersize (file, new_size))
+  }
 
     /* Add the character */
 
@@ -433,7 +414,7 @@ int cbf_get_buffer (cbf_file *file, const char **buffer,
     
     /* Copy the buffer */
     
-  if (buffer)
+  if (buffer) {
   
     if (file->buffer_used <= 0)
     
@@ -442,7 +423,8 @@ int cbf_get_buffer (cbf_file *file, const char **buffer,
     else
   
       *buffer = file->buffer;
-    
+
+  }  
     
   if (buffer_size)
     

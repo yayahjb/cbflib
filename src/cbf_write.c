@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_write -- write files                                           *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -162,6 +162,199 @@ extern "C" {
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+
+int cbf_value_type (char *value);
+
+static char wordtok[5] = "word";
+static char texttok[5] = "text";
+static char dblqtok[5] = "dblq";
+static char sglqtok[5] = "sglq";
+static char nulltok[5] = "null"; 
+
+  /* Get the value type of an ascii string */
+
+int cbf_get_value_type(const char *value, const char **value_type)
+{
+
+    /* Prepare an empty return */
+
+  *value_type = NULL;
+
+    /* Is the value missing? */
+
+  if (!value)
+
+    return 0;
+
+    /* Is the value valid? */
+
+  if ((*value & '\200') != '\200')
+
+    return CBF_ARGUMENT;
+    
+
+    /* Has the value already been checked? */
+
+  if ((value [0] & '\300') != '\300') {
+
+    cbf_failnez(cbf_value_type((char *)value))
+
+  }
+
+  if (*value == CBF_TOKEN_WORD) {
+
+    *value_type = wordtok;
+
+    return 0; 
+
+  }   
+
+  if (*value == CBF_TOKEN_SQSTRING) {
+
+    *value_type = sglqtok;
+
+    return 0; 
+
+  }   
+
+  if (*value == CBF_TOKEN_DQSTRING) {
+
+    *value_type = dblqtok;
+
+    return 0; 
+
+  }   
+
+  if (*value == CBF_TOKEN_SCSTRING) {
+
+    *value_type = texttok;
+
+    return 0; 
+
+  }   
+
+  if (*value == CBF_TOKEN_NULL) {
+
+    *value_type = nulltok;
+
+    return 0; 
+
+  }   
+
+  return CBF_ARGUMENT;
+
+}
+  /* Set the value type of an ascii string */
+
+int cbf_set_value_type(char *value, const char *value_type)
+{
+
+    /* Is the value type missing? */
+
+  if (!value)
+
+    return CBF_ARGUMENT;
+
+    /* Is the value valid? */
+
+  if ((*value & '\200') != '\200')
+
+    return CBF_ARGUMENT;
+    
+
+    /* Has the value already been checked? */
+
+  if ((value [0] & '\300') != '\300') {
+
+    cbf_failnez(cbf_value_type(value))
+
+  }
+
+  if (strcmp(value_type,wordtok) == 0) {
+
+    if ( strcmp(&value[1],".") == 0 ||
+
+      strcmp(&value[1],"?") == 0 ||
+
+      *value == CBF_TOKEN_WORD ) {
+
+      *value = CBF_TOKEN_WORD;
+
+      return 0;
+    }
+
+    return CBF_ARGUMENT; 
+
+  }   
+
+  if (strcmp(value_type,nulltok) == 0) {
+
+    if ( strcmp(&value[1],".") == 0 ||
+
+      strcmp(&value[1],"?") == 0) {
+
+      *value = CBF_TOKEN_NULL;
+
+      return 0;
+    }
+
+    return CBF_ARGUMENT; 
+
+  }   
+
+  if (strcmp(value_type,sglqtok) == 0) {
+
+    if(strstr(&value[1],"' ") ||
+
+      strstr(&value[1],"'\t") ||
+
+      strstr(&value[1],"\n")) {
+
+      return CBF_ARGUMENT;
+
+    }
+
+    *value = CBF_TOKEN_SQSTRING;
+
+    return 0; 
+
+  }   
+
+  if (strcmp(value_type,dblqtok) == 0 ) {
+
+    if(strstr(&value[1],"\" ") ||
+
+      strstr(&value[1],"\"\t") ||
+
+      strstr(&value[1],"\n")) {
+
+      return CBF_ARGUMENT;
+
+    }
+
+    *value = CBF_TOKEN_DQSTRING;
+
+    return 0; 
+
+  }   
+
+  if (strcmp(value_type,texttok) == 0 ) {
+
+    if(strstr(&value[1],"\n;")) {
+
+      return CBF_ARGUMENT;
+
+    }
+
+    *value = CBF_TOKEN_SCSTRING;
+
+    return 0; 
+
+  }   
+
+  return CBF_ARGUMENT;
+
+}
 
 
   /* Check the value type */
@@ -405,7 +598,7 @@ int cbf_write_value (cbf_node *column, unsigned int row,
 
 int cbf_write_category (const cbf_node *category, cbf_file *file, int isbuffer)
 {
-  unsigned int count, first, last, column, columns, row;
+  unsigned int count, first, last=0, column, columns, row;
   
   int loop;
 
@@ -518,16 +711,16 @@ int cbf_write_node (const cbf_node *node, cbf_file *file, int isbuffer)
   {
     case CBF_ROOT:
 
-      cbf_failnez (cbf_write_string (file, "###CBF: VERSION 0.6\n"))
+      cbf_failnez (cbf_write_string (file, "###CBF: VERSION 1.3.1\n"))
     
       if (file->write_encoding & ENC_NONE)
 
         cbf_failnez (cbf_write_string (file, 
-                             "# CBF file written by cbflib v0.6\n"))
+                             "# CBF file written by cbflib v0.7.4\n"))
       else
 
         cbf_failnez (cbf_write_string (file, 
-                             "# CIF file written by cbflib v0.6\n"))
+                             "# CIF file written by cbflib v0.7.4\n"))
 
       break;
 

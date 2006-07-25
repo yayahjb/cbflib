@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_uncompressed -- uncompressed binary sections                   *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -262,7 +262,7 @@ int cbf_compress_none (void         *source,
 
       /* Limit the value to 64 bits */
 
-    if (element > limit)
+    if (element > limit) {
 
       if (elsign && (int) (element - unsign) < 0)
 
@@ -272,6 +272,8 @@ int cbf_compress_none (void         *source,
 
         element = limit;
         
+    }
+
 
       /* Write the element to the file */
 
@@ -386,7 +388,7 @@ int cbf_decompress_none (void         *destination,
     errorcode = cbf_get_integer (file, (int *) &element, 
                                                 data_sign, data_bits);
 
-    if (errorcode)
+    if (errorcode) {
 
       if (errorcode == CBF_OVERFLOW)
 
@@ -400,6 +402,8 @@ int cbf_decompress_none (void         *destination,
         
         return errorcode | overflow;
       }
+
+    }
 
 
       /* Make the element unsigned */

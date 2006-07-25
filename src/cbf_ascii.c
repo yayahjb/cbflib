@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_ascii -- write plain ASCII values                              *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -198,14 +198,14 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
     /* Do we need to start a new line? */
 
-  if (column)
+  if (column) {
 
     if (*string == CBF_TOKEN_SCSTRING)
 
       cbf_failnez (cbf_write_character (file, '\n'))
 
-    else
-    {
+    } else {
+   {
       if (*string == CBF_TOKEN_WORD ||
           *string == CBF_TOKEN_NULL )
 
@@ -215,7 +215,7 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
         end = column + 1;
 
-      for (c = string + 1; *c && end <= CBF_LINELENGTH; c++)
+      for (c = string + 1; *c && end <= CBF_LINELENGTH; c++) {
 
         if (*c == '\t')
 
@@ -225,10 +225,14 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
           end = end + 1;
 
+      }
+
       if (end > CBF_LINELENGTH)
 
         cbf_failnez (cbf_write_character (file, '\n'))
     }
+
+  }
 
 
     /* Write the value */

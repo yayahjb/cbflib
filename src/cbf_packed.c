@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_packed -- Packing compression                                  *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -316,7 +316,7 @@ int cbf_pack_chunk (cbf_packed_data *data, int size, int chunk,
 
     /* Calculate the number of bits written */
     
-  if (bitcount)
+  if (bitcount) {
   
     if (size)
     
@@ -326,6 +326,7 @@ int cbf_pack_chunk (cbf_packed_data *data, int size, int chunk,
     
       *bitcount = 6;
 
+  }
 
     /* Success */
 
@@ -557,7 +558,7 @@ int cbf_compress_packed (void         *source,
 
       /* Limit the value to 64 bits */
 
-    if (element > limit)
+    if (element > limit) {
 
       if (elsign && (int) (element - unsign) < 0)
 
@@ -566,6 +567,8 @@ int cbf_compress_packed (void         *source,
       else
 
         element = limit;
+
+    }
 
 
       /* Add the offset to the buffer */
@@ -626,7 +629,7 @@ int cbf_decompress_packed (void         *destination,
                            unsigned int  compression, 
                            cbf_file     *file)
 {
-  unsigned int next, pixel, pixelcount;
+  unsigned int next, pixel=0, pixelcount;
 
   unsigned int bits, element, sign, unsign, limit, count64, count;
 
@@ -764,7 +767,7 @@ int cbf_decompress_packed (void         *destination,
 
         /* Limit the value to fit the element size */
 
-      if (element > limit)
+      if (element > limit) {
 
         if (elsign && (int) (element - unsign) < 0)
 
@@ -773,6 +776,8 @@ int cbf_decompress_packed (void         *destination,
         else
 
           element = limit;
+
+      }
 
 
         /* Make the element signed? */

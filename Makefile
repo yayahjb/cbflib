@@ -1,7 +1,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-#  Version 0.7.2 22 April 2001                                       #
+#  Version 0.7.4 10 January 2004                                     #
 #                                                                    #
 #             Paul Ellis (ellis@ssrl.slac.stanford.edu) and          #
 #          Herbert J. Bernstein (yaya@bernstein-plus-sons.com)       #
@@ -18,7 +18,7 @@
 CC	= gcc
 #CFLAGS	= -O
 #CFLAGS	= -g3 -O2
-CFLAGS  = -g -O2
+CFLAGS  = -g -O2 -Wall
 
 #
 # Program to use to pack shars
@@ -26,6 +26,10 @@ CFLAGS  = -g -O2
 SHAR	= /usr/bin/shar
 #SHAR	= /usr/local/bin/gshar
 
+#
+# Program to use to create archives
+#
+AR	= /usr/bin/ar
 
 #
 # Directories
@@ -245,9 +249,30 @@ $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(EXAMPLES)/img.c
 	      -lcbf -lm -o $@
 
 #
+# Data files for tests
+#
+
+example.mar2300:
+	@echo '***************************************************************'
+	@echo ' '
+	@echo ' Please retrieve example.mar2300 from
+	@echo '   http://smb.slac.stanford.edu/~ellis/'
+	@echo ' '
+	@echo '***************************************************************'
+
+9ins.cif:	9ins.cif.gz
+	gunzip < 9ins.cif.gz > 9ins.cif
+
+#
 # Tests
 #
-tests:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf example.mar2300
+tests:	$(LIB) $(BIN) basic extra
+
+#
+# Basic Tests
+#
+
+basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf example.mar2300
 	$(BIN)/makecbf example.mar2300 makecbf.cbf
 	$(BIN)/img2cif -c packed -m headers -d digest \
 		-e base64 < example.mar2300 > img2cif_packed.cif
@@ -268,18 +293,20 @@ tests:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf example.mar2300
 #
 # Extra Tests
 #
-extra:	$(BIN)/cif2cbf makecbf.cbf
+extra:	$(BIN)/cif2cbf makecbf.cbf 9ins.cif
 	$(BIN)/cif2cbf -e hex -c none \
 		makecbf.cbf cif2cbf_ehcn.cif
 	$(BIN)/cif2cbf -e none -c packed \
 		cif2cbf_ehcn.cif cif2cbf_encp.cbf
 	-cmp makecbf.cbf cif2cbf_encp.cbf
+	$(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
+	-cmp 9ins.cif 9ins.cbf
 
 
 #
 # Remove all non-source files
 #
-empty:  clean
+empty:
 	@-rm -f  $(LIB)/libcbf.a
 	@-rm -f  $(BIN)/makecbf
 	@-rm -f  $(BIN)/img2cif
@@ -292,6 +319,8 @@ empty:  clean
 	@-rm -f  img2cif_raw.cbf
 	@-rm -f  cif2cbf_packed.cbf
 	@-rm -f  cif2cbf_canonical.cbf
+	@-rm -f 9ins.cbf
+	@-rm -f 9ins.cif
 
 #
 # Remove temporary files
@@ -300,6 +329,11 @@ clean:
 	@-rm -f core 
 	@-rm -f *.o
 	@-rm -f *.u
+
+#
+# Restore to distribution state
+#
+distclean:	clean empty
 
 #
 # Create a Shell Archive for distribution
@@ -313,7 +347,7 @@ shar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
 	 $(EXAMPLES)/template_adscquantum4_2304x2304.cbf \
 	 $(EXAMPLES)/template_mar345_2300x2300.cbf \
 	 README.html README Makefile \
-	 $(JPEGS)
+	 $(JPEGS) 9ins.cif.gz
 	-/bin/rm -f CBFlib.shar*
 	$(SHAR) -p -o CBFlib.shar -n CBFlib.shar -M \
 	 $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
@@ -324,7 +358,7 @@ shar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
 	 $(EXAMPLES)/template_adscquantum4_2304x2304.cbf \
 	 $(EXAMPLES)/template_mar345_2300x2300.cbf \
 	 README.html README Makefile \
-	 $(JPEGS)
+	 $(JPEGS) 9ins.cif.gz
 	mv CBFlib.shar.01 CBFlib.shar
 	compress CBFlib.shar
 
@@ -340,7 +374,7 @@ tar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
 	 $(EXAMPLES)/template_adscquantum4_2304x2304.cbf \
 	 $(EXAMPLES)/template_mar345_2300x2300.cbf \
 	 README.html README Makefile \
-	 $(JPEGS)
+	 $(JPEGS) 9ins.cif.gz
 	-/bin/rm -f CBFlib.tar*
 	tar cvBf CBFlib.tar \
 	 $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
@@ -351,6 +385,6 @@ tar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
 	 $(EXAMPLES)/template_adscquantum4_2304x2304.cbf \
 	 $(EXAMPLES)/template_mar345_2300x2300.cbf \
 	 README.html README Makefile \
-	 $(JPEGS)
+	 $(JPEGS) 9ins.cif.gz
 	gzip --best CBFlib.tar
 

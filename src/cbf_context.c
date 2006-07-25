@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_context -- handle cbf contexts                                 *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -373,7 +373,7 @@ const char *cbf_copy_string (cbf_context *context, const char *string,
 {
   char *new_string;
 
-  if (string)
+  if (string) {
 
     if (type)
     {
@@ -397,7 +397,9 @@ const char *cbf_copy_string (cbf_context *context, const char *string,
         return new_string;
       }
 
- 
+   }
+
+
     /* Fail */
 
   return NULL;

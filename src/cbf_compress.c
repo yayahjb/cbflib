@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_compress -- compression and decompression                      *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.4 12 January 2004                                      *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -358,39 +358,45 @@ int cbf_decompress_parameters (int          *eltype,
   
     *eltype = CBF_INTEGER;
 
-  if (elsize)
+  if (elsize) {
 
       /* Calculate the minimum number of bytes needed to hold the elements */
       
-    if (minelement_file == 0 && maxelement_file == 0)
+    if (minelement_file == 0 && maxelement_file == 0) {
       
       *elsize = 0;
       
-    else
+    } else {
 
       if ((!elsigned_file ||
           ((signed) minelement_file == (signed short) minelement_file &&
            (signed) maxelement_file == (signed short) maxelement_file)) ||
           (!elunsigned_file ||
           ((unsigned) minelement_file == (unsigned short) minelement_file &&
-           (unsigned) maxelement_file == (unsigned short) maxelement_file)))
+           (unsigned) maxelement_file == (unsigned short) maxelement_file))) {
            
         if ((!elsigned_file ||
             ((signed) minelement_file == (signed char) minelement_file &&
              (signed) maxelement_file == (signed char) maxelement_file)) ||
              (!elunsigned_file ||
             ((unsigned) minelement_file == (unsigned char) minelement_file &&
-             (unsigned) maxelement_file == (unsigned char) maxelement_file)))
+             (unsigned) maxelement_file == (unsigned char) maxelement_file))) {
              
           *elsize = sizeof (char);
           
-        else
+        } else {
 
           *elsize = sizeof (short);
           
-      else
+        }
+
+      } else {
         
         *elsize = sizeof (int);
+
+      }
+    }
+  }
 
   if (minelem)
   
