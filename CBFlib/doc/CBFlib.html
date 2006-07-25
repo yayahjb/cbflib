@@ -229,7 +229,7 @@ CBFlib is a library of ANSI-C functions providing a simple mechanism for accessi
 Crystallographic Binary Files (CBF files) and Image-supporting CIF (imgCIF) files.
 The CBFlib API is loosely based on the 
 CIFPARSE API for mmCIF files.  Like CIFPARSE, CBFlib does not perform any semantic 
-integrity checks and simply provides functions to create, read, modify and write CBF binary
+integrity checks; rather it simply provides functions to create, read, modify and write CBF binary
 data files and imgCIF ASCII data files.
 <P>
 
@@ -2389,7 +2389,7 @@ developed for transmitting email messages
 including binary attachments are followed.  There is
 secondary ASCII header information, formatted as 
 Multipurpose Internet Mail Extensions
-(MIME) headers (see RFCs 2045-49 by Freed, et. al). 
+(MIME) headers (see RFCs 2045-49 by Freed, et al.). 
 The boundary marker for the beginning of
 all this is the special string
 <P>
@@ -2413,14 +2413,14 @@ header is &quot;BINARY&quot;, this is a CBF and the
 data will be presented as raw binary, containing a
 count (in the header described in <A HREF="#3.2.2">
 3.2.2  Format of CBF binary sections</A>) 
-so we'll know when to
+so that we'll know when to
 start looking for more information.
 <P>
-If the value given for &quot;Content-Tranfer-Encoding&quot; 
+If the value given for &quot;Content-Transfer-Encoding&quot; 
 is one of the real encodings: &quot;BASE64&quot;,
 &quot;QUOTED-PRINTABLE&quot;, &quot;X-BASE8&quot;, 
 &quot;X-BASE10&quot; or &quot;X-BASE16&quot;, the file is an imgCIF,
-and we'll need some other the other headers to 
+and we'll need some other headers to 
 process the encoded binary data properly.  It is a
 good practice to give headers in all cases.  The meanings of
  various encodings is given in the
@@ -2446,13 +2446,13 @@ missing portion of this file. The 8 bytes for the
 Compression type (see below)
 are not counted in this field, 
 so the value of &quot;X-Binary-Size&quot; is 8 less than
-the quantity in bytes 12-19 of raw binary data (<A HREF="#3.2.2">
+the quantity in bytes 12-19 of the raw binary data (<A HREF="#3.2.2">
 3.2.2  Format of CBF binary sections</A>).
 <P>
 The optional &quot;Content-MD5&quot; header provides a much 
 more sophisticated check on the integrity
 of the binary data.  Note that this check value is applied to
-the data after the 8 bytes for the Compression type.
+the data occurring after the 8 bytes for the Compression type.
 <P>
 A blank line separator immediately precedes the start of the 
 encoded binary data.  Blank spaces
@@ -2525,7 +2525,7 @@ length of the binary section.<P><BR>
 <TR><TD>&nbsp;&nbsp;             5..5+n-1<TD>&nbsp;&nbsp;&nbsp;<TD>&nbsp;&nbsp;&nbsp; <TD>&nbsp;&nbsp;Binary data (n octets)
 </TABLE><BR>
 <P>
-NOTE:  When a MIME header is used, only bytes 5..5+n-1 are considered in
+NOTE:  When a MIME header is used, only bytes 5 through 5+n-1 are considered in
 computing the size and the message digest, and only these bytes are
 encoded for the equivalent imgCIF file using the indicated 
 Content-Transfer-Encoding.
@@ -3015,7 +3015,7 @@ The test program cif2cbf uses the same command line options as img2cif, but
 accepts either a CIF or a CBF as input instead of an image file.
 <HR>
 <HR>
-Updated 19 January 1999.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
+Updated 18 July 1999.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
 yaya@bernstein-plus-sons.com</A>
 </font>
 </BODY>

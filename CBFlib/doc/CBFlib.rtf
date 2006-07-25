@@ -3,7 +3,7 @@
 {\f2005\fnil Courier New;}{\f2010\fnil Times New Roman;}{\f2011\fnil Wingdings;}{\f2421\fnil Impact;}{\f2515\fnil MT Extra;}{\f4513\fnil Comic Sans MS;}{\f4538\fnil Arial Black;}{\f7203\fnil Verdana;}{\f12171\fnil Georgia;}{\f32525\fnil VT100;}}
 {\colortbl\red0\green0\blue0;\red0\green0\blue255;\red0\green255\blue255;\red0\green255\blue0;\red255\green0\blue255;\red255\green0\blue0;\red255\green255\blue0;\red255\green255\blue255;}{\stylesheet{\s243\tqc\tx4320\tqr\tx8640 \sbasedon0\snext243 
 footer;}{\sbasedon222\snext0 Normal;}}{\info{\title CBFlib.msw}{\subject An API for CBF/imgCIF}{\author Paul J. Ellis and Herbert J. Bernstein}{\*\verscomm 0.6}}\widowctrl\ftnbj\fracwidth \sectd \sbknone\pgnlcrm\linemod0\linex0\cols1\endnhere\titlepg 
-{\footer \pard\plain \s243\tqc\tx4320\tqr\tx8640 {\f20 CBFlib 0.6\tab \tab Page - \chpgn }\par 
+{\footer \pard\plain \s243\tqc\tx4320\tqr\tx8640 {\f20 CBFlib 0.6\tab \tab Page - }{\f20 \chpgn }\par 
 }\pard\plain \qc {{\pict\macpict\picw211\pich106\picscaled 
 10a300000000009e01321101a10064000c574f524400000000009e01320e0000004501000a00000000009e01320aaa55aa55aa55aa5574008e006500e6007c00fd006500f2006800f0006600ee006a00ed006900ea006c00eb006d00e8006f00e9007100e6007200e9007500e7007600eb007800ea007800ed007b00ee0079
 00f0007c00f2007900f3007b00f6007800f6007800f9007600f9007500fc007300fa007100fd006f00fa006d00fc006c00f9006900f9006a00f7006700f6006800f4006500f20e0000011109aa55aa55aa55aa5570008e006500e6007c00fd006500f2006800f0006600ee006a00ed006900ea006c00eb006d00e8006f00e9
@@ -59,10 +59,10 @@ and\par
 }\pard \qc {\b\f20\fs28 Herbert J. Bernstein}{\f20 \par 
 }\pard \qc {\f20 Bernstein + Sons\par 
 yaya@bernstein-plus-sons.com \par 
+\par 
+\par 
+documentation revised 18 July 1999\par 
 }\pard {\f20 \par 
-\par 
-\par 
-\par 
 \par 
 \par 
 }\pard {\b\f20 \page }{\f20 Before using this software, please read the following notices for important disclaimers and the IUCr Policy on the Use of the Crystallographic Information File (CIF) and for other important information. \par 
@@ -73,14 +73,14 @@ yaya@bernstein-plus-sons.com \par
 }\pard {\f20 \par 
 }\pard {\f20\fs20 The following notice applies to this work as a whole and to the works included within it: \par 
 \par 
-}\pard {\f20\fs20 \tab Creative endeavors depend on the lively exchange of ideas. There are laws and customs which establish rights and responsibilities for authors and the users of what authors cre
-ate. This notice is not intended to prevent you from using the software and documents in this package, but to ensure that there are no  misunderstandings about terms and conditions of such use.   Please read the following notice carefully. If you do not un
-derstand any portion of this notice, please seek appropriate professional legal advice before making use of the software and documents included in this software package. In addition to whatever other steps you may be obliged to take to respect the intellec
-tual property rights of the various parties involved, if you do make use of the software and documents in this package, please give credit where credit is due by citing this package, its authors and the URL or other source from which you obtained it, or eq
-uivalent primary references in the literature with the same authors. \par 
+}\pard {\f20\fs20 \tab Creative endeavors depend on the lively exchange of ideas. There are laws and customs which establish rights and responsibilities for authors
+ and the users of what authors create. This notice is not intended to prevent you from using the software and documents in this package, but to ensure that there are no  misunderstandings about terms and conditions of such use.   Please read the following 
+notice carefully. If you do not understand any portion of this notice, please seek appropriate professional legal advice before making use of the software and documents included in this software package. In addition to whatever other steps you may be oblig
+ed to take to respect the intellectual property rights of the various parties involved, if you do make use of the software and documents in this package, please give credit where credit is due by citing this package, its authors and the URL or other source
+ from which you obtained it, or equivalent primary references in the literature with the same authors. \par 
 }\pard {\f20\fs20 \par 
-}\pard {\f20\fs20 \tab Some of the software and documents included within this software package are the intellectual property of various parties, and placement in this package does not in any way imply that 
-any such rights have in any way been waived or diminished. \par 
+}\pard {\f20\fs20 \tab Some of the software and documents included within this software package are the intellectual property of various parties, and placement in this packa
+ge does not in any way imply that any such rights have in any way been waived or diminished. \par 
 }\pard {\f20\fs20 \par 
 }\pard {\f20\fs20 \tab With respect to any software or documents for which a copyright exists, }{\b\f20\fs20 ALL RIGHTS ARE RESERVED TO THE OWNERS OF SUCH COPYRIGHT. }{\f20\fs20 \par 
 }\pard {\f20\fs20 \par 
@@ -95,26 +95,27 @@ RAMS OR DOCUMENTS.}{\f20\fs20  \par
 }\pard \qc {\b\f20\fs20 on\par 
 he Use of the Crystallographic Information File (CIF)\par 
 }\pard {\f20\fs20 \par 
-}\pard {\f20\fs20 The Cry
-stallographic Information File (Hall, Allen & Brown, 1991) is, as of January 1992, the recommended method for submitting publications to Acta Crystallographica Section C. The International Union of Crystallography holds the Copyright on the CIF, and has ap
-plied for Patents on the STAR File syntax which is the basis for the CIF format. \par 
+}\pard {\f20\fs20 
+The Crystallographic Information File (Hall, Allen & Brown, 1991) is, as of January 1992, the recommended method for submitting publications to Acta Crystallographica Section C. The International Union of Crystallography holds the Copyright on the CIF, and
+ has applied for Patents on the STAR File syntax which is the basis for the CIF format. \par 
 }\pard {\f20\fs20 \par 
 }\pard {\f20\fs20 It is a principal objective of the IUCr to promote the use of CIF for the exchange and storage of scientific data.  The IUCr's sponsorship of the CIF development was motivated by its responsibility to its scientific journals,\par 
 which set the standards in crystallographic publishing. The IUCr intends that CIFs will be used increasingly for  electronic submission of manuscripts to these journals in future. The IUCr recognises that, if the CIF and the\par 
-}\pard {\f20\fs20 STAR File are to be adopted as a means for universal data exchange, the syntax of these files must be strictly and  uniformly adhered to. Even small deviations from the syntax would ultimately cause the demise of the universal file co
-ncept. Through its Copyrights and Patents the IUCr has taken the steps needed to ensure strict conformance with this syntax. \par 
+}\pard {\f20\fs20 STAR File are to be adopted as a means for universal data exchange, the syntax of these files must be strictly and  uniformly adhered to. Even small deviations from the syntax would ultimately cause t
+he demise of the universal file concept. Through its Copyrights and Patents the IUCr has taken the steps needed to ensure strict conformance with this syntax. \par 
 }\pard {\f20\fs20 \par 
 The IUCr policy on the use of the CIF and STAR File processes is as follows: \par 
 \par 
 }\pard \li720 {\f20\fs20 \tab 
 1.  CIFs and STAR Files may be generated, stored or transmitted, without permission or charge, provided their purpose is not specifically for profit or commercial gain, and provided that the published syntax is strictly adhered to. \par 
 }\pard \li720 {\f20\fs20 \par 
-}\pard \li720 {\f20\fs20 \tab 2.  Computer software may be developed for use with CIFs or STAR files
-, without permission or charge, provided it is distributed in the public domain. This condition also applies to software for which a charge is made, provided that its primary function is for use with files that satisfy condition 1 and that it is distribute
-d as a minor component of a larger package of software. \par 
+}\pard \li720 {\f20\fs20 \tab 2.  Computer software may be develop
+ed for use with CIFs or STAR files, without permission or charge, provided it is distributed in the public domain. This condition also applies to software for which a charge is made, provided that its primary function is for use with files that satisfy con
+dition 1 and that it is distributed as a minor component of a larger package of software. \par 
 }\pard \li720 {\f20\fs20 \par 
-}\pard \li720 {\f20\fs20 \tab 3.  Permission will be granted for the use of CIFs and STAR Files for specific commercial purposes (such as databases or network exchange processes), and for the distribution of commercial CIF/STAR
- software, on written application to the IUCr Executive Secretary, 2 Abbey Square, Chester CH1 2HU, England.  The nature, terms and duration of the licences granted will be determined by the IUCr Executive and Finance Committees. \par 
+}\pard \li720 {\f20\fs20 \tab 3.  Permission will be granted for the use of CIFs and STAR Files for specific commercial purposes (such as databases or network exchange processes), and for the d
+istribution of commercial CIF/STAR software, on written application to the IUCr Executive Secretary, 2 Abbey Square, Chester CH1 2HU, England.  The nature, terms and duration of the licences granted will be determined by the IUCr Executive and Finance Comm
+ittees. \par 
 }\pard {\f20\fs20 \par 
 }\pard {\f20\fs20 In summary, the IUCr wishes to promote the use of the STAR File concepts as a standard universal data file. It will insist on strict compliance with the published syntax for all applications. To assist with this compliance, the\par 
 IUCr provides public domain software for checking the logical integrity of a CIF, and for validating the data name definitions contained within a CIF. Detailed information on this software, and the associated dictionaries, may be\par 
@@ -127,10 +128,10 @@ IUCr provides public domain software for checking the logical integrity of a CIF
 }\pard {\f20\fs20 \par 
 The following Diclaimer Notice applies to CBFlib V0.1, from which this version is derived. \par 
 \par 
-}\pard {\f20\fs20 \tab The items furnished herewith were developed under the sponsorship of the U.S. Government. Neither the U.S., nor the U.S. D.O.E., nor the Le
-land Stanford Junior University, nor their employees, makes any warranty, express or implied, or assumes any liability or responsibility for accuracy,  completeness or usefulness of any information, apparatus, product or process disclosed, or represents th
-at its use will not infringe privately-owned rights. Mention of any product, its manufacturer, or suppliers shall not, nor is it intended to, imply approval, disapproval, or fitness for any particular use. The U.S. and the University at all times retain th
-e right to use and disseminate the furnished items for any purpose whatsoever.\par 
+}\pard {\f20\fs20 \tab The items furnished herewith were developed under the sponsorship of the U.S. Government. Neither the U.S
+., nor the U.S. D.O.E., nor the Leland Stanford Junior University, nor their employees, makes any warranty, express or implied, or assumes any liability or responsibility for accuracy,  completeness or usefulness of any information, apparatus, product or p
+rocess disclosed, or represents that its use will not infringe privately-owned rights. Mention of any product, its manufacturer, or suppliers shall not, nor is it intended to, imply approval, disapproval, or fitness for any particular use. The U.S. and the
+ University at all times retain the right to use and disseminate the furnished items for any purpose whatsoever.\par 
 }\pard {\f20\fs20 \par 
 Notice 91 02 01\par 
 \par 
@@ -141,14 +142,14 @@ Notice 91 02 01\par
 }\pard {\f20\fs20 \par 
 }\pard {\f20\fs20 
 Portions of this software are loosely based on the CIFPARSE software package from the NDB at Rutgers University (see http://ndbserver.rutgers.edu/NDB/mmcif/software). CIFPARSE is part of the NDBQUERY application, a program component of the Nucleic Acid Dat
-abase Project [ H. M. Berman, W. K. Olson, D. L. Beveridge, J. K. Westbrook, A. Gelbin, T. Demeny, S. H. Shieh, A. R. Srinivasan, and B. Sc
-hneider. (1992). The Nucleic Acid Database: A Comprehensive Relational Database of Three-Dimensional Structures of Nucleic Acids. Biophys J., 63, 751-759.], whose cooperation is gratefully acknowledged, especially in the form of design concepts created by 
-J. Westbrook. \par 
+abase Project [ H. M. Berman, W. K. Olson, D. L. Beveridge, J. K. Westbrook, A. Gelbin, T. Demeny, S. H. 
+Shieh, A. R. Srinivasan, and B. Schneider. (1992). The Nucleic Acid Database: A Comprehensive Relational Database of Three-Dimensional Structures of Nucleic Acids. Biophys J., 63, 751-759.], whose cooperation is gratefully acknowledged, especially in the f
+orm of design concepts created by J. Westbrook. \par 
 }\pard {\f20\fs20 \par 
 Please be aware of the following notice in the CIFPARSE API: \par 
 \par 
-}\pard {\f20\fs20        This software is provided }{\b\f20\fs20 WITHOUT WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE OR ANY OTHER WARRANTY, EXPRESS OR IMPLIED. RUTGERS MAKE NO REPRESENTATIO
-N OR WARRANTY THAT THE SOFTWARE WILL NOT INFRINGE ANY PATENT, COPYRIGHT OR OTHER PROPRIETARY RIGHT.}{\f20\fs20  \par 
+}\pard {\f20\fs20        This software is provided }{\b\f20\fs20 WITHOUT WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE OR ANY OTHER WARRANTY, EXPRESS OR IMPL
+IED. RUTGERS MAKE NO REPRESENTATION OR WARRANTY THAT THE SOFTWARE WILL NOT INFRINGE ANY PATENT, COPYRIGHT OR OTHER PROPRIETARY RIGHT.}{\f20\fs20  \par 
 }\pard {\f20\fs20 \par 
 \par 
 }\pard \qc {\f20\fs20 \page }{\b\f20\fs20 MPACK Notice}{\f20\fs20 \par 
@@ -158,8 +159,8 @@ N OR WARRANTY THAT THE SOFTWARE WILL NOT INFRINGE ANY PATENT, COPYRIGHT OR OTHER
 }\pard {\f20\fs20 \par 
 }\pard {\f20\fs20 
        Permission to use, copy, modify, distribute, and sell this software and its documentation for any purpose is hereby granted without fee, provided that the above copyright notice appear in all copies and that both that copyright notice and this permi
-ssion notice appear in supporting documentation, and that the name of Carnegie Mellon University not be used in advertising or publicity pertaining to distribution of the software without specific, written prior permission. Carnegie Mello
-n University makes no representations about the suitability of this software for any purpose. It is provided "as is" without express or implied warranty.   }{\b\f20\fs20 
+ssion notice appear in supporting documentation, and that the name of Carnegie Mellon University not be used in advertising or publicity pertaining to distribution of the software without specific, writte
+n prior permission. Carnegie Mellon University makes no representations about the suitability of this software for any purpose. It is provided "as is" without express or implied warranty.   }{\b\f20\fs20 
 CARNEGIE MELLON UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR 
 ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,  DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.}{\f20\fs20  \par 
 }\pard {\f20\fs20 \par 
@@ -173,25 +174,25 @@ ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,  DATA OR PROFITS, WHETHER IN 
 }\pard {\f20\fs20 \par 
 }\pard {\f20\fs20 
        License to copy and use this software is granted provided that it is identified as the "RSA Data Security, Inc. MD5 Message-Digest Algorithm" in all material mentioning or referencing this software or this function.   License is also granted to make
- and use derivative works provided that such works are identified as "derived from the RSA Data Security, Inc. MD5 Message-Digest Algorithm" in all material mentioning or referencing the derived work.   RSA Data Security, Inc. makes no repre
-sentations concerning either the merchantability of this software or the suitability of this software for any particular purpose. It is provided "as is" without express or implied warranty of any kind.   These notices must be retained in any copies of any 
-part of this documentation and/or software. \par 
+ and use derivative works provided that such works are identified as "derived from the RSA Data Security, Inc. MD5 Message-Digest Algorithm" in all material mentioning or referencing the derived work.   RSA 
+Data Security, Inc. makes no representations concerning either the merchantability of this software or the suitability of this software for any particular purpose. It is provided "as is" without express or implied warranty of any kind.   These notices must
+ be retained in any copies of any part of this documentation and/or software. \par 
 }\pard {\f20\fs20 \par 
 }\pard \qc {\b\f20 \page Version History}{\f20 \par 
 }\pard {\f20 \par 
 \par 
 }\trowd \trgaph80\trleft-80 \clshdng0\cellx1000\clshdng0\cellx2080\clshdng0\cellx2728\clshdng0\cellx8128\pard \intbl {\b\f20 Version \cell Date\tab \cell }\pard \intbl {\b\f20 By\cell }\pard \intbl {\b\f20 Description\cell }\pard \intbl {\f20 \row 
 }\trowd \trgaph80\trleft-80 \clshdng0\cellx784\clshdng0\cellx2080\clshdng0\cellx2728\clshdng0\cellx8128\pard \intbl {\f20 0.1\cell }\pard \intbl {\f20 Apr. 1998\cell }\pard \intbl {\f20 PJE\cell }\pard \intbl {\f20 
-This was the first CBFlib release. It supported binary CBF files using binary strings. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 0.2\cell }\pard \intbl {\f20 Aug. 1998\cell }\pard \intbl {\f20 HJB\cell }\pard \intbl {\f20 
-This release added ascii imgCIF support using MIME-encoded binary sections, added the option of MIME headers for the binary strings was well. MIME code adapted from mpack 1.5. Added hooks needed for \par 
+This was the first CBFlib release. It supported binary CBF files using binary strings. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 0.2\cell }\pard \intbl {\f20 Aug. 1998\cell }\pard \intbl {\f20 HJB\cell }\pard \intbl {\f20 T
+his release added ascii imgCIF support using MIME-encoded binary sections, added the option of MIME headers for the binary strings was well. MIME code adapted from mpack 1.5. Added hooks needed for \par 
 }\pard \intbl {\f20 DDL1-style names without categories. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 0.3\cell }\pard \intbl {\f20 Sep. 1998\cell }\pard \intbl {\f20 PJE\cell }\pard \intbl {\f20 
 This release cleaned up the changes made for version 0.2, allowing multi-threaded use of the code, and removing dependence on the mpack package. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 0.4\cell }\pard \intbl {\f20 Nov. 1998\cell }\pard \intbl {
-\f20 HJB\cell }\pard \intbl {\f20 This release merged much of the message digest code into the general file reading and writing to reduce the number of passes.
- More consistency checking between the MIME header and the binary header was introduced. The size in the MIME header was adjusted to agree with the version 0.2 documentation. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 0.5\cell }\pard \intbl {\f20 
-Dec. 1998\cell }\pard \intbl {\f20 PJE\cell }\pard \intbl {\f20 This release greatly increased the speed of processing by allowing for deferred digest evaluation. \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx784\clshdng0
-\cellx2080\clshdng0\cellx2728\clshdng0\cellx8128\pard \intbl {\f20 0.6\cell }\pard \intbl {\f20 Jan. 1999\cell }\pard \intbl {\f20 HJB\cell }\pard \intbl {\f20 
-This release removed the redundant information (binary id, size, compression id) from a binary header when there is a MIME header, removed the unused repeat argument, and made the memory allocation 
-for buffering and tables with many rows sensitive to the current memory allocation already used. \cell }\pard \intbl {\f20 \row }\pard {\b\f20 \par 
+\f20 HJB\cell }\pard \intbl {\f20 This release merged much of the message digest code into the general file reading and writi
+ng to reduce the number of passes. More consistency checking between the MIME header and the binary header was introduced. The size in the MIME header was adjusted to agree with the version 0.2 documentation. \cell }\pard \intbl {\f20 \row }\pard \intbl {
+\f20 0.5\cell }\pard \intbl {\f20 Dec. 1998\cell }\pard \intbl {\f20 PJE\cell }\pard \intbl {\f20 This release greatly increased the speed of processing by allowing for deferred digest evaluation. \cell }\pard \intbl {\f20 \row }\trowd 
+\trgaph80\trleft-80 \clshdng0\cellx784\clshdng0\cellx2080\clshdng0\cellx2728\clshdng0\cellx8128\pard \intbl {\f20 0.6\cell }\pard \intbl {\f20 Jan. 1999\cell }\pard \intbl {\f20 HJB\cell }\pard \intbl {\f20 
+This release removed the redundant information (binary id, size, compression id) from a binary header when there is a MIME header, removed the unused repeat argumen
+t, and made the memory allocation for buffering and tables with many rows sensitive to the current memory allocation already used. \cell }\pard \intbl {\f20 \row }\pard {\b\f20 \par 
 \par 
 \par 
 \par 
@@ -203,10 +204,9 @@ for buffering and tables with many rows sensitive to the current memory allocati
 }\pard {\b\f20 \page }{\b\f20\fs28 Foreword}{\f20 \par 
 }\pard {\f20 \par 
 \par 
-}\pard {\f20 
-In order to work with CBFlib, you need the source code, in the form of a compressed tar, CBFlib.tar.Z. Uncompress this file. Place it in an otherwise empty directory, and unpack it with tar. You will also need Paul Ellis's sample MAR345 image, example.ma
-r2300, as sample data. This file can also be found at http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/. Place that file in the top level directory (one level up from the source code).   Adjust the definition of CC in Makefile to point to your C c
-ompiler, and then \par 
+}\pard {\f20 In order to work with CBFlib, you need the source code, in the form of a compressed tar, CBFlib.tar.Z. Uncompress this file. Place it in an otherwise empty directory, and unpack it with tar. You will also need Paul Ellis
+'s sample MAR345 image, example.mar2300, as sample data. This file can also be found at http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/. Place that file in the top level directory (one level up from the source code).   Adjust the definition of C
+C in Makefile to point to your C compiler, and then \par 
 }\pard {\f20 \par 
 }\pard \li720 {\b\f20 make all \par 
 make tests \par 
@@ -217,7 +217,7 @@ make tests \par
 \par 
 }\pard {\f20 \par 
 }\pard {\f20 This is just a proposal. Please be careful about basing any code on this until and unless there has been a general agreement. \par 
-\sect }\sectd \sbkodd\pgnlcrm\linemod0\linex0\cols1\endnhere {\footer \pard\plain \s243\tqc\tx4320\tqr\tx8640 {\f20 CBFlib 0.6\tab \tab Page - \chpgn \par 
+\sect }\sectd \sbkodd\pgnlcrm\linemod0\linex0\cols1\endnhere {\footer \pard\plain \s243\tqc\tx4320\tqr\tx8640 {\f20 CBFlib 0.6\tab \tab Page - }{\f20 \chpgn }{\f20 \par 
 }}\pard\plain {\f20 \par 
 }\pard \qc {\b\f20\fs28 Contents}{\f20 \par 
 }\pard {\f20 \par 
@@ -312,9 +312,9 @@ make tests \par
 \sect }\sectd \sbkodd\pgnrestart\linemod0\linex0\cols1\endnhere \pard\plain {\b\f20\fs28 1. Introduction}{\f20 \par 
 }\pard {\f20 \par 
 \par 
-}\pard {\f20 CBFlib is a library of ANSI-C functions providing a simple mechanism for accessing Crystallographic Binary Files (CBF files) and Image-
-supporting CIF (imgCIF) files. The CBFlib API is loosely based on the CIFPARSE API for mmCIF files. Like CIFPARSE, CBFlib does not perform any semantic integrity checks and simply provides functions to create, read, modify and write CBF binary data files a
-nd imgCIF ASCII data files. \par 
+}\pard {\f20 CBFlib is a library of ANSI-C functions providing a simple mechanism for accessing Crystallographic B
+inary Files (CBF files) and Image-supporting CIF (imgCIF) files. The CBFlib API is loosely based on the CIFPARSE API for mmCIF files. Like CIFPARSE, CBFlib does not perform any semantic integrity checks; rather it simply provides functions to create, read,
+ modify and write CBF binary data files and imgCIF ASCII data files. \par 
 }\pard {\f20 \par 
 }\pard {\f20 \par 
 \sect }\sectd \sbkodd\linemod0\linex0\cols1\endnhere \pard\plain {\b\f20\fs28 2. Function descriptions}{\f20 \par 
@@ -344,11 +344,11 @@ The function }{\b\f20 cbf_make_handle}{\f20  creates and initializes a new CBF h
 }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 \~\~CBF_FORMAT\cell }\pard \intbl {\f20 \~\~The file format is invalid \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200
 \pard \intbl {\f20 \~\~CBF_ALLOC\cell }\pard \intbl {\f20 \~\~Memory allocation failed \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_ARGUMENT\cell }\pard \intbl {\f20 \~\~Invalid function argument \cell }\pard \intbl {\f20 \row }\pard \intbl 
 {\f20 \~\~CBF_ASCII\cell }\pard \intbl {\f20 \~\~The value is ASCII (not binary) \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_BINARY\cell }\pard \intbl {\f20 \~\~The value is binary (not ASCII) \cell }\pard \intbl {\f20 \row }\pard \intbl {
-\f20 \~\~CBF_BITCOUNT\cell }\pard \intbl {\f20 \~\~The expected number of bits does  not match the actual number written \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_ENDOFDATA\cell }\pard \intbl {\f20 \~\~
-The end of the data was reached before the end of the array \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILECLOSE\cell }\pard \intbl {\f20 \~\~File close error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILEOPEN\cell }\pard 
-\intbl {\f20 \~\~File open error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILEREAD\cell }\pard \intbl {\f20 \~\~File read error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILESEEK\cell }\pard \intbl {\f20 \~\~
-File seek error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILETELL\cell }\pard \intbl {\f20 \~\~File tell error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILEWRITE\cell }\pard \intbl {\f20 \~\~File write error \cell 
-}\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_IDENTICAL\cell }\pard \intbl {\f20 \~\~A data block with the new name already exists \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_NOTFOUND\cell }\pard \intbl {\f20 \~\~
+\f20 \~\~CBF_BITCOUNT\cell }\pard \intbl {\f20 \~\~The expected number of bits does  not match the actual number written \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_ENDOFDATA\cell }\pard \intbl {\f20 \~\~The end of t
+he data was reached before the end of the array \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILECLOSE\cell }\pard \intbl {\f20 \~\~File close error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILEOPEN\cell }\pard \intbl {
+\f20 \~\~File open error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILEREAD\cell }\pard \intbl {\f20 \~\~File read error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILESEEK\cell }\pard \intbl {\f20 \~\~File seek error 
+\cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILETELL\cell }\pard \intbl {\f20 \~\~File tell error \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_FILEWRITE\cell }\pard \intbl {\f20 \~\~File write error \cell }\pard \intbl {\f20 
+\row }\pard \intbl {\f20 \~\~CBF_IDENTICAL\cell }\pard \intbl {\f20 \~\~A data block with the new name already exists \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 \~\~CBF_NOTFOUND\cell }\pard \intbl {\f20 \~\~
 The data block, category, column or row does not exist \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 \~\~CBF_OVERFLOW\cell }\pard \intbl {\f20 \~\~
 The number read cannot fit into the destination argument. The destination hasbeen set to the nearest value. \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
 }\pard {\f20 If more than one error has occurred, the error code is the logical OR of the individual error codes.\par 
@@ -360,8 +360,8 @@ The number read cannot fit into the destination argument. The destination hasbee
 \par 
 }\pard {\f20 The current version of CBFlib only decompresses a binary section from disk when requested by the program. \par 
 }\pard {\f20 \par 
-}\pard {\f20 When a file containing one or more binary sections is read, CBFlib saves the file pointer and the position of the binary section within the file and then jumps past the binary section. When the program attempts to access the binary d
-ata, CBFlib sets the file position back to the start  of the binary section and then reads the data. \par 
+}\pard {\f20 When a file containing one or more binary sections is read, CBFlib saves the file pointer and the position of the binary section within the file and then jumps past the binary section. When th
+e program attempts to access the binary data, CBFlib sets the file position back to the start  of the binary section and then reads the data. \par 
 }\pard {\f20 \par 
 For this scheme to work: \par 
 \par 
@@ -377,8 +377,8 @@ When reading an imgCIF vs a CBF, the difference is detected automatically. \par
 }{\f20 \par 
 }\pard {\f20 When a program passes CBFlib a binary value, the data is compressed to a temporary file. If the CBF object is subsequently written to a file, the data is simply copied from the temporary file to the output file. \par 
 }\pard {\f20 \par 
-}\pard {\f20 The output file can be of any type. If the program indicates to CBFlib that the file is a random-access and readable, CBFlib will conserve disk space by closing the temporary file and using the output file as the loca
-tion at which the binary value is stored. \par 
+}\pard {\f20 The output file can be of any type. If the program indicates to CBFlib that the file is a random-access and readable, CBFlib will conserve disk space by closing the temporary f
+ile and using the output file as the location at which the binary value is stored. \par 
 }\pard {\f20 \par 
 For this option to work: \par 
 \par 
@@ -471,12 +471,12 @@ specified by }{\i\f20 handle}{\f20 . \par
 }{\i\f20 headers}{\f20  controls the interprestation of binary section headers of imgCIF \par 
 files. \par 
 \~\par 
-}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 MSG_DIGEST:\cell }\pard \intbl {\f20 Instructs CBFlib to check that the digest of the binary section matches any head
-er value. If the digests do not match, the call will return CBF_FORMAT. This evaluation and comparison is delayed (a "lazy" evaluation) to ensure maximal processing efficiency. If an immediately evaluation is required, see MSG_DIGESTNOW, below. \cell 
-}\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 MSG_DIGESTNOW:\cell }\pard \intbl {\f20 
-Instructs CBFlib to check that the digest of the binary section matches any header value.  If the digests do not match, the call will return CBF_FORMAT. This evaluation and comparison is performed during initial parsing of the section to ensure timel
-y error reporting at the expense of processing efficiency. If a more efficient delayed ("lazy") evaluation is required, see MSG_DIGESTNOW, below. \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard 
-\intbl {\f20 MSG_NODIGEST: \cell }\pard \intbl {\f20 Do not check the digest (default). \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+}\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 MSG_DIGEST:\cell }\pard \intbl {\f20 Instructs CBFlib to check that the dige
+st of the binary section matches any header value. If the digests do not match, the call will return CBF_FORMAT. This evaluation and comparison is delayed (a "lazy" evaluation) to ensure maximal processing efficiency. If an immediately evaluation is requir
+ed, see MSG_DIGESTNOW, below. \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 MSG_DIGESTNOW:\cell }\pard \intbl {\f20 
+Instructs CBFlib to check that the digest of the binary section matches any header value.  If the digests do not match, the call will return CBF_FORMAT. This evaluation and comparison is performed during initi
+al parsing of the section to ensure timely error reporting at the expense of processing efficiency. If a more efficient delayed ("lazy") evaluation is required, see MSG_DIGESTNOW, below. \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0
+\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 MSG_NODIGEST: \cell }\pard \intbl {\f20 Do not check the digest (default). \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
 }\pard {\f20 CBFlib defers reading binary sections as long as possible. In the current version of CBFlib, this means that: \par 
 }\pard {\f20 \par 
 1. The }{\i\f20 file}{\f20  must be a random-access file opened in binary mode (fopen ( , "rb")).\par 
@@ -529,9 +529,9 @@ The value of }{\i\f20 headers}{\f20  can be a logical OR of any of: \par
 }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 ENC_BASE64\cell }\pard \intbl {\f20 Use BASE64 encoding (default). \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard 
 \intbl {\f20 ENC_QP\cell }\pard \intbl {\f20 Use QUOTED-PRINTABLE encoding. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_BASE8\cell }\pard \intbl {\f20 Use BASE8 (octal) encoding. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_BASE10
 \cell }\pard \intbl {\f20 Use BASE10 (decimal) encoding. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_BASE16\cell }\pard \intbl {\f20 Use BASE16 (hexadecimal) encoding. \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_FORWARD\cell }\pard 
-\intbl {\f20 For BASE8, BASE10 or BASE16 encoding, map bytes to words forward (1234) (default on little-endian machines). \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_BACKWARD\cell }\pard \intbl {\f20 
-Map bytes to words backward (4321) (default on big-endian machines). \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_CRTERM\cell }\pard \intbl {\f20 Terminate lines with CR. \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0
-\cellx2440\clshdng0\cellx8200\pard \intbl {\f20 ENC_LFTERM\cell }\pard \intbl {\f20 Terminate lines with LF (default). \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
+\intbl {\f20 For BASE8, BASE10 or BASE16 encoding, map bytes to words forward (1234) (default on little-endian machines). \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_BACKWARD\cell }\pard \intbl {\f20 Map byt
+es to words backward (4321) (default on big-endian machines). \cell }\pard \intbl {\f20 \row }\pard \intbl {\f20 ENC_CRTERM\cell }\pard \intbl {\f20 Terminate lines with CR. \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440
+\clshdng0\cellx8200\pard \intbl {\f20 ENC_LFTERM\cell }\pard \intbl {\f20 Terminate lines with LF (default). \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
 }\pard \keep\keepn {\b\f20 ARGUMENTS}{\f20 \par 
 }\pard \fi-1080\li1080\keep\keepn {\f20 \~\par 
 }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \keep\keepn\intbl {\i\f20 handle}{\f20 \cell }\pard \keep\keepn\intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0
@@ -2261,11 +2261,11 @@ If the value is not binary, the function returns CBF_ASCII. \par
 }{\f20 \par 
 }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 handle}{\f20 \cell }\pard \intbl {\f20 CBF handle.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 
 compression}{\f20 \cell }\pard \intbl {\f20 Compression method used.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elsize}{\f20 \cell }\pard \intbl {\f20 Size in bytes of each array element.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 
-binary_id}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination integer binary identifier.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elsigned}{\f20 \cell }\pard \intbl {\f20 Po
-inter to an integer. Set to 1 if the elements can be read as signed integers.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elunsigned}{\f20 \cell }\pard \intbl {\f20 Pointer to an integer. Set to 1 if the elements can be read as unsigned integers.
-\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elements}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination number of elements.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 minelement}{\f20 \cell }\pard \intbl {\f20 
-Pointer to the destination smallest element.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 maxelement}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination largest element.\cell 
-}\pard \intbl {\f20 \row }\pard {\f20 \par 
+binary_id}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination integer binary identifier.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elsigned}{\f20 \cell }\pard \intbl {\f20 
+Pointer to an integer. Set to 1 if the elements can be read as signed integers.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elunsigned}{\f20 \cell }\pard \intbl {\f20 
+Pointer to an integer. Set to 1 if the elements can be read as unsigned integers.\cell }\pard \intbl {\f20 \row }\pard \intbl {\i\f20 elements}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination number of elements.\cell }\pard \intbl {\f20 \row 
+}\pard \intbl {\i\f20 minelement}{\f20 \cell }\pard \intbl {\f20 Pointer to the destination smallest element.\cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx8200\pard \intbl {\i\f20 maxelement}{\f20 \cell 
+}\pard \intbl {\f20 Pointer to the destination largest element.\cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
 \par 
 }{\b\f20 RETURN VALUE}{\f20  \par 
 \par 
@@ -2438,46 +2438,47 @@ where }{\i\f20 f}{\f20  is the decimal value of the error and symbol is the symb
 }\pard {\f20 \par 
 }{\b\f20 3.1 General description}{\f20 \par 
 \par 
-}\pard {\f20 With the exception of the binary sections, a CBF file is an mmCIF-format ASCII file, so a CBF file with no binary sections is a CIF fil
-e. An imgCIF file has any binary sections encoded as CIF-format ASCII strings and is a CIF file whether or not it contains binary sections. In most cases, CBFlib can also be used to access normal CIF files as well as CBF and imgCIF files. \par 
+}\pard {\f20 With the exception of the binary sections, a CBF file is an mmCIF-format ASCII file, so a CBF 
+file with no binary sections is a CIF file. An imgCIF file has any binary sections encoded as CIF-format ASCII strings and is a CIF file whether or not it contains binary sections. In most cases, CBFlib can also be used to access normal CIF files as well a
+s CBF and imgCIF files. \par 
 }\pard {\f20 \par 
 \par 
 }{\b\f20 3.2 Format of the binary sections}{\f20 \par 
 \par 
-}\pard {\f20 Before getting to the binary data itself, there are some preliminaries to allow a smooth transition from the conventions of CIF to those of raw or encoded streams of "octets" (8-bit bytes). The binary data is given as the essential par
-t of a specially formatted semicolon-delimited CIF multi-line text string. This text string is the value associated with the tag "_array_data.data". \par 
+}\pard {\f20 Before getting to the binary data itself, there are some preliminaries to allow a smooth transition from the conventions of CIF to those of raw or encoded streams of "octets" (8-bit bytes). The 
+binary data is given as the essential part of a specially formatted semicolon-delimited CIF multi-line text string. This text string is the value associated with the tag "_array_data.data". \par 
 }\pard {\f20 \par 
 The specific format of the binary sections differs between an imgCIF and a CBF file. \par 
 \par 
 \par 
 }{\b\f20 3.2.1 Format of imgCIF binary sections}{\f20 \par 
 \par 
-}\pard {\f20 Each binary section is encoded as a ;-delimited string. Within the text string, the conventions developed for transmitting email messages including binary attachments are followed. There is secondary ASCII header information, formatt
-ed as Multipurpose Internet Mail Extensions (MIME) headers (see RFCs 2045-49 by Freed, et. al). The boundary marker for the beginning of all this is the special string \par 
+}\pard {\f20 Each binary section is encoded as a ;-delimited string. Within the text string, the conventions developed for transmitting email messages including binary attachments are followed. There is se
+condary ASCII header information, formatted as Multipurpose Internet Mail Extensions (MIME) headers (see RFCs 2045-49 by Freed, et al.). The boundary marker for the beginning of all this is the special string \par 
 }\pard {\f20 \par 
 --CIF-BINARY-FORMAT-SECTION--\par 
 \par 
 }\pard {\f20 
 at the beginning of a line. The initial "--" says that this is a MIME  boundary. We cannot put "###" in front of it and conform to MIME  conventions. Immediately after the boundary marker are MIME headers,  describing some useful information we will need t
-o process the binary section. MIME headers can appear i
-n different orders, and can be very confusing (look at the raw contents of a email message with attachments), but there is only one header which is has to be understood to process an imgCIF: "Content-Transfer-Encoding". If the value given on this header is
- "BINARY", this is a CBF and the data will be presented as raw binary, containing a count (in the header described in 3.2.2 Format of CBF binary sections) so we'll know when to start looking for more information. \par 
+o process the 
+binary section. MIME headers can appear in different orders, and can be very confusing (look at the raw contents of a email message with attachments), but there is only one header which is has to be understood to process an imgCIF: "Content-Transfer-Encodi
+ng". If the value given on this header is "BINARY", this is a CBF and the data will be presented as raw binary, containing a count (in the header described in 3.2.2 Format of CBF binary sections) so that we'll know when to start looking for more informatio
+n. \par 
 }\pard {\f20 \par 
-}\pard {\f20 If the value given for "Content-Tranfer-E
-ncoding" is one of the real encodings: "BASE64", "QUOTED-PRINTABLE", "X-BASE8", "X-BASE10" or "X-BASE16", the file is an imgCIF, and we'll need some other the other headers to process the encoded binary data properly. It is a good practice to give headers 
-in all cases. The meanings of various encodings is given in the CBF extensions dictionary, cbfext98.dic. \par 
+}\pard {\f20 
+If the value given for "Content-Transfer-Encoding" is one of the real encodings: "BASE64", "QUOTED-PRINTABLE", "X-BASE8", "X-BASE10" or "X-BASE16", the file is an imgCIF, and we'll need some other headers to process the encoded binary data properly. It is 
+a good practice to give headers in all cases. The meanings of various encodings is given in the CBF extensions dictionary, cbfext98.dic. \par 
 }\pard {\f20 \par 
 The "Content-Type" header tells us what sort of data we have (currently \par 
 }\pard {\f20 always "application/octet-stream" for a miscellaneous stream of binary data) and, optionally, the conversions that were applied to the original data. In this case we have compressed the data with the "CBF-PACKED" algorithm. \par 
 }\pard {\f20 \par 
 }\pard {\f20 The "X-Binary-ID" header should contain the same value as was given for "_array_data.}{\i\f20 binary_id}{\f20 ". \par 
 }\pard {\f20 \par 
-}\pard {\f20 
-The "X-Binary-Size" header gives the expected size of the binary data.  This is the size after any compressions, but before any ascii encodings.  This is useful in making a simple check for a missing portion of this file. The 8 bytes for the Compression ty
-pe (see below) are not counted in this field, so the value of "X-Binary-Size" is 8 less than the quantity in bytes 12-19 of raw binary data ( 3.2.2 Format of CBF binary \par 
+}\pard {\f20 The "X-Binary-Size" header gives the expected size of the binary data.  This is the size after any compressions, but before any ascii encodings.  This is useful in making a simple check for a missing portion of this file. The 
+8 bytes for the Compression type (see below) are not counted in this field, so the value of "X-Binary-Size" is 8 less than the quantity in bytes 12-19 of the raw binary data ( 3.2.2 Format of CBF binary \par 
 }\pard {\f20 sections). \par 
 \par 
-}\pard {\f20 The optional "Content-MD5" header provides a much more sophisticated check on the integrity of the binary data. Note that this check value is applied to the data after the 8 bytes for the Compression type. \par 
+}\pard {\f20 The optional "Content-MD5" header provides a much more sophisticated check on the integrity of the binary data. Note that this check value is applied to the data occurring after the 8 bytes for the Compression type. \par 
 }\pard {\f20 \par 
 }\pard {\f20 A blank line separator immediately precedes the start of the encoded binary data. Blank spaces may be added prior to the preceding "line separator" if desired (e.g. to force word or block alignment). \par 
 }\pard {\f20 \par 
@@ -2515,7 +2516,7 @@ The MIME header is recommended. \par
 \intbl {\f20 \~\~4 \cell \~\~D5 \cell \~\~213 \cell }\pard \intbl {\f20 \~\~Binary section begins \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx1360\clshdng0\cellx2800\clshdng0\cellx4240\clshdng0\cellx8200\pard \intbl {\f20 \~
 \~5..5+n-1\cell \~\~\~\cell \~\~\~\cell }\pard \intbl {\f20 \~\~Binary data (n octets) \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
 \par 
-NOTE: When a MIME header is used, only bytes 5..5+n-1 are considered in \par 
+NOTE: When a MIME header is used, only bytes 5 through 5+n-1 are considered in \par 
 }\pard {\f20 computing the size and the message digest, and only these bytes are encoded for the equivalent imgCIF file using the indicated Content-Transfer-Encoding. \par 
 }\pard {\f20 \par 
 }\pard {\f20 If no MIME header has been requested (a deprecated use), then bytes 5 through 28 are used for three 8-byte words to hold the }{\i\f20 binary_id}{\f20 , the size and the compression type: \par 
@@ -2550,9 +2551,9 @@ systems. \par
 }\pard {\f20 \par 
 \par 
 \par 
-}\pard {\f20 At present three compression schemes are implemented are defined: CBF_NONE (for no compression), CBF_CANONICAL (for and entropy-coding scheme based on the can
-onical-code algorithm described by Moffat, et al. (International Journal of High Speed Electronics and Systems, Vol 8, No 1 (1997) 179-231)) and CBF_PACKED for a CCP4-style packing scheme. Othercompression schemes will be added to this list in the future. 
-\par 
+}\pard {\f20 At present three compression schemes are implemented are defined: CBF_NONE (for no compression), CBF
+_CANONICAL (for and entropy-coding scheme based on the canonical-code algorithm described by Moffat, et al. (International Journal of High Speed Electronics and Systems, Vol 8, No 1 (1997) 179-231)) and CBF_PACKED for a CCP4-style packing scheme. Othercomp
+ression schemes will be added to this list in the future. \par 
 }\pard {\f20 \par 
 \par 
 }\pard {\f20 For historical reasons, CBFlib can read or write a binary string without a MIME header. The structure of a binary string with simple headers is: \par 
@@ -2597,8 +2598,8 @@ Binary section identifier (64-bit little-endien)\cell }\pard \intbl {\f20 \row }
 1. An entropy-encoding scheme using canonical coding\par 
 2. A CCP4-style packing scheme. \par 
 \par 
-}\pard {\f20 Both encode the difference (or error) between the current element in the array and the prior element. Parameters required for more sophisticated predictors have been included in the compression
- functions and will be used in a future version of the library. \par 
+}\pard {\f20 Both encode the difference (or error) between the current element in the array and the prior element. Parameters required for more soph
+isticated predictors have been included in the compression functions and will be used in a future version of the library. \par 
 }\pard {\f20 \par 
 }{\b\f20 3.3.1 Canonical-code compression}{\f20 \par 
 \par 
@@ -2608,8 +2609,8 @@ llowed by the error iteslf. \par
 }\pard {\f20 \par 
 }\pard {\f20 At the start of the compression, CBFlib constructs a table containing a set of symbols, one for each of the 2^}{\f20\up6 n}{\f20  direct codes from -2^}{\f20\up6 (n-1)}{\f20  .. 2^}{\f20\up6 (n-1)}{\f20 
 -1, one for a stop code, and one for each of the maxbits-n indirect codes, where n is chosen at compress time and maxbits is the maximum number of bits in an error. CBFlib then assigns to each symbol a bit-code, using a shorter bit code for the more common
- symbols and a longer bit code for the less common symbols. The bit-code lengths are calculated using a Huffman-type algorithm, and the actual bit-codes are constructed using the canonical-code algorithm described by Moffat, et al. (
-International Journal of High Speed Electronics and Systems, Vol 8, No 1 (1997) 179-231). \par 
+ symbols and a longer bit code for the less common symbols. The bit-code lengths are calculated using a Huffman-type algorithm, and the actual bit-codes are constructed using 
+the canonical-code algorithm described by Moffat, et al. (International Journal of High Speed Electronics and Systems, Vol 8, No 1 (1997) 179-231). \par 
 }\pard {\f20 \par 
 The structure of the compressed data is: \par 
 \par 
@@ -2638,9 +2639,8 @@ The structure of the compressed data is:\par
 }{\b\f20\fs28 \sect }\sectd \sbkodd\linemod0\linex0\cols1\endnhere \pard\plain {\b\f20\fs28 4. Installation}{\f20 \par 
 }\pard {\f20 \par 
 \par 
-}\pard {\f20 
-CBFlib should be built on a disk with at least 40 megabytes of free space. First create the top-level directory (called, say, CBFlib_0.6).   CBFlib_0.6.tar.Z is a compressed tar of the code as it now stands.  Uncompress this file, place it in the top level
- directory, and unpack it with tar: \par 
+}\pard {\f20 CBFlib should be built on a disk with at least 40 megabytes of free space. First create the top-level directory (called, say, CBFlib_0.6).   CBFlib_0.6.tar.Z is a compressed tar of the code as it now stands.  Uncompres
+s this file, place it in the top level directory, and unpack it with tar: \par 
 }\pard {\f20 \par 
      tar xvf CBFLIB_0.6.tar\par 
 \par 
@@ -2681,8 +2681,8 @@ Predictor-Huffman compression (not implemented) \cell }\pard \intbl {\f20 \row }
 bison grammar to define cbf_stx.c (see WARNING) \cell }\pard \intbl {\f20 \row }\trowd \trgaph80\trleft-80 \clshdng0\cellx2080\clshdng0\cellx4240\clshdng0\cellx8200\pard \intbl {\f20 md5c.c\cell md5.h, global.h\cell }\pard \intbl {\f20 
 RSA message digest software from mpack \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
 }\pard \tx10340 {\b\f20 WARNING:}{\f20 
-  Do not rebuild the parser, cbf_stx.c, from the bison grammar, cbf.stx, unless absolutely necessary. There is a problem with the file bison.simple in the standard bison release. If you must rebuild cbf_stx.c using bison, you will need cbf_PARSER.simple as
- a replacement for bison.simple. See the cbf_PARSER.simple instructions.  In the "examples" subdirectory, there are 2 additional files used by the example program (section 5) for reading MAR300, MAR345 or ADSC CCD images: \par 
+  Do not rebuild the parser, cbf_stx.c, from the bison grammar, cbf.stx, unless absolutely necessary. There is a problem with the file bison.simple in the standard bison release. If you must rebuild cbf_stx.c using bison, you will need cbf_PARSER.
+simple as a replacement for bison.simple. See the cbf_PARSER.simple instructions.  In the "examples" subdirectory, there are 2 additional files used by the example program (section 5) for reading MAR300, MAR345 or ADSC CCD images: \par 
 }\pard {\f20 \par 
 }\trowd \trgaph80\trleft-80 \clshdng0\cellx2440\clshdng0\cellx4960\clshdng0\cellx8200\pard \intbl {\f20 img.c\cell img.h\cell }\pard \intbl {\f20 Simple image library \cell }\pard \intbl {\f20 \row }\pard {\f20 \par 
 and the example programs themselves: \par 
@@ -2703,13 +2703,13 @@ Draft CBF/ImgCIF definition (ASCII) \cell }\pard \intbl {\f20 \row }\pard \intbl
 \sect }\sectd \sbkodd\linemod0\linex0\cols1\endnhere \pard\plain {\b\f20 5. Example programs}{\f20 \par 
 \par 
 \par 
-}\pard {\f20 The example programs makecbf
-.c and img2cif.c read an image file from a MAR300, MAR345 or ADSC CCD detector and then uses CBFlib to convert it to CBF format (makecbf) or either imgCIF or CBF format (img2cif).  makecbf writes the CBF-format image to disk, reads it in again, and then co
-mpares it to the original. img2cif just writes the desired file.  makecbf works only from stated files on disk, so that random I/O can be used. img2cif includes code to process files from stdin and to stdout. \par 
+}\pard {\f20 
+The example programs makecbf.c and img2cif.c read an image file from a MAR300, MAR345 or ADSC CCD detector and then uses CBFlib to convert it to CBF format (makecbf) or either imgCIF or CBF format (img2cif).  makecbf writes the CBF-format image to disk, re
+ads it in again, and then compares it to the original. img2cif just writes the desired file.  makecbf works only from stated files on disk, so that random I/O can be used. img2cif includes code to process files from stdin and to stdout. \par 
 }\pard {\f20 \par 
-}\pard {\f20 makecbf.c is a good example of how many of th
-e CBFlib functions can be used. To compile makecbf on an alpha workstation running Digital unix or a Silicon Graphics workstation running irix (and on most other unix platforms as well), go to the src subdirectory of the main CBFlib directory and use the M
-akefile: \par 
+}\pard {\f20 
+makecbf.c is a good example of how many of the CBFlib functions can be used. To compile makecbf on an alpha workstation running Digital unix or a Silicon Graphics workstation running irix (and on most other unix platforms as well), go to the src subdirecto
+ry of the main CBFlib directory and use the Makefile: \par 
 }\pard {\f20 \par 
      make all\par 
 \par 
