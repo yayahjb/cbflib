@@ -1,7 +1,7 @@
 /**********************************************************************
  * convert_image -- convert an image file to a cbf file               *
  *                                                                    *
- * Version 0.7.2 22 April 2001                                        *
+ * Version 0.7.2.3 2 October 2002                                     *
  *                                                                    *
  *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
  **********************************************************************/
@@ -338,6 +338,10 @@ int main (int argc, char *argv [])
 
 	  int i [4];
 
+	  unsigned int u [4];
+
+	  size_t s [4];
+
 	  cbf_goniometer goniometer;
 
 	  cbf_detector detector;
@@ -395,7 +399,7 @@ int main (int argc, char *argv [])
 
   /* Get the number of elements */
 
-	cbf_count_elements (cbf, &i [0]);
+	cbf_count_elements (cbf, &u [0]);
 
 
   /* Get the element id */
@@ -445,7 +449,7 @@ int main (int argc, char *argv [])
 
   /* Get the image size */
 
-	cbf_get_image_size (cbf, 0, 0, &i [0], &i [1]);
+	cbf_get_image_size (cbf, 0, 0, &s [0], &s [1]);
 
 
   /* Change the setting of an axis */

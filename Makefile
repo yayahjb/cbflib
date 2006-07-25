@@ -14,10 +14,11 @@
 #
 # Set the compiler and flags
 #
-CC	= cc
-#CC	= gcc
+#CC	= cc
+CC	= gcc
 #CFLAGS	= -O
-CFLAGS	= -g3 -O2
+#CFLAGS	= -g3 -O2
+CFLAGS  = -g -O2
 
 #
 # Program to use to pack shars
@@ -166,7 +167,7 @@ default:
 	@echo ' The tests assume that "example.mar2300" is in this directory'
 	@echo ' This file can be obtained from'
 	@echo ' '
-	@echo '   http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/'
+	@echo '   http://smb.slac.stanford.edu/~ellis/'
 	@echo ' '
 	@echo ' To clean up the directories type:'
 	@echo ' '
@@ -318,7 +319,7 @@ shar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
 	 $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
          $(EXAMPLES)/img.c \
 	 $(EXAMPLES)/img.h \
-	 $(EXAMPLES)/makecbf.c $(EXAMPLES)/img2cif.c $(EXAMPLES)/cif2cbf.c \ 
+	 $(EXAMPLES)/makecbf.c $(EXAMPLES)/img2cif.c $(EXAMPLES)/cif2cbf.c \
 	 $(EXAMPLES)/convert_image.c \
 	 $(EXAMPLES)/template_adscquantum4_2304x2304.cbf \
 	 $(EXAMPLES)/template_mar345_2300x2300.cbf \
