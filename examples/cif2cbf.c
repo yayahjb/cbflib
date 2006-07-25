@@ -1,12 +1,42 @@
 /**********************************************************************
  *          cif2cbf -- convert a cif to a cbf file                    *
- *          Version 0.7.4 12 January 2004                             *
  *                                                                    *
- *          Herbert J. Bernstein, Bernstein + Sons                    *
- *          5 Brewster Lane, Bellport, NY 11713-2803                  *
- *          yaya@bernstein-plus-sons.com                              *
+ * Version 0.7.5 15 April 2006                                        *
+ *                                                                    *
+ *                          Paul Ellis and                            *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
- 
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ * WHILE YOU MAY ALTERNATIVE DISTRIBUTE THE API UNDER THE LGPL        *
+ * YOU MAY ***NOT*** DISTRBUTE THIS PROGRAM UNDER THE LGPL            *
+ *                                                                    *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
 /**********************************************************************
  *                                SYNOPSIS                            *
  *                                                                    *
@@ -86,7 +116,62 @@
  *  Inc. MD5 Message-Digest Algorithm."  Please see the copyright     *
  *  notice and disclaimer in md5c.c                                   *
  **********************************************************************/
- 
+
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term 'this software', as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
 /**********************************************************************
  *                                 NOTICE                             *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -131,7 +216,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -162,7 +247,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -233,7 +318,7 @@
 #include <sys/errno.h>
 #include <unistd.h>
 
-#define BUFSIZ 8192
+#define C2CBUFSIZ 8192
 
 int local_exit (int status);
 
@@ -262,9 +347,11 @@ int main (int argc, char *argv [])
   int ciftmpfd;
   int ciftmpused;
   int nbytes;
-  char buf[BUFSIZ];
-  unsigned int blocks, categories, blocknum, catnum;
+  char buf[C2CBUFSIZ];
+  unsigned int blocks, categories, blocknum, catnum, blockitems, itemnum;
+  CBF_NODETYPE itemtype;
   const char *datablock_name;
+  const char *saveframe_name;
   const char *category_name;
   const char *column_name;
   const char *value;
@@ -273,11 +360,11 @@ int main (int argc, char *argv [])
   unsigned int rows;
 
   int mime, digest, encoding, compression, bytedir, cbforcif, term;
-  
-  
+
+
      /* Extract options */
 
-/********************************************************************** 
+/**********************************************************************
  *  cif2cbf [-i input_cif] [-o output_cbf] \                          *
  *    [-c {p[acked]|c[annonical]|[n[one]}] \                          *
  *    [-m {h[eaders]|n[oheaders]}] [-d {d[igest]|n[odigest]}]  \      *
@@ -286,14 +373,14 @@ int main (int argc, char *argv [])
  *    [-b {f[orward]|b[ackwards]}] \                                  *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
- **********************************************************************/ 
-  
+ **********************************************************************/
+
    mime = 0;
    digest = 0;
    encoding = 0;
    compression = 0;
    bytedir = 0;
-     
+
    cifin = NULL;
    cbfout = NULL;
    ciftmpused = 0;
@@ -422,11 +509,11 @@ int main (int argc, char *argv [])
        "    [input_cif] [output_cbf] \n\n");
      exit(2);
    }
-   
-  
+
+
      /* Set up for CIF of CBF output */
-  
-   if (!encoding) { 
+
+   if (!encoding) {
      encoding = ENC_BASE64;
    }
    cbforcif = CBF;
@@ -439,9 +526,9 @@ int main (int argc, char *argv [])
      cbforcif = CIF;
      term = ENC_LFTERM;
    }
-    
+
      /* Set up for headers */
-  
+
    if (!mime) {
      mime = MIME_HEADERS;
    }
@@ -458,13 +545,13 @@ int main (int argc, char *argv [])
      bytedir = ENC_BACKWARD;
 
      /* Set up for Compression */
-  
-   if (!compression) 
+
+   if (!compression)
      compression = CBF_PACKED;
 
 
     /* Read the cif */
-  
+
    if (!cifin || strcmp(cifin?cifin:"","-") == 0) {
      strcpy(ciftmp, "/tmp/cif2cbfXXXXXX");
      if ((ciftmpfd = mkstemp(ciftmp)) == -1 ) {
@@ -477,7 +564,7 @@ int main (int argc, char *argv [])
        fprintf(stderr,"%s\n",strerror(errno));
        exit(1);
      }
-     while ((nbytes = fread(buf, 1, BUFSIZ, stdin))) {
+     while ((nbytes = fread(buf, 1, C2CBUFSIZ, stdin))) {
        if(nbytes != fwrite(buf, 1, nbytes, file)) {
          fprintf(stderr,"Failed to write %s.\n", ciftmp);
          exit(1);
@@ -519,84 +606,157 @@ int main (int argc, char *argv [])
 
    for (blocknum = 0; blocknum < blocks;  blocknum++ )
    { /* start of copy loop */
-   
- 
+
+
      cbf_failnez (cbf_select_datablock(cif, blocknum))
      cbf_failnez (cbf_datablock_name(cif, &datablock_name))
      cbf_failnez (cbf_force_new_datablock(cbf, datablock_name))
 
-     if ( !cbf_rewind_category(cif) ) {
-     cbf_failnez (cbf_count_categories(cif, &categories))
+     if ( !cbf_rewind_blockitem(cif, &itemtype) ) {
+     cbf_failnez (cbf_count_blockitems(cif, &blockitems))
 
-     for (catnum = 0; catnum < categories;  catnum++) {
-       cbf_select_category(cif, catnum);
-       cbf_category_name(cif,&category_name);
-       cbf_force_new_category(cbf, category_name);
-       cbf_count_rows(cif,&rows);
-       cbf_count_columns(cif,&columns);
+     for (itemnum = 0; itemnum < blockitems;  itemnum++) {
+       cbf_select_blockitem(cif, itemnum, &itemtype);
+       if (itemtype == CBF_CATEGORY) {
+         cbf_category_name(cif,&category_name);
+         cbf_force_new_category(cbf, category_name);
+         cbf_count_rows(cif,&rows);
+         cbf_count_columns(cif,&columns);
 
-       /*  Transfer the columns names from cif to cbf */
-       if ( ! cbf_rewind_column(cif) ) {
-       do {
-         cbf_failnez(cbf_column_name(cif, &column_name))
-         cbf_failnez(cbf_new_column(cbf, column_name))
-       } while ( ! cbf_next_column(cif) );
-       cbf_rewind_column(cif);
-       cbf_rewind_row(cif);
-       }
-       /* Transfer the rows from cif to cbf */
-       for (rownum = 0; rownum < rows; rownum++ ) {
-         cbf_failnez (cbf_select_row(cif, rownum))
-         cbf_failnez (cbf_new_row(cbf))
-         cbf_rewind_column(cif);
-         for (colnum = 0; colnum < columns; colnum++ ) {
-           const char *typeofvalue;
+         /*  Transfer the columns names from cif to cbf */
+         if ( ! cbf_rewind_column(cif) ) {
+           do {
+             cbf_failnez(cbf_column_name(cif, &column_name))
+             cbf_failnez(cbf_new_column(cbf, column_name))
+           } while ( ! cbf_next_column(cif) );
+           cbf_rewind_column(cif);
+           cbf_rewind_row(cif);
+         }
+         /* Transfer the rows from cif to cbf */
+         for (rownum = 0; rownum < rows; rownum++ ) {
+           cbf_failnez (cbf_select_row(cif, rownum))
+           cbf_failnez (cbf_new_row(cbf))
+           cbf_rewind_column(cif);
+           for (colnum = 0; colnum < columns; colnum++ ) {
+             const char *typeofvalue;
 
-           cbf_failnez (cbf_select_column(cif, colnum))
-           if ( ! cbf_get_value(cif, &value) ) {
-             cbf_failnez (cbf_get_typeofvalue(cif, &typeofvalue))             
-             cbf_failnez (cbf_select_column(cbf, colnum))
-             cbf_failnez (cbf_set_value(cbf, value))
-             cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
+             cbf_failnez (cbf_select_column(cif, colnum))
+             if ( ! cbf_get_value(cif, &value) ) {
+               cbf_failnez (cbf_get_typeofvalue(cif, &typeofvalue))
+               cbf_failnez (cbf_select_column(cbf, colnum))
+               cbf_failnez (cbf_set_value(cbf, value))
+               cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
 
-           } else {
-
-             void * array;
-             int binary_id, elsigned, elunsigned;
-             size_t elements,elements_read, elsize;
-             int minelement, maxelement;
-             unsigned int cifcompression;
-
-             cbf_failnez(cbf_get_integerarrayparameters(
-               cif, &cifcompression,
-               &binary_id, &elsize, &elsigned, &elunsigned,
-               &elements, &minelement, &maxelement))
-	     if ((array=malloc(elsize*elements))) {
-               cbf_failnez (cbf_select_column(cbf,colnum))
-               cbf_failnez (cbf_get_integerarray(
-               cif, &binary_id, array, elsize, elsigned,
-               elements, &elements_read))
-               cbf_failnez(cbf_set_integerarray(
-               cbf, compression,
-               binary_id, array, elsize, elsigned, elements))
-               free(array);
              } else {
-               fprintf(stderr,
-                 "\nFailed to allocate memory %ld bytes",
-                 (long) elsize*elements); 
-                exit(1);
+
+               void * array;
+               int binary_id, elsigned, elunsigned;
+               size_t elements,elements_read, elsize;
+                int minelement, maxelement;
+               unsigned int cifcompression;
+
+               cbf_failnez(cbf_get_integerarrayparameters(
+                 cif, &cifcompression,
+                 &binary_id, &elsize, &elsigned, &elunsigned,
+                 &elements, &minelement, &maxelement))
+               if ((array=malloc(elsize*elements))) {
+                 cbf_failnez (cbf_select_column(cbf,colnum))
+                 cbf_failnez (cbf_get_integerarray(
+                 cif, &binary_id, array, elsize, elsigned,
+                 elements, &elements_read))
+                 cbf_failnez(cbf_set_integerarray(
+                 cbf, compression,
+                 binary_id, array, elsize, elsigned, elements))
+                 free(array);
+               } else {
+                 fprintf(stderr,
+                   "\nFailed to allocate memory %ld bytes",
+                   (long) elsize*elements);
+                 exit(1);
+               }
+             }
+           }
+         }
+       } else {
+         cbf_saveframe_name(cif,&saveframe_name);
+         cbf_force_new_saveframe(cbf, saveframe_name);
+
+         if ( !cbf_rewind_category(cif) ) {
+           cbf_failnez (cbf_count_categories(cif, &categories))
+
+           for (catnum = 0; catnum < categories;  catnum++) {
+             cbf_select_category(cif, catnum);
+             cbf_category_name(cif,&category_name);
+             cbf_force_new_category(cbf, category_name);
+             cbf_count_rows(cif,&rows);
+             cbf_count_columns(cif,&columns);
+
+           /*  Transfer the columns names from cif to cbf */
+           if ( ! cbf_rewind_column(cif) ) {
+             do {
+               cbf_failnez(cbf_column_name(cif, &column_name))
+               cbf_failnez(cbf_new_column(cbf, column_name))
+             } while ( ! cbf_next_column(cif) );
+             cbf_rewind_column(cif);
+             cbf_rewind_row(cif);
+           }
+           /* Transfer the rows from cif to cbf */
+           for (rownum = 0; rownum < rows; rownum++ ) {
+             cbf_failnez (cbf_select_row(cif, rownum))
+             cbf_failnez (cbf_new_row(cbf))
+             cbf_rewind_column(cif);
+             for (colnum = 0; colnum < columns; colnum++ ) {
+               const char *typeofvalue;
+
+               cbf_failnez (cbf_select_column(cif, colnum))
+               if ( ! cbf_get_value(cif, &value) ) {
+                 cbf_failnez (cbf_get_typeofvalue(cif, &typeofvalue))
+                 cbf_failnez (cbf_select_column(cbf, colnum))
+                 cbf_failnez (cbf_set_value(cbf, value))
+                 cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
+
+               } else {
+
+                 void * array;
+                 int binary_id, elsigned, elunsigned;
+                 size_t elements,elements_read, elsize;
+                 int minelement, maxelement;
+                 unsigned int cifcompression;
+
+                 cbf_failnez(cbf_get_integerarrayparameters(
+                   cif, &cifcompression,
+                   &binary_id, &elsize, &elsigned, &elunsigned,
+                   &elements, &minelement, &maxelement))
+                 if ((array=malloc(elsize*elements))) {
+                   cbf_failnez (cbf_select_column(cbf,colnum))
+                   cbf_failnez (cbf_get_integerarray(
+                   cif, &binary_id, array, elsize, elsigned,
+                   elements, &elements_read))
+                   cbf_failnez(cbf_set_integerarray(
+                     cbf, compression,
+                     binary_id, array, elsize, elsigned, elements))
+                   free(array);
+                 } else {
+                   fprintf(stderr,
+                     "\nFailed to allocate memory %ld bytes",
+                     (long) elsize*elements);
+                   exit(1);
+                 }
+               }
              }
            }
          }
        }
-       
-     }
      }
    }
 
+   }
+
+   }
+
    b = clock ();
-   fprintf (stderr, 
-     " Time to read input_cif: %.3fs\n", 
+   fprintf (stderr,
+     " Time to read input_cif: %.3fs\n",
        ((b - a) * 1.0) / CLOCKS_PER_SEC);
    a = clock ();
 
@@ -616,20 +776,20 @@ int main (int argc, char *argv [])
 
    cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif, mime | digest,
                                          encoding | bytedir | term))
- 
+
    cbf_failnez (cbf_free_handle (cbf))
 
    b = clock ();
    if (encoding == ENC_NONE) {
-     fprintf (stderr, " Time to write the CBF image: %.3fs\n", 
-       ((b - a) * 1.0) / CLOCKS_PER_SEC); 
+     fprintf (stderr, " Time to write the CBF image: %.3fs\n",
+       ((b - a) * 1.0) / CLOCKS_PER_SEC);
    } else {
-     fprintf (stderr, " Time to write the CIF image: %.3fs\n", 
-       ((b - a) * 1.0) / CLOCKS_PER_SEC); 
+     fprintf (stderr, " Time to write the CIF image: %.3fs\n",
+       ((b - a) * 1.0) / CLOCKS_PER_SEC);
    }
-  
+
    exit(0);
-   
+
 }
 
 int local_exit (int status)

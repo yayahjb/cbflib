@@ -18,30 +18,30 @@ ALT="[CBF/imgCIF]"></A>
 ALT="[CBFlib]"></A> 
 <hr>
 <CENTER>
+| <a href="http://www.iucr.org/iucr-top/welcome.html">IUCr Home Page</a>
+| <a href="http://www.iucr.org/iucr-top/cif/home.html">CIF Home Page</a>
+| <A HREF="doc/cbf_definition_rev.html">CBF/imgCIF</a>
+| CBFlib
+|<br />
+| <A HREF = "doc/CBFlib_NOTICES.html">NOTICE</A>
+| <a href=gpl.txt>doc/GPL</a>
+| <a href=lgpl.txt>doc/LGPL</a>
+| <a href="cif_img.html">imgCIF dictionary</a>
+|<br />
+| <a href="http://arcib.dowling.edu/donation.shtml">Click Here to Make a Donation</a>
+|<P>
 <IMG  SRC="html_graphics/cbflibbig.jpg" ALT="CBFlib">
 </CENTER>
 <font color="#0808A0">
 <H2 ALIGN=CENTER>README</H2>
 <H3 ALIGN=CENTER>
-Information for CBFlib 0.7.4, 12 January 2004<BR>
+Information for CBFlib 0.7.5, 15 April 2006<BR>
 </H3>
 </font><font color="#000000">
 <CENTER>
 by<BR>
 Paul J. Ellis<BR>
 Stanford Synchrotron Radiation Laboratory<BR>
-<script language="javascript" type="text/javascript">
-<!-- 
-      var name = "ellis@";
-      var domain = "ssrl.slac.stanford";
-      var domext = ".edu";
-      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + 
-name + domain + domext+"</a>"); 
-// -->
-</script>
-<noscript>
-ellis&#64;ssrl.slac.stanford&#46;edu
-</noscript>
 <P>
 and<BR>
 Herbert J. Bernstein<BR>
@@ -58,7 +58,14 @@ name + domain + domext+"</a>");
 <noscript>
 yaya&#64;bernstein-plus-sons&#46;com
 </noscript>
+<p>
+&#169; Copyright 2006 Herbert J. Bernstein
 <P>
+<hr>
+<b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=doc/gpl.txt>GPL</a>.
+<P>
+ ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS
+ OF THE <a href=doc/lgpl.txt>LGPL<a/>.</b>
 </CENTER>
 <HR>
 <H3 ALIGN=CENTER>
@@ -81,59 +88,55 @@ and write CBF binary data files and imgCIF ASCII data files.
 <P>
 <H3>Installation</H3>
 <P>
-CBFLIB should be built on a disk with at least 40 megabytes of free 
-space.  First create the top-level directory (called, say, CBFlib).
-<P>
-In order to work with CBFlib, you need the source code in the form
-of a &quot;gzipped&quot; tar, 
-<A HREF="CBFlib.tar.gz">CBFlib.tar.gz</A>.  Place this
-file in the otherwise <b>empty</b> CBFlib directory you just created.
-<P>
-Uncompress this file:
-<P>
+CBFLIB should be built on a disk with at least 200 megabytes of free 
+space.  <A HREF="CBFlib.tar.gz">CBFlib.tar.gz</A> is a "gzipped" tar of
+the code as it now stands.  Place the gzipped tar in the directory
+that is intended to contain a new directory, named 
+CBFlib_0.7.5 (the &quot;top-level&quot; directory)
+and  uncompress it with gunzip and unpack it with tar:
+<p>
 <PRE>
      gunzip CBFlib.tar.gz
+     tar xvf CBFLIB.tar
 </PRE>
-<P>
-Unpack it
-with tar:
-<P>
-<PRE>
-     tar xvf CBFlib.tar 
-</PRE>
-<P>
-To run the test programs, you will also need Paul Ellis's sample MAR345 image,
-<A HREF="example.mar2300">example.mar2300</A>, as sample
-data.  This file can also be found at 
-<A HREF="http://smb.slac.stanford.edu/~ellis/">
-http://smb.slac.stanford.edu/~ellis/</A>.  Place that
-file in the top level CBFlib directory.
-<P>
-After unpacking the archive, the top-level directory should contain a 
-makefile "Makefile" and the subdirectories
-<P>
+<p>
+To run the test programs, you will also need to put 
+Paul Ellis's sample MAR345 image,
+<A HREF="example.mar2300">example.mar2300</A>, and
+Chris Nielsen's sample ADSC Quantum 315 image, 
+<a href="mb_LP_1_001.img">mb_LP_1_001.img</a> as sample data.
+in the directory containing the  top-level directory.  (The image can also be found at
+After unpacking the archive, the top-level directory should contain
+a makefile:
+<p>
 <TABLE ALIGN=CENTER>
-<TR><TD><A HREF="src/">src/</A><TD>&nbsp;&nbsp;CBFLIB source files
-<TR><TD><A HREF="include/">include/</A><TD>&nbsp;&nbsp;CBFLIB header files
-<TR><TD><A HREF="examples/">examples/</A><TD>&nbsp;&nbsp;Example program source files
-<TR><TD><A HREF="doc/">doc/</A><TD>&nbsp;&nbsp;Documentation
-<TR><TD>lib/<TD>&nbsp;&nbsp;Compiled CBFLIB library
-<TR><TD>bin/<TD>&nbsp;&nbsp;Executable example programs
-<TR><TD>html_images/<TD>&nbsp;&nbsp;JPEG images used in rendering the HTML
-files</TABLE>
-<P>
-  
-For instructions on compiling and testing the library, go to the 
-top-level directory and type:
-<P>
+<TR><TD>&nbsp;&nbsp;Makefile<TD>&nbsp;&nbsp;Makefile for unix
+</TABLE>
+<p>
+and the subdirectories:
+<p>
+<TABLE ALIGN=CENTER>
+<TR><TD>&nbsp;&nbsp;src/<TD>&nbsp;&nbsp;CBFLIB source files
+<TR><TD>&nbsp;&nbsp;include/<TD>&nbsp;&nbsp;CBFLIB header files
+<TR><TD>&nbsp;&nbsp;examples/<TD>&nbsp;&nbsp;Example program source files
+<TR><TD>&nbsp;&nbsp;doc/<TD>&nbsp;&nbsp;Documentation
+<TR><TD>&nbsp;&nbsp;lib/<TD>&nbsp;&nbsp;Compiled CBFLIB library
+<TR><TD>&nbsp;&nbsp;bin/<TD>&nbsp;&nbsp;Executable example programs
+<TR><TD>&nbsp;&nbsp;html_images/<TD>&nbsp;&nbsp;JPEG images used in rendering the HTML files
+</TABLE>
+<p>
+For instructions on compiling and testing the library, go to
+the top-level directory and type:
+<p>
 <PRE>
      make
 </PRE>
+  
 <P>
 Please refer to the manual <a HREF="doc/CBFlib.html">doc/CBFlib.html</a>
 for more detailed information.<HR>
 <HR>
-Updated 12 January 2004.  
+Updated 16 April 2006.  
 <script language="javascript" type="text/javascript">
 <!-- 
       var name = "yaya@";

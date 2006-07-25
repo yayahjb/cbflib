@@ -1,12 +1,117 @@
 /**********************************************************************
  * cbf_binary -- handle simple binary values                          *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term Ôthis softwareÕ, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -51,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -82,7 +187,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -163,10 +268,10 @@ extern "C" {
 
 
   /* Parse a binary text value */
-  
+
 int cbf_get_bintext (cbf_node  *column, unsigned int row,
                      int       *type,
-                     int       *id, 
+                     int       *id,
                      cbf_file **file,
                      long      *start,
                      size_t    *size,
@@ -174,16 +279,17 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
                      char      *digest,
                      int       *bits,
                      int       *sign,
+                     int       *realarray,
             unsigned int       *compression)
 {
   cbf_file *file_text;
 
   long start_text, size_text;
 
-  int id_text, type_text, checked_digest_text, bits_text, sign_text;
+  int id_text, type_text, checked_digest_text, bits_text, sign_text, realarray_text;
 
   unsigned int compression_text;
-  
+
   char digest_text [25];
 
   const char *text;
@@ -199,78 +305,83 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
     /* Get the value */
 
   cbf_failnez (cbf_get_columnrow (&text, column, row))
-    
-    
+
+
     /* Parse it */
-    
+
   type_text = *text;
 
-  sscanf (text + 1, " %x %p %lx %lx %d %24s %x %d %u", 
-                      &id_text, 
-                      &file_text, 
-                      &start_text, 
-                      &size_text, 
-                      &checked_digest_text, 
-                       digest_text, 
-                      &bits_text, 
+  sscanf (text + 1, " %x %p %lx %lx %d %24s %x %d %d %u",
+                      &id_text,
+                      &file_text,
+                      &start_text,
+                      &size_text,
+                      &checked_digest_text,
+                       digest_text,
+                      &bits_text,
                       &sign_text,
+                      &realarray_text,
                       &compression_text);
 
 
     /* Copy the values */
-    
+
   if (type)
-  
+
     *type = type_text;
-    
+
   if (id)
-  
+
     *id = id_text;
-    
+
   if (file)
-  
+
     *file = file_text;
-    
+
   if (start)
-  
+
     *start = start_text;
-   
+
   if (size)
- 
+
     *size = size_text;
-   
+
   if (checked_digest)
-  
+
     *checked_digest = checked_digest_text;
-    
+
   if (digest)
-  
+
     strcpy (digest, digest_text);
-    
+
   if (bits)
-  
+
     *bits = bits_text;
-    
+
   if (sign)
-  
+
     *sign = sign_text;
+
+  if (realarray)
+
+    *realarray = realarray_text;
 
   if (compression)
 
     *compression = compression_text;
-    
-    
+
+
     /* Success */
-    
+
   return 0;
-}  
-   
+}
+
 
   /* Set a binary text value */
-  
+
 int cbf_set_bintext (cbf_node *column, unsigned int row,
                      int         type,
-                     int         id, 
+                     int         id,
                      cbf_file   *file,
                      long        start,
                      long        size,
@@ -278,44 +389,46 @@ int cbf_set_bintext (cbf_node *column, unsigned int row,
                      const char *digest,
                      int         bits,
                      int         sign,
+                     int         realarray,
             unsigned int         compression)
 {
   char text [(((sizeof (void *) +
                 sizeof (long int) * 2 +
-                sizeof (int) * 3) * CHAR_BIT) >> 2) + 55];
-                
+                sizeof (int) * 3) * CHAR_BIT) >> 2) + 57];
+
   const char *new_text;
 
   int errorcode;
-  
+
 
     /* Check that the digest has the correct format */
-    
+
   if (!cbf_is_base64digest (digest))
   {
     digest = "------------------------";
-    
+
     checked_digest = 0;
   }
 
 
-    /* Create the new text */                
+    /* Create the new text */
 
-  sprintf (text, "%x %p %lx %lx %1d %24s %x %d %u", 
-                   id, 
-                   file, 
-                   start, 
-                   size, 
+  sprintf (text, "%x %p %lx %lx %1d %24s %x %d %d %u",
+                   id,
+                   file,
+                   start,
+                   size,
                    checked_digest != 0,
-                   digest, 
-                   bits, 
+                   digest,
+                   bits,
                    sign,
+                   realarray,
                    compression);
-    
+
   new_text = cbf_copy_string (NULL, text, (char) type);
 
   if (!new_text)
-    
+
     return CBF_ALLOC;
 
 
@@ -332,13 +445,13 @@ int cbf_set_bintext (cbf_node *column, unsigned int row,
   if (errorcode)
   {
     cbf_free_string (NULL, new_text);
-    
+
     return errorcode | cbf_delete_fileconnection (&file);
   }
 
-  
+
     /* Success */
-    
+
   return 0;
 }
 
@@ -348,21 +461,21 @@ int cbf_set_bintext (cbf_node *column, unsigned int row,
 int cbf_is_binary (cbf_node *column, unsigned int row)
 {
   const char *text;
-  
-  
+
+
     /* Get the value */
 
   if (cbf_get_columnrow (&text, column, row))
-  
+
     return 0;
-  
+
   if (text)
 
-    return (*text == CBF_TOKEN_BIN     || 
-            *text == CBF_TOKEN_TMP_BIN || 
+    return (*text == CBF_TOKEN_BIN     ||
+            *text == CBF_TOKEN_TMP_BIN ||
             *text == CBF_TOKEN_MIME_BIN);
-      
-      
+
+
     /* Fail */
 
   return 0;
@@ -374,19 +487,19 @@ int cbf_is_binary (cbf_node *column, unsigned int row)
 int cbf_is_mimebinary (cbf_node *column, unsigned int row)
 {
   const char *text;
-  
-  
+
+
     /* Get the value */
 
   if (cbf_get_columnrow (&text, column, row))
-  
+
    return 0;
-  
+
   if (text)
 
     return (*text == CBF_TOKEN_MIME_BIN);
-        
-      
+
+
     /* Fail */
 
   return 0;
@@ -409,30 +522,30 @@ int cbf_free_value (cbf_context *context, cbf_node *column, unsigned int row)
   if (!column)
 
     return CBF_ARGUMENT;
-    
-    
+
+
     /* Is the value binary? */
-    
+
   is_binary = cbf_is_binary (column, row);
-  
+
 
     /* Parse the (binary) value */
-    
-  if (is_binary)
-      
-    cbf_failnez (cbf_get_bintext (column, row, &type, NULL, &file, NULL, 
-                                           NULL, NULL, NULL, NULL, NULL, NULL))
 
-    
+  if (is_binary)
+
+    cbf_failnez (cbf_get_bintext (column, row, &type, NULL, &file, NULL,
+                                           NULL, NULL, NULL, NULL, NULL, NULL, NULL))
+
+
     /* Get the ASCII value */
 
   cbf_failnez (cbf_get_columnrow (&text, column, row))
-  
+
 
     /* Set the value to null */
-      
+
   cbf_failnez (cbf_set_columnrow (column, row, NULL, 0))
-    
+
 
     /* And free it */
 
@@ -443,7 +556,7 @@ int cbf_free_value (cbf_context *context, cbf_node *column, unsigned int row)
     if (type == CBF_TOKEN_TMP_BIN) {
 
       cbf_failnez (cbf_close_temporary (context, &file))
-      
+
     } else {
 
       cbf_failnez (cbf_delete_fileconnection (&file))
@@ -453,7 +566,7 @@ int cbf_free_value (cbf_context *context, cbf_node *column, unsigned int row)
 
 
     /* Success */
-    
+
   return 0;
 }
 
@@ -461,18 +574,18 @@ int cbf_free_value (cbf_context *context, cbf_node *column, unsigned int row)
   /* Set a binary value */
 
 int cbf_set_binary (cbf_node *column, unsigned int row,
-                    unsigned int compression,  int binary_id, 
+                    unsigned int compression,  int binary_id,
                     void *value, size_t elsize, int elsign,
-                    size_t nelem)
+                    size_t nelem, int realarray)
 {
   cbf_file *tempfile;
 
   char digest [25];
-  
+
   size_t size;
-  
+
   long start;
-  
+
   int bits;
 
 
@@ -498,21 +611,21 @@ int cbf_set_binary (cbf_node *column, unsigned int row,
   if (cbf_get_fileposition (tempfile, &start))
 
     return CBF_FILETELL | cbf_delete_fileconnection (&tempfile);
-    
+
 
     /* Add the binary data to the temporary file */
 
   cbf_onfailnez (cbf_compress (value, elsize, elsign, nelem,
                                compression, tempfile,
-                               &size, &bits, digest),
+                               &size, &bits, digest, realarray),
                  cbf_delete_fileconnection (&tempfile))
 
 
     /* Set the value */
-    
+
   cbf_onfailnez (cbf_set_bintext (column, row, CBF_TOKEN_TMP_BIN,
                                   binary_id, tempfile, start, size,
-                                  1, digest, bits, elsign != 0, compression),
+                                  1, digest, bits, elsign != 0, realarray, compression),
                  cbf_delete_fileconnection (&tempfile))
 
 
@@ -520,47 +633,47 @@ int cbf_set_binary (cbf_node *column, unsigned int row,
 
   return 0;
 }
-    
+
 
   /* Check the message digest */
-  
+
 int cbf_check_digest (cbf_node *column, unsigned int row)
 {
   cbf_file *file;
 
   long start;
-  
+
   size_t size;
 
   char old_digest [25], new_digest [25];
 
-  int id, bits, sign, type, checked_digest;
+  int id, bits, sign, type, checked_digest, realarray;
 
   unsigned int compression;
 
 
     /* Parse the value */
-    
-  cbf_failnez (cbf_get_bintext (column, row, &type, &id, &file, 
-                                &start, &size, &checked_digest, 
-                                old_digest, &bits, &sign, &compression))
+
+  cbf_failnez (cbf_get_bintext (column, row, &type, &id, &file,
+                                &start, &size, &checked_digest,
+                                old_digest, &bits, &sign, &realarray, &compression))
 
 
     /* Recalculate and compare the digest? */
 
   if ((file->read_headers & MSG_DIGEST) && !checked_digest)
-  
+
     if (cbf_is_base64digest (old_digest))
     {
         /* Is it encoded? */
-    
+
       if (cbf_is_mimebinary (column, row))
       {
           /* Convert the value to a normal binary value */
-      
+
         cbf_failnez (cbf_mime_temp (column, row))
-    
-    
+
+
           /* Rerun the function */
 
         return cbf_check_digest (column, row);
@@ -576,34 +689,34 @@ int cbf_check_digest (cbf_node *column, unsigned int row)
       cbf_failnez (cbf_md5digest (file, size, new_digest))
 
       if (strcmp (old_digest, new_digest) != 0)
-                 
+
         return CBF_FORMAT;
-      
-      
+
+
         /* Change the text to show that the digest has been checked */
-      
+
       cbf_failnez (cbf_set_bintext (column, row, type,
                                     id, file, start, size,
-                                    1, new_digest, bits, sign, compression))
+                                    1, new_digest, bits, sign, realarray, compression))
     }
-  
-  
+
+
     /* Success */
-    
+
   return 0;
 }
 
 
   /* Get the parameters of a binary value */
-  
-int cbf_binary_parameters (cbf_node *column, 
+
+int cbf_binary_parameters (cbf_node *column,
                            unsigned int row, unsigned int *compression,
-                           int *id, 
-                           int *eltype, size_t *elsize, 
-                           int *elsigned, 
+                           int *id,
+                           int *eltype, size_t *elsize,
+                           int *elsigned,
                            int *elunsigned,
                            size_t *nelem,
-                           int *minelem, int *maxelem)
+                           int *minelem, int *maxelem, int *realarray)
 {
   cbf_file *file;
 
@@ -612,32 +725,32 @@ int cbf_binary_parameters (cbf_node *column,
   size_t size, file_elsize, file_nelem;
 
   int text_bits, errorcode;
-  
-  
+
+
     /* Check the digest (this will also decode it if necessary) */
 
   cbf_failnez (cbf_check_digest (column, row))
-  
+
 
     /* Is it an encoded binary section? */
-    
+
   if (cbf_is_mimebinary (column, row))
   {
 
       /* Convert the value to a normal binary value */
-      
+
     cbf_failnez (cbf_mime_temp (column, row))
-    
-    
+
+
       /* Rerun the function */
 
-    return cbf_binary_parameters (column, row, 
+    return cbf_binary_parameters (column, row,
                                   compression,
-                                  id, 
-                                  eltype, elsize, 
+                                  id,
+                                  eltype, elsize,
                                   elsigned, elunsigned,
                                   nelem,
-                                  minelem, maxelem);
+                                  minelem, maxelem, realarray);
   }
 
 
@@ -645,42 +758,42 @@ int cbf_binary_parameters (cbf_node *column,
 
   cbf_failnez (cbf_get_bintext (column, row, NULL,
                                 id, &file, &start, &size, NULL,
-                                NULL, &text_bits, NULL, compression))
+                                NULL, &text_bits, NULL, realarray, compression))
 
 
     /* Position the file at the start of the binary section */
-    
+
   cbf_failnez (cbf_set_fileposition (file, start, SEEK_SET))
 
-  
+
     /* Get the parameters */
 
-  errorcode = cbf_decompress_parameters (eltype, &file_elsize, elsigned, 
-                                         elunsigned, 
+  errorcode = cbf_decompress_parameters (eltype, &file_elsize, elsigned,
+                                         elunsigned,
                                          &file_nelem, minelem, maxelem,
                                          *compression, file);
 
   if (!errorcode)
   {
     if (elsize) {
-  
+
       if (file_elsize > 0)
-  
+
         *elsize = file_elsize;
-        
+
       else
 
-        *elsize = (text_bits + CHAR_BIT - 1) / CHAR_BIT;    
+        *elsize = (text_bits + CHAR_BIT - 1) / CHAR_BIT;
     }
-        
+
     if (nelem) {
-    
+
       if (file_nelem > 0)
-      
+
         *nelem = file_nelem;
-        
+
       else
-      
+
         *nelem = (size * 8) / text_bits;
 
     }
@@ -690,18 +803,18 @@ int cbf_binary_parameters (cbf_node *column,
   return errorcode;
 }
 
-                   
+
   /* Get a binary value */
-  
+
 int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
                     void *value, size_t elsize, int elsign,
-                    size_t nelem, size_t *nelem_read)
+                    size_t nelem, size_t *nelem_read, int *realarray)
 {
   cbf_file *file;
 
   long start;
 
-  int eltype_file, elsigned_file, elunsigned_file, 
+  int eltype_file, elsigned_file, elunsigned_file,
                    minelem_file, maxelem_file, bits, sign;
 
   unsigned int compression;
@@ -712,55 +825,55 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
     /* Check the digest (this will also decode it if necessary) */
 
   cbf_failnez (cbf_check_digest (column, row))
-  
+
 
     /* Is it an encoded binary section? */
-    
+
   if (cbf_is_mimebinary (column, row))
   {
       /* Convert the value to a normal binary value */
-      
+
     cbf_failnez (cbf_mime_temp (column, row))
-    
-    
+
+
       /* Rerun the function */
 
-    return cbf_get_binary (column, row, 
+    return cbf_get_binary (column, row,
                            id, value, elsize, elsign,
-                           nelem, nelem_read);
+                           nelem, nelem_read, realarray);
   }
 
 
     /* Parse the value */
 
   cbf_failnez (cbf_get_bintext (column, row, NULL,
-                                id, &file, &start, NULL, 
-                                 NULL, NULL, &bits, &sign, &compression))
-  
+                                id, &file, &start, NULL,
+                                 NULL, NULL, &bits, &sign, realarray,
+                                 &compression))
+
 
     /* Position the file at the start of the binary section */
 
   cbf_failnez (cbf_set_fileposition (file, start, SEEK_SET))
 
-  
-    
+
+
     /* Get the parameters and position the file */
 
   cbf_failnez (cbf_decompress_parameters (&eltype_file, NULL,
                                           &elsigned_file, &elunsigned_file,
                                           &nelem_file,
                                           &minelem_file, &maxelem_file,
-                                          compression, 
+                                          compression,
                                           file))
-
 
     /* Decompress the binary data */
 
   return cbf_decompress (value, elsize, elsign, nelem, nelem_read,
-                         compression, bits, sign, file);
+                         compression, bits, sign, file, *realarray);
 }
 
-                    
+
 #ifdef __cplusplus
 
 }

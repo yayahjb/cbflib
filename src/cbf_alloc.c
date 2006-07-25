@@ -1,12 +1,117 @@
 /**********************************************************************
  * cbf_alloc -- memory allocation                                     *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term Ôthis softwareÕ, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -51,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -82,7 +187,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -157,14 +262,14 @@ extern "C" {
 
   /* Reallocate a block of memory (never lose the old block on failure) */
 
-int cbf_realloc (void **old_block, size_t *old_nelem, 
+int cbf_realloc (void **old_block, size_t *old_nelem,
                  size_t elsize, size_t nelem)
 {
   void *new_block;
 
-  
+
     /* Are the arguments valid? */
-    
+
   if (!old_block || elsize == 0)
 
     return CBF_ARGUMENT;
@@ -197,11 +302,11 @@ int cbf_realloc (void **old_block, size_t *old_nelem,
     /* Copy the old data */
 
   if (old_nelem)
-  
+
     if (*old_block && *old_nelem > 0 && nelem > 0)
     {
       if (*old_nelem > nelem)
-    
+
         *old_nelem = nelem;
 
       memcpy (new_block, *old_block, *old_nelem * elsize);
@@ -220,9 +325,9 @@ int cbf_realloc (void **old_block, size_t *old_nelem,
   if (!old_nelem)
 
     memset (new_block, 0, nelem * elsize);
-  
+
   else
-  
+
     if (nelem > 0 && nelem > *old_nelem)
 
       memset (((char *) new_block) + *old_nelem * elsize, 0,
@@ -234,9 +339,9 @@ int cbf_realloc (void **old_block, size_t *old_nelem,
   *old_block = new_block;
 
   if (old_nelem)
-  
+
     *old_nelem = nelem;
-  
+
 
     /* Success */
 
@@ -246,11 +351,11 @@ int cbf_realloc (void **old_block, size_t *old_nelem,
 
   /* Allocate a block of memory */
 
-int cbf_alloc (void **new_block, size_t *new_nelem, 
+int cbf_alloc (void **new_block, size_t *new_nelem,
                size_t elsize, size_t nelem)
 {
     /* Are the arguments valid? */
-    
+
   if (!new_block)
 
     return CBF_ARGUMENT;
@@ -261,7 +366,7 @@ int cbf_alloc (void **new_block, size_t *new_nelem,
   *new_block = NULL;
 
   if (new_nelem)
-  
+
     *new_nelem = 0;
 
 
@@ -276,7 +381,7 @@ int cbf_alloc (void **new_block, size_t *new_nelem,
 int cbf_free (void **old_block, size_t *old_nelem)
 {
     /* Are the arguments valid? */
-    
+
   if (!old_block)
 
     return CBF_ARGUMENT;
@@ -291,7 +396,7 @@ int cbf_free (void **old_block, size_t *old_nelem)
   *old_block = NULL;
 
   if (old_nelem)
-  
+
     *old_nelem = 0;
 
 

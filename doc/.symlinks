@@ -1,0 +1,14 @@
+#!/bin/csh
+if ( ! -e cif_img.dic ) then
+  ln -s cif_img_1_3_2.dic cif_img.dic
+endif
+if ( ! -e cif_img.html ) then
+  ln -s cif_img_1_3_2.html
+endif
+foreach file (*)
+  if ( -d $file ) then
+    if ( -e $file/.symlinks ) then
+      source  $file/.symlinks
+    endif
+  endif
+end

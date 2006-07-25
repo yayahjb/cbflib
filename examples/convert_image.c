@@ -1,11 +1,97 @@
 /**********************************************************************
  * convert_image -- convert an image file to a cbf file               *
  *                                                                    *
- * Version 0.7.2.3 2 October 2002                                     *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
+ *                          Paul Ellis and                            *
+ *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ * WHILE YOU MAY ALTERNATIVE DISTRIBUTE THE API UNDER THE LGPL        *
+ * YOU MAY ***NOT*** DISTRBUTE THIS PROGRAM UNDER THE LGPL            *
+ *                                                                    *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term 'this software', as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
 /**********************************************************************
  *                                 NOTICE                             *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -50,7 +136,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -81,7 +167,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -141,6 +227,50 @@
  * Crystallography                                                    *
  **********************************************************************/
 
+/**********************************************************************
+ *                            SYNOPSIS                                *
+ *                                                                    *
+ *  convert_image [-i input_img] [-o output_cbf] [-p template_cbf]\   *
+ *    [-d detector name]  -m [x|y|x=y] [-z distance] \                *
+ *    [input_img] [output_cbf]                                        *
+ *                                                                    *
+ *  the options are:                                                  *
+ *                                                                    *
+ *  -i input_img (default: stdin)                                     *
+ *    the input file as an image in smv, mar300, or mar345  format.   *
+ *    If input_img is not specified or is given as "-", it is copied  *
+ *    from stdin to a temporary file.                                 *
+ *                                                                    *
+ *  -p template_cbf                                                   *
+ *    the template for the final cbf to be produced.  If template_cbf *
+ *    is not specified the name is constructed from the first token   *
+ *    of the detector name and the image size as                      *
+ *       template_<type>_<columns>x<rows>.cbf                         *
+ *                                                                    *
+ *  -o output_cbf (default: stdout )                                  *
+ *    the output cbf combining the image and the template.  If the    *
+ *    output_cbf is not specified or is given as "-", it is written   *
+ *    to stdout.                                                      *
+ *                                                                    *
+ *  -d detectorname                                                   *
+ *    a detector name to be used if none is provided in the image     *
+ *    header.                                                         *
+ *                                                                    *
+ *  -m [x|y|x=y] (default x=y, square arrays only)                    *
+ *    mirror the array in the x-axis (y -> -y)                        *
+ *                     in the y-axis (x -> -x)                        *
+ *                  or in x=y ( x -> y, y-> x)                        *
+ *                                                                    *
+ *  -r n                                                              *
+ *    rotate the array n times 90 degrees counter clockwise           *
+ *    x -> y, y -> -x for each rotation, n = 1, 2 or 3                *
+ *                                                                    *
+ *  -z distance                                                       *
+ *    detector distance along Z-axis                                  *
+ *                                                                    *
+ **********************************************************************/
+
+
 #include "cbf.h"
 #include "cbf_simple.h"
 #include "img.h"
@@ -150,7 +280,109 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <sys/errno.h>
+#include <unistd.h>
 
+
+int local_exit (int status);
+
+#undef cbf_failnez
+#define cbf_failnez(x) \
+ {int err; \
+  err = (x); \
+  if (err) { \
+    fprintf(stderr," convert_image: CBFlib fatal error %d\n",err); \
+    outusage();\
+    exit (-1); \
+  } \
+ }
+
+typedef enum {  posx=1, posy=2, negx=-1, negy=-2 } axes;
+
+typedef struct
+{
+    axes posxtarg, posytarg;
+} axisxform;
+
+
+
+int outusage ( void ) {
+
+ fprintf(stderr," \n Usage:\n");
+ fprintf(stderr,"  convert_image [-i input_img] [-o output_cbf] [-p template_cbf]\\\n");
+ fprintf(stderr,"    [-d detector name] -m [x|y|x=y] [-z distance] \\\n");
+ fprintf(stderr,"    [input_img] [output_cbf]\n");
+
+ fprintf(stderr,"  the options are:\n");
+
+ fprintf(stderr,"  -i input_img (default: stdin)\n");
+ fprintf(stderr,"    the input file as an image in smv, mar300, or mar345  format.\n");
+ fprintf(stderr,"    If input_img is not specified or is given as \"-\", it is copied\n");
+ fprintf(stderr,"    from stdin to a temporary file.\n");
+
+ fprintf(stderr,"  -p template_cbf\n");
+ fprintf(stderr,"    the template for the final cbf to be produced.  If template_cbf\n");
+ fprintf(stderr,"    is not specified the name is constructed from the first token\n");
+ fprintf(stderr,"    of the detector name and the image size as\n");
+ fprintf(stderr,"       template_<type>_<columns>x<rows>.cbf\n");
+
+ fprintf(stderr,"  -o output_cbf (default: stdout )\n");
+ fprintf(stderr,"    the output cbf combining the image and the template.  If the\n");
+ fprintf(stderr,"    output_cbf is not specified or is given as \"-\", it is written\n");
+ fprintf(stderr,"    to stdout.\n");
+
+ fprintf(stderr,"  -d detectorname\n");
+ fprintf(stderr,"    a detector name to be used if none is provided in the image\n");
+ fprintf(stderr,"    header.\n");
+
+ fprintf(stderr,"  -m [x|y|x=y] (default x=y, square arrays only)\n");
+ fprintf(stderr,"    mirror the array in the x-axis (y -> -y)\n");
+ fprintf(stderr,"                     in the y-axis (x -> -x)\n");
+ fprintf(stderr,"                  or in x=y ( x -> y, y-> x)\n");
+
+ fprintf(stderr,"  -r n\n");
+ fprintf(stderr,"    rotate the array n times 90 degrees counter clockwise\n");
+ fprintf(stderr,"    x -> y, y -> -x for each rotation, n = 1, 2 or 3\n");
+
+ fprintf(stderr,"  -z distance\n");
+ fprintf(stderr,"    detector distance along Z-axis.\n");
+
+ return -1;
+
+}
+
+void applyxform(axisxform * current, axisxform * xform) {
+
+    switch (current->posxtarg) {
+        case (posx): current->posxtarg = xform->posxtarg; break;
+        case (posy): current->posxtarg = xform->posytarg; break;
+        case (negx): current->posxtarg = xform->posxtarg==posx?negx:
+                                          (xform->posxtarg==negx?posx:
+                                          (xform->posxtarg==posy?negy:
+                                          (xform->posxtarg==negy?posy:0)));
+                                          break;
+        case (negy): current->posxtarg = xform->posytarg==posx?negx:
+                                          (xform->posytarg==negx?posx:
+                                          (xform->posytarg==posy?negy:
+                                          (xform->posytarg==negy?posy:0)));
+                                          break;
+    }
+    switch (current->posytarg) {
+        case (posx): current->posytarg = xform->posxtarg; break;
+        case (posy): current->posytarg = xform->posytarg; break;
+        case (negx): current->posytarg = xform->posxtarg==posx?negx:
+                                          (xform->posxtarg==negx?posx:
+                                          (xform->posxtarg==posy?negy:
+                                          (xform->posxtarg==negy?posy:0)));
+                                          break;
+        case (negy): current->posytarg = xform->posytarg==posx?negx:
+                                          (xform->posytarg==negx?posx:
+                                          (xform->posytarg==posy?negy:
+                                          (xform->posytarg==negy?posy:0)));
+                                          break;
+    }
+    return;
+}
 
 int main (int argc, char *argv [])
 {
@@ -160,44 +392,162 @@ int main (int argc, char *argv [])
 
   cbf_handle cbf;
 
-  char detector_type [64], template_name [256], *c;
+  char detector_type [64], template_name [256], oscaxis [20], *c;
 
-  const char *detector_name, *axis;
+  const char *detector_name, *detector_opt, *beam_center, *pixel_size, *axis, *array_id;
 
-  double wavelength, distance, osc_start, osc_range, time;
+  char *header_info;
+
+  double wavelength, distance, osc_start, osc_range, time, bcx, bcy, psx, psy;
+
+  size_t header_info_size;
 
   const char *date;
 
-  static const char *monthname [] = 
-  
+  static const char *monthname [] =
+
         { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
+  axisxform overall  = { posx, posy };
+  axisxform mirrorx  = { posx, negy };
+  axisxform mirrory  = { negx, posy };
+  axisxform mirrorxy = { posy, posx };
+  axisxform rotate1  = { posy, negx };
+  axisxform rotate2  = { negx, negy };
+  axisxform rotate3  = { negy, posx };
+  axisxform * currentxform;
 
-    /* Usage */ 
+  int copt;
+  int errflg = 0;
+  char imgtmp[19];
+  int imgtmpused = 0;
+  char *imgin, *cbfout, *template, *distancestr;
+  cbf_detector detector;
+  char *tag, *data;
+  int index;
+  int transpose;
 
-  if (argc < 3)
-  {
-    fprintf (stderr, "\n Usage: %s imagefile cbffile\n", argv [0]);
 
-    exit (2);
+    /* Usage */
+
+  imgin = NULL;
+  cbfout = NULL;
+  template = NULL;
+  detector_opt = NULL;
+  transpose = 0;
+  distancestr = NULL;
+
+  while ((copt = getopt(argc,argv, "i:o:p:d:m:r:z:")) != EOF) {
+
+    switch(copt) {
+      case 'i':
+         if (imgin) errflg++;
+         else imgin = optarg;
+         break;
+      case 'o':
+         if (cbfout) errflg++;
+         else cbfout = optarg;
+         break;
+      case 'p':
+         if (template) errflg++;
+         else template = optarg;
+         break;
+      case 'm':
+         currentxform = (axisxform *)NULL;
+         if (!strcmp(optarg,"x")) currentxform = &mirrorx;
+         if (!strcmp(optarg,"y")) currentxform = &mirrory;
+         if (!strcmp(optarg,"x=y")) currentxform = &mirrorxy;
+         if (!currentxform) errflg++;
+         else applyxform(&overall,currentxform);
+         break;
+      case 'r':
+         currentxform = (axisxform *)NULL;
+         if (!strcmp(optarg,"1")) currentxform = &rotate1;
+         if (!strcmp(optarg,"2")) currentxform = &rotate2;
+         if (!strcmp(optarg,"3")) currentxform = &rotate3;
+         if (!currentxform) errflg++;
+         else applyxform(&overall,currentxform);
+         break;
+
+      case 'd':
+         if (detector_opt) errflg++;
+         else detector_opt = optarg;
+         break;
+      case 'z':
+         if (distancestr) errflg++;
+         else distancestr = optarg;
+         break;
+      default:
+         errflg++;
+         break;
+
+    }
+
   }
 
+  for (; optind < argc; optind++) {
+    if (!imgin) {
+      imgin = argv[optind];
+    } else {
+       if (!cbfout) {
+         cbfout = argv[optind];
+       } else {
+         errflg++;
+       }
+    }
+  }
+
+  if (errflg) {
+    outusage();
+    exit(-1);
+  }
+
+
+  if (!imgin || strcmp(imgin?imgin:"","-") == 0) {
+     strcpy(imgtmp, "/tmp/cvt_imgXXXXXX");
+     if ((imgin = mktemp(imgtmp)) == NULL ) {
+       fprintf(stderr,"\n convert_image: Can't create temporary file name %s.\n", imgtmp);
+       fprintf(stderr,"%s\n",strerror(errno));
+       exit(1);
+     }
+     imgtmpused = 1;
+  }
 
     /* Read the image */
 
   img = img_make_handle ();
 
-  cbf_failnez (img_read (img, argv [1]))
+  cbf_failnez (img_read (img, imgin))
+
+  if (imgtmpused)
+  {
+       if (unlink(imgtmp) != 0 ) {
+       fprintf(stderr,"convert_image:  Can't unlink temporary file %s.\n", imgtmp);
+       fprintf(stderr,"%s\n",strerror(errno));
+       exit(1);
+     }
+
+  }
 
 
     /* Identify the detector */
 
   detector_name = img_get_field (img, "DETECTOR");
 
-  if (!detector_name)
+  if (!detector_name || !strcmp(detector_name,"(null)")) {
 
-    exit (3);
+    if (detector_opt == NULL) {
+
+      fprintf (stderr, "\n convert_inage: No detector name provided in image or on the command line!");
+      outusage();
+      exit (3);
+
+    }
+
+    detector_name = detector_opt;
+
+  }
 
   for (c = detector_type; *detector_name; detector_name++)
 
@@ -214,7 +564,7 @@ int main (int argc, char *argv [])
                              img_columns (img),
                              img_rows (img));
 
-
+  fprintf(stderr,"convert_image:  template_name: %s\n", template_name);
     /* Read and modify the template */
 
   cbf_failnez (cbf_make_handle (&cbf))
@@ -227,7 +577,68 @@ int main (int argc, char *argv [])
 
   cbf_failnez (cbf_read_template (cbf, in))
 
-    
+
+    /* report the header */
+
+  header_info_size = 0;
+
+  for (index = 0; !img_get_next_field(img,(const char **) &tag, (const char **) &data, &index);)
+  {
+      if (tag && data) {
+
+      fprintf (stderr, " %s = %s;\n", tag, data);
+
+      header_info_size += (strlen(tag) + strlen(data)+6);
+
+      } else {
+
+      if (tag && !data) {
+
+        fprintf (stderr, " %s;\n", tag);
+
+        header_info_size += (strlen(tag) +3);
+
+      }
+
+    }
+  }
+
+  header_info_size+=2;
+
+  cbf_failnez((header_info = malloc(sizeof(char)*header_info_size))==NULL?CBF_ALLOC:0)
+
+  *header_info = '\0' ; header_info_size = 0;
+
+  for (index = 0; !img_get_next_field(img,(const char **) &tag, (const char **) &data, &index);)
+  {
+      if (tag && data) {
+
+      sprintf (header_info+header_info_size, "\n %s = %s;", tag, data);
+
+      header_info_size += (strlen(tag) + strlen(data)+6);
+
+      } else {
+
+      if (tag && !data) {
+
+        sprintf (header_info+header_info_size, " %s;\n", tag);
+
+        header_info_size += (strlen(tag) +3);
+
+      }
+
+    }
+  }
+
+  cbf_failnez(cbf_get_array_id(cbf, 0, &array_id))
+
+  cbf_failnez(cbf_require_column(cbf, "details"))
+
+  cbf_failnez(cbf_set_value(cbf, header_info))
+
+  cbf_failnez(cbf_set_typeofvalue(cbf,"text"))
+
+
     /* Wavelength */
 
   wavelength = img_get_number (img, "WAVELENGTH");
@@ -235,13 +646,26 @@ int main (int argc, char *argv [])
   if (wavelength)
 
     cbf_failnez (cbf_set_wavelength (cbf, wavelength))
-  
+
 
     /* Distance */
 
   distance = img_get_number (img, "DISTANCE");
-  
+
+  if (distance == 0.) {
+
+    distance = atof (distancestr);
+
+  }
+
   cbf_failnez (cbf_set_axis_setting (cbf, 0, "DETECTOR_Z", distance, 0))
+
+  cbf_failnez(cbf_require_category(cbf,"diffrn_detector"))
+
+  cbf_failnez(cbf_require_column(cbf,"sample_detector_distance"))
+
+  cbf_failnez(cbf_set_doublevalue(cbf,"%g", distance))
+
 
 
     /* Oscillation start and range */
@@ -252,11 +676,17 @@ int main (int argc, char *argv [])
 
     axis = "PHI";
 
-  osc_start = img_get_number (img, axis);
+  if (img_get_field(img, "OSC_START")) osc_start = img_get_number (img, "OSC_START");
 
-  osc_range = img_get_number (img, "OSCILLATION RANGE");
+  else  osc_start = img_get_number (img, axis);
 
-  cbf_failnez (cbf_set_axis_setting (cbf, 0, "GONIOMETER_PHI", 
+  if (img_get_field(img, "OSC_RANGE")) osc_range = img_get_number (img, "OSC_RANGE");
+
+  else osc_range = img_get_number (img, "OSCILLATION RANGE");
+
+  sprintf (oscaxis, "GONIOMETER_%s", axis);
+
+  cbf_failnez (cbf_set_axis_setting (cbf, 0, oscaxis,
                                          osc_start, osc_range))
 
 
@@ -275,7 +705,7 @@ int main (int argc, char *argv [])
 
   if (date)
   {
-    char monthstring [16]; 
+    char monthstring [16];
 
     int month, day, hour, minute, second, year;
 
@@ -297,12 +727,12 @@ int main (int argc, char *argv [])
       if (month <= 12)
 
         cbf_failnez (cbf_set_datestamp (cbf, 0, year, month, day,
-                                        hour, minute, second, 
+                                        hour, minute, second,
                                         CBF_NOTIMEZONE, 0))
     }
   }
 
-  
+
     /* diffrn.id */
 
   cbf_failnez (cbf_set_diffrn_id (cbf, "DS1"))
@@ -310,225 +740,439 @@ int main (int argc, char *argv [])
 
     /* Image */
 
+  if (overall.posxtarg != posx || overall.posytarg != posy)
+  { int fastorig, faststep, sloworig, slowstep, curpos, i, j, fastlen;
+
+    int * tempimg;
+
+      if (overall.posxtarg==0 || overall.posytarg==0) {
+          fprintf (stderr,"\n convert_image: invalid image transform.\n");
+          exit(1);
+      }
+
+      if (img_rows(img) != img_columns(img) ) {
+      fprintf(stderr,"\n convert_img: Unable to transpose image\n");
+      exit(-1);
+    }
+
+    fastorig = sloworig = 0;
+    faststep = 1;
+    slowstep = img_columns(img);
+
+    switch (overall.posxtarg) {
+        case (posx): break;
+        case (negx): fastorig = img_columns(img)-1; break;
+        case (posy): faststep = img_columns(img);
+        case (negy): fastorig = (img_columns(img)-1)*img_rows(img);
+                     faststep = -img_rows(img); break;
+    }
+    switch (overall.posytarg) {
+        case (posx): slowstep = 1; break;
+        case (negx): sloworig = img_columns(img)-1; slowstep= -1;break;
+        case (posy): break;
+        case (negy): sloworig = img_columns(img)*img_rows(img)-1;
+                     slowstep = -img_rows(img); break;
+    }
+
+    curpos = fastorig+sloworig;
+    fastlen = img_rows(img);
+
+    tempimg = malloc(img_columns(img)*img_rows(img)*sizeof(int));
+    if (!tempimg) {
+      fprintf(stderr,"\n unable to allocate temporary image array\n");
+    }
+
+    for (i=0;i<img_rows(img);i++) {
+      curpos = fastorig+i*faststep+sloworig;
+      for (j=0; j<img_columns(img);j++) {
+        *((int *)tempimg+curpos) = *(&img_pixel(img,0,0)+i+j*fastlen);
+        curpos = curpos+slowstep;
+      }
+    }
+
+    for (i=0;i<img_rows(img);i++) {
+      for (j=0; j<img_columns(img);j++) {
+        *(int *)(&img_pixel(img,0,0)+i+j*fastlen) = *((int *)tempimg+i+j*fastlen);
+      }
+    }
+
+
+  }
+
+
   cbf_failnez (cbf_set_image (cbf, 0, 0, CBF_PACKED,
                               &img_pixel (img, 0, 0), sizeof (int), 1,
                                img_columns (img), img_rows (img)))
 
+  /* beam center and pixel size */
 
-    /* Write the new file */
+  bcx = bcy = psx = psy = 0.0;
 
-  out = fopen (argv [2], "w+b");
+  if ((pixel_size = img_get_field(img,"PIXEL SIZE")) ||
+    (pixel_size = img_get_field(img,"PIXEL_SIZE")) ) {
 
-  if (!out)
-  {
-    fprintf (stderr, " Couldn't open the CBF file %s\n", argv [2]);
+    char *endptr;
 
-    exit (1);
+    psy = psx = strtod (pixel_size, &endptr);
+
+    if (*endptr) psy = strtod (endptr, &endptr);
+
   }
 
-  cbf_failnez (cbf_write_file (cbf, out, 1, CBF, 
-                               MSG_DIGEST | MIME_HEADERS, 0))
+  if ((beam_center = img_get_field(img,"BEAM CENTRE")) ) {
+
+    char *endptr;
+
+    bcx = strtod (beam_center, &endptr);
+
+    if (*endptr) bcy = strtod (endptr, &endptr);
+
+    if (psx) bcx /= psx;
+
+    if (psy) bcy /= psy;
+
+    bcx = .5*rint(2.*bcx);
+
+    bcy = .5*rint(2.*bcy);
+
+  }
+
+  if ((beam_center = img_get_field(img,"CENTER")) ) {
+
+    char *endptr;
+
+    endptr = strstr(beam_center,"X ");
+
+    bcx = strtod (endptr+2, &endptr);
+
+    if (*endptr) {
+
+      endptr = strstr(endptr,"Y ");
+
+      bcy = strtod (endptr+2, &endptr);
+
+    }
+  }
+
+  if (overall.posxtarg != posx || overall.posytarg != posy) {
+
+    double obcx = bcx, obcy = bcy, opsx = psx, opsy = psy;
+
+    switch (overall.posxtarg) {
+      case (posx): break;
+      case (negx): bcx = img_columns(img)-1-obcx; break;
+      case (posy): bcx = obcy; psx = opsy; break;
+      case (negy): bcx = img_rows(img)-1-obcy; psx = opsy; break;
+    }
+    switch (overall.posytarg) {
+      case (posx): bcy = obcx; psy = opsx; break;
+      case (negx): bcy = img_columns(img)-1-obcx; psy = opsx; break;
+      case (posy): bcy = obcy; break;
+      case (negy): bcy = img_rows(img)-1-obcy; break;
+    }
+  }
+
+  cbf_failnez (cbf_set_pixel_size (cbf, 0, 1, psx))
+
+  cbf_failnez (cbf_set_pixel_size (cbf, 0, 2, psy))
+
+  fprintf(stderr, "header pixel center indices: %g %g\n",bcx, bcy);
+
+  cbf_failnez(cbf_construct_detector (cbf, &detector, 0))
+
+  cbf_failnez(cbf_set_beam_center(detector,&bcx,&bcy,NULL,NULL))
+
+  cbf_failnez(cbf_free_detector(detector))
+
+
+
 
 /*****************************************************************************/
 
   {
-	  const char *id;
+      const char *id;
 
-	  double d [4];
+      double d [4];
 
-	  int i [4];
+      /* int i [4]; */
 
-	  unsigned int u [4];
+      /* unsigned int u [4]; */
 
-	  size_t s [4];
+      /* size_t s [4]; */
 
-	  cbf_goniometer goniometer;
+      /* double cell[6], cell_esd[6], rcell[6], rcell_esd[6]; */
 
-	  cbf_detector detector;
+      cbf_goniometer goniometer;
 
 
   /* Change the diffrn.id entry in all the categories */
 
-	cbf_set_diffrn_id (cbf, "TEST");
+   /*  cbf_set_diffrn_id (cbf, "TEST"); */
 
 
   /* Get the diffrn.id entry */
 
-	cbf_get_diffrn_id (cbf, &id);
+    /* cbf_get_diffrn_id (cbf, &id); */
 
-    
+
   /* Change the diffrn.crystal_id entry */
 
-	cbf_set_crystal_id (cbf, "CTEST");
+    /* cbf_set_crystal_id (cbf, "CTEST"); */
 
 
   /* Get the diffrn.crystal_id entry */
 
-	cbf_get_crystal_id (cbf, &id);
+    cbf_get_crystal_id (cbf, &id);
 
-    
+  /* Test the cell functions */
+
+    /* cell[0]      = cell[1]      = cell[2]      = cell[3]      = cell[4]      = cell[5]      = 0.;
+    cell_esd[0]  = cell_esd[1]  = cell_esd[2]  = cell_esd[3]  = cell_esd[4]  = cell_esd[5]  = 0.;
+    rcell[0]     = rcell[1]     = rcell[2]     = rcell[3]     = rcell[4]     = rcell[5]     = 0.;
+    rcell_esd[0] = rcell_esd[1] = rcell_esd[2] = rcell_esd[3] = rcell_esd[4] = rcell_esd[5] = 0.;
+
+    if (cbf_get_unit_cell(cbf, cell, cell_esd) || cbf_get_reciprocal_cell(cbf, rcell, rcell_esd)) {
+
+      fprintf(stdout," No cell in the template, putting in rcell, no cell\n");
+
+      rcell[0]=rcell[1]=rcell[2]=1.;
+      rcell[3]=rcell[4]=rcell[5]=90.;
+      rcell_esd[0]=rcell_esd[1]=rcell_esd[2]=0.;
+      rcell_esd[3]=rcell_esd[4]=rcell_esd[5]=0.;
+
+      cbf_failnez(cbf_set_reciprocal_cell(cbf,rcell,rcell_esd))
+
+    }
+
+    cbf_failnez(cbf_get_unit_cell(cbf,cell,cell_esd))
+    cbf_failnez(cbf_get_reciprocal_cell(cbf,rcell,rcell_esd))
+
+    fprintf(stdout," Starting cell, rcell:\n {%g,%g,%g,%g,%g,%g} {%g,%g,%g,%g,%g,%g}\n",
+            cell[0], cell[1], cell[2], cell[3], cell[4], cell[5],
+            rcell[0], rcell[1], rcell[2], rcell[3], rcell[4], rcell[5]);
+
+    cell[0]     = 85.;     cell[1]     = 90.;     cell[2]     = 95.;
+    cell_esd[0] = .05;     cell_esd[1] = .035;    cell_esd[2] = .15;
+    cell[3]     = 78.13;   cell[4]     = 103.12;  cell[5]     = 101.48;
+    cell_esd[3] = .055;    cell_esd[4] = .065;    cell_esd[5] = .11;
+
+     cbf_failnez(cbf_compute_reciprocal_cell(cell,rcell))
+
+     cbf_failnez(cbf_set_unit_cell(cbf,cell,cell_esd))
+     cbf_failnez(cbf_set_reciprocal_cell(cbf,rcell,rcell_esd))
+
+    cell[0]      = cell[1]      = cell[2]      = cell[3]      = cell[4]      = cell[5]      = 0.;
+    cell_esd[0]  = cell_esd[1]  = cell_esd[2]  = cell_esd[3]  = cell_esd[4]  = cell_esd[5]  = 0.;
+    rcell[0]     = rcell[1]     = rcell[2]     = rcell[3]     = rcell[4]     = rcell[5]     = 0.;
+    rcell_esd[0] = rcell_esd[1] = rcell_esd[2] = rcell_esd[3] = rcell_esd[4] = rcell_esd[5] = 0.;
+
+    cbf_failnez(cbf_get_unit_cell       (cbf,cell,cell_esd))
+    cbf_failnez(cbf_get_reciprocal_cell (cbf,rcell,rcell_esd))
+
+    fprintf(stdout," Final cell, rcell:\n {%g,%g,%g,%g,%g,%g} {%g,%g,%g,%g,%g,%g}\n",
+            cell[0], cell[1], cell[2], cell[3], cell[4], cell[5],
+            rcell[0], rcell[1], rcell[2], rcell[3], rcell[4], rcell[5]); */
+
+
   /* Set the wavelength */
 
-	cbf_set_wavelength (cbf, 2.14);
+    /* cbf_set_wavelength (cbf, 2.14); */
 
 
   /* Get the wavelength */
 
-	cbf_get_wavelength (cbf, &wavelength);
+    /* cbf_get_wavelength (cbf, &wavelength); */
 
 
   /* Set the polarization */
 
-	cbf_set_polarization (cbf, 0.5, 0.75);
+    /* cbf_set_polarization (cbf, 0.5, 0.75); */
 
 
   /* Get the polarization */
 
-	cbf_get_polarization (cbf, &d [0], &d [1]);
+    /* cbf_get_polarization (cbf, &d [0], &d [1]); */
 
 
   /* Set the divergence */
 
-	cbf_set_divergence (cbf, 0.3, 0.4, 0.5);
+    /* cbf_set_divergence (cbf, 0.3, 0.4, 0.5); */
 
 
   /* Get the divergence */
 
-	cbf_get_divergence (cbf, &d [0], &d [1], &d [2]);
+    /* cbf_get_divergence (cbf, &d [0], &d [1], &d [2]); */
 
 
   /* Get the number of elements */
 
-	cbf_count_elements (cbf, &u [0]);
+   /*  cbf_count_elements (cbf, &u [0]); */
 
 
   /* Get the element id */
 
-	cbf_get_element_id (cbf, 0, &id);
+    cbf_get_element_id (cbf, 0, &id);
+    fprintf(stdout," Element ID: %s\n", id);
 
-                                           
+
   /* Set the gain of a detector element */
 
-	cbf_set_gain (cbf, 0, 0.24, 0.04);
+    /* cbf_set_gain (cbf, 0, 0.24, 0.04); */
 
 
   /* Get the gain of a detector element */
 
-	cbf_get_gain (cbf, 0, &d [0], &d [1]);
+    /* cbf_get_gain (cbf, 0, &d [0], &d [1]); */
 
 
   /* Set the overload value of a detector element */
 
-	cbf_set_overload (cbf, 0, 100000);
+    /* cbf_set_overload (cbf, 0, 100000); */
 
 
   /* Get the overload value of a detector element */
 
-	cbf_get_overload (cbf, 0, &d [0]);
+    /* cbf_get_overload (cbf, 0, &d [0]); */
 
 
   /* Set the integration time */
 
-	cbf_set_integration_time (cbf, 0, 10.1);
+    /* cbf_set_integration_time (cbf, 0, 10.1); */
 
-                                                 
+
   /* Get the integration time */
 
-	cbf_get_integration_time (cbf, 0, &d [0]);
+    /* cbf_get_integration_time (cbf, 0, &d [0]); */
 
 
   /* Set the collection date and time (1) as seconds since January 1 1970 */
 
-	cbf_set_timestamp (cbf, 0, 1000.0, CBF_NOTIMEZONE, 0.1);
+    /* cbf_set_timestamp (cbf, 0, 1000.0, CBF_NOTIMEZONE, 0.1); */
 
 
   /* Get the collection date and time (1) as seconds since January 1 1970 */
 
-	cbf_get_timestamp (cbf, 0, &d [0], &i [0]);
+    /* cbf_get_timestamp (cbf, 0, &d [0], &i [0]); */
 
 
   /* Get the image size */
 
-	cbf_get_image_size (cbf, 0, 0, &s [0], &s [1]);
+    /* cbf_get_image_size (cbf, 0, 0, &s [0], &s [1]); */
 
 
   /* Change the setting of an axis */
 
-	cbf_set_axis_setting (cbf, 0, "GONIOMETER_PHI", 27.0, 0.5);
-
+    /* cbf_set_axis_setting (cbf, 0, "GONIOMETER_PHI", 27.0, 0.5); */
 
   /* Get the setting of an axis */
 
-	cbf_get_axis_setting (cbf, 0, "GONIOMETER_PHI", &d [0], &d [1]);
+    /* cbf_get_axis_setting (cbf, 0, "GONIOMETER_PHI", &d [0], &d [1]); */
 
 
   /* Construct a goniometer */
 
-	cbf_construct_goniometer (cbf, &goniometer);
+    cbf_failnez(cbf_construct_goniometer (cbf, &goniometer))
 
 
   /* Get the rotation axis */
 
-	cbf_get_rotation_axis (goniometer, 0, &d [0], &d [1], &d [2]);
+    /* cbf_get_rotation_axis (goniometer, 0, &d [0], &d [1], &d [2]); */
 
 
   /* Get the rotation range */
 
-	cbf_get_rotation_range (goniometer, 0, &d [0], &d [1]);
+    /* cbf_get_rotation_range (goniometer, 0, &d [0], &d [1]); */
 
 
   /* Reorient a vector */
 
-	cbf_rotate_vector (goniometer, 0, 0.5, 0.3, 0, 1, &d [0], &d [1], &d [2]);
+    /* cbf_rotate_vector (goniometer, 0, 0.5, 0.3, 0, 1, &d [0], &d [1], &d [2]); */
 
 
   /* Convert a vector to reciprocal space */
 
-	cbf_get_reciprocal (goniometer, 0, 0.3, 0.98, 1, 2, -3, &d [0], &d [1], &d [2]);
+    /* cbf_get_reciprocal (goniometer, 0, 0.3, 0.98, 1, 2, -3, &d [0], &d [1], &d [2]); */
 
 
   /* Construct a detector positioner */
 
-	cbf_construct_detector (cbf, &detector, 0);
+    cbf_failnez(cbf_construct_detector (cbf, &detector, 0));
 
 
   /* Get the beam center */
 
-	cbf_get_beam_center (detector, &d [0], &d [1], &d [2], &d [3]);
+    cbf_get_beam_center (detector, &d [0], &d [1], &d [2], &d [3]);
+
+    fprintf(stderr," convert_image: beam center:  %g %g %g %g\n", d[0], d[1], d[2], d[3]);
 
 
   /* Get the detector distance */
 
-	cbf_get_detector_distance (detector, &d [0]);
-
+     cbf_get_detector_distance (detector, &d [0]);
+     fprintf(stdout, " detector distance: %-15g\n",d[0]);
 
   /* Get the detector normal */
 
-	cbf_get_detector_normal (detector, &d [0], &d [1], &d [2]);
+    /* cbf_get_detector_normal (detector, &d [0], &d [1], &d [2]); */
 
 
   /* Calcluate the coordinates of a pixel */
 
-	cbf_get_pixel_coordinates (detector, 1, 3, &d [0], &d [1], &d [2]);
+    /* cbf_get_pixel_coordinates (detector, 1, 3, &d [0], &d [1], &d [2]); */
 
 
   /* Calcluate the area of a pixel */
 
-	cbf_get_pixel_area (detector, 1, 3, &d [0], &d [1]);
+    cbf_get_pixel_area (detector, 1, 3, &d [0], &d [1]);
+    fprintf(stdout, " Pixel area, projected area: %-15g, %-15g\n",d[0], d[1]);
+
+  /* Calculate the dimensions of a pixel */
+
+   /* cbf_failnez (cbf_get_inferred_pixel_size (detector, 1, &d [0]))
+    cbf_failnez (cbf_get_inferred_pixel_size (detector, 2, &d [1]))
+
+    fprintf(stdout, " Template detector size: %-15g x %-15g \n", d[0], d[1]);
+
+    cbf_failnez (cbf_set_pixel_size (cbf, 0, 1, d [0]))
+    cbf_failnez (cbf_set_pixel_size (cbf, 0, 2, d [1]))
+
+    cbf_failnez (cbf_get_pixel_size (cbf, 0, 1, &d [2]))
+    cbf_failnez (cbf_get_pixel_size (cbf, 0, 2, &d [3]))
+
+    fprintf(stdout, " Array element size:     %-15g x %-15g \n", d[2], d[3]);
+    */
 
 
   /* Free a detector */
 
-	cbf_free_detector (detector);
+    cbf_free_detector (detector);
 
 
   /* Free a goniometer */
 
-	cbf_free_goniometer (goniometer);
-	}
+    cbf_free_goniometer (goniometer);
+    }
 
 
 /*****************************************************************************/
+
+
+    /* Write the new file */
+
+  out = stdout;
+
+  if (cbfout && strcmp(cbfout,"-"))out = fopen (cbfout, "w+b");
+
+  if (!out)
+  {
+    fprintf (stderr, " convert_image:  Couldn't open the CBF file %s\n", cbfout);
+
+    exit (1);
+  }
+
+  cbf_failnez (cbf_write_file (cbf, out, 1, CBF,
+                               MSG_DIGEST | MIME_HEADERS, 0))
+
 
     /* Free the cbf */
 

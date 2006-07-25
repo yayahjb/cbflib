@@ -2,12 +2,117 @@
  * cbf_codes -- convert between encoded and unencoded binary          *
  *              calculate message digest                              *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term ‘this software’, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -52,7 +157,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -83,7 +188,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -213,15 +318,15 @@ int cbf_is_base64digest (const char *encoded_digest)
   static char basis_64 [] =
 
        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-       
+
   if (!encoded_digest)
-  
+
     return 0;
 
   if (strlen (encoded_digest) != 24)
 
     return 0;
-    
+
   return strspn (encoded_digest, basis_64) == 22 &&
                  encoded_digest [22] == '=' &&
                  encoded_digest [23] == '=';
@@ -237,14 +342,14 @@ int cbf_md5digest_to64 (char *encoded_digest, const unsigned char *digest)
        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
   int todo;
-  
+
   if (!encoded_digest || !digest)
-  
+
     return CBF_ARGUMENT;
-  
+
 
     /* Encode the 16 characters in base 64 */
-    
+
   for (todo = 0; todo < 18; todo += 3)
   {
     encoded_digest [0] = basis_64 [((digest [todo + 0] >> 2) & 0x03f)];
@@ -265,12 +370,12 @@ int cbf_md5digest_to64 (char *encoded_digest, const unsigned char *digest)
     }
 
     encoded_digest += 4;
-  } 
-  
+  }
+
   *encoded_digest  = '\0';
 
   return 0;
-}    
+}
 
 
   /* Calculate the MD5 digest (25 characters) of a block of data */
@@ -278,11 +383,11 @@ int cbf_md5digest_to64 (char *encoded_digest, const unsigned char *digest)
 int cbf_md5digest (cbf_file *file, size_t size, char *digest)
 {
   MD5_CTX context;
-  
+
   unsigned char rawdigest [17];
 
   unsigned int todo;
-  
+
   const char *buffer;
 
 
@@ -304,24 +409,24 @@ int cbf_md5digest (cbf_file *file, size_t size, char *digest)
       todo = size;
 
     cbf_failnez (cbf_get_block (file, todo))
-    
+
     cbf_failnez (cbf_get_buffer (file, &buffer, NULL))
 
     MD5Update (&context, buffer, todo);
 
     size -= todo;
   }
-  
-  
+
+
     /* Get the final digest */
-    
+
   MD5Final (rawdigest, &context);
 
   cbf_md5digest_to64 (digest, rawdigest);
 
 
     /* Success */
-    
+
   return 0;
 }
 
@@ -333,31 +438,31 @@ int cbf_toqp (cbf_file *infile, cbf_file *outfile, size_t size)
   static char basis_16 [] = "0123456789ABCDEF";
 
   int c;
-    
-    
+
+
     /* Check the arguments */
-      
+
   if (!infile || !outfile)
-    
+
     return CBF_ARGUMENT;
 
 
-    /* Copy the characters */      
-    
+    /* Copy the characters */
+
   while (size > 0)
   {
       /* Read the next character */
-        
+
     c = cbf_get_character (infile);
-      
+
     if (c == EOF)
-      
+
       return CBF_FILEREAD;
-    
+
     size--;
 
     if (outfile->column > 74)
-      
+
       cbf_failnez (cbf_write_string (outfile, "=\n"))
 
     if ((c <= 31)  ||
@@ -366,15 +471,15 @@ int cbf_toqp (cbf_file *infile, cbf_file *outfile, size_t size)
         (c == 58)  ||
         (c == 61)  ||
         (c == 63)  ||
-        (c >= 127) || 
+        (c >= 127) ||
         (c == ';' && outfile->column == 0))
     {
         /* Base-16 */
-        
+
       if (outfile->column > 72)
-      
+
         cbf_failnez (cbf_write_string (outfile, "=\n"))
-      
+
       cbf_failnez (cbf_write_character (outfile, '='))
       cbf_failnez (cbf_write_character (outfile, basis_16 [(c >> 4) & 0x0f]))
       cbf_failnez (cbf_write_character (outfile, basis_16 [c & 0x0f]))
@@ -382,10 +487,10 @@ int cbf_toqp (cbf_file *infile, cbf_file *outfile, size_t size)
     else
 
         /* Base-256 */
-        
+
       cbf_failnez (cbf_write_character (outfile, c))
   }
-  
+
   if (outfile->column)
 
     cbf_failnez (cbf_write_string (outfile, "=\n"))
@@ -395,9 +500,9 @@ int cbf_toqp (cbf_file *infile, cbf_file *outfile, size_t size)
 
   cbf_failnez (cbf_flush_characters (outfile))
 
-   
+
     /* Success */
-    
+
   return 0;
 }
 
@@ -411,71 +516,71 @@ int cbf_tobase64 (cbf_file *infile, cbf_file *outfile, size_t size)
        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
   int c [3];
-    
+
   int read;
-    
+
   while (size > 0)
   {
       /* Read up to 3 characters */
-        
+
     c [1] = c [2] = 0;
 
     for (read = 0; read < 3 && read < size; read++)
     {
       c [read] = cbf_get_character (infile);
-        
+
       if (c [read] == EOF)
-        
+
         return CBF_FILEREAD;
     }
 
     size -= read;
 
     if (outfile->column > 71)
-    
+
       cbf_failnez (cbf_write_character (outfile, '\n'))
 
 
       /* Write a 24-bit chunk in base-64 */
-      
-    cbf_failnez (cbf_write_character (outfile, 
+
+    cbf_failnez (cbf_write_character (outfile,
                                         basis_64 [(c [0] >> 2) & 0x03f]))
-    cbf_failnez (cbf_write_character (outfile, 
+    cbf_failnez (cbf_write_character (outfile,
                                         basis_64 [((c [0] << 4) & 0x030) |
                                                   ((c [1] >> 4) & 0x00f)]))
-                                                     
+
     if (read == 1)
-    
+
       cbf_failnez (cbf_write_string (outfile, "=="))
-      
+
     else
     {
-      cbf_failnez (cbf_write_character (outfile, 
+      cbf_failnez (cbf_write_character (outfile,
                                         basis_64 [((c [1] << 2) & 0x03c) |
                                                   ((c [2] >> 6) & 0x003)]))
-    
+
       if (read == 2)
 
         cbf_failnez (cbf_write_character (outfile, '='))
 
-      else 
+      else
 
         cbf_failnez (cbf_write_character (outfile, basis_64 [c [2] & 0x03f]))
     }
   }
-  
+
   if (outfile->column)
 
     cbf_failnez (cbf_write_character (outfile, '\n'))
 
-    
+
     /* Flush the buffer */
 
   cbf_failnez (cbf_flush_characters (outfile))
 
-   
+
     /* Success */
-    
+
   return 0;
 }
 
@@ -487,22 +592,22 @@ int cbf_tobasex (cbf_file *infile, cbf_file *outfile, size_t size,
                                                       unsigned int base)
 {
   int c [8];
-  
+
   int count, read;
-  
+
   long l;
-  
+
   unsigned long block_count;
-  
+
   char line [96], number [64];
-  
+
 
     /* Check the arguments */
-    
+
   if (elsize > 8 || (base != 8 && base != 10 && base != 16))
-  
+
     return CBF_ARGUMENT;
-  
+
 
   block_count = 0;
 
@@ -515,23 +620,23 @@ int cbf_tobasex (cbf_file *infile, cbf_file *outfile, size_t size,
       if (outfile->column)
 
         cbf_failnez (cbf_write_character (outfile, '\n'))
-        
+
       if (block_count)
-      
+
         cbf_failnez (cbf_write_string (outfile, "#\n"))
-        
+
       if (base == 8)
 
         cbf_failnez (cbf_write_string (outfile, "# Octal encoding"))
-        
+
       else
-      
+
         if (base == 10)
 
           cbf_failnez (cbf_write_string (outfile, "# Decimal encoding"))
-          
+
         else
-        
+
           cbf_failnez (cbf_write_string (outfile, "# Hexadecimal encoding"))
 
       sprintf (line, ", byte %lu", (unsigned long) block_count * elsize);
@@ -541,35 +646,35 @@ int cbf_tobasex (cbf_file *infile, cbf_file *outfile, size_t size,
       if (outfile->write_encoding & ENC_FORWARD)
 
         cbf_failnez (cbf_write_string (outfile, ", byte order 1234...\n#\n"))
-                             
+
       else
-    
+
         cbf_failnez (cbf_write_string (outfile, ", byte order ...4321\n#\n"))
     }
 
 
       /* Read up to elsize characters */
-        
+
     memset (c, 0, sizeof (c));
 
     for (read = 0; read < elsize && read < size; read++)
     {
       c [read] = cbf_get_character (infile);
-        
+
       if (c [read] == EOF)
-        
+
         return CBF_FILEREAD;
     }
-    
+
     size -= read;
-    
+
     block_count++;
 
 
       /* Make the number */
 
     number [0] = '\0';
-    
+
     if ((outfile->write_encoding & ENC_BACKWARD) && read < elsize)
 
       for (count = read; count < elsize; count++)
@@ -577,33 +682,33 @@ int cbf_tobasex (cbf_file *infile, cbf_file *outfile, size_t size,
         strcat (number, "==");
 
     l = 0;
-    
+
     if (outfile->write_encoding & ENC_FORWARD)
 
       for (count = read - 1; count >= 0; count--)
-        
+
         l = (l << 8) | (c [count] & 0x0ff);
 
     else
 
       for (count = 0; count < read; count++)
-        
+
         l = (l << 8) | (c [count] & 0x0ff);
 
     if (base == 8)
 
       sprintf (number + strlen (number), "%lo", l);
-      
+
     else
 
       if (base == 10)
-    
+
         sprintf (number + strlen (number), "%lu", l);
-        
+
       else
 
         sprintf (number + strlen (number), "%lX", l);
-    
+
     if ((outfile->write_encoding & ENC_FORWARD) && read < elsize)
 
       for (count = read; count < elsize; count++)
@@ -611,7 +716,7 @@ int cbf_tobasex (cbf_file *infile, cbf_file *outfile, size_t size,
         strcat (number, "==");
 
 
-      /* Write the number */    
+      /* Write the number */
 
     if (outfile->column + strlen (number) > 74)
 
@@ -624,47 +729,47 @@ int cbf_tobasex (cbf_file *infile, cbf_file *outfile, size_t size,
     else
     {
         /* Start a new line */
-        
+
       if (base == 8)
-      
+
         cbf_failnez (cbf_write_character (outfile, 'O'))
-        
+
       else
-      
+
         if (base == 10)
-        
+
           cbf_failnez (cbf_write_character (outfile, 'D'))
-          
+
         else
-        
+
           cbf_failnez (cbf_write_character (outfile, 'H'))
-      
+
       sprintf (line, "%1u", (unsigned int) elsize);
-      
+
       cbf_failnez (cbf_write_string (outfile, line))
 
       if (outfile->write_encoding & ENC_FORWARD)
-      
+
         cbf_failnez (cbf_write_string (outfile, "> "))
-        
+
       else
-      
+
         cbf_failnez (cbf_write_string (outfile, "< "))
     }
 
     cbf_failnez (cbf_write_string (outfile, number))
   }
-  
+
   if (outfile->column)
 
     cbf_failnez (cbf_write_character (outfile, '\n'))
 
-    
+
     /* Flush the buffer */
 
   cbf_failnez (cbf_flush_characters (outfile))
 
-   
+
     /* Success */
 
   return 0;
@@ -673,85 +778,85 @@ int cbf_tobasex (cbf_file *infile, cbf_file *outfile, size_t size,
 
   /* Convert quoted-printable text to binary data */
 
-int cbf_fromqp (cbf_file *infile, cbf_file *outfile, size_t size, 
+int cbf_fromqp (cbf_file *infile, cbf_file *outfile, size_t size,
                                                      size_t *readsize,
                                                      char *digest)
 {
   MD5_CTX context;
-  
+
   unsigned char buffer [64], rawdigest [17];
 
   int c, bufsize;
-  
+
   char val [3], *end;
-    
+
   size_t count;
 
 
     /* Initialise the MD5 context */
-    
+
   if (digest)
 
     MD5Init (&context);
 
 
-  bufsize = 0;    
-  
+  bufsize = 0;
+
   count = 0;
-    
+
   val [2] = '\0';
 
   while (count < size)
   {
       /* Read the (first) character */
-      
+
     c = cbf_read_character (infile);
-    
+
     if (c == EOF)
-    
+
       return CBF_FILEREAD;
-      
-      
+
+
       /* Decode it */
-      
+
     if (c == '=')
     {
         /* Get the second character */
-        
+
       c = cbf_read_character (infile);
-      
+
       if (c == EOF)
-      
+
         return CBF_FILEREAD;
-        
+
       if (c != '\n')
       {
           /* Get the third character */
-        
+
         val [0] = c;
 
         c = cbf_read_character (infile);
 
         if (c == EOF)
-      
+
           return CBF_FILEREAD;
-          
+
         val [1] = c;
-          
-        
+
+
           /* Calculate the value */
-          
+
         c = strtoul (val, &end, 16);
-        
+
         if (end != &val [2])
-        
+
           return CBF_FORMAT;
       }
-    } 
-    
-    
+    }
+
+
       /* Save it */
-      
+
     if (outfile)
 
       cbf_failnez (cbf_put_character (outfile, c))
@@ -759,7 +864,7 @@ int cbf_fromqp (cbf_file *infile, cbf_file *outfile, size_t size,
     if (digest)
     {
       buffer [bufsize] = c;
-      
+
       bufsize++;
 
       if (bufsize > 63)
@@ -772,8 +877,8 @@ int cbf_fromqp (cbf_file *infile, cbf_file *outfile, size_t size,
 
     count++;
   }
-  
-  
+
+
     /* Get the digest */
 
   if (digest)
@@ -791,19 +896,19 @@ int cbf_fromqp (cbf_file *infile, cbf_file *outfile, size_t size,
     /* Flush the buffer */
 
   if (outfile)
-  
+
     cbf_failnez (cbf_flush_characters (outfile))
 
 
     /* Save the number of characters read */
-    
+
   if (readsize)
-  
+
     *readsize = count;
-    
-    
+
+
     /* Success */
-    
+
   return 0;
 }
 
@@ -815,39 +920,39 @@ int cbf_frombase64 (cbf_file *infile, cbf_file *outfile, size_t size,
                                                          char *digest)
 {
   static int decode_64 [256] = {
-  
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63, 
-    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, 64, -1, -1, 
-    -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 
-    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, 
-    -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 
-    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1, 
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
+    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, 64, -1, -1,
+    -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
+    -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-    
+
     };
 
   MD5_CTX context;
-  
+
   unsigned char buffer [64], rawdigest [17];
-    
+
   int c [4], d [3], bufsize;
-  
+
   int read, write;
-    
+
   size_t count;
 
 
     /* Initialise the MD5 context */
-    
+
   if (digest)
 
     MD5Init (&context);
@@ -856,33 +961,33 @@ int cbf_frombase64 (cbf_file *infile, cbf_file *outfile, size_t size,
   count = 0;
 
   bufsize = 0;
-  
+
   while (count < size)
   {
       /* Read 4 characters */
-      
+
     for (read = 0; read < 4; read++)
-    
+
       do
       {
         c [read] = cbf_read_character (infile);
-        
+
         if (c [read] == EOF)
-        
+
           return CBF_FILEREAD;
       }
       while (decode_64 [c [read] & 0x0ff] < 0);
 
 
       /* End of data? */
-      
+
     if (c [0] == '=' || c [1] == '=')
-    
+
       break;
 
 
       /* Valid combinations: xxxx xxx= xx== */
-      
+
     c [0] = decode_64 [c [0] & 0x0ff];
     c [1] = decode_64 [c [1] & 0x0ff];
     c [2] = decode_64 [c [2] & 0x0ff];
@@ -891,24 +996,24 @@ int cbf_frombase64 (cbf_file *infile, cbf_file *outfile, size_t size,
     d [0] = ((c [0] << 2) & 0x0fc) | ((c [1] >> 4) & 0x003);
     d [1] = ((c [1] << 4) & 0x0f0) | ((c [2] >> 2) & 0x00f);
     d [2] = ((c [2] << 6) & 0x0c0) | ((c [3]     ) & 0x03f);
-    
+
     if (c [2] == 64)
-    
+
       read = 1;
-      
+
     else
-    
+
       if (c [3] == 64)
-      
+
         read = 2;
-        
+
       else
-      
+
         read = 3;
-        
-        
+
+
       /* Save the data */
-      
+
     for (write = 0; write < read; write++)
     {
       if (outfile)
@@ -918,7 +1023,7 @@ int cbf_frombase64 (cbf_file *infile, cbf_file *outfile, size_t size,
       if (digest)
       {
         buffer [bufsize] = (unsigned char) d [write];
-      
+
         bufsize++;
 
         if (bufsize > 63)
@@ -951,58 +1056,58 @@ int cbf_frombase64 (cbf_file *infile, cbf_file *outfile, size_t size,
     /* Flush the buffer */
 
   if (outfile)
-  
+
     cbf_failnez (cbf_flush_characters (outfile))
 
 
     /* Save the number of characters read */
-    
+
   if (readsize)
-  
+
     *readsize = count;
-    
-    
+
+
     /* Success */
-    
+
   return 0;
 }
 
 
   /* Convert base-8/base-10/base-16 text to binary data */
 
-int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size, 
+int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size,
                                                         size_t *readsize,
                                                         char *digest)
 {
   MD5_CTX context;
-  
+
   unsigned char buffer [64], rawdigest [17];
 
   int c, bufsize;
-  
+
   char val [80], *end;
- 
+
   int read, write, base, direction, elsize, valcount, padding;
-    
+
   size_t count;
 
   unsigned long l;
 
 
     /* Defaults */
-    
+
   base = 10;
-  
+
   direction = 1;
-  
+
   elsize = 4;
 
   count = 0;
-  
+
   valcount = 0;
-  
+
   padding = 0;
-  
+
   bufsize = 0;
 
 
@@ -1016,44 +1121,44 @@ int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size,
   while (count < size)
   {
       /* Read the (first) character */
-      
+
     c = cbf_read_character (infile);
-    
+
     if (c == EOF)
-    
+
       return CBF_FILEREAD;
-      
-      
+
+
       /* Interpret it */
-      
+
     if (c == '>')
     {
       direction = 1;
-      
+
       c = ' ';
     }
     else
-        
+
       if (c == '<')
       {
         direction = -1;
-        
+
         c = ' ';
       }
       else
-      
+
         if (c == '#')
         {
             /* Comment */
-            
+
           do
-            
+
             c = cbf_read_character (infile);
-            
+
           while (c != EOF && c != '\n');
-          
+
           if (c == EOF)
-          
+
             return CBF_FORMAT;
         }
 
@@ -1062,7 +1167,7 @@ int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size,
       case 1:
 
         if (c == 'O' || c == 'o')
-              
+
           base = 8;
 
         else
@@ -1080,66 +1185,66 @@ int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size,
             else
 
               return CBF_FORMAT;
-              
+
         break;
 
       case 2:
-            
+
         if (isdigit (c) && c != '0')
-        
+
           elsize = c - '0';
-          
+
       case 3:
 
         break;
 
       default:
-      
+
         if (!isspace (c))
-        
+
           if (c == '=')
-          
+
             padding++;
-            
+
           else
           {
               /* Save the character */
-             
+
             if (valcount > 78)
-          
+
               return CBF_FORMAT;
-            
+
             val [valcount] = c;
-          
+
             valcount++;
           }
         else
-        
+
           if (valcount)
           {
               /* Convert the number */
-            
+
             val [valcount] = '\0';
-          
+
             l = strtoul (val, &end, base);
-        
+
             if (end != &val [valcount])
-        
+
               return CBF_FORMAT;
-        
-      
+
+
               /* Save the binary data */
-              
+
             if ((padding % 2) || padding > 6)
-            
+
               return CBF_FORMAT;
-              
+
             read = elsize - padding / 2;
-        
+
             for (write = 0; write < read; write++)
             {
               if (direction < 0)
-              
+
                 c = (unsigned char) ((l >> ((read - write - 1) * 8)) & 0x0ff);
 
               else
@@ -1147,13 +1252,13 @@ int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size,
                 c = (unsigned char) ((l >> (write * 8)) & 0x0ff);
 
               if (outfile)
-              
+
                 cbf_failnez (cbf_put_character (outfile, c))
 
               if (digest)
               {
                 buffer [bufsize] = (unsigned char) c;
-      
+
                 bufsize++;
 
                 if (bufsize > 63)
@@ -1164,11 +1269,11 @@ int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size,
                 }
               }
             }
-         
+
             count += read;
-            
+
             valcount = 0;
-            
+
             padding = 0;
           }
     }
@@ -1192,21 +1297,21 @@ int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size,
     /* Flush the buffer */
 
   if (outfile)
-  
+
     cbf_failnez (cbf_flush_characters (outfile))
 
 
     /* Save the number of characters read */
-    
+
   if (readsize)
-  
+
     *readsize = count;
-    
-    
+
+
     /* Success */
-    
+
   return 0;
-}  
+}
 
 #ifdef __cplusplus
 

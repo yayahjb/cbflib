@@ -1,0 +1,1735 @@
+<html>
+<head>
+<! cbf_definition_rev.html: DRAFT CBF/ImgCIF DEFINITION>
+
+<title> DRAFT CBF/ImgCIF DEFINITION </title>
+</head>
+
+<body bgcolor="#FAFAFF" text="#0808A0"
+BACKGROUND="../html_graphics/CBFbackground.jpg">
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg"></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg"></a>
+<A HREF="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg" 
+ALT="[CBFlib]"></A> 
+<hr>
+<CENTER>
+<IMG  SRC="../html_graphics/CBFbig.jpg" ALT="">
+</CENTER>
+<p>
+<hr>
+<font color="#0808A0">
+<h1 align=center> Proposed Revised <BR>
+DRAFT CBF/imgCIF DEFINITION<BR>
+14 January 1999</h1>
+</font><font color="#000000">
+<CENTER>
+Revisions<BR>
+by<BR> 
+Herbert J. Bernstein<BR>
+Bernstein + Sons, P.O. Box 177, Bellport, NY 11713-0177<BR>
+<a href="mailto:yaya@bernstein-plus-sons.com">yaya@bernstein-plus-sons.com</a>
+<P>
+based on<BR>
+<P>
+</font><font color="#0808A0">
+<A href="http://www.esrf.fr/computing/Forum/imgCIF/cbf_definition.html">
+<B>DRAFT CBF DEFINITION</B></A>
+</font><font color="#000000">
+<P>
+by<BR>
+Andy Hammersley<BR>
+European Synchrotron Radiation Facility, BP 200, Grenoble, 38043, CEDEX, France<BR>
+hammersley@esrf.fr
+<P>
+</CENTER>
+<hr>
+
+</font><font color="#000000">
+<p>
+<strong>
+<center>
+This document and the CBF definitions are still subject to change.  This document
+is a draft proposal for discussion.
+</center>
+</strong>
+
+<p>
+This is a version of the CBF draft proposal, revised to include a coordinated
+pure ASCII ImgCIF definition, based on <A href="http://www.esrf.fr/computing/Forum/imgCIF/cbf_definition.html">
+the Draft CBF Definition</A> by Andy Hammersley,
+
+ the work done at the
+<a href="http://www.esrf.fr/computing/Forum/imgCIF/brook.html">Brookhaven imgCIF workshop</a>, and
+the work on &quot;CBFLIB: An ANSI-C API for Crystallographic Binary File&quot; by Paul Ellis,
+ellis@SSRL.SLAC.STANFORD.EDU.  For the binary CBF
+format, a "binary-string" approach, as proposed by Paul Ellis, is used, while
+for the ASCII imgCIF format, binary information is encoded using
+a variant on MIME (Multipurpose Internet Mail
+Extensions) format, which makes
+the CBF and ImgCIF formats very similar.
+<P>
+We have included an updated version of John Westbrook's DDL2-compliant
+<A HREF="cif_img_1.1.3.html">CBF Extensions Dictionary</A>, of Paul Ellis's
+<A HREF="CBFlib.html">CBFLIB manual</A>, and
+<A HREF="example.html">examples</A> of CBF/imgCIF files.
+<P>
+<B>This is just a proposal.  My apologies in advance, especially to Andy, John and especially
+to Paul for whatever I may have muddled here.  Please be careful about basing any code on
+this until and unless there has been a general agreement.
+</B>
+<HR><HR>
+<H2 ALIGN=CENTER>Notices</H2>
+<P>
+<CENTER>
+Please read the <A HREF="CBFlib_NOTICES.html">NOTICES</A>, which
+are part of this package,  before making use of this software.
+</CENTER>
+<HR><HR>
+
+<P>
+
+Most of this document is adapted from Andy's, so we follow his
+convention by &quot;...[separating] the definition from comments on discussion items by using 
+round brackets to refer to notes kept separate from the main text 
+e.g. (1) refers to point 1 in the notes section.&quot;.  We have integrated
+all comments to date into this document without special annotation.
+<p>
+
+<hr>
+
+</font><font color="#0808A0">
+<h1 align=center>  
+A Draft Proposal<BR>
+for<BR>
+A Combined<BR>
+Crystallographic Binary File (CBF)<BR>
+and<BR>
+Image-supporting Crystallographic Information File (ImgCIF)<BR>
+Format</h1>
+</font><font color="#000000">
+
+<p>
+<h2 ALIGN=CENTER> ABSTRACT</h2>
+
+This document describes a proposal for a combined Crystallographic Binary File (CBF)
+and Image-supporting Crystallographic Information File (ImgCIF) format; 
+a simple self-describing binary format for efficient transport and 
+archiving of experimental data for the crystallographic community, and well as
+for the presentation of other image data, such as PICT, GIF and JPEG, within
+publication CIFs.  With minor differences, both the binary CBF format and
+the ASCII ImgCIF have a similar, CIF-like structure.  All the information
+other than actual binary data is presented as ASCII strings in both formats.
+The formats differ only in the handling of line termination and the
+actual presentation of the binary data of an image.  The CBF format, presents
+binary information as a raw string of octets, while the ImgCIF format
+presents the binary information as ASCII-encoded lines.  The format of the binary file, and the new CIF data-items are defined.  In this document we
+concentrate on the representation of images per se.  The 
+<A href="cif_img_1.1.3.html">CBF/imgCIF dictionary</a>
+includes additional data items related to crystallographic 
+data acquisition.  Those additional data items are not discussed here.
+
+
+
+<p>
+<b>Note:</b>
+
+<ul type=circle>
+   <li>All numbers are decimal unless otherwise stated.
+   <li>The terms octet and byte refer to a group of eight bits.
+   
+</ul>
+<P>
+
+<h2> 1.0 INTRODUCTION </h2>
+
+The Crystallographic Binary File (CBF) format is a complementary format 
+to the Crystallographic Information File (CIF) 
+<a href="http:#References">[1]</a>, supporting efficient
+storage of large quantities of experimental data in a self-describing 
+binary format <a href="http:#Note_1">(1)</a>.  The Image-supporting
+Crystallographic Information File (ImgCIF) format is a proposed
+extension to CIF to assist in ASCII debugging and archiving
+of CBF files and to allow for convenient and standardized inclusion
+of images, such as maps, diagrams and molecular drawing into
+publication CIFs.  It is our expectation that, for large images, 
+the raw binary CBF format
+will be used both with in laboratories and for interchange among
+collaborating groups.  For smaller chunks of binary data, either format
+should be be suitable, with the ASCII ImgCIF format being more
+appropriate for interchange and archiving.
+
+
+<p>
+The initial aim is to support efficient storage of raw experimental data
+from area-detectors (images) with no loss of information compared to
+existing formats. The format should be both efficient in terms of
+writing and reading speeds, and in terms of stored file sizes, and
+should be simple enough to be easily coded, or ported to new computer 
+systems.
+
+<p>
+Flexibility and extensibility are required, and later the storage of
+other forms of data may be added without affecting the present definitions.
+
+<p>
+The aims are achieved by a simple file format, consisting of 
+lines of ASCII information defining information about the binary
+data as CIF tag-value pairs and tables, and either raw octets of
+binary data in delimited sections, or ASCII-based presentations
+of the same binary information in similarly delimited sections.
+
+
+<p>
+The present version of the format only tries to deal with simple Cartesian 
+data. This is essentially the &quot;raw&quot; data from detectors 
+that is typically stored in commercial formats or individual formats
+internal to particular institutes, but could be other forms
+of data. It is hoped that CBF can replace individual laboratory or 
+institute formats for &quot;home&quot; built detector systems, be used as a 
+inter-program data exchange format, and may be offered as an output
+choice by a number of commercial detector manufacturers specialising in
+X-ray and other detector systems.
+
+<p>
+This format does not imply any particular demands on processing software
+nor on the manner in which such software should work. Definitions of units,
+coordinate systems, etc. may quite different. The clear precise
+definitions within CIF, and hence CBF, help, when necessary, to 
+convert from one system to another. Whilst no strict demands are made,
+it is clearly to be hoped that software will make as much use as is 
+reasonable of information relevant to the processing which is stored 
+within the file. It is expected that processing software will give
+clear and informative error messages when they encounter problems within
+CBF's or do not support necessary mechanisms for inputting a file.
+
+<h3> 1.1 CBF and &quot;imgCIF&quot; </h3>
+
+CBF and &quot;imgCIF&quot; are two aspects of the same format. Since CIF's
+are pure ASCII text files, a separate binary format is needed to be
+defined to allow the combination of pseudo-ASCII sections and
+binary data sections. The binary file format is the <strong>Crystallographic
+Binary File (CBF)</strong>. The ASCII sections are very close to the CIF
+standard, but must use operating system independent &quot;line separators&quot;.
+In describing the ASCII sections, we use the notation
+&quot;\r\n&quot; (for the pair of characters carriage return, line-feed)
+for a line terminator would allow the ASCII sections to viewed with standard system 
+utilities on a very wide range of operating systems.  However,
+an API to read
+the binary format must accept any of the following three alternative
+line terminators as the end of an ascii line:  &quot;\r&quot;, 
+&quot;\n&quot; or &quot;\r\n&quot;.  An API to write CBF should
+write &quot;\r\n&quot; as the line terminator, if at all possible.
+
+<p>
+imgCIF is also the name of the CIF <A HREF="cif_img_1.1.3.html">dictionary</A> which contains the terms
+specific to describing the binary data (the orginal, designed by John Westbrook, without the
+modifications in this proposal is avaliable from
+<A href = "http://ndbserver.rutgers.edu/NDB/mmcif">http://ndbserver.rutgers.edu/NDB/mmcif</A>. Thus a CBF
+or ImgCIF files uses data names
+from the imgCIF dictionary and other CIF dictionaries.
+
+
+<h2> 2.0 A SIMPLE EXAMPLE</h2>
+
+Before fully describing the format we start by showing a simple, but
+important and complete usage of the format; that of storing a single
+detector image in a file together with a small amount of useful
+auxiliary information. It is intened to be a useful example for people
+who like working from examples, as opposed to full definitions. It
+should also serve as an introduction or overview of the format defintion.
+This example uses CIF DDL2 based dictionary items.
+
+<p>
+The example is an image of 768 by 512 pixels stored as 16 bit unsigned
+integers, in little endian byte order. (This is the native byte ordering
+on a PC.) The pixel sizes are 100.5 by 99.5 microns. Comment lines starting 
+with a hash sign (#) are used to explain the contents of the header. 
+Only the ASCII part of the file is shown, but comments are used to 
+describe the start of the binary section. 
+
+<p>
+First the file is shown with the minimum of comments that a typical
+outputting program might add. Then it is repeated, but with &quot;over-
+commenting&quot; to explain the format.
+
+<p>
+Here is how a file might appear if listed on a PC or on a Unix system 
+using &quot;more&quot;:
+<p>
+
+<PRE>
+
+###CBF: VERSION 0.6
+# Data block for image 1
+data_image_1
+
+_entry.id 'image_1'
+
+                                  
+# Sample details
+_chemical.entry_id                           'image_1'
+_chemical.name_common                        'Protein X'
+
+# Experimental details
+_exptl_crystal.id                            'CX-1A'
+_exptl_crystal.colour                        'pale yellow'
+
+_diffrn.id                                    DS1
+_diffrn.crystal_id                            'CX-1A' 
+
+_diffrn_measurement.diffrn_id                 DS1
+_diffrn_measurement.method                    Oscillation
+_diffrn_measurement.sample_detector_distance  0.15 
+                                                  
+_diffrn_radiation_wavelength.id               L1 
+_diffrn_radiation_wavelength.wavelength       0.7653 
+_diffrn_radiation_wavelength.wt               1.0
+
+_diffrn_radiation.diffrn_id                   DS1 
+_diffrn_radiation.wavelength_id               L1 
+
+_diffrn_source.diffrn_id                      DS1
+_diffrn_source.source                         synchrotron
+_diffrn_source.type                          'ESRF BM-14'
+
+_diffrn_detector.diffrn_id                    DS1
+_diffrn_detector.id                           ESRFCCD1
+_diffrn_detector.detector                     CCD
+_diffrn_detector.type                        'ESRF Be XRII/CCD'
+
+
+_diffrn_detector_element.id                   1
+_diffrn_detector_element.detector_id          ESRFCCD1
+
+
+_diffrn_frame_data.id                         F1
+_diffrn_frame_data.detector_element_id        1
+_diffrn_frame_data.array_id                   'image_1'
+_diffrn_frame_data.binary_id                  1
+
+
+# Define image storage mechanism
+#
+
+loop_
+_array_structure.id 
+_array_structure.encoding_type        
+_array_structure.compression_type     
+_array_structure.byte_order           
+image_1       "unsigned 16-bit integer"  none  little_endian
+                                      
+loop_
+_array_intensities.array_id    
+_array_intensities.binary_id       
+_array_intensities.linearity          
+_array_intensities.undefined_value    
+_array_intensities.overload_value     
+image_1     1    linear     0      65535
+
+# Define dimensionality and element rastering
+loop_
+_array_structure_list.array_id
+_array_structure_list.index
+_array_structure_list.dimension
+_array_structure_list.precedence
+_array_structure_list.direction
+image_1    1      768    1    increasing    
+image_1    2      512    2    decreasing     
+
+loop_
+_array_element_size.array_id
+_array_element_size.index
+_array_element_size.size
+image_1  1  100.5e-6
+image_1  2  99.5e-6
+
+loop_
+_array_data.array_id
+_array_data.binary_id
+_array_data.data
+
+image_1 1
+;
+--CIF-BINARY-FORMAT-SECTION--
+Content-Type: application/octet-stream;
+     conversions=&quot;x-CBF_PACKED&quot;
+Content-Transfer-Encoding: BINARY
+X-Binary-Size: 374578
+X-Binary-ID: 1
+X-Binary-Element-Type: &quot;unsigned 16-bit integer&quot;
+Content-MD5: jGmkxiOetd9T/Np4NufAmA==
+
+START_OF_BIN
+*************'9*****`********* ...
+[This is where the raw binary data would be -- we can't print it here]
+
+--CIF-BINARY-FORMAT-SECTION----
+;
+</pre>
+
+
+
+
+
+Here the file is shown again, but this time with many comment
+lines added to explain the format:
+
+
+<pre>
+###CBF: VERSION 0.6
+
+# This line starting with a &quot;#&quot; is a CIF and CBF comment line,
+# but the first line with the three &quot;#&quot;s is a CBF identifier.
+# (a &quot;magic number&quot;)  The text &quot;###_CBF: VERSION&quot; identifies
+# the file as a CBF and must be present as the very first line of
+# every CBF file. Following &quot;VERSION&quot; is the version number of 
+# the  file, which is the corresponding version of the CBF/imgCIF
+# extensions dictionary and supporting documentation.   A version 
+# 0.6 CIF should be readable by any program which fully supports 
+# the version 1.0 CBF definitions.
+
+# Comment lines and white space (blanks and new lines) may appear
+# anywhere outside the binary sections.
+  
+# In a CIF, the descriptive tags and values may be presented in
+# any convenient order, e.g. the data could come first, and the
+# parameters necessary to interpret the data could come later.
+# This order-independent convention holds for an imgCIF file, but
+# for a CBF, all the tags and values describing binary data (i.e.
+# all the tags other than those in the ARRAY_DATA category) should
+# be presented before the binary data, in the form of a header.
+# This does not mean that there cannot be more useful information
+# after the binary data.  There could be another full header and
+# more blocks of binary data.  All we are saying is that, in
+# the interest of efficiency in processing a CBF, the parameters 
+# that relate to a particular block of binary data must appear 
+# earlier in the CBF than the block itself.
+
+# The header begins with &quot;data_&quot;, which is the CIF token to 
+# identify a data block.  Within a data block, any given tag may 
+# be presented only once, either directly with an immediately 
+# following  value, or as one of the column headings for the rows
+# of a table.  If you will need to resuse the same tag, you will 
+# have to start a new data block.
+
+# Data block for image 1
+data_image_1
+
+# We've chosen to call this data block 'image_1', but this was an 
+# arbitary choice. Within a data block a data item may only be used 
+# once.
+
+_entry.id 'image_1'
+                                  
+# Sample details
+_chemical.entry_id                           'image_1'
+_chemical.name_common                        'Protein X'
+
+# The apostrophes enclose the string which contains a space.
+# A double quote (&quot;) could have been used, just as well.
+# There is also a third way to quote string, with the string
+# &quot;\n;&quot;, i.e. with a semicolon at the beginning of a line
+# which allows multi-lined strings to be presented.  We'll
+# use that form of text quotation for the binary data.
+
+# Experimental details
+_exptl_crystal.id                            'CX-1A'
+_exptl_crystal.colour                        'pale yellow'
+
+_diffrn.id                                    DS1
+_diffrn.crystal_id                            'CX-1A' 
+
+_diffrn_measurement.diffrn_id                 DS1
+_diffrn_measurement.method                    Oscillation
+_diffrn_measurement.sample_detector_distance  0.15 
+                                                  
+_diffrn_radiation_wavelength.id               L1 
+_diffrn_radiation_wavelength.wavelength       0.7653 
+_diffrn_radiation_wavelength.wt               1.0
+
+_diffrn_radiation.diffrn_id                   DS1 
+_diffrn_radiation.wavelength_id               L1 
+
+_diffrn_source.diffrn_id                      DS1
+_diffrn_source.source                         synchrotron
+_diffrn_source.type                          'ESRF BM-14'
+
+_diffrn_detector.diffrn_id                    DS1
+_diffrn_detector.id                           ESRFCCD1
+_diffrn_detector.detector                     CCD
+_diffrn_detector.type                        'ESRF Be XRII/CCD'
+
+
+_diffrn_detector_element.id                   1
+_diffrn_detector_element.detector_id          ESRFCCD1
+
+
+_diffrn_frame_data.id                         F1
+_diffrn_frame_data.detector_element_id        1
+_diffrn_frame_data.array_id                   'image_1'
+_diffrn_frame_data.binary_id                  1
+
+# Many more data items can be defined, but the above gives the idea
+# of a useful minimum set (but not minimum in the sense of 
+# compulsory, the above data items are optional in a CIF or CBF).
+ 
+# Define image storage mechanism
+#
+# Notice that we did not include a binary ID here.  The idea of
+# the ARRAY_STRUCTURE category is to present parameters which
+# could be common to multiple blocks of binary data, which would 
+# all have the same array ID, but would have distinct binary ID's
+
+loop_
+_array_structure.id 
+_array_structure.encoding_type        
+_array_structure.compression_type     
+_array_structure.byte_order           
+image_1      &quot;unsigned 16-bit integer&quot;  none  little_endian
+                                      
+# On the other hand, we do provide a binary ID for ARRAY_INTENSITIES,
+# since there might be different paremeters for each binary block. 
+# We could have left it out here, since there is only one block and
+# the default binary ID happens to be 1
+
+loop_
+_array_intensities.array_id  
+_array_intensities.binary_id       
+_array_intensities.linearity          
+_array_intensities.undefined_value    
+_array_intensities.overload_value     
+image_1     1   linear     0      65535
+
+# Define dimensionality and element rastering
+
+# Here the size of the image and the ordering (rastering) of the  data 
+# elements is defined. The CIF &quot;loop_&quot; structure is used to
+# define different dimensions. (It can be used for defining multiple
+# images.)
+
+loop_
+_array_structure_list.array_id
+_array_structure_list.index
+_array_structure_list.dimension
+_array_structure_list.precedence
+_array_structure_list.direction
+image_1    1      768    1    increasing    
+image_1    2      512    2    decreasing     
+
+loop_
+_array_element_size.array_id
+_array_element_size.index
+_array_element_size.size
+image_1  1  100.5e-6
+image_1  2  99.5e-6
+
+
+# The &quot;array_id&quot; identifies data items belong to the same array. 
+# Here we have chosen the name &quot;image_1&quot;, but another name could 
+# have been used, so long as it's used consistently. The &quot;index&quot; 
+# component refers to the dimension being defined, and the 
+# &quot;dimension&quot; component defines  the number of elements in that 
+# dimension. The &quot;precedence&quot; component defines which precedence 
+# of rastering of the data. In this case the first dimension is the faster 
+# changing dimension. The &quot;direction&quot; component tells us the 
+# direction in which the data rasters within a dimension. Here the 
+# data  rasters faster from minimum elements towards the maximum 
+# element (&quot;increasing&quot;) in the first dimension, and more 
+# slowly from the maximum element towards the minimum element in 
+# the second dimension. (This is the default rastering order.)
+
+# The storage of the binary data is now fully defined.
+
+# Further data items could be defined, but  we are ready to
+# present the data.  That is done with the ARRAY_DATA category.
+# The start of this category marks the end of the header
+# (Well, almost the end, there is a bit more header information
+# below).
+
+loop_
+_array_data.array_id
+_array_data.binary_id
+_array_data.data
+
+image_1 1
+
+# The binary data itself will come just a little further down,
+# as the essential part of the value of _array_data.data, which 
+# begins as semicolon-quoted text.  The line immediately after 
+# the line with the semicolon is a MIME boundary marker.  As for
+# all MIME boundary markers, it begins with &quot;--&quot;.  The next
+# few lines are MIME headers, describing some useful information
+# we will need to process the binary section.  MIME headers can
+# appear in different orders, and can be very confusing (look
+# at the raw contents of a email message with attachments), but
+# there is only a few headers which is have to be understood to
+# process a CBF: 
+#
+#      The &quot;Content-Type&quot; header may be any of discrete types 
+#      permitted in RFC 2045; &quot;application/octet-stream&quot; is 
+#      recommended.  If an octet stream was compressed, the 
+#      compression should be specified by the parameter 
+#      'conversions=&quot;x-CBF_PACKED&quot;' or by specifying 
+#      one of the other compression types.
+#          
+#      The &quot;Content-Transfer-Encoding&quot; header should be 'BINARY' 
+#      for a CBF.  We'll consider the other values used for imgCIF 
+#      below.
+#                           
+#      The &quot;X-Binary-Size&quot; header specifies the size of the
+#      binary data in octets.  If compression was used, this size 
+#      is the  size after compression, including any book-keeping
+#      fields, but not the 8 bytes for the compression type.
+#
+#      The &quot;X-Binary-Element-Type&quot; header specifies the 
+#      type of binary data in the octets, using the same 
+#      descriptive phrases as in _array_structure.encoding_type. 
+#      The default value is &quot;unsigned 32-bit integer&quot;.
+#
+# The MIME header items are followed by an empty line and then by
+# a special sequence marked here as 'START_OF_BIN', consisting of
+# Control-L, Control-Z, Control-D to stop printing on most systems,
+# and then a single binary flag  character of hexadecimal value D5 
+# (213 decimal).  The binary data follows immediately after this 
+# flag character.
+#
+;
+--CIF-BINARY-FORMAT-SECTION--
+Content-Type: application/octet-stream;
+     conversions=&quot;x-CBF_PACKED&quot;
+Content-Transfer-Encoding: BINARY
+X-Binary-Size: 374578
+X-Binary-ID: 1
+X-Binary-Element-Type: &quot;unsigned 16-bit integer&quot;
+Content-MD5: jGmkxkrpnizOetd9T/Np4NufAmA==
+
+START_OF_BIN
+*************'9*****`********* ...
+[This is where the raw binary data would be -- we can't print it here]
+
+--CIF-BINARY-FORMAT-SECTION----
+;
+
+# After the last octet (i.e. byte) of the binary data, there is a
+# special trailer &quot;\n--CIF-BINARY-FORMAT-SECTION----\n;&quot;
+# which repeats the initial bounday marker with an extra &quot;--&quot;
+# at the end (a MIME convention for the last boundary marker), and
+# then the closing semicolon quote for a text section.  This
+# is essential in an imgCIF, and we include it in a CBF for 
+# consistency.
+
+</pre>
+
+<p>
+<h2> OVERVIEW OF THE FORMAT </h2>
+
+This section describes the major &quot;components&quot; of the CBF format.
+
+<ol>
+<li> CBF is a binary file, containing self-describing array data e.g. one
+   or more images, and auxiliary data e.g. describing the experiment.
+<p>
+<li> Except for the handling of line terminators, the way binary data
+   is presented, and more liberal rules in ordinger information, an
+   ASCII imgCIF file is the same as a CBF binary file.
+<p>
+<li> A CBF consists of pseudo-ASCII text header sections, which are &quot;lines&quot; of 
+   no more than 80 ASCII characters separated by &quot;line separators&quot; which are the pair of
+   ASCII characters carriage return and line-feed (ASCII 13, ASCII 10), 
+   followed by zero, one, or more binary sections presented as &quot;binary
+   strings&quot;. This structure may be repeated.
+<p>
+<li> An imgCIF consists of ASCII lines of no more than 80 characters using the
+   the normal line termination conventions of the current system (e.g.
+   ASCII 10 in UNIX) with MIME-encoded binary strings at any
+   appropriate point in the file.
+<P>
+<li> The very start of the file has an identification item (magic number)
+   <a href="http:#Note_2">(2)</a>. This item
+   also describes the CBF version or level. The identifier is:
+
+<pre>
+###CBF: VERSION
+</pre>
+
+which must always be present so that a program can easily identify
+whether or not a file is a CBF, by simply inputting the first 15 
+characters. (The space is a blank (ASCII 32) and not a tab. All
+identifier characters are uppercase only.)
+
+<p>
+The first hash means that this line within a CIF would be a comment
+line, but the three hashes mean that this is a line describing the 
+binary file layout for CBF. (All CBF internal identifiers start with 
+the three hashes, and all other must immediately follow a &quot;line 
+separator&quot;.) No whitespace may precede the first hash sign.
+
+<p>
+Following the file identifier is the version number of the file. e.g.
+the full line might appear as:
+
+<pre>
+###CBF: VERSION 0.6
+</pre>
+
+The version number must be separated from the file identifier
+characters by whitespace e.g. a blank (ASCII 32).
+
+<p>
+The version number is defined as a major version number and minor
+version number separated by the decimal point. A change in the major 
+version may well mean that a program for the previous version cannot
+input the new version as some major change has occurred to CBF 
+<a href="http:#Note_3">(3)</a>. A
+change in the minor version may also mean incompatibility, if the CBF
+has been written using some new feature. e.g. a new form of linearity 
+scaling may be specified and this would be considered a minor version
+change. A file containing the new feature would not be readable by a
+program supporting only an older version of the format.
+<P><b>Note:</b>
+Until we reach major version 1 (the first official release), the
+rules are a little more relaxed.  While there will be some effort at
+upwards compatability, in order to ensure a reasonable agreed specification
+without too many strange artifacts, changes between minor versions
+may, unfortunately, introduce incompatabilities which require
+program changes to still read CBFs compliant with an earlier draft,
+e.g. the change in the &quot;magic number&quot; and from binary sections to
+binary strings in going to version 0.3, and a removal of the
+redundant parts of the binary header in going to version 0.6.
+Naturally, such changes should be sufficiently well documented to allow
+for conversions.<B>&gt;&gt;&gt;</B>
+<p>
+
+<li> Header Information:
+<p>
+<ol type=a>
+<li> The start of an header section is delimited by the 
+usual CIF &quot;data_&quot; token.  Optionally, the formerly specified
+header identifier, 
+
+<pre>
+###_START_OF_HEADER
+</pre>
+
+may be used before the &quot;data_&quot; taken, followed by the carriage return, line-feed pair,
+as an aid in debugging, but it is no longer required. (Naturally, another carriage return, 
+line-feed pair should immediately precedes this and all other CBF identifiers, with
+the exception of the CBF file identifier which is at the very start of the
+file.)
+<p>
+
+<li> A header section, including the identification items which delimit
+it, uses only ASCII characters, and is divided into &quot;lines&quot;. The &quot;line
+separator&quot; symbols, &quot;\r\n&quot;  (carriage return, line-feed) are the same regardless 
+of the operating system on which the file is written. (This is an 
+importance difference with CIF, but must be so, as the file contains 
+binary data, so cannot be translated from one O.S. to another, which is 
+the case for ASCII text files.)   While a properly functioning CBF API
+should write the full &quot;\r\n&quot; line separator, it should recognize
+any of three sequences &quot;\r&quot;, &quot;\n&quot;, &quot;\r\n&quot; as valid
+line separators, so that hand-edited headers will not be rejected.
+<p>
+
+<li>The header section within the delimiting identification items
+obeys all CIF rules <a href="http:#References">[1]</a> with the 
+exception of the line separators.
+<p>
+e.g.
+<p>
+
+<ul type=circle>
+<li> &quot;Lines&quot; are a maximum of 80 characters long. (For CBF it is probably
+   best to allow for this maximum to be larger.)
+<p>
+<li> The tokens &quot;data_&quot; and &quot;loop_&quot; have special meaning to CIF, and
+should not be used except in their indicated places.  The tokens
+&quot;save_&quot;, &quot;stop_&quot; and &quot;global_&quot; also have special meaning to CIF's
+parent language, STAR, and also should not be used.
+<P>
+
+<li> All data names (tags) start with an underscore character.
+<p>
+
+<li> The hash symbol (#) (outside a character string) means that all text
+  up to the line separator is a comment.
+<p>
+
+<li> Whitespace outside of character strings is not significant.
+<p>
+
+<li> Data names are case insensitive.
+<p>
+
+<li> The data item follows the data name separator, and may be of one of
+  two types: character string (char) or number (numb). (The type is
+  specified for each data name.)
+<p>
+
+<li> Character strings may be delimited with single of double quotes, or blocks of
+  text may be delimited by semi-colons occurring as the first character on
+  a line.
+<p>
+
+<li> The &quot;loop_&quot; mechanism allows a data name to have multiple values.
+Immediately following the &quot;loop_&quot;, one or more data names are listed without
+their values, as column headings.  Then one or more rows of values
+are given.
+</ul>
+<p>
+
+Any CIF data name may occur within the header section.
+<p>
+
+<li> A single header section may contain one or more data blocks (CIF 
+    terminology).
+<p>
+
+<li> The end of the header information is marked by 
+coming to the tags from the "ARRAY_DATA" category.  The formerly
+specifier special
+identifier:
+
+<pre>
+###_END_OF_HEADER
+</pre>
+
+followed by carriage return, line-feed, may be used as well as an aid to
+debugging, but it is not required.
+</ol>
+<p>
+
+<li> The header information must contain sufficient data names to fully
+describe the binary data section(s) which follow(s).
+<p>
+
+<li> Binary Information:
+<p>
+<B>Note:</B> Under CBFlib &quot;binary sections&quot; have been replaced by &quot;binary strings&quot;
+values within a data name/value pair. The structure of the proposed
+&quot;binary string&quot; is similar to the former binary sections, but there are
+significant differences.
+<p>
+<ol type=a>
+<li> Before getting to the binary data, itself, there are some preliminaries
+to allow a smooth transition from the conventions of CIF to those of
+raw streams of &quot;octets&quot; (8-bit bytes).  The binary data is
+given as the essential part of a specially formatted semicolon-delimited
+CIF multi-line text string.  This text string is the value associated with the
+tag &quot;_array_data.data&quot;.
+<p> 
+<li> Within that text string, the conventions developed for
+transmitting email messages including binary attachments are followed.
+There is secondary ASCII header information, formatted as Multipurpose
+Internet Mail Extensions (MIME) headers (see RFCs 2045-49 by
+Freed, et. al).   The bounday marker for the beginning of all this
+is the special string 
+<P><BR>
+<TT>--CIF-BINARY-FORMAT-SECTION--</TT>
+<P><BR>
+at the beginning of a line.  The initial &quot;--&quot; says that
+this is a MIME boundary.  We cannot put &quot;###&quot; in front
+of it and conform to MIME conventions.  Immediately after the boundary
+marker are MIME headers, describing some useful information
+we will need to process the binary section.  MIME headers can
+appear in different orders, and can be very confusing (look
+at the raw contents of a email message with attachments), but  there 
+is only a few headers with a narrow range of values which is have 
+to be understood to process a CBF (as opposed of an imgCIF, for which the
+headers can be more varied): 
+<P>
+<UL>
+<LI> The &quot;Content-Type&quot; header may be any of discrete types 
+permitted in RFC 2045; &quot;application/octet-stream&quot; is 
+recommended.  If an octet stream was compressed, the 
+ compression should be specified by the parameter 
+'conversions=&quot;x-CBF_PACKED&quot;' or by specifying 
+one of the other compression types.
+<P>         
+<LI>The &quot;Content-Transfer-Encoding&quot; header should be 'BINARY' 
+for a CBF.  We'll consider the other values used for imgCIF 
+ below.
+<P>                      
+<LI>The &quot;X-Binary-Size&quot; header specifies the size of the
+binary data in octets.  If compression was used, this size 
+is the  size after compression, including any book-keeping
+fields, but not the 8 bytes for the compression type.
+<P>
+<LI>The &quot;X-Binary-Element-Type&quot; header specifies the 
+type of binary data in the octets, using the same 
+descriptive phrases as in _array_structure.encoding_type. 
+The default value is &quot;unsigned 32-bit integer&quot;.
+<P>
+</UL>
+The MIME header items are followed by an empty line and then by
+a special sequence marked here as 'START_OF_BIN', consisting of
+Control-L, Control-Z, Control-D to stop printing on most systems,
+and then a single binary flag  character of hexadecimal value D5 
+(213 decimal).  The binary data follows immediately after this 
+flag character.
+<P><BR>
+
+In general, if the value given for &quot;Content-Transfer-Encoding&quot; is one of the
+real encodings:  &quot;BASE64&quot;, &quot;QUOTED-PRINTABLE&quot;, &quot;X-BASE8&quot;,
+&quot;X-BASE10&quot; or &quot;X-BASE16&quot;, this file is an imgCIF.
+<P>
+For either a CBF or an imgCIF the optional &quot;Content-MD5&quot; header provides a much more 
+sophisticated check on the integrity of the binary data.
+
+<P><BR>
+In a CBF, the raw binary data begins after an empty line terminating
+the MIME headers and after the START_OF_BIN identifier.
+&quot;START_OF_BIN&quot; contains bytes to separate the &quot;ASCII&quot; lines 
+from the binary data, bytes to try to stop the listing of the header, 
+bytes which define the binary identifier which should match the 
+&quot;binary_id&quot; defined in the header, and bytes which define the 
+length of the binary section.
+<P><BR>
+<Table>             
+<TR><TH>             Octet   <TH>Hex   <TH>Decimal  <TH>Purpose
+<TR><TD>               1     <TD>0C       <TD>12    <TD>(ctrl-L) End the current page
+<TR><TD>               2     <TD>1A       <TD>26    <TD>(ctrl-Z) Stop listings in MS-DOS
+<TR><TD>               3     <TD>04       <TD>04    <TD>(Ctrl-D) Stop listings in UNIX
+<TR><TD>               4     <TD>D5      <TD>213   <TD>Binary section begins
+<TR><TD>              5..5+n-1<TD>&nbsp;<TD>&nbsp;  <TD>Binary data (n octets)
+</TABLE>
+<P>
+<BR>
+              
+             Only bytes 5..5+n-1 are encoded for an imgCIF file
+             using the indicated Content-Transfer-Encoding.
+<P>
+<B>Note:</B>  Earlier versions of the specification included three 8-byte words
+of information in binary which replicated information now available in
+the MIME header:
+<P>
+<TABLE>
+
+<TR><TD VALIGN=TOP>               5..12  <TD>&nbsp;<TD>&nbsp;  <TD>Binary Section Identifier<BR>
+                                    (See _array_data.binary_id)<BR>
+                                    64-bit, little endian
+<TR><TD VALIGN=TOP>              13..20 <TD>&nbsp;<TD>&nbsp;  <TD>the size (n) of the<BR>
+                                    binary section in octets<BR>
+                                    (i.e. the offset  from octet<BR>
+                                    29 to the first byte following<BR>
+                                    the data)
+<TR><TD VALIGN=TOP>              21..28<TD>&nbsp;<TD>&nbsp;  <TD>Compression type:<BR>
+                                      <TABLE>
+                                      <TR><TD>CBF_NONE       <TD>0x0040 (64)
+                                      <TR><TD>CBF_CANONICAL  <TD>0x0050 (80)
+                                      <TR><TD>CBF_PACKED     <TD>0x0060 (96)
+                                      <TR><TD>...            <TD>&NBSP;
+                                      </TABLE>
+
+</TABLE>
+followed by binary data.  These three 8-byte words are no longer included when
+a MIME header is provided.  In addition, in still earlier versions, the size
+given in the second 8-byte word was n+8, rather than n.
+<p><BR>
+
+The binary characters serve specific purposes:
+<p><BR>
+
+<ul type=circle>
+
+<li> The Control-L will terminate the current page in listings
+     on most operating systems.
+
+<p><BR>
+<li> The Control-Z will stop the listing of the file on MS-DOS
+     type operating systems.
+<p><BR>
+
+<li> The Control-D will stop the listing of the file on Unix
+     type operating systems.
+<p><BR>
+
+<li> The unsigned byte value 213 (decimal) is binary 11010101.
+     (Octal 325, and hexadecimal D5).
+     This has the eighth bit set so can be used for error checking
+     on 7-bit transmission. It is also asymmetric, but with the first
+     bit also set in the case that the bit order could be reversed 
+     (which is not a known concern).
+<p><BR>
+
+<li> (The carriage return, line-feed pair before the START_OF_BIN
+     and other lines can also be used to check that the file has not
+     been corrupted e.g. by being sent by ftp in ASCII mode.)
+<p><BR>
+
+</ul>
+<p><BR>
+
+<li> The &quot;line separator&quot; immediately precedes the &quot;start of binary 
+    identifier&quot;, but blank spaces may be added prior to the preceding 
+    &quot;line separator&quot; if desired (e.g. to force word or block alignment).
+<p><BR>
+
+<li> The binary data does not have to completely fill the bytes defined
+    by the byte length value, but clearly cannot be greater than this
+    value (except when the value zero has been stored, which means that
+    the size is unknown, and no other headers follow). The values of
+    any unused bytes are undefined.
+<p><BR>
+
+<li> At exactly the byte following the full binary section as defined by
+    the length value is the end of binary section identifier. This consists
+    of the carriage return / line feed pair followed by:
+
+<P><BR>
+<TT>--CIF-BINARY-FORMAT-SECTION--<BR>
+;</TT>
+<P><BR>
+
+    with each of these lines followed by the carriage return / line feed pair.
+    This brings us back into a normal CIF environment
+
+<p><BR>
+    The first &quot;line separator&quot; separates the binary data from the
+    pseudo-ASCII line.
+
+<p><BR>
+    This identifier is in a sense redundant since the binary data
+    length value tells the a program how many bytes to jump over to
+    the end of the binary data. However, this redundancy has been
+    deliberately added for error checking, and for possible file
+    recovery in the case of a corrupted file.
+
+<p><BR>
+    This identifier must be present at the end of every block of
+    binary data.
+</ol>
+<p><BR>
+
+<li> Whitespace may be used within the pseudo-ASCII sections prior to the
+   &quot;start of binary section&quot; identifier to align the start binary data
+   sections to word or block boundaries. Similar use may be made of unused
+   bytes in binary sections.  However, no blank lines should be introduced
+   among the MIME headers, since that would terminate processing of those
+   headers and start the scan for binary data.
+
+<p><BR>
+   However, in general no guarantee is made of block nor word alignment
+   in a CBF of unknown origin.
+<p><BR>
+<li> The end of the file need not be not explicitly indicated, but
+including a comment of the form:
+
+<P><BR>
+<TT>###_END_OF_CBF</TT>
+<P><BR>
+
+   (including the carriage return, line-feed pair) can help in debugging.
+<p><BR>
+
+<li> All binary data described in a single data block should follow the
+    header section prior to another data block, or the end of the
+    file, so allow for the most efficient processing of CBF files.
+    However, since binary strings can be parsed anywhere within the
+    context of a CBF or imgCIf file, it is recommended that processing
+    software from CBF accept such strings in any order and it is mandatory
+    that processing software for imgCIF accept such string in any order.
+
+<p><BR>
+    The binary identifier values used within a given data block section, and 
+    hence the  binary data must be unique for any
+    given array_id, and, it would be best to make them truly unique.
+
+<p><BR>
+    A different data block may reuse binary identifier values.
+
+<p><BR>
+    (This allows concatenation of files without re-numbering the
+    binary identifiers, and provides a certain level of localization
+    of data within the file, to avoid programs having to search 
+    potentially huge files for missing binary sections.)
+<p><BR>
+
+<li> The recommended file extension for a CBF is: cbf<br>
+    This allows users to recognise file types easily, and gives programs a 
+    chance to &quot;know&quot; the file type without having to prompt the user.
+    Although they should check for at least the file identifier to
+    ensure that the file type is indeed a CBF.
+<p><BR>
+<li>  The recommended file extensions for imgCIF are: icf or cif<BR> 
+      <B>(use of &quot;cif&quot; subject to IUCr approval)</B>.  
+<P><BR>
+<li> CBF format files are binary files and when ftp is used to transfer
+    files between different computer systems &quot;binary&quot; or &quot;image&quot; mode
+    transfer should be selected.
+<p><BR>
+<li> imgCIF files are ASCII files and when ftp is used to transfer
+    files between different computer systems &quot;ascii&quot;
+    transfer should be selected.
+
+</ol>
+<P>
+<h3> 3.1 SIMPLE EXAMPLE OF THE ORDERING OF IDENTIFIERS </h3>
+<P>
+Here only the ASCII part of the file structuring identifiers is shown.
+The CIF data items are not shown, apart from the &quot;data_&quot; identifier
+which indicates the beginning of a data block.
+
+<p>
+This shows the structuring of a simple example e.g. one header section
+followed by one binary section. Such as could be used to store a
+single image.
+
+<pre>
+###CBF: VERSION 0.3
+
+data_
+
+### ... various CIF tags and values here
+
+loop_
+array_data.id
+array_data.binary_id
+array_data.data
+
+image_1 1
+;
+--CIF-BINARY-FORMAT-SECTION--
+Content-Type: application/octet-stream;
+     conversions=&quot;x-CBF_PACKED&quot;
+Content-Transfer-Encoding: BINARY
+X-Binary-ID: 1
+Content-MD5: jGmkxiOetd9T/Np4NufAmA==
+
+START_OF_BIN
+*************'9*****`********* ...
+[This is where the raw binary data would be -- we can't print it here]
+
+--CIF-BINARY-FORMAT-SECTION----
+;
+###_END_OF_CBF
+</pre>
+
+<h3>3.2 MORE COMPLICATED EXAMPLE OF THE ORDERING OF IDENTIFIERS </h3>
+<P>
+Here only the ASCII part of the file structuring identifiers is shown.
+The CIF data items are not shown, apart from the &quot;data_&quot; identifier
+which indicates the beginning of a data block.
+
+<p>
+This shows the a possible structuring of a more complicated example.
+Two header sections, the first contains two data blocks and defines 
+three binary sections. CIF comment lines, starting with a hash (#) are
+used to example the structure.
+
+<pre>
+###CBF: VERSION 0.6
+# CBF file written by cbflib v0.6
+
+# A comment cannot appear before the file identifier, but can appear
+# anywhere else, except within the binary sections.
+
+# Here the first data block starts
+data_
+
+### ... various CIF tags and values here
+###     but none that define array data items
+
+
+# The &quot;data_&quot; identifier finishes the first data block and starts the
+# second
+data_
+
+### ... various CIF tags and values here
+###     including ones that define array data items
+
+loop_
+array_data.array_id
+array_data.binary_id
+array_data.data
+
+image_1 1
+;
+--CIF-BINARY-FORMAT-SECTION--
+Content-Type: application/octet-stream;
+     conversions=&quot;x-CBF_PACKED&quot;
+Content-Transfer-Encoding: BINARY
+X-Binary-Size: 3745758
+X-Binary-ID: 1
+X-Binary-Element-Type: &quot;signed 32-bit integer&quot;
+Content-MD5: 1zsJjWPfol2GYl2V+QSXrw==
+
+START_OF_BIN
+&lt;D5&gt;^P&lt;B8&gt;P^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@ ...
+[This is where the raw binary data would be -- we can't print it here]
+
+--CIF-BINARY-FORMAT-SECTION----
+;
+
+# Following the &quot;end of binary&quot; identifier the file is pseudo-ASCII
+# again, so comments are valid up to the next &quot;start of binary&quot;
+# identifier.  Note that we have bumped the binary ID.
+
+image_1 2
+;
+--CIF-BINARY-FORMAT-SECTION--
+Content-Type: application/octet-stream;
+     conversions=&quot;x-CBF_PACKED&quot;
+Content-Transfer-Encoding: BINARY
+X-Binary-Size: 3745758
+X-Binary-ID: 2
+X-Binary-Element-Type: &quot;signed 32-bit integer&quot;
+Content-MD5: xR5kxiOetd9T/Nr5vMfAmA==
+
+START_OF_BIN
+&lt;D5&gt;^P&lt;B8&gt;P^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@ ...
+[This is where the raw binary data would be -- we can't print it here]
+
+--CIF-BINARY-FORMAT-SECTION----
+;
+
+# Third binary section, note that we have a new array id.
+
+image_2 3
+;
+--CIF-BINARY-FORMAT-SECTION--
+Content-Type: application/octet-stream;
+     conversions=&quot;x-CBF_PACKED&quot;
+Content-Transfer-Encoding: BINARY
+X-Binary-ID: 3
+Content-MD5: yS5kxiOetd9T/NrqTLfAmA==
+
+START_OF_BIN
+*************'9*****`********* ...
+[This is where the raw binary data would be -- we can't print it here]
+
+--CIF-BINARY-FORMAT-SECTION----
+;
+
+
+# Second Header section
+
+data_
+
+### ... various CIF tags and values here
+###     including ones that define array data items
+
+# Since we only have one block left, we won't use a loop
+
+
+array_data.id         image
+array_data.binary_id  1
+array_data.data
+
+# Note that I can put a comment here
+;
+--CIF-BINARY-FORMAT-SECTION--
+Content-Type: application/octet-stream;
+     conversions=&quot;x-CBF_PACKED&quot;
+Content-Transfer-Encoding: BINARY
+X-Binary-ID: 1
+Content-MD5: fooxiOetd9T/serNufAmA==
+
+START_OF_BIN
+*************'9*****`********* ...
+[This is where the raw binary data would be -- we can't print it here]
+
+--CIF-BINARY-FORMAT-SECTION----
+;
+
+###_END_OF_CBF
+</pre>
+<p>
+
+<h2> DATA NAME CATEGORIES</h2>
+
+John Westbrook has proposed a number of data name categories as part of
+his DDL2 based &quot;imgCIF&quot; dictionary. This category list may be expanded
+to cover a structuring of the often multiple data-sets which might be used
+in a structurial investigation. Here we only consider the categories
+concerned with storing an image (or other N-dimensional topographically
+regular cartesian grid).
+
+<p>
+The <tt>_array_*</tt> categories cover all data names concerned with 
+the storage of images or regular array data.
+
+<p>
+Data names from any of the existing categories may be relevant as
+auxiliary information in the header section, but data names from the
+<tt>_diffrn_</tt> category, are likely to be the most relevant, and a 
+number of new data names in this category are necessary. 
+
+<h3> The &quot;array&quot; Class of Binary Data </h3>
+
+The &quot;array&quot; class is used to store regular arrays of data values, such 
+as 1-D histograms, area-detector data, series of area-detector data, and
+volume data. Normally such data is regularly spaced in space or time,
+however spatial distorted data could nevertheless be stored in such a format.
+There is only one data &quot;value&quot; stored per lattice position, although that
+value may be of type complex.
+<p>
+
+The &quot;array&quot; class is defined by data names from the <tt>ARRAY_STRUCTURE</tt>
+and <tt>ARRAY_STRUCTURE_LIST</tt> categories.
+<p>
+Here is a short summary of the data names and their purposes.
+
+<ul>
+<li> <tt>_array_structure.id</tt>:  Alpha numeric identifier for 
+     the array structure
+
+<li> <tt>_array_structure.compression_type</tt>: Type of data compression used
+
+<li> <tt>_array_structure.byte_order</tt>: Order of bytes for multi-byte 
+     integer or reals
+
+<li> <tt>_array_structure.encoding_type</tt>: Native data type used to 
+     store elements.
+<p>
+e.g. &quot;unsigned_16_bit_integer&quot; is used if the stored image was 16 bit
+unsigned integer values, regardless of any compression scheme used.
+</ul>
+<p>
+
+<h3> &quot;Array&quot; Dimensions and Element Rastering and Orientation</h3>
+
+The array dimension sizes, i.e. the number of elements in each dimension
+are defined by <tt>_array_structure_list.dimension</tt>. 
+Which takes an integer value. This is used in a loop together with 
+the <tt>_array_structure_list.index</tt>
+item to define the different dimensions for one or more arrays.
+<p>
+
+Fundamental to treating a long line of data values as a 2-D image or
+an N-dimensional volume or hyper-volume is the knowledge of the manner 
+in which the values need to be wrapped. For the raster orientation to 
+be meaningful we define the sense of the view:
+<p>
+
+For a detector image the sense of the view is defined as that looking 
+from the crystal towards the detector. 
+<p>
+
+(For the present we consider only an equatorial plane geometry, with
+2-theta = 0; the detector as being vertically mounted.) 
+<p>
+
+The rastering is defined by the three data names
+<tt>_array_structure_list.index, _array_structure_list.precedence,</tt> and
+<tt>_array_structure_list.direction</tt> data names. 
+<p>
+
+<tt>index</tt> refers to the dimension index i.e. In an image 1 refers to the 
+X-direction (horizontal), 2 refers to the Y-direction (vertical).
+<p>
+
+<tt>precedence</tt> refers to the order in which the data in wrapped.
+<p>
+
+<tt>direction</tt> refers the direction of the rastering for that index.
+<p>
+
+We define a preferred rastering orientation,
+which is the default if the keyword is not defined. This is with the 
+start in the upper-left-hand corner and the fastest changing direction 
+for the rastering horizontally, and the slower change from top to bottom. 
+<p>
+
+(Note: With off-line scanners the rastering type depending on which way 
+round the imaging plate or film is entered into the scanner. Care may 
+need to be taken to make this consistent.)
+
+<h4> &quot;Array_Structure&quot; Examples </h4>
+
+To define an image array of 1300 times 1200 elements, with the raster
+faster in the first dimension, from left to right, and slower in the
+second dimension from top to bottom, the following header section
+might be used:
+<p>
+
+<pre>
+# Define image size and rastering
+loop_
+_array_structure_list.array_id
+_array_structure_list.index
+_array_structure_list.dimension
+_array_structure_list.precedence
+_array_structure_list.direction
+image_1    1      1300    1    increasing
+image_1    2      1200    2    decreasing
+</pre>
+
+To define two arrays, the first a volume of 100 times 100 times 50
+elements, fastest changing in the first dimension, from left to right, 
+changing from bottom to top in the second dimension, and slowest
+changing in the third dimension from front to back; the second an image
+of 1024 times 1280 pixels, with the second dimension changing fastest
+from top to bottom, and the first dimension changing slower from left
+to right; the following header section might be used:
+<p>
+
+<pre>
+# Define array sizes and rasterings
+loop_
+_array_structure_list.array_id
+_array_structure_list.index
+_array_structure_list.dimension
+_array_structure.precedence
+_array_structure.direction
+volume_a    1      100    1    increasing
+volume_a    2      100    2    increasing
+volume_a    3       50    3    increasing
+slice_1     1      1024   2    increasing
+slice_1     2      1280   1    decreasing
+</pre>
+<p>
+
+<h3> &quot;Array&quot; Element Intensity Scaling </h3>
+<p>
+
+Existing data storage formats use a wide variety of methods for storing
+physical intensities as element values. The simplest is a linear
+relationship, but square root and logarithm scaling methods have 
+attractions and are used. Additionally some formats use a lower dynamic 
+range to store the vast majority of element values, and use some other 
+mechanism to store the elements which over-flow this limited dynamic 
+range. The problem of limited dynamic range storage is solved by the data
+compression methods <tt>byte_offsets</tt> and <tt>predictor_huffman</tt>
+(see next Section), but the possibility of defining non-linear scaling 
+must also be provided.
+<p>
+
+The <tt>_array_intensities.linearity</tt> data item specifies how the 
+intensity scaling is defined. Apart from linear scaling, which is 
+specified by the value <tt>linear</tt>, two other methods are available 
+to specify the scaling.
+<p>
+
+One is to refer to the detector system, and then knowledge of the
+manufacturers method will either be known or not by a program. This has
+the advantage that any system can be easily accommodated, but requires 
+external knowledge of the scaling system.
+<p>
+
+The recommended alternative is to define a number of standard intensity
+linearity scaling methods, with additional data items when needed. A
+number of standard methods are defined by <tt>_array_intensities.linearity</tt>
+values: <tt>offset, scaling_offset, sqrt_scaled,</tt> and
+<tt>logarithmic_scaled</tt>.
+
+The &quot;offset&quot; methods require the data item <tt>_array_intensities.offset</tt>
+to be defined, and the &quot;scaling&quot; methods require the data item 
+<tt>_array_intensities.scaling</tt> to be defined.
+
+The above scaling methods allow the element values to be converted to a 
+linear scale, but do not necessarily relate the linear intensities to
+physical units. When appropriate the data item <tt>_array_intensities.gain</tt>
+can be defined. Dividing the linearized intensities by the value of
+<tt>_array_intensities.gain</tt> should produce counts.
+
+Two special optional data flag values may be defined which both refer to
+the values of the &quot;raw&quot; stored intensities in the file (after
+decompression if necessary), and not to the linearized scaled values.
+<tt>_array_intensities.undefined_value</tt> specifies a value which 
+indicates that
+the element value is not known. This may be due to data missing e.g. a
+circular image stored in a square array, or where the data values are
+flagged as missing e.g. behind a beam-stop. 
+<tt>_array_intensities.overload_value</tt> indicates the intensity value 
+at which and above, values are considered unreliable. This is usually due to 
+saturation.
+
+<h4> &quot;Array_intensities&quot; Example </h4>
+
+To define the characteristics of <tt>image_1</tt> as linear with a gain
+of 1.2, and an undefined value of 0, and a saturated (overloaded)
+value of 65535, the following header section might be used:
+
+<pre>
+# Define image intensity scaling
+loop_
+_array_intensities.array_id
+_array_intensities.binary_id
+_array_intensities.linearity
+_array_intensities.gain
+_array_intensities.undefined_value
+_array_intensities.overload_value
+image_1    1    linear   1.2    0   65535
+</pre>
+<p>
+
+<h2> DATA COMPRESSION </h2>
+
+One of the primary aims of imgCIF / CBF is to allow efficient storage, and
+efficient reading and writing of data, so data compression is of great 
+interest. Despite the extra CPU over-heads it can very often be faster 
+to compress data prior to storage, as much smaller amounts of data need 
+to be written to disk, and disk I/O is relatively slow. However, optimum
+data compression can result in complicated algorithms, and be highly
+data specific.
+<p> In CBFlib version 0.1, Paul Ellis has coded two lossless compression
+algorithms:  canonical and packed.
+
+<h3>Canonical-code compression</h3>
+<P>
+The canonical-code compression scheme encodes errors in two ways: directly or indirectly. 
+ Errors are coded directly using a symbol corresponding to the error value.  Errors 
+are coded indirectly using a symbol for the number of bits in the (signed) error, 
+followed by the error iteslf. 
+<P>
+At the start of the compression, CBFLIB constructs a table containing a set of symbols, 
+one for each of the 2^<sup>n</sup>
+ direct codes from -(2^<sup>(n-1)</sup>) .. 2^<sup>(n-1)</sup>
+-1, one for a stop code, and one for each of the <i>maxbits</i>
+-<i>n</i>
+ indirect codes, where <i>n</i>
+ is chosen at compress time and <i>maxbits</i>
+ is the maximum number of bits in an error.  CBFLIB then assigns to each symbol a 
+bit-code, using a shorter bit code for the more common symbols and a longer bit code 
+for the less common symbols.  The bit-code lengths are calculated using a Huffman-type 
+algorithm, and the actual bit-codes are constructed using the canonical-code algorithm 
+described by Moffat, <CITE>et al</CITE>. (<CITE>International Journal of High 
+Speed Electronics and Systems</CITE>, Vol 8, No 1 (1997) 179-231).
+<P>
+The structure of the compressed data is:
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT>Byte<TH>Value
+<TR><TD>1 .. 8<TD>Number of elements (64-bit little-endian number)<BR>
+<TR><TD>9 .. 16<TD>Minimum element<BR>
+<TR><TD>17 .. 24<TD>Maximum element<BR>
+<TR><TD>25 .. 32<TD>Repeat length (currently unused)<BR>
+<TR><TD>33<TD>Number of bits directly coded, <I>n</I>
+<TR><TD>34<TD>Maximum number of bits encoded, <I>maxbits</I>
+<TR><TD>35 .. 35+2^<SUP>n</SUP>-1<TD>Number of bits in each direct code <BR>
+<TR><TD>35+2^<SUP>n</SUP><TD>Number of bits in the stop code<BR>
+<TR><TD>35+2^<SUP>n</SUP>+1 .. 35+2^<SUP>n</SUP>+<I>maxbits</I>-<I>n</I>
+<TD>Number of bits in each indirect code<BR>
+<TR><TD>35+2^<SUP>n</SUP>+<I>maxbits</I>-<I>n</I>+1 ..
+<TD>Coded data<BR>
+</TABLE>
+
+<H3>CCP4-style compression</H3>
+<P>
+The CCP4-style compression writes the errors in blocks .  Each block begins with a 
+6-bit code.  The number of errors in the block is 2^<SUP>n</SUP>, 
+where <CITE>n</CITE>
+ is the value in bits 0 .. 2.  
+Bits 3 .. 5 encode the number of bits in each error:<BR>
+<TABLE ALIGN=CENTER>
+<TR><TH ALIGN=CENTER>Value in <BR> bits 3 .. 5</TH>
+<TH ALIGN=CENTER>Number of bits <BR> in each error<P></TH>
+</TR>
+<TR><TD ALIGN=CENTER>0</TD><TD ALIGN=CENTER>0</TD>
+<TR><TD ALIGN=CENTER>1</TD><TD ALIGN=CENTER>4</TD>
+<TR><TD ALIGN=CENTER>2</TD><TD ALIGN=CENTER>5</TD>
+<TR><TD ALIGN=CENTER>3</TD><TD ALIGN=CENTER>6</TD>
+<TR><TD ALIGN=CENTER>4</TD><TD ALIGN=CENTER>7</TD>
+<TR><TD ALIGN=CENTER>5</TD><TD ALIGN=CENTER>8</TD>
+<TR><TD ALIGN=CENTER>6</TD><TD ALIGN=CENTER>16</TD>
+<TR><TD ALIGN=CENTER>7</TD><TD ALIGN=CENTER>65</TD>
+</TABLE>
+<BR>
+<BR>
+The structure of the compressed data is:<BR>
+<TABLE ALIGN=CENTER>
+<TR><TH>Byte</TH><TH>Value</TH>
+<TR><TD>1 .. 8</TD><TD>Number of elements (64-bit little-endian number)</TD></TR>
+<TR><TD>9 .. 16</TD><TD>Minumum element (currently unused)</TD></TR>
+<BR>
+<TR><TD>17 .. 24</TD><TD>Maximum element (currently unused)</TD></TR>
+<BR>
+<TR><TD>25 .. 32</TD><TD>Repeat length (used, starting with version 0.2)</TD></TR>
+<BR>
+<TR><TD>33 ..</TD><TD>Coded data</TD></TR>
+</TABLE>
+<P>
+<h3>Additional Compression Schemes</H3> 
+<p>
+In addition, Andy Hammersley has proposed two types of lossless data compression algorithms 
+for CBF version 1.0. In later versions other types including lossy algorithms
+may be added.
+<p>
+The first algorithm is referred to as <tt>byte_offsets</tt> and has been 
+chosen for the following characteristics: it is very simple, 
+may be easily implemented, and can easily lead to faster reading and
+writing to hard disk as the arithmetic complication is very small.
+This algorithm can never achieve better than a factor of two compression
+relative to 16-bit raw data, but for most diffraction data the
+compression will indeed be very close to a factor 2.
+<p>
+The second algorithm is referred to as <tt>predictor_huffman</tt> and has
+been chosen as it can achieve close to optimum compression on typical
+diffraction patterns, with a relatively fast algorithm, whilst avoiding 
+patent problems and licensing fees. This will typically provide a
+compression ratio between 2.5 and 3 on well exposed diffraction images,
+and will achieve greater ratios on more weakly exposed data e.g. 
+4 - 5 on &quot;thin phi-slicing&quot; images. Normally, this would be a two
+pass algorithm; 1st pass to define symbol probabilities; second pass
+to entropy encode the data symbols. However, the Huffman algorithm
+makes it possible to use a fixed table of symbol codes, so faster single
+pass compression may be implemented with a small loss in compression
+ratio. With very fast cpus this approach may provide faster hard disk 
+reading and writing than the &quot;byte_offsets&quot; algorithm owing to the 
+smaller amounts of data to be stored.
+<p>
+There are practical disadvantages to data compression: the value of
+a particular element cannot be obtained without calculating the values of
+all previous elements, and there is no simple relationship between element
+position and stored bytes. If generally the whole array is required this
+disadvantage does not apply. These disadvantages can be reduced by
+compressing separately different regions of the arrays, which is an
+approach available in TIFF, but this adds to the complexity reading and 
+writing images. 
+<p>
+For simple predictor algorithms such as the <tt>byte_offsets</tt>
+algorithm a simple alternative is an optional data item, which defines a
+look-up table of element addresses, values, and byte positions within
+the compressed data, and it is suggested that this approach is followed.
+
+<h3> THE &quot;BYTE_OFFSETS&quot; ALGORITHM </h3>
+
+The <tt>byte_offsets</tt> algorithm will typically 
+result in close to a factor of two reduction in data storage size 
+relative to typical 2-byte diffraction images. It should give similar 
+gains in disk I/O and network transfer. It also has the advantage that 
+integer values up to 32 bits (31 bits unsigned) may be stored efficiently 
+without the need for special over-load tables. It is a fixed algorithm 
+which does not need to calculate any image statistics, so is fast.
+<p>
+The algorithm works because of the following property of almost all
+diffraction data and much other image data: The value of one element
+tends to be close to the value of the adjacent elements, and the vast
+majority of the differences use little of the full dynamic range.
+However, noise in experimental data means that run-length encoding is 
+not useful (unless the image is separated into different bit-planes). If
+a variable length code is used to store the differences, with the number
+of bits used being inversely proportional to the probability of
+occurrence, then compression ratios of 2.5 to 3.0 may be achieved. 
+However, the optimum encoding becomes dependent of the exact properties 
+of the image, and in particular on the noise. Here a lower compression 
+ratio is achieved, but the resulting algorithm is much simpler and more 
+robust.
+<p>
+The <tt>byte_offsets</tt> algorithm is the following:
+<p>
+<ol>
+<li> The first element of the array is stored as a 4-byte signed 
+   two's integer regardless of the raw array element type. The byte 
+   order for this and all subsequent multi-byte integers is 
+   <tt>little_endian</tt> regardless of the native computer architecture 
+   i.e. the first byte is the least significant, and the last byte the 
+   most. This value is the first reference value (&quot;previous element&quot;) for 
+   calculating pixel to pixel differences.
+<p>
+<li> For all elements, including the first element, the value of the 
+   previous element is subtracted to produce the difference. For the first 
+   element on a line the value to subtract is the value of the first element 
+   of the previous line. For the first element of a subsequent image (or 
+   plane) the value to subtract is the value of the first element of the 
+   previous image (or plane).
+<p>
+<li> If the difference is less than +-127, then one byte is used to store
+   the difference as a signed two's complement integer, otherwise the byte 
+   is set to -128 (80 in hex) and if the difference is less than 
+   +-32767, then the next two bytes are used to store the difference as a
+   signed two byte two's complement integer, otherwise -32768 (8000 in hex,
+   which will be output as 00 80 in little-endian format) is written into 
+   the two bytes and the following 4-bytes store the  difference as a full 
+   signed 32-bit two's complement integer.
+<p>
+<li> The array element order follows the normal ordering as defined by
+   the <tt>_array_structure_list</tt> entries <tt> index, precedence</tt>
+   and <tt>direction</tt>.
+</ol>
+<p>
+It may be noted that one element value may require up to 7 bytes for
+storage, however for almost all 16-bit experimental data the vast 
+majority of element values will be within +-127 units of the previous
+element and so only require 1 byte for storage and a compression factor of
+close to 2 is achieved.
+<p>
+<h3> The <tt> PREDICTOR_HUFFMAN</tt> ALGORITHM </h3>
+
+Section to be added.
+
+<h2> OTHER SECTIONS </h2>
+
+Other sections will be added.
+
+<p>
+<a name="References">
+<h2> 9.0 REFERENCES </h2>
+
+<a href="http://www.iucr.org/iucr-top/cif/standard/cifstd1.html">
+1. S R Hall, F H Allen, and I D Brown, &quot;The Crystallographic Information
+File (CIF): a New Standard Archive File for Crystallography&quot;,
+Acta Cryst., A47, 655-685 (1991)</a>
+
+
+<h2> 10.0 NOTES </h2>
+
+<p>
+<a name="Note_1">
+(1) A pure ASCII CIF based format has been considered inappropriate given the 
+enormous size of many raw experimental data-sets and the desire for
+efficient storage, and reading and writing. 
+However, an ASCII format is helpful for debugging software and
+in understanding what has been written in a CBF when problems
+arise, and there are other CIF application for which a convenience
+binary format should be useful (e.g. illustrations in
+a manuscript). 
+
+<p>
+<a name="Note_2">
+(2) Some simple method of checking whether the file is a CBF or not is
+needed. Ideally this would be right at the start of the file. Thus, a 
+program only needs to read in n bytes and should then know immediately
+if the file is of the right type or not. Andy though this identifier should
+be some straightforward and clear ASCII string.
+With the use of binary strings and MIME conventions identification of
+a CBF versus a CIF is less critical than it was before, but the distinct
+header as a simple ASCII string is still a good idea for the sake of the most efficient processing
+of large files.
+
+<p>
+The underscore character has been used to avoid any ambiguity in the
+spaces.
+
+<p>
+(Such an identifier should be long enough that it is highly unlikely to
+occur randomly, and if it is ASCII text, should be very slightly
+obscure, again to reduce the chances that it is found accidently. Hence 
+I added the three hashes, but some other form may be equally valid.)
+
+<p>
+<a name="Note_3">
+(3) The format should maintain backward compatibility e.g. a version 1.0
+file can be read in by a version 1.1, 3.0, etc.  program, but to allow 
+future extensions the reverse cannot be guaranteed to be true.
+However, prior to actual adoption of version 1.0, we are not
+yet trying to ensure full upwards compatibility, just that the effort to
+convert won't be unreasonable.
+<p>
+<hr>
+<p>
+<h2> <a href="http:example.html"> Examples of CBF and imgCIF Files </a> </h2>
+<p>
+<hr>
+<p>
+<address>
+This page was produced on 23 April 2001 <br>
+by Herbert J. Bernstein (email:
+<A HREF="mailto:yaya@bernstein-plus-sons.com">yaya@bernstein-plus-sons.com</A>),<br>
+based on the 14 November 1998 and 8 July 1998 versions and the 
+page produced by Andy Hammersley (E-mail: hammersley@esrf.fr).<P>
+<address>
+<p>
+<hr>
+</font>
+</body>
+</html>
+
+
+
+
+
+
+

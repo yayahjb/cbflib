@@ -1,12 +1,117 @@
 /**********************************************************************
  * cbf_file -- file access (characterwise and bitwise)                *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term Ôthis softwareÕ, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -51,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -82,7 +187,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -214,11 +319,11 @@ int cbf_free_file (cbf_file **file)
 
           errorcode = CBF_FILECLOSE;
 
-      errorcode |= cbf_free ((void **) &(*file)->buffer, 
+      errorcode |= cbf_free ((void **) &(*file)->buffer,
                                        &(*file)->buffer_size);
 
       errorcode |= cbf_free ((void **) &(*file)->digest, NULL);
-      
+
       errorcode |= cbf_free ((void **) file, NULL);
     }
 
@@ -313,7 +418,7 @@ int cbf_file_connections (cbf_file *file)
   return file->connections;
 }
 
-                    
+
   /* Set the size of the buffer */
 
 int cbf_set_buffersize (cbf_file *file, size_t size)
@@ -327,7 +432,7 @@ int cbf_set_buffersize (cbf_file *file, size_t size)
 
     /* Is the size already close enough? */
 
-  if (size > 0 && file->buffer_size >=  size && 
+  if (size > 0 && file->buffer_size >=  size &&
                   file->buffer_size <   2*size)
 
     return 0;
@@ -335,7 +440,7 @@ int cbf_set_buffersize (cbf_file *file, size_t size)
 
     /* Reallocate the buffer */
 
-  return cbf_realloc ((void **) &file->buffer, 
+  return cbf_realloc ((void **) &file->buffer,
                                 &file->buffer_size, sizeof (char), size);
 }
 
@@ -354,10 +459,10 @@ int cbf_reset_buffer (cbf_file *file)
     /* Empty the buffer */
 
   file->buffer_used = 0;
-  
-  
+
+
     /* success */
-    
+
   return 0;
 }
 
@@ -395,7 +500,7 @@ int cbf_save_character (cbf_file *file, int c)
 
 
     /* Success */
-  
+
   return 0;
 }
 
@@ -410,26 +515,26 @@ int cbf_get_buffer (cbf_file *file, const char **buffer,
   if (!file)
 
     return CBF_ARGUMENT;
-    
-    
+
+
     /* Copy the buffer */
-    
+
   if (buffer) {
-  
+
     if (file->buffer_used <= 0)
-    
+
       *buffer = NULL;
-      
+
     else
-  
+
       *buffer = file->buffer;
 
-  }  
-    
+  }
+
   if (buffer_size)
-    
+
     *buffer_size = file->buffer_used;
-    
+
 
     /* Success */
 
@@ -454,17 +559,17 @@ int cbf_get_filecoordinates (cbf_file *file, unsigned int *line,
   if (line)
 
     *line = file->line;
-    
+
   if (column)
 
     *column = file->column;
-    
+
 
     /* Success */
 
   return 0;
 }
-                                             
+
 
   /* Set the file coordinates */
 
@@ -481,22 +586,22 @@ int cbf_set_filecoordinates (cbf_file *file, unsigned int line,
     /* Set the coordinates */
 
   file->line = line;
-    
+
   file->column = column;
-    
+
 
     /* Success */
 
   return 0;
 }
-                                             
+
 
   /* Read the next bit */
 
 int cbf_get_bit (cbf_file *file)
 {
   int bit;
-  
+
   if (file->bits [0] == 0)
   {
     file->bits [1] = getc (file->stream);
@@ -507,11 +612,11 @@ int cbf_get_bit (cbf_file *file)
 
     file->bits [0] = 8;
   }
-  
+
   bit = file->bits [1] & 1;
 
   file->bits [1] >>= 1;
-  
+
   file->bits [0]--;
 
 
@@ -546,7 +651,7 @@ int cbf_get_bits (cbf_file *file, int *bitslist, int bitcount)
 
 
     /* Read the bits into an int */
-    
+
   count = file->bits [0];
 
   bitcode = file->bits [1] & 0x0ff;
@@ -629,15 +734,15 @@ int cbf_put_bits (cbf_file *file, int *bitslist, int bitcount)
   if (bits0 >= 8)
   {
       /* Add the character to the character buffer */
-      
+
     file->characters [file->characters_used] = bits1 & 0xff;
-    
+
     file->characters_used++;
-    
+
     if (file->characters_used == 64)
     {
       resultcode = cbf_flush_characters (file);
-       
+
       if (resultcode)
       {
         file->bits [0] = bits0;
@@ -660,13 +765,13 @@ int cbf_put_bits (cbf_file *file, int *bitslist, int bitcount)
     while (bits0 >= 8)
     {
       file->characters [file->characters_used] = bits1 & 0xff;
-    
+
       file->characters_used++;
-    
+
       if (file->characters_used == 64)
       {
         resultcode = cbf_flush_characters (file);
-       
+
         if (resultcode)
         {
           file->bits [0] = bits0;
@@ -698,21 +803,18 @@ int cbf_put_bits (cbf_file *file, int *bitslist, int bitcount)
 int cbf_get_integer (cbf_file *file, int *val, int valsign,
                                                int bitcount)
 {
-  int maxbits, signbits, valbits, sign, errorcode, deval;
+  int maxbits, signbits, valbits, sign, errorcode;
 
+  signed long deval;
 
-    /* Make sure there is a destination */
+  signed long *tval = &deval;
 
-  if (!val)
-  
-    val = &deval;
-    
 
     /* Any bits to read? */
 
   if (bitcount <= 0)
   {
-    *val = 0;
+    if (val) *val = 0;
 
     return 0;
   }
@@ -735,17 +837,16 @@ int cbf_get_integer (cbf_file *file, int *val, int valsign,
 
     valbits = bitcount;
 
-
     /* Read the value */
 
-  cbf_failnez (cbf_get_bits (file, val, valbits))
+  cbf_failnez (cbf_get_bits (file, (int *)tval, valbits))
 
 
     /* Fix the sign */
 
   if (valbits < maxbits && valsign == 0)
 
-    *val &= ~-(1 << valbits);
+    deval &= ~-(1 << valbits);
 
 
     /* Read the sign bits */
@@ -767,21 +868,28 @@ int cbf_get_integer (cbf_file *file, int *val, int valsign,
 
       /* Overflow? */
 
-    if (sign != -(*val < 0 && valsign))
+    if (sign != -(deval < 0 && valsign))
     {
       errorcode = CBF_OVERFLOW;
 
       if (valsign)
 
-        *val = -(sign >= 0) ^ (1 << (maxbits - 1));
+        deval = -(sign >= 0) ^ (1 << (maxbits - 1));
 
       else
 
-        *val = -1;
+        deval = -1;
     }
   }
 
+  if (val) {
+
+    *val = deval;
+
+  }
+
   return errorcode;
+
 }
 
 
@@ -849,75 +957,75 @@ int cbf_put_integer (cbf_file *file, int val, int valsign,
 
 
   /* Initialize a message digest */
-  
+
 int cbf_start_digest (cbf_file *file)
 {
   if (!file)
 
     return CBF_ARGUMENT;
-    
-    
+
+
     /* Flush the buffers */
 
   cbf_failnez (cbf_flush_characters (file))
-  
+
 
     /* Allocate the md5 context */
-    
+
   if (!file->digest)
 
-    cbf_failnez (cbf_alloc ((void **) &file->digest, 
+    cbf_failnez (cbf_alloc ((void **) &file->digest,
                                        NULL, sizeof (MD5_CTX), 1))
-                                       
+
 
     /* Initialize */
-    
+
   MD5Init (file->digest);
 
 
     /* Success */
-    
+
   return 0;
 }
 
 
   /* Get the message digest */
-  
+
 int cbf_end_digest (cbf_file *file, char *digest)
 {
   unsigned char raw_digest [16];
-  
+
   if (!file || !digest)
 
     return CBF_ARGUMENT;
-    
+
   if (!file->digest)
-  
+
     return CBF_ARGUMENT;
-  
-    
+
+
     /* Flush the buffers */
 
   cbf_failnez (cbf_flush_characters (file))
-  
+
 
     /* Get the raw digest */
-    
+
   MD5Final (raw_digest, file->digest);
-  
-  
+
+
     /* Free the md5 context */
-    
+
   cbf_failnez (cbf_free ((void **) &file->digest, NULL))
-  
-  
+
+
     /* Encode the digest in base-64 */
-    
+
   cbf_md5digest_to64 (digest, raw_digest);
 
-  
+
     /* Success */
-    
+
   return 0;
 }
 
@@ -932,12 +1040,12 @@ int cbf_flush_bits (cbf_file *file)
 
 
     /* Flush any partial bytes into the character buffer */
-    
+
   cbf_failnez (cbf_put_integer (file, 0, 0, 7))
-  
-  
+
+
     /* Reset the bit buffers */
-    
+
   file->bits [0] = 0;
   file->bits [1] = 0;
 
@@ -953,16 +1061,16 @@ int cbf_flush_bits (cbf_file *file)
 int cbf_flush_characters (cbf_file *file)
 {
   int done;
-  
+
   if (!file)
 
     return CBF_ARGUMENT;
 
 
     /* Write the characters */
-    
+
   if (file->characters_used == 0)
-  
+
     return 0;
 
   done = fwrite (file->characters, 1, file->characters_used, file->stream);
@@ -970,7 +1078,7 @@ int cbf_flush_characters (cbf_file *file)
 
     /* Update the message digest */
 
-  if (done > 0 && file->digest) 
+  if (done > 0 && file->digest)
 
     MD5Update (file->digest, file->characters, done);
 
@@ -978,10 +1086,10 @@ int cbf_flush_characters (cbf_file *file)
     /* Make sure the file is really updated */
 
   if (done > 0)
-  
+
     fflush (file->stream);
 
-    
+
     /* Remove the characters written */
 
   if (done < file->characters_used)
@@ -989,7 +1097,7 @@ int cbf_flush_characters (cbf_file *file)
     if (done > 0)
     {
       memmove (file->characters, file->characters + done, 64 - done);
-        
+
       file->characters_used = 64 - done;
     }
 
@@ -1012,10 +1120,10 @@ int cbf_reset_bits (cbf_file *file)
   if (!file)
 
     return CBF_ARGUMENT;
-    
+
   file->bits [0] = 0;
   file->bits [1] = 0;
-  
+
   return cbf_reset_characters (file);
 }
 
@@ -1027,7 +1135,7 @@ int cbf_reset_characters (cbf_file *file)
   if (!file)
 
     return CBF_ARGUMENT;
-    
+
   file->characters_used = 0;
 
 
@@ -1094,9 +1202,9 @@ int cbf_read_character (cbf_file *file)
     if (current == '\t')
 
       file->column = (file->column & ~0x07) + 8;
-      
+
     else
-    
+
       file->column++;
 
   return current;
@@ -1117,19 +1225,19 @@ int cbf_put_character (cbf_file *file, int c)
     /* Flush the buffer? */
 
   if (file->characters_used == 64)
-  
+
     cbf_failnez (cbf_flush_characters (file))
 
 
     /* Add the character */
-       
+
   file->characters [file->characters_used] = c & 0xff;
-    
+
   file->characters_used++;
-    
+
 
     /* Success */
-    
+
   return 0;
 }
 
@@ -1150,7 +1258,7 @@ int cbf_write_character (cbf_file *file, int c)
   if (c == '\n')
   {
       /* Line termination */
-      
+
     if (file->write_encoding & ENC_CRTERM)
 
       cbf_failnez (cbf_put_character (file, '\r'))
@@ -1179,9 +1287,9 @@ int cbf_write_character (cbf_file *file, int c)
     if (c == '\t')
 
       file->column = (file->column & ~0x07) + 8;
-      
+
     else
-    
+
       file->column++;
   }
 
@@ -1201,14 +1309,14 @@ int cbf_put_string (cbf_file *file, const char *string)
   if (!string)
 
     return CBF_ARGUMENT;
-    
+
 
     /* Write the string one character at a time */
-    
+
   while (*string)
   {
     cbf_failnez (cbf_put_character (file, *string))
-    
+
     string++;
   }
 
@@ -1228,17 +1336,17 @@ int cbf_write_string (cbf_file *file, const char *string)
   if (!string)
 
     return CBF_ARGUMENT;
-    
+
 
     /* Write the string */
 
   while (*string)
   {
     cbf_failnez (cbf_write_character (file, *string))
-    
+
     string++;
   }
-  
+
 
     /* Success */
 
@@ -1251,32 +1359,32 @@ int cbf_write_string (cbf_file *file, const char *string)
 int cbf_read_line (cbf_file *file, const char **line)
 {
   int c;
-  
-  
+
+
     /* Does the file exist? */
-    
+
   if (!file)
 
     return CBF_ARGUMENT;
 
 
     /* Empty the buffer */
-    
+
   file->buffer_used = 0;
 
   file->column = 0;
 
 
     /* Read the characters */
- 
+
   do
   {
     c = cbf_read_character (file);
-    
+
     if (c == EOF)
-    
+
       return CBF_FILEREAD;
-      
+
     cbf_failnez (cbf_save_character (file, c))
 
   }
@@ -1284,11 +1392,11 @@ int cbf_read_line (cbf_file *file, const char **line)
 
 
     /* Copy the pointer */
-    
+
   if (line)
-  
+
     *line = file->buffer;
-    
+
 
     /* Success */
 
@@ -1302,9 +1410,9 @@ int cbf_get_block (cbf_file *file, size_t nelem)
 {
   size_t done;
 
-  
+
     /* Does the file exist? */
-    
+
   if (!file)
 
     return CBF_ARGUMENT;
@@ -1318,11 +1426,11 @@ int cbf_get_block (cbf_file *file, size_t nelem)
     /* Read the characters */
 
   file->buffer_used = 0;
-  
+
   while (file->buffer_used < nelem)
   {
     if (file->stream)
-    
+
       done = fread (file->buffer + file->buffer_used, 1,
                            nelem - file->buffer_used, file->stream);
 
@@ -1350,9 +1458,9 @@ int cbf_put_block (cbf_file *file, size_t nelem)
 {
   size_t done;
 
-  
+
     /* Does the file exist? */
-    
+
   if (!file)
 
     return CBF_ARGUMENT;
@@ -1366,27 +1474,27 @@ int cbf_put_block (cbf_file *file, size_t nelem)
 
 
     /* Flush the buffers */
-    
+
   cbf_failnez (cbf_flush_characters (file))
-  
+
 
     /* Write the characters */
 
   if (file->stream && nelem)
-    
+
     done = fwrite (file->buffer, 1, nelem, file->stream);
 
   else
 
     done = 0;
-    
-    
+
+
     /* Update the message digest */
-    
+
   if (done > 0 && file->digest)
 
     MD5Update (file->digest, file->buffer, done);
-    
+
 
     /* Fail? */
 
@@ -1409,7 +1517,7 @@ int cbf_copy_file (cbf_file *destination, cbf_file *source, size_t nelem)
 
 
     /* Do the files exist? */
-    
+
   if (!destination || !source)
 
     return CBF_ARGUMENT;
@@ -1420,12 +1528,12 @@ int cbf_copy_file (cbf_file *destination, cbf_file *source, size_t nelem)
 
 
     /* Flush the buffers */
-    
+
   cbf_failnez (cbf_flush_characters (destination))
-  
+
 
     /* Copy the characters in blocks of up to 1024 */
-    
+
   while (nelem > 0)
   {
     if (nelem >= 1024)
@@ -1439,15 +1547,15 @@ int cbf_copy_file (cbf_file *destination, cbf_file *source, size_t nelem)
     cbf_failnez (cbf_get_block (source, todo))
 
     done = fwrite (source->buffer, 1, todo, destination->stream);
-    
-    
+
+
       /* Update the message digest */
-      
+
     if (done > 0 && destination->digest)
 
       MD5Update (destination->digest, source->buffer, done);
-      
-      
+
+
       /* Fail? */
 
     if (done < todo)
@@ -1469,62 +1577,62 @@ int cbf_copy_file (cbf_file *destination, cbf_file *source, size_t nelem)
 int cbf_get_fileposition (cbf_file *file, long int *position)
 {
   long int file_position;
-  
-  
+
+
     /* Does the file exist? */
-    
+
   if (!file)
 
     return CBF_ARGUMENT;
-    
+
   if (!file->stream)
-  
+
     return CBF_ARGUMENT;
-    
-    
+
+
     /* Get the position */
-    
+
   file_position = ftell (file->stream);
-  
+
   if (file_position == -1L)
-  
+
     return CBF_FILETELL;
-    
+
   if (position)
-  
+
     *position = file_position;
-    
-    
+
+
     /* Success */
-    
+
   return 0;
 }
-                                             
+
 
   /* Set the file position */
 
 int cbf_set_fileposition (cbf_file *file, long int position, int whence)
 {
     /* Does the file exist? */
-    
+
   if (!file)
 
     return CBF_ARGUMENT;
-    
+
   if (!file->stream)
-  
+
     return CBF_ARGUMENT;
-    
-    
+
+
     /* Set the position */
-    
+
  if (fseek (file->stream, position, whence) < 0)
 
    return CBF_FILESEEK;
-    
-    
+
+
     /* Success */
-    
+
   return 0;
 }
 

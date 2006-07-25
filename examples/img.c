@@ -22,7 +22,7 @@ extern "C" {
 #define isNaN(x) ((((x) & 0x7F800000L) == 0x7F800000L) && \
                   (((x) & 0x007FFFFFL) != 0x00000000L))
 
-                         
+
   /* I/O functions */
 
 int img_swap_i4 (int i4)
@@ -39,7 +39,7 @@ float img_float_i4 (int i4, int VAX)
   int O;
 
   float f;
-  
+
   if (VAX)
 
     i4 = ((i4 << 16) & 0x0FFFF0000) |
@@ -102,7 +102,7 @@ int img_read_i4 (FILE *file, int *i4)
 
 int img_read_smvheader (img_handle img, FILE *file)
 {
-    /* Start : { 
+    /* Start : {
        Line  : tag=data;
        End   : }          */
 
@@ -118,7 +118,7 @@ int img_read_smvheader (img_handle img, FILE *file)
 
   int dimension [2], status;
 
-  char C64 [64];
+  char C64 [65];
 
 
   while ((c = getc (file)) != EOF)
@@ -258,7 +258,7 @@ int img_read_smvheader (img_handle img, FILE *file)
     /* Free the buffer */
 
   if (line)
-  
+
     free (line);
 
 
@@ -271,7 +271,7 @@ int img_read_smvheader (img_handle img, FILE *file)
   if (header_bytes <= 0)
 
     header_bytes = (int) img_get_number (img, "HEADER_BYTES");
-    
+
   if (header_bytes <= 0)
 
     return img_BAD_FORMAT;
@@ -342,10 +342,10 @@ int img_read_smvdata (img_handle img, FILE *file)
   int readcount, datacount;
 
   unsigned char *data;
-  
+
   int *pixel, *stop_pixel;
-  
-  
+
+
     /* Get the byte order */
 
   order = img_get_field (img, "BYTE_ORDER");
@@ -353,18 +353,18 @@ int img_read_smvdata (img_handle img, FILE *file)
   if (!order)
 
     return img_BAD_FORMAT;
-    
+
   little = order [0] == 'l' || order [0] == 'L';
 
 
     /* Get the data type */
-    
+
   type = img_get_field (img, "TYPE");
 
   if (!type)
 
     return img_BAD_FORMAT;
-    
+
   size = 1;
 
   sign = 0;
@@ -405,9 +405,9 @@ int img_read_smvdata (img_handle img, FILE *file)
 
   rows = (int) img_get_number (img, "SIZE1");
   cols = (int) img_get_number (img, "SIZE2");
-  
+
   if (rows > 0 && cols == 0)
-  
+
     cols = 1;
 
   if (img_set_dimensions (img, cols, rows))
@@ -427,14 +427,14 @@ int img_read_smvdata (img_handle img, FILE *file)
   if (!data)
 
     return img_BAD_ALLOC;
-    
+
 
     /* Note that the smv file has the first dimension fast */
 
   datacount = 0;
-  
+
   pixel = &img_pixel (img, 0, 0);
-  
+
   stop_pixel = &img_pixel (img, cols - 1, rows - 1) + 1;
 
   while ((readcount = fread (data + datacount, 1, 4096 - datacount, file)) > 0)
@@ -442,9 +442,9 @@ int img_read_smvdata (img_handle img, FILE *file)
     unsigned char *c, *stop;
 
     datacount += readcount;
-    
+
     c = data;
-      
+
     stop = data + (datacount / size) * size;
 
     while (c != stop)
@@ -453,12 +453,12 @@ int img_read_smvdata (img_handle img, FILE *file)
 
         if (size == 2)
 
-          *pixel = (c [0]) + 
+          *pixel = (c [0]) +
                    (c [1] << 8);
-          
+
         else
-      
-          *pixel = (c [0]) + 
+
+          *pixel = (c [0]) +
                    (c [1] <<  8) +
                    (c [2] << 16) +
                    (c [3] << 24);
@@ -467,12 +467,12 @@ int img_read_smvdata (img_handle img, FILE *file)
 
         if (size == 2)
 
-          *pixel = (c [0] << 8) + 
+          *pixel = (c [0] << 8) +
                    (c [1]);
-          
+
         else
-      
-          *pixel = (c [0] << 24) + 
+
+          *pixel = (c [0] << 24) +
                    (c [1] << 16) +
                    (c [2] <<  8) +
                    (c [3]);
@@ -480,11 +480,11 @@ int img_read_smvdata (img_handle img, FILE *file)
       c += size;
 
       pixel++;
-        
+
       if (pixel == stop_pixel)
       {
         free (data);
-        
+
         return 0;
       }
     }
@@ -498,7 +498,7 @@ int img_read_smvdata (img_handle img, FILE *file)
 
 
     /* Failure */
-    
+
   free (data);
 
   return img_BAD_READ;
@@ -510,7 +510,7 @@ int img_read_smv (img_handle img, const char *name)
   FILE * file;
 
   int status;
-  
+
   if (!img)
 
     return img_BAD_ARGUMENT;
@@ -535,12 +535,12 @@ int img_read_smv (img_handle img, const char *name)
 
   /* Write an smv-format file */
 
-int img_write_smv (img_object   *img, 
+int img_write_smv (img_object   *img,
                    const char   *name,
                    unsigned int  bits)
 {
   static const char *tags [] =
-  
+
   {
     "PIXEL_SIZE",         /* Pixel size     (mm)                           */
     "BIN",                /* Binning        (none/ )                       */
@@ -562,19 +562,19 @@ int img_write_smv (img_object   *img,
   };
 
   const char **tag, *val;
-  
+
   FILE *file;
-  
+
   char data [4100];
-  
+
   unsigned char *c;
 
   int bytes, size, little, done;
-  
+
   int *pixel, *stop_pixel, data_size, value;
-  
+
   int limit;
-  
+
 
     /* (1) Calculate the header space required */
 
@@ -583,46 +583,46 @@ int img_write_smv (img_object   *img,
   for (tag = tags; *tag; tag++)
   {
     val = img_get_field (img, *tag);
-    
+
     if (val)
-    
+
       bytes += strlen (*tag) + strlen (val) + 3;
-  }  
-  
+  }
+
   bytes = ((bytes + 511) / 512) * 512;
 
 
     /* (2) Write the header */
 
   file = fopen (name, "wb");
-  
+
   if (file == NULL)
-  
+
     return img_BAD_OPEN;
-    
+
   if (bits <= 16)
   {
     size = 2;
-    
+
     limit = 0x0ffff;
   }
   else
   {
     size = 4;
-    
+
     if (((unsigned int) (~0)) > 0x0ffffffffU)
 
       limit = 0x0ffffffffU;
-      
+
     else
 
       limit = ((unsigned int) (~0)) / 2;
   }
-    
+
   little = 1;
-  
+
   if (*((char *) &little) == 0)
-  
+
     little = 0;
 
   sprintf (data, "{\012"
@@ -650,11 +650,11 @@ int img_write_smv (img_object   *img,
   for (tag = tags; *tag; tag++)
   {
     val = img_get_field (img, *tag);
-    
+
     if (val)
     {
       sprintf (data, "%s=%s;\n", *tag, val);
-    
+
       if (fputs (data, file) == EOF)
       {
         fclose (file);
@@ -664,7 +664,7 @@ int img_write_smv (img_object   *img,
 
       bytes -= strlen (data);
     }
-  }  
+  }
 
   if (fputs ("}\014", file) == EOF)
   {
@@ -672,7 +672,7 @@ int img_write_smv (img_object   *img,
 
     return img_BAD_WRITE;
   }
-                 
+
   bytes -= 2;
 
   if (bytes < 0)
@@ -696,33 +696,33 @@ int img_write_smv (img_object   *img,
 
 
     /* (3) Write the pixel values */
-    
+
   pixel = &img_pixel (img, 0, 0);
-  
-  stop_pixel = &img_pixel (img, img_columns (img) - 1, 
+
+  stop_pixel = &img_pixel (img, img_columns (img) - 1,
                                 img_rows (img) - 1) + 1;
 
   data_size = 0;
-  
+
   c = (unsigned char *) data;
 
   while (pixel != stop_pixel)
   {
     value = *pixel++;
-      
+
     if (((unsigned int) value) >= (unsigned int) limit) {
-      
+
       if (value < 0) {
-        
+
         value = 0;
-          
+
       } else {
-      
+
         value = (int) limit;
       }
 
     }
-      
+
     if (little)
 
       if (size == 2)
@@ -751,49 +751,49 @@ int img_write_smv (img_object   *img,
         c [2] = (value >>  8);
         c [3] = (value);
       }
-        
+
     data_size += size;
-      
+
     c += size;
-      
+
     if (data_size >= 4096)
     {
       done = fwrite (data, 1, data_size, file);
-        
+
       if (done <= 0)
       {
         fclose (file);
 
         return img_BAD_WRITE;
       }
-        
+
       data_size -= done;
-        
+
       c -= done;
-        
+
       if (data_size > 0)
-        
+
         memmove (data, data + done, data_size);
     }
-  }  
+  }
 
   while (data_size > 0)
   {
     done = fwrite (data, 1, data_size, file);
-        
+
     if (done <= 0)
     {
       fclose (file);
 
       return img_BAD_WRITE;
     }
-        
+
     data_size -= done;
-        
+
     c -= done;
-        
+
     if (data_size > 0)
-        
+
       memmove (data, data + done, data_size);
   }
 
@@ -811,7 +811,7 @@ int img_read_mar300header (img_handle img, FILE *file, int *org_data)
 
   float f4_data [25];
 
-  char C64 [64];
+  char C64 [65];
 
   double pixel_size;
 
@@ -857,7 +857,7 @@ int img_read_mar300header (img_handle img, FILE *file, int *org_data)
 
       f4_data [count] = img_float_i4 (i4_data [count], 1);
 
-                
+
     /* Check the header again */
 
   for (count = 0; count < 2; count++)
@@ -877,7 +877,7 @@ int img_read_mar300header (img_handle img, FILE *file, int *org_data)
   org_data [2] = i4_data [2];
   org_data [3] = i4_data [3];
   org_data [4] = i4_data [4];
-  
+
   org_data [5] = swap;
 
   if (org_data [2] <= 0)
@@ -894,7 +894,7 @@ int img_read_mar300header (img_handle img, FILE *file, int *org_data)
     model = (int) floor (f4_data [11] * 2 + 0.5);
 
   strcpy (C64, "MAR");
-  
+
   if (model)
 
     sprintf (C64, "MAR %d", model);
@@ -1043,7 +1043,7 @@ int img_read_mar300header (img_handle img, FILE *file, int *org_data)
   if (count >= 0 && C64 [0])
 
     status = img_set_field (img, "DATE", C64);
-  
+
 
     /* Skip the rest of the header */
 
@@ -1076,8 +1076,8 @@ int img_read_mar300data (img_handle img, FILE *file, int *org_data)
       img->size [1] == 0)
 
     return 0;
-  
-  
+
+
     /* Read the unsigned short data */
 
   little = org_data [5];
@@ -1124,7 +1124,7 @@ int img_read_mar300data (img_handle img, FILE *file, int *org_data)
     {
       if (img_read_i4 (file, &O [c]))
 
-        return img_BAD_READ; 
+        return img_BAD_READ;
 
       if (org_data [5])
 
@@ -1143,7 +1143,7 @@ int img_read_mar300data (img_handle img, FILE *file, int *org_data)
 
       return img_BAD_FORMAT;
   }
-  
+
   return 0;
 }
 
@@ -1155,7 +1155,7 @@ int img_read_mar300 (img_handle img, const char *name)
   FILE * file;
 
   int status, org_data [6];
-  
+
   if (!img)
 
     return img_BAD_ARGUMENT;
@@ -1184,7 +1184,7 @@ int img_read_mar345header (img_handle img, FILE *file, int *org_data)
 {
   int i4_data [16], count, swap;
 
-  char C64 [64], *C;
+  char C64[65], D64[65], *C, *D, *E;
 
 
     /* Read the start of the header */
@@ -1218,12 +1218,12 @@ int img_read_mar345header (img_handle img, FILE *file, int *org_data)
     /* Copy the data needed to read the image */
 
     /* x = y */
-    
+
   org_data [0] = org_data [1] = i4_data [1];
 
 
     /* Overflows */
-    
+
   org_data [2] = i4_data [2];
 
 
@@ -1233,7 +1233,7 @@ int img_read_mar345header (img_handle img, FILE *file, int *org_data)
 
 
     /* Header data */
-    
+
   FailNEZ (img_set_field (img, "DETECTOR", "MAR 345"));
 
   if (i4_data [6] <= 0)
@@ -1264,34 +1264,102 @@ int img_read_mar345header (img_handle img, FILE *file, int *org_data)
 
 
 
-	/* Read the remaining (ASCII) part of the header in 64-byte chunks */
+    /* Read the remaining (ASCII) part of the header in 64-byte chunks */
 
   if (i4_data [2] > 0)
   {
-	for (count = 4096 - 64; count > 0; count -= 64)
-	{
+    for (count = 4096 - 64; count > 0; count -= 64)
+    {
       if (fread (C64, 64, 1, file) <= 0)
 
         return img_BAD_READ;
+ 
+      C64[64] = '\0';
 
-	  for (C = C64; *C; C++)
+      for (C = C64; *C; C++)
 
-        if (strchr ("\t\r\n", *C))
+        if (isspace(*C))
 
-		  *C = ' ';
+          *C = ' ';
+
+      for (C = C64; *C; C++)
+
+        if ((*C) < 32 || (*C) > 126 )
+
+          *C = '\0';
+          
+      for (C = C64+strlen(C64)-1; (C != C64-1 && *C == ' '); C-- ) *C = '\0';
 
       C = C64 + strcspn (C64, " ");
 
       C = C + strspn (C, " ");
 
-      if (strncmp (C64, "DATE", 4) == 0)
-			
-        FailNEZ (img_set_field (img, "DATE", C));
+      if (strncmp (C64, "DATE", 4) == 0) {
+  
+      	FailNEZ (img_set_field (img, "DATE", C));
+      
+      } else {
 
-      if (strncmp (C64, "TIME", 4) == 0)
-			
-        FailNEZ (img_set_field (img, "EXPOSURE TIME", C));
-	}
+        if (strncmp (C64, "TIME", 4) == 0) {
+
+          FailNEZ (img_set_field (img, "EXPOSURE TIME", C));
+ 
+        } else {
+        
+          if ((D=strstr(C64,"  "))) {
+          
+            *D = '\0';
+            
+            C = D+ strspn(D+1, " ") + 1;
+            
+            if (strlen(C64) > 0) {
+            
+              strcpy (D64,C64); D64[64] = '\0';
+              
+              while (1) {
+            
+                if (!(E=(char *)img_get_field (img, (const char *)D64)))  {
+              	
+                  FailNEZ (img_set_field (img, D64, C));
+                
+                  break;
+              
+                } else  {
+              
+                  if (strcmp(E,C)) {
+                  
+                    double test1, test2;
+                  
+                    char * endptr1, * endptr2;
+                  
+                    test1 = strtod (E, &endptr1);
+                  
+                    test2 = strtod (C, &endptr2);
+                  
+                    if (test1 == test2 && *endptr1=='\0' && *endptr2=='\0') break;
+                  
+                    if (strlen(D64) > 62 ) break;
+              
+                    strncat(D64,"..",64);
+                  
+                  } else {
+                  
+                    break;
+                  
+                  }
+                
+                }
+              	
+              }
+              
+            }
+          	
+          }
+          
+        }
+        
+      }
+    }
   }
 
   return 0;
@@ -1309,9 +1377,9 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
 
   int *cimg;
 
-  char C64 [64];
-  
-  
+  char C64 [65];
+
+
     /* Get the image size */
 
   FailNEZ (img_set_dimensions (img, org_data [0], org_data [1]))
@@ -1344,8 +1412,8 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
 
         O_data [count] = img_swap_i4 (O_data [count]);
   }
-    
-  
+
+
     /* Find the "CCP4 packed image" identifier */
 
   for (C = '\n', count = 0; C != EOF; C = getc (file))
@@ -1360,13 +1428,13 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
     C64 [count] = (char) C;
 
     count++;
-    
+
     C64 [count] = 0;
 
     if (C == '\n')
     {
       x = y = 0;
-      
+
       sscanf (C64, "CCP4 packed image, X: %04d, Y: %04d", &x, &y);
 
       if (x && y)
@@ -1386,18 +1454,18 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
 
       count = 0;
     }
-  } 
+  }
 
   if (C == EOF || PACK > 1)
   {
     if (org_data [2] > 0)
 
       free (O_data);
-    
+
     return img_BAD_FORMAT;
   }
 
-  
+
     /* MAR 345 images have the first dimension fast? */
 
     /* Read the packed unsigned short data */
@@ -1499,8 +1567,8 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
         C = cimg [ 1 - x];
         D = cimg [-1    ];
 
-        *cimg = (next + (((A & 0x07FFF) + 
-                          (B & 0x07FFF) + 
+        *cimg = (next + (((A & 0x07FFF) +
+                          (B & 0x07FFF) +
                           (C & 0x07FFF) +
                           (D & 0x07FFF) -
                           (A & 0x08000) -
@@ -1509,9 +1577,9 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
                           (D & 0x08000) + 2) / 4)) & 0x0FFFF;
       }
       else
-          
+
         if (pixel)
-        
+
           *cimg = (cimg [-1] + next) & 0x0FFFF;
 
         else
@@ -1538,11 +1606,11 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
 
 
     /* Overflows? */
-        
+
   for (count = 0; count < org_data [2]; count++)
   {
     a = O_data [count * 2];
-    
+
     x = a / img_rows (img);
     y = a % img_rows (img);
 
@@ -1555,7 +1623,7 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
 
       return img_BAD_FORMAT;
   }
-    
+
   if (org_data [2] > 0)
 
     free (O_data);
@@ -1571,7 +1639,7 @@ int img_read_mar345 (img_handle img, const char *name)
   FILE * file;
 
   int status, org_data [4];
-  
+
   if (!img)
 
     return img_BAD_ARGUMENT;
@@ -1651,7 +1719,7 @@ int img_set_tags (img_handle img, int tags)
   if (!img || tags < 0)
 
     return img_BAD_ARGUMENT;
-    
+
   tags = (tags + 0x03F) & ~0x03F;
 
   if (tags > img->tags)
@@ -1663,7 +1731,7 @@ int img_set_tags (img_handle img, int tags)
     if (!img->tag)
     {
       img->tag = old_tag;
-      
+
       return img_BAD_ALLOC;
     }
 
@@ -1686,11 +1754,11 @@ int img_set_tags (img_handle img, int tags)
       while (--img->tags >= 0)
       {
         if (img->tag [img->tags].tag)
-        
+
           free (img->tag [img->tags].tag);
-          
+
         if (img->tag [img->tags].data)
-        
+
           free (img->tag [img->tags].data);
       }
 
@@ -1700,7 +1768,7 @@ int img_set_tags (img_handle img, int tags)
     img->tags = 0;
     img->tag  = NULL;
   }
-  
+
   return 0;
 }
 
@@ -1708,11 +1776,11 @@ int img_set_tags (img_handle img, int tags)
 int img_get_tags (img_handle img)
 {
   int x;
-  
+
   if (!img)
 
     return 0;
-    
+
   for (x = img->tags - 1; x >= 0; x--)
 
     if (img->tag [x].tag)
@@ -1722,7 +1790,7 @@ int img_get_tags (img_handle img)
   return x + 1;
 }
 
- 
+
 int img_free_handle (img_handle img)
 {
   if (!img)
@@ -1752,22 +1820,22 @@ int img_delete_fieldnumber (img_handle img, int x)
     return img_BAD_ARGUMENT;
 
   if (x >= img->tags)
-  
-    return img_BAD_FIELD;      
+
+    return img_BAD_FIELD;
 
   if (!img->tag [x].tag)
 
-    return img_BAD_FIELD;      
+    return img_BAD_FIELD;
 
   free (img->tag [x].tag);
-  
+
   if (img->tag [x].data)
-  
+
     free (img->tag [x].data);
 
   if (x < img->tags - 1)
 
-    memmove (&img->tag [x], 
+    memmove (&img->tag [x],
              &img->tag [x + 1],
              (img->tags - 1 - x) * sizeof (img_tag));
 
@@ -1781,7 +1849,7 @@ int img_delete_fieldnumber (img_handle img, int x)
 int img_delete_field (img_handle img, const char * tag)
 {
   int x;
-  
+
   if (!img || !tag)
 
     return img_BAD_ARGUMENT;
@@ -1797,14 +1865,14 @@ int img_delete_field (img_handle img, const char * tag)
       return img_delete_fieldnumber (img, x);
   }
 
-  return img_BAD_FIELD;      
+  return img_BAD_FIELD;
 }
 
 
 const char *img_get_field (img_handle img, const char *tag)
 {
   int x;
-  
+
   if (!img || !tag)
 
     return NULL;
@@ -1823,15 +1891,29 @@ const char *img_get_field (img_handle img, const char *tag)
   return NULL;
 }
 
+int img_get_next_field (img_handle img, const char **tag, const char **data, int *index) 
+{
+	if (*index < 0 || *index >= img_get_tags(img)) return img_BAD_ARGUMENT;
+	
+	if (!img || !tag || !data)  return img_BAD_ARGUMENT;
+	
+	*tag = img->tag[*index].tag;
+	
+	*data = img->tag[*index].data;
+	
+	(*index)++;
+	
+	return 0;
+}
 
 int img_set_field (img_handle img, const char *tag, const char *data)
 {
   int x, x0;
-  
+
   if (!img || !tag)
 
     return img_BAD_ARGUMENT;
-    
+
 
     /* Find the entry with the given tag */
 
@@ -1849,7 +1931,7 @@ int img_set_field (img_handle img, const char *tag, const char *data)
     if (strcmp (img->tag [x].tag, tag) == 0)
     {
       if (img->tag [x].data)
-      
+
         free (img->tag [x].data);
 
       img->tag [x].data = (char *) malloc (strlen (data) + 1);
@@ -1870,7 +1952,7 @@ int img_set_field (img_handle img, const char *tag, const char *data)
   if (img_set_tags (img, x0 + 1))
 
     return img_BAD_ALLOC;
-  
+
   img->tag [x0].tag = (char *) malloc (strlen (tag) + 1);
 
   if (!img->tag [x0].tag)
@@ -1899,7 +1981,7 @@ double img_get_number (img_handle img, const char *tag)
 
   if (!field)
 
-    return 0;
+    return 0.;
 
   return atof (field);
 }
@@ -1926,7 +2008,7 @@ int img_get_pixel (img_handle img, int x, int y)
   if (!img)
 
     return 0;
-    
+
   if (x < 0              ||
       x >= img->size [0] ||
       y > 0              ||
@@ -1936,14 +2018,14 @@ int img_get_pixel (img_handle img, int x, int y)
 
   return img->image [x * img->size [1] + y];
 }
- 
+
 
 int img_set_pixel (img_handle img, int x, int y, int data)
 {
   if (!img)
 
     return 0;
-    
+
   if (x < 0              ||
       x >= img->size [0] ||
       y > 0              ||
@@ -1967,7 +2049,7 @@ int img_set_dimensions (img_handle img, int columns, int rows) {
     if (img->image)
     {
       free (img->image);
-      
+
       img->image    = NULL;
       img->size [0] =
       img->size [1] = 0;

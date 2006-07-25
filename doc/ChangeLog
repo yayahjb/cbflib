@@ -1,439 +1,696 @@
-CBFlib ChangeLog
-
-An API for CBF/imgCIF
-Crystallographic Binary Files with ASCII Support
-Version 0.7.4
-12 January 2004
-
-by
-Paul J. Ellis
-Stanford Synchrotron Radiation Laboratory
-ellis@ssrl.slac.stanford.edu <mailto:ellis@ssrl.slac.stanford.edu>
-
-and
-Herbert J. Bernstein
-Bernstein + Sons
-yaya@bernstein-plus-sons.com <mailto:yaya@bernstein-plus-sons.com>
-
-------------------------------------------------------------------------
-
-
-      Before using this software, please read the
-      <CBFlib_NOTICES.html>
-      for important disclaimers and the IUCr Policy on the Use of the
-      Crystallographic Information File (CIF) and for other important
-      information.
-
-------------------------------------------------------------------------
-
-
-    Version History
-
-Version 	Date	By	Description
-  0.1	  Apr. 1998	  PJE	  This was the first CBFlib release. It
-supported binary CBF files using binary strings.
-  0.2 	  Aug. 1998	  HJB	  This release added ascii imgCIF support
-using MIME-encoded binary sections, added the option of MIME headers for
-the binary strings was well. MIME code adapted from mpack 1.5. Added
-hooks needed for DDL1-style names without categories.
-  0.3 	  Sep. 1998	  PJE	  This release cleaned up the changes
-made for version 0.2, allowing multi-threaded use of the code, and
-removing dependence on the mpack package.
-  0.4 	  Nov. 1998	  HJB	  This release merged much of the message
-digest code into the general file reading and writing to reduce the
-number of passes. More consistency checking between the MIME header and
-the binary header was introduced. The size in the MIME header was
-adjusted to agree with the version 0.2 documentation.
-  0.5 	  Dec. 1998	  PJE	  This release greatly increased the
-speed of processing by allowing for deferred digest evaluation.
-  0.6     Jan. 1999	  HJB	  This release removed the redundant
-information (binary id, size, compression id) from a binary header when
-there is a MIME header, removed the unused repeat argument, and made the
-memory allocation for buffering and tables with many rows sensitive to
-the current memory allocation already used.
-  0.6.1	  Feb. 2001	  HP (per HJB)	  This release fixed a
-memory leak due to misallocation by size of cbf_handle instead of
-cbf_handle_struct
-  0.7 	  Mar. 2001	  PJE	  This release added high-level
-instructions based on the imgCIF dictionary version 1.1.
-  0.7.1	  Mar. 2001	  PJE	  The high-level functions were
-revised to permit future expansion to files with multiple images.
-  0.7.2	  Apr. 2001	  HJB	  This release adjusted cbf_cimple.c
-to conform to cif_img.dic version 1.1.3
-  0.7.2.1	  May 2001	  PJE	  This release corrected an if
-nesting error in the prior mod to cbf_cimple.c.
-  0.7.3	  Oct. 2002	  PJE	  This release modified cbf_simple.c
-to reorder image data on read so that the indices are always increasing
-in memory (this behavior was undefined previously).
-  0.7.4	  Jan 2004	  HJB	  This release fixes a
-parse error for quoted strings, adds code to get and set character
-string types, and removes compiler warnings
-
-------------------------------------------------------------------------
-
-
-      Release 0.7.4, Herbert J. Bernstein, 12 January 2004
-
-Source File	Change
-cbf.c 		  added cbf_set_typeofvalue, cbf_get_typeofvalue; added braces
-for nested if-else to remove a compiler warning.
-cbf_ascii.c 	  added braces to remove a compiler warnings.
-cbf_binary.c 	  added braces to remove a compiler warnings.
-cbf_canonical.c 	  added braces to remove a compiler warnings.
-cbf_compress.c 	  added braces to remove a compiler warnings.
-cbf_file.c 	  simplied dynamic array logic and went to straight
-doubling; added braces to remove a compiler warnings.
-cbf_lex.c 	  changed parse of quoted strings to allow for embedded quote
-marks; removed unused variables; fixed mismatch of formats; added braces
-to remove a compiler warnings.
-cbf_packed.c 	  added braces to remove a compiler warnings; intialized
-variables.
-cbf_simple.c 	  typed default typed variable; removed unused variables;
-added braces to remove a compiler warnings; intialized variables.
-cbf_uncompressed.c 	  added braces to remove a compiler warnings.
-cbf_write.c 	  added internal functions cbf_get_value_type and
-cbf_set_value_type for typeofvalue functions; updated magic number and
-set magic number to match dictionary, not CBFlib version; initialized
-variable.
-cbf.h	 	  added new external typeofvalue function prototypes; added notices.
-cbf_write.h 	  added new value_type function prototypes.
-cif2cbf.c 	  added code to transfer typeofvalue from input to output to
-fix handling of nulls; increased buffer to 8192 and called it BUFSIZ;
-changed from tmpnam to mkstemp to remove warning; unlinked temporary
-file; added braces to remove compiler warnings.
-img2cif.c 	  added code to transfer typeofvalue from input to output to
-fix handling of nulls; increased buffer to 8192 and called it BUFSIZ;
-changed from tmpnam to mkstemp to remove warning; unlinked temporary
-file; removed unused variables.
-
-------------------------------------------------------------------------
-
-
-      Release 0.7.3, Paul J. Ellis, 2 October 2002
-
-Source File	Change
-cbf_simple.c 	  modified cbf_get_image to reorder the image data on read
-so that the indices are always increasing in memory (this behavior was
-undefined previously).
-
-Note: Early versions of Release 0.7.3 carried the version number
-0.7.2.3. Other than the change in number on 7 Nov 2002, there is no
-difference between these versions.
-
-------------------------------------------------------------------------
-
-
-      Release 0.7.2.1, Paul J. Ellis, 7 May 2001
-
-Source File	Change
-cbf_simple.c 	  corrected nesting in if statements introduced for the
-prior mod.
-
-------------------------------------------------------------------------
-
-
-      Release 0.7.2, Herbert J. Bernstein, 22 April 2001
-
-Source File	Change
-cbf_simple.c 	  changed _diffrn_measurement_axis.id (now deprecated) to
-_diffrn_measurement_axis.measurement_id and _diffrn_detector_axis.id
-(now deprecated) to _diffrn_detector_axis.detector_id, but allowed old
-forms as aliases.
-
-------------------------------------------------------------------------
-
-
-      Release 0.7.1, Paul J. Ellis, 30 March 2001
-
-Source File	Change
-cbf_simple.c 	  add reserved argument to various routines; in
-cbf_update_pixel use index2 instead of index1; add new routine
-cbf_get_pixel_normal; in cbf_get_pixel_area, shift by (-0.5,-0.5)
-
-------------------------------------------------------------------------
-
-
-      Release 0.7.1, Paul J. Ellis, 13 March 2001
-
-Source File	Change
-cbf.c 	  remove unused declaration of little.
-cbf.h 	  add definitions of CBF_UNDEFINED and CBF_NOTIMPLEMENTED.
-cbf_binary.c 	  cast type argument to (char) in cbf_copy-string call.
-cbf_compress.c 	  remove unused declaration of compression_file.
-cbf_simple.c 	  add this new routine for higher level calls.
-cbf_simple.h 	  add this new header for higher level calls.
-cbf_uncompressed.c 	  remove unused declaration of bit.
-
-------------------------------------------------------------------------
-
-
-      Release 0.6.1, H. Powell (per Herbert J. Bernstein), 23 February 2001
-
-Source File	Change
-cbf.c 	  fix memory leak as corrected by H. Powell
-
-------------------------------------------------------------------------
-
-
-      Release 0.6, Herbert J. Bernstein, 13 January 1999
-
-Source File	Change
-cbf.c	 	  remove argument repeat from cbf_set_integerarray
-cbf.h	 	  remove argument repeat from cbf_set_integerarray
-cbf_binary.h 	  carry compression id in text as argument to
-cbf_get/set_bintext, remove repeat as argument to cbf_set_binary
-cbf_binary.c 	  carry compression id in text, rather than header, as an
-argument to cbf_get/set_bintext, remove repeat as argument to cbf_set_binary
-cbf_byte_offset.h 	  remove argument repeat from cbf_compress_byte_offset
-cbf_byte_offset.c 	  remove argument repeat from cbf_compress_byte_offset
-cbf_canonical. 	  remove argument repeat from cbf_compress_canonical
-cbf_canonical.c 	  remove argument repeat from cbf_compress_canonical
-cbf_compress.h 	  remove argument repeat from cbf_compress, change
-argument compression from pointer to value in cbf_decompress_parameters
-cbf_compress.c 	  remove argument repeat from cbf_compress, use
-compression as an input argument in cbf_decompress_parameters, do not
-write compression id
-cbf_file.c 	  tune buffer size allocations to current size
-cbf_lex.c 	  carry compression in text, not header, suppress binary
-header when there is a MIME header
-cbf_packed.h 	  remove argument repeat from cbf_compress_packed
-cbf_packed.c 	  remove argument repeat from cbf_compress_packed
-cbf_predictor.h 	  remove argument repeat from cbf_compress_predictor
-cbf_predictor.c 	  remove argument repeat from cbf_compress_predictor
-cbf_read_binary.h 	  make pointer to compression an argument to
-cbf_parse_binaryheader
-cbf_read_binary.c 	  carry compression in text, not header, suppress
-binary header when there is a MIME header
-cbf_read_mime.h 	  add prototype for cbf_nblen
-cbf_read_mime.c 	  carry compression in text, not header, suppress
-binary header when there is a MIME header, allow trailing blanks on
-header lines, test for early terminations, allow arbitrary spacing on
-element type, add cbf_nblen
-cbf_stx.c 	  rebuilt from cbf.stx with bison 1.25
-cbf_tree.c 	  tune allocation of memory for extra children to current
-use levels
-cbf_uncompressed.h 	  remove argument repeat from cbf_compress_none
-cbf_uncompressed.c 	  remove argument repeat from cbf_compress_none
-cbf_write.c 	  update version numbers in file headers
-cbf_write_binary.c 	  carry compression in text, not header, suppress
-binary header when there is a MIME header, quote X-Binary-Element-Type
-
-------------------------------------------------------------------------
-
-
-      Release 0.5, Paul J. Ellis, 5 December 1998
-
-Source File	Change
-cbf.c 	  Add option for immediate digest evaluation (MSG_DIGESTNOW) or
-deferred digest evaluation (MSG_DIGEST); adjust layout of error
-messages; remove unused repeat.
-cbf.stx 	  Add new argument for cbf_set_columnrow.
-cbf_ascii.c 	  Add buffer flush.
-cbf_binary.c 	  Add call to cbf_codes.h; convert to use of
-cbf_get/set_bintext; digests saved in the text for deferred evaluation.
-cbf_byte_offset.c 	  Add storedbits argument on compression; remove
-repeat on decompression.
-cbf_canonical.c 	  Stylistic cleanup; add storedbits argument on
-compression; remove repeat on decompression.
-cbf_codes.c 	  Add routines cbf_is_base64digest, cbf_md5digest_to64,
-flush buffers when done, general cleanup
-cbf_compress.c 	  Add argument bits to cbf_compress and each actual
-compression routine, add bits and remove repeat on decompression.
-cbf_file.c 	  Reorganize digest logic; remove nblen argument from
-cbf_read_line.
-cbf_lex.c 	  Argument type and stylisic cleanup; allow for deferred
-digest evaluation, adjust binary size to agree with MIME size.
-cbf_packed.c 	  Stylistic cleanup; add storedbits argument on
-compression; remove repeat on decompression.
-cbf_predictor.c 	  Add storedbits argument on compression; remove repeat
-on decompression.
-cbf_read_mime.c 	  Add binary element type logic; cleanup header scan;
-allow for deferred digest evaluation.
-cbf_tree.c 	  Add argument free to cbf_set_columnrow. If free is true,
-free the old value, otherwise a user responsibility.
-cbf_uncompressed.c 	  Add storedbits argument on compression; remove
-repeat on decompression.
-cbf_write.c 	  Add buffer flush.
-cbf_write_binary.c 	  Reorganize digest calculation, adjust binary size
-by 8, add X-Binary-E;ement-Type.
-global.h 	  Change definition of UINT4 from unsigned long int to
-unsigned int.
-md5.c	 	  Mask 32 bits for longer words.
-
-------------------------------------------------------------------------
-
-
-      Release 0.4, Herbert J. Bernstein, 15 November 1998
-
-Source File	Change
-cbf_stx.c 	  rebuilt from cbf.stx with bison 1.25
-cbf_binary.c 	  add digest, elsize, elsign to text
-cbf_canonical.c 	  remove write of compression id
-cbf_codes.h 	  add argument *digest to cbf_fromqp, cbf_frombase64,
-cbf_frombasex
-cbf_codes.c 	  add mpack notice, add cbf_md5context_to64, add digest to
-cbf_from...
-cbf_compress.h 	  add argument *digest to cbf_compress
-cbf_compress.c 	  add digest to cbf_compress
-cbf_file.h 	  add nscolumn, digest_buffer, digest_bpoint, context to
-cbf_file struct, add argument *nblen to cbf_read_line
-cbf_file.c 	  add file->nscolumn, file->digest_buffer,
-file->digest_bpoint, update digest when writing
-cbf_lex.c 	  add notices, compute digests on intial read
-cbf_packed.c 	  do not write compression id
-cbf_read_mime.h 	  add prototype for cbf_skip_whitespace, add argument
-*compression to cbf_parse_mimeheader
-cbf_read_mime.c 	  add notices, remove redundant digest calculation,
-adjust handling of compression id, add cbf_skip_whitespace, have
-cbf_parse_mimeheader return compression id, add checks for garbled
-files, allow more general headers
-cbf_uncompressed.c 	  make uncompressed section free of headers
-cbf_write.c 	  update version in headers
-cbf_write_binary.c 	  carry digest, elsize, elsign in text rather than
-header
-
-------------------------------------------------------------------------
-
-
-      Release 0.3.1.1, Paul J. Ellis, 21 September 1998
-
-Source File	Change
-cbf.h	 	  remove globals, add tolen CBF_TOKEN_MIME_BIN, change
-MIME_NOHEADERS to PLAIN_HEADERS, add HDR_DEFAULT, add arguments
-ciforcbf, headers, encoding to cbf_write_file, add argument headers to
-cbf_read_file, restore const in several places, merge int
-cbf_get_integerarrayparams into cbf_get_integerarrayparameters
-cbf.c	 	   add notices, add argument headers to cbf_read_file to replace
-use of globals in release 0.2, add arguments ciforcbf, headers, encoding
-to cbf_write_file to replace use of globals in release 0.2, restore some
-uses of const, remove integerarrayparams and merge arguments into
-cbf_get_integerparameters, replace cbf_binary_params with
-cbf_binary_parameters with extended argument list
-cbf.stx 	  add notices, remove gcc use of malloc, define alloca(x) as
-NULL, and set large inital depth, adopts mods from cbf.stx.y in release 0.2
-cbf_alloc.c 	  add notices
-cbf_ascii.c 	  change use of range of token values to explicit symbolic
-tokens
-cbf_binary.h 	  merge cbf_binary_params into cbf_binary_parameters,
-remove cbf_write_binary
-cbf_binary.c 	  add cbf_read_mime.h, and CBF_TOKEN_MIME_BIN token, use
-cbf_set/get_fileposition, merge cbf_binary_params into
-cbf_binary_parameters, restore some uses of const, use
-cbf_decompress_parameters with extended argument list, use
-cbf_mime_temp, move cbf_write_binary to its own file.
-cbf_canonical.h 	  add argument binsize to cbf_compress_canonical, add
-argument repeat to cbf_decompress_canonical
-cbf_canonical.c 	  add notices, remove binbitcount, handle binsize as an
-argument
-cbf_codes.h 	  new header
-cbf_codes.c 	  revise notices, major cleanup.
-cbf_compress.c 	  add notices, add compressedsize argument, add repeat
-to decompression calls
-cbf_context.c 	  add notices
-cbf_compress.h 	  add argument compressedsize to cbf_compress, repeat to
-cbf_decompress
-cbf_file.h 	  map "text..." to "buffer..." in cbf_file, remove
-CBFbytedir, change cbf_set_textsize to cbf_set_buffersize, add
-cbf_reset_buffer, add cbf_get_buffer, change cbf_get/put_text to
-cbf_get/put_block, add cbf_get/set_position
-cbf_file.c
-	  add notices, change file->text to file->buffer, file->text_size to
-file->buffer_size, file->text_used to file->buffer_used,
-file->read_headers, file->write_headers, file->write_encoding, remove
-file->fpos, file->fend, add cbf_get/set_fileposition
-cbf_lex.c 	  read by buffers, move MIME processing later in the flow
-cbf_packed.h
-	  add compressedsize argument to cbf-compress-packed, repeat to
-cbf_decompress_packed, remove ..none, ..byte_off, ..predict
-cbf_packed.c 	  add notices, add bitcount argument to cbf_pack_chunk
-cbf_predictor.h 	  new header
-cbf_predictor.c 	  New routine
-cbf_read_binary.h 	  new header
-cbf_read_binary.c 	  New routine
-cbf_read_mime.h 	  new header
-cbf_string.h 	  new header
-cbf_string.c 	  New routine, replacing string.c
-cbf_stx.c 	  Rebuild of cbf.stx with bison A2.6
-cbf_tree.h 	  remove CBF_INDEX, cbf_init_index, cbf_add_index, cleanup,
-add const
-cbf_tree.c 	  add notices, general cleanup, restore const, remove
-cbf_init_index, cbf_add_index
-cbf_uncompressed.h 	  new header
-cbf_uncompressed.c 	  New routine
-cbf_write.c 	  add notices, change tests for "?" and ".", change range
-test on tokens to explicit list
-cbf_write_binary.h 	  new header
-cbf_write_binary.c 	  New routine
-global.h 	  new routine with part of md5.h
-md5c.c 	  use global.h
-md5.h 	  move portion of this header to global.h, from whence it came
-
-------------------------------------------------------------------------
-
-
-      Release 0.2, Herbert J. Bernstein, 27 August 1998
-
-Source File	Change
-cbf.h	 	  Define CBF and CIF, add cbf_force_new_datablock,
-cbf_force_new_category, remove some uses of const, add,
-cbf_get_integerarrayparams, add globals CBForCIF, CIFCRterm, CIFNLterm,
-CBFbinsize, CBFmime, CBFdigest, CBFencoding, CBFelsize, CBFbytedir
-cbf.c	 	  Define CBF and CIF, add cbf_force_new_datablock,
-cbf_force_new_category, remove some uses of const, add,
-cbf_get_integerarrayparams, add globals CBForCIF, CIFCRterm, CIFNLterm,
-CBFbinsize, CBFmime, CBFdigest, CBFencoding, CBFelsize, CBFbytedir
-cbf.stx 	  Add malloc.h when using gcc
-cbf.stx.y 	  Version of cbf.stx with changes to allow DDL1
-cbf_ascii.c 	  Use symbols for tokens
-cbf_binary.h 	  Add cbf_binary_params
-cbf_binary.c 	  Add digest logic, change file position tracking
-cbf_canonical.c 	  Make writing repeat consistent; track binbitcount add
-cbf_binary_params, use cbf_decompress_params; allow MIME header
-cbf_codes.c 	  New routine adapted from mpack
-cbf_compress.h 	  Add cbf_decompress_params
-cbf_compress.c 	  Add hooks for CBF_NONE, CBF_BYTE_OFFSET,
-CBF_PREDICTOR, add cbf_decompress_params
-cbf_context.h 	  Remove const from cbf_copy_string
-cbf_context.c 	  Remove const from cbf_copy_string
-cbf_decode.c 	  New routine adapted from mpack
-cbf_file.h 	  Add files to record file position
-cbf_file.c 	  Track file position; allow writing CIFs and CBFs
-cbf_lex.c 	  Add mime processing; add DDL1 support; process "."
-cbf_mime.c 	  New routine
-cbf_packed.h 	  Add cbf_compress_none, cbf_decompress_none,
-cbf_compress_byte_off, cbf_decompress_byte_off, cbf_compress_predict,
-cbf_decompress_predict
-cbf_packed.c 	  Add cbf_compress_none, cbf_decompress_none, dummy
-cbf_compress_byte_off, dummy cbf_decompress_byte_off, dummy
-cbf_compress_predict, dummy cbf_decompress_predict; ensure consistent
-writing of repeat
-cbf_part.h 	  New header adapted from mpack
-cbf_part.c 	  New routine adapted from pack
-cbf_stx.c 	  rebuilt with correct bison parser from cbf.stx.y
-cbf_tree.c 	  added cbf_make_new_node, cbf_find_last_child,
-cbf_name_new_node, cbf_add_new_child, cbf_make_new_child,
-cbf_init_index, cbf_add_index; report CBF_ARGUMENT for cbf_make_child
-for type CBF_LINK; removed some uses of const
-cbf_write.c 	  Added symbols for parse tokens; recognize "."; adjusted
-file header line to conform to documentation; removed some uses of const
-cif2cbf.c 	  New program
-common.h 	  New header from mpack
-img2cif.c 	  New program
-makecbf.c 	  Add local_exit and change cbf_failnez to facilitate
-debugging, add _array_intensities.binary_id, _array_data.binary.id
-md5.h 	  New header from mpack
-md5c.c 	  New routine from mpack
-string.c 	  New routine from mpack
-uudecode.c 	  New routine from mpack
-
-------------------------------------------------------------------------
-
-
-      Release 0.1, Paul J. Ellis, 17 April 1998
-
-This was the first CBFlib release. It supported binary CBF files using
-binary strings.
-
-------------------------------------------------------------------------
-------------------------------------------------------------------------
-Updated 12 January 2004. yaya@bernstein-plus-sons.com
+                                CBFlib ChangeLog
+
+                             An API for CBF/imgCIF
+                Crystallographic Binary Files with ASCII Support
+                                 Version 0.7.5
+                                 15 April 2006
+
+                                       by
+                                 Paul J. Ellis
+                   Stanford Synchrotron Radiation Laboratory
+
+                                      and
+                              Herbert J. Bernstein
+                                Bernstein + Sons
+                          yaya@bernstein-plus-sons.com
+
+                    (c) Copyright 2006 Herbert J. Bernstein
+
+     ----------------------------------------------------------------------
+
+      YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL.
+
+    ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS OF THE
+                                     LGPL.
+
+     ----------------------------------------------------------------------
+
+                  Before using this software, please read the
+                                     NOTICE
+for important disclaimers and the IUCr Policy on the Use of the Crystallographic
+          Information File (CIF) and for other important information.
+
+     ----------------------------------------------------------------------
+
+                                Version History
+
+   Version   Date        By        Description                                
+     0.1       Apr. 1998   PJE       This was the first CBFlib release. It    
+                                   supported binary CBF files using binary    
+                                   strings.                                   
+     0.2       Aug. 1998   HJB       This release added ascii imgCIF support  
+                                   using MIME-encoded binary sections, added  
+                                   the option of MIME headers for the binary  
+                                   strings was well. MIME code adapted from   
+                                   mpack 1.5. Added hooks needed for          
+                                   DDL1-style names without categories.       
+     0.3       Sep. 1998   PJE       This release cleaned up the changes made 
+                                   for version 0.2, allowing multi-threaded   
+                                   use of the code, and removing dependence   
+                                   on the mpack package.                      
+     0.4       Nov. 1998   HJB       This release merged much of the message  
+                                   digest code into the general file reading  
+                                   and writing to reduce the number of        
+                                   passes. More consistency checking between  
+                                   the MIME header and the binary header was  
+                                   introduced. The size in the MIME header    
+                                   was adjusted to agree with the version 0.2 
+                                   documentation.                             
+     0.5       Dec. 1998   PJE       This release greatly increased the speed 
+                                   of processing by allowing for deferred     
+                                   digest evaluation.                         
+     0.6       Jan. 1999   HJB       This release removed the redundant       
+                                   information (binary id, size, compression  
+                                   id) from a binary header when there is a   
+                                   MIME header, removed the unused repeat     
+                                   argument, and made the memory allocation   
+                                   for buffering and tables with many rows    
+                                   sensitive to the current memory allocation 
+                                   already used.                              
+     0.6.1     Feb. 2001   HP (per   This release fixed a memory leak due to  
+                         HJB)      misallocation by size of cbf_handle        
+                                   instead of cbf_handle_struct               
+     0.7       Mar. 2001   PJE       This release added high-level            
+                                   instructions based on the imgCIF           
+                                   dictionary version 1.1.                    
+     0.7.1     Mar. 2001   PJE       The high-level functions were revised to 
+                                   permit future expansion to files with      
+                                   multiple images.                           
+     0.7.2     Apr. 2001   HJB       This release adjusted cbf_cimple.c to    
+                                   conform to cif_img.dic version 1.1.3       
+     0.7.2.1   May 2001    PJE       This release corrected an if nesting     
+                                   error in the prior mod to cbf_cimple.c.    
+     0.7.3     Oct. 2002   PJE       This release modified cbf_simple.c to    
+                                   reorder image data on read so that the     
+                                   indices are always increasing in memory    
+                                   (this behavior was undefined previously).  
+     0.7.4     Jan 2004    HJB       This release fixes a parse error for     
+                                   quoted strings, adds code to get and set   
+                                   character string types, and removes        
+                                   compiler warnings                          
+     0.7.5      Apr 2006   HJB       This release cleans up some compiler     
+                                   warnings, corrects a parse error on quoted 
+                                   strings with a leading blank as adds the   
+                                   new routines for support of aliases,       
+                                   dictionaries and real arrays, higher level 
+                                   routines to get and set pixel sizes, do    
+                                   cell computations, and to set beam         
+                                   centers, improves support for conversion   
+                                   of images, picking up more data from       
+                                   headers.                                   
+
+     ----------------------------------------------------------------------
+
+  Release 0.7.5, Herbert J. Bernstein, 15 April 2006
+
+   Source File        Change                                                  
+   cbf.c                Revised header for open source licenses; added        
+                      support for aliases, dictionaries and real arrays;      
+                      added convenience routines to do searches with default  
+                      creation of what is being searched for; added reference 
+                      count and dictionary link for cbf handles; added        
+                      cbf_new_saveframe, cbf_force_new_saveframe,             
+                      cbf_set_saveframename, cbf_reset_saveframe,             
+                      cbf_remove_saveframe, cbf_rewind_saveframe,             
+                      cbf_rewind_blockitem, cbf_next_saveframe,               
+                      cbf_next_blockitem, cbf_select_saveframe,               
+                      cbf_select_blockitem, cbf_find_saveframe,               
+                      cbf_require_row, cbf_require_nextrow,                   
+                      cbf_count_saveframes, cbf_count_blockitems,             
+                      cbf_saveframe_name, cbf_require_value,                  
+                      cbf_require_integervalue, cbf_require_doublevalue,      
+                      cbf_get_realarrayparameters, cbf_get_realarray,         
+                      cbf_set_realarray, cbf_require_datablock,               
+                      cbf_require_category, cbf_require_column,               
+                      cbf_require_column_value,                               
+                      cbf_require_column_integervalue,                        
+                      cbf_require_column_doublevalue,                         
+                      cbf_get_local_integer_byte_order,                       
+                      cbf_get_local_real_byte_order,                          
+                      cbf_get_local_real_format, cbf_get_dictionary,          
+                      cbf_set_dictionary, cbf_require_dictionary,             
+                      cbf_set_hashedvalue, cbf_find_hashedvalue,              
+                      cbf_convert_dictionary_definition,                      
+                      cbf_convert_dictionary, cbf_find_tag,                   
+                      cbf_find_local_tag, cbf_srch_tag,                       
+                      cbf_find_category_root, cbf_require_category_root,      
+                      cbf_set_category_root, cbf_find_tag_root,               
+                      cbf_require_tag_root, cbf_set_tag_root,                 
+                      cbf_find_tag_category, cbf_set_tag_category.            
+   cbf.h                Revised header for open source licenses; added        
+                      definitions of CBF_API_VERSION and CBF_DIC_VERSION;     
+                      changed the debug versions of cbf_failnez and           
+                      cbf_onfailnez to stringfy the argument; added           
+                      dictionary and reference count to cbf_handle            
+                      definition; added prototypes for cbf_new_saveframe,     
+                      cbf_force_new_saveframe, cbf_set_saveframename,         
+                      cbf_remove_saveframe, cbf_rewind_saveframe,             
+                      cbf_rewind_blockitem, cbf_next_saveframe,               
+                      cbf_next_blockitem, cbf_saveframe_name,                 
+                      cbf_select_saveframe, cbf_select_blockitem,             
+                      cbf_find_saveframe, cbf_require_row,                    
+                      cbf_require_nextrow, cbf_count_saveframes,              
+                      cbf_count_blockitems, cbf_require_value,                
+                      cbf_require_integervalue, cbf_require_doublevalue,      
+                      cbf_get_realarrayparameters, cbf_get_realarray,         
+                      cbf_set_realarray, cbf_require_datablock,               
+                      cbf_require_category, cbf_require_column,               
+                      cbf_require_column_value,                               
+                      cbf_require_column_integervalue,                        
+                      cbf_require_column_doublevalue,                         
+                      cbf_get_local_integer_byte_order,                       
+                      cbf_get_local_real_byte_order,                          
+                      cbf_get_local_real_format, cbf_get_dictionary,          
+                      cbf_set_dictionary, cbf_require_dictionary,             
+                      cbf_set_hashedvalue, cbf_find_hashedvalue,              
+                      cbf_convert_dictionary_definition,                      
+                      cbf_convert_dictionary, cbf_find_tag,                   
+                      cbf_find_local_tag, cbf_srch_tag,                       
+                      cbf_find_category_root, cbf_require_category_root,      
+                      cbf_set_category_root, cbf_find_tag_root,               
+                      cbf_require_tag_root, cbf_set_tag_root,                 
+                      cbf_find_tag_category, cbf_set_tag_category,            
+   cbf_alloc.c          Revised header for open source licenses.              
+   cbf_alloc.h          Revised header for open source licenses.              
+   cbf_ascii.c          Revised header for open source licenses.              
+   cbf_ascii.h          Revised header for open source licenses.              
+   cbf_binary.c         Revised header for open source licenses; added        
+                      support of real arrays.                                 
+   cbf_binary.h         Revised header for open source licenses; added        
+                      support of real arrays.                                 
+   cbf_byte_offset.c    Revised header for open source licenses; changed      
+                      signature for support of real arrays; no actual changes 
+                      to the code.                                            
+   cbf_byte_offset.h    Revised header for open source licenses; changed      
+                      signature for support of real arrays; no actual changes 
+                      to the code.                                            
+   cbf_canonical.c      Revised header for open source licenses; changed      
+                      signatures for support of real arrays; no actual        
+                      changes to the code.                                    
+   cbf_canonical.h      Revised header for open source licenses; changed      
+                      signatures for support of real arrays; no actual        
+                      changes to the code.                                    
+   cbf_codes.c          Revised header for open source licenses.              
+   cbf_codes.h          Revised header for open source licenses.              
+   cbf_compress.c       Revised header for open source licenses; added        
+                      support of real arrays.                                 
+   cbf_compress.h       Revised header for open source licenses; added        
+                      support of real arrays.                                 
+   cbf_context.c        Revised header for open source licenses.              
+   cbf_context.h        Revised header for open source licenses.              
+   cbf_file.c           Revised header for open source licenses; added        
+                      support of real arrays, making extensive changes to the 
+                      handling of integers to get past 32 bit limits.         
+   cbf_file.h           Revised header for open source licenses..             
+   cbf_lex.c            Revised header for open source licenses; added save   
+                      frame support; required whitespace before a comment;    
+                      changed WORD to CBFWORD; corrected quoted string parse  
+                      to allow for a blank immediately after the opening      
+                      quote mark.                                             
+   cbf_lex.h            Revised header for open source licenses.              
+   cbf_packed.c         Revised header for open source licenses; changed      
+                      signatures for support of real arrays; no actual        
+                      changes to the code.                                    
+   cbf_packed.h         Revised header for open source licenses; changed      
+                      signatures for support of real arrays; no actual        
+                      changes to the code.                                    
+   cbf_predictor.c      Revised header for open source licenses; changed      
+                      signatures for support of real arrays; no actual        
+                      changes to the code.                                    
+   cbf_predictor.h      Revised header for open source licenses; changed      
+                      signatures for support of real arrays; no actual        
+                      changes to the code.                                    
+   cbf_read_binary.c    Revised header for open source licenses.              
+   cbf_read_binary.h    Revised header for open source licenses.              
+   cbf_read_mime.c      Revised header for open source licenses; added        
+                      support for real arrays.                                
+   cbf_read_mime.h      Revised header for open source licenses; added        
+                      support for real arrays.                                
+   cbf_simple.c         Revised header for open source licenses; increased    
+                      precision of all numbers to 15 digits; added support    
+                      for cells and orientation matrices; built in support    
+                      for diffrn_frame_data as an alternative to              
+                      diffrn_data_frame; added new routines                   
+                      cbf_require_diffrn_id, cbf_get_pixel_size,              
+                      cbf_set_pixel_size, cbf_get_real_image,                 
+                      cbf_set_real_image, int cbf_require_detector,           
+                      cbf_set_beam_center, cbf_get_inferred_pixel_size,       
+                      cbf_get_unit_cell, cbf_set_unit_cell,                   
+                      cbf_get_reciprocal_cell, cbf_set_reciprocal_cell,       
+                      cbf_compute_cell_volume, cbf_compute_reciprocal_cell,   
+                      cbf_get_orientation_matrix, cbf_set_orientation_matrix; 
+                      added braces to deal with compiler warnings on dangling 
+                      else.                                                   
+   cbf_simple.h         Revised header for open source licenses; added        
+                      prototypes for cbf_require_diffrn_id, cbf_get_array_id, 
+                      cbf_get_pixel_size, cbf_set_pixel_size,                 
+                      cbf_get_real_image, cbf_set_real_image,                 
+                      cbf_require_detector, cbf_set_beam_center,              
+                      cbf_get_inferred_pixel_size, cbf_get_unit_cell,         
+                      cbf_set_unit_cell, cbf_get_reciprocal_cell,             
+                      cbf_set_reciprocal_cell, cbf_compute_cell_volume,       
+                      cbf_compute_reciprocal_cell,                            
+                      cbf_get_orientation_matrix, cbf_set_orientation_matrix. 
+   cbf_string.c         Revised header for open source licenses.              
+   cbf_string.h         Revised header for open source licenses.              
+   cbf_stx.c            Rebuilt from new cbf.stx.y.                           
+   cbf_stx.h            Changed WORD to CBFWORD; added SAVE and SAVEEND.      
+   cbf.stx.y            Revised header for open source licenses; Revised      
+                      grammar to support save frames and to be more           
+                      comprehensible; changed name from cbf.stx               
+   cbf_tree.c           Revised header for open source licenses; added code   
+                      to support save frames, allowing typed searches for     
+                      children; added new routines cbf_find_typed_child,      
+                      cbf_count_typed_children, cbf_compute_hashcode.         
+   cbf_tree.c           Revised header for open source licenses; added        
+                      definition of CBF_SAVEFRAME as node type; added         
+                      prototypes for cbf_find_typed_child,                    
+                      cbf_count_typed_children, cbf_compute_hashcode.         
+   cbf.uncompressed.c   Revised header for open source licenses; Added        
+                      support for real arrays, and to remove 32 bit limits.   
+   cbf.uncompressed.h   Revised header for open source licenses; Added        
+                      support for real arrays.                                
+   cbf.write.c          Revised header for open source licenses; added        
+                      support for save frames and aliases; changed logic for  
+                      single row categories to present item-by-item, instead  
+                      of as a loop except for vectors and matrices, present   
+                      matrices row by row; carried cbf handle through nest of 
+                      calls.                                                  
+   cbf.write.h          Revised header for open source licenses; adjusted     
+                      prototype of cbf_write_node to carry the cbf handle as  
+                      the first argument.                                     
+   cbf.write_binary.c   Revised header for open source licenses; added        
+                      support for real arrays.                                
+   cbf.write_binary.h   Revised header for open source licenses.              
+   Makefile             Revised header for open source licenses; defined C++; 
+                      added symbol RANLIB for use on systems that require a   
+                      ranlib pass after creating a library with ar; added     
+                      build and tests of testcell and cif2c; added ADSC test  
+                      case to tests of convert_image; updated list of         
+                      contents of tar;changed cbf.stx to cbf.stx.y.           
+   connvert_image.c     Revised header for open source licenses; added        
+                      command line arguments for detector name, detector      
+                      distance, rotation and reflection of the image; added   
+                      usage report on errors; added code for axis transforms; 
+                      added code to report image header fields; cleaned up    
+                      PHI reporting; recovered pixel size and beam center     
+                      from header; commented out most debug code.             
+   cif2cbf.c            Revised header for open source licenses; renamed      
+                      BUFSIZ as C2CBUFSIZ to remove a compiler warning;       
+                      process save frames.                                    
+   img2cif.c            Revised header for open source licenses; renamed      
+                      BUFSIZ as I2CBUFSIZ to remove a compiler warning.       
+   testcell.C           New program to test cell functions.                   
+   cif2c.c              New program to test cell functions.                   
+
+     ----------------------------------------------------------------------
+
+  Release 0.7.4, Herbert J. Bernstein, 12 January 2004
+
+   Source File        Change                                                  
+   cbf.c                added cbf_set_typeofvalue, cbf_get_typeofvalue; added 
+                      braces for nested if-else to remove a compiler warning. 
+   cbf_ascii.c          added braces to remove a compiler warnings.           
+   cbf_binary.c         added braces to remove a compiler warnings.           
+   cbf_canonical.c      added braces to remove a compiler warnings.           
+   cbf_compress.c       added braces to remove a compiler warnings.           
+   cbf_file.c           simplied dynamic array logic and went to straight     
+                      doubling; added braces to remove a compiler warnings.   
+   cbf_lex.c            changed parse of quoted strings to allow for embedded 
+                      quote marks; removed unused variables; fixed mismatch   
+                      of formats; added braces to remove a compiler warnings. 
+   cbf_packed.c         added braces to remove a compiler warnings;           
+                      intialized variables.                                   
+   cbf_simple.c         typed default typed variable; removed unused          
+                      variables; added braces to remove a compiler warnings;  
+                      intialized variables.                                   
+   cbf_uncompressed.c   added braces to remove a compiler warnings.           
+   cbf_write.c          added internal functions cbf_get_value_type and       
+                      cbf_set_value_type for typeofvalue functions; updated   
+                      magic number and set magic number to match dictionary,  
+                      not CBFlib version; initialized variable.               
+   cbf.h                added new external typeofvalue function prototypes;   
+                      added notices.                                          
+   cbf_write.h          added new value_type function prototypes.             
+   cif2cbf.c            added code to transfer typeofvalue from input to      
+                      output to fix handling of nulls; increased buffer to    
+                      8192 and called it BUFSIZ; changed from tmpnam to       
+                      mkstemp to remove warning; unlinked temporary file;     
+                      added braces to remove compiler warnings.               
+   img2cif.c            added code to transfer typeofvalue from input to      
+                      output to fix handling of nulls; increased buffer to    
+                      8192 and called it BUFSIZ; changed from tmpnam to       
+                      mkstemp to remove warning; unlinked temporary file;     
+                      removed unused variables.                               
+
+     ----------------------------------------------------------------------
+
+  Release 0.7.3, Paul J. Ellis, 2 October 2002
+
+   Source File  Change                                                        
+   cbf_simple.c   modified cbf_get_image to reorder the image data on read so 
+                that the indices are always increasing in memory (this        
+                behavior was undefined previously).                           
+
+   Note: Early versions of Release 0.7.3 carried the version number 0.7.2.3.
+   Other than the change in number on 7 Nov 2002, there is no difference
+   between these versions.
+
+     ----------------------------------------------------------------------
+
+  Release 0.7.2.1, Paul J. Ellis, 7 May 2001
+
+   Source File  Change                                                        
+   cbf_simple.c   corrected nesting in if statements introduced for the prior 
+                mod.                                                          
+
+     ----------------------------------------------------------------------
+
+  Release 0.7.2, Herbert J. Bernstein, 22 April 2001
+
+   Source File  Change                                                        
+   cbf_simple.c   changed _diffrn_measurement_axis.id (now deprecated) to     
+                _diffrn_measurement_axis.measurement_id and                   
+                _diffrn_detector_axis.id (now deprecated) to                  
+                _diffrn_detector_axis.detector_id, but allowed old forms as   
+                aliases.                                                      
+
+     ----------------------------------------------------------------------
+
+  Release 0.7.1, Paul J. Ellis, 30 March 2001
+
+   Source File  Change                                                        
+   cbf_simple.c   add reserved argument to various routines; in               
+                cbf_update_pixel use index2 instead of index1; add new        
+                routine cbf_get_pixel_normal; in cbf_get_pixel_area, shift by 
+                (-0.5,-0.5)                                                   
+
+     ----------------------------------------------------------------------
+
+  Release 0.7.1, Paul J. Ellis, 13 March 2001
+
+   Source File        Change                                                  
+   cbf.c                remove unused declaration of little.                  
+   cbf.h                add definitions of CBF_UNDEFINED and                  
+                      CBF_NOTIMPLEMENTED.                                     
+   cbf_binary.c         cast type argument to (char) in cbf_copy-string call. 
+   cbf_compress.c       remove unused declaration of compression_file.        
+   cbf_simple.c         add this new routine for higher level calls.          
+   cbf_simple.h         add this new header for higher level calls.           
+   cbf_uncompressed.c   remove unused declaration of bit.                     
+
+     ----------------------------------------------------------------------
+
+  Release 0.6.1, H. Powell (per Herbert J. Bernstein), 23 February 2001
+
+   Source File   Change                                                 
+   cbf.c           fix memory leak as corrected by H. Powell            
+
+     ----------------------------------------------------------------------
+
+  Release 0.6, Herbert J. Bernstein, 13 January 1999
+
+   Source File        Change                                                  
+   cbf.c                remove argument repeat from cbf_set_integerarray      
+   cbf.h                remove argument repeat from cbf_set_integerarray      
+   cbf_binary.h         carry compression id in text as argument to           
+                      cbf_get/set_bintext, remove repeat as argument to       
+                      cbf_set_binary                                          
+   cbf_binary.c         carry compression id in text, rather than header, as  
+                      an argument to cbf_get/set_bintext, remove repeat as    
+                      argument to cbf_set_binary                              
+   cbf_byte_offset.h    remove argument repeat from cbf_compress_byte_offset  
+   cbf_byte_offset.c    remove argument repeat from cbf_compress_byte_offset  
+   cbf_canonical.       remove argument repeat from cbf_compress_canonical    
+   cbf_canonical.c      remove argument repeat from cbf_compress_canonical    
+   cbf_compress.h       remove argument repeat from cbf_compress, change      
+                      argument compression from pointer to value in           
+                      cbf_decompress_parameters                               
+   cbf_compress.c       remove argument repeat from cbf_compress, use         
+                      compression as an input argument in                     
+                      cbf_decompress_parameters, do not write compression id  
+   cbf_file.c           tune buffer size allocations to current size          
+   cbf_lex.c            carry compression in text, not header, suppress       
+                      binary header when there is a MIME header               
+   cbf_packed.h         remove argument repeat from cbf_compress_packed       
+   cbf_packed.c         remove argument repeat from cbf_compress_packed       
+   cbf_predictor.h      remove argument repeat from cbf_compress_predictor    
+   cbf_predictor.c      remove argument repeat from cbf_compress_predictor    
+   cbf_read_binary.h    make pointer to compression an argument to            
+                      cbf_parse_binaryheader                                  
+   cbf_read_binary.c    carry compression in text, not header, suppress       
+                      binary header when there is a MIME header               
+   cbf_read_mime.h      add prototype for cbf_nblen                           
+   cbf_read_mime.c      carry compression in text, not header, suppress       
+                      binary header when there is a MIME header, allow        
+                      trailing blanks on header lines, test for early         
+                      terminations, allow arbitrary spacing on element type,  
+                      add cbf_nblen                                           
+   cbf_stx.c            rebuilt from cbf.stx with bison 1.25                  
+   cbf_tree.c           tune allocation of memory for extra children to       
+                      current use levels                                      
+   cbf_uncompressed.h   remove argument repeat from cbf_compress_none         
+   cbf_uncompressed.c   remove argument repeat from cbf_compress_none         
+   cbf_write.c          update version numbers in file headers                
+   cbf_write_binary.c   carry compression in text, not header, suppress       
+                      binary header when there is a MIME header, quote        
+                      X-Binary-Element-Type                                   
+
+     ----------------------------------------------------------------------
+
+  Release 0.5, Paul J. Ellis, 5 December 1998
+
+   Source File        Change                                                  
+   cbf.c                Add option for immediate digest evaluation            
+                      (MSG_DIGESTNOW) or deferred digest evaluation           
+                      (MSG_DIGEST); adjust layout of error messages; remove   
+                      unused repeat.                                          
+   cbf.stx              Add new argument for cbf_set_columnrow.               
+   cbf_ascii.c          Add buffer flush.                                     
+   cbf_binary.c         Add call to cbf_codes.h; convert to use of            
+                      cbf_get/set_bintext; digests saved in the text for      
+                      deferred evaluation.                                    
+   cbf_byte_offset.c    Add storedbits argument on compression; remove repeat 
+                      on decompression.                                       
+   cbf_canonical.c      Stylistic cleanup; add storedbits argument on         
+                      compression; remove repeat on decompression.            
+   cbf_codes.c          Add routines cbf_is_base64digest, cbf_md5digest_to64, 
+                      flush buffers when done, general cleanup                
+   cbf_compress.c       Add argument bits to cbf_compress and each actual     
+                      compression routine, add bits and remove repeat on      
+                      decompression.                                          
+   cbf_file.c           Reorganize digest logic; remove nblen argument from   
+                      cbf_read_line.                                          
+   cbf_lex.c            Argument type and stylisic cleanup; allow for         
+                      deferred digest evaluation, adjust binary size to agree 
+                      with MIME size.                                         
+   cbf_packed.c         Stylistic cleanup; add storedbits argument on         
+                      compression; remove repeat on decompression.            
+   cbf_predictor.c      Add storedbits argument on compression; remove repeat 
+                      on decompression.                                       
+   cbf_read_mime.c      Add binary element type logic; cleanup header scan;   
+                      allow for deferred digest evaluation.                   
+   cbf_tree.c           Add argument free to cbf_set_columnrow. If free is    
+                      true, free the old value, otherwise a user              
+                      responsibility.                                         
+   cbf_uncompressed.c   Add storedbits argument on compression; remove repeat 
+                      on decompression.                                       
+   cbf_write.c          Add buffer flush.                                     
+   cbf_write_binary.c   Reorganize digest calculation, adjust binary size by  
+                      8, add X-Binary-E;ement-Type.                           
+   global.h             Change definition of UINT4 from unsigned long int to  
+                      unsigned int.                                           
+   md5.c                Mask 32 bits for longer words.                        
+
+     ----------------------------------------------------------------------
+
+  Release 0.4, Herbert J. Bernstein, 15 November 1998
+
+   Source File        Change                                                  
+   cbf_stx.c            rebuilt from cbf.stx with bison 1.25                  
+   cbf_binary.c         add digest, elsize, elsign to text                    
+   cbf_canonical.c      remove write of compression id                        
+   cbf_codes.h          add argument *digest to cbf_fromqp, cbf_frombase64,   
+                      cbf_frombasex                                           
+   cbf_codes.c          add mpack notice, add cbf_md5context_to64, add digest 
+                      to cbf_from...                                          
+   cbf_compress.h       add argument *digest to cbf_compress                  
+   cbf_compress.c       add digest to cbf_compress                            
+   cbf_file.h           add nscolumn, digest_buffer, digest_bpoint, context   
+                      to cbf_file struct, add argument *nblen to              
+                      cbf_read_line                                           
+   cbf_file.c           add file->nscolumn, file->digest_buffer,              
+                      file->digest_bpoint, update digest when writing         
+   cbf_lex.c            add notices, compute digests on intial read           
+   cbf_packed.c         do not write compression id                           
+   cbf_read_mime.h      add prototype for cbf_skip_whitespace, add argument   
+                      *compression to cbf_parse_mimeheader                    
+   cbf_read_mime.c      add notices, remove redundant digest calculation,     
+                      adjust handling of compression id, add                  
+                      cbf_skip_whitespace, have cbf_parse_mimeheader return   
+                      compression id, add checks for garbled files, allow     
+                      more general headers                                    
+   cbf_uncompressed.c   make uncompressed section free of headers             
+   cbf_write.c          update version in headers                             
+   cbf_write_binary.c   carry digest, elsize, elsign in text rather than      
+                      header                                                  
+
+     ----------------------------------------------------------------------
+
+  Release 0.3.1.1, Paul J. Ellis, 21 September 1998
+
+   Source File        Change                                                  
+   cbf.h                remove globals, add tolen CBF_TOKEN_MIME_BIN, change  
+                      MIME_NOHEADERS to PLAIN_HEADERS, add HDR_DEFAULT, add   
+                      arguments ciforcbf, headers, encoding to                
+                      cbf_write_file, add argument headers to cbf_read_file,  
+                      restore const in several places, merge int              
+                      cbf_get_integerarrayparams into                         
+                      cbf_get_integerarrayparameters                          
+   cbf.c                 add notices, add argument headers to cbf_read_file   
+                      to replace use of globals in release 0.2, add arguments 
+                      ciforcbf, headers, encoding to cbf_write_file to        
+                      replace use of globals in release 0.2, restore some     
+                      uses of const, remove integerarrayparams and merge      
+                      arguments into cbf_get_integerparameters, replace       
+                      cbf_binary_params with cbf_binary_parameters with       
+                      extended argument list                                  
+   cbf.stx              add notices, remove gcc use of malloc, define         
+                      alloca(x) as NULL, and set large inital depth, adopts   
+                      mods from cbf.stx.y in release 0.2                      
+   cbf_alloc.c          add notices                                           
+   cbf_ascii.c          change use of range of token values to explicit       
+                      symbolic tokens                                         
+   cbf_binary.h         merge cbf_binary_params into cbf_binary_parameters,   
+                      remove cbf_write_binary                                 
+   cbf_binary.c         add cbf_read_mime.h, and CBF_TOKEN_MIME_BIN token,    
+                      use cbf_set/get_fileposition, merge cbf_binary_params   
+                      into cbf_binary_parameters, restore some uses of const, 
+                      use cbf_decompress_parameters with extended argument    
+                      list, use cbf_mime_temp, move cbf_write_binary to its   
+                      own file.                                               
+   cbf_canonical.h      add argument binsize to cbf_compress_canonical, add   
+                      argument repeat to cbf_decompress_canonical             
+   cbf_canonical.c      add notices, remove binbitcount, handle binsize as an 
+                      argument                                                
+   cbf_codes.h          new header                                            
+   cbf_codes.c          revise notices, major cleanup.                        
+   cbf_compress.c       add notices, add compressedsize argument, add repeat  
+                      to decompression calls                                  
+   cbf_context.c        add notices                                           
+   cbf_compress.h       add argument compressedsize to cbf_compress, repeat   
+                      to cbf_decompress                                       
+   cbf_file.h           map "text..." to "buffer..." in cbf_file, remove      
+                      CBFbytedir, change cbf_set_textsize to                  
+                      cbf_set_buffersize, add cbf_reset_buffer, add           
+                      cbf_get_buffer, change cbf_get/put_text to              
+                      cbf_get/put_block, add cbf_get/set_position             
+   cbf_file.c           add notices, change file->text to file->buffer,       
+                      file->text_size to file->buffer_size, file->text_used   
+                      to file->buffer_used, file->read_headers,               
+                      file->write_headers, file->write_encoding, remove       
+                      file->fpos, file->fend, add cbf_get/set_fileposition    
+   cbf_lex.c            read by buffers, move MIME processing later in the    
+                      flow                                                    
+   cbf_packed.h         add compressedsize argument to cbf-compress-packed,   
+                      repeat to cbf_decompress_packed, remove ..none,         
+                      ..byte_off, ..predict                                   
+   cbf_packed.c         add notices, add bitcount argument to cbf_pack_chunk  
+   cbf_predictor.h      new header                                            
+   cbf_predictor.c      New routine                                           
+   cbf_read_binary.h    new header                                            
+   cbf_read_binary.c    New routine                                           
+   cbf_read_mime.h      new header                                            
+   cbf_string.h         new header                                            
+   cbf_string.c         New routine, replacing string.c                       
+   cbf_stx.c            Rebuild of cbf.stx with bison A2.6                    
+   cbf_tree.h           remove CBF_INDEX, cbf_init_index, cbf_add_index,      
+                      cleanup, add const                                      
+   cbf_tree.c           add notices, general cleanup, restore const, remove   
+                      cbf_init_index, cbf_add_index                           
+   cbf_uncompressed.h   new header                                            
+   cbf_uncompressed.c   New routine                                           
+   cbf_write.c          add notices, change tests for "?" and ".", change     
+                      range test on tokens to explicit list                   
+   cbf_write_binary.h   new header                                            
+   cbf_write_binary.c   New routine                                           
+   global.h             new routine with part of md5.h                        
+   md5c.c               use global.h                                          
+   md5.h                move portion of this header to global.h, from whence  
+                      it came                                                 
+
+     ----------------------------------------------------------------------
+
+  Release 0.2, Herbert J. Bernstein, 27 August 1998
+
+   Source File     Change                                                     
+   cbf.h             Define CBF and CIF, add cbf_force_new_datablock,         
+                   cbf_force_new_category, remove some uses of const, add,    
+                   cbf_get_integerarrayparams, add globals CBForCIF,          
+                   CIFCRterm, CIFNLterm, CBFbinsize, CBFmime, CBFdigest,      
+                   CBFencoding, CBFelsize, CBFbytedir                         
+   cbf.c             Define CBF and CIF, add cbf_force_new_datablock,         
+                   cbf_force_new_category, remove some uses of const, add,    
+                   cbf_get_integerarrayparams, add globals CBForCIF,          
+                   CIFCRterm, CIFNLterm, CBFbinsize, CBFmime, CBFdigest,      
+                   CBFencoding, CBFelsize, CBFbytedir                         
+   cbf.stx           Add malloc.h when using gcc                              
+   cbf.stx.y         Version of cbf.stx with changes to allow DDL1            
+   cbf_ascii.c       Use symbols for tokens                                   
+   cbf_binary.h      Add cbf_binary_params                                    
+   cbf_binary.c      Add digest logic, change file position tracking          
+   cbf_canonical.c   Make writing repeat consistent; track binbitcount add    
+                   cbf_binary_params, use cbf_decompress_params; allow MIME   
+                   header                                                     
+   cbf_codes.c       New routine adapted from mpack                           
+   cbf_compress.h    Add cbf_decompress_params                                
+   cbf_compress.c    Add hooks for CBF_NONE, CBF_BYTE_OFFSET, CBF_PREDICTOR,  
+                   add cbf_decompress_params                                  
+   cbf_context.h     Remove const from cbf_copy_string                        
+   cbf_context.c     Remove const from cbf_copy_string                        
+   cbf_decode.c      New routine adapted from mpack                           
+   cbf_file.h        Add files to record file position                        
+   cbf_file.c        Track file position; allow writing CIFs and CBFs         
+   cbf_lex.c         Add mime processing; add DDL1 support; process "."       
+   cbf_mime.c        New routine                                              
+   cbf_packed.h      Add cbf_compress_none, cbf_decompress_none,              
+                   cbf_compress_byte_off, cbf_decompress_byte_off,            
+                   cbf_compress_predict, cbf_decompress_predict               
+   cbf_packed.c      Add cbf_compress_none, cbf_decompress_none, dummy        
+                   cbf_compress_byte_off, dummy cbf_decompress_byte_off,      
+                   dummy cbf_compress_predict, dummy cbf_decompress_predict;  
+                   ensure consistent writing of repeat                        
+   cbf_part.h        New header adapted from mpack                            
+   cbf_part.c        New routine adapted from pack                            
+   cbf_stx.c         rebuilt with correct bison parser from cbf.stx.y         
+   cbf_tree.c        added cbf_make_new_node, cbf_find_last_child,            
+                   cbf_name_new_node, cbf_add_new_child, cbf_make_new_child,  
+                   cbf_init_index, cbf_add_index; report CBF_ARGUMENT for     
+                   cbf_make_child for type CBF_LINK; removed some uses of     
+                   const                                                      
+   cbf_write.c       Added symbols for parse tokens; recognize "."; adjusted  
+                   file header line to conform to documentation; removed some 
+                   uses of const                                              
+   cif2cbf.c         New program                                              
+   common.h          New header from mpack                                    
+   img2cif.c         New program                                              
+   makecbf.c         Add local_exit and change cbf_failnez to facilitate      
+                   debugging, add _array_intensities.binary_id,               
+                   _array_data.binary.id                                      
+   md5.h             New header from mpack                                    
+   md5c.c            New routine from mpack                                   
+   string.c          New routine from mpack                                   
+   uudecode.c        New routine from mpack                                   
+
+     ----------------------------------------------------------------------
+
+  Release 0.1, Paul J. Ellis, 17 April 1998
+
+   This was the first CBFlib release. It supported binary CBF files using
+   binary strings.
+
+     ----------------------------------------------------------------------
+
+     ----------------------------------------------------------------------
+
+   Updated 1 March 2006.  yaya@bernstein-plus-sons.com

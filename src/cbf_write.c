@@ -1,12 +1,117 @@
 /**********************************************************************
  * cbf_write -- write files                                           *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term ‘this software’, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -51,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -82,7 +187,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -157,6 +262,7 @@ extern "C" {
 #include "cbf_write.h"
 #include "cbf_write_binary.h"
 #include "cbf_read_mime.h"
+#include "cbf_string.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -169,7 +275,7 @@ static char wordtok[5] = "word";
 static char texttok[5] = "text";
 static char dblqtok[5] = "dblq";
 static char sglqtok[5] = "sglq";
-static char nulltok[5] = "null"; 
+static char nulltok[5] = "null";
 
   /* Get the value type of an ascii string */
 
@@ -191,7 +297,7 @@ int cbf_get_value_type(const char *value, const char **value_type)
   if ((*value & '\200') != '\200')
 
     return CBF_ARGUMENT;
-    
+
 
     /* Has the value already been checked? */
 
@@ -205,41 +311,41 @@ int cbf_get_value_type(const char *value, const char **value_type)
 
     *value_type = wordtok;
 
-    return 0; 
+    return 0;
 
-  }   
+  }
 
   if (*value == CBF_TOKEN_SQSTRING) {
 
     *value_type = sglqtok;
 
-    return 0; 
+    return 0;
 
-  }   
+  }
 
   if (*value == CBF_TOKEN_DQSTRING) {
 
     *value_type = dblqtok;
 
-    return 0; 
+    return 0;
 
-  }   
+  }
 
   if (*value == CBF_TOKEN_SCSTRING) {
 
     *value_type = texttok;
 
-    return 0; 
+    return 0;
 
-  }   
+  }
 
   if (*value == CBF_TOKEN_NULL) {
 
     *value_type = nulltok;
 
-    return 0; 
+    return 0;
 
-  }   
+  }
 
   return CBF_ARGUMENT;
 
@@ -260,7 +366,7 @@ int cbf_set_value_type(char *value, const char *value_type)
   if ((*value & '\200') != '\200')
 
     return CBF_ARGUMENT;
-    
+
 
     /* Has the value already been checked? */
 
@@ -283,9 +389,9 @@ int cbf_set_value_type(char *value, const char *value_type)
       return 0;
     }
 
-    return CBF_ARGUMENT; 
+    return CBF_ARGUMENT;
 
-  }   
+  }
 
   if (strcmp(value_type,nulltok) == 0) {
 
@@ -298,9 +404,9 @@ int cbf_set_value_type(char *value, const char *value_type)
       return 0;
     }
 
-    return CBF_ARGUMENT; 
+    return CBF_ARGUMENT;
 
-  }   
+  }
 
   if (strcmp(value_type,sglqtok) == 0) {
 
@@ -316,9 +422,9 @@ int cbf_set_value_type(char *value, const char *value_type)
 
     *value = CBF_TOKEN_SQSTRING;
 
-    return 0; 
+    return 0;
 
-  }   
+  }
 
   if (strcmp(value_type,dblqtok) == 0 ) {
 
@@ -334,9 +440,9 @@ int cbf_set_value_type(char *value, const char *value_type)
 
     *value = CBF_TOKEN_DQSTRING;
 
-    return 0; 
+    return 0;
 
-  }   
+  }
 
   if (strcmp(value_type,texttok) == 0 ) {
 
@@ -348,9 +454,9 @@ int cbf_set_value_type(char *value, const char *value_type)
 
     *value = CBF_TOKEN_SCSTRING;
 
-    return 0; 
+    return 0;
 
-  }   
+  }
 
   return CBF_ARGUMENT;
 
@@ -376,14 +482,14 @@ int cbf_value_type (char *value)
   if ((*value & '\200') != '\200')
 
     return CBF_ARGUMENT;
-    
+
 
     /* Has the value already been checked? */
 
   if ((value [0] & '\300') == '\300')
 
     return 0;
-    
+
 
     /* Properties */
 
@@ -409,6 +515,8 @@ int cbf_value_type (char *value)
         test [0] |= C == '_' || C == '\'' || C == '"' || C == '#';
     }
   }
+
+  if (count <= 5) test[4]=test[5]=1;
 
   test [0] |= strcmp (&value [1], "?") == 0;
   test [0] |= strcmp (&value [1], ".") == 0;
@@ -436,7 +544,7 @@ int cbf_value_type (char *value)
     }
     else
 
-        /* Multiple lines */    
+        /* Multiple lines */
 
       *value = CBF_TOKEN_SCSTRING;
 
@@ -481,15 +589,60 @@ int cbf_write_datablockname (const cbf_node *datablock, cbf_file *file)
 }
 
 
+  /* Write a save frame name to a file */
+
+int cbf_write_saveframename (const cbf_node *saveframe, cbf_file *file)
+{
+    /* Does the node exist? */
+
+  if (!saveframe)
+
+    return CBF_ARGUMENT;
+
+
+    /* Write the name */
+
+  if (saveframe->name)
+  {
+    cbf_failnez (cbf_write_string (file, "\nsave_"))
+
+    cbf_failnez (cbf_write_string (file, saveframe->name))
+
+    cbf_failnez (cbf_write_character (file, '\n'))
+  }
+  else
+
+    if (saveframe->children)
+
+      cbf_failnez (cbf_write_string (file, "\nsave_(none)\n"))
+
+
+    /* Success */
+
+  return 0;
+}
+
+
   /* Write an item name to a file */
 
-int cbf_write_itemname (const cbf_node *column, cbf_file *file)
+int cbf_write_itemname (cbf_handle handle, const cbf_node *column, cbf_file *file)
 {
   cbf_node *category;
 
+  char itemname[81];
+
+  char column_fill[1] = "\0";
+
+  char * tempcat;
+
+  char * temptag;
+
+  char * tempcol;
+
+  int ipos;
 
     /* Get the category */
-      
+
   cbf_failnez (cbf_find_parent (&category, column, CBF_CATEGORY))
 
 
@@ -499,24 +652,54 @@ int cbf_write_itemname (const cbf_node *column, cbf_file *file)
 
     return CBF_ARGUMENT;
 
+    /* construct the item name */
 
-    /* Write the category name */
+  if (column->name) {
 
-  cbf_failnez (cbf_write_character (file, '_'))
+    tempcol = (char *)column->name;
 
-  if (category->name)
-  {
-    cbf_failnez (cbf_write_string (file, category->name))
+  } else {
 
-    cbf_failnez (cbf_write_character (file, '.'))
+    tempcol = column_fill;
   }
 
+  if (!category->name ||
+      !(category->name[0]) ||
+      !strcasecmp("(none)",category->name) ||
+      tempcol[0]=='_') {
 
-    /* Write the column name */
+  strcpy(itemname,tempcol);
 
-  if (column->name)
+  } else {
 
-    cbf_failnez (cbf_write_string (file, column->name))
+      if(!category->name) return CBF_ARGUMENT;
+
+      itemname[0] = '_';
+
+      cbf_failnez( cbf_require_category_root(handle,category->name,(const char **)&tempcat))
+
+      if (strlen(tempcat) > 77) return CBF_ARGUMENT;
+
+      strcpy(itemname+1,tempcat);
+
+      ipos = strlen(itemname);
+
+      if (strlen(tempcol)+ipos+2 > 80) return CBF_ARGUMENT;
+
+      itemname[ipos++] = '.';
+
+      strcpy(itemname+ipos,tempcol);
+
+  }
+
+  cbf_failnez( cbf_require_tag_root(handle,(const char *)itemname,(const char **)&temptag))
+
+
+
+    /* Write the tag name */
+
+
+  cbf_failnez (cbf_write_string (file, temptag))
 
 
     /* Success */
@@ -527,7 +710,7 @@ int cbf_write_itemname (const cbf_node *column, cbf_file *file)
 
   /* Write a value to a file */
 
-int cbf_write_value (cbf_node *column, unsigned int row, 
+int cbf_write_value (cbf_node *column, unsigned int row,
                      cbf_file *file, int isbuffer)
 {
   const char *text;
@@ -550,7 +733,7 @@ int cbf_write_value (cbf_node *column, unsigned int row,
 
 
     /* Missing value? */
-    
+
   if (!text)
 
     return cbf_write_ascii (text, file);
@@ -577,13 +760,13 @@ int cbf_write_value (cbf_node *column, unsigned int row,
 
 
     /* Undecoded MIME? */
-  
+
   if (*text == CBF_TOKEN_MIME_BIN)
   {
       /* Convert the value to a normal binary section */
-      
+
     cbf_failnez (cbf_mime_temp (column, row))
-  
+
     return cbf_write_binary (column, row, file, isbuffer);
   }
 
@@ -596,11 +779,13 @@ int cbf_write_value (cbf_node *column, unsigned int row,
 
   /* Write a category to a file */
 
-int cbf_write_category (const cbf_node *category, cbf_file *file, int isbuffer)
+int cbf_write_category (cbf_handle handle, const cbf_node *category, cbf_file *file, int isbuffer)
 {
-  unsigned int count, first, last=0, column, columns, row;
-  
-  int loop;
+  unsigned int count, first, last=0, column, columns, row, maxrows, matrixcount;
+
+  int loop, matrix, len;
+
+  const char * column_name;
 
 
     /* Check the arguments */
@@ -609,31 +794,68 @@ int cbf_write_category (const cbf_node *category, cbf_file *file, int isbuffer)
 
     return CBF_ARGUMENT;
 
-    
-    /* Print out columns of the same length in loops */
+
+    /* Print out columns of the same length in loops
+       unless the number of rows is 1 */
+
+  maxrows = 0;
+
+  matrix = 0;
 
   for (first = 0, loop = 1; first < category->children; first = last)
   {
     columns = 1;
-    
+
+    if (category->child [first] &&
+      category->child [first]->children > maxrows)
+      maxrows = category->child [first]->children;
+
     if (category->child [first])
     {
       for (last = first + 1; last < category->children; last++)
 
         if (category->child [last])
         {
-          if (category->child [last]->children != 
-            category->child [first]->children)
+          if (category->child [last]->children !=
+            category->child [first]->children) {
+
+            if (category->child [last]->children > maxrows)
+              maxrows = category->child [last]->children;
 
             break;
-            
+          }
+
           columns++;
         }
 
+        /* check for a matrix        */
+
+      matrix = 0;
+
+      matrixcount = 0;
+
+      for (count = first ; count < last; count++)
+      {
+
+        column_name = (category->child [count])->name;
+
+        if (column_name) {
+           len = strlen(column_name);
+           if ((len > 0 && column_name[len-1]==']') ||
+               (len > 4 && !cbf_cistrncmp("]_esd",(char *)column_name+len-5,5))) {
+             matrixcount++;
+             if (matrixcount > ((last-first+1)>>1)+1) {
+               matrix = 1;
+               break;
+             }
+           }
+        }
+      }
 
         /* Make a loop? */
 
-      if (columns > 1 || category->child [first]->children > 1)
+      if ( matrix || (maxrows > 1 &&
+        (columns > 1 || category->child [first]->children > 1)))
       {
         cbf_failnez (cbf_write_string (file, "\nloop_\n"))
 
@@ -641,23 +863,20 @@ int cbf_write_category (const cbf_node *category, cbf_file *file, int isbuffer)
       }
       else
       {
-        if (loop)
 
-          cbf_failnez (cbf_write_character (file, '\n'))
+        cbf_failnez (cbf_write_character (file, '\n'))
 
         loop = 0;
       }
 
+        /* Write the items for a loop */
 
-        /* Write the items */
-
+      if (loop)
       for (count = first; count < last; count++)
       {
-        cbf_failnez (cbf_write_itemname (category->child [count], file))
-          
-        if (loop)
+        cbf_failnez (cbf_write_itemname (handle, category->child [count], file))
 
-          cbf_failnez (cbf_write_character (file, '\n'))
+        cbf_failnez (cbf_write_character (file, '\n'))
       }
 
 
@@ -665,10 +884,42 @@ int cbf_write_category (const cbf_node *category, cbf_file *file, int isbuffer)
 
       for (row = 0; row < category->child [first]->children; row++)
       {
-        for (column = first; column < last; column++)
+        for (column = first; column < last; column++) {
 
-          cbf_failnez (cbf_write_value (category->child [column], row, 
+          if (!loop) {
+
+            cbf_failnez (cbf_write_itemname (handle, category->child [column], file))
+
+          }
+
+          if (matrix) {
+
+            column_name = (category->child [column])->name;
+
+            if (column_name) {
+
+              len = strlen(column_name);
+
+               if ((len > 2 && !cbf_cistrncmp("[1]",(char *)column_name+len-3,3)) ||
+
+                (len > 6 && !cbf_cistrncmp("[1]_esd",(char *)column_name+len-7,7))) {
+
+                cbf_failnez (cbf_write_character (file, '\n'))
+
+               }
+
+            }
+
+          }
+
+          cbf_failnez (cbf_write_value (category->child [column], row,
                                                        file, isbuffer))
+          if (!loop) {
+
+            cbf_failnez (cbf_write_character (file, '\n'))
+
+          }
+        }
 
         cbf_failnez (cbf_get_filecoordinates (file, NULL, &column))
 
@@ -688,10 +939,10 @@ int cbf_write_category (const cbf_node *category, cbf_file *file, int isbuffer)
 
   /* Write a node to a file */
 
-int cbf_write_node (const cbf_node *node, cbf_file *file, int isbuffer)
+int cbf_write_node (cbf_handle handle, const cbf_node *node, cbf_file *file, int isbuffer)
 {
   unsigned int count;
-  
+
 
     /* Follow any links */
 
@@ -709,18 +960,20 @@ int cbf_write_node (const cbf_node *node, cbf_file *file, int isbuffer)
 
   switch (node->type)
   {
+
+
     case CBF_ROOT:
 
-      cbf_failnez (cbf_write_string (file, "###CBF: VERSION 1.3.1\n"))
-    
+      cbf_failnez (cbf_write_string (file, "###" CBF_DIC_VERSION "\n"))
+
       if (file->write_encoding & ENC_NONE)
 
-        cbf_failnez (cbf_write_string (file, 
-                             "# CBF file written by cbflib v0.7.4\n"))
+        cbf_failnez (cbf_write_string (file,
+                             "# CBF file written by " CBF_API_VERSION "\n"))
       else
 
-        cbf_failnez (cbf_write_string (file, 
-                             "# CIF file written by cbflib v0.7.4\n"))
+        cbf_failnez (cbf_write_string (file,
+                             "# CIF file written by " CBF_API_VERSION "\n"))
 
       break;
 
@@ -732,9 +985,16 @@ int cbf_write_node (const cbf_node *node, cbf_file *file, int isbuffer)
 
     case CBF_CATEGORY:
 
-      cbf_failnez (cbf_write_category (node, file, isbuffer))
+      cbf_failnez (cbf_write_category (handle, node, file, isbuffer))
 
       break;
+
+    case CBF_SAVEFRAME:
+
+      cbf_failnez (cbf_write_saveframename (node, file))
+
+      break;
+
 
     default:
 
@@ -744,16 +1004,22 @@ int cbf_write_node (const cbf_node *node, cbf_file *file, int isbuffer)
 
     /* Write the children */
 
-  if (node->type == CBF_ROOT || node->type == CBF_DATABLOCK)
+  if (node->type == CBF_ROOT || node->type == CBF_DATABLOCK || node->type == CBF_SAVEFRAME)
 
     for (count = 0; count < node->children; count++)
 
-      cbf_failnez (cbf_write_node (node->child [count], file, isbuffer))
+      cbf_failnez (cbf_write_node (handle, node->child [count], file, isbuffer))
 
+  if (node->type == CBF_SAVEFRAME )
+
+      cbf_failnez (cbf_write_string (file, "\nsave_\n"))
 
     /* Flush the buffers */
 
   return cbf_flush_characters (file);
+
+
+
 }
 
 

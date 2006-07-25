@@ -5,14 +5,16 @@ typedef union
   cbf_node    *node;
 } YYSTYPE;
 #define	DATA	257
-#define	LOOP	258
-#define	ITEM	259
-#define	CATEGORY	260
-#define	COLUMN	261
-#define	STRING	262
-#define	WORD	263
-#define	BINARY	264
-#define	UNKNOWN	265
-#define	COMMENT	266
-#define	ERROR	267
+#define	SAVE	258
+#define	SAVEEND	259
+#define	LOOP	260
+#define	ITEM	261
+#define	CATEGORY	262
+#define	COLUMN	263
+#define	STRING	264
+#define	CBFWORD	265
+#define	BINARY	266
+#define	UNKNOWN	267
+#define	COMMENT	268
+#define	ERROR	269
 

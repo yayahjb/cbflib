@@ -1,12 +1,117 @@
 /**********************************************************************
  * cbf_read_mime -- read MIME-encoded binary sections                 *
  *                                                                    *
- * Version 0.7.4 12 January 2004                                      *
+ * Version 0.7.5 15 April 2006                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
+ *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *                                                                    *
+ * (C) Copyright 2006 Herbert J. Bernstein                            *
+ *                                                                    *
  **********************************************************************/
-  
+
+/**********************************************************************
+ *                                                                    *
+ * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************/
+
+/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * This program is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU General Public License as     *
+ * published by the Free Software Foundation; either version 2 of     *
+ * (the License, or (at your option) any later version.               *
+ *                                                                    *
+ * This program is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      *
+ * GNU General Public License for more details.                       *
+ *                                                                    *
+ * You should have received a copy of the GNU General Public License  *
+ * along with this program; if not, write to the Free Software        *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
+ * 02111-1307  USA                                                    *
+ *                                                                    *
+ **********************************************************************/
+
+/************************* LGPL NOTICES *******************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************/
+
+/**********************************************************************
+ *                                                                    *
+ *                    Stanford University Notices                     *
+ *  for the CBFlib software package that incorporates SLAC software   *
+ *                 on which copyright is disclaimed                   *
+ *                                                                    *
+ * This software                                                      *
+ * -------------                                                      *
+ * The term Ôthis softwareÕ, as used in these Notices, refers to      *
+ * those portions of the software package CBFlib that were created by *
+ * employees of the Stanford Linear Accelerator Center, Stanford      *
+ * University.                                                        *
+ *                                                                    *
+ * Stanford disclaimer of copyright                                   *
+ * --------------------------------                                   *
+ * Stanford University, owner of the copyright, hereby disclaims its  *
+ * copyright and all other rights in this software.  Hence, anyone    *
+ * may freely use it for any purpose without restriction.             *
+ *                                                                    *
+ * Acknowledgement of sponsorship                                     *
+ * ------------------------------                                     *
+ * This software was produced by the Stanford Linear Accelerator      *
+ * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
+ * the Department of Energy.                                          *
+ *                                                                    *
+ * Government disclaimer of liability                                 *
+ * ----------------------------------                                 *
+ * Neither the United States nor the United States Department of      *
+ * Energy, nor any of their employees, makes any warranty, express or *
+ * implied, or assumes any legal liability or responsibility for the  *
+ * accuracy, completeness, or usefulness of any data, apparatus,      *
+ * product, or process disclosed, or represents that its use would    *
+ * not infringe privately owned rights.                               *
+ *                                                                    *
+ * Stanford disclaimer of liability                                   *
+ * --------------------------------                                   *
+ * Stanford University makes no representations or warranties,        *
+ * express or implied, nor assumes any liability for the use of this  *
+ * software.                                                          *
+ *                                                                    *
+ * Maintenance of notices                                             *
+ * ----------------------                                             *
+ * In the interest of clarity regarding the origin and status of this *
+ * software, this and all the preceding Stanford University notices   *
+ * are to remain affixed to any copy or derivative of this software   *
+ * made or distributed by the recipient and are to be affixed to any  *
+ * copy of software made or distributed by the recipient that         *
+ * contains a copy or derivative of this software.                    *
+ *                                                                    *
+ * Based on SLAC Software Notices, Set 4                              *
+ * OTT.002a, 2004 FEB 03                                              *
+ **********************************************************************/
+
+
+
 /**********************************************************************
  *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
@@ -51,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -82,7 +187,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              * 
+ * To protect the STAR File and the CIF as standards for              *
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -194,20 +299,20 @@ extern "C" {
 int cbf_mime_temp (cbf_node *column, unsigned int row)
 {
   cbf_file *file;
-  
+
   cbf_file *temp_file;
-  
+
   long start, temp_start;
-  
+
   size_t size;
-  
-  int id, bits, sign, type, checked_digest;
+
+  int id, bits, sign, type, checked_digest, realarray;
 
   unsigned int compression;
-  
+
   char old_digest [25], *new_digest, digest [25];
 
-  
+
     /* Check the value */
 
   if (!cbf_is_mimebinary (column, row))
@@ -218,11 +323,12 @@ int cbf_mime_temp (cbf_node *column, unsigned int row)
     /* Parse it */
 
   size = 0;
-  
+
   cbf_failnez (cbf_get_bintext (column, row, &type,
-                                &id, &file, &start, &size, &checked_digest, 
-                                old_digest, &bits, &sign, &compression))
-  
+                                &id, &file, &start, &size, &checked_digest,
+                                old_digest, &bits, &sign, &realarray,
+                                &compression))
+
 
     /* Position the file at the start of the mime section */
 
@@ -244,58 +350,59 @@ int cbf_mime_temp (cbf_node *column, unsigned int row)
 
   cbf_onfailnez (cbf_get_fileposition (temp_file, &temp_start),
                  cbf_delete_fileconnection (&temp_file))
-    
+
 
     /* Calculate a new digest if necessary */
-    
-  if (cbf_is_base64digest (old_digest) && (file->read_headers & MSG_DIGEST) 
+
+  if (cbf_is_base64digest (old_digest) && (file->read_headers & MSG_DIGEST)
                                        && !checked_digest)
 
     new_digest = digest;
-    
+
   else
-  
+
     new_digest = NULL;
-    
+
 
     /* Decode the binary data to the temporary file */
-    
-  cbf_onfailnez (cbf_read_mime (file, temp_file, 
+
+  cbf_onfailnez (cbf_read_mime (file, temp_file,
                                       NULL, NULL, old_digest, new_digest),
                  cbf_delete_fileconnection (&temp_file))
 
 
     /* Check the digest */
-    
-  if (new_digest)
-  
-    if (strcmp (old_digest, new_digest) == 0)
-    
-      checked_digest = 1;
-      
-    else
-                 
-      return CBF_FORMAT | cbf_delete_fileconnection (&temp_file);
 
-  
+  if (new_digest) {
+
+    if (strcmp (old_digest, new_digest) == 0) {
+
+      checked_digest = 1;
+
+    } else {
+
+      return CBF_FORMAT | cbf_delete_fileconnection (&temp_file);
+    }
+
+  }
+
     /* Replace the connection */
-    
+
   cbf_onfailnez (cbf_set_bintext (column, row, CBF_TOKEN_TMP_BIN,
-                                  id, temp_file, temp_start, size, 
+                                  id, temp_file, temp_start, size,
                                   checked_digest, old_digest, bits,
-                                                              sign,
-                                                              compression),
+                                  sign, realarray, compression),
                     cbf_delete_fileconnection (&temp_file))
- 
+
 
     /* Success */
-    
+
   return 0;
 }
 
 
   /* Convert a MIME-encoded binary section to a normal binary section */
-     
+
 int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
                                      size_t     *size,
                                      long       *id,
@@ -303,63 +410,63 @@ int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
                                      char       *new_digest)
 {
   int encoding;
-  
+
   size_t file_size;
 
   unsigned int compression;
 
-  
+
     /* Read the header */
-    
+
   encoding = 0;
-  
+
   file_size = 0;
-    
-  cbf_failnez (cbf_parse_mimeheader (infile, &encoding, 
-                                             &file_size, id, 
+
+  cbf_failnez (cbf_parse_mimeheader (infile, &encoding,
+                                             &file_size, id,
                                              old_digest,
                                              &compression,
-                                             NULL, NULL))
-                                             
+                                             NULL, NULL, NULL))
+
   if (file_size <= 0)
 
     return CBF_FORMAT;
 
 
     /* Discard any bits in the buffers */
-    
+
   cbf_failnez (cbf_reset_bits (outfile))
 
 
     /* Decode the binary data */
-    
+
   switch (encoding)
   {
     case ENC_QP:
-    
-      cbf_failnez (cbf_fromqp (infile, outfile, file_size, NULL, 
+
+      cbf_failnez (cbf_fromqp (infile, outfile, file_size, NULL,
                                new_digest))
 
       break;
-      
+
     case ENC_BASE64:
-    
-      cbf_failnez (cbf_frombase64 (infile, outfile, file_size, NULL, 
+
+      cbf_failnez (cbf_frombase64 (infile, outfile, file_size, NULL,
                                    new_digest))
 
       break;
-      
+
     case ENC_BASE8:
     case ENC_BASE10:
     case ENC_BASE16:
-    
-      cbf_failnez (cbf_frombasex (infile, outfile, file_size, NULL, 
+
+      cbf_failnez (cbf_frombasex (infile, outfile, file_size, NULL,
                                   new_digest))
 
       break;
-      
+
     default:
-    
+
       return CBF_FORMAT;
   }
 
@@ -372,12 +479,12 @@ int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
     /* Size (excluding the encoding) */
 
   if (size)
-  
+
     *size = file_size;
-    
-    
+
+
     /* Success */
-    
+
   return 0;
 }
 
@@ -387,13 +494,13 @@ int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
 int cbf_is_blank (const char *line)
 {
   if (line)
-  
+
     for (; *line; line++)
-    
+
       if (!isspace (*line))
-      
+
         return 0;
-        
+
   return 1;
 }
 
@@ -408,7 +515,7 @@ int cbf_nblen (const char *line, size_t *nblen)
 
   *nblen = mylen = 0;
 
-  
+
 
   if (!(myline = (char *)line)) return 1;
 
@@ -419,19 +526,19 @@ int cbf_nblen (const char *line, size_t *nblen)
   *nblen = mylen;
 
   return 0;
-  
+
 }
 
 
-  /* Skip whitespace and comments */ 
+  /* Skip whitespace and comments */
 
-int cbf_skip_whitespace (cbf_file *file, const char **line, 
-                                         const char **curpoint, 
+int cbf_skip_whitespace (cbf_file *file, const char **line,
+                                         const char **curpoint,
                                          int        *freshline)
 {
   static const char end = '\0';
-  
-  const char *c;     
+
+  const char *c;
 
   int comment_level;
 
@@ -441,14 +548,14 @@ int cbf_skip_whitespace (cbf_file *file, const char **line,
   if (*freshline)
   {
     *curpoint = &end;
-    
+
     return 0;
   }
 
   c = *curpoint;
 
   comment_level = 0;
-  
+
   while (isspace (*c) || *c == '(' || *c == '\0')
 
     if (*c == '\0')
@@ -465,9 +572,9 @@ int cbf_skip_whitespace (cbf_file *file, const char **line,
 
         return 0;
       }
-    } 
-    else 
-    
+    }
+    else
+
       if (*c == '(')
       {
         c++;
@@ -501,9 +608,9 @@ int cbf_skip_whitespace (cbf_file *file, const char **line,
 
               break;
 
-            case '(':              
+            case '(':
 
-              comment_level++;                
+              comment_level++;
 
               break;
 
@@ -517,8 +624,8 @@ int cbf_skip_whitespace (cbf_file *file, const char **line,
           c++;
         }
       }
-      else  
-      
+      else
+
         c++;
 
   *freshline = 0;
@@ -527,82 +634,87 @@ int cbf_skip_whitespace (cbf_file *file, const char **line,
 
 
     /* Success */
-    
+
   return 0;
 }
-  
+
 
   /* Parse the MIME header looking for values of type:
-  
+
      Content-Type:
      Content-Transfer-Encoding:
      X-Binary-Size:
      X-Binary-ID:
      X-Binary-Element-Type:
      Content-MD5: */
-     
+
 int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
                                           size_t     *size,
                                           long       *id,
                                           char       *digest,
                                  unsigned int        *compression,
                                           int        *bits,
-                                          int        *sign)
+                                          int        *sign,
+                                          int        *real)
 {
   static const char *value [] = {
-  
+
     "Content-Type:",                /* State 0 */
     "Content-Transfer-Encoding:",   /* State 1 */
     "X-Binary-Size:",               /* State 2 */
     "X-Binary-ID:",                 /* State 3 */
     "X-Binary-Element-Type:",       /* State 4 */
     "Content-MD5:"                  /* State 5 */
-  
+
     };
 
   const char *line, *c;
-  
-  int state, continuation, item, line_count, fresh_line, quote, text_bits, 
+
+  int state, continuation, item, line_count, fresh_line, quote, text_bits,
       count, failure=0;
-      
+
   size_t nblen;
-  
-  
+
+
     /* Defaults */
-    
+
   if (encoding)
-  
+
     *encoding = 0;
-  
+
   if (size)
-  
+
     *size = 0;
-  
+
   if (id)
-  
+
     *id = 0;
-  
+
   if (digest)
-  
+
     *digest = '\0';
 
   if (compression)
 
     *compression = CBF_NONE;
-    
+
   if (bits)
-  
+
     *bits = 0;
-    
+
   if (sign)
-  
+
     *sign = -1;
-  
-  
+
+  if (real)
+
+    *real = -1;
+
+
     /* Read the file line by line */
-    
+
   state = -1;
-  
+
   line_count = 0;
 
   fresh_line = 0;
@@ -612,88 +724,88 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
   while (nblen)
   {
     if (!fresh_line)
-    
+
       cbf_failnez (cbf_read_line (file, &line))
 
     cbf_nblen (line, &nblen);
-      
+
     fresh_line = 0;
 
     line_count++;
 
 
       /* Check for premature terminations */
- 
-    if ( (line[0] == ';') || 
+
+    if ( (line[0] == ';') ||
       ( cbf_cistrncmp(line,"--CIF-BINARY-FORMAT-SECTION--",29) == 0 ) )
 
       return CBF_FORMAT;
 
 
       /* Check for a header continuation line */
-      
+
     continuation = line [0] == ' ' || line [0] == '\t';
 
 
       /* Check for a new item */
-      
+
     if (continuation)
 
       item = 0;
-      
+
     else
     {
       for (c = line; *c != ':' && *c > 32 && *c < 127; c++);
-      
+
       item = c != line && *c == ':';
     }
-          
+
 
       /* Check for the end of the header */
 
     if (line_count > 1 && cbf_is_blank (line))
-            
+
       return 0;
 
 
       /* Check for valid header-ness of line */
-      
+
     if (!item && (line_count == 1 || !continuation))
 
       return CBF_FORMAT;
-        
+
 
        /* Look for the entries we are interested in */
-      
+
     c = line;
 
     if (item)
 
       for (state = 5; state > -1; state--)
 
-        if (cbf_cistrncmp (line, value [state], strlen (value [state])) 
+        if (cbf_cistrncmp (line, value [state], strlen (value [state]))
                            == 0)
 
         {
           c = line + strlen (value [state]);
-          
+
           break;
         }
-       
+
 
       /* Skip past comments and whitespace */
-        
+
     cbf_failnez (cbf_skip_whitespace (file, &line, &c, &fresh_line))
-      
+
 
       /* Get the value */
-      
+
     switch (state)
     {
       case 0:
-          
+
           /* Content */
-              
+
         if (cbf_cistrncmp (c, "application/", 12) != 0 &&
             cbf_cistrncmp (c, "image/",        6) != 0 &&
             cbf_cistrncmp (c, "text/",         5) != 0 &&
@@ -702,13 +814,13 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
           return CBF_FORMAT;
 
-              
+
         while (*c)
         {
             /* Skip to the end of the section (a semicolon) */
-              
+
           while (*c)
-              
+
             if (*c == '\"')
             {
               c++;
@@ -732,11 +844,11 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
                     c++;
                 }
             }
-            else 
+            else
 
               if (*c == '(')
 
-                cbf_failnez (cbf_skip_whitespace (file, &line, &c, 
+                cbf_failnez (cbf_skip_whitespace (file, &line, &c,
                                                         &fresh_line))
 
               else
@@ -751,34 +863,34 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
                   c++;
 
-            
+
             /* We are at the end of the section or the end of the item */
-              
-          cbf_failnez (cbf_skip_whitespace (file, &line, &c, 
+
+          cbf_failnez (cbf_skip_whitespace (file, &line, &c,
                                                   &fresh_line))
 
-          if (cbf_cistrncmp (c, "conversions", 11) == 0) 
+          if (cbf_cistrncmp (c, "conversions", 11) == 0)
           {
             c += 11;
 
-            cbf_failnez (cbf_skip_whitespace (file, &line, &c, 
+            cbf_failnez (cbf_skip_whitespace (file, &line, &c,
                                                     &fresh_line))
 
-            if (*c == '=') 
+            if (*c == '=')
             {
               c++;
 
-              cbf_failnez (cbf_skip_whitespace (file, &line, &c, 
+              cbf_failnez (cbf_skip_whitespace (file, &line, &c,
                                                       &fresh_line))
 
-              if (compression) 
+              if (compression)
               {
                 quote = 0;
 
                 if (*c == '\"')
-                      
+
                   quote = 1;
-                      
+
                 *compression = CBF_NONE;
 
                 if (cbf_cistrncmp (c + quote, "x-cbf_packed", 12) == 0)
@@ -786,11 +898,11 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
                   *compression = CBF_PACKED;
 
                 if (cbf_cistrncmp (c + quote, "x-cbf_canonical", 15) == 0)
-                      
+
                   *compression = CBF_CANONICAL;
 
                 if (cbf_cistrncmp (c + quote, "x-cbf_byte_offset", 17) == 0)
-  
+
                   *compression = CBF_BYTE_OFFSET;
 
                 if (cbf_cistrncmp (c + quote, "x-cbf_predictor", 15) == 0)
@@ -800,15 +912,15 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
             }
           }
         }
-          
+
       state = -1;
-          
+
       break;
 
       case 1:
-        
+
           /* Binary encoding */
-              
+
         if (encoding)
         {
            failure = 1;
@@ -816,102 +928,103 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
            quote = 0;
 
            if (*c == '\"')
-                      
+
               quote = 1;
 
           if (cbf_cistrncmp (c+quote, "Quoted-Printable", 16) == 0)
-              
-            if (isspace (c [16]) || c [16] == '(' 
+
+            if (isspace (c [16]) || c [16] == '('
               || (quote && c [16] == '\"')) {
 
               failure = 0;
-              
+
               *encoding = ENC_QP;
             }
-                
+
           if (cbf_cistrncmp (c+quote, "Base64", 6) == 0)
-              
+
             if (isspace (c [6]) || c [6] == '(' || (quote && c [16] == '\"')) {
 
               failure = 0;
-              
+
               *encoding = ENC_BASE64;
             }
-                
+
           if (cbf_cistrncmp (c+quote, "X-Base8", 7) == 0)
 
             if (isspace (c [7]) || c [7] == '(' || (quote && c [16] == '\"')) {
 
               failure = 0;
-              
+
               *encoding = ENC_BASE8;
             }
-                
+
           if (cbf_cistrncmp (c+quote, "X-Base10", 8) == 0)
-              
+
             if (isspace (c [8]) || c [8] == '(' || (quote && c [16] == '\"')) {
 
               failure = 0;
-              
+
               *encoding = ENC_BASE10;
             }
-                
+
           if (cbf_cistrncmp (c+quote, "X-Base16", 8) == 0)
-              
+
             if (isspace (c [8]) || c [8] == '(' || (quote && c [16] == '\"')) {
 
               failure = 0;
-              
+
               *encoding = ENC_BASE16;
             }
 
           if (cbf_cistrncmp (c+quote, "7bit", 4) == 0 ||
               cbf_cistrncmp (c+quote, "8bit", 4) == 0)
-              
+
             if (isspace (c [4]) || c [4] == '(' || (quote && c [16] == '\"')) {
 
               failure = 0;
-              
+
               *encoding = ENC_NONE;
             }
 
           if (cbf_cistrncmp (c+quote, "Binary", 6) == 0)
-              
+
             if (isspace (c [6]) || c [6] == '(' || (quote && c [16] == '\"')) {
 
               failure = 0;
-              
+
               *encoding = ENC_NONE;
             }
         }
 
         if (failure) return CBF_FORMAT;
-        
+
         break;
-          
+
       case 2:
-          
+
           /* Binary size */
-            
+
         if (size)
-          
+
           *size = atol (c);
-            
+
         break;
-          
+
       case 3:
 
           /* Binary ID */
-          
+
         if (id)
 
           *id = atol (c);
-              
+
         break;
-            
+
       case 4:
-          
-          /* Binary element type (signed/unsigned ?-bit integer) */
+
+          /* Binary element type (signed/unsigned ?-bit integer)   */
+          /*                or   (signed ?-bit real/complex IEEE)  */
 
         failure = 3;
 
@@ -919,51 +1032,53 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
         {
           quote = 0;
 
-          cbf_failnez (cbf_skip_whitespace (file, &line, &c, 
+          cbf_failnez (cbf_skip_whitespace (file, &line, &c,
                                                   &fresh_line))
-	  if (*c == '\"') {
+      if (*c == '\"') {
 
             if (quote) break;
 
             c++;
 
             quote++;
-	  }
-          
+      }
+
           if (failure == 3) {
 
             if (cbf_cistrncmp (c, "signed", 6) == 0)
             {
               c += 6;
-            
+
               if (sign) *sign = 1;
 
               failure --;
             }
-          
+
             if (cbf_cistrncmp (c, "unsigned", 8) == 0)
             {
               c += 8;
-              
+
               if (sign) *sign = 0;
 
               failure --;
             }
           }
-          
+
           if (failure == 2) {
 
             count = 0;
-            
+
             sscanf (c, "%d-%n", &text_bits, &count);
-              
+
             if (cbf_cistrncmp (c+count, "bit", 3 ) == 0)
 
               if (count && text_bits > 0 && text_bits <= 64)
               {
                 c += count;
-            
+
                 if (bits) *bits = text_bits;
+
+                if (*c == ' ') c++;
 
                 failure --;
               }
@@ -971,38 +1086,76 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
           if (failure == 1) {
 
-            if (cbf_cistrncmp (c, "integer", 7 ) == 0) failure--;
+            if (cbf_cistrncmp (c, "integer", 7 ) == 0) {
+
+              failure--;
+
+              if (real) *real = 0;
+
+            } else {
+
+              if (cbf_cistrncmp(c, "real", 4 ) == 0 ) {
+
+                c+=4;  if(*c == ' ') c++;
+
+                if (cbf_cistrncmp(c, "ieee", 4 ) == 0 ) {
+
+                    failure--;
+
+                  if (real) *real = 1;
+
+                }
+
+              } else {
+
+                if (cbf_cistrncmp(c, "complex", 7 ) == 0 ) {
+
+                  c+=7;  if(*c == ' ') c++;
+
+                  if (cbf_cistrncmp(c, "ieee", 4 ) == 0 ) {
+
+                      failure--;
+
+                    if (real) *real = 1;
+                  }
+
+                }
+
+              }
+
+            }
 
           }
 
           if (*c)
-          
+
             c++;
         }
-        
+
         if (failure) return CBF_FORMAT;
- 
+
         break;
-          
+
       case 5:
 
           /* Message digest */
-            
+
         if (digest)
         {
           strncpy (digest, c, 24);
-              
+
           digest [24] = '\0';
         }
-            
+
         break;
     }
+
   }
 
 
     /* Success */
-    
-  return 0;      
+
+  return 0;
 }
 
 
