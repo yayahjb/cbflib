@@ -1,79 +1,48 @@
-#  [IUCr Home Page]    [CIF Home Page]   [CBF/imgCIF]    [CBFlib]  #
-
-                              # [CBF/imgCIF] #
-
-                          # Extensions Dictionary #
-
 ##############################################################################
 #                                                                            #
-#                             DDL 2.1 Compliant                              #
-#                     mmCIF Binary File Extension (CBF)                      #
-#                     and Image-supporting CIF (imgCIF)                      #
-#                                Dictionary                                  #
+#                       Image CIF Dictionary (imgCIF)                        #
+#             and Crystallographic Binary File Dictionary (CBF)              #
+#            Extending the Macromolecular CIF Dictionary (mmCIF)             #
 #                                                                            #
-#                              Version 0.6.0                                 #
-#                              of 1999-01-14                                 #
+#                               Version 1.0                                  #
+#                              of 2000-12-21                                 #
 #                                                                            #
 #                             Adapted from the                               #
-#                                                                            #
 #                       imgCIF Workshop, BNL Oct 1997                        #
-#                                                                            #
 #                                    and                                     #
-#                                                                            #
 #               Crystallographic Binary File Format Draft Proposal           #
 #                            by Andy Hammersley                              #
 #                                                                            #
-#                                                                            #
 ##############################################################################
 #                                                                            #
-#                             DDL 2.1 Version                                #
+#                           First DDL 2.1 Version                            #
 #                                    by                                      #
 #                               John Westbrook                               #
 #                           Nucleic Acid Database                            #
 #                             Rutgers University                             #
 #                                                                            #
-#                                                                            #
 ##############################################################################
-#                                                                            #
-#       V. 0.6.0 is a _proposed_ revised draft of the CBF dictionary.        #
-#                                                                            #
 # These revisions by:  Herbert J. Bernstein, yaya@bernstein-plus-sons.com    #
+# Incorporating comments by I. David Brown, John Westbrook and Brian McMahon #
 ##############################################################################
 
 
-data_cbfext98.dict
+data_cif_img.dic
 
-    _dictionary.title           cbfext98.dic
-    _dictionary.version         0.6.0
-    _dictionary.datablock_id    cbfext98.dic
+    _dictionary.title           cif_img.dic
+    _dictionary.version         1.0
+    _dictionary.datablock_id    cif_img.dic
 
 ##############################################################################
 #    CONTENTS
 #
-#        ITEM_TYPE_LIST
 #        CATEGORY_GROUP_LIST
-#        DICTIONARY_HISTORY
 #
 #        category  ARRAY_DATA
 #
 #                  _array_data.array_id
 #                  _array_data.binary_id
 #                  _array_data.data
-#
-#        category  ARRAY_STRUCTURE
-#
-#                  _array_structure.id
-#                  _array_structure.byte_order
-#                  _array_structure.compression_type
-#                  _array_structure.encoding_type
-#
-#        category  ARRAY_STRUCTURE_LIST
-#
-#                  _array_structure_list.array_id
-#                  _array_structure_list.dimension
-#                  _array_structure_list.index
-#                  _array_structure_list.precedence
-#                  _array_structure_list.direction
 #
 #        category  ARRAY_ELEMENT_SIZE
 #
@@ -92,6 +61,21 @@ data_cbfext98.dict
 #                  _array_intensities.scaling
 #                  _array_intensities.overload
 #                  _array_intensities.undefined_value
+#
+#        category  ARRAY_STRUCTURE
+#
+#                  _array_structure.byte_order
+#                  _array_structure.compression_type
+#                  _array_structure.encoding_type
+#                  _array_structure.id
+#
+#        category  ARRAY_STRUCTURE_LIST
+#
+#                  _array_structure_list.array_id
+#                  _array_structure_list.dimension
+#                  _array_structure_list.direction
+#                  _array_structure_list.index
+#                  _array_structure_list.precedence
 #
 #        category  AXIS
 #
@@ -177,91 +161,23 @@ data_cbfext98.dict
 #
 #        category  DIFFRN_SCAN_FRAME
 #
-#                  _diffrn_scan_frame.scan_id
-#                  _diffrn_scan_frame.integration_time
 #                  _diffrn_scan_frame.frame_id
 #                  _diffrn_scan_frame.frame_number
+#                  _diffrn_scan_frame.integration_time
+#                  _diffrn_scan_frame.scan_id
 #
 #        category  DIFFRN_SCAN_FRAME_AXIS
 #
-#                  _diffrn_scan_frame_axis.frame_id
 #                  _diffrn_scan_frame_axis.axis_id
 #                  _diffrn_scan_frame_axis.angle
 #                  _diffrn_scan_frame_axis.displacement
+#                  _diffrn_scan_frame_axis.frame_id
+#
+#        ITEM_TYPE_LIST
+#        ITEM_UNITS_LIST
+#        DICTIONARY_HISTORY
 #
 ##############################################################################
-
-####################
-## ITEM_TYPE_LIST ##
-####################
-#
-#
-#  The regular expressions defined here are not compliant
-#  with the POSIX 1003.2 standard as they include the
-#  '\n' and '\t' special characters.  These regular expressions
-#  have been tested using the version 0.12 of Richard Stallman's
-#  GNU regular expression libary in POSIX mode.
-#  In order to allow presentation of a regular expression
-#  in a text field concetenate any line ending in a backslash
-#  with the following line, after discarding the backslash.
-#
-     loop_
-    _item_type_list.code
-    _item_type_list.primitive_code
-    _item_type_list.construct
-    _item_type_list.detail
-               code      char
-'[_,.;:"&<>/\{}'`~!@#$%A-Za-z0-9*|+-]*'
-;              code item types/single words ...
-;
-               ucode      uchar
-'[_,.;:"&<>/\{}'`~!@#$%A-Za-z0-9*|+-]*'
-;              code item types/single words (case insensitive)
-;
-               line      char
-'[][ \t_(),.;:"&<>/\{}'`~!@#$%A-Za-z0-9*|+-]*'
-;              code item types / multi-word items  ...
-;
-               uline     uchar
-'[][ \t_(),.;:"&<>/\{}'`~!@#$%A-Za-z0-9*|+-]*'
-;              code item types / multi-word items (case insensitive)
-;
-               text      char
-'[][ \n\t()_,.;:"&<>/\{}'`~!@#$%?+=*A-Za-z0-9|^-]*'
-;              text item types / multi-line text ...
-;
-               binary    char
-;\n--CIF-BINARY-FORMAT-SECTION--\n\
-[][ \n\t()_,.;:"&<>/\{}'`~!@#$%?+=*A-Za-z0-9|^-]*}\
-\n--CIF-BINARY-FORMAT-SECTION----
-;
-;              binary items are presented as MIME-like ascii-encoded
-               sections in an imgCIF.  In a CBF, raw octet streams
-               are used to convey the same information.
-;
-               int       numb
-'-?[0-9]+'
-;              int item types are the subset of numbers that are the negative
-               or positive integers.
-;
-               float     numb
-'-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?'
-;              int item types are the subset of numbers that are the floating
-               numbers.
-;
-               any       char
-'.*'
-;              A catch all for items that may take any form...
-;
-
-#####################
-## ITEM_UNITS_LIST ##
-#####################
-
-     loop_
-    _item_units_list.code
-    _item_units_list.detail
-     'meters'     .
 
 #########################
 ## CATEGORY_GROUP_LIST ##
@@ -287,140 +203,13 @@ data_cbfext98.dict
 ;            Categories that describe details of the diffraction experiment.
 ;
 
-########################
-## DICTIONARY_HISTORY ##
-########################
 
-     loop_
-    _dictionary_history.version
-    _dictionary_history.update
-    _dictionary_history.revision
 
-   0.6.0   1999-01-14
-;
-   Remove redundant information for ENC_NONE data (HJB)
-
-   + After the D5 remove binary section identifier, size and
- compresssion type.
-
-   + Add Control-L to header.
-;
-   0.5.1   1999-01-03
-;
-   Cleanup of typos and syntax errors (HJB)
-
-   + Cleanup example details for DIFFRN_SCAN category.
-
-   + Add missing quote marks for _diffrn_scan.id definition.
-;
-
-   0.5   1999-01-01
-;
-   Modifications for axis definitions and reduction of binary header (HJB)
-
-   + Restored _diffrn_detector.diffrn_id to DIFFRN_DETECTOR KEY.
-
-   + Added AXIS category.
-
-   + Brought complete DIFFRN_DETECTOR and DIFFRN_MEASUREMENT categories
- in from cif_mm.dic for clarity.
-
-   + changed _array_structure.encoding_type from type code to uline and
- added X-Binary-Element-Type to MIME header.
-
-   + added detector beam center _diffrn_detector_element.center[1] and
-_diffrn_detector_element.center[2]
-
-   + corrected item name of _diffrn_refln.frame_id
-
-   + replace reference to _array_intensities.undefined by
- _array_intensities.undefined_value
-
-   + replace references to _array_intensity.scaling with
- _array_intensities.scaling
-
-   + added DIFFRN_SCAN... categories
-;
-
-   0.4   1998-08-11
-;
-   Modifications to the 0.3 imgCIF draft (HJB)
-
-   +  Reflowed comment lines over 80 characters and corrected typos.
-
-   +  Updated examples and descriptions of MIME encoded data.
-
-   +  Change name to cbfext98.dic.
-;
-
-   0.3   1998-07-04
-;
-   Modifications for imgCIF (HJB)
-
-   +  Added binary type, which is a text field containing a variant on
-      MIME encoded data.
-
-   +  Changed type of _array_data.data to binary and specified internal
-      structure of raw binary data.
-
-   +  Added _array_data.binary_id, and made
-      _diffrn_frame_data.binary_id and _array_intensities.binary_id
-      into pointers to this item.
-;
-
-   0.2   1997-12-02
-;
-   Modifications to the CBF draft (JW):
-
-   +  Added category heirarchy for describing frame data developed from
-      discussions at the BNL imgCIF Workshop Oct 1997.   The following
-      changes were made in implementing the workshop draft.  Category
-      DIFFRN_ARRAY_DATA was renamed to DIFFRN_FRAME_DATA.  Category
-      DIFFRN_FRAME_TYPE was renamed to DIFFRN_DETECTOR_ELEMENT.   The
-      parent item for _diffrn_frame_data.array_id was changed from
-      array_structure_list.array_id to array_structure.id. Item
-      _diffrn_detector.array_id was deleted.
-   +  Added data item _diffrn_frame_data.binary_id to identify data groups
-      within a binary section.  The formal identification of the binary section
-      is still fuzzy.
-;
-
-   0.1   1997-01-24
-;
-   First draft of this dictionary in DDL 2.1 compliant format by John
-   Westbrook (JW).  This version was adapted from the Crystallographic
-   Binary File (CBF) Format Draft Proposal provided by Andy Hammersley (AH).
-
-   Modifications to the CBF draft (JW):
-
-   + In this version the array description has been cast in the categories
-     ARRAY_STRUCTURE and ARRAY_STRUCTURE_LIST.  These categories have been
-     generalized to describe array data  of arbitrary dimension.
-
-   + Array data in this description is contained in the category ARRAY_DATA.
-     This departs from the CBF notion of data existing in some special comment.
-     In this description, data is handled as an ordinary data item encapsulated
-     in a character data type.   Although, handling binary data this manner
-     deviates from CIF conventions, it does not violate any DDL 2.1 rules.
-     DDL 2.1 regular expressions can be used to define the binary
-     representation which will permit some level of data validation.  In
-     this version, the placeholder type code "any" has been used.
-     This translates to a regular expression which will match any pattern.
-
-     It should be noted that DDL 2.1 already supports array data objects
-     although these have not been used in the current mmCIF dictionary.  It
-     may be possible to use the DDL 2.1 ITEM_STRUCTURE and ITEM_STRUCTURE_LIST
-     categories to provide the information that is carried in by the
-     ARRAY_STRUCTURE and ARRAY_STRUCTURE_LIST.  By moving the array
-     structure to the DDL level it would be possible to define an array
-     type as well as a regular expression defining the data format.
-
-   + Multiple array sections can be properly handled within a single datablock.
-;
 
 ##############
 # ARRAY_DATA #
 ##############
+
 
 save_ARRAY_DATA
     _category.description
@@ -439,15 +228,16 @@ save_ARRAY_DATA
     loop_
     _category_examples.detail
     _category_examples.case
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ;
-        Example 1:
+        Example 1 -
 
         This example shows two binary data blocks.  The first one
         was compressed by the CBF_CANONICAL compression algorithm and
-        presented as hexidecmal data.  The first character "H" on the
+        presented as hexadecimal data.  The first character "H" on the
         data lines means hexadecimal.  It could have been "O" for octal
         or "D" for decimal.  The second character on the line shows
-        the number of bytes in each word (in this case "4", which then
+        the number of bytes in each word (in this case "4"), which then
         requires 8 hexadecimal digits per word.  The third character
         gives the order of octets within a word, in this case "<"
         for the ordering 4321 (i.e. "big-endian").  Alternatively the
@@ -496,7 +286,9 @@ save_ARRAY_DATA
         --CIF-BINARY-FORMAT-SECTION----
         ;
 ;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 save_
+
 
 save__array_data.array_id
     _item_description.description
@@ -507,13 +299,14 @@ save__array_data.array_id
     _item.category_id             array_data
     _item.mandatory_code          yes
     _item_type.code               code
-save_
+     save_
+
 
 save__array_data.binary_id
     _item_description.description
 ;             This item is an integer identifier which, along with
               _array_data.array_id should uniquely identify the
-              particular block of data array.
+              particular block of array data.
 
               If _array_data.binary_id is not explicitly given,
               it defaults to 1.
@@ -548,8 +341,8 @@ save__array_data.binary_id
     _item_range.minimum
                             1  1
                             .  1
+     save_
 
-save_
 
 save__array_data.data
     _item_description.description
@@ -559,15 +352,15 @@ save__array_data.data
               The representation used is a variant on the
               Multipurpose Internet Mail Extensions (MIME) specified
               in RFC 2045-2049 by N. Freed et al.  The boundary
-              delimiter used in writng an imgCIF or CBF is
+              delimiter used in writing an imgCIF or CBF is
               "--CIF-BINARY-FORMAT-SECTION--" (including the
               required initial "--").
 
-              The Content-Type may be any of discrete types permitted
+              The Content-Type may be any of the discrete types permitted
               in RFC 2045; "application/octet-stream" is recommended.
               If an octet stream was compressed, the compression should
               be specified by the parameter 'conversions="x-CBF_PACKED"'
-              or the, parameter 'conversions="x-CBF_CANONICAL'.
+              or the parameter 'conversions="x-CBF_CANONICAL"'.
 
               The Content-Transfer-Encoding may be "BASE-64",
               "Quoted-Printable", "X-BASE-8", "X-BASE-10", or
@@ -594,9 +387,15 @@ save__array_data.data
               The X-Binary-Size header specifies the size of the
               equivalent binary data in octets.  If compression was
               used, this size is the size after compression, including
-              any book-keeping fields, but not the 8 bytes for the
-              compression type.  No portion of the header is included
-              in the calculation of the size.
+              any book-keeping fields.  And adjustment is made for
+              the deprecated binary formats in which 8 bytes of binary
+              header are used for the compression type.  In that case,
+              the 8 bytes used for the compression type is subtracted
+              from the size, so that the same size will be reported
+              if the compression type is supplied in the MIME header.
+              Use of the MIME header is the recommended way to
+              supply the compression type.  In general, no portion of
+              the  binary header is included in the calculation of the size.
 
               The X-Binary-Element-Type header specifies the type of
               binary data in the octets, using the same descriptive
@@ -635,7 +434,7 @@ save__array_data.data
 
               H3> FF0700 00====
 
-              For this hex, octal and decimal format, only, comments
+              For these hex, octal and decimal formats, only, comments
               beginning with "#" are permitted to improve readability.
 
               BASE64 encoding follows MIME conventions.  Octets are
@@ -646,7 +445,7 @@ save__array_data.data
               high-order 4 bits of the second octet ((c1 & 3)<<4 | (c2>>4)),
               then the bottom 4 bits of the second octet followed by the
               high order two bits of the last octet ((c2 & 15)<<2 | (c3>>6)),
-              then the bottow six bits of the last octet (c3 & 63).  Each
+              then the bottom six bits of the last octet (c3 & 63).  Each
               of these four quantities is translated into an ASCII character
               using the mapping:
 
@@ -672,282 +471,11 @@ save__array_data.data
     _item_type.code               binary
 save_
 
-###################
-# ARRAY_STRUCTURE #
-###################
-
-save_ARRAY_STRUCTURE
-    _category.description
-;
-     Data items in the ARRAY_STRUCTURE category record the organization and
-     encoding of array data which may be stored in the ARRAY_DATA category.
-;
-    _category.id                   array_structure
-    _category.mandatory_code       no
-    _category_key.name             '_array_structure.id'
-    loop_
-    _category_group.id             'inclusive_group'
-                                   'array_data_group'
-    loop_
-    _category_examples.detail
-    _category_examples.case
-;
-        Example 1:
-;
-;
-        Add example here
-;
-
-     save_
-
-save__array_structure.id
-    _item_description.description
-;             The value of _array_structure.id must uniquely identify
-              each item of array data.
-;
-    loop_
-    _item.name
-    _item.category_id
-    _item.mandatory_code
-             '_array_structure.id'              array_structure      yes
-             '_array_data.array_id'             array_data           yes
-             '_array_structure_list.array_id'   array_structure_list yes
-             '_array_intensities.array_id'      array_intensities    yes
-             '_diffrn_frame_data.array_id'      diffrn_frame_data    yes
-
-
-    _item_type.code               code
-     loop_
-    _item_linked.child_name
-    _item_linked.parent_name
-             '_array_data.array_id'             '_array_structure.id'
-             '_array_structure_list.array_id'   '_array_structure.id'
-             '_array_intensities.array_id'      '_array_structure.id'
-             '_diffrn_frame_data.array_id'      '_array_structure.id'
-
-     save_
-
-save__array_structure.byte_order
-    _item_description.description
-;
-               The order of bytes for integer values which require more
-               than 1-byte.
-
-               (IBM-PC's and compatiables, and Dec-Vaxes use low byte
-               first ordered integers, whereas Hewlett Packard 700
-               series, Sun-4, and Silicon Graphics use high byte first
-               ordered integers. Dec-Alphas can produce/use either
-               depending on a compiler switch.)
-;
-
-    _item.name                     '_array_structure.byte_order'
-    _item.category_id               array_structure
-    _item.mandatory_code            yes
-    _item_type.code                 code
-     loop_
-    _item_enumeration.value
-    _item_enumeration.detail
-                                   'big_endian'
-;
-        The first byte in the byte stream of the bytes which make up an
-        integer value is the most significant byte of an integer.
-;
-                                   'little_endian'
-;
-        The last byte in the byte stream of the bytes which make up an
-        integer value is the most significant byte of an integer.
-;
-     save_
-
-save__array_structure.compression_type
-    _item_description.description
-;
-              Type of data compression method used to compress the array
-              data.
-;
-    _item.name                   '_array_structure.compression_type'
-    _item.category_id             array_structure
-    _item.mandatory_code          no
-    _item_type.code               code
-     loop_
-    _item_enumeration.value
-    _item_enumeration.detail
-                                  'none'
-;
-        Data are stored in normal format as defined by
-        _array_structure.encoding_type and   _array_structure.byte_order.
-;
-                                'byte_offsets'
-;
-        Using the  compression scheme defined in Section 5.0.
-;
-    save_
-
-save__array_structure.encoding_type
-    _item_description.description
-;
-               Data encoding of a single element of array data.
-;
-
-    _item.name                '_array_structure.encoding_type'
-    _item.category_id          array_structure
-    _item.mandatory_code       yes
-    _item_type.code            uline
-     loop_
-    _item_enumeration.value
-                              'unsigned 8-bit integer'
-                              'signed 8-bit integer'
-                              'unsigned 16-bit integer'
-                              'signed 16-bit_integer'
-                              'unsigned 32-bit integer'
-                              'signed 32-bit integer'
-                              'signed 32-bit real IEEE'
-                              'signed 64-bit real IEEE'
-                              'signed 32-bit complex IEEE'
-     save_
-
-########################
-# ARRAY_STRUCTURE_LIST #
-########################
-
-save_ARRAY_STRUCTURE_LIST
-    _category.description
-;
-     Data items in the ARRAY_STRUCTURE_LIST category record the size
-     and organization of each array dimension.
-;
-    _category.id                   array_structure_list
-    _category.mandatory_code       no
-     loop_
-    _category_key.name             '_array_structure_list.array_id'
-                                   '_array_structure_list.index'
-    loop_
-    _category_group.id             'inclusive_group'
-                                   'array_data_group'
-    loop_
-    _category_examples.detail
-    _category_examples.case
-;
-        Example 1:  An image array of 1300 x 1200 elements.  The raster
-                    order of the image is left-to-right (increasing) in
-                    first dimension and bottom-to-top (decreasing) in
-                    the second dimension.
-;
-;
-        loop_
-       _array_structure_list.array_id
-       _array_structure_list.index
-       _array_structure_list.dimension
-       _array_structure_list.precedence
-       _array_structure_list.direction
-        image_1   1    1300    1     increasing
-        image_1   2    1200    2     decreasing
-;
-     save_
-
-save__array_structure_list.array_id
-    _item_description.description
-;
-              This item is a pointer to _array_structure.id in the
-              ATOM_STRUCTURE category.
-;
-    _item.name                  '_array_structure_list.array_id'
-    _item.category_id             array_structure_list
-    _item.mandatory_code          yes
-    _item_type.code               code
-save_
-
-save__array_structure_list.dimension
-    _item_description.description
-;
-               The number of elements stored in the array structure in this
-               dimension.
-;
-    _item.name                '_array_structure_list.dimension'
-    _item.category_id          array_structure_list
-    _item.mandatory_code       yes
-    _item_type.code            int
-     loop_
-    _item_range.maximum
-    _item_range.minimum
-                            1  1
-                            .  1
-     save_
-
-save__array_structure_list.index
-    _item_description.description
-;
-               Identifies the one-based index of the row or column in the
-               array structure.
-;
-     loop_
-    _item.name
-    _item.category_id
-    _item.mandatory_code
-           '_array_structure_list.index'        array_structure_list   yes
-           '_array_structure_list.precedence'   array_structure_list   yes
-           '_array_element_size.index'          array_element_size     yes
-
-    _item_type.code            int
-
-     loop_
-    _item_linked.child_name
-    _item_linked.parent_name
-          '_array_structure_list.precedence'  '_array_structure_list.index'
-          '_array_element_size.index'         '_array_structure_list.index'
-     loop_
-    _item_range.maximum
-    _item_range.minimum
-                            1  1
-                            .  1
-     save_
-
-save__array_structure_list.precedence
-    _item_description.description
-;
-               Identifies the rank order in which this array index changes
-               with respect to other array indices.  The precedence of 1
-               indicates the index which changes fastest.
-
-               This item is a pointer to item _array_structure_list.index.
-;
-    _item.name                '_array_structure_list.precedence'
-    _item.category_id          array_structure_list
-    _item.mandatory_code       yes
-    _item_type.code            int
-     loop_
-    _item_range.maximum
-    _item_range.minimum
-                            1  1
-                            .  1
-     save_
-
-save__array_structure_list.direction
-    _item_description.description
-;
-              Identifies the direction in which this array index changes.
-;
-    _item.name                '_array_structure_list.direction'
-    _item.category_id          array_structure_list
-    _item.mandatory_code       yes
-    _item_type.code            int
-     loop_
-    _item_enumeration.value
-    _item_enumeration.detail
-
-                              'increasing'
-;
-         Indicates the index changes from 1 to the maximum dimension.
-;
-                              'decreasing'
-;
-         Indicates the index changes from the maximum dimension to 1.
-;
-     save_
 
 ######################
 # ARRAY_ELEMENT_SIZE #
 ######################
+
 
 save_ARRAY_ELEMENT_SIZE
     _category.description
@@ -966,9 +494,10 @@ save_ARRAY_ELEMENT_SIZE
     loop_
     _category_examples.detail
     _category_examples.case
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ;
-        Example 1:  A regular 2D array with a uniform element dimension
-                    of 1220 nanometers.
+        Example 1 - A regular 2D array with a uniform element dimension
+                    of 1220 nanometres.
 ;
 ;
         loop_
@@ -978,7 +507,9 @@ save_ARRAY_ELEMENT_SIZE
         image_1   1    1.22e-6
         image_1   2    1.22e-6
 ;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      save_
+
 
 save__array_element_size.array_id
     _item_description.description
@@ -990,7 +521,8 @@ save__array_element_size.array_id
     _item.category_id             array_element_size
     _item.mandatory_code          yes
     _item_type.code               code
-save_
+     save_
+
 
 save__array_element_size.index
     _item_description.description
@@ -1002,12 +534,13 @@ save__array_element_size.index
     _item.category_id             array_element_size
     _item.mandatory_code          yes
     _item_type.code               code
-save_
+     save_
+
 
 save__array_element_size.size
     _item_description.description
 ;
-               The size in meters of an image element in this
+               The size in metres of an image element in this
                dimension. This supposes that the elements are arranged
                on a regular grid.
 ;
@@ -1015,16 +548,18 @@ save__array_element_size.size
     _item.category_id          array_element_size
     _item.mandatory_code       yes
     _item_type.code            float
-    _item_units.code           'meters'
+    _item_units.code           'metres'
      loop_
     _item_range.maximum
     _item_range.minimum
                             .   0.0
      save_
 
+
 #####################
 # ARRAY_INTENSITIES #
 #####################
+
 
 save_ARRAY_INTENSITIES
     _category.description
@@ -1044,8 +579,9 @@ save_ARRAY_INTENSITIES
     loop_
     _category_examples.detail
     _category_examples.case
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ;
-        Example 1:
+        Example 1
 ;
 ;
         loop_
@@ -1056,8 +592,9 @@ save_ARRAY_INTENSITIES
         _array_intensities.undefined_value
         image_1   linear  1.2    655535   0
 ;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     save_
 
-    save_
 
 save__array_intensities.array_id
     _item_description.description
@@ -1069,7 +606,8 @@ save__array_intensities.array_id
     _item.category_id             array_intensities
     _item.mandatory_code          yes
     _item_type.code               code
-save_
+     save_
+
 
 save__array_intensities.binary_id
     _item_description.description
@@ -1080,7 +618,8 @@ save__array_intensities.binary_id
     _item.category_id             array_intensities
     _item.mandatory_code          implicit
     _item_type.code               int
-save_
+     save_
+
 
 save__array_intensities.gain
     _item_description.description
@@ -1099,9 +638,10 @@ save__array_intensities.gain
                             .   0.0
      loop_
     _item_related.related_name
-    _item_related.function_code  '_array_intensities.gain'
+    _item_related.function_code  '_array_intensities.gain_esd'
                                  'associated_value'
     save_
+
 
 save__array_intensities.gain_esd
     _item_description.description
@@ -1118,6 +658,7 @@ save__array_intensities.gain_esd
     _item_related.function_code  '_array_intensities.gain'
                                  'associated_esd'
     save_
+
 
 save__array_intensities.linearity
     _item_description.description
@@ -1197,6 +738,7 @@ save__array_intensities.linearity
 
     save_
 
+
 save__array_intensities.offset
     _item_description.description
 ;
@@ -1208,6 +750,7 @@ save__array_intensities.offset
     _item.mandatory_code       no
     _item_type.code            float
     save_
+
 
 save__array_intensities.scaling
     _item_description.description
@@ -1221,6 +764,7 @@ save__array_intensities.scaling
     _item_type.code            float
     save_
 
+
 save__array_intensities.overload
     _item_description.description
 ;
@@ -1231,6 +775,7 @@ save__array_intensities.overload
     _item.mandatory_code       no
     _item_type.code            float
     save_
+
 
 save__array_intensities.undefined_value
     _item_description.description
@@ -1243,6 +788,315 @@ save__array_intensities.undefined_value
     _item.mandatory_code       no
     _item_type.code            float
     save_
+
+
+###################
+# ARRAY_STRUCTURE #
+###################
+
+
+save_ARRAY_STRUCTURE
+    _category.description
+;
+     Data items in the ARRAY_STRUCTURE category record the organization and
+     encoding of array data which may be stored in the ARRAY_DATA category.
+;
+    _category.id                   array_structure
+    _category.mandatory_code       no
+    _category_key.name             '_array_structure.id'
+    loop_
+    _category_group.id             'inclusive_group'
+                                   'array_data_group'
+    loop_
+    _category_examples.detail
+    _category_examples.case
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+;
+    Example 1 -
+;
+;
+     loop_
+    _array_structure.id
+    _array_structure.encoding_type
+    _array_structure.compression_type
+    _array_structure.byte_order
+     image_1       "unsigned 16-bit integer"  none  little_endian
+;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     save_
+
+
+save__array_structure.byte_order
+    _item_description.description
+;
+               The order of bytes for integer values which require more
+               than 1-byte.
+
+               (IBM-PC's and compatibles, and Dec-Vaxes use low-byte-first
+               ordered integers, whereas Hewlett Packard 700
+               series, Sun-4 and Silicon Graphics use high-byte-first
+               ordered integers.  Dec-Alphas can produce/use either
+               depending on a compiler switch.)
+;
+
+    _item.name                     '_array_structure.byte_order'
+    _item.category_id               array_structure
+    _item.mandatory_code            yes
+    _item_type.code                 code
+     loop_
+    _item_enumeration.value
+    _item_enumeration.detail
+                                   'big_endian'
+;
+        The first byte in the byte stream of the bytes which make up an
+        integer value is the most significant byte of an integer.
+;
+                                   'little_endian'
+;
+        The last byte in the byte stream of the bytes which make up an
+        integer value is the most significant byte of an integer.
+;
+     save_
+
+
+save__array_structure.compression_type
+    _item_description.description
+;
+              Type of data compression method used to compress the array
+              data.
+;
+    _item.name                   '_array_structure.compression_type'
+    _item.category_id             array_structure
+    _item.mandatory_code          no
+    _item_type.code               code
+    _item_default.value           'none'
+     loop_
+    _item_enumeration.value
+    _item_enumeration.detail
+                                  'none'
+;
+        Data are stored in normal format as defined by
+        _array_structure.encoding_type and _array_structure.byte_order .
+;
+                                  'byte_offsets'
+;
+        Using the compression scheme defined in CBF definition
+        Section 5.0.
+;
+                                  'packed'
+;
+        Using the 'packed' compression scheme, a CCP4-style packing
+        (CBFlib section 3.3.2)
+;
+                                  'canonical'
+;
+        Using the 'canonical' compression scheme (CBFlib section
+        3.3.1)
+;
+    save_
+
+
+save__array_structure.encoding_type
+    _item_description.description
+;
+               Data encoding of a single element of array data.
+
+               In several cases, the IEEE format is referenced.
+               See "IEEE Standard for Binary Floating-Point Arithmetic",
+               ANSI/IEEE Std 754-1985, the Institute of Electrical and
+               Electronics Engineers, Inc., NY 1985.
+;
+
+    _item.name                '_array_structure.encoding_type'
+    _item.category_id          array_structure
+    _item.mandatory_code       yes
+    _item_type.code            uline
+     loop_
+    _item_enumeration.value
+                              'unsigned 8-bit integer'
+                              'signed 8-bit integer'
+                              'unsigned 16-bit integer'
+                              'signed 16-bit_integer'
+                              'unsigned 32-bit integer'
+                              'signed 32-bit integer'
+                              'signed 32-bit real IEEE'
+                              'signed 64-bit real IEEE'
+                              'signed 32-bit complex IEEE'
+     save_
+
+
+save__array_structure.id
+    _item_description.description
+;             The value of _array_structure.id must uniquely identify
+              each item of array data.
+;
+    loop_
+    _item.name
+    _item.category_id
+    _item.mandatory_code
+             '_array_structure.id'              array_structure      yes
+             '_array_data.array_id'             array_data           yes
+             '_array_structure_list.array_id'   array_structure_list yes
+             '_array_intensities.array_id'      array_intensities    yes
+             '_diffrn_frame_data.array_id'      diffrn_frame_data    yes
+
+
+    _item_type.code               code
+     loop_
+    _item_linked.child_name
+    _item_linked.parent_name
+             '_array_data.array_id'             '_array_structure.id'
+             '_array_structure_list.array_id'   '_array_structure.id'
+             '_array_intensities.array_id'      '_array_structure.id'
+             '_diffrn_frame_data.array_id'      '_array_structure.id'
+
+     save_
+
+
+########################
+# ARRAY_STRUCTURE_LIST #
+########################
+
+
+save_ARRAY_STRUCTURE_LIST
+    _category.description
+;
+     Data items in the ARRAY_STRUCTURE_LIST category record the size
+     and organization of each array dimension.
+;
+    _category.id                   array_structure_list
+    _category.mandatory_code       no
+     loop_
+    _category_key.name             '_array_structure_list.array_id'
+                                   '_array_structure_list.index'
+    loop_
+    _category_group.id             'inclusive_group'
+                                   'array_data_group'
+    loop_
+    _category_examples.detail
+    _category_examples.case
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+;
+        Example 1 - An image array of 1300 x 1200 elements.  The raster
+                    order of the image is left-to-right (increasing) in
+                    first dimension and bottom-to-top (decreasing) in
+                    the second dimension.
+;
+;
+        loop_
+       _array_structure_list.array_id
+       _array_structure_list.index
+       _array_structure_list.dimension
+       _array_structure_list.precedence
+       _array_structure_list.direction
+        image_1   1    1300    1     increasing
+        image_1   2    1200    2     decreasing
+;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     save_
+
+
+save__array_structure_list.array_id
+    _item_description.description
+;
+              This item is a pointer to _array_structure.id in the
+              ATOM_STRUCTURE category.
+;
+    _item.name                  '_array_structure_list.array_id'
+    _item.category_id             array_structure_list
+    _item.mandatory_code          yes
+    _item_type.code               code
+save_
+
+
+save__array_structure_list.dimension
+    _item_description.description
+;
+               The number of elements stored in the array structure in this
+               dimension.
+;
+    _item.name                '_array_structure_list.dimension'
+    _item.category_id          array_structure_list
+    _item.mandatory_code       yes
+    _item_type.code            int
+     loop_
+    _item_range.maximum
+    _item_range.minimum
+                            1  1
+                            .  1
+     save_
+
+
+save__array_structure_list.direction
+    _item_description.description
+;
+              Identifies the direction in which this array index changes.
+;
+    _item.name                '_array_structure_list.direction'
+    _item.category_id          array_structure_list
+    _item.mandatory_code       yes
+    _item_type.code            int
+     loop_
+    _item_enumeration.value
+    _item_enumeration.detail
+
+                              'increasing'
+;
+         Indicates the index changes from 1 to the maximum dimension.
+;
+                              'decreasing'
+;
+         Indicates the index changes from the maximum dimension to 1.
+;
+     save_
+
+
+save__array_structure_list.index
+    _item_description.description
+;
+               Identifies the one-based index of the row or column in the
+               array structure.
+;
+     loop_
+    _item.name
+    _item.category_id
+    _item.mandatory_code
+           '_array_structure_list.index'        array_structure_list   yes
+           '_array_structure_list.precedence'   array_structure_list   yes
+           '_array_element_size.index'          array_element_size     yes
+
+    _item_type.code            int
+
+     loop_
+    _item_linked.child_name
+    _item_linked.parent_name
+          '_array_element_size.index'         '_array_structure_list.index'
+     loop_
+    _item_range.maximum
+    _item_range.minimum
+                            1  1
+                            .  1
+     save_
+
+
+save__array_structure_list.precedence
+    _item_description.description
+;
+               Identifies the rank order in which this array index changes
+               with respect to other array indices.  The precedence of 1
+               indicates the index which changes fastest.
+;
+    _item.name                '_array_structure_list.precedence'
+    _item.category_id          array_structure_list
+    _item.mandatory_code       yes
+    _item_type.code            int
+     loop_
+    _item_range.maximum
+    _item_range.minimum
+                            1  1
+                            .  1
+     save_
+
 
 ########
 # AXIS #
@@ -1257,7 +1111,7 @@ save_AXIS
      axis is specified by two vectors: the axis itself, given as a unit
      vector, and an offset to the base of the unit vector.  These vectors
      are referenced to a right-handed laboratory coordinate system with
-     its origin in the sample:
+     its origin in the sample or specimen:
 
                              | Y (to complete right-handed system)
                              |
@@ -1274,15 +1128,16 @@ save_AXIS
                        /Z (to source)
 
 
+
      Axis 1 (X): The X-axis is aligned to the mechanical axis pointing from
-     the sample along the  principal axis of the goniometer.
+     the sample or specimen along the  principal axis of the goniometer.
 
      Axis 2 (Y): The Y-axis completes an orthogonal right-handed system
      defined by the X-axis and the Z-axis (see below).
 
      Axis 3 (Z): The Z-axis is derived from the source axis which goes from
      the sample to the source.  The Z-axis is the component of the source axis
-     in the direction of the source  orthogonal to the X-axis in the plane
+     in the direction of the source orthogonal to the X-axis in the plane
      defined by the X-axis and the source axis.
 
      These axes are based on the goniometer, not on the orientation of the
@@ -1294,8 +1149,7 @@ save_AXIS
      specified, the direction of the unit vector specifies the sense of
      positive translation.
 
-     For simplicity, all rotations are given in degrees and all translation
-     are given in mm.
+     All rotations are given in degrees and all translations are given in mm.
 
      Axes may be dependent on one another.  The X-axis is the only goniometer
      axis the direction of which is strictly connected to the hardware.  All
@@ -1306,6 +1160,12 @@ save_AXIS
      The location of the beam center on the detector should be given in the
      DIFFRN_DETECTOR category in distortion-corrected mm from the (0,0) corner
      of the detector.
+
+     It should be noted that many different origins arise in the definition
+     of an experiment.  In particular, as noted above, we need to specify the
+     location of the beam center on the detector in terms of the origin of the
+     detector, which is, of course, not coincident with the center of the
+     sample.
 ;
     _category.id                   axis
     _category.mandatory_code       no
@@ -1319,20 +1179,21 @@ save_AXIS
     loop_
     _category_examples.detail
     _category_examples.case
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ;
-        Example 1:
+        Example 1 -
 
-        This example show the axis specification of the axes of a kappa
-        geometry goniometer (See "X-Ray Structure Deptermination, A Practical
+        This example shows the axis specification of the axes of a kappa
+        geometry goniometer (See "X-Ray Structure Determination, A Practical
         Guide", 2nd ed. by  G. H. Stout, L. H. Jensen, Wiley Interscience,
         1989, 453 pp, p 134.).
 
-        There are three axies specified, and no offsets.  The outermost axis,
+        There are three axes specified, and no offsets.  The outermost axis,
         omega, is pointed along the X-axis.  The next innermost axis, kappa,
-        is at a 50 dgeree angle to the X-axis, pointed away from the source.
+        is at a 50 degree angle to the X-axis, pointed away from the source.
         The innermost axis, phi, aligns with the X-axis when omega and
         phi are at their zero-points.  If T-omega, T-kappa and T-phi
-        are the ttransormation matrixes derived from the axis settings,
+        are the transformation matrices derived from the axis settings,
         the complete transformation would be:
             x' = (T-omega) (T-kappa) (T-phi) x
 ;
@@ -1347,15 +1208,15 @@ save_AXIS
         kappa rotation goniometer omega    -.64279  0       -.76604
         phi   rotation goniometer kappa    1        0        0
 ;
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ;
-        Example 2:
+        Example 2 -
 
         This example show the axis specification of the axes of a
         detector, source and gravity.  We have juggled the order as a
         reminder that the ordering of presentation of tokens is not
         significant.  We have taken the center of rotation of the detector
-        to be 68 millimeters in the direction away from the source.
+        to be 68 millimetres in the direction away from the source.
 ;
 ;
         loop_
@@ -1372,21 +1233,23 @@ save_AXIS
         roty      rotation    detector twotheta  0     1     0   0 0 -68
         rotz      rotation    detector roty      0     0     1   0 0 -68
 ;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     save_
 
-save_
 
 save__axis.depends_on
     _item_description.description
-;             The value of  _axis.type specifies next next outermost
+;             The value of  _axis.type specifies the next outermost
               axis upon which this axis depends.
 
-              This item is a point to axis.id in the same category.
+              This item is a pointer to axis.id in the same category.
 ;
     _item.name                      '_axis.depends_on'
     _item.category_id                 axis
     _item.mandatory_code              no
 
      save_
+
 
 save__axis.equipment
     _item_description.description
@@ -1414,12 +1277,13 @@ save__axis.equipment
 
      save_
 
+
 save__axis.offset[1]
     _item_description.description
-;              The [1] element of the 3 element vector used to specify
+;              The [1] element of the 3-element vector used to specify
                the offset to the base of a rotation or translation axis.
 
-               The vector is specified in millimeters
+               The vector is specified in millimetres
 ;
     _item.name                  '_axis.offset[1]'
     _item.category_id             axis
@@ -1430,12 +1294,13 @@ save__axis.offset[1]
     _item_units.code              millimetres
      save_
 
+
 save__axis.offset[2]
     _item_description.description
-;              The [2] element of the 3 element vector used to specify
+;              The [2] element of the 3-element vector used to specify
                the offset to the base of a rotation or translation axis.
 
-               The vector is specified in millimeters
+               The vector is specified in millimetres
 ;
     _item.name                  '_axis.offset[2]'
     _item.category_id             axis
@@ -1446,12 +1311,13 @@ save__axis.offset[2]
     _item_units.code              millimetres
      save_
 
+
 save__axis.offset[3]
     _item_description.description
-;              The [3] element of the 3 element vector used to specify
+;              The [3] element of the 3-element vector used to specify
                the offset to the base of a rotation or translation axis.
 
-               The vector is specified in millimeters
+               The vector is specified in millimetres
 ;
     _item.name                  '_axis.offset[3]'
     _item.category_id             axis
@@ -1461,6 +1327,7 @@ save__axis.offset[3]
     _item_type.code               float
     _item_units.code              millimetres
      save_
+
 
 save__axis.id
     _item_description.description
@@ -1475,10 +1342,10 @@ save__axis.id
     _item.category_id
     _item.mandatory_code
          '_axis.id'                         axis                   yes
-         '_diffrn_detector_axis.axis_id'    diffrn_detector_axis   yes
-         '_diffrn_measurement_axis.axis_id' diffrn_measurment-axis yes
-         '_diffrn_scan_axis.axis_id'        diffrn_scan_axis       yes
-         '_diffrn_scan_frame_axis.axis_id'  diffrn_scan_frame_axis yes
+         '_diffrn_detector_axis.axis_id'    diffrn_detector_axis    yes
+         '_diffrn_measurement_axis.axis_id' diffrn_measurement_axis yes
+         '_diffrn_scan_axis.axis_id'        diffrn_scan_axis        yes
+         '_diffrn_scan_frame_axis.axis_id'  diffrn_scan_frame_axis  yes
 
     _item_type.code               code
      loop_
@@ -1491,6 +1358,7 @@ save__axis.id
          '_diffrn_scan_frame_axis.axis_id'    '_axis.id'
 
      save_
+
 
 save__axis.type
     _item_description.description
@@ -1516,9 +1384,10 @@ save__axis.type
 
 save__axis.vector[1]
     _item_description.description
-;              The [1] element of the 3 element vector used to specify
+;              The [1] element of the 3-element vector used to specify
                the direction of a rotation or translation axis.
-               The vector should be normalized to be a unit vector.
+               The vector should be normalized to be a unit vector, and
+               is dimensionless.
 ;
     _item.name                  '_axis.vector[1]'
     _item.category_id             axis
@@ -1530,9 +1399,10 @@ save__axis.vector[1]
 
 save__axis.vector[2]
     _item_description.description
-;              The [2] element of the 3 element vector used to specify
+;              The [2] element of the 3-element vector used to specify
                the direction of a rotation or translation axis.
-               The vector should be normalized to be a unit vector.
+               The vector should be normalized to be a unit vector, and
+               is dimensionless.
 ;
     _item.name                  '_axis.vector[2]'
     _item.category_id             axis
@@ -1544,7 +1414,7 @@ save__axis.vector[2]
 
 save__axis.vector[3]
     _item_description.description
-;              The [3] element of the 3 element vector used to specify
+;              The [3] element of the 3-element vector used to specify
                the direction of a rotation or translation axis.
                The vector should be normalized to be a unit vector, and
                is dimensionless.
@@ -1557,6 +1427,7 @@ save__axis.vector[3]
     _item_type.code               float
      save_
 
+
 ##########################################################################
 #  The following is a restatement of the mmCIF DIFFRN_DETECTOR and       #
 #  DIFFRN_MEASUREMENT categories, modified for the CBF/imgCIF extensions #
@@ -1565,6 +1436,7 @@ save__axis.vector[3]
 ###################
 # DIFFRN_DETECTOR #
 ###################
+
 
 save_DIFFRN_DETECTOR
     _category.description
@@ -1596,6 +1468,7 @@ save_DIFFRN_DETECTOR
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      save_
 
+
 save__diffrn_detector.details
     _item_description.description
 ;              A description of special aspects of the radiation detector.
@@ -1611,6 +1484,7 @@ save__diffrn_detector.details
 ;                                 Need new example here.
 ;
      save_
+
 
 save__diffrn_detector.detector
     _item_description.description
@@ -1636,6 +1510,7 @@ save__diffrn_detector.detector
                                  'BF~3~ counter'
      save_
 
+
 save__diffrn_detector.diffrn_id
     _item_description.description
 ;              This data item is a pointer to _diffrn.id in the DIFFRN
@@ -1647,6 +1522,7 @@ save__diffrn_detector.diffrn_id
     _item.name                  '_diffrn_detector.diffrn_id'
     _item.mandatory_code          yes
      save_
+
 
 save__diffrn_detector.dtime
     _item_description.description
@@ -1673,6 +1549,7 @@ save__diffrn_detector.dtime
     _item_units.code              microseconds
      save_
 
+
 save__diffrn_detector.id
     _item_description.description
 ;
@@ -1694,16 +1571,22 @@ save__diffrn_detector.id
              '_diffrn_detector_axis.id'     '_diffrn_detector.id'
 
     _item_type.code               code
-save_
+     save_
+
 
 save__diffrn_detector.number_of_axes
     _item_description.description
 ;
                The value of _diffrn_detector.number_of_axes gives the
-               number of axes  of the positioner for the detector identified
-               by  _diffrn_detector.id
+               number of axes of the positioner for the detector identified
+               by _diffrn_detector.id
 
-               The desription of each axis should be provided by entries
+               The word "positioner" is a general term used in instrumentation
+               design for devices that are used to change the positions of 
+               portions of apparatus by linear translation, rotation, or 
+               combinations of such motions.
+
+               The description of each axis should be provided by entries
                in DIFFRN_DETECTOR_AXIS.
 ;
     _item.name                  '_diffrn_detector.number_of_axes'
@@ -1714,7 +1597,8 @@ save__diffrn_detector.number_of_axes
     _item_range.minimum           .   1
                                   1   1
     _item_type.code               int
-save_
+     save_
+
 
 save__diffrn_detector.type
     _item_description.description
@@ -1729,9 +1613,11 @@ save__diffrn_detector.type
     _item_type.code               text
      save_
 
+
 ########################
 # DIFFRN_DETECTOR_AXIS #
 ########################
+
 
 save_DIFFRN_DETECTOR_AXIS
     _category.description
@@ -1747,7 +1633,8 @@ save_DIFFRN_DETECTOR_AXIS
      loop_
     _category_group.id           'inclusive_group'
                                  'diffrn_group'
-save_
+     save_
+
 
 save__diffrn_detector_axis.id
     _item_description.description
@@ -1758,7 +1645,8 @@ save__diffrn_detector_axis.id
     _item.name                  '_diffrn_detector_axis.id'
     _item.category_id             diffrn_detector_axis
     _item.mandatory_code          yes
-save_
+     save_
+
 
 save__diffrn_detector_axis.axis_id
     _item_description.description
@@ -1770,11 +1658,13 @@ save__diffrn_detector_axis.axis_id
     _item.category_id             diffrn_detector_axis
     _item.mandatory_code          yes
     _item_type.code               code
-save_
+     save_
+
 
 ###########################
 # DIFFRN_DETECTOR_ELEMENT #
 ###########################
+
 
 save_DIFFRN_DETECTOR_ELEMENT
     _category.description
@@ -1783,11 +1673,12 @@ save_DIFFRN_DETECTOR_ELEMENT
               the details about spatial layout and other characteristics
               of each element of a detector which may have multiple elements.
 
+
      DRAFT NOTE:
 
               This category is intended to hold definitions which are
               specific to the elements of area/array detectors. Generic
-              features about the class detector are defined in the existing
+              features about the detector class are defined in the existing
               mmCIF category DIFFRN_DETECTOR.
 ;
     _category.id                   diffrn_detector_element
@@ -1801,8 +1692,9 @@ save_DIFFRN_DETECTOR_ELEMENT
     loop_
     _category_examples.detail
     _category_examples.case
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ;
-        Example 1: Detector d1 is composed of four CCD detector elements,
+        Example 1 - Detector d1 is composed of four CCD detector elements,
         each 200 mm by 200 mm, arranged in a square. in the pattern
 
                    1     2
@@ -1825,14 +1717,14 @@ save_DIFFRN_DETECTOR_ELEMENT
         d1     d1_ccd_3  201.6 201.4
         d1     d1_ccd_4  -1.7  201.5
 ;
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     save_
 
 save__diffrn_detector_element.center[1]
     _item_description.description
 ;
-              The value of _diffrn_detector_element.center[1] is the X component
-              of the distortion-corrected beam-center in mm from the
+              The value of _diffrn_detector_element.center[1] is the X
+              component of the distortion-corrected beam-center in mm from the
               (0, 0) (lower left) corner of the detector element viewed from
               the sample side.
 ;
@@ -1849,8 +1741,8 @@ save__diffrn_detector_element.center[1]
 save__diffrn_detector_element.center[2]
     _item_description.description
 ;
-              The value of _diffrn_detector_element.center[2] is the Y component
-              of the distortion-corrected beam-center in mm from the
+              The value of _diffrn_detector_element.center[2] is the Y
+              component of the distortion-corrected beam-center in mm from the
               (0, 0) (lower left) corner of the detector element viewed from
               the sample side.
 ;
@@ -1863,6 +1755,7 @@ save__diffrn_detector_element.center[2]
     _item_units.code              millimetres
 
     save_
+
 
 save__diffrn_detector_element.id
     _item_description.description
@@ -1884,7 +1777,8 @@ save__diffrn_detector_element.id
            '_diffrn_frame_data.detector_element_id'
            '_diffrn_detector_element.id'
 
-save_
+     save_
+
 
 save__diffrn_detector_element.detector_id
     _item_description.description
@@ -1896,11 +1790,13 @@ save__diffrn_detector_element.detector_id
     _item.category_id             diffrn_detector_element
     _item.mandatory_code          yes
     _item_type.code               code
-save_
+     save_
+
 
 #####################
 # DIFFRN_FRAME_DATA #
 #####################
+
 
 save_DIFFRN_FRAME_DATA
     _category.description
@@ -1919,14 +1815,15 @@ save_DIFFRN_FRAME_DATA
     loop_
     _category_examples.detail
     _category_examples.case
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ;
-        Example 1: A frame containing data from 4 frame elements.
-                   Each frame element has a common array configuration
-                   'array_1' described in ARRAY_STRUCTURE and related
-                   categories.  The data for each detector element is
-                   stored in four groups of binary data in the
-                   ARRAY_DATA category, linked by the array_id and
-                   binary_id
+    Example 1 - A frame containing data from 4 frame elements.
+                Each frame element has a common array configuration
+                'array_1' described in ARRAY_STRUCTURE and related
+                categories.  The data for each detector element is
+                stored in four groups of binary data in the
+                ARRAY_DATA category, linked by the array_id and
+                binary_id
 ;
 ;
         loop_
@@ -1937,10 +1834,11 @@ save_DIFFRN_FRAME_DATA
         frame_1   d1_ccd_1  array_1  1
         frame_1   d1_ccd_2  array_1  2
         frame_1   d1_ccd_3  array_1  3
-        frame_1   d1_ccd_3  array_1  4
+        frame_1   d1_ccd_4  array_1  4
 ;
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     save_
+
 
 save__diffrn_frame_data.array_id
     _item_description.description
@@ -1952,7 +1850,7 @@ save__diffrn_frame_data.array_id
     _item.category_id             diffrn_frame_data
     _item.mandatory_code          yes
     _item_type.code               code
-save_
+     save_
 
 
 save__diffrn_frame_data.binary_id
@@ -1964,7 +1862,8 @@ save__diffrn_frame_data.binary_id
     _item.category_id             diffrn_frame_data
     _item.mandatory_code          implicit
     _item_type.code               int
-save_
+     save_
+
 
 save__diffrn_frame_data.detector_element_id
     _item_description.description
@@ -1976,7 +1875,8 @@ save__diffrn_frame_data.detector_element_id
     _item.category_id             diffrn_frame_data
     _item.mandatory_code          yes
     _item_type.code               code
-save_
+     save_
+
 
 save__diffrn_frame_data.id
     _item_description.description
@@ -1990,11 +1890,12 @@ save__diffrn_frame_data.id
     _item.mandatory_code
            '_diffrn_frame_data.id'        diffrn_frame_data  yes
            '_diffrn_refln.frame_id'       diffrn_refln       yes
-           '_diffrn_scan.frame_id_start'  diffrn_refln       yes
-           '_diffrn_scan.frame_id_end'    diffrn_refln       yes
-           '_diffrn_scan_frame.frame_id'  diffrn_refln       yes
+           '_diffrn_scan.frame_id_start'  diffrn_scan        yes
+           '_diffrn_scan.frame_id_end'    diffrn_scan        yes
+           '_diffrn_scan_frame.frame_id'  diffrn_scan_frame  yes
            '_diffrn_scan_frame_axis.frame_id'
-                                          diffrn_refln       yes
+                                          diffrn_scan_frame_axis
+                                                             yes
     _item_type.code               code
      loop_
     _item_linked.child_name
@@ -2005,12 +1906,13 @@ save__diffrn_frame_data.id
            '_diffrn_scan_frame.frame_id'   '_diffrn_frame_data.id'
            '_diffrn_scan_frame_axis.frame_id'
                                            '_diffrn_frame_data.id'
+     save_
 
-save_
 
 ########################
 ## DIFFRN_MEASUREMENT ##
 ########################
+
 
 save_DIFFRN_MEASUREMENT
     _category.description
@@ -2021,7 +1923,9 @@ save_DIFFRN_MEASUREMENT
 ;
     _category.id                  diffrn_measurement
     _category.mandatory_code      no
+     loop_
     _category_key.name          '_diffrn_measurement.diffrn_id'
+                                '_diffrn_measurement.id'
      loop_
     _category_group.id           'inclusive_group'
                                  'diffrn_group'
@@ -2040,8 +1944,7 @@ save_DIFFRN_MEASUREMENT
     _diffrn_measurement.device_details     'none'
     _diffrn_measurement.method             'omega scan'
     _diffrn_measurement.details
-    ; 440 frames, 0.20 degrees, 150 sec, detector distance 12 cm, detector
-      angle 22.5 degrees
+    ; Need new example here
     ;
 ;
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2052,36 +1955,11 @@ save_DIFFRN_MEASUREMENT
 ;
     _diffrn_measurement.diffrn_id       's1'
     _diffrn_measurement.device_type     'Philips PW1100/20 diffractometer'
-    _diffrn_measurement.method          \q/2\q
+    _diffrn_measurement.method          'theta/2theta (\q/2\q)'
 ;
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      save_
 
-save__diffrn_measurement.diffrn_id
-    _item_description.description
-;              This data item is a pointer to _diffrn.id in the DIFFRN
-               category.
-;
-    _item.name                  '_diffrn_measurement.diffrn_id'
-    _item.mandatory_code          yes
-     save_
-
-save__diffrn_measurement.details
-    _item_description.description
-;              A description of special aspects of the intensity measurement.
-;
-    _item.name                  '_diffrn_measurement.details'
-    _item.category_id             diffrn_measurement
-    _item.mandatory_code          no
-    _item_aliases.alias_name    '_diffrn_measurement_details'
-    _item_aliases.dictionary      cif_core.dic
-    _item_aliases.version         2.0.1
-    _item_type.code               text
-    _item_examples.case
-;                                 440 frames, 0.20 degrees, 150 sec, detector
-                                  distance 12 cm, detector angle 22.5 degrees
-;
-     save_
 
 save__diffrn_measurement.device
     _item_description.description
@@ -2103,6 +1981,7 @@ save__diffrn_measurement.device
                                  'precession camera'
      save_
 
+
 save__diffrn_measurement.device_details
     _item_description.description
 ;              A description of special aspects of the device used to measure
@@ -2116,9 +1995,11 @@ save__diffrn_measurement.device_details
     _item_aliases.version         2.0.1
     _item_type.code               text
     _item_examples.case
-;                                 Need new example here.
+;                                 commercial goniometer modified locally to
+                                  allow for 90\% \t arc
 ;
      save_
+
 
 save__diffrn_measurement.device_type
     _item_description.description
@@ -2139,13 +2020,42 @@ save__diffrn_measurement.device_type
                                  'homemade'
      save_
 
+
+save__diffrn_measurement.diffrn_id
+    _item_description.description
+;              This data item is a pointer to _diffrn.id in the DIFFRN
+               category.
+;
+    _item.name                  '_diffrn_measurement.diffrn_id'
+    _item.mandatory_code          yes
+     save_
+
+
+save__diffrn_measurement.details
+    _item_description.description
+;              A description of special aspects of the intensity measurement.
+;
+    _item.name                  '_diffrn_measurement.details'
+    _item.category_id             diffrn_measurement
+    _item.mandatory_code          no
+    _item_aliases.alias_name    '_diffrn_measurement_details'
+    _item_aliases.dictionary      cif_core.dic
+    _item_aliases.version         2.0.1
+    _item_type.code               text
+    _item_examples.case
+;                                 440 frames, 0.20 degrees, 150 sec, detector
+                                  distance 12 cm, detector angle 22.5 degrees
+;
+     save_
+
+
 save__diffrn_measurement.id
     _item_description.description
 ;
                The value of _diffrn_measurement.id must uniquely identify
                the set of mechanical characteristics of the device used to
-               orient and/or  position the sample used during collect each
-               diffraction data set.
+               orient and/or position the sample used during collection
+               of each diffraction data set.
 
                If the value of _diffrn_measurement.id is not given, it is
                implicitly equal to the value of _diffrn_measurement.diffrn_id
@@ -2164,6 +2074,7 @@ save__diffrn_measurement.id
     _item_type.code               code
      save_
 
+
 save__diffrn_measurement.method
     _item_description.description
 ;              Method used to measure intensities.
@@ -2175,16 +2086,17 @@ save__diffrn_measurement.method
     _item_aliases.dictionary      cif_core.dic
     _item_aliases.version         2.0.1
     _item_type.code               text
-    _item_examples.case          'profile data from theta/2theta scans'
+    _item_examples.case          'profile data from theta/2theta (\q/2\q) scans'
      save_
+
 
 save__diffrn_measurement.number_of_axes
     _item_description.description
 ;
-               The value of _diffrn_detector.number_of_axes gives the
+               The value of _diffrn_measurement.number_of_axes gives the
                number of axes of the positioner for the goniometer or
-               other sample orientation or positioning device  identified
-               by  _diffrn_measurement.id
+               other sample orientation or positioning device identified
+               by _diffrn_measurement.id
 
                The description of the axes should be provided by entries in
                DIFFRN_MEASUREMENT_AXIS.
@@ -2197,7 +2109,8 @@ save__diffrn_measurement.number_of_axes
     _item_range.minimum           .   1
                                   1   1
     _item_type.code               int
-save_
+     save_
+
 
 save__diffrn_measurement.specimen_support
     _item_description.description
@@ -2218,14 +2131,16 @@ save__diffrn_measurement.specimen_support
                                  'metal loop'
      save_
 
+
 ###########################
 # DIFFRN_MEASUREMENT_AXIS #
 ###########################
 
+
 save_DIFFRN_MEASUREMENT_AXIS
     _category.description
 ;
-     Data items in the DIFFRN_MEASUREMENT_AXIS category associates
+     Data items in the DIFFRN_MEASUREMENT_AXIS category associate
      axes with goniometers.
 ;
     _category.id                   diffrn_measurement_axis
@@ -2236,7 +2151,8 @@ save_DIFFRN_MEASUREMENT_AXIS
      loop_
     _category_group.id           'inclusive_group'
                                  'diffrn_group'
-save_
+     save_
+
 
 save__diffrn_measurement_axis.id
     _item_description.description
@@ -2247,7 +2163,8 @@ save__diffrn_measurement_axis.id
     _item.name                  '_diffrn_measurement_axis.id'
     _item.category_id             diffrn_measurement_axis
     _item.mandatory_code          yes
-save_
+     save_
+
 
 save__diffrn_measurement_axis.axis_id
     _item_description.description
@@ -2259,11 +2176,13 @@ save__diffrn_measurement_axis.axis_id
     _item.category_id             diffrn_measurement_axis
     _item.mandatory_code          yes
     _item_type.code               code
-save_
+     save_
+
 
 ################
 # DIFFRN_REFLN #
 ################
+
 
 save_DIFFRN_REFLN
     _category.description
@@ -2275,9 +2194,10 @@ save_DIFFRN_REFLN
     _category.mandatory_code       no
     _category_key.name             '_diffrn_refln.frame_id'
      loop_
-    _category_group.id           'inclusive_group'
-                                 'diffrn_group'
-save_
+    _category_group.id             'inclusive_group'
+                                   'diffrn_group'
+     save_
+
 
 save__diffrn_refln.frame_id
     _item_description.description
@@ -2289,7 +2209,8 @@ save__diffrn_refln.frame_id
     _item.category_id             diffrn_refln
     _item.mandatory_code          yes
     _item_type.code               code
-save_
+     save_
+
 
 ###############
 # DIFFRN_SCAN #
@@ -2298,34 +2219,33 @@ save_
 save_DIFFRN_SCAN
     _category.description
 ;
-     Data items in the DIFFRN_SCAN category secribe the parameters of one
-     or more scans, relating axis positions to frames
+     Data items in the DIFFRN_SCAN category describe the parameters of one
+     or more scans, relating axis positions to frames.
 
 ;
     _category.id                   diffrn_scan
     _category.mandatory_code       no
-    _category_key.name             '_diffrn_scan.id'
+    _category_key.name            '_diffrn_scan.id'
      loop_
-    _category_group.id           'inclusive_group'
-                                 'diffrn_group'
+    _category_group.id            'inclusive_group'
+                                  'diffrn_group'
      loop_
     _category_examples.detail
     _category_examples.case
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ;
-
-    Example 1:
-
-   This example is derived from a suggestion by R. M. Sweet
+    Example 1 - derived from a suggestion by R. M. Sweet.
 
    The vector of each axis is not given here, because it is provided in
-   the proposed AXIS category.  By making _diffrn_scan_axis.scan_id and
+   the AXIS category.  By making _diffrn_scan_axis.scan_id and
    _diffrn_scan_axis.axis_id keys of the DIFFRN_SCAN_AXIS category,
    an arbitrary number of scanning and fixed axes can be specified for a
    scan.  We have specified three rotation axes and one translation axis
    at non-zero values, with one axis stepping.  There is no reason why
    more axes could not have been specified to step.   We have specified
    range information, but note that it is redundant from the  number of
-   frames and the increment, so we could drop the token.
+   frames and the increment, so we could drop the data item
+   _diffrn_scan_axis.angle_range .
 
    We have specified both the sweep data and the data for a single frame.
 
@@ -2369,11 +2289,13 @@ save_DIFFRN_SCAN
        mad_L2_018 tranz  .    2.3
 
 ;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
        save_
+
 
 save__diffrn_scan.id
     _item_description.description
-;             The value of _diffrn_scan.id must uniquely identify each
+;             The value of _diffrn_scan.id uniquely identifies each
               scan.  The identifier is used to tie together all the
               information about the scan.
 ;
@@ -2390,8 +2312,8 @@ save__diffrn_scan.id
     _item_linked.parent_name
        '_diffrn_scan_axis.scan_id'          '_diffrn_scan.id'
        '_diffrn_scan_frame.scan_id'         '_diffrn_scan.id'
+     save_
 
-save_
 
 save__diffrn_scan.integration_time
     _item_description.description
@@ -2409,6 +2331,7 @@ save__diffrn_scan.integration_time
                             .   0.0
      save_
 
+
 save__diffrn_scan.frame_id_start
     _item_description.description
 ;
@@ -2422,6 +2345,7 @@ save__diffrn_scan.frame_id_start
     _item.category_id          diffrn_scan
     _item.mandatory_code       yes
      save_
+
 
 save__diffrn_scan.frame_id_end
     _item_description.description
@@ -2437,11 +2361,12 @@ save__diffrn_scan.frame_id_end
     _item.mandatory_code       yes
      save_
 
+
 save__diffrn_scan.frames
     _item_description.description
 ;
                The value of this data item is the number of frames in
-               the scan
+               the scan.
 
 ;
     _item.name                 '_diffrn_scan.frames'
@@ -2455,6 +2380,7 @@ save__diffrn_scan.frames
                             1   1
      save_
 
+
 ####################
 # DIFFRN_SCAN_AXIS #
 ####################
@@ -2462,7 +2388,7 @@ save__diffrn_scan.frames
 save_DIFFRN_SCAN_AXIS
     _category.description
 ;
-     Data items in the DIFFRN_SCAN_AXIS category describes the settings of
+     Data items in the DIFFRN_SCAN_AXIS category describe the settings of
      axes for particular scans.  Unspecified axes are assumed to be at
      their zero points.
 
@@ -2478,11 +2404,12 @@ save_DIFFRN_SCAN_AXIS
                                  'diffrn_group'
      save_
 
+
 save__diffrn_scan_axis.scan_id
     _item_description.description
 ;
                The value of this data item is the identifier of the
-               the scan for which axis settings are being specified.
+               scan for which axis settings are being specified.
 
                Multiple axes may be specified for the same value of
                _diffrn_scan.id
@@ -2495,14 +2422,15 @@ save__diffrn_scan_axis.scan_id
     _item.mandatory_code       yes
      save_
 
+
 save__diffrn_scan_axis.axis_id
     _item_description.description
 ;
                The value of this data item is the identifier of one of
-               the axes for the scan for which  settings are being specified.
+               the axes for the scan for which settings are being specified.
 
                Multiple axes may be specified for the same value of
-               _diffrn_scan.id
+               _diffrn_scan.id .
 
                This item is a pointer to _axis.id in the
                AXIS category.
@@ -2512,18 +2440,20 @@ save__diffrn_scan_axis.axis_id
     _item.mandatory_code       yes
      save_
 
+
 save__diffrn_scan_axis.angle_start
     _item_description.description
 ;
-               The starting position for the specified axis in degrees
+               The starting position for the specified axis in degrees.
 ;
     _item.name                 '_diffrn_scan_axis.angle_start'
     _item.category_id          diffrn_scan_axis
-    _item_default.value        0.0
     _item.mandatory_code       no
+    _item_default.value        0.0
     _item_type.code            float
     _item_units.code           'degrees'
      save_
+
 
 save__diffrn_scan_axis.angle_range
     _item_description.description
@@ -2533,11 +2463,12 @@ save__diffrn_scan_axis.angle_range
 ;
     _item.name                 '_diffrn_scan_axis.angle_range'
     _item.category_id          diffrn_scan_axis
-    _item_default.value        0.0
     _item.mandatory_code       no
+    _item_default.value        0.0
     _item_type.code            float
     _item_units.code           'degrees'
      save_
+
 
 save__diffrn_scan_axis.angle_increment
     _item_description.description
@@ -2547,24 +2478,26 @@ save__diffrn_scan_axis.angle_increment
 ;
     _item.name                 '_diffrn_scan_axis.angle_increment'
     _item.category_id          diffrn_scan_axis
-    _item_default.value        0.0
     _item.mandatory_code       no
+    _item_default.value        0.0
     _item_type.code            float
     _item_units.code           'degrees'
      save_
 
+
 save__diffrn_scan_axis.displacement_start
     _item_description.description
 ;
-               The starting position for the specified axis in millimetres
+               The starting position for the specified axis in millimetres.
 ;
     _item.name                 '_diffrn_scan_axis.displacement_start'
     _item.category_id          diffrn_scan_axis
-    _item_default.value        0.0
     _item.mandatory_code       no
+    _item_default.value        0.0
     _item_type.code            float
     _item_units.code           'millimetres'
      save_
+
 
 save__diffrn_scan_axis.displacement_range
     _item_description.description
@@ -2574,11 +2507,12 @@ save__diffrn_scan_axis.displacement_range
 ;
     _item.name                 '_diffrn_scan_axis.displacement_range'
     _item.category_id          diffrn_scan_axis
-    _item_default.value        0.0
     _item.mandatory_code       no
+    _item_default.value        0.0
     _item_type.code            float
     _item_units.code           'millimetres'
      save_
+
 
 save__diffrn_scan_axis.displacement_increment
     _item_description.description
@@ -2588,11 +2522,12 @@ save__diffrn_scan_axis.displacement_increment
 ;
     _item.name                 '_diffrn_scan_axis.displacement_increment'
     _item.category_id          diffrn_scan_axis
-    _item_default.value        0.0
     _item.mandatory_code       no
+    _item_default.value        0.0
     _item_type.code            float
     _item_units.code           'millimetres'
      save_
+
 
 #####################
 # DIFFRN_SCAN_FRAME #
@@ -2601,7 +2536,7 @@ save__diffrn_scan_axis.displacement_increment
 save_DIFFRN_SCAN_FRAME
     _category.description
 ;
-     Data items in the DIFFRN_SCAN_FRAME category describes the settings of
+     Data items in the DIFFRN_SCAN_FRAME category describe the settings of
      axes for particular frames.  Unspecified axes are assumed to be at
      their zero points.
 
@@ -2613,23 +2548,45 @@ save_DIFFRN_SCAN_FRAME
                                   '_diffrn_scan_frame.scan_id'
                                   '_diffrn_scan_frame.frame_id'
      loop_
-    _category_group.id           'inclusive_group'
-                                 'diffrn_group'
+    _category_group.id            'inclusive_group'
+                                  'diffrn_group'
      save_
 
-save__diffrn_scan_frame.scan_id
+
+save__diffrn_scan_frame.frame_id
     _item_description.description
-;             The value of _diffrn_scan_frame.scan_id must identifies the scan
-              containing this frame.
-
-              This item is a pointer to _diffrn_scan.id in the
-              DIFFRN_SCAN category.
 ;
-     loop_
-    _item.name             '_diffrn_scan_frame.scan_id'
-    _item.category_id        diffrn_scan_frame
-    _item.mandatory_code     yes
+               The value of this data item is the identifier of the
+               frame being examined.
+
+               This item is a pointer to _diffrn_frame_data.id in the
+               DIFFRN_FRAME_DATA category.
+;
+    _item.name                 '_diffrn_scan_frame.frame_id'
+    _item.category_id          diffrn_scan_frame
+    _item.mandatory_code       yes
      save_
+
+
+save__diffrn_scan_frame.frame_number
+    _item_description.description
+;
+               The value of this data item is the number of the frame within
+               the scan, starting with 1.  It is not necessarily the same as
+               the value of _diffrn_scan_frame.frame_id, but may be.
+
+;
+    _item.name                 '_diffrn_scan_frame.frame_number'
+    _item.category_id          diffrn_scan_frame
+    _item.mandatory_code       no
+    _item_type.code            int
+     loop_
+    _item_range.maximum
+    _item_range.minimum
+                            .   0
+                            0   0
+     save_
+
 
 save__diffrn_scan_frame.integration_time
     _item_description.description
@@ -2647,37 +2604,21 @@ save__diffrn_scan_frame.integration_time
                             .   0.0
      save_
 
-save__diffrn_scan_frame.frame_id
+
+save__diffrn_scan_frame.scan_id
     _item_description.description
-;
-               The value of this data item is the identifier of the
-               frame being examined.
+;             The value of _diffrn_scan_frame.scan_id identifies the scan
+              containing this frame.
 
-               This item is a pointer to _diffrn_frame_data.id in the
-               DIFFRN_FRAME_DATA category.
+              This item is a pointer to _diffrn_scan.id in the
+              DIFFRN_SCAN category.
 ;
-    _item.name                 '_diffrn_scan_frame.frame_id'
-    _item.category_id          diffrn_scan_frame
-    _item.mandatory_code       yes
-     save_
-
-save__diffrn_scan_frame.frame_number
-    _item_description.description
-;
-               The value of this data item is the number of the frames within
-               the scan
-
-;
-    _item.name                 '_diffrn_scan_frame.frame_number'
-    _item.category_id          diffrn_scan_frame
-    _item.mandatory_code       no
-    _item_type.code            int
      loop_
-    _item_range.maximum
-    _item_range.minimum
-                            .   0
-                            0   0
+    _item.name             '_diffrn_scan_frame.scan_id'
+    _item.category_id        diffrn_scan_frame
+    _item.mandatory_code     yes
      save_
+
 
 ##########################
 # DIFFRN_SCAN_FRAME_AXIS #
@@ -2686,8 +2627,8 @@ save__diffrn_scan_frame.frame_number
 save_DIFFRN_SCAN_FRAME_AXIS
     _category.description
 ;
-     Data items in the DIFFRN_SCAN_FRAME_AXIS category describes the settings of
-     axes for particular frames.  Unspecified axes are assumed to be at
+     Data items in the DIFFRN_SCAN_FRAME_AXIS category describe the settings
+     of axes for particular frames.  Unspecified axes are assumed to be at
      their zero points.
 
 ;
@@ -2702,22 +2643,6 @@ save_DIFFRN_SCAN_FRAME_AXIS
                                  'diffrn_group'
      save_
 
-save__diffrn_scan_frame_axis.frame_id
-    _item_description.description
-;
-               The value of this data item is the identifier of the
-               the frame for which axis settings are being specified.
-
-               Multiple axes may be specified for the same value of
-               _diffrn_scan_frame.frame_id
-
-               This item is a pointer to _diffrn_frame_data.id in the
-               DIFFRN_FRAME_DATE category.
-;
-    _item.name                 '_diffrn_scan_frame_axis.frame_id'
-    _item.category_id          diffrn_scan_frame_axis
-    _item.mandatory_code       yes
-     save_
 
 save__diffrn_scan_frame_axis.axis_id
     _item_description.description
@@ -2736,18 +2661,20 @@ save__diffrn_scan_frame_axis.axis_id
     _item.mandatory_code       yes
      save_
 
+
 save__diffrn_scan_frame_axis.angle
     _item_description.description
 ;
-               The setting of the specified axis in degrees for this frame
+               The setting of the specified axis in degrees for this frame.
 ;
     _item.name                 '_diffrn_scan_frame_axis.angle'
     _item.category_id          diffrn_scan_frame_axis
-    _item_default.value        0.0
     _item.mandatory_code       no
+    _item_default.value        0.0
     _item_type.code            float
     _item_units.code           'degrees'
      save_
+
 
 save__diffrn_scan_frame_axis.displacement
     _item_description.description
@@ -2757,10 +2684,495 @@ save__diffrn_scan_frame_axis.displacement
 ;
     _item.name                 '_diffrn_scan_frame_axis.displacement'
     _item.category_id          diffrn_scan_frame_axis
-    _item_default.value        0.0
     _item.mandatory_code       no
+    _item_default.value        0.0
     _item_type.code            float
     _item_units.code           'millimetres'
      save_
 
+save__diffrn_scan_frame_axis.frame_id
+    _item_description.description
+;
+               The value of this data item is the identifier of the
+               frame for which axis settings are being specified.
+
+               Multiple axes may be specified for the same value of
+               _diffrn_scan_frame.frame_id .
+
+               This item is a pointer to _diffrn_frame_data.id in the
+               DIFFRN_FRAME_DATA category.
+;
+    _item.name                 '_diffrn_scan_frame_axis.frame_id'
+    _item.category_id          diffrn_scan_frame_axis
+    _item.mandatory_code       yes
+     save_
+
+
+####################
+## ITEM_TYPE_LIST ##
+####################
 #
+#
+#  The regular expressions defined here are not compliant
+#  with the POSIX 1003.2 standard as they include the
+#  '\n' and '\t' special characters.  These regular expressions
+#  have been tested using version 0.12 of Richard Stallman's
+#  GNU regular expression library in POSIX mode.
+#  In order to allow presentation of a regular expression
+#  in a text field concatenate any line ending in a backslash
+#  with the following line, after discarding the backslash.
+#
+#  A formal definition of the '\n' and '\t' special characters
+#  is most properly done in the DDL, but for completeness, please
+#  note that '\n' is the line termination character ('newline')
+#  and '\t' is the horizontal tab character.  There is a formal
+#  ambiguity in the use of '\n' for line termination, in that
+#  the intention is that the equivalent machine/OS-dependent line
+#  termination character sequence should be accepted as a match, e.g.
+#
+#      '\r' (control-M) under MacOS
+#      '\n' (control-J) under Unix
+#      '\r\n' (control-M control-J) under DOS and MS Windows
+#
+     loop_
+    _item_type_list.code
+    _item_type_list.primitive_code
+    _item_type_list.construct
+    _item_type_list.detail
+               code      char
+'[_,.;:"&<>/\{}'`~!@#$%A-Za-z0-9*|+-]*'
+;              code item types/single words ...
+;
+               ucode      uchar
+'[_,.;:"&<>/\{}'`~!@#$%A-Za-z0-9*|+-]*'
+;              code item types/single words (case insensitive)
+;
+               line      char
+'[][ \t_(),.;:"&<>/\{}'`~!@#$%A-Za-z0-9*|+-]*'
+;              code item types / multi-word items  ...
+;
+               uline     uchar
+'[][ \t_(),.;:"&<>/\{}'`~!@#$%A-Za-z0-9*|+-]*'
+;              code item types / multi-word items (case insensitive)
+;
+               text      char
+'[][ \n\t()_,.;:"&<>/\{}'`~!@#$%?+=*A-Za-z0-9|^-]*'
+;              text item types / multi-line text ...
+;
+               binary    char
+;\n--CIF-BINARY-FORMAT-SECTION--\n\
+[][ \n\t()_,.;:"&<>/\{}'`~!@#$%?+=*A-Za-z0-9|^-]*}\
+\n--CIF-BINARY-FORMAT-SECTION----
+;
+;              binary items are presented as MIME-like ascii-encoded
+               sections in an imgCIF.  In a CBF, raw octet streams
+               are used to convey the same information.
+;
+               int       numb
+'-?[0-9]+'
+;              int item types are the subset of numbers that are the negative
+               or positive integers.
+;
+               float     numb
+'-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?'
+;              float item types are the subset of numbers that are the floating
+               numbers.
+;
+               any       char
+'.*'
+;              A catch all for items that may take any form...
+;
+
+#####################
+## ITEM_UNITS_LIST ##
+#####################
+
+     loop_
+    _item_units_list.code
+    _item_units_list.detail
+#
+     'metres'                 'metres'
+     'centimetres'            'centimetres (metres * 10^( -2))'
+     'millimetres'            'millimetres (metres * 10^( -3))'
+     'nanometres'             'nanometres  (metres * 10^( -9))'
+     'angstroms'              'angstroms   (metres * 10^(-10))'
+     'picometres'             'picometres  (metres * 10^(-12))'
+     'femtometres'            'femtometres (metres * 10^(-15))'
+#
+     'reciprocal_metres'      'reciprocal metres (metres * 10^-1)'
+     'reciprocal_centimetres' 'reciprocal centimetres (metres * 10^( -2)^-1)'
+     'reciprocal_millimetres' 'reciprocal millimetres (metres * 10^( -3)^-1)'
+     'reciprocal_nanometres'  'reciprocal nanometres  (metres * 10^( -9)^-1)'
+     'reciprocal_angstroms'   'reciprocal angstroms   (metres * 10^(-10)^-1)'
+     'reciprocal_picometres'  'reciprocal picometres  (metres * 10^(-12)^-1)'
+#
+     'nanometres_squared'     'nanometres squared (metres * 10^( -9))^2'
+     'angstroms_squared'      'angstroms squared  (metres * 10^(-10))^2'
+     '8pi2_angstroms_squared' '8pi^2 * angstroms squared (metres * 10^(-10))^2'
+     'picometres_squared'     'picometres squared (metres * 10^(-12))^2'
+#
+     'nanometres_cubed'       'nanometres cubed (metres * 10^( -9))^3'
+     'angstroms_cubed'        'angstroms cubed  (metres * 10^(-10))^3'
+     'picometres_cubed'       'picometres cubed (metres * 10^(-12))^3'
+#
+     'kilopascals'            'kilopascals'
+     'gigapascals'            'gigapascals'
+#
+     'hours'                  'hours'
+     'minutes'                'minutes'
+     'seconds'                'seconds'
+     'microseconds'           'microseconds'
+#
+     'degrees'                'degrees (of arc)'
+#
+     'degrees_per_minute'     'degrees (of arc) per minute'
+#
+     'celsius'                'degrees (of temperature) Celsius'
+     'kelvins'                'degrees (of temperature) Kelvin'
+#
+     'electrons'              'electrons'
+#
+     'electrons_squared'      'electrons squared'
+#
+     'electrons_per_nanometres_cubed'
+; electrons per nanometres cubed (metres * 10^( -9))^3
+;
+     'electrons_per_angstroms_cubed'
+; electrons per angstroms  cubed (metres * 10^(-10))^3
+;
+     'electrons_per_picometres_cubed'
+; electrons per picometres cubed (metres * 10^(-12))^3
+;
+     'kilowatts'              'kilowatts'
+     'milliamperes'           'milliamperes'
+     'kilovolts'              'kilovolts'
+#
+     'arbitrary'
+; arbitrary system of units.
+;
+#
+
+     loop_
+    _item_units_conversion.from_code
+    _item_units_conversion.to_code
+    _item_units_conversion.operator
+    _item_units_conversion.factor
+###
+     'metres'                   'centimetres'              '*'   1.0E+02
+     'metres'                   'millimetres'              '*'   1.0E+03
+     'metres'                   'nanometres'               '*'   1.0E+09
+     'metres'                   'angstroms'                '*'   1.0E+10
+     'metres'                   'picometres'               '*'   1.0E+12
+     'metres'                   'femtometres'              '*'   1.0E+15
+#
+     'centimetres'              'metres'                   '*'   1.0E-02
+     'centimetres'              'millimetres'              '*'   1.0E+01
+     'centimetres'              'nanometres'               '*'   1.0E+07
+     'centimetres'              'angstroms'                '*'   1.0E+08
+     'centimetres'              'picometres'               '*'   1.0E+10
+     'centimetres'              'femtometres'              '*'   1.0E+13
+#
+     'millimetres'              'metres'                   '*'   1.0E-03
+     'millimetres'              'centimetres'              '*'   1.0E-01
+     'millimetres'              'nanometres'               '*'   1.0E+06
+     'millimetres'              'angstroms'                '*'   1.0E+07
+     'millimetres'              'picometres'               '*'   1.0E+09
+     'millimetres'              'femtometres'              '*'   1.0E+12
+#
+     'nanometres'               'metres'                   '*'   1.0E-09
+     'nanometres'               'centimetres'              '*'   1.0E-07
+     'nanometres'               'millimetres'              '*'   1.0E-06
+     'nanometres'               'angstroms'                '*'   1.0E+01
+     'nanometres'               'picometres'               '*'   1.0E+03
+     'nanometres'               'femtometres'              '*'   1.0E+06
+#
+     'angstroms'                'metres'                   '*'   1.0E-10
+     'angstroms'                'centimetres'              '*'   1.0E-08
+     'angstroms'                'millimetres'              '*'   1.0E-07
+     'angstroms'                'nanometres'               '*'   1.0E-01
+     'angstroms'                'picometres'               '*'   1.0E+02
+     'angstroms'                'femtometres'              '*'   1.0E+05
+#
+     'picometres'               'metres'                   '*'   1.0E-12
+     'picometres'               'centimetres'              '*'   1.0E-10
+     'picometres'               'millimetres'              '*'   1.0E-09
+     'picometres'               'nanometres'               '*'   1.0E-03
+     'picometres'               'angstroms'                '*'   1.0E-02
+     'picometres'               'femtometres'              '*'   1.0E+03
+#
+     'femtometres'              'metres'                   '*'   1.0E-15
+     'femtometres'              'centimetres'              '*'   1.0E-13
+     'femtometres'              'millimetres'              '*'   1.0E-12
+     'femtometres'              'nanometres'               '*'   1.0E-06
+     'femtometres'              'angstroms'                '*'   1.0E-05
+     'femtometres'              'picometres'               '*'   1.0E-03
+###
+     'reciprocal_centimetres'   'reciprocal_metres'        '*'   1.0E+02
+     'reciprocal_centimetres'   'reciprocal_millimetres'   '*'   1.0E-01
+     'reciprocal_centimetres'   'reciprocal_nanometres'    '*'   1.0E-07
+     'reciprocal_centimetres'   'reciprocal_angstroms'     '*'   1.0E-08
+     'reciprocal_centimetres'   'reciprocal_picometres'    '*'   1.0E-10
+#
+     'reciprocal_millimetres'   'reciprocal_metres'        '*'   1.0E+03
+     'reciprocal_millimetres'   'reciprocal_centimetres'   '*'   1.0E+01
+     'reciprocal_millimetres'   'reciprocal_nanometres'    '*'   1.0E-06
+     'reciprocal_millimetres'   'reciprocal_angstroms'     '*'   1.0E-07
+     'reciprocal_millimetres'   'reciprocal_picometres'    '*'   1.0E-09
+#
+     'reciprocal_nanometres'    'reciprocal_metres'        '*'   1.0E+09
+     'reciprocal_nanometres'    'reciprocal_centimetres'   '*'   1.0E+07
+     'reciprocal_nanometres'    'reciprocal_millimetres'   '*'   1.0E+06
+     'reciprocal_nanometres'    'reciprocal_angstroms'     '*'   1.0E-01
+     'reciprocal_nanometres'    'reciprocal_picometres'    '*'   1.0E-03
+#
+     'reciprocal_angstroms'     'reciprocal_metres'        '*'   1.0E+10
+     'reciprocal_angstroms'     'reciprocal_centimetres'   '*'   1.0E+08
+     'reciprocal_angstroms'     'reciprocal_millimetres'   '*'   1.0E+07
+     'reciprocal_angstroms'     'reciprocal_nanometres'    '*'   1.0E+01
+     'reciprocal_angstroms'     'reciprocal_picometres'    '*'   1.0E-02
+#
+     'reciprocal_picometres'    'reciprocal_metres'        '*'   1.0E+12
+     'reciprocal_picometres'    'reciprocal_centimetres'   '*'   1.0E+10
+     'reciprocal_picometres'    'reciprocal_millimetres'   '*'   1.0E+09
+     'reciprocal_picometres'    'reciprocal_nanometres'    '*'   1.0E+03
+     'reciprocal_picometres'    'reciprocal_angstroms'     '*'   1.0E+01
+###
+     'nanometres_squared'       'angstroms_squared'        '*'   1.0E+02
+     'nanometres_squared'       'picometres_squared'       '*'   1.0E+06
+#
+     'angstroms_squared'        'nanometres_squared'       '*'   1.0E-02
+     'angstroms_squared'        'picometres_squared'       '*'   1.0E+04
+     'angstroms_squared'        '8pi2_angstroms_squared'   '*'   78.9568
+
+#
+     'picometres_squared'       'nanometres_squared'       '*'   1.0E-06
+     'picometres_squared'       'angstroms_squared'        '*'   1.0E-04
+###
+     'nanometres_cubed'         'angstroms_cubed'          '*'   1.0E+03
+     'nanometres_cubed'         'picometres_cubed'         '*'   1.0E+09
+#
+     'angstroms_cubed'          'nanometres_cubed'         '*'   1.0E-03
+     'angstroms_cubed'          'picometres_cubed'         '*'   1.0E+06
+#
+     'picometres_cubed'         'nanometres_cubed'         '*'   1.0E-09
+     'picometres_cubed'         'angstroms_cubed'          '*'   1.0E-06
+###
+     'kilopascals'              'gigapascals'              '*'   1.0E-06
+     'gigapascals'              'kilopascals'              '*'   1.0E+06
+###
+     'hours'                    'minutes'                  '*'   6.0E+01
+     'hours'                    'seconds'                  '*'   3.6E+03
+     'hours'                    'microseconds'             '*'   3.6E+09
+#
+     'minutes'                  'hours'                    '/'   6.0E+01
+     'minutes'                  'seconds'                  '*'   6.0E+01
+     'minutes'                  'microseconds'             '*'   6.0E+07
+#
+     'seconds'                  'hours'                    '/'   3.6E+03
+     'seconds'                  'minutes'                  '/'   6.0E+01
+     'seconds'                  'microseconds'             '*'   1.0E+06
+#
+     'microseconds'             'hours'                    '/'   3.6E+09
+     'microseconds'             'minutes'                  '/'   6.0E+07
+     'microseconds'             'seconds'                  '/'   1.0E+06
+###
+     'celsius'                  'kelvins'                  '-'     273.0
+     'kelvins'                  'celsius'                  '+'     273.0
+###
+     'electrons_per_nanometres_cubed'
+     'electrons_per_angstroms_cubed'                       '*'   1.0E-03
+     'electrons_per_nanometres_cubed'
+     'electrons_per_picometres_cubed'                      '*'   1.0E-09
+#
+     'electrons_per_angstroms_cubed'
+     'electrons_per_nanometres_cubed'                      '*'   1.0E+03
+     'electrons_per_angstroms_cubed'
+     'electrons_per_picometres_cubed'                      '*'   1.0E-06
+#
+     'electrons_per_picometres_cubed'
+     'electrons_per_nanometres_cubed'                      '*'   1.0E+09
+     'electrons_per_picometres_cubed'
+     'electrons_per_angstroms_cubed'                       '*'   1.0E+06
+###
+
+
+########################
+## DICTIONARY_HISTORY ##
+########################
+
+     loop_
+    _dictionary_history.version
+    _dictionary_history.update
+    _dictionary_history.revision
+
+   1.0     2100-12-20
+;
+   Release version - few typos and tidying up (BM & HJB)
+
+   + Move ITEM_TYPE_LIST, ITEM_UNITS_LIST and DICTIONARY_HISTORY to end
+   of dictionary.
+
+   + Alphabetize dictionary.
+;
+
+   0.7.1   2000-09-29
+;
+   Cleanup fixes (JW)
+
+   + Correct spelling of diffrn_measurement_axis in _axis.id
+
+   + Correct ordering of uses of _item.mandatory_code and _item_default.value
+;
+
+   0.7.0   2000-09-09
+;
+   Respond to comments by I. David Brown (HJB)
+
+   + Added further comments on '\n' and '\t'
+
+   + Updated ITEM_UNITS_LIST by taking section from mmCIF dictionary
+ and adding metres.  Changed all spelling 'meter' to 'metre' throughout.
+
+   + Added missing enumerations to _array_structure.compression_type
+ and made 'none' the default.
+
+   + Removed parent-child relationship between _array_structure_list.index
+ and _array_structure_list.precedence .
+
+   + Improve alphabetization.
+
+   + Fix _array_intensities_gain.esd related function.
+
+   + Improved comments in AXIS.
+
+   + Fixed DIFFRN_FRAME_DATA example.
+
+   + Removed erroneous DIFFRN_MEASUREMENT example.
+
+   + Added _diffrn_measurement_axis.id to the category key.
+;
+
+   0.6.0   1999-01-14
+;
+   Remove redundant information for ENC_NONE data (HJB)
+
+   + After the D5 remove binary section identifier, size and
+ compression type.
+
+   + Add Control-L to header.
+;
+   0.5.1   1999-01-03
+;
+   Cleanup of typos and syntax errors (HJB)
+
+   + Cleanup example details for DIFFRN_SCAN category.
+
+   + Add missing quote marks for _diffrn_scan.id definition.
+;
+
+   0.5   1999-01-01
+;
+   Modifications for axis definitions and reduction of binary header (HJB)
+
+   + Restored _diffrn_detector.diffrn_id to DIFFRN_DETECTOR KEY.
+
+   + Added AXIS category.
+
+   + Brought complete DIFFRN_DETECTOR and DIFFRN_MEASUREMENT categories
+ in from cif_mm.dic for clarity.
+
+   + changed _array_structure.encoding_type from type code to uline and
+ added X-Binary-Element-Type to MIME header.
+
+   + added detector beam center _diffrn_detector_element.center[1] and
+_diffrn_detector_element.center[2]
+
+   + corrected item name of _diffrn_refln.frame_id
+
+   + replace reference to _array_intensities.undefined by
+ _array_intensities.undefined_value
+
+   + replace references to _array_intensity.scaling with
+ _array_intensities.scaling
+
+   + added DIFFRN_SCAN... categories
+;
+
+   0.4   1998-08-11
+;
+   Modifications to the 0.3 imgCIF draft (HJB)
+
+   +  Reflowed comment lines over 80 characters and corrected typos.
+
+   +  Updated examples and descriptions of MIME encoded data.
+
+   +  Change name to cbfext98.dic.
+;
+
+   0.3   1998-07-04
+;
+   Modifications for imgCIF (HJB)
+
+   +  Added binary type, which is a text field containing a variant on
+      MIME encoded data.
+
+   +  Changed type of _array_data.data to binary and specified internal
+      structure of raw binary data.
+
+   +  Added _array_data.binary_id, and made
+      _diffrn_frame_data.binary_id and _array_intensities.binary_id
+      into pointers to this item.
+;
+
+   0.2   1997-12-02
+;
+   Modifications to the CBF draft (JW):
+
+   +  Added category hierarchy for describing frame data developed from
+      discussions at the BNL imgCIF Workshop Oct 1997.   The following
+      changes were made in implementing the workshop draft.  Category
+      DIFFRN_ARRAY_DATA was renamed to DIFFRN_FRAME_DATA.  Category
+      DIFFRN_FRAME_TYPE was renamed to DIFFRN_DETECTOR_ELEMENT.   The
+      parent item for _diffrn_frame_data.array_id was changed from
+      array_structure_list.array_id to array_structure.id. Item
+      _diffrn_detector.array_id was deleted.
+   +  Added data item _diffrn_frame_data.binary_id to identify data groups
+      within a binary section.  The formal identification of the binary section
+      is still fuzzy.
+;
+
+   0.1   1997-01-24
+;
+   First draft of this dictionary in DDL 2.1 compliant format by John
+   Westbrook (JW).  This version was adapted from the Crystallographic
+   Binary File (CBF) Format Draft Proposal provided by Andy Hammersley (AH).
+
+   Modifications to the CBF draft (JW):
+
+   + In this version the array description has been cast in the categories
+     ARRAY_STRUCTURE and ARRAY_STRUCTURE_LIST.  These categories have been
+     generalized to describe array data  of arbitrary dimension.
+
+   + Array data in this description are contained in the category ARRAY_DATA.
+     This departs from the CBF notion of data existing in some special comment.
+     In this description, data is handled as an ordinary data item encapsulated
+     in a character data type.   Although handling binary data this manner
+     deviates from CIF conventions, it does not violate any DDL 2.1 rules.
+     DDL 2.1 regular expressions can be used to define the binary
+     representation which will permit some level of data validation.  In
+     this version, the placeholder type code "any" has been used.
+     This translates to a regular expression which will match any pattern.
+
+     It should be noted that DDL 2.1 already supports array data objects
+     although these have not been used in the current mmCIF dictionary.  It
+     may be possible to use the DDL 2.1 ITEM_STRUCTURE and ITEM_STRUCTURE_LIST
+     categories to provide the information that is carried in by the
+     ARRAY_STRUCTURE and ARRAY_STRUCTURE_LIST.  By moving the array
+     structure to the DDL level it would be possible to define an array
+     type as well as a regular expression defining the data format.
+
+   + Multiple array sections can be properly handled within a single datablock.
+;
+
+
+#-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof-eof
