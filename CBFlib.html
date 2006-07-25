@@ -1,0 +1,2723 @@
+<HTML>
+<HEAD>
+<TITLE>CBFlib.html</TITLE>
+</HEAD>
+<body bgcolor="#FAFAFF" text="#0808A0">
+<H2 ALIGN=CENTER>CBFLIB</H2>
+<CENTER>
+<B>An API for Crystallographic Binary Files with ASCII Support</B><BR>
+Version 0.2.1.1, 11 August 1998<BR>
+based on<BR>
+<BR>
+<font color="#0808A0">
+<B>CBFLIB: An ANSI-C API for Crystallographic Binary Files</B>
+DRAFT CBF/ImgCIF DEFINITION </h1>
+<font color="#000000">
+</CENTER>
+<P>
+<CENTER>
+Version 0.1<BR>
+April 1998<BR>
+by<BR>
+Paul J. Ellis<BR>
+Stanford Synchrotron Radiation Laboratory<BR>
+ellis@ssrl.slac.stanford.edu<BR>
+</CENTER>
+<P>
+<CENTER>
+CBFLib Version 0.2 ASCII Support<BR>
+July 1998 <BR>
+by<br>
+Herbert J. Bernstein<BR>
+Bernstein + Sons<BR>
+yaya@bernstein-plus-sons.com<BR>
+</CENTER>
+<P>
+<HR><HR>
+<font color="#0808A0">
+<h2 ALIGN=CENTER>Foreword</H2>
+<font color="#000000">
+<P>
+<B>Version 0.2.1.1 of CBFlib is ready for beta-test release, but is not a 
+fully compliant ANSI-C API.  There are some internal uses of the 64-bit 
+long long data type, and there are some assumptions of 8-bit characters.
+</B>
+<P>
+<A HREF="CBFlib.shar.Z">Here</A> is a
+compressed shar of the code as it now stands.  Uncompress this file.   Place it
+in an otherwise empty directory, and unpack it with sh.  
+You will also need Paul Ellis's sample MAR345 image as sample
+data, which can be found at 
+<A HREF="http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/">
+http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/</A>.  Place that
+file one level up from the source code.  Adjust the definition of CC in
+Makefile to point to your C compiler, and then
+<P>
+<B>make tests</B>
+<P>
+This release has been tested on an SGI under IRIX 6.4 and on a PowerPC under
+Linux-ppc 2.1.24.
+<P>
+We have included an updated version of John Westbrook's DDL2-compliant
+<A HREF="cbfext98.html">CBF Extensions Dictionary</A>, and of Andy Hammersley's
+CBF definition, updated to become a <A HREF="cbf_definition_rev.html">
+DRAFT CBF/ImgCIF DEFINITION</A>.
+<P>
+<B>This is just a proposal.  My apologies in advance, especially to Andy, John and especially
+to Paul for whatever I may have muddled here.  Please be careful about basing any code on
+this until and unless there has been a general agreement.
+</B>
+
+
+<P> -- H. J. Bernstein
+<HR>
+<HR>
+<font color="#0808A0">
+<H2 ALIGN=CENTER>Notices</H2>
+<font color="#000000">
+<P>
+<CENTER>
+<A NAME="#Disclaimer"></A>Please read the <A HREF="CBFlib_NOTICES.html">NOTICES</A>, which
+are part of this package,  before making use of this software.
+</CENTER>
+<HR><HR>
+
+<font color="#0808A0">
+<H2 ALIGN=CENTER>Contents</H2>
+<font color="#000000">
+<P>
+<UL>
+<LI><A HREF="#Disclaimer">Disclaimer Notice</A>
+</UL>
+<UL>
+<LI><A HREF="#1. Introduction">1.   Introduction</A>
+</UL>
+<UL>
+<LI><A HREF="#2. Function desc">2.   Function descriptions</A>
+<LI><A HREF="#2.1 General desc">2.1  General description</A>
+<LI><A HREF="#2.1.1 CBF handle">2.1.1   CBF handles</A> 
+<LI><A HREF="#2.1.2 Return val">2.1.2   Return values</A> 
+<LI><A HREF="#2.2 Reading and ">2.2   Reading and writing files containing binary sections</A>
+<LI><A HREF="#2.2.1 Reading bi">2.2.1   Reading binary sections</A> 
+<LI><A HREF="#2.2.2 Writing bi">2.2.2   Writing binary section</A> 
+<LI><A HREF="#2.2.3 Summary of">2.2.3   Summary of reading and writing files containing binary sections</A>
+<LI><A HREF="#2.3 Function pro">2.3   Function prototypes</A>
+<LI><A HREF="#2.3.1 cbf_make_h">2.3.1   cbf_make_handle</A> 
+<LI><A HREF="#2.3.2 cbf_free_h">2.3.2   cbf_free_handle</A> 
+<LI><A HREF="#2.3.3 cbf_read_f">2.3.3   cbf_read_file</A> 
+<LI><a href="#2.3.4 cbf_write_">2.3.4   cbf_write_file</a> 
+<LI><A HREF="#2.3.5 cbf_new_da">2.3.5   cbf_new_datablock</A> 
+<UL>
+<LI><A HREF="#2.3.5 cbf_f_ndb">cbf_force_new_datablock</A> 
+</UL>
+<LI><A HREF="#2.3.6 cbf_new_ca">2.3.6   cbf_new_category</A> 
+<UL>
+<LI><A HREF="#2.3.6 cbf_f_nca">cbf_force_new_category</A> 
+</UL>
+<LI><A HREF="#2.3.7 cbf_new_co">2.3.7   cbf_new_column</A> 
+<LI><A HREF="#2.3.8 cbf_new_ro">2.3.8   cbf_new_row</A> 
+<LI><A HREF="#2.3.9 cbf_insert">2.3.9   cbf_insert_row</A> 
+<LI><A HREF="#2.3.10 cbf_delet">2.3.10   cbf_delete_row</A> 
+<LI><A HREF="#2.3.11 cbf_set_d">2.3.11   cbf_set_datablockname</A> 
+<LI><A HREF="#2.3.12 cbf_reset">2.3.12   cbf_reset_datablocks</A> 
+<LI><A HREF="#2.3.13 cbf_resedb">2.3.13   cbf_reset_datablock</A> 
+<LI><A HREF="#2.3.14 cbf_reseca">2.3.14   cbf_reset_category</A> 
+<LI><A HREF="#2.3.15 cbf_removdb">2.3.15   cbf_remove_datablock</A> 
+<LI><A HREF="#2.3.16 cbf_removca">2.3.16   cbf_remove_category</A> 
+<LI><A HREF="#2.3.17 cbf_removco">2.3.17   cbf_remove_column</A> 
+<LI><A HREF="#2.3.18 cbf_removro">2.3.18   cbf_remove_row</A> 
+<LI><A HREF="#2.3.19 cbf_rewindb">2.3.19   cbf_rewind_datablock</A> 
+<LI><A HREF="#2.3.20 cbf_rewinca">2.3.20   cbf_rewind_category</A> 
+<LI><A HREF="#2.3.21 cbf_rewinco">2.3.21   cbf_rewind_column</A>
+<LI><A HREF="#2.3.22 cbf_rewinro">2.3.22   cbf_rewind_row</A> 
+<LI><A HREF="#2.3.23 cbf_next">2.3.23   cbf_next_datablock</A> 
+<LI><A HREF="#2.3.24 cbf_next">2.3.24   cbf_next_category</A>
+<LI><A HREF="#2.3.25 cbf_next">2.3.25   cbf_next_column</A> 
+<LI><A HREF="#2.3.26 cbf_next">2.3.26   cbf_next_row</A> 
+<LI><A HREF="#2.3.27 cbf_find">2.3.27   cbf_find_datablock</A> 
+<LI><A HREF="#2.3.28 cbf_find">2.3.28   cbf_find_category</A> 
+<LI><A HREF="#2.3.29 cbf_find">2.3.29   cbf_find_column</A> 
+<LI><A HREF="#2.3.30 cbf_find">2.3.30   cbf_find_row</A> 
+<LI><A HREF="#2.3.31 cbf_find">2.3.31   cbf_find_nextrow</A> 
+<LI><A HREF="#2.3.32 cbf_coun">2.3.32   cbf_count_datablocks</A> 
+<LI><A HREF="#2.3.33 cbf_coun">2.3.33   cbf_count_categories</A> 
+<LI><A HREF="#2.3.34 cbf_coun">2.3.34   cbf_count_columns</A> 
+<LI><A HREF="#2.3.35 cbf_coun">2.3.35   cbf_count_rows</A> 
+<LI><A HREF="#2.3.36 cbf_sele">2.3.36   cbf_select_datablock</A> 
+<LI><A HREF="#2.3.37 cbf_sele">2.3.37   cbf_select_category</A>
+<LI><A HREF="#2.3.38 cbf_sele">2.3.38   cbf_select_column</A>
+<LI><A HREF="#2.3.39 cbf_sele">2.3.39   cbf_select_row</A>
+<LI><A HREF="#2.3.40 cbf_data">2.3.40   cbf_datablock_name</A>
+<LI><A HREF="#2.3.41 cbf_cate">2.3.41   cbf_category_name</A> 
+<LI><A HREF="#2.3.42 cbf_colu">2.3.42   cbf_column_name</A> 
+<LI><A HREF="#2.3.43 cbf_row_">2.3.43   cbf_row_number</A> 
+<LI><A HREF="#2.3.44 cbf_get_">2.3.44   cbf_get_value</A> 
+<LI><A HREF="#2.3.45 cbf_set_">2.3.45   cbf_set_value</A> 
+<LI><A HREF="#2.3.46 cbf_get_">2.3.46   cbf_get_integervalue</A> 
+<LI><A HREF="#2.3.47 cbf_set_">2.3.47   cbf_set_integervalue</A> 
+<LI><A HREF="#2.3.48 cbf_get_">2.3.48   cbf_get_doublevalue</A> 
+<LI><A HREF="#2.3.49 cbf_set_">2.3.49   cbf_set_doublevalue</A> 
+<LI><A HREF="#2.3.50 cbf_get_">2.3.50   cbf_get_integerarrayparameters</A> 
+<UL>
+<LI><A HREF="#2.3.50 cbf_gip">cbf_get_integerarrayparams</A>
+</UL>
+<LI><A HREF="#2.3.51 cbf_get_">2.3.51   cbf_get_integerarray</A>
+<LI><A HREF="#2.3.52 cbf_set_">2.3.52   cbf_set_integerarray</A>
+<LI><A HREF="#2.3.53 cbf_fail">2.3.53   cbf_failnez</A>
+<LI><A HREF="#2.3.54 cbf_onfa">2.3.54   cbf_onfailnez</A>
+</UL>
+<UL>
+<LI><A HREF="#3. File format">3.   File format</A>
+<LI><A HREF="#3.1 General desc">3.1   General description</A>
+<LI><A HREF="#3.2 Format of th">3.2   Format of the binary sections</A>
+<LI><A HREF="#3.3 Compression ">3.3   Compression schemes</A>
+<LI><A HREF="#3.3.1 Canonical-">3.3.1   Canonical-code compression</A>
+<LI><A HREF="#3.3.2 CCP4-style">3.3.2   CCP4-style compression</A>
+</UL>
+<UL>
+<LI><A HREF="#4. Source files ">4.   Source files and Installation</A>
+</UL>
+<UL>
+<LI><A HREF="#5. Example progr">5.   Example programs</A>
+</UL>
+<P>
+<BR>
+
+<h3><A NAME="1. Introduction">1.  Introduction</A></h3>
+<BR>
+CBFLIB is a library of ANSI-C functions providing a simple mechanism for accessing 
+Crystallographic Binary Files (CBF files) and Image-supporting CIF (imgCIF) files.
+The CBFLIB API is loosely based on the 
+CIFPARSE API for mmCIF files.  Like CIFPARSE, CBFLIB does not perform any semantic 
+integrity checks and simply provides functions to create, read, modify and write CBF binary
+data files and imgCIF ASCII data files.
+<P>
+
+<h3><A NAME="2. Function desc">2.  Function descriptions</A></h3>
+
+<h4><a NAME="2.1 General desc">2.1  General description</a></h4>
+<P>
+Almost all of the CBFLIB functions receive a value of type cbf_handle 
+(a CBF handle) as the first argument.  All functions return an integer 
+equal to 0 for success or an error code for failure.<BR>
+<P>
+<h4><a NAME="2.1.1 CBF handle">2.1.1  CBF handles</a></h4>
+<P>
+CBFLIB permits a program to use multiple CBF objects simultaneously.  To identify 
+the CBF object on which a function will operate, CBFLIB uses a value of type cbf_handle.
+All functions in the library except cbf_make_handle expect a value of type cbf_handle 
+as the first argument.
+The function cbf_make_handle creates and initializes a new CBF handle.
+The function cbf_free_handle destroys a handle and frees all memory associated with 
+the corresponding CBF object.<BR>
+<P>
+<h4><a NAME="2.1.2 Return val">2.1.2  Return values</a></h4>
+All of the CBFLIB functions return 0 on success and an error code on failure.
+The error codes are:
+<P>
+<table>
+<TR><TD>CBF_FORMAT<TD>The file format is invalid
+<TR><TD>CBF_ALLOC<TD>Memory allocation failed
+<TR><TD>CBF_ARGUMENT<TD>Invalid function argument
+<TR><TD>CBF_ASCII<TD>The value is ASCII (not binary)
+<TR><TD>CBF_BINARY<TD>The value is binary (not ASCII)
+<TR><TD VALIGN=TOP>CBF_BITCOUNT<TD>The expected number of bits does <br>not match the actual number written
+<TR><TD VALIGN=TOP>CBF_ENDOFDATA<TD>The end of the data was reached <br>before the end of the array
+<TR><TD>CBF_FILECLOSE<TD>File close error
+<TR><TD>CBF_FILEOPEN<TD>File open error
+<TR><TD>CBF_FILEREAD<TD>File read error
+<TR><TD>CBF_FILESEEK<TD>File seek error
+<TR><TD>CBF_FILETELL<TD>File tell error
+<TR><TD>CBF_FILEWRITE<TD>File write error
+<TR><TD>CBF_IDENTICAL<TD>A data block with the new name <br>already exists
+<TR><TD>CBF_NOTFOUND<TD>The data block, category, column or<br> row does not exist
+<TR><TD VALIGN=TOP>CBF_OVERFLOW<TD>The number read cannot fit into the<br> destination argument.  The destination 
+has<br>been set to the nearest value.
+</TABLE>
+<P>
+<BR>
+If more than one error has occurred, the error code is the logical OR of the individual 
+error codes.<BR>
+
+<h4><A NAME="2.2 Reading and">2.2  Reading and writing files containing binary sections</A></h4>
+
+<h4><A NAME="2.2.1 Reading bi">2.2.1  Reading binary sections</A></h4>
+<P>
+The current version of CBFLIB only decompresses a binary section from disk when requested 
+by the program.
+<P>
+When a file containing one or more binary sections is read, CBFLIB saves the file 
+pointer and the position of the binary section within the file and then jumps past 
+the binary section.  When the program attempts to access the binary data, CBFLIB 
+sets the file position back to the start of the binary section and then reads the data.
+<P>
+For this scheme to work:
+<P>
+1. The file must be a random-access file opened in binary mode (fopen ( , rb)).<BR>
+2. The program <CITE>must not</CITE>
+ close the file.  CBFLIB will close the file using fclose ( ) when it is no longer 
+needed.
+<P>
+At present, this also means that a program cant read a file and then write back to 
+the same file.   This restriction will be eliminated in a future version.
+<P>
+When reading an imgCIF vs a CBF, the difference is detected automatically.
+<BR>
+<h4><A NAME="2.2.2 Writing bi">2.2.2  Writing binary section</A></h4>
+<BR>
+When a program passes CBFLIB a binary value, the data is compressed to a temporary 
+file.  If the CBF object is subsequently written to a file, the data is simply copied 
+from the temporary file to the output file.
+<P>
+The output file can be of any type.  If the program indicates to CBFLIB that the file 
+is a random-access and readable, CBFLIB will conserve disk space by closing the temporary 
+file and using the output file as the location at which the binary value is stored.
+<P>
+For this option to work:
+<P>
+1. The file must be a random-access file opened in binary update mode (fopen ( , w+b)).<BR>
+2. The program <CITE>must not</CITE>
+ close the file.  CBFLIB will close the file using fclose ( ) when it is no longer 
+needed.
+<P>
+If this option is not used:
+<P>
+1. CBFLIB will continue using the temporary file.<BR>
+2. CBFLIB <CITE>will not</CITE>
+ close the file.  This is the responsibility of the main program.
+<P>
+<BR>
+<h4><A NAME="2.2.3 Summary of">2.2.3  Summary of reading and writing files containing binary sections</A></h4>
+<P>
+1. Open disk files to read using the mode rb.  <BR>
+2. If possible, open disk files to write using the mode w+b and tell CBFLIB that it 
+can use the file as a buffer.<BR>
+3. Do <CITE>not</CITE>
+ close any files read by CBFLIB or written by CBFLIB with buffering turned on.<BR>
+4. Do <CITE>not</CITE>
+ attempt to read from a file, then write to the same file.<BR>
+
+<P>
+When writing a binary section, control over writing a CBF vs. and imgCIF is provided
+by a set of gloab varaibles.  See <a href="#2.3.4 cbf_write_">cbf_write_file</a>.
+
+<h4><A NAME="2.3  Function pr">2.3  Function prototypes</A></h4>
+
+<h4><A NAME="2.3.1  cbf_make_">2.3.1  cbf_make_handle</A> </h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_make_handle (cbf_handle *handle); 
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_make_handle creates and initializes a new internal CBF object.  All other CBFLIB 
+functions operating on this object receive the CBF handle as the first argument. 
+
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: Pointer to a CBF handle.
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_free_handle<BR>
+
+<h4><A NAME="2.3.2  cbf_free_">2.3.2  cbf_free_handle</A> </h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_free_handle (cbf_handle handle); 
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_free_handle destroys the CBF object specified by the handle and frees all associated 
+memory. 
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle to free. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_make_handle<BR>
+
+<h4><A NAME="2.3.3  cbf_read_">2.3.3  cbf_read_file</A> </h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_read_file (cbf_handle handle, FILE *file); 
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_read_file reads the CBF or CIF file <CITE>file</CITE>
+ into the CBF object specified by <CITE>handle</CITE>
+.
+<P>
+CBFLIB defers reading binary sections as long as possible.  In the current version 
+of CBFLIB, this means that:
+<P>
+1. The file must be a random-access file opened in binary mode (fopen ( , rb)).<BR>
+<A NAME="2. The program <">2. The program <CITE>must not</CITE>
+ close the file.  CBFLIB will close the file using fclose ( ) when it is no longer 
+needed.
+<P>
+These restrictions may change in a future release.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. <BR>
+file: Pointer to a file descriptor. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_write_file<BR>
+
+<h4><A NAME="2.3.4  cbf_write">2.3.4  cbf_write_file</A> </h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_write_file (cbf_handle handle, FILE *file, int isbuffer); 
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_write_file writes the CBF object specified by <CITE>handle</CITE>
+ into the file <CITE>file</CITE>.
+<P>The behavior of this routine is controlled by the globals:
+<UL>
+<LI>CBForCIF -- control for a CBF (CBF, default) or imgCIF (CIF)
+<LI>CIFCRterm -- write <b>\r</b> line termination in imgCIFs  (default FALSE)
+<LI>CIFLFterm -- write <b>\n</B> line termination in imgCIFs (default TRUE)
+<LI>CBFmime -- write MIME headers (MIME_HEADERS, default, vs. MIME_NOHEADERS)
+<LI>CBFdigest -- write MD5 message digest (MSG_DIGEST, default, vs. MSG_NODIGEST)
+<LI>CBFencoding -- use one of the following MIME encodings:
+<UL>
+<LI>ENC-NONE -- write as raw binary
+<LI>ENC_BASE64 -- use BASE64 encoding (default)
+<LI>ENC_QP -- use QUOTED-PRINTABLE encoding
+<LI>ENC_BASE10 -- write out as decimal
+<LI>ENC_BASE16 -- write out as hexadecimal
+<LI>ENC_BASE8 -- write out as octal
+</UL>
+<LI>CBFelsize -- control of element sizes in decimal, hexadecimal or octal encoding,
+ may be 1,2 3,4,6 or 8
+<LI>CBFbytedir -- control of byte direction in  decimal, hexadecimal or octal encoding, 
+(ENC_BACKWARDS, default, vs. ENC_FORWARD)
+</UL>
+<P>
+Unlike cbf_read_file, the file does not have to be random-access.
+<P>
+If the file is random-access and readable, <CITE>isbuffer</CITE>
+ can be set to non-0 to indicate to CBFLIB that the file can be used as a buffer to 
+conserve disk space.  If the file is not random-access or not readable, <CITE>isbuffer</CITE>
+ must be 0.
+<P>
+If <CITE>isbuffer</CITE>
+ is non-0, CBFLIB will close the file when it is no longer required, otherwise this 
+is the responsibility of the program.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. <BR>
+file: Pointer to a file descriptor. <BR>
+readable: If non-0: this file is random-access and readable and can be used as a buffer.
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_read_file<BR>
+
+<h4><A NAME="2.3.5  cbf_new_d">2.3.5  cbf_new_datablock</A></h4>
+<UL><h4>
+<LI><A NAME="2.3.5 cbf_f_ndb">cbf_force_new_data_block</A></h4>
+</UL>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_new_datablock (cbf_handle handle, const char *datablockname);
+<P>
+int cbf_force_new_datablock (cbf_handle handle, const char *datablockname);
+
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_new_datablock creates a new data block with name <CITE>datablockname</CITE>
+ and makes it the current data block.
+<P>
+If a data block with this name already exists, the existing data block becomes the 
+current data block.
+<P>
+cbf__force_new_datablock creates a new data block with name <CITE>datablockname</CITE>
+ and makes it the current data block, permitting duplicate data block names.
+<P>
+Even if a data block with this name already exists, a new data block is created and 
+becomes the current data block.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. <BR>
+datablockname: The name of the new data block. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_new_category<BR>
+cbf_new_column<BR>
+cbf_new_row<BR>
+cbf_insert_row<BR>
+cbf_set_datablockname<BR>
+cbf_remove_datablock<BR>
+
+<h4><A NAME="2.3.6  cbf_new_c">2.3.6  cbf_new_category</A></h4>
+<UL><h4>
+<LI>
+<A NAME="2.3.6 cbf_f_nca">cbf_force_new_category</A> </h4>
+</UL>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_new_category (cbf_handle handle, const char *categoryname);
+<P>
+int cbf_force_new_category (cbf_handle handle, const char *categoryname);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_new_category creates a new category in the current data block with name <CITE>categoryname</CITE>
+ and makes it the current category.
+<P>
+If a category with this name already exists, the existing category becomes the current 
+category.
+<P>
+<BR>
+cbf_force_new_category creates a new category in the current data block with name <CITE>categoryname</CITE>
+ and makes it the current category, permitting duplicate data block names..
+<P>
+Even if a category with this name already exists, a new category of the same name 
+is created and becomes the current category.  The allows for the creation of 
+unlooped tag/value lists drawn from the same category.
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. <BR>
+categoryname: The name of the new category. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_new_datablock<BR>
+cbf_new_column<BR>
+cbf_new_row<BR>
+cbf_insert_row<BR>
+cbf_remove_category<BR>
+
+<h4><A NAME="2.3.7  cbf_new_c">2.3.7  cbf_new_column</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_new_column (cbf_handle handle, const char *columnname);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_new_column creates a new column in the current category with name <CITE>columnname</CITE>
+ and makes it the current column.
+<P>
+If a column with this name already exists, the existing column becomes the current 
+category.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. <BR>
+columnname: The name of the new column. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_new_datablock<BR>
+cbf_new_category<BR>
+cbf_new_row<BR>
+cbf_insert_row<BR>
+cbf_remove_column<BR>
+
+<h4><A NAME="2.3.8  cbf_new_r">2.3.8  cbf_new_row</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_new_row (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_new_row adds a new row to the current category and makes it the current row.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_new_datablock<BR>
+cbf_new_category<BR>
+cbf_new_column<BR>
+cbf_insert_row<BR>
+cbf_delete_row<BR>
+cbf_remove_row 
+<h4><A NAME="2.3.9  cbf_inser">2.3.9  cbf_insert_row</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_insert_row (cbf_handle handle, unsigned int rownumber);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_insert_row adds a new row to the current category.  The new row is inserted as 
+row <CITE>rownumber</CITE>
+ and existing rows starting from <CITE>rownumber</CITE>
+ are moved up by 1.  The new row becomes the current row.
+<P>
+If the category has fewer than <CITE>rownumber</CITE>
+ rows, the function returns CBF_NOTFOUND.
+<P>
+The row numbers start from 0.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. <BR>
+rownumber: The row number of the new row.
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_new_datablock<BR>
+cbf_new_category<BR>
+cbf_new_column<BR>
+cbf_new_row<BR>
+cbf_delete_row<BR>
+cbf_remove_row 
+
+<h4><A NAME="2.3.10  cbf_dele">2.3.10  cbf_delete_row</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_delete_row (cbf_handle handle, unsigned int rownumber);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_delete_row deletes a row from the current category.  Rows starting from <CITE>rownumber</CITE>
++1 are moved down by 1.  If the current row was higher than <CITE>rownumber</CITE>
+, or if the current row is the last row, it will also move down by 1.
+<P>
+The row numbers start from 0.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. <BR>
+rownumber: The number of the row to delete.
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_new_row<BR>
+cbf_insert_row<BR>
+cbf_remove_datablock<BR>
+cbf_remove_category<BR>
+cbf_remove_column<BR>
+cbf_remove_row 
+
+<h4><A NAME="2.3.11  cbf_set_">2.3.11  cbf_set_datablockname</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_set_datablockname (cbf_handle handle, const char *datablockname);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_set_datablockname changes the name of the current data block to <CITE>datablockname</CITE>
+.  
+<P>
+If a data block with this name already exists (comparison is case-insensitive), the 
+function returns CBF_IDENTICAL.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. <BR>
+datablockname: The new data block name.
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_new_datablock<BR>
+cbf_reset_datablocks<BR>
+cbf_reset_datablock<BR>
+cbf_remove_datablock<BR>
+cbf_datablock_name<BR>
+
+<h4><A NAME="2.3.12  cbf_reset">2.3.12  cbf_reset_datablocks</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_reset_datablocks (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_reset_datablocks deletes all categories from all data blocks.
+<P>
+The current data block does not change.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_reset_datablock<BR>
+cbf_remove_category<BR>
+<P>
+<h4><A NAME="2.3.13  cbf_resedb">2.3.13  cbf_reset_datablock</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_reset_datablock (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_reset_datablock deletes all categories from the current data block.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_reset_datablocks<BR>
+cbf_remove_category<BR>
+
+<P>
+<h4><A NAME="2.3.14  cbf_reseca">2.3.14  cbf_reset_category</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_reset_category (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_reset_category deletes all columns and rows from current category.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_reset_category<BR>
+cbf_remove_column<BR>
+cbf_remove_row 
+<P>
+<h4><A NAME="2.3.15  cbf_remodb">2.3.15  cbf_remove_datablock</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_remove_datablock (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_remove_datablock deletes the current data block.
+<P>
+The current data block becomes undefined.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_new_datablock<BR>
+cbf_remove_category<BR>
+cbf_remove_column<BR>
+cbf_remove_row 
+<P>
+<h4><A NAME="2.3.16  cbf_remoca">2.3.16  cbf_remove_category</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_remove_category (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_remove_category deletes the current category.
+<P>
+The current category becomes undefined.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_new_category<BR>
+cbf_remove_datablock<BR>
+cbf_remove_column<BR>
+cbf_remove_row 
+<P>
+<h4><A NAME="2.3.17  cbf_remoco">2.3.17  cbf_remove_column</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_remove_column (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_remove_column deletes the current column.
+<P>
+The current column becomes undefined.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_new_column<BR>
+cbf_remove_datablock<BR>
+cbf_remove_category<BR>
+cbf_remove_row 
+<P>
+<h4><A NAME="2.3.18  cbf_remoro">2.3.18  cbf_remove_row</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_remove_row (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_remove_row deletes the current row in the current category.
+<P>
+If the current row was the last row, it will move down by 1, otherwise, it will remain 
+the same.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_new_row<BR>
+cbf_insert_row<BR>
+cbf_remove_datablock<BR>
+cbf_remove_category<BR>
+cbf_remove_column<BR>
+cbf_delete_row 
+<P>
+<h4><A NAME="2.3.19  cbf_rewidb">2.3.19  cbf_rewind_datablock</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_rewind_datablock (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_rewind_datablock makes the first data block the current data block.  
+<P>
+If there are no data blocks, the function returns CBF_NOTFOUND.
+<P>
+The current category becomes undefined.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_rewind_category<BR>
+cbf_rewind_column<BR>
+cbf_rewind_row<BR>
+cbf_next_datablock<BR>
+
+<P>
+<h4><A NAME="2.3.20  cbf_rewica">2.3.20  cbf_rewind_category</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_rewind_category (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_rewind_category makes the first category in the current data block the current 
+category.  
+<P>
+If there are no categories, the function returns CBF_NOTFOUND.
+<P>
+The current column and row become undefined.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_rewind_datablock<BR>
+cbf_rewind_column<BR>
+cbf_rewind_row<BR>
+cbf_next_category<BR>
+
+<P>
+<h4><A NAME="2.3.21  cbf_rewico">2.3.21  cbf_rewind_column</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_rewind_column (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_rewind_column makes the first column in the current category the current column. 
+ 
+<P>
+If there are no columns, the function returns CBF_NOTFOUND.
+<P>
+The current row is not affected.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_rewind_datablock<BR>
+cbf_rewind_category<BR>
+cbf_rewind_row<BR>
+cbf_next_column<BR>
+
+<P>
+<h4><A NAME="2.3.22  cbf_rewiro">2.3.22  cbf_rewind_row</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_rewind_row (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_rewind_row makes the first row in the current category the current row.  
+<P>
+If there are no rows, the function returns CBF_NOTFOUND.
+<P>
+The current column is not affected.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_rewind_datablock<BR>
+cbf_rewind_category<BR>
+cbf_rewind_column<BR>
+cbf_next_row<BR>
+
+<P>
+<h4><A NAME="2.3.23  cbf_nextdb">2.3.23  cbf_next_datablock</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_next_datablock (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_next_datablock makes the data block following the current data block the current 
+data block.
+<P>
+If there are no more data blocks, the function returns CBF_NOTFOUND.
+<P>
+The current category becomes undefined.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_rewind_datablock<BR>
+cbf_next_category<BR>
+cbf_next_column<BR>
+cbf_next_row 
+<P>
+<h4><A NAME="2.3.24  cbf_nextca">2.3.24  cbf_next_category</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_next_category (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_next_category makes the category following the current category in the current 
+data block the current category.
+<P>
+If there are no more categories, the function returns CBF_NOTFOUND.
+<P>
+The current column and row become undefined.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_rewind_category<BR>
+cbf_next_datablock<BR>
+cbf_next_column<BR>
+cbf_next_row 
+<P>
+<h4><A NAME="2.3.25  cbf_nextco">2.3.25  cbf_next_column</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_next_column (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_next_column makes the column following the current column in the current category 
+the current column.
+<P>
+If there are no more columns, the function returns CBF_NOTFOUND.
+<P>
+The current row is not affected.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_rewind_column<BR>
+cbf_next_datablock<BR>
+cbf_next_category<BR>
+cbf_next_row 
+<P>
+<h4><A NAME="2.3.26  cbf_nextro">2.3.26  cbf_next_row</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_next_row (cbf_handle handle);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_next_row makes the row following the current row in the current category the current 
+row.
+<P>
+If there are no more rows, the function returns CBF_NOTFOUND.
+<P>
+The current column is not affected.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_rewind_row<BR>
+cbf_next_datablock<BR>
+cbf_next_category<BR>
+cbf_next_column<BR>
+
+<P>
+<h4><A NAME="2.3.27  cbf_find">2.3.27  cbf_find_datablock</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_find_datablock (cbf_handle handle, const char *datablockname);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_find_datablock makes the data block with name <CITE>datablockname</CITE>
+ the current data block.
+<P>
+The comparison is case-insensitive.
+<P>
+If the data block does not exist, the function returns CBF_NOTFOUND.
+<P>
+The current category becomes undefined.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. <BR>
+datablockname: The name of the data block to find.
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_rewind_datablock<BR>
+cbf_next_datablock<BR>
+cbf_find_category<BR>
+cbf_find_column<BR>
+cbf_find_row<BR>
+cbf_datablock_name 
+<P>
+<h4><A NAME="2.3.28  cbf_find">2.3.28  cbf_find_category</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_find_category (cbf_handle handle, const char *categoryname);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_find_category makes the category in the current data block with name <CITE>categoryname</CITE>
+ the current category.
+<P>
+The comparison is case-insensitive.
+<P>
+If the category does not exist, the function returns CBF_NOTFOUND.
+<P>
+The current column and row become undefined.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. <BR>
+categoryname: The name of the category to find.
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_rewind_category<BR>
+cbf_next_category<BR>
+cbf_find_datablock<BR>
+cbf_find_column<BR>
+cbf_find_row<BR>
+cbf_category_name 
+<P>
+<h4><A NAME="2.3.29  cbf_find">2.3.29  cbf_find_column</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_find_column (cbf_handle handle, const char *columnname);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_find_column makes the columns in the current category with name <CITE>columnname</CITE>
+ the current column.
+<P>
+The comparison is case-insensitive.
+<P>
+If the column does not exist, the function returns CBF_NOTFOUND.
+<P>
+The current row is not affected.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle. <BR>
+columnname: The name of column to find.
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_rewind_column<BR>
+cbf_next_column<BR>
+cbf_find_datablock<BR>
+cbf_find_category<BR>
+cbf_find_row<BR>
+cbf_column_name<BR>
+
+<P>
+<h4><A NAME="2.3.30  cbf_find">2.3.30  cbf_find_row</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_find_row (cbf_handle handle, const char *value);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_find_row makes the first row in the current column with value <CITE>value</CITE>
+ the current row.
+<P>
+The comparison is case-sensitive.
+<P>
+If a matching row does not exist, the function returns CBF_NOTFOUND.
+<P>
+The current column is not affected.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+value: The value of the row to find. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_rewind_row<BR>
+cbf_next_row<BR>
+cbf_find_datablock<BR>
+cbf_find_category<BR>
+cbf_find_column<BR>
+cbf_find_nextrow<BR>
+cbf_get_value<BR>
+
+<P>
+<h4><A NAME="2.3.31  cbf_find">2.3.31  cbf_find_nextrow</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_find_nextrow (cbf_handle handle, const char *value);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_find_nextrow makes the makes the next row in the current column with value <CITE>value</CITE>
+ the current row.  The search starts from the row following the last row found with 
+cbf_find_row or cbf_find_nextrow, or from the current row if the current row was 
+defined using any other function.
+<P>
+The comparison is case-sensitive.
+<P>
+If no more matching rows exist, the function returns CBF_NOTFOUND.
+<P>
+The current column is not affected.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+value:\tab the value to search for. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_rewind_row<BR>
+cbf_next_row<BR>
+cbf_find_datablock<BR>
+cbf_find_category<BR>
+cbf_find_column<BR>
+cbf_find_row<BR>
+cbf_get_value<BR>
+
+<P>
+<h4><A NAME="2.3.32  cbf_coun">2.3.32  cbf_count_datablocks</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_count_datablocks (cbf_handle handle, unsigned int *datablocks);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_count_datablocks puts the number of data blocks in *<CITE>datablocks</CITE>
+.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+datablocks: Pointer to the destination data block count. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_count_categories<BR>
+cbf_count_columns<BR>
+cbf_count_rows<BR>
+cbf_select_datablock</h4>
+
+<P>
+<h4><A NAME="2.3.33  cbf_coun">2.3.33  cbf_count_categories</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_count_categories (cbf_handle handle, unsigned int *categories);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_count_categories puts the number of categories in the current data block in *<CITE>categories</CITE>.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+categories: Pointer to the destination category count. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_count_datablocks<BR>
+cbf_count_columns<BR>
+cbf_count_rows<BR>
+cbf_select_category<BR>
+
+<P>
+<h4><A NAME="2.3.34  cbf_coun">2.3.34  cbf_count_columns</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_count_columns (cbf_handle handle, unsigned int *columns);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_count_columns puts the number of columns in the current category in *<CITE>columns</CITE>
+.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+columns: Pointer to the destination column count. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_count_datablocks<BR>
+cbf_count_categories<BR>
+cbf_count_rows<BR>
+cbf_select_column<BR>
+<P>
+
+<P>
+<h4><A NAME="2.3.35  cbf_coun">2.3.35  cbf_count_rows</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_count_rows (cbf_handle handle, unsigned int *rows);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_count_rows puts the number of rows in the current category in *<CITE>rows</CITE>
+.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+rows: Pointer to the destination row count. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_count_datablocks<BR>
+cbf_count_categories<BR>
+cbf_count_columns<BR>
+cbf_select_row<BR>
+
+<P>
+<h4><A NAME="2.3.36  cbf_sele">2.3.36  cbf_select_datablock</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_select_datablock (cbf_handle handle, unsigned int datablock);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_select_datablock selects data block number <CITE>datablock</CITE>
+ as the current data block.
+<P>
+The first data block is number 0.
+<P>
+If the data block does not exist, the function returns CBF_NOTFOUND.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+datablock: Number of the data block to select. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_count_datablocks<BR>
+cbf_select_category<BR>
+cbf_select_column<BR>
+cbf_select_row 
+<P>
+<h4><A NAME="2.3.37  cbf_sele">2.3.37  cbf_select_category</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_select_category (cbf_handle handle, unsigned int category);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_select_category selects category number <CITE>category</CITE>
+ in the current data block as the current category.
+<P>
+The first category is number 0.
+<P>
+The current column and row become undefined.
+<P>
+If the category does not exist, the function returns CBF_NOTFOUND.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+category: Number of the category to select. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_count_categories<BR>
+cbf_select_datablock<BR>
+cbf_select_column<BR>
+cbf_select_row 
+<P>
+<h4><A NAME="2.3.38  cbf_sele">2.3.38  cbf_select_column</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_select_column (cbf_handle handle, unsigned int column);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_select_column selects column number <CITE>column</CITE>
+ in the current category as the current column.
+<P>
+The first column is number 0.
+<P>
+The current row is not affected
+<P>
+If the column does not exist, the function returns CBF_NOTFOUND.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+column: Number of the column to select. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_count_columns<BR>
+cbf_select_datablock<BR>
+cbf_select_category<BR>
+cbf_select_row 
+<P>
+<h4><A NAME="2.3.39  cbf_sele">2.3.39  cbf_select_row</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_select_row (cbf_handle handle, unsigned int row);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_select_row selects row number <CITE>row</CITE>
+ in the current category as the current row.
+<P>
+The first row is number 0.
+<P>
+The current column is not affected
+<P>
+If the row does not exist, the function returns CBF_NOTFOUND.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+row: Number of the row to select. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_count_rows<BR>
+cbf_select_datablock<BR>
+cbf_select_category<BR>
+cbf_select_column <BR>
+<P>
+<h4><A NAME="2.3.40  cbf_data">2.3.40  cbf_datablock_name</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_datablock_name (cbf_handle handle, const char **datablockname);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_datablock_name sets *<CITE>datablockname</CITE>
+ to point to the name of the current data block.
+<P>
+The data block name will be valid as long as the data block exists and has not been 
+renamed.  
+<P>
+The name must not be modified by the program in any way.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+datablockname: Pointer to the destination data block name pointer. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_find_datablock<BR>
+
+<P>
+<h4><A NAME="2.3.41  cbf_cate">2.3.41  cbf_category_name</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_category_name (cbf_handle handle, const char **categoryname);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_category_name sets *<CITE>categoryname </CITE>
+to point to the name of the current category of the current data block.
+<P>
+The category name will be valid as long as the category exists.  
+<P>
+The name must not be modified by the program in any way.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+categoryname: Pointer to the destination category name pointer. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_find_category<BR>
+
+<P>
+<h4><A NAME="2.3.42  cbf_colu">2.3.42  cbf_column_name</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_column_name (cbf_handle handle, const char **columnname);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_column_name sets *<CITE>columnname </CITE>
+to point to the name of the current column of the current category.
+<P>
+The column name will be valid as long as the column exists.  
+<P>
+The name must not be modified by the program in any way.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+columnname: Pointer to the destination column name pointer. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_find_column<BR>
+
+<P>
+<h4><A NAME="2.3.43  cbf_row_">2.3.43  cbf_row_number</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_row_number (cbf_handle handle, unsigned int *row);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_row_number sets *<CITE>row</CITE>
+ to the number of the current row of the current category.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+row: Pointer to the destination row number. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_select_row 
+
+<P>
+<h4><A NAME="2.3.44  cbf_get_">2.3.44  cbf_get_value</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_get_value (cbf_handle handle, const char **value);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_get_value sets *<CITE>value</CITE>
+ to point to the ASCII value of the item at the current column and row.
+<P>
+If the value is not ASCII, the function returns CBF_BINARY.
+<P>
+The value will be valid as long as the item exists and has not been set to a new value. 
+ 
+<P>
+The value must not be modified by the program in any way.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+value: Pointer to the destination value pointer. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_set_value<BR>
+cbf_get_integervalue<BR>
+cbf_get_doublevalue<BR>
+cbf_get_integerarrayparameters<BR>
+cbf_get_integerarray<BR>
+
+<P>
+<h4><A NAME="2.3.45  cbf_set_">2.3.45  cbf_set_value</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_set_value (cbf_handle handle, const char *value);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_set_value sets the item at the current column and row to the ASCII value <CITE>value</CITE>
+.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+value: ASCII value. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_get_value <BR>
+cbf_set_integervalue<BR>
+cbf_set_doublevalue<BR>
+cbf_set_integerarray 
+<P>
+<h4><A NAME="2.3.46  cbf_get_">2.3.46  cbf_get_integervalue</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_get_integervalue (cbf_handle handle, int *number);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_get_integervalue sets *<CITE>number</CITE>
+ to the value of the ASCII item at the current column and row interpreted as a decimal 
+integer.
+<P>
+If the value is not ASCII, the function returns CBF_BINARY.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+number: pointer to the number. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_set_integervalue<BR>
+cbf_get_value<BR>
+cbf_get_doublevalue<BR>
+cbf_get_integerarrayparameters<BR>
+cbf_get_integerarray<BR>
+
+<P>
+<h4><A NAME="2.3.47  cbf_set_">2.3.47  cbf_set_integervalue</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_set_integervalue (cbf_handle handle, int number);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_set_integervalue sets the item at the current column and row to the integer value 
+<CITE>number</CITE>
+ written as a decimal ASCII string.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+number: Integer value. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_get_integervalue<BR>
+cbf_set_value<BR>
+cbf_set_integervalue<BR>
+cbf_set_doublevalue<BR>
+cbf_set_integerarray 
+
+<P>
+<h4><A NAME="2.3.48  cbf_get_">2.3.48  cbf_get_doublevalue</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_get_doublevalue (cbf_handle handle, double *number);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_get_doublevalue sets *<CITE>number</CITE>
+ to the value of the ASCII item at the current column and row interpreted as a decimal 
+floating-point number.
+<P>
+If the value is not ASCII, the function returns CBF_BINARY.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+number: Pointer to the destination number. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_set_doublevalue<BR>
+cbf_get_value<BR>
+cbf_get_integervalue<BR>
+cbf_get_integerarrayparameters<BR>
+cbf_get_integerarray <BR>
+
+<P>
+<h4><A NAME="2.3.49  cbf_set_">2.3.49  cbf_set_doublevalue</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_set_doublevalue (cbf_handle handle, const char *format, double number);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_set_doublevalue sets the item at the current column and row to the floating-point 
+value <CITE>number</CITE>
+ written as an ASCII string with the format specified by <CITE>format</CITE>
+ as appropriate for the printf function.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+format: Format for the number.<BR>
+number: Floating-point value. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_get_doublevalue<BR>
+cbf_set_value<BR>
+{cbf_set_integervalue<BR>
+cbf_set_integerarray 
+<P>
+<h4><A NAME="2.3.50  cbf_get_">2.3.50  cbf_get_integerarrayparameters</A></h4>
+<UL><h4>
+<LI>
+<A NAME="2.3.50 cbf_gip">cbf_get_integerarrayparams</A> </h4>
+</UL>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_get_integerarrayparameters (cbf_handle handle,<BR>
+int *binary_id,<BR>
+int *elsigned, int *elunsigned,<BR>
+size_t *elements,<BR>
+int *minelement, int *maxelement);
+<P>
+int cbf_get_integerarrayparams (cbf_handle handle,<BR>
+unsigned int *compression,<BR>
+size_t *repeat,<BR>
+int *binary_id,<BR>
+size_t *elsize,
+int *elsigned, int *elunsigned,<BR>
+size_t *elements,<BR>
+int *minelement, int *maxelement);
+<P>
+
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_get_integerarrayparameters sets *<CITE>binary_id</CITE>,
+ *<CITE>elsigned</CITE>, *<CITE>elunsigned</CITE>,
+ *<CITE>elements</CITE>, *<CITE>minelement</CITE>
+ and *<CITE>maxelement</CITE>
+ to values read from the binary value of the item at the current column and row.
+cbf_get_integerarrayparams sets *<CITE>compression</CITE>,
+*<CITE>repeat</CITE>, *<CITE>binary_id</CITE>, *<CITE>elsize</CITE>,
+ *<CITE>elsigned</CITE>, *<CITE>elunsigned</CITE>,
+ *<CITE>elements</CITE>, *<CITE>minelement</CITE>
+ and *<CITE>maxelement</CITE>
+ to values read from the binary value of the item at the current column and row.  The
+second form provides all the arguments needs for a subsequent call to cbf_set_integerarray,
+if a copy of the arry is to be made into another CIF or CBF.
+
+<P>
+If the value is not binary, the function returns CBF_ASCII.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+compression: Compression method used.<BR>
+repeat: Second dimension for 2-dimensional arrays (currently unused)<BR>
+elsize: Size in bytes of each array element. <BR>
+binary_id: Pointer to the destination integer binary identifier. <BR>
+elsigned: Pointer to an integer.  Set to 1 if the elements can be read as signed integers. 
+<BR>
+elunsigned: Pointer to an integer.  Set to 1 if the elements can be read as unsigned 
+integers. <BR>
+elements: Pointer to the destination number of elements. <BR>
+minelement: Pointer to the destination smallest element. <BR>
+maxelement: Pointer to the destination largest element. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_set_integerarray<BR>
+cbf_get_integerarray<BR>
+cbf_get_value<BR>
+cbf_get_integervalue<BR>
+cbf_get_doublevalue<BR>
+
+<P>
+<h4><A NAME="2.3.51  cbf_get_">2.3.51  cbf_get_integerarray</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_get_integerarray (cbf_handle handle,<BR>
+int *binary_id,<BR>
+void *array, size_t elsize, int elsigned,<BR>
+size_t elements, size_t *elements_read);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_get_integerarray reads the binary value of the item at the current column and 
+row into an integer array.  The array consists of <CITE>elements</CITE>
+ elements of <CITE>elsize</CITE>
+ bytes each, starting at <CITE>array</CITE>.  The elements are signed if <CITE>elsigned</CITE>
+ is non-0 and unsigned otherwise.  *<CITE>binary_id</CITE>
+ is set to the binary section identifier and *<CITE>elements_read </CITE>
+to the number of elements actually read.
+<P>
+If any element in the binary data cant fit into the destination element, the destination 
+is set the nearest possible value.
+<P>
+If the value is not binary, the function returns CBF_ASCII.
+<P>
+If the requested number of elements cant be read, the function will read as many as 
+it can and then return CBF_ENDOFDATA.
+<P>
+Currently, the destination array must consist of chars, shorts or ints (signed or 
+unsigned).  If <CITE>elsize </CITE>
+is not equal to sizeof (char), sizeof (short) or sizeof (int), the function returns 
+CBF_ARGUMENT.
+<P>
+An additional restriction in the current version of CBFLIB is that values too large 
+to fit in an int are not correctly decompressed.  As an example, if the machine with 
+32-bit ints is reading an array containing a value outside the range 
+0 .. 2^<sup>32</sup>-1 (unsigned) or -2^<sup>31</sup> .. 2<sup>^31</sup>-1 
+(signed), the array will not be correctly decompressed.  This 
+restriction will be removed in the next release.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+binary_id: Pointer to the destination integer binary identifier. <BR>
+array: Pointer to the destination array.<BR>
+elsize: Size in bytes of each destination array element. <BR>
+elsigned: Set to non-0 if the destination array elements are signed. <BR>
+elements: The number of elements to read. <BR>
+elements_read: Pointer to the destination number of elements actually read.
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. <BR>
+
+SEE ALSO 
+<P>
+cbf_set_integerarray<BR>
+cbf_get_integerarrayparameters<BR>
+cbf_get_value<BR>
+cbf_get_integervalue<BR>
+cbf_get_doublevalue<BR>
+
+<P>
+<h4><A NAME="2.3.52  cbf_set_">2.3.52  cbf_set_integerarray</A></h4>
+<P><B>PROTOTYPE</B>
+<BR>
+#include cbf.h <BR>
+
+int cbf_set_integerarray (cbf_handle handle,<BR>
+unsigned int compression,<BR>
+size_t repeat,<BR>
+int binary_id,<BR>
+void *array, size_t elsize, int elsigned,<BR>
+size_t elements);
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_set_integerarray sets the binary value of the item at the current column and row 
+to an integer array<CITE>.</CITE>
+ The array consists of <CITE>elements</CITE>
+ elements of <CITE>elsize</CITE>
+ bytes each, starting at <CITE>array</CITE>.  The elements 
+are signed if <CITE>elsigned</CITE>
+ is non-0 and unsigned otherwise.  <CITE>binary_id</CITE>
+ is the binary section identifier.
+<P>
+The array will be compressed using the compression scheme specifed by <CITE>compression</CITE>.  Currently, the available schemes are:
+<P>
+CBF_CANONICAL: Canonical-code compression  (section 3.3.1)<BR>
+CBF_PACKED: CCP4-style packing   (section 3.3.2)
+<P>
+The values compressed are limited to 64 bits.  If any element in the array is larger 
+than 64 bits, the value compressed is the nearest 64-bit value.
+<P>
+Currently, the source array must consist of chars, shorts or ints (signed or unsigned). 
+ If <CITE>elsize </CITE>
+is not equal to sizeof (char), sizeof (short) or sizeof (int), the function returns 
+CBF_ARGUMENT.
+<P>
+<P><B>ARGUMENTS</B><BR>
+handle: CBF handle.<BR>
+compression: Compression method to use.<BR>
+repeat: Second dimension for 2-dimensional arrays (currently unused)<BR>
+binary_id: Integer binary identifier. <BR>
+array: Pointer to the source array.<BR>
+elsize: Size in bytes of each source array element. <BR>
+elsigned: Set to non-0 if the source array elements are signed. <BR>
+elements: The number of elements in the array. 
+<P>
+<P><B>RETURN VALUE</B>
+<BR>
+Returns an error code on failure or 0 for success. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_get_integerarrayparameters<BR>
+cbf_get_integerarray<BR>
+cbf_set_value<BR>
+cbf_set_integervalue<BR>
+cbf_set_doublevalue<BR>
+
+<P>
+<h4><A NAME="2.3.53  cbf_fail">2.3.53  cbf_failnezz</A></h4>
+<BR>
+<B>DEFINITION</B>
+<BR>
+#include cbf.h<BR>
+
+#define cbf_failnez(f) {int err; err = (f); if (err) return err; }
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_failnez is a macro used for error propagation throughout CBFLIB.  cbf_failnez 
+executes the function <CITE>f</CITE>
+ and saves the returned error value.  If the error value is non-0, cbf_failnez executes 
+a return with the error value as argument.
+<P>
+<P><B>ARGUMENTS</B><BR>
+f: Integer function to execute. 
+<P>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_onfailnez<BR>
+
+<p>
+<h4><A NAME="2.3.54  cbf_onfa">2.3.54  cbf_onfailnez</A></h4>
+<BR>
+DEFINITION
+<P>
+#include cbf.h<BR>
+
+#define cbf_onfailnez(f,c) {int err; err = (f); if (err) {{c; }return err; }}
+<P>
+<P><B>DESCRIPTION</B>
+<BR>
+cbf_onfailnez is a macro used for error propagation throughout CBFLIB.  cbf_onfailnez 
+executes the function <CITE>f</CITE>
+ and saves the returned error value.  If the error value is non-0, cbf_failnez executes 
+first the statement <CITE>c</CITE>
+ and then a return with the error value as argument.
+<P>
+<P><B>ARGUMENTS</B><BR>
+f: integer function to execute. <BR>
+c: statement to execute on failure.<BR>
+<P><B>SEE ALSO</B>
+<BR>
+cbf_failnez<BR>
+
+
+<h3><A NAME="#3. File format">3.  File format</A></h3>
+
+
+<h4><A NAME="#3.1 General desc">3.1  General description</A></h4>
+<P>
+With the exception of the binary sections, a CBF file is an mmCIF-format ASCII file. 
+ This means that a CBF file with no binary sections is a CIF file and CBFLIB can 
+also be used to access normal CIF files.
+<P>
+<h4><A NAME="#3.2 Format of th">3.2  Format of the binary sections</A></h4>
+<P>
+Each binary section is encoded as a ;-delimited string, starting  with an 
+arbitrary number of pure-ASCII characters making up a MIME boundary marker
+followed immediately by MIME header lines.  This information
+replaces the former "START OF BINARY SECTION" produced by version 0.1 of
+CBFlib.  When dealing with a CBF, all this ASCII information is skipped,
+but it is used for an imgCIF. 
+
+<P>
+
+<ol type=a>
+<li> Before getting to the binary data, itself, there are some preliminaries
+to allow a smooth transition from the conventions of CIF to those of
+raw streams of &quot;octets&quot; (8-bit bytes).  The binary data is
+given as the essential part of a specially formatted semicolon-delimited
+CIF multi-line text string.  This text string is the value associated with the
+tag &quot;_array_data.data&quot;.
+<p><BR> 
+<li> Within that text string, the conventions developed for
+transmitting email messages including binary attachments are followed.
+There is secondary ASCII header information, formatted as Multipurpose
+Internet Mail Extensions (MIME) headers (see RFCs 2045-49 by
+Freed, et. al).   The boundary marker for the beginning of all this
+is the special string 
+<P><BR>
+--CIF-BINARY-FORMAT-SECTION--
+<P><BR>
+at the beginning of a line.  The initial &quot;--&quot; says that
+this is a MIME boundary.  We cannot put &quot;###&quot; in front
+of it and conform to MIME conventions.  Immediately after the boundary
+marker are MIME headers, describing some useful information
+we will need to process the binary section.  MIME headers can
+appear in different orders, and can be very confusing (look
+at the raw contents of a email message with attachments), but
+there is only one header which is has to be understood to
+process a CBF; &quot;Content-Transfer-Encoding&quot;.  If the value given
+on this header is &quot;BINARY&quot;, this is a CBF and the data will
+be presented as raw binary, containing a count (in yet another
+header we did not tell you about yet) so we'll know when to
+start looking for more information.
+<P><BR>
+
+If the value given for &quot;Content-Tranfer-Encoding&quot; is one of the
+real encodings:  &quot;BASE64&quot;, &quot;QUOTED-PRINTABLE&quot;, &quot;X-BASE8&quot;,
+&quot;X-BASE10&quot; or &quot;X-BASE16&quot;, this file is an imgCIF, and we'll
+need some other the other headers to process the encoded
+binary data properly.  It is a good practice to give headers
+in all cases.  The meanings of various encodings is given in the
+CBF extensions dictionary, <A HREF="cbfext98.html">cbfext98.dic</a>.
+<P><BR>
+The &quot;Content-Type&quot; header tells us what sort of data we have
+(almost always &quot;application/octet-stream&quot; for a miscellaneous
+stream of binary data) and, optionally, the conversions that
+were applied to the original data.  In this case we have
+compressed the data with the &quot;CBF-PACKED&quot; algorithm.
+<P><BR>
+The optional &quot;X-Binary-ID&quot; header should contain the same 
+value as was given for _array_data.binary-id above.  
+<P><BR>
+The &quot;X-Binary-Size&quot; header gives the expected size of the
+binary data.  This is the size <B>after</B> any compressions,
+but before any ascii encodings.  This is useful in making
+a simple check for a missing portion of this file.  The 8 bytes for the
+Compression type (see below) are <b>not</b> counted in this field, so
+the value of &quot;X-Binary-Size&quot; is 8 less than the quantity
+in bytes 12-19 of raw binary data.
+
+<P><BR>
+The optional &quot;Content-MD5&quot; header provides a much more 
+sophisticated check on the integrity of the binary data.
+
+<P><BR>
+In a CBF, the raw binary data begins after an empty line terminating
+the MIME headers and after the START_OF_BIN identifier.
+&quot;START_OF_BIN&quot; contains bytes to separate the &quot;ASCII&quot; lines 
+from the binary data, bytes to try to stop the listing of the header, 
+bytes which define the binary identifier which should match the 
+&quot;binary_id&quot; defined in the header, and bytes which define the 
+length of the binary section.<P><BR>
+<Table>             
+<TR><TH>             Octet   <TH>Hex   <TH>Decimal  <TH>Purpose
+<TR><TD>               1     <TD>1A       <TD>26    <TD>(ctrl-Z) Stop listings in MS-DOS
+<TR><TD>               2     <TD>04       <TD>04    <TD>(Ctrl-D) Stop listings in UNIX
+<TR><TD>               3     <TD>D5      <TD>213   <TD>Binary section begins
+<TR><TD VALIGN=TOP>               4..11  <TD>&nbsp;<TD>&nbsp;  <TD>Binary Section Identifier<BR>
+                                    (See _array_data.binary_id)<BR>
+                                    64-bit, little endian
+<TR><TD VALIGN=TOP>              12..19 <TD>&nbsp;<TD>&nbsp;  <TD>8+ the size (n) of the<BR>
+                                    binary section in octets<BR>
+                                    (i.e. the offset  from octet<BR>
+                                    20 to the first byte following<BR>
+                                    the data)
+<TR><TD VALIGN=TOP>              20..27<TD>&nbsp;<TD>&nbsp;  <TD>Compression type:<BR>
+                                      <TABLE>
+                                      <TR><TD>CBF_NONE       <TD>0x0040 (64)
+                                      <TR><TD>CBF_CANONICAL  <TD>0x0050 (80)
+                                      <TR><TD>CBF_PACKED     <TD>0x0060 (96)
+                                      <TR><TD>CBF_BYTE_OFFSET <TD>0x0070 (112)
+                                      <TR><TD>CBF_PREDICTOR   <TD>0x0080 (128)
+                                      <TR><TD>...            <TD>&NBSP;
+                                      </TABLE>
+<TR><TD>              28..28+n-1<TD>&nbsp;<TD>&nbsp;  <TD>Binary data (n octets)
+</TABLE><BR>
+              
+             Only bytes 28..28+n-1 are encoded for an imgCIF file
+             using the indicated Content-Transfer-Encoding.
+
+
+
+<p><BR>
+
+The binary characters serve specific purposes:
+<p><BR>
+
+<ul type=circle>
+
+<li> The Control-Z will stop the listing of the file on MS-DOS
+     type operating systems.
+<p><BR>
+
+<li> The Control-D will stop the listing of the file on Unix
+     type operating systems.
+<p><BR>
+
+<li> The unsigned byte value 213 (decimal) is binary 11010101.
+     (Octal 325, and hexadecimal D5).
+     This has the eighth bit set so can be used for error checking
+     on 7-bit transmission. It is also asymmetric, but with the first
+     bit also set in the case that the bit order could be reversed 
+     (which is not a known concern).
+<p><BR>
+
+<li> (The carriage return, line-feed pair before the START_OF_BIN
+     and other lines can also be used to check that the file has not
+     been corrupted e.g. by being sent by ftp in ASCII mode.)
+<p><BR>
+
+<li> Bytes 4-11 define the binary id of the binary data. This id is
+     also used within the header sections, so that binary data
+     definitions can be matched to the binary data sections. 64-bits
+     allows many many more binary data sections to be addressed than can
+     conceivably be needed.
+<p><BR>
+   
+<li> Bytes 12-19 define the length in bytes of the binary data plus the
+     flag word for the compression type (8 bytes). This information is critical
+     to recovering alignment with the CIF world, since the binary
+     data could easily include bytes which look like &quot;\n;&quot;
+     or the boundary marker.  The use of 64 bits provides for enormous 
+     expansion from present images sizes, but volume 
+     and higher dimensional data may need more than 32-bit sizes in the
+     future. 
+
+<p><BR>
+     It is tempting to set this value to zero if this is the last binary information or 
+     header information in the file, but you could cause unpleasant warnings
+     in code that expects to be able to find the rest of a CIF.  This allows a program writing, for
+     example, a single compressed image to avoid having to rewind the
+     file to write the size of the compressed data. (For small files
+     compression within memory may be practical, and this may not be an
+     issue. However very large files exist where writing the compressed
+     data &quot;on the fly&quot; may be the only realistic method.)   This
+     should only be done for internal use within a group, and a cleanup
+     utility should be used to restore the missing data before
+     exporting it to groups which may have difficulty processing this
+     truncated file.  In any case, it is recommended that this value be set, as it permits concatenation of
+     files, and a file with a zero for this field is not a valid CBF.
+
+<p><BR>
+     Since the data may have been compressed, knowing the numbers
+     of elements and size of each element does not necessarily tell a
+     program how many bytes to jump over, so here it is stored explicitly.
+     This also means that the reading program does not have to decode
+     information in the header section to move through the file.
+<P><BR>
+     Bytes 20-27 hold the flag for the compression type.  At present three
+     are defined:  CBF_NONE (for no compression), CBF_CANONICAL (for 
+     and entropy-coding scheme based on the canonical-code algorithm 
+     described by Moffat, <CITE>et al</CITE>. (<CITE>International 
+     Journal of High Speed Electronics and Systems</CITE>, Vol 8, No 1 (1997)
+     179-231)) and CBF_PACKED for a CCP4-style packing scheme.  Flags for other
+     compression schemes, such as the two in this document will be added to
+     this list in the future.
+</ul>
+<p><BR>
+
+<li> The &quot;line separator&quot; immediately precedes the &quot;start of binary 
+    identifier&quot;, but blank spaces may be added prior to the preceding 
+    &quot;line separator&quot; if desired (e.g. to force word or block alignment).
+<p><BR>
+
+<li> The binary data does not have to completely fill the bytes defined
+    by the byte length value, but clearly cannot be greater than this
+    value (except when the value zero has been stored, which means that
+    the size is unknown, and no other headers follow). The values of
+    any unused bytes are undefined.
+<p><BR>
+
+<li> At exactly the byte following the full binary section as defined by
+    the length value is the end of binary section identifier. This consists
+    of the carriage return / line feed pair followed by:
+<BR>
+<pre>
+--CIF-BINARY-FORMAT-SECTION----
+;
+</pre>
+<BR>
+
+    with each of these lines followed by the carriage return / line feed pair.
+    This brings us back into a normal CIF environment
+
+<p><BR>
+    The first &quot;line separator&quot; separates the binary data from the
+    pseudo-ASCII line.
+
+<p><BR>
+    This identifier is in a sense redundant since the binary data
+    length value tells the a program how many bytes to jump over to
+    the end of the binary data. However, this redundancy has been
+    deliberately added for error checking, and for possible file
+    recovery in the case of a corrupted file.
+
+<p><BR>
+    This identifier must be present at the end of every block of
+    binary data.
+</ol>
+<p>
+
+The former binary section format from version 0.1 may be written
+by setting the global variable <B>CBFmime</B> to <B>MIME_NOHEADERS</B>.
+As written by CIFLIB version 0.1, the structure of a binary section was:
+
+
+<P>
+<Table>
+<tr><th ALIGN=LEFT VALIGN=TOP>Byte<th ALIGN=LEFT>ASCII<BR>symbol<th ALIGN=LEFT>Decimal&nbsp;<BR>value<th ALIGN=LEFT VALIGN=TOP>Description
+<tr><td>1<td>;<td>59<td>Initial ; delimiter<BR>
+<tr><td>2<td>carriage-return<td>13<td><BR>
+<tr><td>3<td>line-feed<td>10<td>The CBF new-line code is carriage-return, line-feed<BR>
+<tr><td>4<td>S<td>83<td><BR>
+<tr><td>5<td>T<td>84<td><BR>
+<tr><td>6<td>A<td>65<td><BR>
+<tr><td>7<td>R<td>83<td><BR>
+<tr><td>8<td>T<td>84<td><BR>
+<tr><td>9<td> <td>32<td><BR>
+<tr><td>10<td>O<td>79<td><BR>
+<tr><td>11<td>F<td>70<td><BR>
+<tr><td>12<td><td>32<td><BR>
+<tr><td>13<td>B<td>66<td><BR>
+<tr><td>14<td>I<td>73<td><BR>
+<tr><td>15<td>N<td>78<td><BR>
+<tr><td>16<td>A<td>65<td><BR>
+<tr><td>17<td>R<td>83<td><BR>
+<tr><td>18<td>Y<td>89<td><BR>
+<tr><td>19<td><td>32<td><BR>
+<tr><td>20<td>S<td>83<td><BR>
+<tr><td>21<td>E<td>69<td><BR>
+<tr><td>22<td>C<td>67<td><BR>
+<tr><td>23<td>T<td>84<td><BR>
+<tr><td>24<td>I<td>73<td><BR>
+<tr><td>25<td>O<td>79<td><BR>
+<tr><td>26<td>N<td>78<td><BR>
+<tr><td>27<td>carriage-return<td>13<td><BR>
+<tr><td>28<td>line-feed<td>10<td><BR>
+<tr><td>29<td>substitute<td>26<td>Stop the listing of the file in MS-DOS<BR>
+<tr><td>30<td>end-of-transmission<td>4<td>Stop the listing of the file in unix<BR>
+<tr><td>31<td><td>213<td>First non-ASCII value<BR>
+<tr><td>32 .. 39<td><td><td>Binary section identifier (64-bit little-endien)<BR>
+<tr><td>40 .. 47<td><td><td>Offset from byte 48 to the first ASCII character following the binary data<BR>
+<tr><td>48 .. 55<td><td><td>Compression type<BR>
+<tr><td COLSPAN=2>56 .. 56 + <i>n</i>-1<td><td>Binary data (<i>n</i>bytes)<BR>
+<tr><td>56 + <CITE>n</CITE>
+<td>carriage-return<td>13<td><BR>
+<tr><td>57 + <CITE>n</CITE>
+<td>line-feed<td>10<td><BR>
+<tr><td>58 + <CITE>n</CITE>
+<td>E<td>69<td><BR>
+<tr><td>59 + <CITE>n</CITE>
+<td>N<td>78<td><BR>
+<tr><td>60 + <CITE>n</CITE>
+<td>D<td>68<td><BR>
+<tr><td>61 + <CITE>n</CITE>
+<td> <td>32<td><BR>
+<tr><td>62 + <CITE>n</CITE>
+<td>O<td>79<td><BR>
+<tr><td>63 + <CITE>n</CITE>
+<td>F<td>70<td><BR>
+<tr><td>64 + <CITE>n</CITE>
+<td><td>32<td><BR>
+<tr><td>65 + <CITE>n</CITE>
+<td>B<td>66<td><BR>
+<tr><td>66 + <CITE>n</CITE>
+<td>I<td>73<td><BR>
+<tr><td>67 + <CITE>n</CITE>
+<td>N<td>78<td><BR>
+<tr><td>68 + <CITE>n</CITE>
+<td>A<td>65<td><BR>
+<tr><td>69 + <CITE>n</CITE>
+<td>R<td>83<td><BR>
+<tr><td>70 + <CITE>n</CITE>
+<td>Y<td>89<td><BR>
+<tr><td>71 + <CITE>n</CITE>
+<td><td>32<td><BR>
+<tr><td>72 + <CITE>n</CITE>
+<td>S<td>83<td><BR>
+<tr><td>73 + <CITE>n</CITE>
+<td>E<td>69<td><BR>
+<tr><td>74 + <CITE>n</CITE>
+<td>C<td>67<td><BR>
+<tr><td>75 + <CITE>n</CITE>
+<td>T<td>84<td><BR>
+<tr><td>76 + <CITE>n</CITE>
+<td>I<td>73<td><BR>
+<tr><td>77 + <CITE>n</CITE>
+<td>O<td>79<td><BR>
+<tr><td>78 + <CITE>n</CITE>
+<td>N<td>78<td><BR>
+<tr><td>79 + <CITE>n</CITE>
+<td>carriage-return<td>13<td><BR>
+<tr><td>80 + <CITE>n</CITE>
+<td>line-feed<td>10<td><BR>
+<tr><td>81 + <CITE>n</CITE>
+<td>;<td>59<td>Final ; delimiter<BR>
+</table><BR>
+
+
+<h4><A HREF="#3.3 Compression ">3.3  Compression schemes</A></h4>
+<P>
+Two schemes for lossless compression of integer arrays (such as images) have been 
+implemented in this version of CBFLIB:
+<P>
+1. An entropy-encoding scheme using canonical coding<BR>
+2. A CCP4-style packing scheme. 
+<P>
+Both encode the difference (or error) between the current element in the array and 
+the prior element.  Parameters required for more sophisticated predictors have been 
+included in the compression functions and will be used in a future version of the 
+library.
+<P>
+<BR>
+<h4><A NAME="#3.3.1 Canonical-">3.3.1  Canonical-code compression</A></h4>
+<P>
+The canonical-code compression scheme encodes errors in two ways: directly or indirectly. 
+ Errors are coded directly using a symbol corresponding to the error value.  Errors 
+are coded indirectly using a symbol for the number of bits in the (signed) error, 
+followed by the error iteslf.  
+<P>
+At the start of the compression, CBFLIB constructs a table containing a set of symbols, 
+one for each of the 2^<sup>n</sup>
+ direct codes from -2^<sup>(n-1)</sup>
+ .. 2^<sup>(n-1)</sup>-1, 
+one for a stop code, and one for each of the <CITE>maxbits</CITE>
+-<CITE>n</CITE>
+ indirect codes, where <CITE>n</CITE>
+ is chosen at compress time and <CITE>maxbits</CITE>
+ is the maximum number of bits in an error.  CBFLIB then assigns to each symbol a 
+bit-code, using a shorter bit code for the more common symbols and a longer bit code 
+for the less common symbols.  The bit-code lengths are calculated using a Huffman-type 
+algorithm, and the actual bit-codes are constructed using the canonical-code algorithm 
+described by Moffat, <CITE>et al</CITE>. (<CITE>International 
+Journal of High Speed Electronics and Systems</CITE>, Vol 8, No 1 (1997) 179-231).
+<P>
+The structure of the compressed data is:
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT>Byte<TH>Value
+<TR><TD>1 .. 8<TD>Number of elements (64-bit little-endian number)<BR>
+<TR><TD>9 .. 16<TD>Minimum element<BR>
+<TR><TD>17 .. 24<TD>Maximum element<BR>
+<TR><TD>25 .. 32<TD>(reserved for future use)<BR>
+<TR><TD>33<TD>Number of bits directly coded, <I>n</I>
+<TR><TD>34<TD>Maximum number of bits encoded, <I>maxbits</I>
+<TR><TD>35 .. 35+2^<SUP>n</SUP>-1<TD>Number of bits in each direct code <BR>
+<TR><TD>35+2^<SUP>n</SUP><TD>Number of bits in the stop code<BR>
+<TR><TD>35+2^<SUP>n</SUP>+1 .. 35+2^<SUP>n</SUP>+<I>maxbits</I>-<I>n</I>
+<TD>Number of bits in each indirect code<BR>
+<TR><TD>35+2^<SUP>n</SUP>+<I>maxbits</I>-<I>n</I>+1 ..
+<TD>Coded data<BR>
+</TABLE>
+
+<H4><A NAME="#3.3.2 CCP4-style">3.3.2  CCP4-style compression</A></H4>
+<P>
+The CCP4-style compression writes the errors in blocks .  Each block begins with a 
+6-bit code.  The number of errors in the block is 2^<SUP>n</SUP>, 
+where <CITE>n</CITE>
+ is the value in bits 0 .. 2.  
+Bits 3 .. 5 encode the number of bits in each error:<BR>
+<TABLE ALIGN=CENTER>
+<TR><TH ALIGN=CENTER>Value in <BR> bits 3 .. 5</TH>
+<TH ALIGN=CENTER>Number of bits <BR> in each error<P></TH>
+</TR>
+<TR><TD ALIGN=CENTER>0</TD><TD ALIGN=CENTER>0</TD>
+<TR><TD ALIGN=CENTER>1</TD><TD ALIGN=CENTER>4</TD>
+<TR><TD ALIGN=CENTER>2</TD><TD ALIGN=CENTER>5</TD>
+<TR><TD ALIGN=CENTER>3</TD><TD ALIGN=CENTER>6</TD>
+<TR><TD ALIGN=CENTER>4</TD><TD ALIGN=CENTER>7</TD>
+<TR><TD ALIGN=CENTER>5</TD><TD ALIGN=CENTER>8</TD>
+<TR><TD ALIGN=CENTER>6</TD><TD ALIGN=CENTER>16</TD>
+<TR><TD ALIGN=CENTER>7</TD><TD ALIGN=CENTER>65</TD>
+</TABLE>
+
+<P>
+The structure of the compressed data is:<BR>
+<TABLE ALIGN=CENTER>
+<TR><TH>Byte</TH><TH>Value</TH>
+<TR><TD>1 .. 8</TD><TD>Number of elements (64-bit little-endian number)</TD></TR>
+<TR><TD>9 .. 16</TD><TD>Minumum element (currently unused)</TD></TR>
+<BR>
+<TR><TD>17 .. 24</TD><TD>Maximum element (currently unused)</TD></TR>
+<BR>
+<TR><TD>25 .. 32</TD><TD>(reserved for future use)</TD></TR>
+<BR>
+<TR><TD>33 ..</TD><TD>Coded data</TD></TR>
+</TABLE>
+
+<H4><A NAME="#4. Source files ">4.  Source files and Installation</A></H4>
+<P>
+CBFlib should be built on a disk with at least 30 megabytes of free space in a clean directory with one subdirectory, named  
+src.  Call the top level directory, say, CBFLIB. 
+You will need Paul Ellis's sample MAR345 image as sample
+data, which can be found at 
+<A HREF="http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/">
+http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/</A>.  Place that
+file in the CBFLIB directory as &quot;example.mar2300&quot;, so that it can be 
+referenced from
+within the src subdirectory as &quot;../example.mar2300&quot;.
+<P>
+<A HREF="CBFlib.shar.Z">Here</A> is a
+compressed shar of the code as it now stands. Place the compressed shar in
+the src subirectory of CBFLIB and uncompress it.  Then execute the command
+<P>
+sh CBFlib.shar
+<P>
+in the src directory.
+<P>
+You should see a series of messages:
+
+<P>
+shar: Extracting "CBFlib_NOTICES.txt" ...<BR>
+... [messages omitted]<BR>
+shar: Extracting "COPYING.PARSER" (17982 characters)<BR>
+shar: End of archive 1 (of 1).<BR>
+You have the archive.<BR>
+</PRE>
+<P>
+Then execute the command
+<P>
+make postshar
+<P>
+to move the documentation from src to ../src and to ensure that the
+bison-generated parser, cbf_stx.c will have a more recent date than its
+CIF grammar source file cbf.stx.y.  This is especially important if 
+you are running on system which has lex instead of bison.  The grammar 
+will not compile with lex.  
+ 
+<P>
+After these steps, the CBFLIB source files should in the src subdirectory 
+of the CBFLIB main directory.  The .dic, .txt and .html files will have
+been moved up one level with symbolic links in the src directory.
+
+
+ The files are:
+<P>
+<h4>Documentation</h4>
+<P>
+<TABLE>
+<TR><TD>CBFlib_NOTICES.txt<TD>Important NOTICES -- PLEASE READ<BR>
+<TR><TD>CBFlib_NOTICES.html<TD>HTML version of NOTICES<BR>
+<TR><TD>CBFlib.txt<TD>CBFlib manual as flat ASCII text<BR>
+<TR><TD>CBFlib.html<TD>HTML version of CBFlib manual<BR>
+<TR><TD>cbf_definition_rev.txt<TD>Draft CBF/ImgCIF definition (ASCII) <BR>
+<TR><TD>cbf_definition_rev.html<TD>Draft CBF/ImgCIF definition (HTML)<BR>
+<TR><TD>cbfext98.html<TD>Draft CBF/ImgCIF extensions dictionary (HTML)
+<TR><TD>cbfext98.dic<TD>Draft CBF/ImgCIF extensions dictionary (ASCII)
+<TR><TD>MANIFEST<TD>List of files in this kit
+</TABLE>
+<h4>Makefile and Library Source Files</h4>
+<P>
+These files are needed to build  CBFlib.  Before compiling, you must edit
+Makefile for your system.  In most cases, the only choice that needs to be
+made is to select gcc as the C compiler (the default) or to comment out the
+line in Makefile which defines CC as gcc.
+<P>
+<TABLE>
+<TR><TD>Makefile<TD>Input file for make
+<TR><TD>cbf.c  cbf.h  <TD> CBFLIB API functions<BR>
+<TR><TD>cbf_alloc.c  cbf_alloc.h  <TD>Memory allocation functions<BR>
+<TR><TD>cbf_ascii.c  cbf_ascii.h  <TD>Function for writing ASCII values<BR>
+<TR><TD>cbf_binary.c cbf_binary.h  <TD>Functions for binary values<BR>
+<TR><TD>cbf_canonical.c cbf_canonical.h  <TD>Canonical-code compression<BR>
+<TR><TD>cbf_compress.c cbf_compress.h  <TD>General compression routines<BR>
+<TR><TD>cbf_context.c cbf_context.h  <TD>Control of temporary files<BR>
+<TR><TD>cbf_file.c  cbf_file.h  <TD>File in/out functions<BR>
+<TR><TD>cbf_lex.c  cbf_lex.h  <TD>Lexical analyser<BR>
+<TR><TD>cbf_packed.c cbf_packed.h  <TD>CCP4-style packing compression<BR>
+<TR><TD>cbf_stx.c  cbf_stx.h  <TD>Parser<BR>
+<TR><TD>cbf_tree.c  cbf_tree.h  <TD>CBF tree-structure functions<BR>
+<TR><TD>cbf_write.c  cbf_write.h  <TD>Functions for writing files<BR>
+<TR><TD>cbf_mime.c <TD>Functions for MIME-encoded binary values<BR>
+<TR><TD>cbf_codes.c <TD>CBF variant of mpack MIME-encoding routines<BR>
+<TR><TD>cbf_decode.c <TD>CBF variant of mpack MIME decoding routines<BR>
+<TR><TD>common.h <TD>A header needed by cbf_decode<BR>
+<TR><TD>cbf_part.c cbf_part.h <TD>CBF variant of mpack file reading routines<BR>
+<TR><TD>cbf_unixos.c <TD>CBF variant of mpack UNIX service routines<BR>
+<TR><TD>md5c.c md5.h <TD>RSA message digest software from mpack<BR>
+<TR><TD>xmalloc.c  xmalloc.h <TD>memory allocation from mpack<BR>
+<TR><TD>string.c <TD>string routines from mpack<BR>
+<TR><TD>uudecode.c <TD>uudecode routines from mpack<BR>
+</TABLE>
+<h4>Test program Source Files</h4>
+<TABLE>
+<TR><TD> makecbf.c <TD>test program to make a CBF<BR>
+<TR><TD> img2cif.c <TD>test program to make an imgCIF or CBF<BR>
+<TR><TD> cif2cbf.c <TD>test program to copy a CIF or CBF to a CIF or CBF<BR>
+</TABLE>
+<P>
+There are 2 additional files used by the example programs (section 5) for reading MAR300, 
+MAR345 or ADSC CCD images:
+<TABLE>
+<TR><TD>img.c  img.h<TD>Simple image library<BR>
+</TABLE>
+<h4>Files to rebuild the Parser</h4>
+<P>
+The following files are needed if the parser is to be rebuilt from its grammar
+using bison.  This should not normally be necessary.
+<P>
+<TABLE>
+<TR><TD>cbf.stx.y  <TD>Parser grammar bison source<BR>
+<TR><TD>cbf_PARSER.simple <TD>replacement for bison.simple<BR>
+<TR><TD>COPYING.PARSER<TD>GNU GPL for cbf_PARSER.simple ONLY<BR>
+</TABLE>
+<P>
+<H4>Compiling and testing CBFlib</h4>
+<P>
+On most systems, the library and the test programs can be compiled and tested
+by executing
+<P>
+make tests
+</P>
+
+<H4><A NAME="5. Example Progr">5.  Example programs</A><BR></H4>
+<BR>
+The example program makecbf.c and img2cif.c  read an image file from a MAR300, MAR345 or ADSC CCD 
+detector and then uses CBFLIB to convert it to CBF format (makecbf) or either imgCIF or CBF format
+(img2cif).
+ makecbf writes the CBF-format 
+image to disk, reads it in again, and then compares it to the original.  img2cif just writes
+the desired file.  makecbf works only from stated files on disk, so that
+random I/O can be used.  img2cif includes code to process files from stdin and to stdout.
+<P>
+makecbf.c is a good example of how many of the CBFLIB functions can be used.
+<P>
+To compile makecbf on an alpha workstation running Digital unix or a 
+Silicon Graphics 
+workstation running irix (and on most other unix platforms as well), 
+go to the src subdirectory of the main 
+CBFLIB directory and use the Makefile, or type:
+<P>
+cc -O src/*.c -lm -s -o makecbf
+<P>
+An example MAR345 image can be found at:
+<P>
+http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/
+<P>
+To run makecbf with the example image, type:
+<P>
+makecbf example.mar2300 test.cbf
+<P>
+
+To compile either makecbf or img2cif under Linux, use the 
+Makefile included with CBFlib.
+
+<P>
+The program img2cif has the following command line interface:
+<P>
+
+<PRE>                                                                 
+ img2cif [-i input_image] [-o output_cif] \                      
+   [-c {p[acked]|c[annonical]|[n[one]}] \                        
+   [-m {h[eaders]|n[oheaders]}] [-d {d[igest]|n[odigest]}] \     
+   [-e {b[ase64]|q[uoted-printable]| \                           
+                 d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \      
+   [-w {2|3|4|6|8} ] [-b {f[orward]|b[ackwards]}] \              
+   [input_image] [output_cif]                                    
+                                                                 
+ the options are:                                                
+                                                                 
+ -i input_image (default: stdin)                                 
+   the input_image file in MAR300, MAR345 or ADSC CCD detector   
+   format is given.  If no input_image file is specified or is   
+   given as "-", an image is copied from stdin to a temporary file.
+                                                                 
+ -o output_cif (default: stdout)                                 
+   the output cif (if base64 or quoted-printable encoding is used) 
+   or cbf (if no encoding is used).  if no output_cif is specified 
+   or is given as "-", the output is written to stdout           
+                                                                 
+ -c compression_scheme (packed, canonical or none,              
+   default packed)                                               
+                                                                 
+ -m [no]headers (default headers for cifs, noheaders for cbfs)   
+   selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996) 
+   headers within binary data value text fields.                 
+                                                                 
+ -d [no]digest  (default md5 digest [R. Rivest, RFC 1321, April  
+   1992 using"RSA Data Security, Inc. MD5 Message-Digest         
+   Algorithm"] when MIME headers are selected)                   
+                                                                 
+ -e encoding (base64, quoted-printable, decimal, hexadecimal,    
+   octal or none, default: base64) specifies one of the standard 
+   MIME encodings (base64 or quoted-printable) or a non-standard 
+   decimal, hexamdecimal or octal encoding for an ascii cif      
+   or "none" for a binary cbf                                    
+                                                                 
+ -w elsize (2, 3, 4, 6 or 8, default: 4) specifies the number of 
+   bytes per word for decimal, hexadecimal or octal output,      
+   marked by a 'D', 'H' or 'O' as the first character of each    
+   line of output, and in '#' comment lines.                     
+                                                                 
+ -b direction (forward or backwards, default: backwards)         
+   specifies the direction of mapping of bytes into words        
+   for decimal, hexadecimal or octal output, marked by '>' for   
+   forward or '<' for backwards as the second character of each  
+   line of output, and in '#' comment lines.                     
+                                                                 
+</PRE>
+<P>
+The test program cif2cbf uses the same command line options as img2cif, but
+accepts either a CIF or a CBF as input instead of an image file.
+<HR>
+<HR>
+Updated 12 August 1998.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
+yaya@bernstein-plus-sons.com</A>
+</BODY>
+</HTML>
