@@ -19,11 +19,11 @@
  doc/MANIFEST                1	List of files in this kit
  Makefile                    1	Unix makefile
  README                      1	Readme file
- README.html                 1   Readme file (HTML)
+ README.html                 1  Readme file (HTML)
  doc/cbf_definition_rev.txt  1	Proposed revised DRAFT CBF/ImgCIF DEFINITION as flat text
  doc/cbf_definition_rev.html 1	Proposed revised DRAFT CBF/ImgCIF DEFINITION as HTML
- doc/cbfext98.dic            1	Revised CBF dictionary as flat text
- doc/cbfext98.html           1	Revised CBF dictionary as HTML
+ doc/cif_img_1.1.3.dic       1	Revised CBF dictionary as flat text
+ doc/cif_img_1.1.3.html      1	Revised CBF dictionary as HTML
  src/cbf.c                   1	CBFLIB low-level API functions
  include/cbf.h               1	CBFLIB low-level API functions header
  src/cbf.c                   1	CBFLIB high-level API functions
@@ -56,6 +56,8 @@
  include/cbf_read_binary.h   1	Read binary headers header
  src/cbf_read_mime.c         1	Read MIME-encoded binary sections
  include/cbf_read_mime.h     1	Read MIME-encoded binary sections header
+ src/cbf_simple.c            1	Higher-level calls to CBFlib
+ include/cbf_simple.h        1	Higher-level calls to CBFlib header
  src/cbf_string.c            1	Case-insensitive string comparisons
  include/cbf_string.h        1	Case-insensitive string comparisons header
  src/cbf_stx.c               1	Parser
@@ -72,8 +74,8 @@
  examples/img.c              1	Simple image library
  examples/img.h              1	Simple image library header
  src/md5c.c                  1	RSA message digest software from mpack
- src/global.h                1	RSA message digest software from mpack header
- src/md5.h                   1	RSA message digest software from mpack header
+ include/global.h            1	RSA message digest software from mpack header
+ include/md5.h               1	RSA message digest software from mpack header
  examples/convert_image.c    1	test program to make a CBF (uses high-level functions)
  examples/makecbf.c          1	test program to make a CBF
  examples/img2cif.c          1	test program to make an imgCIF or CBF

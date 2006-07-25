@@ -1,6 +1,6 @@
                                 CBFlib README
 
-                 Information for CBFlib 0.6, 13 January 1999
+                 Information for CBFlib 0.7.2.1, 7 May 2001
 
                                      by
                                 Paul J. Ellis
@@ -34,12 +34,12 @@ CBFLIB should be built on a disk with at least 40 megabytes of free space.
 First create the top-level directory (called, say, CBFlib).
 
 In order to work with CBFlib, you need the source code in the form of a
-compressed tar, CBFlib.tar.Z. Place this file in the otherwise empty CBFlib
-directory you just created.
+"gzipped" tar, CBFlib.tar.gz. Place this file in the otherwise empty 
+CBFlib directory you just created.
 
 Uncompress this file:
 
-     uncompress CBFlib.tar.Z
+     gunzip CBFlib.tar.gz
 
 Unpack it with tar:
 
@@ -69,4 +69,4 @@ directory and type:
 Please refer to the manual doc/CBFlib.html for more detailed information.
   ------------------------------------------------------------------------
   ------------------------------------------------------------------------
-Updated 18 January 1999. yaya@bernstein-plus-sons.com
+Updated 8 May 2001. yaya@bernstein-plus-sons.com

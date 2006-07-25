@@ -1,13 +1,14 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-#  Version 0.7 13 March 2001                                         #
+#  Version 0.7.2 22 April 2001                                       #
 #                                                                    #
 #             Paul Ellis (ellis@ssrl.slac.stanford.edu) and          #
 #          Herbert J. Bernstein (yaya@bernstein-plus-sons.com)       #
 #                                                                    #
 #                 PLEASE READ doc/CBFlib_NOTICES.txt                 #
 ######################################################################
+#
 
 
 #
@@ -108,8 +109,8 @@ HEADERS   =  $(INCLUDE)/cbf.h                  \
              $(INCLUDE)/cbf_uncompressed.h     \
              $(INCLUDE)/cbf_write.h            \
              $(INCLUDE)/cbf_write_binary.h     \
-             $(SRC)/global.h                   \
-             $(SRC)/md5.h
+             $(INCLUDE)/global.h                   \
+             $(INCLUDE)/md5.h
 
 
 #
@@ -307,6 +308,9 @@ shar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
          $(EXAMPLES)/img.c \
 	 $(EXAMPLES)/img.h \
 	 $(EXAMPLES)/makecbf.c $(EXAMPLES)/img2cif.c $(EXAMPLES)/cif2cbf.c \
+	 $(EXAMPLES)/convert_image.c \
+	 $(EXAMPLES)/template_adscquantum4_2304x2304.cbf \
+	 $(EXAMPLES)/template_mar345_2300x2300.cbf \
 	 README.html README Makefile \
 	 $(JPEGS)
 	-/bin/rm -f CBFlib.shar*
@@ -314,7 +318,10 @@ shar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
 	 $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
          $(EXAMPLES)/img.c \
 	 $(EXAMPLES)/img.h \
-	 $(EXAMPLES)/makecbf.c $(EXAMPLES)/img2cif.c $(EXAMPLES)/cif2cbf.c \
+	 $(EXAMPLES)/makecbf.c $(EXAMPLES)/img2cif.c $(EXAMPLES)/cif2cbf.c \ 
+	 $(EXAMPLES)/convert_image.c \
+	 $(EXAMPLES)/template_adscquantum4_2304x2304.cbf \
+	 $(EXAMPLES)/template_mar345_2300x2300.cbf \
 	 README.html README Makefile \
 	 $(JPEGS)
 	mv CBFlib.shar.01 CBFlib.shar
@@ -328,6 +335,9 @@ tar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
          $(EXAMPLES)/img.c \
 	 $(EXAMPLES)/img.h \
 	 $(EXAMPLES)/makecbf.c $(EXAMPLES)/img2cif.c $(EXAMPLES)/cif2cbf.c \
+	 $(EXAMPLES)/convert_image.c \
+	 $(EXAMPLES)/template_adscquantum4_2304x2304.cbf \
+	 $(EXAMPLES)/template_mar345_2300x2300.cbf \
 	 README.html README Makefile \
 	 $(JPEGS)
 	-/bin/rm -f CBFlib.tar*
@@ -336,7 +346,10 @@ tar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
          $(EXAMPLES)/img.c \
 	 $(EXAMPLES)/img.h \
 	 $(EXAMPLES)/makecbf.c $(EXAMPLES)/img2cif.c $(EXAMPLES)/cif2cbf.c \
+	 $(EXAMPLES)/convert_image.c \
+	 $(EXAMPLES)/template_adscquantum4_2304x2304.cbf \
+	 $(EXAMPLES)/template_mar345_2300x2300.cbf \
 	 README.html README Makefile \
 	 $(JPEGS)
-	compress CBFlib.tar
+	gzip --best CBFlib.tar
 

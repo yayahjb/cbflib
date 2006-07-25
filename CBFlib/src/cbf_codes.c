@@ -2,7 +2,7 @@
  * cbf_codes -- convert between encoded and unencoded binary          *
  *              calculate message digest                              *
  *                                                                    *
- * Version 0.6 13 January 1999                                        *
+ * Version 0.7.2 22 April 2001                                        *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -54,66 +54,93 @@
  **********************************************************************/
  
 /**********************************************************************
- *                          The IUCr Policy                           *
- *                                 on                                 *
- *     the Use of the Crystallographic Information File (CIF)         *
  *                                                                    *
- * The Crystallographic Information File (Hall, Allen & Brown,        *
- * 1991) is, as of January 1992, the recommended method for           *
- * submitting publications to Acta Crystallographica Section C. The   *
- * International Union of Crystallography holds the Copyright on      *
- * the CIF, and has applied for Patents on the STAR File syntax       *
- * which is the basis for the CIF format.                             *
+ *                           The IUCr Policy                          *
+ *      for the Protection and the Promotion of the STAR File and     *
+ *     CIF Standards for Exchanging and Archiving Electronic Data     *
  *                                                                    *
- * It is a principal objective of the IUCr to promote the use of      *
- * CIF for the exchange and storage of scientific data. The IUCr's    *
- * sponsorship of the CIF development was motivated by its            *
- * responsibility to its scientific journals, which set the           *
- * standards in crystallographic publishing. The IUCr intends that    *
- * CIFs will be used increasingly for electronic submission of        *
- * manuscripts to these journals in future. The IUCr recognises       *
- * that, if the CIF and the STAR File are to be adopted as a means    *
- * for universal data exchange, the syntax of these files must be     *
- * strictly and uniformly adhered to. Even small deviations from      *
- * the syntax would ultimately cause the demise of the universal      *
- * file concept. Through its Copyrights and Patents the IUCr has      *
- * taken the steps needed to ensure strict conformance with this      *
- * syntax.                                                            *
+ * Overview                                                           *
  *                                                                    *
- * The IUCr policy on the use of the CIF and STAR File processes is   *
- * as follows:                                                        *
- * _________________________________________________________________  *
+ * The Crystallographic Information File (CIF)[1] is a standard for   *
+ * information interchange promulgated by the International Union of  *
+ * Crystallography (IUCr). CIF (Hall, Allen & Brown, 1991) is the     *
+ * recommended method for submitting publications to Acta             *
+ * Crystallographica Section C and reports of crystal structure       *
+ * determinations to other sections of Acta Crystallographica         *
+ * and many other journals. The syntax of a CIF is a subset of the    *
+ * more general STAR File[2] format. The CIF and STAR File approaches *
+ * are used increasingly in the structural sciences for data exchange *
+ * and archiving, and are having a significant influence on these     *
+ * activities in other fields.                                        *
  *                                                                    *
- *  * 1 CIFs and STAR Files may be generated, stored or transmitted,  *
- *    without permission or charge, provided their purpose is not     *
- *    specifically for profit or commercial gain, and provided that   *
- *    the published syntax is strictly adhered to.                    *
- *  * 2 Computer software may be developed for use with CIFs or STAR  *
- *    files, without permission or charge, provided it is distributed *
- *    in the public domain. This condition also applies to software   *
- *    for which a charge is made, provided that its primary function  *
- *    is for use with files that satisfy condition 1 and that it is   *
- *    distributed as a minor component of a larger package of         *
- *    software.                                                       *
- *  * 3 Permission will be granted for the use of CIFs and STAR Files *
- *    for specific commercial purposes (such as databases or network  *
- *    exchange processes), and for the distribution of commercial     *
- *    CIF/STAR software, on written application to the IUCr Executive *
- *    Secretary, 2 Abbey Square, Chester CH1 2HU, England. The        *
- *    nature, terms and duration of the licences granted will be      *
- *    determined by the IUCr Executive and Finance Committees.        *
+ * Statement of intent                                                *
  *                                                                    *
- * _________________________________________________________________  *
+ * The IUCr's interest in the STAR File is as a general data          *
+ * interchange standard for science, and its interest in the CIF,     *
+ * a conformant derivative of the STAR File, is as a concise data     *
+ * exchange and archival standard for crystallography and structural  *
+ * science.                                                           *
  *                                                                    *
- * In summary, the IUCr wishes to promote the use of the STAR File    *
- * concepts as a standard universal data file. It will insist on      *
- * strict compliance with the published syntax for all                *
- * applications. To assist with this compliance, the IUCr provides    *
- * public domain software for checking the logical integrity of a     *
- * CIF, and for validating the data name definitions contained        *
- * within a CIF. Detailed information on this software, and the       *
- * associated dictionaries, may be obtained from the IUCr Office at   *
- * 5 Abbey Square, Chester CH1 2HU, England.                          *
+ * Protection of the standards                                        *
+ *                                                                    *
+ * To protect the STAR File and the CIF as standards for              * 
+ * interchanging and archiving electronic data, the IUCr, on behalf   *
+ * of the scientific community,                                       *
+ *                                                                    *
+ * * holds the copyrights on the standards themselves,                *
+ *                                                                    *
+ * * owns the associated trademarks and service marks, and            *
+ *                                                                    *
+ * * holds a patent on the STAR File.                                 *
+ *                                                                    *
+ * These intellectual property rights relate solely to the            *
+ * interchange formats, not to the data contained therein, nor to     *
+ * the software used in the generation, access or manipulation of     *
+ * the data.                                                          *
+ *                                                                    *
+ * Promotion of the standards                                         *
+ *                                                                    *
+ * The sole requirement that the IUCr, in its protective role,        *
+ * imposes on software purporting to process STAR File or CIF data    *
+ * is that the following conditions be met prior to sale or           *
+ * distribution.                                                      *
+ *                                                                    *
+ * * Software claiming to read files written to either the STAR       *
+ * File or the CIF standard must be able to extract the pertinent     *
+ * data from a file conformant to the STAR File syntax, or the CIF    *
+ * syntax, respectively.                                              *
+ *                                                                    *
+ * * Software claiming to write files in either the STAR File, or     *
+ * the CIF, standard must produce files that are conformant to the    *
+ * STAR File syntax, or the CIF syntax, respectively.                 *
+ *                                                                    *
+ * * Software claiming to read definitions from a specific data       *
+ * dictionary approved by the IUCr must be able to extract any        *
+ * pertinent definition which is conformant to the dictionary         *
+ * definition language (DDL)[3] associated with that dictionary.      *
+ *                                                                    *
+ * The IUCr, through its Committee on CIF Standards, will assist      *
+ * any developer to verify that software meets these conformance      *
+ * conditions.                                                        *
+ *                                                                    *
+ * Glossary of terms                                                  *
+ *                                                                    *
+ * [1] CIF:  is a data file conformant to the file syntax defined     *
+ * at http://www.iucr.org/iucr-top/cif/spec/index.html                *
+ *                                                                    *
+ * [2] STAR File:  is a data file conformant to the file syntax       *
+ * defined at http://www.iucr.org/iucr-top/cif/spec/star/index.html   *
+ *                                                                    *
+ * [3] DDL:  is a language used in a data dictionary to define data   *
+ * items in terms of "attributes". Dictionaries currently approved    *
+ * by the IUCr, and the DDL versions used to construct these          *
+ * dictionaries, are listed at                                        *
+ * http://www.iucr.org/iucr-top/cif/spec/ddl/index.html               *
+ *                                                                    *
+ * Last modified: 30 September 2000                                   *
+ *                                                                    *
+ * IUCr Policy Copyright (C) 2000 International Union of              *
+ * Crystallography                                                    *
  **********************************************************************/
 
 /**********************************************************************
