@@ -1,0 +1,74 @@
+                                   CBFlib
+
+                                   README
+
+                  Information for CBFlib, 15 November 1998
+
+                                     by
+                                Paul J. Ellis
+                  Stanford Synchrotron Radiation Laboratory
+                        ellis@ssrl.slac.stanford.edu
+
+                                     and
+                            Herbert J. Bernstein
+                              Bernstein + Sons
+                        yaya@bernstein-plus-sons.com
+
+  ------------------------------------------------------------------------
+
+                Before using this software, please read the
+                         file doc/CBFlib_NOTICES.txt
+       for important disclaimers and the IUCr Policy on the Use of the
+  Crystallographic Information File (CIF) and other important information.
+
+  ------------------------------------------------------------------------
+
+CBFLIB is a library of ANSI-C functions providing a simple mechanism for
+accessing Crystallographic Binary Files (CBF files) and Image-supporting CIF
+(imgCIF) files. The CBFLIB API is loosely based on the CIFPARSE API for
+mmCIF files. Like CIFPARSE, CBFLIB does not perform any semantic integrity
+checks and simply provides functions to create, read, modify and write CBF
+binary data files and imgCIF ASCII data files.
+
+Installation
+
+CBFLIB should be built on a disk with at least 40 megabytes of free space.
+First create the top-level directory (called, say, CBFlib).
+
+In order to work with CBFlib, you need the source code, either in the form
+of a compressed tar, CBFlib.tar.Z, or a compressed shell archive,
+CBFlib.shar.Z. Place one of these files in the otherwise emptyCBFlib you
+just created. Uncompress this file. Unpack it with tar:
+
+     tar xvf CBFlib.tar
+
+if you selected the tar, or with the sh:
+
+     sh CBFlib.shar
+
+To run the test programs, you will also need Paul Ellis's sample MAR345
+image, example.mar2300, as sample data. This file can also be found at
+http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/. Place that file
+in the top level CBFlib directory. to put the MAR345 image "example.mar2300"
+in the top-level directory.
+
+After unpacking the archive, the top-level directory should contain a
+makefile "Makefile" and the subdirectories
+
+          src/         CBFLIB source files
+          include/     CBFLIB header files
+          examples/    Example program source files
+          doc/         Documentation
+          lib/         Compiled CBFLIB library
+          bin/         Executable example programs
+          html_images/ JPEG images used in rendering the HTML files
+
+For instructions on compiling and testing the library, go to the top-level
+directory and type:
+
+     make
+
+Please refer to the manual doc/CBFlib.html for more detailed information.
+  ------------------------------------------------------------------------
+  ------------------------------------------------------------------------
+Updated 15 November 1998. yaya@bernstein-plus-sons.com

@@ -1,0 +1,121 @@
+<!doctype html public "-//IETF//DTD HTML 2.0//EN">
+<HTML>
+
+
+
+<HEAD>
+<TITLE>
+CBFlib
+</TITLE> 
+</HEAD> 
+<BODY BACKGROUND="html_graphics/cbflibbackground.jpg">
+
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="html_graphics/iucrhome.jpg"></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="html_graphics/cifhome.jpg"></a>
+<A HREF="doc/cbf_definition_rev.html"><IMG SRC="html_graphics/CBFbutton.jpg" 
+ALT="[CBF/imgCIF]"></A>
+<A HREF="doc/CBFlib.html"><IMG SRC="html_graphics/cbflibbutton.jpg" 
+ALT="[CBFlib]"></A> 
+<hr>
+<CENTER>
+<IMG  SRC="html_graphics/cbflibbig.jpg" ALT="CBFlib">
+</CENTER>
+<font color="#0808A0">
+<H2 ALIGN=CENTER>README</H2>
+<H3 ALIGN=CENTER>
+Information for CBFlib, 15 November 1998<BR>
+</H3>
+</font><font color="#000000">
+<CENTER>
+by<BR>
+Paul J. Ellis<BR>
+Stanford Synchrotron Radiation Laboratory<BR>
+<A HREF="mailto:ellis@ssrl.slac.stanford.edu">ellis@ssrl.slac.stanford.edu</A>
+<P>
+and<BR>
+Herbert J. Bernstein<BR>
+Bernstein + Sons<BR>
+<A HREF="mailto:yaya@bernstein-plus-sons.com">yaya@bernstein-plus-sons.com</A>
+<P>
+</CENTER>
+<HR>
+<H3 ALIGN=CENTER>
+Before using this software, please read the <BR>
+<A HREF = "doc/CBFlib_NOTICES.html"> <IMG SRC="html_graphics/noticeButton.jpg" ALT="NOTICE"></A><BR>
+for important disclaimers and the IUCr Policy
+ on the Use of the Crystallographic Information File (CIF) and other important
+information.
+</H3> 
+<P>
+<HR>
+<P>
+CBFLIB is a library of ANSI-C functions providing a simple mechanism for 
+accessing Crystallographic Binary Files (CBF files) and Image-supporting 
+CIF (imgCIF) files.  The CBFLIB API is loosely based on the CIFPARSE API
+for mmCIF files.  Like CIFPARSE, CBFLIB does not perform any semantic 
+integrity checks and simply provides functions to create, read, modify 
+and write CBF binary data files and imgCIF ASCII data files.
+<P>
+<H3>Installation</H3>
+<P>
+CBFLIB should be built on a disk with at least 40 megabytes of free 
+space.  First create the top-level directory (called, say, CBFlib).
+<P>
+In order to work with CBFlib, you need the source code, either in the form
+of a compressed tar, 
+<A HREF="../CBFlib.tar.Z">CBFlib.tar.Z</A>, or
+a compressed shell archive,
+<A HREF="../CBFlib.shar.Z">CBFlib.shar.Z</A>.  Place one of these
+files in the otherwise <b>empty</b>CBFlib you just created.
+Uncompress this file. 
+Unpack it
+with tar:
+<P>
+<PRE>
+     tar xvf CBFlib.tar 
+</PRE>
+<P>
+if you selected the tar, or with the sh:
+<P>
+<PRE>
+     sh CBFlib.shar
+</PRE>
+<P>
+To run the test programs, you will also need Paul Ellis's sample MAR345 image,
+<A HREF="example.mar2300">example.mar2300</A>, as sample
+data.  This file can also be found at 
+<A HREF="http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/">
+http://biosg1.slac.stanford.edu/biosg1-users/ellis/Public/</A>.  Place that
+file in the top level CBFlib directory.   to put the MAR345 image 
+"example.mar2300" in the top-level directory.
+<P>
+After unpacking the archive, the top-level directory should contain a 
+makefile "Makefile" and the subdirectories
+<P>
+<TABLE ALIGN=CENTER>
+<TR><TD>src/<TD>CBFLIB source files
+<TR><TD>include/<TD> CBFLIB header files
+<TR><TD>examples/<TD>Example program source files
+<TR><TD>doc/<TD>Documentation
+<TR><TD>lib/<TD>Compiled CBFLIB library
+<TR><TD>bin/<TD>Executable example programs
+<TR><TD>html_images/<TD>JPEG images used in rendering the HTML files</TABLE>
+<P>
+  
+For instructions on compiling and testing the library, go to the 
+top-level directory and type:
+<P>
+<PRE>
+     make
+</PRE>
+<P>
+Please refer to the manual <a HREF="doc/CBFlib.html">doc/CBFlib.html</a>
+for more detailed information.<HR>
+<HR>
+Updated 15 November 1998.  <A HREF="mailto:yaya@bernstein-plus-sons.com">
+yaya@bernstein-plus-sons.com</A>
+</font>
+</BODY>
+</HTML>
