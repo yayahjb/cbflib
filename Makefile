@@ -1,7 +1,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.6 13 January 1999                                       #
+#  Version 0.7 13 March 2001                                         #
 #                                                                    #
 #             Paul Ellis (ellis@ssrl.slac.stanford.edu) and          #
 #          Herbert J. Bernstein (yaya@bernstein-plus-sons.com)       #
@@ -16,7 +16,7 @@
 CC	= cc
 #CC	= gcc
 #CFLAGS	= -O
-CFLAGS	= -g -O2
+CFLAGS	= -g3 -O2
 
 #
 # Program to use to pack shars
@@ -74,6 +74,7 @@ SOURCE   =  $(SRC)/cbf.c               \
             $(SRC)/cbf_predictor.c     \
             $(SRC)/cbf_read_binary.c   \
             $(SRC)/cbf_read_mime.c     \
+            $(SRC)/cbf_simple.c        \
             $(SRC)/cbf_string.c        \
             $(SRC)/cbf_stx.c           \
             $(SRC)/cbf_tree.c          \
@@ -100,6 +101,7 @@ HEADERS   =  $(INCLUDE)/cbf.h                  \
              $(INCLUDE)/cbf_predictor.h        \
              $(INCLUDE)/cbf_read_binary.h      \
              $(INCLUDE)/cbf_read_mime.h        \
+             $(INCLUDE)/cbf_simple.h           \
              $(INCLUDE)/cbf_string.h           \
              $(INCLUDE)/cbf_stx.h              \
              $(INCLUDE)/cbf_tree.h             \
@@ -113,21 +115,13 @@ HEADERS   =  $(INCLUDE)/cbf.h                  \
 #
 # Documentation files
 #
-DOCUMENTS = $(DOC)/CBFlib.html                  \
-            $(DOC)/CBFlib.html                  \
-            $(DOC)/CBFlib.pdf                   \
-            $(DOC)/CBFlib.ps                    \
+DOCUMENTS = $(DOC)/CBFlib.pdf                   \
             $(DOC)/CBFlib.rtf                   \
-            $(DOC)/CBFlib.txt                   \
             $(DOC)/CBFlib_NOTICES.html          \
             $(DOC)/CBFlib_NOTICES.txt           \
             $(DOC)/ChangeLog                    \
             $(DOC)/ChangeLog.html               \
             $(DOC)/MANIFEST                     \
-            $(DOC)/cbf_definition_rev.html      \
-            $(DOC)/cbf_definition_rev.txt       \
-            $(DOC)/cbfext98.dic                 \
-            $(DOC)/cbfext98.html                \
             $(DOC)/example.html
 
 #
@@ -185,6 +179,7 @@ default:
 #
 all:	$(LIB) $(BIN)            \
 	$(LIB)/libcbf.a          \
+        $(BIN)/convert_image     \
         $(BIN)/makecbf           \
         $(BIN)/img2cif           \
         $(BIN)/cif2cbf           \
@@ -214,6 +209,14 @@ $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP)
 	-rm -f *.o
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(AR) cr $@ *.o
+
+#
+# convert_image example program
+#
+$(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+              $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c -L$(LIB) \
+	      -lcbf -lm -o $@
 
 #
 # makecbf example program

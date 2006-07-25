@@ -28,22 +28,24 @@ extern "C" {
 
   /* Error codes */
 
-#define CBF_FORMAT           0x00000001  /*     1 */
-#define CBF_ALLOC            0x00000002  /*     2 */
-#define CBF_ARGUMENT         0x00000004  /*     4 */
-#define CBF_ASCII            0x00000008  /*     8 */
-#define CBF_BINARY           0x00000010  /*    16 */
-#define CBF_BITCOUNT         0x00000020  /*    32 */
-#define CBF_ENDOFDATA        0x00000040  /*    64 */
-#define CBF_FILECLOSE        0x00000080  /*   128 */
-#define CBF_FILEOPEN         0x00000100  /*   256 */
-#define CBF_FILEREAD         0x00000200  /*   512 */
-#define CBF_FILESEEK         0x00000400  /*  1024 */
-#define CBF_FILETELL         0x00000800  /*  2048 */
-#define CBF_FILEWRITE        0x00001000  /*  4096 */
-#define CBF_IDENTICAL        0x00002000  /*  8192 */
-#define CBF_NOTFOUND         0x00004000  /* 16384 */
-#define CBF_OVERFLOW         0x00008000  /* 32768 */
+#define CBF_FORMAT           0x00000001  /*      1 */
+#define CBF_ALLOC            0x00000002  /*      2 */
+#define CBF_ARGUMENT         0x00000004  /*      4 */
+#define CBF_ASCII            0x00000008  /*      8 */
+#define CBF_BINARY           0x00000010  /*     16 */
+#define CBF_BITCOUNT         0x00000020  /*     32 */
+#define CBF_ENDOFDATA        0x00000040  /*     64 */
+#define CBF_FILECLOSE        0x00000080  /*    128 */
+#define CBF_FILEOPEN         0x00000100  /*    256 */
+#define CBF_FILEREAD         0x00000200  /*    512 */
+#define CBF_FILESEEK         0x00000400  /*   1024 */
+#define CBF_FILETELL         0x00000800  /*   2048 */
+#define CBF_FILEWRITE        0x00001000  /*   4096 */
+#define CBF_IDENTICAL        0x00002000  /*   8192 */
+#define CBF_NOTFOUND         0x00004000  /*  16384 */
+#define CBF_OVERFLOW         0x00008000  /*  32768 */
+#define CBF_UNDEFINED        0x00010000  /*  65536 */
+#define CBF_NOTIMPLEMENTED   0x00020000  /* 131072 */
 
 
   /* Token Type Strings */
