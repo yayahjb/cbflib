@@ -1,5 +1,5 @@
 
-  /* image object v. 1.0 */
+  /* image object v. 1.1 */
 
 #ifndef IMG_H
 #define IMG_H
@@ -10,12 +10,13 @@ extern "C" {
 
 #endif
 
-#define IMG_ARGUMENT    0x0001
-#define IMG_ALLOC       0x0002
-#define IMG_OPEN        0x0004
-#define IMG_READ        0x0008
-#define IMG_FORMAT      0x0010
-#define IMG_FIELD       0x0020
+#define img_BAD_ARGUMENT    0x0001
+#define img_BAD_ALLOC       0x0002
+#define img_BAD_OPEN        0x0004
+#define img_BAD_READ        0x0008
+#define img_BAD_FORMAT      0x0010
+#define img_BAD_FIELD       0x0020
+#define img_BAD_WRITE       0x0040
 
   /* Tag */
 
@@ -41,6 +42,7 @@ img_object;
 
 typedef img_object *img_handle;
 
+
   /* Functions */
 
 #define img_pixel(img,x,y) (((img)->image) [((img)->size) [1] * (int) (x) + (int) (y)])
@@ -60,7 +62,6 @@ int         img_get_pixel      (img_handle img, int x, int y);
 int         img_set_pixel      (img_handle img, int x, int y, int data);
 int         img_set_dimensions (img_handle img, int columns, int rows);
 int         img_get_dimension  (img_handle img, int dimension);
-
 
 #ifdef __cplusplus
 

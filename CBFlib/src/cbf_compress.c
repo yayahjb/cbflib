@@ -255,7 +255,7 @@ int cbf_decompress_parameters (int          *eltype,
                                unsigned int  compression,
                                cbf_file     *file)
 {
-  unsigned int compression_file, nelem_file;
+  unsigned int nelem_file;
 
   int errorcode, minelement_file, maxelement_file, 
                    elsigned_file, elunsigned_file;

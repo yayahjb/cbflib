@@ -2,7 +2,6 @@
  * cbf -- cbflib API functions                                        *
  *                                                                    *
  * Version 0.6 13 January 1999                                        *
- * Patched 0.6.1, 23 February 2001 as per H. Powell                   *
  *                                                                    *
  *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -139,7 +138,8 @@ int cbf_make_handle (cbf_handle *handle)
 {
   int errorcode;
   
-  cbf_failnez (cbf_alloc ((void **) handle, NULL, sizeof (cbf_handle_struct), 1))
+  cbf_failnez (cbf_alloc ((void **) handle, NULL, 
+	           sizeof (cbf_handle_struct), 1))
 
   errorcode = cbf_make_node (&(*handle)->node, CBF_ROOT, NULL, NULL);
 
@@ -283,8 +283,6 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
   cbf_node *node;
 
   int errorcode;
-
-  int little;
 
 
     /* CIF or CBF? */

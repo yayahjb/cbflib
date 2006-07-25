@@ -285,7 +285,7 @@ int cbf_set_bintext (cbf_node *column, unsigned int row,
                    sign,
                    compression);
     
-  new_text = cbf_copy_string (NULL, text, type);
+  new_text = cbf_copy_string (NULL, text, (char) type);
 
   if (!new_text)
     

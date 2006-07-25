@@ -123,6 +123,11 @@
 #include <ctype.h>
 #include <time.h>
 
+int local_exit(int status) {
+  exit(status);
+  return status;    /* to avoid warning messages */
+}
+
 #undef cbf_failnez
 #define cbf_failnez(x) \
  {int err; \
@@ -628,9 +633,9 @@ int main (int argc, char *argv [])
     exit (1);
   }
 
-  for (column = 0; column < img_columns (cbf_img); column++)
+  for (column = 0; column < (unsigned int) img_columns (cbf_img); column++)
 
-    for (row = 0; row < img_rows (cbf_img); row++)
+    for (row = 0; row < (unsigned int) img_rows (cbf_img); row++)
 
       if (img_pixel (cbf_img, column, row) != img_pixel (img, column, row))
       {
@@ -652,9 +657,4 @@ int main (int argc, char *argv [])
     /* Success */
 
   return 0;
-}
-
-int local_exit(int status) {
-  exit(status);
-  return status;    /* to avoid warning messages */
 }

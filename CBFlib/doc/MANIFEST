@@ -24,8 +24,10 @@
  doc/cbf_definition_rev.html 1	Proposed revised DRAFT CBF/ImgCIF DEFINITION as HTML
  doc/cbfext98.dic            1	Revised CBF dictionary as flat text
  doc/cbfext98.html           1	Revised CBF dictionary as HTML
- src/cbf.c                   1	CBFLIB API functions
- include/cbf.h               1	CBFLIB API functions header
+ src/cbf.c                   1	CBFLIB low-level API functions
+ include/cbf.h               1	CBFLIB low-level API functions header
+ src/cbf.c                   1	CBFLIB high-level API functions
+ include/cbf.h               1	CBFLIB high-level API functions header
  src/cbf_alloc.c             1	Memory allocation functions
  include/cbf_alloc.h         1	Memory allocation functions header
  src/cbf_ascii.c             1	Function for writing ASCII values
@@ -72,9 +74,12 @@
  src/md5c.c                  1	RSA message digest software from mpack
  src/global.h                1	RSA message digest software from mpack header
  src/md5.h                   1	RSA message digest software from mpack header
+ examples/convert_image.c    1	test program to make a CBF (uses high-level functions)
  examples/makecbf.c          1	test program to make a CBF
  examples/img2cif.c          1	test program to make an imgCIF or CBF
  examples/cif2cbf.c          1	test program to copy a CIF/CBF to a CIF/CBF
+ examples/template_adscquantum4_2304x2304.cbf 1 sample Q4 template used by convert_image
+ examples/template_mar345_2300x2300.cbf       1 sample MAR345 template used by convert_image
  doc/example.html            1  documentation of examples in HTML
  html_graphics/CBFbackground.jpg    1	CBF/imgCIF wallpaper
  html_graphics/CBFbig.jpg           1	CBF/imgCIF logo

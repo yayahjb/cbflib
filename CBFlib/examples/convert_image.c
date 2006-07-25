@@ -1,14 +1,13 @@
 /**********************************************************************
- * cbf_uncompressed -- uncompressed binary sections                   *
+ * convert_image -- convert an image file to a cbf file               *
  *                                                                    *
- * Version 0.6 13 January 1999                                        *
+ * Version 0.7.1 30 March 2001                                        *
  *                                                                    *
- *            Paul Ellis (ellis@ssrl.slac.stanford.edu) and           *
- *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
+ *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
  **********************************************************************/
   
 /**********************************************************************
- *                               NOTICE                               *
+ *                                 NOTICE                             *
  * Creative endeavors depend on the lively exchange of ideas. There   *
  * are laws and customs which establish rights and responsibilities   *
  * for authors and the users of what authors create.  This notice     *
@@ -53,8 +52,8 @@
  **********************************************************************/
  
 /**********************************************************************
- *                          The IUCr Policy                           *
- *                                 on                                 *
+ *                             The IUCr Policy                        *
+ *                                    on                              *
  *     the Use of the Crystallographic Information File (CIF)         *
  *                                                                    *
  * The Crystallographic Information File (Hall, Allen & Brown,        *
@@ -115,329 +114,402 @@
  * 5 Abbey Square, Chester CH1 2HU, England.                          *
  **********************************************************************/
 
-#ifdef __cplusplus
-
-extern "C" {
-
-#endif
+#include "cbf.h"
+#include "cbf_simple.h"
+#include "img.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <limits.h>
-
-#include "cbf.h"
-#include "cbf_alloc.h"
-#include "cbf_compress.h"
-#include "cbf_file.h"
-#include "cbf_uncompressed.h"
-
-#define CBF_SHIFT63 (sizeof (int) * CHAR_BIT > 64 ? 63 : 0)
+#include <ctype.h>
+#include <math.h>
 
 
-  /* Copy an array without compression */
-  
-int cbf_compress_none (void         *source, 
-                       size_t        elsize, 
-                       int           elsign, 
-                       size_t        nelem, 
-                       unsigned int  compression, 
-                       cbf_file     *file, 
-                       size_t       *compressedsize,
-                       int          *storedbits)
+int main (int argc, char *argv [])
 {
-  unsigned int count, element, unsign, sign, limit, bits;
+  FILE *in, *out;
 
-  unsigned char *unsigned_char_data;
+  img_handle img;
+
+  cbf_handle cbf;
+
+  char detector_type [64], template_name [256], *c;
+
+  const char *detector_name, *axis;
+
+  double wavelength, distance, osc_start, osc_range, time;
+
+  const char *date;
+
+  static const char *monthname [] = 
+  
+        { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+
+    /* Usage */ 
+
+  if (argc < 3)
+  {
+    fprintf (stderr, "\n Usage: %s imagefile cbffile\n", argv [0]);
+
+    exit (2);
+  }
+
+
+    /* Read the image */
+
+  img = img_make_handle ();
+
+  cbf_failnez (img_read (img, argv [1]))
+
+
+    /* Identify the detector */
+
+  detector_name = img_get_field (img, "DETECTOR");
+
+  if (!detector_name)
+
+    exit (3);
+
+  for (c = detector_type; *detector_name; detector_name++)
+
+    if (!isspace (*detector_name))
+
+      *c++ = tolower (*detector_name);
+
+  *c = '\0';
+
+
+    /* Construct the template name */
+
+  sprintf (template_name, "template_%s_%dx%d.cbf", detector_type,
+                             img_columns (img),
+                             img_rows (img));
+
+
+    /* Read and modify the template */
+
+  cbf_failnez (cbf_make_handle (&cbf))
+
+  in = fopen (template_name, "rb");
+
+  if (!in)
+
+    exit (4);
+
+  cbf_failnez (cbf_read_template (cbf, in))
+
+    
+    /* Wavelength */
+
+  wavelength = img_get_number (img, "WAVELENGTH");
+
+  if (wavelength)
+
+    cbf_failnez (cbf_set_wavelength (cbf, wavelength))
   
 
-    /* Is the element size valid? */
-    
-  if (elsize != sizeof (int) &&
-      elsize != sizeof (short) &&
-      elsize != sizeof (char))
+    /* Distance */
 
-    return CBF_ARGUMENT;
-
-
-    /* Initialise the pointer */
-
-  unsigned_char_data = (unsigned char *) source;
-
-
-    /* Maximum limit (unsigned) is 64 bits */
-
-  if (elsize * CHAR_BIT > 64)
-  {
-    sign = 1 << CBF_SHIFT63;
-
-    limit = ~-(sign << 1);
-    
-    bits = 64;
-  }
-  else
-  {
-    sign = 1 << (elsize * CHAR_BIT - 1);
-
-    limit = ~0;
-
-    bits = elsize * CHAR_BIT;
-  }
-
-  if (storedbits)
-    
-    *storedbits = bits;
-
-
-    /* Offset to make the value unsigned */
-
-  if (elsign)
-
-    unsign = sign;
-
-  else
-
-    unsign = 0;
-
-
-    /* Initialise the pointer */
-    
-  unsigned_char_data = (unsigned char *) source;
-
-
-    /* Write the elements */
-    
-  for (count = 0; count < nelem; count++)
-  {
-      /* Get the next element */
-      
-    if (elsize == sizeof (int))
-    
-      element = *((unsigned int *) unsigned_char_data);
-      
-    else
-    
-      if (elsize == sizeof (short))
-      
-        element = *((unsigned short *) unsigned_char_data);
-        
-      else
-      
-        element = *unsigned_char_data;
-        
-    unsigned_char_data += elsize;
-
-
-      /* Make the element unsigned */
-
-    element += unsign;
-
-
-      /* Limit the value to 64 bits */
-
-    if (element > limit)
-
-      if (elsign && (int) (element - unsign) < 0)
-
-        element = 0;
-
-      else
-
-        element = limit;
-        
-
-      /* Write the element to the file */
-
-    cbf_failnez (cbf_put_integer (file, element - unsign, 0, bits))
-  }
-
-
-    /* Return the number of characters written */
-    
-  if (compressedsize)
+  distance = img_get_number (img, "DISTANCE");
   
-    *compressedsize = (nelem * bits + 7) / 8;
+  cbf_failnez (cbf_set_axis_setting (cbf, 0, "DETECTOR_Z", distance, 0))
+
+
+    /* Oscillation start and range */
+
+  axis = img_get_field (img, "OSCILLATION AXIS");
+
+  if (!axis)
+
+    axis = "PHI";
+
+  osc_start = img_get_number (img, axis);
+
+  osc_range = img_get_number (img, "OSCILLATION RANGE");
+
+  cbf_failnez (cbf_set_axis_setting (cbf, 0, "GONIOMETER_PHI", 
+                                         osc_start, osc_range))
+
+
+    /* Exposure time */
+
+  time = img_get_number (img, "EXPOSURE TIME");
+
+  if (time)
+
+    cbf_failnez (cbf_set_integration_time (cbf, 0, time))
+
+
+    /* Date stamp */
+
+  date = img_get_field (img, "DATE");
+
+  if (date)
+  {
+    char monthstring [16]; 
+
+    int month, day, hour, minute, second, year;
+
+    year = 0;
+
+    sscanf (date, "%*s %s %d %d:%d:%d %d", monthstring,
+                   &day, &hour, &minute, &second, &year);
+
+    if (year != 0)
+    {
+      for (month = 0; month < 12; month++)
+
+        if (strcmp (monthname [month], monthstring) == 0)
+
+          break;
+
+      month++;
+
+      if (month <= 12)
+
+        cbf_failnez (cbf_set_datestamp (cbf, 0, year, month, day,
+                                        hour, minute, second, 
+                                        CBF_NOTIMEZONE, 0))
+    }
+  }
+
+  
+    /* diffrn.id */
+
+  cbf_failnez (cbf_set_diffrn_id (cbf, "DS1"))
+
+
+    /* Image */
+
+  cbf_failnez (cbf_set_image (cbf, 0, 0, CBF_PACKED,
+                              &img_pixel (img, 0, 0), sizeof (int), 1,
+                               img_columns (img), img_rows (img)))
+
+
+    /* Write the new file */
+
+  out = fopen (argv [2], "w+b");
+
+  if (!out)
+  {
+    fprintf (stderr, " Couldn't open the CBF file %s\n", argv [2]);
+
+    exit (1);
+  }
+
+  cbf_failnez (cbf_write_file (cbf, out, 1, CBF, 
+                               MSG_DIGEST | MIME_HEADERS, 0))
+
+/*****************************************************************************/
+
+  {
+	  const char *id;
+
+	  double d [4];
+
+	  int i [4];
+
+	  cbf_goniometer goniometer;
+
+	  cbf_detector detector;
+
+
+  /* Change the diffrn.id entry in all the categories */
+
+	cbf_set_diffrn_id (cbf, "TEST");
+
+
+  /* Get the diffrn.id entry */
+
+	cbf_get_diffrn_id (cbf, &id);
+
+    
+  /* Change the diffrn.crystal_id entry */
+
+	cbf_set_crystal_id (cbf, "CTEST");
+
+
+  /* Get the diffrn.crystal_id entry */
+
+	cbf_get_crystal_id (cbf, &id);
+
+    
+  /* Set the wavelength */
+
+	cbf_set_wavelength (cbf, 2.14);
+
+
+  /* Get the wavelength */
+
+	cbf_get_wavelength (cbf, &wavelength);
+
+
+  /* Set the polarization */
+
+	cbf_set_polarization (cbf, 0.5, 0.75);
+
+
+  /* Get the polarization */
+
+	cbf_get_polarization (cbf, &d [0], &d [1]);
+
+
+  /* Set the divergence */
+
+	cbf_set_divergence (cbf, 0.3, 0.4, 0.5);
+
+
+  /* Get the divergence */
+
+	cbf_get_divergence (cbf, &d [0], &d [1], &d [2]);
+
+
+  /* Get the number of elements */
+
+	cbf_count_elements (cbf, &i [0]);
+
+
+  /* Get the element id */
+
+	cbf_get_element_id (cbf, 0, &id);
+
+                                           
+  /* Set the gain of a detector element */
+
+	cbf_set_gain (cbf, 0, 0.24, 0.04);
+
+
+  /* Get the gain of a detector element */
+
+	cbf_get_gain (cbf, 0, &d [0], &d [1]);
+
+
+  /* Set the overload value of a detector element */
+
+	cbf_set_overload (cbf, 0, 100000);
+
+
+  /* Get the overload value of a detector element */
+
+	cbf_get_overload (cbf, 0, &d [0]);
+
+
+  /* Set the integration time */
+
+	cbf_set_integration_time (cbf, 0, 10.1);
+
+                                                 
+  /* Get the integration time */
+
+	cbf_get_integration_time (cbf, 0, &d [0]);
+
+
+  /* Set the collection date and time (1) as seconds since January 1 1970 */
+
+	cbf_set_timestamp (cbf, 0, 1000.0, CBF_NOTIMEZONE, 0.1);
+
+
+  /* Get the collection date and time (1) as seconds since January 1 1970 */
+
+	cbf_get_timestamp (cbf, 0, &d [0], &i [0]);
+
+
+  /* Get the image size */
+
+	cbf_get_image_size (cbf, 0, 0, &i [0], &i [1]);
+
+
+  /* Change the setting of an axis */
+
+	cbf_set_axis_setting (cbf, 0, "GONIOMETER_PHI", 27.0, 0.5);
+
+
+  /* Get the setting of an axis */
+
+	cbf_get_axis_setting (cbf, 0, "GONIOMETER_PHI", &d [0], &d [1]);
+
+
+  /* Construct a goniometer */
+
+	cbf_construct_goniometer (cbf, &goniometer);
+
+
+  /* Get the rotation axis */
+
+	cbf_get_rotation_axis (goniometer, 0, &d [0], &d [1], &d [2]);
+
+
+  /* Get the rotation range */
+
+	cbf_get_rotation_range (goniometer, 0, &d [0], &d [1]);
+
+
+  /* Reorient a vector */
+
+	cbf_rotate_vector (goniometer, 0, 0.5, 0.3, 0, 1, &d [0], &d [1], &d [2]);
+
+
+  /* Convert a vector to reciprocal space */
+
+	cbf_get_reciprocal (goniometer, 0, 0.3, 0.98, 1, 2, -3, &d [0], &d [1], &d [2]);
+
+
+  /* Construct a detector positioner */
+
+	cbf_construct_detector (cbf, &detector, 0);
+
+
+  /* Get the beam center */
+
+	cbf_get_beam_center (detector, &d [0], &d [1], &d [2], &d [3]);
+
+
+  /* Get the detector distance */
+
+	cbf_get_detector_distance (detector, &d [0]);
+
+
+  /* Get the detector normal */
+
+	cbf_get_detector_normal (detector, &d [0], &d [1], &d [2]);
+
+
+  /* Calcluate the coordinates of a pixel */
+
+	cbf_get_pixel_coordinates (detector, 1, 3, &d [0], &d [1], &d [2]);
+
+
+  /* Calcluate the area of a pixel */
+
+	cbf_get_pixel_area (detector, 1, 3, &d [0], &d [1]);
+
+
+  /* Free a detector */
+
+	cbf_free_detector (detector);
+
+
+  /* Free a goniometer */
+
+	cbf_free_goniometer (goniometer);
+	}
+
+
+/*****************************************************************************/
+
+    /* Free the cbf */
+
+  cbf_failnez (cbf_free_handle (cbf))
+
+
+    /* Free the image */
+
+  img_free_handle (img);
 
 
     /* Success */
 
   return 0;
 }
-
-
-  /* Recover an array without decompression */
-
-int cbf_decompress_none (void         *destination, 
-                         size_t        elsize, 
-                         int           elsign, 
-                         size_t        nelem, 
-                         size_t       *nelem_read,
-                         unsigned int  compression, 
-                         int           data_bits, 
-                         int           data_sign,
-                         cbf_file     *file)
-{
-  unsigned int element, sign, unsign, limit, count;
-
-  unsigned int data_unsign;
-
-  unsigned char *unsigned_char_data;
-
-  int errorcode, overflow;
-
-
-    /* Is the element size valid? */
-    
-  if (elsize != sizeof (int) &&
-      elsize != sizeof (short) &&
-      elsize != sizeof (char))
-
-    return CBF_ARGUMENT;
-    
-    
-    /* Check the stored element size */
-    
-  if (data_bits < 1 || data_bits > 64)
-  
-    return CBF_ARGUMENT;
-
-
-    /* Initialise the pointer */
-
-  unsigned_char_data = (unsigned char *) destination;
-
-
-    /* Maximum limits */
-    
-  sign = 1 << (elsize * CHAR_BIT - 1);
-    
-  if (elsize == sizeof (int))
-    
-    limit = ~0;
-      
-  else
-    
-    limit = ~-(1 << (elsize * CHAR_BIT));
-
-
-    /* Check the element size */
-    
-  if (data_bits < 1 || data_bits > 64)
-  
-    return CBF_FORMAT;
-  
-
-    /* Offsets to make the value unsigned */
-
-  if (data_sign)
-
-    data_unsign = sign;
-
-  else
-
-    data_unsign = 0;
-
-  if (elsign)
-
-    unsign = sign;
-
-  else
-
-    unsign = 0;
-
-
-    /* Read the elements */
-
-  count = 0;
-
-  overflow = 0;
-
-  while (count < nelem)
-  {
-      /* Get the next element */
-
-    errorcode = cbf_get_integer (file, (int *) &element, 
-                                                data_sign, data_bits);
-
-    if (errorcode)
-
-      if (errorcode == CBF_OVERFLOW)
-
-        overflow = errorcode;
-
-      else
-      {
-        if (nelem_read)
-      
-          *nelem_read = count;
-        
-        return errorcode | overflow;
-      }
-
-
-      /* Make the element unsigned */
-
-    element += data_unsign;
-
-
-      /* Limit the value to fit the element size */
-
-    if (element > limit)
-    {
-      if (elsign && (int) (element - unsign) < 0)
-      
-        element = 0;
-        
-      else
-      
-        element = limit;
-
-      overflow = CBF_OVERFLOW;
-    }
-        
-        
-      /* Make the element signed? */
-        
-    element -= unsign;
-
-
-      /* Save the element */
-        
-    if (elsize == sizeof (int))
-      
-      *((unsigned int *) unsigned_char_data) = element;
-        
-    else
-      
-      if (elsize == sizeof (short))
-        
-        *((unsigned short *) unsigned_char_data) = element;
-          
-      else
-        
-        *unsigned_char_data = element;
-          
-    unsigned_char_data += elsize;
-    
-    count++;
-  }
-
-
-    /* Number read */
-    
-  if (nelem_read)
-  
-    *nelem_read = count;
-
-
-    /* Success */
-
-  return overflow;
-}
-
-
-#ifdef __cplusplus
-
-}
-
-#endif

@@ -1,55 +1,5 @@
-/**********************************************************************
- * img -- handle MAR and ADSC CCD images                              *
- *                                                                    *
- * Version 1.0.0-alpha  9 September 1998                              *
- *                                                                    *
- *             Paul Ellis (ellis@ssrl.slac.stanford.edu)              *
- **********************************************************************/
-  
-/**********************************************************************
- *                                 NOTICE                             *
- * Creative endeavors depend on the lively exchange of ideas. There   *
- * are laws and customs which establish rights and responsibilities   *
- * for authors and the users of what authors create.  This notice     *
- * is not intended to prevent you from using the software and         *
- * documents in this package, but to ensure that there are no         *
- * misunderstandings about terms and conditions of such use.          *
- *                                                                    *
- * Please read the following notice carefully.  If you do not         *
- * understand any portion of this notice, please seek appropriate     *
- * professional legal advice before making use of the software and    *
- * documents included in this software package.  In addition to       *
- * whatever other steps you may be obliged to take to respect the     *
- * intellectual property rights of the various parties involved, if   *
- * you do make use of the software and documents in this package,     *
- * please give credit where credit is due by citing this package,     *
- * its authors and the URL or other source from which you obtained    *
- * it, or equivalent primary references in the literature with the    *
- * same authors.                                                      *
- *                                                                    *
- * Some of the software and documents included within this software   *
- * package are the intellectual property of various parties, and      *
- * placement in this package does not in any way imply that any       *
- * such rights have in any way been waived or diminished.             *
- *                                                                    *
- * With respect to any software or documents for which a copyright    *
- * exists, ALL RIGHTS ARE RESERVED TO THE OWNERS OF SUCH COPYRIGHT.   *
- *                                                                    *
- * Even though the authors of the various documents and software      *
- * found here have made a good faith effort to ensure that the        *
- * documents are correct and that the software performs according     *
- * to its documentation, and we would greatly appreciate hearing of   *
- * any problems you may encounter, the programs and documents any     *
- * files created by the programs are provided **AS IS** without any   *
- * warranty as to correctness, merchantability or fitness for any     *
- * particular or general use.                                         *
- *                                                                    *
- * THE RESPONSIBILITY FOR ANY ADVERSE CONSEQUENCES FROM THE USE OF    *
- * PROGRAMS OR DOCUMENTS OR ANY FILE OR FILES CREATED BY USE OF THE   *
- * PROGRAMS OR DOCUMENTS LIES SOLELY WITH THE USERS OF THE PROGRAMS   *
- * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
- * PROGRAMS OR DOCUMENTS.                                             *
- **********************************************************************/
+
+  /* image object v. 1.1 */
 
 #ifdef __cplusplus
 
@@ -218,7 +168,7 @@ int img_read_smvheader (img_handle img, FILE *file)
 
       if (!line)
 
-        return IMG_ALLOC;
+        return img_BAD_ALLOC;
 
       if (count)
 
@@ -276,7 +226,7 @@ int img_read_smvheader (img_handle img, FILE *file)
 
         if (strcmp (line, "HEADER_BYTES") != 0)
 
-          return IMG_FORMAT;
+          return img_BAD_FORMAT;
 
       eol = 1;
     }
@@ -316,7 +266,7 @@ int img_read_smvheader (img_handle img, FILE *file)
 
   if (c != '}')
 
-    return IMG_FORMAT;
+    return img_BAD_FORMAT;
 
   if (header_bytes <= 0)
 
@@ -324,7 +274,7 @@ int img_read_smvheader (img_handle img, FILE *file)
     
   if (header_bytes <= 0)
 
-    return IMG_FORMAT;
+    return img_BAD_FORMAT;
 
 
     /* Read and discard the remainder of the header */
@@ -333,7 +283,7 @@ int img_read_smvheader (img_handle img, FILE *file)
 
     if (getc (file) == EOF)
 
-      return IMG_READ;
+      return img_BAD_READ;
 
 
     /* Translate the header entries to the standard */
@@ -389,18 +339,20 @@ int img_read_smvdata (img_handle img, FILE *file)
 
   int little, size, sign, rows, cols;
 
-  int xcount, ycount, readcount, datacount;
+  int readcount, datacount;
 
   unsigned char *data;
   
-
+  int *pixel, *stop_pixel;
+  
+  
     /* Get the byte order */
 
   order = img_get_field (img, "BYTE_ORDER");
 
   if (!order)
 
-    return IMG_FORMAT;
+    return img_BAD_FORMAT;
     
   little = order [0] == 'l' || order [0] == 'L';
 
@@ -411,7 +363,7 @@ int img_read_smvdata (img_handle img, FILE *file)
 
   if (!type)
 
-    return IMG_FORMAT;
+    return img_BAD_FORMAT;
     
   size = 1;
 
@@ -448,12 +400,16 @@ int img_read_smvdata (img_handle img, FILE *file)
 
     /* Get the image size */
 
-  cols = (int) img_get_number (img, "SIZE1");
-  rows = (int) img_get_number (img, "SIZE2");
+  rows = (int) img_get_number (img, "SIZE1");
+  cols = (int) img_get_number (img, "SIZE2");
+  
+  if (rows > 0 && cols == 0)
+  
+    cols = 1;
 
   if (img_set_dimensions (img, cols, rows))
 
-    return IMG_FORMAT;
+    return img_BAD_FORMAT;
 
   if (img->size [0] == 0 ||
       img->size [1] == 0)
@@ -463,76 +419,86 @@ int img_read_smvdata (img_handle img, FILE *file)
 
     /* Read the data */
 
-  data = (unsigned char *) malloc (1024);
+  data = (unsigned char *) malloc (4096);
 
   if (!data)
 
-    return IMG_ALLOC;
+    return img_BAD_ALLOC;
     
 
     /* Note that the smv file has the first dimension fast */
 
-  xcount    = 0;
-  ycount    = 0;
   datacount = 0;
+  
+  pixel = &img_pixel (img, 0, 0);
+  
+  stop_pixel = &img_pixel (img, cols - 1, rows - 1) + 1;
 
-  while ((readcount = fread (data + datacount, 1, 1024 - datacount, file)) != 0)
+  while ((readcount = fread (data + datacount, 1, 4096 - datacount, file)) > 0)
   {
-    int c;
+    unsigned char *c, *stop;
 
     datacount += readcount;
+    
+    c = data;
+      
+    stop = data + (datacount / size) * size;
 
-    for (c = 0; c + size <= datacount; c += size)
+    while (c != stop)
     {
-      int pixel, o;
-
-      pixel = 0;
-
       if (little)
 
-        for (o = 0; o < size; o++)
+        if (size == 2)
 
-          pixel |= data [c + o] << (o * 8);
+          *pixel = (c [0]) + 
+                   (c [1] << 8);
+          
+        else
+      
+          *pixel = (c [0]) + 
+                   (c [1] <<  8) +
+                   (c [2] << 16) +
+                   (c [3] << 24);
 
       else
 
-        for (o = 0; o < size; o++)
+        if (size == 2)
 
-          pixel |= data [c + o] << ((size - o - 1) * 8);
+          *pixel = (c [0] << 8) + 
+                   (c [1]);
+          
+        else
+      
+          *pixel = (c [0] << 24) + 
+                   (c [1] << 16) +
+                   (c [2] <<  8) +
+                   (c [3]);
 
-      if (sign)
+      c += size;
 
-        if ((pixel >> ((size - 1) * 8)) & 0x080)
-
-          pixel |= sign;
-
-      img_pixel (img, xcount, ycount) = pixel;
-
-      xcount++;
-
-      if (xcount == cols)
+      pixel++;
+        
+      if (pixel == stop_pixel)
       {
-        xcount = 0;
-
-        ycount++;
-
-        if (ycount == rows)
-
-          return 0;
+        free (data);
+        
+        return 0;
       }
     }
 
-    datacount -= c;
+    datacount = datacount % size;
 
-    if (datacount && c)
+    if (datacount && c != data)
 
-      memmove (data, data + c, datacount);
+      memmove (data, c, datacount);
   }
 
 
     /* Failure */
+    
+  free (data);
 
-  return IMG_READ;
+  return img_BAD_READ;
 }
 
 
@@ -544,13 +510,13 @@ int img_read_smv (img_handle img, const char *name)
   
   if (!img)
 
-    return IMG_ARGUMENT;
+    return img_BAD_ARGUMENT;
 
   file = fopen (name, "rb");
 
   if (!file)
 
-    return IMG_OPEN;
+    return img_BAD_OPEN;
 
   status = img_read_smvheader (img, file);
 
@@ -561,6 +527,273 @@ int img_read_smv (img_handle img, const char *name)
   fclose (file);
 
   return status;
+}
+
+
+  /* Write an smv-format file */
+
+int img_write_smv (img_object   *img, 
+                   const char   *name,
+                   unsigned int  bits)
+{
+  static const char *tags [] =
+  
+  {
+    "PIXEL_SIZE",         /* Pixel size     (mm)                           */
+    "BIN",                /* Binning        (none/ )                       */
+    "ADC",                /* Read speed     (fast/slow)                    */
+    "DETECTOR_SN",        /* Detector serial number                        */
+    "DATE",               /* Date           (eg: Thu Apr 15 16:56:05 1999) */
+    "TIME",               /* Exposure time  (s)                            */
+    "DISTANCE",           /* Distance       (mm)                           */
+    "PHI",                /* Phi angle      (degrees)                      */
+    "OMEGA",              /* Omega angle    (degrees)                      */
+    "KAPPA",              /* Kappa angle    (degrees)                      */
+    "AXIS",               /* Rotation axis  (phi/omega/kappa)              */
+    "OSC_START",          /* Rotation start (degrees)                      */
+    "OSC_RANGE",          /* Rotation range (degrees)                      */
+    "WAVELENGTH",         /* Wavelength     (angstroms)                    */
+    "BEAM_CENTER_X",      /* Beam center    (mm)                           */
+    "BEAM_CENTER_Y",
+     NULL
+  };
+
+  const char **tag, *val;
+  
+  FILE *file;
+  
+  char data [4100];
+  
+  unsigned char *c;
+
+  int bytes, size, little, done;
+  
+  int *pixel, *stop_pixel, data_size, value;
+  
+  int limit;
+  
+
+    /* (1) Calculate the header space required */
+
+  bytes = 128;
+
+  for (tag = tags; *tag; tag++)
+  {
+    val = img_get_field (img, *tag);
+    
+    if (val)
+    
+      bytes += strlen (*tag) + strlen (val) + 3;
+  }  
+  
+  bytes = ((bytes + 511) / 512) * 512;
+
+
+    /* (2) Write the header */
+
+  file = fopen (name, "wb");
+  
+  if (file == NULL)
+  
+    return img_BAD_OPEN;
+    
+  if (bits <= 16)
+  {
+    size = 2;
+    
+    limit = 0x0ffff;
+  }
+  else
+  {
+    size = 4;
+    
+    if (((unsigned int) (~0)) > 0x0ffffffffU)
+
+      limit = 0x0ffffffffU;
+      
+    else
+
+      limit = ((unsigned int) (~0)) / 2;
+  }
+    
+  little = 1;
+  
+  if (*((char *) &little) == 0)
+  
+    little = 0;
+
+  sprintf (data, "{\012"
+                 "HEADER_BYTES=%5d;\012"
+                 "DIM=2;\012"
+                 "BYTE_ORDER=%s;\012"
+                 "TYPE=%s;\012"
+                 "SIZE1=%d;\012"
+                 "SIZE2=%d;\012",
+                  bytes,
+                  little ? "little_endian" : "big_endian",
+                  size == 2 ? "unsigned_short" : "unsigned_long",
+                  img_columns (img),
+                  img_rows (img));
+
+  if (fputs (data, file) == EOF)
+  {
+    fclose (file);
+
+    return img_BAD_WRITE;
+  }
+
+  bytes -= strlen (data);
+
+  for (tag = tags; *tag; tag++)
+  {
+    val = img_get_field (img, *tag);
+    
+    if (val)
+    {
+      sprintf (data, "%s=%s;\n", *tag, val);
+    
+      if (fputs (data, file) == EOF)
+      {
+        fclose (file);
+
+        return img_BAD_WRITE;
+      }
+
+      bytes -= strlen (data);
+    }
+  }  
+
+  if (fputs ("}\014", file) == EOF)
+  {
+    fclose (file);
+
+    return img_BAD_WRITE;
+  }
+                 
+  bytes -= 2;
+
+  if (bytes < 0)
+  {
+    fclose (file);
+
+    return img_BAD_ARGUMENT;
+  }
+
+  while (bytes > 0)
+  {
+    if (fputc ('\040', file) == EOF)
+    {
+      fclose (file);
+
+      return img_BAD_WRITE;
+    }
+
+    bytes--;
+  }
+
+
+    /* (3) Write the pixel values */
+    
+  pixel = &img_pixel (img, 0, 0);
+  
+  stop_pixel = &img_pixel (img, img_columns (img) - 1, 
+                                img_rows (img) - 1) + 1;
+
+  data_size = 0;
+  
+  c = (unsigned char *) data;
+
+  while (pixel != stop_pixel)
+  {
+    value = *pixel++;
+      
+    if (((unsigned int) value) >= (unsigned int) limit)
+      
+      if (value < 0)
+        
+        value = 0;
+          
+      else
+      
+        value = (int) limit;
+      
+    if (little)
+
+      if (size == 2)
+      {
+        c [0] = (value);
+        c [1] = (value >> 8);
+      }
+      else
+      {
+        c [0] = (value);
+        c [1] = (value >>  8);
+        c [2] = (value >> 16);
+        c [3] = (value >> 24);
+      }
+    else
+
+      if (size == 2)
+      {
+        c [0] = (value >> 8);
+        c [1] = (value);
+      }
+      else
+      {
+        c [0] = (value >> 24);
+        c [1] = (value >> 16);
+        c [2] = (value >>  8);
+        c [3] = (value);
+      }
+        
+    data_size += size;
+      
+    c += size;
+      
+    if (data_size >= 4096)
+    {
+      done = fwrite (data, 1, data_size, file);
+        
+      if (done <= 0)
+      {
+        fclose (file);
+
+        return img_BAD_WRITE;
+      }
+        
+      data_size -= done;
+        
+      c -= done;
+        
+      if (data_size > 0)
+        
+        memmove (data, data + done, data_size);
+    }
+  }  
+
+  while (data_size > 0)
+  {
+    done = fwrite (data, 1, data_size, file);
+        
+    if (done <= 0)
+    {
+      fclose (file);
+
+      return img_BAD_WRITE;
+    }
+        
+    data_size -= done;
+        
+    c -= done;
+        
+    if (data_size > 0)
+        
+      memmove (data, data + done, data_size);
+  }
+
+  fclose (file);
+
+  return 0;
 }
 
 
@@ -583,7 +816,7 @@ int img_read_mar300header (img_handle img, FILE *file, int *org_data)
 
     if (img_read_i4 (file, &i4_data [count]))
 
-      return IMG_READ;
+      return img_BAD_READ;
 
 
     /* Do we need to swap the bytes? */
@@ -628,7 +861,7 @@ int img_read_mar300header (img_handle img, FILE *file, int *org_data)
         i4_data [count] != 2000 && i4_data [count] != 3000 &&
         i4_data [count] != 3000 && i4_data [count] != 3450)
 
-      return IMG_FORMAT;
+      return img_BAD_FORMAT;
 
 
     /* Copy the data needed to read the image */
@@ -783,7 +1016,7 @@ int img_read_mar300header (img_handle img, FILE *file, int *org_data)
 
   if (fread (C64, 24, 1, file) == 0)
 
-    return IMG_READ;
+    return img_BAD_READ;
 
   C64 [24] = 0;
 
@@ -812,7 +1045,7 @@ int img_read_mar300header (img_handle img, FILE *file, int *org_data)
 
     if (getc (file) == EOF)
 
-      return IMG_READ;
+      return img_BAD_READ;
 
   return 0;
 }
@@ -831,7 +1064,7 @@ int img_read_mar300data (img_handle img, FILE *file, int *org_data)
 
   if (img_set_dimensions (img, org_data [0], org_data [1]))
 
-    return IMG_FORMAT;
+    return img_BAD_FORMAT;
 
   if (img->size [0] == 0 ||
       img->size [1] == 0)
@@ -853,13 +1086,16 @@ int img_read_mar300data (img_handle img, FILE *file, int *org_data)
 
   if (!data)
 
-    return IMG_ALLOC;
+    return img_BAD_ALLOC;
 
   for (x = 0; x < img_columns (img); x++) {
 
     if (fread (data, org_data [2], 1, file) == 0)
+    {
+      free (data);
 
-      return IMG_READ;
+      return img_BAD_READ;
+    }
 
     cdata = data;
 
@@ -882,7 +1118,7 @@ int img_read_mar300data (img_handle img, FILE *file, int *org_data)
     {
       if (img_read_i4 (file, &O [c]))
 
-        return IMG_READ; 
+        return img_BAD_READ; 
 
       if (org_data [5])
 
@@ -899,7 +1135,7 @@ int img_read_mar300data (img_handle img, FILE *file, int *org_data)
 
     else
 
-      return IMG_FORMAT;
+      return img_BAD_FORMAT;
   }
   
   return 0;
@@ -916,13 +1152,13 @@ int img_read_mar300 (img_handle img, const char *name)
   
   if (!img)
 
-    return IMG_ARGUMENT;
+    return img_BAD_ARGUMENT;
 
   file = fopen (name, "rb");
 
   if (!file)
 
-    return IMG_OPEN;
+    return img_BAD_OPEN;
 
   status = img_read_mar300header (img, file, org_data);
 
@@ -942,7 +1178,7 @@ int img_read_mar345header (img_handle img, FILE *file, int *org_data)
 {
   int i4_data [16], count, swap;
 
-  char C64 [64];
+  char C64 [64], *C;
 
 
     /* Read the start of the header */
@@ -951,7 +1187,7 @@ int img_read_mar345header (img_handle img, FILE *file, int *org_data)
 
     if (img_read_i4 (file, &i4_data [count]))
 
-      return IMG_READ;
+      return img_BAD_READ;
 
 
     /* Do we need to swap the bytes? */
@@ -969,7 +1205,7 @@ int img_read_mar345header (img_handle img, FILE *file, int *org_data)
 
     if (i4_data [0] != 1234)
 
-      return IMG_FORMAT;
+      return img_BAD_FORMAT;
   }
 
 
@@ -1022,15 +1258,35 @@ int img_read_mar345header (img_handle img, FILE *file, int *org_data)
 
 
 
-    /* Skip up to the overflows? */
+	/* Read the remaining (ASCII) part of the header in 64-byte chunks */
 
   if (i4_data [2] > 0)
+  {
+	for (count = 4096 - 64; count > 0; count -= 64)
+	{
+      if (fread (C64, 64, 1, file) <= 0)
 
-    for (count = 4096 - 64; count > 0; count--)
+        return img_BAD_READ;
 
-      if (getc (file) == EOF)
+	  for (C = C64; *C; C++)
 
-        return IMG_READ;
+        if (strchr ("\t\r\n", *C))
+
+		  *C = ' ';
+
+      C = C64 + strcspn (C64, " ");
+
+      C = C + strspn (C, " ");
+
+      if (strncmp (C64, "DATE", 4) == 0)
+			
+        FailNEZ (img_set_field (img, "DATE", C));
+
+      if (strncmp (C64, "TIME", 4) == 0)
+			
+        FailNEZ (img_set_field (img, "EXPOSURE TIME", C));
+	}
+  }
 
   return 0;
 }
@@ -1068,14 +1324,14 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
 
     if (!O_data)
 
-      return IMG_ALLOC;
+      return img_BAD_ALLOC;
 
     for (count = 0; count < org_data [2] * 2; count++)
 
       if (img_read_i4 (file, &O_data [count]))
 
-        return IMG_READ;
-        
+        return img_BAD_READ;
+
     if (org_data [3])
 
       for (count = 0; count < org_data [2] * 2; count++)
@@ -1132,7 +1388,7 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
 
       free (O_data);
     
-    return IMG_FORMAT;
+    return img_BAD_FORMAT;
   }
 
   
@@ -1174,7 +1430,7 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
 
             free (O_data);
 
-          return IMG_READ;
+          return img_BAD_READ;
         }
 
         incount = 8;
@@ -1291,7 +1547,7 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
 
     else
 
-      return IMG_FORMAT;
+      return img_BAD_FORMAT;
   }
     
   if (org_data [2] > 0)
@@ -1312,13 +1568,13 @@ int img_read_mar345 (img_handle img, const char *name)
   
   if (!img)
 
-    return IMG_ARGUMENT;
+    return img_BAD_ARGUMENT;
 
   file = fopen (name, "rb");
 
   if (!file)
 
-    return IMG_OPEN;
+    return img_BAD_OPEN;
 
   status = img_read_mar345header (img, file, org_data);
 
@@ -1363,7 +1619,7 @@ int img_read (img_handle img, const char *name)
 
     return 0;
 
-  return IMG_ARGUMENT;
+  return img_BAD_ARGUMENT;
 }
 
 
@@ -1388,8 +1644,8 @@ int img_set_tags (img_handle img, int tags)
 {
   if (!img || tags < 0)
 
-    return IMG_ARGUMENT;
-
+    return img_BAD_ARGUMENT;
+    
   tags = (tags + 0x03F) & ~0x03F;
 
   if (tags > img->tags)
@@ -1402,7 +1658,7 @@ int img_set_tags (img_handle img, int tags)
     {
       img->tag = old_tag;
       
-      return IMG_ALLOC;
+      return img_BAD_ALLOC;
     }
 
     if (old_tag)
@@ -1417,14 +1673,19 @@ int img_set_tags (img_handle img, int tags)
     img->tags = tags;
   }
 
-  if (tags == 0) {
-
+  if (tags == 0)
+  {
     if (img->tag)
     {
       while (--img->tags >= 0)
       {
-        free (img->tag [img->tags].tag);
-        free (img->tag [img->tags].data);
+        if (img->tag [img->tags].tag)
+        
+          free (img->tag [img->tags].tag);
+          
+        if (img->tag [img->tags].data)
+        
+          free (img->tag [img->tags].data);
       }
 
       free (img->tag);
@@ -1433,7 +1694,7 @@ int img_set_tags (img_handle img, int tags)
     img->tags = 0;
     img->tag  = NULL;
   }
-
+  
   return 0;
 }
 
@@ -1460,7 +1721,7 @@ int img_free_handle (img_handle img)
 {
   if (!img)
 
-    return IMG_ARGUMENT;
+    return img_BAD_ARGUMENT;
 
   img_set_tags (img, 0);
 
@@ -1478,22 +1739,25 @@ int img_delete_fieldnumber (img_handle img, int x)
 {
   if (!img)
 
-    return IMG_ARGUMENT;
+    return img_BAD_ARGUMENT;
 
   if (x < 0)
 
-    return IMG_ARGUMENT;
+    return img_BAD_ARGUMENT;
 
   if (x >= img->tags)
   
-    return IMG_FIELD;      
+    return img_BAD_FIELD;      
 
   if (!img->tag [x].tag)
 
-    return IMG_FIELD;      
+    return img_BAD_FIELD;      
 
   free (img->tag [x].tag);
-  free (img->tag [x].data);
+  
+  if (img->tag [x].data)
+  
+    free (img->tag [x].data);
 
   if (x < img->tags - 1)
 
@@ -1514,7 +1778,7 @@ int img_delete_field (img_handle img, const char * tag)
   
   if (!img || !tag)
 
-    return IMG_ARGUMENT;
+    return img_BAD_ARGUMENT;
 
   for (x = img->tags - 1; x >= 0; x--)
   {
@@ -1527,7 +1791,7 @@ int img_delete_field (img_handle img, const char * tag)
       return img_delete_fieldnumber (img, x);
   }
 
-  return IMG_FIELD;      
+  return img_BAD_FIELD;      
 }
 
 
@@ -1560,8 +1824,8 @@ int img_set_field (img_handle img, const char *tag, const char *data)
   
   if (!img || !tag)
 
-    return IMG_ARGUMENT;
-
+    return img_BAD_ARGUMENT;
+    
 
     /* Find the entry with the given tag */
 
@@ -1578,13 +1842,15 @@ int img_set_field (img_handle img, const char *tag, const char *data)
 
     if (strcmp (img->tag [x].tag, tag) == 0)
     {
-      free (img->tag [x].data);
+      if (img->tag [x].data)
+      
+        free (img->tag [x].data);
 
       img->tag [x].data = (char *) malloc (strlen (data) + 1);
 
       if (!img->tag [x].data)
 
-        return IMG_ALLOC;
+        return img_BAD_ALLOC;
 
       strcpy (img->tag [x].data, data);
 
@@ -1597,19 +1863,19 @@ int img_set_field (img_handle img, const char *tag, const char *data)
 
   if (img_set_tags (img, x0 + 1))
 
-    return IMG_ALLOC;
+    return img_BAD_ALLOC;
   
   img->tag [x0].tag = (char *) malloc (strlen (tag) + 1);
 
   if (!img->tag [x0].tag)
 
-    return IMG_ALLOC;
+    return img_BAD_ALLOC;
 
   img->tag [x0].data = (char *) malloc (strlen (data) + 1);
 
   if (!img->tag [x0].data)
 
-    return IMG_ALLOC;
+    return img_BAD_ALLOC;
 
   strcpy (img->tag [x0].tag, tag);
   strcpy (img->tag [x0].data, data);
@@ -1641,7 +1907,7 @@ int img_set_number (img_handle img, const char *tag,
 
   if (!img || !tag || !format)
 
-    return IMG_ARGUMENT;
+    return img_BAD_ARGUMENT;
 
   sprintf (number, format, data);
 
@@ -1688,14 +1954,15 @@ int img_set_dimensions (img_handle img, int columns, int rows) {
 
   if (columns < 0 || rows < 0 || !img)
 
-    return IMG_ARGUMENT;
+    return img_BAD_ARGUMENT;
 
   if (columns != img->size [0] || rows != img->size [1])
   {
     if (img->image)
     {
       free (img->image);
-
+      
+      img->image    = NULL;
       img->size [0] =
       img->size [1] = 0;
     }
@@ -1706,7 +1973,7 @@ int img_set_dimensions (img_handle img, int columns, int rows) {
 
       if (!img->image)
 
-        return IMG_ALLOC;
+        return img_BAD_ALLOC;
     }
   }
 
@@ -1735,5 +2002,5 @@ int img_get_dimension (img_handle img, int dimension)
 
 }
 
-#endif
+#endif /* IMG_C */
 
