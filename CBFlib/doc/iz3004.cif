@@ -1,0 +1,1751 @@
+##############################################################################
+###                                                                        ###
+###           Full Paper (Acta Crystallographica Section C)                ###
+###                                                                        ###
+##############################################################################
+#                                                                            #
+# This CIF contains the data in a paper accepted for publication in Acta     #
+# Crystallographica Section C. It conforms to the editorial and technical    #
+# requirements of Notes for Authors for Section C, and has been peer         #
+# reviewed under the auspices of the IUCr Commission on Journals.            #
+#                                                                            #
+# Full details of the Crystallographic Information File format               #
+# are given in the paper "The Crystallographic Information File (CIF):       #
+# a New Standard Archive File for Crystallography" by S. R. Hall, F. H.      #
+# Allen and I. D. Brown [Acta Cryst. (1991), A47, 655-685].                  #
+#                                                                            #
+# The current version of the core CIF dictionary is obtainable from          #
+# ftp://ftp.iucr.org/pub/cif_core.dic. The current version number is 2.1.    #
+#                                                                            #
+# Software is freely available for graphical display of the structure(s) in  #
+# this CIF.  For information consult the CIF home page http://www.iucr.org/  #
+# cif/home.html                                                              #
+#                                                                            #
+#            Copyright International Union of Crystallography                #
+#                                                                            #
+##############################################################################
+data_I
+_audit_creation_method     SHELXL97
+_chemical_name_systematic
+;
+dirubidium heptaoxodimolybdate
+;
+_chemical_name_common     ?
+_chemical_formula_moiety     'Mo2 O7 , 2Rb'
+_chemical_formula_sum     'Mo2 O7 Rb2'
+_chemical_formula_iupac     'Rb2 Mo2 O7'
+_chemical_formula_weight     474.82
+_chemical_melting_point     ?
+_symmetry_cell_setting     Orthorhombic
+_symmetry_space_group_name_H-M     'A m a 2'
+_symmetry_space_group_name_Hall     'A 2 -2a'
+loop_
+    _symmetry_equiv_pos_as_xyz
+    'x, y, z'
+    '-x, -y, z'
+    'x+1/2, -y, z'
+    '-x+1/2, y, z'
+    'x, y+1/2, z+1/2'
+    '-x, -y+1/2, z+1/2'
+    'x+1/2, -y+1/2, z+1/2'
+    '-x+1/2, y+1/2, z+1/2'
+_cell_length_a     11.8887(6)
+_cell_length_b     12.8303(6)
+_cell_length_c     10.2464(4)
+_cell_angle_alpha     90.00
+_cell_angle_beta     90.00
+_cell_angle_gamma     90.00
+_cell_volume     1562.94(12)
+_cell_formula_units_Z     8
+_cell_measurement_reflns_used     3812
+_cell_measurement_theta_min     3.07
+_cell_measurement_theta_max     27.46
+_cell_measurement_temperature     293(2)
+_exptl_crystal_description     fragment
+_exptl_crystal_colour     colourless
+_exptl_crystal_size_max     0.06
+_exptl_crystal_size_mid     0.06
+_exptl_crystal_size_min     0.06
+_exptl_crystal_density_diffrn     4.036
+_exptl_crystal_density_meas     ?
+_exptl_crystal_density_method     'not measured'
+_exptl_crystal_F_000     1712
+_exptl_absorpt_coefficient_mu     15.574
+_exptl_absorpt_correction_type     multi-scan
+_exptl_absorpt_process_details     '(SADABS; Bruker, 2004)'
+_exptl_absorpt_correction_T_min     0.4551
+_exptl_absorpt_correction_T_max     0.4551
+_exptl_special_details
+;
+ ?
+;
+_diffrn_ambient_temperature     293(2)
+_diffrn_radiation_type     MoK\a
+_diffrn_radiation_wavelength     0.71073
+_diffrn_radiation_source     'fine-focus sealed X-ray tube'
+_diffrn_radiation_monochromator     graphite
+_diffrn_measurement_device_type     'Bruker Nonius X8 APEX CCD area-detector'
+_diffrn_measurement_method     '\f scans, frame data integration'
+_diffrn_detector_area_resol_mean     ?
+_diffrn_reflns_number     4744
+_diffrn_reflns_av_R_equivalents     0.0216
+_diffrn_reflns_av_sigmaI/netI     0.0411
+_diffrn_reflns_theta_min     2.54
+_diffrn_reflns_theta_max     27.46
+_diffrn_reflns_theta_full     27.46
+_diffrn_measured_fraction_theta_max     1.000
+_diffrn_measured_fraction_theta_full     1.000
+_diffrn_reflns_limit_h_min     -15
+_diffrn_reflns_limit_h_max     15
+_diffrn_reflns_limit_k_min     -15
+_diffrn_reflns_limit_k_max     16
+_diffrn_reflns_limit_l_min     -13
+_diffrn_reflns_limit_l_max     7
+_diffrn_standards_number     0
+_diffrn_standards_interval_count     ?
+_diffrn_standards_interval_time     ?
+_diffrn_standards_decay_%     0
+_refine_special_details
+;
+ Refinement of F^2^ against ALL reflections.  The weighted R-factor wR and
+ goodness of fit S are based on F^2^, conventional R-factors R are based
+ on F, with F set to zero for negative F^2^. The threshold expression of
+ F^2^ > 2sigma(F^2^) is used only for calculating R-factors(gt) etc. and is
+ not relevant to the choice of reflections for refinement.  R-factors based
+ on F^2^ are statistically about twice as large as those based on F, and R-
+ factors based on ALL data will be even larger.
+;
+_reflns_number_total     1454
+_reflns_number_gt     1416
+_reflns_threshold_expression     I>2\s(I)
+_refine_ls_structure_factor_coef     Fsqd
+_refine_ls_matrix_type     full
+_refine_ls_R_factor_all     0.0183
+_refine_ls_R_factor_gt     0.0178
+_refine_ls_wR_factor_gt     0.0493
+_refine_ls_wR_factor_ref     0.0494
+_refine_ls_goodness_of_fit_ref     1.152
+_refine_ls_restrained_S_all     1.152
+_refine_ls_number_reflns     1454
+_refine_ls_number_parameters     110
+_refine_ls_number_restraints     0
+_refine_ls_hydrogen_treatment     .
+_refine_ls_weighting_scheme     calc
+_refine_ls_weighting_details
+               'calc w = 1/[\s^2^(Fo^2^)+(0.0203P)^2^] where P=(Fo^2^+2Fc^2^)/3'
+_atom_sites_solution_hydrogens     .
+_atom_sites_solution_primary     direct
+_atom_sites_solution_secondary     difmap
+_refine_ls_shift/su_max     0.000
+_refine_ls_shift/su_mean     0.000
+_refine_diff_density_max     0.695
+_refine_diff_density_min     -0.599
+_refine_ls_extinction_method     'Reference?'
+_refine_ls_extinction_coef     0.00047(5)
+_refine_ls_abs_structure_details
+                                    'Flack (1983), with how many Friedel pairs?'
+_refine_ls_abs_structure_Flack     0.019(6)
+loop_
+    _atom_type_symbol
+    _atom_type_description
+    _atom_type_scat_dispersion_real
+    _atom_type_scat_dispersion_imag
+    _atom_type_scat_source
+    'Li' 'Li' -0.0003 0.0001
+                         'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4'
+    'O' 'O' 0.0106 0.0060
+                         'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4'
+    'Co' 'Co' 0.3494 0.9721
+                         'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4'
+    'Mo' 'Mo' -1.6832 0.6857
+                         'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4'
+    'Cs' 'Cs' -0.3680 2.1192
+                         'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4'
+_computing_data_collection     'SMART (Bruker, 2004)'
+_computing_cell_refinement     'SMART'
+_computing_data_reduction     'SAINT (Bruker, 2004)'
+_computing_structure_solution     'SHELXS97 (Sheldrick, 1997)'
+_computing_structure_refinement     'SHELXL97 (Sheldrick, 1997)'
+_computing_molecular_graphics     'BS (Ozawa & Kang, 2004)'
+_computing_publication_material     'SHELXL97'
+loop_
+    _atom_site_type_symbol
+    _atom_site_label
+    _atom_site_fract_x
+    _atom_site_fract_y
+    _atom_site_fract_z
+    _atom_site_U_iso_or_equiv
+    _atom_site_adp_type
+    _atom_site_calc_flag
+    _atom_site_refinement_flags
+    _atom_site_occupancy
+    _atom_site_disorder_assembly
+    _atom_site_disorder_group
+    Rb Rb1 0.0000 0.5000 0.5000 0.0237(2) Uani d S 1 . .
+    Rb Rb2 0.2500 0.48386(5) -0.26390(11) 0.01891(17) Uani d S 1 . .
+    Rb Rb3 0.2500 0.21144(6) 0.49330(11) 0.02700(18) Uani d S 1 . .
+    Rb Rb4 0.2500 0.25540(7) -0.02260(13) 0.0378(2) Uani d S 1 . .
+    Mo Mo1 0.0000 0.5000 0.06117(13) 0.01268(15) Uani d S 1 . .
+    Mo Mo2 0.2500 0.47105(5) 0.28712(12) 0.01558(14) Uani d S 1 . .
+    Mo Mo3 0.01169(3) 0.25276(4) 0.22891(13) 0.01681(11) Uani d . 1 . .
+    O O1 0.1103(3) 0.5171(3) -0.0426(4) 0.0277(9) Uani d . 1 . .
+    O O2 0.0319(3) 0.3571(2) 0.1036(4) 0.0187(7) Uani d . 1 . .
+    O O3 0.1236(3) 0.5306(3) 0.2280(4) 0.0243(8) Uani d . 1 . .
+    O O4 0.2500 0.3413(4) 0.2440(6) 0.0275(11) Uani d S 1 . .
+    O O5 0.2500 0.4846(5) 0.4559(6) 0.0326(14) Uani d S 1 . .
+    O O6 -0.1241(3) 0.2050(3) 0.2201(4) 0.0340(10) Uani d . 1 . .
+    O O7 0.1013(3) 0.1507(3) 0.1898(4) 0.0294(9) Uani d . 1 . .
+    O O8 0.0325(3) 0.2957(3) 0.3879(4) 0.0292(9) Uani d . 1 . .
+loop_
+    _atom_site_aniso_label
+    _atom_site_aniso_U_11
+    _atom_site_aniso_U_22
+    _atom_site_aniso_U_33
+    _atom_site_aniso_U_12
+    _atom_site_aniso_U_13
+    _atom_site_aniso_U_23
+    Rb1 0.0188(4) 0.0240(4) 0.0283(5) -0.0010(3) 0.000 0.000
+    Rb2 0.0217(4) 0.0170(3) 0.0181(4) 0.000 0.000 -0.0004(3)
+    Rb3 0.0264(4) 0.0240(4) 0.0305(4) 0.000 0.000 -0.0003(4)
+    Rb4 0.0406(7) 0.0475(6) 0.0252(5) 0.000 0.000 0.0026(4)
+    Mo1 0.0134(3) 0.0112(3) 0.0135(4) -0.0008(2) 0.000 0.000
+    Mo2 0.0116(3) 0.0217(3) 0.0135(3) 0.000 0.000 -0.0006(3)
+    Mo3 0.01570(19) 0.0145(2) 0.0202(2) -0.00137(15) -0.0004(2) 0.00216(17)
+    O1 0.031(2) 0.027(2) 0.026(2) -0.0015(17) 0.0133(18) 0.0019(15)
+    O2 0.0213(17) 0.0126(16) 0.0222(19) 0.0006(13) -0.0002(15) -0.0004(15)
+    O3 0.0218(18) 0.0240(19) 0.027(2) 0.0031(15) -0.0071(17) -0.0037(17)
+    O4 0.022(2) 0.020(3) 0.041(3) 0.000 0.000 0.003(2)
+    O5 0.020(3) 0.059(4) 0.020(3) 0.000 0.000 -0.006(2)
+    O6 0.0235(19) 0.032(2) 0.047(3) -0.0114(16) -0.003(2) 0.011(2)
+    O7 0.034(2) 0.0166(19) 0.038(2) 0.0083(16) -0.0030(18) 0.0011(16)
+    O8 0.036(2) 0.026(2) 0.026(2) 0.0013(18) 0.0023(18) 0.0022(18)
+_geom_special_details
+;
+ All esds (except the esd in the dihedral angle between two l.s. planes)
+ are estimated using the full covariance matrix.  The cell esds are taken
+ into account individually in the estimation of esds in distances, angles
+ and torsion angles; correlations between esds in cell parameters are only
+ used when they are defined by crystal symmetry.  An approximate (isotropic)
+ treatment of cell esds is used for estimating esds involving l.s. planes.
+;
+loop_
+    _geom_bond_atom_site_label_1
+    _geom_bond_atom_site_label_2
+    _geom_bond_site_symmetry_2
+    _geom_bond_distance
+    _geom_bond_publ_flag
+    Rb1 O8 2_565 2.888(4) yes
+    Rb1 O8 . 2.888(4) yes
+    Rb1 O7 5 2.995(4) yes
+    Rb1 O7 6 2.995(4) yes
+    Rb1 O5 2_565 3.0128(10) yes
+    Rb1 O5 . 3.0128(10) yes
+    Rb1 O3 2_565 3.176(4) yes
+    Rb1 O3 . 3.176(4) yes
+    Rb1 Mo2 2_565 3.7054(7) no
+    Rb1 Mo2 . 3.7054(7) no
+    Rb1 Rb2 1_556 3.8379(7) no
+    Rb1 Rb2 2_566 3.8379(7) no
+    Rb2 O7 8_554 2.816(4) yes
+    Rb2 O7 5_554 2.816(4) yes
+    Rb2 O1 4 2.843(4) yes
+    Rb2 O1 . 2.843(4) yes
+    Rb2 O6 6_554 2.853(4) yes
+    Rb2 O6 7_554 2.853(4) yes
+    Rb2 O5 1_554 2.871(6) yes
+    Rb2 Rb4 . 3.8347(12) no
+    Rb2 Rb1 1_554 3.8379(7) no
+    Rb2 Rb1 3_564 3.8379(7) no
+    Rb2 Rb3 5_554 3.9333(12) no
+    Rb2 Rb3 1_554 4.2903(12) no
+    Rb3 O6 7 2.964(4) yes
+    Rb3 O6 6 2.964(4) yes
+    Rb3 O8 . 3.003(4) yes
+    Rb3 O8 4 3.003(4) yes
+    Rb3 O1 5_545 3.018(4) yes
+    Rb3 O1 8_545 3.018(4) yes
+    Rb3 O4 . 3.050(6) yes
+    Rb3 O5 . 3.525(6) yes
+    Rb3 O2 7 3.644(3) yes
+    Rb3 O2 6 3.644(3) yes
+    Rb3 Rb2 5_545 3.9333(12) no
+    Rb3 Mo2 . 3.9444(10) no
+    Rb4 O4 . 2.945(6) yes
+    Rb4 O6 6_554 3.074(4) yes
+    Rb4 O6 7_554 3.074(4) yes
+    Rb4 O7 4 3.109(4) yes
+    Rb4 O7 . 3.109(4) yes
+    Rb4 O2 4 3.178(3) yes
+    Rb4 O2 . 3.178(3) yes
+    Rb4 O5 5_544 3.482(6) yes
+    Rb4 O8 6_554 3.543(4) yes
+    Rb4 O8 7_554 3.543(4) yes
+    Rb4 Mo3 4 3.8301(8) no
+    Rb4 Mo3 . 3.8301(8) no
+    Mo1 O1 2_565 1.702(4) yes
+    Mo1 O1 . 1.702(4) yes
+    Mo1 O2 2_565 1.922(3) yes
+    Mo1 O2 . 1.922(3) yes
+    Mo1 O3 . 2.288(4) yes
+    Mo1 O3 2_565 2.288(4) yes
+    Mo1 Rb3 5_554 4.0837(6) no
+    Mo1 Rb3 6_554 4.0837(6) no
+    Mo2 O4 . 1.723(5) yes
+    Mo2 O5 . 1.738(6) yes
+    Mo2 O3 . 1.791(4) yes
+    Mo2 O3 4 1.791(4) yes
+    Mo2 Rb1 3_565 3.7054(7) no
+    Mo2 Rb4 5 4.1367(11) no
+    Mo2 Rb3 5_554 4.3100(10) no
+    Mo3 O6 . 1.729(4) yes
+    Mo3 O7 . 1.736(4) yes
+    Mo3 O8 . 1.738(4) yes
+    Mo3 O2 . 1.870(3) yes
+    Mo3 Rb3 6_554 3.9646(7) no
+    Mo3 Rb1 5_544 4.0047(9) no
+    Mo3 Rb4 6 4.0216(7) no
+    Mo3 Rb2 6 4.3475(7) no
+    O1 Rb3 5_554 3.018(4) no
+    O2 Rb3 6_554 3.644(3) no
+    O5 Rb2 1_556 2.871(6) no
+    O5 Rb1 3_565 3.0128(9) no
+    O5 Rb4 5 3.482(6) no
+    O6 Rb2 6 2.853(4) no
+    O6 Rb3 6_554 2.964(4) no
+    O6 Rb4 6 3.074(4) no
+    O7 Rb2 5_545 2.816(4) no
+    O7 Rb1 5_544 2.995(4) no
+    O8 Rb4 6 3.543(4) no
+loop_
+    _geom_angle_atom_site_label_1
+    _geom_angle_atom_site_label_2
+    _geom_angle_atom_site_label_3
+    _geom_angle_site_symmetry_1
+    _geom_angle_site_symmetry_3
+    _geom_angle
+    _geom_angle_publ_flag
+    O8 Rb1 O8 2_565 . 133.14(16) no
+    O8 Rb1 O7 2_565 5 74.11(10) no
+    O8 Rb1 O7 . 5 142.20(10) no
+    O8 Rb1 O7 2_565 6 142.20(10) no
+    O8 Rb1 O7 . 6 74.11(10) no
+    O7 Rb1 O7 5 6 99.03(15) no
+    O8 Rb1 O5 2_565 2_565 75.44(14) no
+    O8 Rb1 O5 . 2_565 97.60(15) no
+    O7 Rb1 O5 5 2_565 116.86(14) no
+    O7 Rb1 O5 6 2_565 75.10(13) no
+    O8 Rb1 O5 2_565 . 97.60(15) no
+    O8 Rb1 O5 . . 75.44(14) no
+    O7 Rb1 O5 5 . 75.10(13) no
+    O7 Rb1 O5 6 . 116.86(14) no
+    O5 Rb1 O5 2_565 . 162.7(2) no
+    O8 Rb1 O3 2_565 2_565 72.62(10) no
+    O8 Rb1 O3 . 2_565 66.46(10) no
+    O7 Rb1 O3 5 2_565 146.72(10) no
+    O7 Rb1 O3 6 2_565 107.68(10) no
+    O5 Rb1 O3 2_565 2_565 54.54(13) no
+    O5 Rb1 O3 . 2_565 108.47(13) no
+    O8 Rb1 O3 2_565 . 66.46(10) no
+    O8 Rb1 O3 . . 72.62(10) no
+    O7 Rb1 O3 5 . 107.68(10) no
+    O7 Rb1 O3 6 . 146.72(10) no
+    O5 Rb1 O3 2_565 . 108.47(13) no
+    O5 Rb1 O3 . . 54.54(13) no
+    O3 Rb1 O3 2_565 . 57.26(13) no
+    O8 Rb1 Mo2 2_565 2_565 64.37(8) no
+    O8 Rb1 Mo2 . 2_565 87.96(8) no
+    O7 Rb1 Mo2 5 2_565 129.81(7) no
+    O7 Rb1 Mo2 6 2_565 97.13(8) no
+    O5 Rb1 Mo2 2_565 2_565 27.60(11) no
+    O5 Rb1 Mo2 . 2_565 135.20(12) no
+    O3 Rb1 Mo2 2_565 2_565 28.88(7) no
+    O3 Rb1 Mo2 . 2_565 80.92(7) no
+    O8 Rb1 Mo2 2_565 . 87.96(8) no
+    O8 Rb1 Mo2 . . 64.37(8) no
+    O7 Rb1 Mo2 5 . 97.13(8) no
+    O7 Rb1 Mo2 6 . 129.81(7) no
+    O5 Rb1 Mo2 2_565 . 135.20(12) no
+    O5 Rb1 Mo2 . . 27.60(11) no
+    O3 Rb1 Mo2 2_565 . 80.92(7) no
+    O3 Rb1 Mo2 . . 28.88(7) no
+    Mo2 Rb1 Mo2 2_565 . 107.87(3) no
+    O8 Rb1 Rb2 2_565 1_556 113.79(8) no
+    O8 Rb1 Rb2 . 1_556 95.62(8) no
+    O7 Rb1 Rb2 5 1_556 46.69(7) no
+    O7 Rb1 Rb2 6 1_556 82.39(8) no
+    O5 Rb1 Rb2 2_565 1_556 149.55(11) no
+    O5 Rb1 Rb2 . 1_556 47.70(11) no
+    O3 Rb1 Rb2 2_565 1_556 154.83(7) no
+    O3 Rb1 Rb2 . 1_556 101.62(7) no
+    Mo2 Rb1 Rb2 2_565 1_556 176.09(2) no
+    Mo2 Rb1 Rb2 . 1_556 75.195(15) no
+    O8 Rb1 Rb2 2_565 2_566 95.62(8) no
+    O8 Rb1 Rb2 . 2_566 113.79(8) no
+    O7 Rb1 Rb2 5 2_566 82.39(8) no
+    O7 Rb1 Rb2 6 2_566 46.69(7) no
+    O5 Rb1 Rb2 2_565 2_566 47.70(11) no
+    O5 Rb1 Rb2 . 2_566 149.55(11) no
+    O3 Rb1 Rb2 2_565 2_566 101.62(7) no
+    O3 Rb1 Rb2 . 2_566 154.83(7) no
+    Mo2 Rb1 Rb2 2_565 2_566 75.195(15) no
+    Mo2 Rb1 Rb2 . 2_566 176.09(2) no
+    Rb2 Rb1 Rb2 1_556 2_566 101.85(3) no
+    O7 Rb2 O7 8_554 5_554 77.76(16) no
+    O7 Rb2 O1 8_554 4 69.74(11) no
+    O7 Rb2 O1 5_554 4 112.78(11) no
+    O7 Rb2 O1 8_554 . 112.78(11) no
+    O7 Rb2 O1 5_554 . 69.74(11) no
+    O1 Rb2 O1 4 . 71.49(18) no
+    O7 Rb2 O6 8_554 6_554 164.82(12) no
+    O7 Rb2 O6 5_554 6_554 107.85(11) no
+    O1 Rb2 O6 4 6_554 118.68(12) no
+    O1 Rb2 O6 . 6_554 82.35(12) no
+    O7 Rb2 O6 8_554 7_554 107.85(11) no
+    O7 Rb2 O6 5_554 7_554 164.82(12) no
+    O1 Rb2 O6 4 7_554 82.35(12) no
+    O1 Rb2 O6 . 7_554 118.68(12) no
+    O6 Rb2 O6 6_554 7_554 63.28(15) no
+    O7 Rb2 O5 8_554 1_554 80.15(12) no
+    O7 Rb2 O5 5_554 1_554 80.15(12) no
+    O1 Rb2 O5 4 1_554 142.86(9) no
+    O1 Rb2 O5 . 1_554 142.86(9) no
+    O6 Rb2 O5 6_554 1_554 86.85(14) no
+    O6 Rb2 O5 7_554 1_554 86.85(14) no
+    O7 Rb2 Rb4 8_554 . 133.60(8) no
+    O7 Rb2 Rb4 5_554 . 133.60(8) no
+    O1 Rb2 Rb4 4 . 66.45(7) no
+    O1 Rb2 Rb4 . . 66.45(7) no
+    O6 Rb2 Rb4 6_554 . 52.26(9) no
+    O6 Rb2 Rb4 7_554 . 52.26(9) no
+    O5 Rb2 Rb4 1_554 . 130.33(13) no
+    O7 Rb2 Rb1 8_554 1_554 109.80(8) no
+    O7 Rb2 Rb1 5_554 1_554 50.70(8) no
+    O1 Rb2 Rb1 4 1_554 161.28(9) no
+    O1 Rb2 Rb1 . 1_554 92.42(9) no
+    O6 Rb2 Rb1 6_554 1_554 66.62(8) no
+    O6 Rb2 Rb1 7_554 1_554 114.57(8) no
+    O5 Rb2 Rb1 1_554 1_554 50.912(16) no
+    Rb4 Rb2 Rb1 . 1_554 116.594(16) no
+    O7 Rb2 Rb1 8_554 3_564 50.70(8) no
+    O7 Rb2 Rb1 5_554 3_564 109.80(8) no
+    O1 Rb2 Rb1 4 3_564 92.42(9) no
+    O1 Rb2 Rb1 . 3_564 161.28(9) no
+    O6 Rb2 Rb1 6_554 3_564 114.57(8) no
+    O6 Rb2 Rb1 7_554 3_564 66.62(8) no
+    O5 Rb2 Rb1 1_554 3_564 50.912(16) no
+    Rb4 Rb2 Rb1 . 3_564 116.594(16) no
+    Rb1 Rb2 Rb1 1_554 3_564 101.51(3) no
+    O7 Rb2 Rb3 8_554 5_554 63.18(8) no
+    O7 Rb2 Rb3 5_554 5_554 63.18(8) no
+    O1 Rb2 Rb3 4 5_554 49.77(8) no
+    O1 Rb2 Rb3 . 5_554 49.77(8) no
+    O6 Rb2 Rb3 6_554 5_554 132.00(8) no
+    O6 Rb2 Rb3 7_554 5_554 132.00(8) no
+    O5 Rb2 Rb3 1_554 5_554 131.89(13) no
+    Rb4 Rb2 Rb3 . 5_554 97.78(3) no
+    Rb1 Rb2 Rb3 1_554 5_554 112.476(14) no
+    Rb1 Rb2 Rb3 3_564 5_554 112.476(14) no
+    O7 Rb2 Rb3 8_554 1_554 121.42(8) no
+    O7 Rb2 Rb3 5_554 1_554 121.42(8) no
+    O1 Rb2 Rb3 4 1_554 125.79(8) no
+    O1 Rb2 Rb3 . 1_554 125.79(8) no
+    O6 Rb2 Rb3 6_554 1_554 43.50(8) no
+    O6 Rb2 Rb3 7_554 1_554 43.50(8) no
+    O5 Rb2 Rb3 1_554 1_554 54.74(12) no
+    Rb4 Rb2 Rb3 . 1_554 75.59(2) no
+    Rb1 Rb2 Rb3 1_554 1_554 71.242(14) no
+    Rb1 Rb2 Rb3 3_564 1_554 71.242(14) no
+    Rb3 Rb2 Rb3 5_554 1_554 173.37(3) no
+    O6 Rb3 O6 7 6 60.65(14) no
+    O6 Rb3 O8 7 . 125.89(10) no
+    O6 Rb3 O8 6 . 73.56(11) no
+    O6 Rb3 O8 7 4 73.56(11) no
+    O6 Rb3 O8 6 4 125.89(11) no
+    O8 Rb3 O8 . 4 118.83(15) no
+    O6 Rb3 O1 7 5_545 132.22(11) no
+    O6 Rb3 O1 6 5_545 96.67(10) no
+    O8 Rb3 O1 . 5_545 77.28(11) no
+    O8 Rb3 O1 4 5_545 136.67(11) no
+    O6 Rb3 O1 7 8_545 96.67(10) no
+    O6 Rb3 O1 6 8_545 132.22(11) no
+    O8 Rb3 O1 . 8_545 136.67(11) no
+    O8 Rb3 O1 4 8_545 77.28(11) no
+    O1 Rb3 O1 5_545 8_545 66.78(15) no
+    O6 Rb3 O4 7 . 117.32(12) no
+    O6 Rb3 O4 6 . 117.32(12) no
+    O8 Rb3 O4 . . 60.15(8) no
+    O8 Rb3 O4 4 . 60.15(8) no
+    O1 Rb3 O4 5_545 . 110.44(12) no
+    O1 Rb3 O4 8_545 . 110.44(12) no
+    O6 Rb3 O5 7 . 74.08(11) no
+    O6 Rb3 O5 6 . 74.08(11) no
+    O8 Rb3 O5 . . 66.61(8) no
+    O8 Rb3 O5 4 . 66.61(8) no
+    O1 Rb3 O5 5_545 . 143.89(9) no
+    O1 Rb3 O5 8_545 . 143.89(9) no
+    O4 Rb3 O5 . . 50.65(14) no
+    O6 Rb3 O2 7 7 51.67(9) no
+    O6 Rb3 O2 6 7 107.96(9) no
+    O8 Rb3 O2 . 7 171.90(9) no
+    O8 Rb3 O2 4 7 53.62(9) no
+    O1 Rb3 O2 5_545 7 110.15(9) no
+    O1 Rb3 O2 8_545 7 48.12(9) no
+    O4 Rb3 O2 . 7 113.06(6) no
+    O5 Rb3 O2 . 7 105.88(6) no
+    O6 Rb3 O2 7 6 107.96(9) no
+    O6 Rb3 O2 6 6 51.67(9) no
+    O8 Rb3 O2 . 6 53.62(9) no
+    O8 Rb3 O2 4 6 171.90(9) no
+    O1 Rb3 O2 5_545 6 48.12(9) no
+    O1 Rb3 O2 8_545 6 110.15(9) no
+    O4 Rb3 O2 . 6 113.06(6) no
+    O5 Rb3 O2 . 6 105.88(6) no
+    O2 Rb3 O2 7 6 133.72(11) no
+    O6 Rb3 Rb2 7 5_545 142.52(7) no
+    O6 Rb3 Rb2 6 5_545 142.52(7) no
+    O8 Rb3 Rb2 . 5_545 91.51(8) no
+    O8 Rb3 Rb2 4 5_545 91.51(8) no
+    O1 Rb3 Rb2 5_545 5_545 45.99(8) no
+    O1 Rb3 Rb2 8_545 5_545 45.99(8) no
+    O4 Rb3 Rb2 . 5_545 81.04(10) no
+    O5 Rb3 Rb2 . 5_545 131.69(10) no
+    O2 Rb3 Rb2 7 5_545 91.65(5) no
+    O2 Rb3 Rb2 6 5_545 91.65(5) no
+    O6 Rb3 Mo2 7 . 96.57(8) no
+    O6 Rb3 Mo2 6 . 96.57(8) no
+    O8 Rb3 Mo2 . . 60.23(8) no
+    O8 Rb3 Mo2 4 . 60.23(8) no
+    O1 Rb3 Mo2 5_545 . 129.22(8) no
+    O1 Rb3 Mo2 8_545 . 129.22(8) no
+    O4 Rb3 Mo2 . . 24.51(10) no
+    O5 Rb3 Mo2 . . 26.15(9) no
+    O2 Rb3 Mo2 7 . 111.71(5) no
+    O2 Rb3 Mo2 6 . 111.71(5) no
+    Rb2 Rb3 Mo2 5_545 . 105.55(2) no
+    O4 Rb4 O6 . 6_554 137.20(10) no
+    O4 Rb4 O6 . 7_554 137.20(10) no
+    O6 Rb4 O6 6_554 7_554 58.27(14) no
+    O4 Rb4 O7 . 4 60.83(10) no
+    O6 Rb4 O7 6_554 4 161.54(10) no
+    O6 Rb4 O7 7_554 4 113.26(10) no
+    O4 Rb4 O7 . . 60.83(10) no
+    O6 Rb4 O7 6_554 . 113.26(10) no
+    O6 Rb4 O7 7_554 . 161.54(10) no
+    O7 Rb4 O7 4 . 69.30(14) no
+    O4 Rb4 O2 . 4 57.92(7) no
+    O6 Rb4 O2 6_554 4 132.73(10) no
+    O6 Rb4 O2 7_554 4 83.34(9) no
+    O7 Rb4 O2 4 4 55.16(9) no
+    O7 Rb4 O2 . 4 110.89(10) no
+    O4 Rb4 O2 . . 57.92(7) no
+    O6 Rb4 O2 6_554 . 83.34(9) no
+    O6 Rb4 O2 7_554 . 132.73(10) no
+    O7 Rb4 O2 4 . 110.89(10) no
+    O7 Rb4 O2 . . 55.16(9) no
+    O2 Rb4 O2 4 . 109.36(12) no
+    O4 Rb4 O5 . 5_544 115.59(14) no
+    O6 Rb4 O5 6_554 5_544 96.35(11) no
+    O6 Rb4 O5 7_554 5_544 96.35(11) no
+    O7 Rb4 O5 4 5_544 67.22(10) no
+    O7 Rb4 O5 . 5_544 67.22(10) no
+    O2 Rb4 O5 4 5_544 115.82(7) no
+    O2 Rb4 O5 . 5_544 115.82(7) no
+    O4 Rb4 O8 . 6_554 108.01(6) no
+    O6 Rb4 O8 6_554 6_554 49.24(9) no
+    O6 Rb4 O8 7_554 6_554 105.68(10) no
+    O7 Rb4 O8 4 6_554 129.80(9) no
+    O7 Rb4 O8 . 6_554 64.03(9) no
+    O2 Rb4 O8 4 6_554 162.72(9) no
+    O2 Rb4 O8 . 6_554 53.68(8) no
+    O5 Rb4 O8 5_544 6_554 78.40(7) no
+    O4 Rb4 O8 . 7_554 108.01(6) no
+    O6 Rb4 O8 6_554 7_554 105.68(10) no
+    O6 Rb4 O8 7_554 7_554 49.24(9) no
+    O7 Rb4 O8 4 7_554 64.03(9) no
+    O7 Rb4 O8 . 7_554 129.80(9) no
+    O2 Rb4 O8 4 7_554 53.68(8) no
+    O2 Rb4 O8 . 7_554 162.72(9) no
+    O5 Rb4 O8 5_544 7_554 78.40(7) no
+    O8 Rb4 O8 6_554 7_554 142.90(13) no
+    O4 Rb4 Mo3 . 4 51.63(3) no
+    O6 Rb4 Mo3 6_554 4 159.84(7) no
+    O6 Rb4 Mo3 7_554 4 102.62(7) no
+    O7 Rb4 Mo3 4 4 26.45(6) no
+    O7 Rb4 Mo3 . 4 86.89(7) no
+    O2 Rb4 Mo3 4 4 29.10(6) no
+    O2 Rb4 Mo3 . 4 109.47(7) no
+    O5 Rb4 Mo3 5_544 4 91.93(7) no
+    O8 Rb4 Mo3 6_554 4 150.90(7) no
+    O8 Rb4 Mo3 7_554 4 58.07(6) no
+    O4 Rb4 Mo3 . . 51.63(3) no
+    O6 Rb4 Mo3 6_554 . 102.62(7) no
+    O6 Rb4 Mo3 7_554 . 159.84(7) no
+    O7 Rb4 Mo3 4 . 86.89(7) no
+    O7 Rb4 Mo3 . . 26.45(6) no
+    O2 Rb4 Mo3 4 . 109.47(7) no
+    O2 Rb4 Mo3 . . 29.10(6) no
+    O5 Rb4 Mo3 5_544 . 91.93(7) no
+    O8 Rb4 Mo3 6_554 . 58.07(6) no
+    O8 Rb4 Mo3 7_554 . 150.90(7) no
+    Mo3 Rb4 Mo3 4 . 95.42(2) no
+    O1 Mo1 O1 2_565 . 102.7(3) no
+    O1 Mo1 O2 2_565 2_565 96.46(16) no
+    O1 Mo1 O2 . 2_565 99.80(16) no
+    O1 Mo1 O2 2_565 . 99.80(16) no
+    O1 Mo1 O2 . . 96.46(16) no
+    O2 Mo1 O2 2_565 . 153.8(2) no
+    O1 Mo1 O3 2_565 . 169.55(19) no
+    O1 Mo1 O3 . . 87.10(17) no
+    O2 Mo1 O3 2_565 . 78.09(14) no
+    O2 Mo1 O3 . . 82.42(14) no
+    O1 Mo1 O3 2_565 2_565 87.10(17) no
+    O1 Mo1 O3 . 2_565 169.55(19) no
+    O2 Mo1 O3 2_565 2_565 82.42(14) no
+    O2 Mo1 O3 . 2_565 78.09(14) no
+    O3 Mo1 O3 . 2_565 83.4(2) no
+    O1 Mo1 Rb3 2_565 5_554 122.68(15) no
+    O1 Mo1 Rb3 . 5_554 41.17(14) no
+    O2 Mo1 Rb3 2_565 5_554 63.15(10) no
+    O2 Mo1 Rb3 . 5_554 121.92(10) no
+    O3 Mo1 Rb3 . 5_554 62.97(10) no
+    O3 Mo1 Rb3 2_565 5_554 135.14(10) no
+    O1 Mo1 Rb3 2_565 6_554 41.17(14) no
+    O1 Mo1 Rb3 . 6_554 122.68(15) no
+    O2 Mo1 Rb3 2_565 6_554 121.92(10) no
+    O2 Mo1 Rb3 . 6_554 63.15(10) no
+    O3 Mo1 Rb3 . 6_554 135.14(10) no
+    O3 Mo1 Rb3 2_565 6_554 62.97(10) no
+    Rb3 Mo1 Rb3 5_554 6_554 160.39(3) no
+    O4 Mo2 O5 . . 110.6(3) no
+    O4 Mo2 O3 . . 109.02(15) no
+    O5 Mo2 O3 . . 107.10(17) no
+    O4 Mo2 O3 . 4 109.02(15) no
+    O5 Mo2 O3 . 4 107.10(17) no
+    O3 Mo2 O3 . 4 114.0(3) no
+    O4 Mo2 Rb1 . 3_565 104.35(11) no
+    O5 Mo2 Rb1 . 3_565 53.434(19) no
+    O3 Mo2 Rb1 . 3_565 146.00(12) no
+    O3 Mo2 Rb1 4 3_565 58.91(14) no
+    O4 Mo2 Rb1 . . 104.35(11) no
+    O5 Mo2 Rb1 . . 53.434(19) no
+    O3 Mo2 Rb1 . . 58.91(14) no
+    O3 Mo2 Rb1 4 . 146.00(12) no
+    Rb1 Mo2 Rb1 3_565 . 106.67(3) no
+    O4 Mo2 Rb3 . . 47.2(2) no
+    O5 Mo2 Rb3 . . 63.3(2) no
+    O3 Mo2 Rb3 . . 122.80(12) no
+    O3 Mo2 Rb3 4 . 122.80(12) no
+    Rb1 Mo2 Rb3 3_565 . 76.665(15) no
+    Rb1 Mo2 Rb3 . . 76.665(15) no
+    O4 Mo2 Rb4 . 5 166.7(2) no
+    O5 Mo2 Rb4 . 5 56.2(2) no
+    O3 Mo2 Rb4 . 5 77.46(12) no
+    O3 Mo2 Rb4 4 5 77.46(12) no
+    Rb1 Mo2 Rb4 3_565 5 68.538(13) no
+    Rb1 Mo2 Rb4 . 5 68.538(13) no
+    Rb3 Mo2 Rb4 . 5 119.49(3) no
+    O4 Mo2 Rb4 . . 34.05(19) no
+    O5 Mo2 Rb4 . . 144.6(2) no
+    O3 Mo2 Rb4 . . 91.46(13) no
+    O3 Mo2 Rb4 4 . 91.46(13) no
+    Rb1 Mo2 Rb4 3_565 . 120.637(13) no
+    Rb1 Mo2 Rb4 . . 120.637(13) no
+    Rb3 Mo2 Rb4 . . 81.30(2) no
+    Rb4 Mo2 Rb4 5 . 159.21(3) no
+    O4 Mo2 Rb3 . 5_554 120.83(19) no
+    O5 Mo2 Rb3 . 5_554 128.6(2) no
+    O3 Mo2 Rb3 . 5_554 57.20(13) no
+    O3 Mo2 Rb3 4 5_554 57.20(13) no
+    Rb1 Mo2 Rb3 3_565 5_554 109.844(16) no
+    Rb1 Mo2 Rb3 . 5_554 109.844(16) no
+    Rb3 Mo2 Rb3 . 5_554 168.08(3) no
+    Rb4 Mo2 Rb3 5 5_554 72.428(18) no
+    Rb4 Mo2 Rb3 . 5_554 86.78(2) no
+    O6 Mo3 O7 . . 107.08(18) no
+    O6 Mo3 O8 . . 107.1(2) no
+    O7 Mo3 O8 . . 111.62(19) no
+    O6 Mo3 O2 . . 109.72(16) no
+    O7 Mo3 O2 . . 107.63(17) no
+    O8 Mo3 O2 . . 113.47(16) no
+    O6 Mo3 Rb4 . . 131.19(14) no
+    O7 Mo3 Rb4 . . 52.91(13) no
+    O8 Mo3 Rb4 . . 121.50(14) no
+    O2 Mo3 Rb4 . . 55.73(10) no
+    O6 Mo3 Rb3 . . 131.09(13) no
+    O7 Mo3 Rb3 . . 67.50(13) no
+    O8 Mo3 Rb3 . . 45.43(14) no
+    O2 Mo3 Rb3 . . 118.30(10) no
+    Rb4 Mo3 Rb3 . . 86.109(14) no
+    O6 Mo3 Rb3 . 6_554 43.65(13) no
+    O7 Mo3 Rb3 . 6_554 115.38(13) no
+    O8 Mo3 Rb3 . 6_554 130.25(14) no
+    O2 Mo3 Rb3 . 6_554 66.41(10) no
+    Rb4 Mo3 Rb3 . 6_554 99.77(2) no
+    Rb3 Mo3 Rb3 . 6_554 174.05(2) no
+    O6 Mo3 Rb1 . 5_544 69.51(14) no
+    O7 Mo3 Rb1 . 5_544 43.51(13) no
+    O8 Mo3 Rb1 . 5_544 144.18(13) no
+    O2 Mo3 Rb1 . 5_544 100.50(10) no
+    Rb4 Mo3 Rb1 . 5_544 68.824(19) no
+    Rb3 Mo3 Rb1 . 5_544 108.507(18) no
+    Rb3 Mo3 Rb1 6_554 5_544 73.140(17) no
+    O6 Mo3 Rb4 . 6 45.71(14) no
+    O7 Mo3 Rb4 . 6 126.99(13) no
+    O8 Mo3 Rb4 . 6 61.64(14) no
+    O2 Mo3 Rb4 . 6 123.54(10) no
+    Rb4 Mo3 Rb4 . 6 176.85(2) no
+    Rb3 Mo3 Rb4 . 6 96.72(2) no
+    Rb3 Mo3 Rb4 6_554 6 77.378(13) no
+    Rb1 Mo3 Rb4 5_544 6 108.838(17) no
+    O6 Mo3 Rb1 . . 105.68(14) no
+    O7 Mo3 Rb1 . . 137.72(13) no
+    O8 Mo3 Rb1 . . 31.67(13) no
+    O2 Mo3 Rb1 . . 85.29(10) no
+    Rb4 Mo3 Rb1 . . 117.433(19) no
+    Rb3 Mo3 Rb1 . . 70.939(17) no
+    Rb3 Mo3 Rb1 6_554 . 106.737(15) no
+    Rb1 Mo3 Rb1 5_544 . 173.41(3) no
+    Rb4 Mo3 Rb1 6 . 64.991(16) no
+    O6 Mo3 Rb2 . 6 23.85(13) no
+    O7 Mo3 Rb2 . 6 85.20(13) no
+    O8 Mo3 Rb2 . 6 107.92(13) no
+    O2 Mo3 Rb2 . 6 127.11(10) no
+    Rb4 Mo3 Rb2 . 6 123.16(2) no
+    Rb3 Mo3 Rb2 . 6 114.04(2) no
+    Rb3 Mo3 Rb2 6_554 6 61.945(16) no
+    Rb1 Mo3 Rb2 5_544 6 54.523(12) no
+    Rb4 Mo3 Rb2 6 6 54.373(17) no
+    Rb1 Mo3 Rb2 . 6 119.363(18) no
+    Mo1 O1 Rb2 . . 158.2(2) no
+    Mo1 O1 Rb3 . 5_554 117.03(19) no
+    Rb2 O1 Rb3 . 5_554 84.23(10) no
+    Mo3 O2 Mo1 . . 144.4(2) no
+    Mo3 O2 Rb4 . . 95.18(12) no
+    Mo1 O2 Rb4 . . 117.41(14) no
+    Mo3 O2 Rb3 . 6_554 85.53(11) no
+    Mo1 O2 Rb3 . 6_554 88.77(11) no
+    Rb4 O2 Rb3 . 6_554 121.67(10) no
+    Mo2 O3 Mo1 . . 135.9(2) no
+    Mo2 O3 Rb1 . . 92.20(16) no
+    Mo1 O3 Rb1 . . 109.69(13) no
+    Mo2 O4 Rb4 . . 126.8(3) no
+    Mo2 O4 Rb3 . . 108.2(3) no
+    Rb4 O4 Rb3 . . 124.92(16) no
+    Mo2 O5 Rb2 . 1_556 174.1(3) no
+    Mo2 O5 Rb1 . 3_565 98.96(11) no
+    Rb2 O5 Rb1 1_556 3_565 81.39(11) no
+    Mo2 O5 Rb1 . . 98.96(11) no
+    Rb2 O5 Rb1 1_556 . 81.39(11) no
+    Rb1 O5 Rb1 3_565 . 161.2(2) no
+    Mo2 O5 Rb4 . 5 99.4(3) no
+    Rb2 O5 Rb4 1_556 5 86.55(14) no
+    Rb1 O5 Rb4 3_565 5 85.70(11) no
+    Rb1 O5 Rb4 . 5 85.70(11) no
+    Mo2 O5 Rb3 . . 90.5(2) no
+    Rb2 O5 Rb3 1_556 . 83.58(16) no
+    Rb1 O5 Rb3 3_565 . 92.81(12) no
+    Rb1 O5 Rb3 . . 92.81(12) no
+    Rb4 O5 Rb3 5 . 170.13(19) no
+    Mo3 O6 Rb2 . 6 142.0(2) no
+    Mo3 O6 Rb3 . 6_554 112.61(17) no
+    Rb2 O6 Rb3 6 6_554 95.02(11) no
+    Mo3 O6 Rb4 . 6 110.55(19) no
+    Rb2 O6 Rb4 6 6 80.53(9) no
+    Rb3 O6 Rb4 6_554 6 111.51(12) no
+    Mo3 O7 Rb2 . 5_545 156.9(2) no
+    Mo3 O7 Rb1 . 5_544 112.96(17) no
+    Rb2 O7 Rb1 5_545 5_544 82.62(9) no
+    Mo3 O7 Rb4 . . 100.64(15) no
+    Rb2 O7 Rb4 5_545 . 95.15(11) no
+    Rb1 O7 Rb4 5_544 . 93.06(11) no
+    Mo3 O8 Rb1 . . 129.91(19) no
+    Mo3 O8 Rb3 . . 110.23(18) no
+    Rb1 O8 Rb3 . . 107.41(13) no
+    Mo3 O8 Rb4 . 6 92.79(15) no
+    Rb1 O8 Rb4 . 6 86.45(10) no
+    Rb3 O8 Rb4 . 6 131.03(12) no
+data_II
+_audit_creation_method     SHELXL97
+_chemical_name_systematic
+;
+dicaesium heptaoxodimolybdate
+;
+_chemical_name_common     ?
+_chemical_formula_moiety     'Mo2 O7 , 2Cs'
+_chemical_formula_sum     'Cs2 Mo2 O7'
+_chemical_formula_iupac     'Cs2 Mo2 O7'
+_chemical_formula_weight     569.70
+_chemical_melting_point     ?
+_symmetry_cell_setting     Monoclinic
+_symmetry_space_group_name_H-M     'P 21/c'
+_symmetry_space_group_name_Hall     '-P 2ybc'
+loop_
+    _symmetry_equiv_pos_as_xyz
+    'x, y, z'
+    '-x, y+1/2, -z+1/2'
+    '-x, -y, -z'
+    'x, -y-1/2, z-1/2'
+_cell_length_a     15.5580(5)
+_cell_length_b     15.1794(5)
+_cell_length_c     7.2252(2)
+_cell_angle_alpha     90.00
+_cell_angle_beta     90.0059(11)
+_cell_angle_gamma     90.00
+_cell_volume     1706.31(9)
+_cell_formula_units_Z     8
+_cell_measurement_reflns_used     5301
+_cell_measurement_theta_min     2.42
+_cell_measurement_theta_max     34.51
+_cell_measurement_temperature     293(2)
+_exptl_crystal_description     fragment
+_exptl_crystal_colour     colourless
+_exptl_crystal_size_max     0.16
+_exptl_crystal_size_mid     0.13
+_exptl_crystal_size_min     0.10
+_exptl_crystal_density_diffrn     4.435
+_exptl_crystal_density_meas     ?
+_exptl_crystal_density_method     'not measured'
+_exptl_crystal_F_000     2000
+_exptl_absorpt_coefficient_mu     11.340
+_exptl_absorpt_correction_type     multi-scan
+_exptl_absorpt_process_details     '(SADABS; Bruker, 2004)'
+_exptl_absorpt_correction_T_min     0.2641
+_exptl_absorpt_correction_T_max     0.3968
+_exptl_special_details
+;
+ ?
+;
+_diffrn_ambient_temperature     293(2)
+_diffrn_radiation_type     MoK\a
+_diffrn_radiation_wavelength     0.71073
+_diffrn_radiation_source     'fine-focus sealed X-ray tube'
+_diffrn_radiation_monochromator     graphite
+_diffrn_measurement_device_type     'Bruker Nonius X8 APEX CCD area-detector'
+_diffrn_measurement_method     '\f scans, frame data integration'
+_diffrn_detector_area_resol_mean     ?
+_diffrn_reflns_number     21380
+_diffrn_reflns_av_R_equivalents     0.0280
+_diffrn_reflns_av_sigmaI/netI     0.0353
+_diffrn_reflns_theta_min     1.31
+_diffrn_reflns_theta_max     36.31
+_diffrn_reflns_theta_full     36.31
+_diffrn_measured_fraction_theta_max     0.989
+_diffrn_measured_fraction_theta_full     0.989
+_diffrn_reflns_limit_h_min     -25
+_diffrn_reflns_limit_h_max     18
+_diffrn_reflns_limit_k_min     -19
+_diffrn_reflns_limit_k_max     25
+_diffrn_reflns_limit_l_min     -12
+_diffrn_reflns_limit_l_max     8
+_diffrn_standards_number     0
+_diffrn_standards_interval_count     ?
+_diffrn_standards_interval_time     ?
+_diffrn_standards_decay_%     0
+_refine_special_details
+;
+ Refinement of F^2^ against ALL reflections.  The weighted R-factor wR and
+ goodness of fit S are based on F^2^, conventional R-factors R are based
+ on F, with F set to zero for negative F^2^. The threshold expression of
+ F^2^ > 2sigma(F^2^) is used only for calculating R-factors(gt) etc. and is
+ not relevant to the choice of reflections for refinement.  R-factors based
+ on F^2^ are statistically about twice as large as those based on F, and R-
+ factors based on ALL data will be even larger.
+;
+_reflns_number_total     8167
+_reflns_number_gt     7405
+_reflns_threshold_expression     I>2\s(I)
+_refine_ls_structure_factor_coef     Fsqd
+_refine_ls_matrix_type     full
+_refine_ls_R_factor_all     0.0330
+_refine_ls_R_factor_gt     0.0282
+_refine_ls_wR_factor_gt     0.0561
+_refine_ls_wR_factor_ref     0.0582
+_refine_ls_goodness_of_fit_ref     1.067
+_refine_ls_restrained_S_all     1.067
+_refine_ls_number_reflns     8167
+_refine_ls_number_parameters     201
+_refine_ls_number_restraints     0
+_refine_ls_hydrogen_treatment     .
+_refine_ls_weighting_scheme     calc
+_refine_ls_weighting_details
+                'calc w = 1/[\s^2^(Fo^2^)+(0.009P)^2^] where P=(Fo^2^+2Fc^2^)/3'
+_atom_sites_solution_hydrogens     .
+_atom_sites_solution_primary     direct
+_atom_sites_solution_secondary     difmap
+_refine_ls_shift/su_max     0.001
+_refine_ls_shift/su_mean     0.000
+_refine_diff_density_max     1.523
+_refine_diff_density_min     -1.475
+_refine_ls_extinction_method     'SHELXL97 (Sheldrick, 1997)'
+_refine_ls_extinction_coef     0.00018(3)
+_refine_ls_extinction_expression
+                                  'Fc^*^=kFc[1+0.001xFc^2^\l^3^/sin(2\q)]^-1/4^'
+loop_
+    _atom_type_symbol
+    _atom_type_description
+    _atom_type_scat_dispersion_real
+    _atom_type_scat_dispersion_imag
+    _atom_type_scat_source
+    'Li' 'Li' -0.0003 0.0001
+                         'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4'
+    'O' 'O' 0.0106 0.0060
+                         'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4'
+    'Zn' 'Zn' 0.2839 1.4301
+                         'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4'
+    'Rb' 'Rb' -0.9393 2.9676
+                         'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4'
+    'Mo' 'Mo' -1.6832 0.6857
+                         'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4'
+_computing_data_collection     'SMART (Bruker, 2004)'
+_computing_cell_refinement     'SMART'
+_computing_data_reduction     'SAINT (Bruker, 2004)'
+_computing_structure_solution     'SHELXS97 (Sheldrick, 1997)'
+_computing_structure_refinement     'SHELXL97 (Sheldrick, 1997)'
+_computing_molecular_graphics     'BS (Ozawa & Kang, 2004)'
+_computing_publication_material     'SHELXL97'
+loop_
+    _atom_site_type_symbol
+    _atom_site_label
+    _atom_site_fract_x
+    _atom_site_fract_y
+    _atom_site_fract_z
+    _atom_site_U_iso_or_equiv
+    _atom_site_adp_type
+    _atom_site_calc_flag
+    _atom_site_refinement_flags
+    _atom_site_occupancy
+    _atom_site_disorder_assembly
+    _atom_site_disorder_group
+    Cs Cs1 0.305713(17) 0.488134(17) 0.71413(4) 0.02378(6) Uani d . 1 . .
+    Cs Cs2 0.16855(2) 0.511854(17) 0.22599(4) 0.02549(6) Uani d . 1 . .
+    Cs Cs3 0.05951(2) 0.317975(18) 0.71214(5) 0.03001(7) Uani d . 1 . .
+    Cs Cs4 0.542116(19) 0.331208(18) 0.78093(5) 0.02846(6) Uani d . 1 . .
+    Mo Mo1 0.28731(2) 0.25051(2) 0.48632(4) 0.01324(5) Uani d . 1 . .
+    Mo Mo2 0.421384(19) 0.40626(2) 0.24720(4) 0.01540(6) Uani d . 1 . .
+    Mo Mo3 0.226402(19) 0.75416(2) 0.50724(4) 0.01281(6) Uani d . 1 . .
+    Mo Mo4 0.076127(19) 0.60920(2) 0.76033(4) 0.01473(6) Uani d . 1 . .
+    O O1 0.2063(2) 0.1769(2) 0.5235(5) 0.0300(8) Uani d . 1 . .
+    O O2 0.2317(2) 0.3463(2) 0.4408(4) 0.0248(7) Uani d . 1 . .
+    O O3 0.31550(17) 0.21878(17) 0.2381(4) 0.0184(5) Uani d . 1 . .
+    O O4 0.3834(2) 0.1480(2) 0.5429(4) 0.0277(8) Uani d . 1 . .
+    O O5 0.4139(2) 0.3329(2) 0.4401(4) 0.0236(7) Uani d . 1 . .
+    O O6 0.5267(2) 0.4371(3) 0.2068(6) 0.0511(11) Uani d . 1 . .
+    O O7 0.3609(2) 0.5009(2) 0.2916(6) 0.0389(9) Uani d . 1 . .
+    O O8 0.3192(2) 0.6964(2) 0.5405(5) 0.0264(7) Uani d . 1 . .
+    O O9 0.2631(2) 0.8578(2) 0.4539(4) 0.0267(7) Uani d . 1 . .
+    O O10 0.19872(17) 0.78356(17) 0.7593(4) 0.0178(5) Uani d . 1 . .
+    O O11 0.1458(2) 0.6401(2) 0.5747(4) 0.0232(6) Uani d . 1 . .
+    O O12 0.0861(2) 0.8208(2) 0.4564(4) 0.0226(6) Uani d . 1 . .
+    O O13 -0.0284(2) 0.6175(2) 0.6776(5) 0.0321(8) Uani d . 1 . .
+    O O14 0.0987(3) 0.50124(19) 0.8239(5) 0.0321(8) Uani d . 1 . .
+loop_
+    _atom_site_aniso_label
+    _atom_site_aniso_U_11
+    _atom_site_aniso_U_22
+    _atom_site_aniso_U_33
+    _atom_site_aniso_U_12
+    _atom_site_aniso_U_13
+    _atom_site_aniso_U_23
+    Cs1 0.02287(11) 0.02133(11) 0.02713(13) 0.00009(9) 0.00106(11) -0.00772(10)
+    Cs2 0.03514(13) 0.02007(11) 0.02125(12) -0.00143(10) -0.00264(12)
+                                                                     0.00327(10)
+    Cs3 0.03963(15) 0.02490(13) 0.02551(14) -0.00782(11) 0.00071(13)
+                                                                    -0.00070(11)
+    Cs4 0.02705(12) 0.03026(13) 0.02806(13) -0.00301(10) 0.00353(12) 0.00190(12)
+    Mo1 0.01830(12) 0.01333(12) 0.00811(12) -0.00066(14) -0.00024(11)
+                                                                     0.00040(10)
+    Mo2 0.01524(12) 0.01767(13) 0.01330(15) -0.00410(10) 0.00006(12)
+                                                                    -0.00122(11)
+    Mo3 0.01669(12) 0.01299(12) 0.00874(13) -0.00161(13) 0.00128(12) 0.00047(10)
+    Mo4 0.01627(12) 0.01514(13) 0.01277(14) -0.00185(10) 0.00015(12) 0.00165(11)
+    O1 0.0359(19) 0.0309(18) 0.0232(16) -0.0178(16) 0.0004(14) -0.0006(13)
+    O2 0.0280(17) 0.0256(16) 0.0208(15) 0.0079(13) -0.0018(13) -0.0010(12)
+    O3 0.0313(14) 0.0162(12) 0.0076(11) 0.0009(10) -0.0004(11) 0.0005(9)
+    O4 0.043(2) 0.0266(17) 0.0137(13) 0.0166(15) -0.0050(13) -0.0009(12)
+    O5 0.0245(16) 0.0322(17) 0.0142(13) -0.0053(14) -0.0069(12) 0.0015(12)
+    O6 0.0252(17) 0.087(3) 0.041(2) -0.0181(19) -0.0038(18) 0.015(2)
+    O7 0.048(2) 0.0212(15) 0.047(2) 0.0039(14) 0.017(2) -0.0015(16)
+    O8 0.0212(15) 0.0359(18) 0.0220(15) 0.0085(13) -0.0004(12) -0.0008(14)
+    O9 0.039(2) 0.0215(15) 0.0193(14) -0.0109(14) 0.0072(14) -0.0003(12)
+    O10 0.0260(13) 0.0165(12) 0.0108(12) 0.0015(10) -0.0007(11) 0.0006(10)
+    O11 0.0326(17) 0.0208(14) 0.0162(14) -0.0089(13) 0.0061(12) -0.0016(11)
+    O12 0.0242(15) 0.0284(16) 0.0152(13) 0.0041(13) 0.0020(11) 0.0028(11)
+    O13 0.0212(15) 0.0427(19) 0.0323(18) -0.0049(14) -0.0093(14) -0.0029(15)
+    O14 0.052(2) 0.0155(14) 0.0290(17) -0.0009(14) -0.0032(17) 0.0038(12)
+_geom_special_details
+;
+ All esds (except the esd in the dihedral angle between two l.s. planes)
+ are estimated using the full covariance matrix.  The cell esds are taken
+ into account individually in the estimation of esds in distances, angles
+ and torsion angles; correlations between esds in cell parameters are only
+ used when they are defined by crystal symmetry.  An approximate (isotropic)
+ treatment of cell esds is used for estimating esds involving l.s. planes.
+;
+loop_
+    _geom_bond_atom_site_label_1
+    _geom_bond_atom_site_label_2
+    _geom_bond_site_symmetry_2
+    _geom_bond_distance
+    _geom_bond_publ_flag
+    Cs1 O6 3_666 2.900(3) yes
+    Cs1 O9 4_576 2.985(3) yes
+    Cs1 O2 . 3.140(3) yes
+    Cs1 O3 4_566 3.149(3) yes
+    Cs1 O7 . 3.177(4) yes
+    Cs1 O14 . 3.323(4) yes
+    Cs1 O4 4_566 3.372(3) yes
+    Cs1 O8 . 3.408(4) yes
+    Cs1 O5 . 3.508(3) yes
+    Cs1 O11 . 3.539(3) yes
+    Cs1 O1 4_566 3.697(4) yes
+    Cs1 Mo1 . 3.9751(5) no
+    Cs2 O13 3_566 3.016(3) yes
+    Cs2 O7 . 3.035(4) yes
+    Cs2 O14 1_554 3.106(4) yes
+    Cs2 O2 . 3.113(3) yes
+    Cs2 O10 4_575 3.150(3) yes
+    Cs2 O9 4_575 3.153(3) yes
+    Cs2 O11 . 3.204(3) yes
+    Cs2 O1 4_565 3.270(3) yes
+    Cs2 O12 4_575 3.449(3) yes
+    Cs2 Mo4 1_554 3.9458(4) no
+    Cs2 Mo3 4_575 3.9904(4) no
+    Cs3 O14 . 2.960(3) yes
+    Cs3 O13 3_566 3.020(3) yes
+    Cs3 O13 2_546 3.182(3) yes
+    Cs3 O1 4_566 3.206(4) yes
+    Cs3 O12 2_546 3.296(3) yes
+    Cs3 O12 3_566 3.324(3) yes
+    Cs3 O2 . 3.347(3) yes
+    Cs3 O1 . 3.414(4) yes
+    Cs3 Mo4 2_546 3.8126(4) no
+    Cs3 Mo1 . 4.0340(5) no
+    Cs3 Cs3 4_565 4.1605(3) no
+    Cs3 Cs3 4_566 4.1605(3) no
+    Cs4 O7 3_666 3.007(3) yes
+    Cs4 O4 4_566 3.128(4) yes
+    Cs4 O5 . 3.169(3) yes
+    Cs4 O8 3_666 3.197(3) yes
+    Cs4 O8 2_646 3.241(3) yes
+    Cs4 O5 4_566 3.392(3) yes
+    Cs4 O6 1_556 3.480(4) yes
+    Cs4 O9 2_646 3.608(4) yes
+    Cs4 O3 4_566 3.620(3) yes
+    Cs4 O6 3_666 3.677(5) yes
+    Cs4 Mo2 1_556 4.0221(5) no
+    Cs4 Mo2 3_666 4.0305(4) no
+    Mo1 O1 . 1.706(3) yes
+    Mo1 O2 . 1.724(3) yes
+    Mo1 O3 . 1.908(3) yes
+    Mo1 O3 4_566 1.928(3) yes
+    Mo1 O4 . 2.196(3) yes
+    Mo1 O5 . 2.356(3) yes
+    Mo1 Cs1 4_565 4.1318(5) no
+    Mo1 Cs3 4_565 4.1911(5) no
+    Mo1 Cs4 4_565 4.4110(5) no
+    Mo2 O6 . 1.729(3) yes
+    Mo2 O7 . 1.747(3) yes
+    Mo2 O5 . 1.788(3) yes
+    Mo2 O4 4_565 1.791(3) yes
+    Mo2 Cs4 1_554 4.0221(5) no
+    Mo2 Cs4 3_666 4.0305(4) no
+    Mo2 Cs4 4_565 4.0719(4) no
+    Mo2 Cs1 1_554 4.4290(4) no
+    Mo3 O8 . 1.706(3) yes
+    Mo3 O9 . 1.718(3) yes
+    Mo3 O10 . 1.924(3) yes
+    Mo3 O10 4_575 1.929(3) yes
+    Mo3 O11 . 2.192(3) yes
+    Mo3 O12 . 2.434(3) yes
+    Mo3 Cs2 4_576 3.9904(4) no
+    Mo3 Cs4 2_656 4.0840(4) no
+    Mo3 Cs4 3_666 4.3573(4) no
+    Mo4 O13 . 1.737(3) yes
+    Mo4 O14 . 1.738(3) yes
+    Mo4 O12 4_576 1.778(3) yes
+    Mo4 O11 . 1.788(3) yes
+    Mo4 Cs3 2_556 3.8126(4) no
+    Mo4 Cs2 1_556 3.9458(4) no
+    Mo4 Cs3 3_566 4.1626(5) no
+    Mo4 Cs2 3_566 4.2281(4) no
+    Mo4 Cs3 3_567 4.4949(5) no
+    O1 Cs3 4_565 3.206(4) no
+    O1 Cs2 4_566 3.270(3) no
+    O1 Cs1 4_565 3.697(4) no
+    O3 Mo1 4_565 1.928(3) no
+    O3 Cs1 4_565 3.149(3) no
+    O3 Cs4 4_565 3.620(3) no
+    O4 Mo2 4_566 1.791(3) no
+    O4 Cs4 4_565 3.128(4) no
+    O4 Cs1 4_565 3.372(3) no
+    O5 Cs4 4_565 3.392(3) no
+    O6 Cs1 3_666 2.900(3) no
+    O6 Cs4 1_554 3.480(4) no
+    O6 Cs4 3_666 3.677(5) no
+    O7 Cs4 3_666 3.007(3) no
+    O8 Cs4 3_666 3.197(3) no
+    O8 Cs4 2_656 3.241(3) no
+    O9 Cs1 4_575 2.985(3) no
+    O9 Cs2 4_576 3.153(3) no
+    O9 Cs4 2_656 3.608(4) no
+    O10 Mo3 4_576 1.929(3) no
+    O10 Cs2 4_576 3.150(3) no
+    O12 Mo4 4_575 1.778(3) no
+    O12 Cs3 2_556 3.296(3) no
+    O12 Cs3 3_566 3.324(3) no
+    O12 Cs2 4_576 3.449(3) no
+    O13 Cs2 3_566 3.016(3) no
+    O13 Cs3 3_566 3.020(3) no
+    O13 Cs3 2_556 3.182(3) no
+    O14 Cs2 1_556 3.106(4) no
+loop_
+    _geom_angle_atom_site_label_1
+    _geom_angle_atom_site_label_2
+    _geom_angle_atom_site_label_3
+    _geom_angle_site_symmetry_1
+    _geom_angle_site_symmetry_3
+    _geom_angle
+    _geom_angle_publ_flag
+    O6 Cs1 O9 3_666 4_576 77.22(11) no
+    O6 Cs1 O2 3_666 . 136.20(11) no
+    O9 Cs1 O2 4_576 . 145.15(9) no
+    O6 Cs1 O3 3_666 4_566 109.63(10) no
+    O9 Cs1 O3 4_576 4_566 139.47(8) no
+    O2 Cs1 O3 . 4_566 50.85(7) no
+    O6 Cs1 O7 3_666 . 85.53(11) no
+    O9 Cs1 O7 4_576 . 124.75(8) no
+    O2 Cs1 O7 . . 62.41(9) no
+    O3 Cs1 O7 4_566 . 95.78(7) no
+    O6 Cs1 O14 3_666 . 143.22(10) no
+    O9 Cs1 O14 4_576 . 66.38(9) no
+    O2 Cs1 O14 . . 80.54(9) no
+    O3 Cs1 O14 4_566 . 95.36(7) no
+    O7 Cs1 O14 . . 119.19(9) no
+    O6 Cs1 O4 3_666 4_566 77.23(10) no
+    O9 Cs1 O4 4_576 4_566 98.66(8) no
+    O2 Cs1 O4 . 4_566 98.88(8) no
+    O3 Cs1 O4 4_566 4_566 48.15(7) no
+    O7 Cs1 O4 . 4_566 128.12(9) no
+    O14 Cs1 O4 . 4_566 102.47(9) no
+    O6 Cs1 O8 3_666 . 69.75(10) no
+    O9 Cs1 O8 4_576 . 60.05(9) no
+    O2 Cs1 O8 . . 115.29(8) no
+    O3 Cs1 O8 4_566 . 160.47(7) no
+    O7 Cs1 O8 . . 64.72(8) no
+    O14 Cs1 O8 . . 95.29(7) no
+    O4 Cs1 O8 4_566 . 143.67(8) no
+    O6 Cs1 O5 3_666 . 86.73(10) no
+    O9 Cs1 O5 4_576 . 163.85(9) no
+    O2 Cs1 O5 . . 50.23(8) no
+    O3 Cs1 O5 4_566 . 48.53(7) no
+    O7 Cs1 O5 . . 50.88(8) no
+    O14 Cs1 O5 . . 129.78(7) no
+    O4 Cs1 O5 4_566 . 79.28(8) no
+    O8 Cs1 O5 . . 112.70(8) no
+    O6 Cs1 O11 3_666 . 115.64(10) no
+    O9 Cs1 O11 4_576 . 59.90(8) no
+    O2 Cs1 O11 . . 90.58(7) no
+    O3 Cs1 O11 4_566 . 134.41(7) no
+    O7 Cs1 O11 . . 82.92(8) no
+    O14 Cs1 O11 . . 49.28(7) no
+    O4 Cs1 O11 4_566 . 148.40(8) no
+    O8 Cs1 O11 . . 48.23(7) no
+    O5 Cs1 O11 . . 127.92(7) no
+    O6 Cs1 O1 3_666 4_566 121.49(10) no
+    O9 Cs1 O1 4_576 4_566 94.98(8) no
+    O2 Cs1 O1 . 4_566 76.25(9) no
+    O3 Cs1 O1 4_566 4_566 46.46(7) no
+    O7 Cs1 O1 . 4_566 137.36(8) no
+    O14 Cs1 O1 . 4_566 59.38(7) no
+    O4 Cs1 O1 4_566 4_566 46.28(8) no
+    O8 Cs1 O1 . 4_566 151.29(7) no
+    O5 Cs1 O1 . 4_566 94.98(7) no
+    O11 Cs1 O1 . 4_566 108.64(7) no
+    O6 Cs1 Mo1 3_666 . 120.09(9) no
+    O9 Cs1 Mo1 4_576 . 159.26(7) no
+    O2 Cs1 Mo1 . . 24.65(6) no
+    O3 Cs1 Mo1 4_566 . 28.51(5) no
+    O7 Cs1 Mo1 . . 71.16(6) no
+    O14 Cs1 Mo1 . . 94.78(5) no
+    O4 Cs1 Mo1 4_566 . 76.20(5) no
+    O8 Cs1 Mo1 . . 133.93(6) no
+    O5 Cs1 Mo1 . . 36.02(5) no
+    O11 Cs1 Mo1 . . 115.03(5) no
+    O1 Cs1 Mo1 4_566 . 66.76(6) no
+    O13 Cs2 O7 3_566 . 129.89(9) no
+    O13 Cs2 O14 3_566 1_554 85.94(9) no
+    O7 Cs2 O14 . 1_554 119.24(11) no
+    O13 Cs2 O2 3_566 . 65.62(9) no
+    O7 Cs2 O2 . . 64.33(9) no
+    O14 Cs2 O2 1_554 . 122.34(8) no
+    O13 Cs2 O10 3_566 4_575 137.06(8) no
+    O7 Cs2 O10 . 4_575 83.97(8) no
+    O14 Cs2 O10 1_554 4_575 100.07(7) no
+    O2 Cs2 O10 . 4_575 135.30(8) no
+    O13 Cs2 O9 3_566 4_575 152.85(9) no
+    O7 Cs2 O9 . 4_575 70.83(10) no
+    O14 Cs2 O9 1_554 4_575 67.21(9) no
+    O2 Cs2 O9 . 4_575 132.08(9) no
+    O10 Cs2 O9 4_575 4_575 50.18(8) no
+    O13 Cs2 O11 3_566 . 97.72(8) no
+    O7 Cs2 O11 . . 91.10(10) no
+    O14 Cs2 O11 1_554 . 136.76(9) no
+    O2 Cs2 O11 . . 97.66(8) no
+    O10 Cs2 O11 4_575 . 50.00(7) no
+    O9 Cs2 O11 4_575 . 99.24(8) no
+    O13 Cs2 O1 3_566 4_565 70.28(10) no
+    O7 Cs2 O1 . 4_565 81.08(9) no
+    O14 Cs2 O1 1_554 4_565 66.35(8) no
+    O2 Cs2 O1 . 4_565 57.25(9) no
+    O10 Cs2 O1 4_575 4_565 150.60(8) no
+    O9 Cs2 O1 4_575 4_565 100.78(8) no
+    O11 Cs2 O1 . 4_565 154.70(8) no
+    O13 Cs2 O12 3_566 4_575 109.94(8) no
+    O7 Cs2 O12 . 4_575 119.70(9) no
+    O14 Cs2 O12 1_554 4_575 51.67(8) no
+    O2 Cs2 O12 . 4_575 173.58(8) no
+    O10 Cs2 O12 4_575 4_575 51.13(7) no
+    O9 Cs2 O12 4_575 4_575 50.16(8) no
+    O11 Cs2 O12 . 4_575 87.44(8) no
+    O1 Cs2 O12 4_565 4_575 117.36(8) no
+    O13 Cs2 Mo4 3_566 1_554 100.22(6) no
+    O7 Cs2 Mo4 . 1_554 120.87(8) no
+    O14 Cs2 Mo4 1_554 1_554 25.10(5) no
+    O2 Cs2 Mo4 . 1_554 147.40(6) no
+    O10 Cs2 Mo4 4_575 1_554 75.54(5) no
+    O9 Cs2 Mo4 4_575 1_554 53.38(6) no
+    O11 Cs2 Mo4 . 1_554 113.75(6) no
+    O1 Cs2 Mo4 4_565 1_554 90.69(6) no
+    O12 Cs2 Mo4 4_575 1_554 26.76(5) no
+    O13 Cs2 Mo3 3_566 4_575 146.53(6) no
+    O7 Cs2 Mo3 . 4_575 83.57(6) no
+    O14 Cs2 Mo3 1_554 4_575 75.80(6) no
+    O2 Cs2 Mo3 . 4_575 147.66(7) no
+    O10 Cs2 Mo3 4_575 4_575 28.26(5) no
+    O9 Cs2 Mo3 4_575 4_575 24.41(6) no
+    O11 Cs2 Mo3 . 4_575 78.20(5) no
+    O1 Cs2 Mo3 4_565 4_575 124.20(6) no
+    O12 Cs2 Mo3 4_575 4_575 37.31(5) no
+    Mo4 Cs2 Mo3 1_554 4_575 53.925(7) no
+    O13 Cs2 Cs1 3_566 . 96.85(6) no
+    O7 Cs2 Cs1 . . 49.72(8) no
+    O14 Cs2 Cs1 1_554 . 166.70(7) no
+    O2 Cs2 Cs1 . . 48.86(6) no
+    O10 Cs2 Cs1 4_575 . 86.77(5) no
+    O9 Cs2 Cs1 4_575 . 110.20(6) no
+    O11 Cs2 Cs1 . . 55.90(6) no
+    O1 Cs2 Cs1 4_565 . 102.27(6) no
+    O12 Cs2 Cs1 4_575 . 137.50(5) no
+    Mo4 Cs2 Cs1 1_554 . 161.304(9) no
+    Mo3 Cs2 Cs1 4_575 . 107.381(9) no
+    O14 Cs3 O13 . 3_566 89.00(9) no
+    O14 Cs3 O13 . 2_546 149.50(9) no
+    O13 Cs3 O13 3_566 2_546 121.26(9) no
+    O14 Cs3 O1 . 4_566 68.85(9) no
+    O13 Cs3 O1 3_566 4_566 139.50(9) no
+    O13 Cs3 O1 2_546 4_566 87.47(9) no
+    O14 Cs3 O12 . 2_546 86.06(9) no
+    O13 Cs3 O12 3_566 2_546 124.28(8) no
+    O13 Cs3 O12 2_546 2_546 74.09(8) no
+    O1 Cs3 O12 4_566 2_546 88.81(8) no
+    O14 Cs3 O12 . 3_566 146.68(9) no
+    O13 Cs3 O12 3_566 3_566 75.80(8) no
+    O13 Cs3 O12 2_546 3_566 51.85(8) no
+    O1 Cs3 O12 4_566 3_566 139.26(9) no
+    O12 Cs3 O12 2_546 3_566 78.83(8) no
+    O14 Cs3 O2 . . 82.78(10) no
+    O13 Cs3 O2 3_566 . 62.64(8) no
+    O13 Cs3 O2 2_546 . 113.03(8) no
+    O1 Cs3 O2 4_566 . 80.68(9) no
+    O12 Cs3 O2 2_546 . 166.83(8) no
+    O12 Cs3 O2 3_566 . 114.33(8) no
+    O14 Cs3 O1 . . 124.11(10) no
+    O13 Cs3 O1 3_566 . 86.46(9) no
+    O13 Cs3 O1 2_546 . 66.54(8) no
+    O1 Cs3 O1 4_566 . 79.58(8) no
+    O12 Cs3 O1 2_546 . 139.25(8) no
+    O12 Cs3 O1 3_566 . 84.95(8) no
+    O2 Cs3 O1 . . 46.50(8) no
+    O14 Cs3 Mo4 . 2_546 151.75(8) no
+    O13 Cs3 Mo4 3_566 2_546 103.26(6) no
+    O13 Cs3 Mo4 2_546 2_546 26.87(5) no
+    O1 Cs3 Mo4 4_566 2_546 112.19(7) no
+    O12 Cs3 Mo4 2_546 2_546 65.95(6) no
+    O12 Cs3 Mo4 3_566 2_546 27.79(5) no
+    O2 Cs3 Mo4 . 2_546 125.47(6) no
+    O1 Cs3 Mo4 . 2_546 82.51(6) no
+    O14 Cs3 Mo1 . . 99.68(8) no
+    O13 Cs3 Mo1 3_566 . 81.13(6) no
+    O13 Cs3 Mo1 2_546 . 89.55(6) no
+    O1 Cs3 Mo1 4_566 . 70.39(6) no
+    O12 Cs3 Mo1 2_546 . 154.26(6) no
+    O12 Cs3 Mo1 3_566 . 106.83(5) no
+    O2 Cs3 Mo1 . . 24.85(6) no
+    O1 Cs3 Mo1 . . 24.73(6) no
+    Mo4 Cs3 Mo1 2_546 . 107.241(10) no
+    O14 Cs3 Cs3 . 4_565 134.66(7) no
+    O13 Cs3 Cs3 3_566 4_565 49.55(6) no
+    O13 Cs3 Cs3 2_546 4_565 75.11(6) no
+    O1 Cs3 Cs3 4_566 4_565 128.41(6) no
+    O12 Cs3 Cs3 2_546 4_565 129.59(5) no
+    O12 Cs3 Cs3 3_566 4_565 50.77(5) no
+    O2 Cs3 Cs3 . 4_565 63.58(6) no
+    O1 Cs3 Cs3 . 4_565 48.87(6) no
+    Mo4 Cs3 Cs3 2_546 4_565 68.473(9) no
+    Mo1 Cs3 Cs3 . 4_565 61.498(7) no
+    O14 Cs3 Cs3 . 4_566 103.26(7) no
+    O13 Cs3 Cs3 3_566 4_566 166.01(6) no
+    O13 Cs3 Cs3 2_546 4_566 46.24(6) no
+    O1 Cs3 Cs3 4_566 4_566 53.33(7) no
+    O12 Cs3 Cs3 2_546 4_566 51.35(6) no
+    O12 Cs3 Cs3 3_566 4_566 90.22(5) no
+    O2 Cs3 Cs3 . 4_566 124.92(5) no
+    O1 Cs3 Cs3 . 4_566 92.04(6) no
+    Mo4 Cs3 Cs3 2_546 4_566 62.765(9) no
+    Mo1 Cs3 Cs3 . 4_566 103.023(8) no
+    Cs3 Cs3 Cs3 4_565 4_566 120.527(13) no
+    O7 Cs4 O4 3_666 4_566 114.58(9) no
+    O7 Cs4 O5 3_666 . 100.00(10) no
+    O4 Cs4 O5 4_566 . 88.41(9) no
+    O7 Cs4 O8 3_666 3_666 69.28(10) no
+    O4 Cs4 O8 4_566 3_666 170.27(8) no
+    O5 Cs4 O8 . 3_666 82.04(8) no
+    O7 Cs4 O8 3_666 2_646 105.69(9) no
+    O4 Cs4 O8 4_566 2_646 110.39(9) no
+    O5 Cs4 O8 . 2_646 137.17(9) no
+    O8 Cs4 O8 3_666 2_646 75.95(7) no
+    O7 Cs4 O5 3_666 4_566 167.49(9) no
+    O4 Cs4 O5 4_566 4_566 53.45(8) no
+    O5 Cs4 O5 . 4_566 84.20(8) no
+    O8 Cs4 O5 3_666 4_566 123.15(8) no
+    O8 Cs4 O5 2_646 4_566 78.06(8) no
+    O7 Cs4 O6 3_666 1_556 78.31(10) no
+    O4 Cs4 O6 4_566 1_556 50.49(8) no
+    O5 Cs4 O6 . 1_556 129.79(9) no
+    O8 Cs4 O6 3_666 1_556 138.53(8) no
+    O8 Cs4 O6 2_646 1_556 89.16(9) no
+    O5 Cs4 O6 4_566 1_556 89.93(8) no
+    O7 Cs4 O9 3_666 2_646 64.93(10) no
+    O4 Cs4 O9 4_566 2_646 109.31(8) no
+    O5 Cs4 O9 . 2_646 160.12(8) no
+    O8 Cs4 O9 3_666 2_646 80.42(8) no
+    O8 Cs4 O9 2_646 2_646 45.60(8) no
+    O5 Cs4 O9 4_566 2_646 113.35(7) no
+    O6 Cs4 O9 1_556 2_646 62.39(7) no
+    O7 Cs4 O3 3_666 4_566 130.64(8) no
+    O4 Cs4 O3 4_566 4_566 45.87(7) no
+    O5 Cs4 O3 . 4_566 47.32(7) no
+    O8 Cs4 O3 3_666 4_566 124.58(7) no
+    O8 Cs4 O3 2_646 4_566 123.36(7) no
+    O5 Cs4 O3 4_566 4_566 45.74(7) no
+    O6 Cs4 O3 1_556 4_566 96.05(7) no
+    O9 Cs4 O3 2_646 4_566 152.50(7) no
+    O7 Cs4 O6 3_666 3_666 48.69(9) no
+    O4 Cs4 O6 4_566 3_666 70.05(8) no
+    O5 Cs4 O6 . 3_666 80.08(9) no
+    O8 Cs4 O6 3_666 3_666 109.85(9) no
+    O8 Cs4 O6 2_646 3_666 141.99(8) no
+    O5 Cs4 O6 4_566 3_666 121.51(8) no
+    O6 Cs4 O6 1_556 3_666 61.11(11) no
+    O9 Cs4 O6 2_646 3_666 97.16(8) no
+    O3 Cs4 O6 4_566 3_666 85.35(7) no
+    O7 Cs4 Mo2 3_666 1_556 98.07(8) no
+    O4 Cs4 Mo2 4_566 1_556 25.26(6) no
+    O5 Cs4 Mo2 . 1_556 110.76(6) no
+    O8 Cs4 Mo2 3_666 1_556 163.88(6) no
+    O8 Cs4 Mo2 2_646 1_556 98.98(6) no
+    O5 Cs4 Mo2 4_566 1_556 69.46(5) no
+    O6 Cs4 Mo2 1_556 1_556 25.36(6) no
+    O9 Cs4 Mo2 2_646 1_556 85.17(5) no
+    O3 Cs4 Mo2 4_566 1_556 71.09(4) no
+    O6 Cs4 Mo2 3_666 1_556 64.72(6) no
+    O7 Cs4 Mo2 3_666 3_666 23.47(7) no
+    O4 Cs4 Mo2 4_566 3_666 92.40(6) no
+    O5 Cs4 Mo2 . 3_666 92.39(6) no
+    O8 Cs4 Mo2 3_666 3_666 89.89(7) no
+    O8 Cs4 Mo2 2_646 3_666 123.40(6) no
+    O5 Cs4 Mo2 4_566 3_666 145.68(6) no
+    O6 Cs4 Mo2 1_556 3_666 66.27(7) no
+    O9 Cs4 Mo2 2_646 3_666 78.32(5) no
+    O3 Cs4 Mo2 4_566 3_666 109.89(4) no
+    O6 Cs4 Mo2 3_666 3_666 25.40(5) no
+    Mo2 Cs4 Mo2 1_556 3_666 80.096(9) no
+    O1 Mo1 O2 . . 102.21(18) no
+    O1 Mo1 O3 . . 98.78(14) no
+    O2 Mo1 O3 . . 98.56(13) no
+    O1 Mo1 O3 . 4_566 100.24(14) no
+    O2 Mo1 O3 . 4_566 95.18(13) no
+    O3 Mo1 O3 . 4_566 153.56(16) no
+    O1 Mo1 O4 . . 90.54(17) no
+    O2 Mo1 O4 . . 167.15(15) no
+    O3 Mo1 O4 . . 80.77(11) no
+    O3 Mo1 O4 4_566 . 80.85(11) no
+    O1 Mo1 O5 . . 170.92(16) no
+    O2 Mo1 O5 . . 86.84(14) no
+    O3 Mo1 O5 . . 78.97(11) no
+    O3 Mo1 O5 4_566 . 79.36(11) no
+    O4 Mo1 O5 . . 80.43(13) no
+    O1 Mo1 Cs1 . . 125.61(13) no
+    O2 Mo1 Cs1 . . 49.44(11) no
+    O3 Mo1 Cs1 . . 126.99(8) no
+    O3 Mo1 Cs1 4_566 . 51.22(8) no
+    O4 Mo1 Cs1 . . 121.13(9) no
+    O5 Mo1 Cs1 . . 61.12(8) no
+    O1 Mo1 Cs3 . . 56.85(13) no
+    O2 Mo1 Cs3 . . 54.69(12) no
+    O3 Mo1 Cs3 . . 130.26(8) no
+    O3 Mo1 Cs3 4_566 . 75.92(8) no
+    O4 Mo1 Cs3 . . 134.63(9) no
+    O5 Mo1 Cs3 . . 131.06(8) no
+    Cs1 Mo1 Cs3 . . 70.452(8) no
+    O1 Mo1 Cs1 . 4_565 63.38(13) no
+    O2 Mo1 Cs1 . 4_565 133.12(11) no
+    O3 Mo1 Cs1 . 4_565 46.80(8) no
+    O3 Mo1 Cs1 4_566 4_565 130.18(8) no
+    O4 Mo1 Cs1 . 4_565 54.56(9) no
+    O5 Mo1 Cs1 . 4_565 109.87(8) no
+    Cs1 Mo1 Cs1 . 4_565 170.979(12) no
+    Cs3 Mo1 Cs1 . 4_565 118.424(10) no
+    O1 Mo1 Cs3 . 4_565 44.52(12) no
+    O2 Mo1 Cs3 . 4_565 72.21(11) no
+    O3 Mo1 Cs3 . 4_565 71.79(8) no
+    O3 Mo1 Cs3 4_566 4_565 134.27(8) no
+    O4 Mo1 Cs3 . 4_565 119.19(9) no
+    O5 Mo1 Cs3 . 4_565 140.47(7) no
+    Cs1 Mo1 Cs3 . 4_565 118.793(10) no
+    Cs3 Mo1 Cs3 . 4_565 60.737(7) no
+    Cs1 Mo1 Cs3 4_565 4_565 67.430(7) no
+    O1 Mo1 Cs4 . 4_565 122.21(13) no
+    O2 Mo1 Cs4 . 4_565 128.62(12) no
+    O3 Mo1 Cs4 . 4_565 53.57(8) no
+    O3 Mo1 Cs4 4_566 4_565 100.43(8) no
+    O4 Mo1 Cs4 . 4_565 41.56(9) no
+    O5 Mo1 Cs4 . 4_565 49.50(8) no
+    Cs1 Mo1 Cs4 . 4_565 109.256(9) no
+    Cs3 Mo1 Cs4 . 4_565 175.644(11) no
+    Cs1 Mo1 Cs4 4_565 4_565 62.032(7) no
+    Cs3 Mo1 Cs4 4_565 4_565 122.087(10) no
+    O6 Mo2 O7 . . 108.57(18) no
+    O6 Mo2 O5 . . 111.24(16) no
+    O7 Mo2 O5 . . 109.50(17) no
+    O6 Mo2 O4 . 4_565 107.35(19) no
+    O7 Mo2 O4 . 4_565 110.61(19) no
+    O5 Mo2 O4 . 4_565 109.54(14) no
+    O6 Mo2 Cs1 . . 118.83(14) no
+    O7 Mo2 Cs1 . . 49.50(14) no
+    O5 Mo2 Cs1 . . 60.60(11) no
+    O4 Mo2 Cs1 4_565 . 133.32(12) no
+    O6 Mo2 Cs4 . 1_554 59.51(14) no
+    O7 Mo2 Cs4 . 1_554 129.67(14) no
+    O5 Mo2 Cs4 . 1_554 120.47(11) no
+    O4 Mo2 Cs4 4_565 1_554 48.20(12) no
+    Cs1 Mo2 Cs4 . 1_554 178.145(10) no
+    O6 Mo2 Cs4 . 3_666 65.81(15) no
+    O7 Mo2 Cs4 . 3_666 43.27(12) no
+    O5 Mo2 Cs4 . 3_666 131.64(10) no
+    O4 Mo2 Cs4 4_565 3_666 117.36(10) no
+    Cs1 Mo2 Cs4 . 3_666 78.449(8) no
+    Cs4 Mo2 Cs4 1_554 3_666 99.904(9) no
+    O6 Mo2 Cs4 . 4_565 79.20(15) no
+    O7 Mo2 Cs4 . 4_565 164.88(14) no
+    O5 Mo2 Cs4 . 4_565 55.40(11) no
+    O4 Mo2 Cs4 4_565 4_565 78.15(12) no
+    Cs1 Mo2 Cs4 . 4_565 115.463(10) no
+    Cs4 Mo2 Cs4 1_554 4_565 65.413(7) no
+    Cs4 Mo2 Cs4 3_666 4_565 144.418(8) no
+    O6 Mo2 Cs2 . . 140.26(14) no
+    O7 Mo2 Cs2 . . 36.71(13) no
+    O5 Mo2 Cs2 . . 101.68(11) no
+    O4 Mo2 Cs2 4_565 . 80.69(13) no
+    Cs1 Mo2 Cs2 . . 59.960(7) no
+    Cs4 Mo2 Cs2 1_554 . 120.590(10) no
+    Cs4 Mo2 Cs2 3_666 . 75.860(8) no
+    Cs4 Mo2 Cs2 4_565 . 139.720(9) no
+    O6 Mo2 Cs1 . 1_554 99.34(13) no
+    O7 Mo2 Cs1 . 1_554 73.16(15) no
+    O5 Mo2 Cs1 . 1_554 145.69(10) no
+    O4 Mo2 Cs1 4_565 1_554 43.78(11) no
+    Cs1 Mo2 Cs1 . 1_554 117.457(9) no
+    Cs4 Mo2 Cs1 1_554 1_554 62.666(8) no
+    Cs4 Mo2 Cs1 3_666 1_554 74.689(8) no
+    Cs4 Mo2 Cs1 4_565 1_554 119.198(9) no
+    Cs2 Mo2 Cs1 . 1_554 59.127(7) no
+    O6 Mo2 Cs4 . . 79.34(13) no
+    O7 Mo2 Cs4 . . 106.21(15) no
+    O5 Mo2 Cs4 . . 35.95(10) no
+    O4 Mo2 Cs4 4_565 . 137.56(11) no
+    Cs1 Mo2 Cs4 . . 62.593(8) no
+    Cs4 Mo2 Cs4 1_554 . 117.224(10) no
+    Cs4 Mo2 Cs4 3_666 . 103.768(8) no
+    Cs4 Mo2 Cs4 4_565 . 61.678(7) no
+    Cs2 Mo2 Cs4 . . 121.316(9) no
+    Cs1 Mo2 Cs4 1_554 . 178.321(9) no
+    O8 Mo3 O9 . . 102.75(17) no
+    O8 Mo3 O10 . . 100.10(13) no
+    O9 Mo3 O10 . . 94.25(13) no
+    O8 Mo3 O10 . 4_575 99.62(14) no
+    O9 Mo3 O10 . 4_575 97.93(13) no
+    O10 Mo3 O10 . 4_575 153.87(15) no
+    O8 Mo3 O11 . . 92.71(15) no
+    O9 Mo3 O11 . . 164.44(15) no
+    O10 Mo3 O11 . . 81.06(11) no
+    O10 Mo3 O11 4_575 . 81.05(11) no
+    O8 Mo3 O12 . . 173.64(14) no
+    O9 Mo3 O12 . . 83.33(14) no
+    O10 Mo3 O12 . . 81.12(11) no
+    O10 Mo3 O12 4_575 . 77.47(11) no
+    O11 Mo3 O12 . . 81.29(12) no
+    O8 Mo3 Cs2 . 4_576 126.32(12) no
+    O9 Mo3 Cs2 . 4_576 49.33(11) no
+    O10 Mo3 Cs2 . 4_576 50.81(8) no
+    O10 Mo3 Cs2 4_575 4_576 125.56(8) no
+    O11 Mo3 Cs2 . 4_576 119.07(8) no
+    O12 Mo3 Cs2 . 4_576 59.18(8) no
+    O8 Mo3 Cs4 . 2_656 49.30(12) no
+    O9 Mo3 Cs4 . 2_656 61.87(12) no
+    O10 Mo3 Cs4 . 2_656 77.07(8) no
+    O10 Mo3 Cs4 4_575 2_656 129.03(8) no
+    O11 Mo3 Cs4 . 2_656 130.31(9) no
+    O12 Mo3 Cs4 . 2_656 136.77(8) no
+    Cs2 Mo3 Cs4 4_576 2_656 78.206(8) no
+    O8 Mo3 Cs2 . . 78.72(12) no
+    O9 Mo3 Cs2 . . 138.39(10) no
+    O10 Mo3 Cs2 . . 126.81(8) no
+    O10 Mo3 Cs2 4_575 . 42.28(8) no
+    O11 Mo3 Cs2 . . 46.33(8) no
+    O12 Mo3 Cs2 . . 95.53(8) no
+    Cs2 Mo3 Cs2 4_576 . 154.403(12) no
+    Cs4 Mo3 Cs2 2_656 . 127.370(10) no
+    O8 Mo3 Cs4 . 3_666 38.27(11) no
+    O9 Mo3 Cs4 . 3_666 83.72(12) no
+    O10 Mo3 Cs4 . 3_666 134.94(8) no
+    O10 Mo3 Cs4 4_575 3_666 69.67(8) no
+    O11 Mo3 Cs4 . 3_666 110.12(9) no
+    O12 Mo3 Cs4 . 3_666 142.46(7) no
+    Cs2 Mo3 Cs4 4_576 3_666 129.825(10) no
+    Cs4 Mo3 Cs4 2_656 3_666 62.314(7) no
+    Cs2 Mo3 Cs4 . 3_666 72.097(8) no
+    O8 Mo3 Cs1 . . 42.01(12) no
+    O9 Mo3 Cs1 . . 144.02(12) no
+    O10 Mo3 Cs1 . . 87.41(8) no
+    O10 Mo3 Cs1 4_575 . 95.96(8) no
+    O11 Mo3 Cs1 . . 51.05(9) no
+    O12 Mo3 Cs1 . . 132.21(8) no
+    Cs2 Mo3 Cs1 4_576 . 137.086(10) no
+    Cs4 Mo3 Cs1 2_656 . 83.697(8) no
+    Cs2 Mo3 Cs1 . . 56.212(7) no
+    Cs4 Mo3 Cs1 3_666 . 70.347(7) no
+    O13 Mo4 O14 . . 110.39(17) no
+    O13 Mo4 O12 . 4_576 108.17(15) no
+    O14 Mo4 O12 . 4_576 109.63(16) no
+    O13 Mo4 O11 . . 106.91(16) no
+    O14 Mo4 O11 . . 108.87(17) no
+    O12 Mo4 O11 4_576 . 112.84(14) no
+    O13 Mo4 Cs3 . 2_556 55.89(11) no
+    O14 Mo4 Cs3 . 2_556 151.86(13) no
+    O12 Mo4 Cs3 4_576 2_556 60.62(11) no
+    O11 Mo4 Cs3 . 2_556 99.02(11) no
+    O13 Mo4 Cs2 . 1_556 131.43(12) no
+    O14 Mo4 Cs2 . 1_556 49.31(12) no
+    O12 Mo4 Cs2 4_576 1_556 60.85(11) no
+    O11 Mo4 Cs2 . 1_556 121.13(11) no
+    Cs3 Mo4 Cs2 2_556 1_556 117.933(11) no
+    O13 Mo4 Cs1 . . 146.54(11) no
+    O14 Mo4 Cs1 . . 54.06(13) no
+    O12 Mo4 Cs1 4_576 . 105.17(10) no
+    O11 Mo4 Cs1 . . 61.30(11) no
+    Cs3 Mo4 Cs1 2_556 . 150.900(10) no
+    Cs2 Mo4 Cs1 1_556 . 64.977(8) no
+    O13 Mo4 Cs3 . 3_566 39.11(12) no
+    O14 Mo4 Cs3 . 3_566 124.71(12) no
+    O12 Mo4 Cs3 4_576 3_566 122.59(11) no
+    O11 Mo4 Cs3 . 3_566 67.83(11) no
+    Cs3 Mo4 Cs3 2_556 3_566 62.709(7) no
+    Cs2 Mo4 Cs3 1_556 3_566 169.539(10) no
+    Cs1 Mo4 Cs3 . 3_566 120.154(10) no
+    O13 Mo4 Cs2 . 3_566 36.57(11) no
+    O14 Mo4 Cs2 . 3_566 76.44(13) no
+    O12 Mo4 Cs2 4_576 3_566 108.62(10) no
+    O11 Mo4 Cs2 . 3_566 132.68(10) no
+    Cs3 Mo4 Cs2 2_556 3_566 82.051(8) no
+    Cs2 Mo4 Cs2 1_556 3_566 98.356(9) no
+    Cs1 Mo4 Cs2 . 3_566 126.987(10) no
+    Cs3 Mo4 Cs2 3_566 3_566 71.231(7) no
+    O13 Mo4 Cs2 . . 91.65(12) no
+    O14 Mo4 Cs2 . . 81.28(13) no
+    O12 Mo4 Cs2 4_576 . 151.19(10) no
+    O11 Mo4 Cs2 . . 39.42(10) no
+    Cs3 Mo4 Cs2 2_556 . 120.565(10) no
+    Cs2 Mo4 Cs2 1_556 . 120.395(10) no
+    Cs1 Mo4 Cs2 . . 58.791(7) no
+    Cs3 Mo4 Cs2 3_566 . 62.150(8) no
+    Cs2 Mo4 Cs2 3_566 . 99.774(9) no
+    O13 Mo4 Cs3 . . 89.49(11) no
+    O14 Mo4 Cs3 . . 25.02(12) no
+    O12 Mo4 Cs3 4_576 . 131.50(10) no
+    O11 Mo4 Cs3 . . 103.75(10) no
+    Cs3 Mo4 Cs3 2_556 . 143.046(8) no
+    Cs2 Mo4 Cs3 1_556 . 73.462(8) no
+    Cs1 Mo4 Cs3 . . 65.880(7) no
+    Cs3 Mo4 Cs3 3_566 . 99.818(8) no
+    Cs2 Mo4 Cs3 3_566 . 61.113(7) no
+    Cs2 Mo4 Cs3 . . 67.294(7) no
+    O13 Mo4 Cs3 . 3_567 80.46(12) no
+    O14 Mo4 Cs3 . 3_567 95.89(13) no
+    O12 Mo4 Cs3 4_576 3_567 38.56(10) no
+    O11 Mo4 Cs3 . 3_567 148.93(10) no
+    Cs3 Mo4 Cs3 2_556 3_567 59.432(7) no
+    Cs2 Mo4 Cs3 1_556 3_567 62.622(8) no
+    Cs1 Mo4 Cs3 . 3_567 126.759(10) no
+    Cs3 Mo4 Cs3 3_566 3_567 113.085(10) no
+    Cs2 Mo4 Cs3 3_566 3_567 70.385(7) no
+    Cs2 Mo4 Cs3 . 3_567 170.159(9) no
+    Cs3 Mo4 Cs3 . 3_567 106.493(8) no
+    Mo1 O1 Cs3 . 4_565 113.57(16) no
+    Mo1 O1 Cs2 . 4_566 140.98(19) no
+    Cs3 O1 Cs2 4_565 4_566 101.97(9) no
+    Mo1 O1 Cs3 . . 98.41(15) no
+    Cs3 O1 Cs3 4_565 . 77.80(9) no
+    Cs2 O1 Cs3 4_566 . 104.53(10) no
+    Mo1 O1 Cs1 . 4_565 92.25(14) no
+    Cs3 O1 Cs1 4_565 4_565 83.70(8) no
+    Cs2 O1 Cs1 4_566 4_565 75.64(8) no
+    Cs3 O1 Cs1 . 4_565 161.14(11) no
+    Mo1 O2 Cs2 . . 159.16(17) no
+    Mo1 O2 Cs1 . . 105.91(14) no
+    Cs2 O2 Cs1 . . 82.87(8) no
+    Mo1 O2 Cs3 . . 100.46(14) no
+    Cs2 O2 Cs3 . . 98.24(9) no
+    Cs1 O2 Cs3 . . 90.75(8) no
+    Mo1 O3 Mo1 . 4_565 140.66(15) no
+    Mo1 O3 Cs1 . 4_565 107.00(10) no
+    Mo1 O3 Cs1 4_565 4_565 100.26(10) no
+    Mo1 O3 Cs4 . 4_565 101.33(9) no
+    Mo1 O3 Cs4 4_565 4_565 110.65(10) no
+    Cs1 O3 Cs4 4_565 4_565 80.95(6) no
+    Mo2 O4 Mo1 4_566 . 134.74(18) no
+    Mo2 O4 Cs4 4_566 4_565 106.54(15) no
+    Mo1 O4 Cs4 . 4_565 110.68(12) no
+    Mo2 O4 Cs1 4_566 4_565 114.66(14) no
+    Mo1 O4 Cs1 . 4_565 93.40(11) no
+    Cs4 O4 Cs1 4_565 4_565 85.33(8) no
+    Mo2 O5 Mo1 . . 119.72(15) no
+    Mo2 O5 Cs4 . . 124.70(14) no
+    Mo1 O5 Cs4 . . 114.32(11) no
+    Mo2 O5 Cs4 . 4_565 98.89(13) no
+    Mo1 O5 Cs4 . 4_565 98.63(10) no
+    Cs4 O5 Cs4 . 4_565 83.53(7) no
+    Mo2 O5 Cs1 . . 93.03(12) no
+    Mo1 O5 Cs1 . . 82.86(9) no
+    Cs4 O5 Cs1 . . 82.46(7) no
+    Cs4 O5 Cs1 4_565 . 165.20(10) no
+    Mo2 O6 Cs1 . 3_666 157.6(2) no
+    Mo2 O6 Cs4 . 1_554 95.13(16) no
+    Cs1 O6 Cs4 3_666 1_554 107.04(11) no
+    Mo2 O6 Cs4 . 3_666 88.79(16) no
+    Cs1 O6 Cs4 3_666 3_666 83.27(10) no
+    Cs4 O6 Cs4 1_554 3_666 118.89(11) no
+    Mo2 O7 Cs4 . 3_666 113.26(17) no
+    Mo2 O7 Cs2 . . 123.17(17) no
+    Cs4 O7 Cs2 3_666 . 114.90(11) no
+    Mo2 O7 Cs1 . . 105.78(17) no
+    Cs4 O7 Cs1 3_666 . 110.79(12) no
+    Cs2 O7 Cs1 . . 83.50(9) no
+    Mo3 O8 Cs4 . 3_666 122.43(15) no
+    Mo3 O8 Cs4 . 2_656 107.17(15) no
+    Cs4 O8 Cs4 3_666 2_656 85.58(8) no
+    Mo3 O8 Cs1 . . 118.42(15) no
+    Cs4 O8 Cs1 3_666 . 100.80(9) no
+    Cs4 O8 Cs1 2_656 . 118.70(10) no
+    Mo3 O9 Cs1 . 4_575 157.16(16) no
+    Mo3 O9 Cs2 . 4_576 106.26(13) no
+    Cs1 O9 Cs2 4_575 4_576 88.52(9) no
+    Mo3 O9 Cs4 . 2_656 93.30(13) no
+    Cs1 O9 Cs4 4_575 2_656 102.09(9) no
+    Cs2 O9 Cs4 4_576 2_656 97.54(8) no
+    Mo3 O10 Mo3 . 4_576 139.48(14) no
+    Mo3 O10 Cs2 . 4_576 100.93(10) no
+    Mo3 O10 Cs2 4_576 4_576 113.38(11) no
+    Mo4 O11 Mo3 . . 136.14(16) no
+    Mo4 O11 Cs2 . . 119.84(13) no
+    Mo3 O11 Cs2 . . 104.00(10) no
+    Mo4 O11 Cs1 . . 92.40(12) no
+    Mo3 O11 Cs1 . . 100.15(11) no
+    Cs2 O11 Cs1 . . 75.53(7) no
+    Mo4 O12 Mo3 4_575 . 116.51(15) no
+    Mo4 O12 Cs3 4_575 2_556 121.80(14) no
+    Mo3 O12 Cs3 . 2_556 120.10(11) no
+    Mo4 O12 Cs3 4_575 3_566 91.59(12) no
+    Mo3 O12 Cs3 . 3_566 113.79(11) no
+    Cs3 O12 Cs3 2_556 3_566 77.87(7) no
+    Mo4 O12 Cs2 4_575 4_576 92.39(12) no
+    Mo3 O12 Cs2 . 4_576 83.51(9) no
+    Cs3 O12 Cs2 2_556 4_576 81.65(7) no
+    Cs3 O12 Cs2 3_566 4_576 158.00(10) no
+    Mo4 O13 Cs2 . 3_566 123.36(16) no
+    Mo4 O13 Cs3 . 3_566 119.62(16) no
+    Cs2 O13 Cs3 3_566 3_566 108.09(9) no
+    Mo4 O13 Cs3 . 2_556 97.23(13) no
+    Cs2 O13 Cs3 3_566 2_556 117.06(11) no
+    Cs3 O13 Cs3 3_566 2_556 84.21(9) no
+    Mo4 O14 Cs3 . . 140.61(18) no
+    Mo4 O14 Cs2 . 1_556 105.59(14) no
+    Cs3 O14 Cs2 . 1_556 112.08(10) no
+    Mo4 O14 Cs1 . . 100.89(15) no
+    Cs3 O14 Cs1 . . 94.48(10) no
+    Cs2 O14 Cs1 1_556 . 83.51(9) no
+data_global
+_journal_date_recd_electronic     2006-03-31
+_journal_date_accepted     2006-04-24
+_journal_name_full     'Acta Crystallographica, Section C'
+_journal_year     2006
+_journal_volume     62
+_journal_issue      7
+_journal_page_first     i53
+_journal_page_last     i56
+_journal_paper_category     FI
+_journal_coeditor_code     IZ3004
+_publ_contact_author_name     'Professor Sergey F. Solodovnikov'
+_publ_contact_author_address
+;
+Nikolaev Institute of Inorganic Chemistry
+SB Russian Academy of Sciences
+Academician Lavrentiev Avenue 3
+Novosibirsk 630090
+Russia
+;
+_publ_contact_author_email     solod@che.nsk.su
+_publ_contact_author_fax     '+7 (383) 3309489'
+_publ_contact_author_phone     '+7 (383) 3309466'
+_publ_section_title
+;
+Rubidium dimolybdate, Rb~2~Mo~2~O~7~, and caesium dimolybdate, Cs~2~Mo~2~O~7~
+;
+loop_
+    _publ_author_name
+    _publ_author_address
+    'Solodovnikova, Zoya A.'
+;
+Nikolaev Institute of Inorganic Chemistry
+SB Russian Academy of Sciences
+Academician Lavrentiev Avenue 3
+Novosibirsk 630090
+Russian Federation
+;
+    'Solodovnikov, Sergey F.'
+;
+Nikolaev Institute of Inorganic Chemistry
+SB Russian Academy of Sciences
+Academician Lavrentiev Avenue 3
+Novosibirsk 630090
+Russian Federation
+;
+_publ_section_synopsis
+;
+Rb~2~Mo~2~O~7~ and Cs~2~Mo~2~O~7~ represent new structure types with infinite
+chains of linked MoO~4~ tetrahedra and MoO~6~ octahedra. The chains in
+Cs~2~Mo~2~O~7~ resemble those in the Na~2~Mo~2~O~7~ structure. The
+orthorhombic pseudosymmetry of Cs~2~Mo~2~O~7~ implies a possible
+high-temperature transition <i>P</i>2~1~/<i>c</i> \\rightarrow <i>Pbca</i>.
+;
+

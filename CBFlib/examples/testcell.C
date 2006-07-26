@@ -1,7 +1,7 @@
 /**********************************************************************
  *          testcell -- test the cell computations                    *
  *                                                                    *
- * Version 0.7.5 1 April 2006                                         *
+ * Version 0.7.6 28 June 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *

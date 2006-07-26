@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_write.h                                                        *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -272,6 +272,13 @@ int cbf_set_value_type(char *value, const char *value_type);
   /* Write a node to a stream */
 
 int cbf_write_node (cbf_handle handle, const cbf_node *node, cbf_file *file, int isbuffer);
+
+
+  /* Compose an item name from a category and column */
+  
+int cbf_compose_itemname (cbf_handle handle, const cbf_node *column, char * itemname, 
+                                                                     size_t limit);
+
 
 
 #ifdef __cplusplus

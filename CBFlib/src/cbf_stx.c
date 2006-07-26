@@ -24,7 +24,7 @@
 /**********************************************************************
  * cbf.stx -- cbf parser                                              *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -285,16 +285,25 @@ extern "C" {
 
 #define yyparse       cbf_parse
 #define yylex         cbf_lex_wrapper
-#define yyerror       cbf_syntax_error
+#define yyerror(x)    cbf_syntax_error(((cbf_handle)(((void **)context)[2])),(x))
 #define YYLEX_PARAM   context
 #define YYPARSE_PARAM context
+
+
+#ifdef alloca
+#undef alloca
+#endif
 
 #define alloca(x) (NULL)
 
 #define YYINITDEPTH 200
 #define YYMAXDEPTH  200
 
-int cbf_lex (void *, void *);
+int cbf_lex (cbf_handle handle, union {
+  int          errorcode;
+  const char  *text;
+  cbf_node    *node;
+} *val);
 
 int cbf_lex_wrapper (void *val, void *context)
 {
@@ -302,20 +311,22 @@ int cbf_lex_wrapper (void *val, void *context)
 
   do
 
-    token = cbf_lex (val, ((void **) context) [0]);
+    token = cbf_lex ((cbf_handle)((void **) context) [2], val);
 
   while (token == COMMENT);
 
   return token;
 }
 
-int cbf_syntax_error (const char *message)
+int cbf_syntax_error (cbf_handle handle, const char *message)
 {
+
+  cbf_log( handle, message, CBF_LOGERROR|CBF_LOGSTARTLOC );
   return 0;
 }
 
 
-#line 298 "./src/cbf.stx.y"
+#line 309 "./src/cbf.stx.y"
 typedef union
 {
   int          errorcode;
@@ -332,11 +343,11 @@ typedef union
 
 
 
-#define	YYFINAL		59
+#define	YYFINAL		81
 #define	YYFLAG		-32768
 #define	YYNTBASE	16
 
-#define YYTRANSLATE(x) ((unsigned)(x) <= 269 ? yytranslate[x] : 44)
+#define YYTRANSLATE(x) ((unsigned)(x) <= 269 ? yytranslate[x] : 46)
 
 static const char yytranslate[] = {     0,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -370,37 +381,48 @@ static const char yytranslate[] = {     0,
 
 #if YYDEBUG != 0
 static const short yyprhs[] = {     0,
-     0,     2,     3,     5,     8,    11,    13,    15,    17,    19,
-    21,    23,    25,    28,    31,    34,    37,    40,    43,    46,
-    49,    52,    55,    58,    61,    64,    67,    70,    73,    76,
-    79,    82,    85,    88,    91,    94,    97,   100,   102,   104,
-   106,   108,   110,   112,   114,   116
+     0,     2,     4,     5,     8,    11,    13,    15,    17,    19,
+    21,    23,    26,    29,    32,    34,    36,    38,    41,    44,
+    47,    50,    53,    56,    59,    62,    65,    68,    71,    74,
+    77,    80,    83,    86,    89,    92,    95,    98,   101,   104,
+   107,   110,   113,   116,   119,   122,   125,   128,   131,   134,
+   137,   140,   143,   146,   149,   152,   155,   158,   161,   164,
+   166,   168,   170,   172,   174,   176,   178,   180
 };
 
-static const short yyrhs[] = {    20,
-     0,     0,    17,     0,    16,    38,     0,    21,     5,     0,
-    18,     0,    25,     0,    29,     0,    22,     0,    39,     0,
-    32,     0,    36,     0,    20,    19,     0,    20,    40,     0,
-    23,    41,     0,    20,    42,     0,    24,    43,     0,    20,
-    37,     0,    26,    40,     0,    28,    40,     0,    26,    42,
-     0,    28,    42,     0,    27,    41,     0,    28,    43,     0,
-    29,    43,     0,    21,    40,     0,    30,    41,     0,    21,
-    42,     0,    31,    43,     0,    21,    37,     0,    33,    40,
-     0,    35,    40,     0,    33,    42,     0,    35,    42,     0,
-    34,    41,     0,    35,    43,     0,    36,    43,     0,     6,
-     0,     3,     0,     4,     0,     8,     0,     9,     0,     7,
-     0,    10,     0,    11,     0,    12,     0
+static const short yyrhs[] = {    17,
+     0,    20,     0,     0,    16,    40,     0,    21,    40,     0,
+    17,     0,    18,     0,    25,     0,    30,     0,    22,     0,
+    26,     0,    20,    41,     0,    21,    41,     0,    19,    41,
+     0,    33,     0,    38,     0,    34,     0,    21,     5,     0,
+    20,    42,     0,    19,    42,     0,    23,    42,     0,    24,
+    42,     0,    23,    43,     0,    24,    44,     0,    20,    44,
+     0,    19,    44,     0,    24,    45,     0,    25,    45,     0,
+    26,    45,     0,    27,    45,     0,    20,    39,     0,    19,
+    39,     0,    27,    39,     0,    27,    42,     0,    29,    42,
+     0,    27,    44,     0,    29,    44,     0,    28,    43,     0,
+    29,    45,     0,    30,    45,     0,    21,    42,     0,    31,
+    42,     0,    32,    42,     0,    31,    43,     0,    21,    44,
+     0,    32,    44,     0,    32,    45,     0,    33,    45,     0,
+    34,    45,     0,    35,    45,     0,    21,    39,     0,    35,
+    39,     0,    35,    42,     0,    37,    42,     0,    35,    44,
+     0,    37,    44,     0,    36,    43,     0,    37,    45,     0,
+    38,    45,     0,     6,     0,     3,     0,     4,     0,     8,
+     0,     9,     0,     7,     0,    10,     0,    11,     0,    12,
+     0
 };
 
 #endif
 
 #if YYDEBUG != 0
 static const short yyrline[] = { 0,
-   353,   358,   363,   366,   371,   375,   378,   381,   384,   388,
-   391,   394,   400,   410,   415,   418,   425,   433,   440,   448,
-   459,   471,   484,   495,   502,   511,   516,   519,   526,   533,
-   540,   548,   559,   571,   584,   595,   603,   612,   615,   620,
-   624,   629,   634,   639,   642,   645
+   366,   369,   374,   379,   403,   433,   444,   447,   457,   467,
+   477,   490,   500,   513,   523,   529,   535,   543,   551,   559,
+   568,   580,   594,   603,   619,   631,   646,   658,   666,   673,
+   683,   688,   693,   703,   718,   731,   750,   766,   783,   794,
+   806,   814,   826,   838,   846,   859,   878,   890,   899,   906,
+   916,   922,   931,   943,   958,   975,   991,  1007,  1018,  1030,
+  1033,  1038,  1042,  1047,  1052,  1057,  1060,  1063
 };
 #endif
 
@@ -409,79 +431,96 @@ static const short yyrline[] = { 0,
 
 static const char * const yytname[] = {   "$","error","$undefined.","DATA","SAVE",
 "SAVEEND","LOOP","ITEM","CATEGORY","COLUMN","STRING","CBFWORD","BINARY","UNKNOWN",
-"COMMENT","ERROR","cbf","cbfstart","CbfThruDBName","SaveFrame","CbfThruDBElement",
-"SFThruSFElement","CbfThruSaveFrame","CbfThruCategory","CbfThruColumn","CbfThruAssignment",
-"CbfThruLoopStart","CbfThruLoopCategory","CbfThruLoopColumn","CbfThruLoopAssignment",
-"SFThruCategory","SFThruColumn","SFThruAssignment","SFThruLoopStart","SFThruLoopCategory",
-"SFThruLoopColumn","SFThruLoopAssignment","Loop","DataBlockName","SaveFrameName",
-"CategoryName","ColumnName","ItemName","Value", NULL
+"COMMENT","ERROR","cbf","cbfstart","CbfThruDBName","ErrorCbfWODBName","CbfThruDBElement",
+"CbfThruSFElement","CbfThruSaveFrame","CbfThruCategory","CbfThruColumn","CbfThruAssignment",
+"ErrorCbfThruExtraValue","CbfThruLoopStart","CbfThruLoopCategory","CbfThruLoopColumn",
+"CbfThruLoopAssignment","CbfThruSFCategory","CbfThruSFColumn","CbfThruSFAssignment",
+"ErrorCbfThruExtraSFValue","CbfThruSFLoopStart","CbfThruSFLoopCategory","CbfThruSFLoopColumn",
+"CbfThruSFLoopAssignment","Loop","DataBlockName","SaveFrameName","CategoryName",
+"ColumnName","ItemName","Value", NULL
 };
 #endif
 
 static const short yyr1[] = {     0,
-    16,    17,    18,    18,    19,    20,    20,    20,    20,    21,
-    21,    21,    22,    23,    24,    24,    25,    26,    27,    27,
-    28,    28,    28,    29,    29,    30,    31,    31,    32,    33,
-    34,    34,    35,    35,    35,    36,    36,    37,    38,    39,
-    40,    41,    42,    43,    43,    43
+    16,    16,    17,    18,    18,    19,    20,    20,    20,    20,
+    20,    21,    21,    21,    21,    21,    21,    22,    23,    23,
+    23,    23,    24,    24,    24,    24,    25,    26,    26,    26,
+    27,    27,    27,    28,    28,    29,    29,    29,    30,    30,
+    31,    31,    31,    32,    32,    32,    33,    34,    34,    34,
+    35,    35,    36,    36,    37,    37,    37,    38,    38,    39,
+    40,    41,    42,    43,    44,    45,    45,    45
 };
 
 static const short yyr2[] = {     0,
-     1,     0,     1,     2,     2,     1,     1,     1,     1,     1,
-     1,     1,     2,     2,     2,     2,     2,     2,     2,     2,
+     1,     1,     0,     2,     2,     1,     1,     1,     1,     1,
+     1,     2,     2,     2,     1,     1,     1,     2,     2,     2,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-     2,     2,     2,     2,     2,     2,     2,     1,     1,     1,
-     1,     1,     1,     1,     1,     1
+     2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+     2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+     2,     2,     2,     2,     2,     2,     2,     2,     2,     1,
+     1,     1,     1,     1,     1,     1,     1,     1
 };
 
-static const short yydefact[] = {     2,
-     0,     3,     6,     1,     9,     0,     0,     7,     0,     0,
-     0,     8,    39,     4,    40,    38,    43,    41,    13,     0,
-     0,     0,    11,     0,     0,     0,    12,    18,    10,    14,
-    16,    42,    15,    44,    45,    46,    17,    19,    21,    23,
-    20,    22,    24,    25,     5,    30,    26,    28,    27,    29,
-    31,    33,    35,    32,    34,    36,    37,     0,     0
+static const short yydefact[] = {     3,
+     0,     6,     7,     0,     2,     0,    10,     0,     0,     8,
+    11,     0,     0,     0,     9,     0,     0,    15,    17,     0,
+     0,     0,    16,    61,     4,    62,    60,    65,    63,    32,
+    14,    20,    26,    31,    12,    19,    25,    18,    51,     5,
+    13,    41,    45,    64,    21,    23,    66,    67,    68,    22,
+    24,    27,    28,    29,    33,    34,    36,    30,    38,    35,
+    37,    39,    40,    42,    44,    43,    46,    47,    48,    49,
+    52,    53,    55,    50,    57,    54,    56,    58,    59,     0,
+     0
 };
 
 static const short yydefgoto[] = {     1,
-     2,     3,    19,     4,    20,     5,     6,     7,     8,     9,
-    10,    11,    12,    21,    22,    23,    24,    25,    26,    27,
-    28,    14,    29,    30,    33,    31,    37
+     2,     3,     4,     5,     6,     7,     8,     9,    10,    11,
+    12,    13,    14,    15,    16,    17,    18,    19,    20,    21,
+    22,    23,    30,    25,    31,    32,    46,    33,    52
 };
 
 static const short yypact[] = {-32768,
-    37,-32768,-32768,    28,-32768,    11,    31,-32768,     6,    11,
-    19,    31,-32768,-32768,-32768,-32768,-32768,-32768,-32768,    -1,
-    11,    31,-32768,     6,    11,    19,    31,-32768,-32768,-32768,
+    21,    23,-32768,    65,    65,    54,-32768,    69,    56,    64,
+    64,    44,    -3,    56,    64,    69,    56,    64,    64,    44,
+    -3,    56,    64,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
 -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
 -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
--32768,-32768,-32768,-32768,-32768,-32768,-32768,    22,-32768
+-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
+-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
+-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,    16,
+-32768
 };
 
 static const short yypgoto[] = {-32768,
 -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
 -32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,-32768,
-     8,-32768,-32768,    -9,     0,    -8,    -3
+-32768,-32768,     8,     2,    74,    -5,   -11,    13,    26
 };
 
 
-#define	YYLAST		43
+#define	YYLAST		80
 
 
-static const short yytable[] = {    38,
-    39,    41,    42,    45,    16,    17,    18,    43,    44,    40,
-    47,    48,    17,    18,    51,    52,    54,    55,    50,    32,
-    49,    59,    56,    57,    53,    17,    18,    46,    34,    35,
-    36,    15,     0,    16,    17,    18,    58,     0,     0,    13,
-    34,    35,    36
+static const short yytable[] = {    36,
+    42,    59,    45,    50,    65,    44,    56,    40,    60,    75,
+    64,    66,    34,    39,    72,    81,    76,    37,    43,    55,
+    80,    51,    -1,    24,    57,    -1,    61,    71,     0,    67,
+     0,     0,    73,     0,    77,    53,    54,    58,     0,    62,
+    63,     0,    68,    69,    70,    74,     0,    78,    79,    27,
+    28,    29,     0,    47,    48,    49,    24,    26,    38,    27,
+    28,    29,    28,    29,     0,    47,    48,    49,    26,     0,
+    27,    28,    29,    47,    48,    49,    29,    44,    35,    41
 };
 
-static const short yycheck[] = {     9,
-     9,    11,    11,     5,     6,     7,     8,    11,    12,    10,
-    20,    20,     7,     8,    24,    24,    26,    26,    22,     9,
-    21,     0,    26,    27,    25,     7,     8,    20,    10,    11,
-    12,     4,    -1,     6,     7,     8,     0,    -1,    -1,     3,
-    10,    11,    12
+static const short yycheck[] = {     5,
+     6,    13,     8,     9,    16,     9,    12,     6,    14,    21,
+    16,    17,     5,     6,    20,     0,    22,     5,     6,    12,
+     0,     9,     0,     3,    12,     3,    14,    20,    -1,    17,
+    -1,    -1,    20,    -1,    22,    10,    11,    12,    -1,    14,
+    15,    -1,    17,    18,    19,    20,    -1,    22,    23,     6,
+     7,     8,    -1,    10,    11,    12,     3,     4,     5,     6,
+     7,     8,     7,     8,    -1,    10,    11,    12,     4,    -1,
+     6,     7,     8,    10,    11,    12,     8,     9,     5,     6
 };
 #define YYPURE 1
 
@@ -1030,325 +1069,739 @@ yyreduce:
 
 case 1:
 {
-                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_ROOT))
+                                                  yyval.node = yyvsp[0].node;  ((void **)context)[3] = NULL;
                                                 ;
     break;}
 case 2:
 {
-                                                  yyval.node = ((void **) context) [1];
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_ROOT))
                                                 ;
     break;}
 case 3:
 {
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[0].node, CBF_DATABLOCK, NULL))
+                                                  yyval.node = ((void **) context) [1];
                                                 ;
     break;}
 case 4:
 {
+                
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[-1].node, CBF_DATABLOCK,
+                                                                                                                  (cbf_node *) NULL))
+             
+                                                  if (strlen(yyvsp[0].text)==0) {
+                                                  
+                                                    cbf_log((cbf_handle)(((void **)context)[2]),"empty data block name",
+                                                      CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                                                  
+                                                  }
+
+                                                  
+                                                  if (!cbf_find_last_child(&(yyval.node),yyvsp[-1].node,yyvsp[0].text) ){
+                                                  
+                                                    cbf_log((cbf_handle)(((void **)context)[2]),"duplicate data block name",
+                                                      CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                                                  
+                                                  }
+
                                                   cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_DATABLOCK, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
                                                 ;
     break;}
 case 5:
-{
-                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_SAVEFRAME))
+{ 
+                                                  cbf_log((cbf_handle)(((void **)context)[2]),"prior save frame not terminated",
+                                                      CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                                                      
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_ROOT))
+                
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[-1].node, CBF_DATABLOCK,
+                                                                                                                  (cbf_node *) NULL))
+             
+                                                  if (strlen(yyvsp[0].text)==0) {
+                                                  
+                                                    cbf_log((cbf_handle)(((void **)context)[2]),"empty data block name",
+                                                      CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                                                  
+                                                  }
+
+                                                  
+                                                  if (!cbf_find_last_child(&(yyval.node),yyval.node,yyvsp[0].text) ){
+                                                  
+                                                    cbf_log((cbf_handle)(((void **)context)[2]),"duplicate data block name",
+                                                      CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                                                  
+                                                  }
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_DATABLOCK, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
                                                 ;
     break;}
 case 6:
 {
-                                                  yyval.node = yyvsp[0].node;
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[0].node, CBF_DATABLOCK, NULL))
+
+                                                  cbf_log((cbf_handle)(((void **)context)[2]),"no data block",
+                                                    CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                                                 
                                                 ;
     break;}
 case 7:
 {
-                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_DATABLOCK))
+                                                  yyval.node = yyvsp[0].node; ((void **)context)[3] = NULL;
                                                 ;
     break;}
 case 8:
 {
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[0].node, CBF_CATEGORY,
+                                                                                                                   NULL))
+                                                  
                                                   cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_DATABLOCK))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                   
+                                                  ((void **)context)[3] = NULL;
                                                 ;
     break;}
 case 9:
 {
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[0].node, CBF_CATEGORY,
+                                                                                                                   NULL))
+                                                  
                                                   cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_DATABLOCK))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                   
+                                                  ((void **)context)[3] = NULL;
                                                 ;
     break;}
 case 10:
 {
-                                                  cbf_failnez (cbf_make_node   (&(yyval.node), CBF_SAVEFRAME, NULL, yyvsp[0].text))
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[0].node, CBF_CATEGORY,
+                                                                                                                   NULL))
+                                                  
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_DATABLOCK))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                   
+                                                  ((void **)context)[3] = NULL;
                                                 ;
     break;}
 case 11:
 {
-                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_SAVEFRAME))
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[0].node, CBF_CATEGORY,
+                                                                                                                  NULL))
+                                                  
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_DATABLOCK))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                   
+                                                  ((void **)context)[3] = NULL;
                                                 ;
     break;}
 case 12:
 {
-                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_SAVEFRAME))
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), (cbf_node *) yyvsp[-1].node, CBF_SAVEFRAME, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                   
+                                                  ((void **)context)[3] = NULL;
+                                                  
                                                 ;
     break;}
 case 13:
-{
+{ cbf_log((cbf_handle)(((void **)context)[2]),"save frame not terminated",
+                                                      CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                                                      
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_DATABLOCK))
 
-                                                  cbf_failnez (cbf_add_new_child ( yyvsp[-1].node, yyvsp[0].node ))
-
-                                                  yyval.node = yyvsp[0].node;
-
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_SAVEFRAME, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                   
+                                                  ((void **)context)[3] = NULL;
+                                                  
                                                 ;
     break;}
 case 14:
 {
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_SAVEFRAME, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                   
+                                                  ((void **)context)[3] = NULL;
+                                                  
                                                 ;
     break;}
 case 15:
 {
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_COLUMN, yyvsp[0].text))
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[0].node, CBF_CATEGORY,
+                                                                                                                   NULL))
+                                                  
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_SAVEFRAME))
                                                 ;
     break;}
 case 16:
 {
-                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, NULL))
-
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[0].node, CBF_CATEGORY,
+                                                                                                                   NULL))
+                                                  
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_SAVEFRAME))
                                                 ;
     break;}
 case 17:
 {
-                                                  yyval.node = yyvsp[-1].node;
-
-                                                  cbf_failnez (cbf_set_columnrow (yyval.node, 0, yyvsp[0].text, 1))
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[0].node, CBF_CATEGORY,
+                                                                                                                   NULL))
+                                                  
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[0].node, CBF_SAVEFRAME))
                                                 ;
     break;}
 case 18:
 {
-                                                  cbf_failnez (cbf_make_node (&(yyval.node), CBF_LINK, NULL, NULL))
 
-                                                  cbf_failnez (cbf_set_link (yyval.node, yyvsp[-1].node))
+                                                  cbf_failnez (cbf_find_parent ( &(yyval.node), yyvsp[-1].node, CBF_SAVEFRAME ))
+
+
                                                 ;
     break;}
 case 19:
 {
                                                   cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
-
-                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
-
-                                                  yyval.node = yyvsp[-1].node;
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
+                                                  
                                                 ;
     break;}
 case 20:
 {
-                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_DATABLOCK))
-
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_CATEGORY, yyvsp[0].text))
-
-                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
-
-                                                  yyval.node = yyvsp[-1].node;
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
+                                                  
                                                 ;
     break;}
 case 21:
-{
-                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, NULL))
-
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
-
-                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
-
-                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
-
-                                                  yyval.node = yyvsp[-1].node;
+{ cbf_log ((cbf_handle)(((void **)context)[2]),"data name with no value",
+                                                    CBF_LOGERROR|CBF_LOGSTARTLOC);
+                
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_DATABLOCK))
+                
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_CATEGORY, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
+                                                  
                                                 ;
     break;}
 case 22:
-{
+{ cbf_log ((cbf_handle)(((void **)context)[2]),"data name with no value",
+                                                    CBF_LOGERROR|CBF_LOGSTARTLOC);
+                
                                                   cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_DATABLOCK))
-
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_CATEGORY, NULL))
-
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
-
-                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
-
-                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
-
-                                                  yyval.node = yyvsp[-1].node;
+                
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_CATEGORY, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
+                                                  
                                                 ;
     break;}
 case 23:
 {
                                                   cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_COLUMN, yyvsp[0].text))
-
-                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
-
-                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
-
-                                                  yyval.node = yyvsp[-1].node;
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyval.node, CBF_COLUMN,
+                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                  
                                                 ;
     break;}
 case 24:
-{
-                                                  yyval.node = yyvsp[-1].node;
+{ cbf_log ((cbf_handle)(((void **)context)[2]),"data name with no value",CBF_LOGERROR|CBF_LOGSTARTLOC);
+                
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_DATABLOCK))
+                                                  
+                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyval.node, CBF_CATEGORY, yyvsp[0].text))                                                 
+                                                   
+                                                  ((void **)context)[3] = (void *)yyval.node;
 
-                                                  cbf_failnez (cbf_shift_link (yyval.node))
-
-                                                  cbf_failnez (cbf_add_columnrow (yyval.node, yyvsp[0].text))
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyval.node, CBF_COLUMN,
+                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                  
                                                 ;
     break;}
 case 25:
 {
-                                                  yyval.node = yyvsp[-1].node;
+                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
 
-                                                  cbf_failnez (cbf_shift_link (yyval.node))
-
-                                                  cbf_failnez (cbf_add_columnrow (yyval.node, yyvsp[0].text))
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyval.node, CBF_COLUMN,
+                                                                                                                  (cbf_node *)(((void **)context)[3])))
                                                 ;
     break;}
 case 26:
 {
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyval.node, CBF_COLUMN,
+                                                                                                                  (cbf_node *)(((void **)context)[3])))
                                                 ;
     break;}
 case 27:
 {
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_COLUMN, yyvsp[0].text))
+                                                  yyval.node = yyvsp[-1].node;
+
+                                                  cbf_failnez (cbf_set_columnrow (yyval.node, 0, yyvsp[0].text, 1))
+
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[0].text, CBF_VALUE,
+                                                                                                                  (cbf_node *) yyval.node))
                                                 ;
     break;}
 case 28:
 {
-                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, NULL))
+                                                  yyval.node = yyvsp[-1].node;
+                                                  
+                                                  cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
 
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
                                                 ;
     break;}
 case 29:
 {
                                                   yyval.node = yyvsp[-1].node;
+                                                  
+                                                  cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
 
-                                                  cbf_failnez (cbf_set_columnrow (yyval.node, 0, yyvsp[0].text, 1))
                                                 ;
     break;}
 case 30:
+{
+                                                  yyval.node = yyvsp[-1].node;
+                                                  
+                                                  cbf_log ((cbf_handle)(((void **)context)[2]),"loop value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
+
+                                                ;
+    break;}
+case 31:
 {
                                                   cbf_failnez (cbf_make_node (&(yyval.node), CBF_LINK, NULL, NULL))
 
                                                   cbf_failnez (cbf_set_link (yyval.node, yyvsp[-1].node))
                                                 ;
     break;}
-case 31:
-{
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
-
-                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
-
-                                                  yyval.node = yyvsp[-1].node;
-                                                ;
-    break;}
 case 32:
 {
-                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_SAVEFRAME))
+                                                  cbf_failnez (cbf_make_node (&(yyval.node), CBF_LINK, NULL, NULL))
 
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_CATEGORY, yyvsp[0].text))
-
-                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
-
-                                                  yyval.node = yyvsp[-1].node;
+                                                  cbf_failnez (cbf_set_link (yyval.node, yyvsp[-1].node))
                                                 ;
     break;}
 case 33:
 {
-                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, NULL))
+                                                  cbf_log ((cbf_handle)(((void **)context)[2]),"redundant \"loop_\" ",CBF_LOGERROR|CBF_LOGSTARTLOC);
+                                                  
+                                                  cbf_failnez (cbf_make_node (&(yyval.node), CBF_LINK, NULL, NULL))
 
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
-
-                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
-
-                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
-
-                                                  yyval.node = yyvsp[-1].node;
+                                                  cbf_failnez (cbf_set_link (yyval.node, yyvsp[-1].node))
                                                 ;
     break;}
 case 34:
 {
-                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_SAVEFRAME))
-
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_CATEGORY, NULL))
-
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
 
                                                   cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
-
-                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
 
                                                   yyval.node = yyvsp[-1].node;
+
                                                 ;
     break;}
 case 35:
 {
-                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_COLUMN, yyvsp[0].text))
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_DATABLOCK))
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_CATEGORY, yyvsp[0].text))
 
                                                   cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
-
-                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
 
                                                   yyval.node = yyvsp[-1].node;
                                                 ;
     break;}
 case 36:
 {
+                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyval.node, CBF_COLUMN,
+                                                                                                                  (cbf_node *)(((void **)context)[3])))
+
+                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
+
+                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
+
                                                   yyval.node = yyvsp[-1].node;
-
-                                                  cbf_failnez (cbf_shift_link (yyval.node))
-
-                                                  cbf_failnez (cbf_add_columnrow (yyval.node, yyvsp[0].text))
                                                 ;
     break;}
 case 37:
 {
+                                                  yyval.node = ((void **)context)[3];
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyval.node, CBF_COLUMN,
+                                                                                                                  (cbf_node *)(((void **)context)[3])))
+
+                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
+
+                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
+
+                                                  yyval.node = yyvsp[-1].node;
+                                                ;
+    break;}
+case 38:
+{
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_COLUMN, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyval.node, CBF_COLUMN,
+                                                                                                                  (cbf_node *)(((void **)context)[3])))
+
+                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
+
+                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
+
+                                                  yyval.node = yyvsp[-1].node;
+                                                ;
+    break;}
+case 39:
+{
                                                   yyval.node = yyvsp[-1].node;
 
                                                   cbf_failnez (cbf_shift_link (yyval.node))
 
                                                   cbf_failnez (cbf_add_columnrow (yyval.node, yyvsp[0].text))
-                                                ;
-    break;}
-case 39:
-{
-                                                  yyval.text = yyvsp[0].text;
+
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[0].text, CBF_VALUE,
+                                                                                                                  (cbf_node *) yyval.node))
                                                 ;
     break;}
 case 40:
 {
-                                                  yyval.text = yyvsp[0].text;
+                                                  yyval.node = yyvsp[-1].node;
+
+                                                  cbf_failnez (cbf_shift_link (yyval.node))
+
+                                                  cbf_failnez (cbf_add_columnrow (yyval.node, yyvsp[0].text))
+
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[0].text, CBF_VALUE,
+                                                                                                                  (cbf_node *) yyval.node))
                                                 ;
     break;}
 case 41:
 {
-                                                  yyval.text = yyvsp[0].text;
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
                                                 ;
     break;}
 case 42:
-{
-                                                  yyval.text = yyvsp[0].text;
+{  cbf_log((cbf_handle)(((void **)context)[2]), "data name with no value", CBF_LOGERROR|CBF_LOGSTARTLOC);
+                                                  
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_SAVEFRAME))
+                                                  
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_CATEGORY, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
                                                 ;
     break;}
 case 43:
-{
-                                                  yyval.text = yyvsp[0].text;
+{  cbf_log((cbf_handle)(((void **)context)[2]), "data name with no value", CBF_LOGERROR|CBF_LOGSTARTLOC);
+                                                  
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_SAVEFRAME))
+                                                  
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_CATEGORY, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
                                                 ;
     break;}
 case 44:
 {
-                                                  yyval.text = yyvsp[0].text;
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_COLUMN, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyval.node, CBF_COLUMN,
+                                                                                                                  (cbf_node *)(((void **)context)[3])))
                                                 ;
     break;}
 case 45:
 {
-                                                  yyval.text = yyvsp[0].text;
+                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+                                                                                                    
+                                                  ((void **)context)[3] = (void *)yyval.node;
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyval.node, CBF_COLUMN,
+                                                                                                                  (cbf_node *)(((void **)context)[3])))
                                                 ;
     break;}
 case 46:
+{
+                                                  cbf_log((cbf_handle)(((void **)context)[2]), "data name with no value", CBF_LOGERROR|CBF_LOGSTARTLOC);
+                                                  
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_SAVEFRAME))
+                                                   
+                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyval.node, CBF_CATEGORY, yyvsp[0].text))
+                                                                                                    
+                                                  ((void **)context)[3] = (void *)yyval.node;
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyval.node, CBF_COLUMN,
+                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                ;
+    break;}
+case 47:
+{
+                                                  yyval.node = yyvsp[-1].node;
+
+                                                  cbf_failnez (cbf_set_columnrow (yyval.node, 0, yyvsp[0].text, 1))
+
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[0].text, CBF_VALUE,
+                                                                                                                  (cbf_node *) yyval.node))
+                                                ;
+    break;}
+case 48:
+{
+                                                  yyval.node = yyvsp[-1].node;
+                                                  
+                                                  cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
+
+                                                ;
+    break;}
+case 49:
+{
+                                                  yyval.node = yyvsp[-1].node;
+                                                  
+                                                  cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
+
+                                                ;
+    break;}
+case 50:
+{
+                                                  yyval.node = yyvsp[-1].node;
+                                                  
+                                                  cbf_log ((cbf_handle)(((void **)context)[2]),"loop value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
+
+                                                ;
+    break;}
+case 51:
+{
+                                                  cbf_failnez (cbf_make_node (&(yyval.node), CBF_LINK, NULL, NULL))
+
+                                                  cbf_failnez (cbf_set_link (yyval.node, yyvsp[-1].node))
+                                                ;
+    break;}
+case 52:
+{
+                                                  cbf_log ((cbf_handle)(((void **)context)[2]),"redundant \"loop_\" ",CBF_LOGERROR|CBF_LOGSTARTLOC);
+                                                  
+                                                  cbf_failnez (cbf_make_node (&(yyval.node), CBF_LINK, NULL, NULL))
+
+                                                  cbf_failnez (cbf_set_link (yyval.node, yyvsp[-1].node))
+                                                ;
+    break;}
+case 53:
+{
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+
+                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
+                                                  
+                                                  ((void **)context)[3] = (void *)yyval.node;
+
+                                                  yyval.node = yyvsp[-1].node;
+                                                ;
+    break;}
+case 54:
+{
+                                                  cbf_failnez (cbf_find_parent (&(yyval.node), yyvsp[-1].node, CBF_SAVEFRAME))
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_CATEGORY, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+
+                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
+                                                 
+                                                  ((void **)context)[3] = (void *)yyval.node;
+
+                                                  yyval.node = yyvsp[-1].node;
+                                                ;
+    break;}
+case 55:
+{
+                                                  cbf_failnez (cbf_make_new_child (&(yyval.node), yyvsp[-1].node, CBF_CATEGORY, yyvsp[0].text))
+                                                  
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyval.node, CBF_COLUMN,
+                                                                                                                  (cbf_node *)(((void **)context)[3])))
+
+                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
+
+                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
+
+                                                  yyval.node = yyvsp[-1].node;
+                                                ;
+    break;}
+case 56:
+{
+                                                  yyval.node = ((void **)context)[3];
+
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyval.node, CBF_COLUMN, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyval.node, CBF_COLUMN,
+                                                                                                                  (cbf_node *)(((void **)context)[3])))
+
+                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
+
+                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
+
+                                                  yyval.node = yyvsp[-1].node;
+                                                ;
+    break;}
+case 57:
+{
+                                                  cbf_failnez (cbf_make_child (&(yyval.node), yyvsp[-1].node, CBF_COLUMN, yyvsp[0].text))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)yyval.node;
+                                                  
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyval.node, CBF_COLUMN,
+                                                                                                                  (cbf_node *)(((void **)context)[3])))
+
+                                                  cbf_failnez (cbf_set_link (yyvsp[-1].node, yyval.node))
+
+                                                  cbf_failnez (cbf_add_link (yyvsp[-1].node, yyval.node))
+
+                                                  yyval.node = yyvsp[-1].node;
+                                                ;
+    break;}
+case 58:
+{
+                                                  yyval.node = yyvsp[-1].node;
+
+                                                  cbf_failnez (cbf_shift_link (yyval.node))
+
+                                                  cbf_failnez (cbf_add_columnrow (yyval.node, yyvsp[0].text))
+
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[0].text, CBF_VALUE,
+                                                                                                                  (cbf_node *) yyval.node))
+                                                ;
+    break;}
+case 59:
+{
+                                                  yyval.node = yyvsp[-1].node;
+
+                                                  cbf_failnez (cbf_shift_link (yyval.node))
+
+                                                  cbf_failnez (cbf_add_columnrow (yyval.node, yyvsp[0].text))
+
+                                                  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) yyvsp[0].text, CBF_VALUE,
+                                                                                                                  (cbf_node *) yyval.node))
+                                                ;
+    break;}
+case 61:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 62:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 63:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 64:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 65:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 66:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 67:
+{
+                                                  yyval.text = yyvsp[0].text;
+                                                ;
+    break;}
+case 68:
 {
                                                   yyval.text = yyvsp[0].text;
                                                 ;

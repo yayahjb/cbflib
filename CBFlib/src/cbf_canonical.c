@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_canonical -- canonical-code compression                        *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -348,13 +348,18 @@ int cbf_make_compressdata (cbf_compress_data **data, cbf_file *file)
 
 void cbf_free_compressdata (cbf_compress_data *data)
 {
+  void * memblock;
+  
+  memblock = (void *)data;
+
     /* Free storage */
 
   if (data)
   {
     cbf_free ((void **) &data->node, &data->nodes);
 
-    cbf_free ((void **) &data, NULL);
+    cbf_free ((void **) &memblock, NULL);
+
   }
 }
 

@@ -196,8 +196,8 @@ _array_structure_list.dimension
 _array_structure_list.precedence
 _array_structure_list.direction
 _array_structure_list.axis_set_id
- ARRAY1 1 3072 1 increasing ELEMENT_X
- ARRAY1 2 3072 2 increasing ELEMENT_Y
+ ARRAY1 1 3072 2 increasing ELEMENT_X
+ ARRAY1 2 3072 1 increasing ELEMENT_Y
 
 
 # category ARRAY_STRUCTURE_LIST_AXIS

@@ -2,7 +2,7 @@
 
                                      README
 
-                  Information for CBFlib 0.7.5, 15 April 2006
+                   Information for CBFlib 0.7.6, 15 July 2006
 
                                        by
                                  Paul J. Ellis
@@ -34,26 +34,36 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    CBFLIB is a library of ANSI-C functions providing a simple mechanism for
    accessing Crystallographic Binary Files (CBF files) and Image-supporting
    CIF (imgCIF) files. The CBFLIB API is loosely based on the CIFPARSE API
-   for mmCIF files. Like CIFPARSE, CBFLIB does not perform any semantic
-   integrity checks and simply provides functions to create, read, modify and
-   write CBF binary data files and imgCIF ASCII data files.
+   for mmCIF files. Starting with this release, CBFLIB performs validation
+   checks on reading of a CBF. If a dictionary is provided, values will be
+   validated against dictionary ranges and enumerations. Tags missing under
+   parent-child relationships or category key requirements will be reported.
+   CBFlib provides functions to create, read, modify and write CBF binary
+   data files and imgCIF ASCII data files.
 
   Installation
 
    CBFLIB should be built on a disk with at least 200 megabytes of free
-   space. CBFlib.tar.gz is a "gzipped" tar of the code as it now stands.
-   Place the gzipped tar in the directory that is intended to contain a new
-   directory, named CBFlib_0.7.5 (the "top-level" directory) and uncompress
-   it with gunzip and unpack it with tar:
+   space. CBFlib_0.7.6.tar.gz is a "gzipped" tar of the code as it now
+   stands. In addition, CBFlib_0.7.6_Data_Files.tar.gz is a "gzipped tar of
+   the data files needed to test the API. Place both gzipped tars in the
+   directory that is intended to contain two new directories, named
+   CBFlib_0.7.6 (the "top-level" directory) and CBFlib_0.7.6_Data_Files.
+   Uncompress both tarballs with gunzip and unpack them with tar:
 
-      gunzip CBFlib.tar.gz
-      tar xvf CBFLIB.tar
+      gunzip CBFlib_0.7.6.tar.gz
+      tar xvf CBFLIB_0.7.6.tar
+      gunzip CBFlib_0.7.6_Data_Files.tar.gz
+      tar xvf CBFLIB_0.7.6_Data_Files.tar
 
-   To run the test programs, you will also need to put Paul Ellis's sample
-   MAR345 image, example.mar2300, and Chris Nielsen's sample ADSC Quantum 315
-   image, mb_LP_1_001.img as sample data. in the directory containing the
-   top-level directory. (The image can also be found at After unpacking the
-   archive, the top-level directory should contain a makefile:
+   As with prior releases, to run the test programs, you will also need Paul
+   Ellis's sample MAR345 image, example.mar2300, and Chris Nielsen's sample
+   ADSC Quantum 315 image, mb_LP_1_001.img as sample data. Both these files
+   will be extracted by the Makefile from CBFlib_0.7.6_Data_Files. Do not
+   download copies into the top level directory.
+
+   After unpacking the archives, the top-level directory should contain a
+   makefile:
 
                            Makefile   Makefile for unix 
 
@@ -78,4 +88,4 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-   Updated 16 April 2006.  yaya@bernstein-plus-sons.com
+   Updated 16 July 2006.  yaya@bernstein-plus-sons.com

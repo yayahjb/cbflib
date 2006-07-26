@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_ascii -- write plain ASCII values                              *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -263,6 +263,164 @@ extern "C" {
 #include <ctype.h>
 #include <limits.h>
 
+/* Format the next, possibly folded text line in fline, updating
+   the pointer in string to be ready for the next pass.
+   fline_size is the valid line length.  fline must be
+   one longer to allow for termination.*/
+
+int cbf_foldtextline(const char** string, char* fline, 
+                                                int fline_size,
+                                                int unfoldme,
+                                                int foldme ) {
+    const char *c;
+    
+    char *ofl;
+    
+    int ipos, left=fline_size;
+    
+    int savbpos, savbleft;
+    
+    c = *string;
+    
+    ofl = fline;
+    
+    savbpos = -1;
+    
+	savbleft = left+1;
+	
+    /* protect folded lines that begin with ; */
+      
+    if (c[0] == ';' && (isspace(c[1])|| !c[1]) ){
+
+      *ofl++ = ';';
+      
+      *ofl++ = '\\';
+      
+      *ofl++ = '\n';
+      
+      *string = c+1;
+      
+      return 0;
+   	
+    }
+
+    for (ipos=0; c[ipos]; ipos++) {
+    
+
+      /* save the last blank or tab to break on */
+ 
+      if( c[ipos] == ' ' || c[ipos] == '\t' ) {
+
+        savbpos = ipos; savbleft = left;
+
+      }
+
+      /* check for a backslash */
+      
+      if ( foldme && c[ipos] == '\\') {
+      
+        /* if unfolding, ignore "\\\n" */
+        
+        if (unfoldme) {
+        
+           if (c[ipos+1] == '\n') {
+           
+             ipos++;
+             
+             continue;
+           	
+           }
+        	
+        }
+
+        /* if the backslash would be at the end of the line
+           insert "\\" and end the line */
+ 
+        if ( foldme && left < 2) {
+        
+          *ofl++ = '\\';
+          
+          *ofl = '\0';
+          
+          *string = c+ipos;
+          
+          return 0;
+        	
+        }
+      	
+      }
+      
+      /* check if folding would bring "; " to the front of a line
+         if so, end here */
+      
+      if ( foldme && left == 2 && c[ipos+1]==';' && isspace(c[ipos+2])  ) {
+      
+          *ofl++ = '\\';
+          
+          *ofl = '\0';
+          
+          *string = c+ipos;
+          
+          return 0;
+      	
+      }
+      
+      /* now, see if the line has ended by itself */
+      
+      if ( c[ipos+1] == '\n' || !c[ipos+1]) 
+      {
+      
+         *ofl++ = c[ipos];
+         
+         *ofl = '\0';
+         
+         *string = c+ipos+1;
+         
+         if (c[ipos+1] == '\n') (*string)++;
+         
+         if (c[ipos+1]) return 0;
+ 
+         return 1;
+      	
+      }
+      
+      /* see if we must fold */
+      
+      if ( foldme && left < 2)  {
+      
+        if (savbleft > left && savbleft < fline_size) {
+
+           ipos = savbpos;
+           
+           ofl = ofl+left-savbleft;
+        }
+        
+        *ofl++ = '\\';
+        
+        *ofl = '\0';
+        
+        *string = c+ipos;
+        
+        return 0;
+      	
+      }
+
+      *ofl++ = c[ipos];
+      
+      left--;
+    	
+    }
+    
+    *ofl ='\0';
+    
+    *string = c+ipos;
+    
+    return 1;
+    
+    
+}
+
+
 
   /* Write an ascii value */
 
@@ -270,13 +428,17 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 {
   static const char missing [] = { CBF_TOKEN_WORD, '?', '\0' };
 
-  int end;
+  int end, lw, lc, foldme=0, unfoldme=0;
 
   unsigned int column;
 
   const char *c;
-
-  char delim;
+  
+  char delim, adelim;
+  
+  char buffer[80];
+  
+  char fline[2049];
 
 
     /* Check the arguments */
@@ -305,12 +467,12 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
   if (column) {
 
-    if (*string == CBF_TOKEN_SCSTRING)
+    if (*string == CBF_TOKEN_SCSTRING) {
 
       cbf_failnez (cbf_write_character (file, '\n'))
 
     } else {
-   {
+    
       if (*string == CBF_TOKEN_WORD ||
           *string == CBF_TOKEN_NULL )
 
@@ -320,7 +482,7 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
         end = column + 1;
 
-      for (c = string + 1; *c && end <= CBF_LINELENGTH; c++) {
+      for (c = string + 1; *c && end <= (file->columnlimit); c++) {
 
         if (*c == '\t')
 
@@ -332,7 +494,7 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
       }
 
-      if (end > CBF_LINELENGTH)
+      if (end > (file->columnlimit))
 
         cbf_failnez (cbf_write_character (file, '\n'))
     }
@@ -341,6 +503,7 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
 
     /* Write the value */
+ 
 
   switch (*string)
   {
@@ -348,34 +511,111 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
     case  CBF_TOKEN_WORD:
     case  CBF_TOKEN_NULL:
+    
+      if (strlen(string+1) <= file->columnlimit
+        && *(string+1)!='"' && *(string+1)!='\''
+        && !strpbrk(string+1," \t\n\r")
+        && !(strlen(string+1) == file->columnlimit && *(string+1)==';') ) {
 
-      cbf_failnez (cbf_write_character (file, ' '))
+        if (strlen(string+1) != file->columnlimit)
 
-      cbf_failnez (cbf_write_string (file, string + 1))
+          cbf_failnez (cbf_write_character (file, ' '))
 
-      break;
+        cbf_failnez (cbf_write_string (file, string + 1))
+
+        break;
+      
+      }
 
 
       /* Single line? */
 
     case CBF_TOKEN_SQSTRING:
     case CBF_TOKEN_DQSTRING:
-
-      if (*string == CBF_TOKEN_SQSTRING)
+    
+      if (*string == CBF_TOKEN_SQSTRING) {
 
         delim = '\'';
+        
+        adelim = '"';
 
-      else
+      } else {
 
         delim = '"';
 
-      cbf_failnez (cbf_write_character (file, ' '))
+        adelim = '\'';
+        
+      }
+        
+      if (strchr(string+1,delim) && !strchr(string+1,adelim)) {
 
-      cbf_failnez (cbf_write_character (file, delim))
+        delim = adelim;
+      	  
+      }
 
-      cbf_failnez (cbf_write_string (file, string + 1))
+      if (strlen(string+1)+2 < file->columnlimit && !strchr(string+1,delim))  {
 
-      cbf_failnez (cbf_write_character (file, delim))
+        if (strlen(string+1)+3 < file->columnlimit) {
+        	
+          cbf_failnez (cbf_write_character (file, ' '))
+        }
+
+        cbf_failnez (cbf_write_character (file, delim))
+
+        cbf_failnez (cbf_write_string (file, string + 1))
+
+        cbf_failnez (cbf_write_character (file, delim))
+
+      } else {
+
+        sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
+
+        cbf_warning(buffer);
+      
+        if (file->column > 0) {
+         
+          cbf_failnez (cbf_write_character (file, '\n'))
+        }
+      
+        cbf_failnez (cbf_write_string (file, ";\\\n"))
+
+        end = 0;
+
+        for (c = string + 1; *c; c++) {
+        
+          if (((file->column > file->columnlimit-10)&& (isspace(*c)||*c=='\\'))||
+            file->column > file->columnlimit-2) {
+
+          	cbf_failnez (cbf_write_string (file, "\\\n"))
+
+          	end = 0;
+          }
+
+          cbf_failnez (cbf_write_character (file, *c))
+
+          if (*c == ';' && end == 0 && (isspace(*(c+1))||!*(c+1))) 
+          {
+          	cbf_failnez (cbf_write_string (file, "\\\n"))
+          	
+          	end = 0;
+          	
+          	continue;
+          }
+
+          if (*c == '\n')
+
+            end = 0;
+
+          else
+
+            end = 1;
+        }
+
+      cbf_failnez (cbf_write_string (file, "\\\n;\n"))
+
+      end = 0;
+      	
+      }
 
       break;
 
@@ -383,29 +623,101 @@ int cbf_write_ascii (const char *string, cbf_file *file)
       /* Multiple lines? */
 
     case CBF_TOKEN_SCSTRING:
-
-      cbf_failnez (cbf_write_character (file, ';'))
+    
+      unfoldme = 0;
+      
+      foldme = 0;
+      
+      if (*(string+1)=='\\' && *(string+2)=='\n' ) unfoldme=2;
+    
+      lw = 0;
+      
+      lc = 1;
 
       end = 1;
+      
+      for (c = string +1+unfoldme; *c; c++) {
 
-      for (c = string + 1; *c; c++)
-      {
-        if (*c == ';' && end == 0)
+        if (*c == ';' && end == 0 && (isspace(*(c+1))|| !*(c+1))) foldme=1;
+        
+        if (*c == '\n') {
 
-          cbf_failnez (cbf_write_character (file, '\\'))
+          if (!unfoldme || *(c-1) !='\\') {
 
-        cbf_failnez (cbf_write_character (file, *c))
+            end = 0;
+          
+            if (lc > lw) lw = lc;
+          
+            lc = 0;
+            
+          } else  {
+          
+            lc--;
+          	
+          }
 
-        if (*c == '\n')
-
-          end = 0;
-
-        else
+        } else {
+        
+          lc++;
 
           end = 1;
+        }
+      }
+      
+      if (lc > lw) lw = lc;
+
+      if ( foldme || lw > file->columnlimit || (unfoldme && *(c-1)=='\\')) {
+
+        sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
+
+        cbf_warning(buffer);
+      
+        cbf_failnez (cbf_write_string (file, ";\\\n"))
+        
+        end = 0;
+        
+        foldme = 1;
+      	
+      } else {
+
+        cbf_failnez (cbf_write_character (file, ';'))
+        
+        end = 1;
+        
+        foldme = 0;
+      
       }
 
-      cbf_failnez (cbf_write_string (file, "\n;\n"))
+            
+      for (c = string + 1+ unfoldme; *c; ) {
+      
+        int done;
+      
+        done = cbf_foldtextline(&c, fline, file->columnlimit, unfoldme, foldme);
+        
+        cbf_failnez (cbf_write_string (file, fline))
+        
+        if ( !done ) cbf_failnez (cbf_write_character (file, '\n'))
+        
+      }
+      
+
+      if (unfoldme && *(c-1)=='\\') {
+
+      	cbf_failnez (cbf_write_string (file, "\\\n;\n"))
+
+      } else {
+
+        if (file->column) {
+
+      	  cbf_failnez (cbf_write_character (file, '\n'))
+
+        }
+
+      	cbf_failnez (cbf_write_string (file, ";\n"))
+
+      }
+      
 
       end = 0;
 
@@ -417,7 +729,6 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
   return cbf_flush_characters (file);
 }
-
 
 #ifdef __cplusplus
 

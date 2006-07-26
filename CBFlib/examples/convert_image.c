@@ -1,7 +1,7 @@
 /**********************************************************************
  * convert_image -- convert an image file to a cbf file               *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 28 June 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -231,7 +231,9 @@
  *                            SYNOPSIS                                *
  *                                                                    *
  *  convert_image [-i input_img] [-o output_cbf] [-p template_cbf]\   *
- *    [-d detector name]  -m [x|y|x=y] [-z distance] \                *
+ *    [-d detector name]  -m [x|y|x=y] [-z distance]              \   *
+ *    [-c category_alias=category_root]*                          \   *
+ *    [-t tag_alias=tag_root]*                                    \   *
  *    [input_img] [output_cbf]                                        *
  *                                                                    *
  *  the options are:                                                  *
@@ -268,11 +270,19 @@
  *  -z distance                                                       *
  *    detector distance along Z-axis                                  *
  *                                                                    *
+ *  -c category_alias=category_root                                   *
+ *  -t tag_alias=tagroot                                              *
+ *    map the given alias to the given root, so that instead          *
+ *    of outputting the alias, the root will be presented in the      *
+ *    output cbf instead.  These options may be repeated as many      *
+ *    times as needed.                                                *
+ *                                                                    *
  **********************************************************************/
 
 
 #include "cbf.h"
 #include "cbf_simple.h"
+#include "cbf_string.h"
 #include "img.h"
 
 #include <stdlib.h>
@@ -280,11 +290,63 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
-#include <sys/errno.h>
+#include <errno.h>
+#ifdef GNUGETOPT
+#include "getopt.h"
+#endif
 #include <unistd.h>
 
 
 int local_exit (int status);
+int outerror(int err);
+
+int outerror(int err) 
+{
+	
+  if ((err&CBF_FORMAT)==CBF_FORMAT)
+    fprintf(stderr, " convert_image: The file format is invalid.\n");
+  if ((err&CBF_ALLOC)==CBF_ALLOC)
+    fprintf(stderr, " convert_image Memory allocation failed.\n");
+  if ((err&CBF_ARGUMENT)==CBF_ARGUMENT)
+    fprintf(stderr, " convert_image: Invalid function argument.\n");
+  if ((err&CBF_ASCII)==CBF_ASCII)
+    fprintf(stderr, " convert_image: The value is ASCII (not binary).\n");
+  if ((err&CBF_BINARY)==CBF_BINARY)
+    fprintf(stderr, " convert_image: The value is binary (not ASCII).\n");
+  if ((err&CBF_BITCOUNT)==CBF_BITCOUNT)
+    fprintf(stderr, " convert_image: The expected number of bits does" 
+      " not match the actual number written.\n");
+  if ((err&CBF_ENDOFDATA)==CBF_ENDOFDATA)
+    fprintf(stderr, " convert_image: The end of the data was reached"
+     " before the end of the array.\n");
+  if ((err&CBF_FILECLOSE)==CBF_FILECLOSE)
+    fprintf(stderr, " convert_image: File close error.\n");
+  if ((err&CBF_FILEOPEN)==CBF_FILEOPEN)
+    fprintf(stderr, " convert_image: File open error.\n");
+  if ((err&CBF_FILEREAD)==CBF_FILEREAD)
+    fprintf(stderr, " convert_image: File read error.\n");
+  if ((err&CBF_FILESEEK)==CBF_FILESEEK)
+    fprintf(stderr, " convert_image: File seek error.\n");
+  if ((err&CBF_FILETELL)==CBF_FILETELL)
+    fprintf(stderr, " convert_image: File tell error.\n");
+  if ((err&CBF_FILEWRITE)==CBF_FILEWRITE)
+    fprintf(stderr, " convert_image: File write error.\n");
+  if ((err&CBF_IDENTICAL)==CBF_IDENTICAL)
+    fprintf(stderr, " convert_image: A data block with the new name already exists.\n");
+  if ((err&CBF_NOTFOUND)==CBF_NOTFOUND)
+    fprintf(stderr, " convert_image: The data block, category, column or"
+      " row does not exist.\n");
+  if ((err&CBF_OVERFLOW)==CBF_OVERFLOW)
+    fprintf(stderr, " convert_image: The number read cannot fit into the"
+      "destination argument.\n        The destination has been set to the nearest value.\n");
+  if ((err& CBF_UNDEFINED)==CBF_UNDEFINED)
+    fprintf(stderr, " convert_image: The requested number is not defined (e.g. 0/0).\n");
+  if ((err&CBF_NOTIMPLEMENTED)==CBF_NOTIMPLEMENTED)
+    fprintf(stderr, " convert_image: The requested functionality is not yet implemented.\n");
+  return 0;
+
+}
+
 
 #undef cbf_failnez
 #define cbf_failnez(x) \
@@ -292,8 +354,9 @@ int local_exit (int status);
   err = (x); \
   if (err) { \
     fprintf(stderr," convert_image: CBFlib fatal error %d\n",err); \
-    outusage();\
-    exit (-1); \
+    outerror(err);   \
+    outusage();      \
+    local_exit (-1); \
   } \
  }
 
@@ -311,6 +374,8 @@ int outusage ( void ) {
  fprintf(stderr," \n Usage:\n");
  fprintf(stderr,"  convert_image [-i input_img] [-o output_cbf] [-p template_cbf]\\\n");
  fprintf(stderr,"    [-d detector name] -m [x|y|x=y] [-z distance] \\\n");
+ fprintf(stderr,"    [-c category_alias=category_root]* \\\n");
+ fprintf(stderr,"    [-t tag_alias=tag_root]* \\\n");
  fprintf(stderr,"    [input_img] [output_cbf]\n");
 
  fprintf(stderr,"  the options are:\n");
@@ -346,6 +411,13 @@ int outusage ( void ) {
 
  fprintf(stderr,"  -z distance\n");
  fprintf(stderr,"    detector distance along Z-axis.\n");
+ 
+ fprintf(stderr,"  -c category_alias=category_root\n");
+ fprintf(stderr,"  -t tag_alias=tagroot\n");
+ fprintf(stderr,"    map the given alias to the given root, so that instead\n");
+ fprintf(stderr,"    of outputting the alias, the root will be presented in the\n");
+ fprintf(stderr,"    output cbf instead.  These options may be repeated as many\n");
+ fprintf(stderr,"    times as needed.\n");
 
  return -1;
 
@@ -394,11 +466,13 @@ int main (int argc, char *argv [])
 
   char detector_type [64], template_name [256], oscaxis [20], *c;
 
-  const char *detector_name, *detector_opt, *beam_center, *pixel_size, *axis, *array_id;
+  const char *detector_name, *detector_opt, *beam_center, *pixel_size, 
+    *axis, *array_id, *binning;
 
   char *header_info;
 
-  double wavelength, distance, osc_start, osc_range, time, bcx, bcy, psx, psy;
+  double wavelength, distance, osc_start, osc_range, time, bcx, bcy, 
+    psx, psy, binx, biny;
 
   size_t header_info_size;
 
@@ -424,10 +498,11 @@ int main (int argc, char *argv [])
   int imgtmpused = 0;
   char *imgin, *cbfout, *template, *distancestr;
   cbf_detector detector;
-  char *tag, *data;
+  char *tag, *data, *alias, *root;
+  char xalias[81];
   int index;
   int transpose;
-
+  int fastlen, slowlen;
 
     /* Usage */
 
@@ -437,22 +512,27 @@ int main (int argc, char *argv [])
   detector_opt = NULL;
   transpose = 0;
   distancestr = NULL;
+  
+  cbf_failnez (cbf_make_handle (&cbf))
 
-  while ((copt = getopt(argc,argv, "i:o:p:d:m:r:z:")) != EOF) {
+  while ((copt = getopt(argc,argv, "i:o:p:d:m:r:z:c:t:")) != EOF) {
 
     switch(copt) {
       case 'i':
          if (imgin) errflg++;
          else imgin = optarg;
          break;
+
       case 'o':
          if (cbfout) errflg++;
          else cbfout = optarg;
          break;
+
       case 'p':
          if (template) errflg++;
          else template = optarg;
          break;
+
       case 'm':
          currentxform = (axisxform *)NULL;
          if (!strcmp(optarg,"x")) currentxform = &mirrorx;
@@ -461,6 +541,7 @@ int main (int argc, char *argv [])
          if (!currentxform) errflg++;
          else applyxform(&overall,currentxform);
          break;
+
       case 'r':
          currentxform = (axisxform *)NULL;
          if (!strcmp(optarg,"1")) currentxform = &rotate1;
@@ -474,10 +555,34 @@ int main (int argc, char *argv [])
          if (detector_opt) errflg++;
          else detector_opt = optarg;
          break;
+
       case 'z':
          if (distancestr) errflg++;
          else distancestr = optarg;
          break;
+         
+      case 'c':
+      case 't':
+          alias = optarg;
+          if (alias == NULL || *alias == '\0') {
+            errflg++; break;  	
+          }
+          root = strchr(alias,'=');
+          if (root == NULL || root-alias > 80 || root-alias < 2 || *(root+1) =='\0') {
+            errflg++; break;  	
+          }
+          strncpy(xalias,optarg,root-alias);
+          xalias[root-alias] = '\0';
+          root++;
+          if(copt == 'c') 
+          {
+          	cbf_failnez (cbf_set_category_root(cbf, (const char *)xalias, (const char *) root))
+          }
+          else {
+          	cbf_failnez (cbf_set_tag_root(cbf, (const char *)xalias, (const char *) root))
+          }
+          break;
+
       default:
          errflg++;
          break;
@@ -523,7 +628,7 @@ int main (int argc, char *argv [])
   if (imgtmpused)
   {
        if (unlink(imgtmp) != 0 ) {
-       fprintf(stderr,"convert_image:  Can't unlink temporary file %s.\n", imgtmp);
+       fprintf(stderr," convert_image:  Can't unlink temporary file %s.\n", imgtmp);
        fprintf(stderr,"%s\n",strerror(errno));
        exit(1);
      }
@@ -564,16 +669,19 @@ int main (int argc, char *argv [])
                              img_columns (img),
                              img_rows (img));
 
-  fprintf(stderr,"convert_image:  template_name: %s\n", template_name);
-    /* Read and modify the template */
+  fprintf(stderr," convert_image: template_name: %s\n", template_name);
 
-  cbf_failnez (cbf_make_handle (&cbf))
+    /* Read and modify the template */
 
   in = fopen (template_name, "rb");
 
-  if (!in)
-
+  if (!in) 
+  {
+    fprintf (stderr," convert_image: unable to open template_name: %s\n", template_name);
+    
     exit (4);
+
+  }
 
   cbf_failnez (cbf_read_template (cbf, in))
 
@@ -586,7 +694,7 @@ int main (int argc, char *argv [])
   {
       if (tag && data) {
 
-      fprintf (stderr, " %s = %s;\n", tag, data);
+      /* fprintf (stderr, " %s = %s;\n", tag, data); */
 
       header_info_size += (strlen(tag) + strlen(data)+6);
 
@@ -594,7 +702,7 @@ int main (int argc, char *argv [])
 
       if (tag && !data) {
 
-        fprintf (stderr, " %s;\n", tag);
+        /* fprintf (stderr, " %s;\n", tag); */
 
         header_info_size += (strlen(tag) +3);
 
@@ -660,7 +768,7 @@ int main (int argc, char *argv [])
 
   cbf_failnez (cbf_set_axis_setting (cbf, 0, "DETECTOR_Z", distance, 0))
 
-  cbf_failnez(cbf_require_category(cbf,"diffrn_detector"))
+  cbf_failnez(cbf_require_category(cbf,"diffrn_measurement"))
 
   cbf_failnez(cbf_require_column(cbf,"sample_detector_distance"))
 
@@ -739,9 +847,18 @@ int main (int argc, char *argv [])
 
 
     /* Image */
+    
+  if (img->rowmajor) {
+    fastlen = img_columns(img);
+    slowlen = img_rows(img);
+  } else  {      
+    fastlen = img_rows(img);
+    slowlen = img_columns(img);
+  }
 
-  if (overall.posxtarg != posx || overall.posytarg != posy)
-  { int fastorig, faststep, sloworig, slowstep, curpos, i, j, fastlen;
+
+  if (overall.posxtarg != posx || overall.posytarg != posy || img->rowmajor)
+  { int fastorig, faststep, sloworig, slowstep, curpos, i, j;
 
     int * tempimg;
 
@@ -755,44 +872,91 @@ int main (int argc, char *argv [])
       exit(-1);
     }
 
-    fastorig = sloworig = 0;
-    faststep = 1;
-    slowstep = img_columns(img);
+    /* if in row major order, the fast index is the x axis, counting
+       the columns, and the slow index is the y axis, counting the
+       rows */
+       
+    if (img->rowmajor)  {
+ 
+      fastorig = sloworig = 0;
+      faststep = 1;
+      slowstep = img_columns(img);
 
-    switch (overall.posxtarg) {
+      switch (overall.posxtarg) {
         case (posx): break;
-        case (negx): fastorig = img_columns(img)-1; break;
-        case (posy): faststep = img_columns(img);
-        case (negy): fastorig = (img_columns(img)-1)*img_rows(img);
-                     faststep = -img_rows(img); break;
-    }
-    switch (overall.posytarg) {
-        case (posx): slowstep = 1; break;
-        case (negx): sloworig = img_columns(img)-1; slowstep= -1;break;
+        case (negx): fastorig = img_columns(img)-1; faststep = -1; break;
+        case (posy): faststep = img_columns(img); 
+                     fastlen = img_rows(img);
+                     slowlen = img_columns(img); break;
+        case (negy): fastorig = (img_columns(img))*(img_rows(img)-1);
+                     faststep = -img_columns(img);
+                     fastlen = img_rows(img);
+                     slowlen = img_columns(img); break;
+      }
+      switch (overall.posytarg) {
+        case (posx): slowstep = 1;
+                     fastlen = img_rows(img);
+                     slowlen = img_columns(img); break;
+        case (negx): sloworig = img_columns(img)-1; slowstep= -1;
+                     fastlen = img_rows(img);
+                     slowlen = img_columns(img); break;
         case (posy): break;
-        case (negy): sloworig = img_columns(img)*img_rows(img)-1;
+        case (negy): sloworig = img_columns(img)*(img_rows(img)-1);
+                     slowstep = -img_columns(img); break;
+      }
+      
+    } else {
+
+      fastorig = sloworig = 0;
+      faststep = 1;
+      slowstep = img_rows(img);
+
+      switch (overall.posxtarg) {
+        case (posx): break;
+      	case (negx): sloworig = img_rows(img)*(img_columns(img)-1);
                      slowstep = -img_rows(img); break;
+        case (posy): slowstep = 1;
+                     fastlen = img_columns(img);
+                     slowlen = img_rows(img); break;
+        case (negy): sloworig = img_rows(img)-1; slowstep = -1; 
+                     fastlen = img_columns(img);
+                     slowlen = img_rows(img); break;
+                     break;
+      }
+      switch (overall.posytarg) {
+        case (posx): faststep = img_rows(img);
+                     fastlen = img_columns(img);
+                     slowlen = img_rows(img); break;
+        case (negx): fastorig = (img_rows(img))*(img_columns(img)-1);
+                     faststep = -img_rows(img);
+                     fastlen = img_columns(img);
+                     slowlen = img_rows(img); break;
+        case (posy): break;
+        case (negy): fastorig = img_rows(img)-1; faststep = -1; break;
+      }
+
+    	
     }
 
     curpos = fastorig+sloworig;
-    fastlen = img_rows(img);
 
     tempimg = malloc(img_columns(img)*img_rows(img)*sizeof(int));
     if (!tempimg) {
       fprintf(stderr,"\n unable to allocate temporary image array\n");
     }
 
-    for (i=0;i<img_rows(img);i++) {
+    for (i=0;i<fastlen;i++) {
       curpos = fastorig+i*faststep+sloworig;
-      for (j=0; j<img_columns(img);j++) {
-        *((int *)tempimg+curpos) = *(&img_pixel(img,0,0)+i+j*fastlen);
+      for (j=0; j<slowlen;j++) {
+        *((int *)tempimg+curpos) = *((img->image)+i+j*fastlen);
+       /*  *((int *)tempimg+curpos) = img_pixel(img, j, i); */
         curpos = curpos+slowstep;
       }
     }
 
-    for (i=0;i<img_rows(img);i++) {
-      for (j=0; j<img_columns(img);j++) {
-        *(int *)(&img_pixel(img,0,0)+i+j*fastlen) = *((int *)tempimg+i+j*fastlen);
+    for (i=0;i<fastlen;i++) {
+      for (j=0; j<slowlen;j++) {
+        *(int *)((img->image)+i+j*fastlen) = *((int *)tempimg+i+j*fastlen);
       }
     }
 
@@ -801,9 +965,126 @@ int main (int argc, char *argv [])
 
 
   cbf_failnez (cbf_set_image (cbf, 0, 0, CBF_PACKED,
-                              &img_pixel (img, 0, 0), sizeof (int), 1,
-                               img_columns (img), img_rows (img)))
+                               img->image, sizeof (int), 1,
+                               slowlen, fastlen))
 
+ 
+   /* fix up the array_structure_list.direction and .precedence */
+
+
+  if (overall.posxtarg != posx || overall.posytarg != posy) {
+
+    unsigned int arow[2], precedence[2], temp;
+    
+    char * direction[2], * dtemp;
+    
+    arow[0] = arow[1] = 0;
+    
+    precedence[0] = 1;
+    
+    precedence[1] = 2;    
+        
+    direction[0] = direction[1] = NULL;
+    
+    cbf_failnez (cbf_find_category (cbf, "array_structure_list"))
+    cbf_failnez (cbf_find_column   (cbf, "array_id"))
+    
+    while (!cbf_find_nextrow (cbf, array_id)) {
+ 
+      cbf_failnez (cbf_find_column      (cbf, "precedence"))
+      cbf_failnez (cbf_get_integervalue (cbf, (int *)&temp))
+
+     if (temp == 1 || temp == 2) {
+    	cbf_failnez(cbf_row_number(cbf,&(arow[temp-1])))
+    	arow[temp-1]++;
+    	cbf_failnez(cbf_find_column(cbf,"direction"))
+    	cbf_failnez(cbf_get_value(cbf,(const char**)&(direction[temp-1])))
+    	cbf_failnez(cbf_find_column   (cbf, "array_id"))
+     }
+
+    }
+    
+
+    switch (overall.posxtarg) {
+      case (posx): break;
+      case (negx): if (!cbf_cistrcmp(direction[0],"increasing")) {
+                     direction[0] = "decreasing";
+                   } else {
+                     direction[0] = "increasing";
+                   } 
+                   break;
+      case (posy): precedence[0] = 2; precedence[1] = 1;
+                   dtemp = direction[0]; direction[0]=direction[1]; direction[1]=dtemp;
+                   break;
+      case (negy): precedence[0] = 2; precedence[1] = 1;
+                   dtemp = direction[0]; direction[0]=direction[1]; direction[1]=dtemp;
+                   if (!cbf_cistrcmp(direction[0],"increasing")) {
+                     direction[0] = "decreasing";
+                   } else {
+                     direction[0] = "increasing";
+                   } 
+                   break;
+    }
+    switch (overall.posytarg) {
+      case (posx): break;
+      case (negx): if (!cbf_cistrcmp(direction[1],"increasing")) {
+                     direction[1] = "decreasing";
+                   } else {
+                     direction[1] = "increasing";
+                   } 
+                   break;
+      case (posy): break;
+      case (negy): if (!cbf_cistrcmp(direction[1],"increasing")) {
+                     direction[1] = "decreasing";
+                   } else {
+                     direction[1] = "increasing";
+                   }  break;
+    }
+    
+    if (arow[0]) {
+      cbf_failnez (cbf_select_row       (cbf, arow[0]-1))
+      cbf_failnez (cbf_find_column      (cbf, "precedence"))
+      cbf_failnez (cbf_set_integervalue (cbf, precedence[0]))
+      cbf_failnez (cbf_find_column      (cbf, "direction"))
+      cbf_failnez (cbf_set_value        (cbf, direction[0]))
+    }
+    
+    if (arow[1]) {
+      cbf_failnez (cbf_select_row       (cbf, arow[1]-1))
+      cbf_failnez (cbf_find_column      (cbf, "precedence"))
+      cbf_failnez (cbf_set_integervalue (cbf, precedence[1]))
+      cbf_failnez (cbf_find_column      (cbf, "direction"))
+      cbf_failnez (cbf_set_value        (cbf, direction[1]))
+    }
+
+  }
+
+ /* binning */
+  
+  binx = biny = 0.0;
+  
+  if ((binning = img_get_field(img,"BIN"))) {
+  
+    char *endptr;
+    
+    biny = binx = strtod (binning, &endptr);
+    
+    if (*endptr && *(endptr+1)) biny = strtod (endptr+1, &endptr);
+    
+    if (binx <= 0.0 || biny <= 0.0) {
+    
+      fprintf(stderr," Bad bin values %g x %g ignored\n", binx, biny);
+    	
+    } else {
+    
+      cbf_failnez(cbf_set_bin_sizes(cbf, 0, binx, biny))
+    	
+    }
+  	
+  }
+
+
+ 
   /* beam center and pixel size */
 
   bcx = bcy = psx = psy = 0.0;
@@ -876,13 +1157,14 @@ int main (int argc, char *argv [])
 
   cbf_failnez (cbf_set_pixel_size (cbf, 0, 2, psy))
 
-  fprintf(stderr, "header pixel center indices: %g %g\n",bcx, bcy);
+  /* fprintf(stderr, "header pixel center indices: %g %g\n",bcx, bcy); */
 
   cbf_failnez(cbf_construct_detector (cbf, &detector, 0))
 
   cbf_failnez(cbf_set_beam_center(detector,&bcx,&bcy,NULL,NULL))
 
   cbf_failnez(cbf_free_detector(detector))
+  
 
 
 
@@ -1012,7 +1294,7 @@ int main (int argc, char *argv [])
   /* Get the element id */
 
     cbf_get_element_id (cbf, 0, &id);
-    fprintf(stdout," Element ID: %s\n", id);
+    /* fprintf(stdout," Element ID: %s\n", id); */
 
 
   /* Set the gain of a detector element */
@@ -1103,13 +1385,13 @@ int main (int argc, char *argv [])
 
     cbf_get_beam_center (detector, &d [0], &d [1], &d [2], &d [3]);
 
-    fprintf(stderr," convert_image: beam center:  %g %g %g %g\n", d[0], d[1], d[2], d[3]);
+    /* fprintf(stderr," convert_image: beam center:  %g %g %g %g\n", d[0], d[1], d[2], d[3]); */
 
 
   /* Get the detector distance */
 
      cbf_get_detector_distance (detector, &d [0]);
-     fprintf(stdout, " detector distance: %-15g\n",d[0]);
+     /* fprintf(stdout, " detector distance: %-15g\n",d[0]); */
 
   /* Get the detector normal */
 
@@ -1118,13 +1400,13 @@ int main (int argc, char *argv [])
 
   /* Calcluate the coordinates of a pixel */
 
-    /* cbf_get_pixel_coordinates (detector, 1, 3, &d [0], &d [1], &d [2]); */
+     cbf_get_pixel_coordinates (detector, 1, 3, &d [0], &d [1], &d [2]);
 
 
   /* Calcluate the area of a pixel */
 
     cbf_get_pixel_area (detector, 1, 3, &d [0], &d [1]);
-    fprintf(stdout, " Pixel area, projected area: %-15g, %-15g\n",d[0], d[1]);
+    /* fprintf(stdout, " Pixel area, projected area: %-15g, %-15g\n",d[0], d[1]); */
 
   /* Calculate the dimensions of a pixel */
 
@@ -1142,6 +1424,16 @@ int main (int argc, char *argv [])
     fprintf(stdout, " Array element size:     %-15g x %-15g \n", d[2], d[3]);
     */
 
+
+  /* Get the bin sizes */
+  
+    /*if(cbf_get_bin_sizes(cbf,0,&d[0],&d[1])) 
+    {
+    	fprintf (stdout," Pixel bin sizes not specified \n");
+    } else {
+    	fprintf(stdout, " Pixel bin sizes %-.15g x %-.15g \n", d[0], d[1]);
+    }
+    */
 
   /* Free a detector */
 
@@ -1188,3 +1480,10 @@ int main (int argc, char *argv [])
 
   return 0;
 }
+
+int local_exit (int status)
+{
+  exit(status);
+  return 1; /* avoid warnings */
+}
+

@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_context -- handle cbf contexts                                 *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -477,14 +477,18 @@ const char *cbf_copy_string (cbf_context *context, const char *string,
                                                          char type)
 {
   char *new_string;
+  
+  void *memblock;
 
   if (string) {
 
     if (type)
     {
-      if (cbf_alloc ((void **) &new_string, NULL,
+      if (cbf_alloc (&memblock, NULL,
                       sizeof (char), strlen (string) + 2) == 0)
       {
+        new_string = (char *)memblock;
+        
         *new_string = type;
 
         strcpy (new_string + 1, string);
@@ -494,9 +498,12 @@ const char *cbf_copy_string (cbf_context *context, const char *string,
     }
     else
 
-      if (cbf_alloc ((void **) &new_string, NULL, \
+      if (cbf_alloc (&memblock, NULL, \
                       sizeof (char), strlen (string) + 1) == 0)
       {
+      
+        new_string = (char *)memblock;
+        
         strcpy (new_string, string);
 
         return new_string;
@@ -515,7 +522,11 @@ const char *cbf_copy_string (cbf_context *context, const char *string,
 
 void cbf_free_string (cbf_context *context, const char *string)
 {
-  cbf_free ((void **) &string, NULL);
+  void * memblock;
+  
+  memblock = (void *)string;
+  
+  cbf_free (&memblock, NULL);
 }
 
 

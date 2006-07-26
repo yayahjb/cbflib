@@ -1,7 +1,7 @@
 /**********************************************************************
  *          cif2c -- convert a cif to a CBFlib function               *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 28 June 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -301,7 +301,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <unistd.h>
 
 #define C2CBUFSIZ 8192

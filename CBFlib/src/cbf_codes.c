@@ -2,7 +2,7 @@
  * cbf_codes -- convert between encoded and unencoded binary          *
  *              calculate message digest                              *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *

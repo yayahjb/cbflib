@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_packed -- Packing compression                                  *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -539,6 +539,8 @@ int cbf_compress_packed (void         *source,
   unsigned long bitcount, chunkbits;
 
   cbf_packed_data *data;
+  
+  void * memblock;
 
 
     /* Is the element size valid? */
@@ -552,7 +554,9 @@ int cbf_compress_packed (void         *source,
 
     /* Allocate memory */
 
-  cbf_failnez (cbf_alloc ((void **) &data, NULL, sizeof (cbf_packed_data), 1))
+  cbf_failnez (cbf_alloc (&memblock, NULL, sizeof (cbf_packed_data), 1))
+  
+  data = (cbf_packed_data *) memblock;
 
   data->start = 0;
 
@@ -721,7 +725,7 @@ int cbf_compress_packed (void         *source,
 
     /* Free memory */
 
-  return cbf_free ((void **) &data, NULL);
+  return cbf_free (&memblock, NULL);
 }
 
 

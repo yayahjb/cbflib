@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_ascii.h                                                        *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -259,6 +259,15 @@ extern "C" {
 #include "cbf_file.h"
 
 
+/* Format the next, possibly folded text line in fline, updating
+   the pointer in string to be ready for the next pass.
+   fline_size is the valid line length.  fline must be
+   one longer to allow for termination.*/
+
+int cbf_foldtextline(const char** string, char* fline, 
+                                                int fline_size,
+                                                int unfoldme,
+                                                int foldme );
   /* Write an ascii value */
 
 int cbf_write_ascii (const char *string, cbf_file *file);

@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_read_mime -- read MIME-encoded binary sections                 *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -943,7 +943,7 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
           if (cbf_cistrncmp (c+quote, "Base64", 6) == 0)
 
-            if (isspace (c [6]) || c [6] == '(' || (quote && c [16] == '\"')) {
+            if (isspace (c [6]) || c [6] == '(' || (quote && c [6] == '\"')) {
 
               failure = 0;
 
@@ -952,7 +952,7 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
           if (cbf_cistrncmp (c+quote, "X-Base8", 7) == 0)
 
-            if (isspace (c [7]) || c [7] == '(' || (quote && c [16] == '\"')) {
+            if (isspace (c [7]) || c [7] == '(' || (quote && c [7] == '\"')) {
 
               failure = 0;
 
@@ -961,7 +961,7 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
           if (cbf_cistrncmp (c+quote, "X-Base10", 8) == 0)
 
-            if (isspace (c [8]) || c [8] == '(' || (quote && c [16] == '\"')) {
+            if (isspace (c [8]) || c [8] == '(' || (quote && c [8] == '\"')) {
 
               failure = 0;
 
@@ -970,7 +970,7 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
           if (cbf_cistrncmp (c+quote, "X-Base16", 8) == 0)
 
-            if (isspace (c [8]) || c [8] == '(' || (quote && c [16] == '\"')) {
+            if (isspace (c [8]) || c [8] == '(' || (quote && c [8] == '\"')) {
 
               failure = 0;
 
@@ -980,7 +980,7 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
           if (cbf_cistrncmp (c+quote, "7bit", 4) == 0 ||
               cbf_cistrncmp (c+quote, "8bit", 4) == 0)
 
-            if (isspace (c [4]) || c [4] == '(' || (quote && c [16] == '\"')) {
+            if (isspace (c [4]) || c [4] == '(' || (quote && c [4] == '\"')) {
 
               failure = 0;
 
@@ -989,7 +989,7 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
           if (cbf_cistrncmp (c+quote, "Binary", 6) == 0)
 
-            if (isspace (c [6]) || c [6] == '(' || (quote && c [16] == '\"')) {
+            if (isspace (c [6]) || c [6] == '(' || (quote && c [6] == '\"')) {
 
               failure = 0;
 

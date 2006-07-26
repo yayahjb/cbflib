@@ -35,7 +35,8 @@ typedef struct
   int                   tags;
   img_tag              *tag;
 
-  int                   size [2];
+  int                   size [2];  /* size[0] = columns, size[1] = rows */
+  int					rowmajor;  /* set to 1 for row major, 0 for column major */
   int                  *image;
 }
 img_object;
@@ -45,7 +46,14 @@ typedef img_object *img_handle;
 
   /* Functions */
 
-#define img_pixel(img,x,y) (((img)->image) [((img)->size) [1] * (int) (x) + (int) (y)])
+#define img_pixel(img,x,y)                                              \
+          (((img)->rowmajor)?                                           \
+          (((img)->image) [((img)->size) [0] * (int) (y) + (int) (x)]) :\
+          (((img)->image) [((img)->size) [1] * (int) (x) + (int) (y)]))
+#define img_pixelptr(img,x,y)                                              \
+          (((img)->rowmajor)?                                           \
+          &(((img)->image) [((img)->size) [0] * (int) (y) + (int) (x)]) :\
+          &(((img)->image) [((img)->size) [1] * (int) (x) + (int) (y)]))
 #define img_columns(img)    ((img)->size [0])
 #define img_rows(img)       ((img)->size [1])
 

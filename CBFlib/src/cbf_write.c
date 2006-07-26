@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_write -- write files                                           *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -355,6 +355,8 @@ int cbf_get_value_type(const char *value, const char **value_type)
 int cbf_set_value_type(char *value, const char *value_type)
 {
 
+  char *cptr;
+  
     /* Is the value type missing? */
 
   if (!value)
@@ -445,11 +447,21 @@ int cbf_set_value_type(char *value, const char *value_type)
   }
 
   if (strcmp(value_type,texttok) == 0 ) {
+  
+    cptr = &value[1];
 
-    if(strstr(&value[1],"\n;")) {
+    while (*cptr && (cptr=strstr(cptr,"\n;")) ) {
+    
+      if (isspace(cptr[2])) {
 
-      return CBF_ARGUMENT;
+        cbf_warning("text field contains terminator, will be folded on output");
+        
+        break;
 
+      }
+      
+      if (*cptr) cptr++;
+    	
     }
 
     *value = CBF_TOKEN_SCSTRING;
@@ -622,24 +634,22 @@ int cbf_write_saveframename (const cbf_node *saveframe, cbf_file *file)
   return 0;
 }
 
-
-  /* Write an item name to a file */
-
-int cbf_write_itemname (cbf_handle handle, const cbf_node *column, cbf_file *file)
+  /* Compose an item name from a category and column */
+  
+int cbf_compose_itemname (cbf_handle handle, const cbf_node *column, char * itemname, size_t limit) 
 {
+
   cbf_node *category;
-
-  char itemname[81];
-
+   
   char column_fill[1] = "\0";
 
   char * tempcat;
 
-  char * temptag;
-
   char * tempcol;
 
   int ipos;
+  
+  itemname[0] = itemname[limit] = '\0';
 
     /* Get the category */
 
@@ -648,14 +658,18 @@ int cbf_write_itemname (cbf_handle handle, const cbf_node *column, cbf_file *fil
 
     /* Check that the name is valid */
 
-  if (!category->name && !column->name)
+  if (!category->name && !column->name) {
+  	
+    strncpy (itemname, "_(null)", limit );
 
     return CBF_ARGUMENT;
+    
+  }
 
     /* construct the item name */
 
   if (column->name) {
-
+  
     tempcol = (char *)column->name;
 
   } else {
@@ -665,10 +679,13 @@ int cbf_write_itemname (cbf_handle handle, const cbf_node *column, cbf_file *fil
 
   if (!category->name ||
       !(category->name[0]) ||
-      !strcasecmp("(none)",category->name) ||
+      !cbf_cistrcmp("(none)",category->name) ||
       tempcol[0]=='_') {
+      
+    strncpy(itemname,tempcol,limit);
 
-  strcpy(itemname,tempcol);
+    if (strlen(tempcol) > limit) return CBF_ARGUMENT;
+
 
   } else {
 
@@ -678,18 +695,48 @@ int cbf_write_itemname (cbf_handle handle, const cbf_node *column, cbf_file *fil
 
       cbf_failnez( cbf_require_category_root(handle,category->name,(const char **)&tempcat))
 
-      if (strlen(tempcat) > 77) return CBF_ARGUMENT;
+      strncpy(itemname+1,tempcat,limit-1);
 
-      strcpy(itemname+1,tempcat);
+      if (strlen(tempcat) > 72 || strlen(tempcat) > limit-1) return CBF_ARGUMENT;
 
       ipos = strlen(itemname);
 
-      if (strlen(tempcol)+ipos+2 > 80) return CBF_ARGUMENT;
+      if ( ipos < limit ) itemname[ipos++] = '.';
 
-      itemname[ipos++] = '.';
+      if ( limit-ipos > 0) strncpy(itemname+ipos,tempcol,limit-ipos);
 
-      strcpy(itemname+ipos,tempcol);
+      if (strlen(tempcol)+ipos+2 > 75 || strlen(tempcol)+ipos+2 > limit) return CBF_ARGUMENT;
 
+
+  }
+  
+  return 0;
+
+}
+
+
+  /* Write an item name to a file */
+
+int cbf_write_itemname (cbf_handle handle, const cbf_node *column, cbf_file *file)
+{
+  char itemname[81];
+  
+  char buffer[255];
+
+  char * temptag;
+
+    /* Compose the tag and get the root alias */
+  
+  if ( cbf_compose_itemname (handle, column, itemname, (size_t )80)) {
+  
+    strcpy (itemname+77,"...");
+  
+    sprintf (buffer, "output line %u(%u) column name too long or invalid\n         converted to \"%s\"",
+      1+file->line, 1+file->column,
+      itemname);
+      
+    cbf_warning (buffer);
+  
   }
 
   cbf_failnez( cbf_require_tag_root(handle,(const char *)itemname,(const char **)&temptag))

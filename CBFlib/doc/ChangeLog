@@ -2,8 +2,8 @@
 
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
-                                 Version 0.7.5
-                                 15 April 2006
+                                 Version 0.7.6
+                                  15 July 2006
 
                                        by
                                  Paul J. Ellis
@@ -88,7 +88,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                                    quoted strings, adds code to get and set   
                                    character string types, and removes        
                                    compiler warnings                          
-     0.7.5      Apr 2006   HJB       This release cleans up some compiler     
+     0.7.5     Apr 2006    HJB       This release cleans up some compiler     
                                    warnings, corrects a parse error on quoted 
                                    strings with a leading blank as adds the   
                                    new routines for support of aliases,       
@@ -98,6 +98,147 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                                    centers, improves support for conversion   
                                    of images, picking up more data from       
                                    headers.                                   
+     0.7.6     Jul 2006    HJB       This release reorganizes the kit into    
+                                   two pieces: CBFlib_0.7.6_Data_Files and    
+                                   CBFlib_0.7.6. An optional local copy of    
+                                   getopt is added. The 1.4 draft dictionary  
+                                   has been added. cif2cbf updated to support 
+                                   vcif2 validation. convert_image and        
+                                   cif2cbf updated to report text of error    
+                                   messages. convert_image updated to support 
+                                   tag and category aliases, default to adxv  
+                                   images. convert_image and img updated to   
+                                   support row-major images. Support added    
+                                   for binning. API Support added for         
+                                   validation, wide files and line folding.   
+                                   Logic changed for beam center reporting.   
+                                   Added new routines: cbf_validate,          
+                                   cbf_get_bin_sizes, cbf_set_bin_sizes,      
+                                   cbf_find_last_typed_child,                 
+                                   cbf_compose_itemname, cbf_set_cbf_logfile, 
+                                   cbf_make_widefile, cbf_read_anyfile,       
+                                   cbf_read_widefile, cbf_write_local_file,   
+                                   cbf_write_widefile, cbf_column_number,     
+                                   cbf_blockitem_number, cbf_log,             
+                                   cbf_check_category_tags,                   
+                                   cbf_set_beam_center                        
+
+     ----------------------------------------------------------------------
+
+  Release 0.7.6, Herbert J. Bernstein, 15 July 2006
+
+   Source File     Change                                                     
+   cbf.h             Add include of stdio.h; change CBF_LINELENGTH into       
+                   CBF_LINELENGTH_10 and CBF_LINELENGTH_11; add new symbols   
+                   CBF_CASE_INSENSITIVE, CBF_CASE_SENSITIVE, CBF_LOGERROR,    
+                   CBF_LOGWARNING, CBF_LOGWOLINE, CBF_LOGWOCOLUMN,            
+                   CBF_LOGSTARTLOC, CBF_LOGCURRENTLOC; add information on     
+                   input file and log file to cbf handle struct; and          
+                   prototypes for cbf_read_widefile, cbf_write_local_file,    
+                   cbf_write_widefile, cbf_column_number,                     
+                   cbf_blockitem_number, cbf_warning, cbf_error, cbf_log,     
+                   cbf_increment_column, cbf_reset_column,                    
+                   cbf_reset_refcounts, cbf_validate; added valuerow argument 
+                   to cbf_set_hashedvalue and caseinsensitive to              
+                   cbf_find_hashedvalue.                                      
+   cbf.c             In cbf_make_handle, added include of cbf_ascii.h,        
+                   initialized handle->logfile, handle->warnings,             
+                   handle->errors, handle->startline, handle->startcolumn;    
+                   added new routine cbf_set_logfile; in cbf_free_handle      
+                   removed gcc4 warning; broke up cbf_read_file into          
+                   cbf_read_anyfile, cbf_read_file, added two more entries to 
+                   parse array, one for the cbf handle and one to carry an    
+                   auxillary node, such as a parent category; in              
+                   cbf_write_file, reset reference counts; added new routine  
+                   cbf_write_local_file to allow writing of a local portion   
+                   of a cbf instead of the whole thing; added new routines    
+                   cbf_column_number and cbf_blockitem_number; added new      
+                   routine cbf_log to report parse errors with line numbers;  
+                   fixed cbf_require_category when dealing with null          
+                   datablocks; fixed cbf_require_column to preserve current   
+                   row number; fixed inverted logic in                        
+                   cbf_require_dictionary; rewrote cbf_set_hashed_value to    
+                   deal with insertions correctly; revised                    
+                   cbf_find_hashedvalue to survive commong errors; revised    
+                   cbf_convert_dictionary_definition to recover category      
+                   information properly and top deal with more complex        
+                   loop-singleton interactions; added new routines            
+                   cbf_increment_column, cbf_reset_column,                    
+                   cbf_reset_refcounts; updated cbf_convert_dictionary to     
+                   align database with changes in                             
+                   cbf_convert_dictionary_definition and to distribute        
+                   unspecified items from parents to children; fixed          
+                   cbf_find_local_tag for DDL1 names and categories; updated  
+                   cbf_find_category_root and cbf_require_category_root to    
+                   allow for DDL1 categories drawn from dictionaries; changed 
+                   cbf_find_tag_root and cbf_set_tag_root to use              
+                   cbf_find_hashedvalue and cbf_set_hashedvalue; added        
+                   routines cbf_check_category_tags, cbf_validate.            
+   cbf.stx.y         To facilitate validation, changed save frame logic to    
+                   append partial save frame to the base cif from the         
+                   beginning instead of waiting for the end of the save       
+                   frame; added cbf_validate calls at all levels and provided 
+                   detailed parse form common errors with reports via cbf_log 
+   cbf_ascii.h       Add prototype for cbf_foldtextline.                      
+   cbf_ascii.c       Added new routine cbf_foldtextline; in cbf_write_ascii   
+                   changed logic to no longer backslash-quote individual      
+                   embedded semicolons in text fields and to use full         
+                   line-folding spec;                                         
+   cbf_canonical.c   fixed gcc4 warning.                                      
+   cbf_cantext.c     fixed gcc4 warnings.                                     
+   cbf_file.h        Add columnlimit to strcut; add prototype for             
+                   cbf_make_widefile.                                         
+   cbf_file.c        In cbf_make_file added intialization of line length;     
+                   added new routine cbf_make_widefile; in cbf_read_character 
+                   do not increment column number at EOF; in cbf_read_line    
+                   report lines over the limit                                
+   cbf_lex.c         Added lexical validation for line length, illegal        
+                   characters, long data block names, long save frame names,  
+                   failure to provide whitespace after loop_, unterminated    
+                   quoted strings.                                            
+   cbf_packed.c      Fix gcc4 warnings                                        
+   cbf_read_mime.c   Pick up corrections to parse of types from work by GD    
+                   for X-BASE32K.                                             
+   cbf_simple.h      Add prototypes for cbf_get_bin_sizes, cbf_set_bin_sizes  
+   cbf_simple.c      Changed cbf_read_template to use cbf_read_widefile;      
+                   added new routines cbf_get_bin_sizes and                   
+                   cbf_set_bin_sizes; changed cbf_set_gain, cbf_set_overload, 
+                   cbf_set_integration_time, cbf_set_datestamp,               
+                   cbf_set_axis_setting to force in intervening categories    
+                   and columns; in cbf_free_positioner, cbf_free_detector,    
+                   fixed gcc4 warnings; revised cbf_set_beam_center to adjust 
+                   the displacement rather than the offset.                   
+   cbf_tree.h        Add symbol for CBF_VALUE as a node type to use for       
+                   validation; add prototype for cbf_find_last_typed_child.   
+   cbf_tree.c        In cbf_free_node fixed gcc4 warning; added new routine   
+                   cbf_find_last_typed_child; changed cbf_make_child to use   
+                   cbf_find_last_typed_child instead of cbf_fid_last_child to 
+                   avoid confusion between categories and save frames when    
+                   the same name is used for both; changed                    
+                   cbf_compute_hashcode to return values between 0 and 255.   
+   cbf_write.d       Add prototype for cbf_compose_itemname.                  
+   cbf_write.c       In cbf_set_value fold text fields that contain the text  
+                   field terminator; add new routine cbf_compose_itemname,    
+                   int cbf_write_itemname catch names that are too long;      
+   cif2cbf.c         Add "-v dictionary" command line argument and suppress   
+                   output to /dev/null and "-w" to process a wide file; add   
+                   hooks (based on symbol GNUGETOPT) to use a local copy of   
+                   getopt; add text for error exits; add code to load layered 
+                   dictionaries.                                              
+   convert_image.c   Add text for error exits; add logic for binning; alias   
+                   support with command line arguments "-c                    
+                   category_alias=category_root" and "-t tag_alias=tag_root", 
+                   change from _diffrn_detector.sample_detector_distance to   
+                   _diffrn_measurement.sample_detector_distance; change to    
+                   support row-major images to agree with adxv; remove most   
+                   advisory messages to stdout.                               
+   img.h             Added rowmajor to struct; redefined img_pixel to be      
+                   conditional on rowmajor; added img_pixelptr to get the     
+                   pointers to the image.                                     
+   img.c             Added recognition of ADSC QUANTUM315; added row major    
+                   support                                                    
+   img2cif.c         Changed to use to new img.h macros                       
+   makecbf.c         Changed to use to new img.h macros                       
 
      ----------------------------------------------------------------------
 
@@ -693,4 +834,4 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-   Updated 1 March 2006.  yaya@bernstein-plus-sons.com
+   Updated 16 July 2006.  yaya@bernstein-plus-sons.com
