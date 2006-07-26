@@ -1,7 +1,7 @@
 /**********************************************************************
  *          img2cif -- convert an image file to a cif file            *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 28 June 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -289,7 +289,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <unistd.h>
 
 #define I2CBUFSIZ 8192
@@ -858,7 +858,7 @@ int main (int argc, char *argv [])
     /* Save the binary data */
 
   cbf_failnez (cbf_set_integerarray (cbf, compression, 1,
-                                 &img_pixel (img, 0, 0), sizeof (int), 1,
+                                 img_pixelptr (img, 0, 0), sizeof (int), 1,
                                  img_rows (img) * img_columns (img)))
   
 

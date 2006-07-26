@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_tree.h                                                         *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -269,7 +269,8 @@ typedef enum
   CBF_DATABLOCK,        /* Datablock */
   CBF_SAVEFRAME,        /* Saveframe */
   CBF_CATEGORY,         /* Category  */
-  CBF_COLUMN            /* Column    */
+  CBF_COLUMN,           /* Column    */
+  CBF_VALUE             /* Value     */  /* Not a visible node type */
 }
 CBF_NODETYPE;
 
@@ -349,6 +350,11 @@ int cbf_find_typed_child (cbf_node **child, const cbf_node *node,
 int cbf_find_last_child (cbf_node **child, const cbf_node *node, 
                          const char *name);
 
+
+  /* Find a child node, accepting the last match  */
+
+int cbf_find_last_typed_child (cbf_node **child, const cbf_node *node, 
+                         const char *name, CBF_NODETYPE type);
 
   /* Find a parent node */
 

@@ -32,8 +32,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <b>An API for CBF/imgCIF<br />
 Crystallographic Binary Files with ASCII Support</b><br />
-Version 0.7.5<br />
-15 April 2006<br />
+Version 0.7.6<br />
+15 July 2006<br />
 <p>
 </CENTER>
 </font><font color="#000000">
@@ -155,36 +155,78 @@ aliases, dictionaries and real arrays, higher level routines
 to get and set pixel sizes, do cell computations, and to set beam centers,
 improves support for conversion of images, picking up more data from
 headers.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.6">0.7.6</A><TD
+VALIGN=TOP>&nbsp;&nbsp;Jul 2006<TD
+VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release reorganizes the kit
+into two pieces:  CBFlib_0.7.6_Data_Files and CBFlib_0.7.6.  An optional local copy
+of getopt is added.  The 1.4 draft dictionary has been added.  cif2cbf
+updated to support vcif2 validation.  convert_image and cif2cbf updated
+to report text of error messages.  convert_image updated to support
+tag and category aliases, default to adxv images.  convert_image and
+img updated to support row-major images.  Support added for binning.
+API Support added for validation, wide files and line folding.
+Logic changed for beam center reporting.  Added new routines:
+
+cbf_validate,
+cbf_get_bin_sizes,
+cbf_set_bin_sizes,
+cbf_find_last_typed_child,
+cbf_compose_itemname,
+cbf_set_cbf_logfile,
+cbf_make_widefile,
+cbf_read_anyfile,
+cbf_read_widefile,
+cbf_write_local_file,
+cbf_write_widefile,
+cbf_column_number,
+cbf_blockitem_number,
+cbf_log,
+cbf_check_category_tags,
+cbf_set_beam_center
+
+
+
  </TABLE>
 
 <HR>
 </font><font color="#0808A0">
 <h2 ALIGN=CENTER>Known Problems</H2>
 </font><font color="#000000">
-<p>
-This is an interim release with extensive changes.  It is released
-at this time to make the improved convert_image availble.  Not all 
-API features have been tested and debugged yet.  In particular, the 
-dictionary support and real array support should be used with great caution.
 <P>
 This version does not have support for byte-offset or predictor compression.
-Code is needed to support array sub-sections.  There may be a problem
-with the pixel area calculation, which is being investigated.
-<HR><HR>
+Code is needed to support array sub-sections.
 </font><font color="#0808A0">
 <h2 ALIGN=CENTER>Foreword</H2>
 </font><font color="#000000">
 <p>
-In order to work with CBFlib, you need the source code, in the form
+In order to work with CBFlib, you need:
+<P>
+<ul>
+<li>the source code, in the form
 of a &quot;gzipped&quot; tar,
-<A HREF="../CBFlib.tar.gz">CBFlib.tar.gz</A>.  Uncompress this file.   Place it
-in an otherwise empty directory, and unpack it with tar.
-You will also need Paul Ellis's sample MAR345 image,
-<A HREF="../example.mar2300">example.mar2300</A> and
+<A HREF="../../CBFlib_0.7.6.tar.gz">CBFlib_0.7.6.tar.gz</A>; and
+<li>the test data, in the form of a &quot;gzipped&quot; tar
+<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.6/CBFlib_0.7.6_Data_Files.tar.gz">CBFlib_0.7.6_Data_Files.tar.gz</a>
+</ul>
+<P>
+Uncompress both of these files, and unpack them with tar:
+<P>
+<ul>
+<li>gunzip &lt; CBFlib_0.7.6.tar.gz | tar xvf -
+<li>gunzip &lt; CBFlib_0.7.6_Data_Files.tar.gz | tar xvf -
+<P>   
+   The data files are
+compressed with bzip2.  <b>Do not &quot;bunzip2&quot;
+the files in Place them
+in an otherwise empty directory, and unpack it with tar.</b>
+As in the past you will also need Paul Ellis's sample MAR345 image,
+example.mar2300 and
 Chris Nielsen's sample ADSC Quantum 315 image,
-<a href="../mb_LP_1_001.img">mb_LP_1_001.img</a> as sample
-data.  Place these
-files in the top level directory (one level up from the source code).
+mb_LP_1_001.img as sample
+data.  The Makefile will extract decompress these files
+from the CBFlib_0.7.6_Data_Files directory.
+<P>
 Adjust the definition of CC and C++ in
 Makefile to point to your C compiler, and then
 <p>
@@ -194,9 +236,11 @@ Makefile to point to your C compiler, and then
 <p>
 We have included <A HREF="example.html">examples</A> of
 CBF/imgCIF files produced by CBFlib,
-an updated version of John Westbrook's DDL2-compliant
-<A HREF="cif_img_1.3.2.html">CBF Extensions Dictionary</A>, and of Andy Hammersley's
-CBF definition, updated to become a <A HREF="cbf_definition_rev.html">
+the current best draft of
+the 
+<A HREF="cif_img_1.4_4Jul06_draft.html">CBF Extensions Dictionary</A>, 
+and of Andy Hammersley's CBF definition, updated to become a 
+<A HREF="cbf_definition_rev.html">
 DRAFT CBF/ImgCIF DEFINITION</A>.
 <p>
 <HR>
@@ -227,8 +271,8 @@ DRAFT CBF/ImgCIF DEFINITION</A>.
     <UL>
       <LI><A HREF="#2.3.1">2.3.1   cbf_make_handle</A>
       <LI><A HREF="#2.3.2">2.3.2   cbf_free_handle</A>
-      <LI><A HREF="#2.3.3">2.3.3   cbf_read_file</A>
-      <LI><a href="#2.3.4">2.3.4   cbf_write_file</a>
+      <LI><A HREF="#2.3.3">2.3.3   cbf_read_file, cbf_read_widefile</A>
+      <LI><a href="#2.3.4">2.3.4   cbf_write_file, cbf_write_widefile</a>
       <LI><A HREF="#2.3.5">2.3.5   cbf_new_datablock, cbf_new_saveframe</A>
       <LI><A HREF="#2.3.6">2.3.6   cbf_force_new_datablock, cbf_force_new_saveframe</A>
       <LI><A HREF="#2.3.7">2.3.7   cbf_new_category</A>
@@ -355,6 +399,7 @@ DRAFT CBF/ImgCIF DEFINITION</A>.
 	  <LI><A HREF="#2.4.51">2.4.51 cbf_compute_cell_volume</a>
 	  <LI><A HREF="#2.4.52">2.4.52 cbf_compute_reciprocal_cell</a>
       <LI><A HREF="#2.4.53">2.4.53 cbf_get_orientation_matrix, cbf_set_orientation_matrix</a>
+      <LI><A HREF="#2.4.54">2.4.54 cbf_get_bin_sizes, cbf_set_bin_sizes</a>
   </UL>
 </UL>
 <LI><A HREF="#3.">3.   File format</A>
@@ -600,12 +645,22 @@ Returns an error code on failure or 0 for success.
 <p>
 #include &quot;cbf.h&quot;<p>
 
-int cbf_read_file (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>headers</i>);
+int cbf_read_file (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>headers</i>);<br />
+int cbf_read_widefile (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>headers</i>);
 <p>
 <b>DESCRIPTION</b>
 <p>
 cbf_read_file reads the CBF or CIF file <i>file</i>
- into the CBF object specified by <i>handle</i>.
+ into the CBF object specified by <i>handle</i>, using the CIF 1.0 convention of 80 character lines.
+cbf_read_widefile reads the CBF or CIF file <i>file</i>
+ into the CBF object specified by <i>handle</i>, using the CIF 1.1 convention of 2048 character lines.
+ A warning is issued to stderr for ascii lines over the limit.  No test is performed on binary
+ sections.
+<p>
+Validation is performed in three ways levels: during the lexical scan, during the
+parse, and, if a dictionary was converted, against the value types, value
+enumerations, categories and parent-child relationships specified
+in the dictionary.  
 <p>
 <i>headers</i> controls the interprestation of binary section headers
 of imgCIF files.
@@ -665,12 +720,21 @@ Returns an error code on failure or 0 for success.
 <p>
 #include &quot;cbf.h&quot;<p>
 
-int cbf_write_file (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>readable</i>, int <i>ciforcbf</i>, int <i>headers</i>, int <i>encoding</i>);
+int cbf_write_file (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>readable</i>, int <i>ciforcbf</i>, int <i>headers</i>, int <i>encoding</i>);<br />
+int cbf_write_widefile (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>readable</i>, int <i>ciforcbf</i>, int <i>headers</i>, int <i>encoding</i>);
 <p>
+
 <b>DESCRIPTION</b>
 <p>
 cbf_write_file writes the CBF object specified by <i>handle</i>
- into the file <i>file</i>.
+ into the file <i>file</i>, following CIF 1.0 conventions of 80 character lines.
+cbf_write_widefile writes the CBF object specified by <i>handle</i>
+ into the file <i>file</i>, following CIF 1.1 conventions of 2048 character lines.
+  A warning is issued to stderr for ascii lines over the limit, and an attempt is
+  made to fold lines to fit.  No test is performed on binary
+ sections.
+<p>
+If a dictionary has been provided, aliases will be applied on output.
 <p>
 Unlike cbf_read_file, the <i>file</i> does not have to be random-access.
 <p>
@@ -749,7 +813,7 @@ int cbf_new_saveframe (cbf_handle <i>handle</i>, const char *<i>saveframename</i
 <p>
 cbf_new_datablock creates a new data block with name <i>datablockname</i>
  and makes it the current data block.
-cbf_new_saveframe creates a new save frame with name <i>saveframname</i>
+cbf_new_saveframe creates a new save frame with name <i>saveframename</i>
 within the current data block
  and makes the new save frame the current save frame.
 <p>
@@ -3184,8 +3248,11 @@ int cbf_convert_dictionary (cbf_handle <i>handle</i>, cbf_handle <i>dictionary</
 <p>
 cbf_convert_dictionary converts <i>dictionary</i> as a DDL1 or DDL2 dictionary to
 a CBF dictionary of category and item properties for <i>handle</i>, creating
-a new dcitionary if none exists or layering the definitions in  <i>dictionary</i>
+a new dictionary if none exists or layering the definitions in  <i>dictionary</i>
 onto the existing dictionary of <i>handle</i> if one exists.
+<P>
+If a CBF is read into <i>handle</i> after calling cbf_convert_dictionary, then
+the dictionary will be used for validation of the CBF as it is read.
 <P>
 <b>ARGUMENTS</b><br />
 <table>
@@ -4916,6 +4983,52 @@ Returns an error code on failure or 0 for success.
 
 
 
+<h4><A NAME="2.4.54">2.4.54 cbf_get_bin_sizes, cbf_set_bin_sizes
+</A></h4>
+<p><b>PROTOTYPE</b>
+<p>#include "cbf_simple.h"
+<p>
+int cbf_get_bin_sizes(cbf_handle <i>handle</i>, unsigned int <i>element_number</i>, double * <i>slowbinsize</i>,
+ double * <i>fastbinsize</i>); <br />
+int cbf_set_bin_sizes(cbf_handle <i>handle</i>, unsigned int element_number, double <i>slowbinsize_in</i>,double <i>fastbinsize_in</i>);
+<p>
+cbf_get_bin_sizes sets <i>slowbinsize</i> to point to the value of the
+number of pixels composing one array element in the dimension that changes at
+the second-fastest rate and <i>fastbinsize</i> to point to the value of the
+number of pixels composing one array element in the dimension that changes at
+the fastest rate for the dectector element with the ordinal <i>element_number</i>.
+cbf_set_bin_sizes sets the the pixel bin sizes in the  
+&quot;array_intensities&quot; category to the values of 
+<i>slowbinsize_in</i> for the
+number of pixels composing one array element in the dimension that changes at
+the second-fastest rate and <i>fastbinsize_in</i> for the
+number of pixels composing one array element in the dimension that changes at
+the fastest rate for the dectector element with the ordinal <i>element_number</i>.
+<P>
+In order to allow for software binning involving fractions of pixels,
+the bin sizes are doubles rather than ints.
+<P>
+<b>ARGUMENTS</b><br />
+<TABLE>
+<TR><TD>&nbsp;&nbsp;<i>handle</i><TD>&nbsp;&nbsp;CBF handle.
+<TR><TD>&nbsp;&nbsp;<i>element_number</i><TD>&nbsp;&nbsp;The number of the detector element counting from 0 by order of appearance in the &quot;diffrn_data_frame&quot; category.
+<TR><TD>&nbsp;&nbsp;<i>slowbinsize</i><TD>&nbsp;&nbsp;Pointer to the returned number of pixels composing one array element in the dimension that changes at
+the second-fastest rate.
+<TR><TD>&nbsp;&nbsp;<i>fastbinsize</i><TD>&nbsp;&nbsp;Pointer to the returned number of pixels composing one array element in the dimension that changes at
+the fastest rate.
+<TR><TD>&nbsp;&nbsp;<i>slowbinsize_in</i><TD>&nbsp;&nbsp;The number of pixels composing one array element in the dimension that changes at
+the second-fastest rate.
+<TR><TD>&nbsp;&nbsp;<i>fastbinsize_in</i><TD>&nbsp;&nbsp;The number of pixels composing one array element in the dimension that changes at
+the fastest rate.
+</TABLE>
+<p>
+<b>RETURN VALUE</b>
+<p>
+Returns an error code on failure or 0 for success.
+<p><hr><P>
+
+
+
 <h3><A NAME="3.">3.  File format</A></h3>
 
 
@@ -5662,7 +5775,7 @@ template_<i>name</i>_<i>columns</i>x<i>rows</i>.  The full set of options is:
 <P>
 <HR>
 <HR>
-Updated 16 April 2006.
+Updated 16 July 2006.
 Contact:
 <script language="javascript" type="text/javascript">
 <!--

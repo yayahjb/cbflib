@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_lex.h                                                          *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -265,7 +265,7 @@ extern "C" {
 
   /* Get the next token */
 
-int cbf_lex (YYSTYPE *val, cbf_file *file);
+int cbf_lex (cbf_handle handle, YYSTYPE *val);
 
 
 #ifdef __cplusplus

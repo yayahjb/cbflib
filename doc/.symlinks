@@ -1,9 +1,12 @@
 #!/bin/csh
 if ( ! -e cif_img.dic ) then
-  ln -s cif_img_1_3_2.dic cif_img.dic
+  ln -s cif_img_1.4_4Jul06_draft.dic cif_img.dic
 endif
 if ( ! -e cif_img.html ) then
-  ln -s cif_img_1_3_2.html cif_img.html
+  ln -s cif_img_1.4_4Jul06_draft.html cif_img.html
+endif
+if ( ! -e cif_img_1_3_2.html ) then
+  ln -s cif_img_1.3.2.html cif_img_1_3_2.html
 endif
 foreach file (*)
   if ( -d $file ) then

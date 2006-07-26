@@ -1,7 +1,7 @@
 /**********************************************************************
  *          cif2cbf -- convert a cif to a cbf file                    *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 28 June 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -46,6 +46,7 @@
  *    [-e {b[ase64]|q[uoted-printable]| \                             *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
  *    [-b {f[orward]|b[ackwards]}] \                                  *
+ *    [-v dictionary]* [-w] \                                         *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
  *  the options are:                                                  *
@@ -59,6 +60,7 @@
  *    the output cif (if base64 or quoted-printable encoding is used) *
  *    or cbf (if no encoding is used).  if no output_cif is specified *
  *    or is given as "-", the output is written to stdout             *
+ *    if the output_cbf is /dev/null, no output is written.           *
  *                                                                    *
  *  The remaining options specify the characteristics of the          *
  *  output cbf.  The characteristics of the input cif are derived     *
@@ -79,6 +81,12 @@
  *    specifies one of the standard MIME encodings for an ascii cif   *
  *    or "none" for a binary cbf                                      *
  *                                                                    *
+ *  -v dictionary specifies a dictionary to be used to validate       *
+ *    the input cif and to apply aliases to the output cif.           *
+ *    This option may be specified multiple times, with dictionaries  *
+ *    layered in the order given.                                     *
+ *                                                                    *
+ *  -w process wide (2048 character) lines                            *
  *                                                                    *
  *                                                                    *
  **********************************************************************/
@@ -315,12 +323,64 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-#include <sys/errno.h>
+#include <errno.h>
+#ifdef GNUGETOPT
+#include "getopt.h"
+#endif
 #include <unistd.h>
 
 #define C2CBUFSIZ 8192
+#define NUMDICTS 50
 
 int local_exit (int status);
+int outerror(int err);
+
+int outerror(int err) 
+{
+	
+  if ((err&CBF_FORMAT)==CBF_FORMAT)
+    fprintf(stderr, " cif2cbf: The file format is invalid.\n");
+  if ((err&CBF_ALLOC)==CBF_ALLOC)
+    fprintf(stderr, " cif2cbf Memory allocation failed.\n");
+  if ((err&CBF_ARGUMENT)==CBF_ARGUMENT)
+    fprintf(stderr, " cif2cbf: Invalid function argument.\n");
+  if ((err&CBF_ASCII)==CBF_ASCII)
+    fprintf(stderr, " cif2cbf: The value is ASCII (not binary).\n");
+  if ((err&CBF_BINARY)==CBF_BINARY)
+    fprintf(stderr, " cif2cbf: The value is binary (not ASCII).\n");
+  if ((err&CBF_BITCOUNT)==CBF_BITCOUNT)
+    fprintf(stderr, " cif2cbf: The expected number of bits does" 
+      " not match the actual number written.\n");
+  if ((err&CBF_ENDOFDATA)==CBF_ENDOFDATA)
+    fprintf(stderr, " cif2cbf: The end of the data was reached"
+     " before the end of the array.\n");
+  if ((err&CBF_FILECLOSE)==CBF_FILECLOSE)
+    fprintf(stderr, " cif2cbf: File close error.\n");
+  if ((err&CBF_FILEOPEN)==CBF_FILEOPEN)
+    fprintf(stderr, " cif2cbf: File open error.\n");
+  if ((err&CBF_FILEREAD)==CBF_FILEREAD)
+    fprintf(stderr, " cif2cbf: File read error.\n");
+  if ((err&CBF_FILESEEK)==CBF_FILESEEK)
+    fprintf(stderr, " cif2cbf: File seek error.\n");
+  if ((err&CBF_FILETELL)==CBF_FILETELL)
+    fprintf(stderr, " cif2cbf: File tell error.\n");
+  if ((err&CBF_FILEWRITE)==CBF_FILEWRITE)
+    fprintf(stderr, " cif2cbf: File write error.\n");
+  if ((err&CBF_IDENTICAL)==CBF_IDENTICAL)
+    fprintf(stderr, " cif2cbf: A data block with the new name already exists.\n");
+  if ((err&CBF_NOTFOUND)==CBF_NOTFOUND)
+    fprintf(stderr, " cif2cbf: The data block, category, column or"
+      " row does not exist.\n");
+  if ((err&CBF_OVERFLOW)==CBF_OVERFLOW)
+    fprintf(stderr, " cif2cbf: The number read cannot fit into the"
+      "destination argument.\n        The destination has been set to the nearest value.\n");
+  if ((err& CBF_UNDEFINED)==CBF_UNDEFINED)
+    fprintf(stderr, " cif2cbf: The requested number is not defined (e.g. 0/0).\n");
+  if ((err&CBF_NOTIMPLEMENTED)==CBF_NOTIMPLEMENTED)
+    fprintf(stderr, " cif2cbf: The requested functionality is not yet implemented.\n");
+  return 0;
+
+}
 
 #undef cbf_failnez
 #define cbf_failnez(x) \
@@ -328,6 +388,7 @@ int local_exit (int status);
   err = (x); \
   if (err) { \
     fprintf(stderr,"CBFlib fatal error %d\n",err); \
+    outerror(err); \
     local_exit (-1); \
   } \
  }
@@ -336,17 +397,24 @@ void set_MP_terms(int crterm, int nlterm);
 
 int main (int argc, char *argv [])
 {
-  FILE *in, *out, *file;
+  FILE *in, *out=NULL, *file, *dict;
   clock_t a,b;
   cbf_handle cif;
   cbf_handle cbf;
+  cbf_handle dic;
+  cbf_handle odic;
+  int devnull = 0;
   int c;
   int errflg = 0;
   char *cifin, *cbfout;
+  char *dictionary[NUMDICTS];
   char ciftmp[19];
   int ciftmpfd;
   int ciftmpused;
   int nbytes;
+  int ndict = 0;
+  int kd;
+  int wide = 0;
   char buf[C2CBUFSIZ];
   unsigned int blocks, categories, blocknum, catnum, blockitems, itemnum;
   CBF_NODETYPE itemtype;
@@ -371,6 +439,7 @@ int main (int argc, char *argv [])
  *    [-e {b[ase64]|q[uoted-printable]| \                             *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
  *    [-b {f[orward]|b[ackwards]}] \                                  *
+ *    [-v dictionary]* [-w]\                                          *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
  **********************************************************************/
@@ -380,12 +449,13 @@ int main (int argc, char *argv [])
    encoding = 0;
    compression = 0;
    bytedir = 0;
+   ndict = 0;
 
    cifin = NULL;
    cbfout = NULL;
    ciftmpused = 0;
-
-   while ((c = getopt(argc, argv, "i:o:c:m:d:e:b:")) != EOF) {
+   
+   while ((c = getopt(argc, argv, "i:o:c:m:d:e:b:v:w")) != EOF) {
      switch (c) {
        case 'i':
          if (cifin) errflg++;
@@ -475,6 +545,19 @@ int main (int argc, char *argv [])
            }
          }
          break;
+       case 'v':
+         if (ndict < NUMDICTS)
+           dictionary[ndict++] = optarg;
+         else if (ndict == NUMDICTS) {
+           errflg++;
+           ndict++;
+           fprintf(stderr, " Too many dictionaries, increase NUMDICTS");
+         }
+         break;
+     	case 'w':
+     	  if (wide) errflg++;
+     	  else wide = 1;
+     	  break;
        default:
          errflg++;
          break;
@@ -504,7 +587,9 @@ int main (int argc, char *argv [])
      fprintf(stderr,
        "                  d[ecimal]|h[examdecimal|o[ctal]|n[one]}] \\\n");
      fprintf(stderr,
-       "    [-w {2|3|4|6|8}] [-b {f[orward]|b[ackwards]}\\\n");
+       "                  [-b {f[orward]|b[ackwards]}\\\n");
+     fprintf(stderr,
+       "    [-v dictionary]* [-w] \\\n");
      fprintf(stderr,
        "    [input_cif] [output_cbf] \n\n");
      exit(2);
@@ -578,11 +663,31 @@ int main (int argc, char *argv [])
      fprintf(stderr,"Failed to create handle for input_cif\n");
      exit(1);
    }
+   
+   if ( cbf_make_handle (&dic) ) {
+     fprintf(stderr,"Failed to create handle for dictionary\n");
+     exit(1);
+   }
+
+
    if ( cbf_make_handle (&cbf) ) {
      fprintf(stderr,"Failed to create handle for output_cbf\n");
      exit(1);
    }
 
+   for (kd=0; kd< ndict; kd++) {
+   
+     if (!(dict = fopen (dictionary[kd], "rb")))  {
+     	fprintf (stderr,"Couldn't open the dictionary %s\n", dictionary[kd]);
+        exit (1);
+     }
+     cbf_failnez(cbf_read_widefile(dic, dict, MSG_DIGEST))
+     cbf_failnez(cbf_convert_dictionary(cif,dic))
+     cbf_failnez(cbf_get_dictionary(cif,&odic))
+     cbf_failnez(cbf_set_dictionary(cbf,odic))
+   	
+   }
+   
    a = clock ();
 
    /* Read the file */
@@ -599,7 +704,12 @@ int main (int argc, char *argv [])
      }
    }
 
-   cbf_failnez (cbf_read_file (cif, in, MSG_DIGEST))
+   if (!wide) {
+   	 cbf_failnez (cbf_read_file (cif, in, MSG_DIGEST))
+   } else {
+   	 cbf_failnez (cbf_read_widefile (cif, in, MSG_DIGEST))
+   }
+
    cbf_failnez (cbf_rewind_datablock(cif))
 
    cbf_failnez (cbf_count_datablocks(cif, &blocks))
@@ -760,12 +870,15 @@ int main (int argc, char *argv [])
        ((b - a) * 1.0) / CLOCKS_PER_SEC);
    a = clock ();
 
+   out = NULL;
    if ( ! cbfout || strcmp(cbfout?cbfout:"","-") == 0 ) {
       out = stdout;
+   } else if ( strcmp(cbfout?cbfout:"","/dev/null") ==0 ){
+	   devnull=1;
    } else {
      out = fopen (cbfout, "w+b");
    }
-   if ( ! out ) {
+   if ( ( devnull == 0 ) &&  ! out ) {
      if (encoding == ENC_NONE) {
        printf (" Couldn't open the CBF file %s\n", cbfout);
      } else {
@@ -774,16 +887,17 @@ int main (int argc, char *argv [])
      exit (1);
    }
 
+   if ( ! devnull ){
    cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif, mime | digest,
                                          encoding | bytedir | term))
-
+   }
    cbf_failnez (cbf_free_handle (cbf))
-
    b = clock ();
    if (encoding == ENC_NONE) {
      fprintf (stderr, " Time to write the CBF image: %.3fs\n",
        ((b - a) * 1.0) / CLOCKS_PER_SEC);
    } else {
+	   if ( ! devnull )
      fprintf (stderr, " Time to write the CIF image: %.3fs\n",
        ((b - a) * 1.0) / CLOCKS_PER_SEC);
    }

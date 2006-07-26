@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_tree -- handle cbf nodes                                       *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -426,6 +426,10 @@ int cbf_make_new_node (cbf_node **node, CBF_NODETYPE type,
 int cbf_free_node (cbf_node *node)
 {
   unsigned int count;
+  
+  void *memblock;
+  
+  
 
 
     /* Check the arguments */
@@ -478,8 +482,10 @@ int cbf_free_node (cbf_node *node)
 
 
     /* Free the node */
+    
+  memblock = (void *)node;
 
-  return cbf_free ((void **) &node, NULL);
+  return cbf_free ( &memblock, NULL);
 }
 
 
@@ -798,6 +804,78 @@ int cbf_find_last_child (cbf_node **child, const cbf_node *node,
 
   return CBF_NOTFOUND;
 }
+
+
+  /* Find a child node by name and type, accepting the last match  */
+
+int cbf_find_last_typed_child (cbf_node **child, const cbf_node *node,
+                         const char *name, CBF_NODETYPE type)
+{
+  int count;
+
+  const char *namec, *nodenamec;
+
+
+    /* Follow any links */
+
+  node = cbf_get_link (node);
+
+
+    /* Check the arguments */
+
+  if (!node)
+
+    return CBF_ARGUMENT;
+
+
+    /* Is it a normal node? */
+
+  if (node->type == CBF_COLUMN)
+
+    return CBF_ARGUMENT;
+
+
+    /* Search the children */
+
+  for (count = ((int) node->children) - 1; count >= 0; count--)
+
+    if (name)
+    {
+      if (node->child [count]->name)
+      {
+        for (namec = name, nodenamec = node->child [count]->name;
+            *namec && toupper (*nodenamec) == toupper (*namec);
+             namec++, nodenamec++);
+
+        if (!*namec && !*nodenamec 
+          && node->child [count]->type == type)
+        {
+          if (child)
+
+            *child = node->child [count];
+
+          return 0;
+        }
+      }
+    }
+    else
+
+      if (name == node->child [count]->name 
+        && node->child [count]->type == type)
+      {
+        if (child)
+
+          *child = node->child [count];
+
+        return 0;
+      }
+
+
+    /* Fail */
+
+  return CBF_NOTFOUND;
+}
+
 
 
   /* Find a parent node */
@@ -1206,7 +1284,7 @@ int cbf_make_child (cbf_node **child, cbf_node *node,
 
     /* Does the child already exist? */
 
-  errorcode = cbf_find_last_child (child, node, name);
+  errorcode = cbf_find_last_typed_child (child, node, name, type);
 
   if (errorcode == 0)
   {
@@ -1224,7 +1302,7 @@ int cbf_make_child (cbf_node **child, cbf_node *node,
 
   cbf_failnez (cbf_make_node (&newchild, type, node->context, name))
 
-  errorcode = cbf_add_child (node, newchild);
+  errorcode = cbf_add_new_child (node, newchild);
 
   if (errorcode)
   {
@@ -1608,6 +1686,8 @@ int cbf_compute_hashcode(const char *string, unsigned int *hashcode)
     {
         *hashcode = (((int)(toupper(string[i])))<<8)^((*hashcode)>>1);
     }
+
+    *hashcode &= 255;
 
     return 0;
 }

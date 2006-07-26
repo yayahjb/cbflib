@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_file.h                                                         *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -273,6 +273,7 @@ typedef struct
   int          last_read;         /* The last character read                */
   unsigned int line;              /* Current line                           */
   unsigned int column;            /* Current column                         */
+  unsigned int columnlimit;       /* Ascii line column limit (80 or 2048)   */
   char        *buffer;            /* Buffer                                 */
   size_t       buffer_size;       /* Size of the buffer                     */
   size_t       buffer_used;       /* Number in use                          */
@@ -287,6 +288,11 @@ cbf_file;
   /* Create and initialise a file */
 
 int cbf_make_file (cbf_file **file, FILE *stream);
+
+
+  /* Create and initialise a wide file */
+
+int cbf_make_widefile (cbf_file **file, FILE *stream);
 
 
   /* Free a file */

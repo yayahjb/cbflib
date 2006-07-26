@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_file -- file access (characterwise and bitwise)                *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -284,6 +284,7 @@ int cbf_make_file (cbf_file **file, FILE *stream)
   (*file)->last_read       = 0;
   (*file)->line            = 0;
   (*file)->column          = 0;
+  (*file)->columnlimit     = CBF_LINELENGTH_10;
   (*file)->buffer_size     = 0;
   (*file)->buffer_used     = 0;
 
@@ -300,6 +301,16 @@ int cbf_make_file (cbf_file **file, FILE *stream)
   return 0;
 }
 
+  /* Create and initialise a wide file */
+
+int cbf_make_widefile (cbf_file **file, FILE *stream)
+{
+    cbf_failnez(cbf_make_file (file, stream))
+
+    (*file)->columnlimit     = CBF_LINELENGTH_11;
+
+    return 0;
+}
 
   /* Free a file */
 
@@ -1205,7 +1216,7 @@ int cbf_read_character (cbf_file *file)
 
     else
 
-      file->column++;
+      if (current != EOF)file->column++;
 
   return current;
 }
@@ -1359,6 +1370,8 @@ int cbf_write_string (cbf_file *file, const char *string)
 int cbf_read_line (cbf_file *file, const char **line)
 {
   int c;
+  
+  char buffer[80];
 
 
     /* Does the file exist? */
@@ -1384,6 +1397,15 @@ int cbf_read_line (cbf_file *file, const char **line)
     if (c == EOF)
 
       return CBF_FILEREAD;
+      
+    if (file->column == file->columnlimit+1) {
+      
+      sprintf(buffer, "input line %u over size limit",1+file->line);
+
+      cbf_warning(buffer);
+
+    }
+
 
     cbf_failnez (cbf_save_character (file, c))
 

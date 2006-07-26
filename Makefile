@@ -1,7 +1,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.7.5 12 April 2006                                        #
+# Version 0.7.6 10 July 2006                                         #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -248,6 +248,18 @@
 ######################################################################
 
 
+# Version string
+VERSION = 0.7.6
+
+
+#
+# Definitions to get gnu version of getopt or system version of getopt
+#
+GETOPT		=	SYSTEM
+ifeq ($(GETOPT),)
+  GETOPT 	=	getopt-1.1.4_cbf
+endif
+
 #
 # Set the compiler and flags
 #
@@ -256,7 +268,7 @@ CC	= gcc
 C++	= g++
 #CFLAGS	= -O
 #CFLAGS	= -g3 -O2
-CFLAGS  = -g  -Wall
+CFLAGS  = -g -O2  -Wall 
 
 #
 # Program to use to pack shars
@@ -275,6 +287,22 @@ AR	= /usr/bin/ar
 RANLIB  = /usr/bin/ranlib
 
 #
+# Program to use to decompress a data file
+#
+DECOMPRESS = /usr/bin/bunzip2
+
+#
+# Extension for compressed data file (with period)
+#
+CEXT = .bz2
+
+# Program to use to retrieve a URL
+
+DOWNLOAD = /sw/bin/wget
+#DOWNLOAD = /usr/bin/wget
+
+
+#
 # Directories
 #
 ROOT     = .
@@ -285,6 +313,14 @@ INCLUDE  = $(ROOT)/include
 EXAMPLES = $(ROOT)/examples
 DOC      = $(ROOT)/doc
 GRAPHICS = $(ROOT)/html_graphics
+DATADIR  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files
+INSTALLDIR  = $(HOME)
+
+#
+# URL from which to retrieve the data directory
+#
+DATAURL	 = http://arcib.dowling.edu/software/CBFlib/downloads/version_$(VERSION)/CBFlib_$(VERSION)_Data_Files.tar.gz
+
 
 #
 # Include directories
@@ -403,22 +439,34 @@ default:
 	@echo ' '
 	@echo '   $(CC) $(CFLAGS)'
 	@echo ' '
+	@echo ' Before installing the CBF library and example programs, check'
+	@echo ' that the install directory is correct:'
+	@echo ' '
+	@echo ' The current value :'
+	@echo ' '
+	@echo '   $(INSTALLDIR) '	
+	@echo ' '
 	@echo ' To compile the CBF library and example programs type:'
 	@echo ' '
+	@echo '   make clean'
 	@echo '   make all'
 	@echo ' '
 	@echo ' To run a set of tests type:'
 	@echo ' '
 	@echo '   make tests'
 	@echo ' '
-	@echo ' The tests assume that "example.mar2300" is in this directory'
-	@echo ' This file can be obtained from'
+	@echo ' The tests assume that several data files are in the directory' $(DATADIR)
+	@echo ' This directory can be obtained from'
 	@echo ' '
-	@echo '   http://smb.slac.stanford.edu/~ellis/'
+	@echo ' ' $(DATAURL)
 	@echo ' '
 	@echo ' To clean up the directories type:'
 	@echo ' '
 	@echo '   make clean'
+	@echo ' '
+	@echo ' To install the library and binaries type:'
+	@echo ' '
+	@echo '   make install'
 	@echo ' '
 	@echo '***************************************************************'
 	@echo ' '
@@ -426,19 +474,87 @@ default:
 #
 # Compile the library and examples
 #
-all:	$(LIB) $(BIN)            \
-	$(LIB)/libcbf.a          \
+all:	$(LIB) $(BIN) $(SOURCE) $(HEADERS)  \
+		$(LIB)/libcbf.a          \
         $(BIN)/convert_image     \
         $(BIN)/makecbf           \
         $(BIN)/img2cif           \
         $(BIN)/cif2cbf           \
-	$(BIN)/testcell          \
-	$(BIN)/cif2c             \
-        clean
+		$(BIN)/testcell          \
+		$(BIN)/cif2c
+
+
+install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin
+		-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
+		cp $(LIB)/libcbf.a $(INSTALLDIR)/lib/libcbf.a
+		-cp $(INSTALLDIR)/bin/convert_image $(INSTALLDIR)/bin/convert_image_old
+		cp $(BIN)/convert_image $(INSTALLDIR)/bin/convert_image
+		-cp $(INSTALLDIR)/bin/makecbf $(INSTALLDIR)/bin/makecbf_old
+		cp $(BIN)/makecbf $(INSTALLDIR)/bin/makecbf
+		-cp $(INSTALLDIR)/bin/img2cif $(INSTALLDIR)/bin/img2cif_old
+		cp $(BIN)/img2cif $(INSTALLDIR)/bin/img2cif
+		-cp $(INSTALLDIR)/bin/cif2cbf $(INSTALLDIR)/bin/cif2cbf_old
+		cp $(BIN)/cif2cbf $(INSTALLDIR)/bin/cif2cbf
+		-cp $(INSTALLDIR)/bin/cif2c $(INSTALLDIR)/bin/cif2c_old
+		cp $(BIN)/cif2c $(INSTALLDIR)/bin/cif2c
+		chmod 644 $(INSTALLDIR)/lib/libcbf.a
+		chmod 755 $(INSTALLDIR)/bin/convert_image
+		chmod 755 $(INSTALLDIR)/bin/makecbf
+		chmod 755 $(INSTALLDIR)/bin/img2cif
+		chmod 755 $(INSTALLDIR)/bin/cif2cbf
+		chmod 755 $(INSTALLDIR)/bin/cif2c
+		
+		
+#
+# Changes if a local gnu getopt is used
+#
+
+ifneq ($(GETOPT),SYSTEM)
+CFLAGS		+=	-DGNUGETOPT
+GOPTLIB		=	$(LIB)/getopt.o
+GOPTINC		=	$(INCLUDE)/getopt.h
+GOPTCLEAN	=	$(GETOPT)_clean
+GOPTBUILD	=	$(GETOPT)_build
+
+GOPTURL		=	http://arcib.dowling.edu/software/getopt/downloads/$(GETOPT).tar.gz
+
+
+#
+# getopt package
+#
+$(GETOPT):
+		$(DOWNLOAD) $(GOPTURL)
+		tar -xvf $(GETOPT).tar.gz
+		-rm $(GETOPT).tar.gz
+
+#
+# build getopt
+#
+$(LIB)/getopt.o:		$(GOPTBUILD)
+		(cd $(GETOPT); cp gnu/getopt.o ../$(LIB) )
+$(INCLUDE)/getopt.h:	$(GOPTBUILD)
+		(cd $(GETOPT); cp gnu/getopt.h ../$(INCLUDE) )
+$(GOPTBUILD):  		$(GETOPT)
+		(cd $(GETOPT); sed "1,\$$s/WITHOUT_GETTEXT=0/WITHOUT_GETTEXT=1/g" Makefile \
+		  | sed "1,\$$s/WITH_GETTEXT/WITHOUT_GETTEXT/g"> Makefile_CBF; \
+		  make -f Makefile_CBF GNUGETOPT=1 LIBCGETOPT=0 gnu/getopt.o; \
+		  touch ../$(GOPTBUILD))
+$(GOPTCLEAN):
+		-(cd $(GETOPT); make clean)
+		-rm $(GETOPT)/gnu/getopt.o
+		-rm $(GOPTBUILD)
+		
+endif
+
 
 #
 # Directories
 #
+$(INSTALLDIR):
+	mkdir -p $(INSTALLDIR)
+	mkdir $(INSTALLDIR)/lib
+	mkdir $(INSTALLDIR)/bin
+
 $(LIB):
 	mkdir $(LIB)
 
@@ -457,7 +573,6 @@ $(SRC)/cbf_stx.c: $(SRC)/cbf.stx.y
 # CBF library
 #
 $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP)
-	-rm -f *.o
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(AR) cr $@ *.o
 	$(RANLIB) $@
@@ -465,9 +580,10 @@ $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP)
 #
 # convert_image example program
 #
-$(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c
+$(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c \
+					$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-              $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c -L$(LIB) \
+              $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
 	      -lcbf -lm -o $@
 
 #
@@ -489,9 +605,10 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(EXAMPLES)/img.c
 #
 # cif2cbf example program
 #
-$(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(EXAMPLES)/img.c
+$(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(EXAMPLES)/img.c \
+					$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-              $(EXAMPLES)/cif2cbf.c $(EXAMPLES)/img.c -L$(LIB) \
+              $(EXAMPLES)/cif2cbf.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
 	      -lcbf -lm -o $@
 #
 # testcell example program
@@ -509,21 +626,41 @@ $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
               $(EXAMPLES)/cif2c.c -L$(LIB) \
 	      -lcbf -lm -o $@
 
+
+
+
 #
 # Data files for tests
 #
 
-example.mar2300:
-	@echo '***************************************************************'
-	@echo ' '
-	@echo ' Please retrieve example.mar2300 from
-	@echo '   http://smb.slac.stanford.edu/~ellis/'
-	@echo ' '
-	@echo '***************************************************************'
+$(DATADIR):
+		(cd ..; $(DOWNLOAD) $(DATAURL))
+		(cd ..; tar -xvf CBFlib_$(VERSION)_Data_Files.tar.gz)
+		-(cd ..; rm CBFlib_$(VERSION)_Data_Files.tar.gz)
 
-9ins.cif:	9ins.cif.gz
-	gunzip < 9ins.cif.gz > 9ins.cif
 
+example.mar2300:	$(DATADIR) $(DATADIR)/example.mar2300$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/example.mar2300$(CEXT) > example.mar2300
+
+
+converted_orig.cbf:	$(DATADIR) $(DATADIR)/converted_orig.cbf$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/converted_orig.cbf$(CEXT) > converted_orig.cbf
+
+
+adscconverted_original.cbf:	$(DATADIR) $(DATADIR)/adscconverted_original.cbf$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/adscconverted_original.cbf$(CEXT) > adscconverted_original.cbf
+
+
+mb_LP_1_001.img:	$(DATADIR) $(DATADIR)/mb_LP_1_001.img$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/mb_LP_1_001.img$(CEXT) > mb_LP_1_001.img
+
+
+9ins.cif:	$(DATADIR) $(DATADIR)/9ins.cif$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/9ins.cif$(CEXT) > 9ins.cif
+		
+testcell_orig.prt:	$(DATADIR) $(DATADIR)/testcell_orig.prt$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/testcell_orig.prt$(CEXT) > testcell_orig.prt
+		
 #
 # Tests
 #
@@ -555,7 +692,8 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf example.mar2300
 # Extra Tests
 #
 extra:	$(BIN)/convert_image $(BIN)/cif2cbf $(BIN)/testcell\
-	makecbf.cbf 9ins.cif example.mar2300 converted_orig.cbf adscconverted_original.cbf
+	makecbf.cbf 9ins.cif example.mar2300 converted_orig.cbf mb_LP_1_001.img\
+	adscconverted_original.cbf testcell_orig.prt
 	$(BIN)/cif2cbf -e hex -c none \
 		makecbf.cbf cif2cbf_ehcn.cif
 	$(BIN)/cif2cbf -e none -c packed \
@@ -563,11 +701,11 @@ extra:	$(BIN)/convert_image $(BIN)/cif2cbf $(BIN)/testcell\
 	-cmp makecbf.cbf cif2cbf_encp.cbf
 	$(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
 	-cmp 9ins.cif 9ins.cbf
-	$(BIN)/convert_image example.mar2300 converted.cbf
+	$(BIN)/convert_image -c diffrn_data_frame=diffrn_frame_data example.mar2300 converted.cbf
 	-cmp converted.cbf converted_orig.cbf
-	$(BIN)/testcell < testcell.dat > testcell.prt
+	-$(BIN)/testcell < testcell.dat > testcell.prt
 	-cmp testcell.prt testcell_orig.prt
-	$(BIN)/convert_image -m x=y -r 2 -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
+	$(BIN)/convert_image -c diffrn_data_frame=diffrn_frame_data  -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
 	-cmp adscconverted.cbf adscconverted_original.cbf
 
 
@@ -576,6 +714,8 @@ extra:	$(BIN)/convert_image $(BIN)/cif2cbf $(BIN)/testcell\
 #
 empty:
 	@-rm -f  $(LIB)/libcbf.a
+	@-rm -f  $(LIB)/getopt.o
+	@-rm -f  $(INCLUDE)/getopt.h
 	@-rm -f  $(BIN)/makecbf
 	@-rm -f  $(BIN)/img2cif
 	@-rm -f  $(BIN)/cif2cbf
@@ -593,18 +733,25 @@ empty:
 	@-rm -f  converted.cbf
 	@-rm -f  adscconverted.cbf
 	@-rm -f  cif2cbf_ehcn.cif
-	@-rm -f  cif2cbf_ehcn.cbf
+	@-rm -f  cif2cbf_encp.cbf
 	@-rm -f  9ins.cbf
 	@-rm -f  9ins.cif
 	@-rm -f  testcell.prt
+	@-rm -f  example.mar2300
+	@-rm -f  converted_orig.cbf
+	@-rm -f  adscconverted_original.cbf
+	@-rm -f  mb_LP_1_001.img
+	@-rm -f  9ins.cif
+	@-rm -f  testcell_orig.prt
 
 #
 # Remove temporary files
 #
-clean:
+clean:	$(GOPTCLEAN)
 	@-rm -f core 
 	@-rm -f *.o
 	@-rm -f *.u
+	@-rm -f ./lib/getopt.o
 #
 # Restore to distribution state
 #

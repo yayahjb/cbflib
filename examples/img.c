@@ -309,6 +309,10 @@ int img_read_smvheader (img_handle img, FILE *file)
   if (dimension [0] == 2304 && dimension [1] == 2304)
 
     status |= img_set_field (img, "DETECTOR", "ADSC QUANTUM4");
+    
+  if (dimension [0] == 3072 && dimension [1] == 3072)
+
+    status |= img_set_field (img, "DETECTOR", "ADSC QUANTUM315");
 
   sprintf (C64, "%.6g %.6g", centre [0], centre [1]);
 
@@ -403,8 +407,17 @@ int img_read_smvdata (img_handle img, FILE *file)
 
     /* Get the image size */
 
-  rows = (int) img_get_number (img, "SIZE1");
-  cols = (int) img_get_number (img, "SIZE2");
+  if (getenv("CBF_SMVIMGCOLUMNMAJOR"))  {
+    rows = (int) img_get_number (img, "SIZE1");
+    cols = (int) img_get_number (img, "SIZE2");
+    img->rowmajor = 0;
+    img_set_field (img, "PRECEDENCE", "COLUMN MAJOR");
+  } else {
+    rows = (int) img_get_number (img, "SIZE2");
+    cols = (int) img_get_number (img, "SIZE1");
+    img->rowmajor = 1;
+    img_set_field (img, "PRECEDENCE", "ROW MAJOR");
+  }
 
   if (rows > 0 && cols == 0)
 
@@ -430,12 +443,42 @@ int img_read_smvdata (img_handle img, FILE *file)
 
 
     /* Note that the smv file has the first dimension fast */
+    
+    /*
+    	The "official" SMV format is as follows and it's relationship
+	to data collected with the ADSC detectors:
+
+		Data are stored in row major order, with SIZE1 columns
+		and SIZE2 rows.  The data type is
+		as specified (unsigned_short, etc).  That's it; not
+		very flexible.
+
+		Data from the ADSC detectors are stored with the origin
+		in the upper left hand corner of the detector:
+
+			O -------> X   (SIZE1)
+			|
+			|
+			\/
+			Y (SIZE2)
+
+		The "X" dimension varies fastest.
+
+		The "view" of the data is from the source looking
+		at the detector's front, so you are "standing behind
+		the xrays" rather than "standing behind the detector".
+		(We hate being irradiated!).
+		
+		  -- email from "Chris Nielsen" <cn@adsc-xray.com>, 16 Jun 2006
+		
+		*/
+
 
   datacount = 0;
 
-  pixel = &img_pixel (img, 0, 0);
+  pixel = img_pixelptr (img, 0, 0);
 
-  stop_pixel = &img_pixel (img, cols - 1, rows - 1) + 1;
+  stop_pixel = img_pixelptr (img, cols - 1, rows - 1) + 1;
 
   while ((readcount = fread (data + datacount, 1, 4096 - datacount, file)) > 0)
   {
@@ -697,9 +740,9 @@ int img_write_smv (img_object   *img,
 
     /* (3) Write the pixel values */
 
-  pixel = &img_pixel (img, 0, 0);
+  pixel = img_pixelptr (img, 0, 0);
 
-  stop_pixel = &img_pixel (img, img_columns (img) - 1,
+  stop_pixel = img_pixelptr (img, img_columns (img) - 1,
                                 img_rows (img) - 1) + 1;
 
   data_size = 0;
@@ -1107,7 +1150,7 @@ int img_read_mar300data (img_handle img, FILE *file, int *org_data)
 
     for (y = 0; y < img_rows (img); y++, cdata += 2)
 
-      img_pixel (img, x, y) = (int) cdata [little] + ((int) cdata [1 - little] << 8);
+     *(img_pixelptr (img, x, y)) = (int) cdata [little] + ((int) cdata [1 - little] << 8);
 
     }
 
@@ -1137,7 +1180,7 @@ int img_read_mar300data (img_handle img, FILE *file, int *org_data)
     if (x >= 0 && x < img_columns (img) &&
         y >= 0 && y < img_rows (img))
 
-      img_pixel (img, x, y) = O [1];
+      *(img_pixelptr (img, x, y)) = O [1];
 
     else
 
@@ -1482,7 +1525,7 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
 
   x = org_data [0];
 
-  cimg = &img_pixel (img, 0, 0);
+  cimg = (int *)(img_pixelptr (img, 0, 0));
 
   while (pixel < pixels)
   {
@@ -1617,7 +1660,7 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
     if (x >= 0 && x < img_columns (img) &&
         y >= 0 && y < img_rows (img))
 
-      img_pixel (img, x, y) = O_data [count * 2 + 1];
+      *(img_pixelptr (img, x, y)) = O_data [count * 2 + 1];
 
     else
 
@@ -1705,6 +1748,7 @@ img_handle img_make_handle ()
   {
     img->tags     = 0;
     img->tag      = NULL;
+    img->rowmajor = 0;
     img->size [0] = 0;
     img->size [1] = 0;
     img->image    = NULL;
@@ -2016,7 +2060,10 @@ int img_get_pixel (img_handle img, int x, int y)
 
     return 0;
 
-  return img->image [x * img->size [1] + y];
+  if (img->rowmajor)
+    return img->image [y * img->size [0] + x];
+  else
+    return img->image [x * img->size [1] + y];
 }
 
 
@@ -2032,8 +2079,11 @@ int img_set_pixel (img_handle img, int x, int y, int data)
       y <= img->size [1])
 
     return 0;
-
-  return img->image [x * img->size [1] + y] = data;
+    
+  if (img->rowmajor)
+    return img->image [y * img->size [0] + x] = data;
+  else
+    return img->image [x * img->size [1] + y] = data;
 }
 
 

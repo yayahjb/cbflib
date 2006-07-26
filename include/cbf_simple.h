@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_simple -- cbflib simplified API functions                      *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -421,6 +421,19 @@ int cbf_get_gain (cbf_handle handle, unsigned int element_number,
 
 int cbf_set_gain (cbf_handle handle, unsigned int element_number,
                                      double gain, double gain_esd);
+
+
+  /* Get the bin sizes of a detector element */
+
+int cbf_get_bin_sizes(cbf_handle handle, unsigned int element_number,
+                                          double * slowbinsize,
+                                          double * fastbinsize);
+
+  /* Set the bin sizes of a detector element */
+
+int cbf_set_bin_sizes(cbf_handle handle, unsigned int element_number,
+                                          double slowbinsize,
+                                          double fastbinsize);
 
 
   /* Get the overload value of a detector element */

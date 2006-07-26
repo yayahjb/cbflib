@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf.h -- cbflib basic API functions                                *
  *                                                                    *
- * Version 0.7.5 15 April 2006                                        *
+ * Version 0.7.6 14 July 2006                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -260,6 +260,7 @@ extern "C" {
 
 #include <stdlib.h>
 #include <limits.h>
+#include <stdio.h>
 
 
   /* Currently the cbf library assumes a 32-bit or larger integer */
@@ -271,12 +272,13 @@ extern "C" {
 
   /* API version and assumed dictionary version */
   
-#define CBF_API_VERSION     "CBFlib v0.7.5"
+#define CBF_API_VERSION     "CBFlib v0.7.6"
 #define CBF_DIC_VERSION     "CBF: VERSION 1.3.2"
 
   /* Maximum line length */
 
-#define CBF_LINELENGTH 80
+#define CBF_LINELENGTH_10 80
+#define CBF_LINELENGTH_11 2048
 
 
   /* Error codes */
@@ -312,6 +314,11 @@ extern "C" {
 #define CBF_TOKEN_MIME_BIN   '\305'     /* Mime-encoded binary section */
 #define CBF_TOKEN_TMP_BIN    '\306'     /* Temporary binary section    */
 
+  /* Constants for case sensitivity */
+  
+#define CBF_CASE_INSENSITIVE  1
+#define CBF_CASE_SENSITIVE    0
+
 
   /* Constants used for compression */
 
@@ -322,6 +329,17 @@ extern "C" {
 #define CBF_BYTE_OFFSET 0x0070  /* Byte Offset Compression            */
 #define CBF_PREDICTOR   0x0080  /* Predictor_Huffman Compression      */
 #define CBF_NONE        0x0040  /* No compression flag                */
+
+
+  /* Flags used for logging */
+  
+#define CBF_LOGERROR       0x0001  /* Log a fatal error                  */
+#define CBF_LOGWARNING     0x0002  /* Log a warning                      */
+#define CBF_LOGWOLINE      0x0004  /* Log without the line and column    */
+#define CBF_LOGWOCOLUMN    0x0008  /* Log without the column             */
+#define CBF_LOGSTARTLOC    0x0010  /* Log using the start location       */
+#define CBF_LOGCURRENTLOC  0x0020  /* Log using the current location     */
+
 
 
   /* Constants used for headers */
@@ -386,6 +404,14 @@ typedef struct _cbf_handle_struct
   cbf_node *node;
   
   struct _cbf_handle_struct *dictionary;
+  
+  cbf_file * file;                   /* NULL or an active cbf_file for input */
+  
+  int  startcolumn, startline;       /* starting location of last token */
+  
+  FILE * logfile;                    /* NULL or an active stream for error logging */
+  
+  int warnings, errors;
 
   int refcount, row, search_row;
 }
@@ -411,9 +437,29 @@ int cbf_free_handle (cbf_handle handle);
 int cbf_read_file (cbf_handle handle, FILE *stream, int headers);
 
 
+
+  /* Read a wide file */
+
+int cbf_read_widefile (cbf_handle handle, FILE *stream, int headers);
+
+
   /* Write a file */
 
 int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
+                                                     int ciforcbf,
+                                                     int headers,
+                                                     int encoding);
+
+  /* Write a file, starting at the local node */
+
+int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
+                                                     int ciforcbf,
+                                                     int headers,
+                                                     int encoding);
+
+  /* Write a wide file */
+
+int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
                                                      int ciforcbf,
                                                      int headers,
                                                      int encoding);
@@ -703,6 +749,16 @@ int cbf_column_name (cbf_handle handle, const char **columnname);
 int cbf_row_number (cbf_handle handle, unsigned int *row);
 
 
+  /* Get the number of the current column */
+
+int cbf_column_number (cbf_handle handle, unsigned int *column);
+
+
+  /* Get the number of the current block item */
+
+int cbf_blockitem_number (cbf_handle handle, unsigned int *blockitem);
+
+
   /* Get the ascii value of the current (row, column) entry */
   
 int cbf_get_value (cbf_handle handle, const char **value);
@@ -833,6 +889,22 @@ int cbf_set_realarray (cbf_handle    handle,
                           size_t        elsize,
                           size_t        nelem);
 
+
+  /* Issue a warning message */
+
+void cbf_warning (const char *message);
+
+
+  /* Issue an error message */
+
+void cbf_error (const char *message);
+
+
+  /* issue a log message for a cbf */
+  
+void cbf_log (cbf_handle handle, const char *message, int logflags);
+
+
   /* Find a datablock, creating it if necessary */
   
 int cbf_require_datablock (cbf_handle  handle,
@@ -897,12 +969,14 @@ int cbf_require_dictionary (cbf_handle handle, cbf_handle * dictionary);
   /* Put the value into the named column, updating the hash table links */
 
 int cbf_set_hashedvalue(cbf_handle handle, const char * value, 
-                                           const char * columnname);
+                                           const char * columnname,
+                                           int valuerow);
                                            
   /* Find value in the named column, using the hash table links */
 
 int cbf_find_hashedvalue(cbf_handle handle, const char * value, 
-                                           const char * columnname);
+                                            const char * columnname,
+                                            int caseinsensitive);
 
 
   /* Take a defintion from a dictionary and insert it into the
@@ -911,7 +985,23 @@ int cbf_find_hashedvalue(cbf_handle handle, const char * value,
 int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, 
                                            cbf_handle dictionary,
                                            const char * name);
-                                           
+
+
+  /* Increment a column */
+
+int cbf_increment_column( cbf_handle handle, const char* columnname, 
+                                           int * count );
+
+  /* Reset a column */
+
+int cbf_reset_column( cbf_handle handle, const char* columnname);
+
+
+  /* Reset reference counts for a dictionary */
+  
+int cbf_reset_refcounts( cbf_handle dictionary );
+
+
   /* Convert a DDL1 or DDL2 dictionary and add it to a CBF dictionary */
 
 int cbf_convert_dictionary (cbf_handle handle, cbf_handle dictionary );
@@ -971,6 +1061,11 @@ int cbf_find_tag_category (cbf_handle handle, const char* tagname,
   
 int cbf_set_tag_category (cbf_handle handle, const char* tagname,
                                             const char* categoryname);
+
+  /* Validate portion of CBF */
+ 
+int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type,
+                                     cbf_node * catnode);
 
 
 #ifdef __cplusplus
