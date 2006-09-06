@@ -6215,7 +6215,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
      	        	  if ( !cbf_cistrncmp(dictype,"uchar3",7) )
      	        	  {
      	        	  	if (strlen(valuestring)==3 
-     	        	  	  || (strlen(valuestring)==3 && *(valuestring)=='+'))
+     	        	  	  || (strlen(valuestring)==4 && *(valuestring)=='+'))
      	        	  	  
      	        	  	  goodmatch = 1;
      	        	  	
@@ -6410,7 +6410,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	  }
 
     	              
-    	              do {
+    	              while ( nextrow >=0 ) {
     	              
     	                cbf_failnez( cbf_find_column (handle->dictionary, "name"))
     	                
@@ -6418,7 +6418,11 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                
     	                cbf_failnez( cbf_get_value (handle->dictionary, &nextitem))
     	                
-    	                if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
+    	                cbf_failnez( cbf_find_column (handle->dictionary, "name(hash_next)"))
+    	                
+    	                cbf_failnez( cbf_get_integervalue(handle->dictionary, &nextrow))
+
+     	                if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
     	                
     	                  cbf_failnez( cbf_find_column (handle->dictionary, "value_type"))
     	                  
@@ -6453,7 +6457,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                      
     	                      if (numb) {
     	                      
-    	                        if (loval[0] == '\0' || strcmp(loval,".")) {
+    	                        if (loval[0] == '\0' || !strcmp(loval,".")) {
     	                        
     	                          if ((!strcmp(enumvaluetype,"open_range") 
     	                            && doubleval < strtod(hival,&endptr))
@@ -6464,61 +6468,64 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                              
     	                              break;
     	                          	
-    	                          }
+    	                          } else continue;
     	                        	
-    	                        } else if (hival[0] == '\0' || strcmp(hival,".")) {
-    	                        
-    	                          if ((!strcmp(enumvaluetype,"open_range") 
-    	                            && doubleval > strtod(loval,&endptr))
-    	                            || (!strcmp(enumvaluetype,"closed_range") 
-    	                            && doubleval >= strtod(loval,&endptr))) {
+    	                        } else {
+    	                        	
+    	                          if (hival[0] == '\0' || !strcmp(hival,".")) {
+    	                           	                        
+    	                            if ((!strcmp(enumvaluetype,"open_range") 
+    	                              && doubleval > strtod(loval,&endptr))
+    	                              || (!strcmp(enumvaluetype,"closed_range") 
+    	                              && doubleval >= strtod(loval,&endptr))) {
     	                            
-    	                              valok = 1;
+    	                                valok = 1;
     	                              
-    	                              break;
+    	                                break;
     	                          	
-    	                          }
+    	                            } else continue;
     	                          
-    	                        } else { 
+    	                          } else { 
     	                        
-    	                          if ((!strcmp(enumvaluetype,"open_range") 
-    	                        
-    	                            && doubleval > strtod(loval,&endptr)
-    	                            && doubleval < strtod(hival,&endptr))
-    	                            || (!strcmp(enumvaluetype,"closed_range") 
-    	                            && doubleval >= strtod(loval,&endptr)
-    	                            && doubleval <= strtod(hival,&endptr))) {
-    	                            
-    	                            valok = 1;
-    	                              
-    	                            break;
-    	                        	
-    	                          } else {
-    	                        
-    	                            if ( (loval[0] == '\0'
-    	                              && ( (!strcmp(enumvaluetype,"open_range") 
-    	                                   && cbf_cistrcmp(valuestring,hival) < 0)
-    	                              || cbf_cistrcmp(valuestring,hival) <= 0 ) ) 
-    	                            || (hival[0] == '\0'
-    	                              && ( (!strcmp(enumvaluetype,"open_range") 
-    	                                   && cbf_cistrcmp(valuestring,loval) > 0)
-    	                              || cbf_cistrcmp(valuestring,loval) >= 0 ) ) 
-    	                            || ((!strcmp(enumvaluetype,"open_range") 
-    	                                   && cbf_cistrcmp(valuestring,hival) < 0
-    	                                   && cbf_cistrcmp(valuestring,loval) > 0)
-    	                               || (cbf_cistrcmp(valuestring,hival) <= 0
-    	                                   && cbf_cistrcmp(valuestring,loval) >= 0))) {
+    	                            if ((!strcmp(enumvaluetype,"open_range") 
+    	                              && doubleval > strtod(loval,&endptr)
+    	                              && doubleval < strtod(hival,&endptr))
+    	                              || (!strcmp(enumvaluetype,"closed_range") 
+    	                              && doubleval >= strtod(loval,&endptr)
+    	                              && doubleval <= strtod(hival,&endptr))) {
     	                            
     	                              valok = 1;
     	                              
     	                              break;
-    	                          	
-    	                            }
     	                        	
+    	                            } 
+
     	                          }
     	                      	
     	                        }
     	                        
+    	                      } else {
+    	                        
+    	                        if ( (loval[0] == '\0'
+    	                          && ( (!strcmp(enumvaluetype,"open_range") 
+    	                             && cbf_cistrcmp(valuestring,hival) < 0)
+    	                            || cbf_cistrcmp(valuestring,hival) <= 0 ) ) 
+    	                          || (hival[0] == '\0'
+    	                            && ( (!strcmp(enumvaluetype,"open_range") 
+    	                               && cbf_cistrcmp(valuestring,loval) > 0)
+    	                            || cbf_cistrcmp(valuestring,loval) >= 0 ) ) 
+    	                          || ((!strcmp(enumvaluetype,"open_range") 
+    	                               && cbf_cistrcmp(valuestring,hival) < 0
+    	                               && cbf_cistrcmp(valuestring,loval) > 0)
+    	                             || (cbf_cistrcmp(valuestring,hival) <= 0
+    	                               && cbf_cistrcmp(valuestring,loval) >= 0))) {
+    	                            
+    	                            valok = 1;
+    	                              
+    	                            break;
+    	                          	
+    	                        } else continue;
+    	                      
     	                      }
     	                        	                  	
     	                    }
@@ -6526,17 +6533,15 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                  }
     	                	
     	                }
-    	                
-    	                cbf_failnez( cbf_find_column (handle->dictionary, "name(hash_next)"))
-    	                
-    	                cbf_failnez( cbf_get_integervalue(handle->dictionary, &nextrow))
-    	              	
-    	              } while (nextrow >= 0);
+    	                    	              	
+    	              } /* while ( nextrow >=0 ) */
     	              
     	              if (!valok) {
     	              
     	                 sprintf(buffer," %s value out of dictionary range", itemname);
     	              	
+    	                 cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
+
     	              }
     	            	
     	            }
@@ -6544,8 +6549,6 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	          }
     	        	
     	        }
-    	      
-    	        
     	        
     	      }
 
