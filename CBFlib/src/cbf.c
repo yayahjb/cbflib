@@ -4365,7 +4365,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
 
     if (haveitemname || haveitemcategory) {
 
-      cbf_failnez( cbf_count_rows (dictionary,&numrows))
+      cbf_failnez( cbf_count_rows (dictionary,(unsigned int *)&numrows))
 
       cbf_failnez( cbf_rewind_row        (dictionary))
 
@@ -4498,7 +4498,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
 
             }
             
-            cbf_failnez( cbf_row_number          (cbfdictionary, &rownum))
+            cbf_failnez( cbf_row_number          (cbfdictionary, (unsigned int *)&rownum))
             
             cbf_failnez( cbf_set_hashedvalue     (cbfdictionary, itemname, "item_root", rownum))
 
@@ -4522,7 +4522,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
       
       cbf_failnez( cbf_column_number(dictionary, (unsigned int *)&colno))
       
-      cbf_failnez( cbf_count_rows (dictionary,&numrows))
+      cbf_failnez( cbf_count_rows (dictionary, (unsigned int *)&numrows))
 
       cbf_failnez( cbf_rewind_row        (dictionary))
 
@@ -4641,7 +4641,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
     if (!cbf_find_local_tag(dictionary, "_item_linked.parent_name") ||
       !cbf_find_local_tag(dictionary, "_item_link_parent"))  {
 
-      cbf_failnez( cbf_count_rows (dictionary,&numrows))
+      cbf_failnez( cbf_count_rows (dictionary,(unsigned int *)&numrows))
 
       cbf_failnez( cbf_rewind_row        (dictionary))
 
@@ -4694,7 +4694,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
 
       !cbf_find_local_tag(dictionary,"_category.id") )  {
 
-      cbf_failnez( cbf_count_rows (dictionary,&numrows))
+      cbf_failnez( cbf_count_rows (dictionary,(unsigned int *)&numrows))
 
       cbf_failnez( cbf_rewind_row        (dictionary))
       
@@ -4800,7 +4800,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
               
             }
             
-            cbf_failnez(cbf_row_number(cbfdictionary, &rownum))
+            cbf_failnez(cbf_row_number(cbfdictionary, (unsigned int *)&rownum))
             
             cbf_failnez(cbf_require_column(cbfdictionary,"category_id"))
               
@@ -4827,7 +4827,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
 
             }
             
-            cbf_failnez( cbf_row_number          (cbfdictionary, &rownum))
+            cbf_failnez( cbf_row_number          (cbfdictionary, (unsigned int *)&rownum))
             
             cbf_failnez( cbf_set_hashedvalue     (cbfdictionary, categoryname, "category_root", rownum))
 

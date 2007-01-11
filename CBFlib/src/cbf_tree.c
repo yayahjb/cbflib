@@ -429,6 +429,8 @@ int cbf_free_node (cbf_node *node)
   
   void *memblock;
   
+  void *vchild;
+  
   
 
 
@@ -449,10 +451,16 @@ int cbf_free_node (cbf_node *node)
       {
         node->parent->children--;
 
-        if (node->parent->children == 0)
+        if (node->parent->children == 0) 
+        {
+          vchild = (void *)node->parent->child;
 
-          cbf_failnez (cbf_free ((void **) &node->parent->child,
+          cbf_failnez (cbf_free ((void **) &vchild,
                                        &node->parent->child_size))
+          
+          node->parent->child = (cbf_node **)vchild;
+                                       
+        }
 
         else
 
@@ -494,6 +502,8 @@ int cbf_free_node (cbf_node *node)
 int cbf_set_children (cbf_node *node, unsigned int children)
 {
   unsigned int count, new_size, kblock;
+  
+  void *vchild;
 
   int errorcode;
 
@@ -550,15 +560,25 @@ int cbf_set_children (cbf_node *node, unsigned int children)
             node->child [count] = NULL;
           }
 
-    if (children == 0)
-
-      errorcode = cbf_free ((void **) &node->child, &node->child_size);
+    if (children == 0) {
+    
+      vchild = (void *)node->child;
+ 
+      errorcode = cbf_free ((void **) &vchild, &node->child_size);
+      
+      node->child = NULL;
+    }
 
     node->children = children;
 
-    if (new_size < node->child_size )
-      cbf_failnez (cbf_realloc ((void * *) &node->child, &node->child_size,
+    if (new_size < node->child_size ) 
+    {
+      vchild = (void *)node->child;
+  
+      cbf_failnez (cbf_realloc ((void * *) &vchild, &node->child_size,
                                            sizeof (cbf_node  *), new_size))
+      node->child = (cbf_node **)vchild;
+    }
 
     return errorcode;
   }
@@ -566,9 +586,16 @@ int cbf_set_children (cbf_node *node, unsigned int children)
 
     /* Increase the number of children */
 
-  if (new_size > node->child_size)
-    cbf_failnez (cbf_realloc ((void **) &node->child, &node->child_size,
+  if (new_size > node->child_size) 
+  {
+    vchild = (void *)node->child;
+    
+    cbf_failnez (cbf_realloc ((void **) &vchild, &node->child_size,
                                         sizeof (cbf_node *), new_size))
+                                        
+    node->child = (cbf_node **)vchild;
+                                        
+  }
 
   node->children = children;
 

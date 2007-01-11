@@ -2303,6 +2303,10 @@ int cbf_free_positioner (cbf_positioner positioner)
   
   void *memblock;
   
+  void *vaxis;
+  
+  void *vname;
+  
   memblock = (void *) positioner;
 
   size_t i;
@@ -2311,12 +2315,22 @@ int cbf_free_positioner (cbf_positioner positioner)
   {
     errorcode = 0;
 
-    for (i = 0; i < positioner->axes; i++)
+    for (i = 0; i < positioner->axes; i++) {
+    
+      vname = (void *)(positioner->axis [i].name);
+    	
+      errorcode |= cbf_free ((void **) &vname, NULL);
+      
+      positioner->axis [i].name = NULL;
+    
+    }
 
-      errorcode |= cbf_free ((void **) &positioner->axis [i].name, NULL);
-
-    errorcode |= cbf_free ((void **) &positioner->axis,
+    vaxis = (void *)positioner->axis;
+    
+    errorcode |= cbf_free ((void **) &vaxis,
                                      &positioner->axes);
+                                     
+    positioner->axis = NULL;
 
     return errorcode | cbf_free (&memblock, NULL);
   }
@@ -2343,6 +2357,10 @@ int cbf_add_positioner_axis (cbf_positioner positioner,
   int errorcode = 0;
 
   cbf_axis_struct axis;
+  
+  void  *vaxis;
+  
+  void  *vname;
 
   double length;
 
@@ -2362,29 +2380,71 @@ int cbf_add_positioner_axis (cbf_positioner positioner,
 
 
     /* Allocate memory and copy the axis names */
+    
+  axis.name = NULL;
 
-  cbf_failnez (cbf_alloc ((void **) &axis.name, NULL, strlen (name) + 1, 1))
+  vname = (void *) axis.name;
+
+  cbf_failnez (cbf_alloc ((void **) &vname, NULL, strlen (name) + 1, 1))
+  
+  axis.name = (char *)vname;
 
   axis.depends_on = NULL;
 
-  if (depends_on)
-
-    errorcode = cbf_alloc ((void **) &axis.depends_on, NULL,
+  if (depends_on) {
+  
+    void * vdepends_on;
+    
+    vdepends_on = (void *)axis.depends_on;
+  	
+    errorcode = cbf_alloc ((void **) &vdepends_on, NULL,
                                    strlen (depends_on) + 1, 1);
+                                   
+    axis.depends_on = (char *)vdepends_on;
+                                   
+    
+                                   
+  }
 
   if (errorcode)
+  
+  {  vname = axis.name;
+     
+  	 errorcode |= cbf_free ((void **)&vname, NULL);
+  	 
+  	 axis.name = NULL;
+  	 
+  	 return errorcode;
+    
+  }
 
-    return errorcode | cbf_free ((void **) &axis.name, NULL);
+  vaxis = (void *)(positioner->axis);
 
-  errorcode = cbf_realloc ((void **) &(positioner->axis),
+  errorcode = cbf_realloc ((void **) &vaxis,
                                      &(positioner->axes),
                                 sizeof (cbf_axis_struct),
                                   positioner->axes + 1);
+  positioner->axis = (cbf_axis_struct *)vaxis;
 
-  if (errorcode)
-
-    return cbf_free ((void **) &axis.name, NULL) |
-           cbf_free ((void **) &axis.depends_on, NULL);
+  if (errorcode) 
+  { int nerrorcode;
+  
+    void * vdepends_on;
+    
+    vname = (void *)axis.name;
+    
+    vdepends_on = (void *)axis.depends_on;
+  	
+    nerrorcode = cbf_free ((void **) &vname, NULL) |
+           cbf_free ((void **) &vdepends_on, NULL);
+           
+    axis.name = NULL;
+    
+    axis.depends_on = NULL;
+    
+    return nerrorcode;
+    
+  }
 
   strcpy (axis.name, name);
 
