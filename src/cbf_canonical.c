@@ -350,13 +350,19 @@ void cbf_free_compressdata (cbf_compress_data *data)
 {
   void * memblock;
   
+  void * vnode;
+  
   memblock = (void *)data;
 
     /* Free storage */
 
   if (data)
   {
-    cbf_free ((void **) &data->node, &data->nodes);
+    vnode =  (void *)data->node;
+
+    cbf_free ((void **) &vnode, &data->nodes);
+    
+    data->node = NULL;
 
     cbf_free ((void **) &memblock, NULL);
 
@@ -372,6 +378,8 @@ int cbf_initialise_compressdata (cbf_compress_data *data, unsigned int bits,
   size_t count;
 
   cbf_compress_node *node;
+  
+  void *vnode;
 
 
     /* Coded bits */
@@ -416,9 +424,13 @@ int cbf_initialise_compressdata (cbf_compress_data *data, unsigned int bits,
     /* Allocate memory for the nodes */
 
   count = (data->endcode + maxbits) * 2 + 1;
+  
+  vnode = (void *)data->node;
 
-  cbf_failnez (cbf_realloc ((void **) &data->node, &data->nodes,
+  cbf_failnez (cbf_realloc ((void **) &vnode, &data->nodes,
                                       sizeof (cbf_compress_node), count))
+                                      
+  data->node = (cbf_compress_node *)vnode;
 
 
     /* Initialise the nodes */

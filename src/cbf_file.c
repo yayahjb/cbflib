@@ -317,6 +317,10 @@ int cbf_make_widefile (cbf_file **file, FILE *stream)
 int cbf_free_file (cbf_file **file)
 {
   int errorcode;
+  
+  void *vbuffer;
+  
+  void *vdigest;
 
   errorcode = 0;
 
@@ -329,11 +333,15 @@ int cbf_free_file (cbf_file **file)
         if (fclose ((*file)->stream))
 
           errorcode = CBF_FILECLOSE;
+          
+      vbuffer = (void *)(*file)->buffer;
+      
+      vdigest = (void *)(*file)->digest;
 
-      errorcode |= cbf_free ((void **) &(*file)->buffer,
+      errorcode |= cbf_free ((void **) &vbuffer,
                                        &(*file)->buffer_size);
 
-      errorcode |= cbf_free ((void **) &(*file)->digest, NULL);
+      errorcode |= cbf_free ((void **) &vdigest, NULL);
 
       errorcode |= cbf_free ((void **) file, NULL);
     }
@@ -434,6 +442,7 @@ int cbf_file_connections (cbf_file *file)
 
 int cbf_set_buffersize (cbf_file *file, size_t size)
 {
+  void * vbuffer;
 
     /* Does the file exist? */
 
@@ -450,9 +459,15 @@ int cbf_set_buffersize (cbf_file *file, size_t size)
 
 
     /* Reallocate the buffer */
+    
+  vbuffer = (void *)file->buffer;
 
-  return cbf_realloc ((void **) &file->buffer,
-                                &file->buffer_size, sizeof (char), size);
+  cbf_failnez(cbf_realloc ((void **) &vbuffer,
+                                &file->buffer_size, sizeof (char), size))
+                                
+  file->buffer = (char *)vbuffer;
+  
+  return 0;
 }
 
 
@@ -971,6 +986,8 @@ int cbf_put_integer (cbf_file *file, int val, int valsign,
 
 int cbf_start_digest (cbf_file *file)
 {
+  void *vdigest;
+
   if (!file)
 
     return CBF_ARGUMENT;
@@ -983,10 +1000,16 @@ int cbf_start_digest (cbf_file *file)
 
     /* Allocate the md5 context */
 
-  if (!file->digest)
+  if (!file->digest) {
+  	
+  	vdigest = (void *)file->digest;
 
-    cbf_failnez (cbf_alloc ((void **) &file->digest,
+    cbf_failnez (cbf_alloc ((void **)&vdigest,
                                        NULL, sizeof (MD5_CTX), 1))
+                                       
+    file->digest = (MD5_CTX *)vdigest;
+                                       
+  }
 
 
     /* Initialize */
@@ -1005,6 +1028,8 @@ int cbf_start_digest (cbf_file *file)
 int cbf_end_digest (cbf_file *file, char *digest)
 {
   unsigned char raw_digest [16];
+  
+  void *vdigest;
 
   if (!file || !digest)
 
@@ -1026,8 +1051,12 @@ int cbf_end_digest (cbf_file *file, char *digest)
 
 
     /* Free the md5 context */
+    
+  vdigest = (void *)file->digest;
 
-  cbf_failnez (cbf_free ((void **) &file->digest, NULL))
+  cbf_failnez (cbf_free ((void **) &vdigest, NULL))
+  
+  file->digest = NULL;
 
 
     /* Encode the digest in base-64 */
