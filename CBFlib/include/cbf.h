@@ -828,8 +828,22 @@ int cbf_require_integervalue (cbf_handle handle, int *number, int defaultvalue);
 int cbf_require_doublevalue (cbf_handle handle, double *number, double defaultvalue);
 
 
-
   /* Get the parameters of the current (row, column) array entry */
+  
+int cbf_get_arrayparameters (cbf_handle    handle, 
+                                    unsigned int *compression,
+                                    int          *id, 
+                                    size_t       *elsize, 
+                                    int          *elsigned, 
+                                    int          *elunsigned, 
+                                    size_t       *nelem, 
+                                    int          *minelem, 
+                                    int          *maxelem,
+                                    int          *realarray);
+
+
+
+  /* Get the parameters of the current (row, column) integer array entry */
   
 int cbf_get_integerarrayparameters (cbf_handle    handle, 
                                     unsigned int *compression,

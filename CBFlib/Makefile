@@ -1,7 +1,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.7.6 10 July 2006                                         #
+# Version 0.7.6.3 21 January 2007                                    #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -249,13 +249,13 @@
 
 
 # Version string
-VERSION = 0.7.6
+VERSION = 0.7.6.3
 
 
 #
 # Definitions to get gnu version of getopt or system version of getopt
 #
-GETOPT		=	SYSTEM
+#GETOPT		=	SYSTEM
 ifeq ($(GETOPT),)
   GETOPT 	=	getopt-1.1.4_cbf
 endif
@@ -482,7 +482,8 @@ all:	$(LIB) $(BIN) $(SOURCE) $(HEADERS)  \
         $(BIN)/img2cif           \
         $(BIN)/cif2cbf           \
 		$(BIN)/testcell          \
-		$(BIN)/cif2c
+		$(BIN)/cif2c             \
+		$(BIN)/testreals
 
 
 install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin
@@ -498,12 +499,15 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin
 		cp $(BIN)/cif2cbf $(INSTALLDIR)/bin/cif2cbf
 		-cp $(INSTALLDIR)/bin/cif2c $(INSTALLDIR)/bin/cif2c_old
 		cp $(BIN)/cif2c $(INSTALLDIR)/bin/cif2c
+		-cp $(INSTALLDIR)/bin/testreals $(INSTALLDIR)/bin/testreals_old
+		cp $(BIN)/testreals $(INSTALLDIR)/bin/testreals
 		chmod 644 $(INSTALLDIR)/lib/libcbf.a
 		chmod 755 $(INSTALLDIR)/bin/convert_image
 		chmod 755 $(INSTALLDIR)/bin/makecbf
 		chmod 755 $(INSTALLDIR)/bin/img2cif
 		chmod 755 $(INSTALLDIR)/bin/cif2cbf
 		chmod 755 $(INSTALLDIR)/bin/cif2c
+		chmod 755 $(INSTALLDIR)/bin/testreals
 		
 		
 #
@@ -598,9 +602,10 @@ $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(EXAMPLES)/img.c
 #
 # img2cif example program
 #
-$(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(EXAMPLES)/img.c
+$(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(EXAMPLES)/img.c \
+					$(GOPTLIB) 	$(GOTPINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-              $(EXAMPLES)/img2cif.c $(EXAMPLES)/img.c -L$(LIB) \
+              $(EXAMPLES)/img2cif.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
 	      -lcbf -lm -o $@
 
 #
@@ -625,6 +630,14 @@ $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
 $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
 	$(C++) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
               $(EXAMPLES)/cif2c.c -L$(LIB) \
+	      -lcbf -lm -o $@
+
+#
+# testreals example program
+#
+$(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+              $(EXAMPLES)/testreals.c -L$(LIB) \
 	      -lcbf -lm -o $@
 
 
@@ -661,6 +674,10 @@ mb_LP_1_001.img:	$(DATADIR) $(DATADIR)/mb_LP_1_001.img$(CEXT)
 		
 testcell_orig.prt:	$(DATADIR) $(DATADIR)/testcell_orig.prt$(CEXT)
 		$(DECOMPRESS) < $(DATADIR)/testcell_orig.prt$(CEXT) > testcell_orig.prt
+
+testrealin.cbf:	$(DATADIR) $(DATADIR)/testrealin.cbf$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/testrealin.cbf$(CEXT) > testrealin.cbf
+
 		
 #
 # Tests
@@ -692,9 +709,9 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf example.mar2300
 #
 # Extra Tests
 #
-extra:	$(BIN)/convert_image $(BIN)/cif2cbf $(BIN)/testcell\
+extra:	$(BIN)/convert_image $(BIN)/cif2cbf $(BIN)/testcell $(BIN)/testreals \
 	makecbf.cbf 9ins.cif example.mar2300 converted_orig.cbf mb_LP_1_001.img\
-	adscconverted_original.cbf testcell_orig.prt
+	adscconverted_original.cbf testcell_orig.prt testrealin.cbf
 	$(BIN)/cif2cbf -e hex -c none \
 		makecbf.cbf cif2cbf_ehcn.cif
 	$(BIN)/cif2cbf -e none -c packed \
@@ -708,7 +725,8 @@ extra:	$(BIN)/convert_image $(BIN)/cif2cbf $(BIN)/testcell\
 	-cmp testcell.prt testcell_orig.prt
 	$(BIN)/convert_image -c diffrn_data_frame=diffrn_frame_data  -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
 	-cmp adscconverted.cbf adscconverted_original.cbf
-
+	$(BIN)/testreals
+	-cmp testrealin.cbf testrealout.cbf
 
 #
 # Remove all non-source files
@@ -723,6 +741,7 @@ empty:
 	@-rm -f  $(BIN)/convert_image
 	@-rm -f  $(BIN)/testcell
 	@-rm -f  $(BIN)/cif2c
+	@-rm -f  $(BIN)/testreals
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
@@ -741,6 +760,8 @@ empty:
 	@-rm -f  example.mar2300
 	@-rm -f  converted_orig.cbf
 	@-rm -f  adscconverted_original.cbf
+	@-rm -f  testrealin.cbf
+	@-rm -f  testrealout.cbf
 	@-rm -f  mb_LP_1_001.img
 	@-rm -f  9ins.cif
 	@-rm -f  testcell_orig.prt
@@ -793,7 +814,7 @@ tar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
          $(EXAMPLES)/img.c \
 	 $(EXAMPLES)/img.h \
 	 $(EXAMPLES)/makecbf.c $(EXAMPLES)/img2cif.c $(EXAMPLES)/cif2cbf.c \
-	 $(EXAMPLES)/convert_image.c $(EXAMPLES)/testcell.C\
+	 $(EXAMPLES)/convert_image.c $(EXAMPLES)/testcell.C $(EXAMPLES)/testreals.c \
 	 $(EXAMPLES)/template_adscquantum4_2304x2304.cbf \
 	 $(EXAMPLES)/template_mar345_2300x2300.cbf \
 	 $(EXAMPLES)/template_adscquantum315_3072x3072.cbf \
@@ -806,7 +827,7 @@ tar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
          $(EXAMPLES)/img.c \
 	 $(EXAMPLES)/img.h \
 	 $(EXAMPLES)/makecbf.c $(EXAMPLES)/img2cif.c $(EXAMPLES)/cif2cbf.c \
-	 $(EXAMPLES)/convert_image.c $(EXAMPLES)/testcell.C\
+	 $(EXAMPLES)/convert_image.c $(EXAMPLES)/testcell.C $(EXAMPLES)/testreals.c \
 	 $(EXAMPLES)/template_adscquantum4_2304x2304.cbf \
 	 $(EXAMPLES)/template_mar345_2300x2300.cbf \
 	 README.html README Makefile \

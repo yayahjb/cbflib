@@ -3218,7 +3218,7 @@ int cbf_set_value (cbf_handle handle, const char *value)
 int cbf_require_value (cbf_handle handle, const char **value, 
                                           const char *defaultvalue)
 {
-  if (cbf_get_value (handle, value)) 
+  if (cbf_get_value (handle, value) || !*value) 
   {
   	 cbf_failnez (cbf_set_value(handle, defaultvalue))
   	 
@@ -3442,6 +3442,44 @@ int cbf_require_doublevalue (cbf_handle handle, double *number,
 
 
   /* Get the parameters of the current (row, column) array entry */
+
+int cbf_get_arrayparameters (cbf_handle    handle,
+                                    unsigned int *compression,
+                                    int          *id,
+                                    size_t       *elsize,
+                                    int          *elsigned,
+                                    int          *elunsigned,
+                                    size_t       *nelem,
+                                    int          *minelem,
+                                    int          *maxelem,
+                                    int          *realarray)
+{
+    /* Check the arguments */
+
+  if (!handle)
+
+    return CBF_ARGUMENT;
+
+
+    /* Is the value binary? */
+
+  if (!cbf_is_binary (handle->node, handle->row))
+
+    return CBF_ASCII;
+
+
+    /* Get the parameters */
+
+  return cbf_binary_parameters (handle->node, handle->row,
+                                compression, id, NULL, elsize,
+                                elsigned, elunsigned, nelem,
+                                minelem, maxelem, realarray);
+}
+
+
+
+
+  /* Get the parameters of the current (row, column) integer array entry */
 
 int cbf_get_integerarrayparameters (cbf_handle    handle,
                                     unsigned int *compression,
@@ -3863,22 +3901,23 @@ int cbf_get_local_real_format (char ** real_format )
 
    static char other[6] = "other";
 
-   float *test;
 
-   float value=1.;
+   union ftest { float fltest; int itest; long ltest; } test;
 
-   *real_format = other;
+   *real_format = other; 
 
-   test = &value;
+   test.fltest = 1.;
 
    if (sizeof (float) == sizeof (long) ) {
 
-     if (*(long *)test == 0774000000L ) *real_format = ieee;
+     if ( test.ltest == 1065353216L ) *real_format = ieee;
 
    } else {
-     if (sizeof (float) == sizeof (int) ) {
 
-       if (*(int *)test == 0774000000 ) *real_format = ieee;
+     if (sizeof (float) == sizeof (int ) ) {
+
+       if (test.itest == 1065353216 ) *real_format = ieee;
+
 
      }
    }

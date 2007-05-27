@@ -571,12 +571,28 @@ int cbf_get_axis_setting (cbf_handle handle, unsigned int  reserved,
                                              double       *increment);
 
 
+
+  /* Get the reference setting of an axis */
+
+int cbf_get_axis_reference_setting (cbf_handle handle, unsigned int  reserved,
+                                             const char   *axis_id,
+                                             double       *refsetting);
+
+
   /* Change the setting of an axis */
 
 int cbf_set_axis_setting (cbf_handle handle, unsigned int  reserved,
                                              const char   *axis_id,
                                              double        start, 
                                              double        increment);
+
+
+  /* Change the reference setting of an axis */
+
+int cbf_set_axis_reference_setting (cbf_handle handle, unsigned int  reserved,
+                                             const char   *axis_id,
+                                             double        refsetting);
+
 
 
   /* Construct a goniometer */
@@ -635,13 +651,28 @@ int cbf_get_reciprocal (cbf_goniometer goniometer, unsigned int reserved,
 int cbf_construct_detector (cbf_handle    handle, 
                             cbf_detector *detector,
                             unsigned int  element_number);
+                            
+
+  /* Construct a reference detector positioner */
+
+int cbf_construct_reference_detector (cbf_handle    handle,
+                            cbf_detector *detector,
+                            unsigned int  element_number);
+
+
  
- 
-  /* Construct a detector positioner, creating the necessary categories, and columns */
+  /* Construct a detector positioner, 
+     creating the necessary categories, and columns */
 
 int cbf_require_detector (cbf_handle    handle, cbf_detector      *detector,
                                                 unsigned int      element_number);
 
+ 
+  /* Construct a reference detector positioner, 
+     creating the necessary categories, and columns */
+
+int cbf_require_reference_detector (cbf_handle    handle, cbf_detector      *detector,
+                                                unsigned int      element_number);
 
 
   /* Free a detector */
@@ -664,6 +695,13 @@ int cbf_set_beam_center (cbf_detector detector, double *index1,
                                                 double *center1,
                                                 double *center2);
 
+
+  /* Set the reference beam center */
+
+int cbf_set_reference_beam_center (cbf_detector detector, double *index1,
+                                                double *index2,
+                                                double *center1,
+                                                double *center2);
 
 
   /* Get the detector distance */

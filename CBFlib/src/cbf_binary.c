@@ -282,7 +282,7 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
                      int       *realarray,
             unsigned int       *compression)
 {
-  cbf_file *file_text;
+  void *file_text;
 
   long start_text, size_text;
 
@@ -313,7 +313,7 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
 
   sscanf (text + 1, " %x %p %lx %lx %d %24s %x %d %d %u",
                       (unsigned int *)&id_text,
-                      (void * *)&file_text,
+                      &file_text,
                       (unsigned long *)&start_text,
                       (unsigned long *)&size_text,
                       &checked_digest_text,
@@ -336,7 +336,7 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
 
   if (file)
 
-    *file = file_text;
+    *file = (cbf_file *)file_text;
 
   if (start)
 
