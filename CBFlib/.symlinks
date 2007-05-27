@@ -3,7 +3,7 @@ if ( ! -e index.html ) then
   ln -s README.html index.html
 endif
 if ( ! -e CBFlib.tar.gz ) then
-  ln -s ../CBFlib_0.7.6.tar.gz CBFlib.tar.gz
+  ln -s ../CBFlib_0.7.7.tar.gz CBFlib.tar.gz
 endif
 if ( ! -e template_adscquantum315_3072x3072.cbf ) then
   ln -s examples/template_adscquantum315_3072x3072.cbf template_adscquantum315_3072x3072.cbf

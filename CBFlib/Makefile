@@ -268,24 +268,24 @@ endif
 #  Appropriate compiler definitions for MAC OS X
 #
 #########################################################
-CC	= gcc
-C++	= g++
-CFLAGS  = -g -O2  -Wall -ansi -pedantic
-F90C = gfortran
-F90FLAGS = -g
-F90LDFLAGS = -bind_at_load
-TIME = time
-#########################################################
-#
-#  Appropriate compiler definitions for Linux
-#
-#########################################################
 #CC	= gcc
 #C++	= g++
 #CFLAGS  = -g -O2  -Wall -ansi -pedantic
 #F90C = gfortran
 #F90FLAGS = -g
-#F90LDFLAGS = 
+#F90LDFLAGS = -bind_at_load
+#TIME = time
+#########################################################
+#
+#  Appropriate compiler definitions for Linux
+#
+#########################################################
+CC	= gcc
+C++	= g++
+CFLAGS  = -g -O2  -Wall -ansi -pedantic
+F90C = gfortran
+F90FLAGS = -g
+F90LDFLAGS = 
 #TIME = time
 #########################################################
 #
@@ -341,8 +341,8 @@ CEXT = .bz2
 
 # Program to use to retrieve a URL
 
-DOWNLOAD = /sw/bin/wget
-#DOWNLOAD = /usr/bin/wget
+#DOWNLOAD = /sw/bin/wget
+DOWNLOAD = /usr/bin/wget
 
 # call to time a command
 
