@@ -268,7 +268,8 @@ CC	= gcc
 C++	= g++
 #CFLAGS	= -O
 #CFLAGS	= -g3 -O2
-CFLAGS  = -g -O2  -Wall 
+#CFLAGS  = -g -O2  -Wall 
+CFLAGS  = -g -O2  -Wall -ansi -pedantic
 
 #
 # Program to use to pack shars

@@ -1888,7 +1888,7 @@ int cbf_rewind_saveframe (cbf_handle handle)
 
     /* Find the first child that is a save frame*/
 
-  for (i = 0; i < node->children; i++) {
+  for (i = 0; (unsigned int)i < node->children; i++) {
 
     cbf_failnez (cbf_get_child (&child_node, node, i))
 
@@ -1934,7 +1934,7 @@ int cbf_rewind_category (cbf_handle handle)
 
     /* Find the first child that is a category*/
 
-  for (i = 0; i < node->children; i++) {
+  for (i = 0; (unsigned int)i < node->children; i++) {
 
     cbf_failnez (cbf_get_child (&child_node, node, i))
 
@@ -2111,7 +2111,7 @@ int cbf_next_category (cbf_handle handle)
 
     /* Get the next category */
 
-  for (i = index+1; i<parent->children; i++) {
+  for (i = index+1; (unsigned int)i<parent->children; i++) {
 
     cbf_failnez (cbf_get_child (&node, parent, i))
 
@@ -2162,7 +2162,7 @@ int cbf_next_saveframe (cbf_handle handle)
 
     /* Get the next save frame */
 
-  for (i = index+1; i<parent->children; i++) {
+  for (i = index+1; (unsigned int)i<parent->children; i++) {
 
     cbf_failnez (cbf_get_child (&node, parent, i))
 
@@ -6127,10 +6127,6 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     
     char * valuestring;
     
-    valuestring = ((char *)node)+1;
-    
-    tokentype = (((char *)node)[0]);
-
     char fline[2049];
 
     char * flptr;
@@ -6150,6 +6146,10 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     long symop, xlate;
     
     long yyyy, mm, dd, hr, mi, se, sf, tz;
+
+    valuestring = ((char *)node)+1;
+    
+    tokentype = (((char *)node)[0]);
 
 
 

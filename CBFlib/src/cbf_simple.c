@@ -2306,10 +2306,10 @@ int cbf_free_positioner (cbf_positioner positioner)
   void *vaxis;
   
   void *vname;
-  
-  memblock = (void *) positioner;
 
   size_t i;
+   
+  memblock = (void *) positioner;
 
   if (positioner)
   {
