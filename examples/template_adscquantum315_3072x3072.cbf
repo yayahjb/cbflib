@@ -183,7 +183,7 @@ _axis.offset[1] _axis.offset[2] _axis.offset[3]
  DETECTOR_Y       translation detector DETECTOR_Z 0 1 0 0 0 0
  DETECTOR_X       translation detector DETECTOR_Y 1 0 0 0 0 0
  DETECTOR_PITCH   rotation    detector DETECTOR_X 0 1 0 0 0 0
- ELEMENT_X        translation detector DETECTOR_PITCH 1 0 0 -152.500 152.500 0
+ ELEMENT_X        translation detector DETECTOR_PITCH 1 0 0 -157.500 157.500 0
  ELEMENT_Y        translation detector ELEMENT_X 0 1 0 0 0 0
 
 
