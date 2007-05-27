@@ -531,8 +531,8 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
       } else {
 
-        //  The string continues as long as we do not encounter a blank
-        //  after the quote mark in a position after the second position
+        /*  The string continues as long as we do not encounter a blank
+            after the quote mark in a position after the second position */
 
         string = ( cprev != line[0] ||
                    length < 2 ||
@@ -920,7 +920,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
           strcpy (digest, "------------------------");
 
         sprintf (out_line, "%lx %p %lx %lx %d %s %x %d %d %u",
-                            id, file, position, (unsigned long) size, checked_digest,
+                            id, (void *)file, position, (unsigned long) size, checked_digest,
                             digest, bits, sign, real<1?0:1, compression);
 
         if (encoding == ENC_NONE)
