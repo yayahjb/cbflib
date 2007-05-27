@@ -267,6 +267,10 @@
  *    rotate the array n times 90 degrees counter clockwise           *
  *    x -> y, y -> -x for each rotation, n = 1, 2 or 3                *
  *                                                                    *
+ *  -R                                                                *
+ *    if setting a beam center, set reference values of               *
+ *    axis settings as well as standard settings                      *
+ *                                                                    *
  *  -z distance                                                       *
  *    detector distance along Z-axis                                  *
  *                                                                    *
@@ -297,6 +301,8 @@
 #include <unistd.h>
 
 
+
+double rint(double);
 int local_exit (int status);
 int outerror(int err);
 
@@ -409,6 +415,10 @@ int outusage ( void ) {
  fprintf(stderr,"    rotate the array n times 90 degrees counter clockwise\n");
  fprintf(stderr,"    x -> y, y -> -x for each rotation, n = 1, 2 or 3\n");
 
+ fprintf(stderr,"  -R \n");
+ fprintf(stderr,"    if setting a beam center, set reference values of\n");
+ fprintf(stderr,"    axis settings as well as standard settings\n");
+
  fprintf(stderr,"  -z distance\n");
  fprintf(stderr,"    detector distance along Z-axis.\n");
  
@@ -475,6 +485,8 @@ int main (int argc, char *argv [])
     psx, psy, binx, biny;
 
   size_t header_info_size;
+  
+  int dorefs;
 
   const char *date;
 
@@ -512,10 +524,11 @@ int main (int argc, char *argv [])
   detector_opt = NULL;
   transpose = 0;
   distancestr = NULL;
+  dorefs = 0;
   
   cbf_failnez (cbf_make_handle (&cbf))
 
-  while ((copt = getopt(argc,argv, "i:o:p:d:m:r:z:c:t:")) != EOF) {
+  while ((copt = getopt(argc,argv, "i:o:p:d:m:r:R:z:c:t:")) != EOF) {
 
     switch(copt) {
       case 'i':
@@ -549,6 +562,10 @@ int main (int argc, char *argv [])
          if (!strcmp(optarg,"3")) currentxform = &rotate3;
          if (!currentxform) errflg++;
          else applyxform(&overall,currentxform);
+         break;
+
+      case 'R':
+         dorefs = 1;
          break;
 
       case 'd':
@@ -1165,6 +1182,16 @@ int main (int argc, char *argv [])
 
   cbf_failnez(cbf_free_detector(detector))
   
+  if (dorefs) {
+  	
+    cbf_failnez(cbf_require_reference_detector (cbf, &detector, 0))
+
+    cbf_failnez(cbf_set_reference_beam_center(detector,&bcx,&bcy,NULL,NULL))
+
+    cbf_failnez(cbf_free_detector(detector))
+  
+  }
+  
 
 
 
@@ -1378,19 +1405,19 @@ int main (int argc, char *argv [])
 
   /* Construct a detector positioner */
 
-    cbf_failnez(cbf_construct_detector (cbf, &detector, 0));
+     cbf_failnez(cbf_construct_detector (cbf, &detector, 0));
 
 
   /* Get the beam center */
 
-    cbf_get_beam_center (detector, &d [0], &d [1], &d [2], &d [3]);
+     cbf_get_beam_center (detector, &d [0], &d [1], &d [2], &d [3]); 
 
-    /* fprintf(stderr," convert_image: beam center:  %g %g %g %g\n", d[0], d[1], d[2], d[3]); */
+      fprintf(stderr," convert_image: beam center:  %g %g %g %g\n", d[0], d[1], d[2], d[3]);
 
 
   /* Get the detector distance */
 
-     cbf_get_detector_distance (detector, &d [0]);
+      cbf_get_detector_distance (detector, &d [0]);
      /* fprintf(stdout, " detector distance: %-15g\n",d[0]); */
 
   /* Get the detector normal */
@@ -1406,8 +1433,7 @@ int main (int argc, char *argv [])
   /* Calcluate the area of a pixel */
 
     cbf_get_pixel_area (detector, 1, 3, &d [0], &d [1]);
-    /* fprintf(stdout, " Pixel area, projected area: %-15g, %-15g\n",d[0], d[1]); */
-
+    fprintf(stdout, " Pixel area, projected area: %-15g, %-15g\n",d[0], d[1]);
   /* Calculate the dimensions of a pixel */
 
    /* cbf_failnez (cbf_get_inferred_pixel_size (detector, 1, &d [0]))
