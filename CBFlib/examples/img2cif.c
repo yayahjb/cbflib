@@ -292,6 +292,10 @@
 #include <errno.h>
 #include <unistd.h>
 
+#ifdef GNUGETOPT
+#include "getopt.h"
+#endif
+
 #define I2CBUFSIZ 8192
 
 #undef cbf_failnez
