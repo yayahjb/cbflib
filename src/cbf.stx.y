@@ -267,6 +267,13 @@ extern "C" {
 #define yyerror(x)    cbf_syntax_error(((cbf_handle)(((void **)context)[2])),(x))
 #define YYLEX_PARAM   context
 #define YYPARSE_PARAM context
+typedef union
+{
+  int          errorcode;
+  const char  *text;
+  cbf_node    *node;
+} YYSTYPE;
+#define YYSTYPE_IS_DECLARED
 
 
 #ifdef alloca
@@ -278,11 +285,7 @@ extern "C" {
 #define YYINITDEPTH 200
 #define YYMAXDEPTH  200
 
-int cbf_lex (cbf_handle handle, union {
-  int          errorcode;
-  const char  *text;
-  cbf_node    *node;
-} *val);
+int cbf_lex (cbf_handle handle, YYSTYPE *val ); 
 
 int cbf_lex_wrapper (void *val, void *context)
 {

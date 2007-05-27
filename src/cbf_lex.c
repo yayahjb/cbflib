@@ -739,7 +739,13 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                                     &bits,
                                                     &sign,
                                                     &real), val)
-
+           /* DEBUG
+             fprintf (stderr,"processing mime header \n"
+               "encoding = %d, size= %ld, id = %ld, compression = %d, "
+               "bits = %d, sign = %d, real = %d\n", encoding,
+               size, id, compression, bits, sign, real);
+               
+              */
 
             /* Check the digest? */
 
@@ -923,7 +929,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                             id, (void *)file, position, (unsigned long) size, checked_digest,
                             digest, bits, sign, real<1?0:1, compression);
 
-        if (encoding == ENC_NONE)
+        if (encoding == ENC_NONE )
 
           errorcode = cbf_return_text (BINARY, val, out_line,
                                                       CBF_TOKEN_BIN);

@@ -294,7 +294,7 @@ int cbf_compress_none (void         *source,
     /* Is the element size valid? */
 
   if (elsize != sizeof (int) &&
-        elsize != 2* sizeof (int) &&
+      elsize != 2* sizeof (int) &&
       elsize != 4* sizeof (int) &&
       elsize != sizeof (short) &&
       elsize != sizeof (char))
@@ -328,7 +328,7 @@ int cbf_compress_none (void         *source,
 
   sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
 
-  if (elsize == sizeof (int))
+  if (elsize == sizeof (int) || elsize == numints*sizeof(int) )
 
     limit = ~0;
 
@@ -548,19 +548,19 @@ int cbf_decompress_none (void         *destination,
 
   sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
 
-  if (elsize == sizeof (int))
+  if (elsize == sizeof (int) || elsize == numints*sizeof(int))
 
     limit = ~0;
 
   else
 
-    if (numints == 1) {
+    if (numints == 1 ) {
 
-      limit = ~-(1 << (elsize * CHAR_BIT));
+      limit = ~(-(1 << (elsize * CHAR_BIT)));
 
     } else {
 
-      limit = ~-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT));
+      limit = ~(-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT)));
 
     }
 

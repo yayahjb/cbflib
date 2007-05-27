@@ -592,6 +592,9 @@ int cbf_count_elements (cbf_handle handle, unsigned int *elements)
 }
 
 
+
+
+
   /* Get the element id */
 
 int cbf_get_element_id (cbf_handle handle, unsigned int element_number,
@@ -621,6 +624,38 @@ int cbf_get_element_id (cbf_handle handle, unsigned int element_number,
 
   cbf_failnez (cbf_find_column (handle, "id"))
   cbf_failnez (cbf_get_value   (handle, element_id))
+
+  return 0;
+}
+
+  /* Get the detector id */
+
+int cbf_get_detector_id (cbf_handle handle, unsigned int element_number,
+                                           const char **detector_id)
+{
+  const char *diffrn_id, *id;
+
+
+    /* Get the diffrn.id */
+
+  cbf_failnez (cbf_get_diffrn_id (handle, &diffrn_id))
+
+  cbf_failnez (cbf_find_category (handle, "diffrn_detector"))
+  cbf_failnez (cbf_find_column   (handle, "diffrn_id"))
+  cbf_failnez (cbf_find_row      (handle, diffrn_id))
+  cbf_failnez (cbf_find_column   (handle, "id"))
+  cbf_failnez (cbf_get_value     (handle, &id))
+
+  cbf_failnez (cbf_find_category (handle, "diffrn_detector_element"))
+  cbf_failnez (cbf_find_column   (handle, "detector_id"))
+
+  do
+
+    cbf_failnez (cbf_find_nextrow (handle, id))
+
+  while (element_number--);
+
+  cbf_failnez (cbf_get_value   (handle, detector_id))
 
   return 0;
 }
@@ -2196,6 +2231,98 @@ int cbf_get_axis_setting (cbf_handle handle, unsigned int  reserved,
 }
 
 
+  /* Get the reference setting of an axis */
+
+int cbf_get_axis_reference_setting (cbf_handle handle, unsigned int  reserved,
+                                             const char   *axis_id,
+                                             double       *refsetting)
+{
+  cbf_axis_type type;
+
+  if (reserved != 0)
+
+    return CBF_ARGUMENT;
+
+
+    /* Get the axis type */
+
+  cbf_failnez (cbf_get_axis_type (handle, axis_id, &type))
+
+  if (type != CBF_TRANSLATION_AXIS && type != CBF_ROTATION_AXIS)
+
+    return CBF_FORMAT;
+
+
+    /* Read from the diffrn_scan_axis and
+                     diffrn_scan_frame_axis categories */
+
+  if (type == CBF_TRANSLATION_AXIS)
+  {
+    cbf_failnez (cbf_find_category   (handle, "diffrn_scan_frame_axis"))
+    cbf_failnez (cbf_find_column     (handle, "axis_id"))
+    cbf_failnez (cbf_find_row        (handle, axis_id))
+    *refsetting = 0.;
+    if (!cbf_find_column (handle, "reference_displacement")) {
+      if (cbf_get_doublevalue (handle, refsetting)) {
+        if (!cbf_find_column (handle, "displacement")) {
+          if (cbf_get_doublevalue (handle, refsetting)) {
+          	*refsetting = 0.;
+          }
+        }
+      }
+    } else {
+      if (!cbf_find_column (handle, "displacement")) {
+          if (cbf_get_doublevalue (handle, refsetting)) {
+          	*refsetting = 0.;
+        }
+      }
+      else  {
+        cbf_failnez (cbf_find_category   (handle, "diffrn_scan_axis"))
+        cbf_failnez (cbf_find_column     (handle, "axis_id"))
+        cbf_failnez (cbf_find_row        (handle, axis_id))
+        if (!cbf_find_column (handle, "reference_displacement")) {
+          if (cbf_get_doublevalue (handle, refsetting)) {
+            if (!cbf_find_column (handle, "displacement")) {
+              if (cbf_get_doublevalue (handle, refsetting)) {
+          	    *refsetting = 0.;
+              }
+            }
+          }
+        } else  {
+          if (!cbf_find_column (handle, "displacement")) {
+            if (cbf_get_doublevalue (handle, refsetting)) {
+          	  *refsetting = 0.;
+            }
+          }	
+        }
+      }
+    }    	
+  }
+  else
+  {
+    cbf_failnez (cbf_find_category   (handle, "diffrn_scan_frame_axis"))
+    cbf_failnez (cbf_find_column     (handle, "axis_id"))
+    cbf_failnez (cbf_find_row        (handle, axis_id))
+    *refsetting = 0.;
+    if (!cbf_find_column (handle, "reference_angle")) {
+      if (cbf_get_doublevalue (handle, refsetting)) {
+        *refsetting = 0.;
+      }
+    } else {
+      cbf_failnez (cbf_find_category   (handle, "diffrn_scan_axis"))
+      cbf_failnez (cbf_find_column     (handle, "axis_id"))
+      cbf_failnez (cbf_find_row        (handle, axis_id))
+      if (!cbf_find_column (handle, "reference_angle")) {
+        if (cbf_get_doublevalue (handle, refsetting)) {
+      	*refsetting = 0.;
+        }
+      }
+    }    	
+  }
+  return 0;
+}
+
+
   /* Change the setting of an axis */
 
 int cbf_set_axis_setting (cbf_handle handle, unsigned int  reserved,
@@ -2229,6 +2356,9 @@ int cbf_set_axis_setting (cbf_handle handle, unsigned int  reserved,
     cbf_failnez (cbf_require_row        (handle, axis_id))
     cbf_failnez (cbf_require_column     (handle, "displacement"))
     cbf_failnez (cbf_set_doublevalue    (handle, "%-.15g", start))
+    if (!cbf_find_column( handle, "displacement_increment")) {
+      cbf_failnez (cbf_set_doublevalue    (handle, "%-.15g", increment))
+    }
 
     cbf_failnez (cbf_require_category   (handle, "diffrn_scan_axis"))
     cbf_failnez (cbf_require_column     (handle, "axis_id"))
@@ -2247,7 +2377,9 @@ int cbf_set_axis_setting (cbf_handle handle, unsigned int  reserved,
     cbf_failnez (cbf_require_row        (handle, axis_id))
     cbf_failnez (cbf_require_column     (handle, "angle"))
     cbf_failnez (cbf_set_doublevalue    (handle, "%-.15g", start))
-
+    if (!cbf_find_column     (handle, "angle_increment")) {
+      cbf_failnez (cbf_set_doublevalue    (handle, "%-.15g", increment))
+    }
     cbf_failnez (cbf_require_category   (handle, "diffrn_scan_axis"))
     cbf_failnez (cbf_require_column     (handle, "axis_id"))
     cbf_failnez (cbf_require_row        (handle, axis_id))
@@ -2257,6 +2389,64 @@ int cbf_set_axis_setting (cbf_handle handle, unsigned int  reserved,
     cbf_failnez (cbf_set_doublevalue    (handle, "%-.15g", increment))
     cbf_failnez (cbf_require_column     (handle, "angle_range"))
     cbf_failnez (cbf_set_doublevalue    (handle, "%-.15g", increment))
+  }
+
+  return 0;
+}
+
+
+  /* Change the reference setting of an axis */
+
+int cbf_set_axis_reference_setting (cbf_handle handle, unsigned int  reserved,
+                                             const char   *axis_id,
+                                             double        refsetting)
+{
+  cbf_axis_type type;
+
+  if (reserved != 0)
+
+    return CBF_ARGUMENT;
+
+
+    /* Get the axis type */
+
+  cbf_failnez (cbf_get_axis_type (handle, axis_id, &type))
+
+  if (type != CBF_TRANSLATION_AXIS && type != CBF_ROTATION_AXIS)
+
+    return CBF_FORMAT;
+
+
+    /* Update the diffrn_scan_axis and
+                  diffrn_scan_frame_axis categories */
+
+  if (type == CBF_TRANSLATION_AXIS)
+  {
+    cbf_failnez (cbf_require_category   (handle, "diffrn_scan_frame_axis"))
+    cbf_failnez (cbf_require_column     (handle, "axis_id"))
+    cbf_failnez (cbf_require_row        (handle, axis_id))
+    cbf_failnez (cbf_require_column     (handle, "reference_displacement"))
+    cbf_failnez (cbf_set_doublevalue    (handle, "%-.15g", refsetting))
+
+    cbf_failnez (cbf_require_category   (handle, "diffrn_scan_axis"))
+    cbf_failnez (cbf_require_column     (handle, "axis_id"))
+    cbf_failnez (cbf_require_row        (handle, axis_id))
+    cbf_failnez (cbf_require_column     (handle, "reference_displacement"))
+    cbf_failnez (cbf_set_doublevalue    (handle, "%-.15g", refsetting))
+  }
+  else
+  {
+    cbf_failnez (cbf_require_category   (handle, "diffrn_scan_frame_axis"))
+    cbf_failnez (cbf_require_column     (handle, "axis_id"))
+    cbf_failnez (cbf_require_row        (handle, axis_id))
+    cbf_failnez (cbf_require_column     (handle, "reference_angle"))
+    cbf_failnez (cbf_set_doublevalue    (handle, "%-.15g", refsetting))
+
+    cbf_failnez (cbf_require_category   (handle, "diffrn_scan_axis"))
+    cbf_failnez (cbf_require_column     (handle, "axis_id"))
+    cbf_failnez (cbf_require_row        (handle, axis_id))
+    cbf_failnez (cbf_require_column     (handle, "reference_angle"))
+    cbf_failnez (cbf_set_doublevalue    (handle, "%-.15g", refsetting))
   }
 
   return 0;
@@ -2512,11 +2702,19 @@ int cbf_read_positioner_axis (cbf_handle      handle,
 
   start = increment = 0;
 
-  if (read_setting)
-
+  if (read_setting) 
+  {
+  	
     cbf_failnez (cbf_get_axis_setting (handle, reserved, axis_id,
                                           &start,
                                           &increment))
+  
+    if (read_setting < 0) {
+    	cbf_failnez (cbf_get_axis_reference_setting (handle, reserved, axis_id,
+                                          &start))
+    }
+
+  }
 
   cbf_failnez (cbf_add_positioner_axis (positioner,
                        axis_id,
@@ -3305,7 +3503,7 @@ int cbf_construct_detector (cbf_handle    handle,
 int cbf_require_detector (cbf_handle    handle, cbf_detector      *detector,
                                                 unsigned int      element_number)
 {
-  int errorcode, precedence, prefound;
+  int errorcode, precedence;
 
   unsigned int row, axis;
 
@@ -3344,8 +3542,6 @@ int cbf_require_detector (cbf_handle    handle, cbf_detector      *detector,
 
   surface_axis [0] = surface_axis [1] = NULL;
   
-  prefound = 0;
-
   while (cbf_find_nextrow (handle, array_id) == 0)
   {
     cbf_failnez (cbf_find_column      (handle, "precedence"))
@@ -3364,7 +3560,7 @@ int cbf_require_detector (cbf_handle    handle, cbf_detector      *detector,
     cbf_failnez (cbf_find_column (handle, "array_id"))
   }
 
-  if (prefound == 0) {
+  if (!surface_axis[0]) {
     cbf_failnez (cbf_require_column  (handle, "array_id"))
     cbf_failnez (cbf_new_row         (handle))
     cbf_failnez (cbf_set_value       (handle, array_id))
@@ -3373,7 +3569,10 @@ int cbf_require_detector (cbf_handle    handle, cbf_detector      *detector,
     cbf_failnez (cbf_require_column  (handle, "axis_set_id"))
     cbf_failnez (cbf_require_value   (handle, &surface_axis [0], "ELEMENT_X"))
 
-    cbf_failnez (cbf_require_column  (handle,"array_id"))    
+  }
+  
+  if (!surface_axis[1]) {
+  	cbf_failnez (cbf_require_column  (handle,"array_id"))    
     cbf_failnez (cbf_new_row         (handle))
     cbf_failnez (cbf_set_value       (handle, array_id))
     cbf_failnez (cbf_require_column  (handle, "precedence"))
@@ -3499,6 +3698,13 @@ int cbf_require_detector (cbf_handle    handle, cbf_detector      *detector,
     return errorcode | cbf_free ((void **) detector, NULL);
   }
 
+      /* Insert the cbf handle and element into the dectector */
+    
+  (*detector)->handle = handle;
+
+  (*detector)->element = element_number;
+
+
 
     /* Copy the start and increment values into the surface axes */
 
@@ -3535,6 +3741,474 @@ int cbf_require_detector (cbf_handle    handle, cbf_detector      *detector,
   return 0;
 }
 
+
+  /* Construct a reference detector positioner */
+
+int cbf_construct_reference_detector (cbf_handle    handle,
+                            cbf_detector *detector,
+                            unsigned int  element_number)
+{
+  int errorcode, precedence;
+
+  unsigned int row, axis;
+
+  const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
+
+  const char *surface_axis [2];
+
+  double displacement [2], increment [2];
+
+  cbf_positioner positioner;
+
+  if (!detector)
+
+    return CBF_ARGUMENT;
+
+
+    /* Get the detector id */
+
+  cbf_failnez (cbf_get_diffrn_id (handle, &diffrn_id))
+
+  cbf_failnez (cbf_find_category (handle, "diffrn_detector"))
+  cbf_failnez (cbf_find_column   (handle, "diffrn_id"))
+  cbf_failnez (cbf_find_row      (handle, diffrn_id))
+  cbf_failnez (cbf_find_column   (handle, "id"))
+  cbf_failnez (cbf_get_value     (handle, &id))
+
+
+    /* Construct the detector surface */
+
+  cbf_failnez (cbf_get_array_id  (handle, element_number, &array_id))
+  cbf_failnez (cbf_find_category (handle, "array_structure_list"))
+  cbf_failnez (cbf_find_column   (handle, "array_id"))
+
+  surface_axis [0] = surface_axis [1] = NULL;
+
+  while (cbf_find_nextrow (handle, array_id) == 0)
+  {
+    cbf_failnez (cbf_find_column      (handle, "precedence"))
+    cbf_failnez (cbf_get_integervalue (handle, &precedence))
+
+    if (precedence < 1 || precedence > 2)
+
+      return CBF_FORMAT;
+
+    if (surface_axis [precedence - 1])
+
+      return CBF_FORMAT;
+
+    cbf_failnez (cbf_find_column (handle, "axis_set_id"))
+    cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
+    cbf_failnez (cbf_find_column (handle, "array_id"))
+  }
+
+  if (!surface_axis [0])
+
+    return CBF_FORMAT;
+
+  cbf_failnez (cbf_find_category   (handle, "array_structure_list_axis"))
+  cbf_failnez (cbf_find_column     (handle, "axis_set_id"))
+  cbf_failnez (cbf_find_row        (handle, surface_axis [0]))
+  cbf_failnez (cbf_find_column     (handle, "axis_id"))
+  cbf_failnez (cbf_get_value       (handle, &surface_axis [0]))
+  if (cbf_find_column(handle,"reference_displacement")) {
+    cbf_failnez(cbf_find_column(handle,"displacement"))
+  } 
+  cbf_failnez (cbf_get_doublevalue (handle, &displacement [0]))
+  cbf_failnez (cbf_get_doublevalue (handle, &displacement [0]))
+  cbf_failnez (cbf_find_column     (handle, "displacement_increment"))
+  cbf_failnez (cbf_get_doublevalue (handle, &increment [0]))
+
+  if (surface_axis [1])
+  {
+    cbf_failnez (cbf_find_column     (handle, "axis_set_id"))
+    cbf_failnez (cbf_find_row        (handle, surface_axis [1]))
+    cbf_failnez (cbf_find_column     (handle, "axis_id"))
+    cbf_failnez (cbf_get_value       (handle, &surface_axis [1]))
+    if (cbf_find_column(handle,"reference_displacement")) {
+      cbf_failnez(cbf_find_column(handle,"displacement"))
+    } 
+    cbf_failnez (cbf_get_doublevalue (handle, &displacement [1]))
+    cbf_failnez (cbf_find_column     (handle, "displacement_increment"))
+    cbf_failnez (cbf_get_doublevalue (handle, &increment [1]))
+  }
+
+
+    /* Construct the positioner */
+
+  cbf_failnez (cbf_make_positioner (&positioner))
+
+  errorcode = cbf_alloc ((void **) detector, NULL,
+                        sizeof (cbf_detector_struct), 1);
+
+  for (row = errorcode = 0; !errorcode; row++)
+  {
+    errorcode = cbf_find_category (handle, "diffrn_detector_axis");
+
+    if (!errorcode)
+    {
+        /* allow for aliases  _diffrn_detector_axis.detector_id
+                              _diffrn_detector_axis.id  (deprecated) */
+
+      errorcode = cbf_find_column (handle, "detector_id");
+
+      if (errorcode)
+
+        errorcode = cbf_find_column (handle, "id");
+    }
+
+    if (!errorcode)
+    {
+      errorcode = cbf_select_row (handle, row);
+
+      if (errorcode == CBF_NOTFOUND)
+      {
+        errorcode = 0;
+
+        break;
+      }
+    }
+
+    if (!errorcode)
+
+      errorcode = cbf_get_value (handle, &this_id);
+
+    if (!errorcode)
+
+      if (cbf_cistrcmp (id, this_id) == 0)
+      {
+        errorcode = cbf_find_column (handle, "axis_id");
+
+        if (!errorcode)
+
+          errorcode = cbf_get_value (handle, &axis_id);
+
+        if (!errorcode)
+
+          errorcode = cbf_read_positioner_axis (handle, 0,
+                                                positioner,
+                                                axis_id, -1);
+      }
+  }
+
+
+    /* Add the surface axes */
+
+  if (!errorcode)
+
+    errorcode = cbf_read_positioner_axis (handle, 0, positioner,
+                                                  surface_axis [0], 0);
+
+  if (!errorcode && surface_axis [1])
+
+    errorcode = cbf_read_positioner_axis (handle, 0, positioner,
+                                                  surface_axis [1], 0);
+
+
+    /* Connect the axes */
+
+  if (!errorcode)
+
+    errorcode = cbf_connect_axes (positioner);
+
+  if (errorcode)
+  {
+    errorcode |= cbf_free_positioner (positioner);
+
+    return errorcode | cbf_free ((void **) detector, NULL);
+  }
+  
+    /* Insert the cbf handle and element into the dectector */
+    
+  (*detector)->handle = handle;
+
+  (*detector)->element = element_number;
+
+
+    /* Copy the start and increment values into the surface axes */
+
+  (*detector)->displacement [0] = displacement [0];
+  (*detector)->displacement [1] = displacement [1];
+
+  (*detector)->increment [0] = increment [0];
+  (*detector)->increment [1] = increment [1];
+
+  if (surface_axis [1])
+
+    (*detector)->axes = 2;
+
+  else
+
+    (*detector)->axes = 1;
+
+  for (axis = 0; axis < (*detector)->axes; axis++)
+
+    for (row = 0; row < positioner->axes; row++)
+
+      if (cbf_cistrcmp (positioner->axis [row].name,
+                        surface_axis [axis]) == 0)
+      {
+        (*detector)->index [axis] = row;
+
+        positioner->axis [row].increment = 0;
+
+        break;
+      }
+
+  (*detector)->positioner = positioner;
+
+  return 0;
+}
+
+
+  /* Construct a reference detector positioner, 
+     creating the necessary categories, and columns */
+
+int cbf_require_reference_detector (cbf_handle    handle, cbf_detector      *detector,
+                                                unsigned int      element_number)
+{
+  int errorcode, precedence;
+
+  unsigned int row, axis;
+
+  const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
+
+  const char *surface_axis [2];
+
+  double displacement [2], increment [2];
+
+  cbf_positioner positioner;
+
+  if (!detector)
+
+    return CBF_ARGUMENT;
+
+
+    /* Get the detector id */
+
+  cbf_failnez (cbf_require_diffrn_id (handle, &diffrn_id, "DIFFRN_ID"))
+
+  cbf_failnez (cbf_require_category (handle, "diffrn_detector"))
+  cbf_failnez (cbf_require_column   (handle, "diffrn_id"))
+  if (cbf_find_row (handle, diffrn_id))  {
+  	 cbf_failnez(cbf_new_row(handle))
+  	 cbf_failnez(cbf_set_value(handle,diffrn_id))
+  }
+  cbf_failnez (cbf_require_column   (handle, "id"))
+  cbf_failnez (cbf_require_value    (handle, &id, diffrn_id))
+
+
+    /* Construct the detector surface */
+
+  cbf_failnez (cbf_get_array_id  (handle, element_number, &array_id))
+  cbf_failnez (cbf_require_category (handle, "array_structure_list"))
+  cbf_failnez (cbf_require_column   (handle, "array_id"))
+
+  surface_axis [0] = surface_axis [1] = NULL;
+  
+
+  while (cbf_find_nextrow (handle, array_id) == 0)
+  {
+    cbf_failnez (cbf_find_column      (handle, "precedence"))
+    cbf_failnez (cbf_get_integervalue (handle, &precedence))
+
+    if (precedence < 1 || precedence > 2)
+
+      return CBF_FORMAT;
+
+    if (surface_axis [precedence - 1])
+
+      return CBF_FORMAT;
+
+    cbf_failnez (cbf_find_column (handle, "axis_set_id"))
+    cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
+    cbf_failnez (cbf_find_column (handle, "array_id"))
+  }
+
+  if (!surface_axis[0]) {
+    cbf_failnez (cbf_require_column  (handle, "array_id"))
+    cbf_failnez (cbf_new_row         (handle))
+    cbf_failnez (cbf_set_value       (handle, array_id))
+    cbf_failnez (cbf_require_column  (handle, "precedence"))
+    cbf_failnez (cbf_set_integervalue(handle,1))
+    cbf_failnez (cbf_require_column  (handle, "axis_set_id"))
+    cbf_failnez (cbf_require_value   (handle, &surface_axis [0], "ELEMENT_X"))
+  }
+  if (!surface_axis[1]){
+    cbf_failnez (cbf_require_column  (handle,"array_id"))    
+    cbf_failnez (cbf_new_row         (handle))
+    cbf_failnez (cbf_set_value       (handle, array_id))
+    cbf_failnez (cbf_require_column  (handle, "precedence"))
+    cbf_failnez (cbf_set_integervalue(handle,2))
+    cbf_failnez (cbf_require_column  (handle, "axis_set_id"))
+    cbf_failnez (cbf_require_value   (handle, &surface_axis [1], "ELEMENT_Y"))
+  	
+  }
+
+  if (!surface_axis [0])
+
+    return CBF_FORMAT;
+
+  cbf_failnez (cbf_require_category   (handle, "array_structure_list_axis"))
+  cbf_failnez (cbf_require_column     (handle, "axis_set_id"))
+  cbf_failnez (cbf_require_row        (handle, surface_axis [0]))
+  cbf_failnez (cbf_require_column     (handle, "axis_id"))
+  cbf_failnez (cbf_require_value      (handle, &surface_axis [0], surface_axis[0]))
+  if (!cbf_find_column(handle, "reference_displacement") || 
+      !cbf_require_column     (handle, "displacement")){
+  	  cbf_failnez (cbf_require_doublevalue(handle, &displacement [0], 0.0))
+  }
+  else return CBF_NOTFOUND;
+  cbf_failnez (cbf_require_column     (handle, "displacement_increment"))
+  cbf_failnez (cbf_require_doublevalue(handle, &(increment [0]), 0.0))
+
+  if (surface_axis [1])
+  {
+    cbf_failnez (cbf_require_column     (handle, "axis_set_id"))
+    cbf_failnez (cbf_require_row        (handle, surface_axis [1]))
+    cbf_failnez (cbf_require_column     (handle, "axis_id"))
+    cbf_failnez (cbf_require_value      (handle, &surface_axis [1], surface_axis[1]))
+    if (!cbf_find_column(handle, "reference_displacement") || 
+        !cbf_require_column     (handle, "displacement")){
+  	    cbf_failnez (cbf_require_doublevalue(handle, &displacement [1], 0.0))
+    }
+    else return CBF_NOTFOUND;
+    cbf_failnez (cbf_require_column     (handle, "displacement_increment"))
+    cbf_failnez (cbf_require_doublevalue(handle, &(increment [1]), 0.0))
+  }
+
+
+    /* Construct the positioner */
+
+  cbf_failnez (cbf_make_positioner (&positioner))
+
+  errorcode = cbf_alloc ((void **) detector, NULL,
+                        sizeof (cbf_detector_struct), 1);
+
+  for (row = errorcode = 0; !errorcode; row++)
+  {
+    errorcode = cbf_require_category (handle, "diffrn_detector_axis");
+
+    if (!errorcode)
+    {
+        /* allow for aliases  _diffrn_detector_axis.detector_id
+                              _diffrn_detector_axis.id  (deprecated) */
+
+      errorcode = cbf_find_column (handle, "detector_id");
+
+      if (errorcode)
+
+        errorcode = cbf_find_column (handle, "id");
+
+      if (errorcode)
+      
+        errorcode = cbf_require_column (handle, "detector_id");
+      
+    }
+
+    if (!errorcode)
+    {
+      errorcode = cbf_select_row (handle, row);
+
+      if (errorcode == CBF_NOTFOUND)
+      {
+        errorcode = 0;
+
+        break;
+      }
+    }
+
+    if (!errorcode)
+
+      errorcode = cbf_get_value (handle, &this_id);
+
+    if (!errorcode)
+
+      if (cbf_cistrcmp (id, this_id) == 0)
+      {
+        errorcode = cbf_find_column (handle, "axis_id");
+
+        if (!errorcode)
+
+          errorcode = cbf_get_value (handle, &axis_id);
+
+        if (!errorcode)
+
+          errorcode = cbf_read_positioner_axis (handle, 0,
+                                                positioner,
+                                                axis_id, -1);
+      }
+  }
+
+
+    /* Add the surface axes */
+
+  if (!errorcode)
+
+    errorcode = cbf_read_positioner_axis (handle, 0, positioner,
+                                                  surface_axis [0], 0);
+
+  if (!errorcode && surface_axis [1])
+
+    errorcode = cbf_read_positioner_axis (handle, 0, positioner,
+                                                  surface_axis [1], 0);
+
+
+    /* Connect the axes */
+
+  if (!errorcode)
+
+    errorcode = cbf_connect_axes (positioner);
+
+  if (errorcode)
+  {
+    errorcode |= cbf_free_positioner (positioner);
+
+    return errorcode | cbf_free ((void **) detector, NULL);
+  }
+
+    /* Insert the cbf handle and element into the dectector */
+    
+  (*detector)->handle = handle;
+
+  (*detector)->element = element_number;
+
+
+
+    /* Copy the start and increment values into the surface axes */
+
+  (*detector)->displacement [0] = displacement [0];
+  (*detector)->displacement [1] = displacement [1];
+
+  (*detector)->increment [0] = increment [0];
+  (*detector)->increment [1] = increment [1];
+
+  if (surface_axis [1])
+
+    (*detector)->axes = 2;
+
+  else
+
+    (*detector)->axes = 1;
+
+  for (axis = 0; axis < (*detector)->axes; axis++)
+
+    for (row = 0; row < positioner->axes; row++)
+
+      if (cbf_cistrcmp (positioner->axis [row].name,
+                        surface_axis [axis]) == 0)
+      {
+        (*detector)->index [axis] = row;
+
+        positioner->axis [row].increment = 0;
+
+        break;
+      }
+
+  (*detector)->positioner = positioner;
+
+  return 0;
+}
 
 
   /* Free a detector */
@@ -3761,7 +4435,7 @@ int cbf_set_beam_center (cbf_detector detector, double *index1,
   
   cbf_failnez(cbf_find_column(handle, "axis_id"))
   
-  if ( nindex1 < oindex1-1.e-6 || nindex1 > oindex1-1.e-6 ) {
+  if ( nindex1 < oindex1-1.e-6 || nindex1 > oindex1+1.e-6 ) {
   
     double olddisp;
   
@@ -3769,9 +4443,9 @@ int cbf_set_beam_center (cbf_detector detector, double *index1,
 
     cbf_failnez(cbf_find_row(handle,detector->positioner->axis[naxis1].name))
     
-    cbf_failnez(cbf_find_column(handle, "displacement"))
+    cbf_failnez(cbf_require_column(handle, "displacement"))
     
-    cbf_failnez(cbf_get_doublevalue(handle,&olddisp))
+    cbf_failnez(cbf_require_doublevalue(handle,&olddisp,0.0))
     
     cbf_failnez(cbf_set_doublevalue(handle, "%-f", 
     
@@ -3781,7 +4455,7 @@ int cbf_set_beam_center (cbf_detector detector, double *index1,
 
   cbf_failnez(cbf_find_column(handle, "axis_id"))
 
-  if ( nindex2 < oindex2-1.e-6 || nindex2 > oindex2-1.e-6 ) {
+  if ( nindex2 < oindex2-1.e-6 || nindex2 > oindex2+1.e-6 ) {
   
     double olddisp;
 
@@ -3789,15 +4463,185 @@ int cbf_set_beam_center (cbf_detector detector, double *index1,
 
     cbf_failnez(cbf_find_row(handle,detector->positioner->axis[naxis2].name))
     
-    cbf_failnez(cbf_find_column(handle, "displacement"))
+    cbf_failnez(cbf_require_column(handle, "displacement"))
 
-    cbf_failnez(cbf_get_doublevalue(handle,&olddisp))
+    cbf_failnez(cbf_require_doublevalue(handle,&olddisp,0.0))
 
     cbf_failnez(cbf_set_doublevalue(handle, "%-f", 
 
       -(nindex2-oindex2)*detector->increment[0]  + detector->displacement[0]))        
   	
   }
+  
+  return 0;
+
+}
+
+  /* Set the reference beam center */
+
+int cbf_set_reference_beam_center (cbf_detector detector, double *index1,
+                                                double *index2,
+                                                double *center1,
+                                                double *center2)
+{
+  double oindex1, oindex2, ocenter1, ocenter2;
+  
+  double nindex1, nindex2, ncenter1, ncenter2;
+    
+  double psize1, psize2;
+  
+  unsigned int naxis1, naxis2;
+  
+  int sign1, sign2;
+  
+  cbf_handle handle;
+  
+  unsigned int element;
+  
+  const char *element_id;
+  
+  if (!detector)
+
+    return CBF_ARGUMENT;
+
+  if (detector->axes < 2)
+
+    return CBF_NOTIMPLEMENTED;
+   
+  handle = detector->handle;
+  
+  element = detector->element;
+  
+  cbf_failnez(cbf_get_element_id(handle,element, &element_id))
+  
+  naxis1 = detector->index[1];
+  
+  naxis2 = detector->index[0];
+
+  sign1 = detector->increment[1]>0.0?1.0:-1.0;
+  
+  sign2 = detector->increment[0]>0.0?1.0:-1.0;
+
+  psize1 = detector->increment[1];
+  
+  if (psize1 < 0.) psize1 = -psize1;
+  
+  psize2 = detector->increment[0];
+  
+  if (psize1 < 0.) psize2 = -psize2;
+
+  /* cbf_failnez(cbf_get_pixel_size(handle, element, 1, &psize1)) */
+  
+  /* cbf_failnez(cbf_get_pixel_size(handle, element, 2, &psize2)) */
+  
+  if (index1) {
+
+  	nindex1 = *index1;
+
+  } else {
+
+  	if (center1 && psize1 != 0.) nindex1 = sign1*(*center1)/psize1;
+
+  	else return CBF_ARGUMENT;
+  
+  }
+
+  if (index2) {
+
+  	nindex2 = *index2;
+
+  } else {
+
+  	if (center2 && psize2 != 0.) nindex2 = sign2*(*center2)/psize2;
+
+  	else return CBF_ARGUMENT;
+  
+  }
+  
+  if (center1) {
+
+  	ncenter1 = *center1;
+
+  } else {
+
+  	if (index1 && psize1 != 0.) ncenter1 = sign1*(*index1)*psize1;
+
+  	else return CBF_ARGUMENT;
+  
+  }
+
+  if (center2) {
+
+  	ncenter2 = *center2;
+
+  } else {
+
+  	if (index2 && psize2 != 0.) ncenter2 = sign2*(*index2)*psize2;
+
+  	else return CBF_ARGUMENT;
+  
+  }
+
+
+  cbf_failnez(cbf_get_beam_center(detector, &oindex1, &oindex2, &ocenter1, &ocenter2))
+  
+  cbf_failnez(cbf_find_category(handle, "array_structure_list_axis"))
+  
+  cbf_failnez(cbf_find_column(handle, "axis_id"))
+  
+  if ( nindex1 < oindex1-1.e-6 || nindex1 > oindex1+1.e-6 ) {
+  
+    double olddisp;
+  
+    cbf_failnez(cbf_rewind_row(handle))
+
+    cbf_failnez(cbf_find_row(handle,detector->positioner->axis[naxis1].name))
+    
+    cbf_failnez(cbf_require_column(handle, "reference_displacement"))
+    
+    cbf_failnez(cbf_require_doublevalue(handle,&olddisp,0.0))
+    
+    cbf_failnez(cbf_set_doublevalue(handle, "%-f", 
+    
+      -(nindex1-oindex1)*detector->increment[1]  + detector->displacement[1]))    
+  	
+  }
+
+  cbf_failnez(cbf_find_column(handle, "axis_id"))
+
+  if ( nindex2 < oindex2-1.e-6 || nindex2 > oindex2+1.e-6 ) {
+  
+    double olddisp;
+
+    cbf_failnez(cbf_rewind_row(handle))
+
+    cbf_failnez(cbf_find_row(handle,detector->positioner->axis[naxis2].name))
+    
+    cbf_failnez(cbf_require_column(handle, "reference_displacement"))
+
+    cbf_failnez(cbf_require_doublevalue(handle,&olddisp,0.0))
+
+    cbf_failnez(cbf_set_doublevalue(handle, "%-f", 
+
+      -(nindex2-oindex2)*detector->increment[0]  + detector->displacement[0]))        
+  	
+  }
+
+  
+  cbf_failnez(cbf_find_category(handle,"diffrn_detector_element"))
+  
+  cbf_failnez(cbf_find_column(handle,"id"))
+  
+  cbf_failnez(cbf_find_row(handle,element_id))
+  
+  cbf_failnez(cbf_require_column(handle,"reference_center_slow"))
+  
+  cbf_failnez(cbf_set_doublevalue(handle, "%-f",  nindex1*detector->increment[1]))
+  
+  cbf_failnez(cbf_require_column(handle,"reference_center_fast"))
+  
+  cbf_failnez(cbf_set_doublevalue(handle, "%-f",  nindex2*detector->increment[0]))  
+  
   
   return 0;
 

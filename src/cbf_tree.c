@@ -1536,7 +1536,7 @@ int cbf_set_columnrow (cbf_node *column, unsigned int row,
 
     /* Remove the old value */
 
-  if (free)
+  if (free &&  column->child [row])
 
     cbf_failnez (cbf_free_value (column->context, column, row))
 
