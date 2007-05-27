@@ -1,7 +1,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.7.7 26 April 2007                                        #
+# Version 0.7.7 27 May 2007                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -560,7 +560,7 @@ default:
 #
 # Compile the library and examples
 #
-all:	$(LIB) $(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS)  \
+all:	$(LIB) $(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) symlinksdone \
 		$(LIB)/libcbf.a          \
 		$(LIB)/libfcb.a          \
 		$(LIB)/libimg.a          \
@@ -576,6 +576,10 @@ all:	$(LIB) $(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS)  \
 		$(BIN)/testflatpacked    \
 		$(BIN)/test_xds_binary   \
 		$(BIN)/test_fcb_read_image
+
+symlinksdone:
+	./.symlinks
+	touch symlinksdone
 
 
 install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin
@@ -1036,6 +1040,8 @@ empty:
 	@-rm -f  $(SRC)/fcb_read_xds_i2.f90
 	@-rm -f  $(EXAMPLES)/test_fcb_read_image.f90
 	@-rm -f  $(EXAMPLES)/test_xds_binary.f90
+	@-rm -f  symlinksdone
+	./.undosymlinks
 	
 #
 # Remove temporary files
