@@ -1,0 +1,12 @@
+#!/bin/csh
+foreach file ( index.html CBFlib.tar.gz template_adscquantum315_3072x3072.cbf \
+  template_adscquantum4_2304x2304.cbf template_mar345_2300x2300.cbf )
+  rm -rf $file
+end
+foreach file (*)
+  if ( -d $file ) then
+    if ( -e $file/.undosymlinks ) then
+      (cd $file; source .undosymlinks)
+    endif
+  endif
+end

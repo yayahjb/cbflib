@@ -1,0 +1,13 @@
+#!/bin/csh
+foreach file ( cif_img.dic cif_img.html cif_img_1_3_2.html \
+  cif_img_1.5.dic cif_img_1.5.html )
+  rm -rf $file
+end
+
+foreach file (*)
+  if ( -d "$file" ) then
+    if ( -e "$file/.undosymlinks" ) then
+      (cd "$file"; source .undosymlinks)
+    endif
+  endif
+end
