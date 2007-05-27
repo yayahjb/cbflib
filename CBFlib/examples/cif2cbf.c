@@ -764,21 +764,31 @@ int main (int argc, char *argv [])
                size_t elements,elements_read, elsize;
                 int minelement, maxelement;
                unsigned int cifcompression;
+               int realarray;
 
-               cbf_failnez(cbf_get_integerarrayparameters(
+               cbf_failnez(cbf_get_arrayparameters(
                  cif, &cifcompression,
                  &binary_id, &elsize, &elsigned, &elunsigned,
-                 &elements, &minelement, &maxelement))
+                 &elements, &minelement, &maxelement, &realarray))
                if ((array=malloc(elsize*elements))) {
                  cbf_failnez (cbf_select_column(cbf,colnum))
-                 cbf_failnez (cbf_get_integerarray(
-                 cif, &binary_id, array, elsize, elsigned,
-                 elements, &elements_read))
-                 cbf_failnez(cbf_set_integerarray(
-                 cbf, compression,
-                 binary_id, array, elsize, elsigned, elements))
+                 if (!realarray)  {
+                   cbf_failnez (cbf_get_integerarray(
+                     cif, &binary_id, array, elsize, elsigned,
+                     elements, &elements_read))
+                   cbf_failnez(cbf_set_integerarray(
+                     cbf, compression,
+                     binary_id, array, elsize, elsigned, elements))
+                 } else {
+                   cbf_failnez (cbf_get_realarray(
+                     cif, &binary_id, array, elsize,
+                     elements, &elements_read))
+                   cbf_failnez(cbf_set_realarray(
+                     cbf, compression,
+                     binary_id, array, elsize, elements))                 	
+                 }
                  free(array);
-               } else {
+              } else {
                  fprintf(stderr,
                    "\nFailed to allocate memory %ld bytes",
                    (long) elsize*elements);
