@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_binary.h                                                       *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006,2007 Herbert J. Bernstein                       *
  *                                                                    *
  **********************************************************************/
 
@@ -272,6 +272,12 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
                      int       *elsize,
                      int       *elsign,
                      int       *reallarray,
+                     const char **byteorder,
+                     size_t    *dimover,
+                     size_t    *dim1,
+                     size_t    *dim2,
+                     size_t    *dim3,
+                     size_t    *padding,
             unsigned int       *compression);
    
 
@@ -288,6 +294,12 @@ int cbf_set_bintext (cbf_node *column, unsigned int row,
                      int         elsize,
                      int         elsign,
                      int         realarray,
+                     const char *byteorder,
+                     size_t      dimover,
+                     size_t      dim1,
+                     size_t      dim2,
+                     size_t      dim3,
+                     size_t      padding,
             unsigned int         compression);
 
 
@@ -311,7 +323,9 @@ int cbf_free_value (cbf_context *context, cbf_node *column, unsigned int row);
 int cbf_set_binary (cbf_node *column, unsigned int row,
                     unsigned int compression,
                     int binary_id, void *value, size_t elsize, int elsign,
-                    size_t nelem, int realarray);
+                    size_t nelem, int realarray, const char *byteorder,
+                    size_t dimover,
+                    size_t dim1, size_t dim2, size_t dim3, size_t padding);
 
 
   /* Get the parameters of a binary value */
@@ -323,14 +337,20 @@ int cbf_binary_parameters (cbf_node *column,
                            int *elsigned, 
                            int *elunsigned,
                            size_t *nelem,
-                           int *minelem, int *maxelem, int *realarray);
+                           int *minelem, int *maxelem, int *realarray,
+                           const char **byteorder,
+                           size_t *dim1, size_t *dim2, size_t *dim3, size_t *padding);
 
 
   /* Get a binary value */
   
 int cbf_get_binary (cbf_node *column, unsigned int row, int *binary_id,
                     void *value, size_t elsize, int elsign,
-                    size_t nelem, size_t *nelem_read, int *realarray);
+                    size_t nelem, size_t *nelem_read, int *realarray,
+                    const char **byteorder, 
+                    size_t *dimover,
+                    size_t *dim1, size_t *dim2, size_t *dim3,
+                    size_t *padding);
 
 
 #ifdef __cplusplus

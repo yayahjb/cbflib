@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_uncompressed.h                                                 *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -271,7 +271,12 @@ int cbf_compress_none (void         *source,
                        cbf_file     *file, 
                        size_t       *compressedsize,
                        int          *storedbits,
-                       int             realarray);
+                       int           realarray,
+                       const char   *byteorder,
+                       size_t        dim1,
+                       size_t        dim2,
+                       size_t        dim3,
+                       size_t        padding);
 
 
   /* Recover an array without decompression */
@@ -285,7 +290,13 @@ int cbf_decompress_none (void         *destination,
                          int           data_bits, 
                          int           data_sign,
                          cbf_file     *file,
-                         int           realarray);
+                         int           realarray,
+                         const char   *byteorder,
+                         size_t        dimover,
+                         size_t        dim1,
+                         size_t        dim2,
+                         size_t        dim3,
+                         size_t        padding);
 
 #ifdef __cplusplus
 

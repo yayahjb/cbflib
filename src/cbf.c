@@ -512,6 +512,7 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
                              ENC_BASE10  |
                              ENC_BASE16  |
                              ENC_BASE64  |
+                             ENC_BASE32K |
                              ENC_QP      |
                              ENC_FORWARD |
                              ENC_BACKWARD)) | ENC_NONE | ENC_CRTERM
@@ -533,12 +534,13 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     return CBF_ARGUMENT;
 
-  if (((encoding & ENC_NONE)   > 0) +
-      ((encoding & ENC_BASE8)  > 0) +
-      ((encoding & ENC_BASE10) > 0) +
-      ((encoding & ENC_BASE16) > 0) +
-      ((encoding & ENC_BASE64) > 0) +
-      ((encoding & ENC_QP)     > 0) > 1)
+  if (((encoding & ENC_NONE)    > 0) +
+      ((encoding & ENC_BASE8)   > 0) +
+      ((encoding & ENC_BASE10)  > 0) +
+      ((encoding & ENC_BASE16)  > 0) +
+      ((encoding & ENC_BASE64)  > 0) +
+      ((encoding & ENC_BASE32K) > 0) +
+      ((encoding & ENC_QP)      > 0) > 1)
 
     return CBF_ARGUMENT;
 
@@ -579,18 +581,20 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     headers |= MSG_DIGEST;
 
-  if ((encoding & (ENC_NONE   |
-                   ENC_BASE8  |
-                   ENC_BASE10 |
-                   ENC_BASE16 |
-                   ENC_BASE64 |
+  if ((encoding & (ENC_NONE    |
+                   ENC_BASE8   |
+                   ENC_BASE10  |
+                   ENC_BASE16  |
+                   ENC_BASE64  |
+                   ENC_BASE32K |
                    ENC_QP)) == 0)
 
-    encoding |= (ENC_DEFAULT & (ENC_NONE   |
-                                ENC_BASE8  |
-                                ENC_BASE10 |
-                                ENC_BASE16 |
-                                ENC_BASE64 |
+    encoding |= (ENC_DEFAULT & (ENC_NONE    |
+                                ENC_BASE8   |
+                                ENC_BASE10  |
+                                ENC_BASE16  |
+                                ENC_BASE64  |
+                                ENC_BASE32K |
                                 ENC_QP));
 
   if ((encoding & (ENC_CRTERM | ENC_LFTERM)) == 0)
@@ -656,6 +660,7 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
                              ENC_BASE10  |
                              ENC_BASE16  |
                              ENC_BASE64  |
+                             ENC_BASE32K |
                              ENC_QP      |
                              ENC_FORWARD |
                              ENC_BACKWARD)) | ENC_NONE | ENC_CRTERM
@@ -677,11 +682,12 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     return CBF_ARGUMENT;
 
-  if (((encoding & ENC_NONE)   > 0) +
-      ((encoding & ENC_BASE8)  > 0) +
-      ((encoding & ENC_BASE10) > 0) +
-      ((encoding & ENC_BASE16) > 0) +
-      ((encoding & ENC_BASE64) > 0) +
+  if (((encoding & ENC_NONE)    > 0) +
+      ((encoding & ENC_BASE8)   > 0) +
+      ((encoding & ENC_BASE10)  > 0) +
+      ((encoding & ENC_BASE16)  > 0) +
+      ((encoding & ENC_BASE64)  > 0) +
+      ((encoding & ENC_BASE32K) > 0) +
       ((encoding & ENC_QP)     > 0) > 1)
 
     return CBF_ARGUMENT;
@@ -718,18 +724,20 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     headers |= MSG_DIGEST;
 
-  if ((encoding & (ENC_NONE   |
-                   ENC_BASE8  |
-                   ENC_BASE10 |
-                   ENC_BASE16 |
-                   ENC_BASE64 |
+  if ((encoding & (ENC_NONE    |
+                   ENC_BASE8   |
+                   ENC_BASE10  |
+                   ENC_BASE16  |
+                   ENC_BASE64  |
+                   ENC_BASE32K |
                    ENC_QP)) == 0)
 
-    encoding |= (ENC_DEFAULT & (ENC_NONE   |
-                                ENC_BASE8  |
-                                ENC_BASE10 |
-                                ENC_BASE16 |
-                                ENC_BASE64 |
+    encoding |= (ENC_DEFAULT & (ENC_NONE    |
+                                ENC_BASE8   |
+                                ENC_BASE10  |
+                                ENC_BASE16  |
+                                ENC_BASE64  |
+                                ENC_BASE32K |
                                 ENC_QP));
 
   if ((encoding & (ENC_CRTERM | ENC_LFTERM)) == 0)
@@ -793,6 +801,7 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
                              ENC_BASE10  |
                              ENC_BASE16  |
                              ENC_BASE64  |
+                             ENC_BASE32K |
                              ENC_QP      |
                              ENC_FORWARD |
                              ENC_BACKWARD)) | ENC_NONE | ENC_CRTERM
@@ -814,11 +823,12 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
 
     return CBF_ARGUMENT;
 
-  if (((encoding & ENC_NONE)   > 0) +
-      ((encoding & ENC_BASE8)  > 0) +
-      ((encoding & ENC_BASE10) > 0) +
-      ((encoding & ENC_BASE16) > 0) +
-      ((encoding & ENC_BASE64) > 0) +
+  if (((encoding & ENC_NONE)    > 0) +
+      ((encoding & ENC_BASE8)   > 0) +
+      ((encoding & ENC_BASE10)  > 0) +
+      ((encoding & ENC_BASE16)  > 0) +
+      ((encoding & ENC_BASE64)  > 0) +
+      ((encoding & ENC_BASE32K) > 0) +
       ((encoding & ENC_QP)     > 0) > 1)
 
     return CBF_ARGUMENT;
@@ -860,18 +870,20 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
 
     headers |= MSG_DIGEST;
 
-  if ((encoding & (ENC_NONE   |
-                   ENC_BASE8  |
-                   ENC_BASE10 |
-                   ENC_BASE16 |
-                   ENC_BASE64 |
+  if ((encoding & (ENC_NONE    |
+                   ENC_BASE8   |
+                   ENC_BASE10  |
+                   ENC_BASE16  |
+                   ENC_BASE64  |
+                   ENC_BASE32K |
                    ENC_QP)) == 0)
 
-    encoding |= (ENC_DEFAULT & (ENC_NONE   |
-                                ENC_BASE8  |
-                                ENC_BASE10 |
-                                ENC_BASE16 |
-                                ENC_BASE64 |
+    encoding |= (ENC_DEFAULT & (ENC_NONE    |
+                                ENC_BASE8   |
+                                ENC_BASE10  |
+                                ENC_BASE16  |
+                                ENC_BASE64  |
+                                ENC_BASE32K |
                                 ENC_QP));
 
   if ((encoding & (ENC_CRTERM | ENC_LFTERM)) == 0)
@@ -3473,7 +3485,51 @@ int cbf_get_arrayparameters (cbf_handle    handle,
   return cbf_binary_parameters (handle->node, handle->row,
                                 compression, id, NULL, elsize,
                                 elsigned, elunsigned, nelem,
-                                minelem, maxelem, realarray);
+                                minelem, maxelem, realarray,
+                                NULL, NULL, NULL, NULL, NULL);
+}
+
+
+
+  /* Get the parameters of the current (row, column) array entry */
+
+int cbf_get_arrayparameters_wdims (cbf_handle    handle,
+                                    unsigned int *compression,
+                                    int          *id,
+                                    size_t       *elsize,
+                                    int          *elsigned,
+                                    int          *elunsigned,
+                                    size_t       *nelem,
+                                    int          *minelem,
+                                    int          *maxelem,
+                                    int          *realarray,
+                                    const char  **byteorder,
+                                    size_t       *dim1,
+                                    size_t       *dim2,
+                                    size_t       *dim3,
+                                    size_t       *padding)
+{
+    /* Check the arguments */
+
+  if (!handle)
+
+    return CBF_ARGUMENT;
+
+
+    /* Is the value binary? */
+
+  if (!cbf_is_binary (handle->node, handle->row))
+
+    return CBF_ASCII;
+
+
+    /* Get the parameters */
+
+  return cbf_binary_parameters (handle->node, handle->row,
+                                compression, id, NULL, elsize,
+                                elsigned, elunsigned, nelem,
+                                minelem, maxelem, realarray,
+                                byteorder, dim1, dim2, dim3, padding);
 }
 
 
@@ -3490,6 +3546,49 @@ int cbf_get_integerarrayparameters (cbf_handle    handle,
                                     size_t       *nelem,
                                     int          *minelem,
                                     int          *maxelem)
+{
+  int realarray;
+  
+    /* Check the arguments */
+
+  if (!handle)
+
+    return CBF_ARGUMENT;
+
+
+    /* Is the value binary? */
+
+  if (!cbf_is_binary (handle->node, handle->row))
+
+    return CBF_ASCII;
+
+
+    /* Get the parameters */
+
+  return cbf_binary_parameters (handle->node, handle->row,
+                                compression, id, NULL, elsize,
+                                elsigned, elunsigned, nelem,
+                                minelem, maxelem, &realarray,
+                                NULL, NULL, NULL, NULL, NULL);
+}
+
+  /* Get the parameters of the current (row, column) integer array entry */
+  
+
+int cbf_get_integerarrayparameters_wdims (cbf_handle    handle,
+                                    unsigned int *compression,
+                                    int          *id,
+                                    size_t       *elsize,
+                                    int          *elsigned,
+                                    int          *elunsigned,
+                                    size_t       *nelem,
+                                    int          *minelem,
+                                    int          *maxelem,
+                                    const char  **byteorder,
+                                    size_t       *dim1,
+                                    size_t       *dim2,
+                                    size_t       *dim3,
+                                    size_t       *padding)
 {
   int realarray;
 
@@ -3512,7 +3611,8 @@ int cbf_get_integerarrayparameters (cbf_handle    handle,
   return cbf_binary_parameters (handle->node, handle->row,
                                 compression, id, NULL, elsize,
                                 elsigned, elunsigned, nelem,
-                                minelem, maxelem, &realarray);
+                                minelem, maxelem, &realarray,
+                                byteorder,dim1,dim2,dim3,padding);
 }
 
 
@@ -3523,6 +3623,44 @@ int cbf_get_realarrayparameters (cbf_handle    handle,
                                     int          *id,
                                     size_t       *elsize,
                                     size_t       *nelem)
+{
+
+    /* Check the arguments */
+
+  if (!handle)
+
+    return CBF_ARGUMENT;
+
+
+    /* Is the value binary? */
+
+  if (!cbf_is_binary (handle->node, handle->row))
+
+    return CBF_ASCII;
+
+
+    /* Get the parameters */
+
+  return cbf_binary_parameters (handle->node, handle->row,
+                                compression, id, NULL, elsize,
+                                NULL, NULL, nelem,
+                                NULL, NULL, NULL,
+                                NULL, NULL, NULL, NULL, NULL);
+}
+
+
+  /* Get the parameters of the current (row, column) array entry */
+
+int cbf_get_realarrayparameters_wdims (cbf_handle    handle,
+                                    unsigned int *compression,
+                                    int          *id,
+                                    size_t       *elsize,
+                                    size_t       *nelem,
+                                    const char  **byteorder,
+                                    size_t       *dim1,
+                                    size_t       *dim2,
+                                    size_t       *dim3,
+                                    size_t       *padding)
 {
     /* Check the arguments */
 
@@ -3543,7 +3681,8 @@ int cbf_get_realarrayparameters (cbf_handle    handle,
   return cbf_binary_parameters (handle->node, handle->row,
                                 compression, id, NULL, elsize,
                                 NULL, NULL, nelem,
-                                NULL, NULL, NULL);
+                                NULL, NULL, NULL,
+                                byteorder,dim1,dim2,dim3,padding);
 }
 
 
@@ -3560,13 +3699,18 @@ int cbf_get_integerarray (cbf_handle  handle,
 {
 
   int realarray;
+  
+  const char *byteorder;
+  
+  size_t dimover, dim1, dim2, dim3, padding;
 
   if (!handle)
 
     return CBF_ARGUMENT;
 
   return cbf_get_binary (handle->node, handle->row, id,
-                         value, elsize, elsign, nelem, nelem_read, &realarray);
+                         value, elsize, elsign, nelem, nelem_read, &realarray,
+                         &byteorder,&dimover, &dim1, &dim2, &dim3, &padding);
 }
 
 
@@ -3580,13 +3724,18 @@ int cbf_get_realarray (cbf_handle  handle,
                           size_t     *nelem_read)
 {
   int realarray;
+  
+  const char *byteorder;
+  
+  size_t dimover, dim1, dim2, dim3, padding;
 
   if (!handle)
 
     return CBF_ARGUMENT;
 
   return cbf_get_binary (handle->node, handle->row, id,
-                         value, elsize, 1, nelem, nelem_read, &realarray);
+                         value, elsize, 1, nelem, nelem_read, &realarray,
+                         &byteorder, &dimover, &dim1, &dim2, &dim3, &padding);
 }
 
 
@@ -3605,7 +3754,32 @@ int cbf_set_integerarray (cbf_handle    handle,
     return CBF_ARGUMENT;
 
   return cbf_set_binary (handle->node, handle->row,
-                         compression, id, value, elsize, elsign, nelem, 0);
+                         compression, id, value, elsize, elsign, nelem, 0,
+                         "little_endian", nelem, 0, 0, 0, 0);
+}
+
+  /* Set the integer value of the current (row, column) array entry */
+
+int cbf_set_integerarray_wdims (cbf_handle    handle,
+                          unsigned int  compression,
+                          int           id,
+                          void         *value,
+                          size_t        elsize,
+                          int           elsign,
+                          size_t        nelem,
+                          const char   *byteorder,
+                          size_t        dim1,
+                          size_t        dim2,
+                          size_t        dim3,
+                          size_t        padding)
+{
+  if (!handle)
+
+    return CBF_ARGUMENT;
+
+  return cbf_set_binary (handle->node, handle->row,
+                         compression, id, value, elsize, elsign, nelem, 0,
+                         byteorder, nelem, dim1, dim2, dim3, padding);
 }
 
 
@@ -3623,7 +3797,32 @@ int cbf_set_realarray (cbf_handle    handle,
     return CBF_ARGUMENT;
 
   return cbf_set_binary (handle->node, handle->row,
-                         compression, id, value, elsize, 1, nelem, 1);
+                         compression, id, value, elsize, 1, nelem, 1,
+                         "little_endian", nelem, 0, 0, 0, 0);
+}
+
+  /* Set the real value of the current (row, column) array entry
+     with dimensions */
+
+int cbf_set_realarray_wdims (cbf_handle    handle,
+                          unsigned int  compression,
+                          int           id,
+                          void         *value,
+                          size_t        elsize,
+                          size_t        nelem,
+                          const char   *byteorder,
+                          size_t        dim1,
+                          size_t        dim2,
+                          size_t        dim3,
+                          size_t        padding)
+{
+  if (!handle)
+
+    return CBF_ARGUMENT;
+
+  return cbf_set_binary (handle->node, handle->row,
+                         compression, id, value, elsize, 1, nelem, 1,
+                         byteorder, nelem, dim1, dim2, dim3, padding);
 }
 
 
@@ -6588,6 +6787,8 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	          }
     	        	
     	        }
+    	      
+    	        
     	        
     	      }
 
@@ -6604,6 +6805,493 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
   return 0;
 	
 }
+
+
+/*  WARNING -- THIS VERSION IS FOR TWO'S COMPLEMENT SYSTEMS */
+
+/*  Load mpint accumulator acc[1..acsize] with the contents of source
+    containing an element of size elsize.   If elsize if greater than
+    sizeof (size of int) it must be a multiple of sizeof (unsigned int)*/
+     
+  /* Load accumulator */
+
+int cbf_mpint_load_acc(unsigned int * acc, size_t acsize, 
+                               void * source, size_t elsize, 
+                               int elsign, const char * border) {
+
+  size_t bits;
+
+  unsigned char * unsigned_char_data;
+
+  int iint, numints;
+
+  unsigned int sign;
+
+  unsigned int sextend;
+  
+  bits = elsize * CHAR_BIT;
+
+  numints =  (bits + CHAR_BIT*sizeof (unsigned int) -1)/(CHAR_BIT*sizeof (unsigned int));
+
+  if (numints > acsize) return CBF_ARGUMENT;
+
+  if (numints > 1 && numints*sizeof(int)*CHAR_BIT != bits) return CBF_ARGUMENT;
+
+  sign = elsign?(1<<(bits-(numints-1)*sizeof(unsigned int)*CHAR_BIT-1)):0;
+
+  sextend = 0;
+
+  if (elsize < sizeof(unsigned int)) {
+
+  	sextend = (-(1 << (elsize * CHAR_BIT)));
+
+  }
+
+  unsigned_char_data = (unsigned char *)source;
+  
+  switch (elsize) {
+  
+  	case (sizeof(char)):
+
+  	  acc[0] = *unsigned_char_data; break;
+
+  	case (sizeof(short)):
+
+  	  acc[0] = *((unsigned short *) unsigned_char_data); break;
+
+  	case (sizeof(int)):
+
+  	  acc[0] = *((unsigned int *) unsigned_char_data); break;
+
+  	default:
+
+  	  if (*border == 'b' || *border == 'B') {
+
+        for (iint = numints; iint; iint--) {
+
+          acc[iint-1] = *((unsigned int *)unsigned_char_data);
+
+          unsigned_char_data += sizeof(unsigned int);
+
+        }
+
+  	  } else {
+
+        for (iint = 0; iint < numints; iint++) {
+
+          acc[iint] = *((unsigned int *)unsigned_char_data);
+
+          unsigned_char_data += sizeof(unsigned int);
+
+        } 	
+
+      }
+
+      break;
+
+  }
+
+  if (acc[numints-1] & sign) {
+
+    acc[numints-1] |= sextend;
+
+    if ( numints < acsize ) {
+
+      for (iint = numints; iint < acsize; iint++) acc[iint] = ~0; 	
+
+    }
+
+  } else {	
+
+    if ( numints < acsize ) {
+
+    for (iint = numints; iint < acsize; iint++) acc[iint] = 0; 	
+
+    }
+
+  }
+
+  return 0;
+	
+}
+
+  /* Store accumulator */
+
+int cbf_mpint_store_acc(unsigned int * acc, size_t acsize, 
+                                void * dest, size_t elsize,
+                                int elsign, const char *border) {
+
+  size_t bits;
+
+  unsigned char * unsigned_char_data;
+
+  int iint, numints;
+  
+  bits = elsize * CHAR_BIT;
+
+  numints =  (bits + CHAR_BIT*sizeof (unsigned int) -1)/(CHAR_BIT*sizeof (unsigned int));
+
+  if (numints > acsize) return CBF_FORMAT;
+
+  unsigned_char_data = (unsigned char *)dest;
+
+  
+  switch (elsize) {
+  
+  	case (sizeof(char)):
+
+  	  *unsigned_char_data = acc[0]; break;
+
+  	case (sizeof(short)):
+
+  	  *((unsigned short *) unsigned_char_data) = acc[0]; break;
+
+  	case (sizeof(int)):
+
+  	  *((unsigned int *) unsigned_char_data) = acc[0]; break;
+
+  	default:
+
+  	  if (*border == 'b' || *border == 'B') {
+
+        for (iint = numints; iint; iint--) {
+
+          *((unsigned int *)unsigned_char_data) = acc[iint-1];
+
+  	      unsigned_char_data += sizeof(unsigned int);
+
+        }
+
+  	  } else {
+
+        for (iint = 0; iint < numints; iint++) {
+
+          *((unsigned int *)unsigned_char_data) = acc[iint];
+
+          unsigned_char_data += sizeof(unsigned int);
+
+        }
+
+      }
+
+      break;
+
+  }
+
+  return 0;
+	
+}
+
+  /* Clear accumulator */
+
+int cbf_mpint_clear_acc(unsigned int * acc, size_t acsize) {
+
+  int iint;
+
+  for (iint=0; iint<acsize; iint++) acc[iint] = 0;
+
+  return 0;
+	
+}
+
+  /* Increment accumulator */
+
+int cbf_mpint_increment_acc(unsigned int * acc, size_t acsize) {
+
+  /*  In incrementing a multiprecision integer, we need to
+  carry from one element to the next if the element has
+  the sign bit set and, if after an increment of the
+  element, the  sign bit of that element is no longer set */
+
+  int iint;
+
+  int carry, precarry;
+
+  unsigned int sign;
+
+  carry = 1;
+
+  precarry = 0;
+
+  sign = 1 << (sizeof(unsigned int)*CHAR_BIT-1);
+
+  for (iint=0; iint<acsize && carry; iint++) {
+
+    if ( (acc[iint]&sign) ) precarry = 1;    
+
+    acc[iint]++;
+
+    if ( (acc[iint]&sign) || !precarry) carry = 0;
+
+    precarry = 0;
+
+  }
+
+  return 0;
+	
+}
+
+  /* Decrement accumulator */
+
+int cbf_mpint_decrement_acc(unsigned int * acc, size_t acsize) {
+
+  /*  In decrementing a multiprecision integer, we need to
+  borrow from the next element if the current element does
+  not have the sign bit set and, if after an increment of the
+  element, the  sign bit of that element is set */
+  
+  int iint;
+
+  int borrow, preborrow;
+
+  unsigned int sign;
+
+  borrow = 1;
+
+  preborrow = 0;
+
+  sign = 1 << (sizeof(unsigned int)*CHAR_BIT-1);
+
+  for (iint=0; iint<acsize && borrow; iint++) {
+
+    if ( !(acc[0]&sign) ) preborrow = 1;    
+
+    acc[iint]--;
+
+    if ( !(acc[iint]&sign) || !preborrow  ) borrow = 0;
+
+    preborrow = 0;
+
+  }
+
+  return 0;
+	
+}
+
+  /* Negate accumulator */
+
+int cbf_mpint_negate_acc(unsigned int * acc, size_t acsize) {
+
+  int iint;
+  
+  for (iint=0; iint< acsize; iint++) {
+
+    acc[iint] = ~acc[iint];  	
+
+  }
+  
+  return cbf_mpint_increment_acc(acc,acsize);
+
+}
+
+  /* Add to accumulator */
+
+int cbf_mpint_add_acc(unsigned int * acc, size_t acsize, unsigned int * add, size_t addsize) {
+
+  int iint;
+
+  unsigned int carry;
+
+  unsigned int precarry;
+
+  unsigned int sign;
+  
+  carry = 0; precarry=0;
+
+  sign = 1 << (sizeof(unsigned int)*CHAR_BIT-1);
+
+  for (iint = 0; iint < acsize && iint < addsize; iint++) {
+
+    if (carry) {
+
+      cbf_failnez(cbf_mpint_increment_acc(acc+iint,acsize-iint));
+
+    }
+
+    if ( acc[iint] & sign ) precarry++;
+
+    if ( add[iint] & sign ) precarry++;
+
+    acc[iint] += add[iint];
+
+    carry = 0;
+
+    if (precarry == 2 || (precarry == 1 && !(acc[iint]&sign) ) ) carry = 1;
+
+    precarry = 0;
+
+  }
+  
+  if (addsize > acsize) {
+
+    if (add[acsize-1] &sign ) {
+
+      for (iint = acsize; iint < acsize; iint++)
+
+        if ( add[iint] != -1) return CBF_ARGUMENT;
+
+    } else {
+
+      for (iint = acsize; iint < acsize; iint++)
+
+        if ( add[iint] != 0) return CBF_ARGUMENT;    	
+
+    }  	
+
+  } else if (acsize > addsize){
+
+    for (iint = addsize; iint < acsize; iint++) {
+
+      if (carry) {
+
+        cbf_failnez(cbf_mpint_increment_acc(acc+iint,acsize-iint));
+
+      }
+
+      if ( acc[iint] & sign ) precarry++;
+
+      carry = 0;
+
+      if (precarry == 1 && !(acc[iint] &sign) ) carry = 1;
+
+      precarry = 0;
+
+    } 	
+
+  }
+
+  return 0;
+
+}
+
+  /* Shift accumulator right */
+
+int cbf_mpint_rightshift_acc(unsigned int * acc, size_t acsize, int shift) {
+
+  int iint;
+
+  size_t bigshift;
+
+  unsigned int extrabits, xextrabits, mask;
+
+  unsigned int sign;
+  
+  sign = 1 << (sizeof(unsigned int)*CHAR_BIT-1);
+  
+  if (shift < 0) return cbf_mpint_leftshift_acc(acc, acsize, -shift);
+
+  bigshift = 0;
+
+  if (shift >= sizeof(unsigned int)*CHAR_BIT) {
+
+    extrabits = 0;
+
+    if (acc[acsize-1]<0) extrabits = ~0;
+
+    bigshift = shift/(sizeof(unsigned int)*CHAR_BIT);
+
+    shift -= bigshift*sizeof(unsigned int)*CHAR_BIT;
+
+  	if (bigshift > acsize*sizeof(unsigned int)*CHAR_BIT) {
+
+  	  return cbf_mpint_clear_acc(acc, acsize);
+
+  	} else {
+
+  	  for (iint = acsize; iint-bigshift > 0; iint--) acc[iint-bigshift-1] = acc[iint-1];
+
+  	  for (iint = acsize; iint > acsize-bigshift+1; iint--) acc[iint-1] = extrabits;
+
+  	}
+
+  }
+
+  
+  if (shift == 0) return 0;
+  
+  extrabits = 0;
+
+  if (acc[acsize]&sign) extrabits = (~0)<<(sizeof(unsigned int)*CHAR_BIT-shift);
+
+  mask = ~((~0)<<(sizeof(unsigned int)*CHAR_BIT-shift));
+
+  for (iint = acsize; iint; iint--) {
+
+    xextrabits = acc[iint-1]<<(sizeof(unsigned int)*CHAR_BIT-shift);
+
+    acc[iint-1] = ((acc[iint-1]>>shift)&mask)|extrabits;
+
+    extrabits = xextrabits;
+
+  }
+  
+  return 0;
+
+}
+
+
+  /* Shift accumulator left */
+
+int cbf_mpint_leftshift_acc(unsigned int * acc, size_t acsize, int shift) {
+
+  int iint;
+
+  size_t bigshift;
+
+  unsigned int extrabits, xextrabits, mask;
+
+  unsigned int sign;
+  
+  sign = 1 << (sizeof(unsigned int)*CHAR_BIT-1);
+  
+  if (shift < 0) return cbf_mpint_rightshift_acc(acc, acsize, -shift);
+
+  bigshift = 0;
+
+  if (shift >= sizeof(unsigned int)*CHAR_BIT) {
+
+    extrabits = 0;
+
+    bigshift = shift/(sizeof(unsigned int)*CHAR_BIT);
+
+    shift -= bigshift*sizeof(unsigned int)*CHAR_BIT;
+
+  	if (bigshift > acsize*sizeof(unsigned int)*CHAR_BIT) {
+
+  	  return cbf_mpint_clear_acc(acc, acsize);
+
+  	} else {
+
+  	  for (iint = 0; iint+bigshift < acsize; iint++) acc[iint+bigshift] = acc[iint];
+
+  	  for (iint = 0; iint < bigshift; iint++) acc[iint] = extrabits;
+
+  	}
+
+  }
+  
+  if (shift == 0) return 0;
+  
+  extrabits = 0;
+
+  mask = -(1<<shift);
+
+  for (iint = 0; iint < acsize; iint++) {
+
+    xextrabits = (acc[iint]>>(sizeof(unsigned int)*CHAR_BIT-shift))&(~mask);
+
+    acc[iint] = ((acc[iint]<<shift)&mask)|extrabits;
+
+    extrabits = xextrabits;
+
+  }
+
+  return 0;
+
+}
+
+
+
 
 
 

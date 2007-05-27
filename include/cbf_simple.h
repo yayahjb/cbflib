@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_simple -- cbflib simplified API functions                      *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -515,27 +515,72 @@ int cbf_get_image_size (cbf_handle    handle,
                         size_t       *ndim2);
 
 
-  /* Read an image.  ndim1 is the slow dimension, ndim2 is fast. */
+
+  /* Read a binary section into an image.  ndim1 is the 
+                           slow dimension, ndim2 is fast.*/
 
 int cbf_get_image (cbf_handle    handle,
-                   unsigned int  reserved, 
-                   unsigned int  element_number, 
-                   void         *array, 
-                   size_t        elsize, 
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   void         *array,
+                   size_t        elsize,
                    int           elsign,
                    size_t        ndim1,
                    size_t        ndim2);
 
 
-  /* Read a real image.  ndim1 is the slow dimension, ndim2 is fast. */
+  /* Read a binary section into a real image.  ndim1 is the 
+                            slow dimension, ndim2 is fast.  */
 
 int cbf_get_real_image (cbf_handle    handle,
-                   unsigned int  reserved, 
-                   unsigned int  element_number, 
-                   void         *array, 
-                   size_t        elsize, 
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   void         *array,
+                   size_t        elsize,
                    size_t        ndim1,
                    size_t        ndim2);
+
+  /* Get the 3D image size. ndim1 is the slowest dimension, 
+                            ndim2 is the next faster dimension,
+                            ndim3 is the fastest dimension */
+
+int cbf_get_3d_image_size (cbf_handle    handle,
+                        unsigned int  reserved,
+                        unsigned int  element_number,
+                        size_t       *ndim1,
+                        size_t       *ndim2,
+                        size_t       *ndim3);
+
+
+  /* Read a 3D binary section into an image.  
+                       ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension */
+
+int cbf_get_3d_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+
+  /* Read a 3D binary section into a real image.  
+                       ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension */
+
+int cbf_get_real_3d_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
 
 
   /* Save an image.  ndim1 is the slow dimension, ndim2 is fast. */
@@ -544,9 +589,9 @@ int cbf_set_image (cbf_handle    handle,
                    unsigned int  reserved,
                    unsigned int  element_number,
                    unsigned int  compression,
-                   void         *array, 
+                   void         *array,
                    size_t        elsize,
-                   int           elsign, 
+                   int           elsign,
                    size_t        ndim1,
                    size_t        ndim2);
 
@@ -557,10 +602,249 @@ int cbf_set_real_image (cbf_handle    handle,
                    unsigned int  reserved,
                    unsigned int  element_number,
                    unsigned int  compression,
-                   void         *array, 
+                   void         *array,
                    size_t        elsize,
                    size_t        ndim1,
                    size_t        ndim2);
+
+  /* Save a 3D image.  ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension. */
+
+
+int cbf_set_3d_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+
+  /* Save a real 3D image.  
+                       ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension */
+
+int cbf_set_real_3d_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+
+  /* Get the array_id for a map segment or map segment mask.
+                       ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension. */
+
+int cbf_get_map_array_id (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char   *segment_id,
+                   const char  **array_id,
+                   int           ismask,
+                   int           require,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+
+  /* Get the map segment size.   ndim1 is the slowest dimension, 
+                                 ndim2 is the next faster dimension,
+                                 ndim3 is the fastest dimension */
+
+int cbf_get_map_segment_size (cbf_handle    handle,
+                        unsigned int  reserved,
+                        const char   *segment_id,
+                        int          *binary_id,
+                        size_t       *ndim1,
+                        size_t       *ndim2,
+                        size_t       *ndim3);
+
+
+  /* Read a map segment.  ndim1 is the slowest dimension, 
+                          ndim2 is the next faster dimension,
+                          ndim3 is the fastest dimension */
+int cbf_get_map_segment (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char   *segment_id,
+                   int          *binary_id,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+
+  /* Read a map segment mask.  ndim1 is the slowest dimension, 
+                               ndim2 is the next faster dimension,
+                               ndim3 is the fastest dimension */
+int cbf_get_map_segment_mask (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char   *segment_id,
+                   int          *binary_id,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+
+  /* Read a real map segment.  ndim1 is the slowest dimension, 
+                               ndim2 is the next faster dimension,
+                               ndim3 is the fastest dimension */
+
+int cbf_get_real_map_segment (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char   *segment_id,
+                   int          *binary_id,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+  /* Read a real map segment mask.  ndim1 is the slowest dimension, 
+                               ndim2 is the next faster dimension,
+                               ndim3 is the fastest dimension */
+int cbf_get_real_map_segment_mask (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char   *segment_id,
+                   int          *binary_id,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+
+  /* Save a map segment.  ndim1 is the slowest dimension, 
+                          ndim2 is the next faster dimension,
+                          ndim3 is the fastest dimension */
+
+
+int cbf_set_map_segment (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char    *segment_id,
+                   int           *binary_id,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+
+  /* Save a map segment mask.  ndim1 is the slowest dimension, 
+                               ndim2 is the next faster dimension,
+                               ndim3 is the fastest dimension */
+
+int cbf_set_map_segment_mask (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char    *segment_id,
+                   int           *binary_id,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+
+  /* Save a real map segment.  ndim1 is the slowest dimension, 
+                               ndim2 is the next faster dimension,
+                               ndim3 is the fastest dimension */
+
+int cbf_set_real_map_segment (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char    *segment_id,
+                   int           *binary_id,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+
+  /* Save a real map segment mask.  ndim1 is the slowest dimension, 
+                                    ndim2 is the next faster dimension,
+                                    ndim3 is the fastest dimension */
+
+
+int cbf_set_real_map_segment_mask (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char    *segment_id,
+                   int           *binary_id,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+
+  /* Get the 3D array size. ndim1 is the slowest dimension, 
+                            ndim2 is the next faster dimension,
+                            ndim3 is the fastest dimension */
+
+int cbf_get_3d_array_size (cbf_handle    handle,
+                        unsigned int  reserved,
+                        const char   *array_id,
+                        size_t       *ndim1,
+                        size_t       *ndim2,
+                        size_t       *ndim3);
+
+
+  /* Read a 3D array.  
+                       ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension */
+
+int cbf_get_3d_array (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char   *array_id,
+                   int          *binary_id,
+                   void         *array,
+                   int           eltype,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+
+
+  /* Save a 3D array.  
+                       ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension */
+
+int cbf_set_3d_array (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char   *array_id,
+                   int          *binary_id,
+                   unsigned int  compression,
+                   void         *array,
+                   int           eltype,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3);
+
+
 
 
   /* Get the setting of an axis */
@@ -569,7 +853,6 @@ int cbf_get_axis_setting (cbf_handle handle, unsigned int  reserved,
                                              const char   *axis_id,
                                              double       *start, 
                                              double       *increment);
-
 
 
   /* Get the reference setting of an axis */
@@ -592,7 +875,6 @@ int cbf_set_axis_setting (cbf_handle handle, unsigned int  reserved,
 int cbf_set_axis_reference_setting (cbf_handle handle, unsigned int  reserved,
                                              const char   *axis_id,
                                              double        refsetting);
-
 
 
   /* Construct a goniometer */

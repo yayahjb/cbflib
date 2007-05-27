@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_read_mime -- read MIME-encoded binary sections                 *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2007, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -293,6 +293,9 @@ extern "C" {
 #include <ctype.h>
 #include <string.h>
 
+static const char * big_endian = "big_endian";
+static const char * little_endian = "little_endian";
+
 
   /* Convert a MIME-encoded binary section to a temporary binary section */
 
@@ -311,6 +314,12 @@ int cbf_mime_temp (cbf_node *column, unsigned int row)
   unsigned int compression;
 
   char old_digest [25], *new_digest, digest [25];
+  
+  const char *byteorder;
+  
+  size_t dimover, dim1, dim2, dim3;
+  
+  size_t padding;
 
 
     /* Check the value */
@@ -327,6 +336,7 @@ int cbf_mime_temp (cbf_node *column, unsigned int row)
   cbf_failnez (cbf_get_bintext (column, row, &type,
                                 &id, &file, &start, &size, &checked_digest,
                                 old_digest, &bits, &sign, &realarray,
+                                &byteorder, &dimover, &dim1, &dim2, &dim3, &padding,
                                 &compression))
 
 
@@ -391,7 +401,8 @@ int cbf_mime_temp (cbf_node *column, unsigned int row)
   cbf_onfailnez (cbf_set_bintext (column, row, CBF_TOKEN_TMP_BIN,
                                   id, temp_file, temp_start, size,
                                   checked_digest, old_digest, bits,
-                                  sign, realarray, compression),
+                                  sign, realarray, byteorder, dimover,
+                                  dim1, dim2, dim3, padding, compression),
                     cbf_delete_fileconnection (&temp_file))
 
 
@@ -412,6 +423,8 @@ int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
   int encoding;
 
   size_t file_size;
+  
+  size_t dimover;
 
   unsigned int compression;
 
@@ -426,7 +439,8 @@ int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
                                              &file_size, id,
                                              old_digest,
                                              &compression,
-                                             NULL, NULL, NULL))
+                                             NULL, NULL, NULL, NULL,
+                                             &dimover, NULL, NULL, NULL, NULL))
 
   if (file_size <= 0)
 
@@ -435,8 +449,8 @@ int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
 
     /* Discard any bits in the buffers */
 
-  cbf_failnez (cbf_reset_bits (outfile))
-
+   infile->bits [0] = 0;
+   infile->bits [1] = 0;
 
     /* Decode the binary data */
 
@@ -455,6 +469,13 @@ int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
                                    new_digest))
 
       break;
+
+    case ENC_BASE32K:
+
+      cbf_failnez(cbf_frombase32k(infile, outfile, file_size, NULL,
+                                  new_digest))
+
+	  break;
 
     case ENC_BASE8:
     case ENC_BASE10:
@@ -643,9 +664,18 @@ int cbf_skip_whitespace (cbf_file *file, const char **line,
 
      Content-Type:
      Content-Transfer-Encoding:
+     Content-MD5:
      X-Binary-Size:
      X-Binary-ID:
      X-Binary-Element-Type:
+     X-Binary-Element-Byte-Order:
+     X-Binary-Number-of-Elements:
+     X-Binary-Size-Fastest-Dimension:
+     X-Binary-Size-Second-Dimension:
+     X-Binary-Size-Third-Dimension:
+     X-Binary-Size-Padding:
+     
+     
      Content-MD5: */
 
 int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
@@ -655,16 +685,29 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
                                  unsigned int        *compression,
                                           int        *bits,
                                           int        *sign,
-                                          int        *real)
+                                          int        *real,
+                                          const char **byteorder,
+                                          size_t     *dimover,
+                                          size_t     *dim1,
+                                          size_t     *dim2,
+                                          size_t     *dim3,
+                                          size_t     *padding)
 {
   static const char *value [] = {
 
-    "Content-Type:",                /* State 0 */
-    "Content-Transfer-Encoding:",   /* State 1 */
-    "X-Binary-Size:",               /* State 2 */
-    "X-Binary-ID:",                 /* State 3 */
-    "X-Binary-Element-Type:",       /* State 4 */
-    "Content-MD5:"                  /* State 5 */
+    "Content-Type:",                      /* State 0  */
+    "Content-Transfer-Encoding:",         /* State 1  */
+    "Content-MD5:",                       /* State 2  */
+    "X-Binary-Size:",                     /* State 3  */
+    "X-Binary-ID:",                       /* State 4  */
+    "X-Binary-Element-Type:",             /* State 5  */
+    "X-Binary-Element-Byte-Order:",       /* State 6  */
+    "X-Binary-Size-Fastest-Dimension:",   /* State 7  */
+    "X-Binary-Size-Second-Dimension:",    /* State 8  */
+    "X-Binary-Size-Third-Dimension:",     /* State 9  */
+    "X-Binary-Size-Padding:",             /* State 10 */
+    "X-Binary-Number-of-Elements:"        /* State 11 */
+
 
     };
 
@@ -709,7 +752,31 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
   if (real)
 
     *real = -1;
+    
+  if (byteorder)
+  
+    *byteorder=little_endian;
+    
+  if (dimover)
+  
+    *dimover = 0;
 
+  if (dim1)
+  
+    *dim1 = 0;
+    
+  if (dim2)
+  
+    *dim2 = 0;
+    
+  if (dim3)
+  
+    *dim3 = 0;
+
+  if (padding)
+  
+    *padding = 0;
+    
 
     /* Read the file line by line */
 
@@ -781,7 +848,7 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
     if (item)
 
-      for (state = 5; state > -1; state--)
+      for (state = 11; state > -1; state--)
 
         if (cbf_cistrncmp (line, value [state], strlen (value [state]))
                            == 0)
@@ -897,6 +964,10 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
                   *compression = CBF_PACKED;
 
+                if (cbf_cistrncmp (c + quote, "x-cbf_packed_v2", 15) == 0)
+
+                  *compression = CBF_PACKED_V2;
+
                 if (cbf_cistrncmp (c + quote, "x-cbf_canonical", 15) == 0)
 
                   *compression = CBF_CANONICAL;
@@ -908,6 +979,67 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
                 if (cbf_cistrncmp (c + quote, "x-cbf_predictor", 15) == 0)
 
                   *compression = CBF_PREDICTOR;
+                  
+                if (*compression == CBF_PACKED_V2 || *compression == CBF_PACKED ) {
+                
+                  while (*c) {
+                
+                  while (*c)
+
+                    if (*c == '\"') {
+                    
+                      c++;
+
+                      while (*c)
+
+                        if (*c == '\"') {
+                        
+                          c++;
+
+                          break;
+                          
+                        } else  {
+                        
+                          if (*c == '\\')
+
+                            c++;
+
+                          if (*c)
+
+                            c++;
+                          }
+                        } else if (*c == '(') {
+
+                            cbf_failnez (cbf_skip_whitespace (file, &line, &c,
+                                                                  &fresh_line))
+                        } else if (*c == ';') {
+                            
+                              c++;
+
+                              break;
+                              
+                            } else 
+                              c++;
+
+
+                  /* We are at the end of the section or the end of the item */
+
+                  cbf_failnez (cbf_skip_whitespace (file, &line, &c,
+                                                  &fresh_line))
+                                                  
+                  quote = 0;
+
+                  if (*c == '\"')
+
+                    quote = 1;
+
+                  if (cbf_cistrncmp (c+quote, "uncorrelated_sections", 21) == 0) 
+                    *compression |= CBF_UNCORRELATED_SECTIONS;
+
+                  if (cbf_cistrncmp (c+quote, "flat", 4) == 0) 
+                    *compression |= CBF_FLAT_IMAGE;
+                  }
+                }
               }
             }
           }
@@ -950,6 +1082,17 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
               *encoding = ENC_BASE64;
             }
 
+	  
+          if (cbf_cistrncmp (c+quote, "X-Base32k", 9) ==0 )
+
+            if(isspace(c[9]) || c [9] == '(' || (quote && c[9] == '\"')) {
+  
+              failure =0;
+
+              *encoding = ENC_BASE32K;
+            }
+
+		  
           if (cbf_cistrncmp (c+quote, "X-Base8", 7) == 0)
 
             if (isspace (c [7]) || c [7] == '(' || (quote && c [7] == '\"')) {
@@ -1003,6 +1146,19 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
       case 2:
 
+          /* Message digest */
+
+        if (digest)
+        {
+          strncpy (digest, c, 24);
+
+          digest [24] = '\0';
+        }
+
+        break;
+        
+      case 3:
+
           /* Binary size */
 
         if (size)
@@ -1011,7 +1167,7 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
         break;
 
-      case 3:
+      case 4:
 
           /* Binary ID */
 
@@ -1021,7 +1177,7 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
         break;
 
-      case 4:
+      case 5:
 
           /* Binary element type (signed/unsigned ?-bit integer)   */
           /*                or   (signed ?-bit real/complex IEEE)  */
@@ -1136,17 +1292,63 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
 
         break;
 
-      case 5:
-
-          /* Message digest */
-
-        if (digest)
+      case 6:
+      
+        /* Byte order of elements (only endian-ness is supported) */
+        
+        if (byteorder) 
         {
-          strncpy (digest, c, 24);
-
-          digest [24] = '\0';
+        	if (!cbf_cistrncmp(c, "big_endian",10) ) {
+        		*byteorder=big_endian;
+        	}
+        	else if (!cbf_cistrncmp(c, "little_endian",13)){
+        	
+        	    *byteorder=little_endian;
+        		
+        	} else return CBF_FORMAT;
+        	
         }
+        
+        break;
+        
+      case 7:
+      
+        /* Size of fastest dimension  */
+        
+        if (dim1) *dim1 = atol(c);
+        
+        break;
+        
+      case 8:
+      
+        /* Size of fastest dimension  */
+        
+        if (dim2) *dim2 = atol(c);
+        
+        break;
+        
+      case 9:
+      
+        /* Size of fastest dimension  */
 
+        if (dim3) *dim3 = atol(c);
+        
+        break;
+        
+      case 10:
+      
+        /* Size of padding after the data */
+        
+        if (padding) *padding = atol(c);
+        
+        break;
+
+      case 11:
+      
+        /* Overall number of element */
+        
+        if (dimover) *dimover = atol(c);
+        
         break;
     }
 

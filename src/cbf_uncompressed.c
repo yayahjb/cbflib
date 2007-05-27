@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_uncompressed -- uncompressed binary sections                   *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -257,6 +257,9 @@ extern "C" {
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <ctype.h>
+#define _XOPEN_SOURCE
+#include <unistd.h>
 
 #include "cbf.h"
 #include "cbf_alloc.h"
@@ -277,7 +280,12 @@ int cbf_compress_none (void         *source,
                        cbf_file     *file,
                        size_t       *compressedsize,
                        int          *storedbits,
-                       int           realarray)
+                       int           realarray,
+                       const char   *byteorder,
+                       size_t        dim1,
+                       size_t        dim2,
+                       size_t        dim3,
+                       size_t        padding)
 {
   unsigned int count, element[4], unsign, sign, limit, bits;
 
@@ -379,6 +387,115 @@ int cbf_compress_none (void         *source,
 
 
     /* Write the elements */
+    
+    /* Try for a fast memory-memory transfer */
+    
+  switch (elsize) {
+  
+  	case (1):
+
+  	  if (!cbf_set_output_buffersize(file,nelem))  {
+
+  	    memmove((void *)(file->characters+file->characters_used),
+  	      (void *)unsigned_char_data,nelem);
+
+  	    file->characters_used+=nelem;
+
+  	    if (compressedsize)
+
+          *compressedsize = nelem;
+        
+        return 0;
+      
+  	  }
+  	  
+  	  break;
+  	
+  	case (2):
+  	
+  	case (4):
+  	
+  	case (8):
+  	
+    	if (!cbf_set_output_buffersize(file,nelem*elsize)) {
+
+  	      if (toupper(border[0]) == toupper(byteorder[0])) {
+  	      
+ 	        memmove((void *)(file->characters+file->characters_used),
+  	          (void *)unsigned_char_data,nelem*elsize);
+  	          
+  	      } else {
+  	      
+  	        if ((elsize == 4 || elsize == 8) && sizeof(short int) !=2 ) break;
+
+  	        if (elsize == 8 && sizeof(int) !=4 ) break;
+
+  	        swab((void *)unsigned_char_data,
+  	          (void *)(file->characters+file->characters_used),
+  	          nelem*elsize);
+  	          
+  	        if (elsize == 4 || elsize == 8) {
+  	        
+  	          short int temp;
+  	          
+  	          short int *sint;
+  	          
+  	          sint = (short int *)(file->characters+file->characters_used);
+  	          
+  	          for (count = 0; count < elsize * nelem; count+= 4) {
+  	          
+  	            temp = *sint;
+  	            
+  	            *sint = sint[1];
+  	            
+  	            sint[1] = temp;
+  	            
+  	            sint+=2; 	              
+  	          	
+  	          }
+  	        	
+  	        } 
+  	        
+  	        if (elsize == 8) {
+  	        
+    	      int temp;
+  	          
+  	          int *oint;
+  	          
+  	          oint = (int *)(file->characters+file->characters_used);
+  	          
+  	          for (count = 0; count < elsize * nelem; count+= 8) {
+  	          
+  	            temp = *oint;
+  	            
+  	            *oint = oint[1];
+  	            
+  	            oint[1] = temp;
+  	            
+  	            oint+=2; 	              
+  	          	
+  	          }
+	         
+  	        }
+  	            	      	
+  	      }
+  	        
+  	      file->characters_used+=nelem*elsize;
+  	  	
+  	      if (compressedsize)
+
+          *compressedsize = nelem*elsize;
+        
+          return 0;
+  	  }
+
+  	break;
+  	
+  	default:
+  	break;
+  }
+  
+  /* If we got here, we will do it the slow, painful way */
 
   for (count = 0; count < nelem; count++)
   {
@@ -429,27 +546,15 @@ int cbf_compress_none (void         *source,
 
       /* Make the element unsigned */
 
-    element[0] += unsign;
+    element[numints-1] += unsign;
+    
+    element[numints-1] &= limit;
 
-
-      /* Limit the value to 64 bits */
-
-    if (element[0] > limit) {
-
-      if (elsign && (int) (element[0] - unsign) < 0)
-
-        element[0] = 0;
-
-      else
-
-        element[0] = limit;
-
-    }
 
 
       /* Write the element to the file */
 
-    element[0] -=unsign;
+    element[numints-1] -= unsign;
 
     if (numints > 1) {
 
@@ -492,7 +597,13 @@ int cbf_decompress_none (void         *destination,
                          int           data_bits,
                          int           data_sign,
                          cbf_file     *file,
-                         int           realarray)
+                         int           realarray,
+                         const char   *byteorder,
+                         size_t        dimover,
+                         size_t        dim1,
+                         size_t        dim2,
+                         size_t        dim3,
+                         size_t        padding)
 {
   unsigned int element[4], sign, unsign, limit, count;
 
@@ -644,22 +755,8 @@ int cbf_decompress_none (void         *destination,
       /* Make the element unsigned */
 
     element[numints-1] += data_unsign;
-
-
-      /* Limit the value to fit the element size */
-
-    if (element[numints-1] > limit)
-    {
-      if (elsign && (int) (element[numints-1] - unsign) < 0)
-
-        element[numints-1] = 0;
-
-      else
-
-        element[numints-1] = limit;
-
-      overflow = CBF_OVERFLOW;
-    }
+    
+    element[numints-1] &= limit;
 
 
       /* Make the element signed? */

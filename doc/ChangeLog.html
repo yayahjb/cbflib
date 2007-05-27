@@ -32,8 +32,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <B>An API for CBF/imgCIF<BR>
 Crystallographic Binary Files with ASCII Support</B><BR>
-Version 0.7.6<BR>
-15 July 2006<BR>
+Version 0.7.7.5<BR>
+9 May 2007<BR>
 <P>
 </CENTER>
 </font><font color="#000000">
@@ -58,7 +58,7 @@ Bernstein + Sons<BR>
 yaya&#64;bernstein-plus-sons&#46;com
 </noscript>
 <p>
-&#169; Copyright 2006 Herbert J. Bernstein
+&#169; Copyright 2006, 2007 Herbert J. Bernstein
 <P>
 <hr>
 <b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=gpl.txt>GPL</a>.
@@ -183,7 +183,518 @@ cbf_log,
 cbf_check_category_tags,
 cbf_set_beam_center
 
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7">0.7.7</A><TD
+VALIGN=TOP>&nbsp;&nbsp;February 2007<TD
+VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release reflects changes
+for base 32K support developed by G. Darakev, and changes
+for support of reals, 3d arrays, byte_offset compression and
+J. P. Abrahams packed compression
+made in consultation with (in alphabetic order) E. Eikenberry,  
+A. Hammerley, W. Kabsch, M. Kobas, J. Wright and others at PSI
+and ESRF in January 2007, as well accumulated changes fixing
+problems in release 0.7.6.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.1">0.7.7.1</A><TD
+VALIGN=TOP>&nbsp;&nbsp;February 2007<TD
+VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release is a patch
+to 0.7.7 to change the treatment of the byteorder parameter from
+strcpy semantics to return of a pointer to a string constant. 
+Our thanks to E. Eikenberry for pointing out the problem.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.2">0.7.7.2</A><TD
+VALIGN=TOP>&nbsp;&nbsp;February 2007<TD
+VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release is a patch
+to 0.7.7.1 to add testing for JPA packed compression and to respect
+signs declared in the MIME header.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.3">0.7.7.3</A><TD
+VALIGN=TOP>&nbsp;&nbsp;April 2007<TD
+VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;This release is a patch
+to 0.7.7.3 to add f90 support for reading of CBF byte-offset and
+packed compression, to fix problems with gcc 4.4.1 and to correct
+errors in multidimensional packed compression.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.4">0.7.7.4</A><TD
+VALIGN=TOP>&nbsp;&nbsp;May 2007<TD
+VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Corrects in handling SLS
+detector mincbfs and reorder dimensions versus arrays for some
+f90 compilers as per H. Powell.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.5">0.7.7.5</A><TD
+VALIGN=TOP>&nbsp;&nbsp;May 2007<TD
+VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Fix to cbf_get_image for bug
+reported by F. Remacle, fixes for windows builds as per J. Wright
+and F. Remacle.
 
+
+</TABLE>
+
+<HR>
+<H3><A NAME="0.7.7.5">Release 0.7.7.5</A>, Herbert J. Bernstein, 9 May 2007</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>cbf_codes.c
+<TD>&nbsp;&nbsp;Change from use of bzero to memset and remove
+include of strings.h
+<TR><TD VALIGN=TOP>cbf_codes.c
+<TD>&nbsp;&nbsp;Change from use of bzero to memset and remove
+include of strings.h
+<TR><TD VALIGN=TOP>cbf_simple.c
+<TD>&nbsp;&nbsp;Fix ordering of dimensions in cbf_get_3d_array_size
+and handling of non-zero binary ids to fix problems with
+cbf_get_image and cbf_get_image_size
+<TR><TD VALIGN=TOP>cbf_uncompressed.c
+<TD>&nbsp;&nbsp;Add include of unistd.h for use of swab on
+more systems
+<TR><TD VALIGN=TOP>Makefile
+<TD>&nbsp;&nbsp;Introduce $(TIME) variable for time command so
+it can be suppressed in windows
+<TR><TD VALIGN=TOP>fcb_read_bits.m4
+<TD>&nbsp;&nbsp;Changes for g95 compatibility.
+<TR><TD VALIGN=TOP>cif2c.c, cif2cbf.c, etc.
+<TD>&nbsp;&nbsp;Make use of mkstemp conditional on NOMKSTEMP.  Make use
+of /tmp conditional on NOTMPDIR.
+
+ 
+
+</TABLE>
+
+
+<HR>
+<H3><A NAME="0.7.7.4">Release 0.7.7.4</A>, Herbert J. Bernstein, 6 May 2007</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>cbf_simple.c
+<TD>&nbsp;&nbsp;Fix ordering of dimensions in cbf_set_3d_array.
+<TR><TD VALIGN=TOP>cbf_uncompressed.c
+<TD>&nbsp;&nbsp;Add include of ctype.h to provide prototype for toupper.
+<TR><TD VALIGN=TOP>convert_image.c
+<TD>&nbsp;&nbsp;Enable -p option for non-standard templates; correct
+handling of seconds in timestamps.
+<TR><TD VALIGN=TOP>convert_minicbf.c
+<TD>&nbsp;&nbsp;Enable code for timestamp, exposure time, comment-style header.
+<TR><TD VALIGN=TOP>fcb_packed.m4
+<TD>&nbsp;&nbsp;As per H. Powell, move declarations for dimensions before
+declarations of arrays.
+<TR><TD VALIGN=TOP>fcb_read_image.m4
+<TD>&nbsp;&nbsp;As per H. Powell, move declarations for dimensions before
+declarations of arrays.
+<TR><TD VALIGN=TOP>fcblib_defines.m4
+<TD>&nbsp;&nbsp;As per H. Powell, move declarations for dimensions before
+declarations of arrays.
+</TABLE>
+
+
+
+<HR>
+<H3><A NAME="0.7.7.3">Release 0.7.7.3</A>, Herbert J. Bernstein, 3 April 2007</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>Makefile
+<TD>&nbsp;&nbsp;Add m4 directory to build f90 sources.  Add .f90
+routines to src and examples.  Add libfcb.a to lib.  Add tests
+for f90 routines to extra tests.
+
+<TR><TD VALIGN=TOP>testflat.c
+<TD>&nbsp;&nbsp;Add support for 3D test.
+
+<TR><TD VALIGN=TOP>testflatpacked.c
+<TD>&nbsp;&nbsp;Add support for 3D test.
+
+<TR><TD VALIGN=TOP>cbf_binary.c
+<TD>&nbsp;&nbsp;Correct dim2,dim2 to be dim1,dim2 in check_digest.
+
+<TR><TD VALIGN=TOP>cbf_packed.c
+<TD>&nbsp;&nbsp;Correct JPA pointer logic for 3D case.  Work around
+compiler problems with handling of sign bits
+
+<TR><TD VALIGN=TOP>fcb_exit_binary.m4
+<TD>&nbsp;&nbsp;New m4 macro file to build fcb_exit_binary.f90
+a routine to skip from the end of a binary to the end of the text field.
+
+<TR><TD VALIGN=TOP>fcb_next_binary.m4
+<TD>&nbsp;&nbsp;New m4 macro file to build fcb_next_binary.f90
+a routine to skip to the start of the next binary.
+
+<TR><TD VALIGN=TOP>fcb_open_cifin.m4
+<TD>&nbsp;&nbsp;New m4 macro file to build fcb_open_cifin.f90
+a routine to open a cbf file.
+
+<TR><TD VALIGN=TOP>fcb_packed.m4
+<TD>&nbsp;&nbsp;New m4 macro file to build fcb_packed.f90
+a routine to uncompress JPA packed binaries.
+
+<TR><TD VALIGN=TOP>fcb_read_bits.m4
+<TD>&nbsp;&nbsp;New m4 macro file to build fcb_read_bits.f90
+a routine to read an arbitrary number of bits as an integer.
+
+<TR><TD VALIGN=TOP>fcb_read_image.m4
+<TD>&nbsp;&nbsp;New m4 macro file to build fcb_read_image.f90
+a set of routines to read a byte offset or packed image
+
+<TR><TD VALIGN=TOP>fcb_read_xds_i2.m4
+<TD>&nbsp;&nbsp;New m4 macro file to build fcb_read_xds_i2.f90
+a routine to read a single xds I2 image.
+
+<TR><TD VALIGN=TOP>fcblib_define.m4
+<TD>&nbsp;&nbsp;New m4 macro file of common definitions for all f90 code
+
+<TR><TD VALIGN=TOP>test_fcb_read_image.m4
+<TD>&nbsp;&nbsp;New m4 macro file of build test_fcb_read_image.f90
+a test program for the f90 routines.
+
+<TR><TD VALIGN=TOP>test_xds_binary.m4
+<TD>&nbsp;&nbsp;New m4 macro file of build test_xds_binary.f90
+a test program for the f90 routines.
+
+<TR><TD VALIGN=TOP>fcb_atol_wcnt.f90
+<TD>&nbsp;&nbsp;f90 code to convert a string to an integer.
+
+
+<TR><TD VALIGN=TOP>fcb_ci_strncmparr.f90
+<TD>&nbsp;&nbsp;f90 code to do a case-insensitive string comparison
+
+<TR><TD VALIGN=TOP>fcb_nblen.f90
+<TD>&nbsp;&nbsp;f90 code to do test the non-blank length of a string
+
+
+<TR><TD VALIGN=TOP>fcb_read_byte.f90
+<TD>&nbsp;&nbsp;f90 code to read a byte
+
+<TR><TD VALIGN=TOP>fcb_read_line.f90
+<TD>&nbsp;&nbsp;f90 code to read a line
+
+
+<TR><TD VALIGN=TOP>fcb_skip_whitespace.f90
+<TD>&nbsp;&nbsp;f90 code to skip MIME whitespace
+
+
+
+
+
+
+
+
+
+
+</TABLE>
+
+
+<HR>
+<H3><A NAME="0.7.7.2">Release 0.7.7.2</A>, Herbert J. Bernstein, 27 February 2007</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>Makefile
+<TD>&nbsp;&nbsp;Add testflatpacked build to extra test dependencies.
+
+<TR><TD VALIGN=TOP>testflat.c
+<TD>&nbsp;&nbsp;Add more test cases.
+
+
+<TR><TD VALIGN=TOP>testflatpacked.c
+<TD>&nbsp;&nbsp;Add version of testflat for packed compression.
+
+<TR><TD VALIGN=TOP>cbf_binary.c
+<TD>&nbsp;&nbsp;Add recovery of sign from mime header.
+
+<TR><TD VALIGN=TOP>cbf_byte_offset.c
+<TD>&nbsp;&nbsp;Change limit logic to simple mask and remove overflow
+report.
+
+<TR><TD VALIGN=TOP>cbf_packed.c
+<TD>&nbsp;&nbsp;Change limit logic to simple mask and remove overflow
+report.
+
+<TR><TD VALIGN=TOP>cbf_uncompressed.c
+<TD>&nbsp;&nbsp;Change limit logic to simple mask and remove overflow
+report.
+
+</TABLE>
+
+<HR>
+
+
+<H3><A NAME="0.7.7.1">Release 0.7.7.1</A>, Herbert J. Bernstein, 25 February 2007</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>Makefile
+<TD>&nbsp;&nbsp;Add testflat build to extra test dependencies.
+
+<TR><TD VALIGN=TOP>CBFlib.html
+<TD>&nbsp;&nbsp;Add descriptions of cbf_get_integerarrayparameters_wdims,
+cbf_get_realarrayparameters_wdims, cbf_set_integerarray_wdims,
+cbf_set_realarray_wdims
+
+<TR><TD VALIGN=TOP>cif2cbf.c
+<TD>&nbsp;&nbsp;Change to use of byteorder as a pointer to a
+constant string, rather than as a local copy of a string.
+
+<TR><TD VALIGN=TOP>testflat.c
+<TD>&nbsp;&nbsp;Add report of byteorder, dim1, dim2, dim2, padding.
+
+<TR><TD VALIGN=TOP>cbf.h,<br />cbf_binary.h,<br />cbf_byte_offset.h,<br />cbf_canonical.h,<br />cbf_compress.h,<br />cbf_packed.h,<br />cbf_predictor.h,<br />cbf_read_mime.h,<br />cbf_uncompressed.h
+<TD VALIGN=TOP>&nbsp;&nbsp;Change prototypes for all functions that return
+byteorder from char * byteorder to const char ** byteorder.
+Change prototypes of all functions that set byteorder from
+char * byteorder to const char * byteorder
+
+<TR><TD VALIGN=TOP>cbf.c,<br />cbf_binary.c,<br />cbf_byte_offset.c,<br />cbf_canonical.c,<br />cbf_compress.c,<br />cbf_lex.c,<br />cbf_packed.c,<br />cbf_predictor.c,<br />cbf_read_mime.c,<br />cbf_uncompressed.c,<br />cbf_write_binary.c
+<TD VALIGN=TOP>&nbsp;&nbsp;Change signatures for all functions that return
+byteorder from char * byteorder to const char ** byteorder.
+Change prototypes of all functions that set byteorder from
+char * byteorder to const char * byteorder, and make the matching changes
+in all calls.
+</TABLE>
+
+<HR>
+<H3><A NAME="0.7.7">Release 0.7.7</A>, Herbert J. Bernstein, 19 February 2007</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>cif2cbf.c
+<TD>&nbsp;&nbsp;Add support for byte offset, packed version 2 
+and flat compression, and binary section padding.  Add support
+for base-32K encoding.  Allow command line compression to
+override compression_type in the file and to set 
+compression_type_flag.
+
+<TR><TD VALIGN=TOP>convert_image.c
+<TD>&nbsp;&nbsp;Add support for new -R and -F flags, for
+use of reference beam center and flat packed compression
+respectively.
+
+<TR><TD VALIGN=TOP>cbf.h
+<TD>&nbsp;&nbsp;Add constants CBF_PACKED_V2
+for packed version 2 compression, 
+CBF_UNCORRELATED_SECTIONS for uncorrelated
+sections in packed compression,
+CBF_FLAT_IMAGE for original CBFlib
+packed compression, PAD_1K, PAD_2K and
+PAD_4K for trailing pad on binary sections,
+ENC_BASE32K for base 32K encoding.  Fix bad
+code in DEBUG mode for failnez macros.
+Add prototypes for cbf_get_arrayparameters_wdims,
+cbf_get_integerarrayparameters_wdims,
+cbf_get_realarrayparameters_wdims,
+cbf_set_integerarray_wdims,
+cbf_set_realarray_wdims,
+cbf_mpint_load_acc,
+cbf_mpint_store_acc,
+cbf_mpint_clear_acc,
+cbf_mpint_increment_acc,
+cbf_mpint_decrement_acc,
+cbf_mpint_negate_acc,
+cbf_mpint_add_acc,
+cbf_mpint_rightshift_acc,
+cbf_mpint_leftshift_acc.
+<TR><TD VALIGN=TOP>cbf_binary.h
+<TD>&nbsp;&nbsp;Update prototypes
+for cbf_get_bintext, cbf_set_bintext,
+cbf_set_binary, cbf_binary_parameters,
+cbf_get_binary to carry byteorder,
+dimensions and padding.
+<TR><TD VALIGN=TOP>cbf_byte_offset.h
+<TD>&nbsp;&nbsp;Update prototypes
+for cbf_compress_byte_offset,
+cbf_decompress_byte_offset to carry byteorder,
+dimensions and padding.
+<TR><TD VALIGN=TOP>cbf_canonical.h
+<TD>&nbsp;&nbsp;Update prototypes
+for cbf_compress_canonical,
+cbf_decompress_canonical to carry byteorder,
+dimensions and padding.
+<TR><TD VALIGN=TOP>cbf_codes.h
+<TD>&nbsp;&nbsp;Add prototypes for base 32K
+encoding: cbf_tobase32k, cbf_encode32k_bit_op,
+cbf_isBigEndian, cbf_endianFix,
+cbf_frombase32k, cbf_decode32k_bit_op.
+<TR><TD VALIGN=TOP>cbf_compress.h
+<TD>&nbsp;&nbsp; Update prototypes
+for cbf_compress, cbf_decompress
+to carry byteorder,
+dimensions and padding.
+<TR><TD VALIGN=TOP>cbf_packed.h
+<TD>&nbsp;&nbsp;Update prototypes
+for cbf_compress_packed,
+cbf_decompress_packed to carry byteorder,
+dimensions and padding.
+<TR><TD VALIGN=TOP>cbf_predictor.h
+<TD>&nbsp;&nbsp;Update prototypes
+for cbf_compress_predictor,
+cbf_decompress_predictor to carry byteorder,
+dimensions and padding.
+<TR><TD VALIGN=TOP>cbf_read_mime.h
+<TD>&nbsp;&nbsp;Update prototype
+for cbf_parse_mimeheader to carry byteorder,
+dimensions and padding.
+<TR><TD VALIGN=TOP>cbf_simple.h
+<TD>&nbsp;&nbsp;Add prototypes for
+cbf_get_3d_array_size,
+cbf_get_3d_array,
+cbf_get_3d_image_size,
+cbf_get_3d_image,
+cbf_get_map_array_id,
+cbf_get_map_segment_mask,
+cbf_get_map_segment_size,
+cbf_get_map_segment,
+cbf_get_real_3d_image,
+cbf_get_real_map_segment,
+cbf_get_real_map_segment_mask,
+cbf_set_3d_array,
+cbf_set_3d_image,
+cbf_set_map_segment,
+cbf_set_map_segment_mask,
+cbf_set_real_3d_image,
+cbf_set_real_map_segment,
+cbf_set_real_map_segment_mask.
+
+<TR><TD VALIGN=TOP>cbf_uncompressed.h
+<TD>&nbsp;&nbsp;Update prototypes
+for cbf_compress_none,
+cbf_decompress_none to carry byteorder,
+dimensions and padding.
+
+
+<TR><TD VALIGN=TOP>Makefile
+<TD>&nbsp;&nbsp;Update version and tests
+to work against data files in
+CBFlib_0.7.7_Data_Files.
+
+<TR><TD VALIGN=TOP>cbf.c
+<TD>&nbsp;&nbsp;
+Remove compiler warnings on signedness
+and type punned pointers.
+Fix bug in detection of local real format.
+Add base32K support.
+Fix inverted test in value range checking.
+Add new routines cbf_get_arrayparameters_wdims,
+cbf_get_integerarrayparameters_wdims,
+cbf_get_realarrayparameters_wdims,
+cbf_set_integerarray_wdims,
+cbf_set_realarray_wdims,
+cbf_mpint_load_acc,
+cbf_mpint_store_acc,
+cbf_mpint_clear_acc,
+cbf_mpint_increment_acc,
+cbf_mpint_decrement_acc,
+cbf_mpint_negate_acc,
+cbf_mpint_add_acc,
+cbf_mpint_rightshift_acc,
+cbf_mpint_leftshift_acc.
+
+<TR><TD VALIGN=TOP>cbf.stx.y
+<TD>&nbsp;&nbsp;Temporarily change to
+use of YYSTYPE argument type to
+remove an error when compiling under
+on MS Windows.  A better solution is
+needed./
+
+<TR><TD VALIGN=TOP>cbf_binary.c
+<TD>&nbsp;&nbsp;Update cbf_get_bintext, cbf_set_bintext,
+cbf_set_binary, cbf_binary_parameters,
+cbf_get_binary to carry byteorder,
+dimensions and padding.
+
+<TR><TD VALIGN=TOP>cbf_byte_offset.c
+<TD>&nbsp;&nbsp;Implement byte_offset
+compression and decompression as
+designed by A. Hammersley and
+modified by W. Kabsch.
+
+<TR><TD VALIGN=TOP>cbf_canonical.c
+<TD>&nbsp;&nbsp;Fix warnings from gcc 4
+on punned pointers.  Update  cbf_compress_canonical,
+cbf_decompress_canonical to carry byteorder,
+dimensions and padding.
+
+<TR><TD VALIGN=TOP>cbf_codes.c
+<TD>&nbsp;&nbsp;Add support forr base 32K
+encoding: cbf_tobase32k, cbf_encode32k_bit_op,
+cbf_isBigEndian, cbf_endianFix,
+cbf_frombase32k, cbf_decode32k_bit_op.
+
+<TR><TD VALIGN=TOP>cbf_compress.c
+<TD>&nbsp;&nbsp; Update 
+ cbf_compress, cbf_decompress
+ carry byteorder,
+dimensions and padding.
+
+
+<TR><TD VALIGN=TOP>cbf_file.c
+<TD>&nbsp;&nbsp;Fix warnings from gcc 4
+on punned pointers.
+
+
+<TR><TD VALIGN=TOP>cbf_lex.c
+<TD>&nbsp;&nbsp;Add support for
+byteorder, dimensions and padding
+and base 32K encoding.
+
+<TR><TD VALIGN=TOP>cbf_packed.c
+<TD>&nbsp;&nbsp;Update cbf_compress_packed,
+cbf_decompress_packed to carry byteorder,
+dimensions and padding.  Add support
+for J. P. Abrahams packed compression,
+versions 1 and 2, while preserving
+support for original CBFlib flat packed
+compression.  Add support for 64 bit
+elements.
+
+
+<TR><TD VALIGN=TOP>cbf_predictor.c
+<TD>&nbsp;&nbsp;Update cbf_compress_predictor,
+cbf_decompress_predictor to carry byteorder,
+dimensions and padding.
+
+<TR><TD VALIGN=TOP>cbf_simple.c
+<TD>&nbsp;&nbsp;Change logic of most
+image handling routines to work as special
+cases of 3d routines.  Add new routines
+cbf_get_detector_id,
+cbf_get_real_map_segment,
+cbf_get_real_map_segment_mask,
+cbf_set_map_segment,
+cbf_set_map_segment_mask,
+cbf_set_real_map_segment,
+cbf_set_real_map_segment_mask,
+cbf_get_3d_array_size,
+cbf_get_3d_array,
+cbf_set_3d_array,
+cbf_get_axis_reference_setting,
+cbf_set_axis_reference_setting,
+cbf_construct_reference_detector,
+cbf_require_reference_detector,
+cbf_set_reference_beam_center.
+
+
+<TR><TD VALIGN=TOP>cbf_read_mime.c
+<TD>&nbsp;&nbsp;Update cbf_parse_mimeheader to read
+MIME headers for new compression types and
+flags and byteorder, dimensions and padding.
+Add support for base 32K encoding.
+
+<TR><TD VALIGN=TOP>cbf_tree.c
+<TD>&nbsp;&nbsp;Fix warnings from gcc 4
+on punned pointers.
+
+<TR><TD VALIGN=TOP>cbf_uncompressed.c
+<TD>&nbsp;&nbsp;Fix handling of 64-bit
+reads and writes. 
+
+<TR><TD VALIGN=TOP>cbf_write_binary.c
+<TD>&nbsp;&nbsp;Add code to write out
+base-32K encoded sections, to write
+byte order, dimensions and padding.  Add code
+to write out MIME headers for
+packed compressions or packed version 2
+compression with flags for uncorrelated
+sections and for flat packed images.
 </TABLE>
 
 <HR>
@@ -1207,7 +1718,7 @@ This was the first CBFlib release.  It
 supported binary CBF files using binary strings.
 <HR>
 <HR>
-Updated 16 July 2006.  
+Updated 4 April 2007.  
 <script language="javascript" type="text/javascript">
 <!-- 
       var name = "yaya@";

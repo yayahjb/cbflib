@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_binary -- handle simple binary values                          *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -260,11 +260,16 @@ extern "C" {
 #include "cbf_context.h"
 #include "cbf_binary.h"
 #include "cbf_read_mime.h"
+#include "cbf_string.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+
+static const char * big_endian = "big_endian";
+static const char * little_endian = "little_endian";
+static const char * unknown = "unknown";
 
 
   /* Parse a binary text value */
@@ -280,17 +285,29 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
                      int       *bits,
                      int       *sign,
                      int       *realarray,
+                     const char **byteorder,
+                     size_t    *dimover,
+                     size_t    *dim1,
+                     size_t    *dim2,
+                     size_t    *dim3,
+                     size_t    *padding,
             unsigned int       *compression)
 {
   void *file_text;
 
-  long start_text, size_text;
+  unsigned long start_text, size_text;
 
   int id_text, type_text, checked_digest_text, bits_text, sign_text, realarray_text;
+  
+  unsigned long dimover_text, dim1_text, dim2_text, dim3_text;
+  
+  unsigned long padding_text;
 
   unsigned int compression_text;
 
   char digest_text [25];
+  
+  char byteorder_text [14];
 
   const char *text;
 
@@ -311,7 +328,7 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
 
   type_text = *text;
 
-  sscanf (text + 1, " %x %p %lx %lx %d %24s %x %d %d %u",
+  sscanf (text + 1, " %x %p %lx %lx %d %24s %x %d %d %14s %lu %lu %lu %lu %lu %u",
                       (unsigned int *)&id_text,
                       &file_text,
                       (unsigned long *)&start_text,
@@ -321,6 +338,12 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
                       (unsigned int *)&bits_text,
                       &sign_text,
                       &realarray_text,
+                      byteorder_text, 
+                      (unsigned long *)&dimover_text, 
+                      (unsigned long *)&dim1_text, 
+                      (unsigned long *)&dim2_text, 
+                      (unsigned long *)&dim3_text, 
+                      (unsigned long *)&padding_text,
                       &compression_text);
 
 
@@ -365,6 +388,41 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
   if (realarray)
 
     *realarray = realarray_text;
+    
+  if (byteorder)  {
+  
+    if (byteorder_text[0]=='b'|| byteorder_text[0]=='B') {
+    
+      *byteorder = big_endian;
+    	
+    }  else if (byteorder_text[0]=='l'|| byteorder_text[0]=='L') {
+    
+      *byteorder = little_endian;
+    	
+    }
+    else *byteorder = unknown;
+  	
+  }
+   
+  if (dimover)
+  
+     *dimover = dimover_text;
+
+  if (dim1)
+  
+     *dim1 = dim1_text;
+   
+  if (dim2)
+  
+     *dim2 = dim2_text;
+   
+  if (dim1)
+  
+     *dim3 = dim3_text;
+   
+  if (dim1)
+  
+     *padding = padding_text;
 
   if (compression)
 
@@ -390,11 +448,18 @@ int cbf_set_bintext (cbf_node *column, unsigned int row,
                      int         bits,
                      int         sign,
                      int         realarray,
+                     const char *byteorder,
+                     size_t      dimover,
+                     size_t      dim1,
+                     size_t      dim2,
+                     size_t      dim3,
+                     size_t      padding,
             unsigned int         compression)
 {
   char text [(((sizeof (void *) +
                 sizeof (long int) * 2 +
-                sizeof (int) * 3) * CHAR_BIT) >> 2) + 57];
+                sizeof (int) * 3) * CHAR_BIT) >> 2) + 57
+                +15+((5*sizeof (size_t)*3*CHAR_BIT)>>2)];
 
   const char *new_text;
 
@@ -413,7 +478,7 @@ int cbf_set_bintext (cbf_node *column, unsigned int row,
 
     /* Create the new text */
 
-  sprintf (text, "%x %p %lx %lx %1d %24s %x %d %d %u",
+  sprintf (text, "%x %p %lx %lx %1d %24s %x %d %d %14s %ld %ld %ld %ld %ld %u",
                    (unsigned int)id,
                    (void *)file,
                    (unsigned long)start,
@@ -423,6 +488,12 @@ int cbf_set_bintext (cbf_node *column, unsigned int row,
                    (unsigned int)bits,
                    sign,
                    realarray,
+                   byteorder,
+                   (unsigned long)dimover,
+                   (unsigned long)dim1, 
+                   (unsigned long)dim2, 
+                   (unsigned long)dim3, 
+                   (unsigned long)padding,
                    compression);
 
   new_text = cbf_copy_string (NULL, text, (char) type);
@@ -534,7 +605,9 @@ int cbf_free_value (cbf_context *context, cbf_node *column, unsigned int row)
   if (is_binary)
 
     cbf_failnez (cbf_get_bintext (column, row, &type, NULL, &file, NULL,
-                                           NULL, NULL, NULL, NULL, NULL, NULL, NULL))
+                                           NULL, NULL, NULL, NULL, NULL, 
+                                           NULL, NULL, NULL, NULL, NULL,
+                                           NULL, NULL, NULL))
 
 
     /* Get the ASCII value */
@@ -576,7 +649,9 @@ int cbf_free_value (cbf_context *context, cbf_node *column, unsigned int row)
 int cbf_set_binary (cbf_node *column, unsigned int row,
                     unsigned int compression,  int binary_id,
                     void *value, size_t elsize, int elsign,
-                    size_t nelem, int realarray)
+                    size_t nelem, int realarray, const char *byteorder,
+                    size_t dimover,
+                    size_t dim1, size_t dim2, size_t dim3, size_t padding)
 {
   cbf_file *tempfile;
 
@@ -617,15 +692,26 @@ int cbf_set_binary (cbf_node *column, unsigned int row,
 
   cbf_onfailnez (cbf_compress (value, elsize, elsign, nelem,
                                compression, tempfile,
-                               &size, &bits, digest, realarray),
+                               &size, &bits, digest, realarray,
+                               "little_endian", dim1, dim2, dim3, padding),
                  cbf_delete_fileconnection (&tempfile))
 
 
     /* Set the value */
+    
+    /* We do not yet support writing of big_endian binary sections */
+    
+  if (cbf_cistrncmp(byteorder,"little_endian",14)) {
+
+  	 cbf_delete_fileconnection (&tempfile);
+
+     return CBF_FORMAT;
+  }
 
   cbf_onfailnez (cbf_set_bintext (column, row, CBF_TOKEN_TMP_BIN,
                                   binary_id, tempfile, start, size,
-                                  1, digest, bits, elsign != 0, realarray, compression),
+                                  1, digest, bits, elsign != 0, realarray, 
+                                  "little_endian", dimover, dim1, dim2, dim3, padding, compression),
                  cbf_delete_fileconnection (&tempfile))
 
 
@@ -646,8 +732,14 @@ int cbf_check_digest (cbf_node *column, unsigned int row)
   size_t size;
 
   char old_digest [25], new_digest [25];
+  
+  const char *byteorder;
 
   int id, bits, sign, type, checked_digest, realarray;
+  
+  size_t dimover, dim1, dim2, dim3;
+  
+  size_t padding;
 
   unsigned int compression;
 
@@ -656,7 +748,9 @@ int cbf_check_digest (cbf_node *column, unsigned int row)
 
   cbf_failnez (cbf_get_bintext (column, row, &type, &id, &file,
                                 &start, &size, &checked_digest,
-                                old_digest, &bits, &sign, &realarray, &compression))
+                                old_digest, &bits, &sign, &realarray, 
+                                &byteorder, &dimover, &dim1, &dim2, &dim3,
+                                &padding, &compression))
 
 
     /* Recalculate and compare the digest? */
@@ -697,7 +791,9 @@ int cbf_check_digest (cbf_node *column, unsigned int row)
 
       cbf_failnez (cbf_set_bintext (column, row, type,
                                     id, file, start, size,
-                                    1, new_digest, bits, sign, realarray, compression))
+                                    1, new_digest, bits, sign, realarray, 
+                                    byteorder, dimover, dim1, dim2, dim3, padding,
+                                    compression))
     }
 
 
@@ -716,7 +812,10 @@ int cbf_binary_parameters (cbf_node *column,
                            int *elsigned,
                            int *elunsigned,
                            size_t *nelem,
-                           int *minelem, int *maxelem, int *realarray)
+                           int *minelem, int *maxelem, int *realarray,
+                           const char **byteorder, 
+                           size_t *dim1, size_t *dim2, size_t *dim3,
+                           size_t *padding)
 {
   cbf_file *file;
 
@@ -725,6 +824,10 @@ int cbf_binary_parameters (cbf_node *column,
   size_t size, file_elsize, file_nelem;
 
   int text_bits, errorcode;
+  
+  size_t text_dimover;
+  
+  int text_sign;
 
 
     /* Check the digest (this will also decode it if necessary) */
@@ -750,7 +853,9 @@ int cbf_binary_parameters (cbf_node *column,
                                   eltype, elsize,
                                   elsigned, elunsigned,
                                   nelem,
-                                  minelem, maxelem, realarray);
+                                  minelem, maxelem, realarray,
+                                  byteorder, dim1, dim2, dim3,
+                                  padding);
   }
 
 
@@ -758,8 +863,9 @@ int cbf_binary_parameters (cbf_node *column,
 
   cbf_failnez (cbf_get_bintext (column, row, NULL,
                                 id, &file, &start, &size, NULL,
-                                NULL, &text_bits, NULL, realarray, compression))
-
+                                NULL, &text_bits, &text_sign, realarray,
+                                byteorder, &text_dimover, dim1, dim2, dim3, padding, 
+                                compression))
 
     /* Position the file at the start of the binary section */
 
@@ -775,15 +881,36 @@ int cbf_binary_parameters (cbf_node *column,
 
   if (!errorcode)
   {
+    if (text_sign != -1 && elsigned) {
+    
+      *elsigned = text_sign?1:0;
+      
+    }
+    
+    if (text_sign != -1 && elunsigned) 
+    {
+      
+      *elunsigned = text_sign?0:1;
+    	
+    }
+    
     if (elsize) {
+    
+      if ( text_bits > 0) {
+      
+         *elsize = (text_bits + CHAR_BIT - 1) / CHAR_BIT;
+      	
+      } else  {
 
-      if (file_elsize > 0)
+        if (file_elsize > 0) {
+        	
+          *elsize = file_elsize;
+          
+        }
 
-        *elsize = file_elsize;
+      }
 
-      else
-
-        *elsize = (text_bits + CHAR_BIT - 1) / CHAR_BIT;
+        
     }
 
     if (nelem) {
@@ -792,9 +919,14 @@ int cbf_binary_parameters (cbf_node *column,
 
         *nelem = file_nelem;
 
-      else
+      else  {
+      
+        if (text_dimover > 0) *nelem = text_dimover;
+        
+        else
 
         *nelem = (size * 8) / text_bits;
+     }
 
     }
 
@@ -808,7 +940,9 @@ int cbf_binary_parameters (cbf_node *column,
 
 int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
                     void *value, size_t elsize, int elsign,
-                    size_t nelem, size_t *nelem_read, int *realarray)
+                    size_t nelem, size_t *nelem_read, int *realarray,
+                    const char **byteorder, size_t *dimover, size_t *dim1, size_t *dim2,
+                    size_t *dim3, size_t *padding)
 {
   cbf_file *file;
 
@@ -820,6 +954,8 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
   unsigned int compression;
 
   size_t nelem_file;
+  
+  size_t text_dimover;
 
 
     /* Check the digest (this will also decode it if necessary) */
@@ -840,7 +976,8 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
 
     return cbf_get_binary (column, row,
                            id, value, elsize, elsign,
-                           nelem, nelem_read, realarray);
+                           nelem, nelem_read, realarray,
+                           byteorder, dimover, dim1, dim2, dim3, padding);
   }
 
 
@@ -849,8 +986,10 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
   cbf_failnez (cbf_get_bintext (column, row, NULL,
                                 id, &file, &start, NULL,
                                  NULL, NULL, &bits, &sign, realarray,
+                                 byteorder, &text_dimover, dim1, dim2, dim3, padding,
                                  &compression))
 
+  if (dimover) *dimover = text_dimover;
 
     /* Position the file at the start of the binary section */
 
@@ -869,8 +1008,10 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
 
     /* Decompress the binary data */
 
+
   return cbf_decompress (value, elsize, elsign, nelem, nelem_read,
-                         compression, bits, sign, file, *realarray);
+                         compression, bits, sign, file, *realarray,
+                         *byteorder, text_dimover, *dim1, *dim2, *dim3, *padding);
 }
 
 

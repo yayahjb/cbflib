@@ -410,6 +410,10 @@ int cbf_open_temporary (cbf_context *context, cbf_file **temporary)
     return CBF_FILEOPEN;
 
   errorcode = cbf_make_file (&context->temporary, stream);
+  
+  
+  context->temporary->temporary = 1;
+  
 
   if (errorcode)
   {

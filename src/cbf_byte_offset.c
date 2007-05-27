@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_byte_offset -- byte-offset compression (not implemented)       *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -257,7 +257,10 @@ extern "C" {
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <ctype.h>
 
+#include "cbf.h"
+#include "cbf_file.h"
 #include "cbf_byte_offset.h"
 
 
@@ -271,14 +274,579 @@ int cbf_compress_byte_offset (void         *source,
                               cbf_file     *file,
                               size_t       *compressedsize,
                               int          *storedbits,
-                              int           realarray)
+                              int           realarray,
+                              const char   *byteorder,
+                              size_t        dim1,
+                              size_t        dim2,
+                              size_t        dim3,
+                              size_t        padding)
 {
-  fprintf (stderr,
-      "\n*** Byte-Offset Algorithm Not Implemented Yet -- Abort ***\n");
+  unsigned int count, borrow, element[4], prevelement[4], 
+  
+  unsign, sign, limit, bits;
 
-  exit (1);
+  unsigned char *unsigned_char_data;
+  
+  unsigned char *unsigned_char_dest=NULL;
 
-  return 1;
+  int delta[4];
+
+  int numints, iint, kint;
+
+  char * border;
+
+  char * rformat;
+  
+  size_t csize;
+
+  int bflag=0x800080;
+ 
+  int bbflag=0x80000000;
+
+
+    /* Is the element size valid? */
+
+  if (elsize != sizeof (int) &&
+      elsize != 2* sizeof (int) &&
+      elsize != 4* sizeof (int) &&
+      elsize != sizeof (short) &&
+      elsize != sizeof (char))
+
+    return CBF_ARGUMENT;
+
+    /* check for compatible real format */
+
+  if ( realarray ) {
+
+    cbf_failnez (cbf_get_local_real_format(&rformat) )
+
+    if ( strncmp(rformat,"ieee",4) ) return CBF_ARGUMENT;
+
+  }
+
+   bits = elsize * CHAR_BIT;
+
+   if (bits < 1 || bits > 64)
+
+     return CBF_ARGUMENT;
+     
+   if (bits != 8 && bits != 16 && bits != 32 && bits != 64)
+   
+     return CBF_ARGUMENT;
+
+   numints = (bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
+
+
+    /* Initialise the pointer */
+
+  unsigned_char_data = (unsigned char *) source;
+
+    /* Maximum limits */
+
+  sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
+
+  if (elsize == sizeof (int) || elsize == numints*sizeof(int) )
+
+    limit = ~0;
+
+  else
+
+    if (numints == 1) {
+
+      limit = ~-(1 << (elsize * CHAR_BIT));
+
+    } else {
+
+      limit = ~-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT));
+
+    }
+
+
+  if (storedbits)
+
+    *storedbits = bits;
+
+
+    /* Offset to make the value unsigned */
+
+  if (elsign)
+
+    unsign = sign;
+
+  else
+
+    unsign = 0;
+
+    /* Get the local byte order */
+
+  if (realarray) {
+
+    cbf_get_local_real_byte_order(&border);
+
+  } else {
+
+    cbf_get_local_integer_byte_order(&border);
+
+  }
+
+
+    /* Initialise the pointer */
+
+  unsigned_char_data = (unsigned char *) source;
+
+
+    /* Set up the previous element for comparison */
+    
+  prevelement[0] = prevelement[1] = prevelement[2] = prevelement[3] = 0;
+  
+  prevelement[numints-1] = unsign;
+  
+  csize = 0;
+
+    /* Write the elements */
+    
+    /* First try a fast memory-memory transfer */  
+
+  switch (elsize) {
+  
+  	case (1): /* Doing byte_offset with elsize 1 does
+  	             not make much sense, but we can at
+  	             least do it quickly */
+
+  	  if (!cbf_set_output_buffersize(file,nelem))  {
+  	  
+  	    unsigned char pc;
+  	  
+  	    unsigned_char_dest = 
+  	      (unsigned char *)(file->characters+file->characters_used);
+  	      
+  	    pc = 0x00;
+  	  
+  	    for (count = 0; count < nelem; count+= 8) {
+
+  	      *unsigned_char_dest++ = *unsigned_char_data - pc;
+  	      
+  	      pc = *unsigned_char_data++;
+  	      
+  	    }
+
+  	    file->characters_used+=nelem;
+
+  	    if (compressedsize)
+
+          *compressedsize = nelem;
+        
+        return 0;
+      
+  	  }
+  	  
+  	  break;
+  	
+  	case (2): /* We are compressing 16-bit data, which should
+  	             compress to about half.  We allow up to the
+  	             full size of the original data */
+  	
+  	   if (!cbf_set_output_buffersize(file,nelem*elsize))  {
+  	   
+  	     short int pint, dint;
+  	     
+  	     short int *sint;
+  	     
+  	     int byte0, byte1;
+  	   
+  	     if (sizeof(short int) != 2)  break;
+  	     
+  	     pint = 0;
+  	     
+  	     byte0 = 0;
+  	     
+  	     byte1 = 1;
+  	     
+         unsigned_char_dest = 
+  	          (unsigned char *)(file->characters+file->characters_used);
+  	          
+  	     sint = (short int *) unsigned_char_data;
+
+  	     if (toupper(border[0]) != toupper(byteorder[0])) {
+  	     
+  	       byte0 = 1;
+  	       
+  	       byte1 = 0;
+  	       
+  	     }
+  	     
+  	     for (count = 0; count < nelem; count++) {
+  	       
+  	       dint = sint[count] - pint;
+           
+           pint = sint[count];
+  	         
+  	       if (dint <= 127 && dint >= -127)  {
+  	         
+  	         *unsigned_char_dest++ = (unsigned char)dint;
+  	           
+  	         csize ++;
+  	         	
+  	       } else {
+  	         
+  	         if (csize > nelem*elsize-3) {
+  	           
+  	           if (compression&CBF_NO_EXPAND) return CBF_NOCOMPRESSION;
+  	               	             
+  	           if (cbf_set_output_buffersize(file,nelem*elsize*2-csize)) break;
+  	             
+  	           unsigned_char_dest = 
+  	             
+  	             (unsigned char *)(file->characters+file->characters_used+csize);
+
+  	         }
+  	           
+  	         *unsigned_char_dest++ = 0x80;
+
+  	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte0];
+  	             
+  	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte1];
+  	         
+  	         csize += 3;
+
+  	       }
+  	     
+  	     } 
+
+   	     file->characters_used+=csize;
+  	  	
+  	     if (compressedsize)
+
+           *compressedsize = csize;
+        
+         return 0;
+ 	   
+  	   }
+
+  	   break;
+  	  
+
+  	
+  	case (4):
+  	
+  	/* We are compressing 32-bit data, which should
+  	             compress to about one quarter.  We allow up to the
+  	             full size of the original data */
+  	
+  	   if (!cbf_set_output_buffersize(file,nelem*elsize))  {
+  	   
+  	     int pint, dint;
+  	     
+  	     short int sint;
+  	     
+  	     int *oint;
+  	     
+  	     int byte0, byte1, byte2, byte3;
+  	     
+  	     int sbyte0, sbyte1;
+  	     
+  	     unsigned char fixup0 = 0x00;
+  	     
+  	     unsigned char fixup1 = 0x80;
+  	   
+  	     if (sizeof(short int) != 2)  break;
+  	     
+  	     if (sizeof(int) != 4) break;
+  	     
+  	     pint = 0;
+  	     
+  	     sbyte0 = byte0 = 0;
+  	     
+  	     sbyte1 = byte1 = 1;
+  	     
+  	     byte2 = 2;
+  	     
+  	     byte3 = 3;
+  	     
+         unsigned_char_dest = 
+  	          (unsigned char *)(file->characters+file->characters_used);
+  	          
+  	     oint = (int *) unsigned_char_data;
+
+  	     if (toupper(border[0]) != toupper(byteorder[0])) {
+  	     
+  	       byte0 = 3;
+  	       
+  	       byte1 = 2;
+  	       
+  	       sbyte0 = byte2 = 1;
+  	       
+  	       sbyte1 = byte3 = 0;
+  	       
+  	     }
+  	     
+  	     if (toupper(byteorder[0]) == 'B'){
+  	     
+  	       fixup0 = 0x80;
+  	       
+  	       fixup1 = 0x0;
+  	     	
+  	     }
+  	     
+  	     for (count = 0; count < nelem; count++) {
+  	       
+  	       dint = oint[count] - pint;
+           
+           pint = oint[count];
+  	         
+  	       if (dint <= 127 && dint >= -127)  {
+  	         
+  	         *unsigned_char_dest++ = (unsigned char)dint;
+  	           
+  	         csize ++;
+  	         
+
+  	         
+  	       } else if (dint <= 32767 || dint >= -32767) {
+  	       
+  	         *unsigned_char_dest++ = 0x80;
+  	         
+  	         sint = dint;
+  	         
+  	         *unsigned_char_dest++ = ((unsigned char *)&sint)[sbyte0];
+  	             
+  	         *unsigned_char_dest++ = ((unsigned char *)&sint)[sbyte1];
+  	         
+  	         csize += 3;
+  	         
+  	       } else {
+  	         
+  	         if (csize > nelem*elsize-7) {
+  	           
+  	           if (compression&CBF_NO_EXPAND) return CBF_NOCOMPRESSION;
+  	               	             
+  	           if (cbf_set_output_buffersize(file,nelem*elsize*2-csize)) break;
+  	             
+  	           unsigned_char_dest = 
+  	             
+  	             (unsigned char *)(file->characters+file->characters_used+csize);
+
+  	         }
+  	           
+  	         *unsigned_char_dest++ = 0x80;
+  	         
+  	         *unsigned_char_dest++ = fixup0;
+  	         
+  	         *unsigned_char_dest++ = fixup1;
+
+  	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte0];
+  	             
+  	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte1];
+  	         
+  	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte2];
+  	             
+  	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte3];
+
+  	         csize +=7;
+  	               	         	
+
+  	       }
+  	     
+  	     } 
+
+   	     file->characters_used+=csize;
+  	  	
+  	     if (compressedsize)
+
+           *compressedsize = csize;
+        
+         return 0;
+ 	   
+  	   }
+
+  	   break;
+  	
+  	
+  	default:
+  	break;
+  }
+  
+    /* If we got here, we will do it the slow, painful way */
+
+
+  for (count = 0; count < nelem; count++) {
+  
+      /* Get the next element */
+
+    if (numints > 1) {
+
+      if (border[0] == 'b') {
+
+        for (iint = numints; iint; iint--) {
+
+            element[iint-1] = *((unsigned int *) unsigned_char_data);
+
+            unsigned_char_data += sizeof (int);
+
+        }
+
+      } else {
+
+        for (iint = 0; iint < numints; iint++) {
+
+            element[iint] = *((unsigned int *) unsigned_char_data);
+
+            unsigned_char_data += sizeof (int);
+        }
+      }
+
+    } else {
+
+    if (elsize == sizeof (int))
+
+      element[0] = *((unsigned int *) unsigned_char_data);
+
+    else
+
+      if (elsize == sizeof (short))
+
+        element[0] = *((unsigned short *) unsigned_char_data);
+
+      else
+
+        element[0] = *unsigned_char_data;
+
+    unsigned_char_data += elsize;
+
+    }
+
+
+      /* Make the element unsigned */
+
+    element[numints-1] += unsign;
+
+
+    element[numints-1] &= limit;
+
+    
+      /* Compute the delta */
+      
+    borrow = 0;
+    
+    kint = 0;
+    
+    if (numints > 1) {
+    
+      for (iint = 0; iint < numints; iint++) delta[iint] = prevelement[iint];
+      
+      cbf_failnez(cbf_mpint_negate_acc((unsigned int *)delta,numints));
+      
+      cbf_failnez(cbf_mpint_add_acc((unsigned int *)delta, numints, element, numints))
+    	
+    } else  {
+    
+      delta[0] = element[0] - prevelement[0];
+      
+      if (delta[0] & sign) delta[0] |= (~limit);
+    	
+    }
+      
+      
+    prevelement[0] = element[0];
+    
+    for (iint = 1; iint < numints; iint++) {
+    
+      prevelement[iint] = element[iint];
+      
+      if ((delta[0] >= 0 && delta[iint] != 0 )
+        || (delta[0] < 0 && (delta[iint]+1)!=0) ) kint = iint;
+      	
+    }
+    
+    if (kint == 0)  {
+    
+      if (delta[0] <= 127 && delta[0] >= -127) {
+      
+        cbf_failnez(cbf_put_bits(file,&delta[0],8))
+
+      	csize++;
+
+      } else if (sizeof(int) > 1 && delta[0] <= 32767 && delta[0] >= -32767) {
+      
+        cbf_failnez(cbf_put_bits(file,&bflag,8))
+        
+        cbf_failnez (cbf_put_integer (file, delta[0], 1, 16))
+        
+        csize +=3;   
+      	
+      } else if ( sizeof(int) > 2 && 
+          (sizeof(int) < 5 || (delta[0] <= 2147483647L && delta[0] >= -2147483647L ) ) ){
+          
+        cbf_failnez(cbf_put_bits(file,&bflag,24))
+      
+        cbf_failnez(cbf_put_integer (file, delta[0], 1, 32))
+
+        csize +=7;
+ 
+      } else if (sizeof(int) > 4 ) {
+ 
+        cbf_failnez(cbf_put_bits(file,&bflag,24))
+ 
+        cbf_failnez(cbf_put_bits(file,&bbflag,32))
+        
+        cbf_failnez (cbf_put_integer (file, delta[0], 1, 64))
+        
+        csize += 15;
+     	
+      } else {
+      	
+        return CBF_ARGUMENT;
+      
+      }
+    	
+    } else {
+    
+      if ((kint+1)*sizeof(int) < 5  ) {
+
+        cbf_failnez(cbf_put_bits(file,&bflag,24))
+              	
+        for (iint = 0; iint < numints; iint++) {
+
+          cbf_failnez (cbf_put_integer (file, delta[iint],
+                     iint==numints-1?1:0,
+                     iint<(numints-1)?(CHAR_BIT*sizeof (int)):
+                     bits-(CHAR_BIT*sizeof (int))*iint ))
+        }
+        
+        csize += 7;
+        
+      } else if ((kint+1)*sizeof(int) < 9 ) {
+
+        cbf_failnez(cbf_put_bits(file,&bflag,24))
+ 
+        cbf_failnez(cbf_put_bits(file,&bbflag,32))
+      	
+        for (iint = 0; iint < numints; iint++) {
+
+          cbf_failnez (cbf_put_integer (file, delta[iint],
+                     iint==numints-1?1:0,
+                     iint<(numints-1)?(CHAR_BIT*sizeof (int)):
+                     bits-(CHAR_BIT*sizeof (int))*iint ))
+        }
+        
+        csize += 15;
+      } else return CBF_ARGUMENT;
+
+    }
+    
+  }
+
+
+    /* Return the number of characters written */
+
+  if (compressedsize)
+
+    *compressedsize = csize;
+
+
+    /* Success */
+
+  return 0;
 }
 
 
@@ -290,15 +858,310 @@ int cbf_decompress_byte_offset (void         *destination,
                                 size_t        nelem,
                                 size_t       *nelem_read,
                                 unsigned int  compression,
+                                int           data_bits,
+                                int           data_sign,
                                 cbf_file     *file,
-                                int           realarray)
+                                int           realarray,
+                                const char   *byteorder,
+                                size_t        dimover,
+                                size_t        dim1,
+                                size_t        dim2,
+                                size_t        dim3,
+                                size_t        padding)
 {
-  fprintf (stderr,
-      "\n*** Byte-Offset Algorithm Not Implemented Yet -- Abort ***\n");
+  unsigned int element[4], prevelement[4], sign, unsign, limit;
 
-  exit (1);
+  unsigned int data_unsign;
 
-  return 1;
+  unsigned char *unsigned_char_data;
+
+  int errorcode, overflow, numints, iint, carry;
+  
+  int delta[4];
+
+  char * border;
+
+  char * rformat;
+  
+  size_t numread;
+
+    /* prepare the errorcode */
+
+  errorcode = 0;
+
+    /* Is the element size valid? */
+
+  if (elsize != sizeof (int) &&
+      elsize != 2* sizeof (int) &&
+      elsize != 4* sizeof (int) &&
+      elsize != sizeof (short) &&
+      elsize != sizeof (char))
+
+    return CBF_ARGUMENT;
+
+    /* check for compatible real format */
+
+  if ( realarray ) {
+
+    cbf_failnez (cbf_get_local_real_format(&rformat) )
+
+    if ( strncmp(rformat,"ieee",4) ) return CBF_ARGUMENT;
+
+  }
+
+    /* Check the stored element size */
+
+  if (data_bits < 1 || data_bits > 64)
+
+    return CBF_ARGUMENT;
+
+  numints = (data_bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
+
+
+    /* Initialise the pointer */
+
+  unsigned_char_data = (unsigned char *) destination;
+
+
+    /* Maximum limits */
+
+  sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
+
+  if (elsize == sizeof (int) || elsize == numints*sizeof(int))
+
+    limit = ~0;
+
+  else
+
+    if (numints == 1 ) {
+
+      limit = ~(-(1 << (elsize * CHAR_BIT)));
+
+    } else {
+
+      limit = ~(-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT)));
+
+    }
+
+
+    /* Offsets to make the value unsigned */
+
+  if (data_sign)
+
+    data_unsign = sign;
+
+  else
+
+    data_unsign = 0;
+
+  if (elsign)
+
+    unsign = sign;
+
+  else
+
+    unsign = 0;
+
+    /* Get the local byte order */
+
+  if (realarray) {
+
+    cbf_get_local_real_byte_order(&border);
+
+  } else {
+
+    cbf_get_local_integer_byte_order(&border);
+
+  }
+
+
+    /* Set up the previous element for increments */
+    
+  prevelement[0] = prevelement[1] = prevelement[2] = prevelement[3] = 0;
+  
+  prevelement[numints-1] = data_unsign;
+  
+
+    /* Read the elements */
+
+  overflow = 0;
+  
+  numread = 0;
+
+  while (numread < nelem)
+  {
+  
+    for (iint=0; iint < numints; iint++){
+    
+      element[iint] = prevelement[iint];
+      
+      delta[iint] = 0;
+    	
+    }
+    
+    carry = 0;
+    
+    cbf_failnez(cbf_get_bits(file,delta,8))
+        
+    if ((delta[0]&0xFF) == 0x80) {
+    
+    
+      cbf_failnez(cbf_get_bits(file,delta,16))
+            
+
+      if ( (delta[0]& 0xFFFF) == 0x8000)  {
+      	    
+        cbf_failnez(cbf_get_bits(file,delta,32))
+        
+        if ( (sizeof(int)==2 && delta[0] == 0 && delta[1] == 0x8000)
+           || (sizeof(int)> 3 && (delta[0]&0xFFFFFFFF)==0x80000000) )  {
+           
+          cbf_failnez(cbf_get_bits(file,delta,64))
+                  
+        } else {
+        
+          if (sizeof(int) == 2) {
+          
+            if (delta[1] & 0x8000)  {
+            
+              for (iint = 2; iint < numints; iint++) delta[iint] = ~0;
+            	
+            }
+          	
+          } else  {
+          
+            if (delta[0] & 0x80000000) {
+            
+              delta[0] |= ~0xFFFFFFFF;
+              
+      	      for (iint = 1; iint < numints; iint++) {
+      	
+      	        delta[iint] = ~0;
+      		
+      	      }              
+            	
+            }
+          	
+          }
+        	
+        }
+        
+        
+      }  else  {
+      
+        if (delta[0] & 0x80000) {
+        
+          delta[0] |= ~0xFFFF;
+        	
+      	  for (iint = 1; iint < numints; iint++) {
+      	
+      	    delta[iint] = ~0;
+      		
+      	  }
+        }
+      	
+      }
+      
+    	
+    } else {
+    
+      if (delta[0]&0x80) 
+      {
+      	delta[0] |= ~0xFF;
+      	
+      	for (iint = 1; iint < numints; iint++) {
+      	
+      	  delta[iint] = ~0;
+      		
+      	}
+      }
+    	
+    }
+    
+    
+    if (numints > 1) {
+    
+      for (iint = 0; iint < numints; iint++) element[iint] = prevelement[iint];
+      
+      cbf_failnez(cbf_mpint_add_acc(element,numints, (unsigned int *)delta,numints))
+    	
+    } else {
+    
+      element[0] = prevelement[0] + delta[0];
+      
+      element[0] &= limit;
+    	
+    }
+
+    for (iint = 0; iint < numints; iint++)   {
+        	
+      prevelement[iint] = element[iint];
+
+    }
+    
+
+      /* Make the element signed? */
+
+    element[numints-1] -= unsign;
+
+
+      /* Save the element */
+
+    if (numints > 1) {
+
+      if (border[0] == 'b') {
+
+        for (iint = numints; iint; iint--) {
+
+            *((unsigned int *) unsigned_char_data) = element[iint-1];
+
+            unsigned_char_data += sizeof (int);
+
+        }
+
+      } else {
+
+        for (iint = 0; iint < numints; iint++) {
+
+            *((unsigned int *) unsigned_char_data) = element[iint];
+
+            unsigned_char_data += sizeof (int);
+        }
+      }
+
+    } else {
+
+      if (elsize == sizeof (int))
+
+        *((unsigned int *) unsigned_char_data) = element[0];
+
+      else
+
+        if (elsize == sizeof (short))
+
+          *((unsigned short *) unsigned_char_data) = element[0];
+
+        else
+
+          *unsigned_char_data = element[0];
+
+      unsigned_char_data += elsize;
+
+    }
+    
+    numread++;
+  }
+
+    /* Number read */
+
+  if (nelem_read)
+
+    *nelem_read = numread;
+
+
+    /* Success */
+
+  return overflow;
 }
 
 

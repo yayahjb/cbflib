@@ -298,6 +298,13 @@
 
 #define I2CBUFSIZ 8192
 
+#ifdef __MINGW32__
+#define NOMKSTEMP
+#define NOTMPDIR
+#endif
+
+
+
 #undef cbf_failnez
 #define cbf_failnez(x) \
  {int err; \
@@ -324,8 +331,10 @@ int main (int argc, char *argv [])
   int c;
   int errflg = 0;
   char *imgin, *imgout;
-  char imgtmp[19];
+  char *imgtmp=NULL;
+#ifndef NOMKSTEMP
   int imgtmpfd;
+#endif
   int imgtmpused;
   int nbytes;
   char buf[I2CBUFSIZ];
@@ -512,7 +521,24 @@ int main (int argc, char *argv [])
     /* Read the image */
   
   if (!imgin || strcmp(imgin?imgin:"","-") == 0) {
-    strcpy(imgtmp, "/tmp/img2cifXXXXXX");
+     imgtmp=(char *)malloc(strlen("/tmp/img2cifXXXXXX")+1);
+#ifdef NOTMPDIR
+     strcpy(imgtmp, "img2cifXXXXXX");
+#else
+     strcpy(imgtmp, "/tmp/img2cifXXXXXX");
+#endif
+#ifdef NOMKSTEMP
+     if ((imgtmp = mktemp(imgtmp)) == NULL ) {
+       fprintf(stderr,"\n img2cif: Can't create temporary file name %s.\n", imgtmp);
+       fprintf(stderr,"%s\n",strerror(errno));
+       exit(1);
+     }
+     if ( (file = fopen(imgtmp,"wb+")) == NULL) {
+       fprintf(stderr,"Can't open temporary file %s.\n", imgtmp);
+       fprintf(stderr,"%s\n",strerror(errno));
+       exit(1);     	
+     }
+#else
     if ((imgtmpfd = mkstemp(imgtmp)) == -1 ) {
       fprintf(stderr,"Can't create temporary file %s.\n", imgtmp);
       fprintf(stderr,"%s\n",strerror(errno));
@@ -523,6 +549,7 @@ int main (int argc, char *argv [])
       fprintf(stderr,"%s\n",strerror(errno));
       exit(1);
     }
+#endif
     while ((nbytes = fread(buf, 1, 8192, stdin))) {
       if(nbytes != fwrite(buf, 1, nbytes, file)) {
         fprintf(stderr,"img2cif:  Failed to write %s.\n", imgtmp);

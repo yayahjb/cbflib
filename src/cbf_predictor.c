@@ -271,7 +271,12 @@ int cbf_compress_predictor (void         *source,
                             cbf_file     *file,
                             size_t       *compressedsize,
                             int          *storedbits,
-                            int           realarray)
+                            int           realarray,
+                            const char   *byteorder,
+                            size_t        dim1,
+                            size_t        dim2,
+                            size_t        dim3,
+                            size_t        padding)
 {
   fprintf (stderr,
       "\n*** Predictor-Huffman Algorithm Not Implemented Yet -- Abort ***\n");
@@ -290,8 +295,16 @@ int cbf_decompress_predictor (void         *destination,
                               size_t        nelem,
                               size_t       *nelem_read,
                               unsigned int  compression,
+                              int           data_bits,
+                              int           data_sign,
                               cbf_file     *file,
-                              int           realarray)
+                              int           realarray,
+                              const char   *byteorder,
+                              size_t        dimover,
+                              size_t        dim1,
+                              size_t        dim2,
+                              size_t        dim3,
+                              size_t        padding)
 {
   fprintf (stderr,
       "\n*** Predictor-Huffman Algorithm Not Implemented Yet -- Abort ***\n");

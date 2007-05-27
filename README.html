@@ -35,7 +35,7 @@ ALT="[CBFlib]"></A>
 <font color="#0808A0">
 <H2 ALIGN=CENTER>README</H2>
 <H3 ALIGN=CENTER>
-Information for CBFlib 0.7.6.1, 3 September 2006<BR>
+Information for CBFlib 0.7.7.5, 9 May 2007<BR>
 </H3>
 </font><font color="#000000">
 <CENTER>
@@ -59,7 +59,7 @@ name + domain + domext+"</a>");
 yaya&#64;bernstein-plus-sons&#46;com
 </noscript>
 <p>
-&#169; Copyright 2006 Herbert J. Bernstein
+&#169; Copyright 2006, 2007 Herbert J. Bernstein
 <P>
 <hr>
 <b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=doc/gpl.txt>GPL</a>.
@@ -79,9 +79,6 @@ information.
 <P>
 <HR>
 <P>
-This is a patched version of CBFlib_0.7.6.  The patch is to cbf.c to
-fix a bug in value range checking.
-<P>
 CBFLIB is a library of ANSI-C functions providing a simple mechanism for 
 accessing Crystallographic Binary Files (CBF files) and Image-supporting 
 CIF (imgCIF) files.  The CBFLIB API is loosely based on the CIFPARSE API
@@ -95,21 +92,21 @@ and write CBF binary data files and imgCIF ASCII data files.
 <H3>Installation</H3>
 <P>
 CBFLIB should be built on a disk with at least 200 megabytes of free 
-space.  <A HREF="../CBFlib_0.7.6.1.tar.gz">CBFlib_0.7.6.1.tar.gz</A> is a "gzipped" 
+space.  <A HREF="../CBFlib_0.7.7.tar.gz">CBFlib_0.7.7.tar.gz</A> is a "gzipped" 
 tar of the code as it now stands.  In addition,
-<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.6/CBFlib_0.7.6_Data_Files.tar.gz">CBFlib_0.7.6_Data_Files.tar.gz</a>
+<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.7/CBFlib_0.7.7_Data_Files.tar.gz">CBFlib_0.7.7_Data_Files.tar.gz</a>
 is a "gzipped tar of the data files needed to test the API.
 Place both gzipped tars in the directory
 that is intended to contain two new directories, named 
-CBFlib_0.7.6 (the &quot;top-level&quot; directory) and
-CBFlib_0.7.6_Data_Files.
+CBFlib_0.7.7 (the &quot;top-level&quot; directory) and
+CBFlib_0.7.7_Data_Files.
 Uncompress both tarballs with gunzip and unpack them with tar:
 <p>
 <PRE>
-     gunzip CBFlib_0.7.6.tar.gz
-     tar xvf CBFLIB_0.7.6.tar
-     gunzip CBFlib_0.7.6_Data_Files.tar.gz
-     tar xvf CBFLIB_0.7.6_Data_Files.tar
+     gunzip CBFlib_0.7.7.tar.gz
+     tar xvf CBFLIB_0.7.7.tar
+     gunzip CBFlib_0.7.7_Data_Files.tar.gz
+     tar xvf CBFLIB_0.7.7_Data_Files.tar
 </PRE>
 <p>
 As with prior releases, to run the test programs, you will also need 
@@ -117,7 +114,7 @@ Paul Ellis's sample MAR345 image,
 example.mar2300, and
 Chris Nielsen's sample ADSC Quantum 315 image, 
 mb_LP_1_001.img as sample data.  Both these files will be
-extracted by the Makefile from CBFlib_0.7.6_Data_Files.  Do
+extracted by the Makefile from CBFlib_0.7.7_Data_Files.  Do
 not download copies into the top level directory.
 <P>
 After unpacking the archives, the top-level directory should contain
@@ -132,9 +129,10 @@ and the subdirectories:
 <TABLE ALIGN=CENTER>
 <TR><TD>&nbsp;&nbsp;src/<TD>&nbsp;&nbsp;CBFLIB source files
 <TR><TD>&nbsp;&nbsp;include/<TD>&nbsp;&nbsp;CBFLIB header files
+<TR><TD>&nbsp;&nbsp;m4/<TD>&nbsp;&nbsp;CBFLIB m4 macro files (used to build .f90 files)
 <TR><TD>&nbsp;&nbsp;examples/<TD>&nbsp;&nbsp;Example program source files
 <TR><TD>&nbsp;&nbsp;doc/<TD>&nbsp;&nbsp;Documentation
-<TR><TD>&nbsp;&nbsp;lib/<TD>&nbsp;&nbsp;Compiled CBFLIB library
+<TR><TD>&nbsp;&nbsp;lib/<TD>&nbsp;&nbsp;Compiled CBFLIB (libcbf.a) and FCBLIB (libfcb.a) libraries 
 <TR><TD>&nbsp;&nbsp;bin/<TD>&nbsp;&nbsp;Executable example programs
 <TR><TD>&nbsp;&nbsp;html_images/<TD>&nbsp;&nbsp;JPEG images used in rendering the HTML files
 </TABLE>
@@ -150,7 +148,7 @@ the top-level directory and type:
 Please refer to the manual <a HREF="doc/CBFlib.html">doc/CBFlib.html</a>
 for more detailed information.<HR>
 <HR>
-Updated 2 September 2006.  
+Updated 9 May 2007.  
 <script language="javascript" type="text/javascript">
 <!-- 
       var name = "yaya@";

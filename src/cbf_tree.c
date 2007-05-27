@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_tree -- handle cbf nodes                                       *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2007 Herbert J. Bernstein                            *
  *                                                                    *
  **********************************************************************/
 
