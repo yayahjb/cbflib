@@ -2,12 +2,12 @@
  * cbf_codes -- convert between encoded and unencoded binary          *
  *              calculate message digest                              *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -309,7 +309,10 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-
+#include <math.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <wchar.h>
 
   /* Check a 24-character base-64 MD5 digest */
 
@@ -584,6 +587,232 @@ int cbf_tobase64 (cbf_file *infile, cbf_file *outfile, size_t size)
   return 0;
 }
 
+int cbf_tobase32k(cbf_file *infile, cbf_file *outfile, size_t size)
+{
+	#define maxlen 30
+	unsigned char  *txt = NULL;       /*text to be encoded null terminated*/
+        char *enc = NULL;       /*encoded text */
+        size_t* pencsize;       /*pointer to the size of enc null terminated*/
+        size_t encsize = 0;     /*size of enc*/
+        size_t sz = 0;		/*number of characters read*/
+	size_t  encchars = 0;	/*number of encoded characters altogether*/
+	int bigEndian = 0;
+	unsigned char tmp[3];
+	int count_w = 0;
+	int rav = 0;
+	unsigned char b;
+	int count_enc=0;
+	int new_l =0;
+	tmp[2] = '\0';
+        txt = (unsigned char *) malloc(sizeof(char) *maxlen + 1);
+	txt[maxlen] = '\0'; /*freaky but makes me feel better*/
+        pencsize = &encsize;
+	      sz =0;
+	      while(sz<maxlen)
+	      {
+		      int a =0;
+		      if((a = cbf_get_character(infile)) !=EOF)
+		      {
+			      b = a;
+			      txt[sz] =b;
+		      }
+		      else
+		      {
+		                     break;
+		      }
+		      sz++;
+
+
+
+		      
+              }
+       bigEndian = cbf_isBigEndian();
+	/*print the BOM*/
+	if(bigEndian != 0) {
+		cbf_put_character(outfile, '\xFF');
+		cbf_put_character(outfile, '\xFE');
+	} else {
+		 cbf_put_character(outfile, '\xFE');
+		 cbf_put_character(outfile, '\xFF');
+	}
+	
+		while(sz > 0)
+        	{
+			if(sz <30)
+			{
+				rav = 15 - ((sz*8)%15);			
+			}
+                	enc = cbf_encode32k_bit_op(txt, sz, pencsize);
+                	cbf_endianFix(enc ,*pencsize, 0, bigEndian);
+            count_w = 0;
+			while(count_w<*pencsize)
+			{
+				cbf_put_character(outfile, enc[count_w]);
+				count_w++;
+				count_enc++;			
+			}
+			if(new_l == 0)
+			{
+				new_l++;
+			}	
+			else if(new_l == 3)
+			{
+				cbf_put_character(outfile, '\x00');
+				cbf_put_character(outfile, '\x0A');				      
+				new_l =0;
+			}		
+
+			
+			encchars += *pencsize;
+		
+                	if(enc){
+                        	free(enc);
+                        	*pencsize = 0;
+                	}
+
+
+			sz =0;
+	    		  while(sz<maxlen)
+	      		{
+		      		int a =0;
+		      		if((a = cbf_get_character(infile)) !=EOF)
+		      {
+			      b = a;
+			      txt[sz] =b;
+		      }
+		      else
+		      {
+		                     break;
+		      }
+		      sz++;
+			}
+
+
+
+		}
+	     if(rav>=8 && rav<15)
+	      {
+		      if(cbf_isBigEndian() !=0)
+		      {
+			      cbf_put_character(outfile, '\x3D');
+			      cbf_put_character(outfile, '\x00');
+		      }
+		      else
+		      {
+			      cbf_put_character(outfile, '\x00');
+			      cbf_put_character(outfile, '\x3D');
+		      }
+		}
+
+			      cbf_put_character(outfile, '\xEF');
+			      cbf_put_character(outfile, '\xBB');
+			      cbf_put_character(outfile, '\xBF');
+		
+	return 0;
+}
+
+char * cbf_encode32k_bit_op(unsigned char *txt, size_t size, size_t *size2)
+{
+#define offset 1
+	 /*Formula:
+         *
+         * First loop bits taken from index-1: form n-1 to >= 0 ,right shift by + (7-n)
+         * Second loop bits taken from index:  from 7 to > n, right shift by -(n+1)
+	 
+         * Fourth loop bits taken from index+1: from 7 to > n right shift by -(n+1)
+         */
+        size_t pair = 0;
+	int shift = 0;
+        size_t n = 0;
+        size_t indx = 0;
+        size_t index = 0;
+        size_t pairs = 0;
+	unsigned char first = 0;
+        unsigned char second = 0;
+        unsigned char mask = 1;
+        unsigned char result = 0;
+	char * res = NULL;	/*the encoded string (result)*/
+	
+	/*find out the number of pairs and the length of the string enc*/
+	pairs = ceil(((double)size *8.0)/15.0);	 /*On every 16 bits we have one bit lost 
+						   so we use 16 bits for encoding 15 bits */
+	*size2 = pairs *2;
+	res = (char *) malloc(sizeof(char)*(*size2));
+	memset(res, 0, *size2);
+/*loop through all pairs and encode them */
+  for(pair = 0; pair< pairs; pair++)
+  {
+	  n = pair%8;
+	  indx = pair*2;
+	  index = indx - (pair/8);
+       	  first = 0;
+	  second = 0;
+	  result = 0;
+	  
+/*encoding algorithm starts*/  
+	  /*First character*/
+        if(index <= size)  {
+                for(shift =n-1;shift >=0;shift--)
+                {
+                        result = txt[index-1]>>shift;
+                        result = result & mask;
+                        first += result << (shift +(7 - n));
+                }
+                if(index < size){
+                        for(shift = 7; shift > n; shift--)
+                        {
+                                result = txt[index] >> shift;
+                                result = result & mask;
+                                first += result << (shift - (n + 1));
+                        }
+  	/*fill in the second character*/
+                        for(shift = n;shift >= 0; shift--)
+                        {
+                                result = txt[index] >> shift;
+                                result = result & mask;
+                                second += result << (shift + (7 -n));
+        		}
+                        if((index + 1) < size){
+		       		for(shift = 7; shift > n; shift --)
+                                {
+                                        result = txt[index+1] >> shift;
+                                        result = result & mask;
+                                        second += result << (shift - (n+1));
+                                }
+                        }
+                }
+        }
+	res[indx] = first + offset;
+        res[indx+1] = second;
+  }
+  return res;		
+
+
+}
+
+/*Determine whether the machine is little endian*/
+int cbf_isBigEndian()
+{
+	long tmp = 1;
+	
+	return !((char *)(&tmp));
+}
+
+void cbf_endianFix(char *str, size_t size, int fromEndian, int toEndian)
+{
+	size_t i = 0; 
+
+	if(fromEndian != toEndian){
+		for (i = 0; i < size; i+=2)
+		{
+			/*exchange the two bytes*/
+			/*since we are in bitwise mood use the triple xor trick*/
+			str[i] ^= str[i+1];
+			str[i+1] ^= str[i];
+			str[i]  ^= str[i+1];
+		}	
+	}
+}
 
   /* Convert binary data to base-8/base-10/base-16 text */
 
@@ -1071,6 +1300,977 @@ int cbf_frombase64 (cbf_file *infile, cbf_file *outfile, size_t size,
 
   return 0;
 }
+
+int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *readsize, char *digest)
+{
+	MD5_CTX context;
+	unsigned char buffer[64], rawdigest [17];
+	int bufsize;
+        char *enc = NULL;       /*encoded text */
+        char *decoded = NULL;   /*decoded text (should be the same as txt)*/
+        size_t sz = 0;
+	int mah =0;		/*the number of bytes that should be cut from the end*/
+	int clear;
+	char b ='\0';
+	int a = 0;
+	int sc;
+	int count_w =0;
+	int check_range =0;
+	size_t all = 0;
+	
+	/* Initialize the MD5 context*/
+	if (digest)
+		MD5Init(&context);
+	bufsize =0;
+
+	enc = (char *) malloc(32*sizeof(char));
+	decoded = (char *) malloc(30*sizeof(char));
+	
+	sz =0;
+	while(sz<2)
+	{
+		a =0;
+		if((a = cbf_get_character(infile)) !=EOF)
+	        {
+			b = a;
+			enc[sz] =b;
+		}
+		else	
+		{
+		           break;
+		}
+	        sz++;
+	 }	
+
+		
+	if((enc[0] == '\xFF' && enc[1] == '\xFE' && cbf_isBigEndian() == 0) || (enc[0] == '\xFE' && enc[1] == '\xFF' && cbf_isBigEndian() !=0))
+	{
+		sz =0;
+		while(sz<32)
+                {
+			a =0;
+                   	if((a = cbf_get_character(infile)) !=EOF)
+                       	{
+				if(sz%2 == 0)
+                              	{
+   	                          	b = a;
+					check_range =a;
+                                }
+                              	else if(sz%2 == 1)
+                              	{
+                                       	check_range = check_range+256*a;
+					if((check_range < 256 || check_range > 33023) && (check_range != 61 && check_range != 61371))
+                                        {
+                                        	sz--;
+                                              	continue;
+                                      	}
+                               		else
+					{
+                                              	enc[sz-1] =b;
+                                               	b =a;
+                                               	enc[sz] =b;
+                                       	}
+                         	}
+                          }
+			 else
+			 {
+				break;
+			 }
+                         sz++;
+				 
+                 }
+		if(cbf_isBigEndian() == 0) /* it is big endian */
+		{
+			cbf_endianFix(enc, sz, 1, 0);
+		}
+		else if(cbf_isBigEndian() != 0)
+		{
+			cbf_endianFix(enc, sz, 0, 1);
+		}
+		sc=0;
+       		while(sc<sz)	
+		{
+		 	if(enc[sc]=='\xEF' && enc[sc+1]=='\xBB')
+			{
+				sz=sc;
+			}
+			else
+			{
+				sc+=2;	 	
+			}
+		}
+					
+		while(sz>0)
+		{
+			if(sz>0 && sz<18)
+			{	
+				
+				
+					if(enc[sz-2] == '\x00' && enc[sz-1] == '\x3D')
+					{
+						cbf_decode32k_bit_op(enc, decoded, (sz-2));
+						count_w=0;
+						while(count_w<(sz-4))
+			                        { 
+							if(outfile)
+							
+							cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+							if (digest)
+							{
+								buffer[bufsize] = decoded[count_w];
+								bufsize++;
+
+								if (bufsize >63)
+								{
+									MD5Update( &context, buffer, 64);
+									bufsize = 0;
+
+								}
+							}
+							count_w++;
+							all++;
+						}
+						sz=0;
+					}
+					else{
+						size_t temp = sz;
+						cbf_decode32k_bit_op(enc, decoded, temp);
+						count_w=0;
+				 		while(count_w<(temp-1))
+				 		{
+							if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;									                                   
+						}       
+					}
+				
+				for (clear=0; clear<30; clear++)
+				{
+					decoded[clear]='\0';
+				}
+				sz = 0;	
+				break;
+			}
+			else if(sz == 18)
+			{
+				
+					if(enc[16] == '\x00' && enc[17] == '\x3D')
+					{
+						mah = 1;
+						cbf_decode32k_bit_op(enc, decoded, (sz-2));
+						count_w=0;
+						 while(count_w<(sz-4))
+						 {
+							if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+						 } 
+						
+							
+					}
+					else
+					{
+						
+						int temp = sz;
+						cbf_decode32k_bit_op(enc, decoded, temp);
+						count_w=0;
+						while(count_w<(temp-2))
+						{
+							if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+						}
+						sz=-1;
+					}
+					for (clear=0; clear<30; clear++)
+					{
+						decoded[clear]='\0';
+					}
+					sz=0;
+				
+					
+			}
+
+			else if(sz>18 && sz<32)
+			{		
+						if(enc[sz-2]=='\x00' && enc[sz-1] =='\x3D')
+						{
+							cbf_decode32k_bit_op(enc, decoded, (sz-2));
+							count_w=0;
+							while(count_w<(sz-5))
+							{
+								if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+							}
+							sz=0;
+							
+						}
+				
+						else{
+							int temp = sz;
+							cbf_decode32k_bit_op(enc, decoded, temp);
+								count_w=0;
+								while(count_w<(temp-2))
+							{
+								if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+							}
+						   }
+				
+				for (clear=0; clear<30; clear++)
+				{
+					decoded[clear]='\0';
+				}
+				sz=0;
+				
+			}	
+		
+			else if (sz == 32)
+			{
+				if(enc[30] == '\x00' && enc[31] == '\x3D')
+				{
+				        cbf_decode32k_bit_op(enc, decoded, (sz-2));
+						count_w=0;
+						 while(count_w<(sz-5))
+						 {
+							if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+						 }
+					sz=0;		 
+				}					
+				else
+				{		
+					cbf_decode32k_bit_op(enc, decoded, 32);
+		        		sz =0;
+                        	 while(sz<32)
+                        	 {
+                                 	a =0;
+                                 	if((a = cbf_get_character(infile)) !=EOF)
+                                 	{
+                                         	if(sz%2 == 0)
+                                         	{
+                                         	       b = a;
+                                         	       check_range = a;
+                                         	}
+                                         	else if (sz%2 == 1)
+                                        	{
+                                                	check_range = check_range + 256*a;
+                                               		if((check_range < 256 || check_range > 33023) && (check_range != 61 && check_range != 61371))
+                                                	{
+                                                        	sz--;
+        							continue;                        
+                                                	}
+                                                	else{
+                                                        	enc[sz-1] =b;
+                                                        	b =a;
+                                                        	enc[sz] =b;
+                                                	}
+                                        	}
+
+					
+                                	 }
+
+					 else{
+						
+						break;
+				 	}
+                                 	sz++; 
+                          	} 
+				if(cbf_isBigEndian() == 0) /*it is big endian */
+				{
+					cbf_endianFix(enc, sz, 1, 0);
+				}
+				else if(cbf_isBigEndian() != 0)
+				{
+					cbf_endianFix(enc, sz, 0, 1);
+				}
+				 sc =0;
+				 while(sc<sz)
+				 {
+				 	if(enc[sc] == '\xEF' &&  enc[sc+1]=='\xBB')
+					{
+						sz=sc;
+					}
+					else
+					{
+						sc+=2;
+				 
+				 
+				 	}
+			}
+			
+					if(enc[0] == '\x00' && enc[1] == '\x3D')
+					{
+	/*					fwrite(decoded, 1, 29, fout); */
+						count_w=0;
+						while(count_w<29)
+						{
+							if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+						}
+						for (clear=0; clear<30; clear++)
+						{
+							decoded[clear]='\0';
+						}
+
+					
+						sz=0;
+					}		
+					else
+					{
+						count_w=0;
+						while(count_w<30)
+						{
+							if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+						}   
+						for (clear=0; clear<30; clear++)
+					 	{
+						 	decoded[clear]='\0';
+					 	}
+					 
+					}
+				
+				} 
+	
+			}	
+			
+		}
+
+/* Get the digest */
+
+  if (digest)
+  {
+    if (bufsize)
+
+      MD5Update (&context, buffer, bufsize);
+
+    MD5Final (rawdigest, &context);
+
+    cbf_md5digest_to64 (digest, rawdigest);
+  }
+
+
+    /* Flush the buffer */
+
+  if (outfile)
+
+    cbf_failnez (cbf_flush_characters (outfile))
+
+
+    /* Save the number of characters read */
+
+  if (readsize)
+
+    *readsize = all;
+
+
+
+		return 0;
+	}
+	else if((enc[0] == '\xFF' && enc[1] == '\xFE') || (enc[0] == '\xFE' && enc[1] == '\xFF') )
+
+	{
+		sz =0;
+		while(sz<32)
+                {
+			a =0;
+                   	if((a = cbf_get_character(infile)) !=EOF)
+                       	{
+				if(sz%2 == 0)
+                              	{
+   	                          	b = a;
+					check_range =256*a;
+                                }
+                              	else if(sz%2 == 1)
+                              	{
+                                       	check_range = check_range+a;
+					if((check_range < 256 || check_range > 33023) && (check_range != 61 && check_range != 61371))
+                                        {
+                                        	sz--;
+                                              	continue;
+                                      	}
+                               		else
+					{
+                                              	enc[sz-1] =b;
+                                               	b =a;
+                                               	enc[sz] =b;
+                                       	}
+                         	}
+                          }
+			 else
+			 {
+				break;
+			 }
+                         sz++;
+				 
+                 }
+		sc=0;
+       		while(sc<sz)	
+		{
+		 	if(enc[sc]=='\xEF' && enc[sc+1]=='\xBB')
+			{
+				sz=sc;
+			}
+			else
+			{
+				sc+=2;	 	
+			}
+		}
+					
+		while(sz>0)
+		{
+			if(sz>0 && sz<18)
+			{	
+				
+				
+					if(enc[sz-2] == '\x00' && enc[sz-1] == '\x3D')
+					{
+						cbf_decode32k_bit_op(enc, decoded, (sz-2));
+						count_w=0;
+						while(count_w<(sz-4))
+			                        { 
+							if(outfile)
+							
+							cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+							if (digest)
+							{
+								buffer[bufsize] = decoded[count_w];
+								bufsize++;
+
+								if (bufsize >63)
+								{
+									MD5Update( &context, buffer, 64);
+									bufsize = 0;
+
+								}
+							}
+							count_w++;
+							all++;
+						}
+						sz=0;
+					}
+					else{
+						size_t temp = sz;
+						cbf_decode32k_bit_op(enc, decoded, temp);
+						count_w=0;
+				 		while(count_w<(temp-1))
+				 		{
+							if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;									                                   
+						}       
+					}
+				
+				for (clear=0; clear<30; clear++)
+				{
+					decoded[clear]='\0';
+				}
+				sz = 0;	
+				break;
+			}
+			else if(sz == 18)
+			{
+				
+					if(enc[16] == '\x00' && enc[17] == '\x3D')
+					{
+						mah = 1;
+						cbf_decode32k_bit_op(enc, decoded, (sz-2));
+						count_w=0;
+						 while(count_w<(sz-4))
+						 {
+							if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+						 } 
+						
+							
+					}
+					else
+					{
+						
+						int temp = sz;
+						cbf_decode32k_bit_op(enc, decoded, temp);
+						count_w=0;
+						while(count_w<(temp-2))
+						{
+							if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+						}
+						sz=-1;
+					}
+					for (clear=0; clear<30; clear++)
+					{
+						decoded[clear]='\0';
+					}
+					sz=0;
+				
+					
+			}
+
+			else if(sz>18 && sz<32)
+			{		
+						if(enc[sz-2]=='\x00' && enc[sz-1] =='\x3D')
+						{
+							cbf_decode32k_bit_op(enc, decoded, (sz-2));
+							count_w=0;
+							while(count_w<(sz-5))
+							{
+								if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+							}
+							sz=0;
+							
+						}
+				
+						else{
+							int temp = sz;
+							cbf_decode32k_bit_op(enc, decoded, temp);
+								count_w=0;
+								while(count_w<(temp-2))
+							{
+								if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+							}
+						   }
+				
+				for (clear=0; clear<30; clear++)
+				{
+					decoded[clear]='\0';
+				}
+				sz=0;
+				
+			}	
+		
+			else if (sz == 32)
+			{
+				if(enc[30] == '\x00' && enc[31] == '\x3D')
+				{
+				        cbf_decode32k_bit_op(enc, decoded, (sz-2));
+						count_w=0;
+						 while(count_w<(sz-5))
+						 {
+							if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+						 }
+					sz=0;		 
+				}					
+				else
+				{		
+					cbf_decode32k_bit_op(enc, decoded, 32);
+		        		sz =0;
+                        	 while(sz<32)
+                        	 {
+                                 	a =0;
+                                 	if((a = cbf_get_character(infile)) !=EOF)
+                                 	{
+                                         	if(sz%2 == 0)
+                                         	{
+                                         	       b = a;
+                                         	       check_range = 256*a;
+                                         	}
+                                         	else if (sz%2 == 1)
+                                        	{
+                                                	check_range = check_range + a;
+                                               		if((check_range < 256 || check_range > 33023) && (check_range != 61 && check_range != 61371))
+                                                	{
+                                                        	sz--;
+								continue;
+                                
+                                                	}
+                                                	else{
+                                                        	enc[sz-1] =b;
+                                                        	b =a;
+                                                        	enc[sz] =b;
+                                                	}
+                                        	}
+
+					
+                                	 }
+
+					 else{
+						
+						break;
+				 	}
+                                 	sz++; 
+                          	} 
+				 sc =0;
+				 while(sc<sz)
+				 {
+				 	if(enc[sc]=='\xEF' && enc[sc+1]=='\xBB')
+					{
+						sz=sc;
+					}
+					else
+					{
+						sc+=2;
+				 
+				 
+				 	}
+			}
+				
+					if(enc[0] == '\x00' && enc[1] == '\x3D')
+					{
+	/*					fwrite(decoded, 1, 29, fout); */
+						count_w=0;
+						while(count_w<29)
+						{
+							if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+						}
+						for (clear=0; clear<30; clear++)
+						{
+							decoded[clear]='\0';
+						}
+
+					
+						sz=0;
+					}		
+					else
+					{
+						count_w=0;
+						while(count_w<30)
+						{
+							if(outfile)
+							
+						cbf_failnez(cbf_put_character(outfile, decoded[count_w]));
+						if (digest)
+						{
+							buffer[bufsize] = decoded[count_w];
+							bufsize++;
+
+							if (bufsize >63)
+							{
+								MD5Update( &context, buffer, 64);
+								bufsize = 0;
+
+							}
+						}
+							count_w++;
+							all++;
+						}   
+						for (clear=0; clear<30; clear++)
+					 	{
+						 	decoded[clear]='\0';
+					 	}
+					 
+					}
+				
+				} 
+	
+			}	
+			
+		}
+
+
+/* Get the digest */
+
+  if (digest)
+  {
+    if (bufsize)
+
+      MD5Update (&context, buffer, bufsize);
+
+    MD5Final (rawdigest, &context);
+
+    cbf_md5digest_to64 (digest, rawdigest);
+  }
+
+
+    /* Flush the buffer */
+
+  if (outfile)
+
+    cbf_failnez (cbf_flush_characters (outfile))
+
+
+    /* Save the number of characters read */
+
+  if (readsize)
+
+    *readsize = all;
+
+
+
+		return 0;
+	}
+	
+
+	else
+
+	{
+			printf("The file given for decoding was not correctly encoded!");
+			return -1;
+	}
+}
+
+int cbf_decode32k_bit_op(char *encoded, char *decoded, size_t size)
+{
+        unsigned char tmp = '\0';
+        unsigned char result = '\0';
+        unsigned char mask = 1;
+
+        size_t i = 0,j=0;
+        int need= 7, have = -1;
+	
+        for(i = 0;i < size; i++)       
+        {
+                result= '\0';
+                need = 7;       /*zero based*/
+                /*make another loop form 0 to need and add bits to result until need is zero*/
+                while(need > -1)
+                {
+                        /*if there are no more bits left take the next character*/
+                        if(have == -1){
+                         /*if this is the first character in a pair then subtract the offset
+                                *and record that it has only 7 bits
+				*/
+                                if(j % 2== 0){
+                                        tmp = encoded[j] -offset;
+                                        have = 6;
+                                } else {
+                                        tmp = encoded[j];
+                                        have = 7;
+                                }
+				j++;
+                        }
+                        result = tmp >>have;
+                        result = result & mask;
+                        result = result <<need;
+                        decoded[i] += result;
+                        have--;
+ 			need--;
+                }
+        }
+	return 1;
+}
+
+
+
+
+
+
+
 
 
   /* Convert base-8/base-10/base-16 text to binary data */

@@ -306,6 +306,12 @@
 
 #define C2CBUFSIZ 8192
 
+#ifdef __MINGW32__
+#define NOMKSTEMP
+#define NOTMPDIR
+#endif
+
+
 int local_exit (int status);
 
 #undef cbf_failnez
@@ -330,7 +336,9 @@ int main (int argc, char *argv [])
   int errflg = 0;
   char *cifin, *codeout, *function_name;
   char ciftmp[19];
+#ifndef NOMKSTEMP
   int ciftmpfd;
+#endif
   int ciftmpused;
   unsigned int nbytes;
   char buf[C2CBUFSIZ];
@@ -407,7 +415,23 @@ int main (int argc, char *argv [])
     /* Read the cif */
 
    if (!cifin || strcmp(cifin?cifin:"","-") == 0) {
+#ifdef NOTMPDIR
+     strcpy(ciftmp, "cif2cXXXXXX");
+#else
      strcpy(ciftmp, "/tmp/cif2cXXXXXX");
+#endif
+#ifdef NOMKSTEMP
+     if ((ciftmp = mktemp(ciftmp)) == NULL ) {
+       fprintf(stderr,"\n cif2c: Can't create temporary file name %s.\n", ciftmp);
+       fprintf(stderr,"%s\n",strerror(errno));
+       exit(1);
+     }
+     if ( (file = fopen(ciftmp,"wb+")) == NULL) {
+       fprintf(stderr,"Can't open temporary file %s.\n", ciftmp);
+       fprintf(stderr,"%s\n",strerror(errno));
+       exit(1);     	
+     }
+#else
      if ((ciftmpfd = mkstemp(ciftmp)) == -1 ) {
        fprintf(stderr,"Can't create temporary file %s.\n", ciftmp);
        fprintf(stderr,"%s\n",strerror(errno));
@@ -418,6 +442,7 @@ int main (int argc, char *argv [])
        fprintf(stderr,"%s\n",strerror(errno));
        exit(1);
      }
+#endif
      while ((nbytes = fread(buf, 1, C2CBUFSIZ, stdin))) {
        if(nbytes != fwrite(buf, 1, nbytes, file)) {
          fprintf(stderr,"Failed to write %s.\n", ciftmp);

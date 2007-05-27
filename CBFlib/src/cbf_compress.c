@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_compress -- compression and decompression                      *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.6 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -280,7 +280,12 @@ int cbf_compress (void         *source,
                   size_t       *compressedsize,
                   int          *bits,
                   char         *digest,
-                  int           realarray)
+                  int           realarray,
+                  const char   *byteorder,
+                  size_t        dim1,
+                  size_t        dim2,
+                  size_t        dim3,
+                  size_t        padding)
 {
   int errorcode;
 
@@ -307,42 +312,48 @@ int cbf_compress (void         *source,
 
   size = 0;
 
-  switch (compression)
+  switch (compression&CBF_COMPRESSION_MASK)
   {
     case CBF_CANONICAL:
 
       errorcode = cbf_compress_canonical (source, elsize, elsign, nelem,
                                           compression, file,
-                                          &size, bits, realarray);
+                                          &size, bits, realarray,
+                                          byteorder, dim1, dim2, dim3, padding);
       break;
 
     case CBF_PACKED:
+    case CBF_PACKED_V2:
     case 0:
 
       errorcode = cbf_compress_packed (source, elsize, elsign, nelem,
                                        compression, file,
-                                       &size, bits, realarray);
+                                       &size, bits, realarray,
+                                       byteorder, dim1, dim2, dim3, padding);
       break;
 
     case CBF_BYTE_OFFSET:
 
       errorcode = cbf_compress_byte_offset (source, elsize, elsign, nelem,
                                             compression, file,
-                                            &size, bits, realarray);
+                                            &size, bits, realarray,
+                                            byteorder, dim1, dim2, dim3, padding);
       break;
 
     case CBF_PREDICTOR:
 
       errorcode = cbf_compress_predictor (source, elsize, elsign, nelem,
                                           compression, file,
-                                          &size, bits, realarray);
+                                          &size, bits, realarray,
+                                          byteorder, dim1, dim2, dim3, padding);
       break;
 
     case CBF_NONE:
 
       errorcode = cbf_compress_none (source, elsize, elsign, nelem,
                                      compression, file,
-                                     &size, bits, realarray);
+                                     &size, bits, realarray,
+                                     byteorder, dim1, dim2, dim3, padding);
       break;
 
   default:
@@ -396,19 +407,21 @@ int cbf_decompress_parameters (int          *eltype,
 
     /* Discard any bits in the buffers */
 
-  cbf_failnez (cbf_reset_bits (file));
+  file->bits [0] = 0;
+  file->bits [1] = 0;
 
    /* Check compression type */
 
   if (compression != CBF_CANONICAL   &&
-      compression != CBF_PACKED      &&
+      (compression&CBF_COMPRESSION_MASK) != CBF_PACKED      &&
+      (compression&CBF_COMPRESSION_MASK) != CBF_PACKED_V2   &&
       compression != CBF_BYTE_OFFSET &&
       compression != CBF_PREDICTOR   &&
       compression != CBF_NONE)
 
     return CBF_FORMAT;
 
-  if (compression == CBF_NONE)
+  if (compression == CBF_NONE || compression == CBF_BYTE_OFFSET )
   {
     nelem_file = 0;
 
@@ -534,40 +547,52 @@ int cbf_decompress (void         *destination,
                     int           bits,
                     int           sign,
                     cbf_file     *file,
-                    int           realarray)
+                    int           realarray,
+                    const char   *byteorder,
+                    size_t        dimover,
+                    size_t        dim1,
+                    size_t        dim2,
+                    size_t        dim3,
+                    size_t        padding)
 {
-  switch (compression)
+  switch (compression&CBF_COMPRESSION_MASK)
   {
     case CBF_CANONICAL:
 
       return cbf_decompress_canonical (destination, elsize, elsign, nelem,
                                        nelem_read, compression,
-                                       file, realarray);
+                                       bits, sign, file, realarray, byteorder,
+                                       dimover, dim1, dim2, dim3, padding);
 
     case CBF_PACKED:
+    case CBF_PACKED_V2:
     case 0:
 
       return cbf_decompress_packed (destination, elsize, elsign, nelem,
                                     nelem_read, compression,
-                                    file, realarray);
+                                    bits, sign, file, realarray, byteorder,
+                                    dimover, dim1, dim2, dim3, padding);
 
     case CBF_BYTE_OFFSET:
 
       return cbf_decompress_byte_offset (destination, elsize, elsign, nelem,
                                          nelem_read, compression,
-                                         file, realarray);
+                                         bits, sign, file, realarray, byteorder,
+                                         dimover, dim1, dim2, dim3, padding);
 
     case CBF_PREDICTOR:
 
       return cbf_decompress_predictor (destination, elsize, elsign, nelem,
                                        nelem_read, compression,
-                                       file, realarray);
+                                       bits, sign, file, realarray, byteorder,
+                                       dimover, dim1, dim2, dim3, padding);
 
     case CBF_NONE:
 
       return cbf_decompress_none (destination, elsize, elsign, nelem,
                                   nelem_read, compression,
-                                  bits, sign, file, realarray);
+                                  bits, sign, file, realarray, byteorder,
+                                  dimover, dim1, dim2, dim3, padding);
   }
 
 

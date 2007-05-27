@@ -1,7 +1,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.7.6.3 21 January 2007                                    #
+# Version 0.7.7 26 April 2007                                        #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -249,7 +249,7 @@
 
 
 # Version string
-VERSION = 0.7.6.3
+VERSION = 0.7.7
 
 
 #
@@ -263,13 +263,55 @@ endif
 #
 # Set the compiler and flags
 #
-#CC	= cc
+#########################################################
+#
+#  Appropriate compiler definitions for MAC OS X
+#
+#########################################################
 CC	= gcc
 C++	= g++
-#CFLAGS	= -O
-#CFLAGS	= -g3 -O2
-#CFLAGS  = -g -O2  -Wall 
 CFLAGS  = -g -O2  -Wall -ansi -pedantic
+F90C = gfortran
+F90FLAGS = -g
+F90LDFLAGS = -bind_at_load
+TIME = time
+#########################################################
+#
+#  Appropriate compiler definitions for Linux
+#
+#########################################################
+#CC	= gcc
+#C++	= g++
+#CFLAGS  = -g -O2  -Wall -ansi -pedantic
+#F90C = gfortran
+#F90FLAGS = -g
+#F90LDFLAGS = 
+#TIME = time
+#########################################################
+#
+#  Appropriate compiler definitions for AIX
+#
+#########################################################
+#CC	= xlc
+#C++	= xlC
+#CFLAGS  = -g -O2  -Wall
+#F90C = xlf90
+#F90FLAGS = -g -qsuffix=f=f90
+#F90LDFLAGS = 
+#TIME = time
+#########################################################
+#
+#  Appropriate compiler definitions for Mingw
+#
+#########################################################
+#CC	= gcc
+#C++	= g++
+#CFLAGS  = -g -O2  -Wall 
+#F90C = g95
+#F90FLAGS = -g
+#F90LDFLAGS = 
+#TIME = 
+
 
 #
 # Program to use to pack shars
@@ -302,6 +344,10 @@ CEXT = .bz2
 DOWNLOAD = /sw/bin/wget
 #DOWNLOAD = /usr/bin/wget
 
+# call to time a command
+
+#TIME =
+#TIME = time
 
 #
 # Directories
@@ -311,6 +357,7 @@ LIB      = $(ROOT)/lib
 BIN      = $(ROOT)/bin
 SRC      = $(ROOT)/src
 INCLUDE  = $(ROOT)/include
+M4       = $(ROOT)/m4
 EXAMPLES = $(ROOT)/examples
 DOC      = $(ROOT)/doc
 GRAPHICS = $(ROOT)/html_graphics
@@ -335,7 +382,14 @@ INCLUDES = -I$(INCLUDE) -I$(SRC)
 #
 # Suffixes of files to be used or built
 #
-.SUFFIXES:	.c .o
+.SUFFIXES:	.c .o .f90 .m4
+
+.m4.f90:
+		m4 -P $< > $@
+
+.f90.o:
+		$(F90C) $(F90FLAGS) -c $< -o $@
+
 
 #
 # Common dependencies
@@ -368,7 +422,24 @@ SOURCE   =  $(SRC)/cbf.c               \
             $(SRC)/cbf_write.c         \
             $(SRC)/cbf_write_binary.c  \
             $(SRC)/md5c.c
+ 
+F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
+            $(SRC)/fcb_ci_strncmparr.f90 \
+            $(SRC)/fcb_exit_binary.f90   \
+            $(SRC)/fcb_nblen_array.f90   \
+            $(SRC)/fcb_next_binary.f90   \
+            $(SRC)/fcb_open_cifin.f90    \
+            $(SRC)/fcb_packed.f90        \
+            $(SRC)/fcb_read_bits.f90     \
+            $(SRC)/fcb_read_byte.f90     \
+            $(SRC)/fcb_read_image.f90    \
+            $(SRC)/fcb_read_line.f90     \
+            $(SRC)/fcb_read_xds_i2.f90   \
+            $(SRC)/fcb_skip_whitespace.f90 \
+            $(EXAMPLES)/test_fcb_read_image.f90 \
+            $(EXAMPLES)/test_xds_binary.f90
             
+           
 #
 # Header files
 #
@@ -394,8 +465,22 @@ HEADERS   =  $(INCLUDE)/cbf.h                  \
              $(INCLUDE)/cbf_uncompressed.h     \
              $(INCLUDE)/cbf_write.h            \
              $(INCLUDE)/cbf_write_binary.h     \
-             $(INCLUDE)/global.h                   \
+             $(INCLUDE)/global.h               \
              $(INCLUDE)/md5.h
+
+#
+# m4 macro files
+#
+M4FILES   = $(M4)/fcblib_defines.m4            \
+			$(M4)/fcb_exit_binary.m4           \
+            $(M4)/fcb_next_binary.m4           \
+            $(M4)/fcb_open_cifin.m4            \
+            $(M4)/fcb_packed.m4                \
+            $(M4)/fcb_read_bits.m4             \
+            $(M4)/fcb_read_image.m4            \
+            $(M4)/fcb_read_xds_i2.m4           \
+            $(M4)/test_fcb_read_image.m4       \
+            $(M4)/test_xds_binary.m4
 
 
 #
@@ -475,15 +560,22 @@ default:
 #
 # Compile the library and examples
 #
-all:	$(LIB) $(BIN) $(SOURCE) $(HEADERS)  \
+all:	$(LIB) $(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS)  \
 		$(LIB)/libcbf.a          \
+		$(LIB)/libfcb.a          \
+		$(LIB)/libimg.a          \
         $(BIN)/convert_image     \
+        $(BIN)/convert_minicbf   \
         $(BIN)/makecbf           \
         $(BIN)/img2cif           \
         $(BIN)/cif2cbf           \
 		$(BIN)/testcell          \
 		$(BIN)/cif2c             \
-		$(BIN)/testreals
+		$(BIN)/testreals         \
+		$(BIN)/testflat          \
+		$(BIN)/testflatpacked    \
+		$(BIN)/test_xds_binary   \
+		$(BIN)/test_fcb_read_image
 
 
 install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin
@@ -491,6 +583,8 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin
 		cp $(LIB)/libcbf.a $(INSTALLDIR)/lib/libcbf.a
 		-cp $(INSTALLDIR)/bin/convert_image $(INSTALLDIR)/bin/convert_image_old
 		cp $(BIN)/convert_image $(INSTALLDIR)/bin/convert_image
+		-cp $(INSTALLDIR)/bin/convert_minicbf $(INSTALLDIR)/bin/convert_minicbf_old
+		cp $(BIN)/convert_minicbf $(INSTALLDIR)/bin/convert_minicbf
 		-cp $(INSTALLDIR)/bin/makecbf $(INSTALLDIR)/bin/makecbf_old
 		cp $(BIN)/makecbf $(INSTALLDIR)/bin/makecbf
 		-cp $(INSTALLDIR)/bin/img2cif $(INSTALLDIR)/bin/img2cif_old
@@ -501,13 +595,20 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin
 		cp $(BIN)/cif2c $(INSTALLDIR)/bin/cif2c
 		-cp $(INSTALLDIR)/bin/testreals $(INSTALLDIR)/bin/testreals_old
 		cp $(BIN)/testreals $(INSTALLDIR)/bin/testreals
+		-cp $(INSTALLDIR)/bin/testflat $(INSTALLDIR)/bin/testflat_old
+		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
+		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
+		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
 		chmod 644 $(INSTALLDIR)/lib/libcbf.a
 		chmod 755 $(INSTALLDIR)/bin/convert_image
+		chmod 755 $(INSTALLDIR)/bin/convert_minicbf
 		chmod 755 $(INSTALLDIR)/bin/makecbf
 		chmod 755 $(INSTALLDIR)/bin/img2cif
 		chmod 755 $(INSTALLDIR)/bin/cif2cbf
 		chmod 755 $(INSTALLDIR)/bin/cif2c
 		chmod 755 $(INSTALLDIR)/bin/testreals
+		chmod 755 $(INSTALLDIR)/bin/testflat
+		chmod 755 $(INSTALLDIR)/bin/testflatpacked
 		
 		
 #
@@ -580,7 +681,55 @@ $(SRC)/cbf_stx.c: $(SRC)/cbf.stx.y
 $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(AR) cr $@ *.o
+	rm *.o
 	$(RANLIB) $@
+
+#
+# IMG library
+#
+$(LIB)/libimg.a: $(EXAMPLES)/img.c $(HEADERS) $(COMMONDEP)
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
+	$(AR) cr $@ *.o
+	rm *.o
+	$(RANLIB) $@
+	
+#
+# CBF and IMG libraries
+#
+CBF_IMG_LIBS:  $(LIB)/libcbf.a $(LIB)/libimg.a 	
+
+
+#
+# FCB library
+#
+$(LIB)/libfcb.a: $(F90SOURCE) $(COMMONDEP)
+	$(F90C) $(F90FLAGS) -c $(F90SOURCE)
+	$(AR) cr $@ *.o
+	rm *.o
+	$(RANLIB) $@
+
+
+#
+# F90SOURCE
+#
+$(SRC)/fcb_exit_binary.f90: $(M4)/fcb_exit_binary.m4 $(M4)/fcblib_defines.m4
+	(cd $(M4); m4 -P fcb_exit_binary.m4) > $(SRC)/fcb_exit_binary.f90
+$(SRC)/fcb_next_binary.f90: $(M4)/fcb_next_binary.m4 $(M4)/fcblib_defines.m4
+	(cd $(M4); m4 -P fcb_next_binary.m4) > $(SRC)/fcb_next_binary.f90
+$(SRC)/fcb_open_cifin.f90: $(M4)/fcb_open_cifin.m4 $(M4)/fcblib_defines.m4
+	(cd $(M4); m4 -P fcb_open_cifin.m4)  > $(SRC)/fcb_open_cifin.f90
+$(SRC)/fcb_packed.f90: $(M4)/fcb_packed.m4 $(M4)/fcblib_defines.m4
+	(cd $(M4); m4 -P fcb_packed.m4)      > $(SRC)/fcb_packed.f90
+$(SRC)/fcb_read_bits.f90: $(M4)/fcb_read_bits.m4 $(M4)/fcblib_defines.m4
+	(cd $(M4); m4 -P fcb_read_bits.m4)   > $(SRC)/fcb_read_bits.f90
+$(SRC)/fcb_read_image.f90: $(M4)/fcb_read_image.m4 $(M4)/fcblib_defines.m4
+	(cd $(M4); m4 -P fcb_read_image.m4)  > $(SRC)/fcb_read_image.f90
+$(SRC)/fcb_read_xds_i2.f90: $(M4)/fcb_read_xds_i2.m4 $(M4)/fcblib_defines.m4
+	(cd $(M4); m4 -P fcb_read_xds_i2.m4) > $(SRC)/fcb_read_xds_i2.f90
+$(EXAMPLES)/test_fcb_read_image.f90: $(M4)/test_fcb_read_image.m4 $(M4)/fcblib_defines.m4
+	(cd $(M4); m4 -P test_fcb_read_image.m4) > $(EXAMPLES)/test_fcb_read_image.f90
+$(EXAMPLES)/test_xds_binary.f90: $(M4)/test_xds_binary.m4 $(M4)/fcblib_defines.m4
+	(cd $(M4); m4 -P test_xds_binary.m4) > $(EXAMPLES)/test_xds_binary.f90
 
 #
 # convert_image example program
@@ -590,32 +739,40 @@ $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/im
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
               $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
 	      -lcbf -lm -o $@
+#
+# convert_minicbf example program
+#
+$(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
+					$(GOPTLIB)	$(GOPTINC)
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+              $(EXAMPLES)/convert_minicbf.c $(GOPTLIB) -L$(LIB) \
+	      -lcbf -lm -o $@
 
 #
 # makecbf example program
 #
-$(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(EXAMPLES)/img.c
+$(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-              $(EXAMPLES)/makecbf.c $(EXAMPLES)/img.c -L$(LIB) \
-	      -lcbf -lm -o $@
+              $(EXAMPLES)/makecbf.c  -L$(LIB) \
+	      -lcbf -lm -limg -o $@
 
 #
 # img2cif example program
 #
-$(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(EXAMPLES)/img.c \
+$(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 					$(GOPTLIB) 	$(GOTPINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-              $(EXAMPLES)/img2cif.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
-	      -lcbf -lm -o $@
+              $(EXAMPLES)/img2cif.c $(GOPTLIB) -L$(LIB) \
+	      -lcbf -lm -limg -o $@
 
 #
 # cif2cbf example program
 #
-$(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(EXAMPLES)/img.c \
+$(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 					$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-              $(EXAMPLES)/cif2cbf.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
-	      -lcbf -lm -o $@
+              $(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
+	      -lcbf -lm -limg -o $@
 #
 # testcell example program
 #
@@ -639,9 +796,34 @@ $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
               $(EXAMPLES)/testreals.c -L$(LIB) \
 	      -lcbf -lm -o $@
+#
+# testflat example program
+#
+$(BIN)/testflat: $(LIB)/libcbf.a $(EXAMPLES)/testflat.c
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+              $(EXAMPLES)/testflat.c -L$(LIB) \
+	      -lcbf -lm -o $@
+#
+# testflatpacked example program
+#
+$(BIN)/testflatpacked: $(LIB)/libcbf.a $(EXAMPLES)/testflatpacked.c
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+              $(EXAMPLES)/testflatpacked.c -L$(LIB) \
+	      -lcbf -lm -o $@
+	      
+#
+# test_xds_binary example program
+#
+$(BIN)/test_xds_binary: $(LIB)/libfcb.a $(EXAMPLES)/test_xds_binary.f90
+	$(F90C) $(F90FLAGS) $(F90LDFLAGS) $(EXAMPLES)/test_xds_binary.f90 \
+		-L$(LIB) -lfcb -o $@
 
-
-
+#
+# test_fcb_read_image example program
+#
+$(BIN)/test_fcb_read_image: $(LIB)/libfcb.a $(EXAMPLES)/test_fcb_read_image.f90
+	$(F90C) $(F90FLAGS) $(F90LDFLAGS) $(EXAMPLES)/test_fcb_read_image.f90 \
+		-L$(LIB) -lfcb -o $@
 
 #
 # Data files for tests
@@ -657,12 +839,20 @@ example.mar2300:	$(DATADIR) $(DATADIR)/example.mar2300$(CEXT)
 		$(DECOMPRESS) < $(DATADIR)/example.mar2300$(CEXT) > example.mar2300
 
 
+converted_flat_orig.cbf:	$(DATADIR) $(DATADIR)/converted_flat_orig.cbf$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/converted_flat_orig.cbf$(CEXT) > converted_flat_orig.cbf
+
+
+adscconverted_flat_orig.cbf:	$(DATADIR) $(DATADIR)/adscconverted_flat_orig.cbf$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/adscconverted_flat_orig.cbf$(CEXT) > adscconverted_flat_orig.cbf
+
+
 converted_orig.cbf:	$(DATADIR) $(DATADIR)/converted_orig.cbf$(CEXT)
 		$(DECOMPRESS) < $(DATADIR)/converted_orig.cbf$(CEXT) > converted_orig.cbf
 
 
-adscconverted_original.cbf:	$(DATADIR) $(DATADIR)/adscconverted_original.cbf$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/adscconverted_original.cbf$(CEXT) > adscconverted_original.cbf
+adscconverted_orig.cbf:	$(DATADIR) $(DATADIR)/adscconverted_orig.cbf$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/adscconverted_orig.cbf$(CEXT) > adscconverted_orig.cbf
 
 
 mb_LP_1_001.img:	$(DATADIR) $(DATADIR)/mb_LP_1_001.img$(CEXT)
@@ -677,6 +867,32 @@ testcell_orig.prt:	$(DATADIR) $(DATADIR)/testcell_orig.prt$(CEXT)
 
 testrealin.cbf:	$(DATADIR) $(DATADIR)/testrealin.cbf$(CEXT)
 		$(DECOMPRESS) < $(DATADIR)/testrealin.cbf$(CEXT) > testrealin.cbf
+
+testflatin.cbf:	$(DATADIR) $(DATADIR)/testflatin.cbf$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/testflatin.cbf$(CEXT) > testflatin.cbf
+
+testflatpackedin.cbf:	$(DATADIR) $(DATADIR)/testflatpackedin.cbf$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/testflatpackedin.cbf$(CEXT) > testflatpackedin.cbf
+
+test_xds_bin_testflatout_orig.out: 	$(DATADIR) \
+		$(DATADIR)/test_xds_bin_testflatout_orig.out$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/test_xds_bin_testflatout_orig.out$(CEXT) \
+		> test_xds_bin_testflatout_orig.out
+
+test_xds_bin_testflatpackedout_orig.out: $(DATADIR) \
+		$(DATADIR)/test_xds_bin_testflatout_orig.out$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/test_xds_bin_testflatpackedout_orig.out$(CEXT) \
+		> test_xds_bin_testflatpackedout_orig.out
+
+test_fcb_read_testflatout_orig.out: $(DATADIR) \
+		$(DATADIR)/test_xds_bin_testflatout_orig.out$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/test_fcb_read_testflatout_orig.out$(CEXT) \
+		> test_fcb_read_testflatout_orig.out
+
+test_fcb_read_testflatpackedout_orig.out: $(DATADIR) \
+		$(DATADIR)/test_xds_bin_testflatpackedout_orig.out$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/test_fcb_read_testflatpackedout_orig.out$(CEXT) \
+		> test_fcb_read_testflatpackedout_orig.out
 
 		
 #
@@ -709,39 +925,69 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf example.mar2300
 #
 # Extra Tests
 #
-extra:	$(BIN)/convert_image $(BIN)/cif2cbf $(BIN)/testcell $(BIN)/testreals \
+extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
+	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
+	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image \
 	makecbf.cbf 9ins.cif example.mar2300 converted_orig.cbf mb_LP_1_001.img\
-	adscconverted_original.cbf testcell_orig.prt testrealin.cbf
-	$(BIN)/cif2cbf -e hex -c none \
+	adscconverted_orig.cbf testcell_orig.prt testrealin.cbf \
+	testflatin.cbf testflatpackedin.cbf \
+	converted_flat_orig.cbf adscconverted_flat_orig.cbf \
+	test_xds_bin_testflatout_orig.out test_xds_bin_testflatpackedout_orig.out \
+	test_fcb_read_testflatout_orig.out test_fcb_read_testflatpackedout_orig.out
+	$(TIME) $(BIN)/cif2cbf -e hex -c none \
 		makecbf.cbf cif2cbf_ehcn.cif
-	$(BIN)/cif2cbf -e none -c packed \
+	$(TIME) $(BIN)/cif2cbf -e none -c packed \
 		cif2cbf_ehcn.cif cif2cbf_encp.cbf
 	-cmp makecbf.cbf cif2cbf_encp.cbf
-	$(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
+	$(TIME) $(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
 	-cmp 9ins.cif 9ins.cbf
-	$(BIN)/convert_image -c diffrn_data_frame=diffrn_frame_data example.mar2300 converted.cbf
+	$(TIME) $(BIN)/convert_image -F -c diffrn_data_frame=diffrn_frame_data example.mar2300 converted_flat.cbf
+	-cmp converted_flat.cbf converted_flat_orig.cbf
+	$(TIME) $(BIN)/convert_image -c diffrn_data_frame=diffrn_frame_data example.mar2300 converted.cbf
 	-cmp converted.cbf converted_orig.cbf
-	-$(BIN)/testcell < testcell.dat > testcell.prt
+	-$(TIME) $(BIN)/testcell < testcell.dat > testcell.prt
 	-cmp testcell.prt testcell_orig.prt
-	$(BIN)/convert_image -c diffrn_data_frame=diffrn_frame_data  -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
-	-cmp adscconverted.cbf adscconverted_original.cbf
-	$(BIN)/testreals
+	$(TIME) $(BIN)/convert_image -F -c diffrn_data_frame=diffrn_frame_data  -d adscquantum315 mb_LP_1_001.img adscconverted_flat.cbf
+	-cmp adscconverted_flat.cbf adscconverted_flat_orig.cbf
+	$(TIME) $(BIN)/convert_image -c diffrn_data_frame=diffrn_frame_data  -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
+	-cmp adscconverted.cbf adscconverted_orig.cbf
+	$(TIME) $(BIN)/testreals
 	-cmp testrealin.cbf testrealout.cbf
+	$(TIME) $(BIN)/testflat
+	-cmp testflatin.cbf testflatout.cbf
+	$(TIME) $(BIN)/testflatpacked
+	-cmp testflatpackedin.cbf testflatpackedout.cbf
+	echo testflatout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatout.out
+	-diff -b -c test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
+	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatpackedout.out
+	-diff -b -c test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
+	echo testflatout.cbf | $(TIME) $(BIN)/test_fcb_read_image  > test_fcb_read_testflatout.out
+	-diff test_fcb_read_testflatout.out test_fcb_read_testflatout_orig.out
+	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_fcb_read_image > test_fcb_read_testflatpackedout.out
+	-diff test_fcb_read_testflatpackedout.out test_fcb_read_testflatpackedout_orig.out
+	
 
 #
 # Remove all non-source files
 #
 empty:
 	@-rm -f  $(LIB)/libcbf.a
+	@-rm -f  $(LIB)/libfcb.a
+	@-rm -f  $(LIB)/libimg.a
 	@-rm -f  $(LIB)/getopt.o
 	@-rm -f  $(INCLUDE)/getopt.h
 	@-rm -f  $(BIN)/makecbf
 	@-rm -f  $(BIN)/img2cif
 	@-rm -f  $(BIN)/cif2cbf
 	@-rm -f  $(BIN)/convert_image
+	@-rm -f  $(BIN)/convert_minicbf
+	@-rm -f  $(BIN)/test_fcb_read_image
+	@-rm -f  $(BIN)/test_xds_binary
 	@-rm -f  $(BIN)/testcell
 	@-rm -f  $(BIN)/cif2c
 	@-rm -f  $(BIN)/testreals
+	@-rm -f  $(BIN)/testflat
+	@-rm -f  $(BIN)/testflatpacked
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
@@ -752,6 +998,8 @@ empty:
 	@-rm -f  cif2cbf_canonical.cbf
 	@-rm -f  converted.cbf
 	@-rm -f  adscconverted.cbf
+	@-rm -f  converted_flat.cbf
+	@-rm -f  adscconverted_flat.cbf
 	@-rm -f  cif2cbf_ehcn.cif
 	@-rm -f  cif2cbf_encp.cbf
 	@-rm -f  9ins.cbf
@@ -759,13 +1007,36 @@ empty:
 	@-rm -f  testcell.prt
 	@-rm -f  example.mar2300
 	@-rm -f  converted_orig.cbf
-	@-rm -f  adscconverted_original.cbf
+	@-rm -f  adscconverted_orig.cbf
+	@-rm -f  converted_flat_orig.cbf
+	@-rm -f  adscconverted_flat_orig.cbf
 	@-rm -f  testrealin.cbf
 	@-rm -f  testrealout.cbf
+	@-rm -f  testflatin.cbf
+	@-rm -f  testflatout.cbf
+	@-rm -f  testflatpackedin.cbf
+	@-rm -f  testflatpackedout.cbf
+	@-rm -f  test_fcb_read_testflatout.out
+	@-rm -f  test_fcb_read_testflatpackedout.out
+	@-rm -f  test_xds_bin_testflatpackedout.out
+	@-rm -f  test_xds_bin_testflatout.out
+	@-rm -f  test_fcb_read_testflatout_orig.out
+	@-rm -f  test_fcb_read_testflatpackedout_orig.out
+	@-rm -f  test_xds_bin_testflatpackedout_orig.out
+	@-rm -f  test_xds_bin_testflatout_orig.out
 	@-rm -f  mb_LP_1_001.img
 	@-rm -f  9ins.cif
 	@-rm -f  testcell_orig.prt
-
+	@-rm -f  $(SRC)/fcb_exit_binary.f90
+	@-rm -f  $(SRC)/fcb_next_binary.f90
+	@-rm -f  $(SRC)/fcb_open_cifin.f90
+	@-rm -f  $(SRC)/fcb_packed.f90
+	@-rm -f  $(SRC)/fcb_read_bits.f90
+	@-rm -f  $(SRC)/fcb_read_image.f90
+	@-rm -f  $(SRC)/fcb_read_xds_i2.f90
+	@-rm -f  $(EXAMPLES)/test_fcb_read_image.f90
+	@-rm -f  $(EXAMPLES)/test_xds_binary.f90
+	
 #
 # Remove temporary files
 #
@@ -814,7 +1085,10 @@ tar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
          $(EXAMPLES)/img.c \
 	 $(EXAMPLES)/img.h \
 	 $(EXAMPLES)/makecbf.c $(EXAMPLES)/img2cif.c $(EXAMPLES)/cif2cbf.c \
-	 $(EXAMPLES)/convert_image.c $(EXAMPLES)/testcell.C $(EXAMPLES)/testreals.c \
+	 $(EXAMPLES)/convert_image.c $(EXAMPLES)/testcell.C \
+	 $(EXAMPLES)/testreals.c \
+	 $(EXAMPLES)/testflat.c \
+	 $(EXAMPLES)/testflatpacked.c \
 	 $(EXAMPLES)/template_adscquantum4_2304x2304.cbf \
 	 $(EXAMPLES)/template_mar345_2300x2300.cbf \
 	 $(EXAMPLES)/template_adscquantum315_3072x3072.cbf \

@@ -267,8 +267,11 @@ typedef struct
 {
   FILE        *stream;            /* File pointer                           */
   unsigned int connections;       /* Number of pointers to this structure   */
+  int          temporary;         /* Flag for temporary file (memres)       */
   int          bits [2];          /* Buffer for bitwise reads and writes    */
-  char         characters [64];   /* Buffer for character writes            */
+  char        *characters;        /* Buffer for character writes            */
+  char        *characters_base;   /* Buffer for character memres file       */
+  size_t       characters_size;   /* Size of the buffer for character writes*/
   size_t       characters_used;   /* Characters in the character buffer     */
   int          last_read;         /* The last character read                */
   unsigned int line;              /* Current line                           */
@@ -401,6 +404,11 @@ int cbf_flush_bits (cbf_file *file);
   /* Flush the character buffer (write) */
 
 int cbf_flush_characters (cbf_file *file);
+
+
+  /* Set output buffer size */
+  
+int cbf_set_output_buffersize (cbf_file *file, size_t size);
 
 
   /* Get the next character */

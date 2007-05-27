@@ -2,17 +2,17 @@
 
                                     COPYING
 
-   All of the CBFlib 0.7.5 package may be distributed under the terms of the
+   All of the CBFlib 0.7.7 package may be distributed under the terms of the
    GNU General Public License (the GPL), see
 
    http://www.gnu.org/licenses/gpl.txt
 
-   Alternatively most of the CBFlib 0.7.5 package may be distributed under
+   Alternatively most of the CBFlib 0.7.7 package may be distributed under
    the terms of the GNU Lesser General Public License (the LGPL), see
 
    http://www.gnu.org/licenses/lgpl.txt
 
-   The portions that may be distributed under the LGPL indetified as such in
+   The portions that may be distributed under the LGPL indentified as such in
    the comments of the relevant files, and include the portions constituting
    the API, but do not include the documentation nor does it include the
    example programs. The documentation and examples may only be distributed
@@ -1168,4 +1168,19 @@
 
      ----------------------------------------------------------------------
 
-   Updated 2 April 2006. yaya@bernstein-plus-sons.com
+                         CCP4 Packed Compression Notice
+
+   The CBF_PACKED and CBF_PACKED_V2 compression and decompression code
+   incorporated in CBFlib is derived in large part from the J. P. Abrahams
+   pack_c.c compression code in CCP4. This code is incorporated in CBFlib
+   under the GPL and the LGPL with both the permission Jan Pieter Abrahams,
+   the original author of pack_c.c (email from Jan Pieter Abrahams of 15
+   January 2007) and of the CCP4 project (email from Martyn Winn on 12
+   January 2007). The cooperation of J. P. Abrahams and of the CCP4 project
+   is gratefully acknowledged.
+
+     ----------------------------------------------------------------------
+
+     ----------------------------------------------------------------------
+
+   Updated 7 April 2007. yaya@bernstein-plus-sons.com

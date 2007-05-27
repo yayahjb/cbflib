@@ -1,12 +1,12 @@
 /**********************************************************************
  *          cif2cbf -- convert a cif to a cbf file                    *
  *                                                                    *
- * Version 0.7.6 28 June 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -41,11 +41,13 @@
  *                                SYNOPSIS                            *
  *                                                                    *
  *  cif2cbf [-i input_cif] [-o output_cbf] \                          *
- *    [-c {p[acked]|c[annonical]|[n[one]}] \                          *
+ *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
+ *        {v[2packed]}|{f[latpacked]}[n[one]}] \                      *
  *    [-m {h[eaders]|n[oheaders]}] [-d {d[igest]|n[odigest]}] \       *
- *    [-e {b[ase64]|q[uoted-printable]| \                             *
+ *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
  *    [-b {f[orward]|b[ackwards]}] \                                  *
+ *    [-p {0|1|2|4}] \                                                *
  *    [-v dictionary]* [-w] \                                         *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
@@ -66,7 +68,8 @@
  *  output cbf.  The characteristics of the input cif are derived     *
  *  from context.                                                     *
  *                                                                    *
- *  -c compression_scheme (packed, canonical or none,                 *
+ *  -c compression_scheme (packed, canonical, byte_offset,            *
+ *    v2packed, flatpacked or none,                                   *
  *    default packed)                                                 *
  *                                                                    *
  *  -m [no]headers (default headers for cifs, noheaders for cbfs)     *
@@ -80,6 +83,12 @@
  *  -e encoding (base64, quoted-printable or none, default base64)    *
  *    specifies one of the standard MIME encodings for an ascii cif   *
  *    or "none" for a binary cbf                                      *
+ *                                                                    *
+ *  -b byte_order (forward or backwards, default forward (1234) on    *
+ *    little-endian machines, backwards (4321) on big-endian machines *
+ *                                                                    *
+ *  -p K_of_padding (0, 1, 2, 4) for no padding after binary data     *
+ *    1023, 2047 or 4095 bytes of padding after binary data           *
  *                                                                    *
  *  -v dictionary specifies a dictionary to be used to validate       *
  *    the input cif and to apply aliases to the output cif.           *
@@ -317,6 +326,7 @@
 
 #include "cbf.h"
 #include "img.h"
+#include "cbf_string.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -331,6 +341,13 @@
 
 #define C2CBUFSIZ 8192
 #define NUMDICTS 50
+
+#ifdef __MINGW32__
+#define NOMKSTEMP
+#define NOTMPDIR
+#endif
+
+
 
 int local_exit (int status);
 int outerror(int err);
@@ -372,7 +389,7 @@ int outerror(int err)
     fprintf(stderr, " cif2cbf: The data block, category, column or"
       " row does not exist.\n");
   if ((err&CBF_OVERFLOW)==CBF_OVERFLOW)
-    fprintf(stderr, " cif2cbf: The number read cannot fit into the"
+    fprintf(stderr, " cif2cbf: The number read cannot fit into the "
       "destination argument.\n        The destination has been set to the nearest value.\n");
   if ((err& CBF_UNDEFINED)==CBF_UNDEFINED)
     fprintf(stderr, " cif2cbf: The requested number is not defined (e.g. 0/0).\n");
@@ -408,9 +425,12 @@ int main (int argc, char *argv [])
   int errflg = 0;
   char *cifin, *cbfout;
   char *dictionary[NUMDICTS];
-  char ciftmp[19];
+  char *ciftmp=NULL;
+#ifndef NOMKSTEMP
   int ciftmpfd;
+#endif
   int ciftmpused;
+  int padflag;
   int nbytes;
   int ndict = 0;
   int kd;
@@ -434,11 +454,13 @@ int main (int argc, char *argv [])
 
 /**********************************************************************
  *  cif2cbf [-i input_cif] [-o output_cbf] \                          *
- *    [-c {p[acked]|c[annonical]|[n[one]}] \                          *
+ *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
+ *        {v[2packed]}|{f[latpacked]}[n[one]}] \                      *
  *    [-m {h[eaders]|n[oheaders]}] [-d {d[igest]|n[odigest]}]  \      *
- *    [-e {b[ase64]|q[uoted-printable]| \                             *
+ *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
  *    [-b {f[orward]|b[ackwards]}] \                                  *
+ *    [-p {0|1|2|4}] \                                                *
  *    [-v dictionary]* [-w]\                                          *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
@@ -450,12 +472,13 @@ int main (int argc, char *argv [])
    compression = 0;
    bytedir = 0;
    ndict = 0;
+   padflag = 0;
 
    cifin = NULL;
    cbfout = NULL;
    ciftmpused = 0;
    
-   while ((c = getopt(argc, argv, "i:o:c:m:d:e:b:v:w")) != EOF) {
+   while ((c = getopt(argc, argv, "i:o:c:m:d:e:b:p:v:w")) != EOF) {
      switch (c) {
        case 'i':
          if (cifin) errflg++;
@@ -473,10 +496,22 @@ int main (int argc, char *argv [])
            if (optarg[0] == 'c' || optarg[0] == 'C') {
              compression = CBF_CANONICAL;
            } else {
-             if (optarg[0] == 'n' || optarg[0] == 'N') {
-             compression = CBF_NONE;
+             if (optarg[0] == 'b' || optarg[0] == 'B') {
+               compression = CBF_BYTE_OFFSET;
              } else {
-               errflg++;
+               if (optarg[0] == 'n' || optarg[0] == 'N') {
+                 compression = CBF_NONE;
+               } else {
+                 if (optarg[0] == 'v' || optarg[0] == 'V') {
+                   compression = CBF_PACKED_V2;
+                 } else {
+                   if (optarg[0] == 'f' || optarg[0] == 'F') {
+                 	 compression = CBF_PACKED|CBF_FLAT_IMAGE;
+                   } else {             
+                     errflg++;
+                   }
+                 }
+               }
              }
            }
          }
@@ -506,38 +541,52 @@ int main (int argc, char *argv [])
          }
          break;
        case 'b':
-        if (bytedir) errflg++;
-        if (optarg[0] == 'f' || optarg[0] == 'F') {
-          bytedir = ENC_FORWARD;
-        } else {
-          if (optarg[0] == 'b' || optarg[0] == 'B' ) {
-            bytedir = ENC_BACKWARD;
-          } else {
-            errflg++;
-          }
-        }
-        break;
+         if (bytedir) errflg++;
+         if (optarg[0] == 'f' || optarg[0] == 'F') {
+           bytedir = ENC_FORWARD;
+         } else {
+           if (optarg[0] == 'b' || optarg[0] == 'B' ) {
+             bytedir = ENC_BACKWARD;
+           } else {
+             errflg++;
+           }
+         }
+         break;
+       case 'p':
+         if (padflag) errflg++;
+         if (optarg[0] == '1') {
+           padflag = PAD_1K;
+         } else if (optarg[0] == '2'){
+           padflag = PAD_2K;
+         } else if (optarg[0] == '4'){
+           padflag = PAD_4K;
+         } else errflg++;
+         break;
        case 'e':
          if (encoding) errflg++;
          if (optarg[0] == 'b' || optarg[0] == 'B' ) {
            encoding = ENC_BASE64;
          } else {
-           if (optarg[0] == 'q' || optarg[0] == 'Q' ) {
-             encoding = ENC_QP;
+           if (optarg[0] == 'k' || optarg[0] == 'K' ) {
+             encoding = ENC_BASE32K;
            } else {
-             if (optarg[0] == 'd' || optarg[0] == 'D' ) {
-               encoding = ENC_BASE10;
+             if (optarg[0] == 'q' || optarg[0] == 'Q' ) {
+             encoding = ENC_QP;
              } else {
-               if (optarg[0] == 'h' || optarg[0] == 'H' ) {
-                 encoding = ENC_BASE16;
+               if (optarg[0] == 'd' || optarg[0] == 'D' ) {
+                 encoding = ENC_BASE10;
                } else {
-                 if (optarg[0] == 'o' || optarg[0] == 'O' ) {
-                   encoding = ENC_BASE8;
+                 if (optarg[0] == 'h' || optarg[0] == 'H' ) {
+                   encoding = ENC_BASE16;
                  } else {
-                   if (optarg[0] == 'n' || optarg[0] == 'N' ) {
-                     encoding = ENC_NONE;
+                   if (optarg[0] == 'o' || optarg[0] == 'O' ) {
+                     encoding = ENC_BASE8;
                    } else {
-                     errflg++;
+                     if (optarg[0] == 'n' || optarg[0] == 'N' ) {
+                       encoding = ENC_NONE;
+                     } else {
+                       errflg++;
+                     }
                    }
                  }
                }
@@ -579,7 +628,9 @@ int main (int argc, char *argv [])
      fprintf(stderr,
        "  cif2cbf [-i input_cif] [-o output_cbf] \\\n");
      fprintf(stderr,
-       "    [-c {p[acked]|c[annonical]|[n[one]}] \\\n");
+       "    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\\\n");
+     fprintf(stderr,
+       "        {v[2packed}|{f[latpacked}[n[one]}] \\\n"); 
      fprintf(stderr,
        "    [-m {h[eaders]|n[oheaders]}] [-d {d[igest]|n[odigest]}] \\\n");
      fprintf(stderr,
@@ -588,6 +639,8 @@ int main (int argc, char *argv [])
        "                  d[ecimal]|h[examdecimal|o[ctal]|n[one]}] \\\n");
      fprintf(stderr,
        "                  [-b {f[orward]|b[ackwards]}\\\n");
+     fprintf(stderr,
+       "                  [-p {1|2|4}\\\n");
      fprintf(stderr,
        "    [-v dictionary]* [-w] \\\n");
      fprintf(stderr,
@@ -604,6 +657,7 @@ int main (int argc, char *argv [])
    cbforcif = CBF;
    term = ENC_CRTERM | ENC_LFTERM;
    if (encoding == ENC_BASE64 || \
+       encoding == ENC_BASE32K || \
        encoding == ENC_QP || \
        encoding == ENC_BASE10 || \
        encoding == ENC_BASE16 || \
@@ -638,9 +692,26 @@ int main (int argc, char *argv [])
     /* Read the cif */
 
    if (!cifin || strcmp(cifin?cifin:"","-") == 0) {
+     ciftmp = (char *)malloc(strlen("/tmp/cif2cbfXXXXXX")+1);
+#ifdef NOTMPDIR
+     strcpy(ciftmp, "cif2cbfXXXXXX");
+#else
      strcpy(ciftmp, "/tmp/cif2cbfXXXXXX");
+#endif
+#ifdef NOMKSTEMP
+     if ((ciftmp = mktemp(ciftmp)) == NULL ) {
+       fprintf(stderr,"\n cif2cbf: Can't create temporary file name %s.\n", ciftmp);
+       fprintf(stderr,"%s\n",strerror(errno));
+       exit(1);
+     }
+     if ( (file = fopen(ciftmp,"wb+")) == NULL) {
+       fprintf(stderr,"Can't open temporary file %s.\n", ciftmp);
+       fprintf(stderr,"%s\n",strerror(errno));
+       exit(1);     	
+     }
+#else
      if ((ciftmpfd = mkstemp(ciftmp)) == -1 ) {
-       fprintf(stderr,"Can't create temporary file %s.\n", ciftmp);
+       fprintf(stderr,"\n cif2cbf: Can't create temporary file %s.\n", ciftmp);
        fprintf(stderr,"%s\n",strerror(errno));
        exit(1);
      }
@@ -649,6 +720,7 @@ int main (int argc, char *argv [])
        fprintf(stderr,"%s\n",strerror(errno));
        exit(1);
      }
+#endif
      while ((nbytes = fread(buf, 1, C2CBUFSIZ, stdin))) {
        if(nbytes != fwrite(buf, 1, nbytes, file)) {
          fprintf(stderr,"Failed to write %s.\n", ciftmp);
@@ -751,12 +823,80 @@ int main (int argc, char *argv [])
              const char *typeofvalue;
 
              cbf_failnez (cbf_select_column(cif, colnum))
-             if ( ! cbf_get_value(cif, &value) ) {
-               cbf_failnez (cbf_get_typeofvalue(cif, &typeofvalue))
-               cbf_failnez (cbf_select_column(cbf, colnum))
-               cbf_failnez (cbf_set_value(cbf, value))
-               cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
+             cbf_failnez (cbf_column_name(cif, &column_name))
 
+             if ( ! cbf_get_value(cif, &value) ) {
+               if (compression && value && column_name && !cbf_cistrcmp("compression_type",column_name)) {
+                 cbf_failnez (cbf_select_column(cbf, colnum))
+                 switch (compression&CBF_COMPRESSION_MASK) {
+                   case (CBF_NONE):
+                     cbf_failnez (cbf_set_value      (cbf,"none"))
+                     cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                     break;
+                   case (CBF_CANONICAL):
+                     cbf_failnez (cbf_set_value      (cbf,"canonical"))
+                     cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                     break;
+                   case (CBF_PACKED):
+                     cbf_failnez (cbf_set_value      (cbf,"packed"))
+                     cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                     break;
+                   case (CBF_PACKED_V2):
+                     cbf_failnez (cbf_set_value      (cbf,"packed_v2"))
+                     cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                     break;
+                   case (CBF_BYTE_OFFSET):
+                     cbf_failnez (cbf_set_value      (cbf,"byte_offsets"))
+                     cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                     break;
+                   case (CBF_PREDICTOR):
+                     cbf_failnez (cbf_set_value      (cbf,"predictor"))
+                     cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                     break;
+                   default:
+                     cbf_failnez (cbf_set_value      (cbf,"."))
+                     cbf_failnez (cbf_set_typeofvalue(cbf,"null"))
+                     break;
+                 }
+                 if (compression&CBF_FLAG_MASK) {
+                   if (compression&CBF_UNCORRELATED_SECTIONS) {
+                     cbf_failnez (cbf_require_column   (cbf, "compression_type_flag"))
+                     cbf_failnez (cbf_set_value        (cbf, "uncorrelated_sections"))
+                     cbf_failnez (cbf_set_typeofvalue  (cbf, "word"))
+                   } else if (compression&CBF_FLAT_IMAGE)  {
+                     cbf_failnez (cbf_require_column   (cbf, "compression_type_flag"))
+                     cbf_failnez (cbf_set_value        (cbf, "flat"))
+                     cbf_failnez (cbf_set_typeofvalue  (cbf, "word"))
+                   }
+                 } else {
+                   if (!cbf_find_column(cbf, "compression_type_flag")) {
+                     cbf_failnez (cbf_set_value      (cbf,"."))
+                     cbf_failnez (cbf_set_typeofvalue(cbf,"null"))
+                   }
+                 }
+               } else  if (compression && value && column_name && !cbf_cistrcmp("compression_type_flag",column_name)) {
+                 if (compression&CBF_FLAG_MASK) {
+                   if (compression&CBF_UNCORRELATED_SECTIONS) {
+                     cbf_failnez (cbf_require_column   (cbf, "compression_type_flag"))
+                     cbf_failnez (cbf_set_value        (cbf, "uncorrelated_sections"))
+                     cbf_failnez (cbf_set_typeofvalue  (cbf, "word"))
+                   } else if (compression&CBF_FLAT_IMAGE)  {
+                     cbf_failnez (cbf_require_column   (cbf, "compression_type_flag"))
+                     cbf_failnez (cbf_set_value        (cbf, "flat"))
+                     cbf_failnez (cbf_set_typeofvalue  (cbf, "word"))
+                   }
+                 } else {
+                   if (!cbf_find_column(cbf, "compression_type_flag")) {
+                     cbf_failnez (cbf_set_value      (cbf,"."))
+                     cbf_failnez (cbf_set_typeofvalue(cbf,"null"))
+                   }
+                 }             	
+               } else {
+                 cbf_failnez (cbf_get_typeofvalue(cif, &typeofvalue))
+                 cbf_failnez (cbf_select_column(cbf, colnum))
+                 cbf_failnez (cbf_set_value(cbf, value))
+                 cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
+               }
              } else {
 
                void * array;
@@ -765,30 +905,35 @@ int main (int argc, char *argv [])
                 int minelement, maxelement;
                unsigned int cifcompression;
                int realarray;
+               const char *byteorder;
+               size_t dim1, dim2, dim3, padding;
 
-               cbf_failnez(cbf_get_arrayparameters(
+               cbf_failnez(cbf_get_arrayparameters_wdims(
                  cif, &cifcompression,
                  &binary_id, &elsize, &elsigned, &elunsigned,
-                 &elements, &minelement, &maxelement, &realarray))
+                 &elements, &minelement, &maxelement, &realarray,
+                 &byteorder, &dim1, &dim2, &dim3, &padding))
                if ((array=malloc(elsize*elements))) {
                  cbf_failnez (cbf_select_column(cbf,colnum))
                  if (!realarray)  {
                    cbf_failnez (cbf_get_integerarray(
                      cif, &binary_id, array, elsize, elsigned,
                      elements, &elements_read))
-                   cbf_failnez(cbf_set_integerarray(
+                   cbf_failnez(cbf_set_integerarray_wdims(
                      cbf, compression,
-                     binary_id, array, elsize, elsigned, elements))
+                     binary_id, array, elsize, elsigned, elements,
+                     "little_endian", dim1, dim2, dim3, 0))
                  } else {
                    cbf_failnez (cbf_get_realarray(
                      cif, &binary_id, array, elsize,
                      elements, &elements_read))
-                   cbf_failnez(cbf_set_realarray(
+                   cbf_failnez(cbf_set_realarray_wdims(
                      cbf, compression,
-                     binary_id, array, elsize, elements))                 	
+                     binary_id, array, elsize, elements,
+                     "little_endian", dim1, dim2, dim3, 0))                 	
                  }
                  free(array);
-              } else {
+               } else {
                  fprintf(stderr,
                    "\nFailed to allocate memory %ld bytes",
                    (long) elsize*elements);
@@ -829,12 +974,12 @@ int main (int argc, char *argv [])
                const char *typeofvalue;
 
                cbf_failnez (cbf_select_column(cif, colnum))
+
                if ( ! cbf_get_value(cif, &value) ) {
                  cbf_failnez (cbf_get_typeofvalue(cif, &typeofvalue))
                  cbf_failnez (cbf_select_column(cbf, colnum))
                  cbf_failnez (cbf_set_value(cbf, value))
                  cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
-
                } else {
 
                  void * array;
@@ -842,19 +987,34 @@ int main (int argc, char *argv [])
                  size_t elements,elements_read, elsize;
                  int minelement, maxelement;
                  unsigned int cifcompression;
+                 int realarray;
+                 const char * byteorder;
+                 size_t dim1, dim2, dim3, padding;
 
-                 cbf_failnez(cbf_get_integerarrayparameters(
+                 cbf_failnez(cbf_get_arrayparameters_wdims(
                    cif, &cifcompression,
                    &binary_id, &elsize, &elsigned, &elunsigned,
-                   &elements, &minelement, &maxelement))
+                   &elements, &minelement, &maxelement, &realarray,
+                   &byteorder, &dim1, &dim2, &dim3, &padding))
                  if ((array=malloc(elsize*elements))) {
                    cbf_failnez (cbf_select_column(cbf,colnum))
+                   if (!realarray) {
                    cbf_failnez (cbf_get_integerarray(
                    cif, &binary_id, array, elsize, elsigned,
                    elements, &elements_read))
-                   cbf_failnez(cbf_set_integerarray(
+                   cbf_failnez(cbf_set_integerarray_wdims(
                      cbf, compression,
-                     binary_id, array, elsize, elsigned, elements))
+                     binary_id, array, elsize, elsigned, elements,
+                     byteorder, dim1, dim2, dim3, padding))
+                   } else  {
+                     cbf_failnez (cbf_get_realarray(
+                       cif, &binary_id, array, elsize,
+                       elements, &elements_read))
+                     cbf_failnez(cbf_set_realarray_wdims(
+                     cbf, compression,
+                     binary_id, array, elsize, elements,
+                     byteorder, dim1, dim2, dim3, padding))
+                   }
                    free(array);
                  } else {
                    fprintf(stderr,
@@ -898,7 +1058,7 @@ int main (int argc, char *argv [])
    }
 
    if ( ! devnull ){
-   cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif, mime | digest,
+   cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif, mime | digest | padflag,
                                          encoding | bytedir | term))
    }
    cbf_failnez (cbf_free_handle (cbf))

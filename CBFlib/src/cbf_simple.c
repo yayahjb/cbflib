@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_simple -- cbflib simplified API functions                      *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -1325,7 +1325,7 @@ int cbf_set_current_timestamp (cbf_handle handle, unsigned int reserved,
 }
 
 
-  /* Read an image */
+  /* Get the image size.  ndim1 is the slow dimension, ndim2 is fast. */
 
 int cbf_get_image_size (cbf_handle    handle,
                         unsigned int  reserved,
@@ -1334,21 +1334,726 @@ int cbf_get_image_size (cbf_handle    handle,
                         size_t       *ndim2)
 {
   const char *array_id;
+  
+  size_t ndim0;
+    
+  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
 
-  int done [3], precedence, dimension [3];
+  cbf_failnez (cbf_get_3d_array_size (handle, reserved, array_id, &ndim0, ndim1,  ndim2));
+  
+  if (ndim0 != 1) return CBF_ARGUMENT;
+
+  return 0;
+}
+
+
+  /* Read a binary section into an image.  ndim1 is the 
+                           slow dimension, ndim2 is fast.*/
+
+int cbf_get_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2)
+{
+  const char *array_id;
+  
+  int binary_id;
+  
+  binary_id = 1;
+
+  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+
+  cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, &binary_id, array,
+                   CBF_INTEGER, elsize, elsign, 1, ndim1, ndim2));
+
+ 
+  return 0;
+}
+
+
+  /* Read a binary section into a real image.  ndim1 is the 
+                            slow dimension, ndim2 is fast.  */
+
+int cbf_get_real_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2)
+{
+  const char *array_id;
+  
+  int binary_id;
+  
+  binary_id = 1;
+
+  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+
+  cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, &binary_id, array,
+                   CBF_FLOAT, elsize, 1, 1, ndim1, ndim2));
+
+  return 0;
+}
+
+
+  /* Get the 3D image size. ndim1 is the slowest dimension, 
+                            ndim2 is the next faster dimension,
+                            ndim3 is the fastest dimension */
+
+int cbf_get_3d_image_size (cbf_handle    handle,
+                        unsigned int  reserved,
+                        unsigned int  element_number,
+                        size_t       *ndim1,
+                        size_t       *ndim2,
+                        size_t       *ndim3)
+{
+  const char *array_id;
+
+  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+
+  cbf_failnez (cbf_get_3d_array_size (handle, reserved, array_id,
+                   ndim1, ndim2, ndim3));
+                   
+  return 0;
+}
+
+
+  /* Read a 3D binary section into an image.  
+                       ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension */
+
+int cbf_get_3d_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3)
+{
+  const char *array_id;
+  
+  int binary_id;
+
+  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+
+  cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, &binary_id, array,
+                   CBF_INTEGER, elsize, elsign, ndim1, ndim2, ndim3));
+
+  return 0;
+}
+
+
+
+  /* Read a 3D binary section into a real image.  
+                       ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension */
+
+int cbf_get_real_3d_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3)
+{
+  const char *array_id;
+  
+  int binary_id;
+
+  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+
+  cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, &binary_id, array,
+                   CBF_FLOAT, elsize, 1, ndim1, ndim2, ndim3));
+
+  return 0;
+}
+
+
+  /* Save an image.  ndim1 is the slow dimension, ndim2 is fast. */
+
+int cbf_set_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2)
+{
+  const char *array_id;
+  
+  int binary_id=1;
+
+  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+  
+  cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, &binary_id, compression,
+                   array, CBF_INTEGER, elsize, elsign, 1, ndim1, ndim2));
+
+  return 0;
+}
+
+
+  /* Save a real image.  ndim1 is the slow dimension, ndim2 is fast. */
+
+int cbf_set_real_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2)
+{
+  const char *array_id;
+  
+  int binary_id = 1;
+
+  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+
+  cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, &binary_id, compression,
+                   array, CBF_FLOAT, elsize, 1, 1, ndim1, ndim2));
+
+  return 0;
+}
+
+
+  /* Save a 3D image.  ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension. */
+
+
+int cbf_set_3d_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3)
+{
+  const char *array_id;
+  
+  int binary_id = 1;
+
+  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+
+  cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, &binary_id, compression,
+                   array, CBF_INTEGER, elsize, elsign, ndim1, ndim2, ndim3));
+
+  return 0;
+}
+
+
+  /* Save a real 3D image.  
+                       ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension */
+
+int cbf_set_real_3d_image (cbf_handle    handle,
+                   unsigned int  reserved,
+                   unsigned int  element_number,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3)
+{
+  const char *array_id;
+  
+  int binary_id = 1;
+
+  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+  
+  cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, &binary_id,compression,
+                   array, CBF_FLOAT, elsize, 1, ndim1, ndim2, ndim3));
+
+  return 0;
+}
+
+
+  /* Get the array_id for a map segment or map segment mask.
+                       ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension. */
+
+int cbf_get_map_array_id (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char   *segment_id,
+                   const char  **array_id,
+                   int           ismask,
+                   int           require,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3)
+{
+  
+  if (require) {
+   
+    cbf_failnez (cbf_require_category (handle, "map_segment"));
+  
+    cbf_failnez (cbf_require_column (handle, "id"));
+    
+  } else  {
+
+    cbf_failnez (cbf_find_category (handle, "map_segment"));
+  
+    cbf_failnez (cbf_find_column (handle, "id"));
+  	
+  }
+  
+  if (cbf_find_row(handle,segment_id)) {
+  
+    if (!require) return CBF_NOTFOUND;
+
+    cbf_failnez(cbf_new_row(handle));
+    
+    cbf_failnez(cbf_set_value(handle,segment_id));
+  	
+  }
+  
+  if (ismask) {
+  	cbf_failnez( cbf_require_column (handle, "mask_array_id") )
+  } else  {
+  	cbf_failnez( cbf_require_column (handle, "array_id") )  	
+  }
+  
+  if (cbf_get_value (handle, array_id) || !*array_id || strlen(*array_id)==0) {
+  
+    if (!require) return CBF_NOTFOUND;
+  
+    /* If no array structure has been defined, use the segment_id */
+  
+    cbf_failnez(cbf_set_value(handle,segment_id));
+    
+    cbf_failnez(cbf_require_category(handle, "axis" ) );
+    
+    cbf_failnez (cbf_require_column(handle,"system"))
+    cbf_failnez (cbf_require_column(handle,"vector[1]"))
+    cbf_failnez (cbf_require_column(handle,"vector[2]"))
+    cbf_failnez (cbf_require_column(handle,"vector[3]"))    
+    cbf_failnez (cbf_require_column(handle, "id" ))
+    if (cbf_find_row(handle,"CELL_A_AXIS") ) {
+      cbf_failnez (cbf_new_row(handle))
+      cbf_failnez (cbf_set_value(handle, "CELL_A_AXIS"))
+      cbf_failnez (cbf_set_typeofvalue(handle, "word"))
+      cbf_failnez (cbf_find_column(handle, "system"))
+      cbf_failnez (cbf_set_value(handle, "fractional"))
+      cbf_failnez (cbf_set_typeofvalue(handle, "word"))
+      cbf_failnez (cbf_find_column(handle, "vector[1]"))
+      cbf_failnez (cbf_set_integervalue(handle, 1))
+      cbf_failnez (cbf_find_column(handle, "vector[2]"))
+      cbf_failnez (cbf_set_integervalue(handle, 0))
+      cbf_failnez (cbf_find_column(handle, "vector[3]"))
+      cbf_failnez (cbf_set_integervalue(handle, 0))
+      cbf_failnez (cbf_find_column(handle, "id"))
+    }
+  	if (cbf_find_row(handle,"CELL_B_AXIS") ) {
+      cbf_failnez (cbf_new_row(handle))
+      cbf_failnez (cbf_set_value(handle, "CELL_B_AXIS"))
+      cbf_failnez (cbf_set_typeofvalue(handle, "word"))
+      cbf_failnez (cbf_find_column(handle, "system"))
+      cbf_failnez (cbf_set_value(handle, "fractional"))
+      cbf_failnez (cbf_set_typeofvalue(handle, "word"))
+      cbf_failnez (cbf_find_column(handle, "vector[1]"))
+      cbf_failnez (cbf_set_integervalue(handle, 0))
+      cbf_failnez (cbf_find_column(handle, "vector[2]"))
+      cbf_failnez (cbf_set_integervalue(handle, 1))
+      cbf_failnez (cbf_find_column(handle, "vector[3]"))
+      cbf_failnez (cbf_set_integervalue(handle, 0))
+      cbf_failnez (cbf_find_column(handle, "id"))
+    }
+    if (cbf_find_row(handle,"CELL_C_AXIS") ) {
+      cbf_failnez (cbf_new_row(handle))
+      cbf_failnez (cbf_set_value(handle, "CELL_C_AXIS"))
+      cbf_failnez (cbf_set_typeofvalue(handle, "word"))
+      cbf_failnez (cbf_find_column(handle, "system"))
+      cbf_failnez (cbf_set_value(handle, "fractional"))
+      cbf_failnez (cbf_set_typeofvalue(handle, "word"))
+      cbf_failnez (cbf_find_column(handle, "vector[1]"))
+      cbf_failnez (cbf_set_integervalue(handle, 0))
+      cbf_failnez (cbf_set_typeofvalue(handle, "word"))
+      cbf_failnez (cbf_find_column(handle, "vector[2]"))
+      cbf_failnez (cbf_set_integervalue(handle, 0))
+      cbf_failnez (cbf_find_column(handle, "vector[3]"))
+      cbf_failnez (cbf_set_integervalue(handle, 1))
+    }
+    
+    cbf_failnez(cbf_require_category(handle, "array_structure_list_axis" ) );
+    cbf_failnez (cbf_require_column(handle,"array_id"))
+    cbf_failnez (cbf_require_column(handle,"index"))
+    cbf_failnez (cbf_require_column(handle,"dimension"))
+    cbf_failnez (cbf_require_column(handle,"precedence"))
+    cbf_failnez (cbf_require_column(handle,"direction"))
+    cbf_failnez (cbf_require_column(handle,"axis_id"))
+    
+    if (cbf_find_row(handle,"CELL_A_AXIS")){
+      cbf_failnez (cbf_new_row(handle));
+      cbf_failnez (cbf_find_column(handle, "array_id"))
+      cbf_failnez (cbf_set_value(handle, segment_id))
+      cbf_failnez (cbf_find_column(handle, "index"))
+      cbf_failnez (cbf_set_integervalue(handle, 1))
+      cbf_failnez (cbf_set_typeofvalue(handle, "word"))
+      cbf_failnez (cbf_find_column(handle, "dimension"))
+      cbf_failnez (cbf_set_integervalue(handle, ndim3))
+      cbf_failnez (cbf_find_column(handle, "precedence"))
+      cbf_failnez (cbf_set_integervalue(handle, 1))
+      cbf_failnez (cbf_find_column(handle, "direction"))
+      cbf_failnez (cbf_set_value(handle, "increasing"))
+      cbf_failnez (cbf_find_column(handle, "axis_id"))
+      cbf_failnez (cbf_set_value(handle, "CELL_A_AXIS"))
+    }
+    if (cbf_find_row(handle,"CELL_B_AXIS")){
+      cbf_failnez (cbf_new_row(handle))
+      cbf_failnez (cbf_find_column(handle, "array_id"))
+      cbf_failnez (cbf_set_value(handle, segment_id))
+      cbf_failnez (cbf_find_column(handle, "index"))
+      cbf_failnez (cbf_set_integervalue(handle, 2))
+      cbf_failnez (cbf_find_column(handle, "dimension"))
+      cbf_failnez (cbf_set_integervalue(handle, ndim2))
+      cbf_failnez (cbf_find_column(handle, "precedence"))
+      cbf_failnez (cbf_set_integervalue(handle, 2))
+      cbf_failnez (cbf_find_column(handle, "direction"))
+      cbf_failnez (cbf_set_value(handle, "increasing"))
+      cbf_failnez (cbf_find_column(handle, "axis_id"))
+      cbf_failnez (cbf_set_value(handle, "CELL_B_AXIS"))
+    }
+    if (cbf_find_row(handle,"CELL_C_AXIS")){
+      cbf_failnez (cbf_new_row(handle))
+      cbf_failnez (cbf_find_column(handle, "array_id"))
+      cbf_failnez (cbf_set_value(handle, segment_id))
+      cbf_failnez (cbf_find_column(handle, "index"))
+      cbf_failnez (cbf_set_integervalue(handle, 3))
+      cbf_failnez (cbf_find_column(handle, "dimension"))
+      cbf_failnez (cbf_set_integervalue(handle, ndim1))
+      cbf_failnez (cbf_find_column(handle, "precedence"))
+      cbf_failnez (cbf_set_integervalue(handle, 3))
+      cbf_failnez (cbf_find_column(handle, "direction"))
+      cbf_failnez (cbf_set_value(handle, "increasing"))
+      cbf_failnez (cbf_find_column(handle, "axis_id"))
+      cbf_failnez (cbf_set_value(handle, "CELL_C_AXIS"))      
+    }
+    
+    cbf_failnez (cbf_require_category(handle,"array_structure_list_axis"))
+    cbf_failnez (cbf_require_column(handle,"fract_displacement"))
+    cbf_failnez (cbf_require_column(handle,"fract_displacement_increment"))
+    cbf_failnez (cbf_require_column(handle,"axis_id"))
+    if (cbf_find_row(handle,"CELL_A_AXIS")) {
+      cbf_failnez (cbf_new_row(handle))
+      cbf_failnez (cbf_set_value(handle, "CELL_A_AXIS"))
+      cbf_failnez (cbf_set_typeofvalue(handle, "word"))
+      cbf_failnez (cbf_find_column(handle, "fract_displacement"))
+      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndim3*2)))
+      cbf_failnez (cbf_find_column(handle, "fract_displacement_increment"))
+      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndim3)))
+      cbf_failnez (cbf_find_column(handle, "axis_id"))
+    }
+    if (cbf_find_row(handle,"CELL_B_AXIS")) {
+      cbf_failnez (cbf_new_row(handle))
+      cbf_failnez (cbf_set_value(handle, "CELL_A_AXIS"))
+      cbf_failnez (cbf_set_typeofvalue(handle, "word"))
+      cbf_failnez (cbf_find_column(handle, "fract_displacement"))
+      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndim2*2)))
+      cbf_failnez (cbf_find_column(handle, "fract_displacement_increment"))
+      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndim2)))
+      cbf_failnez (cbf_find_column(handle, "axis_id"))
+    }
+    if (cbf_find_row(handle,"CELL_C_AXIS")) {
+      cbf_failnez (cbf_new_row(handle))
+      cbf_failnez (cbf_set_value(handle, "CELL_A_AXIS"))
+      cbf_failnez (cbf_set_typeofvalue(handle, "word"))
+      cbf_failnez (cbf_find_column(handle, "fract_displacement"))
+      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndim1*2)))
+      cbf_failnez (cbf_find_column(handle, "fract_displacement_increment"))
+      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndim1)))
+      cbf_failnez (cbf_find_column(handle, "axis_id"))
+    }
+  } else {
+  	*array_id = segment_id;
+  }
+  return 0;	
+}
+
+  /* Get the map segment size.   ndim1 is the slowest dimension, 
+                                 ndim2 is the next faster dimension,
+                                 ndim3 is the fastest dimension */
+
+int cbf_get_map_segment_size (cbf_handle    handle,
+                        unsigned int  reserved,
+                        const char   *segment_id,
+                        int          *binary_id,
+                        size_t       *ndim1,
+                        size_t       *ndim2,
+                        size_t       *ndim3)
+{
+  const char *array_id;
+  
+  
+  cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
+                                             0, 0, *ndim1, *ndim2,  *ndim3) )
+
+  cbf_failnez (cbf_get_3d_array_size (handle, reserved, array_id, ndim1, ndim2, ndim3));
+  
+  return 0;
+}
+
+
+  /* Read a map segment.  ndim1 is the slowest dimension, 
+                          ndim2 is the next faster dimension,
+                          ndim3 is the fastest dimension */
+int cbf_get_map_segment (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char   *segment_id,
+                   int          *binary_id,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3)
+{
+  const char *array_id;
+  
+  
+  cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
+                                             0, 0, ndim1, ndim2, ndim3) )
+
+  cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, binary_id, array,
+                   CBF_INTEGER, elsize, elsign, ndim1, ndim2, ndim3));
+
+ 
+  return 0;
+}
+
+  /* Read a map segment mask.  ndim1 is the slowest dimension, 
+                               ndim2 is the next faster dimension,
+                               ndim3 is the fastest dimension */
+int cbf_get_map_segment_mask (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char   *segment_id,
+                   int          *binary_id,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3)
+{
+  const char *array_id;
+  
+  
+  cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
+                                             1, 0, ndim1, ndim2, ndim3) )
+
+  cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, binary_id, array,
+                   CBF_INTEGER, elsize, elsign, ndim1, ndim2, ndim3));
+
+ 
+  return 0;
+}
+
+
+  /* Read a real map segment.  ndim1 is the slowest dimension, 
+                               ndim2 is the next faster dimension,
+                               ndim3 is the fastest dimension */
+
+int cbf_get_real_map_segment (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char   *segment_id,
+                   int          *binary_id,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3)
+{
+  const char *array_id;
+  
+  cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
+                                             0, 0, ndim1, ndim2, ndim3) )
+
+  cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, binary_id, array,
+                   CBF_FLOAT, elsize, 1, ndim1, ndim2, ndim3));
+
+  return 0;
+}
+
+
+  /* Read a real map segment mask.  ndim1 is the slowest dimension, 
+                               ndim2 is the next faster dimension,
+                               ndim3 is the fastest dimension */
+int cbf_get_real_map_segment_mask (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char   *segment_id,
+                   int          *binary_id,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3)
+{
+  const char *array_id;
+  
+  cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
+                                             1, 0, ndim1, ndim2, ndim3) )
+
+  cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, binary_id, array,
+                   CBF_FLOAT, elsize, 1, ndim1, ndim2, ndim3));
+
+ 
+  return 0;
+}
+
+
+  /* Save a map segment.  ndim1 is the slowest dimension, 
+                          ndim2 is the next faster dimension,
+                          ndim3 is the fastest dimension */
+
+
+int cbf_set_map_segment (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char    *segment_id,
+                   int           *binary_id,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3)
+{
+  const char *array_id;
+  
+  cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
+                                             0, 1, ndim1, ndim2,  ndim3) )
+
+  cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, binary_id, compression,
+                   array, CBF_INTEGER, elsize, elsign, ndim1, ndim2, ndim3));
+
+  return 0;
+}
+
+
+  /* Save a map segment mask.  ndim1 is the slowest dimension, 
+                               ndim2 is the next faster dimension,
+                               ndim3 is the fastest dimension */
+
+int cbf_set_map_segment_mask (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char    *segment_id,
+                   int           *binary_id,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   int           elsign,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3)
+{
+  const char *array_id;
+  
+  cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
+                                             1, 1, ndim1, ndim2,  ndim3) )
+
+  cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, binary_id, compression,
+                   array, CBF_INTEGER, elsize, elsign, ndim1, ndim2, ndim3));
+
+  return 0;
+}
+
+
+  /* Save a real map segment.  ndim1 is the slowest dimension, 
+                               ndim2 is the next faster dimension,
+                               ndim3 is the fastest dimension */
+
+int cbf_set_real_map_segment (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char    *segment_id,
+                   int           *binary_id,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3)
+{
+  const char *array_id;
+
+  cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
+                                             0, 1, ndim1, ndim2,  ndim3) )
+
+  cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, binary_id, compression,
+                   array, CBF_FLOAT, elsize, 1, ndim1, ndim2, ndim3));
+
+  return 0;
+}
+
+
+  /* Save a real map segment mask.  ndim1 is the slowest dimension, 
+                                    ndim2 is the next faster dimension,
+                                    ndim3 is the fastest dimension */
+
+
+int cbf_set_real_map_segment_mask (cbf_handle    handle,
+                   unsigned int  reserved,
+                   const char    *segment_id,
+                   int           *binary_id,
+                   unsigned int  compression,
+                   void         *array,
+                   size_t        elsize,
+                   size_t        ndim1,
+                   size_t        ndim2,
+                   size_t        ndim3)
+{
+  const char *array_id;
+  
+  cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
+                                             1, 1, ndim1, ndim2,  ndim3) )
+
+  cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, binary_id, compression,
+                   array, CBF_FLOAT, elsize, 1, ndim1, ndim2, ndim3));
+
+  return 0;
+}
+
+
+
+  /* Get the 3D array size. ndim1 is the slowest dimension, 
+                            ndim2 is the next faster dimension,
+                            ndim3 is the fastest dimension */
+
+int cbf_get_3d_array_size (cbf_handle    handle,
+                        unsigned int  reserved,
+                        const char   *array_id,
+                        size_t       *ndim1,
+                        size_t       *ndim2,
+                        size_t       *ndim3)
+{
+
+  int done [4], precedence, dimension [4], kdim[4];
 
   if (reserved != 0)
 
     return CBF_ARGUMENT;
 
-  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
-
-
     /* Get the dimensions from the array_structure_list category */
 
-  done [1] = done [2] = 0;
+  done [1] = done [2] = done [3] = 0;
 
-  dimension [1] = dimension [2] = 1;
+  dimension [1] = dimension [2] = dimension [3] = 1;
 
   cbf_failnez (cbf_find_category (handle, "array_structure_list"))
   cbf_failnez (cbf_find_column   (handle, "array_id"))
@@ -1358,7 +2063,7 @@ int cbf_get_image_size (cbf_handle    handle,
     cbf_failnez (cbf_find_column      (handle, "precedence"))
     cbf_failnez (cbf_get_integervalue (handle, &precedence))
 
-    if (precedence < 1 || precedence > 2)
+    if (precedence < 1 || precedence > 3)
 
       return CBF_FORMAT;
 
@@ -1380,74 +2085,108 @@ int cbf_get_image_size (cbf_handle    handle,
 
   if (!done [2])
   {
-    if (ndim1)
+    
+    kdim [3] = dimension [1];
+    
+    kdim [2] = 1;
+    
+    kdim [1] = 1;
 
-      *ndim1 = dimension [1];
-
-    if (ndim2)
-
-      *ndim2 = 1;
   }
   else
   {
-    if (ndim1)
-
-      *ndim1 = dimension [2];
-
-    if (ndim2)
-
-      *ndim2 = dimension [1];
+    kdim [1] = 1;
+    
+    kdim [2] = dimension [2];
+    
+    kdim [3] = dimension [1];
   }
+  
+  if (!done[3])
+  {
+    kdim [1] = dimension[3];
+  }
+
+  if (ndim1)
+
+      *ndim1 = kdim [1];
+
+  if (ndim2)
+
+      *ndim2 = kdim [2];
+
+  if (ndim3)
+
+      *ndim3 = kdim [3];
 
   return 0;
 }
 
+  /* Read a 3D array.  
+                       ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension */
 
-  /* Read a binary section into an image */
-
-int cbf_get_image (cbf_handle    handle,
+int cbf_get_3d_array (cbf_handle    handle,
                    unsigned int  reserved,
-                   unsigned int  element_number,
+                   const char   *array_id,
+                   int          *binary_id,
                    void         *array,
+                   int           eltype,
                    size_t        elsize,
                    int           elsign,
                    size_t        ndim1,
-                   size_t        ndim2)
+                   size_t        ndim2,
+                   size_t        ndim3)
 {
-  const char *direction_string, *array_id;
+  const char *direction_string;
 
-  int code, done [3], precedence, direction [3], binary_id, dir1, dir2,
-      index1, index2, start1, end1, inc1, start2, end2, inc2;
+  int code, done [4], precedence, direction [4], local_binary_id, 
+      dir1=1, dir2=1, dir3=1,
+      index1, index2, index3,
+      start1, end1, inc1, 
+      start2, end2, inc2,
+      start3, end3, inc3;
 
-  size_t nelem_read, dim1, dim2;
+  size_t nelem_read, dim1, dim2, dim3;
 
   char tmp [32], *pixel, *pixel2;
 
   if (reserved != 0)
 
     return CBF_ARGUMENT;
+    
+  if ( eltype != CBF_FLOAT && eltype != CBF_INTEGER)
+  
+    return CBF_ARGUMENT;
 
-  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+  if ( eltype == CBF_FLOAT && elsize != 4 && elsize != 8 )
+
+    return CBF_ARGUMENT;
+    
+  if ( eltype == CBF_FLOAT && !elsign)
+  
+    return CBF_ARGUMENT;
 
 
     /* Get the index dimensions */
 
-  cbf_failnez (cbf_get_image_size (handle, reserved, element_number,
-                                   &dim1, &dim2))
+  cbf_failnez (cbf_get_3d_array_size (handle, reserved, array_id,
+                                   &dim1, &dim2, &dim3))
 
 
     /* Check that the fast dimensions correspond */
 
-  if (dim2 != ndim2)
+  if (dim2 != ndim2 || dim3 != ndim3)
 
     return CBF_ARGUMENT;
 
 
     /* Get the index directions from the array_structure_list category */
 
-  done [1] = done [2] = 0;
+  done [1] = done [2] = done[3] = 0;
 
-  direction [1] = direction [2] = 1;
+  direction [1] = direction [2] = direction [3] = 1;
 
   cbf_failnez (cbf_find_category (handle, "array_structure_list"))
   cbf_failnez (cbf_find_column   (handle, "array_id"))
@@ -1457,7 +2196,7 @@ int cbf_get_image (cbf_handle    handle,
     cbf_failnez (cbf_find_column      (handle, "precedence"))
     cbf_failnez (cbf_get_integervalue (handle, &precedence))
 
-    if (precedence < 1 || precedence > 2)
+    if (precedence < 1 || precedence > 3)
 
       return CBF_FORMAT;
 
@@ -1503,193 +2242,17 @@ int cbf_get_image (cbf_handle    handle,
     dir2 = direction [1];
   }
 
-
-    /* Find the binary data */
-
-  cbf_failnez (cbf_find_category (handle, "array_data"))
-  cbf_failnez (cbf_find_column   (handle, "array_id"))
-  cbf_failnez (cbf_find_row      (handle, array_id))
-  cbf_failnez (cbf_find_column   (handle, "data"))
-
-
-    /* Read the binary data */
-
-  if (ndim1 * ndim2 <= 0)
-
-    return CBF_ARGUMENT;
-
-  cbf_failnez (cbf_get_integerarray (handle, &binary_id,
-               array, elsize, elsign, ndim1 * ndim2, &nelem_read))
-
-
-    /* Reorder the data if necessary */
-
-#ifndef CBF_0721_READS
-
-  if (dir1 < 0 || dir2 < 0)
+  if (!done [3])
   {
-    if (dir1 >= 0)
-    {
-      start1 = 0;
-      end1 = ndim1;
-      inc1 = 1;
-    }
-    else
-    {
-      start1 = ndim1 - 1;
-      end1 = -1;
-      inc1 = -1;
-    }
-
-    if (dir2 >= 0)
-    {
-      start2 = 0;
-      end2 = ndim2;
-      inc2 = 1;
-    }
-    else
-    {
-      start2 = ndim2 - 1;
-      end2 = -1;
-      inc2 = -1;
-    }
-
-    pixel = (char *) array;
-
-    for (index1 = start1; index1 != end1; index1 += inc1)
-
-      for (index2 = start2; index2 != end2; index2 += inc2)
-      {
-        pixel2 = ((char *) array) + (index1 * ndim2 + index2) * elsize;
-
-        if (pixel < pixel2) {
-
-          if (elsize == sizeof (int))
-          {
-            *((int *) tmp)    = *((int *) pixel);
-            *((int *) pixel)  = *((int *) pixel2);
-            *((int *) pixel2) = *((int *) tmp);
-          }
-          else
-          {
-            memcpy (tmp, pixel, elsize);
-            memcpy (pixel, pixel2, elsize);
-            memcpy (pixel2, tmp, elsize);
-          }
-
-        }
-
-        pixel += elsize;
-      }
-  }
-
-#endif
-
-  if (ndim1 * ndim2 != nelem_read)
-
-    return CBF_ENDOFDATA;
-
-  return 0;
-}
-
-
-  /* Read a binary section into an image */
-
-int cbf_get_real_image (cbf_handle    handle,
-                   unsigned int  reserved,
-                   unsigned int  element_number,
-                   void         *array,
-                   size_t        elsize,
-                   size_t        ndim1,
-                   size_t        ndim2)
-{
-  const char *direction_string, *array_id;
-
-  int code, done [3], precedence, direction [3], binary_id, dir1, dir2,
-      index1, index2, start1, end1, inc1, start2, end2, inc2;
-
-  size_t nelem_read, dim1, dim2;
-
-  char tmp [32], *pixel, *pixel2;
-
-  if (reserved != 0)
-
-    return CBF_ARGUMENT;
-
-  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
-
-
-    /* Get the index dimensions */
-
-  cbf_failnez (cbf_get_image_size (handle, reserved, element_number,
-                                   &dim1, &dim2))
-
-
-    /* Check that the fast dimensions correspond */
-
-  if (dim2 != ndim2)
-
-    return CBF_ARGUMENT;
-
-
-    /* Get the index directions from the array_structure_list category */
-
-  done [1] = done [2] = 0;
-
-  direction [1] = direction [2] = 1;
-
-  cbf_failnez (cbf_find_category (handle, "array_structure_list"))
-  cbf_failnez (cbf_find_column   (handle, "array_id"))
-
-  while (cbf_find_nextrow (handle, array_id) == 0)
-  {
-    cbf_failnez (cbf_find_column      (handle, "precedence"))
-    cbf_failnez (cbf_get_integervalue (handle, &precedence))
-
-    if (precedence < 1 || precedence > 2)
-
-      return CBF_FORMAT;
-
-    code = cbf_find_column (handle, "direction");
-
-    if (code == 0)
-    {
-      cbf_failnez (cbf_get_value (handle, &direction_string))
-
-      if (cbf_cistrcmp ("decreasing", direction_string) == 0)
-
-        direction [precedence] = -1;
-    }
-    else
-
-      if (code != CBF_NOTFOUND)
-
-        return code;
-
-    if (done [precedence])
-
-      return CBF_FORMAT;
-
-    done [precedence] = 1;
-
-    cbf_failnez (cbf_find_column (handle, "array_id"))
-  }
-
-  if (!done [1])
-
-    return CBF_NOTFOUND;
-
-  if (!done [2])
-  {
-    dir1 = direction [1];
-
-    dir2 = 1;
+    dir3 = 1;  	
   }
   else
   {
-    dir1 = direction [2];
-
-    dir2 = direction [1];
+  	dir3 = dir2;
+  	
+  	dir2 = dir1;
+  	
+  	dir1 = direction [3];
   }
 
 
@@ -1698,286 +2261,203 @@ int cbf_get_real_image (cbf_handle    handle,
   cbf_failnez (cbf_find_category (handle, "array_data"))
   cbf_failnez (cbf_find_column   (handle, "array_id"))
   cbf_failnez (cbf_find_row      (handle, array_id))
-  cbf_failnez (cbf_find_column   (handle, "data"))
+  
+  if ( binary_id ) {
+  
+    if (cbf_find_column(handle, "binary_id")) {
+    
+      if ( *binary_id !=0 && *binary_id != 1 ) return CBF_NOTFOUND;   	
+    	
+    } else {
+    	
+      while (1)  {
+        if (cbf_get_integervalue( handle, &local_binary_id) || 
+          local_binary_id == 0) local_binary_id = 1;
+        if (local_binary_id != *binary_id) {
+          cbf_failnez (cbf_find_column   (handle, "array_id"))
+          if (cbf_find_nextrow  (handle, array_id)) return CBF_NOTFOUND;
+          cbf_failnez (cbf_find_column(handle, "binary_id"))
+        } else break;
+      }
+    }	
+  }
 
+  cbf_failnez (cbf_find_column   (handle, "data"))
 
     /* Read the binary data */
 
-  if (ndim1 * ndim2 <= 0)
+  if ( ndim1 <= 0 || ndim2  <= 0 ||  ndim3 <= 0)
 
     return CBF_ARGUMENT;
 
-  cbf_failnez (cbf_get_realarray (handle, &binary_id,
-               array, elsize, ndim1 * ndim2, &nelem_read))
-
-
-    /* Reorder the data if necessary */
-
-#ifndef CBF_0721_READS
-
-  if (dir1 < 0 || dir2 < 0)
-  {
-    if (dir1 >= 0)
-    {
-      start1 = 0;
-      end1 = ndim1;
-      inc1 = 1;
-    }
-    else
-    {
-      start1 = ndim1 - 1;
-      end1 = -1;
-      inc1 = -1;
-    }
-
-    if (dir2 >= 0)
-    {
-      start2 = 0;
-      end2 = ndim2;
-      inc2 = 1;
-    }
-    else
-    {
-      start2 = ndim2 - 1;
-      end2 = -1;
-      inc2 = -1;
-    }
-
-    pixel = (char *) array;
-
-    for (index1 = start1; index1 != end1; index1 += inc1)
-
-      for (index2 = start2; index2 != end2; index2 += inc2)
-      {
-        pixel2 = ((char *) array) + (index1 * ndim2 + index2) * elsize;
-
-        if (pixel < pixel2) {
-
-          if (elsize == sizeof (int))
-          {
-            *((int *) tmp)    = *((int *) pixel);
-            *((int *) pixel)  = *((int *) pixel2);
-            *((int *) pixel2) = *((int *) tmp);
-          }
-          else
-          {
-            memcpy (tmp, pixel, elsize);
-            memcpy (pixel, pixel2, elsize);
-            memcpy (pixel2, tmp, elsize);
-          }
-
-        }
-
-        pixel += elsize;
-      }
-  }
-
-#endif
-
-  if (ndim1 * ndim2 != nelem_read)
-
-    return CBF_ENDOFDATA;
-
-  return 0;
-}
-
-
-  /* Save an image.  ndim1 is the slow dimension, ndim2 is fast. */
-
-int cbf_set_image (cbf_handle    handle,
-                   unsigned int  reserved,
-                   unsigned int  element_number,
-                   unsigned int  compression,
-                   void         *array,
-                   size_t        elsize,
-                   int           elsign,
-                   size_t        ndim1,
-                   size_t        ndim2)
-{
-  const char *array_id;
-
-  char enctype[30];
-
-  int binary_id, done [3], precedence, dimension [3];
-
-  if (reserved != 0)
-
-    return CBF_ARGUMENT;
-
-  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
-
-
-    /* Update the array_structure_list category */
-
-  if (ndim1 == 0)
-
-    dimension [2] = 1;
-
-  else
-
-    dimension [2] = ndim1;
-
-  if (ndim2 == 0)
-
-    dimension [1] = 1;
-
-  else
-
-    dimension [1] = ndim2;
-
-  done [1] = dimension [1] == 1;
-  done [2] = dimension [2] == 1;
-
-  cbf_failnez (cbf_find_category (handle, "array_structure_list"))
-  cbf_failnez (cbf_find_column   (handle, "array_id"))
-
-  while (cbf_find_nextrow (handle, array_id) == 0)
-  {
-    cbf_failnez (cbf_find_column      (handle, "precedence"))
-    cbf_failnez (cbf_get_integervalue (handle, &precedence))
-
-    if (precedence < 1 || precedence > 2)
-
-      return CBF_FORMAT;
-
-    cbf_failnez (cbf_find_column      (handle, "dimension"))
-    cbf_failnez (cbf_set_integervalue (handle, dimension [precedence]))
-
-    done [precedence] = 1;
-
-    cbf_failnez (cbf_find_column (handle, "array_id"))
-  }
-
-  if (!done [1] || !done [2])
-
-    return CBF_NOTFOUND;
-
-
-    /* Get the binary_id */
-
-  cbf_failnez (cbf_require_category (handle, "array_data"))
-  cbf_failnez (cbf_require_column   (handle, "array_id"))
-  cbf_failnez (cbf_rewind_row       (handle))
-  if (cbf_find_row (handle, array_id)) {
-    cbf_failnez (cbf_new_row(handle))
-    cbf_failnez (cbf_set_value(handle,array_id))
-  }
-  cbf_failnez (cbf_require_column   (handle, "binary_id"))
-  if (cbf_get_integervalue (handle, &binary_id)) {
-    binary_id = 1;
-    cbf_failnez (cbf_set_integervalue (handle, binary_id))
-  }
-  cbf_failnez (cbf_find_column      (handle, "data"))
-
-
-    /* Save the array */
-
-  cbf_failnez (cbf_set_integerarray (handle, compression, binary_id,
-                                     array, elsize, elsign,
-                                     dimension [1] * dimension [2]))
-
-    /* Update the array_structure category */
-
-  cbf_failnez (cbf_require_category (handle, "array_structure"))
-  cbf_failnez (cbf_require_column   (handle, "id"))
-  cbf_failnez (cbf_rewind_row       (handle))
-  if (cbf_find_row (handle, array_id)) {
-    cbf_failnez (cbf_new_row(handle))
-    cbf_failnez (cbf_set_value(handle,array_id))
-    cbf_failnez (cbf_set_typeofvalue(handle,"word"))
-  }
-  cbf_failnez (cbf_require_column   (handle, "encoding_type"))
-  if (elsign) {
-    sprintf(enctype,"signed %d-bit integer", ((int)elsize)*8);
+  if (eltype == CBF_INTEGER) {
+    cbf_failnez (cbf_get_integerarray (handle, &local_binary_id,
+               array, elsize, elsign, ndim1 * ndim2 * ndim3, &nelem_read))
   } else {
-    sprintf(enctype,"unsigned %d-bit integer", ((int)elsize)*8);
+  	cbf_failnez (cbf_get_realarray (handle, &local_binary_id,
+               array, elsize, ndim1 * ndim2 * ndim3, &nelem_read))
   }
-  cbf_failnez (cbf_set_value        (handle,enctype))
-  cbf_failnez (cbf_set_typeofvalue  (handle,"dblq"))
-  cbf_failnez (cbf_require_column   (handle, "compression_type"))
-  switch (compression) {
-    case (CBF_NONE):
-      cbf_failnez (cbf_set_value      (handle,"none"))
-      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
-      break;
-    case (CBF_CANONICAL):
-      cbf_failnez (cbf_set_value      (handle,"canonical")) break;
-      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
-      break;
-    case (CBF_PACKED):
-      cbf_failnez (cbf_set_value      (handle,"packed")) break;
-      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
-      break;
-    case (CBF_BYTE_OFFSET):
-      cbf_failnez (cbf_set_value      (handle,"byte_offsets")) break;
-      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
-      break;
-    case (CBF_PREDICTOR):
-      cbf_failnez (cbf_set_value      (handle,"predictor")) break;
-      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
-      break;
-    default:
-      cbf_failnez (cbf_set_value      (handle,".")) break;
-      cbf_failnez (cbf_set_typeofvalue(handle,"null"))
-      break;
+  
+  if ( binary_id ) *binary_id = local_binary_id;
+
+
+    /* Reorder the data if necessary */
+
+#ifndef CBF_0721_READS
+
+  if (dir1 < 0 || dir2 < 0 || dir3 < 0 )
+  {
+    if (dir1 >= 0)
+    {
+      start1 = 0;
+      end1 = ndim1;
+      inc1 = 1;
+    }
+    else
+    {
+      start1 = ndim1 - 1;
+      end1 = -1;
+      inc1 = -1;
+    }
+
+    if (dir2 >= 0)
+    {
+      start2 = 0;
+      end2 = ndim2;
+      inc2 = 1;
+    }
+    else
+    {
+      start2 = ndim2 - 1;
+      end2 = -1;
+      inc2 = -1;
+    }
+
+    if (dir3 >= 0)
+    {
+      start3 = 0;
+      end3 = ndim3;
+      inc3 = 1;
+    }
+    else
+    {
+      start3 = ndim3 - 1;
+      end3 = -1;
+      inc3 = -1;
+    }
+
+
+    pixel = (char *) array;
+
+    for (index1 = start1; index1 != end1; index1 += inc1)
+
+      for (index2 = start2; index2 != end2; index2 += inc2)
+
+        for (index3 = start3; index3 != end3; index3 += inc3)
+        {
+          pixel2 = ((char *) array) + (index1*ndim2*ndim3 + index2 * ndim3 + index3) * elsize;
+
+          if (pixel < pixel2) {
+
+            if (elsize == sizeof (int))
+            {
+              *((int *) tmp)    = *((int *) pixel);
+              *((int *) pixel)  = *((int *) pixel2);
+              *((int *) pixel2) = *((int *) tmp);
+            }
+            else
+            {
+              memcpy (tmp, pixel, elsize);
+              memcpy (pixel, pixel2, elsize);
+              memcpy (pixel2, tmp, elsize);
+            }
+
+          }
+
+          pixel += elsize;
+        }
   }
 
-  cbf_failnez (cbf_require_column     (handle, "byte_order"))
-  cbf_failnez (cbf_set_value          (handle, "little_endian"))
+#endif
 
+  if (ndim1 * ndim2 * ndim3 != nelem_read)
+
+    return CBF_ENDOFDATA;
 
   return 0;
 }
 
 
-  /* Save a real image.  ndim1 is the slow dimension, ndim2 is fast. */
 
-int cbf_set_real_image (cbf_handle    handle,
+  /* Save a 3D array.  
+                       ndim1 is the slowest dimension, 
+                       ndim2 is the next faster dimension,
+                       ndim3 is the fastest dimension */
+
+int cbf_set_3d_array (cbf_handle    handle,
                    unsigned int  reserved,
-                   unsigned int  element_number,
+                   const char   *array_id,
+                   int          *binary_id,
                    unsigned int  compression,
                    void         *array,
+                   int           eltype,
                    size_t        elsize,
+                   int           elsign,
                    size_t        ndim1,
-                   size_t        ndim2)
+                   size_t        ndim2,
+                   size_t        ndim3)
 {
-  const char *array_id;
 
   char enctype[30];
 
-  int binary_id, done [3], precedence, dimension [3];
+  int local_binary_id, done [4], precedence, dimension [4];
 
   if (reserved != 0)
 
     return CBF_ARGUMENT;
-
-  if ( elsize != 4 && elsize != 8 )
-
+    
+  if ( eltype != CBF_FLOAT && eltype != CBF_INTEGER)
+  
     return CBF_ARGUMENT;
 
-  cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+  if ( eltype == CBF_FLOAT && elsize != 4 && elsize != 8 )
 
+    return CBF_ARGUMENT;
+    
+  if ( eltype == CBF_FLOAT && !elsign)
+  
+    return CBF_ARGUMENT;
 
     /* Update the array_structure_list category */
 
   if (ndim1 == 0)
 
+    dimension [3] = 1;
+
+  else
+
+    dimension [3] = ndim1;
+
+  if (ndim2 == 0)
+
     dimension [2] = 1;
 
   else
 
-    dimension [2] = ndim1;
-
-  if (ndim2 == 0)
+    dimension [2] = ndim2;
+    
+  if (ndim3 == 0)
 
     dimension [1] = 1;
 
   else
 
-    dimension [1] = ndim2;
-
+    dimension [1] = ndim3;
+    
+  
   done [1] = dimension [1] == 1;
   done [2] = dimension [2] == 1;
+  done [3] = dimension [3] == 1;
 
   cbf_failnez (cbf_find_category (handle, "array_structure_list"))
   cbf_failnez (cbf_find_column   (handle, "array_id"))
@@ -1987,7 +2467,7 @@ int cbf_set_real_image (cbf_handle    handle,
     cbf_failnez (cbf_find_column      (handle, "precedence"))
     cbf_failnez (cbf_get_integervalue (handle, &precedence))
 
-    if (precedence < 1 || precedence > 2)
+    if (precedence < 1 || precedence > 3)
 
       return CBF_FORMAT;
 
@@ -1999,7 +2479,7 @@ int cbf_set_real_image (cbf_handle    handle,
     cbf_failnez (cbf_find_column (handle, "array_id"))
   }
 
-  if (!done [1] || !done [2])
+  if (!done [1] || !done [2] || !done[3])
 
     return CBF_NOTFOUND;
 
@@ -2014,19 +2494,58 @@ int cbf_set_real_image (cbf_handle    handle,
     cbf_failnez (cbf_set_value(handle,array_id))
   }
   cbf_failnez (cbf_require_column   (handle, "binary_id"))
-  if (cbf_get_integervalue (handle, &binary_id)) {
-    binary_id = 1;
-    cbf_failnez (cbf_set_integervalue (handle, binary_id))
+  if (binary_id)  {
+    if (*binary_id == 0) *binary_id = 1;
+    while (1) {
+      if ( cbf_get_integervalue(handle,&local_binary_id) 
+        || local_binary_id == 0) local_binary_id = 1; 
+      if ( local_binary_id != *binary_id ) {
+        cbf_failnez (cbf_find_column(handle, "array_id")) 
+        if (cbf_find_nextrow(handle, array_id)) {
+       	  cbf_failnez (cbf_new_row( handle )) 
+          cbf_failnez (cbf_set_value(handle,array_id))
+          cbf_failnez (cbf_find_column (handle, "binary_id"))
+          cbf_failnez (cbf_set_integervalue (handle, *binary_id))
+          break;
+        }
+        cbf_failnez (cbf_find_column(handle, "binary_id"))
+      } else {
+        break;
+      }
+    }
+  } 
+  else 
+  {
+    if (cbf_get_integervalue (handle, &local_binary_id)) {
+      local_binary_id = 1;
+      cbf_failnez (cbf_set_integervalue (handle, local_binary_id))
+    }
   }
   cbf_failnez (cbf_find_column      (handle, "data"))
 
 
     /* Save the array */
 
-  cbf_failnez (cbf_set_realarray (handle, compression, binary_id,
+  if (eltype == CBF_INTEGER)   {
+  
+    cbf_failnez (cbf_set_integerarray_wdims (handle, compression, *binary_id,
+                                     array, elsize, elsign,
+                                     dimension [1] * dimension [2] * dimension [3],
+                                     "little_endian",
+                                     dimension[1],
+                                     (dimension[3]>1||dimension[2]>1)?dimension[2]:0,
+                                     dimension[3]>1?dimension[3]:0,0 ))
+  } else {
+  	
+    cbf_failnez (cbf_set_realarray_wdims (handle, compression, *binary_id,
                                      array, elsize,
-                                     dimension [1] * dimension [2]))
-
+                                     dimension [1] * dimension [2] * dimension [3],
+                                     "little_endian",
+                                     dimension[1],
+                                     (dimension[3]>1||dimension[2]>1)?dimension[2]:0,
+                                     dimension[3]>1?dimension[3]:0,0 ))
+  }
+  
     /* Update the array_structure category */
 
   cbf_failnez (cbf_require_category (handle, "array_structure"))
@@ -2038,35 +2557,59 @@ int cbf_set_real_image (cbf_handle    handle,
     cbf_failnez (cbf_set_typeofvalue(handle,"word"))
   }
   cbf_failnez (cbf_require_column   (handle, "encoding_type"))
-  sprintf(enctype,"signed %d-bit real IEEE", ((int)elsize)*8);
+  if (eltype == CBF_INTEGER) {
+  	if (elsign) {
+      sprintf(enctype,"signed %d-bit integer", ((int)elsize)*8);
+    } else {
+      sprintf(enctype,"unsigned %d-bit integer", ((int)elsize)*8);
+    }
+  } else {	
+    sprintf(enctype,"signed %d-bit real IEEE", ((int)elsize)*8);
+  }
   cbf_failnez (cbf_set_value        (handle,enctype))
   cbf_failnez (cbf_set_typeofvalue  (handle,"dblq"))
   cbf_failnez (cbf_require_column   (handle, "compression_type"))
-  switch (compression) {
+  switch (compression&CBF_COMPRESSION_MASK) {
     case (CBF_NONE):
       cbf_failnez (cbf_set_value      (handle,"none"))
       cbf_failnez (cbf_set_typeofvalue(handle,"word"))
       break;
     case (CBF_CANONICAL):
-      cbf_failnez (cbf_set_value      (handle,"canonical")) break;
+      cbf_failnez (cbf_set_value      (handle,"canonical"))
       cbf_failnez (cbf_set_typeofvalue(handle,"word"))
       break;
     case (CBF_PACKED):
-      cbf_failnez (cbf_set_value      (handle,"packed")) break;
+      cbf_failnez (cbf_set_value      (handle,"packed"))
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+      break;
+    case (CBF_PACKED_V2):
+      cbf_failnez (cbf_set_value      (handle,"packed_v2"))
       cbf_failnez (cbf_set_typeofvalue(handle,"word"))
       break;
     case (CBF_BYTE_OFFSET):
-      cbf_failnez (cbf_set_value      (handle,"byte_offsets")) break;
+      cbf_failnez (cbf_set_value      (handle,"byte_offsets"))
       cbf_failnez (cbf_set_typeofvalue(handle,"word"))
       break;
     case (CBF_PREDICTOR):
-      cbf_failnez (cbf_set_value      (handle,"predictor")) break;
+      cbf_failnez (cbf_set_value      (handle,"predictor"))
       cbf_failnez (cbf_set_typeofvalue(handle,"word"))
       break;
     default:
-      cbf_failnez (cbf_set_value      (handle,".")) break;
+      cbf_failnez (cbf_set_value      (handle,"."))
       cbf_failnez (cbf_set_typeofvalue(handle,"null"))
       break;
+  }
+  if (compression&CBF_FLAG_MASK) {
+    if (compression&CBF_UNCORRELATED_SECTIONS) {
+      cbf_failnez (cbf_require_column   (handle, "compression_type_flag"))
+      cbf_failnez (cbf_set_value        (handle, "uncorrelated_sections"))
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+    } else if (compression&CBF_FLAT_IMAGE)  {
+      cbf_failnez (cbf_require_column   (handle, "compression_type_flag"))
+      cbf_failnez (cbf_set_value        (handle, "flat"))
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+    }
+    else return CBF_ARGUMENT;	
   }
 
   cbf_failnez (cbf_require_column     (handle, "byte_order"))
@@ -2075,6 +2618,7 @@ int cbf_set_real_image (cbf_handle    handle,
 
   return 0;
 }
+
 
 
   /* Get the type of an axis */

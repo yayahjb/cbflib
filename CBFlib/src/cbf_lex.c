@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_lex -- lexical scanner for CBF tokens                          *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -301,7 +301,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
   unsigned int file_column, compression;
 
-  size_t size, length=0, code_size;
+  size_t size, length=0, code_size, dimover, dim1, dim2, dim3, padding;
 
   const char *line;
   
@@ -309,9 +309,12 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
   char out_line [(((sizeof (void *) +
                     sizeof (long int) * 2 +
-                    sizeof (int) * 3) * CHAR_BIT) >> 2) + 55];
+                    sizeof (int) * 3) * CHAR_BIT) >> 2) + 57
+                    +15+((5*sizeof (size_t)*3*CHAR_BIT)>>2)];
 
   char digest [25], new_digest [25];
+  
+  const char * byteorder;
   
   file = handle->file;
 
@@ -454,8 +457,20 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
       
         cbf_log(handle, "\"loop_\" must be followed by white space", 
           CBF_LOGERROR|CBF_LOGSTARTLOC );
+          
+        if (file->temporary)  {
+        
+          file->characters--;
+          
+          file->characters_used++;
+          
+          file->characters_size++;
+        	
+        } else  {
+        	
+          ungetc(c,file->stream);
       
-        ungetc(c,file->stream);
+        }
       
         file->column--;
       
@@ -730,6 +745,10 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
 
             /* Read the header */
+            
+          dimover=dim1=dim2=dim3=padding = 0;
+          
+          byteorder="little_endian";
 
           cbf_errornez (cbf_parse_mimeheader (file, &encoding,
                                                     &size,
@@ -738,14 +757,12 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                                     &compression,
                                                     &bits,
                                                     &sign,
-                                                    &real), val)
-           /* DEBUG
-             fprintf (stderr,"processing mime header \n"
-               "encoding = %d, size= %ld, id = %ld, compression = %d, "
-               "bits = %d, sign = %d, real = %d\n", encoding,
-               size, id, compression, bits, sign, real);
-               
-              */
+                                                    &real,
+                                                    &byteorder,
+                                                    &dimover,
+                                                    &dim1, &dim2, &dim3,
+                                                    &padding), val);
+
 
             /* Check the digest? */
 
@@ -773,6 +790,13 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                                          new_digest), val)
 
                 break;
+
+              case ENC_BASE32K:
+
+		        cbf_errornez (cbf_frombase32k (file, NULL, size, &code_size, new_digest), val)
+		
+                break;
+
 
               case ENC_BASE8:
               case ENC_BASE10:
@@ -844,15 +868,22 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                 if (encoding == ENC_BASE64)
 
                   code_size = size * 8 / 6;
-
+                  
                 else
 
-                  code_size = size / 4;
+                  if (encoding == ENC_BASE32K)
+
+
+		            code_size = size * 16 / 15;
+
+                  else
+
+                    code_size = size / 4;
 
 
               /* Skip to the end of the data */
 
-            cbf_errornez (cbf_set_fileposition (file, code_size, SEEK_CUR),
+            cbf_errornez (cbf_set_fileposition (file, code_size+padding, SEEK_CUR),
                                                       val)
           }
         }
@@ -925,11 +956,17 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
           strcpy (digest, "------------------------");
 
-        sprintf (out_line, "%lx %p %lx %lx %d %s %x %d %d %u",
+        sprintf (out_line, "%lx %p %lx %lx %d %s %x %d %d %s %ld %ld %ld %ld %ld %u",
                             id, (void *)file, position, (unsigned long) size, checked_digest,
-                            digest, bits, sign, real<1?0:1, compression);
+                            digest, bits, sign, real<1?0:1, 
+                            byteorder, (unsigned long)dimover, 
+                            (unsigned long)dim1, 
+                            (unsigned long)dim2, 
+                            (unsigned long)dim3, 
+                            (unsigned long)padding,
+                            compression);
 
-        if (encoding == ENC_NONE )
+        if (encoding == ENC_NONE)
 
           errorcode = cbf_return_text (BINARY, val, out_line,
                                                       CBF_TOKEN_BIN);

@@ -2,7 +2,7 @@
 
                                      README
 
-                   Information for CBFlib 0.7.6, 15 July 2006
+                   Information for CBFlib 0.7.7.5, 9 May 2007
 
                                        by
                                  Paul J. Ellis
@@ -13,7 +13,7 @@
                                 Bernstein + Sons
                           yaya@bernstein-plus-sons.com
 
-                    (c) Copyright 2006 Herbert J. Bernstein
+                 (c) Copyright 2006, 2007 Herbert J. Bernstein
 
      ----------------------------------------------------------------------
 
@@ -44,22 +44,22 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
   Installation
 
    CBFLIB should be built on a disk with at least 200 megabytes of free
-   space. CBFlib_0.7.6.tar.gz is a "gzipped" tar of the code as it now
-   stands. In addition, CBFlib_0.7.6_Data_Files.tar.gz is a "gzipped tar of
+   space. CBFlib_0.7.7.tar.gz is a "gzipped" tar of the code as it now
+   stands. In addition, CBFlib_0.7.7_Data_Files.tar.gz is a "gzipped tar of
    the data files needed to test the API. Place both gzipped tars in the
    directory that is intended to contain two new directories, named
-   CBFlib_0.7.6 (the "top-level" directory) and CBFlib_0.7.6_Data_Files.
+   CBFlib_0.7.7 (the "top-level" directory) and CBFlib_0.7.7_Data_Files.
    Uncompress both tarballs with gunzip and unpack them with tar:
 
-      gunzip CBFlib_0.7.6.tar.gz
-      tar xvf CBFLIB_0.7.6.tar
-      gunzip CBFlib_0.7.6_Data_Files.tar.gz
-      tar xvf CBFLIB_0.7.6_Data_Files.tar
+      gunzip CBFlib_0.7.7.tar.gz
+      tar xvf CBFLIB_0.7.7.tar
+      gunzip CBFlib_0.7.7_Data_Files.tar.gz
+      tar xvf CBFLIB_0.7.7_Data_Files.tar
 
    As with prior releases, to run the test programs, you will also need Paul
    Ellis's sample MAR345 image, example.mar2300, and Chris Nielsen's sample
    ADSC Quantum 315 image, mb_LP_1_001.img as sample data. Both these files
-   will be extracted by the Makefile from CBFlib_0.7.6_Data_Files. Do not
+   will be extracted by the Makefile from CBFlib_0.7.7_Data_Files. Do not
    download copies into the top level directory.
 
    After unpacking the archives, the top-level directory should contain a
@@ -69,13 +69,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    and the subdirectories:
 
-           src/           CBFLIB source files                          
-           include/       CBFLIB header files                          
-           examples/      Example program source files                 
-           doc/           Documentation                                
-           lib/           Compiled CBFLIB library                      
-           bin/           Executable example programs                  
-           html_images/   JPEG images used in rendering the HTML files 
+     src/           CBFLIB source files                                       
+     include/       CBFLIB header files                                       
+     m4/            CBFLIB m4 macro files (used to build .f90 files)          
+     examples/      Example program source files                              
+     doc/           Documentation                                             
+     lib/           Compiled CBFLIB (libcbf.a) and FCBLIB (libfcb.a)          
+                  libraries                                                   
+     bin/           Executable example programs                               
+     html_images/   JPEG images used in rendering the HTML files              
 
    For instructions on compiling and testing the library, go to the top-level
    directory and type:
@@ -88,4 +90,4 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-   Updated 16 July 2006.  yaya@bernstein-plus-sons.com
+   Updated 9 May 2007.  yaya@bernstein-plus-sons.com

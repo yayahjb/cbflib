@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_canonical -- canonical-code compression                        *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -1091,9 +1091,31 @@ int cbf_get_code (cbf_compress_data *data, cbf_compress_node *root,
 
   while (*(root->child))
   {
-    if (bits0 == 0)
-    {
-      bits1 = getc (data->file->stream);
+    if (bits0 == 0) {
+ 
+      if (data->file->temporary) {
+      
+        if (data->file->characters_used) {
+      
+          bits1 = *((data->file->characters)++);
+          
+          bits1 &= 0xFF;
+          
+          data->file->characters_used--;
+          
+          data->file->characters_size--;
+        
+        } else {
+        
+          bits1 = EOF;
+        	
+        }
+      	
+      } else  {
+      	
+        bits1 = getc (data->file->stream);
+      
+      }
 
       if (bits1 == EOF)
       {
@@ -1439,7 +1461,12 @@ int cbf_compress_canonical (void         *source,
                             cbf_file     *file,
                             size_t       *binsize,
                             int          *storedbits,
-                            int           realarray)
+                            int           realarray,
+                            const char   *byteorder,
+                            size_t        dim1,
+                            size_t        dim2,
+                            size_t        dim3,
+                            size_t        padding)
 {
   int code, minelement, maxelement;
 
@@ -1685,8 +1712,16 @@ int cbf_decompress_canonical (void         *destination,
                               size_t        nelem,
                               size_t       *nelem_read,
                               unsigned int  compression,
+                              int           data_bits,
+                              int           data_sign,
                               cbf_file     *file,
-                              int           realarray)
+                              int           realarray,
+                              const char   *byteorder,
+                              size_t        dimover,
+                              size_t        dim1,
+                              size_t        dim2,
+                              size_t        dim3,
+                              size_t        padding)
 {
   unsigned int bits, element, sign, unsign, limit, count64, count;
 

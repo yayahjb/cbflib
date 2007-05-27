@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf.h -- cbflib basic API functions                                *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2006                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -272,13 +272,17 @@ extern "C" {
 
   /* API version and assumed dictionary version */
   
-#define CBF_API_VERSION     "CBFlib v0.7.6"
-#define CBF_DIC_VERSION     "CBF: VERSION 1.3.2"
+#define CBF_API_VERSION     "CBFlib v0.7.7"
+#define CBF_DIC_VERSION     "CBF: VERSION 1.5"
 
   /* Maximum line length */
 
 #define CBF_LINELENGTH_10 80
 #define CBF_LINELENGTH_11 2048
+
+  /* Initial write buffer size */
+  
+#define CBF_INIT_WRITE_BUFFER 4096
 
 
   /* Error codes */
@@ -301,6 +305,7 @@ extern "C" {
 #define CBF_OVERFLOW         0x00008000  /*  32768 */
 #define CBF_UNDEFINED        0x00010000  /*  65536 */
 #define CBF_NOTIMPLEMENTED   0x00020000  /* 131072 */
+#define CBF_NOCOMPRESSION    0x00040000  /* 262144 */
 
 
   /* Token Type Strings */
@@ -325,10 +330,22 @@ extern "C" {
 #define CBF_INTEGER     0x0010  /* Uncompressed integer               */
 #define CBF_FLOAT       0x0020  /* Uncompressed IEEE floating-point   */
 #define CBF_CANONICAL   0x0050  /* Canonical compression              */
-#define CBF_PACKED      0x0060  /* Packed compression                 */
+#define CBF_PACKED      0x0060  /* CCP4 Packed (JPA) compression      */
+#define CBF_PACKED_V2   0x0090  /* CCP4 Packed (JPA) compression V2   */
 #define CBF_BYTE_OFFSET 0x0070  /* Byte Offset Compression            */
 #define CBF_PREDICTOR   0x0080  /* Predictor_Huffman Compression      */
 #define CBF_NONE        0x0040  /* No compression flag                */
+
+#define CBF_COMPRESSION_MASK  \
+                        0x00FF  /* Mask to separate compression
+                                         type from flags              */
+#define CBF_FLAG_MASK   0x0F00  /* Mask to separate flags from
+                                         compression type             */
+#define CBF_UNCORRELATED_SECTIONS \
+                        0x0100  /* Flag for uncorrelated sections     */
+#define CBF_FLAT_IMAGE  0x0200  /* Flag for flat (linear) images      */
+#define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */
+
 
 
   /* Flags used for logging */
@@ -349,6 +366,10 @@ extern "C" {
 #define MSG_NODIGEST    0x0004  /* Do not check message digests       */
 #define MSG_DIGEST      0x0008  /* Check message digests              */
 #define MSG_DIGESTNOW   0x0010  /* Check message digests immediately  */
+#define PAD_1K          0x0020  /* Pad binaries with 1023 0's         */
+#define PAD_2K          0x0040  /* Pad binaries with 2047 0's         */
+#define PAD_4K          0x0080  /* Pad binaries with 4095 0's         */
+
 
 #define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)
 
@@ -365,28 +386,61 @@ extern "C" {
 
 #define ENC_NONE        0x0001  /* Use BINARY encoding                 */
 #define ENC_BASE64      0x0002  /* Use BASE64 encoding                 */
-#define ENC_QP          0x0004  /* Use QUOTED-PRINTABLE encoding       */
-#define ENC_BASE10      0x0008  /* Use BASE10 encoding                 */
-#define ENC_BASE16      0x0010  /* Use BASE16 encoding                 */
-#define ENC_BASE8       0x0020  /* Use BASE8  encoding                 */
-#define ENC_FORWARD     0x0040  /* Map bytes to words forward (1234)   */
-#define ENC_BACKWARD    0x0080  /* Map bytes to words backward (4321)  */
-#define ENC_CRTERM      0x0100  /* Terminate lines with CR             */
-#define ENC_LFTERM      0x0200  /* Terminate lines with LF             */
+#define ENC_BASE32K     0x0004  /* Use X-BASE32K encoding              */
+#define ENC_QP          0x0008  /* Use QUOTED-PRINTABLE encoding       */
+#define ENC_BASE10      0x0010  /* Use BASE10 encoding                 */
+#define ENC_BASE16      0x0020  /* Use BASE16 encoding                 */
+#define ENC_BASE8       0x0040  /* Use BASE8  encoding                 */
+#define ENC_FORWARD     0x0080  /* Map bytes to words forward (1234)   */
+#define ENC_BACKWARD    0x0100  /* Map bytes to words backward (4321)  */
+#define ENC_CRTERM      0x0200  /* Terminate lines with CR             */
+#define ENC_LFTERM      0x0400  /* Terminate lines with LF             */
 
 #define ENC_DEFAULT (ENC_BASE64 | ENC_LFTERM | ENC_FORWARD)
 
 
   /* Convenience definitions for functions returning error codes */
+  
+  /* First we need to bring everything into the preprocessor */
+
+#ifdef __STDC_VERSION__
+  #if __STDC_VERSION__ < 199901L
+    # if __GNUC__ >= 2
+      #  define __func__ __FUNCTION__
+    # endif
+  #endif
+#endif
+
+
 
 #ifdef CBFDEBUG
 
+#ifndef __FILE__
+
 #define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
-                      "\nCBFlib error %d in " #x "\n", err); return err; }}
+                      "\nCBFlib error %d \n", err); return err; }}
 
 #define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
-                      "\nCBFlib error %d in " #x "\n", err); \
+                      "\nCBFlib error %d \n", err); \
                          { c; } return err; }}
+#else
+#ifndef __func__
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+                      "\nCBFlib error %d at %s:%d\n", err,__FILE__,__LINE__); return err; }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+                      "\nCBFlib error %d at %s:%d\n", err,__FILE__,__LINE__); \
+                         { c; } return err; }}
+#else
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+                      "\nCBFlib error %d at %s:%d(%s)\n", err,__FILE__,__LINE__,__func__); return err; }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+                      "\nCBFlib error %d at %s:%d(%s)\n", err,__FILE__,__LINE__,__func__); \
+                         { c; } return err; }}
+
+#endif
+#endif
 
 #else
 
@@ -841,6 +895,23 @@ int cbf_get_arrayparameters (cbf_handle    handle,
                                     int          *maxelem,
                                     int          *realarray);
 
+  /* Get the parameters of the current (row, column) array entry */
+
+int cbf_get_arrayparameters_wdims (cbf_handle    handle,
+                                    unsigned int *compression,
+                                    int          *id,
+                                    size_t       *elsize,
+                                    int          *elsigned,
+                                    int          *elunsigned,
+                                    size_t       *nelem,
+                                    int          *minelem,
+                                    int          *maxelem,
+                                    int          *realarray,
+                                    const char  **byteorder,
+                                    size_t       *dim1,
+                                    size_t       *dim2,
+                                    size_t       *dim3,
+                                    size_t       *padding);
 
 
   /* Get the parameters of the current (row, column) integer array entry */
@@ -854,6 +925,23 @@ int cbf_get_integerarrayparameters (cbf_handle    handle,
                                     size_t       *nelem, 
                                     int          *minelem, 
                                     int          *maxelem);
+
+  /* Get the parameters of the current (row, column) integer array entry */
+  
+int cbf_get_integerarrayparameters_wdims (cbf_handle    handle,
+                                    unsigned int *compression,
+                                    int          *id,
+                                    size_t       *elsize,
+                                    int          *elsigned,
+                                    int          *elunsigned,
+                                    size_t       *nelem,
+                                    int          *minelem,
+                                    int          *maxelem,
+                                    const char  **byteorder,
+                                    size_t       *dim1,
+                                    size_t       *dim2,
+                                    size_t       *dim3,
+                                    size_t       *padding);
 
 
   /* Get the integer value of the current (row, column) array entry */
@@ -883,6 +971,19 @@ int cbf_get_realarrayparameters (cbf_handle    handle,
                                     size_t       *elsize,
                                     size_t       *nelem);
 
+  /* Get the parameters of the current (row, column) array entry */
+
+int cbf_get_realarrayparameters_wdims (cbf_handle    handle,
+                                    unsigned int *compression,
+                                    int          *id,
+                                    size_t       *elsize,
+                                    size_t       *nelem,
+                                    const char  **byteorder,
+                                    size_t       *dim1,
+                                    size_t       *dim2,
+                                    size_t       *dim3,
+                                    size_t       *padding);
+
 
   /* Set the integer value of the current (row, column) array entry */
   
@@ -893,6 +994,21 @@ int cbf_set_integerarray (cbf_handle    handle,
                           size_t        elsize,
                           int           elsign, 
                           size_t        nelem);
+                          
+  /* Set the integer value of the current (row, column) array entry */
+  
+int cbf_set_integerarray_wdims (cbf_handle    handle,
+                          unsigned int  compression,
+                          int           id,
+                          void         *value,
+                          size_t        elsize,
+                          int           elsign,
+                          size_t        nelem,
+                          const char   *byteorder,
+                          size_t        dim1,
+                          size_t        dim2,
+                          size_t        dim3,
+                          size_t        padding);
 
   /* Set the real value of the current (row, column) array entry */
   
@@ -902,6 +1018,21 @@ int cbf_set_realarray (cbf_handle    handle,
                           void         *value, 
                           size_t        elsize,
                           size_t        nelem);
+
+  /* Set the real value of the current (row, column) array entry
+     with dimensions */
+
+int cbf_set_realarray_wdims (cbf_handle    handle,
+                          unsigned int  compression,
+                          int           id,
+                          void         *value,
+                          size_t        elsize,
+                          size_t        nelem,
+                          const char   *byteorder,
+                          size_t        dim1,
+                          size_t        dim2,
+                          size_t        dim3,
+                          size_t        padding);
 
 
   /* Issue a warning message */
@@ -1080,6 +1211,48 @@ int cbf_set_tag_category (cbf_handle handle, const char* tagname,
  
 int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type,
                                      cbf_node * catnode);
+
+  /* Load accumulator */
+
+int cbf_mpint_load_acc(unsigned int * acc, size_t acsize, 
+                               void * source, size_t elsize, 
+                               int elsign, const char * border);
+
+
+  /* Store accumulator */
+
+int cbf_mpint_store_acc(unsigned int * acc, size_t acsize, 
+                                void * dest, size_t elsize,
+                                int elsign, const char *border);
+
+  /* Clear accumulator */
+
+int cbf_mpint_clear_acc(unsigned int * acc, size_t acsize);
+
+  /* Increment accumulator */
+
+int cbf_mpint_increment_acc(unsigned int * acc, size_t acsize);
+
+  /* Decrement accumulator */
+
+int cbf_mpint_decrement_acc(unsigned int * acc, size_t acsize);
+
+  /* Negate accumulator */
+
+int cbf_mpint_negate_acc(unsigned int * acc, size_t acsize);
+
+  /* Add to accumulator */
+  
+int cbf_mpint_add_acc(unsigned int * acc, size_t acsize, unsigned int * add, size_t addsize);
+
+  /* Shift accumulator right */
+
+int cbf_mpint_rightshift_acc(unsigned int * acc, size_t acsize, int shift);
+
+  /* Shift accumulator left */
+
+int cbf_mpint_leftshift_acc(unsigned int * acc, size_t acsize, int shift);
+
 
 
 #ifdef __cplusplus

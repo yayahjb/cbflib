@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_compress.h                                                     *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -272,7 +272,12 @@ int cbf_compress (void         *source,
                   size_t       *compressedsize,
                   int          *bits, 
                   char         *digest,
-                  int           realarray);
+                  int           realarray,
+                  const char   *byteorder,
+                  size_t        dim1,
+                  size_t        dim2,
+                  size_t        dim3,
+                  size_t        padding);
 
 
   /* Get the parameters of an array (read up to the start of the table) */
@@ -299,7 +304,13 @@ int cbf_decompress (void         *destination,
                     int           bits, 
                     int           sign,
                     cbf_file     *file,
-                    int           realarray);
+                    int           realarray,
+                    const char   *byteorder,
+                    size_t        dimover,
+                    size_t        dim1,
+                    size_t        dim2,
+                    size_t        dim3,
+                    size_t        padding);
 
 
 #ifdef __cplusplus

@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_codes.h                                                        *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -284,6 +284,21 @@ int cbf_toqp (cbf_file *infile, cbf_file *outfile, size_t size);
 
 int cbf_tobase64 (cbf_file *infile, cbf_file *outfile, size_t size);
 
+  /*Convert binary data to base-32k text */
+  
+int cbf_tobase32k(cbf_file *infile, cbf_file *outfile, size_t size);
+
+  /* Bit shuffles for base-32K */
+
+char * cbf_encode32k_bit_op(unsigned char *txt, size_t size, size_t *size2);
+
+  /* Test for big endian */
+  
+int cbf_isBigEndian();
+
+  /* Fix endianess */
+
+void cbf_endianFix(char *str, size_t size, int fromEndian, int toEndian);
 
   /* Convert binary data to base-8/base-10/base-16 text */
 
@@ -305,6 +320,15 @@ int cbf_frombase64 (cbf_file *infile, cbf_file *outfile, size_t size,
                                                          size_t *readsize,
                                                            char *digest);
 
+ /* Convert base-32k text to binary data */
+
+int cbf_frombase32k (cbf_file *infile, cbf_file *outfile, size_t size,
+                                                          size_t *readsize, 
+                                                            char *digest);
+  /* bit shuffles for base-32k */
+  
+int cbf_decode32k_bit_op(char *encoded, char *decoded, size_t size);
+
 
   /* Convert base-8/base-10/base-16 text to binary data */
 
@@ -320,5 +344,4 @@ int cbf_frombasex (cbf_file *infile, cbf_file *outfile, size_t size,
 #endif
 
 #endif /* CBF_CODES_H */
-
 

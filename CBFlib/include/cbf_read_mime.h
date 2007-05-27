@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_read_mime.h                                                    *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -280,9 +280,17 @@ int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,
   
      Content-Type:
      Content-Transfer-Encoding:
+     Content-MD5:
      X-Binary-Size:
      X-Binary-ID:
-     Content-MD5: */
+     X-Binary-Element-Type:
+     X-Binary-Element-Byte-Order:
+     X-Binary-Size-Number-of-Elements;
+     X-Binary-Size-Fastest-Dimension:
+     X-Binary-Size-Second-Dimension:
+     X-Binary-Size-Third-Dimension:
+     X-Binary-Size-Padding:
+ */
  
 int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
                                           size_t     *size,
@@ -291,8 +299,13 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
                                  unsigned int        *compression,
                                           int        *bits,
                                           int        *sign,
-                                          int        *real);
-
+                                          int        *real,
+                                          const char **byteorder,
+                                          size_t     *dimover,
+                                          size_t     *dim1,
+                                          size_t     *dim2,
+                                          size_t     *dim3,
+                                          size_t     *padding);
 
 #ifdef __cplusplus
 

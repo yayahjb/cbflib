@@ -1,12 +1,12 @@
 /**********************************************************************
  * convert_image -- convert an image file to a cbf file               *
  *                                                                    *
- * Version 0.7.6 28 June 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -233,7 +233,7 @@
  *  convert_image [-i input_img] [-o output_cbf] [-p template_cbf]\   *
  *    [-d detector name]  -m [x|y|x=y] [-z distance]              \   *
  *    [-c category_alias=category_root]*                          \   *
- *    [-t tag_alias=tag_root]*                                    \   *
+ *    [-t tag_alias=tag_root]* [-F] [-R]                          \   *
  *    [input_img] [output_cbf]                                        *
  *                                                                    *
  *  the options are:                                                  *
@@ -257,6 +257,10 @@
  *  -d detectorname                                                   *
  *    a detector name to be used if none is provided in the image     *
  *    header.                                                         *
+ *                                                                    *
+ *  -F                                                                *
+ *    when writing packed compression, treat the entire image as      *
+ *    one line with no averaging                                      *
  *                                                                    *
  *  -m [x|y|x=y] (default x=y, square arrays only)                    *
  *    mirror the array in the x-axis (y -> -y)                        *
@@ -381,7 +385,7 @@ int outusage ( void ) {
  fprintf(stderr,"  convert_image [-i input_img] [-o output_cbf] [-p template_cbf]\\\n");
  fprintf(stderr,"    [-d detector name] -m [x|y|x=y] [-z distance] \\\n");
  fprintf(stderr,"    [-c category_alias=category_root]* \\\n");
- fprintf(stderr,"    [-t tag_alias=tag_root]* \\\n");
+ fprintf(stderr,"    [-t tag_alias=tag_root]* [-F] [-R]\\\n");
  fprintf(stderr,"    [input_img] [output_cbf]\n");
 
  fprintf(stderr,"  the options are:\n");
@@ -405,6 +409,10 @@ int outusage ( void ) {
  fprintf(stderr,"  -d detectorname\n");
  fprintf(stderr,"    a detector name to be used if none is provided in the image\n");
  fprintf(stderr,"    header.\n");
+
+ fprintf(stderr,"  -F\n");
+ fprintf(stderr,"    when writing packed compression, treat the entire image as\n");
+ fprintf(stderr,"    one line with no averaging  \n");
 
  fprintf(stderr,"  -m [x|y|x=y] (default x=y, square arrays only)\n");
  fprintf(stderr,"    mirror the array in the x-axis (y -> -y)\n");
@@ -506,7 +514,7 @@ int main (int argc, char *argv [])
 
   int copt;
   int errflg = 0;
-  char imgtmp[19];
+  char * imgtmp=NULL;
   int imgtmpused = 0;
   char *imgin, *cbfout, *template, *distancestr;
   cbf_detector detector;
@@ -515,6 +523,7 @@ int main (int argc, char *argv [])
   int index;
   int transpose;
   int fastlen, slowlen;
+  int flat;
 
     /* Usage */
 
@@ -525,10 +534,11 @@ int main (int argc, char *argv [])
   transpose = 0;
   distancestr = NULL;
   dorefs = 0;
+  flat = 0;
   
   cbf_failnez (cbf_make_handle (&cbf))
 
-  while ((copt = getopt(argc,argv, "i:o:p:d:m:r:R:z:c:t:")) != EOF) {
+  while ((copt = getopt(argc,argv, "FRi:o:p:d:m:r:z:c:t:")) != EOF) {
 
     switch(copt) {
       case 'i':
@@ -544,6 +554,10 @@ int main (int argc, char *argv [])
       case 'p':
          if (template) errflg++;
          else template = optarg;
+         break;
+
+      case 'F':
+         flat = 1;
          break;
 
       case 'm':
@@ -627,6 +641,7 @@ int main (int argc, char *argv [])
 
 
   if (!imgin || strcmp(imgin?imgin:"","-") == 0) {
+     imgtmp = (char *)malloc(strlen("/tmp/cvt_imgXXXXXX")+1);
      strcpy(imgtmp, "/tmp/cvt_imgXXXXXX");
      if ((imgin = mktemp(imgtmp)) == NULL ) {
        fprintf(stderr,"\n convert_image: Can't create temporary file name %s.\n", imgtmp);
@@ -682,19 +697,27 @@ int main (int argc, char *argv [])
 
     /* Construct the template name */
 
-  sprintf (template_name, "template_%s_%dx%d.cbf", detector_type,
+  if (template) {
+
+    in = fopen (template, "rb");
+  
+  } else {
+
+    sprintf (template_name, "template_%s_%dx%d.cbf", detector_type,
                              img_columns (img),
                              img_rows (img));
 
-  fprintf(stderr," convert_image: template_name: %s\n", template_name);
+    fprintf(stderr," convert_image: template_name: %s\n", template_name);
 
     /* Read and modify the template */
 
-  in = fopen (template_name, "rb");
+    in = fopen (template_name, "rb");
 
-  if (!in) 
-  {
-    fprintf (stderr," convert_image: unable to open template_name: %s\n", template_name);
+  }
+  
+  if (!in) {
+    fprintf (stderr," convert_image: unable to open template_name: %s\n", 
+      template?template:template_name);
     
     exit (4);
 
@@ -832,11 +855,13 @@ int main (int argc, char *argv [])
   {
     char monthstring [16];
 
-    int month, day, hour, minute, second, year;
+    int month, day, hour, minute, year;
+    
+    double second;
 
     year = 0;
 
-    sscanf (date, "%*s %s %d %d:%d:%d %d", monthstring,
+    sscanf (date, "%*s %s %d %d:%d:%lf %d", monthstring,
                    &day, &hour, &minute, &second, &year);
 
     if (year != 0)
@@ -981,9 +1006,17 @@ int main (int argc, char *argv [])
   }
 
 
+  if (flat) {
+  
+  cbf_failnez (cbf_set_image (cbf, 0, 0, CBF_PACKED|CBF_FLAT_IMAGE,
+                               img->image, sizeof (int), 1, 
+                               slowlen, fastlen))
+  	
+  } else {
   cbf_failnez (cbf_set_image (cbf, 0, 0, CBF_PACKED,
                                img->image, sizeof (int), 1,
                                slowlen, fastlen))
+  }
 
  
    /* fix up the array_structure_list.direction and .precedence */

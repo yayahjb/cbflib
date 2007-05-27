@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_write_binary -- write binary sections                          *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.7 19 February 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -259,6 +259,7 @@ extern "C" {
 #include "cbf_context.h"
 #include "cbf_binary.h"
 #include "cbf_codes.h"
+#include "cbf_string.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -285,6 +286,12 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
   unsigned int compression;
 
   int id, bits, sign, type, checked_digest, elsize, realarray;
+  
+  const char *byteorder;
+  
+  size_t dimover, dim1, dim2, dim3;
+  
+  size_t padding, ip;
 
 
     /* Check the arguments */
@@ -295,6 +302,7 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 
   if (((file->write_encoding & ENC_QP)     > 0) +
       ((file->write_encoding & ENC_BASE64) > 0) +
+      ((file->write_encoding & ENC_BASE32K)> 0) +
       ((file->write_encoding & ENC_BASE8)  > 0) +
       ((file->write_encoding & ENC_BASE10) > 0) +
       ((file->write_encoding & ENC_BASE16) > 0) +
@@ -315,7 +323,17 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 
   cbf_failnez (cbf_get_bintext (column, row, &type, &id, &infile,
                                 &start, &size, &checked_digest,
-                                 digest, &bits, &sign, &realarray, &compression))
+                                 digest, &bits, &sign, &realarray, 
+                                 &byteorder, &dimover, &dim1, &dim2, &dim3,
+                                 &padding, &compression))
+
+  if (padding == 0) {
+  
+    if (file->write_headers & PAD_1K ) padding=1023;
+    if (file->write_headers & PAD_2K ) padding=2047;
+    if (file->write_headers & PAD_4K ) padding=4095;
+    
+  }
 
 
     /* Position the file at the start of the binary section */
@@ -327,9 +345,6 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 
   if (!cbf_is_base64digest (digest) && (file->write_headers & MSG_DIGEST))
   {
-      /* Discard any bits in the buffers */
-
-    cbf_failnez (cbf_reset_bits (infile))
 
 
       /* Compute the message digest */
@@ -349,13 +364,18 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
     cbf_failnez (cbf_set_bintext (column, row, type,
                                   id, infile, start, size,
                                   checked_digest, digest, bits,
-                                  sign,  realarray, compression))
+                                  sign,  realarray, 
+                                  byteorder, dimover, dim1, dim2, dim3,
+                                  padding, compression))
   }
 
 
     /* Discard any bits in the buffers */
 
-  cbf_failnez (cbf_reset_bits (infile))
+  
+  infile->bits [0] = 0;
+  infile->bits [1] = 0;
+
 
 
     /* Do we need MIME headers? */
@@ -386,12 +406,51 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
       cbf_failnez (cbf_write_string (file,
                                 "Content-Type: application/octet-stream;\n"))
 
-      switch (compression)
+      switch (compression&CBF_COMPRESSION_MASK)
       {
         case CBF_PACKED:
-
+                  	
           cbf_failnez (cbf_write_string (file,
-                                "     conversions=\"x-CBF_PACKED\"\n"))
+                                "     conversions=\"x-CBF_PACKED\""))
+                                
+          if (compression&CBF_UNCORRELATED_SECTIONS) {
+          
+             cbf_failnez (cbf_write_string (file,
+                                "; \"uncorrelated_sections\""))
+          	
+          }
+          
+          if (compression&CBF_FLAT_IMAGE) {
+          
+             cbf_failnez (cbf_write_string (file,
+                                "; \"flat\""))
+          	
+          }
+
+          cbf_failnez (cbf_write_string (file, "\n"))
+
+          break;
+
+        case CBF_PACKED_V2:
+          
+          cbf_failnez (cbf_write_string (file,
+                                "     conversions=\"x-CBF_PACKED_V2\""))
+
+          if (compression&CBF_UNCORRELATED_SECTIONS) {
+          
+             cbf_failnez (cbf_write_string (file,
+                                "; \"uncorrelated_sections\""))
+          	
+          }
+          
+          if (compression&CBF_FLAT_IMAGE) {
+          
+             cbf_failnez (cbf_write_string (file,
+                                "; \"flat\""))
+          	
+          }
+
+          cbf_failnez (cbf_write_string (file, "\n"))
 
           break;
 
@@ -437,28 +496,35 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 
       else
 
-        if (file->write_encoding & ENC_BASE8)
-
+        if (file->write_encoding & ENC_BASE32K)
+        
           cbf_failnez (cbf_write_string (file,
-                      "Content-Transfer-Encoding: X-BASE8\n"))
-
+                      "Content-Transfer-Encoding: X-BASE32K\n"))
+	
         else
 
-          if (file->write_encoding & ENC_BASE10)
+          if (file->write_encoding & ENC_BASE8)
 
             cbf_failnez (cbf_write_string (file,
-                      "Content-Transfer-Encoding: X-BASE10\n"))
+                      "Content-Transfer-Encoding: X-BASE8\n"))
 
           else
 
-            if (file->write_encoding & ENC_BASE16)
+            if (file->write_encoding & ENC_BASE10)
 
               cbf_failnez (cbf_write_string (file,
-                      "Content-Transfer-Encoding: X-BASE16\n"))
+                      "Content-Transfer-Encoding: X-BASE10\n"))
 
             else
 
-              cbf_failnez (cbf_write_string (file,
+              if (file->write_encoding & ENC_BASE16)
+
+                cbf_failnez (cbf_write_string (file,
+                      "Content-Transfer-Encoding: X-BASE16\n"))
+
+              else
+
+                cbf_failnez (cbf_write_string (file,
                       "Content-Transfer-Encoding: BINARY\n"))
 
     sprintf (text, "X-Binary-Size: %lu\n", (long)size);
@@ -490,6 +556,20 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 
     cbf_failnez (cbf_write_string (file, text))
 
+    if ( !cbf_cistrncmp(byteorder,"big_endian",11) ) {
+
+      sprintf (text, "X-Binary-Element-Byte-Order: %s\n", "BIG_ENDIAN");
+      
+      cbf_failnez (cbf_write_string (file, text))
+
+    } else if ( !cbf_cistrncmp(byteorder,"little_endian",14) ) {
+        
+      sprintf (text, "X-Binary-Element-Byte-Order: %s\n", "LITTLE_ENDIAN");
+      
+      cbf_failnez (cbf_write_string (file, text))
+    	
+    } else return CBF_FORMAT;
+
 
       /* Save the digest if we have one */
 
@@ -498,6 +578,56 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
       sprintf (text, "Content-MD5: %24s\n", digest);
 
       cbf_failnez (cbf_write_string (file, text))
+    }
+
+
+    if (dimover > 0) {
+    
+      sprintf (text, "X-Binary-Number-of-Elements: %ld\n", (unsigned long)dimover);
+    
+      cbf_failnez (cbf_write_string (file, text))
+    	
+    }
+
+
+    if (dim1 > 0) {
+    
+      sprintf (text, "X-Binary-Size-Fastest-Dimension: %ld\n", (unsigned long)dim1);
+    
+      cbf_failnez (cbf_write_string (file, text))
+    	
+    }
+
+    if (dim2 > 0) {
+    
+      sprintf (text, "X-Binary-Size-Second-Dimension: %ld\n", (unsigned long)dim2);
+    
+      cbf_failnez (cbf_write_string (file, text))
+    	
+    } 
+
+    
+    if ((long)dim3 > 0) {
+    
+      sprintf (text, "X-Binary-Size-Third-Dimension: %ld\n", (unsigned long)dim3);
+    
+      cbf_failnez (cbf_write_string (file, text))
+    	
+    } else if ((long)dim3 < 0 ) {
+
+      sprintf (text, "X-Binary-Size-Third-Dimension: %ld\n", (unsigned long)(-(long)dim3) );
+    
+      cbf_failnez (cbf_write_string (file, text))
+    	
+    }
+    
+
+    if (padding > 0) {
+    
+      sprintf (text, "X-Binary-Size-Padding: %ld\n", (unsigned long)padding);
+    
+      cbf_failnez (cbf_write_string (file, text))
+    	
     }
 
     cbf_failnez (cbf_write_string (file, "\n"))
@@ -555,6 +685,20 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
       /* Copy the binary section to the output file */
 
     cbf_failnez (cbf_copy_file (file, infile, size))
+    
+      /* If padding requested, pad with zero */
+      
+    if (padding > 0)  {
+    
+      for (ip = 0; ip < 100; ip++) text[ip] = 0;
+      
+      for (ip = 0; ip < padding; ip+=100) {
+      
+        cbf_failnez(cbf_put_bits(file, (int *)text,CHAR_BIT*(ip+100<padding?100:padding-ip)))
+      	
+      }
+    	
+    }
   }
   else
   {
@@ -590,11 +734,6 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
     cbf_failnez (cbf_set_fileposition (infile, start, SEEK_SET))
 
 
-      /* Flush any bits in the buffers */
-
-    cbf_failnez (cbf_flush_bits (infile))
-
-
     if (file->write_encoding & ENC_QP)
 
       cbf_failnez (cbf_toqp (infile, file, size))
@@ -604,22 +743,28 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
       if (file->write_encoding & ENC_BASE64)
 
         cbf_failnez (cbf_tobase64 (infile, file, size))
-
-      else
-
-        if (file->write_encoding & ENC_BASE8)
-
-          cbf_failnez (cbf_tobasex (infile, file, size, elsize, 8))
+		
+      else 
+      
+        if(file->write_encoding & ENC_BASE32K)
+	      
+          cbf_failnez(cbf_tobase32k (infile, file, size))
 
         else
 
-          if (file->write_encoding & ENC_BASE10)
+          if (file->write_encoding & ENC_BASE8)
 
-            cbf_failnez (cbf_tobasex (infile, file, size, elsize, 10))
+            cbf_failnez (cbf_tobasex (infile, file, size, elsize, 8))
 
           else
 
-            cbf_failnez (cbf_tobasex (infile, file, size, elsize, 16))
+            if (file->write_encoding & ENC_BASE10)
+
+              cbf_failnez (cbf_tobasex (infile, file, size, elsize, 10))
+
+            else
+
+              cbf_failnez (cbf_tobasex (infile, file, size, elsize, 16))
   }
 
 
@@ -648,7 +793,9 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 
     cbf_failnez (cbf_set_bintext (column, row, CBF_TOKEN_BIN,
                                   id, file, start, size, checked_digest,
-                                  digest, bits, sign, realarray, compression))
+                                  digest, bits, sign, realarray, 
+                                  byteorder, dimover, dim1, dim2, dim3, padding,
+                                  compression))
 
 
     /* Success */
