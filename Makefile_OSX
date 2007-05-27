@@ -902,7 +902,7 @@ test_fcb_read_testflatpackedout_orig.out: $(DATADIR) \
 #
 # Tests
 #
-tests:	$(LIB) $(BIN) basic extra
+tests:	$(LIB) $(BIN) symlinksdone basic extra
 
 #
 # Basic Tests
