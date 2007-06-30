@@ -707,7 +707,7 @@ int cbf_tobase32k(cbf_file *infile, cbf_file *outfile, size_t size)
 			      cbf_put_character(outfile, '\xEF');
 			      cbf_put_character(outfile, '\xBB');
 			      cbf_put_character(outfile, '\xBF');
-		
+	free(txt);
 	return 0;
 }
 
@@ -1782,7 +1782,8 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
     *readsize = all;
 
 
-
+	free(enc);
+	free(decoded);
 		return 0;
 	}
 	else if((enc[0] == '\xFF' && enc[1] == '\xFE') || (enc[0] == '\xFE' && enc[1] == '\xFF') )
@@ -2211,7 +2212,8 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
     *readsize = all;
 
 
-
+		free(enc);
+		free(decoded);
 		return 0;
 	}
 	
@@ -2220,6 +2222,8 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 
 	{
 			printf("The file given for decoding was not correctly encoded!");
+			free(enc);
+			free(decoded);	
 			return -1;
 	}
 }
