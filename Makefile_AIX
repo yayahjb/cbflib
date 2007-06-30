@@ -1,12 +1,13 @@
+
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.7.7 27 May 2007                                          #
+# Version 0.7.7 30 June 2007                                         #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 Herbert J. Bernstein                            #
+# (C) Copyright 2006 - 2007 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
@@ -260,58 +261,13 @@ ifeq ($(GETOPT),)
   GETOPT 	=	getopt-1.1.4_cbf
 endif
 
-#
-# Set the compiler and flags
-#
-#########################################################
-#
-#  Appropriate compiler definitions for MAC OS X
-#
-#########################################################
-#CC	= gcc
-#C++	= g++
-#CFLAGS  = -g -O2  -Wall -ansi -pedantic
-#F90C = gfortran
-#F90FLAGS = -g
-#F90LDFLAGS = -bind_at_load
-#TIME = time
-#########################################################
-#
-#  Appropriate compiler definitions for Linux
-#
-#########################################################
-#CC	= gcc
-#C++	= g++
-#CFLAGS  = -g -O2  -Wall -ansi -pedantic
-#F90C = gfortran
-#F90FLAGS = -g
-#F90LDFLAGS = 
-#TIME = time
-#########################################################
-#
-#  Appropriate compiler definitions for AIX
-#
-#########################################################
-CC	= xlc
-C++	= xlC
-CFLAGS  = -g -O2  -Wall
-F90C = xlf90
-F90FLAGS = -g -qsuffix=f=f90
-F90LDFLAGS =
-TIME = time 
-#########################################################
-#
-#  Appropriate compiler definitions for Mingw
-#
-#########################################################
-#CC	= gcc
-#C++	= g++
-#CFLAGS  = -g -O2  -Wall 
-#F90C = g95
-#F90FLAGS = -g
-#F90LDFLAGS = 
-#TIME = 
+# Program to use to retrieve a URL
 
+DOWNLOAD = /usr/bin/wget
+
+# Flag to control symlinks versus copying
+
+SLFLAGS = --use_ln
 
 #
 # Program to use to pack shars
@@ -339,15 +295,31 @@ DECOMPRESS = /usr/bin/bunzip2
 #
 CEXT = .bz2
 
-# Program to use to retrieve a URL
-
-#DOWNLOAD = /sw/bin/wget
-DOWNLOAD = /usr/bin/wget
 
 # call to time a command
 
 #TIME =
 #TIME = time
+
+
+#
+# Set the compiler and flags
+#
+
+#########################################################
+#
+#  Appropriate compiler definitions for AIX
+#
+#########################################################
+CC	= xlc
+C++	= xlC
+CFLAGS  = -g -O2  -Wall
+F90C = xlf90
+F90FLAGS = -g -qsuffix=f=f90
+F90LDFLAGS = 
+M4FLAGS = -Dfcb_bytes_in_rec=131072
+TIME = time
+
 
 #
 # Directories
@@ -385,7 +357,7 @@ INCLUDES = -I$(INCLUDE) -I$(SRC)
 .SUFFIXES:	.c .o .f90 .m4
 
 .m4.f90:
-		m4 -P $< > $@
+		m4 -P $(M4FLAGS) $< > $@
 
 .f90.o:
 		$(F90C) $(F90FLAGS) -c $< -o $@
@@ -585,6 +557,8 @@ symlinksdone:
 install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin
 		-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
 		cp $(LIB)/libcbf.a $(INSTALLDIR)/lib/libcbf.a
+		-cp $(INSTALLDIR)/lib/libimg.a $(INSTALLDIR)/lib/libimg_old.a
+		cp $(LIB)/libimg.a $(INSTALLDIR)/lib/libimg.a
 		-cp $(INSTALLDIR)/bin/convert_image $(INSTALLDIR)/bin/convert_image_old
 		cp $(BIN)/convert_image $(INSTALLDIR)/bin/convert_image
 		-cp $(INSTALLDIR)/bin/convert_minicbf $(INSTALLDIR)/bin/convert_minicbf_old
@@ -717,23 +691,23 @@ $(LIB)/libfcb.a: $(F90SOURCE) $(COMMONDEP)
 # F90SOURCE
 #
 $(SRC)/fcb_exit_binary.f90: $(M4)/fcb_exit_binary.m4 $(M4)/fcblib_defines.m4
-	(cd $(M4); m4 -P fcb_exit_binary.m4) > $(SRC)/fcb_exit_binary.f90
+	(cd $(M4); m4 -P $(M4FLAGS) fcb_exit_binary.m4) > $(SRC)/fcb_exit_binary.f90
 $(SRC)/fcb_next_binary.f90: $(M4)/fcb_next_binary.m4 $(M4)/fcblib_defines.m4
-	(cd $(M4); m4 -P fcb_next_binary.m4) > $(SRC)/fcb_next_binary.f90
+	(cd $(M4); m4 -P $(M4FLAGS) fcb_next_binary.m4) > $(SRC)/fcb_next_binary.f90
 $(SRC)/fcb_open_cifin.f90: $(M4)/fcb_open_cifin.m4 $(M4)/fcblib_defines.m4
-	(cd $(M4); m4 -P fcb_open_cifin.m4)  > $(SRC)/fcb_open_cifin.f90
+	(cd $(M4); m4 -P $(M4FLAGS) fcb_open_cifin.m4)  > $(SRC)/fcb_open_cifin.f90
 $(SRC)/fcb_packed.f90: $(M4)/fcb_packed.m4 $(M4)/fcblib_defines.m4
-	(cd $(M4); m4 -P fcb_packed.m4)      > $(SRC)/fcb_packed.f90
+	(cd $(M4); m4 -P $(M4FLAGS) fcb_packed.m4)      > $(SRC)/fcb_packed.f90
 $(SRC)/fcb_read_bits.f90: $(M4)/fcb_read_bits.m4 $(M4)/fcblib_defines.m4
-	(cd $(M4); m4 -P fcb_read_bits.m4)   > $(SRC)/fcb_read_bits.f90
+	(cd $(M4); m4 -P $(M4FLAGS) fcb_read_bits.m4)   > $(SRC)/fcb_read_bits.f90
 $(SRC)/fcb_read_image.f90: $(M4)/fcb_read_image.m4 $(M4)/fcblib_defines.m4
-	(cd $(M4); m4 -P fcb_read_image.m4)  > $(SRC)/fcb_read_image.f90
+	(cd $(M4); m4 -P $(M4FLAGS) fcb_read_image.m4)  > $(SRC)/fcb_read_image.f90
 $(SRC)/fcb_read_xds_i2.f90: $(M4)/fcb_read_xds_i2.m4 $(M4)/fcblib_defines.m4
-	(cd $(M4); m4 -P fcb_read_xds_i2.m4) > $(SRC)/fcb_read_xds_i2.f90
+	(cd $(M4); m4 -P $(M4FLAGS) fcb_read_xds_i2.m4) > $(SRC)/fcb_read_xds_i2.f90
 $(EXAMPLES)/test_fcb_read_image.f90: $(M4)/test_fcb_read_image.m4 $(M4)/fcblib_defines.m4
-	(cd $(M4); m4 -P test_fcb_read_image.m4) > $(EXAMPLES)/test_fcb_read_image.f90
+	(cd $(M4); m4 -P $(M4FLAGS) test_fcb_read_image.m4) > $(EXAMPLES)/test_fcb_read_image.f90
 $(EXAMPLES)/test_xds_binary.f90: $(M4)/test_xds_binary.m4 $(M4)/fcblib_defines.m4
-	(cd $(M4); m4 -P test_xds_binary.m4) > $(EXAMPLES)/test_xds_binary.f90
+	(cd $(M4); m4 -P $(M4FLAGS) test_xds_binary.m4) > $(EXAMPLES)/test_xds_binary.f90
 
 #
 # convert_image example program
@@ -911,13 +885,13 @@ tests:	$(LIB) $(BIN) symlinksdone basic extra
 basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf example.mar2300
 	$(BIN)/makecbf example.mar2300 makecbf.cbf
 	$(BIN)/img2cif -c packed -m headers -d digest \
-		-e base64 < example.mar2300 > img2cif_packed.cif
+		-e base64  example.mar2300  img2cif_packed.cif
 	$(BIN)/img2cif -c canonical -m headers -d digest \
-		-e base64 < example.mar2300 > img2cif_canonical.cif
+		-e base64  example.mar2300  img2cif_canonical.cif
 	$(BIN)/img2cif -c packed -m headers -d digest \
-		-e none < example.mar2300 > img2cif_packed.cbf
+		-e none  example.mar2300  img2cif_packed.cbf
 	$(BIN)/img2cif -c canonical -m headers -d digest \
-		-e none < example.mar2300 > img2cif_canonical.cbf
+		-e none  example.mar2300  img2cif_canonical.cbf
 	$(BIN)/cif2cbf -e none -c packed \
 		img2cif_canonical.cif cif2cbf_packed.cbf
 	$(BIN)/cif2cbf -e none -c canonical \
