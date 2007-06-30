@@ -41,7 +41,7 @@ m4_include(`fcblib_defines.m4')
       fcb_interface_FCB_DECOMPRESS_PACKED_I4
       INTEGER(2)       CNT2PIX
 `! --  Local variables
-      INTEGER,PARAMETER:: FCB_BYTES_IN_REC='m4_ifdef(`fcb_bytes_in_rec',`fcb_bytes_in_rec',4096)`
+      INTEGER,PARAMETER:: FCB_BYTES_IN_REC='m4_ifelse(`fcb_bytes_in_rec',`',4096,`fcb_bytes_in_rec')`
       INTEGER             FCB_RECORD_SIZE,BYTE_IN_FILE,REC_IN_FILE,     &
 			  STEP,FIRST2,LAST2,FIRST4,LAST4,I,J,IOS
       INTEGER(4)          DIFF,PIXVALUE,MARKER,IADR
