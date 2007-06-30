@@ -602,7 +602,7 @@ int cbf_compress_byte_offset (void         *source,
   	         
 
   	         
-  	       } else if (dint <= 32767 || dint >= -32767) {
+  	       } else if (dint <= 32767 && dint >= -32767) {
   	       
   	         *unsigned_char_dest++ = 0x80;
   	         
