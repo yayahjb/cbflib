@@ -2,8 +2,8 @@
 
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
-                                Version 0.7.7.4
-                                   6 May 2007
+                                Version 0.7.7.6
+                                 30 June 2007
 
                                        by
                                  Paul J. Ellis
@@ -12,90 +12,86 @@
                                       and
                               Herbert J. Bernstein
                                 Bernstein + Sons
-                          yaya@bernstein-plus-sons.com
+                      yaya at bernstein-plus-sons dot com
 
                  (c) Copyright 2006, 2007 Herbert J. Bernstein
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
       YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL.
 
     ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS OF THE
                                      LGPL.
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
                   Before using this software, please read the
                                      NOTICE
-for important disclaimers and the IUCr Policy on the Use of the Crystallographic
-          Information File (CIF) and for other important information.
+        for important disclaimers and the IUCr Policy on the Use of the
+ Crystallographic Information File (CIF) and for other important information.
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
                                 Version History
 
-   Version   Date            By        Description                            
-     0.1       Apr. 1998       PJE       This was the first CBFlib release.   
-                                       It supported binary CBF files using    
-                                       binary strings.                        
-     0.2       Aug. 1998       HJB       This release added ascii imgCIF      
+   Version   Date         By        Description                              
+     0.1       Apr. 1998    PJE       This was the first CBFlib release. It  
+                                    supported binary CBF files using binary  
+                                    strings.                                 
+     0.2       Aug. 1998    HJB       This release added ascii imgCIF        
                                        support using MIME-encoded binary      
                                        sections, added the option of MIME     
-                                       headers for the binary strings was     
-                                       well. MIME code adapted from mpack     
-                                       1.5. Added hooks needed for DDL1-style 
-                                       names without categories.              
-     0.3       Sep. 1998       PJE       This release cleaned up the changes  
+                                    headers for the binary strings was well. 
+                                    MIME code adapted from mpack 1.5. Added  
+                                    hooks needed for DDL1-style names        
+                                    without categories.                      
+     0.3       Sep. 1998    PJE       This release cleaned up the changes    
                                        made for version 0.2, allowing         
                                        multi-threaded use of the code, and    
                                        removing dependence on the mpack       
                                        package.                               
-     0.4       Nov. 1998       HJB       This release merged much of the      
+     0.4       Nov. 1998    HJB       This release merged much of the        
                                        message digest code into the general   
                                        file reading and writing to reduce the 
                                        number of passes. More consistency     
-                                       checking between the MIME header and   
-                                       the binary header was introduced. The  
-                                       size in the MIME header was adjusted   
-                                       to agree with the version 0.2          
-                                       documentation.                         
-     0.5       Dec. 1998       PJE       This release greatly increased the   
+                                    checking between the MIME header and the 
+                                    binary header was introduced. The size   
+                                    in the MIME header was adjusted to agree 
+                                    with the version 0.2 documentation.      
+     0.5       Dec. 1998    PJE       This release greatly increased the     
                                        speed of processing by allowing for    
                                        deferred digest evaluation.            
-     0.6       Jan. 1999       HJB       This release removed the redundant   
+     0.6       Jan. 1999    HJB       This release removed the redundant     
                                        information (binary id, size,          
                                        compression id) from a binary header   
-                                       when there is a MIME header, removed   
-                                       the unused repeat argument, and made   
-                                       the memory allocation for buffering    
-                                       and tables with many rows sensitive to 
-                                       the current memory allocation already  
-                                       used.                                  
-     0.6.1     Feb. 2001       HP (per   This release fixed a memory leak due 
+                                    when there is a MIME header, removed the 
+                                    unused repeat argument, and made the     
+                                    memory allocation for buffering and      
+                                    tables with many rows sensitive to the   
+                                    current memory allocation already used.  
+     0.6.1     Feb. 2001    HP (per   This release fixed a memory leak due   
                              HJB)      to misallocation by size of cbf_handle 
                                        instead of cbf_handle_struct           
-     0.7       Mar. 2001       PJE       This release added high-level        
+     0.7       Mar. 2001    PJE       This release added high-level          
                                        instructions based on the imgCIF       
                                        dictionary version 1.1.                
-     0.7.1     Mar. 2001       PJE       The high-level functions were        
-                                       revised to permit future expansion to  
-                                       files with multiple images.            
-     0.7.2     Apr. 2001       HJB       This release adjusted cbf_cimple.c   
-                                       to conform to cif_img.dic version      
-                                       1.1.3                                  
-     0.7.2.1   May 2001        PJE       This release corrected an if nesting 
-                                       error in the prior mod to              
-                                       cbf_cimple.c.                          
-     0.7.3     Oct. 2002       PJE       This release modified cbf_simple.c   
-                                       to reorder image data on read so that  
-                                       the indices are always increasing in   
-                                       memory (this behavior was undefined    
+     0.7.1     Mar. 2001    PJE       The high-level functions were revised  
+                                    to permit future expansion to files with 
+                                    multiple images.                         
+     0.7.2     Apr. 2001    HJB       This release adjusted cbf_cimple.c to  
+                                    conform to cif_img.dic version 1.1.3     
+     0.7.2.1   May 2001     PJE       This release corrected an if nesting   
+                                    error in the prior mod to cbf_cimple.c.  
+     0.7.3     Oct. 2002    PJE       This release modified cbf_simple.c to  
+                                    reorder image data on read so that the   
+                                    indices are always increasing in memory  
+                                    (this behavior was undefined             
                                        previously).                           
-     0.7.4     Jan 2004        HJB       This release fixes a parse error for 
-                                       quoted strings, adds code to get and   
-                                       set character string types, and        
-                                       removes compiler warnings              
-     0.7.5     Apr 2006        HJB       This release cleans up some compiler 
+     0.7.4     Jan 2004     HJB       This release fixes a parse error for   
+                                    quoted strings, adds code to get and set 
+                                    character string types, and removes      
+                                    compiler warnings                        
+     0.7.5     Apr 2006     HJB       This release cleans up some compiler   
                                        warnings, corrects a parse error on    
                                        quoted strings with a leading blank as 
                                        adds the new routines for support of   
@@ -105,69 +101,105 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                                        to set beam centers, improves support  
                                        for conversion of images, picking up   
                                        more data from headers.                
-     0.7.6     Jul 2006        HJB       This release reorganizes the kit     
-                                       into two pieces:                       
-                                       CBFlib_0.7.6_Data_Files and            
-                                       CBFlib_0.7.6. An optional local copy   
-                                       of getopt is added. The 1.4 draft      
+     0.7.6     Jul 2006     HJB       This release reorganizes the kit into  
+                                    two pieces: CBFlib_0.7.6_Data_Files and  
+                                    CBFlib_0.7.6. An optional local copy of  
+                                    getopt is added. The 1.4 draft           
                                        dictionary has been added. cif2cbf     
                                        updated to support vcif2 validation.   
                                        convert_image and cif2cbf updated to   
                                        report text of error messages.         
-                                       convert_image updated to support tag   
-                                       and category aliases, default to adxv  
-                                       images. convert_image and img updated  
-                                       to support row-major images. Support   
-                                       added for binning. API Support added   
-                                       for validation, wide files and line    
-                                       folding. Logic changed for beam center 
-                                       reporting. Added new routines:         
-                                       cbf_validate, cbf_get_bin_sizes,       
-                                       cbf_set_bin_sizes,                     
+                                    convert_image updated to support tag and 
+                                    category aliases, default to adxv        
+                                    images. convert_image and img updated to 
+                                    support row-major images. Support added  
+                                    for binning. API Support added for       
+                                    validation, wide files and line folding. 
+                                    Logic changed for beam center reporting. 
+                                    Added new routines: cbf_validate,        
+                                    cbf_get_bin_sizes, cbf_set_bin_sizes,    
                                        cbf_find_last_typed_child,             
                                        cbf_compose_itemname,                  
-                                       cbf_set_cbf_logfile,                   
-                                       cbf_make_widefile, cbf_read_anyfile,   
-                                       cbf_read_widefile,                     
+                                    cbf_set_cbf_logfile, cbf_make_widefile,  
+                                    cbf_read_anyfile, cbf_read_widefile,     
                                        cbf_write_local_file,                  
                                        cbf_write_widefile, cbf_column_number, 
                                        cbf_blockitem_number, cbf_log,         
                                        cbf_check_category_tags,               
                                        cbf_set_beam_center                    
-     0.7.7     February 2007   HJB       This release reflects changes for    
-                                       base 32K support developed by G.       
-                                       Darakev, and changes for support of    
-                                       reals, 3d arrays, byte_offset          
-                                       compression and J. P. Abrahams packed  
-                                       compression made in consultation with  
-                                       (in alphabetic order) E. Eikenberry,   
-                                       A. Hammerley, W. Kabsch, M. Kobas, J.  
-                                       Wright and others at PSI and ESRF in   
-                                       January 2007, as well accumulated      
-                                       changes fixing problems in release     
-                                       0.7.6.                                 
-     0.7.7.1   February 2007   HJB       This release is a patch to 0.7.7 to  
-                                       change the treatment of the byteorder  
+     0.7.7     February     HJB       This release reflects changes for base 
+             2007                   32K support developed by G. Darakev, and 
+                                    changes for support of reals, 3d arrays, 
+                                    byte_offset compression and J. P.        
+                                    Abrahams packed compression made in      
+                                    consultation with (in alphabetic order)  
+                                    E. Eikenberry, A. Hammerley, W. Kabsch,  
+                                    M. Kobas, J. Wright and others at PSI    
+                                    and ESRF in January 2007, as well        
+                                    accumulated changes fixing problems in   
+                                    release 0.7.6.                           
+     0.7.7.1   February     HJB       This release is a patch to 0.7.7 to    
+             2007                   change the treatment of the byteorder    
                                        parameter from strcpy semantics to     
                                        return of a pointer to a string        
                                        constant. Our thanks to E. Eikenberry  
                                        for pointing out the problem.          
-     0.7.7.2   February 2007   HJB       This release is a patch to 0.7.7.1   
-                                       to add testing for JPA packed          
-                                       compression and to respect signs       
-                                       declared in the MIME header.           
-     0.7.7.3   April 2007      HJB       This release is a patch to 0.7.7.3   
-                                       to add f90 support for reading of CBF  
+     0.7.7.2   February     HJB       This release is a patch to 0.7.7.1 to  
+             2007                   add testing for JPA packed compression   
+                                    and to respect signs declared in the     
+                                    MIME header.                             
+     0.7.7.3   April 2007   HJB       This release is a patch to 0.7.7.3 to  
+                                    add f90 support for reading of CBF       
                                        byte-offset and packed compression, to 
                                        fix problems with gcc 4.4.1 and to     
                                        correct errors in multidimensional     
                                        packed compression.                    
-     0.7.7.4   May 2007        HJB       Corrects in handling SLS detector    
+     0.7.7.4   May 2007     HJB       Corrects in handling SLS detector      
                                        mincbfs and reorder dimensions versus  
-                                       arrays for some f90 compilers as per   
-                                       H. Powell.                             
+                                    arrays for some f90 compilers as per H.  
+                                    Powell.                                  
+     0.7.7.5   May 2007     HJB       Fix to cbf_get_image for bug reported  
+                                    by F. Remacle, fixes for windows builds  
+                                    as per J. Wright and F. Remacle.         
+     0.7.7.6   Jun 2007     HJB       Fix to CBF byte-offset compression     
+                                    writes, fix to Makefiles and m4 for f90  
+                                    test programs to allow adjustable record 
+                                    length.                                  
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
+
+  Release 0.7.7.6, Herbert J. Bernstein, 30 June 2007
+
+   Source File       Change                                                  
+   cbf_codes.c         Fix memory leaks in base32k encoding by G. Darakev.   
+   cbf_byte_offset.c   Fix in handling 32 bit offsets in the fast write      
+                     code, which were incorrectly handled as 16 bit offsets. 
+   Makefile,           Add M4FLAGS variable to control m4 expansion of f90   
+   Makefile_AIX,     test programs with different record lengths. For g95,   
+   Makefile_LINUX,   the record length must not be larger than the padding.  
+   Makefile_OSX      
+
+     ---------------------------------------------------------------------
+
+  Release 0.7.7.5, Herbert J. Bernstein, 9 May 2007
+
+   Source File        Change                                                 
+   cbf_codes.c          Change from use of bzero to memset and remove        
+                      include of strings.h                                   
+   cbf_codes.c          Change from use of bzero to memset and remove        
+                      include of strings.h                                   
+   cbf_simple.c         Fix ordering of dimensions in cbf_get_3d_array_size  
+                      and handling of non-zero binary ids to fix problems    
+                      with cbf_get_image and cbf_get_image_size              
+   cbf_uncompressed.c   Add include of unistd.h for use of swab on more      
+                      systems                                                
+   Makefile             Introduce $(TIME) variable for time command so it    
+                      can be suppressed in windows                           
+   fcb_read_bits.m4     Changes for g95 compatibility.                       
+   cif2c.c,             Make use of mkstemp conditional on NOMKSTEMP. Make   
+   cif2cbf.c, etc.    use of /tmp conditional on NOTMPDIR.                   
+
+     ---------------------------------------------------------------------
 
   Release 0.7.7.4, Herbert J. Bernstein, 6 May 2007
 
@@ -186,14 +218,14 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    fcblib_defines.m4    As per H. Powell, move declarations for dimensions    
                       before declarations of arrays.                          
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.7.7.3, Herbert J. Bernstein, 3 April 2007
 
    Source File             Change                                             
    Makefile                  Add m4 directory to build f90 sources. Add .f90  
-                           routines to src and examples. Add libfcb.a to lib. 
-                           Add tests for f90 routines to extra tests.         
+                           routines to src and examples. Add libfcb.a to     
+                           lib. Add tests for f90 routines to extra tests.   
    testflat.c                Add support for 3D test.                         
    testflatpacked.c          Add support for 3D test.                         
    cbf_binary.c              Correct dim2,dim2 to be dim1,dim2 in             
@@ -201,11 +233,12 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    cbf_packed.c              Correct JPA pointer logic for 3D case. Work      
                            around compiler problems with handling of sign     
                            bits                                               
-   fcb_exit_binary.m4        New m4 macro file to build fcb_exit_binary.f90 a 
-                           routine to skip from the end of a binary to the    
+   fcb_exit_binary.m4        New m4 macro file to build fcb_exit_binary.f90  
+                           a routine to skip from the end of a binary to the 
                            end of the text field.                             
-   fcb_next_binary.m4        New m4 macro file to build fcb_next_binary.f90 a 
-                           routine to skip to the start of the next binary.   
+   fcb_next_binary.m4        New m4 macro file to build fcb_next_binary.f90  
+                           a routine to skip to the start of the next        
+                           binary.                                           
    fcb_open_cifin.m4         New m4 macro file to build fcb_open_cifin.f90 a  
                            routine to open a cbf file.                        
    fcb_packed.m4             New m4 macro file to build fcb_packed.f90 a      
@@ -216,15 +249,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    fcb_read_image.m4         New m4 macro file to build fcb_read_image.f90 a  
                            set of routines to read a byte offset or packed    
                            image                                              
-   fcb_read_xds_i2.m4        New m4 macro file to build fcb_read_xds_i2.f90 a 
-                           routine to read a single xds I2 image.             
+   fcb_read_xds_i2.m4        New m4 macro file to build fcb_read_xds_i2.f90  
+                           a routine to read a single xds I2 image.          
    fcblib_define.m4          New m4 macro file of common definitions for all  
                            f90 code                                           
    test_fcb_read_image.m4    New m4 macro file of build                       
-                           test_fcb_read_image.f90 a test program for the f90 
-                           routines.                                          
-   test_xds_binary.m4        New m4 macro file of build test_xds_binary.f90 a 
-                           test program for the f90 routines.                 
+                           test_fcb_read_image.f90 a test program for the    
+                           f90 routines.                                     
+   test_xds_binary.m4        New m4 macro file of build test_xds_binary.f90  
+                           a test program for the f90 routines.              
    fcb_atol_wcnt.f90         f90 code to convert a string to an integer.      
    fcb_ci_strncmparr.f90     f90 code to do a case-insensitive string         
                            comparison                                         
@@ -234,7 +267,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    fcb_read_line.f90         f90 code to read a line                          
    fcb_skip_whitespace.f90   f90 code to skip MIME whitespace                 
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.7.7.2, Herbert J. Bernstein, 27 February 2007
 
@@ -243,14 +276,14 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    testflat.c           Add more test cases.                                  
    testflatpacked.c     Add version of testflat for packed compression.       
    cbf_binary.c         Add recovery of sign from mime header.                
-   cbf_byte_offset.c    Change limit logic to simple mask and remove overflow 
-                      report.                                                 
-   cbf_packed.c         Change limit logic to simple mask and remove overflow 
-                      report.                                                 
-   cbf_uncompressed.c   Change limit logic to simple mask and remove overflow 
-                      report.                                                 
+   cbf_byte_offset.c    Change limit logic to simple mask and remove         
+                      overflow report.                                       
+   cbf_packed.c         Change limit logic to simple mask and remove         
+                      overflow report.                                       
+   cbf_uncompressed.c   Change limit logic to simple mask and remove         
+                      overflow report.                                       
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.7.7.1, Herbert J. Bernstein, 25 February 2007
 
@@ -266,8 +299,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    testflat.c            Add report of byteorder, dim1, dim2, dim2, padding.  
    cbf.h,                Change prototypes for all functions that return      
    cbf_binary.h,       byteorder from char * byteorder to const char **       
-   cbf_byte_offset.h,  byteorder. Change prototypes of all functions that set 
-   cbf_canonical.h,    byteorder from char * byteorder to const char *        
+   cbf_byte_offset.h,  byteorder. Change prototypes of all functions that    
+   cbf_canonical.h,    set byteorder from char * byteorder to const char *   
    cbf_compress.h,     byteorder                                              
    cbf_packed.h,       
    cbf_predictor.h,    
@@ -275,17 +308,17 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    cbf_uncompressed.h  
    cbf.c,                Change signatures for all functions that return      
    cbf_binary.c,       byteorder from char * byteorder to const char **       
-   cbf_byte_offset.c,  byteorder. Change prototypes of all functions that set 
-   cbf_canonical.c,    byteorder from char * byteorder to const char *        
-   cbf_compress.c,     byteorder, and make the matching changes in all calls. 
-   cbf_lex.c,          
+   cbf_byte_offset.c,  byteorder. Change prototypes of all functions that    
+   cbf_canonical.c,    set byteorder from char * byteorder to const char *   
+   cbf_compress.c,     byteorder, and make the matching changes in all       
+   cbf_lex.c,          calls.                                                
    cbf_packed.c,       
    cbf_predictor.c,    
    cbf_read_mime.c,    
    cbf_uncompressed.c, 
    cbf_write_binary.c  
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.7.7, Herbert J. Bernstein, 19 February 2007
 
@@ -299,13 +332,13 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       reference beam center and flat packed compression       
                       respectively.                                           
    cbf.h                Add constants CBF_PACKED_V2 for packed version 2      
-                      compression, CBF_UNCORRELATED_SECTIONS for uncorrelated 
-                      sections in packed compression, CBF_FLAT_IMAGE for      
-                      original CBFlib packed compression, PAD_1K, PAD_2K and  
-                      PAD_4K for trailing pad on binary sections, ENC_BASE32K 
-                      for base 32K encoding. Fix bad code in DEBUG mode for   
-                      failnez macros. Add prototypes for                      
-                      cbf_get_arrayparameters_wdims,                          
+                      compression, CBF_UNCORRELATED_SECTIONS for             
+                      uncorrelated sections in packed compression,           
+                      CBF_FLAT_IMAGE for original CBFlib packed compression, 
+                      PAD_1K, PAD_2K and PAD_4K for trailing pad on binary   
+                      sections, ENC_BASE32K for base 32K encoding. Fix bad   
+                      code in DEBUG mode for failnez macros. Add prototypes  
+                      for cbf_get_arrayparameters_wdims,                     
                       cbf_get_integerarrayparameters_wdims,                   
                       cbf_get_realarrayparameters_wdims,                      
                       cbf_set_integerarray_wdims, cbf_set_realarray_wdims,    
@@ -315,15 +348,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       cbf_mpint_add_acc, cbf_mpint_rightshift_acc,            
                       cbf_mpint_leftshift_acc.                                
    cbf_binary.h         Update prototypes for cbf_get_bintext,                
-                      cbf_set_bintext, cbf_set_binary, cbf_binary_parameters, 
-                      cbf_get_binary to carry byteorder, dimensions and       
-                      padding.                                                
+                      cbf_set_bintext, cbf_set_binary,                       
+                      cbf_binary_parameters, cbf_get_binary to carry         
+                      byteorder, dimensions and padding.                     
    cbf_byte_offset.h    Update prototypes for cbf_compress_byte_offset,       
                       cbf_decompress_byte_offset to carry byteorder,          
                       dimensions and padding.                                 
    cbf_canonical.h      Update prototypes for cbf_compress_canonical,         
-                      cbf_decompress_canonical to carry byteorder, dimensions 
-                      and padding.                                            
+                      cbf_decompress_canonical to carry byteorder,           
+                      dimensions and padding.                                
    cbf_codes.h          Add prototypes for base 32K encoding: cbf_tobase32k,  
                       cbf_encode32k_bit_op, cbf_isBigEndian, cbf_endianFix,   
                       cbf_frombase32k, cbf_decode32k_bit_op.                  
@@ -333,8 +366,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       cbf_decompress_packed to carry byteorder, dimensions    
                       and padding.                                            
    cbf_predictor.h      Update prototypes for cbf_compress_predictor,         
-                      cbf_decompress_predictor to carry byteorder, dimensions 
-                      and padding.                                            
+                      cbf_decompress_predictor to carry byteorder,           
+                      dimensions and padding.                                
    cbf_read_mime.h      Update prototype for cbf_parse_mimeheader to carry    
                       byteorder, dimensions and padding.                      
    cbf_simple.h         Add prototypes for cbf_get_3d_array_size,             
@@ -355,8 +388,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       in CBFlib_0.7.7_Data_Files.                             
    cbf.c                 Remove compiler warnings on signedness and type      
                       punned pointers. Fix bug in detection of local real     
-                      format. Add base32K support. Fix inverted test in value 
-                      range checking. Add new routines                        
+                      format. Add base32K support. Fix inverted test in      
+                      value range checking. Add new routines                 
                       cbf_get_arrayparameters_wdims,                          
                       cbf_get_integerarrayparameters_wdims,                   
                       cbf_get_realarrayparameters_wdims,                      
@@ -366,33 +399,34 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       cbf_mpint_decrement_acc, cbf_mpint_negate_acc,          
                       cbf_mpint_add_acc, cbf_mpint_rightshift_acc,            
                       cbf_mpint_leftshift_acc.                                
-   cbf.stx.y            Temporarily change to use of YYSTYPE argument type to 
-                      remove an error when compiling under on MS Windows. A   
-                      better solution is needed./                             
+   cbf.stx.y            Temporarily change to use of YYSTYPE argument type   
+                      to remove an error when compiling under on MS Windows. 
+                      A better solution is needed./                          
    cbf_binary.c         Update cbf_get_bintext, cbf_set_bintext,              
                       cbf_set_binary, cbf_binary_parameters, cbf_get_binary   
                       to carry byteorder, dimensions and padding.             
    cbf_byte_offset.c    Implement byte_offset compression and decompression   
-                      as designed by A. Hammersley and modified by W. Kabsch. 
+                      as designed by A. Hammersley and modified by W.        
+                      Kabsch.                                                
    cbf_canonical.c      Fix warnings from gcc 4 on punned pointers. Update    
                       cbf_compress_canonical, cbf_decompress_canonical to     
                       carry byteorder, dimensions and padding.                
    cbf_codes.c          Add support forr base 32K encoding: cbf_tobase32k,    
                       cbf_encode32k_bit_op, cbf_isBigEndian, cbf_endianFix,   
                       cbf_frombase32k, cbf_decode32k_bit_op.                  
-   cbf_compress.c        Update cbf_compress, cbf_decompress carry byteorder, 
-                      dimensions and padding.                                 
+   cbf_compress.c        Update cbf_compress, cbf_decompress carry           
+                      byteorder, dimensions and padding.                     
    cbf_file.c           Fix warnings from gcc 4 on punned pointers.           
-   cbf_lex.c            Add support for byteorder, dimensions and padding and 
-                      base 32K encoding.                                      
+   cbf_lex.c            Add support for byteorder, dimensions and padding    
+                      and base 32K encoding.                                 
    cbf_packed.c         Update cbf_compress_packed, cbf_decompress_packed to  
                       carry byteorder, dimensions and padding. Add support    
                       for J. P. Abrahams packed compression, versions 1 and   
                       2, while preserving support for original CBFlib flat    
                       packed compression. Add support for 64 bit elements.    
    cbf_predictor.c      Update cbf_compress_predictor,                        
-                      cbf_decompress_predictor to carry byteorder, dimensions 
-                      and padding.                                            
+                      cbf_decompress_predictor to carry byteorder,           
+                      dimensions and padding.                                
    cbf_simple.c         Change logic of most image handling routines to work  
                       as special cases of 3d routines. Add new routines       
                       cbf_get_detector_id, cbf_get_real_map_segment,          
@@ -417,7 +451,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       packed version 2 compression with flags for             
                       uncorrelated sections and for flat packed images.       
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.7.6, Herbert J. Bernstein, 15 July 2006
 
@@ -432,17 +466,17 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                    cbf_write_widefile, cbf_column_number,                     
                    cbf_blockitem_number, cbf_warning, cbf_error, cbf_log,     
                    cbf_increment_column, cbf_reset_column,                    
-                   cbf_reset_refcounts, cbf_validate; added valuerow argument 
-                   to cbf_set_hashedvalue and caseinsensitive to              
+                   cbf_reset_refcounts, cbf_validate; added valuerow         
+                   argument to cbf_set_hashedvalue and caseinsensitive to    
                    cbf_find_hashedvalue.                                      
    cbf.c             In cbf_make_handle, added include of cbf_ascii.h,        
                    initialized handle->logfile, handle->warnings,             
                    handle->errors, handle->startline, handle->startcolumn;    
                    added new routine cbf_set_logfile; in cbf_free_handle      
                    removed gcc4 warning; broke up cbf_read_file into          
-                   cbf_read_anyfile, cbf_read_file, added two more entries to 
-                   parse array, one for the cbf handle and one to carry an    
-                   auxillary node, such as a parent category; in              
+                   cbf_read_anyfile, cbf_read_file, added two more entries   
+                   to parse array, one for the cbf handle and one to carry   
+                   an auxillary node, such as a parent category; in          
                    cbf_write_file, reset reference counts; added new routine  
                    cbf_write_local_file to allow writing of a local portion   
                    of a cbf instead of the whole thing; added new routines    
@@ -464,15 +498,16 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                    unspecified items from parents to children; fixed          
                    cbf_find_local_tag for DDL1 names and categories; updated  
                    cbf_find_category_root and cbf_require_category_root to    
-                   allow for DDL1 categories drawn from dictionaries; changed 
-                   cbf_find_tag_root and cbf_set_tag_root to use              
+                   allow for DDL1 categories drawn from dictionaries;        
+                   changed cbf_find_tag_root and cbf_set_tag_root to use     
                    cbf_find_hashedvalue and cbf_set_hashedvalue; added        
                    routines cbf_check_category_tags, cbf_validate.            
    cbf.stx.y         To facilitate validation, changed save frame logic to    
                    append partial save frame to the base cif from the         
                    beginning instead of waiting for the end of the save       
-                   frame; added cbf_validate calls at all levels and provided 
-                   detailed parse form common errors with reports via cbf_log 
+                   frame; added cbf_validate calls at all levels and         
+                   provided detailed parse form common errors with reports   
+                   via cbf_log                                               
    cbf_ascii.h       Add prototype for cbf_foldtextline.                      
    cbf_ascii.c       Added new routine cbf_foldtextline; in cbf_write_ascii   
                    changed logic to no longer backslash-quote individual      
@@ -483,9 +518,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    cbf_file.h        Add columnlimit to strcut; add prototype for             
                    cbf_make_widefile.                                         
    cbf_file.c        In cbf_make_file added intialization of line length;     
-                   added new routine cbf_make_widefile; in cbf_read_character 
-                   do not increment column number at EOF; in cbf_read_line    
-                   report lines over the limit                                
+                   added new routine cbf_make_widefile; in                   
+                   cbf_read_character do not increment column number at EOF; 
+                   in cbf_read_line report lines over the limit              
    cbf_lex.c         Added lexical validation for line length, illegal        
                    characters, long data block names, long save frame names,  
                    failure to provide whitespace after loop_, unterminated    
@@ -496,19 +531,20 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    cbf_simple.h      Add prototypes for cbf_get_bin_sizes, cbf_set_bin_sizes  
    cbf_simple.c      Changed cbf_read_template to use cbf_read_widefile;      
                    added new routines cbf_get_bin_sizes and                   
-                   cbf_set_bin_sizes; changed cbf_set_gain, cbf_set_overload, 
-                   cbf_set_integration_time, cbf_set_datestamp,               
-                   cbf_set_axis_setting to force in intervening categories    
-                   and columns; in cbf_free_positioner, cbf_free_detector,    
-                   fixed gcc4 warnings; revised cbf_set_beam_center to adjust 
-                   the displacement rather than the offset.                   
+                   cbf_set_bin_sizes; changed cbf_set_gain,                  
+                   cbf_set_overload, cbf_set_integration_time,               
+                   cbf_set_datestamp, cbf_set_axis_setting to force in       
+                   intervening categories and columns; in                    
+                   cbf_free_positioner, cbf_free_detector, fixed gcc4        
+                   warnings; revised cbf_set_beam_center to adjust the       
+                   displacement rather than the offset.                      
    cbf_tree.h        Add symbol for CBF_VALUE as a node type to use for       
                    validation; add prototype for cbf_find_last_typed_child.   
    cbf_tree.c        In cbf_free_node fixed gcc4 warning; added new routine   
                    cbf_find_last_typed_child; changed cbf_make_child to use   
-                   cbf_find_last_typed_child instead of cbf_fid_last_child to 
-                   avoid confusion between categories and save frames when    
-                   the same name is used for both; changed                    
+                   cbf_find_last_typed_child instead of cbf_fid_last_child   
+                   to avoid confusion between categories and save frames     
+                   when the same name is used for both; changed              
                    cbf_compute_hashcode to return values between 0 and 255.   
    cbf_write.d       Add prototype for cbf_compose_itemname.                  
    cbf_write.c       In cbf_set_value fold text fields that contain the text  
@@ -517,12 +553,13 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    cif2cbf.c         Add "-v dictionary" command line argument and suppress   
                    output to /dev/null and "-w" to process a wide file; add   
                    hooks (based on symbol GNUGETOPT) to use a local copy of   
-                   getopt; add text for error exits; add code to load layered 
-                   dictionaries.                                              
+                   getopt; add text for error exits; add code to load        
+                   layered dictionaries.                                     
    convert_image.c   Add text for error exits; add logic for binning; alias   
                    support with command line arguments "-c                    
-                   category_alias=category_root" and "-t tag_alias=tag_root", 
-                   change from _diffrn_detector.sample_detector_distance to   
+                   category_alias=category_root" and "-t                     
+                   tag_alias=tag_root", change from                          
+                   _diffrn_detector.sample_detector_distance to              
                    _diffrn_measurement.sample_detector_distance; change to    
                    support row-major images to agree with adxv; remove most   
                    advisory messages to stdout.                               
@@ -534,7 +571,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    img2cif.c         Changed to use to new img.h macros                       
    makecbf.c         Changed to use to new img.h macros                       
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.7.5, Herbert J. Bernstein, 15 April 2006
 
@@ -542,9 +579,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    cbf.c                Revised header for open source licenses; added        
                       support for aliases, dictionaries and real arrays;      
                       added convenience routines to do searches with default  
-                      creation of what is being searched for; added reference 
-                      count and dictionary link for cbf handles; added        
-                      cbf_new_saveframe, cbf_force_new_saveframe,             
+                      creation of what is being searched for; added          
+                      reference count and dictionary link for cbf handles;   
+                      added cbf_new_saveframe, cbf_force_new_saveframe,      
                       cbf_set_saveframename, cbf_reset_saveframe,             
                       cbf_remove_saveframe, cbf_rewind_saveframe,             
                       cbf_rewind_blockitem, cbf_next_saveframe,               
@@ -614,11 +651,11 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    cbf_binary.h         Revised header for open source licenses; added        
                       support of real arrays.                                 
    cbf_byte_offset.c    Revised header for open source licenses; changed      
-                      signature for support of real arrays; no actual changes 
-                      to the code.                                            
+                      signature for support of real arrays; no actual        
+                      changes to the code.                                   
    cbf_byte_offset.h    Revised header for open source licenses; changed      
-                      signature for support of real arrays; no actual changes 
-                      to the code.                                            
+                      signature for support of real arrays; no actual        
+                      changes to the code.                                   
    cbf_canonical.c      Revised header for open source licenses; changed      
                       signatures for support of real arrays; no actual        
                       changes to the code.                                    
@@ -634,8 +671,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    cbf_context.c        Revised header for open source licenses.              
    cbf_context.h        Revised header for open source licenses.              
    cbf_file.c           Revised header for open source licenses; added        
-                      support of real arrays, making extensive changes to the 
-                      handling of integers to get past 32 bit limits.         
+                      support of real arrays, making extensive changes to    
+                      the handling of integers to get past 32 bit limits.    
    cbf_file.h           Revised header for open source licenses..             
    cbf_lex.c            Revised header for open source licenses; added save   
                       frame support; required whitespace before a comment;    
@@ -673,19 +710,20 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       cbf_get_unit_cell, cbf_set_unit_cell,                   
                       cbf_get_reciprocal_cell, cbf_set_reciprocal_cell,       
                       cbf_compute_cell_volume, cbf_compute_reciprocal_cell,   
-                      cbf_get_orientation_matrix, cbf_set_orientation_matrix; 
-                      added braces to deal with compiler warnings on dangling 
-                      else.                                                   
+                      cbf_get_orientation_matrix,                            
+                      cbf_set_orientation_matrix; added braces to deal with  
+                      compiler warnings on dangling else.                    
    cbf_simple.h         Revised header for open source licenses; added        
-                      prototypes for cbf_require_diffrn_id, cbf_get_array_id, 
-                      cbf_get_pixel_size, cbf_set_pixel_size,                 
-                      cbf_get_real_image, cbf_set_real_image,                 
-                      cbf_require_detector, cbf_set_beam_center,              
-                      cbf_get_inferred_pixel_size, cbf_get_unit_cell,         
-                      cbf_set_unit_cell, cbf_get_reciprocal_cell,             
-                      cbf_set_reciprocal_cell, cbf_compute_cell_volume,       
-                      cbf_compute_reciprocal_cell,                            
-                      cbf_get_orientation_matrix, cbf_set_orientation_matrix. 
+                      prototypes for cbf_require_diffrn_id,                  
+                      cbf_get_array_id, cbf_get_pixel_size,                  
+                      cbf_set_pixel_size, cbf_get_real_image,                
+                      cbf_set_real_image, cbf_require_detector,              
+                      cbf_set_beam_center, cbf_get_inferred_pixel_size,      
+                      cbf_get_unit_cell, cbf_set_unit_cell,                  
+                      cbf_get_reciprocal_cell, cbf_set_reciprocal_cell,      
+                      cbf_compute_cell_volume, cbf_compute_reciprocal_cell,  
+                      cbf_get_orientation_matrix,                            
+                      cbf_set_orientation_matrix.                            
    cbf_string.c         Revised header for open source licenses.              
    cbf_string.h         Revised header for open source licenses.              
    cbf_stx.c            Rebuilt from new cbf.stx.y.                           
@@ -709,27 +747,28 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       support for save frames and aliases; changed logic for  
                       single row categories to present item-by-item, instead  
                       of as a loop except for vectors and matrices, present   
-                      matrices row by row; carried cbf handle through nest of 
-                      calls.                                                  
+                      matrices row by row; carried cbf handle through nest   
+                      of calls.                                              
    cbf.write.h          Revised header for open source licenses; adjusted     
                       prototype of cbf_write_node to carry the cbf handle as  
                       the first argument.                                     
    cbf.write_binary.c   Revised header for open source licenses; added        
                       support for real arrays.                                
    cbf.write_binary.h   Revised header for open source licenses.              
-   Makefile             Revised header for open source licenses; defined C++; 
-                      added symbol RANLIB for use on systems that require a   
-                      ranlib pass after creating a library with ar; added     
-                      build and tests of testcell and cif2c; added ADSC test  
-                      case to tests of convert_image; updated list of         
-                      contents of tar;changed cbf.stx to cbf.stx.y.           
+   Makefile             Revised header for open source licenses; defined     
+                      C++; added symbol RANLIB for use on systems that       
+                      require a ranlib pass after creating a library with    
+                      ar; added build and tests of testcell and cif2c; added 
+                      ADSC test case to tests of convert_image; updated list 
+                      of contents of tar;changed cbf.stx to cbf.stx.y.       
    connvert_image.c     Revised header for open source licenses; added        
                       command line arguments for detector name, detector      
                       distance, rotation and reflection of the image; added   
-                      usage report on errors; added code for axis transforms; 
-                      added code to report image header fields; cleaned up    
-                      PHI reporting; recovered pixel size and beam center     
-                      from header; commented out most debug code.             
+                      usage report on errors; added code for axis            
+                      transforms; added code to report image header fields;  
+                      cleaned up PHI reporting; recovered pixel size and     
+                      beam center from header; commented out most debug      
+                      code.                                                  
    cif2cbf.c            Revised header for open source licenses; renamed      
                       BUFSIZ as C2CBUFSIZ to remove a compiler warning;       
                       process save frames.                                    
@@ -738,22 +777,24 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    testcell.C           New program to test cell functions.                   
    cif2c.c              New program to test cell functions.                   
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.7.4, Herbert J. Bernstein, 12 January 2004
 
    Source File        Change                                                  
-   cbf.c                added cbf_set_typeofvalue, cbf_get_typeofvalue; added 
-                      braces for nested if-else to remove a compiler warning. 
+   cbf.c                added cbf_set_typeofvalue, cbf_get_typeofvalue;      
+                      added braces for nested if-else to remove a compiler   
+                      warning.                                               
    cbf_ascii.c          added braces to remove a compiler warnings.           
    cbf_binary.c         added braces to remove a compiler warnings.           
    cbf_canonical.c      added braces to remove a compiler warnings.           
    cbf_compress.c       added braces to remove a compiler warnings.           
    cbf_file.c           simplied dynamic array logic and went to straight     
                       doubling; added braces to remove a compiler warnings.   
-   cbf_lex.c            changed parse of quoted strings to allow for embedded 
-                      quote marks; removed unused variables; fixed mismatch   
-                      of formats; added braces to remove a compiler warnings. 
+   cbf_lex.c            changed parse of quoted strings to allow for         
+                      embedded quote marks; removed unused variables; fixed  
+                      mismatch of formats; added braces to remove a compiler 
+                      warnings.                                              
    cbf_packed.c         added braces to remove a compiler warnings;           
                       intialized variables.                                   
    cbf_simple.c         typed default typed variable; removed unused          
@@ -778,28 +819,28 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       mkstemp to remove warning; unlinked temporary file;     
                       removed unused variables.                               
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.7.3, Paul J. Ellis, 2 October 2002
 
    Source File  Change                                                        
-   cbf_simple.c   modified cbf_get_image to reorder the image data on read so 
-                that the indices are always increasing in memory (this        
+   cbf_simple.c   modified cbf_get_image to reorder the image data on read   
+                so that the indices are always increasing in memory (this    
                 behavior was undefined previously).                           
 
    Note: Early versions of Release 0.7.3 carried the version number 0.7.2.3.
    Other than the change in number on 7 Nov 2002, there is no difference
    between these versions.
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.7.2.1, Paul J. Ellis, 7 May 2001
 
    Source File  Change                                                        
-   cbf_simple.c   corrected nesting in if statements introduced for the prior 
-                mod.                                                          
+   cbf_simple.c   corrected nesting in if statements introduced for the      
+                prior mod.                                                   
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.7.2, Herbert J. Bernstein, 22 April 2001
 
@@ -810,17 +851,17 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                 _diffrn_detector_axis.detector_id, but allowed old forms as   
                 aliases.                                                      
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.7.1, Paul J. Ellis, 30 March 2001
 
    Source File  Change                                                        
    cbf_simple.c   add reserved argument to various routines; in               
                 cbf_update_pixel use index2 instead of index1; add new        
-                routine cbf_get_pixel_normal; in cbf_get_pixel_area, shift by 
-                (-0.5,-0.5)                                                   
+                routine cbf_get_pixel_normal; in cbf_get_pixel_area, shift   
+                by (-0.5,-0.5)                                               
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.7.1, Paul J. Ellis, 13 March 2001
 
@@ -828,20 +869,21 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    cbf.c                remove unused declaration of little.                  
    cbf.h                add definitions of CBF_UNDEFINED and                  
                       CBF_NOTIMPLEMENTED.                                     
-   cbf_binary.c         cast type argument to (char) in cbf_copy-string call. 
+   cbf_binary.c         cast type argument to (char) in cbf_copy-string      
+                      call.                                                  
    cbf_compress.c       remove unused declaration of compression_file.        
    cbf_simple.c         add this new routine for higher level calls.          
    cbf_simple.h         add this new header for higher level calls.           
    cbf_uncompressed.c   remove unused declaration of bit.                     
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.6.1, H. Powell (per Herbert J. Bernstein), 23 February 2001
 
    Source File   Change                                                 
    cbf.c           fix memory leak as corrected by H. Powell            
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.6, Herbert J. Bernstein, 13 January 1999
 
@@ -891,7 +933,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       binary header when there is a MIME header, quote        
                       X-Binary-Element-Type                                   
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.5, Paul J. Ellis, 5 December 1998
 
@@ -905,31 +947,32 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    cbf_binary.c         Add call to cbf_codes.h; convert to use of            
                       cbf_get/set_bintext; digests saved in the text for      
                       deferred evaluation.                                    
-   cbf_byte_offset.c    Add storedbits argument on compression; remove repeat 
-                      on decompression.                                       
+   cbf_byte_offset.c    Add storedbits argument on compression; remove       
+                      repeat on decompression.                               
    cbf_canonical.c      Stylistic cleanup; add storedbits argument on         
                       compression; remove repeat on decompression.            
-   cbf_codes.c          Add routines cbf_is_base64digest, cbf_md5digest_to64, 
-                      flush buffers when done, general cleanup                
+   cbf_codes.c          Add routines cbf_is_base64digest,                    
+                      cbf_md5digest_to64, flush buffers when done, general   
+                      cleanup                                                
    cbf_compress.c       Add argument bits to cbf_compress and each actual     
                       compression routine, add bits and remove repeat on      
                       decompression.                                          
    cbf_file.c           Reorganize digest logic; remove nblen argument from   
                       cbf_read_line.                                          
    cbf_lex.c            Argument type and stylisic cleanup; allow for         
-                      deferred digest evaluation, adjust binary size to agree 
-                      with MIME size.                                         
+                      deferred digest evaluation, adjust binary size to      
+                      agree with MIME size.                                  
    cbf_packed.c         Stylistic cleanup; add storedbits argument on         
                       compression; remove repeat on decompression.            
-   cbf_predictor.c      Add storedbits argument on compression; remove repeat 
-                      on decompression.                                       
+   cbf_predictor.c      Add storedbits argument on compression; remove       
+                      repeat on decompression.                               
    cbf_read_mime.c      Add binary element type logic; cleanup header scan;   
                       allow for deferred digest evaluation.                   
    cbf_tree.c           Add argument free to cbf_set_columnrow. If free is    
                       true, free the old value, otherwise a user              
                       responsibility.                                         
-   cbf_uncompressed.c   Add storedbits argument on compression; remove repeat 
-                      on decompression.                                       
+   cbf_uncompressed.c   Add storedbits argument on compression; remove       
+                      repeat on decompression.                               
    cbf_write.c          Add buffer flush.                                     
    cbf_write_binary.c   Reorganize digest calculation, adjust binary size by  
                       8, add X-Binary-E;ement-Type.                           
@@ -937,7 +980,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       unsigned int.                                           
    md5.c                Mask 32 bits for longer words.                        
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.4, Herbert J. Bernstein, 15 November 1998
 
@@ -947,8 +990,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    cbf_canonical.c      remove write of compression id                        
    cbf_codes.h          add argument *digest to cbf_fromqp, cbf_frombase64,   
                       cbf_frombasex                                           
-   cbf_codes.c          add mpack notice, add cbf_md5context_to64, add digest 
-                      to cbf_from...                                          
+   cbf_codes.c          add mpack notice, add cbf_md5context_to64, add       
+                      digest to cbf_from...                                  
    cbf_compress.h       add argument *digest to cbf_compress                  
    cbf_compress.c       add digest to cbf_compress                            
    cbf_file.h           add nscolumn, digest_buffer, digest_bpoint, context   
@@ -970,7 +1013,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    cbf_write_binary.c   carry digest, elsize, elsign in text rather than      
                       header                                                  
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.3.1.1, Paul J. Ellis, 21 September 1998
 
@@ -983,13 +1026,13 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       cbf_get_integerarrayparams into                         
                       cbf_get_integerarrayparameters                          
    cbf.c                 add notices, add argument headers to cbf_read_file   
-                      to replace use of globals in release 0.2, add arguments 
-                      ciforcbf, headers, encoding to cbf_write_file to        
-                      replace use of globals in release 0.2, restore some     
-                      uses of const, remove integerarrayparams and merge      
-                      arguments into cbf_get_integerparameters, replace       
-                      cbf_binary_params with cbf_binary_parameters with       
-                      extended argument list                                  
+                      to replace use of globals in release 0.2, add          
+                      arguments ciforcbf, headers, encoding to               
+                      cbf_write_file to replace use of globals in release    
+                      0.2, restore some uses of const, remove                
+                      integerarrayparams and merge arguments into            
+                      cbf_get_integerparameters, replace cbf_binary_params   
+                      with cbf_binary_parameters with extended argument list 
    cbf.stx              add notices, remove gcc use of malloc, define         
                       alloca(x) as NULL, and set large inital depth, adopts   
                       mods from cbf.stx.y in release 0.2                      
@@ -1000,14 +1043,14 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       remove cbf_write_binary                                 
    cbf_binary.c         add cbf_read_mime.h, and CBF_TOKEN_MIME_BIN token,    
                       use cbf_set/get_fileposition, merge cbf_binary_params   
-                      into cbf_binary_parameters, restore some uses of const, 
-                      use cbf_decompress_parameters with extended argument    
-                      list, use cbf_mime_temp, move cbf_write_binary to its   
-                      own file.                                               
+                      into cbf_binary_parameters, restore some uses of       
+                      const, use cbf_decompress_parameters with extended     
+                      argument list, use cbf_mime_temp, move                 
+                      cbf_write_binary to its own file.                      
    cbf_canonical.h      add argument binsize to cbf_compress_canonical, add   
                       argument repeat to cbf_decompress_canonical             
-   cbf_canonical.c      add notices, remove binbitcount, handle binsize as an 
-                      argument                                                
+   cbf_canonical.c      add notices, remove binbitcount, handle binsize as   
+                      an argument                                            
    cbf_codes.h          new header                                            
    cbf_codes.c          revise notices, major cleanup.                        
    cbf_compress.c       add notices, add compressedsize argument, add repeat  
@@ -1054,7 +1097,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    md5.h                move portion of this header to global.h, from whence  
                       it came                                                 
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.2, Herbert J. Bernstein, 27 August 1998
 
@@ -1104,8 +1147,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                    cbf_make_child for type CBF_LINK; removed some uses of     
                    const                                                      
    cbf_write.c       Added symbols for parse tokens; recognize "."; adjusted  
-                   file header line to conform to documentation; removed some 
-                   uses of const                                              
+                   file header line to conform to documentation; removed     
+                   some uses of const                                        
    cif2cbf.c         New program                                              
    common.h          New header from mpack                                    
    img2cif.c         New program                                              
@@ -1117,15 +1160,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    string.c          New routine from mpack                                   
    uudecode.c        New routine from mpack                                   
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
   Release 0.1, Paul J. Ellis, 17 April 1998
 
    This was the first CBFlib release. It supported binary CBF files using
    binary strings.
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
-   Updated 4 April 2007.  yaya@bernstein-plus-sons.com
+   Updated 30 June 2007.  yaya at bernstein-plus-sons dot com

@@ -32,8 +32,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <B>An API for CBF/imgCIF<BR>
 Crystallographic Binary Files with ASCII Support</B><BR>
-Version 0.7.7.5<BR>
-9 May 2007<BR>
+Version 0.7.7.6<BR>
+30 June 2007<BR>
 <P>
 </CENTER>
 </font><font color="#000000">
@@ -51,11 +51,11 @@ Bernstein + Sons<BR>
       var name = "yaya@";
       var domain = "bernstein-plus-sons";
       var domext = ".com";
-      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + name + domain + domext+"</a>"); 
+      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + name + " <b>at</b> " + domain + " <b>dot</b> "+  domext+"</a>"); 
 // -->
 </script>
 <noscript>
-yaya&#64;bernstein-plus-sons&#46;com
+yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 </noscript>
 <p>
 &#169; Copyright 2006, 2007 Herbert J. Bernstein
@@ -226,9 +226,33 @@ VALIGN=TOP>&nbsp;&nbsp;May 2007<TD
 VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Fix to cbf_get_image for bug
 reported by F. Remacle, fixes for windows builds as per J. Wright
 and F. Remacle.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.6">0.7.7.6</A><TD
+VALIGN=TOP>&nbsp;&nbsp;Jun 2007<TD
+VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Fix to CBF byte-offset compression
+writes, fix to Makefiles and m4 for f90 test programs to allow adjustable
+record length.
 
 
 </TABLE>
+
+
+<HR>
+<H3><A NAME="0.7.7.6">Release 0.7.7.6</A>, Herbert J. Bernstein, 30 June 2007</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>cbf_codes.c
+<TD>&nbsp;&nbsp;Fix memory leaks in base32k encoding by G. Darakev.
+<TR><TD VALIGN=TOP>cbf_byte_offset.c
+<TD>&nbsp;&nbsp;Fix in handling 32 bit offsets in the fast write
+code, which were incorrectly handled as 16 bit offsets.
+<TR><TD VALIGN=TOP>Makefile, Makefile_AIX, Makefile_LINUX, Makefile_OSX
+<TD>&nbsp;&nbsp;Add M4FLAGS variable to control m4 expansion of
+f90 test programs with different record lengths.  For g95, the
+record length must not be larger than the padding.
+</TABLE>
+
 
 <HR>
 <H3><A NAME="0.7.7.5">Release 0.7.7.5</A>, Herbert J. Bernstein, 9 May 2007</H3>
@@ -1718,18 +1742,17 @@ This was the first CBFlib release.  It
 supported binary CBF files using binary strings.
 <HR>
 <HR>
-Updated 4 April 2007.  
+Updated 30 June 2007.  
 <script language="javascript" type="text/javascript">
 <!-- 
       var name = "yaya@";
       var domain = "bernstein-plus-sons";
       var domext = ".com";
-      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + 
-name + domain + domext+"</a>"); 
+      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + name + " <b>at</b> " + domain + " <b>dot</b> "+  domext+"</a>"); 
 // -->
 </script>
 <noscript>
-yaya&#64;bernstein-plus-sons&#46;com
+yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 </noscript>
 </font>
 </BODY>
