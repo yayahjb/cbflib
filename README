@@ -2,7 +2,7 @@
 
                                      README
 
-                   Information for CBFlib 0.7.7.5, 9 May 2007
+                 Information for CBFlib 0.7.7.6, 30 June 2007
 
                                        by
                                  Paul J. Ellis
@@ -11,25 +11,25 @@
                                       and
                               Herbert J. Bernstein
                                 Bernstein + Sons
-                          yaya@bernstein-plus-sons.com
+                      yaya at bernstein-plus-sons dot com
 
                  (c) Copyright 2006, 2007 Herbert J. Bernstein
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
       YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL.
 
     ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS OF THE
                                      LGPL.
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
                   Before using this software, please read the
                                      NOTICE
-for important disclaimers and the IUCr Policy on the Use of the Crystallographic
-            Information File (CIF) and other important information.
+        for important disclaimers and the IUCr Policy on the Use of the
+   Crystallographic Information File (CIF) and other important information.
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
    CBFLIB is a library of ANSI-C functions providing a simple mechanism for
    accessing Crystallographic Binary Files (CBF files) and Image-supporting
@@ -79,15 +79,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      bin/           Executable example programs                               
      html_images/   JPEG images used in rendering the HTML files              
 
-   For instructions on compiling and testing the library, go to the top-level
-   directory and type:
+   For instructions on compiling and testing the library, go to the
+   top-level directory and type:
 
       make
 
    Please refer to the manual doc/CBFlib.html for more detailed information.
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
-     ----------------------------------------------------------------------
+     ---------------------------------------------------------------------
 
-   Updated 9 May 2007.  yaya@bernstein-plus-sons.com
+   Updated 30 June 2007.  yaya at bernstein-plus-sons dot com

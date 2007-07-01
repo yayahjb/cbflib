@@ -13,8 +13,8 @@
 /**********************************************************************
  *                                                                    *
  * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
- * WHILE YOU MAY ALTERNATIVE DISTRIBUTE THE API UNDER THE LGPL        *
- * YOU MAY ***NOT*** DISTRBUTE THIS PROGRAM UNDER THE LGPL            *
+ * WHILE YOU MAY ALTERNATIVELY DISTRIBUTE THE API UNDER THE LGPL      *
+ * YOU MAY ***NOT*** DISTRIBUTE THIS PROGRAM UNDER THE LGPL           *
  *                                                                    *                                                                    *
  **********************************************************************/
 

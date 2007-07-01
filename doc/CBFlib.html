@@ -32,8 +32,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <b>An API for CBF/imgCIF<br />
 Crystallographic Binary Files with ASCII Support</b><br />
-Version 0.7.7.3<br />
-3 April 2007<br />
+Version 0.7.7.6<br />
+30 June 2007<br />
 <p>
 </CENTER>
 </font><font color="#000000">
@@ -51,11 +51,11 @@ Bernstein + Sons<br />
       var name = "yaya@";
       var domain = "bernstein-plus-sons";
       var domext = ".com";
-      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + name + domain + domext+"</a>");
+      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + name + " <b>at</b> " + domain + " <b>dot</b> "+  domext+"</a>"); 
 // -->
 </script>
 <noscript>
-yaya&#64;bernstein-plus-sons&#46;com
+yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 </noscript>
 <p>
 &#169; Copyright 2006, 2007 Herbert J. Bernstein
@@ -224,6 +224,18 @@ VALIGN=TOP>&nbsp;&nbsp;May 2007<TD
 VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Corrects in handling SLS
 detector mincbfs and reorder dimensions versus arrays for some
 f90 compilers as per H. Powell.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.5">0.7.7.5</A><TD
+VALIGN=TOP>&nbsp;&nbsp;May 2007<TD
+VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Fix to cbf_get_image for bug
+reported by F. Remacle, fixes for windows builds as per J. Wright
+and F. Remacle.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.6">0.7.7.6</A><TD
+VALIGN=TOP>&nbsp;&nbsp;Jun 2007<TD
+VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Fix to CBF byte-offset compression
+writes, fix to Makefiles and m4 for f90 test programs to allow adjustable
+record length.
 
 
 
@@ -7587,20 +7599,33 @@ as in:
 <li>echo testflatout.cbf | bin/test_fcb_read_image
 <li>echo testflatpackedout.cbf | bin/test_fcb_read_image
 </ul>
+<P>
+In order to compile these programs correctly for the G95 compiler
+it is important to set the record size for reading to be no larger
+than the padding after binary images.  This in controlled in 
+Makefile by the line
+
+M4FLAGS = -Dfcb_bytes_in_rec=131072
+
+which provides good performance for gfortran.  For g95, this
+line must be changed to
+
+M4FLAGS = -Dfcb_bytes_in_rec=4096
+
 <HR>
 <HR>
-Updated 26 April 2007.
+Updated 30 June 2007.
 Contact:
 <script language="javascript" type="text/javascript">
 <!--
       var name = "yaya@";
       var domain = "bernstein-plus-sons";
       var domext = ".com";
-      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + name + domain + domext+"</a>");
+      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + name + " <b>at</b> " + domain + " <b>dot</b> "+  domext+"</a>"); 
 // -->
 </script>
 <noscript>
-yaya&#64;bernstein-plus-sons&#46;com
+yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 </noscript>
 </font>
 </BODY>
