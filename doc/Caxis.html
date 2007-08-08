@@ -19,7 +19,7 @@
           <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
         </td>
         <td class="masthead">
-          <p class="title">Draft version 1.5.2 for comment</p>
+          <p class="title">Draft version 1.5 for comment</p>
         </td>
       </tr>
     </table>
@@ -49,7 +49,7 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
 
 
 <p class="index"><a class="index" href="index.html">Index</a></p>
-<h5>Image dictionary (imgCIF) version 1.5.2</h5>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
 <h1>Category AXIS</h1>
 <b>Name:</b><br />
 <tt class="cifdefinition">'axis'</tt> 
@@ -93,17 +93,17 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
 
      THE IMGCIF STANDARD LABORATORY COORDINATE SYSTEM
 
-     The imgCIF standard laboratory coordinate system is a right-handed  
+     The imgCIF standard laboratory coordinate system is a right-handed
      orthogonal coordinate similar to the MOSFLM coordinate system,
      but imgCIF puts Z along the X-ray beam, rather than putting X along the
      X-ray beam as in MOSFLM.
-     
-     The vectors for the imgCIF standard laboratory coordinate system   
+
+     The vectors for the imgCIF standard laboratory coordinate system
      form a right-handed Cartesian coordinate system with its origin
      in the sample or specimen.  The origin of the axis system should,
      if possible, be defined in terms of mechanically stable axes to be
-     in the sample and in the beam.  If the sample goniometer or other
-     sample positioner has two axes the intersection which defines a
+     be both in the sample and in the beam.  If the sample goniometer or other
+     sample positioner has two axes the intersection of which defines a
      unique point at which the sample should be mounted to be bathed
      by the beam, that will be the origin of the axis system.  If no such
      point is defined, then the midpoint of the line of intersection
@@ -131,9 +131,9 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
 
      Axis 1 (X): The X-axis is aligned to the mechanical axis pointing from
      the sample or specimen along the  principal axis of the goniometer or
-     sample positioning system if the sample positioning system has an axis that
-     intersects the origin and which form an angle of more than 22.5 degrees
-     with the beam axis.
+     sample positioning system if the sample positioning system has an axis
+     that intersects the origin and which form an angle of more than 22.5
+     degrees with the beam axis.
 
      Axis 2 (Y): The Y-axis completes an orthogonal right-handed system
      defined by the X-axis and the Z-axis (see below).
@@ -232,7 +232,7 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
        (5)  Of those not directed along a, none is shorter than b.
        (6)  Of those not lying in the ab plane, none is shorter than c.
        (7)  The three angles between the basis vectors a, b and c are
-       either all acute (&lt;90 degrees) or all obtuse (>=90 degrees)."
+       either all acute (&lt;90\%) or all obtuse (>=90\%)."
 
      These rules do not produce a unique result that is stable under
      the assumption of experimental errors, and the the resulting cell
@@ -263,9 +263,9 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
      tags.  A common choice for the matrix of the transformation is
      given in the 1992 PDB format document
 
-              | a      b cos(g)   c cos(b)                         |
-              | 0      b sin(g)   c (cos(a) - cos(b)cos(g))/sin(g) |
-              | 0      0          V/(a b sin(g))                   |
+              | a      b cos(\g)   c cos(\b)                            |
+              | 0      b sin(\g)   c (cos(\a) - cos(\b)cos(\g))/sin(\g) |
+              | 0      0           V/(a b sin(\g))                      |
 
      This is a convenient coordinate system in which to do fitting
      of models to maps and in which to understand the chemistry of
@@ -277,15 +277,17 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
      intensitities.  It is based on the reciprocal cell, the dual of the cell,
      in which reciprocal cell edges are derived from direct cell faces:
 
-        a* = bc sin(a)/V  b* = ac sin(b)/V  c* = ab sin(g)/V
-        cos(a*) = (cos(b)  cos(g) - cos(a))/(sin(b)  sin(g))
-        cos(b*)  = (cos(g) cos(g) - cos(b) )/(sin(a) sin(g))
-        cos(g*) = (cos(a) cos(b)  - cos(g))/(sin(a) sin(b))
-        V = abc  SQRT (1 - cos(a)2 -  cos(b)2 - cos(g)2
-                           + 2 cos(a) cos(b) cos(g) )
+        a* = bc sin(\a)/V  b* = ac sin(\b)/V  c* = ab sin(\g)/V
+        cos(\a*) = (cos(\b) cos(\g) - cos(\a))/(sin(\b)  sin(\g))
+        cos(\b*) = (cos(\a) cos(\g) - cos(\b))/(sin(\a) sin(\g))
+        cos(\g*) = (cos(\a) cos(\b) - cos(\g))/(sin(\a) sin(\b))
+        V = abc  SQRT(1 - cos(\a)^2^
+                        - cos(\b)^2^
+                        - cos(\g)^2^
+                        + 2 cos(\a) cos(\b) cos(\g) )
 
      In this form the dimensions of the reciprocal lattice are in reciprocal
-     \%Angstroms (\%A^-1).  A dimensionless form can be obtained by
+     \%Angstroms (\%A^-1^).  A dimensionless form can be obtained by
      multiplying by the wavelength.  Reflections are commonly indexed against
      this coordinate system as (h, k, l) triples.
 
@@ -418,9 +420,9 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
         Example 4 -
 
         This example show the axis specification of the axes for a map,
-        this time as orthogonal Angstroms, using the same coordinate system
+        this time as orthogonal \%Angstroms, using the same coordinate system
         as for the atomic coordinates.  The map is sampling every 1.5
-        Angstroms (1.5e-7 millimeters) in a map segment 37.5 Angstroms on
+        \%Angstroms (1.5e-7 millimeters) in a map segment 37.5 \%Angstroms on
         a side.
 
 

@@ -19,7 +19,7 @@
           <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
         </td>
         <td class="masthead">
-          <p class="title">Draft version 1.5.2 for comment</p>
+          <p class="title">Draft version 1.5 for comment</p>
         </td>
       </tr>
     </table>
@@ -49,21 +49,26 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
 
 
 <p class="index"><a class="index" href="index.html">Index</a></p>
-<h5>Image dictionary (imgCIF) version 1.5.1</h5>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
 <h1>_array_structure.id</h1><b>Name:</b><br /><tt class="cifdefinition">'_array_structure.id'</tt> 
 <p><b>Definition:</b></p><pre class="cifdefinition">
        The value of <a href="Iarray_structure.id.html" class="itemlink">_array_structure.id</a> must uniquely identify
               each item of array data.
 
+              This item has been made implicit and given a default value of 1
+              as a convenience in writing miniCBF files.  Normally an
+              explicit name with useful content should be used.
+
 </pre>
 <p><b>Type:</b> code</p>
 
-<p class="pack"><b>Mandatory item:</b> yes</p>
+<p class="pack"><b>Mandatory item:</b> implicit</p>
 <a href="Iarray_data.array_id.html" class="itemlink">_array_data.array_id</a><br />
 <a href="Iarray_structure_list.array_id.html" class="itemlink">_array_structure_list.array_id</a><br />
 <a href="Iarray_intensities.array_id.html" class="itemlink">_array_intensities.array_id</a><br />
 <a href="Idiffrn_data_frame.array_id.html" class="itemlink">_diffrn_data_frame.array_id</a><br />
 
+<br />Enumeration default:  </b>1
 <p class="pack"><b>Category:</b> <a href="Carray_structure.html" class="catlink">array_structure</a></p>
 
   <h4 align=left>

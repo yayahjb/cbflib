@@ -1,0 +1,3135 @@
+\newcommand{\NWtarget}[2]{#2}
+\newcommand{\NWlink}[2]{#2}
+\newcommand{\NWtxtMacroDefBy}{Macro defined by}
+\newcommand{\NWtxtMacroRefIn}{Macro referenced in}
+\newcommand{\NWtxtMacroNoRef}{Macro never referenced}
+\newcommand{\NWtxtDefBy}{Defined by}
+\newcommand{\NWtxtRefIn}{Referenced in}
+\newcommand{\NWtxtNoRef}{Not referenced}
+\newcommand{\NWtxtFileDefBy}{File defined by}
+\newcommand{\NWsep}{${\diamond}$}
+% Nuweb formatted latex file 
+% Most of this is standard latex with code rolled in
+% Anything to do with @ characters is probably specific to nuweb
+%
+%
+% The word FIXME anywhere in this document indicates 
+% an area where more attention is still needed.
+%
+%
+% pycbf - python binding to the CBFlib library
+%
+% Copyright (C) 2005  Jonathan Wright
+%     ESRF, Grenoble, France
+%     email: wright@esrf.fr
+%
+%This library is free software; you can redistribute it and/or
+%modify it under the terms of the GNU Lesser General Public
+%License as published by the Free Software Foundation; either
+%version 2.1 of the License, or (at your option) any later version.
+%
+%This library is distributed in the hope that it will be useful,
+%but WITHOUT ANY WARRANTY; without even the implied warranty of
+%MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%Lesser General Public License for more details.
+%
+%You should have received a copy of the GNU Lesser General Public
+%License along with this library; if not, write to the Free Software
+%Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+%
+%
+%
+% Note that this file (pycbf.w) does not copy and paste from CBFlib 
+% (or anywhere) except in the hand wrapped function prototypes. 
+% 
+%
+%
+
+\documentclass[10pt,a4paper,twoside,notitlepage]{article}
+
+\usepackage{graphics} % For the pictures
+\usepackage{anysize}  % Try to circumvent Latex default margins
+\usepackage{fancyhdr}
+\usepackage[dvipdfm,bookmarks=true,backref,bookmarksnumbered=true,
+            bookmarkstype=toc]{hyperref}
+\newcommand{\var}[1]{\textbf{\textsf{#1}}} % highlight variables in text
+\newcommand{\code}[1]{\textbf{\textsf{#1}}} % highlight code in text
+\newcommand{\param}[1]{\textbf{\textsf{#1}}} % ... parameters ...
+\newcommand{\mb}  [1] {\mathbf{#1}}
+
+
+\begin{document}
+
+\marginsize{1.5cm}{1.5cm}{1.5cm}{1.5cm} % Needs anysize
+%\pagestyle{headings}            % These are ugly - fix them somehow?
+
+\pagestyle{fancy}
+%$\renewcommand{\chaptermark}[1]{
+%$      \markboth{\chaptername
+%$      \ \thechapter.\ #1} {} }
+
+\renewcommand{\sectionmark}[1]{
+      \markright {   
+      \ \thesection.\ #1} {} }
+
+\fancyhead[LE,RO]{\rightmark}
+\fancyhead[LO,RE]{\leftmark}
+\fancyfoot[C]{\today}
+\fancyfoot[LE,RO]{\thepage}
+\fancyfoot[LO,RE]{J. P. Wright}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\pagenumbering{arabic}          % Page numbers
+
+
+
+\title{\textbf{\textsf{PyCBF}} \\ A python binding to the CBFlib library}
+\author{Jon P. Wright \\ Anyone who wishes to contribute, please do!}
+\date{Started Dec 12, 2005, already it is \today}
+
+\maketitle
+
+\abstract{
+Area detectors at synchrotron facilities can result in huge amounts of data 
+being generated very rapidly. 
+The IUCr (International Union of Crystallography) has devised a standard file
+format for storing and annotating such data, in order that it might be more
+easily interchanged and exploited. 
+A c library which gives access to this file format has been developed 
+by Paul Ellis and Herbert Bernstein (Version 0.7.4, 
+http://www.bernstein-plus-sons.com/software/CBF/).
+In this document a python interface is developed using the SWIG
+ (http://www.swig.org)
+package in order to give the author easy access to binary cif files.
+}
+
+\tableofcontents
+
+\section*{Index of file names}
+
+{\small\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \verb@"linux.sh"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb29b}{29b}.}
+\item \verb@"makeflatascii.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb29c}{29c}.}
+\item \verb@"make_pycbf.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb7b}{7b}.}
+\item \verb@"pycbf.i"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb3}{3}.}
+\item \verb@"pycbf_test1.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb35}{35}.}
+\item \verb@"pycbf_test2.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb36a}{36a}.}
+\item \verb@"pycbf_test3.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb36b}{36b}.}
+\item \verb@"setup.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb28}{28}.}
+\item \verb@"win32.bat"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb29a}{29a}.}
+\item \verb@"xmas/readmarheader.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb37}{37}.}
+\item \verb@"xmas/xmasheaders.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb42}{42}.}
+\item \verb@"xmas/xmas_cif_template.cif"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb47}{47}.}
+\end{list}}
+
+\section*{Index of macro names}
+
+{\small\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item $\langle\,$cbfdetectorwrapper\nobreak\ {\footnotesize \NWlink{nuweb26}{26}}$\,\rangle$ {\footnotesize {\NWtxtRefIn} \NWlink{nuweb7b}{7b}.}
+\item $\langle\,$cbfgoniometerwrapper\nobreak\ {\footnotesize \NWlink{nuweb24}{24}}$\,\rangle$ {\footnotesize {\NWtxtRefIn} \NWlink{nuweb7b}{7b}.}
+\item $\langle\,$cbfhandlespecials\nobreak\ {\footnotesize \NWlink{nuweb14}{14}}$\,\rangle$ {\footnotesize {\NWtxtRefIn} \NWlink{nuweb11}{11}.}
+\item $\langle\,$cbfhandlewrapper\nobreak\ {\footnotesize \NWlink{nuweb11}{11}}$\,\rangle$ {\footnotesize {\NWtxtRefIn} \NWlink{nuweb7b}{7b}.}
+\item $\langle\,$cbfselectedconstants\nobreak\ {\footnotesize \NWlink{nuweb5}{5}}$\,\rangle$ {\footnotesize {\NWtxtRefIn} \NWlink{nuweb3}{3}.}
+\item $\langle\,$docstringwrite\nobreak\ {\footnotesize \NWlink{nuweb9}{9}}$\,\rangle$ {\footnotesize {\NWtxtRefIn} \NWlink{nuweb7b}{7b}.}
+\item $\langle\,$exceptionhandlingnowrap\nobreak\ {\footnotesize \NWlink{nuweb6}{6}}$\,\rangle$ {\footnotesize {\NWtxtRefIn} \NWlink{nuweb3}{3}.}
+\item $\langle\,$exceptionhandlingtowrap\nobreak\ {\footnotesize \NWlink{nuweb7a}{7a}}$\,\rangle$ {\footnotesize {\NWtxtRefIn} \NWlink{nuweb3}{3}.}
+\item $\langle\,$genericwrapper\nobreak\ {\footnotesize \NWlink{nuweb10b}{10b}}$\,\rangle$ {\footnotesize {\NWtxtRefIn} \NWlink{nuweb7b}{7b}.}
+\item $\langle\,$myformat\nobreak\ {\footnotesize \NWlink{nuweb10a}{10a}}$\,\rangle$ {\footnotesize {\NWtxtRefIn} \NWlink{nuweb9}{9}.}
+\end{list}}
+
+\section*{Things to do}
+
+\begin{itemize}
+\item get\_image and set\_image not implemented yet (decide how that should be done)
+\item Write test code to test each and every function for good and bad args etc
+\end{itemize}
+
+\section{Introduction}
+
+The CBFlib library (version 0.7.4) is written in the c language, offering c
+ (and C++)
+programmers a convenient interface to such files.
+The current author uses a different language (python) from day to day and 
+so a python interface was desired. 
+After a short attempt to make a quick and dirty SWIG interface it was decided
+that in the long run it would be better to write a proper interface for python.
+
+All of the functions in the library return an integer reflecting error status.
+Usually these integers seem to be zero, and a non-zero return value appears
+to mean an error occurred.
+Actual return values are returned via pointers in argument lists.
+In order to simplify the authors life (as a user) all of those integers have
+been made to disappear if they are zero, and cause an ``exception'' to 
+be generated if they are not zero. 
+This solution might not be the best thing to do, and it can always be changed 
+where the return value is intended to normally be used.
+
+Actual return values which were passed back via pointer arguments are now
+just passed back as (perhaps multiple) return values.
+We must look out for INOUT arguments, none seem to have been found yet, but there 
+might be exceptions.
+The author has a vague suspicion that python functions generally do not modify their
+arguments, but this might be wrong.
+
+The library appears to define (at least) three objects. The one we started on
+was the cbf\_handle\_struct defined in cbf.h. 
+Many of the functions have their first argument as a pointer to one
+of these structures. Therefore we make this structure an object and then 
+everything which uses it as first argument is a member function for that
+object.
+
+In order to pass image data back and forth there is a difficulty that python
+seems to lack a good way to represent large arrays.
+The standard library offers an "array" object which claims to efficiently
+hold homogenous numerical data. 
+Sadly this seems to be limited to one-dimensional arrays.
+The builtin string object can hold binary data and this was chosen as 
+the way to pass the actual binary back and forth between python and CBFlib.
+Unfortunately this means the binary data are pretty useless when they arrive
+on the python side, so helper functions are provided to convert the data
+to a python (standard library) 1D array and also to a "Numeric" array or a
+"Numarray" array. 
+The latter two are popular extension modules for manipulating large arrays.
+
+\section{Installation prerequisites}
+
+The document you are reading was generated from a nuweb source file. This
+is something very similar to latex with a few extensions for writing out
+source code files. As such it keeps together the whole package in a single file
+and makes it easier to write documentation. You will need a to obtain the 
+preprocessing tool nuweb (perhaps from http://nuweb.sourceforge.net) in
+order to build from scratch with the file pycbf.w. Preproccessed output
+is hopefully also available to you. 
+We do not recommend editing the SWIG generated wrappers!!
+
+Only python version 2.4 has been targetted originally (other versions?) so
+that you will probably want to have that version of python installed.
+
+We are building binary extensions, so you also need a working c compiler. 
+The compiler used by the author was gcc (for both windows and unix) with
+the mingw version under windows.
+
+Finally, you need a copy of swig (from www.swig.org) in order to (re)generate
+the c wrappers. 
+
+In case all that sounds scary, then fear not, it is likely that a single download
+for windows will just work with the right version of python. Unix systems
+come with many of those things available anyway.
+
+\section{Generating the c interface - the SWIG file}
+
+Essentially the swig file starts by saying what to include to build the wrappers,
+and then goes on to define the python interface for each function we want to call.
+
+The library appears to define at least three ``objects''; a CBF handle, a cbf\_goniometer and
+a cbf\_detector. We will attempt to map these onto python classes. 
+
+FIXME - decide whether introduce a "binary array" class with converters to 
+more common representations?
+
+All of the functions in the library appear to return 0 on success and a 
+meaningful error code on failure.
+We try to propagate that error code across the language barrier via exceptions.
+
+So the SWIG file will start off by including the header files needed
+for compilation:
+
+
+\begin{flushleft} \small \label{scrap1}
+\verb@"pycbf.i"@\nobreak\ {\footnotesize \NWtarget{nuweb3}{3} }$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@/* File: pycbf.i */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Indicate that we want to generate a module call pycbf@\\
+\mbox{}\verb@%module pycbf@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%pythoncode %{@\\
+\mbox{}\verb@__author__ = "Jon Wright <wright@{\tt @}\verb@esrf.fr>"@\\
+\mbox{}\verb@__date__ = "14 Dec 2005"@\\
+\mbox{}\verb@__version__ = "still_being_written"@\\
+\mbox{}\verb@__credits__ = """Paul Ellis and Herbert Bernstein for the excellent CBFlib!"""@\\
+\mbox{}\verb@__doc__=""" pycbf - python bindings to the CBFlib library@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@ A library for reading and writing ImageCIF and CBF files @\\
+\mbox{}\verb@ which store area detector images for crystallography.@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@ This work is a derivative of the CBFlib version 0.7.7 library@\\
+\mbox{}\verb@ by  Paul J. Ellis of Stanford Synchrotron Radiation Laboratory@\\
+\mbox{}\verb@ and Herbert J. Bernstein of Bernstein + Sons@\\
+\mbox{}\verb@ See:@\\
+\mbox{}\verb@   http://www.bernstein-plus-sons.com/software/CBF/@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@ Licensing is GPL based, see:@\\
+\mbox{}\verb@   http://www.bernstein-plus-sons.com/software/CBF/doc/CBFlib_NOTICES.html@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@ These bindings were automatically generated by SWIG, and the@\\
+\mbox{}\verb@ input to SWIG was automatically generated by a python script.@\\
+\mbox{}\verb@ We very strongly recommend you do not attempt to edit them @\\
+\mbox{}\verb@ by hand!@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@ Copyright (C) 2007    Jonathan Wright@\\
+\mbox{}\verb@                       ESRF, Grenoble, France@\\
+\mbox{}\verb@                email: wright@{\tt @}\verb@esrf.fr@\\
+\mbox{}\verb@"""@\\
+\mbox{}\verb@%}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Used later to pass back binary data@\\
+\mbox{}\verb@%include "cstring.i"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Attempt to autogenerate what SWIG thinks the call looks like@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Typemaps are a SWIG mechanism for many things, not least multiple @\\
+\mbox{}\verb@// return values@\\
+\mbox{}\verb@%include "typemaps.i"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%{  // Here is the c code needed to compile the wrappers, but not @\\
+\mbox{}\verb@    // to be wrapped @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#include "../include/cbf.h"          @\\
+\mbox{}\verb@#include "../include/cbf_simple.h"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Helper functions to generate error message@\\
+\mbox{}\verb@@\hbox{$\langle\,$exceptionhandlingnowrap\nobreak\ {\footnotesize \NWlink{nuweb6}{6}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%} // End of code which is not wrapped but needed to compile@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// REMOVE ME@\\
+\mbox{}\verb@/* @\\
+\mbox{}\verb@// Type mapping for grabbing a FILE * from Python@\\
+\mbox{}\verb@//%typemap(python,in) FILE * {@\\
+\mbox{}\verb@// if (!PyFile_Check($input)) {@\\
+\mbox{}\verb@//      PyErr_SetString(PyExc_TypeError, "Need a file!");@\\
+\mbox{}\verb@//      return NULL;@\\
+\mbox{}\verb@//  }@\\
+\mbox{}\verb@//  $1 = PyFile_AsFile($input);@\\
+\mbox{}\verb@//}@\\
+\mbox{}\verb@*/@\\
+\mbox{}\verb@// Gives an IO error when file is closed - check CBFlib API on that...@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// The actual wrappers @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Constants needed from header files@\\
+\mbox{}\verb@@\hbox{$\langle\,$cbfselectedconstants\nobreak\ {\footnotesize \NWlink{nuweb5}{5}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Exception handling@\\
+\mbox{}\verb@@\hbox{$\langle\,$exceptionhandlingtowrap\nobreak\ {\footnotesize \NWlink{nuweb7a}{7a}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%include "cbfgenericwrappers.i"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// cbf_goniometer object@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%include "cbfgoniometerwrappers.i"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%include "cbfdetectorwrappers.i"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// cbfhandle object@\\
+\mbox{}\verb@%include "cbfhandlewrappers.i"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-2ex}
+\end{flushleft}
+Despite the temptation to just throw everything from the c header files
+into the interface, a short experience suggested we are better off to pull 
+out only the parts we want and make the calls more pythonic
+
+The other parts of this document should generate the input files 
+"cbfhandlewrappers.i", etc FIXME
+
+
+\subsection{Constants}
+
+Here come the constants needed to pass as arguments to the various functions.
+
+If you say import ``pycbf'' in python you should eventually find them via
+pycbf.CONSTANT\_NAME.
+
+\begin{flushleft} \small \label{scrap2}
+$\langle\,$cbfselectedconstants\nobreak\ {\footnotesize \NWtarget{nuweb5}{5}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@  /* Constants used for compression */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define CBF_INTEGER     0x0010  /* Uncompressed integer               */@\\
+\mbox{}\verb@#define CBF_FLOAT       0x0020  /* Uncompressed IEEE floating-point   */@\\
+\mbox{}\verb@#define CBF_CANONICAL   0x0050  /* Canonical compression              */@\\
+\mbox{}\verb@#define CBF_PACKED      0x0060  /* Packed compression                 */@\\
+\mbox{}\verb@#define CBF_BYTE_OFFSET 0x0070  /* Byte Offset Compression            */@\\
+\mbox{}\verb@#define CBF_PREDICTOR   0x0080  /* Predictor_Huffman Compression      */@\\
+\mbox{}\verb@#define CBF_NONE        0x0040  /* No compression flag                */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  /* Constants used for headers */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define PLAIN_HEADERS   0x0001  /* Use plain ASCII headers            */@\\
+\mbox{}\verb@#define MIME_HEADERS    0x0002  /* Use MIME headers                   */@\\
+\mbox{}\verb@#define MSG_NODIGEST    0x0004  /* Do not check message digests       */@\\
+\mbox{}\verb@#define MSG_DIGEST      0x0008  /* Check message digests              */@\\
+\mbox{}\verb@#define MSG_DIGESTNOW   0x0010  /* Check message digests immediately  */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define MIME_NOHEADERS  PLAIN_HEADERS@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  /* CBF vs CIF */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define CBF             0x0000  /* Use simple binary sections         */@\\
+\mbox{}\verb@#define CIF             0x0001  /* Use MIME-encoded binary sections   */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  /* Constants used for encoding */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define ENC_NONE        0x0001  /* Use BINARY encoding                 */@\\
+\mbox{}\verb@#define ENC_BASE64      0x0002  /* Use BASE64 encoding                 */@\\
+\mbox{}\verb@#define ENC_QP          0x0004  /* Use QUOTED-PRINTABLE encoding       */@\\
+\mbox{}\verb@#define ENC_BASE10      0x0008  /* Use BASE10 encoding                 */@\\
+\mbox{}\verb@#define ENC_BASE16      0x0010  /* Use BASE16 encoding                 */@\\
+\mbox{}\verb@#define ENC_BASE8       0x0020  /* Use BASE8  encoding                 */@\\
+\mbox{}\verb@#define ENC_FORWARD     0x0040  /* Map bytes to words forward (1234)   */@\\
+\mbox{}\verb@#define ENC_BACKWARD    0x0080  /* Map bytes to words backward (4321)  */@\\
+\mbox{}\verb@#define ENC_CRTERM      0x0100  /* Terminate lines with CR             */@\\
+\mbox{}\verb@#define ENC_LFTERM      0x0200  /* Terminate lines with LF             */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define ENC_DEFAULT (ENC_BASE64 | ENC_LFTERM | ENC_FORWARD)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1ex}
+\footnotesize\addtolength{\baselineskip}{-1ex}
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb3}{3}.
+\end{list}
+\end{flushleft}
+\subsection{Exceptions}
+
+We attempt to catch the errors and pass them back to python as 
+exceptions. This could still do with a little work to propagage
+back the calls causing the errors.
+
+Currently there are two global  constants defined, called error\_message
+and error\_status. 
+These are filled out when an error occurred, converting the numerical
+error value into something the author can read.
+
+There is an implicit assumption that if the library is used 
+correctly you will not normally get exceptions. 
+This should be addressed further in areas like file opening,
+proper python exceptions should be returned.
+
+\begin{flushleft} \small \label{scrap3}
+$\langle\,$exceptionhandlingnowrap\nobreak\ {\footnotesize \NWtarget{nuweb6}{6}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@ @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@static int error_status = 0;@\\
+\mbox{}\verb@static char error_message[1024] ; // hope that is long enough@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@/* prototype */@\\
+\mbox{}\verb@void get_error_message(void);@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@void get_error_message(){@\\
+\mbox{}\verb@  sprintf(error_message,"%s","CBFlib Error(s):");@\\
+\mbox{}\verb@  if (error_status & CBF_FORMAT        )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FORMAT       "); @\\
+\mbox{}\verb@  if (error_status & CBF_ALLOC         )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_ALLOC        ");@\\
+\mbox{}\verb@  if (error_status & CBF_ARGUMENT      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_ARGUMENT     ");@\\
+\mbox{}\verb@  if (error_status & CBF_ASCII         )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_ASCII        ");@\\
+\mbox{}\verb@  if (error_status & CBF_BINARY        )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_BINARY       ");@\\
+\mbox{}\verb@  if (error_status & CBF_BITCOUNT      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_BITCOUNT     ");@\\
+\mbox{}\verb@  if (error_status & CBF_ENDOFDATA     )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_ENDOFDATA    ");@\\
+\mbox{}\verb@  if (error_status & CBF_FILECLOSE     )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FILECLOSE    ");@\\
+\mbox{}\verb@  if (error_status & CBF_FILEOPEN      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FILEOPEN     ");@\\
+\mbox{}\verb@  if (error_status & CBF_FILEREAD      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FILEREAD     ");@\\
+\mbox{}\verb@  if (error_status & CBF_FILESEEK      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FILESEEK     ");@\\
+\mbox{}\verb@  if (error_status & CBF_FILETELL      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FILETELL     ");@\\
+\mbox{}\verb@  if (error_status & CBF_FILEWRITE     )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_FILEWRITE    ");@\\
+\mbox{}\verb@  if (error_status & CBF_IDENTICAL     )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_IDENTICAL    ");@\\
+\mbox{}\verb@  if (error_status & CBF_NOTFOUND      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_NOTFOUND     ");@\\
+\mbox{}\verb@  if (error_status & CBF_OVERFLOW      )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_OVERFLOW     ");@\\
+\mbox{}\verb@  if (error_status & CBF_UNDEFINED     )@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_UNDEFINED    ");@\\
+\mbox{}\verb@  if (error_status & CBF_NOTIMPLEMENTED)@\\
+\mbox{}\verb@    sprintf(error_message,"%s %s",error_message,"CBF_NOTIMPLEMENTED");@\\
+\mbox{}\verb@  }@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1ex}
+\footnotesize\addtolength{\baselineskip}{-1ex}
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb3}{3}.
+\end{list}
+\end{flushleft}
+Currently you get a meaningful string back. Should perhaps look into
+defining these as python exception classes? 
+In any case - the SWIG exception handling is defined via the following.
+It could have retained the old style if(status = action) but then
+harder to see what to return...
+
+\begin{flushleft} \small \label{scrap4}
+$\langle\,$exceptionhandlingtowrap\nobreak\ {\footnotesize \NWtarget{nuweb7a}{7a}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@  /* Convenience definitions for functions returning error codes */@\\
+\mbox{}\verb@%exception {@\\
+\mbox{}\verb@   error_status=0;@\\
+\mbox{}\verb@   $action@\\
+\mbox{}\verb@   if (error_status){@\\
+\mbox{}\verb@     get_error_message();@\\
+\mbox{}\verb@     PyErr_SetString(PyExc_Exception,error_message);@\\
+\mbox{}\verb@     return NULL;@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@/* Retain notation from cbf lib but pass on as python exception */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define cbf_failnez(x) {(error_status = x);} @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@/* printf("Called \"x\", status %d\n",error_status);} */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \@\\
+\mbox{}\verb@                      "\nCBFlib error %d in \"x\"\n", err); \@\\
+\mbox{}\verb@                         { c; } return err; }}@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1ex}
+\footnotesize\addtolength{\baselineskip}{-1ex}
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb3}{3}.
+\end{list}
+\end{flushleft}
+\subsection{Docstrings}
+
+We attempt to parse the text in CBFlib.rtf automatically to generate the docstrings 
+and most of the wrappers.
+In order to do this we made a file called CBFlib.txt via a copy+paste of the 
+rtf file to get it in ascii format.
+That file was edited to put a ";" on the end the function definition
+(cbf\_set\_current\_timestamp), also to add a * for the last argument of 
+cbf\_get\_rotation\_axis. Replaced the angstrom symbol by the word
+angstrom to suppress a python warning about character encodings and
+also replaced all the nice quote marks (````'''') with normal ones.
+
+This text document is then parsed by a python script called make\_pycbf.py 
+to generate the .i files which are included by the swig wrapper generator.
+Unfortunately this more complicated for non-python users but seemed less
+error prone and involved less typing for the author.
+
+
+The actual code wrappers and docstrings are generated in later sections via
+a class offering a "wrap" method and a "get\_code" method.
+
+\begin{flushleft} \small \label{scrap5}
+\verb@"make_pycbf.py"@\nobreak\ {\footnotesize \NWtarget{nuweb7b}{7b} }$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@print "\\begin{verbatim}"@\\
+\mbox{}\verb@print "This output comes from make_pycbf.py which generates the wrappers"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Get the ascii text as a list of strings @\\
+\mbox{}\verb@lines = open("CBFlib.txt","r").readlines()@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Variables to hold the useful things we find in the file@\\
+\mbox{}\verb@docstring = "\n"@\\
+\mbox{}\verb@name=""@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Flag to indicate we have not read anything useful yet@\\
+\mbox{}\verb@on=0@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Dictionary of function prototypes and documentation, keyed by name in C.@\\
+\mbox{}\verb@name_dict = {}@\\
+\mbox{}\verb@i=-1@\\
+\mbox{}\verb@debug = 0@\\
+\mbox{}\verb@# Parse the text@\\
+\mbox{}\verb@while i<len(lines)-1:@\\
+\mbox{}\verb@   i=i+1@\\
+\mbox{}\verb@   line=lines[i]@\\
+\mbox{}\verb@   nfunc = 0@\\
+\mbox{}\verb@   if line.find("PROTOTYPE")>=0 and on==1:@\\
+\mbox{}\verb@      on=10 # Only try for ten lines after it say PROTOTYPE@\\
+\mbox{}\verb@      continue@\\
+\mbox{}\verb@   if line.find("#include")>=0: # why?@\\
+\mbox{}\verb@      continue @\\
+\mbox{}\verb@   if line.find("int cbf_")>=0: # We found a function@\\
+\mbox{}\verb@      # keep going up to DESCRIPTION@\\
+\mbox{}\verb@      prototypes=""+lines[i].rstrip()+" "@\\
+\mbox{}\verb@      check=0@\\
+\mbox{}\verb@      while lines[i+1].find("DESCRIPTION")==-1:@\\
+\mbox{}\verb@         i=i+1@\\
+\mbox{}\verb@         prototypes+=lines[i].rstrip()+" " # lose the \n@\\
+\mbox{}\verb@         check+=1@\\
+\mbox{}\verb@         if check>20:@\\
+\mbox{}\verb@            raise Exception("Runaway prototype "+prototypes)@\\
+\mbox{}\verb@      on=1 # Keep reading docstring@\\
+\mbox{}\verb@      continue@\\
+\mbox{}\verb@   if on > 1: # why?@\\
+\mbox{}\verb@      on=on-1@\\
+\mbox{}\verb@   if line.find("3. File format")>=0 and on==1:@\\
+\mbox{}\verb@      # Stop processing at section 3@\\
+\mbox{}\verb@      i=len(lines)@\\
+\mbox{}\verb@   if on==1:@\\
+\mbox{}\verb@      # Docstring ends at 2.xxx for next function or see also@\\
+\mbox{}\verb@      # We are losing the see also information for now (needed the section@\\
+\mbox{}\verb@      # breaks in the rtf file)@\\
+\mbox{}\verb@      if len(line.strip())==0:@\\
+\mbox{}\verb@         docstring+="\n"@\\
+\mbox{}\verb@         continue@\\
+\mbox{}\verb@      else:@\\
+\mbox{}\verb@         if docstring[-1]=="\n":@\\
+\mbox{}\verb@            docstring += line.lstrip().rstrip()@\\
+\mbox{}\verb@         else:@\\
+\mbox{}\verb@            docstring =docstring+" "+line.lstrip().rstrip()@\\
+\mbox{}\verb@      if line.strip()[0] in [str(j) for j in range(9)] or \@\\
+\mbox{}\verb@            line.find("SEE ALSO")>=0 or\@\\
+\mbox{}\verb@            line.find("________")>=0:@\\
+\mbox{}\verb@         if len(docstring)>0:@\\
+\mbox{}\verb@            docstring = docstring.replace("\"", "\\\"") # escape the quotes@\\
+\mbox{}\verb@            for prototype in prototypes.strip().split(";")[:-1]:@\\
+\mbox{}\verb@                name = prototype.split("(")[0].strip()@\\
+\mbox{}\verb@                cname = name.split()[1].strip()@\\
+\mbox{}\verb@                prototype = prototype.strip()+";"@\\
+\mbox{}\verb@                name_dict[cname]=[prototype,docstring]@\\
+\mbox{}\verb@      #  print "Found ",prototype@\\
+\mbox{}\verb@            docstring="\n"@\\
+\mbox{}\verb@            prototype=""@\\
+\mbox{}\verb@            cname=""@\\
+\mbox{}\verb@            on=0@\\
+\mbox{}\verb@         else:@\\
+\mbox{}\verb@            raise Exception("bad docstring")@\\
+\mbox{}\verb@   @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# End of CBFlib.txt file - now generate wrapper code for swig@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,$docstringwrite\nobreak\ {\footnotesize \NWlink{nuweb9}{9}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,$cbfhandlewrapper\nobreak\ {\footnotesize \NWlink{nuweb11}{11}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@cbf_handle_wrapper = cbfhandlewrapper()@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,$cbfgoniometerwrapper\nobreak\ {\footnotesize \NWlink{nuweb24}{24}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@cbf_goniometer_wrapper = cbfgoniometerwrapper()@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,$cbfdetectorwrapper\nobreak\ {\footnotesize \NWlink{nuweb26}{26}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@cbf_detector_wrapper = cbfdetectorwrapper()@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,$genericwrapper\nobreak\ {\footnotesize \NWlink{nuweb10b}{10b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@generic_wrapper = genericwrapper()@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def generate_wrappers(name_dict):@\\
+\mbox{}\verb@   names = name_dict.keys()@\\
+\mbox{}\verb@   for cname in names:@\\
+\mbox{}\verb@      prototype = name_dict[cname][0]@\\
+\mbox{}\verb@      docstring = name_dict[cname][1]@\\
+\mbox{}\verb@      # Check prototype begins with "int cbf_"@\\
+\mbox{}\verb@      if prototype.find("int cbf_")!=0:@\\
+\mbox{}\verb@         print "problem with:",prototype@\\
+\mbox{}\verb@      # Get arguments from prototypes@\\
+\mbox{}\verb@      try:@\\
+\mbox{}\verb@         args = prototype.split("(")[1].split(")")[0].split(",")@\\
+\mbox{}\verb@         args = [ s.lstrip().rstrip() for s in args ] # strip spaces off ends@\\
+\mbox{}\verb@      except:@\\
+\mbox{}\verb@         print cname@\\
+\mbox{}\verb@         print prototype@\\
+\mbox{}\verb@         raise@\\
+\mbox{}\verb@      if args[0].find("cbf_handle")>=0: # This is for the cbfhandle object@\\
+\mbox{}\verb@         cbf_handle_wrapper.wrap(cname,prototype,args,docstring)@\\
+\mbox{}\verb@         continue@\\
+\mbox{}\verb@      if args[0].find("cbf_goniometer")>=0: # This is for the cbfgoniometer@\\
+\mbox{}\verb@         cbf_goniometer_wrapper.wrap(cname,prototype,args,docstring)@\\
+\mbox{}\verb@         continue@\\
+\mbox{}\verb@      if args[0].find("cbf_detector")>=0: # This is for the cbfdetector@\\
+\mbox{}\verb@         cbf_detector_wrapper.wrap(cname,prototype,args,docstring)@\\
+\mbox{}\verb@         continue@\\
+\mbox{}\verb@      generic_wrapper.wrap(cname,prototype,args,docstring)@\\
+\mbox{}\verb@ @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@generate_wrappers(name_dict)@\\
+\mbox{}\verb@open("cbfgoniometerwrappers.i","w").write(cbf_goniometer_wrapper.get_code())@\\
+\mbox{}\verb@open("cbfdetectorwrappers.i","w").write(cbf_detector_wrapper.get_code())@\\
+\mbox{}\verb@open("cbfhandlewrappers.i","w").write(cbf_handle_wrapper.get_code())@\\
+\mbox{}\verb@open("cbfgenericwrappers.i","w").write(generic_wrapper.get_code())@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@print "End of output from make_pycbf.py"@\\
+\mbox{}\verb@print "\\end{verbatim}"@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-2ex}
+\end{flushleft}
+A little helper function called docstringwriter is used to try to 
+format the documentation giving the python calling sequence and 
+return value(s).
+
+\begin{flushleft} \small \label{scrap6}
+$\langle\,$docstringwrite\nobreak\ {\footnotesize \NWtarget{nuweb9}{9}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,$myformat\nobreak\ {\footnotesize \NWlink{nuweb10a}{10a}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def docstringwrite(pyfunc,input,output,prototype,cbflibdoc):@\\
+\mbox{}\verb@   doc = "%feature(\"autodoc\", \"\nReturns : "@\\
+\mbox{}\verb@   returns = ""@\\
+\mbox{}\verb@   for out in output:@\\
+\mbox{}\verb@      returns += out+","@\\
+\mbox{}\verb@   if len(returns)>0:@\\
+\mbox{}\verb@      doc += myformat(returns[:-1],70,indent = 10,breakon=",")@\\
+\mbox{}\verb@   else:@\\
+\mbox{}\verb@      doc += "\n"@\\
+\mbox{}\verb@   doc += "*args   : "@\\
+\mbox{}\verb@   takes = ""@\\
+\mbox{}\verb@   for inp in input:@\\
+\mbox{}\verb@      takes += inp+","@\\
+\mbox{}\verb@   if len(takes)>0:@\\
+\mbox{}\verb@      doc += myformat(takes[:-1],70,indent = 10,breakon=",")   @\\
+\mbox{}\verb@   else:@\\
+\mbox{}\verb@      doc += "\n"@\\
+\mbox{}\verb@   doc += "\nC prototype: "+myformat(prototype,65,indent=16,breakon=",")@\\
+\mbox{}\verb@   doc += "\nCBFLib documentation:\n"+myformat(cbflibdoc,70)+"\")"@\\
+\mbox{}\verb@   doc += pyfunc+";\n"@\\
+\mbox{}\verb@   return doc@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1ex}
+\footnotesize\addtolength{\baselineskip}{-1ex}
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb7b}{7b}.
+\end{list}
+\end{flushleft}
+Finally a little function to break lines at the first space before n
+characters is hit as the python doc formatting tools don't seem to do that.
+
+\begin{flushleft} \small
+\begin{minipage}{\linewidth} \label{scrap7}
+$\langle\,$myformat\nobreak\ {\footnotesize \NWtarget{nuweb10a}{10a}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@def myformat(s,l,indent=0,breakon=" "):@\\
+\mbox{}\verb@   """@\\
+\mbox{}\verb@   Try to pretty print lines - this is a pain...@\\
+\mbox{}\verb@   """@\\
+\mbox{}\verb@   lines = s.rstrip().split("\n")@\\
+\mbox{}\verb@   out=""@\\
+\mbox{}\verb@   for line in lines:@\\
+\mbox{}\verb@      if len(line)==0:@\\
+\mbox{}\verb@         continue # skip blank lines@\\
+\mbox{}\verb@      if len(line)>l:@\\
+\mbox{}\verb@         words = line.split(breakon)@\\
+\mbox{}\verb@         newline=words[0]@\\
+\mbox{}\verb@         if len(words)>1:@\\
+\mbox{}\verb@            for word in words[1:]:@\\
+\mbox{}\verb@               if len(newline)+len(word)+1 < l:@\\
+\mbox{}\verb@                  newline=newline+breakon+word@\\
+\mbox{}\verb@               else:@\\
+\mbox{}\verb@                  out = out+newline+breakon+"\n"+indent*" "@\\
+\mbox{}\verb@                  newline=word       @\\
+\mbox{}\verb@            out += newline+"\n"@\\
+\mbox{}\verb@         else:@\\
+\mbox{}\verb@            out += "\n"@\\
+\mbox{}\verb@      else:@\\
+\mbox{}\verb@         out += line+"\n" # Last one@\\
+\mbox{}\verb@   if out == "":@\\
+\mbox{}\verb@      return "\n"@\\
+\mbox{}\verb@   else:@\\
+\mbox{}\verb@      return out@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1ex}
+\footnotesize\addtolength{\baselineskip}{-1ex}
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb9}{9}.
+\end{list}
+\end{minipage}\\[4ex]
+\end{flushleft}
+\subsection{A generic wrapper}
+
+There are a few utility functions which do not work on one of the three exposed 
+objects in the library, these are wrapped here:
+
+\begin{flushleft} \small \label{scrap8}
+$\langle\,$genericwrapper\nobreak\ {\footnotesize \NWtarget{nuweb10b}{10b}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@class genericwrapper:@\\
+\mbox{}\verb@   def __init__(self):@\\
+\mbox{}\verb@       self.code = "// Start of generic functions\n"@\\
+\mbox{}\verb@       self.tail = "// End of generic functions\n"@\\
+\mbox{}\verb@   def get_code(self):@\\
+\mbox{}\verb@       return self.code + self.tail@\\
+\mbox{}\verb@   def wrap(self,cfunc,prototype,args,docstring):@\\
+\mbox{}\verb@       pyfunc = cfunc.replace("cbf_","")@\\
+\mbox{}\verb@       # Insert a comment for debugging this script@\\
+\mbox{}\verb@       code = "\n/* cfunc %s   pyfunc %s  \n"%(cfunc,pyfunc)@\\
+\mbox{}\verb@       for a in args:@\\
+\mbox{}\verb@           code += "   arg %s "%(a)@\\
+\mbox{}\verb@       code += "*/\n\n"@\\
+\mbox{}\verb@       self.code+=code@\\
+\mbox{}\verb@       code = ""@\\
+\mbox{}\verb@       if len(args)==1 and args[0].find("char")>-1 and \@\\
+\mbox{}\verb@                           args[0].find("**")>-1                :# return string@\\
+\mbox{}\verb@           # first write the c code and inline it@\\
+\mbox{}\verb@           code += docstringwrite(pyfunc,[],["string"],prototype,docstring)@\\
+\mbox{}\verb@           code += "%%inline %%{\n   char* %s(void);\n"%(pyfunc)@\\
+\mbox{}\verb@           code += "   char* %s(void){\n"%(pyfunc)@\\
+\mbox{}\verb@           code += "      char *r;\n"@\\
+\mbox{}\verb@           code += "      error_status = %s(&r);\n"%(cfunc)@\\
+\mbox{}\verb@           code += "      return r; }\n%}\n"@\\
+\mbox{}\verb@           # now the thing to wrap is:@\\
+\mbox{}\verb@           code += "char* %s(void);"%(pyfunc)@\\
+\mbox{}\verb@           self.code=self.code+code@\\
+\mbox{}\verb@           return@\\
+\mbox{}\verb@           @\\
+\mbox{}\verb@#       code+= "     void %s(void){\n"%(pyfunc)@\\
+\mbox{}\verb@#       code +="        cbf_failnez(CBF_NOTIMPLEMENTED);}\n"@\\
+\mbox{}\verb@#       self.code=self.code+code@\\
+\mbox{}\verb@       print "Have not implemented:"@\\
+\mbox{}\verb@       for s in [cfunc, pyfunc] + args:@\\
+\mbox{}\verb@           print "\t",s @\\
+\mbox{}\verb@       print@\\
+\mbox{}\verb@       return@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1ex}
+\footnotesize\addtolength{\baselineskip}{-1ex}
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb7b}{7b}.
+\end{list}
+\end{flushleft}
+\subsection{CBFHandles}
+
+A cif file seems to be represented and accessed in the library 
+via a pointer to a cbf\_handle\_structure.
+
+There are lots of functions which have such a thing as their
+first argument. They are broken up here according to 
+there input and output arguments.
+
+
+\begin{flushleft} \small \label{scrap9}
+$\langle\,$cbfhandlewrapper\nobreak\ {\footnotesize \NWtarget{nuweb11}{11}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,$cbfhandlespecials\nobreak\ {\footnotesize \NWlink{nuweb14}{14}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@class cbfhandlewrapper:@\\
+\mbox{}\verb@   def __init__(self):@\\
+\mbox{}\verb@      self.code = """@\\
+\mbox{}\verb@// Tell SWIG not to make constructor for these objects@\\
+\mbox{}\verb@%nodefault cbf_handle;@\\
+\mbox{}\verb@%nodefault cbf_handle_struct;@\\
+\mbox{}\verb@%nodefault cbf_node;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// A couple of blockitem functions return CBF_NODETYPE@\\
+\mbox{}\verb@typedef enum@\\
+\mbox{}\verb@{@\\
+\mbox{}\verb@  CBF_UNDEFINED,        /* Undefined */@\\
+\mbox{}\verb@  CBF_LINK,             /* Link      */@\\
+\mbox{}\verb@  CBF_ROOT,             /* Root      */@\\
+\mbox{}\verb@  CBF_DATABLOCK,        /* Datablock */@\\
+\mbox{}\verb@  CBF_SAVEFRAME,        /* Saveframe */@\\
+\mbox{}\verb@  CBF_CATEGORY,         /* Category  */@\\
+\mbox{}\verb@  CBF_COLUMN            /* Column    */@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@CBF_NODETYPE;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Tell SWIG what the object is, so we can build the class@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@typedef struct@\\
+\mbox{}\verb@{@\\
+\mbox{}\verb@  cbf_node *node;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  int row, search_row;@\\
+\mbox{}\verb@}  cbf_handle_struct;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@typedef cbf_handle_struct *cbf_handle;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@typedef cbf_handle_struct handle;@\\
+\mbox{}\verb@%feature("autodoc","1");@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%extend cbf_handle_struct{   // Tell SWIG to attach functions to the structure@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    cbf_handle_struct(){  // Constructor@\\
+\mbox{}\verb@       cbf_handle handle;@\\
+\mbox{}\verb@       cbf_failnez(cbf_make_handle(&handle));@\\
+\mbox{}\verb@       return handle;@\\
+\mbox{}\verb@       } @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    ~cbf_handle_struct(){ // Destructor@\\
+\mbox{}\verb@       cbf_failnez(cbf_free_handle(self));@\\
+\mbox{}\verb@       }@\\
+\mbox{}\verb@"""@\\
+\mbox{}\verb@      self.tail = """@\\
+\mbox{}\verb@}; // End of cbf_handle_struct@\\
+\mbox{}\verb@"""@\\
+\mbox{}\verb@   # End of init function@\\
+\mbox{}\verb@   def get_code(self):@\\
+\mbox{}\verb@       return self.code+self.tail@\\
+\mbox{}\verb@   def wrap(self,cfunc,prototype,args,docstring):@\\
+\mbox{}\verb@       pyfunc = cfunc.replace("cbf_","")@\\
+\mbox{}\verb@       # Insert a comment for debugging this script@\\
+\mbox{}\verb@       code = "\n/* cfunc %s   pyfunc %s  \n"%(cfunc,pyfunc)@\\
+\mbox{}\verb@       for a in args:@\\
+\mbox{}\verb@          code += "   arg %s "%(a)@\\
+\mbox{}\verb@       code += "*/\n\n"@\\
+\mbox{}\verb@       # Make and free handle are done in the header so skip@\\
+\mbox{}\verb@       if cfunc.find("cbf_make_handle")>-1 or cfunc.find("cbf_free_handle")>-1:@\\
+\mbox{}\verb@          # Constructor and destructor done in headers@\\
+\mbox{}\verb@          return@\\
+\mbox{}\verb@       if args[0] != "cbf_handle handle": # Must be for cbfhandle@\\
+\mbox{}\verb@          print "problem",cfunc,pyfunc,args@\\
+\mbox{}\verb@          return@\\
+\mbox{}\verb@       if len(args)==1: # Only takes CBFhandle arg@\\
+\mbox{}\verb@          code+= docstringwrite(pyfunc,[],[],prototype,docstring)@\\
+\mbox{}\verb@          code+= "    void %s(void){\n"%(pyfunc)@\\
+\mbox{}\verb@          code+= "      cbf_failnez(%s(self));}\n"%(cfunc) @\\
+\mbox{}\verb@          self.code=self.code+code@\\
+\mbox{}\verb@          return@\\
+\mbox{}\verb@       # Now case by case rather than writing a proper parser@\\
+\mbox{}\verb@       # Special cases ...@\\
+\mbox{}\verb@       not_found=0@\\
+\mbox{}\verb@       try:@\\
+\mbox{}\verb@           code, pyname, input, output = cbfhandle_specials[cfunc]@\\
+\mbox{}\verb@           self.code +=  docstringwrite(pyname,input,output,@\\
+\mbox{}\verb@                                              prototype,docstring)+ code@\\
+\mbox{}\verb@           return@\\
+\mbox{}\verb@       except KeyError:@\\
+\mbox{}\verb@           not_found = 1@\\
+\mbox{}\verb@       except ValueError:@\\
+\mbox{}\verb@           print "problem in",cfunc@\\
+\mbox{}\verb@           for item in cbfhandle_specials[cfunc]:@\\
+\mbox{}\verb@              print "***",item@\\
+\mbox{}\verb@           raise@\\
+\mbox{}\verb@       if len(args)==2:@\\
+\mbox{}\verb@          if args[1].find("const char")>-1 and \@\\
+\mbox{}\verb@             args[1].find("*")>-1          and \@\\
+\mbox{}\verb@             args[1].find("**")==-1            :@\\
+\mbox{}\verb@             # 1 input string@\\
+\mbox{}\verb@             code += docstringwrite(pyfunc,[],["string"],prototype,docstring)@\\
+\mbox{}\verb@             code += "    void %s(const char* arg){\n"%(pyfunc)@\\
+\mbox{}\verb@             code +="      cbf_failnez(%s(self,arg));}\n"%(cfunc)@\\
+\mbox{}\verb@             self.code=self.code+code@\\
+\mbox{}\verb@             return@\\
+\mbox{}\verb@          if args[1].find("const char")>-1 and \@\\
+\mbox{}\verb@             args[1].find("**")>-1                :# return string@\\
+\mbox{}\verb@             code += docstringwrite(pyfunc,["string"],[],prototype,docstring)@\\
+\mbox{}\verb@             code += "    const char* %s(void){\n"%(pyfunc)@\\
+\mbox{}\verb@             code += "    const char* result;\n"@\\
+\mbox{}\verb@             code += "    cbf_failnez(%s(self, &result));\n"%(cfunc)@\\
+\mbox{}\verb@             code += "    return result;}\n"@\\
+\mbox{}\verb@             self.code=self.code+code@\\
+\mbox{}\verb@             return@\\
+\mbox{}\verb@          if args[1].find("unsigned int")>-1 and args[1].find("*")==-1:@\\
+\mbox{}\verb@             # set uint@\\
+\mbox{}\verb@             if args[1].find("reserved")>-1:@\\
+\mbox{}\verb@                raise Exception("Setting reserved??? %s %s %s"%(pyfunc,@\\
+\mbox{}\verb@                                                           cfunc,str(args)))@\\
+\mbox{}\verb@             code += docstringwrite(pyfunc,["Integer"],[],prototype,docstring)@\\
+\mbox{}\verb@             code +="    void %s(unsigned int arg){\n"%(pyfunc)@\\
+\mbox{}\verb@             code +="      cbf_failnez(%s(self,arg));}\n"%(cfunc)@\\
+\mbox{}\verb@             self.code=self.code+code@\\
+\mbox{}\verb@             return@\\
+\mbox{}\verb@          if args[1].find("unsigned int *")>-1 and args[1].find("**")==-1:@\\
+\mbox{}\verb@             # output uint@\\
+\mbox{}\verb@             if args[1].find("reserved")>-1:@\\
+\mbox{}\verb@                raise Exception("Setting reserved??? %s %s %s"%(pyfunc,@\\
+\mbox{}\verb@                                                           cfunc,str(args)))@\\
+\mbox{}\verb@             code += docstringwrite(pyfunc,[],["Integer"],prototype,docstring)@\\
+\mbox{}\verb@             code +="    unsigned int %s(void){\n"%(pyfunc)@\\
+\mbox{}\verb@             code +="      unsigned int result;\n"@\\
+\mbox{}\verb@             code +="      cbf_failnez(%s(self,&result));\n"%(cfunc)@\\
+\mbox{}\verb@             code +="      return result;}\n"@\\
+\mbox{}\verb@             self.code=self.code+code@\\
+\mbox{}\verb@             return@\\
+\mbox{}\verb@          # For the rest attempt to guess@\\
+\mbox{}\verb@          if args[1].find("cbf")==-1: # but do not try the goniometer constructor@\\
+\mbox{}\verb@             if args[1].find("*")>-1 and args[1].find("cbf")==-1:@\\
+\mbox{}\verb@                # pointer used for returning something@\\
+\mbox{}\verb@                type = args[1].split(" ")[0]@\\
+\mbox{}\verb@                code += docstringwrite(pyfunc,[],[type.replace("*","")],@\\
+\mbox{}\verb@                                                          prototype,docstring)@\\
+\mbox{}\verb@                code+= "    "+type+" "+pyfunc+"(void){\n"@\\
+\mbox{}\verb@                code+= "     "+type+" result;\n"@\\
+\mbox{}\verb@                code+= "       cbf_failnez(%s(self,&result));\n"%(cfunc)@\\
+\mbox{}\verb@                code+= "       return result;}\n"@\\
+\mbox{}\verb@                self.code=self.code+code@\\
+\mbox{}\verb@                return@\\
+\mbox{}\verb@             else:@\\
+\mbox{}\verb@                var = args[1].split(" ")[-1]@\\
+\mbox{}\verb@                code += docstringwrite(pyfunc,[],[args[1]],prototype,docstring)@\\
+\mbox{}\verb@                code+= "     void %s(%s){\n"%(pyfunc,args[1])@\\
+\mbox{}\verb@                code +="        cbf_failnez(%s(self,%s));}\n"%(cfunc,var)@\\
+\mbox{}\verb@                self.code=self.code+code@\\
+\mbox{}\verb@                return@\\
+\mbox{}\verb@       if not_found:@\\
+\mbox{}\verb@             code+= "     void %s(void){\n"%(pyfunc)@\\
+\mbox{}\verb@             code +="        cbf_failnez(CBF_NOTIMPLEMENTED);}\n"@\\
+\mbox{}\verb@             self.code=self.code+code@\\
+\mbox{}\verb@             print "Have not implemented: cbfhandle.%s"%(pyfunc)@\\
+\mbox{}\verb@             print "   ",cfunc@\\
+\mbox{}\verb@             print "    args:"@\\
+\mbox{}\verb@             for a in args:@\\
+\mbox{}\verb@                 print "       ",a @\\
+\mbox{}\verb@             print@\\
+\mbox{}\verb@             return@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1ex}
+\footnotesize\addtolength{\baselineskip}{-1ex}
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb7b}{7b}.
+\end{list}
+\end{flushleft}
+\subsubsection{Manually wrapped things for cbfhandle object}
+
+The simple cases which cover a lot of the library were wrapped
+automatically. Things which seemed more complicated or required
+more thought are done here.
+This is a dictionary of code followed by arguments to the
+docstringwrite function.
+
+\begin{flushleft} \small \label{scrap10}
+$\langle\,$cbfhandlespecials\nobreak\ {\footnotesize \NWtarget{nuweb14}{14}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@cbfhandle_specials = {@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_integerarrayparameters":["""@\\
+\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id, @\\
+\mbox{}\verb@                    int *elsize, int *elsigned, int *elunsigned, @\\
+\mbox{}\verb@                    int *elements, int *minelement, int *maxelement} @\\
+\mbox{}\verb@                  get_integerarrayparameters;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    void get_integerarrayparameters(int *compression,int *binary_id, @\\
+\mbox{}\verb@                        int *elsize, int *elsigned, int *elunsigned, @\\
+\mbox{}\verb@                        int *elements, int *minelement, int *maxelement){@\\
+\mbox{}\verb@        unsigned int  comp;@\\
+\mbox{}\verb@        size_t elsiz, elem;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_integerarrayparameters(self, @\\
+\mbox{}\verb@         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, @\\
+\mbox{}\verb@          minelement, maxelement));@\\
+\mbox{}\verb@        *compression = comp; /* FIXME - does this convert in C? */@\\
+\mbox{}\verb@        *elsize = elsiz;@\\
+\mbox{}\verb@        *elements = elem;@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_integerarrayparameters",[],["int compression","int binary_id", @\\
+\mbox{}\verb@     "int elsize", "int elsigned", "int elunsigned", @\\
+\mbox{}\verb@     "int elements", "int minelement", "int maxelement"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_realarrayparameters":["""@\\
+\mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id, @\\
+\mbox{}\verb@                    int *elsize, int *elements} get_realarrayparameters;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    void get_realarrayparameters(int *compression,int *binary_id, @\\
+\mbox{}\verb@                                 int *elsize, int *elements){@\\
+\mbox{}\verb@        unsigned int  comp;@\\
+\mbox{}\verb@        size_t elsiz, elem;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_realarrayparameters(self, @\\
+\mbox{}\verb@                                 &comp ,binary_id, &elsiz, &elem ));@\\
+\mbox{}\verb@        *compression = comp; /* FIXME - does this convert in C? */@\\
+\mbox{}\verb@        *elsize = elsiz;@\\
+\mbox{}\verb@        *elements = elem;@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_realarrayparameters",[],["int compression","int binary_id", @\\
+\mbox{}\verb@     "int elsize", "int elements"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_integerarray":["""@\\
+\mbox{}\verb@// Ensure we free the local temporary@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%cstring_output_allocate_size(char ** s, int *slen, free(*$1))@\\
+\mbox{}\verb@       get_integerarray_as_string;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Get the length correct@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    void get_integerarray_as_string(char **s, int *slen){@\\
+\mbox{}\verb@        int binary_id, elsigned, elunsigned;@\\
+\mbox{}\verb@        size_t elements, elements_read, elsize;@\\
+\mbox{}\verb@        int minelement, maxelement;@\\
+\mbox{}\verb@        unsigned int compression;@\\
+\mbox{}\verb@        void * array;@\\
+\mbox{}\verb@        *slen = 0; /* Initialise in case of problems */@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_integerarrayparameters(self, &compression,@\\
+\mbox{}\verb@               &binary_id, &elsize, &elsigned, &elunsigned,@\\
+\mbox{}\verb@               &elements, &minelement, &maxelement));@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@        if ((array=malloc(elsize*elements))) {@\\
+\mbox{}\verb@              /* cbf_failnez (cbf_select_column(cbf,colnum)) */@\\
+\mbox{}\verb@               cbf_failnez (cbf_get_integerarray(self, &binary_id, @\\
+\mbox{}\verb@                            (void *)array, elsize, elsigned,@\\
+\mbox{}\verb@                            elements, &elements_read));@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@         }else{@\\
+\mbox{}\verb@               cbf_failnez(CBF_ALLOC);@\\
+\mbox{}\verb@         }@\\
+\mbox{}\verb@        *slen = elsize*elements;@\\
+\mbox{}\verb@        *s = (char *) array;@\\
+\mbox{}\verb@      }@\\
+\mbox{}\verb@""","get_integerarray_as_string",[],["(Binary)String"] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_integerarray":["""@\\
+\mbox{}\verb@    /* CBFlib must NOT modify the data string which belongs to the scripting @\\
+\mbox{}\verb@       language we will get and check the length via a typemap */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    void set_integerarray(unsigned int compression, int binary_id, @\\
+\mbox{}\verb@             char *data, int len, int elsize, int elsigned, int elements){@\\
+\mbox{}\verb@        /* safety check on args */@\\
+\mbox{}\verb@        size_t els, ele;@\\
+\mbox{}\verb@        void *array;@\\
+\mbox{}\verb@        if(len == elsize*elements){@\\
+\mbox{}\verb@           array = data;@\\
+\mbox{}\verb@           els = elsize;@\\
+\mbox{}\verb@           ele = elements;@\\
+\mbox{}\verb@           cbf_failnez(cbf_set_integerarray (self, compression, binary_id, @\\
+\mbox{}\verb@           (void *) data,  (size_t) elsize, elsigned, (size_t) elements)); @\\
+\mbox{}\verb@        }else{@\\
+\mbox{}\verb@           cbf_failnez(CBF_ARGUMENT);@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@""","set_integerarray",@\\
+\mbox{}\verb@[ "int compression", "int binary_id","(binary) String data", @\\
+\mbox{}\verb@ "int elsize", "int elsigned","int elements"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_image_size": ["""@\\
+\mbox{}\verb@%apply int *OUTPUT {int *ndim1, int *ndim2} get_image_size;@\\
+\mbox{}\verb@     void get_image_size(unsigned int element_number, int *ndim1, int *ndim2){@\\
+\mbox{}\verb@        unsigned int reserved;@\\
+\mbox{}\verb@        size_t in1, in2;@\\
+\mbox{}\verb@        reserved = 0;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_image_size(self,reserved,element_number,&in1,&in2));@\\
+\mbox{}\verb@        *ndim1 = in1; /* FIXME - is that how to convert? */@\\
+\mbox{}\verb@        *ndim2 = in2; @\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_image_size",["Integer element_number"],["size_t ndim1","size_t ndim2"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_pixel_size" : ["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *psize} get_pixel_size;@\\
+\mbox{}\verb@    void get_pixel_size(unsigned int element_number, @\\
+\mbox{}\verb@                        unsigned int axis_number, double *psize){@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_pixel_size(self, @\\
+\mbox{}\verb@                                       element_number, @\\
+\mbox{}\verb@                                       axis_number, @\\
+\mbox{}\verb@                                       psize));@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@""","get_pixel_size",["Int element_number","Int axis_number"],@\\
+\mbox{}\verb@                     ["Float pixel_size"]] ,@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_pixel_size":["""@\\
+\mbox{}\verb@     void set_pixel_size (unsigned int element_number, @\\
+\mbox{}\verb@                          unsigned int axis_number, double psize){@\\
+\mbox{}\verb@         cbf_failnez(cbf_set_pixel_size(self, @\\
+\mbox{}\verb@                                        element_number, @\\
+\mbox{}\verb@                                        axis_number, @\\
+\mbox{}\verb@                                        psize));@\\
+\mbox{}\verb@     }@\\
+\mbox{}\verb@""","set_pixel_size",@\\
+\mbox{}\verb@   ["Int element_number","Int axis_number","Float pixel size"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_write_file" : ["""@\\
+\mbox{}\verb@    void write_file(const char* filename, int ciforcbf, int headers, @\\
+\mbox{}\verb@                    int encoding){@\\
+\mbox{}\verb@       FILE *stream;@\\
+\mbox{}\verb@       int readable;@\\
+\mbox{}\verb@       /* Make the file non-0 to make CBFlib close the file */@\\
+\mbox{}\verb@       readable = 1;@\\
+\mbox{}\verb@       if ( ! ( stream = fopen (filename, "w+b")) ){@\\
+\mbox{}\verb@         cbf_failnez(CBF_FILEOPEN);@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@        else{@\\
+\mbox{}\verb@        cbf_failnez(cbf_write_file(self, stream, readable, @\\
+\mbox{}\verb@                    ciforcbf, headers, encoding));@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@       }@\\
+\mbox{}\verb@""","write_file",["String filename","Integer ciforcbf","Integer Headers", @\\
+\mbox{}\verb@                  "Integer encoding"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_read_template":["""@\\
+\mbox{}\verb@    void read_template(char* filename){@\\
+\mbox{}\verb@       /* CBFlib needs a stream that will remain open @\\
+\mbox{}\verb@        hence DO NOT open from python */@\\
+\mbox{}\verb@       FILE *stream;@\\
+\mbox{}\verb@       if ( ! ( stream = fopen (filename, "rb")) ){@\\
+\mbox{}\verb@         cbf_failnez(CBF_FILEOPEN);@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@        else{@\\
+\mbox{}\verb@        cbf_failnez(cbf_read_template (self, stream)); }@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","read_template",["String filename"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_read_file" : ["""@\\
+\mbox{}\verb@    void read_file(char* filename, int headers){@\\
+\mbox{}\verb@       /* CBFlib needs a stream that will remain open @\\
+\mbox{}\verb@          hence DO NOT open from python */@\\
+\mbox{}\verb@       FILE *stream;@\\
+\mbox{}\verb@       if ( ! ( stream = fopen (filename, "rb")) ){@\\
+\mbox{}\verb@         cbf_failnez(CBF_FILEOPEN);@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@        else{@\\
+\mbox{}\verb@         cbf_failnez(cbf_read_file(self, stream, headers)); @\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@       }@\\
+\mbox{}\verb@""","read_file",["String filename","Integer headers"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_doublevalue":["""@\\
+\mbox{}\verb@     void set_doublevalue(const char *format, double number){@\\
+\mbox{}\verb@        cbf_failnez(cbf_set_doublevalue(self,format,number));}@\\
+\mbox{}\verb@""","set_doublevalue",["String format","Float number"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_require_integervalue":["""@\\
+\mbox{}\verb@%apply int *OUTPUT {int *number} require_integervalue;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@     void require_integervalue(int *number, int thedefault){@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@     cbf_failnez(cbf_require_integervalue(self,number,thedefault));@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@     }@\\
+\mbox{}\verb@""","require_integervalue", ["Int thedefault"],["Int number"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_require_doublevalue":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *number} require_doublevalue;@\\
+\mbox{}\verb@void require_doublevalue(double *number, double defaultvalue){@\\
+\mbox{}\verb@   cbf_failnez(cbf_require_doublevalue(self,number,defaultvalue));@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@""","require_doublevalue",["Float Default"],["Float Number"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_require_column_value":["""@\\
+\mbox{}\verb@ const char* require_column_value(const char *columnname,@\\
+\mbox{}\verb@                                  const char *defaultvalue){@\\
+\mbox{}\verb@   const char * result;@\\
+\mbox{}\verb@   cbf_failnez(cbf_require_column_value(self,columnname,@\\
+\mbox{}\verb@                                    &result,defaultvalue));@\\
+\mbox{}\verb@   return result;@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@""","require_column_value",@\\
+\mbox{}\verb@    ["String columnnanme","String Default"],["String Name"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_require_column_doublevalue":["""@\\
+\mbox{}\verb@%apply double *OUTPUT { double *number} require_column_doublevalue;@\\
+\mbox{}\verb@void require_column_doublevalue(const char *columnname, double * number,@\\
+\mbox{}\verb@             const double defaultvalue){@\\
+\mbox{}\verb@    cbf_failnez(cbf_require_column_doublevalue(self,@\\
+\mbox{}\verb@                  columnname,number,defaultvalue));@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@""","require_column_doublevalue",["String columnname","Float Value"],@\\
+\mbox{}\verb@                                 ["Float defaultvalue"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_require_column_integervalue":["""@\\
+\mbox{}\verb@%apply int *OUTPUT {int *number}  require_column_integervalue;@\\
+\mbox{}\verb@void require_column_integervalue(const char *columnname, @\\
+\mbox{}\verb@                       int *number, const int defaultvalue){@\\
+\mbox{}\verb@    cbf_failnez(cbf_require_column_integervalue(self,@\\
+\mbox{}\verb@           columnname, number,defaultvalue));@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@""","require_column_integervalue",["String Columnvalue","Int default"],@\\
+\mbox{}\verb@ ["Int Value"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@           @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_require_value" : ["""@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@   const char* require_value(const char* defaultvalue){@\\
+\mbox{}\verb@     const char * result;@\\
+\mbox{}\verb@     cbf_failnez(cbf_require_value(self, &result, defaultvalue));@\\
+\mbox{}\verb@     return result;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@""","require_value",["String defaultvalue"],['String Value']],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_require_diffrn_id":["""@\\
+\mbox{}\verb@   const char* require_diffrn_id(const char* defaultid){@\\
+\mbox{}\verb@     const char * id;@\\
+\mbox{}\verb@     cbf_failnez(cbf_require_diffrn_id(self,&id,defaultid));@\\
+\mbox{}\verb@     return id;@\\
+\mbox{}\verb@     }@\\
+\mbox{}\verb@""","require_diffrn_id", ["String Default_id"],["String diffrn_id"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_polarization":["""@\\
+\mbox{}\verb@     /* Returns a pair of double values */@\\
+\mbox{}\verb@%apply double *OUTPUT { double *in1, double *in2 };@\\
+\mbox{}\verb@     void get_polarization(double *in1,double *in2){@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_polarization (self, in1, in2));@\\
+\mbox{}\verb@     }@\\
+\mbox{}\verb@""","get_polarization",[],@\\
+\mbox{}\verb@    ["float polarizn_source_ratio","float polarizn_source_norm"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_polarization":["""@\\
+\mbox{}\verb@     void set_polarization (double polarizn_source_ratio,@\\
+\mbox{}\verb@                            double polarizn_source_norm){@\\
+\mbox{}\verb@         cbf_failnez(cbf_set_polarization(self,@\\
+\mbox{}\verb@                         polarizn_source_ratio,@\\
+\mbox{}\verb@                         polarizn_source_norm));@\\
+\mbox{}\verb@     }@\\
+\mbox{}\verb@""","set_polarization",@\\
+\mbox{}\verb@   ["Float polarizn_source_ratio","Float polarizn_source_norm"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_divergence":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *div_x_source, double *div_y_source,@\\
+\mbox{}\verb@                       double *div_x_y_source } get_divergence;@\\
+\mbox{}\verb@    void get_divergence(double *div_x_source, double *div_y_source,@\\
+\mbox{}\verb@       double *div_x_y_source){@\\
+\mbox{}\verb@       cbf_failnez(cbf_get_divergence(self, @\\
+\mbox{}\verb@                                     div_x_source, @\\
+\mbox{}\verb@                                     div_y_source,@\\
+\mbox{}\verb@                                     div_x_y_source)); @\\
+\mbox{}\verb@       } @\\
+\mbox{}\verb@""","get_divergence",[],@\\
+\mbox{}\verb@     ["Float div_x_source","Float div_y_source","Float div_x_y_source"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_divergence":["""@\\
+\mbox{}\verb@   void set_divergence ( double div_x_source, double div_y_source,@\\
+\mbox{}\verb@                        double div_x_y_source){@\\
+\mbox{}\verb@      cbf_failnez(cbf_set_divergence (self, div_x_source, @\\
+\mbox{}\verb@                              div_y_source,div_x_y_source));@\\
+\mbox{}\verb@      }@\\
+\mbox{}\verb@""","set_divergence",@\\
+\mbox{}\verb@    ["Float div_x_source","Float div_y_source","Float div_x_y_source"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_gain":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *gain, double *gain_esd} get_gain;@\\
+\mbox{}\verb@    void get_gain (unsigned int element_number, double *gain, @\\
+\mbox{}\verb@                   double *gain_esd){@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_gain (self, element_number, gain, gain_esd));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_gain",@\\
+\mbox{}\verb@    [],["Float gain", "Float gain_esd"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_gain":["""@\\
+\mbox{}\verb@    void set_gain (unsigned int element_number, double gain, double gain_esd){@\\
+\mbox{}\verb@        cbf_failnez(cbf_set_gain (self, element_number, gain, gain_esd));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","set_gain",["Float gain", "Float gain_esd"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_element_id":["""@\\
+\mbox{}\verb@   const char * get_element_id(unsigned int element_number){@\\
+\mbox{}\verb@       const char * result;@\\
+\mbox{}\verb@       cbf_failnez(cbf_get_element_id (self, element_number, &result));@\\
+\mbox{}\verb@       return result;@\\
+\mbox{}\verb@       }@\\
+\mbox{}\verb@""","get_element_id", ["Integer element_number"],["String"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_axis_setting":["""@\\
+\mbox{}\verb@   void set_axis_setting(const char *axis_id,@\\
+\mbox{}\verb@                    double start, double increment){@\\
+\mbox{}\verb@        unsigned int reserved;@\\
+\mbox{}\verb@        reserved = 0;@\\
+\mbox{}\verb@        cbf_failnez(cbf_set_axis_setting(self,reserved,@\\
+\mbox{}\verb@                         axis_id,start,increment));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","set_axis_setting",["String axis_id", "Float start", "Float increment"],@\\
+\mbox{}\verb@ []],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_setting":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *start, double *increment} get_axis_setting;@\\
+\mbox{}\verb@   void get_axis_setting(const char *axis_id,@\\
+\mbox{}\verb@                    double *start, double *increment){@\\
+\mbox{}\verb@        unsigned int reserved;@\\
+\mbox{}\verb@        reserved = 0;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_axis_setting(self,reserved,axis_id,@\\
+\mbox{}\verb@                         start,increment));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_axis_setting",["String axis_id"],["Float start", "Float increment"],],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_datestamp":["""@\\
+\mbox{}\verb@%apply int *OUTPUT {int *year, int *month, int *day, int *hour, @\\
+\mbox{}\verb@                    int *minute, double *second, int *timezone} get_datestamp;@\\
+\mbox{}\verb@   void get_datestamp(int *year, int *month, int *day, int *hour, @\\
+\mbox{}\verb@                      int *minute, double *second, int *timezone){@\\
+\mbox{}\verb@        unsigned int reserved;@\\
+\mbox{}\verb@        reserved = 0;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_datestamp(self,reserved,@\\
+\mbox{}\verb@              year,month,day,hour,minute,second,timezone));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_datestamp",[],["int year", "int month", "int day", "int hour", @\\
+\mbox{}\verb@"int minute", "double second", "int timezone"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_datestamp":["""@\\
+\mbox{}\verb@   void set_datestamp(int year, int month, int day, int hour, @\\
+\mbox{}\verb@                      int minute, double second, int timezone, @\\
+\mbox{}\verb@                      double precision){@\\
+\mbox{}\verb@        unsigned int reserved;@\\
+\mbox{}\verb@        reserved = 0; @\\
+\mbox{}\verb@        cbf_failnez(cbf_set_datestamp(self,reserved, @\\
+\mbox{}\verb@              year,month,day,hour,minute,second,timezone,precision));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","set_datestamp",["int year", "int month", "int day", "int hour", @\\
+\mbox{}\verb@"int minute", "double second", "int timezone","Float precision"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_timestamp":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *time} get_timestamp;@\\
+\mbox{}\verb@%apply int *OUTPUT {int *timezone} get_timestamp;@\\
+\mbox{}\verb@    void get_timestamp(double *time, int *timezone){@\\
+\mbox{}\verb@        unsigned int reserved;@\\
+\mbox{}\verb@        reserved = 0; @\\
+\mbox{}\verb@        cbf_failnez(cbf_get_timestamp(self,reserved,time,timezone));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_timestamp",[],["Float time","Integer timezone"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_timestamp":["""@\\
+\mbox{}\verb@    void set_timestamp(double time, int timezone, double precision){@\\
+\mbox{}\verb@        unsigned int reserved;@\\
+\mbox{}\verb@        reserved = 0; @\\
+\mbox{}\verb@        cbf_failnez(cbf_set_timestamp(self,reserved,time,timezone,precision));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","set_timestamp",["Float time","Integer timezone","Float precision"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_current_timestamp":["""@\\
+\mbox{}\verb@    void set_current_timestamp(int timezone){@\\
+\mbox{}\verb@        unsigned int reserved;@\\
+\mbox{}\verb@        reserved = 0; @\\
+\mbox{}\verb@        cbf_failnez(cbf_set_current_timestamp(self,reserved,timezone));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","set_current_timestamp",["Integer timezone"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_overload":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *overload} get_overload;@\\
+\mbox{}\verb@   void get_overload(unsigned int element_number, double *overload){@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_overload(self,element_number,overload));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_overload",["Integer element_number"],["Float overload"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_overload":["""@\\
+\mbox{}\verb@   void set_overload(unsigned int element_number, double overload){@\\
+\mbox{}\verb@        cbf_failnez(cbf_set_overload(self,element_number,overload));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","set_overload",["Integer element_number","Float overload"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_integration_time":["""@\\
+\mbox{}\verb@   void set_integration_time(double time){@\\
+\mbox{}\verb@        unsigned int reserved;@\\
+\mbox{}\verb@        reserved = 0;@\\
+\mbox{}\verb@        cbf_failnez(cbf_set_integration_time(self,reserved,time));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","set_integration_time",["Float time"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_integration_time":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *time} get_integration_time;@\\
+\mbox{}\verb@   void get_integration_time(double *time){@\\
+\mbox{}\verb@        unsigned int reserved;@\\
+\mbox{}\verb@        reserved = 0;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_integration_time(self,reserved,time));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_integration_time",[],["Float time"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_orientation_matrix":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *m0,double *m1,double *m2,@\\
+\mbox{}\verb@double *m3,double *m4, double *m5,double *m6,@\\
+\mbox{}\verb@double *m7,double *m8  } get_orientation_matrix;@\\
+\mbox{}\verb@   void get_orientation_matrix(  double *m0,double *m1,@\\
+\mbox{}\verb@double *m2,double *m3,double *m4,double *m5,double *m6,@\\
+\mbox{}\verb@double *m7,double *m8){@\\
+\mbox{}\verb@        double m[9];@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_orientation_matrix(self,m));@\\
+\mbox{}\verb@        *m0 = m[0]; *m1=m[1] ; *m2=m[2] ;@\\
+\mbox{}\verb@        *m3 = m[3]; *m4=m[4] ; *m5=m[5] ;@\\
+\mbox{}\verb@        *m6 = m[6]; *m7=m[7] ; *m8=m[8] ;@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_orientation_matrix",@\\
+\mbox{}\verb@    [],[ "Float matrix_%d"%(ind) for ind in range(9) ]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_tag_category":["""@\\
+\mbox{}\verb@   void set_tag_category(const char *tagname, const char* categoryname_in){@\\
+\mbox{}\verb@     cbf_failnez(cbf_set_tag_category(self,tagname, categoryname_in));@\\
+\mbox{}\verb@     }@\\
+\mbox{}\verb@""","set_tag_category",["String tagname","String categoryname_in"],[] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_find_tag_category":["""@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@   const char * find_tag_category(const char *tagname){@\\
+\mbox{}\verb@     const char * result;@\\
+\mbox{}\verb@     cbf_failnez(cbf_find_tag_category(self,tagname, &result));@\\
+\mbox{}\verb@     return result;@\\
+\mbox{}\verb@     }@\\
+\mbox{}\verb@""","find_tag_category",["String tagname"],["String categoryname_in"] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_require_tag_root":["""@\\
+\mbox{}\verb@const char* require_tag_root(const char* tagname){@\\
+\mbox{}\verb@ const char* result;@\\
+\mbox{}\verb@ cbf_failnez(cbf_require_tag_root(self,tagname,&result));@\\
+\mbox{}\verb@ return result;@\\
+\mbox{}\verb@ }@\\
+\mbox{}\verb@""","require_tag_root",["String tagname"],["String tagroot"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_find_tag_root":["""@\\
+\mbox{}\verb@const char * find_tag_root(const char* tagname){@\\
+\mbox{}\verb@   const char* result;@\\
+\mbox{}\verb@   cbf_failnez(cbf_find_tag_root(self,tagname,&result));@\\
+\mbox{}\verb@   return result;@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@""","find_tag_root",["String tagname"],["String tagroot"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_tag_root":["""@\\
+\mbox{}\verb@void  set_tag_root(const char* tagname, const char* tagroot_in){@\\
+\mbox{}\verb@   cbf_failnez(cbf_set_tag_root(self,tagname,tagroot_in));@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@""","set_tag_root",["String tagname","String tagroot_in"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_category_root":["""@\\
+\mbox{}\verb@void  set_category_root(const char* categoryname, const char* categoryroot){@\\
+\mbox{}\verb@   cbf_failnez(cbf_set_category_root(self,categoryname,categoryroot));@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@""","set_category_root",["String categoryname","String categoryroot"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_find_category_root":["""@\\
+\mbox{}\verb@const char*  find_category_root(const char* categoryname){@\\
+\mbox{}\verb@   const char * result;@\\
+\mbox{}\verb@   cbf_failnez(cbf_find_category_root(self,categoryname,&result));@\\
+\mbox{}\verb@   return result;@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@""","find_category_root",["String categoryname"],["String categoryroot"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_require_category_root":["""@\\
+\mbox{}\verb@const char* require_category_root (const char* categoryname){@\\
+\mbox{}\verb@  const char* result;@\\
+\mbox{}\verb@  cbf_failnez(cbf_require_category_root(self,categoryname, &result));@\\
+\mbox{}\verb@  return result;@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@""","cbf_require_category_root",["String Categoryname"],["String categoryroot"]],@\\
+\mbox{}\verb@  @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_orientation_matrix":["""@\\
+\mbox{}\verb@   void set_orientation_matrix(  double m0,double m1,@\\
+\mbox{}\verb@double  m2,double  m3,double  m4,double m5,double m6,@\\
+\mbox{}\verb@double  m7,double  m8){@\\
+\mbox{}\verb@        double m[9];@\\
+\mbox{}\verb@        m[0] = m0; m[1]=m1 ; m[2]=m2 ;@\\
+\mbox{}\verb@        m[3] = m3; m[4]=m4 ; m[5]=m5 ;@\\
+\mbox{}\verb@        m[6] = m6; m[7]=m7 ; m[8]=m8 ;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_orientation_matrix(self,m));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","set_orientation_matrix",@\\
+\mbox{}\verb@    [ "Float matrix_%d"%(ind) for ind in range(9) ] ,[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# cbfhandle dict functions UNTESTED@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_require_dictionary":["""@\\
+\mbox{}\verb@cbf_handle require_dictionary(){@\\
+\mbox{}\verb@   cbf_handle temp;@\\
+\mbox{}\verb@   cbf_failnez(cbf_require_dictionary(self,&temp));@\\
+\mbox{}\verb@   return temp;@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@""","require_dictionary",[],["CBFHandle dictionary"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_dictionary":["""@\\
+\mbox{}\verb@cbf_handle get_dictionary(){@\\
+\mbox{}\verb@   cbf_handle temp;@\\
+\mbox{}\verb@   cbf_failnez(cbf_get_dictionary(self,&temp));@\\
+\mbox{}\verb@   return temp;@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@""","get_dictionary",[],["CBFHandle dictionary"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_set_dictionary":["""@\\
+\mbox{}\verb@void set_dictionary(cbf_handle other){@\\
+\mbox{}\verb@   cbf_failnez(cbf_set_dictionary(self,other));@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@""","set_dictionary",["CBFHandle dictionary"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_convert_dictionary":["""@\\
+\mbox{}\verb@void convert_dictionary(cbf_handle other){@\\
+\mbox{}\verb@   cbf_failnez(cbf_convert_dictionary(self,other));@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@""","convert_dictionary",["CBFHandle dictionary"],[]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Prelude to the next but one section of the nuweb doc@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_construct_detector":["""@\\
+\mbox{}\verb@ cbf_detector construct_detector(unsigned int element_number){@\\
+\mbox{}\verb@    cbf_detector detector;@\\
+\mbox{}\verb@    cbf_failnez(cbf_construct_detector(self,&detector,element_number));@\\
+\mbox{}\verb@    return detector;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@""","construct_detector",["Integer element_number"],["pycbf detector object"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Prelude to the next section of the nuweb doc@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_construct_goniometer":["""@\\
+\mbox{}\verb@ cbf_goniometer construct_goniometer(){@\\
+\mbox{}\verb@    cbf_goniometer goniometer;@\\
+\mbox{}\verb@    cbf_failnez(cbf_construct_goniometer(self,&goniometer));@\\
+\mbox{}\verb@    return goniometer;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@""","construct_goniometer",[],["pycbf goniometer object"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1ex}
+\footnotesize\addtolength{\baselineskip}{-1ex}
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb11}{11}.
+\end{list}
+\end{flushleft}
+\subsection{CBFGoniometers}
+
+There are relatively few functions taking a cbf\_goniometer as the first argument, but this
+is slightly less obvious to wrap as it can only be constructed from a cbfhandle object.
+The constructor is in the CBFhandle subsection (FIXME latex xref).
+
+
+\begin{flushleft} \small \label{scrap11}
+$\langle\,$cbfgoniometerwrapper\nobreak\ {\footnotesize \NWtarget{nuweb24}{24}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@cbf_goniometer_specials = {@\\
+\mbox{}\verb@"cbf_get_rotation_range":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *start,double *increment};@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    void get_rotation_range(double *start,double *increment){@\\
+\mbox{}\verb@       unsigned int reserved;@\\
+\mbox{}\verb@       reserved = 0;@\\
+\mbox{}\verb@       cbf_failnez(cbf_get_rotation_range (self,reserved, start,increment));@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@""","get_rotation_range",[],["Float start","Float increment"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_rotate_vector":["""@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%apply double *OUTPUT {double *final1, double *final2, double *final3};@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    void rotate_vector (double ratio, double initial1,double initial2, @\\
+\mbox{}\verb@         double initial3, double *final1, double *final2, double *final3){@\\
+\mbox{}\verb@       unsigned int reserved;@\\
+\mbox{}\verb@       reserved = 0;@\\
+\mbox{}\verb@       cbf_failnez(cbf_rotate_vector (self, reserved, ratio, initial1,@\\
+\mbox{}\verb@         initial2, initial3, final1, final2, final3));@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@""", "rotate_vector",@\\
+\mbox{}\verb@ [ "double ratio", "double initial1","double initial2", "double initial3" ] , @\\
+\mbox{}\verb@                  [ "double final1"  ,"double final2"  , "double final3" ] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_reciprocal":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *reciprocal1,double *reciprocal2, @\\
+\mbox{}\verb@              double *reciprocal3};@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    void get_reciprocal (double ratio,double wavelength, @\\
+\mbox{}\verb@                         double real1, double real2, double real3, @\\
+\mbox{}\verb@                         double *reciprocal1,double *reciprocal2, @\\
+\mbox{}\verb@                         double *reciprocal3){@\\
+\mbox{}\verb@        unsigned int reserved;@\\
+\mbox{}\verb@        reserved = 0;@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_reciprocal(self,reserved, ratio, wavelength, @\\
+\mbox{}\verb@                         real1, real2, real3,reciprocal1,@\\
+\mbox{}\verb@                         reciprocal2,reciprocal3));@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@""", "get_reciprocal",@\\
+\mbox{}\verb@    ["double ratio","double wavelength",@\\
+\mbox{}\verb@     "double real1","double real2","double real3"],@\\
+\mbox{}\verb@    ["double reciprocal1","double reciprocal2", "double reciprocal3" ]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_rotation_axis":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *vector1,double *vector2, double *vector3};@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@void get_rotation_axis (double *vector1, double *vector2, double *vector3){@\\
+\mbox{}\verb@     unsigned int reserved;@\\
+\mbox{}\verb@     reserved = 0;@\\
+\mbox{}\verb@     cbf_failnez(cbf_get_rotation_axis (self, reserved, @\\
+\mbox{}\verb@                                        vector1, vector2, vector3));@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@""","get_rotation_axis", [] , @\\
+\mbox{}\verb@ ["double vector1", "double vector2", "double vector3"] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@class cbfgoniometerwrapper:@\\
+\mbox{}\verb@   def __init__(self):@\\
+\mbox{}\verb@      self.code = """@\\
+\mbox{}\verb@// Tell SWIG not to make constructor for these objects@\\
+\mbox{}\verb@%nodefault cbf_positioner_struct;@\\
+\mbox{}\verb@%nodefault cbf_goniometer;@\\
+\mbox{}\verb@%nodefault cbf_axis_struct;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Tell SWIG what the object is, so we can build the class@\\
+\mbox{}\verb@typedef struct@\\
+\mbox{}\verb@{@\\
+\mbox{}\verb@  double matrix [3][4];@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  cbf_axis_struct *axis;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  size_t axes;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  int matrix_is_valid, axes_are_connected;@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@cbf_positioner_struct;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@typedef cbf_positioner_struct *cbf_goniometer;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%feature("autodoc","1");@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%extend cbf_positioner_struct{// Tell SWIG to attach functions to the structure@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    cbf_positioner_struct(){  // Constructor@\\
+\mbox{}\verb@       // DO NOT CONSTRUCT WITHOUT A CBFHANDLE@\\
+\mbox{}\verb@       cbf_failnez(CBF_ARGUMENT);@\\
+\mbox{}\verb@       return NULL; /* Should never be executed */@\\
+\mbox{}\verb@       } @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    ~cbf_positioner_struct(){ // Destructor@\\
+\mbox{}\verb@       cbf_failnez(cbf_free_goniometer(self));@\\
+\mbox{}\verb@       }@\\
+\mbox{}\verb@"""@\\
+\mbox{}\verb@      self.tail = """@\\
+\mbox{}\verb@}; // End of cbf_positioner@\\
+\mbox{}\verb@"""@\\
+\mbox{}\verb@   def wrap(self,cfunc,prototype,args,docstring):@\\
+\mbox{}\verb@     if cfunc.find("cbf_free_goniometer")>-1:@\\
+\mbox{}\verb@        return @\\
+\mbox{}\verb@     try:@\\
+\mbox{}\verb@        code, pyname, input, output = cbf_goniometer_specials[cfunc]@\\
+\mbox{}\verb@        self.code +=  docstringwrite(pyname,input,output,@\\
+\mbox{}\verb@                                     prototype,docstring)+ code@\\
+\mbox{}\verb@     except KeyError:@\\
+\mbox{}\verb@        print "TODO: Goniometer:",prototype@\\
+\mbox{}\verb@   def get_code(self):@\\
+\mbox{}\verb@     return self.code+self.tail@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1ex}
+\footnotesize\addtolength{\baselineskip}{-1ex}
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb7b}{7b}.
+\end{list}
+\end{flushleft}
+\subsection{CBFDetectors}
+
+This subsection is pretty similar to the one about goniometers, but
+wrapping the detector functionality instead. The constructor
+can be found in the CBFhandle subsection (FIXME latex xref).
+
+
+\begin{flushleft} \small \label{scrap12}
+$\langle\,$cbfdetectorwrapper\nobreak\ {\footnotesize \NWtarget{nuweb26}{26}}$\,\rangle\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@cbf_detector_specials = {@\\
+\mbox{}\verb@"cbf_get_pixel_normal":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *normal1,double *normal2, double *normal3};@\\
+\mbox{}\verb@   void get_pixel_normal ( double index1, double index2, @\\
+\mbox{}\verb@                          double *normal1,double *normal2, double *normal3){@\\
+\mbox{}\verb@       cbf_failnez(cbf_get_pixel_normal(self,@\\
+\mbox{}\verb@                                    index1,index2,normal1,normal2,normal3));@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","get_pixel_normal",["double index1","double index2"] ,@\\
+\mbox{}\verb@ ["double normal1","double normal2", "double normal3" ] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_pixel_area":["""@\\
+\mbox{}\verb@%apply double *OUTPUT{double *area,double *projected_area};@\\
+\mbox{}\verb@    void get_pixel_area(double index1, double index2,@\\
+\mbox{}\verb@                        double *area,double *projected_area){@\\
+\mbox{}\verb@       cbf_failnez(cbf_get_pixel_area (self,@\\
+\mbox{}\verb@                                       index1, index2, area,projected_area));@\\
+\mbox{}\verb@      }@\\
+\mbox{}\verb@""","get_pixel_area",["double index1", "double index2"],@\\
+\mbox{}\verb@     ["double area","double projected_area"] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_detector_distance":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *distance};@\\
+\mbox{}\verb@ void get_detector_distance (double *distance){@\\
+\mbox{}\verb@  cbf_failnez(cbf_get_detector_distance(self,distance));@\\
+\mbox{}\verb@  }@\\
+\mbox{}\verb@""","get_detector_distance",[],["double distance"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_detector_normal":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};@\\
+\mbox{}\verb@   void get_detector_normal(double *normal1, @\\
+\mbox{}\verb@                            double *normal2,@\\
+\mbox{}\verb@                            double *normal3){@\\
+\mbox{}\verb@     cbf_failnez(cbf_get_detector_normal(self,@\\
+\mbox{}\verb@                    normal1, normal2, normal3));@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@""","get_detector_normal",[],@\\
+\mbox{}\verb@["double normal1", "double normal2", "double normal3"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_pixel_coordinates":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *coordinate1,  @\\
+\mbox{}\verb@         double *coordinate2, double *coordinate3};@\\
+\mbox{}\verb@   void get_pixel_coordinates(double index1, double index2, @\\
+\mbox{}\verb@             double *coordinate1,   @\\
+\mbox{}\verb@             double *coordinate2, @\\
+\mbox{}\verb@             double *coordinate3){@\\
+\mbox{}\verb@      cbf_failnez(cbf_get_pixel_coordinates(self,index1,index2,@\\
+\mbox{}\verb@             coordinate1,coordinate2,coordinate3));@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@""","get_pixel_coordinates",["double index1","double index2"],@\\
+\mbox{}\verb@["double coordinate1", "double coordinate2", "double coordinate3"] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_beam_center":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *index1, double *index2, @\\
+\mbox{}\verb@ double *center1,double *center2};@\\
+\mbox{}\verb@    void get_beam_center(double *index1, double *index2, @\\
+\mbox{}\verb@                         double *center1,double *center2){@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_beam_center(self, index1, index2, @\\
+\mbox{}\verb@                                       center1, center2));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@""","get_beam_center",[],@\\
+\mbox{}\verb@["double index1", "double index2", "double center1","double center2"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_inferred_pixel_size" : ["""@\\
+\mbox{}\verb@%apply double *OUTPUT { double *psize } get_inferred_pixel_size;@\\
+\mbox{}\verb@void get_inferred_pixel_size(unsigned int axis_number, double* psize){@\\
+\mbox{}\verb@   cbf_failnez(cbf_get_inferred_pixel_size(self, axis_number, psize));@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@""","get_inferred_pixel_size",["Int axis_number"],["Float pixel size"] ]@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@class cbfdetectorwrapper:@\\
+\mbox{}\verb@   def __init__(self):@\\
+\mbox{}\verb@      self.code = """@\\
+\mbox{}\verb@// Tell SWIG not to make constructor for these objects@\\
+\mbox{}\verb@%nodefault cbf_detector_struct;@\\
+\mbox{}\verb@%nodefault cbf_detector;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Tell SWIG what the object is, so we can build the class@\\
+\mbox{}\verb@typedef struct@\\
+\mbox{}\verb@{@\\
+\mbox{}\verb@  cbf_positioner positioner;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  double displacement [2], increment [2];@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  size_t axes, index [2];@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@cbf_detector_struct;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@typedef cbf_detector_struct *cbf_detector;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%feature("autodoc","1");@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%extend cbf_detector_struct{// Tell SWIG to attach functions to the structure@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    cbf_detector_struct(){  // Constructor@\\
+\mbox{}\verb@       // DO NOT CONSTRUCT WITHOUT A CBFHANDLE@\\
+\mbox{}\verb@       cbf_failnez(CBF_ARGUMENT);@\\
+\mbox{}\verb@       return NULL; /* Should never be executed */@\\
+\mbox{}\verb@       } @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    ~cbf_detector_struct(){ // Destructor@\\
+\mbox{}\verb@       cbf_failnez(cbf_free_detector(self));@\\
+\mbox{}\verb@       }@\\
+\mbox{}\verb@"""@\\
+\mbox{}\verb@      self.tail = """@\\
+\mbox{}\verb@}; // End of cbf_detector@\\
+\mbox{}\verb@"""@\\
+\mbox{}\verb@   def wrap(self,cfunc,prototype,args,docstring):@\\
+\mbox{}\verb@     if cfunc.find("cbf_free_detector")>-1:@\\
+\mbox{}\verb@        return @\\
+\mbox{}\verb@     try:@\\
+\mbox{}\verb@        code, pyname, input, output = cbf_detector_specials[cfunc]@\\
+\mbox{}\verb@        self.code +=  docstringwrite(pyname,input,output,@\\
+\mbox{}\verb@                                     prototype,docstring)+ code@\\
+\mbox{}\verb@     except KeyError:@\\
+\mbox{}\verb@        print "TODO: Detector:",prototype@\\
+\mbox{}\verb@   def get_code(self):@\\
+\mbox{}\verb@     return self.code+self.tail@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-1ex}
+\footnotesize\addtolength{\baselineskip}{-1ex}
+\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
+\item \NWtxtMacroRefIn\ \NWlink{nuweb7b}{7b}.
+\end{list}
+\end{flushleft}
+\section{Building python extensions - the setup file}
+
+
+Based on the contents of the makefile for CBFlib we will just 
+pull in all of the library for now. We use the distutils approach.
+
+
+
+\begin{flushleft} \small \label{scrap13}
+\verb@"setup.py"@\nobreak\ {\footnotesize \NWtarget{nuweb28}{28} }$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Import the things to build python binary extensions@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@from distutils.core import setup, Extension@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Make our extension module@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@e = Extension('_pycbf',@\\
+\mbox{}\verb@              sources = ["pycbf_wrap.c","../src/cbf_simple.c"],@\\
+\mbox{}\verb@         extra_compile_args=["-g"],@\\
+\mbox{}\verb@         library_dirs=["../lib/"],@\\
+\mbox{}\verb@         libraries=["cbf"],@\\
+\mbox{}\verb@         include_dirs = ["../include"] )@\\
+\mbox{}\verb@            @\\
+\mbox{}\verb@# Build it@\\
+\mbox{}\verb@setup(name="_pycbf",ext_modules=[e],)@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-2ex}
+\end{flushleft}
+\section{Building and testing the resulting package}
+
+Aim to build and test in one go (so that the source and the binary match!!)
+
+\begin{flushleft} \small
+\begin{minipage}{\linewidth} \label{scrap14}
+\verb@"win32.bat"@\nobreak\ {\footnotesize \NWtarget{nuweb29a}{29a} }$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@nuweb pycbf@\\
+\mbox{}\verb@latex pycbf@\\
+\mbox{}\verb@nuweb pycbf@\\
+\mbox{}\verb@latex pycbf@\\
+\mbox{}\verb@dvipdfm pycbf@\\
+\mbox{}\verb@nuweb pycbf@\\
+\mbox{}\verb@C:\python24\python make_pycbf.py > TODO.txt@\\
+\mbox{}\verb@"C:\program files\swigwin-1.3.31\swig.exe" -python pycbf.i@\\
+\mbox{}\verb@C:\python24\python setup.py build --compiler=mingw32@\\
+\mbox{}\verb@copy build\lib.win32-2.4\_pycbf.pyd .@\\
+\mbox{}\verb@REM C:\python24\python pycbf_test1.py@\\
+\mbox{}\verb@C:\python24\python pycbf_test2.py@\\
+\mbox{}\verb@C:\python24\python pycbf_test3.py@\\
+\mbox{}\verb@C:\python24\lib\pydoc.py -w pycbf@\\
+\mbox{}\verb@C:\python24\python makeflatascii.py pycbf_ascii_help.txt@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-2ex}
+\end{minipage}\\[4ex]
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth} \label{scrap15}
+\verb@"linux.sh"@\nobreak\ {\footnotesize \NWtarget{nuweb29b}{29b} }$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@nuweb pycbf@\\
+\mbox{}\verb@latex pycbf@\\
+\mbox{}\verb@nuweb pycbf@\\
+\mbox{}\verb@latex pycbf@\\
+\mbox{}\verb@dvipdfm pycbf@\\
+\mbox{}\verb@nuweb pycbf@\\
+\mbox{}\verb@lynx -dump CBFlib.html > CBFlib.txt@\\
+\mbox{}\verb@python make_pycbf.py @\\
+\mbox{}\verb@swig -python pycbf.i@\\
+\mbox{}\verb@python setup.py build @\\
+\mbox{}\verb@rm _pycbf.so@\\
+\mbox{}\verb@cp build/lib.linux-i686-2.4/_pycbf.so .@\\
+\mbox{}\verb@python pycbf_test1.py@\\
+\mbox{}\verb@python pycbf_test2.py@\\
+\mbox{}\verb@pydoc -w pycbf@\\
+\mbox{}\verb@python makeflatascii.py pycbf_ascii_help.txt@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-2ex}
+\end{minipage}\\[4ex]
+\end{flushleft}
+This still gives bold in the ascii (=sucks)
+
+\begin{flushleft} \small \label{scrap16}
+\verb@"makeflatascii.py"@\nobreak\ {\footnotesize \NWtarget{nuweb29c}{29c} }$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@import pydoc, pycbf, sys@\\
+\mbox{}\verb@f = open(sys.argv[1],"w")@\\
+\mbox{}\verb@pydoc.pager=lambda text: f.write(text)@\\
+\mbox{}\verb@pydoc.TextDoc.bold = lambda self,text : text@\\
+\mbox{}\verb@pydoc.help(pycbf)@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-2ex}
+\end{flushleft}
+\section{Debugging compiled extensions}
+
+Since it can be a bit of a pain to see where things go wrong here is a
+quick recipe for poking around with a debugger:
+
+\begin{verbatim}
+amber $> gdb /bliss/users//blissadm/python/bliss_python/suse82/bin/python
+GNU gdb 5.3
+Copyright 2002 Free Software Foundation, Inc.
+GDB is free software, covered by the GNU General Public License, and you are
+welcome to change it and/or distribute copies of it under certain conditions.
+Type "show copying" to see the conditions.
+There is absolutely no warranty for GDB.  Type "show warranty" for details.
+This GDB was configured as "i586-suse-linux"...
+(gdb) br _PyImport_LoadDynamicModule
+Breakpoint 1 at 0x80e4199: file Python/importdl.c, line 28.
+\end{verbatim}
+
+This is how to get a breakpoint when loading the module
+\begin{verbatim}
+(gdb) run
+Starting program: /mntdirect/_bliss/users/blissadm/python/bliss_python/suse82/bin/python
+[New Thread 16384 (LWP 18191)]
+Python 2.4.2 (#3, Feb 17 2006, 09:12:13)
+[GCC 3.3 20030226 (prerelease) (SuSE Linux)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import pycbf
+[Switching to Thread 16384 (LWP 18191)]
+
+Breakpoint 1, _PyImport_LoadDynamicModule (name=0xbfffd280 "_pycbf.so",
+    pathname=0xbfffd280 "_pycbf.so", fp=0x819e208) at Python/importdl.c:28
+28              if ((m = _PyImport_FindExtension(name, pathname)) != NULL) {
+(gdb) finish
+Run till exit from #0  _PyImport_LoadDynamicModule (
+    name=0xbfffd280 "_pycbf.so", pathname=0xbfffd280 "_pycbf.so", fp=0x819e208)
+    at Python/importdl.c:28
+load_module (name=0xbfffd710 "_pycbf", fp=0x819e208,
+    buf=0xbfffd280 "_pycbf.so", type=3, loader=0x405b44f4)
+    at Python/import.c:1678
+1678                    break;
+Value returned is $1 = (PyObject *) 0x405662fc
+(gdb) break cbf_read_file
+Breakpoint 2 at 0x407f0508: file ../src/cbf.c, line 221.
+(gdb) cont
+Continuing.
+\end{verbatim}
+
+We now have a breakpoint where we wanted inside the dynamically loaded file. 
+\begin{verbatim}
+>>> o=pycbf.cbf_handle_struct()
+>>> o.read_file("../img2cif_packed.cif",pycbf.MSG_DIGEST)
+
+Breakpoint 2, cbf_read_file (handle=0x81f7c08, stream=0x8174f58,
+    headers=136281096) at ../src/cbf.c:221
+221       if (!handle)
+(gdb)
+\end{verbatim}
+
+Now you can step through the c...
+
+\section{Things which are currently missing}
+
+This is the to do list. Obviously we could benefit a lot from more
+extensive testing and checking of the docstrings etc.
+
+\input "TODO.txt"
+
+\section{Testing}
+
+Some test programs to see if anything appears to work. Eventually
+it would be good to write a proper unit test suite.
+
+\subsection{Read a file based on cif2cbf.c}
+
+This is a pretty ugly translation of the program cif2cbf.c skipping
+all of the writing parts. 
+It appeared to work with the file img2cif\_packed.cif which is built
+when you build CBFlib, hence that file is hardwired in.
+
+\begin{flushleft} \small \label{scrap17}
+\verb@"pycbf_test1.py"@\nobreak\ {\footnotesize \NWtarget{nuweb35}{35} }$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@import pycbf@\\
+\mbox{}\verb@object = pycbf.cbf_handle_struct() # FIXME@\\
+\mbox{}\verb@object.read_file("../img2cif_packed.cif",pycbf.MSG_DIGEST)@\\
+\mbox{}\verb@object.rewind_datablock()@\\
+\mbox{}\verb@print "Found",object.count_datablocks(),"blocks"@\\
+\mbox{}\verb@object.select_datablock(0)@\\
+\mbox{}\verb@print "Zeroth is named",object.datablock_name()@\\
+\mbox{}\verb@object.rewind_category()@\\
+\mbox{}\verb@categories = object.count_categories()@\\
+\mbox{}\verb@for i in range(categories):@\\
+\mbox{}\verb@    print "Category:",i,@\\
+\mbox{}\verb@    object.select_category(i)@\\
+\mbox{}\verb@    category_name = object.category_name()@\\
+\mbox{}\verb@    print "Name:",category_name,@\\
+\mbox{}\verb@    rows=object.count_rows()@\\
+\mbox{}\verb@    print "Rows:",rows,@\\
+\mbox{}\verb@    cols = object.count_columns()@\\
+\mbox{}\verb@    print "Cols:",cols@\\
+\mbox{}\verb@    loop=1@\\
+\mbox{}\verb@    object.rewind_column()@\\
+\mbox{}\verb@    while loop is not 0:@\\
+\mbox{}\verb@        column_name = object.column_name()@\\
+\mbox{}\verb@        print "column name \"",column_name,"\"",@\\
+\mbox{}\verb@        try:@\\
+\mbox{}\verb@           object.next_column()@\\
+\mbox{}\verb@        except:@\\
+\mbox{}\verb@           break@\\
+\mbox{}\verb@    print@\\
+\mbox{}\verb@    for j in range(rows):@\\
+\mbox{}\verb@        object.select_row(j)@\\
+\mbox{}\verb@        object.rewind_column()@\\
+\mbox{}\verb@        print "row:",j@\\
+\mbox{}\verb@        for k in range(cols):@\\
+\mbox{}\verb@            name=object.column_name()@\\
+\mbox{}\verb@            print "col:",name,@\\
+\mbox{}\verb@            object.select_column(k)@\\
+\mbox{}\verb@            typeofvalue=object.get_typeofvalue()@\\
+\mbox{}\verb@            print "type:",typeofvalue@\\
+\mbox{}\verb@            if typeofvalue.find("bnry") > -1:@\\
+\mbox{}\verb@                print "Found the binary!!",@\\
+\mbox{}\verb@                s=object.get_integerarray_as_string()@\\
+\mbox{}\verb@                print type(s)@\\
+\mbox{}\verb@                print dir(s)@\\
+\mbox{}\verb@                print len(s)@\\
+\mbox{}\verb@                try:@\\
+\mbox{}\verb@                   import Numeric@\\
+\mbox{}\verb@                   d = Numeric.fromstring(s,Numeric.UInt32) @\\
+\mbox{}\verb@                   # Hard wired Unsigned Int32@\\
+\mbox{}\verb@                   print d.shape@\\
+\mbox{}\verb@                   print d[0:10],d[d.shape[0]/2],d[-1]@\\
+\mbox{}\verb@                   d=Numeric.reshape(d,(2300,2300))@\\
+\mbox{}\verb@#                   from matplotlib import pylab@\\
+\mbox{}\verb@#                   pylab.imshow(d,vmin=0,vmax=1000)@\\
+\mbox{}\verb@#                   pylab.show()@\\
+\mbox{}\verb@                except ImportError:@\\
+\mbox{}\verb@                   print "You need to get Numeric and matplotlib to see the data"@\\
+\mbox{}\verb@            else:@\\
+\mbox{}\verb@                value=object.get_value()@\\
+\mbox{}\verb@                print "Val:",value,i@\\
+\mbox{}\verb@    print@\\
+\mbox{}\verb@del(object)@\\
+\mbox{}\verb@#@\\
+\mbox{}\verb@print dir()@\\
+\mbox{}\verb@#object.free_handle(handle) @\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-2ex}
+\end{flushleft}
+\subsection{Try to test the goniometer and detector}
+
+Had some initial difficulties but then downloaded an input cbf file which defines 
+a goniometer and detector. 
+The file was found in the example data which comes with CBFlib.
+
+This test is clearly minimalistic for now - it only checks the objects 
+for apparent existence of
+a single member function.
+
+\begin{flushleft} \small \label{scrap18}
+\verb@"pycbf_test2.py"@\nobreak\ {\footnotesize \NWtarget{nuweb36a}{36a} }$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@import pycbf@\\
+\mbox{}\verb@obj = pycbf.cbf_handle_struct()@\\
+\mbox{}\verb@obj.read_file("../adscconverted.cbf",0)@\\
+\mbox{}\verb@obj.select_datablock(0)@\\
+\mbox{}\verb@g = obj.construct_goniometer()@\\
+\mbox{}\verb@print "Rotation axis is",g.get_rotation_axis()@\\
+\mbox{}\verb@d = obj.construct_detector(0)@\\
+\mbox{}\verb@print "Beam center is",d.get_beam_center()@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-2ex}
+\end{flushleft}
+It appears to work - eventually. Surprising
+
+\subsection{Test cases for the generics}
+
+\begin{flushleft} \small \label{scrap19}
+\verb@"pycbf_test3.py"@\nobreak\ {\footnotesize \NWtarget{nuweb36b}{36b} }$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@import pycbf, unittest@\\
+\mbox{}\verb@class GenericTests(unittest.TestCase):@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    def test_get_local_integer_byte_order(self):@\\
+\mbox{}\verb@        self.assertEqual( pycbf.get_local_integer_byte_order(),@\\
+\mbox{}\verb@                          'little_endian')@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    def test_get_local_real_byte_order(self):@\\
+\mbox{}\verb@        self.assertEqual( pycbf.get_local_real_byte_order() ,@\\
+\mbox{}\verb@                          'little_endian')@\\
+\mbox{}\verb@    def test_get_local_real_format(self):@\\
+\mbox{}\verb@        self.assertEqual( pycbf.get_local_real_format(), @\\
+\mbox{}\verb@                          'ieee 754-1985')@\\
+\mbox{}\verb@if __name__=="__main__":@\\
+\mbox{}\verb@    unittest.main()@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-2ex}
+\end{flushleft}
+\section{Worked example 1 : xmas beamline + mar ccd detector at the ESRF }
+
+Now for the interesting part. We will attempt to actually use pycbf for a real
+dataprocessing task. Crazy you might think.
+
+The idea is the following - we want to take the header information from some 
+mar ccd files (and eventually also the user or the spec control system) and
+pass this information into cif headers which can be read by fit2d (etc).
+
+\subsection{Reading marccd headers}
+
+Some relatively ugly code which parses a c header and then tries to interpret
+the mar ccd header format. 
+
+FIXME : byteswapping and ends???
+
+\begin{flushleft} \small \label{scrap20}
+\verb@"xmas/readmarheader.py"@\nobreak\ {\footnotesize \NWtarget{nuweb37}{37} }$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@#!/usr/bin/env python@\\
+\mbox{}\verb@import struct@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Convert mar c header file types to python struct module types@\\
+\mbox{}\verb@mar_c_to_python_struct = {@\\
+\mbox{}\verb@    "INT32"  : "i",@\\
+\mbox{}\verb@    "UINT32" : "I",@\\
+\mbox{}\verb@    "char"   : "c",@\\
+\mbox{}\verb@    "UINT16" : "H"@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Sizes (bytes) of mar c header objects@\\
+\mbox{}\verb@mar_c_sizes = {@\\
+\mbox{}\verb@    "INT32"  : 4,@\\
+\mbox{}\verb@    "UINT32" : 4,@\\
+\mbox{}\verb@    "char"   : 1,@\\
+\mbox{}\verb@    "UINT16" : 2@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# This was worked out by trial and error from a trial image I think@\\
+\mbox{}\verb@MAXIMAGES=9@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def make_format(cdefinition):@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    Reads the header definition in c and makes the format @\\
+\mbox{}\verb@    string to pass to struct.unpack@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    lines = cdefinition.split("\n")@\\
+\mbox{}\verb@    fmt = ""@\\
+\mbox{}\verb@    names = []@\\
+\mbox{}\verb@    expected = 0@\\
+\mbox{}\verb@    for line in lines:@\\
+\mbox{}\verb@        if line.find(";")==-1:@\\
+\mbox{}\verb@            continue@\\
+\mbox{}\verb@        decl  = line.split(";")[0].lstrip().rstrip()@\\
+\mbox{}\verb@        try:@\\
+\mbox{}\verb@            [type, name] = decl.split()@\\
+\mbox{}\verb@        except:@\\
+\mbox{}\verb@            #print "skipping:",line@\\
+\mbox{}\verb@            continue@\\
+\mbox{}\verb@        #        print "type:",type,"  name:",name@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@        if name.find("[")>-1:@\\
+\mbox{}\verb@            # repeated ... times@\\
+\mbox{}\verb@            try:@\\
+\mbox{}\verb@                num = name.split("[")[1].split("]")[0]@\\
+\mbox{}\verb@                num = num.replace("MAXIMAGES",str(MAXIMAGES))@\\
+\mbox{}\verb@                num = num.replace("sizeof(INT32)","4")@\\
+\mbox{}\verb@                times = eval(num)@\\
+\mbox{}\verb@            except:@\\
+\mbox{}\verb@                print "Please decode",decl@\\
+\mbox{}\verb@                raise@\\
+\mbox{}\verb@        else:@\\
+\mbox{}\verb@            times=1@\\
+\mbox{}\verb@        try:@\\
+\mbox{}\verb@            fmt   += mar_c_to_python_struct[type]*times@\\
+\mbox{}\verb@            names += [name]*times@\\
+\mbox{}\verb@            expected += mar_c_sizes[type]*times@\\
+\mbox{}\verb@        except:@\\
+\mbox{}\verb@            #print "skipping",line@\\
+\mbox{}\verb@            continue@\\
+\mbox{}\verb@        #print "%4d %4d"%(mar_c_sizes[type]*times,expected),name,":",times,line@\\
+\mbox{}\verb@    #print struct.calcsize(fmt),expected@\\
+\mbox{}\verb@    return names, fmt@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def read_mar_header(filename):@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    Get the header from a binary file@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    f = open(filename,"rb")@\\
+\mbox{}\verb@    f.seek(1024)@\\
+\mbox{}\verb@    header=f.read(3072)@\\
+\mbox{}\verb@    f.close()@\\
+\mbox{}\verb@    return header@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def interpret_header(header, fmt, names):@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    given a format and header interpret it@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    values = struct.unpack(fmt,header)@\\
+\mbox{}\verb@    dict = {}@\\
+\mbox{}\verb@    i=0@\\
+\mbox{}\verb@    for name in names:@\\
+\mbox{}\verb@        if dict.has_key(name):@\\
+\mbox{}\verb@            if type(values[i]) == type("string"): @\\
+\mbox{}\verb@                 dict[name] = dict[name]+values[i]@\\
+\mbox{}\verb@            else:@\\
+\mbox{}\verb@                 try:@\\
+\mbox{}\verb@                     dict[name].append(values[i])@\\
+\mbox{}\verb@                 except:@\\
+\mbox{}\verb@                     dict[name] = [dict[name],values[i]]@\\
+\mbox{}\verb@        else:@\\
+\mbox{}\verb@            dict[name] = values[i]@\\
+\mbox{}\verb@        i=i+1@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    return dict@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Now for the c definition (found on mar webpage)@\\
+\mbox{}\verb@# The following string is therefore copyrighted by Mar I guess@\\
+\mbox{}\verb@        @\\
+\mbox{}\verb@cdefinition = """@\\
+\mbox{}\verb@typedef struct frame_header_type {@\\
+\mbox{}\verb@         /* File/header format parameters (256 bytes) */@\\
+\mbox{}\verb@         UINT32        header_type;      /* flag for header type  @\\
+\mbox{}\verb@                                           (can be  used as magic number) */@\\
+\mbox{}\verb@         char header_name[16];           /* header name (MMX) */@\\
+\mbox{}\verb@         UINT32        header_major_version;     /* header_major_version  (n.) */@\\
+\mbox{}\verb@         UINT32        header_minor_version;     /* header_minor_version  (.n) */@\\
+\mbox{}\verb@         UINT32        header_byte_order;/* BIG_ENDIAN (Motorola,MIPS);  @\\
+\mbox{}\verb@                                            LITTLE_ENDIAN (DEC, Intel) */@\\
+\mbox{}\verb@         UINT32        data_byte_order;  /* BIG_ENDIAN (Motorola,MIPS);  @\\
+\mbox{}\verb@                                            LITTLE_ENDIAN (DEC, Intel) */@\\
+\mbox{}\verb@         UINT32        header_size;      /* in bytes                     */@\\
+\mbox{}\verb@         UINT32        frame_type;       /* flag for frame type */@\\
+\mbox{}\verb@         UINT32        magic_number;     /* to be used as a flag - @\\
+\mbox{}\verb@                                            usually  to indicate new file */@\\
+\mbox{}\verb@         UINT32        compression_type; /* type of image compression    */@\\
+\mbox{}\verb@         UINT32        compression1;     /* compression parameter 1 */@\\
+\mbox{}\verb@         UINT32        compression2;     /* compression parameter 2 */@\\
+\mbox{}\verb@         UINT32        compression3;     /* compression parameter 3 */@\\
+\mbox{}\verb@         UINT32        compression4;     /* compression parameter 4 */@\\
+\mbox{}\verb@         UINT32        compression5;     /* compression parameter 4 */@\\
+\mbox{}\verb@         UINT32        compression6;     /* compression parameter 4 */@\\
+\mbox{}\verb@         UINT32        nheaders;         /* total number of headers      */@\\
+\mbox{}\verb@         UINT32        nfast;            /* number of pixels in one line */@\\
+\mbox{}\verb@         UINT32        nslow;            /* number of lines in image     */@\\
+\mbox{}\verb@         UINT32        depth;            /* number of bytes per pixel    */@\\
+\mbox{}\verb@         UINT32        record_length;    /* number of pixels between @\\
+\mbox{}\verb@                                            succesive rows */@\\
+\mbox{}\verb@         UINT32        signif_bits;      /* true depth of data, in bits  */@\\
+\mbox{}\verb@         UINT32        data_type;        /* (signed,unsigned,float...) */@\\
+\mbox{}\verb@         UINT32        saturated_value;  /* value marks pixel as saturated */@\\
+\mbox{}\verb@         UINT32        sequence;         /* TRUE or FALSE */@\\
+\mbox{}\verb@         UINT32        nimages;          /* total number of images - size of @\\
+\mbox{}\verb@                                            each is nfast*(nslow/nimages) */@\\
+\mbox{}\verb@         UINT32        origin;           /* corner of origin             */@\\
+\mbox{}\verb@         UINT32        orientation;      /* direction of fast axis       */@\\
+\mbox{}\verb@         UINT32        view_direction;   /* direction to view frame      */@\\
+\mbox{}\verb@         UINT32        overflow_location;/* FOLLOWING_HEADER,  FOLLOWING_DATA */@\\
+\mbox{}\verb@         UINT32        over_8_bits;      /* # of pixels with counts  255 */@\\
+\mbox{}\verb@         UINT32        over_16_bits;     /* # of pixels with count  65535 */@\\
+\mbox{}\verb@         UINT32        multiplexed;      /* multiplex flag */@\\
+\mbox{}\verb@         UINT32        nfastimages;      /* # of images in fast direction */@\\
+\mbox{}\verb@         UINT32        nslowimages;      /* # of images in slow direction */@\\
+\mbox{}\verb@         UINT32        background_applied; /* flags correction has been applied - @\\
+\mbox{}\verb@                                              hold magic number ? */@\\
+\mbox{}\verb@         UINT32        bias_applied;       /* flags correction has been applied - @\\
+\mbox{}\verb@                                              hold magic number ? */@\\
+\mbox{}\verb@         UINT32        flatfield_applied;  /* flags correction has been applied - @\\
+\mbox{}\verb@                                              hold magic number ? */@\\
+\mbox{}\verb@         UINT32        distortion_applied; /* flags correction has been applied - @\\
+\mbox{}\verb@                                              hold magic number ? */@\\
+\mbox{}\verb@         UINT32        original_header_type;     /* Header/frame type from  file @\\
+\mbox{}\verb@                                                    that frame is read from */@\\
+\mbox{}\verb@         UINT32        file_saved;         /* Flag that file has been  saved, @\\
+\mbox{}\verb@                                              should be zeroed if modified */@\\
+\mbox{}\verb@         char reserve1[(64-40)*sizeof(INT32)-16];@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@         /* Data statistics (128) */@\\
+\mbox{}\verb@         UINT32        total_counts[2];  /* 64 bit integer range = 1.85E19*/@\\
+\mbox{}\verb@         UINT32        special_counts1[2];@\\
+\mbox{}\verb@         UINT32        special_counts2[2];@\\
+\mbox{}\verb@         UINT32        min;@\\
+\mbox{}\verb@         UINT32        max;@\\
+\mbox{}\verb@         UINT32        mean;@\\
+\mbox{}\verb@         UINT32        rms;@\\
+\mbox{}\verb@         UINT32        p10;@\\
+\mbox{}\verb@         UINT32        p90;@\\
+\mbox{}\verb@         UINT32        stats_uptodate;@\\
+\mbox{}\verb@         UINT32        pixel_noise[MAXIMAGES]; /* 1000*base noise value (ADUs) */@\\
+\mbox{}\verb@         char reserve2[(32-13-MAXIMAGES)*sizeof(INT32)];@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@         /* More statistics (256) */@\\
+\mbox{}\verb@         UINT16 percentile[128];@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@         /* Goniostat parameters (128 bytes) */@\\
+\mbox{}\verb@         INT32 xtal_to_detector;  /* 1000*distance in millimeters */@\\
+\mbox{}\verb@         INT32 beam_x;            /* 1000*x beam position (pixels) */@\\
+\mbox{}\verb@         INT32 beam_y;            /* 1000*y beam position (pixels) */@\\
+\mbox{}\verb@         INT32 integration_time;  /* integration time in  milliseconds */@\\
+\mbox{}\verb@         INT32 exposure_time;     /* exposure time in milliseconds */@\\
+\mbox{}\verb@         INT32 readout_time;      /* readout time in milliseconds */@\\
+\mbox{}\verb@         INT32 nreads;            /* number of readouts to get this  image */@\\
+\mbox{}\verb@         INT32 start_twotheta;    /* 1000*two_theta angle */@\\
+\mbox{}\verb@         INT32 start_omega;       /* 1000*omega angle */@\\
+\mbox{}\verb@         INT32 start_chi;         /* 1000*chi angle */@\\
+\mbox{}\verb@         INT32 start_kappa;       /* 1000*kappa angle */@\\
+\mbox{}\verb@         INT32 start_phi;         /* 1000*phi angle */@\\
+\mbox{}\verb@         INT32 start_delta;       /* 1000*delta angle */@\\
+\mbox{}\verb@         INT32 start_gamma;       /* 1000*gamma angle */@\\
+\mbox{}\verb@         INT32 start_xtal_to_detector; /* 1000*distance in mm (dist in um)*/@\\
+\mbox{}\verb@         INT32 end_twotheta;           /* 1000*two_theta angle */@\\
+\mbox{}\verb@         INT32 end_omega;              /* 1000*omega angle */@\\
+\mbox{}\verb@         INT32 end_chi;                /* 1000*chi angle */@\\
+\mbox{}\verb@         INT32 end_kappa;              /* 1000*kappa angle */@\\
+\mbox{}\verb@         INT32 end_phi;                /* 1000*phi angle */@\\
+\mbox{}\verb@         INT32 end_delta;              /* 1000*delta angle */@\\
+\mbox{}\verb@         INT32 end_gamma;              /* 1000*gamma angle */@\\
+\mbox{}\verb@         INT32 end_xtal_to_detector;   /* 1000*distance in mm (dist in um)*/@\\
+\mbox{}\verb@         INT32 rotation_axis;          /* active rotation axis */@\\
+\mbox{}\verb@         INT32 rotation_range;         /* 1000*rotation angle */@\\
+\mbox{}\verb@         INT32 detector_rotx;          /* 1000*rotation of detector  around X */@\\
+\mbox{}\verb@         INT32 detector_roty;          /* 1000*rotation of detector  around Y */@\\
+\mbox{}\verb@         INT32 detector_rotz;          /* 1000*rotation of detector  around Z */@\\
+\mbox{}\verb@         char reserve3[(32-28)*sizeof(INT32)];@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@         /* Detector parameters (128 bytes) */@\\
+\mbox{}\verb@         INT32 detector_type;            /* detector type */@\\
+\mbox{}\verb@         INT32 pixelsize_x;              /* pixel size (nanometers) */@\\
+\mbox{}\verb@         INT32 pixelsize_y;              /* pixel size (nanometers) */@\\
+\mbox{}\verb@         INT32 mean_bias;                        /* 1000*mean bias value */@\\
+\mbox{}\verb@         INT32 photons_per_100adu;       /* photons / 100 ADUs */@\\
+\mbox{}\verb@         INT32 measured_bias[MAXIMAGES]; /* 1000*mean bias value for each image*/@\\
+\mbox{}\verb@         INT32 measured_temperature[MAXIMAGES];  /* Temperature of each  @\\
+\mbox{}\verb@                                                    detector in milliKelvins */@\\
+\mbox{}\verb@         INT32 measured_pressure[MAXIMAGES]; /* Pressure of each  chamber @\\
+\mbox{}\verb@                                               in microTorr */@\\
+\mbox{}\verb@         /* Retired reserve4 when MAXIMAGES set to 9 from 16 and @\\
+\mbox{}\verb@            two fields removed, and temp and pressure added@\\
+\mbox{}\verb@          char reserve4[(32-(5+3*MAXIMAGES))*sizeof(INT32)]@\\
+\mbox{}\verb@         */@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@         /* X-ray source and optics parameters (128 bytes) */@\\
+\mbox{}\verb@         /* X-ray source parameters (8*4 bytes) */@\\
+\mbox{}\verb@         INT32 source_type;              /* (code) - target, synch. etc */@\\
+\mbox{}\verb@         INT32 source_dx;                /* Optics param. - (size  microns) */@\\
+\mbox{}\verb@         INT32 source_dy;                /* Optics param. - (size  microns) */@\\
+\mbox{}\verb@         INT32 source_wavelength;        /* wavelength  (femtoMeters) */@\\
+\mbox{}\verb@         INT32 source_power;             /* (Watts) */@\\
+\mbox{}\verb@         INT32 source_voltage;           /* (Volts) */@\\
+\mbox{}\verb@         INT32 source_current;           /* (microAmps) */@\\
+\mbox{}\verb@         INT32 source_bias;              /* (Volts) */@\\
+\mbox{}\verb@         INT32 source_polarization_x;    /* () */@\\
+\mbox{}\verb@         INT32 source_polarization_y;    /* () */@\\
+\mbox{}\verb@         char reserve_source[4*sizeof(INT32)];@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@         /* X-ray optics_parameters (8*4 bytes) */@\\
+\mbox{}\verb@         INT32 optics_type;              /* Optics type (code)*/@\\
+\mbox{}\verb@         INT32 optics_dx;                /* Optics param. - (size  microns) */@\\
+\mbox{}\verb@         INT32 optics_dy;                /* Optics param. - (size  microns) */@\\
+\mbox{}\verb@         INT32 optics_wavelength;        /* Optics param. - (size  microns) */@\\
+\mbox{}\verb@         INT32 optics_dispersion;        /* Optics param. - (*10E6) */@\\
+\mbox{}\verb@         INT32 optics_crossfire_x;       /* Optics param. - (microRadians) */@\\
+\mbox{}\verb@         INT32 optics_crossfire_y;       /* Optics param. - (microRadians) */@\\
+\mbox{}\verb@         INT32 optics_angle;             /* Optics param. - (monoch.  @\\
+\mbox{}\verb@                                                    2theta - microradians) */@\\
+\mbox{}\verb@         INT32 optics_polarization_x;    /* () */@\\
+\mbox{}\verb@         INT32 optics_polarization_y;    /* () */@\\
+\mbox{}\verb@         char reserve_optics[4*sizeof(INT32)];@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@         char reserve5[((32-28)*sizeof(INT32))];@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@         /* File parameters (1024 bytes) */@\\
+\mbox{}\verb@         char filetitle[128];            /*  Title                  */@\\
+\mbox{}\verb@         char filepath[128];             /* path name for data  file  */@\\
+\mbox{}\verb@         char filename[64];              /* name of data  file  */@\\
+\mbox{}\verb@         char acquire_timestamp[32];     /* date and time of  acquisition */@\\
+\mbox{}\verb@         char header_timestamp[32];      /* date and time of header  update  */@\\
+\mbox{}\verb@         char save_timestamp[32];        /* date and time file  saved */@\\
+\mbox{}\verb@         char file_comments[512];        /* comments, use as desired   */@\\
+\mbox{}\verb@         char reserve6[1024-(128+128+64+(3*32)+512)];@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@         /* Dataset parameters (512 bytes) */@\\
+\mbox{}\verb@         char dataset_comments[512];     /* comments, used as desired   */@\\
+\mbox{}\verb@         /* pad out to  3072 bytes */@\\
+\mbox{}\verb@         char pad[3072-(256+128+256+(3*128)+1024+512)];     @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@         } frame_header;@\\
+\mbox{}\verb@"""@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@class marheaderreader:@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    Class to sit and read a series of images (makes format etc only once)@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    def __init__(self):@\\
+\mbox{}\verb@        """@\\
+\mbox{}\verb@        Initialise internal stuff@\\
+\mbox{}\verb@        """@\\
+\mbox{}\verb@        self.names , self.fmt = make_format(cdefinition)@\\
+\mbox{}\verb@    def get_header(self,filename):@\\
+\mbox{}\verb@        """@\\
+\mbox{}\verb@        Reads a header from file filename@\\
+\mbox{}\verb@        """@\\
+\mbox{}\verb@        h=read_mar_header(filename)@\\
+\mbox{}\verb@        dict = interpret_header(h,self.fmt,self.names)@\\
+\mbox{}\verb@        # Append ESRF formatted stuff@\\
+\mbox{}\verb@        items = self.readesrfstring(dict["dataset_comments[512]"])@\\
+\mbox{}\verb@        for pair in items:@\\
+\mbox{}\verb@            dict[pair[0]]=pair[1]@\\
+\mbox{}\verb@        items = self.readesrfstring(dict["file_comments[512]"])@\\
+\mbox{}\verb@        for pair in items:@\\
+\mbox{}\verb@            dict[pair[0]]=pair[1]@\\
+\mbox{}\verb@        dict["pixelsize_x_mm"]= str(float(dict["pixelsize_x"])/1e6)@\\
+\mbox{}\verb@        dict["pixelsize_y_mm"]= str(float(dict["pixelsize_y"])/1e6)@\\
+\mbox{}\verb@        dict["integration_time_sec"]= str(float(dict["integration_time"])/1e3)@\\
+\mbox{}\verb@        dict["beam_y_mm"]= str(float(dict["pixelsize_y_mm"])*@\\
+\mbox{}\verb@                                         float(dict["beam_y"])/1000.)@\\
+\mbox{}\verb@        dict["beam_x_mm"]= str(float(dict["pixelsize_x_mm"])*@\\
+\mbox{}\verb@                                         float(dict["beam_x"])/1000.)@\\
+\mbox{}\verb@        @\\
+\mbox{}\verb@        return dict@\\
+\mbox{}\verb@    @\\
+\mbox{}\verb@    def readesrfstring(self,s):@\\
+\mbox{}\verb@        """@\\
+\mbox{}\verb@        Interpret the so called "esrf format" header lines @\\
+\mbox{}\verb@        which are in comment sections@\\
+\mbox{}\verb@        """@\\
+\mbox{}\verb@        s=s.replace("\000","")@\\
+\mbox{}\verb@        items = filter(None, [len(x)>1 and x or None for x in [@\\
+\mbox{}\verb@            item.split("=") for item in s.split(";")]])@\\
+\mbox{}\verb@        return items@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@if __name__=="__main__":@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    Make a little program to process files@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    import sys@\\
+\mbox{}\verb@    print "Starting"@\\
+\mbox{}\verb@    names,fmt = make_format(cdefinition)@\\
+\mbox{}\verb@    print "Names and format made"@\\
+\mbox{}\verb@    h = read_mar_header(sys.argv[1])@\\
+\mbox{}\verb@    print "Read header, interpreting"@\\
+\mbox{}\verb@    d = interpret_header(h,fmt,names)@\\
+\mbox{}\verb@    printed = {}@\\
+\mbox{}\verb@    for name in names:@\\
+\mbox{}\verb@        if printed.has_key(name):@\\
+\mbox{}\verb@            continue@\\
+\mbox{}\verb@        print name,":",d[name]@\\
+\mbox{}\verb@        printed[name]=1@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-2ex}
+\end{flushleft}
+\subsection{Writing out cif files for fit2d/xmas}
+
+A script which is supposed to pick up some header information from the mar images, 
+some more infomation from the user and the create cif files.
+
+This relies on a "template" cif file to get it started (avoids me programming everything).
+
+\begin{flushleft} \small \label{scrap21}
+\verb@"xmas/xmasheaders.py"@\nobreak\ {\footnotesize \NWtarget{nuweb42}{42} }$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@#!/usr/bin/env python@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@import pycbf@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Some cbf helper functions - obj would be a cbf_handle_struct object@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def writewavelength(obj,wavelength):@\\
+\mbox{}\verb@    obj.set_wavelength(float(wavelength))@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def writecellpar(obj,cifname,value):@\\
+\mbox{}\verb@    obj.find_category("cell")@\\
+\mbox{}\verb@    obj.find_column(cifname)@\\
+\mbox{}\verb@    obj.set_value(value)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def writecell(obj,cell):@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    call with cell = (a,b,c,alpha,beta,gamma)@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    obj.find_category("cell")@\\
+\mbox{}\verb@    obj.find_column("length_a")@\\
+\mbox{}\verb@    obj.set_value(str(cell[0]))@\\
+\mbox{}\verb@    obj.find_column("length_b")@\\
+\mbox{}\verb@    obj.set_value(str(cell[1]))@\\
+\mbox{}\verb@    obj.find_column("length_c")@\\
+\mbox{}\verb@    obj.set_value(str(cell[2]))@\\
+\mbox{}\verb@    obj.find_column("angle_alpha")@\\
+\mbox{}\verb@    obj.set_value(str(cell[3]))@\\
+\mbox{}\verb@    obj.find_column("angle_beta")@\\
+\mbox{}\verb@    obj.set_value(str(cell[4]))@\\
+\mbox{}\verb@    obj.find_column("angle_gamma")@\\
+\mbox{}\verb@    obj.set_value(str(cell[5]))@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def writeUB(obj,ub):@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    call with ub that can be indexed ub[i][j]@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    obj.find_category("diffrn_orient_matrix")@\\
+\mbox{}\verb@    for i in (1,2,3):@\\
+\mbox{}\verb@        for j in (1,2,3):@\\
+\mbox{}\verb@            obj.find_column("UB[%d][%d]"%(i,j))@\\
+\mbox{}\verb@            obj.set_value(str(ub[i-1][j-1]))@\\
+\mbox{}\verb@            @\\
+\mbox{}\verb@def writedistance(obj,distance):@\\
+\mbox{}\verb@    obj.set_axis_setting("DETECTOR_Z",float(distance),0.)@\\
+\mbox{}\verb@        @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def writebeam_x_mm(obj,cen):@\\
+\mbox{}\verb@    obj.set_axis_setting("DETECTOR_X",float(cen),0.)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def writebeam_y_mm(obj,cen):@\\
+\mbox{}\verb@    obj.set_axis_setting("DETECTOR_Y",float(cen),0.)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def writeSPECcmd(obj,s):@\\
+\mbox{}\verb@    obj.find_category("diffrn_measurement")@\\
+\mbox{}\verb@    obj.find_column("details")@\\
+\mbox{}\verb@    obj.set_value(s)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def writeSPECscan(obj,s):@\\
+\mbox{}\verb@    obj.find_category("diffrn_scan")@\\
+\mbox{}\verb@    obj.find_column("id")@\\
+\mbox{}\verb@    obj.set_value("SCAN%s"%(s))@\\
+\mbox{}\verb@    obj.find_category("diffrn_scan_axis")@\\
+\mbox{}\verb@    obj.find_column("scan_id")@\\
+\mbox{}\verb@    obj.rewind_row()@\\
+\mbox{}\verb@    for i in range(obj.count_rows()):@\\
+\mbox{}\verb@        obj.select_row(i)@\\
+\mbox{}\verb@        obj.set_value("SCAN%s"%(s))@\\
+\mbox{}\verb@    obj.find_category("diffrn_scan_frame")@\\
+\mbox{}\verb@    obj.find_column("scan_id")@\\
+\mbox{}\verb@    obj.rewind_row()@\\
+\mbox{}\verb@    obj.set_value("SCAN%s"%(s))@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def writepixelsize_y_mm(obj,s):@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    Units are mm for cif@\\
+\mbox{}\verb@    """@\\
+\mbox{}\verb@    # element number  = assume this is first and only detector@\\
+\mbox{}\verb@    element_number = 0@\\
+\mbox{}\verb@    # axis number = faster or slower... ? Need to check precedence ideally...@\\
+\mbox{}\verb@    obj.find_category("array_structure_list")@\\
+\mbox{}\verb@    obj.find_column("axis_set_id")@\\
+\mbox{}\verb@    obj.find_row("ELEMENT_Y")@\\
+\mbox{}\verb@    obj.find_column("precedence")@\\
+\mbox{}\verb@    axis_number = obj.get_integervalue()@\\
+\mbox{}\verb@    @\\
+\mbox{}\verb@    obj.set_pixel_size(element_number, axis_number, float(s) )@\\
+\mbox{}\verb@    @\\
+\mbox{}\verb@    obj.find_category("array_structure_list_axis")@\\
+\mbox{}\verb@    obj.find_column("axis_id")@\\
+\mbox{}\verb@    obj.find_row("ELEMENT_Y")@\\
+\mbox{}\verb@    obj.find_column("displacement")@\\
+\mbox{}\verb@    obj.set_doublevalue("%.6g",float(s)/2.0)@\\
+\mbox{}\verb@    obj.find_column("displacement_increment")@\\
+\mbox{}\verb@    obj.set_doublevalue("%.6g",float(s))@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def writepixelsize_x_mm(obj,s):@\\
+\mbox{}\verb@    # element number  = assume this is first and only detector@\\
+\mbox{}\verb@    element_number = 0@\\
+\mbox{}\verb@    # axis number = faster or slower... ? Need to check precedence ideally...@\\
+\mbox{}\verb@    obj.find_category("array_structure_list")@\\
+\mbox{}\verb@    obj.find_column("axis_set_id")@\\
+\mbox{}\verb@    obj.find_row("ELEMENT_X")@\\
+\mbox{}\verb@    obj.find_column("precedence")@\\
+\mbox{}\verb@    axis_number = obj.get_integervalue()@\\
+\mbox{}\verb@    @\\
+\mbox{}\verb@    obj.set_pixel_size(element_number, axis_number, float(s) )@\\
+\mbox{}\verb@    @\\
+\mbox{}\verb@    obj.find_category("array_structure_list_axis")@\\
+\mbox{}\verb@    obj.find_column("axis_id")@\\
+\mbox{}\verb@    obj.find_row("ELEMENT_X")@\\
+\mbox{}\verb@    obj.find_column("displacement")@\\
+\mbox{}\verb@    obj.set_doublevalue("%.6g",float(s)/2.0)@\\
+\mbox{}\verb@    obj.find_column("displacement_increment")@\\
+\mbox{}\verb@    obj.set_doublevalue("%.6g",float(s))@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def writeintegrationtime(obj,s):@\\
+\mbox{}\verb@    obj.find_category("diffrn_scan_frame")@\\
+\mbox{}\verb@    obj.find_column("integration_time")@\\
+\mbox{}\verb@    obj.set_value(str(s).replace("\000",""))@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def writenfast(obj,s):@\\
+\mbox{}\verb@    obj.find_category("array_structure_list")@\\
+\mbox{}\verb@    obj.find_column("index")@\\
+\mbox{}\verb@    obj.find_row("1")@\\
+\mbox{}\verb@    obj.find_column("dimension")@\\
+\mbox{}\verb@    obj.set_value(str(s))@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@def writenslow(obj,s):@\\
+\mbox{}\verb@    obj.find_category("array_structure_list")@\\
+\mbox{}\verb@    obj.find_column("index")@\\
+\mbox{}\verb@    obj.find_row("2")@\\
+\mbox{}\verb@    obj.find_column("dimension")@\\
+\mbox{}\verb@    obj.set_value(str(s))@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@functiondict = {@\\
+\mbox{}\verb@    "lambda"   : writewavelength,@\\
+\mbox{}\verb@    "beam_x_mm"   : writebeam_x_mm,@\\
+\mbox{}\verb@    "beam_y_mm"   : writebeam_y_mm,@\\
+\mbox{}\verb@    "distance" : writedistance,@\\
+\mbox{}\verb@    "UB"       : writeUB,@\\
+\mbox{}\verb@    "cell"     : writecell,@\\
+\mbox{}\verb@    "cmd"      : writeSPECcmd,@\\
+\mbox{}\verb@    "scan"     : writeSPECscan,@\\
+\mbox{}\verb@    "nfast"    : writenfast,@\\
+\mbox{}\verb@    "nslow"    : writenslow,@\\
+\mbox{}\verb@    "pixelsize_y_mm" : writepixelsize_y_mm,@\\
+\mbox{}\verb@    "pixelsize_x_mm" : writepixelsize_x_mm,@\\
+\mbox{}\verb@    "integration_time_sec" : writeintegrationtime,@\\
+\mbox{}\verb@    "tth"      : lambda obj,value : obj.set_axis_setting(@\\
+\mbox{}\verb@                                "DETECTOR_TWO_THETA_VERTICAL",float(value),0.),@\\
+\mbox{}\verb@    "chi"      : lambda obj,value : obj.set_axis_setting(@\\
+\mbox{}\verb@                                     "GONIOMETER_CHI",float(value),0.),@\\
+\mbox{}\verb@    "th"       : lambda obj,value : obj.set_axis_setting(@\\
+\mbox{}\verb@                                     "GONIOMETER_THETA",float(value),0.),@\\
+\mbox{}\verb@    "phi"      : lambda obj,value : obj.set_axis_setting(@\\
+\mbox{}\verb@                                     "GONIOMETER_PHI",float(value),0.),@\\
+\mbox{}\verb@    "lc_a"     : lambda obj,value : writecellpar(obj,"length_a",value),@\\
+\mbox{}\verb@    "lc_b"     : lambda obj,value : writecellpar(obj,"length_b",value),@\\
+\mbox{}\verb@    "lc_c"     : lambda obj,value : writecellpar(obj,"length_c",value),@\\
+\mbox{}\verb@    "lc_al"    : lambda obj,value : writecellpar(obj,"angle_alpha",value),@\\
+\mbox{}\verb@    "lc_be"    : lambda obj,value : writecellpar(obj,"angle_beta",value),@\\
+\mbox{}\verb@    "lc_ga"    : lambda obj,value : writecellpar(obj,"angle_gamma",value)@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"""@\\
+\mbox{}\verb@    #@\\
+\mbox{}\verb@    # Not implementing these for now@\\
+\mbox{}\verb@    lc_ra@\\
+\mbox{}\verb@    lc_rc 0.4742@\\
+\mbox{}\verb@    lc_rb 1.16@\\
+\mbox{}\verb@    energy 13@\\
+\mbox{}\verb@    cp_phi -180@\\
+\mbox{}\verb@    alpha 7.3716@\\
+\mbox{}\verb@    lc_ral 90@\\
+\mbox{}\verb@    cp_tth -180@\\
+\mbox{}\verb@    lc_rga 90@\\
+\mbox{}\verb@    beta 17.572@\\
+\mbox{}\verb@    omega -2.185@\\
+\mbox{}\verb@    h 0.21539@\\
+\mbox{}\verb@    k 0.01957@\\
+\mbox{}\verb@    l 5.9763@\\
+\mbox{}\verb@    cp_chi -180@\\
+\mbox{}\verb@    lc_rbe 90@\\
+\mbox{}\verb@    cp_th -180@\\
+\mbox{}\verb@    azimuth 0@\\
+\mbox{}\verb@"""@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Finally a class for creating header files.@\\
+\mbox{}\verb@# It reads a template and then offers a processfile command @\\
+\mbox{}\verb@# for running over a file series@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@class cifheader:@\\
+\mbox{}\verb@    @\\
+\mbox{}\verb@    def __init__(self,templatefile):@\\
+\mbox{}\verb@        self.cbf=pycbf.cbf_handle_struct()@\\
+\mbox{}\verb@        self.cbf.read_template(templatefile)@\\
+\mbox{}\verb@        from readmarheader import marheaderreader@\\
+\mbox{}\verb@        self.marheaderreader = marheaderreader()@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@        @\\
+\mbox{}\verb@    def processfile(self,filename, outfile=None,@\\
+\mbox{}\verb@                    format="mccd",@\\
+\mbox{}\verb@                    **kwds):@\\
+\mbox{}\verb@        outfile=outfile.replace(format,"cif")@\\
+\mbox{}\verb@        @\\
+\mbox{}\verb@        if format == "mccd":@\\
+\mbox{}\verb@            items = self.marheaderreader.get_header(filename)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@        if format == "bruker":@\\
+\mbox{}\verb@            pass@\\
+\mbox{}\verb@        if format == "edf":@\\
+\mbox{}\verb@            pass@\\
+\mbox{}\verb@        @\\
+\mbox{}\verb@        self.items=items@\\
+\mbox{}\verb@        @\\
+\mbox{}\verb@        # Take the image header items as default@\\
+\mbox{}\verb@        self.updateitems(items)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@        # Allow them to be overridden@\\
+\mbox{}\verb@        self.updateitems(kwds)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@        # Write the file@\\
+\mbox{}\verb@        self.writefile(outfile)@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@        @\\
+\mbox{}\verb@    def writefile(self,filename):@\\
+\mbox{}\verb@        self.cbf.write_file(filename,pycbf.CIF,pycbf.MIME_HEADERS,@\\
+\mbox{}\verb@                            pycbf.ENC_BASE64)@\\
+\mbox{}\verb@        @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    def updateitems(self,dict):@\\
+\mbox{}\verb@        names = dict.keys()@\\
+\mbox{}\verb@        for name in names:@\\
+\mbox{}\verb@            value = dict[name]@\\
+\mbox{}\verb@            # use a dictionary of functions@\\
+\mbox{}\verb@            if functiondict.has_key(name):@\\
+\mbox{}\verb@                # print "calling",functiondict[name],value@\\
+\mbox{}\verb@                apply(functiondict[name],(self.cbf,value))@\\
+\mbox{}\verb@            else:@\\
+\mbox{}\verb@                #print "ignoring",name,value@\\
+\mbox{}\verb@                pass@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@        @\\
+\mbox{}\verb@if __name__=="__main__":@\\
+\mbox{}\verb@    import sys@\\
+\mbox{}\verb@    @\\
+\mbox{}\verb@    obj=cifheader("xmas_cif_template.cif")@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    ub = [[0.11, 0.12, 0.13] , [0.21, 0.22, 0.23], [0.31, 0.32, 0.33]]@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    for filename in sys.argv[1:]:@\\
+\mbox{}\verb@        fileout = filename.split("/")[-1]@\\
+\mbox{}\verb@        obj.processfile(filename, outfile=fileout, UB=ub, distance=123.456)@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-2ex}
+\end{flushleft}
+\subsection{A template cif file for the xmas beamline}
+
+This was sort of copied and modified from an example file. It has NOT been checked.
+Hopefully the four circle geometry at least vaguely matches what is at the beamline.
+
+\begin{flushleft} \small \label{scrap22}
+\verb@"xmas/xmas_cif_template.cif"@\nobreak\ {\footnotesize \NWtarget{nuweb47}{47} }$\equiv$
+\vspace{-1ex}
+\begin{list}{}{} \item
+\mbox{}\verb@@\\
+\mbox{}\verb@###CBF: VERSION 0.6@\\
+\mbox{}\verb@# CBF file written by cbflib v0.6@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@data_image_1@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn.id@\\
+\mbox{}\verb@_diffrn.crystal_id@\\
+\mbox{}\verb@ DS1 DIFFRN_CRYSTAL_ID@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_cell.length_a                     5.959(1)@\\
+\mbox{}\verb@_cell.length_b                     14.956(1)@\\
+\mbox{}\verb@_cell.length_c                     19.737(3)@\\
+\mbox{}\verb@_cell.angle_alpha                  90@\\
+\mbox{}\verb@_cell.angle_beta                   90@\\
+\mbox{}\verb@_cell.angle_gamma                  90@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_orient_matrix.id 'DS1'@\\
+\mbox{}\verb@_diffrn_orient_matrix.type @\\
+\mbox{}\verb@; reciprocal axis matrix, multiplies hkl vector to generate@\\
+\mbox{}\verb@  diffractometer xyz vector and diffractometer angles@\\
+\mbox{}\verb@;@\\
+\mbox{}\verb@_diffrn_orient_matrix.UB[1][1]            0.11@\\
+\mbox{}\verb@_diffrn_orient_matrix.UB[1][2]            0.12@\\
+\mbox{}\verb@_diffrn_orient_matrix.UB[1][3]            0.13@\\
+\mbox{}\verb@_diffrn_orient_matrix.UB[2][1]            0.21@\\
+\mbox{}\verb@_diffrn_orient_matrix.UB[2][2]            0.22@\\
+\mbox{}\verb@_diffrn_orient_matrix.UB[2][3]            0.23@\\
+\mbox{}\verb@_diffrn_orient_matrix.UB[3][1]            0.31@\\
+\mbox{}\verb@_diffrn_orient_matrix.UB[3][2]            0.32@\\
+\mbox{}\verb@_diffrn_orient_matrix.UB[3][3]            0.33@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_source.diffrn_id@\\
+\mbox{}\verb@_diffrn_source.source@\\
+\mbox{}\verb@_diffrn_source.current@\\
+\mbox{}\verb@_diffrn_source.type@\\
+\mbox{}\verb@ DS1 synchrotron 200.0 'XMAS beamline bm28 ESRF'@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_radiation.diffrn_id@\\
+\mbox{}\verb@_diffrn_radiation.wavelength_id@\\
+\mbox{}\verb@_diffrn_radiation.probe@\\
+\mbox{}\verb@_diffrn_radiation.monochromator@\\
+\mbox{}\verb@_diffrn_radiation.polarizn_source_ratio@\\
+\mbox{}\verb@_diffrn_radiation.polarizn_source_norm@\\
+\mbox{}\verb@_diffrn_radiation.div_x_source@\\
+\mbox{}\verb@_diffrn_radiation.div_y_source@\\
+\mbox{}\verb@_diffrn_radiation.div_x_y_source@\\
+\mbox{}\verb@_diffrn_radiation.collimation@\\
+\mbox{}\verb@ DS1 WAVELENGTH1 x-ray 'Si 111' 0.8 0.0 0.08 0.01 0.00 '0.20 mm x 0.20 mm'@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_radiation_wavelength.id@\\
+\mbox{}\verb@_diffrn_radiation_wavelength.wavelength@\\
+\mbox{}\verb@_diffrn_radiation_wavelength.wt@\\
+\mbox{}\verb@ WAVELENGTH1 1.73862 1.0@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_detector.diffrn_id@\\
+\mbox{}\verb@_diffrn_detector.id@\\
+\mbox{}\verb@_diffrn_detector.type@\\
+\mbox{}\verb@_diffrn_detector.details@\\
+\mbox{}\verb@_diffrn_detector.number_of_axes@\\
+\mbox{}\verb@ DS1 MAR 'MAR XMAS' 'slow mode' 5@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_detector_axis.detector_id@\\
+\mbox{}\verb@_diffrn_detector_axis.axis_id@\\
+\mbox{}\verb@ MAR DETECTOR_TWO_THETA_VERTICAL@\\
+\mbox{}\verb@ MAR DETECTOR_X@\\
+\mbox{}\verb@ MAR DETECTOR_Y@\\
+\mbox{}\verb@ MAR DETECTOR_Z@\\
+\mbox{}\verb@ MAR DETECTOR_PITCH@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_detector_element.id@\\
+\mbox{}\verb@_diffrn_detector_element.detector_id@\\
+\mbox{}\verb@ ELEMENT1 MAR@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_data_frame.id@\\
+\mbox{}\verb@_diffrn_data_frame.detector_element_id@\\
+\mbox{}\verb@_diffrn_data_frame.array_id@\\
+\mbox{}\verb@_diffrn_data_frame.binary_id@\\
+\mbox{}\verb@ FRAME1 ELEMENT1 ARRAY1 1@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_measurement.diffrn_id@\\
+\mbox{}\verb@_diffrn_measurement.id@\\
+\mbox{}\verb@_diffrn_measurement.number_of_axes@\\
+\mbox{}\verb@_diffrn_measurement.method@\\
+\mbox{}\verb@_diffrn_measurement.details@\\
+\mbox{}\verb@ DS1 GONIOMETER 3 rotation@\\
+\mbox{}\verb@ 'i0=1.000 i1=1.000 i2=1.000 ib=1.000 beamstop=20 mm 0% attenuation'@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_measurement_axis.measurement_id@\\
+\mbox{}\verb@_diffrn_measurement_axis.axis_id@\\
+\mbox{}\verb@ GONIOMETER GONIOMETER_PHI@\\
+\mbox{}\verb@ GONIOMETER GONIOMETER_CHI@\\
+\mbox{}\verb@ GONIOMETER GONIOMETER_THETA@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_scan.id@\\
+\mbox{}\verb@_diffrn_scan.frame_id_start@\\
+\mbox{}\verb@_diffrn_scan.frame_id_end@\\
+\mbox{}\verb@_diffrn_scan.frames@\\
+\mbox{}\verb@ SCAN1 FRAME1 FRAME1 1@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_scan_axis.scan_id@\\
+\mbox{}\verb@_diffrn_scan_axis.axis_id@\\
+\mbox{}\verb@_diffrn_scan_axis.angle_start@\\
+\mbox{}\verb@_diffrn_scan_axis.angle_range@\\
+\mbox{}\verb@_diffrn_scan_axis.angle_increment@\\
+\mbox{}\verb@_diffrn_scan_axis.displacement_start@\\
+\mbox{}\verb@_diffrn_scan_axis.displacement_range@\\
+\mbox{}\verb@_diffrn_scan_axis.displacement_increment@\\
+\mbox{}\verb@ SCAN1 GONIOMETER_THETA 0.0 0.0 0.0 0.0 0.0 0.0@\\
+\mbox{}\verb@ SCAN1 GONIOMETER_CHI 0.0 0.0 0.0 0.0 0.0 0.0@\\
+\mbox{}\verb@ SCAN1 GONIOMETER_PHI 185 1 1 0.0 0.0 0.0@\\
+\mbox{}\verb@ SCAN1 DETECTOR_TWO_THETA_VERTICAL 0.0 0.0 0.0 0.0 0.0 0.0@\\
+\mbox{}\verb@ SCAN1 DETECTOR_Z 0.0 0.0 0.0 103.750 0 0@\\
+\mbox{}\verb@ SCAN1 DETECTOR_Y 0.0 0.0 0.0 0.0 0.0 0.0@\\
+\mbox{}\verb@ SCAN1 DETECTOR_X 0.0 0.0 0.0 0.0 0.0 0.0@\\
+\mbox{}\verb@ SCAN1 DETECTOR_PITCH 0.0 0.0 0.0 0.0 0.0 0.0@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_scan_frame.frame_id@\\
+\mbox{}\verb@_diffrn_scan_frame.frame_number@\\
+\mbox{}\verb@_diffrn_scan_frame.integration_time@\\
+\mbox{}\verb@_diffrn_scan_frame.scan_id@\\
+\mbox{}\verb@_diffrn_scan_frame.date@\\
+\mbox{}\verb@ FRAME1 1 360 SCAN1 1997-12-04T10:23:48@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_diffrn_scan_frame_axis.frame_id@\\
+\mbox{}\verb@_diffrn_scan_frame_axis.axis_id@\\
+\mbox{}\verb@_diffrn_scan_frame_axis.angle@\\
+\mbox{}\verb@_diffrn_scan_frame_axis.displacement@\\
+\mbox{}\verb@ FRAME1 GONIOMETER_THETA 0.0 0.0@\\
+\mbox{}\verb@ FRAME1 GONIOMETER_CHI 0.0 0.0@\\
+\mbox{}\verb@ FRAME1 GONIOMETER_PHI 185 0.0@\\
+\mbox{}\verb@ FRAME1 DETECTOR_TWO_THETA_VERTICAL 185 0.0@\\
+\mbox{}\verb@ FRAME1 DETECTOR_Z 0.0 103.750@\\
+\mbox{}\verb@ FRAME1 DETECTOR_Y 0.0 0.0@\\
+\mbox{}\verb@ FRAME1 DETECTOR_X 0.0 0.0@\\
+\mbox{}\verb@ FRAME1 DETECTOR_PITCH 0.0 0.0@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_axis.id@\\
+\mbox{}\verb@_axis.type@\\
+\mbox{}\verb@_axis.equipment@\\
+\mbox{}\verb@_axis.depends_on@\\
+\mbox{}\verb@_axis.vector[1]@\\
+\mbox{}\verb@_axis.vector[2]@\\
+\mbox{}\verb@_axis.vector[3]@\\
+\mbox{}\verb@_axis.offset[1]@\\
+\mbox{}\verb@_axis.offset[2]@\\
+\mbox{}\verb@_axis.offset[3]@\\
+\mbox{}\verb@ GONIOMETER_THETA rotation goniometer . 1 0 0 . . .@\\
+\mbox{}\verb@ GONIOMETER_CHI rotation goniometer GONIOMETER_THETA 0 0 1 . . .@\\
+\mbox{}\verb@ GONIOMETER_PHI rotation goniometer GONIOMETER_PHI 1 0 0 . . .@\\
+\mbox{}\verb@ SOURCE general source . 0 0 1 . . .@\\
+\mbox{}\verb@ GRAVITY general gravity . 0 -1 0 . . .@\\
+\mbox{}\verb@ DETECTOR_TWO_THETA_VERTICAL rotation goniometer . 1 0 0 . . .@\\
+\mbox{}\verb@ DETECTOR_Z translation detector DETECTOR_TWO_THETA_VERTICAL 0 0 -1 0 0 0@\\
+\mbox{}\verb@ DETECTOR_Y translation detector DETECTOR_Z 0 1 0 0 0 0@\\
+\mbox{}\verb@ DETECTOR_X translation detector DETECTOR_Y 1 0 0 0 0 0@\\
+\mbox{}\verb@ DETECTOR_PITCH rotation detector DETECTOR_X 0 1 0 0 0 0@\\
+\mbox{}\verb@ ELEMENT_X translation detector DETECTOR_PITCH 1 0 0 -94.0032 94.0032 0@\\
+\mbox{}\verb@ ELEMENT_Y translation detector ELEMENT_X 0 1 0 0 0 0@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_array_structure_list.array_id@\\
+\mbox{}\verb@_array_structure_list.index@\\
+\mbox{}\verb@_array_structure_list.dimension@\\
+\mbox{}\verb@_array_structure_list.precedence@\\
+\mbox{}\verb@_array_structure_list.direction@\\
+\mbox{}\verb@_array_structure_list.axis_set_id@\\
+\mbox{}\verb@ ARRAY1 1 2049 1 increasing ELEMENT_X@\\
+\mbox{}\verb@ ARRAY1 2 2049 2 increasing ELEMENT_Y@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_array_structure_list_axis.axis_set_id@\\
+\mbox{}\verb@_array_structure_list_axis.axis_id@\\
+\mbox{}\verb@_array_structure_list_axis.displacement@\\
+\mbox{}\verb@_array_structure_list_axis.displacement_increment@\\
+\mbox{}\verb@ ELEMENT_X ELEMENT_X 0.0408 0.0816@\\
+\mbox{}\verb@ ELEMENT_Y ELEMENT_Y -0.0408 -0.0816@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_array_intensities.array_id@\\
+\mbox{}\verb@_array_intensities.binary_id@\\
+\mbox{}\verb@_array_intensities.linearity@\\
+\mbox{}\verb@_array_intensities.gain@\\
+\mbox{}\verb@_array_intensities.gain_esd@\\
+\mbox{}\verb@_array_intensities.overload@\\
+\mbox{}\verb@_array_intensities.undefined_value@\\
+\mbox{}\verb@ ARRAY1 1 linear 0.30 0.03 65000 0@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@loop_@\\
+\mbox{}\verb@_array_structure.id@\\
+\mbox{}\verb@_array_structure.encoding_type@\\
+\mbox{}\verb@_array_structure.compression_type@\\
+\mbox{}\verb@_array_structure.byte_order@\\
+\mbox{}\verb@ ARRAY1 "signed 32-bit integer" packed little_endian@\\
+\mbox{}\verb@@{\NWsep}
+\end{list}
+\vspace{-2ex}
+\end{flushleft}
+\end{document}

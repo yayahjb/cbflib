@@ -19,7 +19,7 @@
           <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
         </td>
         <td class="masthead">
-          <p class="title">Draft version 1.5.2 for comment</p>
+          <p class="title">Draft version 1.5 for comment</p>
         </td>
       </tr>
     </table>
@@ -49,7 +49,7 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
 
 
 <p class="index"><a class="index" href="index.html">Index</a></p>
-<h5>Image dictionary (imgCIF) version 1.5.1</h5>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
 <h1>Category ARRAY_DATA</h1>
 <b>Name:</b><br />
 <tt class="cifdefinition">'array_data'</tt> 
@@ -57,8 +57,24 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
     Data items in the <a href="Carray_data.html" class="catlink">ARRAY_DATA</a> category are the containers for
      the array data items described in the category <a href="Carray_structure.html" class="catlink">ARRAY_STRUCTURE</a>.
 
+     It is recognized that the data in this category needs to be used in
+     two distinct ways.  During a data collection the lack of ancillary
+     data and timing constraints in processing data may dictate the
+     need to make a 'miniCBF' nothing more than an essential minimum
+     of information to record the results of the data collection.  In that
+     case it is proper to use the <a href="Carray_data.html" class="catlink">ARRAY_DATA</a> category as a
+     container for just a single image and a compacted, beam-line
+     dependent list of data collection parameter values.  In such
+     a case, only the tags '<a href="Iarray_data.header_convention.html" class="itemlink">_array_data.header_convention</a>',
+     '<a href="Iarray_data.header_contents.html" class="itemlink">_array_data.header_contents</a>' and '<a href="Iarray_data.data.html" class="itemlink">_array_data.data</a>' need be
+     populated.
+
+     For full processing and archiving, most of the tags in this
+     dictionary will need to be populated.
+
+
 </pre>
-<b>Example:</b><br /><br />
+<b>Examples:</b><br /><br />
 <table class="cifcatexample" width="100%"><tr><td><i>
  
         Example 1 -
@@ -115,6 +131,77 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
 
         ELhQAAAAAAAA...
         ...
+        --CIF-BINARY-FORMAT-SECTION----
+        ;
+
+</pre><br /></td></tr></table><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+ 
+        Example 2 -
+
+        This example shows a single image in a miniCBF, provided by
+        E. Eikenberry.  The entire CBF consists of one data block
+        containing one category and three tags.  The CBFlib
+        program convert_miniCBF and a suitable template file
+        can be used to convert this miniCBF to a full imgCIF
+        file.
+
+</i><br /><pre class="cifexample">
+ 
+        ###CBF: VERSION 1.5
+        # CBF file written by CBFlib v0.7.8
+
+        data_insulin_pilatus6m
+
+        _array_data.header_convention SLS_1.0
+        _array_data.header_contents
+        ;
+        # Detector: PILATUS 6M SN: 60-0001
+        # 2007/Jun/17 15:12:36.928
+        # Pixel_size 172e-6 m x 172e-6 m
+        # Silicon sensor, thickness 0.000320 m
+        # Exposure_time 0.995000 s
+        # Exposure_period 1.000000 s
+        # Tau = 194.0e-09 s
+        # Count_cutoff 1048575 counts
+        # Threshold_setting 5000 eV
+        # Wavelength 1.2398 A
+        # Energy_range (0, 0) eV
+        # Detector_distance 0.15500 m
+        # Detector_Voffset -0.01003 m
+        # Beam_xy (1231.00, 1277.00) pixels
+        # Flux 22487563295 ph/s
+        # Filter_transmission 0.0008
+        # Start_angle 13.0000 deg.
+        # Angle_increment 1.0000 deg.
+        # Detector_2theta 0.0000 deg.
+        # Polarization 0.990
+        # Alpha 0.0000 deg.
+        # Kappa 0.0000 deg.
+        # Phi 0.0000 deg.
+        # Chi 0.0000 deg.
+        # Oscillation_axis  X, CW
+        # N_oscillations 1
+        ;
+
+        _array_data.data
+        ;
+        --CIF-BINARY-FORMAT-SECTION--
+        Content-Type: application/octet-stream;
+             conversions="x-CBF_BYTE_OFFSET"
+        Content-Transfer-Encoding: BINARY
+        X-Binary-Size: 6247567
+        X-Binary-ID: 1
+        X-Binary-Element-Type: "signed 32-bit integer"
+        X-Binary-Element-Byte-Order: LITTLE_ENDIAN
+        Content-MD5: 8wO6i2+899lf5iO8QPdgrw==
+        X-Binary-Number-of-Elements: 6224001
+        X-Binary-Size-Fastest-Dimension: 2463
+        X-Binary-Size-Second-Dimension: 2527
+        X-Binary-Size-Padding: 4095
+
+        ...
+
         --CIF-BINARY-FORMAT-SECTION----
         ;
 

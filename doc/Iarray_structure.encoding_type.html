@@ -19,7 +19,7 @@
           <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
         </td>
         <td class="masthead">
-          <p class="title">Draft version 1.5.2 for comment</p>
+          <p class="title">Draft version 1.5 for comment</p>
         </td>
       </tr>
     </table>
@@ -49,10 +49,15 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
 
 
 <p class="index"><a class="index" href="index.html">Index</a></p>
-<h5>Image dictionary (imgCIF) version 1.5.1</h5>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
 <h1>_array_structure.encoding_type</h1><b>Name:</b><br /><tt class="cifdefinition">'_array_structure.encoding_type'</tt> 
 <p><b>Definition:</b></p><pre class="cifdefinition">
         Data encoding of a single element of array data.
+
+               The type 'unsigned 1-bit integer' is used for
+               packed Booleans arrays for masks.  Each element
+               of the array corresponds to a single bit
+               packed in unsigned 8-bit data.
 
                In several cases, the IEEE format is referenced.
                See IEEE Standard 754-1985 (IEEE, 1985).
@@ -67,6 +72,10 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
 <p class="pack"><b>Mandatory item:</b> yes</p>
 
 <br /><b>The data value must be one of the following:</b><br /><br />
+<table width="100%"><tr class="cifexample"><td width="50%">
+<br /><tt>'unsigned 1-bit integer'</tt>
+</td><td width="50%"> 
+</td></tr></table>
 <table width="100%"><tr class="cifexample"><td width="50%">
 <br /><tt>'unsigned 8-bit integer'</tt>
 </td><td width="50%"> 

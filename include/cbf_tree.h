@@ -300,6 +300,11 @@ cbf_node;
 
   /* Prototypes */
 
+  /* Undo links and promote to the first non-link
+     freeing the memory for the links */
+     
+int cbf_undo_links (cbf_node **node);
+
   /* These function will not trace a link */
 
   /* Free a node */

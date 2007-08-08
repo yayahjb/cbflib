@@ -319,6 +319,8 @@ int cbf_free_handle (cbf_handle handle)
   
   void *memblock;
 
+  cbf_node *node;
+
   errorcode = 0;
   
   memblock = (void *) handle;
@@ -329,9 +331,14 @@ int cbf_free_handle (cbf_handle handle)
 
       errorcode |=
         cbf_free_handle ((cbf_handle) handle->dictionary);
+        
+      handle->dictionary = NULL;
 
     }
-    errorcode |= cbf_free_node (handle->node);
+    
+    errorcode |= cbf_find_parent (&node, handle->node, CBF_ROOT);
+
+    if (!errorcode) errorcode |= cbf_free_node (node);
 
     return errorcode | cbf_free (&memblock, NULL);
   }
@@ -359,35 +366,44 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int headers, int w
 
     /* Check the arguments */
 
-  if (!handle)
+  if (!handle) {
+
+    fclose (stream);
 
     return CBF_ARGUMENT;
 
-  if (((headers & (MSG_DIGEST | MSG_DIGESTNOW)) && (headers & MSG_NODIGEST)))
+  }
+
+
+  if (((headers & (MSG_DIGEST | MSG_DIGESTNOW)) && (headers & MSG_NODIGEST))) {
+
+    fclose (stream);
 
     return CBF_ARGUMENT;
+    	
+  }
 
 
     /* Delete the old datablocks */
 
-  cbf_failnez (cbf_find_parent (&node, handle->node, CBF_ROOT))
+  cbf_onfailnez (cbf_find_parent (&node, handle->node, CBF_ROOT), fclose(stream))
 
-  cbf_failnez (cbf_set_children (node, 0))
+  cbf_onfailnez (cbf_set_children (node, 0), fclose(stream))
 
   handle->node = node;
   
-  cbf_failnez (cbf_reset_refcounts(handle->dictionary))
+  cbf_onfailnez (cbf_reset_refcounts(handle->dictionary), fclose(stream))
 
 
     /* Create the input file */
 
   if (wide) {
   	
-  cbf_failnez (cbf_make_widefile (&file, stream))
+  cbf_onfailnez (cbf_make_widefile (&file, stream), fclose(stream))
   
   } else {
 
-  cbf_failnez (cbf_make_file (&file, stream))
+  cbf_onfailnez (cbf_make_file (&file, stream), fclose(stream))
   	
   }
   
@@ -451,7 +467,7 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int headers, int w
         errorcode = 0;
   }
 
-  cbf_failnez (cbf_find_parent (&node, handle->node, CBF_ROOT))
+  cbf_onfailnez (cbf_find_parent (&node, handle->node, CBF_ROOT), cbf_delete_fileconnection (&file))
   
   errorcode = cbf_count_children (&children, node);
 
@@ -5937,7 +5953,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     
   int lcolumn=0, litemname=0;
   
-  int count, countcat;
+  int count;
   
   int column, minrows, maxrows;
   
@@ -6081,7 +6097,6 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     
     }
     
-    
     if (handle->dictionary) {
               	
       if (!cbf_find_tag(handle->dictionary, "_items.name"))  {
@@ -6097,12 +6112,106 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
       }
     }
 
-  	
-  } else if (type == CBF_CATEGORY) {
+  } else if (type == CBF_SAVEFRAME) {
+
+    /* we come here at the end of a save frame
+       
+       'node' points to the cbf up to the point prior to
+       the save frame end.  
+       
+         1.  Does the save frame have any content
+         2.  If there is a dictionary, we need to check
+              2.1.  If a tag is given within the
+                    save frame, then the parent
+                    of that tag is given in the same
+                    save frame
+              2.2.  For each category in the save frame
+                    that each mandatory tag for that
+                    category is given, and that for
+                    each implicit tag that is not
+                    explicitly given, that the parent,
+                    if any, of that tag is given in the
+                    same data block
+         3.  We need to reset the counters for the save
+             frame.
+                    
+    */
+
+    /* Now check if the save frame has any content */
+
+    if (!cbf_find_parent(&tnode, node, CBF_SAVEFRAME)) {
+    
+      cbf_failnez(cbf_count_children(&children, tnode))
+    
+      if ( children == 0 ) {
+      
+        if (file != (cbf_file *)NULL) {
+        
+          if ((tnode->name) != (char *)NULL)  {
+
+            sprintf(buffer,
+              "save frame %s ends with no content",tnode->name);
+              
+
+          } else  {
+
+            sprintf(buffer,
+              "save frame (null) ends with no content");
+              
+          }
+          
+          cbf_log (handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
+              
+        } else {
+        
+          return CBF_FORMAT;
+        	
+        }
+      } else {
+      
+        /* We have content, now check each category for required tags */
+        
+        if (handle->dictionary) {
+        
+          cbf_node *child_node;
+          
+          unsigned int child;
+          
+          for (child = 0; child < children; child++) {
+          
+            cbf_failnez (cbf_get_child (&child_node, tnode, child))
+          
+            if (child_node->type == CBF_CATEGORY) {
+            
+              cbf_failnez(cbf_check_category_tags(handle, child_node, tnode))
+            	
+            }
+          	
+          }
+        	
+        }
+      	
+      }
+    
+    }
+
+    if (handle->dictionary) {
+
+      if (!cbf_find_tag(handle->dictionary, "_items.name"))  {
+
+         cbf_failnez(cbf_reset_column(handle->dictionary, "SF_wide_refcounts") )
+
+         cbf_failnez(cbf_reset_column(handle->dictionary, "SFcat_wide_refcounts") )
+
+      }
+   }
+ 
+  } else if (type == CBF_CATEGORY ) {
   
     /* We come here at the start of a new datablock element
-       in the form of an assignment, a loop assignment or a save
-       frame.  Alternatively, we may come here at the start
+       or save frame element in the form of an assignment, a 
+       loop assignment or (if a data block) a save frame.  
+       Alternatively, we may come here at the start
        of a new save frame element.
        
        'node' will be pointing to
@@ -6168,7 +6277,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
       
         if ( maxrows == 0 ) {
         
-          sprintf(buffer, "no rows in castegory %s", (tnode->name)?(tnode->name):"(null)");
+          sprintf(buffer, "no rows in category %s", (tnode->name)?(tnode->name):"(null)");
         	
           cbf_log(handle,buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
         }  
@@ -6186,6 +6295,17 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
           if (columns == 0) cbf_log(handle,"no categories in save frame",CBF_LOGWARNING|CBF_LOGSTARTLOC);
         }
 
+      }
+    }
+    
+    if (handle->dictionary) {
+              	
+      if (!cbf_find_tag(handle->dictionary, "_items.name"))  {
+        
+        cbf_failnez(cbf_reset_column(handle->dictionary, "DBcat_wide_refcounts") )
+  	
+        cbf_failnez(cbf_reset_column(handle->dictionary, "SFcat_wide_refcounts") )
+        	
       }
     }
 
@@ -6294,23 +6414,25 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 
             if (!cbf_find_parent(&ttnode,tnode,CBF_SAVEFRAME)) {
 
+	      int count, countcat;
+
               cbf_failnez(cbf_increment_column(handle->dictionary, "SF_wide_refcounts", &count ))
 
               cbf_failnez(cbf_increment_column(handle->dictionary, "SFcat_wide_refcounts", &countcat ))
 
               if (count > 1 && countcat <= 1) {
               	
-                sprintf(buffer,"item name %s appears more than once in a save frame",
-                  itemname );
+                sprintf(buffer,"item name %s appears more than once in a save frame, count %d",
+                  itemname, count );
 
                 cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
 
               }
               if (countcat > 1 ) {
               	
-                sprintf(buffer,"item name %s appears more than once in a save frame category",
+                sprintf(buffer,"item name %s appears more than once in a save frame category, count %d",
                 
-                  itemname);
+                  itemname, countcat);
 
                 cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
  
@@ -6318,15 +6440,17 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 
             } else {
 
+              int count, countcat;
+
               cbf_failnez(cbf_increment_column(handle->dictionary, "DB_wide_refcounts", &count ))
             
               cbf_failnez(cbf_increment_column(handle->dictionary, "DBcat_wide_refcounts", &countcat ))
 
               if (count > 1 && countcat <= 1 ) {
               	
-                sprintf(buffer,"item name %s appears more than once in a data block",
+                sprintf(buffer,"item name %s appears more than once in a data block, count %d",
 
-                  itemname);
+                  itemname, count);
 
                 cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
 
@@ -6334,9 +6458,9 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 
               if (countcat > 1 ) {
               	
-                sprintf(buffer,"item name %s appears more than once in a data block category",
+                sprintf(buffer,"item name %s appears more than once in a data block category, count %d",
                 
-                  itemname);
+                  itemname, countcat);
 
                 cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
  
@@ -6530,6 +6654,9 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	  if ( !cbf_cistrncmp(dictype,"char",4)
     	        	    || !cbf_cistrncmp(dictype,"ucha",4)
     	        	    || !cbf_cistrncmp(dictype,"code",4)
+    	        	    || !cbf_cistrncmp(dictype,"name",4)
+    	        	    || !cbf_cistrncmp(dictype,"idna",4)
+                        || !cbf_cistrncmp(dictype,"alia",4)
     	        	    || !cbf_cistrncmp(dictype,"ucod",4)
     	        	    || !cbf_cistrncmp(dictype,"line",4)
     	        	    || !cbf_cistrncmp(dictype,"ulin",4)
@@ -6588,6 +6715,9 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    || !cbf_cistrncmp(dictype,"any",3)
     	        	    || !cbf_cistrncmp(dictype,"line",4)
     	        	    || !cbf_cistrncmp(dictype,"ulin",4)
+    	        	    || !cbf_cistrncmp(dictype,"name",4)
+    	        	    || !cbf_cistrncmp(dictype,"idna",4)
+                        || !cbf_cistrncmp(dictype,"alia",4)
     	        	    || !cbf_cistrncmp(dictype,"atco",4)
     	        	    || !cbf_cistrncmp(dictype,"char",4)
     	        	    || !cbf_cistrncmp(dictype,"ucha",4) ) { goodmatch = 1; break;   }

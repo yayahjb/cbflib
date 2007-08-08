@@ -1,7 +1,7 @@
 /**********************************************************************
  *          cif2c -- convert a cif to a CBFlib function               *
  *                                                                    *
- * Version 0.7.6 28 June 2006                                         *
+ * Version 0.7.8 12 June 2007                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -336,6 +336,7 @@ int main (int argc, char *argv [])
   int errflg = 0;
   char *cifin, *codeout, *function_name;
   char ciftmp[19];
+  char *xciftmp;
 #ifndef NOMKSTEMP
   int ciftmpfd;
 #endif
@@ -421,7 +422,7 @@ int main (int argc, char *argv [])
      strcpy(ciftmp, "/tmp/cif2cXXXXXX");
 #endif
 #ifdef NOMKSTEMP
-     if ((ciftmp = mktemp(ciftmp)) == NULL ) {
+     if ((xciftmp=mktemp(ciftmp)) == NULL ) {
        fprintf(stderr,"\n cif2c: Can't create temporary file name %s.\n", ciftmp);
        fprintf(stderr,"%s\n",strerror(errno));
        exit(1);

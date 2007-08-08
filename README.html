@@ -26,7 +26,7 @@ ALT="[CBFlib]"></A>
 | <A HREF = "doc/CBFlib_NOTICES.html">NOTICE</A>
 | <a href=gpl.txt>doc/GPL</a>
 | <a href=lgpl.txt>doc/LGPL</a>
-| <a href="doc/cif_img.html">imgCIF dictionary</a>
+| <a href="doc/cif_img_1.5.4.html">imgCIF dictionary</a>
 |<br />
 | <a href="http://arcib.dowling.edu/donation.shtml">Click Here to Make a Donation</a>
 |<P>
@@ -35,7 +35,7 @@ ALT="[CBFlib]"></A>
 <font color="#0808A0">
 <H2 ALIGN=CENTER>README</H2>
 <H3 ALIGN=CENTER>
-Information for CBFlib 0.7.7.6, 30 June 2007<BR>
+Information for CBFlib 0.7.8.1, 28 July 2007<BR>
 </H3>
 </font><font color="#000000">
 <CENTER>
@@ -48,10 +48,10 @@ Herbert J. Bernstein<BR>
 Bernstein + Sons<BR>
 <script language="javascript" type="text/javascript">
 <!-- 
-      var name = "yaya@";
+      var name = "yaya";
       var domain = "bernstein-plus-sons";
-      var domext = ".com";
-      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + name + " <b>at</b> " + domain + " <b>dot</b> "+  domext+"</a>"); 
+      var domext = "com";
+      document.write ("<a href=\"mailto:" + name + "@" + domain + "." domext + "\">" + name + " <b>at</b> " + domain + " <b>dot</b> "+  domext+"</a>"); 
 // -->
 </script>
 <noscript>
@@ -74,7 +74,16 @@ ALT="NOTICE"></A><BR>
 for important disclaimers and the IUCr Policy
  on the Use of the Crystallographic Information File (CIF) and other important
 information.
-</H3> 
+</h3>
+<P>
+Work on imgCIF and CBFlib supported in part by the U. S. Department of Energy (DOE)
+under grants ER63601-1021466-0009501 and ER64212-1027708-0011962, by the
+U. S. National Science Foundation (NSF) under grants DBI-0610407, DBI-0315281 and
+EF-0312612, the U. S. National Institutes of Health (NIH) under grants 1R15GM078077
+from NIGMS and 1R13RR023192 from NCRR and funding from the International
+Union for Crystallographyn (IUCr).  The content is solely the responsibility of 
+the authors and does not necessarily represent the official views of 
+DOE, NSF, NIH, NIGMS, NCRR or IUCr.
 <P>
 <HR>
 <P>
@@ -90,30 +99,32 @@ and write CBF binary data files and imgCIF ASCII data files.
 <P>
 <H3>Installation</H3>
 <P>
-CBFLIB should be built on a disk with at least 200 megabytes of free 
-space.  <A HREF="../CBFlib_0.7.7.tar.gz">CBFlib_0.7.7.tar.gz</A> is a "gzipped" 
+CBFLIB should be built on a disk with at least 250 megabytes of free 
+space.  <A HREF="../CBFlib_0.7.8.tar.gz">CBFlib_0.7.8.tar.gz</A> is a "gzipped" 
 tar of the code as it now stands.  In addition,
-<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.7/CBFlib_0.7.7_Data_Files.tar.gz">CBFlib_0.7.7_Data_Files.tar.gz</a>
+<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.8/CBFlib_0.7.8_Data_Files.tar.gz">CBFlib_0.7.8_Data_Files.tar.gz</a>
 is a "gzipped tar of the data files needed to test the API.
 Place both gzipped tars in the directory
 that is intended to contain two new directories, named 
-CBFlib_0.7.7 (the &quot;top-level&quot; directory) and
-CBFlib_0.7.7_Data_Files.
+CBFlib_0.7.8 (the &quot;top-level&quot; directory) and
+CBFlib_0.7.8_Data_Files.
 Uncompress both tarballs with gunzip and unpack them with tar:
 <p>
 <PRE>
-     gunzip CBFlib_0.7.7.tar.gz
-     tar xvf CBFLIB_0.7.7.tar
-     gunzip CBFlib_0.7.7_Data_Files.tar.gz
-     tar xvf CBFLIB_0.7.7_Data_Files.tar
+     gunzip CBFlib_0.7.8.tar.gz
+     tar xvf CBFLIB_0.7.8.tar
+     gunzip CBFlib_0.7.8_Data_Files.tar.gz
+     tar xvf CBFLIB_0.7.8_Data_Files.tar
 </PRE>
 <p>
 As with prior releases, to run the test programs, you will also need 
 Paul Ellis's sample MAR345 image,
 example.mar2300, and
 Chris Nielsen's sample ADSC Quantum 315 image, 
-mb_LP_1_001.img as sample data.  Both these files will be
-extracted by the Makefile from CBFlib_0.7.7_Data_Files.  Do
+mb_LP_1_001.img as sample data.  In addition there are
+not various insulin_pilatus6m sample data files from
+E. Eikenberry at SLS.  All these files will be
+extracted by the Makefile from CBFlib_0.7.8_Data_Files.  Do
 not download copies into the top level directory.
 <P>
 After unpacking the archives, the top-level directory should contain
@@ -147,13 +158,13 @@ the top-level directory and type:
 Please refer to the manual <a HREF="doc/CBFlib.html">doc/CBFlib.html</a>
 for more detailed information.<HR>
 <HR>
-Updated 30 June 2007.  
+Updated 29 July 2007.  
 <script language="javascript" type="text/javascript">
 <!-- 
-      var name = "yaya@";
+      var name = "yaya";
       var domain = "bernstein-plus-sons";
-      var domext = ".com";
-      document.write ("<a href=\"mailto:" + name + domain + domext + "\">" + name + " <b>at</b> " + domain + " <b>dot</b> "+  domext+"</a>"); 
+      var domext = "com";
+      document.write ("<a href=\"mailto:" + name + "@" + domain + "." domext + "\">" + name + " <b>at</b> " + domain + " <b>dot</b> "+  domext+"</a>"); 
 // -->
 </script>
 <noscript>

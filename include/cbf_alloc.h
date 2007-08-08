@@ -269,6 +269,10 @@ int cbf_alloc (void **new_block, size_t *new_nelem, size_t elsize, size_t nelem)
 int cbf_realloc (void **old_block, size_t *old_nelem, size_t elsize, size_t nelem);
 
 
+  /* Free a block of memory as text*/
+
+int cbf_free_text (const char **old_block, size_t *old_nelem);
+
   /* Free a block of memory */
 
 int cbf_free (void **old_block, size_t *old_nelem);

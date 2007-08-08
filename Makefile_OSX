@@ -2,12 +2,12 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.7.7 30 June 2007                                         #
+# Version 0.7.8 24 Jul 2007                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 Herbert J. Bernstein                            #
+# (C) Copyright 2006 - 2007 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
@@ -250,7 +250,7 @@
 
 
 # Version string
-VERSION = 0.7.7
+VERSION = 0.7.8
 
 
 #
@@ -332,6 +332,7 @@ BIN      = $(ROOT)/bin
 SRC      = $(ROOT)/src
 INCLUDE  = $(ROOT)/include
 M4       = $(ROOT)/m4
+PYCBF    = $(ROOT)/pycbf
 EXAMPLES = $(ROOT)/examples
 DOC      = $(ROOT)/doc
 GRAPHICS = $(ROOT)/html_graphics
@@ -446,7 +447,7 @@ HEADERS   =  $(INCLUDE)/cbf.h                  \
 # m4 macro files
 #
 M4FILES   = $(M4)/fcblib_defines.m4            \
-			$(M4)/fcb_exit_binary.m4           \
+            $(M4)/fcb_exit_binary.m4           \
             $(M4)/fcb_next_binary.m4           \
             $(M4)/fcb_open_cifin.m4            \
             $(M4)/fcb_packed.m4                \
@@ -550,13 +551,51 @@ all:	$(LIB) $(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) symlinksdone \
 		$(BIN)/testflatpacked    \
 		$(BIN)/test_xds_binary   \
 		$(BIN)/test_fcb_read_image
+		
+Makefiles: Makefile			 \
+		Makefile_LINUX           \
+		Makefile_LINUX_gcc42     \
+		Makefile_OSX             \
+		Makefile_OSX_gcc42       \
+		Makefile_AIX             \
+		Makefile_MINGW
+
+Makefile_LINUX: $(M4)/Makefile.m4
+		-cp Makefile_LINUX Makefile_LINUX_old
+		m4 -P -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
+
+Makefile_LINUX_gcc42: $(M4)/Makefile.m4
+		-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
+		m4 -P -Dcbf_system=LINUX_gcc42 $(M4)/Makefile.m4 > Makefile_LINUX_gcc42 
+
+Makefile_OSX: $(M4)/Makefile.m4
+		-cp Makefile_OSX Makefile_OSX_old
+		m4 -P -Dcbf_system=OSX $(M4)/Makefile.m4 > Makefile_OSX 
+
+Makefile_OSX_gcc42: $(M4)/Makefile.m4
+		-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
+		m4 -P -Dcbf_system=OSX_gcc42 $(M4)/Makefile.m4 > Makefile_OSX_gcc42 
+
+Makefile_AIX: $(M4)/Makefile.m4
+		-cp Makefile_AIX Makefile_AIX_old
+		m4 -P -Dcbf_system=AIX $(M4)/Makefile.m4 > Makefile_AIX 
+
+Makefile_MINGW: $(M4)/Makefile.m4
+		-cp Makefile_MINGW Makefile_MINGW_old
+		m4 -P -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW 
+		
+Makefile: $(M4)/Makefile.m4
+		-cp Makefile Makefile_old
+		m4 -P -Dcbf_system=default $(M4)/Makefile.m4 > Makefile 
+
+
 
 symlinksdone:
-	./.symlinks
+	./.symlinks $(SLFLAGS)
 	touch symlinksdone
 
 
-install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin
+install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin $(INSTALLDIR)/include
 		-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
 		cp $(LIB)/libcbf.a $(INSTALLDIR)/lib/libcbf.a
 		-cp $(INSTALLDIR)/lib/libimg.a $(INSTALLDIR)/lib/libimg_old.a
@@ -579,6 +618,10 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin
 		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
 		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
+		-cp $(INSTALLDIR)/include/cbf.h $(INSTALLDIR)/include/cbf_old.h
+		cp $(INCLUDE)/cbf.h $(INSTALLDIR)/include/cbf.h
+		-cp $(INSTALLDIR)/include/cbf_simple.h $(INSTALLDIR)/include/cbf_simple_old.h
+		cp $(INCLUDE)/cbf_simple.h $(INSTALLDIR)/include/cbf_simple.h
 		chmod 644 $(INSTALLDIR)/lib/libcbf.a
 		chmod 755 $(INSTALLDIR)/bin/convert_image
 		chmod 755 $(INSTALLDIR)/bin/convert_minicbf
@@ -589,6 +632,8 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin
 		chmod 755 $(INSTALLDIR)/bin/testreals
 		chmod 755 $(INSTALLDIR)/bin/testflat
 		chmod 755 $(INSTALLDIR)/bin/testflatpacked
+		chmod 644 $(INSTALLDIR)/include/cbf.h
+		chmod 644 $(INSTALLDIR)/include/cbf_simple.h
 		
 		
 #
@@ -638,8 +683,16 @@ endif
 #
 $(INSTALLDIR):
 	mkdir -p $(INSTALLDIR)
-	mkdir $(INSTALLDIR)/lib
-	mkdir $(INSTALLDIR)/bin
+
+$(INSTALLDIR)/lib:  $(INSTALLDIR)
+	mkdir -p $(INSTALLDIR)/lib
+
+$(INSTALLDIR)/bin:  $(INSTALLDIR)
+	mkdir -p $(INSTALLDIR)/bin
+
+$(INSTALLDIR)/include:  $(INSTALLDIR)
+	mkdir -p $(INSTALLDIR)/include
+
 
 $(LIB):
 	mkdir $(LIB)
@@ -688,6 +741,15 @@ $(LIB)/libfcb.a: $(F90SOURCE) $(COMMONDEP)
 	rm *.o
 	$(RANLIB) $@
 
+#
+# Python bindings
+#
+$(PYCBF)/_pycbf.so: $(PYCBF)
+	(cd $(PYCBF); python setup.py build; cp build/lib.*/_pycbf.so .) 
+
+
+$(LIB)/_pycbf.so: $(PYCBF)/_pycbf.so
+	cp $(PYCBF)/_pycbf.so $(LIB)/_pycbf.so
 
 #
 # F90SOURCE
@@ -770,6 +832,14 @@ $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
 	      -lcbf -lm -o $@
 
 #
+# sauter_test example program
+#
+$(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
+	$(C++) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+              $(EXAMPLES)/sauter_test.C -L$(LIB) \
+	      -lcbf -lm -o $@
+
+#
 # testreals example program
 #
 $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
@@ -838,6 +908,16 @@ adscconverted_orig.cbf:	$(DATADIR) $(DATADIR)/adscconverted_orig.cbf$(CEXT)
 mb_LP_1_001.img:	$(DATADIR) $(DATADIR)/mb_LP_1_001.img$(CEXT)
 		$(DECOMPRESS) < $(DATADIR)/mb_LP_1_001.img$(CEXT) > mb_LP_1_001.img
 
+insulin_pilatus6m.cbf:	$(DATADIR) $(DATADIR)/insulin_pilatus6m.cbf$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/insulin_pilatus6m.cbf$(CEXT) > insulin_pilatus6m.cbf
+
+insulin_pilatus6m_prev.cbf:	$(DATADIR) $(DATADIR)/insulin_pilatus6m_prev.cbf$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/insulin_pilatus6m_prev.cbf$(CEXT) > insulin_pilatus6m_prev.cbf
+
+insulin_pilatus6mconverted_orig.cbf: $(DATADIR) \
+		$(DATADIR)/insulin_pilatus6mconverted_orig.cbf$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/insulin_pilatus6mconverted_orig.cbf$(CEXT) \
+		> insulin_pilatus6mconverted_orig.cbf
 
 9ins.cif:	$(DATADIR) $(DATADIR)/9ins.cif$(CEXT)
 		$(DECOMPRESS) < $(DATADIR)/9ins.cif$(CEXT) > 9ins.cif
@@ -907,13 +987,16 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf example.mar2300
 #
 extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
-	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image \
+	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image $(BIN)/convert_minicbf \
+	$(BIN)/sauter_test \
 	makecbf.cbf 9ins.cif example.mar2300 converted_orig.cbf mb_LP_1_001.img\
 	adscconverted_orig.cbf testcell_orig.prt testrealin.cbf \
 	testflatin.cbf testflatpackedin.cbf \
 	converted_flat_orig.cbf adscconverted_flat_orig.cbf \
+	insulin_pilatus6mconverted_orig.cbf insulin_pilatus6m_prev.cbf\
 	test_xds_bin_testflatout_orig.out test_xds_bin_testflatpackedout_orig.out \
-	test_fcb_read_testflatout_orig.out test_fcb_read_testflatpackedout_orig.out
+	test_fcb_read_testflatout_orig.out test_fcb_read_testflatpackedout_orig.out \
+	insulin_pilatus6m.cbf
 	$(TIME) $(BIN)/cif2cbf -e hex -c none \
 		makecbf.cbf cif2cbf_ehcn.cif
 	$(TIME) $(BIN)/cif2cbf -e none -c packed \
@@ -931,6 +1014,10 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcel
 	-cmp adscconverted_flat.cbf adscconverted_flat_orig.cbf
 	$(TIME) $(BIN)/convert_image -c diffrn_data_frame=diffrn_frame_data  -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
 	-cmp adscconverted.cbf adscconverted_orig.cbf
+	$(TIME) $(BIN)/convert_minicbf -c diffrn_data_frame=diffrn_frame_data  -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
+	-cmp insulin_pilatus6mconverted.cbf insulin_pilatus6mconverted_orig.cbf
+	$(TIME) $(BIN)/convert_minicbf -C SLS_1.0 -Q insulin_pilatus6m_prev.cbf insulin_pilatus6m_new.cbf
+	-cmp insulin_pilatus6m.cbf insulin_pilatus6m_new.cbf
 	$(TIME) $(BIN)/testreals
 	-cmp testrealin.cbf testrealout.cbf
 	$(TIME) $(BIN)/testflat
@@ -945,7 +1032,14 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcel
 	-diff test_fcb_read_testflatout.out test_fcb_read_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_fcb_read_image > test_fcb_read_testflatpackedout.out
 	-diff test_fcb_read_testflatpackedout.out test_fcb_read_testflatpackedout_orig.out
+	$(TIME) $(BIN)/sauter_test
+
 	
+	
+pycbftests:  $(PYCBF)/_pycbf.so
+	(cd $(PYCBF); python pycbf_test1.py)
+	(cd $(PYCBF); python pycbf_test2.py)
+	(cd $(PYCBF); python pycbf_test3.py)
 
 #
 # Remove all non-source files
@@ -954,6 +1048,11 @@ empty:
 	@-rm -f  $(LIB)/libcbf.a
 	@-rm -f  $(LIB)/libfcb.a
 	@-rm -f  $(LIB)/libimg.a
+	@-rm -f  $(LIB)/_pycbf.so
+	@-rm -f  $(PYCBF)/_pycbf.so
+	@-rm -f  $(PYCBF)/build/*/_pycbf.so
+	@-rm -f  $(PYCBF)/build/src/cbf_simple.o
+	@-rm -f  $(PYCBF)/build/*/pycbf_wrap.o
 	@-rm -f  $(LIB)/getopt.o
 	@-rm -f  $(INCLUDE)/getopt.h
 	@-rm -f  $(BIN)/makecbf
@@ -990,6 +1089,11 @@ empty:
 	@-rm -f  adscconverted_orig.cbf
 	@-rm -f  converted_flat_orig.cbf
 	@-rm -f  adscconverted_flat_orig.cbf
+	@-rm -f  insulin_pilatus6mconverted_orig.cbf
+	@-rm -f  insulin_pilatus6m_prev.cbf
+	@-rm -f  insulin_pilatus6m_new.cbf
+	@-rm -f  insulin_pilatus6mconverted.cbf
+	@-rm -f  insulin_pilatus6m.cbf
 	@-rm -f  testrealin.cbf
 	@-rm -f  testrealout.cbf
 	@-rm -f  testflatin.cbf
@@ -1091,3 +1195,4 @@ tar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) \
 	 converted_orig.cbf \
 	 adscconverted_original.cbf
 	 gzip --best CBFlib.tar
+

@@ -421,6 +421,61 @@ int cbf_make_new_node (cbf_node **node, CBF_NODETYPE type,
 }
 
 
+  /* Undo the links leading to a node */
+  
+  
+int cbf_undo_links (cbf_node **node)
+{
+  cbf_node *snode;
+  
+  cbf_node *pnode;
+  
+  snode = *node;
+  
+  pnode = NULL;
+  
+  while (*node) {
+  
+    if ((*node)->type == CBF_LINK) {
+    
+      pnode = *node;
+      
+      if ((*node)->children) {
+      
+        cbf_failnez(cbf_set_children(*node,0))
+                    	
+      }
+      
+      *node = (*node)->link;
+          	
+    } else break;
+  	
+  }
+  
+  if (!*node) {
+  
+    *node = snode;
+    
+    return 0;
+  	
+  }
+  
+  if (pnode) {
+  
+    pnode->link = NULL;
+    
+  }
+   
+  if (snode->type == CBF_LINK) {
+
+    cbf_failnez(cbf_free_node (snode))
+  	
+  }
+	
+  return 0;
+  
+}
+
   /* Free a node */
 
 int cbf_free_node (cbf_node *node)
@@ -439,6 +494,26 @@ int cbf_free_node (cbf_node *node)
   if (!node)
 
     return CBF_ARGUMENT;
+
+    /* Check for a catgeory */
+    
+  if (node->type == CBF_CATEGORY) {
+  
+    unsigned int column;
+  
+    for (column = 0; column < node->children; column++) {
+    
+      while(node->child[column]->children) {
+      
+        cbf_failnez (cbf_delete_columnrow(node->child [column],node->child[column]->children-1))
+      	
+      }
+    	
+
+    }
+    
+  	
+  }
 
 
     /* Disconnect the node from its parent? */
@@ -477,6 +552,16 @@ int cbf_free_node (cbf_node *node)
     /* Free the children */
 
   cbf_failnez (cbf_set_children (node, 0))
+  
+    /* Free the link */
+    
+  if (node->link) {
+  
+    cbf_failnez(cbf_free_node(node->link))
+    
+    node->link = NULL;
+  	
+  }
 
 
     /* Free the name */
@@ -486,7 +571,11 @@ int cbf_free_node (cbf_node *node)
 
     /* Free the context connection */
 
-  cbf_failnez (cbf_delete_contextconnection (&node->context))
+  if (node->context) {
+  
+    cbf_failnez (cbf_delete_contextconnection (&node->context))
+    
+  }
 
 
     /* Free the node */
