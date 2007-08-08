@@ -276,6 +276,7 @@ extern "C" {
 
 int cbf_return_text (int code, YYSTYPE *val, const char *text, char type)
 {
+
   val->text = cbf_copy_string (NULL, text, type);
 
   if (!val->text)

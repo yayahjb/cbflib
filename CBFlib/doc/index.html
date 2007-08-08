@@ -48,7 +48,7 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
   <!-- end navbar -->
 
 
-<h1>Image dictionary (imgCIF) version 1.5.2 definitions</h1>
+<h1>Image dictionary (imgCIF) version 1.5.4 definitions</h1>
 
 <PRE>
 ##############################################################################
@@ -57,12 +57,11 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
 #             and Crystallographic Binary File Dictionary (CBF)              #
 #            Extending the Macromolecular CIF Dictionary (mmCIF)             #
 #                                                                            #
-#                              Version 1.5.1                                 #
-#                              of 2007-07-26                                 #
+#                              Version 1.5.4                                 #
+#                              of 2007-07-28                                 #
 #    ###################################################################     #
 #    # *** WARNING *** THIS IS A DRAFT FOR DISCUSSSION *** WARNING *** #     #
 #    #                 SUBJECT TO CHANGE WITHOUT NOTICE                #     #
-#    #     VERSIONS WILL BE POSTED AS cif_img_1.5_DDMMMYY_draft.html   #     #
 #    #       SEND COMMENTS TO imgcif-l@iucr.org CITING THE VERSION     #     #
 #    ###################################################################     #
 #                  This draft edited by H. J. Bernstein                      #
@@ -92,6 +91,8 @@ Definitions are arranged alphabetically by category and within category.
 <li><a class="itemlink" href="Iarray_data.array_id.html">_array_data.array_id</a></li>
 <li><a class="itemlink" href="Iarray_data.binary_id.html">_array_data.binary_id</a></li>
 <li><a class="itemlink" href="Iarray_data.data.html">_array_data.data</a></li>
+<li><a class="itemlink" href="Iarray_data.header_contents.html">_array_data.header_contents</a></li>
+<li><a class="itemlink" href="Iarray_data.header_convention.html">_array_data.header_convention</a></li>
 </ul><li><a class="itemlink" href="Carray_element_size.html">array_element_size</a></li><ul>
 <li><a class="itemlink" href="Iarray_element_size.array_id.html">_array_element_size.array_id</a></li>
 <li><a class="itemlink" href="Iarray_element_size.index.html">_array_element_size.index</a></li>
@@ -150,6 +151,9 @@ Definitions are arranged alphabetically by category and within category.
 </ul><li><a class="itemlink" href="Cdiffrn_data_frame.html">diffrn_data_frame</a></li><ul>
 <li><a class="itemlink" href="Idiffrn_data_frame.array_id.html">_diffrn_data_frame.array_id</a></li>
 <li><a class="itemlink" href="Idiffrn_data_frame.binary_id.html">_diffrn_data_frame.binary_id</a></li>
+<li><a class="itemlink" href="Idiffrn_data_frame.center_fast.html">_diffrn_data_frame.center_fast</a></li>
+<li><a class="itemlink" href="Idiffrn_data_frame.center_slow.html">_diffrn_data_frame.center_slow</a></li>
+<li><a class="itemlink" href="Idiffrn_data_frame.center_units.html">_diffrn_data_frame.center_units</a></li>
 <li><a class="itemlink" href="Idiffrn_data_frame.details.html">_diffrn_data_frame.details</a></li>
 <li><a class="itemlink" href="Idiffrn_data_frame.detector_element_id.html">_diffrn_data_frame.detector_element_id</a></li>
 <li><a class="itemlink" href="Idiffrn_data_frame.id.html">_diffrn_data_frame.id</a></li>
@@ -164,7 +168,7 @@ Definitions are arranged alphabetically by category and within category.
 </ul><li><a class="itemlink" href="Cdiffrn_detector_axis.html">diffrn_detector_axis</a></li><ul>
 <li><a class="itemlink" href="Idiffrn_detector_axis.axis_id.html">_diffrn_detector_axis.axis_id</a></li>
 <li><a class="itemlink" href="Idiffrn_detector_axis.detector_id.html">_diffrn_detector_axis.detector_id</a></li>
-<li><a class="itemlink" href="Idiffrn_detector_axis.id.html">_diffrn_detector_axis.id</a> (*** deprecated ***)</li>
+<li><a class="itemlink" href="Idiffrn_detector_axis.id.html">_diffrn_detector_axis.id</a></li>
 </ul><li><a class="itemlink" href="Cdiffrn_detector_element.html">diffrn_detector_element</a></li><ul>
 <li><a class="itemlink" href="Idiffrn_detector_element.center[1].html">_diffrn_detector_element.center[1]</a></li>
 <li><a class="itemlink" href="Idiffrn_detector_element.center[2].html">_diffrn_detector_element.center[2]</a></li>
@@ -172,12 +176,13 @@ Definitions are arranged alphabetically by category and within category.
 <li><a class="itemlink" href="Idiffrn_detector_element.id.html">_diffrn_detector_element.id</a></li>
 <li><a class="itemlink" href="Idiffrn_detector_element.reference_center_fast.html">_diffrn_detector_element.reference_center_fast</a></li>
 <li><a class="itemlink" href="Idiffrn_detector_element.reference_center_slow.html">_diffrn_detector_element.reference_center_slow</a></li>
-</ul><li><a class="itemlink" href="Cdiffrn_frame_data.html">diffrn_frame_data</a> (*** deprecated ***)</li><ul>
-<li><a class="itemlink" href="Idiffrn_frame_data.array_id.html">_diffrn_frame_data.array_id</a> (*** deprecated ***)</li>
-<li><a class="itemlink" href="Idiffrn_frame_data.binary_id.html">_diffrn_frame_data.binary_id</a> (*** deprecated ***)</li>
-<li><a class="itemlink" href="Idiffrn_frame_data.details.html">_diffrn_frame_data.details</a> (*** deprecated ***)</li>
-<li><a class="itemlink" href="Idiffrn_frame_data.detector_element_id.html">_diffrn_frame_data.detector_element_id</a> (*** deprecated ***)</li>
-<li><a class="itemlink" href="Idiffrn_frame_data.id.html">_diffrn_frame_data.id</a> (*** deprecated ***)</li>
+<li><a class="itemlink" href="Idiffrn_detector_element.reference_center_units.html">_diffrn_detector_element.reference_center_units</a></li>
+</ul><li><a class="itemlink" href="Cdiffrn_frame_data.html">diffrn_frame_data</a></li><ul>
+<li><a class="itemlink" href="Idiffrn_frame_data.array_id.html">_diffrn_frame_data.array_id</a></li>
+<li><a class="itemlink" href="Idiffrn_frame_data.binary_id.html">_diffrn_frame_data.binary_id</a></li>
+<li><a class="itemlink" href="Idiffrn_frame_data.details.html">_diffrn_frame_data.details</a></li>
+<li><a class="itemlink" href="Idiffrn_frame_data.detector_element_id.html">_diffrn_frame_data.detector_element_id</a></li>
+<li><a class="itemlink" href="Idiffrn_frame_data.id.html">_diffrn_frame_data.id</a></li>
 </ul><li><a class="itemlink" href="Cdiffrn_measurement.html">diffrn_measurement</a></li><ul>
 <li><a class="itemlink" href="Idiffrn_measurement.details.html">_diffrn_measurement.details</a></li>
 <li><a class="itemlink" href="Idiffrn_measurement.device.html">_diffrn_measurement.device</a></li>
@@ -187,9 +192,11 @@ Definitions are arranged alphabetically by category and within category.
 <li><a class="itemlink" href="Idiffrn_measurement.id.html">_diffrn_measurement.id</a></li>
 <li><a class="itemlink" href="Idiffrn_measurement.method.html">_diffrn_measurement.method</a></li>
 <li><a class="itemlink" href="Idiffrn_measurement.number_of_axes.html">_diffrn_measurement.number_of_axes</a></li>
+<li><a class="itemlink" href="Idiffrn_measurement.sample_detector_distance.html">_diffrn_measurement.sample_detector_distance</a></li>
+<li><a class="itemlink" href="Idiffrn_measurement.sample_detector_voffset.html">_diffrn_measurement.sample_detector_voffset</a></li>
 <li><a class="itemlink" href="Idiffrn_measurement.specimen_support.html">_diffrn_measurement.specimen_support</a></li>
 </ul><li><a class="itemlink" href="Cdiffrn_measurement_axis.html">diffrn_measurement_axis</a></li><ul>
-<li><a class="itemlink" href="Idiffrn_measurement_axis.axis_id.html">_diffrn_measurement_axis.axis_id</a> (*** deprecated ***)</li>
+<li><a class="itemlink" href="Idiffrn_measurement_axis.axis_id.html">_diffrn_measurement_axis.axis_id</a></li>
 <li><a class="itemlink" href="Idiffrn_measurement_axis.id.html">_diffrn_measurement_axis.id</a></li>
 <li><a class="itemlink" href="Idiffrn_measurement_axis.measurement_device.html">_diffrn_measurement_axis.measurement_device</a></li>
 <li><a class="itemlink" href="Idiffrn_measurement_axis.measurement_id.html">_diffrn_measurement_axis.measurement_id</a></li>

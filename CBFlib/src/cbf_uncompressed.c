@@ -258,6 +258,7 @@ extern "C" {
 #include <string.h>
 #include <limits.h>
 #include <ctype.h>
+#define __USE_XOPEN
 #define _XOPEN_SOURCE
 #include <unistd.h>
 

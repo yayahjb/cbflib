@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf.h -- cbflib basic API functions                                *
  *                                                                    *
- * Version 0.7.7 19 February 2006                                     *
+ * Version 0.7.8 28 June 2007                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -272,7 +272,7 @@ extern "C" {
 
   /* API version and assumed dictionary version */
   
-#define CBF_API_VERSION     "CBFlib v0.7.7"
+#define CBF_API_VERSION     "CBFlib v0.7.8"
 #define CBF_DIC_VERSION     "CBF: VERSION 1.5"
 
   /* Maximum line length */

@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_simple -- cbflib simplified API functions                      *
  *                                                                    *
- * Version 0.7.7 19 February 2007                                     *
+ * Version 0.7.8 4 July 2007                                          *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -263,6 +263,10 @@ extern "C" {
 #include "cbf_binary.h"
 #include "cbf_simple.h"
 #include "cbf_string.h"
+
+#ifdef CBFLIB_MEM_DEBUG
+extern size_t memory_allocated;
+#endif
 
 
   /* Read a template file */
@@ -3041,6 +3045,8 @@ int cbf_free_positioner (cbf_positioner positioner)
   
   void *vname;
 
+  void *adon;
+
   size_t i;
    
   memblock = (void *) positioner;
@@ -3056,6 +3062,16 @@ int cbf_free_positioner (cbf_positioner positioner)
       errorcode |= cbf_free ((void **) &vname, NULL);
       
       positioner->axis [i].name = NULL;
+    
+      if (positioner->axis [i].depends_on) {
+      
+        adon = (void *)(positioner->axis [i].depends_on);
+        
+        errorcode |= cbf_free ((void **) &adon, NULL);
+        
+        positioner->axis [i].depends_on = NULL;
+      
+      }
     
     }
 
@@ -3117,34 +3133,21 @@ int cbf_add_positioner_axis (cbf_positioner positioner,
     
   axis.name = NULL;
 
-  vname = (void *) axis.name;
-
-  cbf_failnez (cbf_alloc ((void **) &vname, NULL, strlen (name) + 1, 1))
-  
-  axis.name = (char *)vname;
+  axis.name = (char *)cbf_copy_string(NULL,name,0);
 
   axis.depends_on = NULL;
 
   if (depends_on) {
   
-    void * vdepends_on;
-    
-    vdepends_on = (void *)axis.depends_on;
-  	
-    errorcode = cbf_alloc ((void **) &vdepends_on, NULL,
-                                   strlen (depends_on) + 1, 1);
-                                   
-    axis.depends_on = (char *)vdepends_on;
-                                   
-    
+    axis.depends_on = (char *)cbf_copy_string(NULL,depends_on,0);
                                    
   }
 
   if (errorcode)
   
-  {  vname = axis.name;
+  {  vname = (void *)axis.name;
      
-  	 errorcode |= cbf_free ((void **)&vname, NULL);
+  	 errorcode |= cbf_free (&vname, NULL);
   	 
   	 axis.name = NULL;
   	 
@@ -3169,8 +3172,8 @@ int cbf_add_positioner_axis (cbf_positioner positioner,
     
     vdepends_on = (void *)axis.depends_on;
   	
-    nerrorcode = cbf_free ((void **) &vname, NULL) |
-           cbf_free ((void **) &vdepends_on, NULL);
+    nerrorcode = cbf_free (&vname, NULL) |
+           cbf_free (&vdepends_on, NULL);
            
     axis.name = NULL;
     
@@ -3179,12 +3182,6 @@ int cbf_add_positioner_axis (cbf_positioner positioner,
     return nerrorcode;
     
   }
-
-  strcpy (axis.name, name);
-
-  if (depends_on)
-
-    strcpy (axis.depends_on, depends_on);
 
   length = sqrt (length);
 
@@ -4891,7 +4888,9 @@ int cbf_set_beam_center (cbf_detector detector, double *index1,
   cbf_handle handle;
   
   unsigned int element;
-  
+    
+  const char *element_id;
+
   if (!detector)
 
     return CBF_ARGUMENT;
@@ -4903,6 +4902,8 @@ int cbf_set_beam_center (cbf_detector detector, double *index1,
   handle = detector->handle;
   
   element = detector->element;
+  
+  cbf_failnez(cbf_get_element_id(handle,element, &element_id))
   
   naxis1 = detector->index[1];
   
@@ -4919,10 +4920,6 @@ int cbf_set_beam_center (cbf_detector detector, double *index1,
   psize2 = detector->increment[0];
   
   if (psize1 < 0.) psize2 = -psize2;
-
-  /* cbf_failnez(cbf_get_pixel_size(handle, element, 1, &psize1)) */
-  
-  /* cbf_failnez(cbf_get_pixel_size(handle, element, 2, &psize2)) */
   
   if (index1) {
 
@@ -5017,6 +5014,27 @@ int cbf_set_beam_center (cbf_detector detector, double *index1,
   	
   }
   
+  if (!cbf_find_category(handle,"diffrn_data_frame")
+  
+    && !cbf_find_column(handle,"detector_element_id")
+  
+    && !cbf_find_row(handle,element_id)) {
+  
+      cbf_failnez(cbf_require_column(handle,"center_slow"))
+  
+      cbf_failnez(cbf_set_doublevalue(handle, "%-f",  nindex1*detector->increment[1]))
+  
+      cbf_failnez(cbf_require_column(handle,"center_fast"))
+  
+      cbf_failnez(cbf_set_doublevalue(handle, "%-f",  nindex2*detector->increment[0]))  
+
+      cbf_failnez(cbf_require_column(handle,"center_units"))
+  
+      cbf_failnez(cbf_set_value(handle, "mm"))  
+      
+  }
+
+
   return 0;
 
 }
@@ -5073,10 +5091,6 @@ int cbf_set_reference_beam_center (cbf_detector detector, double *index1,
   psize2 = detector->increment[0];
   
   if (psize1 < 0.) psize2 = -psize2;
-
-  /* cbf_failnez(cbf_get_pixel_size(handle, element, 1, &psize1)) */
-  
-  /* cbf_failnez(cbf_get_pixel_size(handle, element, 2, &psize2)) */
   
   if (index1) {
 
@@ -5171,20 +5185,25 @@ int cbf_set_reference_beam_center (cbf_detector detector, double *index1,
   	
   }
 
+ if (!cbf_find_category(handle,"diffrn_detector_element")
   
-  cbf_failnez(cbf_find_category(handle,"diffrn_detector_element"))
+    && !cbf_find_column(handle,"id")
   
-  cbf_failnez(cbf_find_column(handle,"id"))
+    && !cbf_find_row(handle,element_id)) {
   
-  cbf_failnez(cbf_find_row(handle,element_id))
+      cbf_failnez(cbf_require_column(handle,"reference_center_slow"))
   
-  cbf_failnez(cbf_require_column(handle,"reference_center_slow"))
+      cbf_failnez(cbf_set_doublevalue(handle, "%-f",  nindex1*detector->increment[1]))
   
-  cbf_failnez(cbf_set_doublevalue(handle, "%-f",  nindex1*detector->increment[1]))
+      cbf_failnez(cbf_require_column(handle,"reference_center_fast"))
   
-  cbf_failnez(cbf_require_column(handle,"reference_center_fast"))
+      cbf_failnez(cbf_set_doublevalue(handle, "%-f",  nindex2*detector->increment[0]))  
+
+      cbf_failnez(cbf_require_column(handle,"reference_center_units"))
   
-  cbf_failnez(cbf_set_doublevalue(handle, "%-f",  nindex2*detector->increment[0]))  
+      cbf_failnez(cbf_set_value(handle, "mm"))  
+      
+  }
   
   
   return 0;

@@ -19,7 +19,7 @@
           <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
         </td>
         <td class="masthead">
-          <p class="title">Draft version 1.5.2 for comment</p>
+          <p class="title">Draft version 1.5 for comment</p>
         </td>
       </tr>
     </table>
@@ -49,7 +49,7 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
 
 
 <p class="index"><a class="index" href="index.html">Index</a></p>
-<h5>Image dictionary (imgCIF) version 1.5.1</h5>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
 <h1>_array_data.data</h1><b>Name:</b><br /><tt class="cifdefinition">'_array_data.data'</tt> 
 <p><b>Definition:</b></p><pre class="cifdefinition">
        The value of <a href="Iarray_data.data.html" class="itemlink">_array_data.data</a> contains the array data
@@ -63,7 +63,12 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
               required initial '\n--').
 
               The Content-Type may be any of the discrete types permitted
-              in RFC 2045; 'application/octet-stream' is recommended.
+              in RFC 2045; 'application/octet-stream' is recommended
+              for diffraction images in the <a href="Carray_data.html" class="catlink">ARRAY_DATA</a> category.
+              Note:  When appropriate in other categories, e.g. for
+              photographs of crystals, more precise types, such as
+              'image/jpeg', 'image/tiff', 'image/png', etc. should be used.
+
               If an octet stream was compressed, the compression should
               be specified by the parameter
                 'conversions="X-CBF_PACKED"'
@@ -250,9 +255,9 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
               This information must be in the MIME header for proper operation
               of some of the decompression algorithms.
 
-              The optional "X-Binary-Size-Third-Dimension" specifies the number
-              of sections for the third-fastest changing dimension of the
-              binary data array.
+              The optional "X-Binary-Size-Third-Dimension" specifies the
+              number of sections for the third-fastest changing dimension of
+              the binary data array.
 
               The optional "X-Binary-Size-Padding" specifies the size in
               octets of an optional padding after the binary array data and

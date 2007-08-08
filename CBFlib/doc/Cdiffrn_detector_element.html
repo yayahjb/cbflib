@@ -19,7 +19,7 @@
           <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
         </td>
         <td class="masthead">
-          <p class="title">Draft version 1.5.2 for comment</p>
+          <p class="title">Draft version 1.5 for comment</p>
         </td>
       </tr>
     </table>
@@ -49,7 +49,7 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
 
 
 <p class="index"><a class="index" href="index.html">Index</a></p>
-<h5>Image dictionary (imgCIF) version 1.5.1</h5>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
 <h1>Category DIFFRN_DETECTOR_ELEMENT</h1>
 <b>Name:</b><br />
 <tt class="cifdefinition">'diffrn_detector_element'</tt> 
@@ -76,19 +76,23 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
         Note that the beam centre is slightly displaced from each of the
         detector elements, just beyond the lower right corner of 1,
         the lower left corner of 2, the upper right corner of 3 and
-        the upper left corner of 4.
+        the upper left corner of 4.  For each element, the detector
+        face coordiate system, is assumed to have the fast axis
+        running from left to right and the slow axis running from
+        top to bottom with the origin at the top left corner.
 
 </i><br /><pre class="cifexample">
  
         loop_
         _diffrn_detector_element.detector_id
         _diffrn_detector_element.id
-        _diffrn_detector_element.center[1]
-        _diffrn_detector_element.center[2]
-        d1     d1_ccd_1  201.5 -1.5
-        d1     d1_ccd_2  -1.8  -1.5
-        d1     d1_ccd_3  201.6 201.4
-        d1     d1_ccd_4  -1.7  201.5
+        _diffrn_detector_element.reference_center_fast
+        _diffrn_detector_element.reference_center_slow
+        _diffrn_detector_element.reference_center_units
+        d1     d1_ccd_1  201.5 201.5  mm
+        d1     d1_ccd_2  -1.8  201.5  mm
+        d1     d1_ccd_3  201.6  -1.4  mm
+        d1     d1_ccd_4  -1.7   -1.5  mm
 
 </pre><br /></td></tr></table><br />
 

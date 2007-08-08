@@ -19,7 +19,7 @@
           <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
         </td>
         <td class="masthead">
-          <p class="title">Draft version 1.5.2 for comment</p>
+          <p class="title">Draft version 1.5 for comment</p>
         </td>
       </tr>
     </table>
@@ -49,9 +49,40 @@ ALT="[CBFlib]" ALIGN=MIDDLE></a>
 
 
 <p class="index"><a class="index" href="index.html">Index</a></p>
-<h5>Image dictionary (imgCIF) version 1.5.2</h5>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
 <h1>Revision history</h1>
 <pre>========================================================================
+Version 1.5.4 (2007-07-28)
+------------------------------------------------------------------------
+  Typographics corrections (HJB)
+
+     + Corrected embedded degree characters to \%
+     + Corrected embedded Aring to \%A
+     + Added trailing ^ for a power
+     + Removed 2 cases of a space after an underscore
+       in tag name.
+
+========================================================================
+Version 1.5.3 (2007-07-08)
+------------------------------------------------------------------------
+  Changes to support SLS miniCBF and suggestions
+   from the 24 May 07 BNL imgCIF workshop (HJB)
+
+     + Added new data items
+       '<a href="Iarray_data.header_contents.html" class="itemlink">_array_data.header_contents</a>',
+       '<a href="Iarray_data.header_convention.html" class="itemlink">_array_data.header_convention</a>',
+       '<a href="Idiffrn_data_frame.center_fast.html" class="itemlink">_diffrn_data_frame.center_fast</a>',
+       '<a href="Idiffrn_data_frame.center_slow.html" class="itemlink">_diffrn_data_frame.center_slow</a>',
+       '<a href="Idiffrn_data_frame.center_units.html" class="itemlink">_diffrn_data_frame.center_units</a>',
+       '<a href="Idiffrn_measurement.sample_detector_distance.html" class="itemlink">_diffrn_measurement.sample_detector_distance</a>',
+       '<a href="Idiffrn_measurement.sample_detector_voffset.html" class="itemlink">_diffrn_measurement.sample_detector_voffset</a>
+     + Deprecated data items
+       '_diffrn_detector_element.center[1]',
+       '_diffrn_detector_element.center[2]'
+     + Added comments and example on miniCBF
+     + Changed all array_id data items to implicit
+
+========================================================================
 Version 1.5.2 (2007-05-06)
 ------------------------------------------------------------------------
   Further clarifications of the coordinate system. (HJB)
@@ -94,8 +125,8 @@ Version 1.5 (2007-07-25)
        to ucode to make these values case-insensitive
      + Add values 'packed_v2' and 'byte_offset' to enumeration of values for
        '<a href="Iarray_structure.compression_type.html" class="itemlink">_array_structure.compression_type</a>'
-     + Add to defintions for the binary data type to handle new compression types, maps,
-       and a variety of new axis types.
+     + Add to definitions for the binary data type to handle new compression 
+       types, maps, and a variety of new axis types.
     2007-07-25 Cleanup of typos for formal release (HJB)
      + Corrected text fields for reference_ tag descriptions that
        were off by one column

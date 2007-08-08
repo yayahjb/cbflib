@@ -1,7 +1,7 @@
 /**********************************************************************
- * convert_mincbf -- convert a minimal cbf to a full cbf file         *
+ * convert_minicbf -- convert a minimal cbf to a full cbf file        *
  *                                                                    *
- * Version 0.7.7 2 April 2007                                         *
+ * Version 0.7.8 2 July 2007                                          *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -13,8 +13,8 @@
 /**********************************************************************
  *                                                                    *
  * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
- * WHILE YOU MAY ALTERNATIVE DISTRIBUTE THE API UNDER THE LGPL        *
- * YOU MAY ***NOT*** DISTRBUTE THIS PROGRAM UNDER THE LGPL            *
+ * WHILE YOU MAY ALTERNATIVELY DISTRIBUTE THE API UNDER THE LGPL      *
+ * YOU MAY ***NOT*** DISTRIBUTE THIS PROGRAM UNDER THE LGPL           *
  *                                                                    *                                                                    *
  **********************************************************************/
 
@@ -231,6 +231,7 @@
  *                            SYNOPSIS                                *
  *                                                                    *
  *  convert_minicbf [-i input_cbf] [-o output_cbf] [-p template_cbf]\ *
+ *    [-q] [-C convention]                                        \   *
  *    [-d detector name]  -m [x|y|x=y] [-z distance]              \   *
  *    [-c category_alias=category_root]*                          \   *
  *    [-t tag_alias=tag_root]* [-F] [-R]                          \   *
@@ -251,6 +252,20 @@
  *    the output cbf combining the image and the template.  If the    *
  *    output_cbf is not specified or is given as "-", it is written   *
  *    to stdout.                                                      *
+ *                                                                    *
+ *  -q                                                                *
+ *    exit quickly with just the miniheader expanded                  *
+ *    after the data.  No template is used.                           *
+ *                                                                    *
+ *  -Q                                                                *
+ *    exit quickly with just the miniheader unexpanded                *
+ *    before the data.  No template is used.                          *
+ *                                                                    *
+ *  -C convention                                                     *
+ *    convert the comment form of miniheader into the                 *
+ *        _array_data.header_convention convention                    *
+ *        _array_data.header_contents                                 *
+ *    overriding any existing values                                  *
  *                                                                    *
  *  -d detectorname                                                   *
  *    a detector name to be used if none is provided in the image     *
@@ -303,20 +318,194 @@
 
 #define CVTBUFSIZ 8192
 
+#ifdef __MINGW32__
+#define NOMKSTEMP
+#define NOTMPDIR
+#endif
+
+int outusage ( void );
+double rint(double);
+int local_exit (int status);
+int outerror(int err);
+
 
   /* parse a string from an sls comment style header and
-     add it to cbf                                      */
+     add it to cbf                                      
      
+     The strings specified by E. Eikenberry as of 13 June 2007
+     are:
+     
+     # Detector: PILATUS 6M SN01
+     # 2007/Jun/13 13:13:16.286
+     # Pixel_size 172e-6 m x 172e-6 m
+     # Silicon sensor, thickness 0.000320 m
+     # Exposure_time 0.095000 s
+     # Exposure_period 0.100000 s
+     # Tau = 0 s
+     # Count_cutoff 1048575 counts
+     # Threshold_setting 0 eV
+     # Wavelength 0.7085 A
+     # Energy_range (0, 0) eV
+     # Detector_distance 0.79988 m
+     # Detector_Voffset -0.00002 m
+     # Beam_xy (1231.50, 1263.50) pixels
+     # Flux 0 ph/s
+     # Filter_transmission 1.0000
+     # Start_angle 0.0900 deg.
+     # Angle_increment 0.0100 deg.
+     # Detector_2theta 0.0000 deg.
+     # Polarization 0.950
+     # Alpha 0.0000 deg.
+     # Kappa 0.0000 deg.
+     # Phi 0.0000 deg.
+     # Chi 0.0000 deg.
+     # Oscillation_axis  X, CW
+     # N_oscillations 1
+     
+     */
+     
+     
+#undef cbf_failnez
+#define cbf_failnez(x) \
+ {int err; \
+  err = (x); \
+  if (err) { \
+    fprintf(stderr," convert_minicbf: CBFlib fatal error %d\n",err); \
+    outerror(err);   \
+    outusage();      \
+    local_exit (-1); \
+  } \
+ }
 
-int cbf_parse_sls_header(cbf_handle cbf, char * slsstr) {
+     
+int cbf_scale_units(char * actual_units, char * std_units, 
+                                         double * actual_per_std) {
+                                         
+#ifdef DEBUG
+  if (std_units) fprintf(stderr,"Scale actual |%s| to standard |%s|\n",actual_units,std_units);
+#endif
+                                         
+  if (!std_units || !cbf_cistrcmp(actual_units, std_units)) {
+  
+    *actual_per_std = 1.;
+    
+    return 0;
+
+  } else if (strlen(actual_units) == strlen(std_units)+1
+
+    && !cbf_cistrcmp(actual_units+1,std_units)) {
+    
+    switch (actual_units[0]) {
+    
+      case ('m') : *actual_per_std =  1.e-3; break;
+      case ('u') : *actual_per_std =  1.e-6; break;
+      case ('n') : *actual_per_std =  1.e-9; break;
+      case ('p') : *actual_per_std = 1.e-12; break;
+      case ('K') : *actual_per_std =   1.e3; break;
+      case ('M') : *actual_per_std =   1.e6; break;
+      case ('G') : *actual_per_std =   1.e9; break;
+      case ('T') : *actual_per_std =  1.e12; break;
+      case ('P') : *actual_per_std =  1.e15; break;
+      default:  return CBF_FORMAT;
+      
+    }
+
+#ifdef DEBUG
+    fprintf(stderr,"actual units per standard unit = %g\n", *actual_per_std);
+#endif
+
+    return 0;
+
+  } else if (strlen(actual_units) == strlen(std_units)-1
+
+    && !cbf_cistrcmp(actual_units,std_units+1)) {
+    
+    switch (std_units[0]) {
+    
+      case ('m') : *actual_per_std =   1.e3; break;
+      case ('u') : *actual_per_std =   1.e6; break;
+      case ('n') : *actual_per_std =   1.e9; break;
+      case ('p') : *actual_per_std =  1.e12; break;
+      case ('K') : *actual_per_std =  1.e-3; break;
+      case ('M') : *actual_per_std =  1.e-6; break;
+      case ('G') : *actual_per_std =  1.e-9; break;
+      case ('T') : *actual_per_std = 1.e-12; break;
+      case ('P') : *actual_per_std = 1.e-15; break;
+      default:  return CBF_FORMAT;
+    }
+
+#ifdef DEBUG
+    fprintf(stderr,"actual units per standard unit = %g\n", *actual_per_std);
+#endif
+    
+    return 0;
+     
+  } else if (strlen(actual_units) == strlen(std_units)
+  
+    && strlen(actual_units) > 1
+  
+    && !cbf_cistrcmp(actual_units+1,std_units+1)) {
+    
+      switch (actual_units[0]) {
+    
+        case ('m') : *actual_per_std =  1.e-3; break;
+        case ('u') : *actual_per_std =  1.e-6; break;
+        case ('n') : *actual_per_std =  1.e-9; break;
+        case ('p') : *actual_per_std = 1.e-12; break;
+        case ('K') : *actual_per_std =   1.e3; break;
+        case ('M') : *actual_per_std =   1.e6; break;
+        case ('G') : *actual_per_std =   1.e9; break;
+        case ('T') : *actual_per_std =  1.e12; break;
+        case ('P') : *actual_per_std =  1.e15; break;
+        default:  return CBF_FORMAT;
+      
+      }
+
+      switch (std_units[0]) {
+    
+        case ('m') : *actual_per_std *=   1.e3; break;
+        case ('u') : *actual_per_std *=   1.e6; break;
+        case ('n') : *actual_per_std *=   1.e9; break;
+        case ('p') : *actual_per_std *=  1.e12; break;
+        case ('K') : *actual_per_std *=  1.e-3; break;
+        case ('M') : *actual_per_std *=  1.e-6; break;
+        case ('G') : *actual_per_std *=  1.e-9; break;
+        case ('T') : *actual_per_std *= 1.e-12; break;
+        case ('P') : *actual_per_std *= 1.e-15; break;
+        default:  return CBF_FORMAT;
+     }
+    
+#ifdef DEBUG
+    fprintf(stderr,"actual units per standard unit = %g\n", *actual_per_std);
+#endif
+    
+     return 0;
+    
+  } 
+  
+  return CBF_FORMAT;
+}
+
+int cbf_parse_sls_header(cbf_handle cbf, const char * buffer, 
+    int commentflg) {
 
     double pscalex=1., pscaley=1.;
 
-    double bcx, bcy, bcscalex, bcscaley;
+    double bcx, bcy, bcscalex, bcscaley, erlow, erhigh;
     
-    double tempdouble;
+    double tempdouble, unitsratio;
     
     char * tempendptr;
+    
+    char * slsstr;
+    
+    const char * valstr;
+    
+    char slsbuf[2049];
+    
+    char valbuf[4097];
+    
+    char mxunits[33], myunits[33];
     
     static const char *monthname [] =
 
@@ -331,7 +520,36 @@ int cbf_parse_sls_header(cbf_handle cbf, char * slsstr) {
                                                                  \
     cbf_failnez(cbf_require_column((cbf),(cbfcol)))              \
                                                                  \
-    cbf_failnez(cbf_set_value((cbf),(cbfstring)))
+    if (!cbf_get_value((cbf),(const char **)&valstr) && valstr && *valstr){\
+                                                                 \
+      if (strlen(valstr)+strlen((cbfstring))<4095) {             \
+                                                                 \
+        if (*valstr != '\n') {                                   \
+                                                                 \
+          strcpy(valbuf,"\n"); strcat(valbuf,valstr);            \
+                                                                 \
+        } else {                                                 \
+                                                                 \
+          strcpy(valbuf,valstr);                                 \
+                                                                 \
+        }                                                        \
+                                                                 \
+        strcat(valbuf,"\n"); strcat(valbuf,cbfstring);           \
+                                                                 \
+        cbf_failnez(cbf_set_value((cbf),valbuf))                 \
+                                                                 \
+      } else {                                                   \
+                                                                 \
+        return CBF_FORMAT;                                       \
+                                                                 \
+      }                                                          \
+                                                                 \
+                                                                 \
+    } else {                                                     \
+                                                                 \
+      cbf_failnez(cbf_set_value((cbf),(cbfstring)))              \
+                                                                 \
+    }                                                            \
 
 #define cbf_set_doublevalue_from_string(cbf,cbfstring,cbfcat,cbfcol,unit)   \
                                                                  \
@@ -345,49 +563,356 @@ int cbf_parse_sls_header(cbf_handle cbf, char * slsstr) {
                                                                  \
     while (*(cbfstring) && isspace(*(cbfstring))) (cbfstring)++; \
                                                                  \
-    if (cbf_cistrcmp(unit,cbfstring)) {                          \
+    cbf_failnez(cbf_scale_units(cbfstring, unit, &unitsratio))   \
                                                                  \
-    	if (*cbfstring=='m' && cbf_cistrcmp(unit,cbfstring+1) ) tempdouble *= 1.e-3; \
-                                                                 \
-        if (*cbfstring=='u' && cbf_cistrcmp(unit,cbfstring+1) ) tempdouble *= 1.e-6; \
-                                                                 \
-    }                                                            \
+    tempdouble *= unitsratio;                                    \
                                                                  \
     cbf_failnez(cbf_require_column((cbf),(cbfcol)))              \
                                                                  \
     cbf_failnez(cbf_set_doublevalue((cbf),"%-15g",tempdouble)) 
+        
+  while(*buffer) {
+  
+  slsstr = (char *)slsbuf;
+  
+  while(*buffer && (*buffer!='\r') && (*buffer!='\n') && (slsstr-slsbuf)<2047) *slsstr++=*buffer++;
+  
+  while(slsstr != slsbuf && isspace(*(slsstr-1))) slsstr--;
+  
+  *slsstr='\0';
+  
+  slsstr = (char *)slsbuf;
+   
+  /* skip all initial whitespace */
     
-  if (strlen(slsstr) < 2 
-    || slsstr[0] != '#' 
-    || !isspace(slsstr[1])) return CBF_FORMAT;
-    
-  slsstr += 2;
+  while (*slsstr && isspace(*slsstr)) slsstr++;
+  
+  if (strlen(slsstr) == 0) {
+  
+    while (*buffer && ((*buffer=='\r') || (*buffer=='\n'))) buffer++; 
+  
+    continue;
+  
+  }
+  
+#ifdef DEBUG
+  fprintf(stderr,"Processing %s\n",slsstr);
+#endif
+
+  /* if we have specified that this must be a comment
+     require a leading "# " abort if not                        */
+     
+  if (commentflg) {
+    if (strlen(slsstr) < 2 
+      || slsstr[0] != '#' 
+      || !isspace(slsstr[1])) return CBF_FORMAT;
+    slsstr += 2;
+  }
+
   
   while (*slsstr && isspace(*slsstr)) slsstr++;
   
+  if (slsstr[0] == '#') {
+  
+    slsstr++;
+    
+    while (*slsstr && isspace(*slsstr)) slsstr++;
+  
+  }
+
+  /* check for   Detector: PILATUS 6M SN01 */
+
   if (!cbf_cistrncmp(slsstr,"Detector: ",strlen("Detector: "))) {
   
+    char * ptr;
+  
     slsstr += strlen("Detector: ");
+    
+    while (*slsstr && isspace(*slsstr)) slsstr++;
+    
+    ptr = slsstr;
+    
+    while (*ptr && (cbf_cistrncmp(ptr," SN",3))) ptr++;
+    
+    if (*ptr) *ptr++ = 0;
+    
+    while (*ptr && isspace(*ptr)) ptr++;
   
     cbf_set_value_from_string(cbf,slsstr,"diffrn_detector","type")
+    
+    cbf_set_value_from_string(cbf,ptr,"diffrn_detector","details")
+    
     	
-  } else if (!cbf_cistrncmp(slsstr,"Exposure time: ",strlen("Exposure time: "))) {
+  } else 
+  
+  /* check for 2007/Jun/13 13:13:16.286 */
+
+    if (strlen(slsstr)>=11 
+      && (slsstr[4]=='/' || slsstr[4]=='-' ) 
+      && (slsstr[8]=='/' || slsstr[8]=='-') ){
+     
+      char *endptr;
+     
+      int errflg;
+     
+      int notime;
+     
+      int yyyy,mm,dd,hr,mn;
+     
+      double ss;
+     
+      errflg = 0;
+     
+      yyyy = strtol(slsstr,&endptr,10);
+     
+      if (*endptr == '/' || *endptr == '-') {
+     
+        slsstr = endptr+1;
+       
+        for (mm = 1; mm < 13; mm++) {
+       
+          if (!cbf_cistrncmp(monthname[mm-1],slsstr,3)) break;
+
+        }
+       
+        if (mm > 12) errflg++;
+       
+        else {
+       
+          slsstr+=4;
+         
+          dd = strtol(slsstr,&endptr,10);
+         
+          hr = mn = ss =  0; notime=1;
+         
+          if (*endptr && (isspace(*endptr)||*endptr=='T'||*endptr=='t'||*endptr==':')) {
+         
+            slsstr = endptr+1;
+           
+            hr = strtol(slsstr,&endptr,10);
+           
+            if (*endptr == ':') {
+           
+              notime = 0;
+           
+              slsstr = endptr+1;
+           
+              mn = strtol(slsstr,&endptr,10);
+             
+              if (*endptr==':') {
+             
+                slsstr = endptr+1;
+               
+                ss = strtod(slsstr,&endptr);
+               
+              }
+
+            }
+                    
+          }
+       
+        }
+        
+     } else errflg++;
+     
+     if (!errflg) {
+     
+       cbf_failnez (cbf_set_datestamp (cbf, 0, yyyy, mm, dd,
+                                        hr, mn, ss,
+                                       CBF_NOTIMEZONE,.001))
+                                       
+     }
+
+  } else 
+  
+    /* check for Pixel_size 172e-6 m x 172e-6 m */
+
+    if (!cbf_cistrncmp(slsstr,"Pixel_size ",strlen("Pixel_size "))) {
+  
+    char *endptr;
+     
+    double psx, psy;
+          
+    slsstr += strlen("Pixel_size ");
+     
+    pscalex = pscaley = 1.;
+    
+    psy = psx = strtod (slsstr, &endptr);
+     
+    if (endptr && *endptr) {
+     
+      slsstr = endptr;
+       
+      while (*slsstr && isspace(*slsstr)) slsstr++;
+       
+      if (!cbf_cistrncmp("m ",slsstr,2))  slsstr += 2;
+       
+      else if (!cbf_cistrncmp("mm ",slsstr,2) || !cbf_cistrcmp("mm",slsstr)) {
+       
+        slsstr +=2;
+         
+        pscaley = pscalex = 1.e-3;
+       	
+        } else  {
+       
+          pscaley = pscalex = 1.e-6;
+       	
+        }
+       
+        while (*slsstr && isspace(*slsstr)) slsstr++;
+        
+        if (*slsstr == 'x' || *slsstr == 'X' || *slsstr==',') {
+        
+          slsstr++;
+        
+          while (*slsstr && isspace(*slsstr)) slsstr++;
+
+        }
+       
+        if (*slsstr) {
+       
+          psy = strtod (slsstr, &endptr);
+
+          if (endptr && *endptr) {
+          
+          slsstr = endptr;
+
+          while (*slsstr && isspace(*slsstr)) slsstr++;
+
+          if (!cbf_cistrncmp("m ",slsstr,2)|| !cbf_cistrcmp("m",slsstr))  slsstr ++;
+       
+          else if ( !cbf_cistrncmp("mm ",slsstr,2) || !cbf_cistrcmp("mm",slsstr) ) {
+       
+            slsstr +=2;
+          
+            pscaley = 1.e-3;
+       	
+          } else  {
+       
+            pscaley = 1.e-6;
+           
+          }
+          
+          }
+       	
+        }
+            	
+      }
+     
+      psx *= pscalex;
+     
+      psy *= pscaley;
+     
+      cbf_failnez(cbf_require_category(cbf,"array_element_size"))
+     
+      cbf_failnez(cbf_require_column(cbf,"index"))
+     
+      cbf_failnez(cbf_set_integervalue(cbf,1))
+     
+      cbf_failnez(cbf_require_column(cbf,"size"))
+      
+      cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",psx))
+     
+      cbf_failnez(cbf_next_row(cbf))
+     
+      cbf_failnez(cbf_require_column(cbf,"index"))
+     
+      cbf_failnez(cbf_set_integervalue(cbf,2))
+     
+      cbf_failnez(cbf_require_column(cbf,"size"))
+     
+      cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",psy))
+     
+  } else 
+    
+    /* Check for Silicon sensor, thickness 0.000320 m */
+      
+    if  (!cbf_cistrncmp(slsstr,"Silicon sensor, thickness ",strlen("Silicon sensor, thickness "))) {
+    
+          cbf_set_value_from_string(cbf,slsstr,"diffrn_detector","details")
+     
+  } else 
+  
+    /* check for Exposure_time 0.095000 s */
+    
+    if (!cbf_cistrncmp(slsstr,"Exposure_time ",strlen("Exposure time "))) {
   
     slsstr += strlen("Exposure time: ");
 
     cbf_set_doublevalue_from_string(cbf,slsstr,"diffrn_scan_frame","integration_time","s")
 
-  } else if (!cbf_cistrncmp(slsstr,"Pixel_size ",strlen("Pixel_size "))) {
+  } else 
   
+    /* check for Exposure_period 0.100000 s */
+    
+    if (!cbf_cistrncmp(slsstr,"Exposure_period ",strlen("Exposure_period "))) {
+  
+    slsstr += strlen("Exposure_period ");
+
+    cbf_set_doublevalue_from_string(cbf,slsstr,"diffrn_scan_frame","integration_period","s")
+
+  }  else 
+  
+    /* check for Tau = 0 s */
+    
+    if (!cbf_cistrncmp(slsstr,"Tau = ",strlen("Tau = "))) {
+  
+    slsstr += strlen("Tau = ");
+
+    cbf_set_doublevalue_from_string(cbf,slsstr,"diffrn_radiation","tau","s")
+    
+  } else
+  
+    /* check for Count_cutoff 1048575 counts */
+
+    if (!cbf_cistrncmp(slsstr,"Count_cutoff ",
+    
+       strlen("Count_cutoff "))) {
+
+    slsstr += strlen("Count_cutoff ");
+  
+    cbf_set_doublevalue_from_string(cbf,slsstr,"array_intensities","overload","counts")
+    
+  } else
+  
+    /* check for Threshold_setting 0 eV */
+
+    if (!cbf_cistrncmp(slsstr,"Threshold_setting ",
+    
+       strlen("Threshold_setting "))) {
+       
+     slsstr += strlen("Threshold_setting ");
+
+     cbf_set_doublevalue_from_string(cbf,slsstr,"diffrn_detector","threshold","eV")
+
+  } else
+  
+    /* check for Wavelength 0.7085 A */
+  
+    if (!cbf_cistrncmp(slsstr,"wavelength ",strlen("wavelength "))) {
+  
+    slsstr += strlen("wavelength ");
+    
+    cbf_set_doublevalue_from_string(cbf,slsstr,"diffrn_radiation_wavelength","wavelength","A")  
+  
+  } else 
+  
+    /* check for Energy_range (0, 0) eV */
+
+    if (!cbf_cistrncmp(slsstr,"Energy_range ",
+      strlen("Energy_range "))) {
+
      char *endptr;
      
-     double psx, psy;
-          
-     slsstr += strlen("Pixel_size ");
+     slsstr += strlen("Energy_range ");
      
-     pscalex = pscaley = 1.;
-    
-     psy = psx = strtod (slsstr, &endptr);
+     erlow = erhigh = 0.;
+   
+     if (*slsstr == '(' || *slsstr == '[' || *slsstr == '{') slsstr++;
+
+     while (*slsstr && isspace(*slsstr)) slsstr++;     
+     
+     erlow = erhigh = strtod (slsstr, &endptr);
      
      if (endptr && *endptr) {
      
@@ -395,98 +920,84 @@ int cbf_parse_sls_header(cbf_handle cbf, char * slsstr) {
        
        while (*slsstr && isspace(*slsstr)) slsstr++;
        
-       if (!cbf_cistrncmp("m ",slsstr,2))  slsstr += 2;
-       
-       else if (!cbf_cistrncmp("mm ",slsstr,2)) {
-       
-         slsstr +=3;
-         
-         pscaley = pscalex = 1.e-3;
-       	
-       } else  {
-       
-         pscaley = pscalex = 1.e-6;
-       	
-       }
+       if (*slsstr == ',' ) slsstr++;
        
        while (*slsstr && isspace(*slsstr)) slsstr++;
        
        if (*slsstr) {
        
-         psy = strtod (slsstr, &endptr);
+         erhigh = strtod (slsstr, &endptr);
+         
+         if (endptr && *endptr) slsstr = endptr;
 
          while (*slsstr && isspace(*slsstr)) slsstr++;
-
-         if (!cbf_cistrncmp("m ",slsstr,2))  slsstr += 2;
-       
-         else if (!cbf_cistrncmp("mm ",slsstr,2)) {
-       
-           slsstr +=3;
-         
-           pscaley = 1.e-3;
-       	
-         } else  {
-       
-           pscaley = 1.e-6;
-           
-         }
        	
        }
             	
      }
-     
-     psx *= pscalex;
-     
-     psy *= pscaley;
-     
-     cbf_failnez(cbf_require_category(cbf,"array_element_size"))
-     
-     cbf_failnez(cbf_require_column(cbf,"index"))
-     
-     cbf_failnez(cbf_set_integervalue(cbf,1))
-     
-     cbf_failnez(cbf_require_column(cbf,"size"))
-     
-     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",psx))
-     
-     cbf_failnez(cbf_next_row(cbf))
-     
-     cbf_failnez(cbf_require_column(cbf,"index"))
-     
-     cbf_failnez(cbf_set_integervalue(cbf,2))
-     
-     cbf_failnez(cbf_require_column(cbf,"size"))
-     
-     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",psy))
-     
-  }  else if (!cbf_cistrncmp(slsstr,"Count_cutoff ",
-       strlen("Count_cutoff "))) {
-  
-    cbf_set_value_from_string(cbf,slsstr,"array_intensities","overload")
 
-  }  else if (!cbf_cistrncmp(slsstr,"wavelength ",strlen("wavelength "))) {
-  
-    slsstr += strlen("wavelength ");
-  
-    cbf_set_value_from_string(cbf,slsstr,
-      "diffrn_radiation_wavelength","wavelength")
+     while (*slsstr && isspace(*slsstr)) slsstr++;
+     
+     if (*slsstr == ')' || *slsstr == ']' || *slsstr == '}') slsstr++;
+     
+     while (*slsstr && isspace(*slsstr)) slsstr++;
+     
+     if (!cbf_cistrncmp("eV",slsstr,2)) {
+     
+       cbf_failnez(cbf_require_category(cbf,"diffrn_detector"))
+          
+       cbf_failnez(cbf_require_column(cbf,"energy_range_low"))
+     
+       cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",erlow))
 
-  }  else if (!cbf_cistrncmp(slsstr,"Detector_distance ",
+       cbf_failnez(cbf_require_column(cbf,"energy_range_high"))
+        	
+     } else {
+     
+       cbf_failnez(CBF_FORMAT);
+        
+     }
+
+  }  else
+  
+    /* check for Detector_distance 0.79988 m */
+    
+    if (!cbf_cistrncmp(slsstr,"Detector_distance ",
       strlen("Detector_distance "))) {
  
      slsstr += strlen("Detector_distance ");
    
-     cbf_set_value_from_string(cbf,slsstr,"diffrn_measurement",
-      "distance")
+     cbf_set_doublevalue_from_string(cbf,slsstr,"diffrn_measurement",
+      "sample_detector_distance", "mm");
 
-  }  else if (!cbf_cistrncmp(slsstr,"beam_xy ",
+  }  else 
+  
+    /* check for Detector_Voffset -0.00002 m */
+
+    if (!cbf_cistrncmp(slsstr,"Detector_Voffset ",
+      strlen("Detector_Voffset "))) {
+ 
+     slsstr += strlen("Detector_Voffset ");
+   
+     cbf_set_doublevalue_from_string(cbf,slsstr,"diffrn_measurement",
+      "sample_detector_voffset", "mm");
+
+  }  else 
+
+    /* check for Beam_xy (1231.50, 1263.50) pixels */
+  
+  if (!cbf_cistrncmp(slsstr,"beam_xy ",
       strlen("beam_xy "))) {
   
      char *endptr;
      
+     char *bcunits;
+     
      slsstr += strlen("beam_xy ");
      
      bcscalex = bcscaley = 1.;
+     
+     bcunits = "unknown";
     
      while (*slsstr && isspace(*slsstr)) slsstr++;
      
@@ -502,22 +1013,46 @@ int cbf_parse_sls_header(cbf_handle cbf, char * slsstr) {
        
        while (*slsstr && isspace(*slsstr)) slsstr++;
        
-              
-       if (!cbf_cistrncmp("m ",slsstr,2))  slsstr += 2;
+       endptr = mxunits;
        
-       else if (!cbf_cistrncmp("mm ",slsstr,2)) {
-       
-         slsstr +=3;
+       while ((endptr-mxunits)<32 
+         && *slsstr 
+         && *slsstr!=',' 
+         && *slsstr!=')' 
+         && *slsstr!=']' 
+         && *slsstr!='}'
+         && !(isspace(*slsstr))
+         && !(isdigit(*slsstr))) *endptr++=*slsstr++;
          
-         bcscaley = bcscalex = 1.e-3;
-       	
-       } else  {
+       *endptr='\0';
        
-         bcscaley = bcscalex = 1.e-6;
-       	
+       while (*slsstr && isspace(*slsstr)) slsstr++; 
+              
+       if (!cbf_scale_units(mxunits, "mm",&bcscalex)) {
+       
+         bcscaley = bcscalex;  
+         
+         bcunits = "mm";
+         
+       } else if (!cbf_scale_units(mxunits, "pixels",&bcscalex)) {
+       
+         bcscaley = bcscalex;  
+         
+         bcunits = "pixels";
+         
+       } else if (!cbf_scale_units(mxunits, "bins",&bcscalex)) {
+       
+         bcscaley = bcscalex;  
+         
+         bcunits = "bins";
+         
+       } else {
+       
+         bcscaley = bcscalex = 1.;
+         
+         bcunits = mxunits;
+       
        }
-       
-       while (*slsstr && isspace(*slsstr)) slsstr++;
 
        if (*slsstr == ',' ) slsstr++;
        
@@ -528,23 +1063,81 @@ int cbf_parse_sls_header(cbf_handle cbf, char * slsstr) {
          bcy = strtod (slsstr, &endptr);
 
          while (*slsstr && isspace(*slsstr)) slsstr++;
-
-         if (!cbf_cistrncmp("m ",slsstr,2))  slsstr += 2;
-       
-         else if (!cbf_cistrncmp("mm ",slsstr,2)) {
-       
-           slsstr +=3;
          
-           bcscaley = 1.e-3;
-       	
-         } else  {
+         endptr = myunits;
        
-           bcscaley = 1.e-6;
+         while ((endptr-myunits)<32 
+           && *slsstr 
+           && *slsstr!=',' 
+           && *slsstr!=')' 
+           && *slsstr!=']' 
+           && *slsstr!='}'
+           && !(isspace(*slsstr))
+           && !(isdigit(*slsstr))) *endptr++=*slsstr++;
+         
+         *endptr='\0';
+       
+         while (*slsstr && isspace(*slsstr)) slsstr++; 
+
+         if (!cbf_cistrcmp(bcunits,"unknown") || !*bcunits) {
+                       
+           if (!cbf_scale_units(myunits, "mm",&bcscalex)) {
+       
+             bcscaley = bcscalex;  
+
+             bcunits = "mm";
+         
+           } else if (!cbf_scale_units(myunits, "pixels",&bcscalex)) {
+       
+             bcscaley = bcscalex;  
+         
+             bcunits = "pixels";
+         
+           } else if (!cbf_scale_units(myunits, "bins",&bcscalex)) {
+       
+             bcscaley = bcscalex;  
+         
+             bcunits = "bins";
+         
+           } else {
+       
+             bcscaley = bcscalex = 1.;
+         
+             bcunits = myunits;
+       
+           }
+         
+         } else {
+         
+           if (!cbf_scale_units(myunits, "mm",&bcscaley)) {
+        
+             if (cbf_cistrcmp(bcunits,"mm")) return CBF_FORMAT;
+       
+           } else if (!cbf_scale_units(myunits, "pixels",&bcscaley)) {
+       
+            if (cbf_cistrcmp(bcunits,"pixels")) return CBF_FORMAT;
+          
+           } else if (!cbf_scale_units(myunits, "bins",&bcscaley)) {
+       
+            if (cbf_cistrcmp(bcunits,"bins")) return CBF_FORMAT;
+         
+           } else {
+       
+             bcscaley = 1.;
+             
+             if (cbf_cistrcmp(bcunits,myunits)) return CBF_FORMAT;
+         
+           }
+         
            
          }
-       	
-       }
-            	
+         
+       } else {
+       
+        if (*slsstr == ')' || *slsstr == ']' || *slsstr != ']') slsstr++;
+
+      }
+ 
      }
 
      while (*slsstr && isspace(*slsstr)) slsstr++;
@@ -553,13 +1146,60 @@ int cbf_parse_sls_header(cbf_handle cbf, char * slsstr) {
      
      while (*slsstr && isspace(*slsstr)) slsstr++;
      
-     if (!cbf_cistrncmp("pixel",slsstr,5)) {
-     
-       bcscalex = pscalex;
-       
-       bcscaley = pscaley;
-     	
+     if (*bcunits || !cbf_cistrcmp(bcunits,"unknown") ){
+         
+         endptr = mxunits;
+         
+         while ((endptr-myunits)<32 
+                && *slsstr 
+                && *slsstr!=',' 
+                && *slsstr!=')' 
+                && *slsstr!=']' 
+                && *slsstr!='}'
+                && !(isspace(*slsstr))
+                && !(isdigit(*slsstr))) *endptr++=*slsstr++;
+         
+         *endptr='\0';
+         
+         while (*slsstr && isspace(*slsstr)) slsstr++; 
+         
+         if (!cbf_scale_units(mxunits, "mm",&bcscalex)) {
+             
+             bcscaley = bcscalex;  
+             
+             bcunits = "mm";
+             
+         } else if (!cbf_scale_units(mxunits, "pixels",&bcscalex)) {
+             
+             bcscaley = bcscalex;  
+             
+             bcunits = "pixels";
+             
+         } else if (!cbf_scale_units(mxunits, "bins",&bcscalex)) {
+             
+             bcscaley = bcscalex;  
+             
+             bcunits = "bins";
+             
+         } else {
+             
+             bcscaley = bcscalex = 1.;
+             
+             bcunits = mxunits;
+             
+         }
+         
      }
+     
+     
+    if (!*bcunits || !cbf_cistrcmp(bcunits,"unknown") ) {
+     
+         bcunits = "pixels";
+       
+         bcscaley = bcscalex = 1.;
+     
+     }
+     
      
      bcx *= bcscalex;
      
@@ -569,47 +1209,107 @@ int cbf_parse_sls_header(cbf_handle cbf, char * slsstr) {
           
      cbf_failnez(cbf_require_column(cbf,"reference_center_fast"))
      
-     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",bcx*1.e-6))
+     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",bcx))
           
      cbf_failnez(cbf_require_column(cbf,"reference_center_slow"))
      
-     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",bcy*1.e-6))
+     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",bcy))
      
-   } else if (!cbf_cistrncmp(slsstr,"Start_angle ",
+     cbf_failnez(cbf_require_column(cbf,"reference_center_units"))
+     
+     cbf_failnez(cbf_set_value(cbf,bcunits))
+     
+   } else
+   
+     /* check for Flux 0 ph/s */
+     
+     if (!cbf_cistrncmp(slsstr,"Flux ",
+       strlen("Flux "))) {
+       
+       slsstr += strlen("Flux ");
+       
+       while (*slsstr && isspace(*slsstr)) slsstr++;
+       
+       cbf_set_doublevalue_from_string(cbf,slsstr,"diffrn_radiation","flux","ph/s");
+       
+   } else
+   
+     /* check for Filter_transmission 1.0000 */
+     
+     if (!cbf_cistrncmp(slsstr,"Filter_transmission ",
+       strlen("Filter_transmission "))) {
+       
+       slsstr += strlen("Filter_transmission ");
+       
+       while (*slsstr && isspace(*slsstr)) slsstr++;
+       
+       cbf_set_doublevalue_from_string(cbf,slsstr,"diffrn_radiation","filter_transmission",NULL);
+       
+
+   } else 
+   
+     /* check for Start_angle 0.0900 deg. */
+     
+     if (!cbf_cistrncmp(slsstr,"Start_angle ",
        strlen("Start_angle "))) {
        
-     double phi;
+     double scan;
      
      char *endptr;
       
-     cbf_failnez(cbf_require_category(cbf,"diffrn_scan_axis"))
+     cbf_failnez(cbf_require_category(cbf,"diffrn_scan_frame_axis"))
       
      cbf_failnez(cbf_require_column(cbf,"axis_id"))
      
-     cbf_failnez(cbf_require_row(cbf,"GONIOMETER_PHI"))
+     cbf_failnez(cbf_require_row(cbf,"GONIOMETER_SCAN"))
      
-     cbf_failnez(cbf_require_column(cbf,"angle_start"))
+     cbf_failnez(cbf_require_column(cbf,"angle"))
      
      slsstr += strlen("Start_angle ");
      
      while (*slsstr && isspace(*slsstr)) slsstr++;
      
-     phi = strtod(slsstr,&endptr);
+     scan = strtod(slsstr,&endptr);
      
-     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",phi))
+     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",scan))
       
-   } else if (!cbf_cistrncmp(slsstr,"Angle_increment ",
+     } else
+   
+     /* check for Oscillation_axis  X, CW */
+     
+     if (!cbf_cistrncmp(slsstr,"Oscillation_axis ",
+       strlen("Oscillation_axis "))) {
+       
+       slsstr += strlen("Oscillation_axis ");
+       
+       while (*slsstr && isspace(*slsstr)) slsstr++;
+       
+       cbf_failnez(cbf_require_category(cbf,"diffrn_scan_frame_axis"))
+      
+       cbf_failnez(cbf_require_column(cbf,"axis_id"))
+     
+       cbf_failnez(cbf_require_row(cbf,"GONIOMETER_SCAN"))
+     
+       cbf_failnez(cbf_require_column(cbf,"axis_description"))
+     
+       cbf_failnez(cbf_set_value(cbf,slsstr))
+
+   } else 
+   
+     /* check for Angle_increment 0.0100 deg. */
+     
+     if (!cbf_cistrncmp(slsstr,"Angle_increment ",
        strlen("Angle_increment "))) {
        
-     double phi;
+     double scan;
 
      char * endptr;
            
-     cbf_failnez(cbf_require_category(cbf,"diffrn_scan_axis"))
+     cbf_failnez(cbf_require_category(cbf,"diffrn_scan_frame_axis"))
       
      cbf_failnez(cbf_require_column(cbf,"axis_id"))
      
-     cbf_failnez(cbf_require_row(cbf,"GONIOMETER_PHI"))
+     cbf_failnez(cbf_require_row(cbf,"GONIOMETER_SCAN"))
      
      cbf_failnez(cbf_require_column(cbf,"angle_increment"))
      
@@ -617,40 +1317,121 @@ int cbf_parse_sls_header(cbf_handle cbf, char * slsstr) {
      
      while (*slsstr && isspace(*slsstr)) slsstr++;
      
-     phi = strtod(slsstr, &endptr);
+     scan = strtod(slsstr, &endptr);
      
-     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",phi))
+     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",scan))
 
-   } else if (!cbf_cistrncmp(slsstr,"Detector_2theta ",
+   } else
+   
+     /* check for Detector_2theta 0.0000 deg. */
+     
+     if (!cbf_cistrncmp(slsstr,"Detector_2theta ",
        strlen("Detector_2theta "))) {
        
      double twotheta;
      
      char *endptr;
       
+     slsstr += strlen("Detector_2theta ");
+     
+     while (*slsstr && isspace(*slsstr)) slsstr++;
+     
+     twotheta = strtod(slsstr, &endptr);
+
      cbf_failnez(cbf_require_category(cbf,"diffrn_scan_frame_axis"))
       
      cbf_failnez(cbf_require_column(cbf,"axis_id"))
      
      cbf_failnez(cbf_require_row(cbf,"DETECTOR_TWOTHETA"))
      
-     cbf_failnez(cbf_require_column(cbf,"angle"))
-     
-     slsstr += strlen("Detector_2theta ");
-     
-     while (*slsstr && isspace(*slsstr)) slsstr++;
-     
-     twotheta = strtod(slsstr, &endptr);
+     cbf_failnez(cbf_require_column(cbf,"angle"))     
      
      cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",twotheta))
      
-   } else if (!cbf_cistrncmp(slsstr,"Kappa ",
+   } else
+   
+     /* check for Polarization 0.950 */
+     
+     if (!cbf_cistrncmp(slsstr,"Polarization ",
+       strlen("Polarization "))) {
+       
+       slsstr += strlen("Polarization ");
+       
+       while (*slsstr && isspace(*slsstr)) slsstr++;
+
+       cbf_set_doublevalue_from_string(cbf,slsstr,"diffrn_radiation","polarizn_source_ratio",NULL);
+       
+   } else 
+   
+     /* check for Alpha 0.0000 deg. */
+     
+     if (!cbf_cistrncmp(slsstr,"Alpha ",
+       strlen("Alpha "))) {
+       
+     double alpha;
+     
+     char *endptr;
+       
+     slsstr += strlen("Alpha ");
+
+     while (*slsstr && isspace(*slsstr)) slsstr++;
+     
+     alpha = strtod(slsstr, &endptr);
+    
+     cbf_failnez(cbf_require_category(cbf,"diffrn_scan_frame_axis"))
+      
+     cbf_failnez(cbf_require_column(cbf,"axis_id"))
+     
+     cbf_failnez(cbf_require_row(cbf,"GONIOMETER_ALPHA"))
+     
+     cbf_failnez(cbf_require_column(cbf,"angle"))
+ 
+     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",alpha))
+    
+   } else 
+
+     /* check for Omega 0.0000 deg. */
+     
+     if (!cbf_cistrncmp(slsstr,"Omega ",
+       strlen("Omega "))) {
+       
+     double omega;
+     
+     char *endptr;
+       
+     slsstr += strlen("Omega ");
+
+     while (*slsstr && isspace(*slsstr)) slsstr++;
+     
+     omega = strtod(slsstr, &endptr);
+    
+     cbf_failnez(cbf_require_category(cbf,"diffrn_scan_frame_axis"))
+      
+     cbf_failnez(cbf_require_column(cbf,"axis_id"))
+     
+     cbf_failnez(cbf_require_row(cbf,"GONIOMETER_OMEGA"))
+     
+     cbf_failnez(cbf_require_column(cbf,"angle"))
+ 
+     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",omega))
+    
+   } else 
+   
+     /* check for Kappa 0.0000 deg. */
+     
+     if (!cbf_cistrncmp(slsstr,"Kappa ",
        strlen("Kappa "))) {
        
      double kappa;
      
      char *endptr;
       
+     slsstr += strlen("Kappa ");
+     
+     while (*slsstr && isspace(*slsstr)) slsstr++;
+     
+     kappa = strtod(slsstr, &endptr);
+     
      cbf_failnez(cbf_require_category(cbf,"diffrn_scan_frame_axis"))
       
      cbf_failnez(cbf_require_column(cbf,"axis_id"))
@@ -658,12 +1439,6 @@ int cbf_parse_sls_header(cbf_handle cbf, char * slsstr) {
      cbf_failnez(cbf_require_row(cbf,"GONIOMETER_KAPPA"))
      
      cbf_failnez(cbf_require_column(cbf,"angle"))
-     
-     slsstr += strlen("Kappa ");
-     
-     while (*slsstr && isspace(*slsstr)) slsstr++;
-     
-     kappa = strtod(slsstr, &endptr);
      
      cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",kappa))
 
@@ -674,6 +1449,12 @@ int cbf_parse_sls_header(cbf_handle cbf, char * slsstr) {
      
      char *endptr;
       
+     slsstr += strlen("Chi ");
+     
+     while (*slsstr && isspace(*slsstr)) slsstr++;
+     
+     chi = strtod(slsstr, &endptr);
+     
      cbf_failnez(cbf_require_category(cbf,"diffrn_scan_frame_axis"))
       
      cbf_failnez(cbf_require_column(cbf,"axis_id"))
@@ -682,112 +1463,59 @@ int cbf_parse_sls_header(cbf_handle cbf, char * slsstr) {
      
      cbf_failnez(cbf_require_column(cbf,"angle"))
      
-     slsstr += strlen("Chi ");
+     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",chi))
+     
+   } else if (!cbf_cistrncmp(slsstr,"Phi ",
+       strlen("Phi "))) {
+       
+     double phi;
+     
+     char *endptr;
+      
+     slsstr += strlen("Phi ");
      
      while (*slsstr && isspace(*slsstr)) slsstr++;
      
-     chi = strtod(slsstr, &endptr);
+     phi = strtod(slsstr, &endptr);
      
-     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",chi))
+     cbf_failnez(cbf_require_category(cbf,"diffrn_scan_frame_axis"))
+      
+     cbf_failnez(cbf_require_column(cbf,"axis_id"))
      
-   } else if (strlen(slsstr)>=11 
-     && (slsstr[4]=='/' || slsstr[4]=='-' ) 
-     && (slsstr[8]=='/' || slsstr[8]=='-') ){
+     cbf_failnez(cbf_require_row(cbf,"GONIOMETER_PHI"))
      
-     char *endptr;
+     cbf_failnez(cbf_require_column(cbf,"angle"))
      
-     int errflg;
+     cbf_failnez(cbf_set_doublevalue(cbf,"%-15g",phi))
      
-     int notime;
+     } else
+   
+     /* check for N_oscillations 1 */
      
-     int yyyy,mm,dd,hr,mn;
-     
-     double ss;
-     
-     errflg = 0;
-     
-     yyyy = strtol(slsstr,&endptr,10);
-     
-     if (*endptr == '/' || *endptr == '-') {
-     
-       slsstr = endptr+1;
+     if (!cbf_cistrncmp(slsstr,"N_oscillations ",
+       strlen("N_oscillations "))) {
        
-       for (mm = 1; mm < 13; mm++) {
+       slsstr += strlen("N_oscillations ");
        
-         if (!cbf_cistrncmp(monthname[mm-1],slsstr,3)) break;
+       while (*slsstr && isspace(*slsstr)) slsstr++;
 
-       }
+       cbf_set_doublevalue_from_string(cbf,slsstr,"diffrn_scan_frame","oscillations",NULL);
        
-       if (mm > 12) errflg++;
-       
-       else {
-       
-         slsstr+=4;
-         
-         dd = strtol(slsstr,&endptr,10);
-         
-         hr = mn = ss =  0; notime=1;
-         
-         if (*endptr && (isspace(*endptr)||*endptr=='T'||*endptr=='t'||*endptr==':')) {
-         
-           slsstr = endptr+1;
-           
-           hr = strtol(slsstr,&endptr,10);
-           
-           if (*endptr == ':') {
-           
-             notime = 0;
-           
-             slsstr = endptr+1;
-           
-             mn = strtol(slsstr,&endptr,10);
-             
-             if (*endptr==':') {
-             
-               slsstr = endptr+1;
-               
-               ss = strtod(slsstr,&endptr);
-               
-             }
-
-           }
-                    
-         }
-       
-       }
-       
-     
-     } else errflg++;
-     
-     if (!errflg) {
-     
-       cbf_failnez (cbf_set_datestamp (cbf, 0, yyyy, mm, dd,
-                                        hr, mn, ss,
-                                       CBF_NOTIMEZONE,.001))
      } else {
      
-       return CBF_FORMAT;
+       cbf_failnez(CBF_FORMAT);
      
      }
-   }
    
-   /* Still to be processed:
-   
-    # Flux 0 ph/s
-    # Filter_transmission 1.0000
-    # N_oscillations 1
-    # Threshold_setting 6.0 keV
     
-    */
+   while (*buffer && ((*buffer=='\r') || (*buffer=='\n'))) buffer++; 
 
+   }
    
    return 0;
 }
 
 
-double rint(double);
-int local_exit (int status);
-int outerror(int err);
 
 int outerror(int err) 
 {
@@ -862,6 +1590,7 @@ int outusage ( void ) {
 
  fprintf(stderr," \n Usage:\n");
  fprintf(stderr,"  convert_minicbf [-i input_cbf] [-o output_cbf] [-p template_cbf]\\\n");
+ fprintf(stderr,"    [-q] [-C convention]  \\\n");
  fprintf(stderr,"    [-d detector name] -m [x|y|x=y] [-z distance] \\\n");
  fprintf(stderr,"    [-c category_alias=category_root]* \\\n");
  fprintf(stderr,"    [-t tag_alias=tag_root]* [-F] [-R]\\\n");
@@ -882,6 +1611,21 @@ int outusage ( void ) {
  fprintf(stderr,"    the output cbf combining the image and the template.  If the\n");
  fprintf(stderr,"    output_cbf is not specified or is given as \"-\", it is written\n");
  fprintf(stderr,"    to stdout.\n");
+ 
+ fprintf(stderr,"  -q\n");
+ fprintf(stderr,"    exit quickly with just the miniheader expanded\n");
+ fprintf(stderr,"    after the data.  No template is used.\n");
+
+ fprintf(stderr,"  -Q\n");
+ fprintf(stderr,"    exit quickly with just the miniheader unexpanded\n");
+ fprintf(stderr,"    before the data.  No template is used.\n");
+
+ fprintf(stderr,"  -C convention\n");
+ fprintf(stderr,"    convert the comment form of miniheader into the\n");
+ fprintf(stderr,"        _array_data.header_convention convention\n");
+ fprintf(stderr,"        _array_data.header_contents\n");
+ fprintf(stderr,"    overriding any existing values\n");
+
 
  fprintf(stderr,"  -d detectorname\n");
  fprintf(stderr,"    a detector name to be used if none is provided in the image\n");
@@ -903,6 +1647,9 @@ int outusage ( void ) {
  fprintf(stderr,"  -R \n");
  fprintf(stderr,"    if setting a beam center, set reference values of\n");
  fprintf(stderr,"    axis settings as well as standard settings\n");
+
+ fprintf(stderr,"  -u \n");
+ fprintf(stderr,"    write the image as unsigned short.\n");
 
  fprintf(stderr,"  -z distance\n");
  fprintf(stderr,"    detector distance along Z-axis.\n");
@@ -963,8 +1710,12 @@ int main (int argc, char *argv [])
 
   const char *detector_name, *detector_opt,
      *array_id;
+     
+  const char *datablockname;
 
   char *header_info;
+  
+  char *header_info_copy;
   
   size_t header_info_size;
   
@@ -984,15 +1735,20 @@ int main (int argc, char *argv [])
   int copt;
   int errflg = 0;
   char cbfintmp[19];
+ #ifndef NOMKSTEMP
   int cbfintmpfd;
+ #endif
   int cbfintmpused = 0;
   char buf[CVTBUFSIZ];
   char *cbfin, *cbfout, *template, *distancestr;
+  char *convention;
   char *alias, *root;
   char xalias[81];
   int transpose;
   int fastlen, slowlen;
   int flat;
+  int quick;
+  int unshort;
   unsigned int compression;
   int binary_id;
   size_t elsize;
@@ -1017,12 +1773,15 @@ int main (int argc, char *argv [])
   detector_opt = NULL;
   transpose = 0;
   distancestr = NULL;
+  convention = NULL;
   dorefs = 0;
   flat = 0;
+  quick = 0;
+  unshort = 0;
   
   cbf_failnez (cbf_make_handle (&cbf))
 
-  while ((copt = getopt(argc,argv, "FRi:o:p:d:m:r:z:c:t:")) != EOF) {
+  while ((copt = getopt(argc,argv, "FRQqui:o:p:C:d:m:r:z:c:t:")) != EOF) {
 
     switch(copt) {
       case 'i':
@@ -1035,6 +1794,16 @@ int main (int argc, char *argv [])
          else cbfout = optarg;
          break;
 
+      case 'q':
+         if (quick) errflg++;
+         else quick=1;
+         break;
+
+      case 'Q':
+         if (quick) errflg++;
+         else quick=-1;
+         break;
+
       case 'p':
          if (template) errflg++;
          else template = optarg;
@@ -1042,6 +1811,11 @@ int main (int argc, char *argv [])
 
       case 'F':
          flat = 1;
+         break;
+         
+      case 'C':
+         if (convention) errflg++;
+         else convention = optarg;
          break;
 
       case 'm':
@@ -1064,6 +1838,10 @@ int main (int argc, char *argv [])
 
       case 'R':
          dorefs = 1;
+         break;
+
+      case 'u':
+         unshort = 1;
          break;
 
       case 'd':
@@ -1125,8 +1903,24 @@ int main (int argc, char *argv [])
 
 
   if (!cbfin || strcmp(cbfin?cbfin:"","-") == 0) {
-     strcpy(cbfintmp, "/tmp/cvt_cbfXXXXXX");
-     if ((cbfintmpfd = mkstemp(cbfintmp)) == -1 ) {
+#ifdef NOTMPDIR
+     strcpy(cbfintmp, "cif2cbfXXXXXX");
+#else
+     strcpy(cbfintmp, "/tmp/cif2cbfXXXXXX");
+#endif
+#ifdef NOMKSTEMP
+     if (mktemp(cbfintmp) == NULL ) {
+       fprintf(stderr,"\n convert_minicbf: Can't create temporary file name %s.\n", cbfintmp);
+       fprintf(stderr,"%s\n",strerror(errno));
+       exit(1);
+     }
+     if ( (file = fopen(cifintmp,"wb+")) == NULL) {
+       fprintf(stderr,"Can't open temporary file %s.\n", cbfintmp);
+       fprintf(stderr,"%s\n",strerror(errno));
+       exit(1);     	
+     }
+#else
+    if ((cbfintmpfd = mkstemp(cbfintmp)) == -1 ) {
        fprintf(stderr,"\n convert_minicbf: Can't create temporary file name %s.\n", cbfintmp);
        fprintf(stderr,"%s\n",strerror(errno));
        exit(1);
@@ -1136,6 +1930,7 @@ int main (int argc, char *argv [])
        fprintf(stderr,"%s\n",strerror(errno));
        exit(1);
      }
+#endif
      while ((nbytes = fread(buf, 1, CVTBUFSIZ, stdin))) {
        if(nbytes != fwrite(buf, 1, nbytes, file)) {
          fprintf(stderr,"Failed to write %s.\n", cbfintmp);
@@ -1162,102 +1957,274 @@ int main (int argc, char *argv [])
   
   cbf_failnez (cbf_read_widefile (minicbf, in, MSG_DIGEST))
 
-  if (!(in = fopen (cbfin, "rb"))) {
-     fprintf (stderr,"Couldn't open the input minicbf file %s\n", cbfin);
-     exit (1);
-   }
    
   header_info_size = 0;
   
   header_info_cap = 0;
   
   header_info = NULL;
-   
   
-  while (fgets(buf,CVTBUFSIZ,in)) {
+  if (!convention && !cbf_find_tag(minicbf,"_array_data.header_contents")) {
   
-    size_t slen;
+    cbf_failnez(cbf_get_value(minicbf,(const char * *)&header_info))
     
-    int ignore;
-    
-    char * bufptr;
-    
-    slen = strlen(buf);
+    cbf_parse_sls_header(minicbf, header_info, 0); 
+
+  } else {
   
-    if (slen > 0 && buf[slen-1]=='\n') buf[slen] = '\0';
+    char * lead = "  ";
     
-  	if (!strncmp(buf,"##",2)) continue;
+    if (quick) lead = "# ";
+    
+    if (!(in = fopen (cbfin, "rb"))) {
+      fprintf (stderr,"Couldn't open the input minicbf file %s\n", cbfin);
+      exit (1);
+    }
+
+  
+    while (fgets(buf,CVTBUFSIZ,in)) {
+  
+      size_t slen;
+    
+      int ignore;
+    
+      char * bufptr;
+    
+      slen = strlen(buf);
+  
+      if (slen > 0 && buf[slen-1]=='\n') buf[slen] = '\0';
+    
+      if (!strncmp(buf,"##",2)) continue;
   	
-  	ignore = 1;
+  	  ignore = 1;
   	
-  	bufptr = buf;
+  	  bufptr = buf;
   	
-  	while(*bufptr) {
+  	  while(*bufptr) {
   	
-  	  if (!isspace(*bufptr)) break;
+  	    if (!isspace(*bufptr)) break;
   	  
-  	  bufptr++;
+  	    bufptr++;
   		
-  	}
+  	  }
   	
-  	if (!*bufptr) continue;
+  	  if (!*bufptr) continue;
   	
-  	if (*bufptr != '#') break;
+  	  if (*bufptr != '#') break;
     
-    if (!strncmp(bufptr,"# ",2)) {
+      if (!strncmp(bufptr,"# ",2)) {
     
-      if (header_info_size+strlen(bufptr+2)+4 > header_info_cap) {
+        if (header_info_size+strlen(bufptr+2)+4 > header_info_cap) {
       
-        char * nheader_info;
+          char * nheader_info;
         
-        size_t nheader_info_cap;
+          size_t nheader_info_cap;
         
-        size_t ii;
+          size_t ii;
         
-        nheader_info_cap = 2*(header_info_cap + strlen(bufptr+2)+4);
+          nheader_info_cap = 2*(header_info_cap + strlen(bufptr+2)+4);
         
-        cbf_failnez((nheader_info = malloc(sizeof(char)*nheader_info_cap))==NULL?CBF_ALLOC:0)
+          cbf_failnez((nheader_info = malloc(sizeof(char)*nheader_info_cap))==NULL?CBF_ALLOC:0)
         
-        if (header_info_size) for(ii=0;ii<header_info_size;ii++) nheader_info[ii]=header_info[ii];
+          if (header_info_size) for(ii=0;ii<header_info_size;ii++) nheader_info[ii]=header_info[ii];
         
-        else {nheader_info[0] = '\n'; header_info_size=1;}
+          else {nheader_info[0] = '\n'; header_info_size=1;}
         
-        if (header_info) free(header_info);
+          if (header_info) free(header_info);
         
-        header_info = nheader_info;
+          header_info = nheader_info;
         
-        header_info_cap = nheader_info_cap;
+          header_info_cap = nheader_info_cap;
       
-      }
+        }
       
-      strcpy(header_info+header_info_size,"  ");  header_info_size += 2;
+        strcpy(header_info+header_info_size,lead);  header_info_size += 2;
       
-      strcpy(header_info+header_info_size,bufptr+2); header_info_size += strlen(bufptr+2);
+        strcpy(header_info+header_info_size,bufptr+2); header_info_size += strlen(bufptr+2);
       
-      while (header_info_size && 
+        while (header_info_size && 
             (*(header_info+header_info_size-1)=='\r' || 
              *(header_info+header_info_size-1)=='\n' ||
              !*(header_info+header_info_size-1))) header_info_size--;
       
-      strcpy(header_info+header_info_size,"\n"); header_info_size++;
+        strcpy(header_info+header_info_size,"\n"); header_info_size++;
     
-      cbf_parse_sls_header(minicbf, bufptr); 
+        cbf_parse_sls_header(minicbf, bufptr, 1); 
     	
-    }
+      }
   	
-  }
+    }
 
-  fclose(in);
+    fclose(in);
   
-  if (cbfintmpused)
+    if (convention) {
+  
+      cbf_failnez(cbf_require_category(minicbf,"array_data"))
+    
+      cbf_failnez(cbf_require_column(minicbf,"header_convention"))
+    
+      cbf_failnez(cbf_set_value(minicbf,convention))
+    
+      cbf_failnez(cbf_require_column(minicbf,"header_contents"))
+    
+      cbf_failnez(cbf_set_value(minicbf,header_info))
+  
+    }
+  
+  }
+  
+  
+    /* See if we want a quick exit */
+    
+    
+  if (quick > 0) 
   {
-       if (unlink(cbfintmp) != 0 ) {
-       fprintf(stderr," convert_minicbf:  Can't unlink temporary file %s.\n", cbfintmp);
-       fprintf(stderr,"%s\n",strerror(errno));
-       exit(1);
+ 
+    /* Write the new file */
+
+     out = stdout;
+
+     if (cbfout && strcmp(cbfout,"-"))out = fopen (cbfout, "w+b");
+
+     if (!out)
+     {
+       fprintf (stderr, " convert_minicbf:  Couldn't open the output CBF file %s\n", cbfout);
+
+       exit (1);
      }
 
+     cbf_failnez (cbf_write_file (minicbf, out, 1, CBF,
+                               MSG_DIGEST | MIME_HEADERS | PAD_4K, 0))
+
+    /* Free the cbf */
+
+    cbf_failnez (cbf_free_handle (cbf))
+
+
+    /* Free the minicbf */
+
+    cbf_failnez (cbf_free_handle (minicbf))
+
+
+    /* Success */
+
+    if (cbfintmpused) {
+       if (unlink(cbfintmp) != 0 ) {
+         fprintf(stderr," convert_minicbf:  Can't unlink temporary file %s.\n", cbfintmp);
+         fprintf(stderr,"%s\n",strerror(errno));
+         exit(1);
+       }
+
+    }
+
+
+    return 0;
+    
+  } else if (quick < 0) {
+  
+    const char * value;
+    
+    cbf_failnez(cbf_datablock_name(minicbf,&datablockname))
+    
+    cbf_failnez(cbf_force_new_datablock(cbf,datablockname))
+    
+    cbf_failnez(cbf_find_tag(minicbf, "_array_data.data"))
+  
+    cbf_failnez(cbf_require_category(cbf,"array_data"));
+  
+    cbf_failnez(cbf_rewind_row(minicbf))
+  
+    if (!cbf_find_column(minicbf,"header_convention") && !cbf_get_value(minicbf,&value) && value) {
+  
+      cbf_failnez(cbf_require_column(cbf,"header_convention"))
+      
+      cbf_failnez(cbf_set_value(cbf,value))
+
+    }
+
+    if (!cbf_find_column(minicbf,"header_contents") && !cbf_get_value(minicbf,&value) && value) {
+  
+      cbf_failnez(cbf_require_column(cbf,"header_contents"))
+      
+      cbf_failnez(cbf_set_value(cbf,value))
+
+    } else if (header_info) {
+    
+      cbf_failnez(cbf_require_column(cbf,"header_contents"))
+
+      cbf_failnez(cbf_set_value(cbf,header_info))
+    }
+    
+    cbf_failnez(cbf_find_column(minicbf,"data"))
+  
+    cbf_failnez(cbf_get_integerarrayparameters_wdims (minicbf, &compression, &binary_id, 
+      &elsize, &elsigned, &elunsigned, &elements, &minelement, &maxelement,(const char **) &byteorder, 
+      &dim1, &dim2, &dim3, &padding))
+      
+    fastlen = dim1;
+    slowlen = dim2;
+
+    cbf_failnez((image = (unsigned char*)malloc(elements*elsize))!=NULL?0:CBF_ALLOC)
+    cbf_failnez(cbf_get_integerarray (minicbf, &binary_id, (void *)image, elsize, elsigned, 
+      elements, &elements_read))
+    if (elements != elements_read) { cbf_failnez(CBF_FORMAT) }
+    
+    cbf_failnez (cbf_require_column(cbf,"data"))
+  
+    if (flat) {
+    
+      cbf_failnez( cbf_set_integerarray_wdims (cbf, CBF_PACKED|CBF_FLAT_IMAGE, binary_id, 
+        image, elsize, elsigned, elements, byteorder, dim1, dim2, dim3, padding))
+  	
+    } else {
+      cbf_failnez( cbf_set_integerarray_wdims (cbf, compression, binary_id, 
+        image, elsize, elsigned, elements, byteorder, dim1, dim2, dim3, padding))
+    }
+
+  
+    /* Write the new file */
+
+    out = stdout;
+
+    if (cbfout && strcmp(cbfout,"-"))out = fopen (cbfout, "w+b");
+
+    if (!out) {
+
+      fprintf (stderr, " convert_minicbf:  Couldn't open the output CBF file %s\n", cbfout);
+
+      exit (1);
+
+    }
+
+    cbf_failnez (cbf_write_file (cbf, out, 1, CBF,
+                               MSG_DIGEST | MIME_HEADERS | PAD_4K, 0))
+
+    /* Free the cbf */
+
+    cbf_failnez (cbf_free_handle (cbf))
+
+
+    /* Free the minicbf */
+
+    cbf_failnez (cbf_free_handle (minicbf))
+
+
+    /* Success */
+
+    if (cbfintmpused) {
+       if (unlink(cbfintmp) != 0 ) {
+         fprintf(stderr," convert_minicbf:  Can't unlink temporary file %s.\n", cbfintmp);
+         fprintf(stderr,"%s\n",strerror(errno));
+         exit(1);
+       }
+
+    }
+
+    return 0;
+
+  
   }
+
   
     /* Find the image */
     
@@ -1299,7 +2266,7 @@ int main (int argc, char *argv [])
 
        if (detector_opt == NULL) {
 
-        fprintf (stderr, "\n convert_inage: No detector name provided in mincbf or on the command line!");
+        fprintf (stderr, "\n convert_inage: No detector name provided in minicbf or on the command line!");
         outusage();
         exit (3);
 
@@ -1354,10 +2321,39 @@ int main (int argc, char *argv [])
   cbf_failnez(cbf_get_array_id(cbf, 0, &array_id))
   
   cbf_failnez(cbf_require_column(cbf, "details"))
+  
+  if (header_info) {
+  
+    char * src;
+    
+    char * dst;
+    
+    char ccur, cprev;
+  
+    header_info_copy=(char *)malloc(strlen(header_info)+1);
+    
+    src = header_info;
+    
+    dst = header_info_copy;
+    
+    cprev = '\n';
+    
+    while((ccur=*src++)) {
+    
+      if (ccur == '#' 
+        && (cprev == '\n'|| cprev == '\r' ) ) *dst++ = ' ';
+      else *dst++=ccur;
+      
+      cprev = ccur;
+    }
+    
+    *dst++ = '\0';
+    
+    cbf_failnez(cbf_set_value(cbf, header_info_copy))
 
-  cbf_failnez(cbf_set_value(cbf, header_info))
-
-  cbf_failnez(cbf_set_typeofvalue(cbf,"text"))
+    cbf_failnez(cbf_set_typeofvalue(cbf,"text"))
+        
+  }
 
 
 
@@ -1365,6 +2361,28 @@ int main (int argc, char *argv [])
     /* diffrn.id */
 
   cbf_failnez (cbf_set_diffrn_id (cbf, "DS1"))
+  
+    /* diffrn_detector.details */
+    
+  if (!cbf_find_tag(minicbf,"_diffrn_detector.details")) {
+  
+      const char *details;
+  
+      cbf_failnez(cbf_rewind_row(minicbf))
+      
+     if (!cbf_get_value(minicbf,&details) && details && *details) {
+    
+      cbf_failnez(cbf_require_category(cbf,"diffrn_detector"))
+      
+      cbf_failnez(cbf_require_column(cbf,"details"))
+      
+      cbf_failnez(cbf_rewind_row(cbf))
+      
+      cbf_failnez(cbf_set_value(cbf,details))
+  	
+    }
+  
+  }
   
   
     /* Exposure time */
@@ -1411,6 +2429,335 @@ int main (int argc, char *argv [])
       cbf_failnez(cbf_set_value(cbf,date))
     
     }
+
+  }
+
+
+      /* Oscillations */
+    
+  if (!cbf_find_tag(minicbf,"_diffrn_scan_frame.oscillations")) {
+  
+    const char *oscillations;
+    
+    cbf_failnez(cbf_rewind_row(minicbf))
+    
+    if (!cbf_get_value(minicbf,&oscillations) && oscillations && *oscillations) {
+    
+      cbf_failnez(cbf_require_category(cbf,"diffrn_scan_frame"))
+      
+      cbf_failnez(cbf_require_column(cbf,"oscillations"))
+      
+      cbf_failnez(cbf_rewind_row(cbf))
+      
+      cbf_failnez(cbf_set_value(cbf,oscillations))
+    
+    }
+
+  }
+
+    /* Element size */
+
+
+  if (!cbf_find_tag(minicbf,"_array_element_size.size")) {
+  
+    const char *size, *index;
+    
+    cbf_failnez(cbf_rewind_row(minicbf))
+    
+    if (!cbf_get_value(minicbf,&size) && size && *size) {
+    
+      cbf_failnez(cbf_require_category(cbf,"array_element_size"))
+      
+      cbf_failnez(cbf_require_column(cbf,"size"))
+      
+      cbf_failnez(cbf_rewind_row(cbf))
+      
+      cbf_failnez(cbf_set_value(cbf,size))
+      
+      cbf_failnez(cbf_require_column(cbf,"index"))
+      
+      cbf_failnez(cbf_require_column(minicbf,"index"))
+      
+      if (!cbf_get_value(minicbf,&index) && index && *index) {
+      
+        cbf_failnez(cbf_set_value(cbf,index))
+      
+      }
+      
+      if (!cbf_next_row(minicbf)) {
+      
+        cbf_failnez(cbf_find_column(minicbf,"size"))
+        
+        if (!cbf_get_value(minicbf,&size) && size && *size) {
+      
+          cbf_failnez(cbf_find_column(cbf,"size"))
+          
+          cbf_failnez(cbf_next_row(cbf))
+          
+          cbf_failnez(cbf_set_value(cbf,size))
+          
+          cbf_failnez(cbf_find_column(cbf,"index"))
+          
+          cbf_failnez(cbf_find_column(minicbf,"index"))
+          
+          if (!cbf_get_value(minicbf,&index) && index && *index) {
+      
+            cbf_failnez(cbf_set_value(cbf,index))
+      
+          }
+          
+       }
+      	
+      }
+      
+    }
+
+  }
+
+      /* diffrn_radiation.tau */
+    
+  if (!cbf_find_tag(minicbf,"_diffrn_radiation.tau")) {
+  
+    const char *tau;
+    
+    cbf_failnez(cbf_rewind_row(minicbf))
+    
+    if (!cbf_get_value(minicbf,&tau) && tau && *tau) {
+    
+      cbf_failnez(cbf_require_category(cbf,"diffrn_radiation"))
+      
+      cbf_failnez(cbf_require_column(cbf,"tau"))
+      
+      cbf_failnez(cbf_rewind_row(cbf))
+      
+      cbf_failnez(cbf_set_value(cbf,tau))
+    
+    }
+
+  }
+
+
+      /* diffrn_radiation.flux */
+    
+  if (!cbf_find_tag(minicbf,"_diffrn_radiation.flux")) {
+  
+    const char *flux;
+    
+    cbf_failnez(cbf_rewind_row(minicbf))
+    
+    if (!cbf_get_value(minicbf,&flux) && flux && *flux) {
+    
+      cbf_failnez(cbf_require_category(cbf,"diffrn_radiation"))
+      
+      cbf_failnez(cbf_require_column(cbf,"flux"))
+      
+      cbf_failnez(cbf_rewind_row(cbf))
+      
+      cbf_failnez(cbf_set_value(cbf,flux))
+    
+    }
+
+  }
+
+
+
+      /* diffrn_radiation.polarizn_source_ratio */
+    
+  if (!cbf_find_tag(minicbf,"_diffrn_radiation.polarizn_source_ratio")) {
+  
+    const char *polarizn_source_ratio;
+    
+    cbf_failnez(cbf_rewind_row(minicbf))
+    
+    if (!cbf_get_value(minicbf,&polarizn_source_ratio) && polarizn_source_ratio && *polarizn_source_ratio) {
+    
+      cbf_failnez(cbf_require_category(cbf,"diffrn_radiation"))
+      
+      cbf_failnez(cbf_require_column(cbf,"polarizn_source_ratio"))
+      
+      cbf_failnez(cbf_rewind_row(cbf))
+      
+      cbf_failnez(cbf_set_value(cbf,polarizn_source_ratio))
+    
+    }
+
+  }
+
+      /* array_intensities.overload */
+    
+  if (!cbf_find_tag(minicbf,"_array_intensities.overload")) {
+  
+    const char *overload;
+    
+    cbf_failnez(cbf_rewind_row(minicbf))
+    
+    if (!cbf_get_value(minicbf,&overload) && overload && *overload) {
+    
+      cbf_failnez(cbf_require_category(cbf,"array_intensities"))
+      
+      cbf_failnez(cbf_require_column(cbf,"overload"))
+      
+      cbf_failnez(cbf_rewind_row(cbf))
+      
+      cbf_failnez(cbf_set_value(cbf,overload))
+    
+    }
+
+  }
+
+      /* Wavelength */
+
+  if (!cbf_find_tag(minicbf,"_diffrn_radiation_wavelength.wavelength")) {
+  
+    double wavelength;
+  
+    cbf_failnez(cbf_get_doublevalue(minicbf,&wavelength))
+
+    if (wavelength)
+
+    cbf_failnez (cbf_set_wavelength (cbf, wavelength))
+    
+  }
+
+
+    /* Distance */
+
+
+  if (!cbf_find_tag(minicbf,"_diffrn_measurement.sample_detector_distance")) {
+  
+    double distance;
+  
+    cbf_failnez(cbf_get_doublevalue(minicbf,&distance))
+
+    if (distance == 0.) {
+  
+      distance = atof (distancestr);
+
+    }
+
+    cbf_failnez (cbf_set_axis_setting (cbf, 0, "DETECTOR_Z", distance, 0))
+
+    cbf_failnez(cbf_require_category(cbf,"diffrn_measurement"))
+
+    cbf_failnez(cbf_require_column(cbf,"sample_detector_distance"))
+
+    cbf_failnez(cbf_set_doublevalue(cbf,"%g", distance))
+    
+  }
+
+
+    /* Vertical Offset */
+
+
+  if (!cbf_find_tag(minicbf,"_diffrn_measurement.sample_detector_voffset")) {
+  
+    double voffset;
+  
+    cbf_failnez(cbf_get_doublevalue(minicbf,&voffset))
+
+    cbf_failnez (cbf_set_axis_setting (cbf, 0, "DETECTOR_Y", voffset, 0))
+
+    cbf_failnez(cbf_require_category(cbf,"diffrn_measurement"))
+
+    cbf_failnez(cbf_require_column(cbf,"sample_detector_voffset"))
+
+    cbf_failnez(cbf_set_doublevalue(cbf,"%g", voffset))
+    
+  }
+  
+  
+    /* Oscillation start and range */
+
+  if (!cbf_find_tag(minicbf,"_diffrn_scan_frame_axis.axis_id")) {
+  
+    char * axis;
+    
+    char oscaxis[40];
+    
+    double osc_start, osc_range;
+  
+    cbf_failnez(cbf_rewind_row(minicbf))
+    
+    cbf_failnez(cbf_find_row(minicbf,"GONIOMETER_SCAN"))
+  
+    axis = "PHI";
+    
+    cbf_failnez(cbf_find_column(minicbf,"angle"))
+    
+    cbf_failnez(cbf_get_doublevalue(minicbf,&osc_start))
+
+    cbf_failnez(cbf_find_column(minicbf,"angle_increment"))
+    
+    cbf_failnez(cbf_get_doublevalue(minicbf,&osc_range))
+
+    sprintf (oscaxis, "GONIOMETER_%s", axis);
+
+    cbf_failnez (cbf_set_axis_setting (cbf, 0, oscaxis,
+                                         osc_start, osc_range))
+  }
+
+
+  /* Beam Center */
+  
+  if (!cbf_find_tag(minicbf,"_diffrn_detector_element.reference_center_fast")){
+  
+    cbf_detector detector;
+  
+    const char * units;
+    
+    double bcx, bcy;
+    
+    cbf_failnez(cbf_rewind_row(minicbf))
+    
+    cbf_failnez(cbf_require_column(minicbf,"reference_center_fast"))
+    
+    cbf_failnez(cbf_get_doublevalue(minicbf,&bcx))
+    
+    cbf_failnez(cbf_require_column(minicbf,"reference_center_slow"))
+    
+    cbf_failnez(cbf_get_doublevalue(minicbf,&bcy))
+    
+    cbf_failnez(cbf_require_column(minicbf,"reference_center_units"))
+    
+    cbf_failnez(cbf_require_value(minicbf,&units,"mm"))
+    
+    if (!cbf_cistrcmp(units,"pixels")) {
+    
+      cbf_failnez(cbf_construct_detector (cbf, &detector, 0))
+    
+      cbf_failnez(cbf_set_beam_center(detector, &bcy, &bcx, NULL, NULL))
+      
+      cbf_failnez(cbf_free_detector(detector))
+      
+      if (dorefs) {
+
+        cbf_failnez(cbf_require_reference_detector (cbf, &detector, 0))
+    
+        cbf_failnez(cbf_set_reference_beam_center(detector, &bcy, &bcx, NULL, NULL))
+       
+        cbf_failnez(cbf_free_detector(detector))
+       
+      }
+
+    } else if (!cbf_cistrcmp(units,"mm")) {
+    
+      cbf_failnez(cbf_construct_detector (cbf, &detector, 0))
+    
+      cbf_failnez(cbf_set_beam_center(detector, NULL, NULL, &bcy, &bcx))
+            
+      cbf_failnez(cbf_free_detector(detector))
+      
+      if (dorefs) {
+
+        cbf_failnez(cbf_require_reference_detector (cbf, &detector, 0))
+    
+        cbf_failnez(cbf_set_reference_beam_center(detector, NULL, NULL, &bcy, &bcx))
+       
+        cbf_failnez(cbf_free_detector(detector))
+   
+      }
+
+    } else cbf_failnez(CBF_FORMAT)
 
   }
 
@@ -1510,20 +2857,67 @@ int main (int argc, char *argv [])
     	
     }
     else cbf_failnez(CBF_FORMAT)
+    
+    free (tempimg);
 
   }
-
-
-  if (flat) {
   
-  cbf_failnez (cbf_set_image (cbf, 0, 0, CBF_PACKED|CBF_FLAT_IMAGE,
+  if (!unshort || (elsize==sizeof(short) && elunsigned ) ) {
+
+
+    if (flat) {
+  
+      cbf_failnez (cbf_set_image (cbf, 0, 0, CBF_PACKED|CBF_FLAT_IMAGE,
                                image, elsize, elsigned, 
                                slowlen, fastlen))
   	
-  } else {
-  cbf_failnez (cbf_set_image (cbf, 0, 0, compression,
+    } else {
+    cbf_failnez (cbf_set_image (cbf, 0, 0, compression,
                                image, elsize, elsigned,
                                slowlen, fastlen))
+    }
+    
+  } else {
+  
+    unsigned short *tempimg;
+    
+    int i;
+    
+    tempimg = malloc(dim1*dim2*sizeof(short));
+    if (!tempimg) {
+      fprintf(stderr,"\n unable to allocate temporary image array\n");
+    }
+
+    if (elsize == sizeof(short)){
+      for (i = 0; i < dim1*dim2; i++) {
+        short j;
+        j = ((short *)image)[i];
+        if (j < 0) j = 0;
+        tempimg[i] = j;
+      }
+    } else {
+      for (i = 0; i < dim1*dim2; i++) {
+        int j;
+        j = ((int *)image)[i];
+        if (j < 0) j = 0;
+        if (j > 0xFFFF) j = 0xFFFF;
+        tempimg[i] = j;
+      }
+    }
+    
+    
+    if (flat) {
+  
+      cbf_failnez (cbf_set_image (cbf, 0, 0, CBF_PACKED|CBF_FLAT_IMAGE,
+                               image, sizeof(short), 0, 
+                               slowlen, fastlen))
+  	
+    } else {
+    cbf_failnez (cbf_set_image (cbf, 0, 0, compression,
+                               image, sizeof(short), 0,
+                               slowlen, fastlen))
+    }
+
   }
 
  
@@ -1640,7 +3034,7 @@ int main (int argc, char *argv [])
   }
 
   cbf_failnez (cbf_write_file (cbf, out, 1, CBF,
-                               MSG_DIGEST | MIME_HEADERS, 0))
+                               MSG_DIGEST | MIME_HEADERS | PAD_4K, 0))
 
 
     /* Free the cbf */
@@ -1654,6 +3048,15 @@ int main (int argc, char *argv [])
 
 
     /* Success */
+
+  if (cbfintmpused) {
+    if (unlink(cbfintmp) != 0 ) {
+      fprintf(stderr," convert_minicbf:  Can't unlink temporary file %s.\n", cbfintmp);
+      fprintf(stderr,"%s\n",strerror(errno));
+      exit(1);
+    }
+
+  }
 
   return 0;
 }

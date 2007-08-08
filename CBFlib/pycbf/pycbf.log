@@ -1,0 +1,305 @@
+This is pdfTeX, Version 3.141592-1.40.3 (MiKTeX 2.6) (preloaded format=latex 2007.6.5)  5 JUN 2007 19:16
+entering extended mode
+**pycbf
+(pycbf.tex
+LaTeX2e <2005/12/01>
+Babel <v3.8g> and hyphenation patterns for english, dumylang, nohyphenation, ge
+rman, ngerman, french, loaded.
+("C:\Program Files\MiKTeX 2.6\tex\latex\base\article.cls"
+Document Class: article 2005/09/16 v1.4f Standard LaTeX document class
+("C:\Program Files\MiKTeX 2.6\tex\latex\base\size10.clo"
+File: size10.clo 2005/09/16 v1.4f Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+("C:\Program Files\MiKTeX 2.6\tex\latex\graphics\graphics.sty"
+Package: graphics 2006/02/20 v1.0o Standard LaTeX Graphics (DPC,SPQR)
+
+("C:\Program Files\MiKTeX 2.6\tex\latex\graphics\trig.sty"
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+("C:\Program Files\MiKTeX 2.6\tex\latex\00miktex\graphics.cfg"
+File: graphics.cfg 2005/12/29 v1.2 MiKTeX 'graphics' configuration
+)
+Package graphics Info: Driver file: dvips.def on input line 90.
+
+("C:\Program Files\MiKTeX 2.6\tex\latex\graphics\dvips.def"
+File: dvips.def 1999/02/16 v3.0i Driver-dependant file (DPC,SPQR)
+))
+("C:\Program Files\MiKTeX 2.6\tex\latex\ltxmisc\anysize.sty"
+Package: anysize 1994/08/13 1.0 Contributed LaTeX2e package
+
+Package: `anysize' 1.0 <1994/08/13>
+\@Leftmargin=\dimen103
+\@Rightmargin=\dimen104
+\@Topmargin=\dimen105
+\@Bottommargin=\dimen106
+) ("C:\Program Files\MiKTeX 2.6\tex\latex\fancyhdr\fancyhdr.sty"
+\fancy@headwidth=\skip43
+\f@ncyO@elh=\skip44
+\f@ncyO@erh=\skip45
+\f@ncyO@olh=\skip46
+\f@ncyO@orh=\skip47
+\f@ncyO@elf=\skip48
+\f@ncyO@erf=\skip49
+\f@ncyO@olf=\skip50
+\f@ncyO@orf=\skip51
+)
+("C:\Program Files\MiKTeX 2.6\tex\latex\hyperref\hyperref.sty"
+Package: hyperref 2007/05/03 v6.76e Hypertext links for LaTeX
+
+("C:\Program Files\MiKTeX 2.6\tex\latex\graphics\keyval.sty"
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+("C:\Program Files\MiKTeX 2.6\tex\latex\oberdiek\hycolor.sty"
+Package: hycolor 2007/04/11 v1.1 Code for color options of hyperref/bookmark (H
+O)
+)
+\@linkdim=\dimen107
+\Hy@linkcounter=\count87
+\Hy@pagecounter=\count88
+
+("C:\Program Files\MiKTeX 2.6\tex\latex\hyperref\pd1enc.def"
+File: pd1enc.def 2007/05/03 v6.76e Hyperref: PDFDocEncoding definition (HO)
+)
+("C:\Program Files\MiKTeX 2.6\tex\latex\00miktex\hyperref.cfg"
+File: hyperref.cfg 2006/02/14 v1.1 MiKTeX 'hyperref' configuration
+)
+("C:\Program Files\MiKTeX 2.6\tex\latex\oberdiek\kvoptions.sty"
+Package: kvoptions 2007/05/06 v2.6 Connects package keyval with LaTeX options (
+HO)
+)
+Package hyperref Info: Option `bookmarks' set `true' on input line 2441.
+Package hyperref Info: Option `bookmarksnumbered' set `true' on input line 2441
+.
+Package hyperref Info: Hyper figures OFF on input line 2491.
+Package hyperref Info: Link nesting OFF on input line 2496.
+Package hyperref Info: Hyper index ON on input line 2499.
+Package hyperref Info: Plain pages OFF on input line 2506.
+Package hyperref Info: Backreferencing ON on input line 2509.
+
+Implicit mode ON; LaTeX internals redefined
+Package hyperref Info: Bookmarks ON on input line 2661.
+("C:\Program Files\MiKTeX 2.6\tex\latex\hyperref\backref.sty"
+Package: backref 2006/10/06 v1.27 Bibliographical back referencing
+)
+("C:\Program Files\MiKTeX 2.6\tex\latex\ltxmisc\url.sty"
+\Urlmuskip=\muskip10
+Package: url 2005/06/27  ver 3.2  Verb mode for urls, etc.
+)
+LaTeX Info: Redefining \url on input line 2816.
+\Fld@menulength=\count89
+\Field@Width=\dimen108
+\Fld@charsize=\dimen109
+\Choice@toks=\toks15
+\Field@toks=\toks16
+Package hyperref Info: Hyper figures OFF on input line 3300.
+Package hyperref Info: Link nesting OFF on input line 3305.
+Package hyperref Info: Hyper index ON on input line 3308.
+Package hyperref Info: backreferencing ON on input line 3313.
+Package hyperref Info: Link coloring OFF on input line 3320.
+\Hy@abspage=\count90
+\c@Item=\count91
+\c@Hfootnote=\count92
+)
+*hyperref using driver hdvipdfm*
+("C:\Program Files\MiKTeX 2.6\tex\latex\hyperref\hdvipdfm.def"
+File: hdvipdfm.def 2007/05/03 v6.76e Hyperref driver for dvipdfm
+\pdfm@box=\box26
+\Fld@listcount=\count93
+) (pycbf.aux)
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+Package hyperref Info: Link coloring OFF on input line 61.
+
+("C:\Program Files\MiKTeX 2.6\tex\latex\hyperref\nameref.sty"
+Package: nameref 2007/05/02 v2.30 Cross-referencing by name of section
+
+("C:\Program Files\MiKTeX 2.6\tex\latex\oberdiek\refcount.sty"
+Package: refcount 2006/02/20 v3.0 Data extraction from references (HO)
+)
+\c@section@level=\count94
+)
+LaTeX Info: Redefining \ref on input line 61.
+LaTeX Info: Redefining \pageref on input line 61.
+ (pycbf.out)
+(pycbf.out)
+\@outlinefile=\write3
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 91.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 91.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 91.
+ (pycbf.toc
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <9> on input line 4.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 4.
+)
+\tf@toc=\write4
+ [1
+
+]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 143.
+
+
+("C:\Program Files\MiKTeX 2.6\tex\latex\base\omscmr.fd"
+File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <9> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 143.
+
+Overfull \hbox (10.09409pt too wide) in paragraph at lines 174--180
+[]\OT1/cmr/m/n/9 The li-brary ap-pears to de-fine (at least) three ob-jects. Th
+e one we started on was the cbf[]handle[]struct
+ []
+
+[2] [3]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [4]
+Overfull \hbox (5.2692pt too wide) in paragraph at lines 356--358
+[]\OT1/cmr/m/n/9 If you say im-port ``py-cbf'' in python you should even-tu-all
+y find them via py-cbf.CONSTANT[]NAME. 
+ []
+
+[5] [6] [7]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [8]
+[9] [10] [11]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [12]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [13]
+[14]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [15]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [16]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [17]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [18]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [19]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [20]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [21]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [22]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [23]
+[24]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [25]
+[26]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [27]
+[28] [29] (TODO.txt [30]
+Overfull \hbox (37.52548pt too wide) in paragraph at lines 272--272
+ []\OT1/cmtt/m/n/9 problem cbf_set_saveframename set_saveframename ['cbf_handle
+ handle. const char    *saveframename'][] 
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [31]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [32]
+Overfull \hbox (198.17361pt too wide) in paragraph at lines 272--272
+ []\OT1/cmtt/m/n/9 TODO: Detector: int cbf_set_beam_center (cbf_detector detect
+or, double *index1, double    *index2, double *center1, double *center2);[] 
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [33]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [34])
+[35] [36] [37]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [38]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [39]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [40]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [41]
+[42]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [43]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [44]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [45]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [46]
+[47]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [48]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [49]
+[50] (pycbf.aux) ) 
+Here is how much of TeX's memory you used:
+ 2908 strings out of 95306
+ 38414 string characters out of 1185184
+ 103038 words of memory out of 1095474
+ 6012 multiletter control sequences out of 60000
+ 9883 words of font info for 35 fonts, out of 1000000 for 2000
+ 14 hyphenation exceptions out of 8191
+ 25i,11n,43p,220b,466s stack positions out of 5000i,500n,10000p,200000b,32768s
+
+Output written on pycbf.dvi (50 pages, 143216 bytes).

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+<title>(IUCr) CIF Definition save__diffrn_detector_element.reference_center_units</title>
+  <link rel="stylesheet" type="text/css" href="../../itg.css" />
+</head>
+
+<body>
+<!-- begin masthead -->
+  <div class="masthead">
+    <table class="masthead">
+      <tr>
+        <td class="masthead" width="30%">
+          <p class="title">DRAFT DICTIONARY</p>
+          <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
+        </td>
+        <td class="masthead">
+          <p class="title">Draft version 1.5 for comment</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <!-- end masthead -->
+<hr>
+<H1>
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg" ALIGN=MIDDLE></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg" ALIGN=MIDDLE></a>
+<a href="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg"
+ALT="[CBF/imgCIF]" ALIGN=MIDDLE></a>
+<a href="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg"
+ALT="[CBFlib]" ALIGN=MIDDLE></a>
+</H1>
+<hr>
+  <!-- begin navbar -->
+  <div class="navbar">
+    <table class="navbar">
+      <tr>
+        <td><a class="navbar" href="index.html">Contents</a></td>
+      </tr>
+    </table>
+  </div>
+  <!-- end navbar -->
+
+
+<p class="index"><a class="index" href="index.html">Index</a></p>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
+<h1>_diffrn_detector_element.reference_center_units</h1><b>Name:</b><br /><tt class="cifdefinition">'_diffrn_detector_element.reference_center_units'</tt> 
+<p><b>Definition:</b></p><pre class="cifdefinition">
+       The value of <a href="Idiffrn_detector_element.reference_center_units.html" class="itemlink">_diffrn_detector_element.reference_center_units</a>
+              specifies the units in which the values of
+              '<a href="Idiffrn_detector_element.reference_center_fast.html" class="itemlink">_diffrn_detector_element.reference_center_fast</a>' and
+              '<a href="Idiffrn_detector_element.reference_center_slow.html" class="itemlink">_diffrn_detector_element.reference_center_slow</a>'
+              are presented.  The default is 'mm' for millimetres.  The
+              alternatives are 'pixels' and 'bins'.  In all cases the
+              center distances are measured from the center of the
+              first pixel, i.e. in a 2x2 binning, the measuring origin
+              is offset from the centers of the bins by one half pixel
+              towards the first pixel.
+
+              If 'bins' is specified, the data in
+                  '<a href="Iarray_intensities.pixel_fast_bin_size.html" class="itemlink">_array_intensities.pixel_fast_bin_size</a>',
+                  '<a href="Iarray_intensities.pixel_slow_bin_size.html" class="itemlink">_array_intensities.pixel_slow_bin_size</a>', and
+                  '<a href="Iarray_intensities.pixel_binning_method.html" class="itemlink">_array_intensities.pixel_binning_method</a>'
+              is used to define the binning scheme.
+
+
+
+</pre>
+<p><b>Type:</b> code</p>
+
+<p class="pack"><b>Mandatory item:</b> no</p>
+
+<br /><b>The data value must be one of the following:</b><br /><br />
+<table width="100%"><tr class="cifexample"><td width="50%">
+<br /><tt>mm</tt>
+</td><td width="50%"> millimetres
+</td></tr></table>
+<table width="100%"><tr class="cifexample"><td width="50%">
+<br /><tt>pixels</tt>
+</td><td width="50%"> detector pixels
+</td></tr></table>
+<table width="100%"><tr class="cifexample"><td width="50%">
+<br /><tt>bins</tt>
+</td><td width="50%"> detector bins
+</td></tr></table>
+
+<p class="pack"><b>Category:</b> <a href="Cdiffrn_detector_element.html" class="catlink">diffrn_detector_element</a></p>
+
+  <h4 align=left>
+  HTML version of draft dictionary created by modified version of makedicthtml by B. McMahon
+  from modified version of imgCIF dcitionary 1.3.2 which is subject to the following copyright:
+  </h4>
+  <!-- begin copyright -->
+  <div class="copyright">
+    <p class="copyright">Copyright &copy; 2005 International Union of Crystallography</p>
+  </div>
+  <!-- end copyright -->
+
+</body>
+</html>
