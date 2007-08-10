@@ -1914,7 +1914,7 @@ int main (int argc, char *argv [])
        fprintf(stderr,"%s\n",strerror(errno));
        exit(1);
      }
-     if ( (file = fopen(cifintmp,"wb+")) == NULL) {
+     if ( (file = fopen(cbfintmp,"wb+")) == NULL) {
        fprintf(stderr,"Can't open temporary file %s.\n", cbfintmp);
        fprintf(stderr,"%s\n",strerror(errno));
        exit(1);     	
