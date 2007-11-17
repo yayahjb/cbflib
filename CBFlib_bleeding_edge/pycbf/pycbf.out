@@ -1,0 +1,23 @@
+\BOOKMARK [1][-]{section.1}{1 Introduction}{}
+\BOOKMARK [1][-]{section.2}{2 Installation prerequisites}{}
+\BOOKMARK [1][-]{section.3}{3 Generating the c interface - the SWIG file}{}
+\BOOKMARK [2][-]{subsection.3.1}{3.1 Constants}{section.3}
+\BOOKMARK [2][-]{subsection.3.2}{3.2 Exceptions}{section.3}
+\BOOKMARK [2][-]{subsection.3.3}{3.3 Docstrings}{section.3}
+\BOOKMARK [2][-]{subsection.3.4}{3.4 A generic wrapper}{section.3}
+\BOOKMARK [2][-]{subsection.3.5}{3.5 CBFHandles}{section.3}
+\BOOKMARK [3][-]{subsubsection.3.5.1}{3.5.1 Manually wrapped things for cbfhandle object}{subsection.3.5}
+\BOOKMARK [2][-]{subsection.3.6}{3.6 CBFGoniometers}{section.3}
+\BOOKMARK [2][-]{subsection.3.7}{3.7 CBFDetectors}{section.3}
+\BOOKMARK [1][-]{section.4}{4 Building python extensions - the setup file}{}
+\BOOKMARK [1][-]{section.5}{5 Building and testing the resulting package}{}
+\BOOKMARK [1][-]{section.6}{6 Debugging compiled extensions}{}
+\BOOKMARK [1][-]{section.7}{7 Things which are currently missing}{}
+\BOOKMARK [1][-]{section.8}{8 Testing}{}
+\BOOKMARK [2][-]{subsection.8.1}{8.1 Read a file based on cif2cbf.c}{section.8}
+\BOOKMARK [2][-]{subsection.8.2}{8.2 Try to test the goniometer and detector}{section.8}
+\BOOKMARK [2][-]{subsection.8.3}{8.3 Test cases for the generics}{section.8}
+\BOOKMARK [1][-]{section.9}{9 Worked example 1 : xmas beamline + mar ccd detector at the ESRF }{}
+\BOOKMARK [2][-]{subsection.9.1}{9.1 Reading marccd headers}{section.9}
+\BOOKMARK [2][-]{subsection.9.2}{9.2 Writing out cif files for fit2d/xmas}{section.9}
+\BOOKMARK [2][-]{subsection.9.3}{9.3 A template cif file for the xmas beamline}{section.9}

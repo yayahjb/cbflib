@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+<title>(IUCr) CIF Definition save_diffrn_detector_element</title>
+  <link rel="stylesheet" type="text/css" href="../../itg.css" />
+</head>
+
+<body>
+<!-- begin masthead -->
+  <div class="masthead">
+    <table class="masthead">
+      <tr>
+        <td class="masthead" width="30%">
+          <p class="title">DRAFT DICTIONARY</p>
+          <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
+        </td>
+        <td class="masthead">
+          <p class="title">Draft version 1.5 for comment</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <!-- end masthead -->
+<hr>
+<H1>
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg" ALIGN=MIDDLE></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg" ALIGN=MIDDLE></a>
+<a href="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg"
+ALT="[CBF/imgCIF]" ALIGN=MIDDLE></a>
+<a href="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg"
+ALT="[CBFlib]" ALIGN=MIDDLE></a>
+</H1>
+<hr>
+  <!-- begin navbar -->
+  <div class="navbar">
+    <table class="navbar">
+      <tr>
+        <td><a class="navbar" href="index.html">Contents</a></td>
+      </tr>
+    </table>
+  </div>
+  <!-- end navbar -->
+
+
+<p class="index"><a class="index" href="index.html">Index</a></p>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
+<h1>Category DIFFRN_DETECTOR_ELEMENT</h1>
+<b>Name:</b><br />
+<tt class="cifdefinition">'diffrn_detector_element'</tt> 
+<p><b>Description:</b></p><pre class="cifdefinition">
+       Data items in the <a href="Cdiffrn_detector_element.html" class="catlink">DIFFRN_DETECTOR_ELEMENT</a> category record
+              the details about spatial layout and other characteristics
+              of each element of a detector which may have multiple elements.
+
+              In most cases, giving more detailed information
+              in <a href="Carray_structure_list.html" class="catlink">ARRAY_STRUCTURE_LIST</a> and <a href="Carray_structure_list_axis.html" class="catlink">ARRAY_STRUCTURE_LIST_AXIS</a>
+              is preferable to simply providing the centre of the
+              detector element.
+
+</pre>
+<b>Example:</b><br /><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+        Example 1 - Detector d1 is composed of four CCD detector elements,
+        each 200 mm by 200 mm, arranged in a square, in the pattern
+
+                   1     2
+                      *
+                   3     4
+
+        Note that the beam centre is slightly displaced from each of the
+        detector elements, just beyond the lower right corner of 1,
+        the lower left corner of 2, the upper right corner of 3 and
+        the upper left corner of 4.  For each element, the detector
+        face coordiate system, is assumed to have the fast axis
+        running from left to right and the slow axis running from
+        top to bottom with the origin at the top left corner.
+
+</i><br /><pre class="cifexample">
+ 
+        loop_
+        _diffrn_detector_element.detector_id
+        _diffrn_detector_element.id
+        _diffrn_detector_element.reference_center_fast
+        _diffrn_detector_element.reference_center_slow
+        _diffrn_detector_element.reference_center_units
+        d1     d1_ccd_1  201.5 201.5  mm
+        d1     d1_ccd_2  -1.8  201.5  mm
+        d1     d1_ccd_3  201.6  -1.4  mm
+        d1     d1_ccd_4  -1.7   -1.5  mm
+
+</pre><br /></td></tr></table><br />
+
+<b>Category groups:</b><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;inclusive_group</tt><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;array_data_group</tt><br />
+
+<b>Category keys:</b><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;_diffrn_detector_element.id</tt><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;_diffrn_detector_element.detector_id</tt><br />
+
+<p class="pack"><b>Mandatory category:</b> no</p>
+
+  <h4 align=left>
+  HTML version of draft dictionary created by modified version of makedicthtml by B. McMahon
+  from modified version of imgCIF dcitionary 1.3.2 which is subject to the following copyright:
+  </h4>
+  <!-- begin copyright -->
+  <div class="copyright">
+    <p class="copyright">Copyright &copy; 2005 International Union of Crystallography</p>
+  </div>
+  <!-- end copyright -->
+
+</body>
+</html>

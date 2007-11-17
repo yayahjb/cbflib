@@ -1,0 +1,23 @@
+\contentsline {section}{\numberline {1}Introduction}{2}{section.1}
+\contentsline {section}{\numberline {2}Installation prerequisites}{3}{section.2}
+\contentsline {section}{\numberline {3}Generating the c interface - the SWIG file}{3}{section.3}
+\contentsline {subsection}{\numberline {3.1}Constants}{5}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}Exceptions}{6}{subsection.3.2}
+\contentsline {subsection}{\numberline {3.3}Docstrings}{7}{subsection.3.3}
+\contentsline {subsection}{\numberline {3.4}A generic wrapper}{10}{subsection.3.4}
+\contentsline {subsection}{\numberline {3.5}CBFHandles}{11}{subsection.3.5}
+\contentsline {subsubsection}{\numberline {3.5.1}Manually wrapped things for cbfhandle object}{14}{subsubsection.3.5.1}
+\contentsline {subsection}{\numberline {3.6}CBFGoniometers}{24}{subsection.3.6}
+\contentsline {subsection}{\numberline {3.7}CBFDetectors}{26}{subsection.3.7}
+\contentsline {section}{\numberline {4}Building python extensions - the setup file}{28}{section.4}
+\contentsline {section}{\numberline {5}Building and testing the resulting package}{29}{section.5}
+\contentsline {section}{\numberline {6}Debugging compiled extensions}{30}{section.6}
+\contentsline {section}{\numberline {7}Things which are currently missing}{30}{section.7}
+\contentsline {section}{\numberline {8}Testing}{35}{section.8}
+\contentsline {subsection}{\numberline {8.1}Read a file based on cif2cbf.c}{35}{subsection.8.1}
+\contentsline {subsection}{\numberline {8.2}Try to test the goniometer and detector}{36}{subsection.8.2}
+\contentsline {subsection}{\numberline {8.3}Test cases for the generics}{36}{subsection.8.3}
+\contentsline {section}{\numberline {9}Worked example 1 : xmas beamline + mar ccd detector at the ESRF }{37}{section.9}
+\contentsline {subsection}{\numberline {9.1}Reading marccd headers}{37}{subsection.9.1}
+\contentsline {subsection}{\numberline {9.2}Writing out cif files for fit2d/xmas}{42}{subsection.9.2}
+\contentsline {subsection}{\numberline {9.3}A template cif file for the xmas beamline}{47}{subsection.9.3}
