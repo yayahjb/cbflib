@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+<title>(IUCr) CIF Definition save_axis</title>
+  <link rel="stylesheet" type="text/css" href="../../itg.css" />
+</head>
+
+<body>
+<!-- begin masthead -->
+  <div class="masthead">
+    <table class="masthead">
+      <tr>
+        <td class="masthead" width="30%">
+          <p class="title">DRAFT DICTIONARY</p>
+          <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
+        </td>
+        <td class="masthead">
+          <p class="title">Draft version 1.5 for comment</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <!-- end masthead -->
+<hr>
+<H1>
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg" ALIGN=MIDDLE></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg" ALIGN=MIDDLE></a>
+<a href="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg"
+ALT="[CBF/imgCIF]" ALIGN=MIDDLE></a>
+<a href="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg"
+ALT="[CBFlib]" ALIGN=MIDDLE></a>
+</H1>
+<hr>
+  <!-- begin navbar -->
+  <div class="navbar">
+    <table class="navbar">
+      <tr>
+        <td><a class="navbar" href="index.html">Contents</a></td>
+      </tr>
+    </table>
+  </div>
+  <!-- end navbar -->
+
+
+<p class="index"><a class="index" href="index.html">Index</a></p>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
+<h1>Category AXIS</h1>
+<b>Name:</b><br />
+<tt class="cifdefinition">'axis'</tt> 
+<p><b>Description:</b></p><pre class="cifdefinition">
+    Data items in the AXIS category record the information required
+     to describe the various goniometer, detector, source and other
+     axes needed to specify a data collection or the axes defining the
+     coordinate system of an image.
+
+     The location of each axis is specified by two vectors: the axis
+     itself, given by a  unit vector in the direction of the axis, and
+     an offset to the base of the unit vector.
+
+     The vectors defining an axis are referenced to an appropriate
+     coordinate system.  The axis vector, itself, is a dimensionless
+     unit vector.  Where meaningful, the offset vector is given in
+     millimetres.  In coordinate systems not measured in metres,
+     the offset is not specified and is taken as zero.
+
+     The available coordinate systems are:
+
+         The imgCIF standard laboratory coordinate system
+         The direct lattice (fractional atomic coordinates)
+         The orthogonal Cartesian coordinate system (real space)
+         The reciprocal lattice
+         An abstract orthogonal Cartesian coordinate frame
+
+     For consistency in this discussion, we call the three coordinate
+     system axes X, Y and Z.  This is appropriate for the imgCIF
+     standard laboratory coordinate system, and last two Cartesian
+     coordinate systems, but for the direct lattice, X corresponds
+     to a, Y to b and Z to c, while for the reciprocal lattice,
+     X corresponds to a*, Y to b* and Z to c*.
+
+     For purposes of visualization, all the coordinate systems are
+     taken as right-handed, i.e., using the convention that the extended
+     thumb of a right hand could point along the first (X) axis, the
+     straightened pointer finger could point along the second (Y) axis
+     and the middle finger folded inward could point along the third (Z)
+     axis.
+
+     THE IMGCIF STANDARD LABORATORY COORDINATE SYSTEM
+
+     The imgCIF standard laboratory coordinate system is a right-handed
+     orthogonal coordinate similar to the MOSFLM coordinate system,
+     but imgCIF puts Z along the X-ray beam, rather than putting X along the
+     X-ray beam as in MOSFLM.
+
+     The vectors for the imgCIF standard laboratory coordinate system
+     form a right-handed Cartesian coordinate system with its origin
+     in the sample or specimen.  The origin of the axis system should,
+     if possible, be defined in terms of mechanically stable axes to be
+     be both in the sample and in the beam.  If the sample goniometer or other
+     sample positioner has two axes the intersection of which defines a
+     unique point at which the sample should be mounted to be bathed
+     by the beam, that will be the origin of the axis system.  If no such
+     point is defined, then the midpoint of the line of intersection
+     between the sample and the center of the beam will define the origin.
+     For this definition the sample positioning system will be set at
+     its initial reference position for the experiment.
+
+
+                             | Y (to complete right-handed system)
+                             |
+                             |
+                             |
+                             |
+                             |
+                             |________________X
+                            /       principal goniometer axis
+                           /
+                          /
+                         /
+                        /
+                       /Z (to source)
+
+
+
+
+     Axis 1 (X): The X-axis is aligned to the mechanical axis pointing from
+     the sample or specimen along the  principal axis of the goniometer or
+     sample positioning system if the sample positioning system has an axis
+     that intersects the origin and which form an angle of more than 22.5
+     degrees with the beam axis.
+
+     Axis 2 (Y): The Y-axis completes an orthogonal right-handed system
+     defined by the X-axis and the Z-axis (see below).
+
+     Axis 3 (Z): The Z-axis is derived from the source axis which goes from
+     the sample to the source.  The Z-axis is the component of the source axis
+     in the direction of the source orthogonal to the X-axis in the plane
+     defined by the X-axis and the source axis.
+
+     If the conditions for the X-axis can be met, the coordinate system
+     will be based on the goniometer or other sample positioning system
+     and the beam and not on the orientation of the detector, gravity etc.
+     The vectors necessary to specify all other axes are given by sets of
+     three components in the order (X, Y, Z).
+     If the axis involved is a rotation axis, it is right-handed, i.e. as
+     one views the object to be rotated from the origin (the tail) of the
+     unit vector, the rotation is clockwise.  If a translation axis is
+     specified, the direction of the unit vector specifies the sense of
+     positive translation.
+
+     Note:  This choice of coordinate system is similar to but significantly
+     different from the choice in MOSFLM (Leslie &amp; Powell, 2004).  In MOSFLM,
+     X is along the X-ray beam (the CBF/imgCIF Z axis) and Z is along the
+     rotation axis.
+
+     In some experimental techniques, there is no goniometer or the principal
+     axis of the goniometer is at a small acute angle with respect to
+     the source axis.  In such cases, other reference axes are needed
+     to define a useful coordinate system.  The order of priority in
+     defining directions in such cases is to use the detector, then
+     gravity, then north.
+
+
+     If the X-axis cannot be defined as above, then the
+     direction (not the origin) of the X-axis should be parallel to the axis
+     of the primary detector element corresponding to the most rapidly
+     varying dimension of that detector element's data array, with its
+     positive sense corresponding to increasing values of the index for
+     that dimension.  If the detector is such that such a direction cannot
+     be defined (as with a point detector) or that direction forms an
+     angle of less than 22.5 degrees with respect to the source axis, then
+     the X-axis should be chosen so that if the Y-axis is chosen
+     in the direction of gravity, and the Z-axis is chosen to be along
+     the source axis, a right-handed orthogonal coordinate system is chosen.
+     In the case of a vertical source axis, as a last resort, the
+     X-axis should be chosen to point North.
+
+     All rotations are given in degrees and all translations are given in mm.
+
+     Axes may be dependent on one another.  The X-axis is the only goniometer
+     axis the direction of which is strictly connected to the hardware.  All
+     other axes are specified by the positions they would assume when the
+     axes upon which they depend are at their zero points.
+
+     When specifying detector axes, the axis is given to the beam centre.
+     The location of the beam centre on the detector should be given in the
+     <a href="Cdiffrn_detector.html" class="catlink">DIFFRN_DETECTOR</a> category in distortion-corrected millimetres from
+     the (0,0) corner of the detector.
+
+     It should be noted that many different origins arise in the definition
+     of an experiment.  In particular, as noted above, it is necessary to
+     specify the location of the beam centre on the detector in terms
+     of the origin of the detector, which is, of course, not coincident
+     with the centre of the sample.
+
+     The unit cell, reciprocal cell and crystallographic orthogonal
+     Cartesian coordinate system are defined by the CELL and the matrices
+     in the ATOM_SITES category.
+
+     THE DIRECT LATTICE (FRACTIONAL COORDINATES)
+
+     The direct lattice coordinate system is a system of fractional
+     coordinates aligned to the crystal, rather than to the laboratory.
+     This is a natural coordinate system for maps and atomic coordinates.
+     It is the simplest coordinate system in which to apply symmetry.
+     The axes are determined by the cell edges, and are not necessarily
+     othogonal.  This coordinate system is not uniquely defined and
+     depends on the cell parameters in the CELL category and the
+     settings chosen to index the crystal.
+
+     Molecules in a crystal studied by X-ray diffracraction are organized
+     into a repeating regular array of unit cells.  Each unit cell is defined
+     by three vectors, a, b and c.  To quote from Drenth,
+
+
+     "The choice of the unit cell is not unique and therefore, guidelines
+     have been established for selecting the standard basis vectors and
+     the origin.  They are based on symmetry and metric considerations:
+
+      "(1)  The axial system should be right handed.
+       (2)  The basis vectors should coincide as much as possible with
+       directions of highest symmetry."
+       (3)  The cell taken should be the smallest one that satisfies
+       condition (2)
+       (4)  Of all the lattice vectors, none is shorter than a.
+       (5)  Of those not directed along a, none is shorter than b.
+       (6)  Of those not lying in the ab plane, none is shorter than c.
+       (7)  The three angles between the basis vectors a, b and c are
+       either all acute (&lt;90\%) or all obtuse (>=90\%)."
+
+     These rules do not produce a unique result that is stable under
+     the assumption of experimental errors, and the the resulting cell
+     may not be primitive.
+
+     In this coordinate system, the vector (.5, .5, .5) is in the middle
+     of the given unit cell.
+
+     Grid coordinates are an important variation on fractional coordinates
+     used when working with maps.  In imgCIF, the conversion from
+     fractional to grid coordinates is implicit in the array indexing
+     specified by <a href="Iarray_structure_list.dimension.html" class="itemlink">_array_structure_list.dimension</a>.  Note that this
+     implicit grid-coordinate scheme is 1-based, not zero-based, i.e.
+     the origin of the cell for axes along the cell edges with no
+     specified <a href="Iarray_structure_list_axis.displacement.html" class="itemlink">_array_structure_list_axis.displacement</a> will have
+     grid coordinates of (1,1,1), i.e. array indices of (1,1,1).
+
+     THE ORTHOGONAL CARTESIAN COORDINATE SYSTEM (REAL SPACE)
+
+     The orthogonal Cartesian coordinate system is a transformation of
+     the direct lattice to the actual physical coordinates of atoms in
+     space.  It is similar to the laboratory coordinate system, but
+     is anchored to and moves with the crystal, rather than being
+     schored to the laboratory.  The transformation from fractional
+     to orthogonal cartesian coordinates is given by the
+              _atom_sites.Cartn_transf_matrix[i][j]  and
+              _atom_sites.Cartn_transf_vector[i]
+     tags.  A common choice for the matrix of the transformation is
+     given in the 1992 PDB format document
+
+              | a      b cos(\g)   c cos(\b)                            |
+              | 0      b sin(\g)   c (cos(\a) - cos(\b)cos(\g))/sin(\g) |
+              | 0      0           V/(a b sin(\g))                      |
+
+     This is a convenient coordinate system in which to do fitting
+     of models to maps and in which to understand the chemistry of
+     a molecule.
+
+     THE RECIPROCAL LATTICE
+
+     The reciprocal lattice coordinate system is used for diffraction
+     intensitities.  It is based on the reciprocal cell, the dual of the cell,
+     in which reciprocal cell edges are derived from direct cell faces:
+
+        a* = bc sin(\a)/V  b* = ac sin(\b)/V  c* = ab sin(\g)/V
+        cos(\a*) = (cos(\b) cos(\g) - cos(\a))/(sin(\b)  sin(\g))
+        cos(\b*) = (cos(\a) cos(\g) - cos(\b))/(sin(\a) sin(\g))
+        cos(\g*) = (cos(\a) cos(\b) - cos(\g))/(sin(\a) sin(\b))
+        V = abc  SQRT(1 - cos(\a)^2^
+                        - cos(\b)^2^
+                        - cos(\g)^2^
+                        + 2 cos(\a) cos(\b) cos(\g) )
+
+     In this form the dimensions of the reciprocal lattice are in reciprocal
+     \%Angstroms (\%A^-1^).  A dimensionless form can be obtained by
+     multiplying by the wavelength.  Reflections are commonly indexed against
+     this coordinate system as (h, k, l) triples.
+
+
+     References:
+
+     Drenth, J., "Introduction to basic crystallography." chapter
+     2.1 in Rossmann, M. G. and Arnold, E. "Crystallography of
+     biological macromolecules", Volume F of the IUCr's "International
+     tables for crystallography", Kluwer, Dordrecht 2001, pp 44 -- 63
+
+     Leslie, A. G. W. and Powell, H. (2004). MOSFLM v6.11.
+     MRC Laboratory of Molecular Biology, Hills Road, Cambridge, England.
+     http://www.CCP4.ac.uk/dist/X-windows/Mosflm/.
+
+     Stout, G. H. and Jensen, L. H., "X-ray structure determination",
+     2nd ed., Wiley, New York, 1989, 453 pp.
+
+     __, "PROTEIN DATA BANK ATOMIC COORDINATE AND BIBLIOGRAPHIC ENTRY
+     FORMAT DESCRIPTION," Brookhaven National Laboratory, February 1992.
+
+</pre>
+<b>Examples:</b><br /><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+        Example 1 -
+
+        This example shows the axis specification of the axes of a kappa-
+        geometry goniometer [see Stout, G. H. &amp; Jensen, L. H. (1989). X-ray
+        structure determination. A practical
+        guide, 2nd ed. p. 134. New York: Wiley Interscience].
+
+        There are three axes specified, and no offsets.  The outermost axis,
+        omega, is pointed along the X axis.  The next innermost axis, kappa,
+        is at a 50 degree angle to the X axis, pointed away from the source.
+        The innermost axis, phi, aligns with the X axis when omega and
+        phi are at their zero points.  If T-omega, T-kappa and T-phi
+        are the transformation matrices derived from the axis settings,
+        the complete transformation would be:
+            X' = (T-omega) (T-kappa) (T-phi) X
+
+</i><br /><pre class="cifexample">
+ 
+         loop_
+        _axis.id
+        _axis.type
+        _axis.equipment
+        _axis.depends_on
+        _axis.vector[1] _axis.vector[2] _axis.vector[3]
+        omega rotation goniometer     .    1        0        0
+        kappa rotation goniometer omega    -.64279  0       -.76604
+        phi   rotation goniometer kappa    1        0        0
+
+</pre><br /></td></tr></table><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+        Example 2 -
+
+        This example shows the axis specification of the axes of a
+        detector, source and gravity.  The order has been changed as a
+        reminder that the ordering of presentation of tokens is not
+        significant.  The centre of rotation of the detector has been taken
+        to be 68 millimetres in the direction away from the source.
+
+</i><br /><pre class="cifexample">
+ 
+        loop_
+        _axis.id
+        _axis.type
+        _axis.equipment
+        _axis.depends_on
+        _axis.vector[1] _axis.vector[2] _axis.vector[3]
+        _axis.offset[1] _axis.offset[2] _axis.offset[3]
+        source       .        source     .       0     0     1   . . .
+        gravity      .        gravity    .       0    -1     0   . . .
+        tranz     translation detector rotz      0     0     1   0 0 -68
+        twotheta  rotation    detector   .       1     0     0   . . .
+        roty      rotation    detector twotheta  0     1     0   0 0 -68
+        rotz      rotation    detector roty      0     0     1   0 0 -68
+
+</pre><br /></td></tr></table><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+        Example 3 -
+
+        This example show the axis specification of the axes for a map,
+        using fractional coordinates.  Each cell edge has been divided
+        into a grid of 50 divisions in the ARRAY_STRUCTURE_LIST_AXIS
+        category.  The map is using only the first octant of the grid
+        in the ARRAY_STRUCTURE_LIST category.
+
+        The fastest changing axis is the gris along A, then along B,
+        and the slowest is along C.
+
+        The map sampling is being done in the middle of each grid
+        division
+
+
+</i><br /><pre class="cifexample">
+ 
+        loop_
+        _axis.id
+        _axis.system
+        _axis.vector[1] _axis.vector[2] _axis.vector[3]
+        CELL_A_AXIS    fractional       1 0 0
+        CELL_B_AXIS    fractional       0 1 0
+        CELL_C_AXIS    fractional       0 0 1
+
+        loop_
+        _array_structure_list.array_id
+        _array_structure_list.index
+        _array_structure_list.dimension
+        _array_structure_list.precedence
+        _array_structure_list.direction
+        _array_structure_list.axis_id
+        MAP 1 25 1 increasing CELL_A_AXIS
+        MAP 1 25 2 increasing CELL_B_AXIS
+        MAP 1 25 3 increasing CELL_C_AXIS
+
+        loop_
+        _array_structure_list_axis.axis_id
+        _array_structure_list_axis.fract_displacement
+        _array_structure_list_axis.fract_displacement_increment
+        CELL_A_AXIS 0.01 0.02
+        CELL_B_AXIS 0.01 0.02
+        CELL_C_AXIS 0.01 0.02
+
+
+
+
+</pre><br /></td></tr></table><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+        Example 4 -
+
+        This example show the axis specification of the axes for a map,
+        this time as orthogonal \%Angstroms, using the same coordinate system
+        as for the atomic coordinates.  The map is sampling every 1.5
+        \%Angstroms (1.5e-7 millimeters) in a map segment 37.5 \%Angstroms on
+        a side.
+
+
+</i><br /><pre class="cifexample">
+ 
+        loop_
+        _axis.id
+        _axis.system
+        _axis.vector[1] _axis.vector[2] _axis.vector[3]
+        X    orthogonal       1 0 0
+        Y    orthogonal       0 1 0
+        Z    orthogonal       0 0 1
+
+                loop_
+        _array_structure_list.array_id
+        _array_structure_list.index
+        _array_structure_list.dimension
+        _array_structure_list.precedence
+        _array_structure_list.direction
+        _array_structure_list.axis_id
+        MAP 1 25 1 increasing X
+        MAP 2 25 2 increasing Y
+        MAP 3 25 3 increasing Z
+
+        loop_
+        _array_structure_list_axis.axis_id
+        _array_structure_list_axis.displacement
+        _array_structure_list_axis.displacement_increment
+        X 7.5e-8 1.5e-7
+        Y 7.5e-8 1.5e-7
+        Z 7.5e-8 1.5e-7
+
+
+
+</pre><br /></td></tr></table><br />
+
+<b>Category groups:</b><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;inclusive_group</tt><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;axis_group</tt><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;diffrn_group</tt><br />
+
+<b>Category keys:</b><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;_axis.id</tt><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;_axis.equipment</tt><br />
+
+<p class="pack"><b>Mandatory category:</b> no</p>
+
+  <h4 align=left>
+  HTML version of draft dictionary created by modified version of makedicthtml by B. McMahon
+  from modified version of imgCIF dcitionary 1.3.2 which is subject to the following copyright:
+  </h4>
+  <!-- begin copyright -->
+  <div class="copyright">
+    <p class="copyright">Copyright &copy; 2005 International Union of Crystallography</p>
+  </div>
+  <!-- end copyright -->
+
+</body>
+</html>

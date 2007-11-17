@@ -1,0 +1,669 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+<title>(IUCr) CIF Definition save_diffrn_scan</title>
+  <link rel="stylesheet" type="text/css" href="../../itg.css" />
+</head>
+
+<body>
+<!-- begin masthead -->
+  <div class="masthead">
+    <table class="masthead">
+      <tr>
+        <td class="masthead" width="30%">
+          <p class="title">DRAFT DICTIONARY</p>
+          <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
+        </td>
+        <td class="masthead">
+          <p class="title">Draft version 1.5 for comment</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <!-- end masthead -->
+<hr>
+<H1>
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg" ALIGN=MIDDLE></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg" ALIGN=MIDDLE></a>
+<a href="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg"
+ALT="[CBF/imgCIF]" ALIGN=MIDDLE></a>
+<a href="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg"
+ALT="[CBFlib]" ALIGN=MIDDLE></a>
+</H1>
+<hr>
+  <!-- begin navbar -->
+  <div class="navbar">
+    <table class="navbar">
+      <tr>
+        <td><a class="navbar" href="index.html">Contents</a></td>
+      </tr>
+    </table>
+  </div>
+  <!-- end navbar -->
+
+
+<p class="index"><a class="index" href="index.html">Index</a></p>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
+<h1>Category DIFFRN_SCAN</h1>
+<b>Name:</b><br />
+<tt class="cifdefinition">'diffrn_scan'</tt> 
+<p><b>Description:</b></p><pre class="cifdefinition">
+    Data items in the <a href="Cdiffrn_scan.html" class="catlink">DIFFRN_SCAN</a> category describe the parameters of one
+     or more scans, relating axis positions to frames.
+
+
+</pre>
+<b>Examples:</b><br /><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+    Example 1 - derived from a suggestion by R. M. Sweet.
+
+   The vector of each axis is not given here, because it is provided in
+   the AXIS category.  By making _diffrn_scan_axis.scan_id and
+   _diffrn_scan_axis.axis_id keys of the DIFFRN_SCAN_AXIS category,
+   an arbitrary number of scanning and fixed axes can be specified for a
+   scan.  In this example, three rotation axes and one translation axis
+   at nonzero values are specified, with one axis stepping.  There is no
+   reason why more axes could not have been specified to step. Range
+   information has been specified, but note that it can be calculated from
+   the  number of frames and the increment, so the data item
+   _diffrn_scan_axis.angle_range could be dropped.
+
+   Both the sweep data and the data for a single frame are specified.
+
+   Note that the information on how the axes are stepped is given twice,
+   once in terms of the overall averages in the value of
+   _diffrn_scan.integration_time and the values for DIFFRN_SCAN_AXIS,
+   and precisely for the given frame in the value for
+   _diffrn_scan_frame.integration_time and the values for
+   DIFFRN_SCAN_FRAME_AXIS.  If dose-related adjustments are made to
+   scan times and nonlinear stepping is done, these values may differ.
+   Therefore, in interpreting the data for a particular frame it is
+   important to use the frame-specific data.
+
+</i><br /><pre class="cifexample">
+ 
+      _diffrn_scan.id                   1
+      _diffrn_scan.date_start         '2001-11-18T03:26:42'
+      _diffrn_scan.date_end           '2001-11-18T03:36:45'
+      _diffrn_scan.integration_time    3.0
+      _diffrn_scan.frame_id_start      mad_L2_000
+      _diffrn_scan.frame_id_end        mad_L2_200
+      _diffrn_scan.frames              201
+
+       loop_
+      _diffrn_scan_axis.scan_id
+      _diffrn_scan_axis.axis_id
+      _diffrn_scan_axis.angle_start
+      _diffrn_scan_axis.angle_range
+      _diffrn_scan_axis.angle_increment
+      _diffrn_scan_axis.displacement_start
+      _diffrn_scan_axis.displacement_range
+      _diffrn_scan_axis.displacement_increment
+
+       1 omega 200.0 20.0 0.1 . . .
+       1 kappa -40.0  0.0 0.0 . . .
+       1 phi   127.5  0.0 0.0 . . .
+       1 tranz  . . .   2.3 0.0 0.0
+
+      _diffrn_scan_frame.scan_id                   1
+      _diffrn_scan_frame.date               '2001-11-18T03:27:33'
+      _diffrn_scan_frame.integration_time    3.0
+      _diffrn_scan_frame.frame_id            mad_L2_018
+      _diffrn_scan_frame.frame_number        18
+
+      loop_
+      _diffrn_scan_frame_axis.frame_id
+      _diffrn_scan_frame_axis.axis_id
+      _diffrn_scan_frame_axis.angle
+      _diffrn_scan_frame_axis.angle_increment
+      _diffrn_scan_frame_axis.displacement
+      _diffrn_scan_frame_axis.displacement_increment
+
+       mad_L2_018 omega 201.8  0.1 . .
+       mad_L2_018 kappa -40.0  0.0 . .
+       mad_L2_018 phi   127.5  0.0 . .
+       mad_L2_018 tranz  .     .  2.3 0.0
+
+</pre><br /></td></tr></table><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+   Example 2 - a more extensive example (R. M. Sweet, P. J. Ellis &amp;
+   H. J. Bernstein).
+
+   A detector is placed 240 mm along the Z axis from the goniometer.
+   This leads to a choice:  either the axes of
+   the detector are defined at the origin, and then a Z setting of -240
+   is entered, or the axes are defined with the necessary Z offset.
+   In this case, the setting is used and the offset is left as zero.
+   This axis is called DETECTOR_Z.
+
+   The axis for positioning the detector in the Y direction depends
+   on the detector Z axis.  This axis is called DETECTOR_Y.
+
+   The axis for positioning the detector in the X direction depends
+   on the detector Y axis (and therefore on the detector Z axis).
+   This axis is called DETECTOR_X.
+
+   This detector may be rotated around the Y axis.  This rotation axis
+   depends on the three translation axes.  It is called DETECTOR_PITCH.
+
+   A coordinate system is defined on the face of the detector in terms of
+   2300 0.150 mm pixels in each direction.  The ELEMENT_X axis is used to
+   index the first array index of the data array and the ELEMENT_Y
+   axis is used to index the second array index.  Because the pixels
+   are 0.150mm X 0.150mm, the centre of the first pixel is at (0.075,
+   0.075) in this coordinate system.
+
+</i><br /><pre class="cifexample">
+     ###CBF: VERSION 1.1
+
+     data_image_1
+
+     # category DIFFRN
+     _diffrn.id P6MB
+     _diffrn.crystal_id P6MB_CRYSTAL7
+
+     # category DIFFRN_SOURCE
+     loop_
+     _diffrn_source.diffrn_id
+     _diffrn_source.source
+     _diffrn_source.type
+      P6MB synchrotron 'SSRL beamline 9-1'
+
+     # category DIFFRN_RADIATION
+     loop_
+     _diffrn_radiation.diffrn_id
+     _diffrn_radiation.wavelength_id
+     _diffrn_radiation.monochromator
+     _diffrn_radiation.polarizn_source_ratio
+     _diffrn_radiation.polarizn_source_norm
+     _diffrn_radiation.div_x_source
+     _diffrn_radiation.div_y_source
+     _diffrn_radiation.div_x_y_source
+      P6MB WAVELENGTH1 'Si 111' 0.8 0.0 0.08
+     0.01 0.00
+
+     # category DIFFRN_RADIATION_WAVELENGTH
+     loop_
+     _diffrn_radiation_wavelength.id
+     _diffrn_radiation_wavelength.wavelength
+     _diffrn_radiation_wavelength.wt
+      WAVELENGTH1 0.98 1.0
+
+     # category DIFFRN_DETECTOR
+     loop_
+     _diffrn_detector.diffrn_id
+     _diffrn_detector.id
+     _diffrn_detector.type
+     _diffrn_detector.number_of_axes
+      P6MB MAR345-SN26 'MAR 345' 4
+
+     # category DIFFRN_DETECTOR_AXIS
+     loop_
+     _diffrn_detector_axis.detector_id
+     _diffrn_detector_axis.axis_id
+      MAR345-SN26 DETECTOR_X
+      MAR345-SN26 DETECTOR_Y
+      MAR345-SN26 DETECTOR_Z
+      MAR345-SN26 DETECTOR_PITCH
+
+     # category DIFFRN_DETECTOR_ELEMENT
+     loop_
+     _diffrn_detector_element.id
+     _diffrn_detector_element.detector_id
+      ELEMENT1 MAR345-SN26
+
+     # category DIFFRN_DATA_FRAME
+     loop_
+     _diffrn_data_frame.id
+     _diffrn_data_frame.detector_element_id
+     _diffrn_data_frame.array_id
+     _diffrn_data_frame.binary_id
+      FRAME1 ELEMENT1 ARRAY1 1
+
+     # category DIFFRN_MEASUREMENT
+     loop_
+     _diffrn_measurement.diffrn_id
+     _diffrn_measurement.id
+     _diffrn_measurement.number_of_axes
+     _diffrn_measurement.method
+      P6MB GONIOMETER 3 rotation
+
+     # category DIFFRN_MEASUREMENT_AXIS
+     loop_
+     _diffrn_measurement_axis.measurement_id
+     _diffrn_measurement_axis.axis_id
+      GONIOMETER GONIOMETER_PHI
+      GONIOMETER GONIOMETER_KAPPA
+      GONIOMETER GONIOMETER_OMEGA
+
+     # category DIFFRN_SCAN
+     loop_
+     _diffrn_scan.id
+     _diffrn_scan.frame_id_start
+     _diffrn_scan.frame_id_end
+     _diffrn_scan.frames
+      SCAN1 FRAME1 FRAME1 1
+
+     # category DIFFRN_SCAN_AXIS
+     loop_
+     _diffrn_scan_axis.scan_id
+     _diffrn_scan_axis.axis_id
+     _diffrn_scan_axis.angle_start
+     _diffrn_scan_axis.angle_range
+     _diffrn_scan_axis.angle_increment
+     _diffrn_scan_axis.displacement_start
+     _diffrn_scan_axis.displacement_range
+     _diffrn_scan_axis.displacement_increment
+      SCAN1 GONIOMETER_OMEGA 12.0 1.0 1.0 0.0 0.0 0.0
+      SCAN1 GONIOMETER_KAPPA 23.3 0.0 0.0 0.0 0.0 0.0
+      SCAN1 GONIOMETER_PHI -165.8 0.0 0.0 0.0 0.0 0.0
+      SCAN1 DETECTOR_Z 0.0 0.0 0.0 -240.0 0.0 0.0
+      SCAN1 DETECTOR_Y 0.0 0.0 0.0 0.6 0.0 0.0
+      SCAN1 DETECTOR_X 0.0 0.0 0.0 -0.5 0.0 0.0
+      SCAN1 DETECTOR_PITCH 0.0 0.0 0.0 0.0 0.0 0.0
+
+     # category DIFFRN_SCAN_FRAME
+     loop_
+     _diffrn_scan_frame.frame_id
+     _diffrn_scan_frame.frame_number
+     _diffrn_scan_frame.integration_time
+     _diffrn_scan_frame.scan_id
+     _diffrn_scan_frame.date
+      FRAME1 1 20.0 SCAN1 1997-12-04T10:23:48
+
+     # category DIFFRN_SCAN_FRAME_AXIS
+     loop_
+     _diffrn_scan_frame_axis.frame_id
+     _diffrn_scan_frame_axis.axis_id
+     _diffrn_scan_frame_axis.angle
+     _diffrn_scan_frame_axis.displacement
+      FRAME1 GONIOMETER_OMEGA 12.0 0.0
+      FRAME1 GONIOMETER_KAPPA 23.3 0.0
+      FRAME1 GONIOMETER_PHI -165.8 0.0
+      FRAME1 DETECTOR_Z 0.0 -240.0
+      FRAME1 DETECTOR_Y 0.0 0.6
+      FRAME1 DETECTOR_X 0.0 -0.5
+      FRAME1 DETECTOR_PITCH 0.0 0.0
+
+     # category AXIS
+     loop_
+     _axis.id
+     _axis.type
+     _axis.equipment
+     _axis.depends_on
+     _axis.vector[1] _axis.vector[2] _axis.vector[3]
+     _axis.offset[1] _axis.offset[2] _axis.offset[3]
+      GONIOMETER_OMEGA rotation goniometer . 1 0 0 . . .
+      GONIOMETER_KAPPA rotation goniometer GONIOMETER_OMEGA 0.64279
+      0 0.76604 . . .
+      GONIOMETER_PHI   rotation goniometer GONIOMETER_KAPPA 1 0 0
+     . . .
+      SOURCE           general source . 0 0 1 . . .
+      GRAVITY          general gravity . 0 -1 0 . . .
+      DETECTOR_Z       translation detector . 0 0 1 0 0 0
+      DETECTOR_Y       translation detector DETECTOR_Z 0 1 0 0 0 0
+      DETECTOR_X       translation detector DETECTOR_Y 1 0 0 0 0 0
+      DETECTOR_PITCH   rotation    detector DETECTOR_X 0 1 0 0 0 0
+      ELEMENT_X        translation detector DETECTOR_PITCH
+     1 0 0 172.43 -172.43 0
+      ELEMENT_Y        translation detector ELEMENT_X
+     0 1 0 0 0 0
+
+     # category ARRAY_STRUCTURE_LIST
+     loop_
+     _array_structure_list.array_id
+     _array_structure_list.index
+     _array_structure_list.dimension
+     _array_structure_list.precedence
+     _array_structure_list.direction
+     _array_structure_list.axis_set_id
+      ARRAY1 1 2300 1 increasing ELEMENT_X
+      ARRAY1 2 2300 2 increasing ELEMENT_Y
+
+     # category ARRAY_STRUCTURE_LIST_AXIS
+     loop_
+     _array_structure_list_axis.axis_set_id
+     _array_structure_list_axis.axis_id
+     _array_structure_list_axis.displacement
+     _array_structure_list_axis.displacement_increment
+      ELEMENT_X ELEMENT_X 0.075 0.150
+      ELEMENT_Y ELEMENT_Y 0.075 0.150
+
+     # category ARRAY_ELEMENT_SIZE
+     loop_
+     _array_element_size.array_id
+     _array_element_size.index
+     _array_element_size.size
+      ARRAY1 1 150e-6
+      ARRAY1 2 150e-6
+
+     # category ARRAY_INTENSITIES
+     loop_
+     _array_intensities.array_id
+     _array_intensities.binary_id
+     _array_intensities.linearity
+     _array_intensities.gain
+     _array_intensities.gain_esd
+     _array_intensities.overload
+     _array_intensities.undefined_value
+      ARRAY1 1 linear 1.15 0.2 240000 0
+
+      # category ARRAY_STRUCTURE
+      loop_
+      _array_structure.id
+      _array_structure.encoding_type
+      _array_structure.compression_type
+      _array_structure.byte_order
+      ARRAY1 "signed 32-bit integer" packed little_endian
+
+     # category ARRAY_DATA
+     loop_
+     _array_data.array_id
+     _array_data.binary_id
+     _array_data.data
+      ARRAY1 1
+     ;
+     --CIF-BINARY-FORMAT-SECTION--
+     Content-Type: application/octet-stream;
+         conversions="X-CBF_PACKED"
+     Content-Transfer-Encoding: BASE64
+     X-Binary-Size: 3801324
+     X-Binary-ID: 1
+     X-Binary-Element-Type: "signed 32-bit integer"
+     Content-MD5: 07lZFvF+aOcW85IN7usl8A==
+
+     AABRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZBQSr1sKNBOeOe9HITdMdDUnbq7bg
+     ...
+     8REo6TtBrxJ1vKqAvx9YDMD6J18Qg83OMr/tgssjMIJMXATDsZobL90AEXc4KigE
+
+     --CIF-BINARY-FORMAT-SECTION----
+     ;
+
+</pre><br /></td></tr></table><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+    Example 3 - Example 2 revised for a spiral scan (R. M. Sweet,
+    P. J. Ellis &amp; H. J. Bernstein).
+
+   A detector is placed 240 mm along the Z axis from the
+   goniometer, as in Example 2 above, but in this example the
+   image plate is scanned in a spiral pattern from the outside edge in.
+
+   The axis for positioning the detector in the Y direction depends
+   on the detector Z axis.  This axis is called DETECTOR_Y.
+
+   The axis for positioning the detector in the X direction depends
+   on the detector Y axis (and therefore on the detector Z axis).
+   This axis is called DETECTOR_X.
+
+   This detector may be rotated around the Y axis.  This rotation axis
+   depends on the three translation axes.  It is called DETECTOR_PITCH.
+
+   A coordinate system is defined on the face of the detector in
+   terms of a coupled rotation axis and radial scan axis to form
+   a spiral scan.  The rotation axis is called  ELEMENT_ROT  and the
+   radial axis is called ELEMENT_RAD.  A 150 micrometre radial pitch
+   and a 75 micrometre 'constant velocity' angular pitch are assumed.
+
+   Indexing is carried out first on the rotation axis and the radial axis
+   is made to be dependent on it.
+
+   The two axes are coupled to form an axis set ELEMENT_SPIRAL.
+
+</i><br /><pre class="cifexample">
+     ###CBF: VERSION 1.1
+
+     data_image_1
+
+     # category DIFFRN
+     _diffrn.id P6MB
+     _diffrn.crystal_id P6MB_CRYSTAL7
+
+     # category DIFFRN_SOURCE
+     loop_
+     _diffrn_source.diffrn_id
+     _diffrn_source.source
+     _diffrn_source.type
+      P6MB synchrotron 'SSRL beamline 9-1'
+
+     # category DIFFRN_RADIATION
+          loop_
+     _diffrn_radiation.diffrn_id
+     _diffrn_radiation.wavelength_id
+     _diffrn_radiation.monochromator
+     _diffrn_radiation.polarizn_source_ratio
+     _diffrn_radiation.polarizn_source_norm
+     _diffrn_radiation.div_x_source
+     _diffrn_radiation.div_y_source
+     _diffrn_radiation.div_x_y_source
+      P6MB WAVELENGTH1 'Si 111' 0.8 0.0 0.08
+     0.01 0.00
+
+     # category DIFFRN_RADIATION_WAVELENGTH
+     loop_
+     _diffrn_radiation_wavelength.id
+     _diffrn_radiation_wavelength.wavelength
+     _diffrn_radiation_wavelength.wt
+      WAVELENGTH1 0.98 1.0
+
+     # category DIFFRN_DETECTOR
+     loop_
+     _diffrn_detector.diffrn_id
+     _diffrn_detector.id
+     _diffrn_detector.type
+     _diffrn_detector.number_of_axes
+      P6MB MAR345-SN26 'MAR 345' 4
+
+     # category DIFFRN_DETECTOR_AXIS
+     loop_
+     _diffrn_detector_axis.detector_id
+     _diffrn_detector_axis.axis_id
+      MAR345-SN26 DETECTOR_X
+      MAR345-SN26 DETECTOR_Y
+      MAR345-SN26 DETECTOR_Z
+      MAR345-SN26 DETECTOR_PITCH
+
+     # category DIFFRN_DETECTOR_ELEMENT
+     loop_
+     _diffrn_detector_element.id
+     _diffrn_detector_element.detector_id
+      ELEMENT1 MAR345-SN26
+
+     # category DIFFRN_DATA_FRAME
+     loop_
+     _diffrn_data_frame.id
+     _diffrn_data_frame.detector_element_id
+     _diffrn_data_frame.array_id
+     _diffrn_data_frame.binary_id
+      FRAME1 ELEMENT1 ARRAY1 1
+
+     # category DIFFRN_MEASUREMENT
+     loop_
+     _diffrn_measurement.diffrn_id
+     _diffrn_measurement.id
+     _diffrn_measurement.number_of_axes
+     _diffrn_measurement.method
+      P6MB GONIOMETER 3 rotation
+
+     # category DIFFRN_MEASUREMENT_AXIS
+     loop_
+     _diffrn_measurement_axis.measurement_id
+     _diffrn_measurement_axis.axis_id
+      GONIOMETER GONIOMETER_PHI
+      GONIOMETER GONIOMETER_KAPPA
+      GONIOMETER GONIOMETER_OMEGA
+
+     # category DIFFRN_SCAN
+     loop_
+     _diffrn_scan.id
+     _diffrn_scan.frame_id_start
+     _diffrn_scan.frame_id_end
+     _diffrn_scan.frames
+      SCAN1 FRAME1 FRAME1 1
+
+     # category DIFFRN_SCAN_AXIS
+     loop_
+     _diffrn_scan_axis.scan_id
+     _diffrn_scan_axis.axis_id
+     _diffrn_scan_axis.angle_start
+     _diffrn_scan_axis.angle_range
+     _diffrn_scan_axis.angle_increment
+     _diffrn_scan_axis.displacement_start
+     _diffrn_scan_axis.displacement_range
+     _diffrn_scan_axis.displacement_increment
+      SCAN1 GONIOMETER_OMEGA 12.0 1.0 1.0 0.0 0.0 0.0
+      SCAN1 GONIOMETER_KAPPA 23.3 0.0 0.0 0.0 0.0 0.0
+      SCAN1 GONIOMETER_PHI -165.8 0.0 0.0 0.0 0.0 0.0
+      SCAN1 DETECTOR_Z 0.0 0.0 0.0 -240.0 0.0 0.0
+      SCAN1 DETECTOR_Y 0.0 0.0 0.0 0.6 0.0 0.0
+      SCAN1 DETECTOR_X 0.0 0.0 0.0 -0.5 0.0 0.0
+      SCAN1 DETECTOR_PITCH 0.0 0.0 0.0 0.0 0.0 0.0
+
+     # category DIFFRN_SCAN_FRAME
+     loop_
+     _diffrn_scan_frame.frame_id
+     _diffrn_scan_frame.frame_number
+     _diffrn_scan_frame.integration_time
+     _diffrn_scan_frame.scan_id
+     _diffrn_scan_frame.date
+      FRAME1 1 20.0 SCAN1 1997-12-04T10:23:48
+
+     # category DIFFRN_SCAN_FRAME_AXIS
+     loop_
+     _diffrn_scan_frame_axis.frame_id
+     _diffrn_scan_frame_axis.axis_id
+     _diffrn_scan_frame_axis.angle
+     _diffrn_scan_frame_axis.displacement
+      FRAME1 GONIOMETER_OMEGA 12.0 0.0
+      FRAME1 GONIOMETER_KAPPA 23.3 0.0
+      FRAME1 GONIOMETER_PHI -165.8 0.0
+      FRAME1 DETECTOR_Z 0.0 -240.0
+      FRAME1 DETECTOR_Y 0.0 0.6
+      FRAME1 DETECTOR_X 0.0 -0.5
+      FRAME1 DETECTOR_PITCH 0.0 0.0
+
+     # category AXIS
+     loop_
+     _axis.id
+     _axis.type
+     _axis.equipment
+     _axis.depends_on
+     _axis.vector[1] _axis.vector[2] _axis.vector[3]
+     _axis.offset[1] _axis.offset[2] _axis.offset[3]
+      GONIOMETER_OMEGA rotation goniometer . 1 0 0 . . .
+      GONIOMETER_KAPPA rotation goniometer GONIOMETER_OMEGA 0.64279
+      0 0.76604 . . .
+      GONIOMETER_PHI   rotation goniometer GONIOMETER_KAPPA 1 0 0
+     . . .
+      SOURCE           general source . 0 0 1 . . .
+      GRAVITY          general gravity . 0 -1 0 . . .
+      DETECTOR_Z       translation detector . 0 0 1 0 0 0
+      DETECTOR_Y       translation detector DETECTOR_Z 0 1 0 0 0 0
+      DETECTOR_X       translation detector DETECTOR_Y 1 0 0 0 0 0
+      DETECTOR_PITCH   rotation    detector DETECTOR_X 0 1 0 0 0 0
+      ELEMENT_ROT      translation detector DETECTOR_PITCH 0 0 1 0 0 0
+      ELEMENT_RAD      translation detector ELEMENT_ROT 0 1 0 0 0 0
+
+     # category ARRAY_STRUCTURE_LIST
+     loop_
+     _array_structure_list.array_id
+     _array_structure_list.index
+     _array_structure_list.dimension
+     _array_structure_list.precedence
+     _array_structure_list.direction
+     _array_structure_list.axis_set_id
+      ARRAY1 1 8309900 1 increasing ELEMENT_SPIRAL
+
+     # category ARRAY_STRUCTURE_LIST_AXIS
+     loop_
+     _array_structure_list_axis.axis_set_id
+     _array_structure_list_axis.axis_id
+     _array_structure_list_axis.angle
+     _array_structure_list_axis.displacement
+     _array_structure_list_axis.angular_pitch
+     _array_structure_list_axis.radial_pitch
+      ELEMENT_SPIRAL ELEMENT_ROT 0    .  0.075   .
+      ELEMENT_SPIRAL ELEMENT_RAD . 172.5  .    -0.150
+
+     # category ARRAY_ELEMENT_SIZE
+     # the actual pixels are 0.075 by 0.150 mm
+     # We give the coarser dimension here.
+     loop_
+     _array_element_size.array_id
+     _array_element_size.index
+     _array_element_size.size
+      ARRAY1 1 150e-6
+
+     # category ARRAY_INTENSITIES
+     loop_
+     _array_intensities.array_id
+     _array_intensities.binary_id
+     _array_intensities.linearity
+     _array_intensities.gain
+     _array_intensities.gain_esd
+     _array_intensities.overload
+     _array_intensities.undefined_value
+      ARRAY1 1 linear 1.15 0.2 240000 0
+
+      # category ARRAY_STRUCTURE
+      loop_
+      _array_structure.id
+      _array_structure.encoding_type
+      _array_structure.compression_type
+      _array_structure.byte_order
+      ARRAY1 "signed 32-bit integer" packed little_endian
+
+     # category ARRAY_DATA
+     loop_
+     _array_data.array_id
+     _array_data.binary_id
+     _array_data.data
+      ARRAY1 1
+     ;
+     --CIF-BINARY-FORMAT-SECTION--
+     Content-Type: application/octet-stream;
+         conversions="X-CBF_PACKED"
+     Content-Transfer-Encoding: BASE64
+     X-Binary-Size: 3801324
+     X-Binary-ID: 1
+     X-Binary-Element-Type: "signed 32-bit integer"
+     Content-MD5: 07lZFvF+aOcW85IN7usl8A==
+
+     AABRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZBQSr1sKNBOeOe9HITdMdDUnbq7bg
+     ...
+     8REo6TtBrxJ1vKqAvx9YDMD6J18Qg83OMr/tgssjMIJMXATDsZobL90AEXc4KigE
+
+     --CIF-BINARY-FORMAT-SECTION----
+     ;
+
+</pre><br /></td></tr></table><br />
+
+<b>Category groups:</b><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;inclusive_group</tt><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;diffrn_group</tt><br />
+
+<b>Category key:</b><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;_diffrn_scan.id</tt><br />
+
+<p class="pack"><b>Mandatory category:</b> no</p>
+
+  <h4 align=left>
+  HTML version of draft dictionary created by modified version of makedicthtml by B. McMahon
+  from modified version of imgCIF dcitionary 1.3.2 which is subject to the following copyright:
+  </h4>
+  <!-- begin copyright -->
+  <div class="copyright">
+    <p class="copyright">Copyright &copy; 2005 International Union of Crystallography</p>
+  </div>
+  <!-- end copyright -->
+
+</body>
+</html>

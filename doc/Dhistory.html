@@ -1,0 +1,542 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+<title>(IUCr) CIF dictionary cif_img.dic revision history</title>
+  <link rel="stylesheet" type="text/css" href="../../itg.css" />
+</head>
+
+<body>
+<!-- begin masthead -->
+  <div class="masthead">
+    <table class="masthead">
+      <tr>
+        <td class="masthead" width="30%">
+          <p class="title">DRAFT DICTIONARY</p>
+          <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
+        </td>
+        <td class="masthead">
+          <p class="title">Draft version 1.5 for comment</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <!-- end masthead -->
+<hr>
+<H1>
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg" ALIGN=MIDDLE></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg" ALIGN=MIDDLE></a>
+<a href="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg"
+ALT="[CBF/imgCIF]" ALIGN=MIDDLE></a>
+<a href="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg"
+ALT="[CBFlib]" ALIGN=MIDDLE></a>
+</H1>
+<hr>
+  <!-- begin navbar -->
+  <div class="navbar">
+    <table class="navbar">
+      <tr>
+        <td><a class="navbar" href="index.html">Contents</a></td>
+      </tr>
+    </table>
+  </div>
+  <!-- end navbar -->
+
+
+<p class="index"><a class="index" href="index.html">Index</a></p>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
+<h1>Revision history</h1>
+<pre>========================================================================
+Version 1.5.4 (2007-07-28)
+------------------------------------------------------------------------
+  Typographics corrections (HJB)
+
+     + Corrected embedded degree characters to \%
+     + Corrected embedded Aring to \%A
+     + Added trailing ^ for a power
+     + Removed 2 cases of a space after an underscore
+       in tag name.
+
+========================================================================
+Version 1.5.3 (2007-07-08)
+------------------------------------------------------------------------
+  Changes to support SLS miniCBF and suggestions
+   from the 24 May 07 BNL imgCIF workshop (HJB)
+
+     + Added new data items
+       '<a href="Iarray_data.header_contents.html" class="itemlink">_array_data.header_contents</a>',
+       '<a href="Iarray_data.header_convention.html" class="itemlink">_array_data.header_convention</a>',
+       '<a href="Idiffrn_data_frame.center_fast.html" class="itemlink">_diffrn_data_frame.center_fast</a>',
+       '<a href="Idiffrn_data_frame.center_slow.html" class="itemlink">_diffrn_data_frame.center_slow</a>',
+       '<a href="Idiffrn_data_frame.center_units.html" class="itemlink">_diffrn_data_frame.center_units</a>',
+       '<a href="Idiffrn_measurement.sample_detector_distance.html" class="itemlink">_diffrn_measurement.sample_detector_distance</a>',
+       '<a href="Idiffrn_measurement.sample_detector_voffset.html" class="itemlink">_diffrn_measurement.sample_detector_voffset</a>
+     + Deprecated data items
+       '_diffrn_detector_element.center[1]',
+       '_diffrn_detector_element.center[2]'
+     + Added comments and example on miniCBF
+     + Changed all array_id data items to implicit
+
+========================================================================
+Version 1.5.2 (2007-05-06)
+------------------------------------------------------------------------
+  Further clarifications of the coordinate system. (HJB)
+
+========================================================================
+Version 1.5.1 (2007-04-26)
+------------------------------------------------------------------------
+  Improve defintion of X-axis to cover the case of no goniometer
+   and clean up more line folds (HJB)
+
+========================================================================
+Version 1.5 (2007-07-25)
+------------------------------------------------------------------------
+  This is a cummulative list of the changes proposed since the
+   imgCIF workshop in Hawaii in July 2006.  It is the result
+   of contributions by H. J. Bernstein, A. Hammersley,
+   J. Wright and W. Kabsch.
+
+   2007-02-19 Consolidated changes (edited by HJB)
+     + Added new data items
+       '<a href="Iarray_structure.compression_type_flag.html" class="itemlink">_array_structure.compression_type_flag</a>',
+       '<a href="Iarray_structure_list_axis.fract_displacement.html" class="itemlink">_array_structure_list_axis.fract_displacement</a>',
+       '<a href="Iarray_structure_list_axis.displacement_increment.html" class="itemlink">_array_structure_list_axis.displacement_increment</a>',
+       '<a href="Iarray_structure_list_axis.reference_angle.html" class="itemlink">_array_structure_list_axis.reference_angle</a>',
+       '<a href="Iarray_structure_list_axis.reference_displacement.html" class="itemlink">_array_structure_list_axis.reference_displacement</a>',
+       '<a href="Iaxis.system.html" class="itemlink">_axis.system</a>',
+       '<a href="Idiffrn_detector_element.reference_center_fast.html" class="itemlink">_diffrn_detector_element.reference_center_fast</a>',
+       '<a href="Idiffrn_detector_element.reference_center_slow.html" class="itemlink">_diffrn_detector_element.reference_center_slow</a>',
+       '<a href="Idiffrn_scan_axis.reference_angle.html" class="itemlink">_diffrn_scan_axis.reference_angle</a>',
+       '<a href="Idiffrn_scan_axis.reference_displacement.html" class="itemlink">_diffrn_scan_axis.reference_displacement</a>',
+       '<a href="Imap.details.html" class="itemlink">_map.details</a>', '<a href="Imap.diffrn_id.html" class="itemlink">_map.diffrn_id</a>',
+       '<a href="Imap.entry_id.html" class="itemlink">_map.entry_id</a>', '<a href="Imap.id.html" class="itemlink">_map.id</a>',
+       '<a href="Imap_segment.array_id.html" class="itemlink">_map_segment.array_id</a>', '<a href="Imap_segment.binary_id.html" class="itemlink">_map_segment.binary_id</a>',
+       '<a href="Imap_segment.mask_array_id.html" class="itemlink">_map_segment.mask_array_id</a>', '<a href="Imap_segment.mask_binary_id.html" class="itemlink">_map_segment.mask_binary_id</a>',
+       '<a href="Imap_segment.id.html" class="itemlink">_map_segment.id</a>', '<a href="Imap_segment.map_id.html" class="itemlink">_map_segment.map_id</a>',
+       '<a href="Imap_segment.details.html" class="itemlink">_map_segment.details</a>.
+     + Change type of
+       '<a href="Iarray_structure.byte_order.html" class="itemlink">_array_structure.byte_order</a>' and
+       '<a href="Iarray_structure.compression_type.html" class="itemlink">_array_structure.compression_type</a>'
+       to ucode to make these values case-insensitive
+     + Add values 'packed_v2' and 'byte_offset' to enumeration of values for
+       '<a href="Iarray_structure.compression_type.html" class="itemlink">_array_structure.compression_type</a>'
+     + Add to definitions for the binary data type to handle new compression 
+       types, maps, and a variety of new axis types.
+    2007-07-25 Cleanup of typos for formal release (HJB)
+     + Corrected text fields for reference_ tag descriptions that
+       were off by one column
+     + Fix typos in comments listing fract_ tags
+     + Changed name of release from 1.5_DRAFT to 1.5
+     + Fix unclosed text fields in various map definitions
+
+
+========================================================================
+Version 1.4 (2006-07-04)
+------------------------------------------------------------------------
+  This is a change to reintegrate all changes made in the course of
+   publication of ITVG, by the RCSB from April 2005 through
+   August 2008 and changes for the 2006 imgCIF workshop in
+   Hawaii.
+
+   2006-07-04 Consolidated changes for the 2006 imgCIF workshop (edited by HJB)
+     + Correct type of '<a href="Iarray_structure_list.direction.html" class="itemlink">_array_structure_list.direction</a>' from 'int' to 'code'.
+     + Added new data items suggested by CN
+       '<a href="Idiffrn_data_frame.details.html" class="itemlink">_diffrn_data_frame.details</a>'
+       '<a href="Iarray_intensities.pixel_fast_bin_size.html" class="itemlink">_array_intensities.pixel_fast_bin_size</a>',
+       '<a href="Iarray_intensities.pixel_slow_bin_size.html" class="itemlink">_array_intensities.pixel_slow_bin_size</a> and
+       '<a href="Iarray_intensities.pixel_binning_method.html" class="itemlink">_array_intensities.pixel_binning_method</a>
+     + Added deprecated item for completeness
+       '<a href="Idiffrn_frame_data.details.html" class="itemlink">_diffrn_frame_data.details</a>'
+     + Added entry for missing item in contents list
+       '<a href="Iarray_structure_list_axis.displacement.html" class="itemlink">_array_structure_list_axis.displacement</a>'
+     + Added new MIME type X-BASE32K based on work by VL, KM, GD, HJB
+     + Correct description of MIME boundary delimiter to start in
+       column 1.
+     + General cleanup of text fields to conform to changes for ITVG
+       by removing empty lines at start and finish of text field.
+     + Amend example for <a href="Carray_intensities.html" class="catlink">ARRAY_INTENSITIES</a> to include binning.
+     + Add local copy of type specification (as 'code') for all children
+       of '_diffrn.id'.
+     + For consistency, change all references to 'pi' to '\p' and all
+       references to 'Angstroms' to '\%Angstroms'.
+     + Clean up all powers to use IUCr convention of '^power^', as in
+       '10^3^' for '10**3'.
+     + Update 'yyyy-mm-dd' type regex to allow truncation from the right
+       and improve comments to explain handling of related mmCIF
+       'yyyy-mm-dd:hh:mm' type, and use of 'Z' for GMT time zone.
+
+   2005-03-08 and
+   2004-08-08 fixed cases where _item_units.code  used
+              instead of _item_type.code (JDW)
+   2004-04-15 fixed item ordering in
+               <a href="Idiffrn_measurement_axis.measurement_id.html" class="itemlink">_diffrn_measurement_axis.measurement_id</a>
+               added sub_category 'vector' (JDW)
+
+========================================================================
+Version 1.3.2 (2005-06-25)
+------------------------------------------------------------------------
+  2005-06-25 ITEM_TYPE_LIST: code, ucode, line, uline regexps updated
+              to those of current mmCIF; float modified by allowing integers
+              terminated by a point as valid. The 'time' part of
+              yyyy-mm-dd types made optional in the regexp. (BM)
+
+   2005-06-17 Minor corrections as for proofs for IT G Chapter 4.6
+   (NJA)
+
+   2005-02-21  Minor corrections to spelling and punctuation
+   (NJA)
+
+   2005-01-08 Changes as per Nicola Ashcroft.
+   + Updated example 1 for <a href="Cdiffrn_measurement.html" class="catlink">DIFFRN_MEASUREMENT</a> to agree with mmCIF.
+   + Spelled out "micrometres" for "um" and "millimetres" for "mm".
+   + Removed phrase "which may be stored" from <a href="Carray_structure.html" class="catlink">ARRAY_STRUCTURE</a>
+     description.
+   + Removed unused 'byte-offsets' compressions and updated
+     cites to ITVG for '<a href="Iarray_structure.compression_type.html" class="itemlink">_array_structure.compression_type</a>'.
+   (HJB)
+
+========================================================================
+Version 1.3.1 (2003-08-13)
+------------------------------------------------------------------------
+
+   Changes as per Frances C. Bernstein.
+   + Identify initials.
+   + Adopt British spelling for centre in text.
+   + Set \p and \%Angstrom and powers.
+   + Clean up commas and unclear wordings.
+   + Clean up tenses in history.
+   Changes as per Gotzon Madariaga.
+   + Fix the <a href="Carray_data.html" class="catlink">ARRAY_DATA</a> example to align '<a href="Iarray_data.binary_id.html" class="itemlink">_array_data.binary_id</a>'
+   and X-Binary-ID.
+   + Add a range to '<a href="Iarray_intensities.gain_esd.html" class="itemlink">_array_intensities.gain_esd</a>'.
+   + In the example of <a href="Cdiffrn_detector_element.html" class="catlink">DIFFRN_DETECTOR_ELEMENT</a>,
+   '<a href="Idiffrn_detector_element.id.html" class="itemlink">_diffrn_detector_element.id</a>' and
+   '<a href="Idiffrn_detector_element.detector_id.html" class="itemlink">_diffrn_detector_element.detector_id</a>' interchanged.
+   + Fix typos for direction, detector and axes.
+   + Clarify description of polarisation.
+   + Clarify axes in '_diffrn_detector_element.center[1]'
+    '_diffrn_detector_element.center[2]'.
+   + Add local item types for items that are pointers.
+   (HJB)
+
+========================================================================
+Version 1.3.0 (2003-07-24)
+------------------------------------------------------------------------
+
+   Changes as per Brian McMahon.
+   + Consistently quote tags embedded in text.
+   + Clean up introductory comments.
+   + Adjust line lengths to fit in 80 character window.
+   + Fix several descriptions in AXIS category which
+     referred to '<a href="Iaxis.type.html" class="itemlink">_axis.type</a>' instead of the current item.
+   + Fix erroneous use of deprecated item
+     '<a href="Idiffrn_detector_axis.id.html" class="itemlink">_diffrn_detector_axis.id</a>' in examples for
+     <a href="Cdiffrn_scan_axis.html" class="catlink">DIFFRN_SCAN_AXIS</a>.
+   + Add deprecated items '<a href="Idiffrn_detector_axis.id.html" class="itemlink">_diffrn_detector_axis.id</a>'
+     and '<a href="Idiffrn_measurement_axis.id.html" class="itemlink">_diffrn_measurement_axis.id</a>'.
+   (HJB)
+
+========================================================================
+Version 1.2.4 (2003-07-14)
+------------------------------------------------------------------------
+
+   Changes as per I. David Brown.
+   + Enhance descriptions in <a href="Cdiffrn_scan_axis.html" class="catlink">DIFFRN_SCAN_AXIS</a> to make them less
+     dependent on the descriptions in <a href="Cdiffrn_scan_frame_axis.html" class="catlink">DIFFRN_SCAN_FRAME_AXIS</a>.
+   + Provide a copy of the deprecated <a href="Cdiffrn_frame_data.html" class="catlink">DIFFRN_FRAME_DATA</a>
+     category for completeness.
+   (HJB)
+
+========================================================================
+Version 1.2.3 (2003-07-03)
+------------------------------------------------------------------------
+
+   Cleanup to conform to ITVG.
+   + Correct sign error in ..._cubed units.
+   + Correct '<a href="Idiffrn_radiation.polarisn_norm.html" class="itemlink">_diffrn_radiation.polarisn_norm</a>' range.
+   (HJB)
+
+========================================================================
+Version 1.2.2 (2003-03-10)
+------------------------------------------------------------------------
+
+   Correction of typos in various <a href="Cdiffrn_scan_axis.html" class="catlink">DIFFRN_SCAN_AXIS</a> descriptions.
+   (HJB)
+
+========================================================================
+Version 1.2.1 (2003-02-22)
+------------------------------------------------------------------------
+
+   Correction of ATOM_ for ARRAY_ typos in various descriptions.
+   (HJB)
+
+========================================================================
+Version 1.2 (2003-02-07)
+------------------------------------------------------------------------
+
+   Corrections to encodings (remove extraneous hyphens) remove
+   extraneous underscore in '<a href="Iarray_structure.encoding_type.html" class="itemlink">_array_structure.encoding_type</a>'
+   enumeration.  Correct typos in items units list.  (HJB)
+
+========================================================================
+Version 1.1.3 (2001-04-19)
+------------------------------------------------------------------------
+
+   Another typo corrections by Wilfred Li, and cleanup by HJB.
+
+========================================================================
+Version 1.1.2 (2001-03-06)
+------------------------------------------------------------------------
+
+   Several typo corrections by Wilfred Li.
+
+========================================================================
+Version 1.1.1 (2001-02-16)
+------------------------------------------------------------------------
+
+   Several typo corrections by JW.
+
+========================================================================
+Version 1.1 (2001-02-06)
+------------------------------------------------------------------------
+
+   Draft resulting from discussions on header for use at NSLS.  (HJB)
+
+   + Change <a href="Cdiffrn_frame_data.html" class="catlink">DIFFRN_FRAME_DATA</a> to <a href="Cdiffrn_data_frame.html" class="catlink">DIFFRN_DATA_FRAME</a>.
+
+   + Change '<a href="Idiffrn_detector_axis.id.html" class="itemlink">_diffrn_detector_axis.id</a>' to '<a href="Idiffrn_detector_axis.detector_id.html" class="itemlink">_diffrn_detector_axis.detector_id</a>'.
+
+   + Add '<a href="Idiffrn_measurement_axis.measurement_device.html" class="itemlink">_diffrn_measurement_axis.measurement_device</a>' and change
+     '<a href="Idiffrn_measurement_axis.id.html" class="itemlink">_diffrn_measurement_axis.id</a>' to
+     '<a href="Idiffrn_measurement_axis.measurement_id.html" class="itemlink">_diffrn_measurement_axis.measurement_id</a>'.
+
+   + Add '<a href="Idiffrn_radiation.div_x_source.html" class="itemlink">_diffrn_radiation.div_x_source</a>', '<a href="Idiffrn_radiation.div_y_source.html" class="itemlink">_diffrn_radiation.div_y_source</a>',
+    '<a href="Idiffrn_radiation.div_x_y_source.html" class="itemlink">_diffrn_radiation.div_x_y_source</a>',
+    '<a href="Idiffrn_radiation.polarizn_source_norm.html" class="itemlink">_diffrn_radiation.polarizn_source_norm</a>',
+   '<a href="Idiffrn_radiation.polarizn_source_ratio.html" class="itemlink">_diffrn_radiation.polarizn_source_ratio</a>', '<a href="Idiffrn_scan.date_end.html" class="itemlink">_diffrn_scan.date_end</a>',
+   '<a href="Idiffrn_scan.date_start.html" class="itemlink">_diffrn_scan.date_start</a>', '<a href="Idiffrn_scan_axis.angle_rstrt_incr.html" class="itemlink">_diffrn_scan_axis.angle_rstrt_incr</a>',
+   '<a href="Idiffrn_scan_axis.displacement_rstrt_incr.html" class="itemlink">_diffrn_scan_axis.displacement_rstrt_incr</a>',
+   '<a href="Idiffrn_scan_frame_axis.angle_increment.html" class="itemlink">_diffrn_scan_frame_axis.angle_increment</a>',
+   '<a href="Idiffrn_scan_frame_axis.angle_rstrt_incr.html" class="itemlink">_diffrn_scan_frame_axis.angle_rstrt_incr</a>',
+   '<a href="Idiffrn_scan_frame_axis.displacement.html" class="itemlink">_diffrn_scan_frame_axis.displacement</a>',
+   '_diffrn_scan_frame_axis.displacement_increment',and
+   '<a href="Idiffrn_scan_frame_axis.displacement_rstrt_incr.html" class="itemlink">_diffrn_scan_frame_axis.displacement_rstrt_incr</a>'.
+
+   + Add '<a href="Idiffrn_measurement.device.html" class="itemlink">_diffrn_measurement.device</a>' to category key.
+
+   + Update yyyy-mm-dd to allow optional time with fractional seconds
+     for time stamps.
+
+   + Fix typos caught by RS.
+
+   + Add <a href="Carray_structure_list_axis.html" class="catlink">ARRAY_STRUCTURE_LIST_AXIS</a> category, and use concept of axis sets to
+     allow for coupled axes, as in spiral scans.
+
+   + Add examples for fairly complete headers thanks to R. Sweet and P.
+     Ellis.
+
+========================================================================
+Version 1.0 (2000-12-21)
+------------------------------------------------------------------------
+
+   Release version - few typos and tidying up.  (BM &amp; HJB)
+
+   + Move ITEM_TYPE_LIST, ITEM_UNITS_LIST and DICTIONARY_HISTORY to end
+   of dictionary.
+
+   + Alphabetize dictionary.
+
+========================================================================
+Version 0.7.1 (2000-09-29)
+------------------------------------------------------------------------
+
+   Cleanup fixes.  (JW)
+
+   + Correct spelling of <a href="Cdiffrn_measurement_axis.html" class="catlink">diffrn_measurement_axis</a> in '<a href="Iaxis.id.html" class="itemlink">_axis.id</a>'
+
+   + Correct ordering of uses of '_item.mandatory_code' and
+   '_item_default.value'.
+
+========================================================================
+Version 0.7.0 (2000-09-09)
+------------------------------------------------------------------------
+
+   Respond to comments by I. David Brown.  (HJB)
+
+   + Add further comments on '\n' and '\t'.
+
+   + Update ITEM_UNITS_LIST by taking section from mmCIF dictionary
+     and adding metres.  Change 'meter' to 'metre' throughout.
+
+   + Add missing enumerations to '<a href="Iarray_structure.compression_type.html" class="itemlink">_array_structure.compression_type</a>'
+     and make 'none' the default.
+
+   + Remove parent-child relationship between
+     '<a href="Iarray_structure_list.index.html" class="itemlink">_array_structure_list.index</a>' and '<a href="Iarray_structure_list.precedence.html" class="itemlink">_array_structure_list.precedence</a>'.
+
+   + Improve alphabetization.
+
+   + Fix '_array_intensities_gain.esd' related function.
+
+   + Improve comments in AXIS.
+
+   + Fix <a href="Cdiffrn_frame_data.html" class="catlink">DIFFRN_FRAME_DATA</a> example.
+
+   + Remove erroneous <a href="Cdiffrn_measurement.html" class="catlink">DIFFRN_MEASUREMENT</a> example.
+
+   + Add '<a href="Idiffrn_measurement_axis.id.html" class="itemlink">_diffrn_measurement_axis.id</a>' to the category key.
+
+========================================================================
+Version 0.6.0 (1999-01-14)
+------------------------------------------------------------------------
+
+   Remove redundant information for ENC_NONE data.  (HJB)
+
+   + After the D5 remove binary section identifier, size and
+     compression type.
+
+   + Add Control-L to header.
+
+========================================================================
+Version 0.5.1 (1999-01-03)
+------------------------------------------------------------------------
+
+   Cleanup of typos and syntax errors.  (HJB)
+
+   + Cleanup example details for <a href="Cdiffrn_scan.html" class="catlink">DIFFRN_SCAN</a> category.
+
+   + Add missing quote marks for '<a href="Idiffrn_scan.id.html" class="itemlink">_diffrn_scan.id</a>' definition.
+
+========================================================================
+Version 0.5 (1999-01-01)
+------------------------------------------------------------------------
+
+   Modifications for axis definitions and reduction of binary header.  (HJB)
+
+   + Restore '<a href="Idiffrn_detector.diffrn_id.html" class="itemlink">_diffrn_detector.diffrn_id</a>' to <a href="Cdiffrn_detector.html" class="catlink">DIFFRN_DETECTOR</a> KEY.
+
+   + Add AXIS category.
+
+   + Bring in complete <a href="Cdiffrn_detector.html" class="catlink">DIFFRN_DETECTOR</a> and <a href="Cdiffrn_measurement.html" class="catlink">DIFFRN_MEASUREMENT</a> categories
+     from cif_mm.dic for clarity.
+
+   + Change '<a href="Iarray_structure.encoding_type.html" class="itemlink">_array_structure.encoding_type</a>' from type code to uline and
+     added X-Binary-Element-Type to MIME header.
+
+   + Add detector beam centre '_diffrn_detector_element.center[1]' and
+     '_diffrn_detector_element.center[2]'.
+
+   + Correct item name of '<a href="Idiffrn_refln.frame_id.html" class="itemlink">_diffrn_refln.frame_id</a>'.
+
+   + Replace reference to '_array_intensities.undefined' by
+     '<a href="Iarray_intensities.undefined_value.html" class="itemlink">_array_intensities.undefined_value</a>'.
+
+   + Replace references to '_array_intensity.scaling' with
+     '<a href="Iarray_intensities.scaling.html" class="itemlink">_array_intensities.scaling</a>'.
+
+   + Add <a href="Cdiffrn_scan.html" class="catlink">DIFFRN_SCAN</a>... categories.
+
+========================================================================
+Version 0.4 (1998-08-11)
+------------------------------------------------------------------------
+
+   Modifications to the 0.3 imgCIF draft.  (HJB)
+
+   + Reflow comment lines over 80 characters and corrected typos.
+
+   + Update examples and descriptions of MIME encoded data.
+
+   + Change name to cbfext98.dic.
+
+========================================================================
+Version 0.3 (1998-07-04)
+------------------------------------------------------------------------
+
+   Modifications for imgCIF.  (HJB)
+
+   + Add binary type, which is a text field containing a variant on
+     MIME encoded data.
+
+   + Change type of '<a href="Iarray_data.data.html" class="itemlink">_array_data.data</a>' to binary and specify internal
+     structure of raw binary data.
+
+   + Add '<a href="Iarray_data.binary_id.html" class="itemlink">_array_data.binary_id</a>', and make
+     '<a href="Idiffrn_frame_data.binary_id.html" class="itemlink">_diffrn_frame_data.binary_id</a>' and '<a href="Iarray_intensities.binary_id.html" class="itemlink">_array_intensities.binary_id</a>'
+     into pointers to this item.
+
+========================================================================
+Version 0.2 (1997-12-02)
+------------------------------------------------------------------------
+
+   Modifications to the CBF draft.  (JW)
+
+   + Add category hierarchy for describing frame data developed from
+     discussions at the BNL imgCIF Workshop Oct 1997.   The following
+     changes are made in implementing the workshop draft.  Category
+     DIFFRN_ARRAY_DATA is renamed to <a href="Cdiffrn_frame_data.html" class="catlink">DIFFRN_FRAME_DATA</a>.  Category
+     DIFFRN_FRAME_TYPE is renamed to <a href="Cdiffrn_detector_element.html" class="catlink">DIFFRN_DETECTOR_ELEMENT</a>.   The
+     parent item for '<a href="Idiffrn_frame_data.array_id.html" class="itemlink">_diffrn_frame_data.array_id</a>' is changed from
+     '<a href="Iarray_structure_list.array_id.html" class="itemlink">_array_structure_list.array_id</a>' to '<a href="Iarray_structure.id.html" class="itemlink">_array_structure.id</a>'. Item
+     '_diffrn_detector.array_id' is deleted.
+   + Add data item '<a href="Idiffrn_frame_data.binary_id.html" class="itemlink">_diffrn_frame_data.binary_id</a>' to identify data
+     groups within a binary section.  The formal identification of the
+     binary section is still fuzzy.
+
+========================================================================
+Version 0.1 (1997-01-24)
+------------------------------------------------------------------------
+
+   First draft of this dictionary in DDL 2.1 compliant format by John
+   Westbrook (JW).  This version is adapted from the Crystallographic
+   Binary File (CBF) Format Draft Proposal provided by Andy Hammersley
+   (AH).
+
+   Modifications to the CBF draft.  (JW)
+
+   + In this version the array description has been cast in the categories
+     <a href="Carray_structure.html" class="catlink">ARRAY_STRUCTURE</a> and <a href="Carray_structure_list.html" class="catlink">ARRAY_STRUCTURE_LIST</a>.  These categories
+     have been generalized to describe array data  of arbitrary dimension.
+
+   + Array data in this description are contained in the category
+     <a href="Carray_data.html" class="catlink">ARRAY_DATA</a>.  This departs from the CBF notion of data existing
+     in some special comment. In this description, data are handled as an
+     ordinary data item encapsulated in a character data type.   Although
+     data this manner deviates from CIF conventions, it does not violate
+     any DDL 2.1 rules.  DDL 2.1 regular expressions can be used to define
+     the binary representation which will permit some level of data
+     validation.  In this version, the placeholder type code "any" has
+     been used. This translates to a regular expression which will match
+     any pattern.
+
+     It should be noted that DDL 2.1 already supports array data objects
+     although these have not been used in the current mmCIF dictionary.
+     It may be possible to use the DDL 2.1 ITEM_STRUCTURE and
+     ITEM_STRUCTURE_LIST categories to provide the information that is
+     carried in by the <a href="Carray_structure.html" class="catlink">ARRAY_STRUCTURE</a> and <a href="Carray_structure_list.html" class="catlink">ARRAY_STRUCTURE_LIST</a>.  By
+     moving the array structure to the DDL level it would be possible to
+     define an array type as well as a regular expression defining the
+     data format.
+
+   + Multiple array sections can be properly handled within a single
+     datablock.
+
+========================================================================
+</pre>
+
+  <h4 align=left>
+  HTML version of draft dictionary created by modified version of makedicthtml by B. McMahon
+  from modified version of imgCIF dcitionary 1.3.2 which is subject to the following copyright:
+  </h4>
+  <!-- begin copyright -->
+  <div class="copyright">
+    <p class="copyright">Copyright &copy; 2005 International Union of Crystallography</p>
+  </div>
+  <!-- end copyright -->
+
+</body>
+</html>

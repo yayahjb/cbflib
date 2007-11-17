@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+<title>(IUCr) CIF Definition save__diffrn_data_frame.details</title>
+  <link rel="stylesheet" type="text/css" href="../../itg.css" />
+</head>
+
+<body>
+<!-- begin masthead -->
+  <div class="masthead">
+    <table class="masthead">
+      <tr>
+        <td class="masthead" width="30%">
+          <p class="title">DRAFT DICTIONARY</p>
+          <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
+        </td>
+        <td class="masthead">
+          <p class="title">Draft version 1.5 for comment</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <!-- end masthead -->
+<hr>
+<H1>
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg" ALIGN=MIDDLE></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg" ALIGN=MIDDLE></a>
+<a href="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg"
+ALT="[CBF/imgCIF]" ALIGN=MIDDLE></a>
+<a href="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg"
+ALT="[CBFlib]" ALIGN=MIDDLE></a>
+</H1>
+<hr>
+  <!-- begin navbar -->
+  <div class="navbar">
+    <table class="navbar">
+      <tr>
+        <td><a class="navbar" href="index.html">Contents</a></td>
+      </tr>
+    </table>
+  </div>
+  <!-- end navbar -->
+
+
+<p class="index"><a class="index" href="index.html">Index</a></p>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
+<h1>_diffrn_data_frame.details</h1><b>Name:</b><br /><tt class="cifdefinition">'_diffrn_data_frame.details'</tt> 
+<p><b>Definition:</b></p><pre class="cifdefinition">
+        The value of <a href="Idiffrn_data_frame.details.html" class="itemlink">_diffrn_data_frame.details</a> should give a
+               description of special aspects of each frame of data.
+
+               This is an appropriate location in which to record
+               information from vendor headers as presented in those
+               headers, but it should never be used as a substitute
+               for providing the fully parsed information within
+               the appropriate imgCIF/CBF categories.
+
+               Normally, when a conversion from a miniCBF has been done
+               the data from '<a href="Iarray_data.header_convention.html" class="itemlink">_array_data.header_convention</a>'
+               should be transferred to this data item and
+               '<a href="Iarray_data.header_convention.html" class="itemlink">_array_data.header_convention</a>'
+               should be removed.
+
+</pre>
+<b>Example:</b><br /><br />
+<table width="100%"><tr class="cifexample"><td width="50%"><pre class="cifexample">;
+ HEADER_BYTES = 512;
+ DIM = 2;
+ BYTE_ORDER = big_endian;
+ TYPE = unsigned_short;
+ SIZE1 = 3072;
+ SIZE2 = 3072;
+ PIXEL_SIZE = 0.102588;
+ BIN = 2x2;
+ DETECTOR_SN = 901;
+ TIME = 29.945155;
+ DISTANCE = 200.000000;
+ PHI = 85.000000;
+ OSC_START = 85.000000;
+ OSC_RANGE = 1.000000;
+ WAVELENGTH = 0.979381;
+ BEAM_CENTER_X = 157.500000;
+ BEAM_CENTER_Y = 157.500000;
+ PIXEL SIZE = 0.102588;
+ OSCILLATION RANGE = 1;
+ EXPOSURE TIME = 29.9452;
+ TWO THETA = 0;
+ BEAM CENTRE = 157.5 157.5;
+;</pre>
+</td><td width="50%"><i>               Example of header information extracted from an ADSC Quantum
+                315 detector header by CBFlib_0.7.6.  Image provided by Chris
+                Nielsen of ADSC from a data collection at SSRL beamline 1-5.
+</i>
+</td></tr></table>
+
+<p><b>Type:</b> text</p>
+
+<p class="pack"><b>Mandatory item:</b> no</p>
+
+<b>Alias:</b>
+
+<br /><tt> <a href="../../2/cif_img.dic/Idiffrn_frame_data.details.html" class="itemlink">_diffrn_frame_data.details</a></tt>
+(cif_img.dic
+version 1.4)
+
+<p class="pack"><b>Category:</b> <a href="Cdiffrn_data_frame.html" class="catlink">diffrn_data_frame</a></p>
+
+  <h4 align=left>
+  HTML version of draft dictionary created by modified version of makedicthtml by B. McMahon
+  from modified version of imgCIF dcitionary 1.3.2 which is subject to the following copyright:
+  </h4>
+  <!-- begin copyright -->
+  <div class="copyright">
+    <p class="copyright">Copyright &copy; 2005 International Union of Crystallography</p>
+  </div>
+  <!-- end copyright -->
+
+</body>
+</html>

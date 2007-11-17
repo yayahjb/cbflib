@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+<title>(IUCr) CIF dictionary cif_img.dic Extended data types</title>
+  <link rel="stylesheet" type="text/css" href="../../itg.css" />
+</head>
+
+<body>
+<!-- begin masthead -->
+  <div class="masthead">
+    <table class="masthead">
+      <tr>
+        <td class="masthead" width="30%">
+          <p class="title">DRAFT DICTIONARY</p>
+          <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
+        </td>
+        <td class="masthead">
+          <p class="title">Draft version 1.5 for comment</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <!-- end masthead -->
+<hr>
+<H1>
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg" ALIGN=MIDDLE></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg" ALIGN=MIDDLE></a>
+<a href="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg"
+ALT="[CBF/imgCIF]" ALIGN=MIDDLE></a>
+<a href="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg"
+ALT="[CBFlib]" ALIGN=MIDDLE></a>
+</H1>
+<hr>
+  <!-- begin navbar -->
+  <div class="navbar">
+    <table class="navbar">
+      <tr>
+        <td><a class="navbar" href="index.html">Contents</a></td>
+      </tr>
+    </table>
+  </div>
+  <!-- end navbar -->
+
+
+<p class="index"><a class="index" href="index.html">Index</a></p>
+<h5>Image dictionary (imgCIF)</h5><h1>Extended data types</h1><p>The following extended data types are defined in this dictionary:</p>
+<table class="cifcatexample" width="100%"><tr><td valign="top" width="10%"><b>Code</b></td>
+                           <td valign="top"><b>Primitive data type</b></td>
+                           <td valign="top"><b>Regular expression construct</b></td>
+                           <td valign="top" width="30%"><b>Description</b></td></tr>
+<tr><td colspan="4">&nbsp;</td></tr>
+<tr><td valign="top">code</td>
+    <td valign="top">char</td>
+    <td valign="top"><tt>[_,.;:"&amp;&lt;>()/\{}'`~!@#$%A-Za-z0-9*|+-]*</tt></td>
+    <td valign="top">              code item types/single words ...
+</td></tr>
+<tr><td valign="top">ucode</td>
+    <td valign="top">uchar</td>
+    <td valign="top"><tt>[_,.;:"&amp;&lt;>()/\{}'`~!@#$%A-Za-z0-9*|+-]*</tt></td>
+    <td valign="top">              code item types/single words (case insensitive) ...
+</td></tr>
+<tr><td valign="top">line</td>
+    <td valign="top">char</td>
+    <td valign="top"><tt>[][ \t_(),.;:"&amp;&lt;>/\{}'`~!@#$%?+=*A-Za-z0-9|^-]*</tt></td>
+    <td valign="top">              char item types / multi-word items ...
+</td></tr>
+<tr><td valign="top">uline</td>
+    <td valign="top">uchar</td>
+    <td valign="top"><tt>[][ \t_(),.;:"&amp;&lt;>/\{}'`~!@#$%?+=*A-Za-z0-9|^-]*</tt></td>
+    <td valign="top">              char item types / multi-word items (case insensitive)...
+</td></tr>
+<tr><td valign="top">text</td>
+    <td valign="top">char</td>
+    <td valign="top"><tt>[][ \n\t()_,.;:"&amp;&lt;>/\{}'`~!@#$%?+=*A-Za-z0-9|^-]*</tt></td>
+    <td valign="top">              text item types / multi-line text ...
+</td></tr>
+<tr><td valign="top">binary</td>
+    <td valign="top">char</td>
+    <td valign="top"><tt>\n--CIF-BINARY-FORMAT-SECTION--\n\
+[][ \n\t()_,.;:"&amp;&lt;>/\{}'`~!@#$%?+=*A-Za-z0-9|^-]*\
+\n--CIF-BINARY-FORMAT-SECTION----
+</tt></td>
+    <td valign="top">              binary items are presented as MIME-like ascii-encoded
+               sections in an imgCIF.  In a CBF, raw octet streams
+               are used to convey the same information.
+</td></tr>
+<tr><td valign="top">int</td>
+    <td valign="top">numb</td>
+    <td valign="top"><tt>-?[0-9]+</tt></td>
+    <td valign="top">              int item types are the subset of numbers that are the negative
+               or positive integers.
+</td></tr>
+<tr><td valign="top">float</td>
+    <td valign="top">numb</td>
+    <td valign="top"><tt>-?(([0-9]+)[.]?|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?</tt></td>
+    <td valign="top">              float item types are the subset of numbers that are the floating
+               point numbers.
+</td></tr>
+<tr><td valign="top">any</td>
+    <td valign="top">char</td>
+    <td valign="top"><tt>.*</tt></td>
+    <td valign="top">              A catch all for items that may take any form...
+</td></tr>
+<tr><td valign="top">yyyy-mm-dd</td>
+    <td valign="top">char</td>
+    <td valign="top"><tt>\
+[0-9]?[0-9]?[0-9][0-9]-[0-9]?[0-9]-[0-9]?[0-9]\
+((T[0-2][0-9](:[0-5][0-9](:[0-5][0-9](.[0-9]+)?)?)?)?\
+([+-][0-5][0-9]:[0-5][0-9]))?
+</tt></td>
+    <td valign="top">
+               Standard format for CIF date and time strings (see
+               http://www.iucr.org/iucr-top/cif/spec/datetime.html),
+               consisting of a yyyy-mm-dd date optionally followed by
+               the character 'T' followed by a 24-hour clock time,
+               optionally followed by a signed time-zone offset.
+
+               The IUCr standard has been extended to allow for an optional
+               decimal fraction on the seconds of time.
+
+               Time is local time if no time-zone offset is given.
+
+               Note that this type extends the mmCIF yyyy-mm-dd type
+               but does not conform to the mmCIF yyyy-mm-dd:hh:mm
+               type that uses a ':' in place if the 'T' specified
+               by the IUCr standard.  For reading, both forms should
+               be accepted,  but for writing, only the IUCr form should
+               be used.
+
+               For maximal compatibility, the special time zone
+               indicator 'Z' (for 'zulu') should be accepted on
+               reading in place of '+00:00' for GMT.
+</td></tr>
+</table>
+  <h4 align=left>
+  HTML version of draft dictionary created by modified version of makedicthtml by B. McMahon
+  from modified version of imgCIF dcitionary 1.3.2 which is subject to the following copyright:
+  </h4>
+  <!-- begin copyright -->
+  <div class="copyright">
+    <p class="copyright">Copyright &copy; 2005 International Union of Crystallography</p>
+  </div>
+  <!-- end copyright -->
+
+</body>
+</html>

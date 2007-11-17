@@ -1,0 +1,272 @@
+\begin{verbatim}
+This output comes from make_pycbf.py which generates the wrappers
+Have not implemented: cbfhandle.set_image
+    cbf_set_image
+    args:
+        cbf_handle handle
+        unsigned int reserved
+        unsigned    int element_number
+        unsigned int compression
+        void *array
+        size_t    elsize
+        int elsign
+        size_t ndim1
+        size_t ndim2
+
+Have not implemented: cbfhandle.set_bin_sizes
+    cbf_set_bin_sizes
+    args:
+        cbf_handle handle
+        unsigned int element_number
+        double slowbinsize_in
+        double fastbinsize_in
+
+Have not implemented: cbfhandle.get_unit_cell
+    cbf_get_unit_cell
+    args:
+        cbf_handle handle
+        double cell[6]
+        double    cell_esd[6]
+
+Have not implemented: cbfhandle.set_reciprocal_cell
+    cbf_set_reciprocal_cell
+    args:
+        cbf_handle handle
+        double cell[6]
+        double    cell_esd[6]
+
+Have not implemented: cbfhandle.read_widefile
+    cbf_read_widefile
+    args:
+        cbf_handle handle
+        FILE *file
+        int headers
+
+Have not implemented:
+	cbf_compute_cell_volume
+	compute_cell_volume
+	double cell[6]
+	double *volume
+
+Have not implemented: cbfhandle.set_realarray_wdims
+    cbf_set_realarray_wdims
+    args:
+        cbf_handle handle
+        unsigned int    compression
+        int binary_id
+        void *array
+        size_t elsize
+        size_t    elements
+        const char *byteorder
+        size_t dim1
+        size_t dim2
+        size_t    dim3
+        size_t padding
+
+problem cbf_set_saveframename set_saveframename ['cbf_handle handle. const char    *saveframename']
+Have not implemented: cbfhandle.get_integerarrayparameters_wdims
+    cbf_get_integerarrayparameters_wdims
+    args:
+        cbf_handle handle
+        unsigned    int *compression
+        int *binary_id
+        size_t *elsize
+        int *elsigned
+        int    *elunsigned
+        size_t *elements
+        int *minelement
+        int *maxelement
+        const    char **byteorder
+        size_t *dim1
+        size_t *dim2
+        size_t *dim3
+        size_t    *padding
+
+Have not implemented: cbfhandle.set_real_3d_image
+    cbf_set_real_3d_image
+    args:
+        cbf_handle handle
+        unsigned int reserved
+        unsigned int element_number
+        unsigned int compression
+        void    *array
+        size_t elsize
+        size_t ndim1
+        size_t ndim2
+        size_t ndim3
+
+Have not implemented: cbfhandle.get_realarray
+    cbf_get_realarray
+    args:
+        cbf_handle handle
+        int *binary_id
+        void *array
+        size_t elsize
+        size_t elements
+        size_t *elements_read
+
+Have not implemented: cbfhandle.get_bin_sizes
+    cbf_get_bin_sizes
+    args:
+        cbf_handle handle
+        unsigned int element_number
+        double * slowbinsize
+        double * fastbinsize
+
+Have not implemented: cbfhandle.set_3d_image
+    cbf_set_3d_image
+    args:
+        cbf_handle handle
+        unsigned int reserved
+        unsigned int element_number
+        unsigned int compression
+        void *array
+        size_t elsize
+        int elsign
+        size_t ndim1
+        size_t ndim2
+        size_t    ndim2=3
+
+Have not implemented: cbfhandle.set_integerarray_wdims
+    cbf_set_integerarray_wdims
+    args:
+        cbf_handle handle
+        unsigned int    compression
+        int binary_id
+        void *array
+        size_t elsize
+        int elsigned
+        size_t elements
+        const char *byteorder
+        size_t dim1
+        size_t dim2
+        size_t dim3
+        size_t padding
+
+Have not implemented: cbfhandle.get_real_image
+    cbf_get_real_image
+    args:
+        cbf_handle handle
+        unsigned int reserved
+        unsigned int element_number
+        void *array
+        size_t elsize
+        size_t ndim1
+        size_t ndim2
+
+TODO: Detector: int cbf_set_beam_center (cbf_detector detector, double *index1, double    *index2, double *center1, double *center2);
+Have not implemented: cbfhandle.get_realarrayparameters_wdims
+    cbf_get_realarrayparameters_wdims
+    args:
+        cbf_handle handle
+        unsigned int    *compression
+        int *binary_id
+        size_t *elsize
+        size_t *elements
+        const    char **byteorder
+        size_t *dim1
+        size_t *dim2
+        size_t *dim3
+        size_t    *padding
+
+Have not implemented: cbfhandle.get_reciprocal_cell
+    cbf_get_reciprocal_cell
+    args:
+        cbf_handle handle
+        double cell[6]
+        double    cell_esd[6]
+
+Have not implemented: cbfhandle.get_3d_image_size
+    cbf_get_3d_image_size
+    args:
+        cbf_handle handle
+        unsigned int reserved
+        unsigned int element_number
+        size_t *ndim1
+        size_t *ndim2
+        size_t    *ndim3
+
+Have not implemented: cbfhandle.set_real_image
+    cbf_set_real_image
+    args:
+        cbf_handle handle
+        unsigned int reserved
+        unsigned int element_number
+        unsigned int compression
+        void    *array
+        size_t elsize
+        size_t ndim1
+        size_t ndim2
+
+Have not implemented: cbfhandle.get_3d_image
+    cbf_get_3d_image
+    args:
+        cbf_handle handle
+        unsigned int reserved
+        unsigned int element_number
+        void *array
+        size_t elsize
+        int elsign
+        size_t ndim1
+        size_t ndim2
+        size_t ndim3
+
+Have not implemented:
+	cbf_compute_reciprocal_cell
+	compute_reciprocal_cell
+	double cell[6]
+	double rcell[6]
+
+Have not implemented: cbfhandle.get_image
+    cbf_get_image
+    args:
+        cbf_handle handle
+        unsigned int reserved
+        unsigned    int element_number
+        void *array
+        size_t elsize
+        int elsign
+        size_t    ndim1
+        size_t ndim2
+
+Have not implemented: cbfhandle.write_widefile
+    cbf_write_widefile
+    args:
+        cbf_handle handle
+        FILE *file
+        int readable
+        int ciforcbf
+        int headers
+        int encoding
+
+Have not implemented: cbfhandle.get_real_3d_image
+    cbf_get_real_3d_image
+    args:
+        cbf_handle handle
+        unsigned int reserved
+        unsigned int element_number
+        void *array
+        size_t elsize
+        size_t ndim1
+        size_t ndim2
+        size_t ndim3
+
+Have not implemented: cbfhandle.set_realarray
+    cbf_set_realarray
+    args:
+        cbf_handle handle
+        unsigned int compression
+        int binary_id
+        void *array
+        size_t elsize
+        size_t elements
+
+Have not implemented: cbfhandle.set_unit_cell
+    cbf_set_unit_cell
+    args:
+        cbf_handle handle
+        double cell[6]
+        double    cell_esd[6]
+
+End of output from make_pycbf.py
+\end{verbatim}

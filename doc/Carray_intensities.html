@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+<title>(IUCr) CIF Definition save_array_intensities</title>
+  <link rel="stylesheet" type="text/css" href="../../itg.css" />
+</head>
+
+<body>
+<!-- begin masthead -->
+  <div class="masthead">
+    <table class="masthead">
+      <tr>
+        <td class="masthead" width="30%">
+          <p class="title">DRAFT DICTIONARY</p>
+          <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
+        </td>
+        <td class="masthead">
+          <p class="title">Draft version 1.5 for comment</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <!-- end masthead -->
+<hr>
+<H1>
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg" ALIGN=MIDDLE></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg" ALIGN=MIDDLE></a>
+<a href="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg"
+ALT="[CBF/imgCIF]" ALIGN=MIDDLE></a>
+<a href="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg"
+ALT="[CBFlib]" ALIGN=MIDDLE></a>
+</H1>
+<hr>
+  <!-- begin navbar -->
+  <div class="navbar">
+    <table class="navbar">
+      <tr>
+        <td><a class="navbar" href="index.html">Contents</a></td>
+      </tr>
+    </table>
+  </div>
+  <!-- end navbar -->
+
+
+<p class="index"><a class="index" href="index.html">Index</a></p>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
+<h1>Category ARRAY_INTENSITIES</h1>
+<b>Name:</b><br />
+<tt class="cifdefinition">'array_intensities'</tt> 
+<p><b>Description:</b></p><pre class="cifdefinition">
+       Data items in the <a href="Carray_intensities.html" class="catlink">ARRAY_INTENSITIES</a> category record the
+              information required to recover the intensity data from
+              the set of data values stored in the <a href="Carray_data.html" class="catlink">ARRAY_DATA</a> category.
+
+              The detector may have a complex relationship
+              between the raw intensity values and the number of
+              incident photons.  In most cases, the number stored
+              in the final array will have a simple linear relationship
+              to the actual number of incident photons, given by
+              <a href="Iarray_intensities.gain.html" class="itemlink">_array_intensities.gain</a>.  If raw, uncorrected values
+              are presented (e.g. for calibration experiments), the
+              value of <a href="Iarray_intensities.linearity.html" class="itemlink">_array_intensities.linearity</a> will be 'raw'
+              and <a href="Iarray_intensities.gain.html" class="itemlink">_array_intensities.gain</a> will not be used.
+
+
+</pre>
+<b>Example:</b><br /><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+ 
+        Example 1
+
+</i><br /><pre class="cifexample">
+ 
+        loop_
+        _array_intensities.array_id
+        _array_intensities.linearity
+        _array_intensities.gain
+        _array_intensities.overload
+        _array_intensities.undefined_value
+        _array_intensities.pixel_fast_bin_size
+        _array_intensities.pixel_slow_bin_size
+        _array_intensities.pixel_binning_method
+        image_1   linear  1.2    655535   0   2   2    hardware
+
+</pre><br /></td></tr></table><br />
+
+<b>Category groups:</b><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;inclusive_group</tt><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;array_data_group</tt><br />
+
+<b>Category keys:</b><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;_array_intensities.array_id</tt><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;_array_intensities.binary_id</tt><br />
+
+<p class="pack"><b>Mandatory category:</b> no</p>
+
+  <h4 align=left>
+  HTML version of draft dictionary created by modified version of makedicthtml by B. McMahon
+  from modified version of imgCIF dcitionary 1.3.2 which is subject to the following copyright:
+  </h4>
+  <!-- begin copyright -->
+  <div class="copyright">
+    <p class="copyright">Copyright &copy; 2005 International Union of Crystallography</p>
+  </div>
+  <!-- end copyright -->
+
+</body>
+</html>

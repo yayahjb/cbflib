@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+<title>(IUCr) CIF Definition save__array_structure.compression_type</title>
+  <link rel="stylesheet" type="text/css" href="../../itg.css" />
+</head>
+
+<body>
+<!-- begin masthead -->
+  <div class="masthead">
+    <table class="masthead">
+      <tr>
+        <td class="masthead" width="30%">
+          <p class="title">DRAFT DICTIONARY</p>
+          <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
+        </td>
+        <td class="masthead">
+          <p class="title">Draft version 1.5 for comment</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <!-- end masthead -->
+<hr>
+<H1>
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg" ALIGN=MIDDLE></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg" ALIGN=MIDDLE></a>
+<a href="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg"
+ALT="[CBF/imgCIF]" ALIGN=MIDDLE></a>
+<a href="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg"
+ALT="[CBFlib]" ALIGN=MIDDLE></a>
+</H1>
+<hr>
+  <!-- begin navbar -->
+  <div class="navbar">
+    <table class="navbar">
+      <tr>
+        <td><a class="navbar" href="index.html">Contents</a></td>
+      </tr>
+    </table>
+  </div>
+  <!-- end navbar -->
+
+
+<p class="index"><a class="index" href="index.html">Index</a></p>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
+<h1>_array_structure.compression_type</h1><b>Name:</b><br /><tt class="cifdefinition">'_array_structure.compression_type'</tt> 
+<p><b>Definition:</b></p><pre class="cifdefinition">
+       Type of data-compression method used to compress the array
+              data.
+
+</pre>
+<p><b>Type:</b> ucode</p>
+
+<p class="pack"><b>Mandatory item:</b> no</p>
+
+<br /><b>The data value must be one of the following:</b><br /><br />
+<table width="100%"><tr class="cifexample"><td width="50%">
+<br /><tt>byte_offset</tt>
+</td><td width="50%">        Using the 'byte_offset' compression scheme as per A. Hammersley
+        and the CBFlib manual, section 3.3.3
+
+</td></tr></table>
+<table width="100%"><tr class="cifexample"><td width="50%">
+<br /><tt>canonical</tt>
+</td><td width="50%">        Using the 'canonical' compression scheme (International Tables
+        for Crystallography Volume G, Section 5.6.3.1) and CBFlib
+        manual section 3.3.1
+
+</td></tr></table>
+<table width="100%"><tr class="cifexample"><td width="50%">
+<br /><tt>none</tt>
+</td><td width="50%">        Data are stored in normal format as defined by
+        _array_structure.encoding_type and
+        _array_structure.byte_order.
+
+</td></tr></table>
+<table width="100%"><tr class="cifexample"><td width="50%">
+<br /><tt>packed</tt>
+</td><td width="50%">        Using the 'packed' compression scheme, a CCP4-style packing
+        as per J. P. Abrahams pack_c.c and CBFlib manual, section 3.3.2.
+
+</td></tr></table>
+<table width="100%"><tr class="cifexample"><td width="50%">
+<br /><tt>packed_v2</tt>
+</td><td width="50%">        Using the 'packed' compression scheme, version 2, as per
+        J. P. Abrahams pack_c.c and CBFlib manual, section 3.3.2.
+
+</td></tr></table>
+
+<br />Enumeration default:  </b>none
+<p class="pack"><b>Category:</b> <a href="Carray_structure.html" class="catlink">array_structure</a></p>
+
+  <h4 align=left>
+  HTML version of draft dictionary created by modified version of makedicthtml by B. McMahon
+  from modified version of imgCIF dcitionary 1.3.2 which is subject to the following copyright:
+  </h4>
+  <!-- begin copyright -->
+  <div class="copyright">
+    <p class="copyright">Copyright &copy; 2005 International Union of Crystallography</p>
+  </div>
+  <!-- end copyright -->
+
+</body>
+</html>
