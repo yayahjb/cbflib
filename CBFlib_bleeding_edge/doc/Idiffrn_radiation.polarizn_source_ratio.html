@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+<title>(IUCr) CIF Definition save__diffrn_radiation.polarizn_source_ratio</title>
+  <link rel="stylesheet" type="text/css" href="../../itg.css" />
+</head>
+
+<body>
+<!-- begin masthead -->
+  <div class="masthead">
+    <table class="masthead">
+      <tr>
+        <td class="masthead" width="30%">
+          <p class="title">DRAFT DICTIONARY</p>
+          <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
+        </td>
+        <td class="masthead">
+          <p class="title">Draft version 1.5 for comment</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <!-- end masthead -->
+<hr>
+<H1>
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg" ALIGN=MIDDLE></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg" ALIGN=MIDDLE></a>
+<a href="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg"
+ALT="[CBF/imgCIF]" ALIGN=MIDDLE></a>
+<a href="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg"
+ALT="[CBFlib]" ALIGN=MIDDLE></a>
+</H1>
+<hr>
+  <!-- begin navbar -->
+  <div class="navbar">
+    <table class="navbar">
+      <tr>
+        <td><a class="navbar" href="index.html">Contents</a></td>
+      </tr>
+    </table>
+  </div>
+  <!-- end navbar -->
+
+
+<p class="index"><a class="index" href="index.html">Index</a></p>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
+<h1>_diffrn_radiation.polarizn_source_ratio</h1><b>Name:</b><br /><tt class="cifdefinition">'_diffrn_radiation.polarizn_source_ratio'</tt> 
+<p><b>Definition:</b></p><pre class="cifdefinition">
+        (Ip-In)/(Ip+In), where Ip is the intensity
+               (amplitude squared) of the electric vector in the plane of
+               polarization and In is the intensity (amplitude squared)
+               of the electric vector in the plane of the normal to the
+               plane of polarization.
+
+               In the case of an unpolarized beam, or a beam with true
+               circular polarization, in which no single plane of
+               polarization can be determined, the plane is to be taken
+               as the XZ plane and the normal is parallel to the Y axis.
+
+               Thus, if there was complete polarization in the plane of
+               polarization, the value of
+               <a href="Idiffrn_radiation.polarizn_source_ratio.html" class="itemlink">_diffrn_radiation.polarizn_source_ratio</a> would be 1, and
+               for an unpolarized beam
+               <a href="Idiffrn_radiation.polarizn_source_ratio.html" class="itemlink">_diffrn_radiation.polarizn_source_ratio</a> would have a
+               value of 0.
+
+               If the X axis has been chosen to lie in the plane of
+               polarization, this definition will agree with the definition
+               of 'MONOCHROMATOR' in the Denzo glossary, and values of near
+               1 should be expected for a bending-magnet source.  However,
+               if the X axis were perpendicular to the polarization plane
+               (not a common choice), then the Denzo value would be the
+               negative of <a href="Idiffrn_radiation.polarizn_source_ratio.html" class="itemlink">_diffrn_radiation.polarizn_source_ratio</a>.
+
+               See http://www.hkl-xray.com for information on Denzo and
+               Otwinowski &amp; Minor (1997).
+
+               This differs both in the choice of ratio and choice of
+               orientation from <a href="Idiffrn_radiation.polarisn_ratio.html" class="itemlink">_diffrn_radiation.polarisn_ratio</a>, which,
+               unlike <a href="Idiffrn_radiation.polarizn_source_ratio.html" class="itemlink">_diffrn_radiation.polarizn_source_ratio</a>, is
+               unbounded.
+
+               Reference: Otwinowski, Z. &amp; Minor, W. (1997). 'Processing of
+               X-ray diffraction data collected in oscillation mode.' Methods
+               Enzymol. 276, 307-326.
+
+</pre>
+<p><b>Type:</b> float</p>
+
+<p class="pack"><b>Mandatory item:</b> no</p>
+
+<br />The permitted range is [-1.0, 1.0]<br />
+
+<p class="pack"><b>Category:</b> <a href="Cdiffrn_radiation.html" class="catlink">diffrn_radiation</a></p>
+
+  <h4 align=left>
+  HTML version of draft dictionary created by modified version of makedicthtml by B. McMahon
+  from modified version of imgCIF dcitionary 1.3.2 which is subject to the following copyright:
+  </h4>
+  <!-- begin copyright -->
+  <div class="copyright">
+    <p class="copyright">Copyright &copy; 2005 International Union of Crystallography</p>
+  </div>
+  <!-- end copyright -->
+
+</body>
+</html>

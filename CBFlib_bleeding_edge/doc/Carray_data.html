@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+<title>(IUCr) CIF Definition save_array_data</title>
+  <link rel="stylesheet" type="text/css" href="../../itg.css" />
+</head>
+
+<body>
+<!-- begin masthead -->
+  <div class="masthead">
+    <table class="masthead">
+      <tr>
+        <td class="masthead" width="30%">
+          <p class="title">DRAFT DICTIONARY</p>
+          <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
+        </td>
+        <td class="masthead">
+          <p class="title">Draft version 1.5 for comment</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <!-- end masthead -->
+<hr>
+<H1>
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg" ALIGN=MIDDLE></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg" ALIGN=MIDDLE></a>
+<a href="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg"
+ALT="[CBF/imgCIF]" ALIGN=MIDDLE></a>
+<a href="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg"
+ALT="[CBFlib]" ALIGN=MIDDLE></a>
+</H1>
+<hr>
+  <!-- begin navbar -->
+  <div class="navbar">
+    <table class="navbar">
+      <tr>
+        <td><a class="navbar" href="index.html">Contents</a></td>
+      </tr>
+    </table>
+  </div>
+  <!-- end navbar -->
+
+
+<p class="index"><a class="index" href="index.html">Index</a></p>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
+<h1>Category ARRAY_DATA</h1>
+<b>Name:</b><br />
+<tt class="cifdefinition">'array_data'</tt> 
+<p><b>Description:</b></p><pre class="cifdefinition">
+    Data items in the <a href="Carray_data.html" class="catlink">ARRAY_DATA</a> category are the containers for
+     the array data items described in the category <a href="Carray_structure.html" class="catlink">ARRAY_STRUCTURE</a>.
+
+     It is recognized that the data in this category needs to be used in
+     two distinct ways.  During a data collection the lack of ancillary
+     data and timing constraints in processing data may dictate the
+     need to make a 'miniCBF' nothing more than an essential minimum
+     of information to record the results of the data collection.  In that
+     case it is proper to use the <a href="Carray_data.html" class="catlink">ARRAY_DATA</a> category as a
+     container for just a single image and a compacted, beam-line
+     dependent list of data collection parameter values.  In such
+     a case, only the tags '<a href="Iarray_data.header_convention.html" class="itemlink">_array_data.header_convention</a>',
+     '<a href="Iarray_data.header_contents.html" class="itemlink">_array_data.header_contents</a>' and '<a href="Iarray_data.data.html" class="itemlink">_array_data.data</a>' need be
+     populated.
+
+     For full processing and archiving, most of the tags in this
+     dictionary will need to be populated.
+
+
+</pre>
+<b>Examples:</b><br /><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+ 
+        Example 1 -
+
+        This example shows two binary data blocks.  The first one
+        was compressed by the CBF_CANONICAL compression algorithm and is
+        presented as hexadecimal data.  The first character 'H' on the
+        data lines means hexadecimal.  It could have been 'O' for octal
+        or 'D' for decimal.  The second character on the line shows
+        the number of bytes in each word (in this case '4'), which then
+        requires eight hexadecimal digits per word.  The third character
+        gives the order of octets within a word, in this case '&lt;'
+        for the ordering 4321 (i.e. 'big-endian').  Alternatively, the
+        character '>' could have been used for the ordering 1234
+        (i.e. 'little-endian').  The block has a 'message digest'
+        to check the integrity of the data.
+
+        The second block is similar, but uses CBF_PACKED compression
+        and BASE64 encoding.  Note that the size and the digest are
+        different.
+
+</i><br /><pre class="cifexample">
+ 
+
+        loop_
+        _array_data.array_id
+        _array_data.binary_id
+        _array_data.data
+        image_1 1
+        ;
+        --CIF-BINARY-FORMAT-SECTION--
+        Content-Type: application/octet-stream;
+             conversions="X-CBF_CANONICAL"
+        Content-Transfer-Encoding: X-BASE16
+        X-Binary-Size: 3927126
+        X-Binary-ID: 1
+        Content-MD5: u2sTJEovAHkmkDjPi+gWsg==
+
+        # Hexadecimal encoding, byte 0, byte order ...21
+        #
+        H4&lt; 0050B810 00000000 00000000 00000000 000F423F 00000000 00000000 ...
+        ....
+        --CIF-BINARY-FORMAT-SECTION----
+        ;
+        image_2 2
+        ;
+        --CIF-BINARY-FORMAT-SECTION--
+        Content-Type: application/octet-stream;
+             conversions="X-CBF-PACKED"
+        Content-Transfer-Encoding: BASE64
+        X-Binary-Size: 3745758
+        X-Binary-ID: 2
+        Content-MD5: 1zsJjWPfol2GYl2V+QSXrw==
+
+        ELhQAAAAAAAA...
+        ...
+        --CIF-BINARY-FORMAT-SECTION----
+        ;
+
+</pre><br /></td></tr></table><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+ 
+        Example 2 -
+
+        This example shows a single image in a miniCBF, provided by
+        E. Eikenberry.  The entire CBF consists of one data block
+        containing one category and three tags.  The CBFlib
+        program convert_miniCBF and a suitable template file
+        can be used to convert this miniCBF to a full imgCIF
+        file.
+
+</i><br /><pre class="cifexample">
+ 
+        ###CBF: VERSION 1.5
+        # CBF file written by CBFlib v0.7.8
+
+        data_insulin_pilatus6m
+
+        _array_data.header_convention SLS_1.0
+        _array_data.header_contents
+        ;
+        # Detector: PILATUS 6M SN: 60-0001
+        # 2007/Jun/17 15:12:36.928
+        # Pixel_size 172e-6 m x 172e-6 m
+        # Silicon sensor, thickness 0.000320 m
+        # Exposure_time 0.995000 s
+        # Exposure_period 1.000000 s
+        # Tau = 194.0e-09 s
+        # Count_cutoff 1048575 counts
+        # Threshold_setting 5000 eV
+        # Wavelength 1.2398 A
+        # Energy_range (0, 0) eV
+        # Detector_distance 0.15500 m
+        # Detector_Voffset -0.01003 m
+        # Beam_xy (1231.00, 1277.00) pixels
+        # Flux 22487563295 ph/s
+        # Filter_transmission 0.0008
+        # Start_angle 13.0000 deg.
+        # Angle_increment 1.0000 deg.
+        # Detector_2theta 0.0000 deg.
+        # Polarization 0.990
+        # Alpha 0.0000 deg.
+        # Kappa 0.0000 deg.
+        # Phi 0.0000 deg.
+        # Chi 0.0000 deg.
+        # Oscillation_axis  X, CW
+        # N_oscillations 1
+        ;
+
+        _array_data.data
+        ;
+        --CIF-BINARY-FORMAT-SECTION--
+        Content-Type: application/octet-stream;
+             conversions="x-CBF_BYTE_OFFSET"
+        Content-Transfer-Encoding: BINARY
+        X-Binary-Size: 6247567
+        X-Binary-ID: 1
+        X-Binary-Element-Type: "signed 32-bit integer"
+        X-Binary-Element-Byte-Order: LITTLE_ENDIAN
+        Content-MD5: 8wO6i2+899lf5iO8QPdgrw==
+        X-Binary-Number-of-Elements: 6224001
+        X-Binary-Size-Fastest-Dimension: 2463
+        X-Binary-Size-Second-Dimension: 2527
+        X-Binary-Size-Padding: 4095
+
+        ...
+
+        --CIF-BINARY-FORMAT-SECTION----
+        ;
+
+</pre><br /></td></tr></table><br />
+
+<b>Category groups:</b><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;inclusive_group</tt><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;array_data_group</tt><br />
+
+<b>Category keys:</b><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;_array_data.array_id</tt><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;_array_data.binary_id</tt><br />
+
+<p class="pack"><b>Mandatory category:</b> no</p>
+
+  <h4 align=left>
+  HTML version of draft dictionary created by modified version of makedicthtml by B. McMahon
+  from modified version of imgCIF dcitionary 1.3.2 which is subject to the following copyright:
+  </h4>
+  <!-- begin copyright -->
+  <div class="copyright">
+    <p class="copyright">Copyright &copy; 2005 International Union of Crystallography</p>
+  </div>
+  <!-- end copyright -->
+
+</body>
+</html>

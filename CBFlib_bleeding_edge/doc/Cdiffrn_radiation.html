@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+<title>(IUCr) CIF Definition save_diffrn_radiation</title>
+  <link rel="stylesheet" type="text/css" href="../../itg.css" />
+</head>
+
+<body>
+<!-- begin masthead -->
+  <div class="masthead">
+    <table class="masthead">
+      <tr>
+        <td class="masthead" width="30%">
+          <p class="title">DRAFT DICTIONARY</p>
+          <p class="title"><font class="smalltitle"></font>CBF/imgCIF Extensions Dictionary</p>
+        </td>
+        <td class="masthead">
+          <p class="title">Draft version 1.5 for comment</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <!-- end masthead -->
+<hr>
+<H1>
+<a href="http://www.iucr.org/iucr-top/welcome.html">
+<img alt="[IUCr Home Page]" src="../html_graphics/iucrhome.jpg" ALIGN=MIDDLE></a>
+<a href="http://www.iucr.org/iucr-top/cif/home.html">
+<img alt="[CIF Home Page]" src="../html_graphics/cifhome.jpg" ALIGN=MIDDLE></a>
+<a href="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg"
+ALT="[CBF/imgCIF]" ALIGN=MIDDLE></a>
+<a href="CBFlib.html"><IMG SRC="../html_graphics/cbflibbutton.jpg"
+ALT="[CBFlib]" ALIGN=MIDDLE></a>
+</H1>
+<hr>
+  <!-- begin navbar -->
+  <div class="navbar">
+    <table class="navbar">
+      <tr>
+        <td><a class="navbar" href="index.html">Contents</a></td>
+      </tr>
+    </table>
+  </div>
+  <!-- end navbar -->
+
+
+<p class="index"><a class="index" href="index.html">Index</a></p>
+<h5>Image dictionary (imgCIF) version 1.5.4</h5>
+<h1>Category DIFFRN_RADIATION</h1>
+<b>Name:</b><br />
+<tt class="cifdefinition">'diffrn_radiation'</tt> 
+<p><b>Description:</b></p><pre class="cifdefinition">
+        Data items in the <a href="Cdiffrn_radiation.html" class="catlink">DIFFRN_RADIATION</a> category describe
+               the radiation used for measuring diffraction intensities,
+               its collimation and monochromatization before the sample.
+
+               Post-sample treatment of the beam is described by data
+               items in the <a href="Cdiffrn_detector.html" class="catlink">DIFFRN_DETECTOR</a> category.
+
+</pre>
+<b>Examples:</b><br /><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+    Example 1 - based on PDB entry 5HVP and laboratory records for the
+                structure corresponding to PDB entry 5HVP
+
+</i><br /><pre class="cifexample">
+ 
+    _diffrn_radiation.diffrn_id            'set1'
+
+    _diffrn_radiation.collimation          '0.3 mm double pinhole'
+    _diffrn_radiation.monochromator        'graphite'
+    _diffrn_radiation.type                 'Cu K\a'
+    _diffrn_radiation.wavelength_id         1
+
+</pre><br /></td></tr></table><br />
+<table class="cifcatexample" width="100%"><tr><td><i>
+     Example 2 - based on data set TOZ of Willis, Beckwith &amp; Tozer
+                [Acta Cryst. (1991), C47, 2276-2277].
+
+</i><br /><pre class="cifexample">
+ 
+    _diffrn_radiation.wavelength_id    1
+    _diffrn_radiation.type             'Cu K\a'
+    _diffrn_radiation.monochromator    'graphite'
+
+</pre><br /></td></tr></table><br />
+
+<b>Category groups:</b><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;inclusive_group</tt><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;diffrn_group</tt><br />
+
+<b>Category key:</b><br />
+
+<tt>&nbsp;&nbsp;&nbsp;&nbsp;_diffrn_radiation.diffrn_id</tt><br />
+
+<p class="pack"><b>Mandatory category:</b> no</p>
+
+  <h4 align=left>
+  HTML version of draft dictionary created by modified version of makedicthtml by B. McMahon
+  from modified version of imgCIF dcitionary 1.3.2 which is subject to the following copyright:
+  </h4>
+  <!-- begin copyright -->
+  <div class="copyright">
+    <p class="copyright">Copyright &copy; 2005 International Union of Crystallography</p>
+  </div>
+  <!-- end copyright -->
+
+</body>
+</html>

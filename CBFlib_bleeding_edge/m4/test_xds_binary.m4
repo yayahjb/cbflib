@@ -1,0 +1,30 @@
+m4_include(`fcblib_defines.m4')`      PROGRAM TEST
+
+      IMPLICIT  NONE
+      CHARACTER(LEN=100) LINE
+      INTEGER(2) IFRAME(1000,1000), DPREV
+      INTEGER(4) JFRAME(1000,1000)
+      INTEGER   IER, I, J, K'
+      fcb_interface_FCB_READ_XDS_I2
+`      PRINT *,''` NAME OF TEST CBF ''`
+      READ *, LINE
+      IER =  FCB_READ_XDS_I2(LINE,9,1000,1000,IFRAME,JFRAME)
+      IF (IER.NE.0) THEN
+	 PRINT *," ERROR: ", IER
+      ELSE
+	DPREV = 0
+	DO I = 1,1000
+	DO J = 1,1000
+	  IF (IFRAME(I,J).NE.DPREV) THEN
+	    PRINT *,"ROW ", I, ":"
+	    PRINT *,(IFRAME(I,K),K=1,1000)
+	    DPREV = IFRAME(I,1000)
+	    GO TO 1000
+	  ENDIF
+	END DO
+1000    CONTINUE
+	END DO
+      END IF
+      STOP
+      END
+'
