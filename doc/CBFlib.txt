@@ -2300,7 +2300,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    DESCRIPTION
 
    cbf_get_value sets *value to point to the ASCII value of the item at the
-   current column and row. cbf_set_value sets *value to point to the ASCII
+   current column and row. cbf_require_value sets *value to point to the ASCII
    value of the item at the current column and row, creating the data item if
    necessary and initializing it to a copy of defaultvalue.
 
