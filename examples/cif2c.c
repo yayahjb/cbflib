@@ -336,7 +336,9 @@ int main (int argc, char *argv [])
   int errflg = 0;
   char *cifin, *codeout, *function_name;
   char ciftmp[19];
+#ifdef NOMKSTEMP
   char *xciftmp;
+#endif
 #ifndef NOMKSTEMP
   int ciftmpfd;
 #endif
