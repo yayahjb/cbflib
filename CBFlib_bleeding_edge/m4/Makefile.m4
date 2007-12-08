@@ -640,6 +640,7 @@ all:	$(LIB) $(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) symlinksdone \
         $(BIN)/convert_minicbf   \
         $(BIN)/makecbf           \
         $(BIN)/img2cif           \
+        $(BIN)/adscimg2cbf       \
         $(BIN)/cif2cbf           \
 		$(BIN)/testcell          \
 		$(BIN)/cif2c             \
@@ -705,6 +706,8 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin $(INSTALLDIR)/in
 		cp $(BIN)/makecbf $(INSTALLDIR)/bin/makecbf
 		-cp $(INSTALLDIR)/bin/img2cif $(INSTALLDIR)/bin/img2cif_old
 		cp $(BIN)/img2cif $(INSTALLDIR)/bin/img2cif
+		-cp $(INSTALLDIR)/bin/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf_old
+		cp $(BIN)/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf
 		-cp $(INSTALLDIR)/bin/cif2cbf $(INSTALLDIR)/bin/cif2cbf_old
 		cp $(BIN)/cif2cbf $(INSTALLDIR)/bin/cif2cbf
 		-cp $(INSTALLDIR)/bin/cif2c $(INSTALLDIR)/bin/cif2c_old
@@ -894,6 +897,15 @@ $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
               $(EXAMPLES)/makecbf.c  -L$(LIB) \
 	      -lcbf -lm -limg -o $@
+
+
+#
+# adscimg2cbf example program
+#
+$(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+              $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c  -L$(LIB) \
+	      -lcbf -lm -o $@
 
 #
 # img2cif example program
