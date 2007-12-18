@@ -1228,16 +1228,39 @@ int	img2cbf_sub(char *header, unsigned short *data, char *cbf_filename)
 
     /* Make the _diffrn_detector category */  
 
-  cbf_failnez (cbf_new_category (cbf, "diffrn_detector"))
-  cbf_failnez (cbf_new_column   (cbf, "id"))
-  cbf_failnez (cbf_set_value    (cbf, detector_id))
-  cbf_failnez (cbf_new_column   (cbf, "diffrn_id"))
-  cbf_failnez (cbf_set_value    (cbf, "DS1"))
-  cbf_failnez (cbf_new_column   (cbf, "type"))
-  cbf_failnez (cbf_set_value    (cbf, detector_type))
-  cbf_failnez (cbf_new_column   (cbf, "details"))
-  cbf_failnez (cbf_set_value    (cbf, detector_mode))
+  cbf_failnez (cbf_new_category     (cbf, "diffrn_detector"))
+  cbf_failnez (cbf_new_column       (cbf, "id"))
+  cbf_failnez (cbf_set_value        (cbf, detector_id))
+  cbf_failnez (cbf_new_column       (cbf, "diffrn_id"))
+  cbf_failnez (cbf_set_value        (cbf, "DS1"))
+  cbf_failnez (cbf_new_column       (cbf, "type"))
+  cbf_failnez (cbf_set_value        (cbf, detector_type))
+  cbf_failnez (cbf_new_column       (cbf, "details"))
+  cbf_failnez (cbf_set_value        (cbf, detector_mode))
+  cbf_failnez (cbf_new_column       (cbf, "number_of_axes"))
+  cbf_failnez (cbf_set_integervalue (cbf, 4))
 
+    /* Make the _diffrn_detector_axis category */  
+
+  cbf_failnez (cbf_new_category     (cbf, "diffrn_detector_axis"))
+  cbf_failnez (cbf_new_column       (cbf, "detector_id"))
+  cbf_failnez (cbf_set_value        (cbf, detector_id))
+  cbf_failnez (cbf_new_row          (cbf))
+  cbf_failnez (cbf_set_value        (cbf, detector_id))
+  cbf_failnez (cbf_new_row          (cbf))
+  cbf_failnez (cbf_set_value        (cbf, detector_id))
+  cbf_failnez (cbf_new_row          (cbf))
+  cbf_failnez (cbf_set_value        (cbf, detector_id))
+  cbf_failnez (cbf_new_column       (cbf, "axis_id"))
+  cbf_failnez (cbf_rewind_row       (cbf))
+  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_X"))
+  cbf_failnez (cbf_next_row         (cbf))
+  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Y"))
+  cbf_failnez (cbf_next_row         (cbf))
+  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_Z"))
+  cbf_failnez (cbf_next_row         (cbf))
+  cbf_failnez (cbf_set_value        (cbf, "DETECTOR_PITCH"))
+  cbf_failnez (cbf_next_row         (cbf))
 
     /* Make the _diffrn_detector_element category */  
 
