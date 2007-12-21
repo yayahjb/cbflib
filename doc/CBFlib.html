@@ -4700,6 +4700,10 @@ to the point at which the beam intersects the detector at the indices given  *<i
 *<i>index2</i>.  In order to achieve consistent results, a reference detector should be used
 for <i>detector</i> to have all axes at their reference settings.
 <p>
+Note that the precedence 1 axis is the fastest axis, so that *<i>center1</i> and *<i>index1</i>
+are the fast axis components of the center and *<i>center2</i> and *<i>index2</i> are the
+slow axis components of the center.
+<p>
 Any of the destination pointers may be NULL for getting the beam center.  For setting the beam
 axis, either the indices of the center must not be NULL.
 <p>
