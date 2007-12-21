@@ -418,7 +418,7 @@ void	smv_date_to_cbf_date(char *smv_date, char *cbf_date)
 
 }
 
-int	img2cbf_sub(char *header, unsigned short *data, char *cbf_filename)
+int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int pack_flags)
 {
   FILE *out;
 
@@ -454,6 +454,9 @@ int	img2cbf_sub(char *header, unsigned short *data, char *cbf_filename)
   double	det_beam_center_to_origin_dist_x, det_beam_center_to_origin_dist_y;
 
 
+	if(0 == pack_flags)
+		pack_flags = CBF_BYTE_OFFSET;	/* default if 0 is given for "pack_flags" */
+
     /* Get some detector parameters */
 
     /* Detector identifier */
@@ -478,14 +481,14 @@ int	img2cbf_sub(char *header, unsigned short *data, char *cbf_filename)
   gethd("HEADER_BYTES", s, header);
   if('\0' == s[0])
   {
-	fprintf(stderr, "img2cbf_sub: Error: ADSC header has no HEADER_BYTES keyword\n");
+	fprintf(stderr, "adscimg2cbf_sub: Error: ADSC header has no HEADER_BYTES keyword\n");
 	return(1);
   }
   header_size = atoi(s);
 
   if(NULL == (header_as_details = (char *) malloc(header_size + 2)))
   {
-	fprintf(stderr,"img2cbf_sub: Error allocating %d bytes of memory for header_as_details.\n", header_size + 2);
+	fprintf(stderr,"adscimg2cbf_sub: Error allocating %d bytes of memory for header_as_details.\n", header_size + 2);
 	return(1);
   }
   strcpy(header_as_details, "\n");
@@ -499,7 +502,7 @@ int	img2cbf_sub(char *header, unsigned short *data, char *cbf_filename)
   gethd("SIZE1", s, header);
   if('\0' == s[0])
   {
-	fprintf(stderr, "img2cbf_sub: Error: ADSC header has no SIZE1 keyword\n");
+	fprintf(stderr, "adscimg2cbf_sub: Error: ADSC header has no SIZE1 keyword\n");
 	return(1);
   }
   smv_size1 = atoi(s);
@@ -508,7 +511,7 @@ int	img2cbf_sub(char *header, unsigned short *data, char *cbf_filename)
   gethd("SIZE2", s, header);
   if('\0' == s[0])
   {
-	fprintf(stderr, "img2cbf_sub: Error: ADSC header has no SIZE2 keyword\n");
+	fprintf(stderr, "adscimg2cbf_sub: Error: ADSC header has no SIZE2 keyword\n");
 	return(1);
   }
   smv_size2 = atoi(s);
@@ -615,7 +618,7 @@ int	img2cbf_sub(char *header, unsigned short *data, char *cbf_filename)
   } else
   {
 	fprintf(stderr, 
-	  "img2cbf_sub: Error: Detector size of %d rows x %d columns does not correspond to an ADSC detector type\n",
+	  "adscimg2cbf_sub: Error: Detector size of %d rows x %d columns does not correspond to an ADSC detector type\n",
 			smv_size2, smv_size1);
 	return(1);
   }
@@ -653,6 +656,22 @@ int	img2cbf_sub(char *header, unsigned short *data, char *cbf_filename)
 
     /* beam center in x and y */
 
+/*
+ *	Coordinate system ends up being:
+ *
+ *    (0,0)
+ *	Y
+ *	^
+ *	|
+ *	|
+ *	|
+ *	|
+ *	----------> X
+ *
+ *	Define the origin to be the upper left hand corner, since
+ *	this is the "storage origin" of the data array.
+ */
+
   s[0] = '\0';
   gethd("BEAM_CENTER_X", s, header);
   if('\0' == s[0])
@@ -665,7 +684,7 @@ int	img2cbf_sub(char *header, unsigned short *data, char *cbf_filename)
   if('\0' == s[0])
 	det_beam_center_to_origin_dist_y = detector_center_y;
   else
-	det_beam_center_to_origin_dist_y = ((smv_size1 - 1.5) * pixel_size - atof(s));
+	det_beam_center_to_origin_dist_y = (smv_size1 - 1.5) * pixel_size - atof(s);
     
     /* Date */
 
@@ -690,7 +709,10 @@ int	img2cbf_sub(char *header, unsigned short *data, char *cbf_filename)
   if('\0' == s[0])
 	wavelength = -1;
   else
+  {
 	wavelength = atof(s);
+	gain = gain / wavelength;
+  }
   
     /* Oscillation start */
 
@@ -1419,7 +1441,7 @@ int	img2cbf_sub(char *header, unsigned short *data, char *cbf_filename)
 	for(j = 0; j < smv_size1; j++)
 		*ip++ = 0x0000ffff & *up++;
 
-  cbf_failnez (cbf_set_integerarray (cbf, CBF_PACKED, 1,
+  cbf_failnez (cbf_set_integerarray (cbf, pack_flags, 1,
                                  data_as_int, sizeof (int), 1,
                                  smv_size1 * smv_size2))
   
