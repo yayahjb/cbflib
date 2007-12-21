@@ -1,4 +1,14 @@
 #include	<stdio.h>
+
+#ifdef NO_POPEN_PROTOTYPE
+	/*
+	 *	This is supposed to be found in stdio.h.
+	 */
+
+	FILE	*popen(char *popen_command, const char *type);
+	int		pclose(FILE *stream);
+#endif
+
 #include	<stdlib.h>
 #include	<string.h>
 #include	<cbf.h>
@@ -91,7 +101,7 @@ int	main(int argc, char *argv[])
 	char		header_bytes[6];
 	int		file_size, header_size_char;
 	int		cbf_status;
-	int		i, j, k;
+	int		i, j, k=0;
 	int		size1, size2;
 	int		file_type;
 	int		pack_flags;
@@ -113,12 +123,6 @@ int	main(int argc, char *argv[])
 
 	int		adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int pack_flags);
 
-	/*
-	 *	This is supposed to be found in stdio.h.
-	 */
-
-	FILE		*popen(char *popen_command, const char *type);
-	int		pclose(FILE *stream);
 
 	if(argc < 2)
 	{

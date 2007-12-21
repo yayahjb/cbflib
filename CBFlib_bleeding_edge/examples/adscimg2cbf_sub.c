@@ -1407,7 +1407,7 @@ int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int 
     
     cbf_failnez (cbf_set_integervalue (cbf, overload))
     
-  cbf_failnez (cbf_new_column       (cbf, "undefined"))
+  cbf_failnez (cbf_new_column       (cbf, "undefined_value"))
   cbf_failnez (cbf_set_integervalue (cbf, 0))
 
   cbf_failnez (cbf_new_column       (cbf, "pixel_slow_bin_size"))
