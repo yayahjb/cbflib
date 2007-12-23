@@ -683,40 +683,56 @@ int cbf_get_array_id (cbf_handle handle, unsigned int element_number,
   return 0;
 }
 
-  /* Get the pixel size of a detector element in a given direction */
+  /* Get the pixel size of a detector element in a given direction 
+     axis numbering is 1-based, fast to slow */
 
 int cbf_get_pixel_size(cbf_handle handle, unsigned int element_number,
-                                          unsigned int axis_number,
+                                          int axis_number,
                                           double * psize)
 {
   const char *array_id;
-  int        aid, precedence, axis_index;
+  int        aid, precedence, max_precedence, axis_index;
 
   cbf_failnez (cbf_get_array_id   (handle, element_number, &array_id))
 
   cbf_failnez (cbf_find_category (handle, "array_structure_list"))
   cbf_failnez (cbf_find_column   (handle, "array_id"))
 
-  precedence = 0;
+  precedence = max_precedence = axis_index = 0;
 
   while (cbf_find_nextrow (handle, array_id) == 0)
   {
     cbf_failnez (cbf_find_column      (handle, "precedence"))
     cbf_failnez (cbf_get_integervalue (handle, &precedence))
 
-    if (precedence < 1 || precedence > 3)
+    if (precedence < 1 ) return CBF_FORMAT;
+    if (precedence > max_precedence) max_precedence = precedence;
 
-      return CBF_FORMAT;
-
-    cbf_failnez (cbf_find_column      (handle, "index"))
-    cbf_failnez (cbf_get_integervalue (handle, &axis_index))
-
-    if (precedence == axis_number) break;
-
+    if (precedence == axis_number) {
+      cbf_failnez (cbf_find_column      (handle, "index"))
+      cbf_failnez (cbf_get_integervalue (handle, &axis_index))
+      if (axis_index < 1) return CBF_FORMAT;
+    }
     cbf_failnez (cbf_find_column (handle, "array_id"))
   }
+  
+  if (axis_index == 0 && axis_number < 0 ) {
+    cbf_failnez (cbf_rewind_row (handle) )
+    while (cbf_find_nextrow (handle, array_id) == 0) {
+      cbf_failnez (cbf_find_column      (handle, "precedence"))
+      cbf_failnez (cbf_get_integervalue (handle, &precedence))
 
-  if (precedence != axis_number ) return CBF_NOTFOUND;
+      if (precedence == max_precedence+1+axis_number) {
+    cbf_failnez (cbf_find_column      (handle, "index"))
+    cbf_failnez (cbf_get_integervalue (handle, &axis_index))
+        if (axis_index < 1) return CBF_FORMAT;
+        break;
+      }
+    cbf_failnez (cbf_find_column (handle, "array_id"))
+    }
+  }
+
+  if (axis_index == 0 ) return CBF_NOTFOUND;
 
   if ( cbf_find_category  (handle, "array_element_size") == 0 ) {
     cbf_failnez (cbf_rewind_row     (handle))
@@ -739,40 +755,56 @@ int cbf_get_pixel_size(cbf_handle handle, unsigned int element_number,
 
 }
 
-  /* Set the pixel size of a detector element in a given direction */
+  /* Set the pixel size of a detector element in a given direction  
+     axis numbering is 1-based, fast to slow */
 
 int cbf_set_pixel_size(cbf_handle handle, unsigned int element_number,
-                                          unsigned int axis_number,
+                                          int axis_number,
                                           double psize)
 {
   const char *array_id;
-  int        aid, precedence, axis_index;
+  int        aid, precedence, max_precedence, axis_index;
 
   cbf_failnez (cbf_get_array_id   (handle, element_number, &array_id))
 
   cbf_failnez (cbf_find_category (handle, "array_structure_list"))
   cbf_failnez (cbf_find_column   (handle, "array_id"))
 
-  precedence = 0;
+  precedence = max_precedence = axis_index = 0;
 
   while (cbf_find_nextrow (handle, array_id) == 0)
   {
     cbf_failnez (cbf_find_column      (handle, "precedence"))
     cbf_failnez (cbf_get_integervalue (handle, &precedence))
 
-    if (precedence < 1 || precedence > 3)
+    if (precedence < 1 ) return CBF_FORMAT;
+    if (precedence > max_precedence) max_precedence = precedence;
 
-      return CBF_FORMAT;
-
-    cbf_failnez (cbf_find_column      (handle, "index"))
-    cbf_failnez (cbf_get_integervalue (handle, &axis_index))
-
-    if (precedence == axis_number) break;
-
+    if (precedence == axis_number) {
+      cbf_failnez (cbf_find_column      (handle, "index"))
+      cbf_failnez (cbf_get_integervalue (handle, &axis_index))
+      if (axis_index < 1) return CBF_FORMAT;
+    }
     cbf_failnez (cbf_find_column (handle, "array_id"))
   }
 
-  if (precedence != axis_number ) return CBF_NOTFOUND;
+  if (axis_index == 0 && axis_number < 0 ) {
+    cbf_failnez (cbf_rewind_row (handle) )
+    while (cbf_find_nextrow (handle, array_id) == 0) {
+    cbf_failnez (cbf_find_column      (handle, "precedence"))
+    cbf_failnez (cbf_get_integervalue (handle, &precedence))
+
+      if (precedence == max_precedence+1+axis_number) {
+    cbf_failnez (cbf_find_column      (handle, "index"))
+    cbf_failnez (cbf_get_integervalue (handle, &axis_index))
+        if (axis_index < 1) return CBF_FORMAT;
+        break;
+      }
+    cbf_failnez (cbf_find_column (handle, "array_id"))
+    }
+  }
+
+  if (axis_index == 0 ) return CBF_NOTFOUND;
 
   if ( cbf_find_category  (handle, "array_element_size") != 0 ) {
 
@@ -3837,7 +3869,7 @@ int cbf_construct_detector (cbf_handle    handle,
 
   const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
 
-  const char *surface_axis [2];
+  const char *surface_axis [2];  /* fast, slow */
 
   double displacement [2], increment [2];
 
@@ -5423,10 +5455,11 @@ int cbf_get_pixel_area (cbf_detector detector, double index1,
   /* Calcluate the size of a pixel from the detector element axis displacements */
 
 int cbf_get_inferred_pixel_size (cbf_detector detector,
-                                               unsigned int axis_number,
+                                               int axis_number,
                                                double *psize)
 {
 
+  if (axis_number < 0) axis_number = detector->axes+1+axis_number;
 
   if (!detector || axis_number < 1 || detector-> axes < axis_number )
 

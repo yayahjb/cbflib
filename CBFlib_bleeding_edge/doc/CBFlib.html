@@ -462,7 +462,10 @@ DRAFT CBF/ImgCIF DEFINITION</A>.
 	  <LI><A HREF="#2.4.24">2.4.24 cbf_set_current_time</a>
 	  <LI><A HREF="#2.4.25">2.4.25 cbf_get_image_size, cbf_get_3d_image_size</a>
 	  <LI><A HREF="#2.4.26">2.4.26 cbf_get_image, cbf_get_real_image, cbf_get_3d_image, cbf_get_real_3d_image</a>
-	  <LI><A HREF="#2.4.27">2.4.27 cbf_set_image, cbf_set_real_image, cbf_set_3d_image, cbf_set_real_3d_image</a>
+	  <LI><A HREF="#2.4.27">2.4.27 cbf_set_image, cbf_set_image_fs, cbf_set_image_sf,</a><br />
+	                               <A HREF="#2.4.27">cbf_set_real_image, cbf_set_real_image_fs, cbf_set_real_image_sf,</a><br />
+	                               <A HREF="#2.4.27">cbf_set_3d_image, cbf_set_3d_image, cbf_set_3d_image,</a><br>
+	                               <A HREF="#2.4.27">cbf_set_real_3d_image, cbf_set_real_3d_image_fs, cbf_set_real_3d_image_sf</a>
 	  <LI><A HREF="#2.4.28">2.4.28 cbf_get_axis_setting</a>
 	  <LI><A HREF="#2.4.29">2.4.29 cbf_set_axis_setting</a>
 	  <LI><A HREF="#2.4.30">2.4.30 cbf_construct_goniometer</a>
@@ -478,10 +481,10 @@ DRAFT CBF/ImgCIF DEFINITION</A>.
 	  <LI><A HREF="#2.4.40">2.4.40 cbf_get_detector_normal</a>
 	  <LI><A HREF="#2.4.41">2.4.41 cbf_get_pixel_coordinates</a>
 	  <LI><A HREF="#2.4.42">2.4.42 cbf_get_pixel_normal</a>
-	  <LI><A HREF="#2.4.43">2.4.43 cbf_get_pixel_area</a>
-	  <LI><A HREF="#2.4.44">2.4.44 cbf_get_pixel_size</a>
-	  <LI><A HREF="#2.4.45">2.4.45 cbf_set_pixel_size</a>
-	  <LI><A HREF="#2.4.46">2.4.46 cbf_get_inferred_pixel_size</a>
+	  <LI><A HREF="#2.4.43">2.4.43 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf </a>
+	  <LI><A HREF="#2.4.44">2.4.44 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf</a>
+	  <LI><A HREF="#2.4.45">2.4.45 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf</a>
+	  <LI><A HREF="#2.4.46">2.4.46 cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_fs, cbf_get_inferred_pixel_size_sf</a>
 	  <LI><A HREF="#2.4.47">2.4.47 cbf_get_unit_cell</a>
 	  <LI><A HREF="#2.4.48">2.4.48 cbf_set_unit_cell</a>
 	  <LI><A HREF="#2.4.49">2.4.49 cbf_get_reciprocal_cell</a>
@@ -4306,51 +4309,92 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 
 <p>Returns an error code on failure or 0 for success.
 <p><hr><P>
-<h4><A NAME="2.4.27">2.4.27 cbf_set_image, cbf_set_real_image, cbf_set_3d_image, cbf_set_real_3d_image</A></h4>
+<h4><A NAME="2.4.27">2.4.27 cbf_set_image, cbf_set_image_fs, cbf_set_image_sf,</a><br />
+                     cbf_set_real_image, cbf_set_real_image_fs, cbf_set_real_image_sf,</a><br />
+                     cbf_set_3d_image, cbf_set_3d_image, cbf_set_3d_image,</a><br>
+                     cbf_set_real_3d_image, cbf_set_real_3d_image_fs, cbf_set_real_3d_image_sf</a></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
 int cbf_set_image (cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
 unsigned int <i>element_number</i>,
 unsigned int compression, void *<i>array</i>, size_t <i>elsize</i>, 
-int <i>elsign</i>, size_t <i>ndim1</i>, size_t <i>ndim2</i>);<br />
+int <i>elsign</i>, size_t <i>ndimslow</i>, size_t <i>ndimfast</i>);<br />
+int cbf_set_image_fs(cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
+unsigned int <i>element_number</i>,
+unsigned int compression, void *<i>array</i>, size_t <i>elsize</i>, 
+int <i>elsign</i>, size_t <i>ndimfast</i>, size_t <i>ndimslow</i>);<br />
+int cbf_set_image_sf(cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
+unsigned int <i>element_number</i>,
+unsigned int compression, void *<i>array</i>, size_t <i>elsize</i>, 
+int <i>elsign</i>, size_t <i>ndimslow</i>, size_t <i>ndimfast</i>);<br />
+
 int cbf_set_real_image (cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
 unsigned int <i>element_number</i>,
 unsigned int compression, void *<i>array</i>,size_t <i>elsize</i>,
-size_t <i>ndim1</i>, size_t <i>ndim2</i>);<br />
+size_t <i>ndimslow</i>, size_t <i>ndimfast</i>);<br />
+int cbf_set_real_image_fs(cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
+unsigned int <i>element_number</i>,
+unsigned int compression, void *<i>array</i>,size_t <i>elsize</i>,
+size_t <i>ndimfast</i>, size_t <i>ndimslow</i>);<br />
+int cbf_set_real_image_sf(cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
+unsigned int <i>element_number</i>,
+unsigned int compression, void *<i>array</i>,size_t <i>elsize</i>,
+size_t <i>ndimslow</i>, size_t <i>ndimfast</i>);<br />
+
 int cbf_set_3d_image (cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
 unsigned int <i>element_number</i>,
 unsigned int compression, void *<i>array</i>, size_t <i>elsize</i>, 
-int <i>elsign</i>, size_t <i>ndim1</i>, size_t <i>ndim2</i>, size_t <i>ndim2=3</i>);<br />
+int <i>elsign</i>, size_t <i>ndimslow</i>, size_t <i>ndimmid</i>, size_t <i>ndimfast</i>);<br />
+int cbf_set_3d_image_fs(cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
+unsigned int <i>element_number</i>,
+unsigned int compression, void *<i>array</i>, size_t <i>elsize</i>, 
+int <i>elsign</i>, size_t <i>ndimfast</i>, size_t <i>ndimmid</i>, size_t <i>ndimslow</i>);<br />
+int cbf_set_3d_image_sf(cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
+unsigned int <i>element_number</i>,
+unsigned int compression, void *<i>array</i>, size_t <i>elsize</i>, 
+int <i>elsign</i>, size_t <i>ndimslow</i>, size_t <i>ndimmid</i>, size_t <i>ndimfast</i>);<br />
+
 int cbf_set_real_3d_image (cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
 unsigned int <i>element_number</i>,
 unsigned int compression, void *<i>array</i>,size_t <i>elsize</i>,
-size_t <i>ndim1</i>, size_t <i>ndim2</i>, size_t <i>ndim3</i>);
+size_t <i>ndimslow</i>, size_t <i>ndimmid</i>, size_t <i>ndimfast</i>);
+int cbf_set_real_3d_image_fs(cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
+unsigned int <i>element_number</i>,
+unsigned int compression, void *<i>array</i>,size_t <i>elsize</i>,
+size_t <i>ndimfast</i>, size_t <i>ndimmid</i>, size_t <i>ndimslow</i>);
+int cbf_set_real_3d_image_sf(cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
+unsigned int <i>element_number</i>,
+unsigned int compression, void *<i>array</i>,size_t <i>elsize</i>,
+size_t <i>ndimslow</i>, size_t <i>ndimmid</i>, size_t <i>ndimfast</i>);
 
 <p>
 <b>DESCRIPTION</b>
 <p>
-cbf_set_image writes the image array for element number <i>element_number</i>.  The <i>array</i> 
-consists of <i>ndim1</i>&#215;<i>ndim2</i> elements of <i>elsize</i> bytes each, starting 
-at <i>array</i>.  The elements are signed if <i>elsign</i> is non-0
-and unsigned otherwise.  cbf_set_real_image  writes the image array for element number 
+cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image array for element number 
 <i>element_number</i>.  The <i>array</i> 
-consists of <i>ndim1</i>&#215;<i>ndim2</i> IEEE double or float elements of <i>elsize</i> 
+consists of <i>ndimfast</i>&#215;<i>ndimslow</i> elements of <i>elsize</i> bytes each, starting 
+at <i>array</i>.  The elements are signed if <i>elsign</i> is non-zero
+and unsigned otherwise.  cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf 
+write the image array for element number <i>element_number</i>.  The <i>array</i> 
+consists of <i>ndimfast</i>&#215;<i>ndimslow</i> IEEE double or float elements of <i>elsize</i> 
 bytes each, starting at <i>array</i>. 
-cbf_set_3d_image writes the 3D image array for element number <i>element_number</i>.  The <i>array</i> 
-consists of <i>ndim1</i>&#215;<i>ndim2</i>&#215;<i>ndim3</i> elements of <i>elsize</i> bytes each, starting 
-at <i>array</i>.  The elements are signed if <i>elsign</i> is non-0
-and unsigned otherwise.  cbf_set_real_3d_image  writes the 3D image array for element number 
-<i>element_number</i>.  The <i>array</i> 
-consists of <i>ndim1</i>&#215;<i>ndim2</i>&#215;<i>ndim3</i> IEEE double or float elements of <i>elsize</i> 
+cbf_set_3d_image, cbf_set_3d_image_fs and cbf_set_3d_image_sf write the 3D image array for 
+element number <i>element_number</i>.  The <i>array</i> 
+consists of <i>ndimfast</i>&#215;<i>ndimmid</i>&#215;<i>ndimslow</i> elements of <i>elsize</i> 
+bytes each, starting at <i>array</i>.  The elements are signed if <i>elsign</i> is non-0
+and unsigned otherwise.  cbf_set_real_3d_image, cbf_set_real_3d_image_fs and cbf_set_real_3d_image_sf
+writes the 3D image array for element number <i>element_number</i>.  The <i>array</i> 
+consists of <i>ndimfast</i>&#215;<i>ndimmid</i>&#215;<i>ndimslow</i> IEEE double or float elements of <i>elsize</i> 
 bytes each, starting at <i>array</i>. 
-
-
 <p>
-If the array is 1-dimensional, <i>ndim1</i> should be the array size and <i>ndim2</i> and,
-for the 3D calls, <i>ndim3</i>, should be set to 1.  If the array is 2-dimensional and
-the 3D calls are used, <i>ndim1</i> and <i>ndim2</i> should be used for the array dimensions
-and <i>ndim3</i> should be set to 1.
+The _fs calls give the dimensions in a fast-to-slow order.  The calls with no suffix and the
+calls _sf calls give the dimenhsions in slow-to-fast order
+<p>
+If the array is 1-dimensional, <i>ndimslow</i> should be the array size and <i>ndimfast</i> and,
+for the 3D calls, <i>ndimmid</i>, should be set to 1.  If the array is 2-dimensional and
+the 3D calls are used, <i>ndimslow</i> and <i>ndimmid</i> should be used for the array dimensions
+and <i>ndimfast</i> should be set to 1.
 <p>
 The array will be compressed using the compression scheme specifed by compression.  Currently, 
 the available schemes are:
@@ -4382,8 +4426,9 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 <TR><td valign="top">&nbsp;&nbsp;<i>array</i><td valign="top">&nbsp;&nbsp;Pointer to the image array.
 <TR><td valign="top">&nbsp;&nbsp;<i>elsize</i><td valign="top">&nbsp;&nbsp;Size in bytes of each image array element.
 <TR><td valign="top">&nbsp;&nbsp;<i>elsigned</i><td valign="top">&nbsp;&nbsp;Set to non-0 if the image array elements are signed.
-<TR><td valign="top">&nbsp;&nbsp;<i>ndim1</i><td valign="top">&nbsp;&nbsp;Slow array dimension.
-<TR><td valign="top">&nbsp;&nbsp;<i>ndim2</i><td valign="top">&nbsp;&nbsp;Fast array dimension.
+<TR><td valign="top">&nbsp;&nbsp;<i>ndimslow</i><td valign="top">&nbsp;&nbsp;Slowest array dimension.
+<TR><td valign="top">&nbsp;&nbsp;<i>ndimmid</i><td valign="top">&nbsp;&nbsp;Second slowest array dimension.
+<TR><td valign="top">&nbsp;&nbsp;<i>ndimfast</i><td valign="top">&nbsp;&nbsp;Fastest array dimension.
 </TABLE>
 <p>
 <b>RETURN VALUE</b>
@@ -4787,7 +4832,9 @@ int cbf_get_pixel_coordinates (cbf_detector <I>detector</I>, double <i>index1</i
 <p>
 <b>DESCRIPTION</b>
 <p>
-cbf_get_pixel_coordinates sets *<i>coordinate1</i>, *<i>coordinate2</i>, and *<i>coordinate3</i> to the vector position of pixel (<i>index1</i>, <i>index2</i>) on the detector surface.  If <i>index1</i> and <i>index2</i> are integers then the coordinates
+cbf_get_pixel_coordinates sets *<i>coordinate1</i>, *<i>coordinate2</i>, and *<i>coordinate3</i> 
+to the vector position of pixel (<i>index1</i>, <i>index2</i>) on the detector surface.  If 
+<i>index1</i> and <i>index2</i> are integers then the coordinates
 correspond to the center of a pixel.
 <p>
 Any of the destination pointers may be NULL.
@@ -4834,25 +4881,35 @@ Any of the destination pointers may be NULL.
 <p>
 Returns an error code on failure or 0 for success.
 <p><hr><P>
-<h4><A NAME="2.4.43">2.4.43 cbf_get_pixel_area
+<h4><A NAME="2.4.43">2.4.43 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
-int cbf_get_pixel_area (cbf_detector <i>detector</i>, double <i>index1</i>, double <i>index2</i>, double *<I>area</I>,
-double *<i>projected_area</i>);
+int cbf_get_pixel_area (cbf_detector <i>detector</i>, double <i>indexslow</i>, double <i>indexfast</i>, double *<I>area</I>,
+double *<i>projected_area</i>);<br />
+int cbf_get_pixel_area_fs(cbf_detector <i>detector</i>, double <i>indexslow</i>, double <i>indexfast</i>, double *<I>area</I>,
+double *<i>projected_area</i>);<br />
+int cbf_get_pixel_area_sf(cbf_detector <i>detector</i>, double <i>indexfast</i>, double <i>indexslow</i>, double *<I>area</I>,
+double *<i>projected_area</i>);<br />
 <p>
 <b>DESCRIPTION</b>
 <p>
-cbf_get_pixel_area sets *<I>area</I> to the area of the pixel at (<i>index1</i>, <i>index2</i>) on the detector surface and *<i>projected_area</i> to the apparent area of the pixel as viewed from the sample position.
+cbf_get_pixel_area and cbf_get_pixel_area_sf set *<I>area</I> to the area of the pixel at (<i>indexfast</i>, <i>indexslow</i>) 
+on the detector surface and *<i>projected_area</i> to the apparent area of the pixel as viewed 
+from the sample position, with <i>indexslow</i> being the slow axis and <i>indexfast</i> being the fast axis.
+cbf_get_pixel_area_fs set1 *<I>area</I> to the area of the pixel at (<i>indexfast</i>, <i>indexslow</i>) 
+on the detector surface and *<i>projected_area</i> to the apparent area of the pixel as viewed 
+from the sample position, with <i>indexfast</i> being the fast axis and <i>indexslow</i> being the slow axis.
+
 <p>
 Either of the destination pointers may be NULL.
 <p>
 <b>ARGUMENTS</b><br />
 <TABLE>
 <TR><td valign="top">&nbsp;&nbsp;<i>detector</i><td valign="top">&nbsp;&nbsp;Detector handle.<br />
-<TR><td valign="top">&nbsp;&nbsp;<i>index1</i><td valign="top">&nbsp;&nbsp;Slow index.<br />
-<TR><td valign="top">&nbsp;&nbsp;<i>index2</i><td valign="top">&nbsp;&nbsp;Fast index.<br />
+<TR><td valign="top">&nbsp;&nbsp;<i>indexfast</i><td valign="top">&nbsp;&nbsp;Fast index.<br />
+<TR><td valign="top">&nbsp;&nbsp;<i>indexslow</i><td valign="top">&nbsp;&nbsp;Slow index.<br />
 <TR><td valign="top">&nbsp;&nbsp;<i>area</i><td valign="top">&nbsp;&nbsp;Pointer to the destination area in mm2.<br />
 <TR><td valign="top">&nbsp;&nbsp;<i>projected_area</i><td valign="top">&nbsp;&nbsp;Pointer to the destination apparent area in mm2.<br />
 </TABLE>
@@ -4862,18 +4919,28 @@ Either of the destination pointers may be NULL.
 Returns an error code on failure or 0 for success.
 <p><hr><P>
 
-<h4><A NAME="2.4.44">2.4.44 cbf_get_pixel_size</A></h4>
+<h4><A NAME="2.4.44">2.4.44 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
 int cbf_get_pixel_size (cbf_handle <i>handle</i>, unsigned int <i>element_number</i>,
-unsigned int <i>axis_number</i>, double *<i>psize</i>);
+int <i>axis_number</i>, double *<i>psize</i>);<br />
+int cbf_get_pixel_size_fs(cbf_handle <i>handle</i>, unsigned int <i>element_number</i>,
+int <i>axis_number</i>, double *<i>psize</i>);<br />
+int cbf_get_pixel_size_sf(cbf_handle <i>handle</i>, unsigned int <i>element_number</i>,
+int <i>axis_number</i>, double *<i>psize</i>);
 <p>
 <b>DESCRIPTION</b>
 <p>
-cbf_get_pixel_size sets *<i>psize</i> to point to the double value in millimeters of the
+cbf_get_pixel_size and cbf_get_pixel_size_fs sets *<i>psize</i> to point to the double value in millimeters of the
 axis <i>axis_number</i> of the detector element <i>element_number</i>.  The <i>axis_number</i>
-is numbered from 1, starting with the fastest axis.
+is numbered from 1, starting with the fastest axis.  cbf_get_pixel_size_sf sets *<i>psize</i> to point to 
+the double value in millimeters of the axis <i>axis_number</i> of the detector element <i>element_number</i>.
+The <i>axis_number</i>
+is numbered from 1, starting with the slowest axis.
+<p>If a negative axis number is given, the order of axes is reversed, so that -1
+specifies the slowest axis for cbf_get_pixel_size_fs and the fastest axis for
+cbf_get_pixel_size_sf.
 <p>
 If the pixel size is not given explcitly in the &quot;array_element_size&quot; category,
 the function returns CBF_NOTFOUND.
@@ -4882,7 +4949,8 @@ the function returns CBF_NOTFOUND.
 <TABLE>
 <TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.
 <TR><td valign="top">&nbsp;&nbsp;<i>element_number</i><td valign="top">&nbsp;&nbsp;The number of the detector element counting from 0 by order of appearance in the &quot;diffrn_data_frame&quot; category.
-<TR><td valign="top">&nbsp;&nbsp;<i>axis_number</i><td valign="top">&nbsp;&nbsp;The number of the axis, fastest first, starting from 1.
+<TR><td valign="top">&nbsp;&nbsp;<i>axis_number</i><td valign="top">&nbsp;&nbsp;The number of the axis, starting from 1 for the fastest for
+cbf_get_pixel_size and cbf_get_pixel_size_fs and the slowest for cbf_get_pixel_size_sf.
 <TR><td valign="top">&nbsp;&nbsp;<i>psize</i><td valign="top">&nbsp;&nbsp;Pointer to the destination pixel size.
 </TABLE>
 <p>
@@ -4892,22 +4960,33 @@ the function returns CBF_NOTFOUND.
 <p><hr><P>
 
 
-<h4><A NAME="2.4.45">2.4.45 cbf_set_pixel_size</A></h4>
+<h4><A NAME="2.4.45">2.4.45 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
 int cbf_set_pixel_size (cbf_handle <i>handle</i>, unsigned int <i>element_number</i>,
-unsigned int <i>axis_number</i>, double <i>psize</i>);
+int <i>axis_number</i>, double <i>psize</i>);<br />
+int cbf_set_pixel_size_fs(cbf_handle <i>handle</i>, unsigned int <i>element_number</i>,
+int <i>axis_number</i>, double <i>psize</i>);<br />
+int cbf_set_pixel_size_sf(cbf_handle <i>handle</i>, unsigned int <i>element_number</i>,
+int <i>axis_number</i>, double <i>psize</i>);<br />
 <p>
 <b>DESCRIPTION</b>
 <p>
-cbf_set_pixel_size sets the item in the &quote;size&quote; column of the  &quot;array_structure_list&quot;
+cbf_set_pixel_size and cbf_set_pixel_size_fs set the item in the &quote;size&quote; column of the  &quot;array_structure_list&quot;
 category at the row which matches axis <i>axis_number</i> of the detector element <i>element_number</i>
 converting the double pixel size <i>psize</i> from meters to millimeters in storing it in the &quot;size&quot;
-column for the
-axis <i>axis_number</i> of the detector element <i>element_number</i>.  The <i>axis_number</i>
+column for the axis <i>axis_number</i> of the detector element <i>element_number</i>.  The <i>axis_number</i>
 is numbered from 1, starting with the fastest axis.
 <p>
+cbf_set_pixel_size_sf sets the item in the &quote;size&quote; column of the  &quot;array_structure_list&quot;
+category at the row which matches axis <i>axis_number</i> of the detector element <i>element_number</i>
+converting the double pixel size <i>psize</i> from meters to millimeters in storing it in the &quot;size&quot;
+column for the axis <i>axis_number</i> of the detector element <i>element_number</i>.  The <i>axis_number</i>
+is numbered from 1, starting with the slowest axis.
+<p>If a negative axis number is given, the order of axes is reversed, so that -1
+specifies the slowest axis for cbf_get_pixel_size_fs and the fastest axis for
+cbf_get_pixel_size_sf.
 If the &quot;array_structure_list&quot; category does not already exist, it is created.
 <p>
 If the appropriate row in the &quot;array_structure_list&quot; catgeory does not already exist, it is created.
