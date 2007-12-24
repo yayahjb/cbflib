@@ -273,10 +273,14 @@ int cbf_compress_none (void         *source,
                        int          *storedbits,
                        int           realarray,
                        const char   *byteorder,
-                       size_t        dim1,
-                       size_t        dim2,
-                       size_t        dim3,
+                       size_t        dimfast,
+                       size_t        dimmid,
+                       size_t        dimslow,
                        size_t        padding);
+#define cbf_compress_none_fs(source,elsize,elsign,nelem,compression,file,compressedsize,storedbits,realarray,byteorder,dimfast,dimmid,dimslow,padding) \
+        cbf_compress_none((source),(elsize),(elsign),(nelem),(compression),(file),(compressedsize),(storedbits),(realarray),(byteorder),(dimfast),(dimmid),(dimslow),(padding)) 
+#define cbf_compress_none_sf(source,elsize,elsign,nelem,compression,file,compressedsize,storedbits,realarray,byteorder,dimslow,dimmid,dimfast,padding) \
+        cbf_compress_none((source),(elsize),(elsign),(nelem),(compression),(file),(compressedsize),(storedbits),(realarray),(byteorder),(dimfast),(dimmid),(dimslow),(padding)) 
 
 
   /* Recover an array without decompression */
@@ -293,10 +297,14 @@ int cbf_decompress_none (void         *destination,
                          int           realarray,
                          const char   *byteorder,
                          size_t        dimover,
-                         size_t        dim1,
-                         size_t        dim2,
-                         size_t        dim3,
+                         size_t        dimfast,
+                         size_t        dimmid,
+                         size_t        dimslow,
                          size_t        padding);
+#define cbf_decompress_none_fs(destination,elsize,elsign,nelem,nelem_read,compression,bits,sign,file,realarray,byteorder,dimover,dimfast,dimmid,dimslow,padding) \
+        cbf_decompress_none((destination),(elsize),(elsign),(nelem),(nelem_read),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding)) 
+#define cbf_decompress_none_sf(destination,elsize,elsign,nelem,nelem_read,compression,bits,sign,file,realarray,byteorder,dimover,dimslow,dimmid,dimfast,padding) \
+        cbf_decompress_none((destination),(elsize),(elsign),(nelem),(nelem_read),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding)) 
 
 #ifdef __cplusplus
 

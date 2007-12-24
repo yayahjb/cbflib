@@ -276,9 +276,9 @@ int cbf_compress_byte_offset (void         *source,
                               int          *storedbits,
                               int           realarray,
                               const char   *byteorder,
-                              size_t        dim1,
-                              size_t        dim2,
-                              size_t        dim3,
+                              size_t        dimfast,
+                              size_t        dimmid,
+                              size_t        dimslow,
                               size_t        padding)
 {
   unsigned int count, borrow, element[4], prevelement[4], 
@@ -864,9 +864,9 @@ int cbf_decompress_byte_offset (void         *destination,
                                 int           realarray,
                                 const char   *byteorder,
                                 size_t        dimover,
-                                size_t        dim1,
-                                size_t        dim2,
-                                size_t        dim3,
+                                size_t        dimfast,
+                                size_t        dimmid,
+                                size_t        dimslow,
                                 size_t        padding)
 {
   unsigned int element[4], prevelement[4], sign, unsign, limit;

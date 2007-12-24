@@ -2,8 +2,8 @@
 
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
-                              Version 0.7.8.1
-                                28 July 2007
+                                Version 0.7.8.2
+                                23 December 2007
 
                                        by
                                  Paul J. Ellis
@@ -32,13 +32,13 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    Work on imgCIF and CBFlib supported in part by the U. S. Department of
    Energy (DOE) under grants ER63601-1021466-0009501 and
-   ER64212-1027708-0011962, by the U. S. National Science Foundation
-   (NSF) under grants DBI-0610407, DBI-0315281 and EF-0312612, the U. S.
-   National Institutes of Health (NIH) under grants 1R15GM078077 from
-   NIGMS and 1R13RR023192 from NCRR and funding from the International
-   Union for Crystallographyn (IUCr). The content is solely the
-   responsibility of the authors and does not necessarily represent the
-   official views of DOE, NSF, NIH, NIGMS, NCRR or IUCr.
+   ER64212-1027708-0011962, by the U. S. National Science Foundation (NSF)
+   under grants DBI-0610407, DBI-0315281 and EF-0312612, the U. S. National
+   Institutes of Health (NIH) under grants 1R15GM078077 from NIGMS and
+   1R13RR023192 from NCRR and funding from the International Union for
+   Crystallographyn (IUCr). The content is solely the responsibility of the
+   authors and does not necessarily represent the official views of DOE, NSF,
+   NIH, NIGMS, NCRR or IUCr.
 
      ----------------------------------------------------------------------
 
@@ -188,9 +188,12 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                                        files with updated convert_minicbf,    
                                        and support for gfortran from gcc 4.2. 
      0.7.8.1   Jul 2007        HJB       Update to 0.7.8 release to fix 
-                                       memory leaks reported by N. Sauter 
-                                       and to update validation checks for 
-                                       recent changes.
+                                       memory leaks reported by N. Sauter and 
+                                       to update validation checks for recent 
+                                       changes.                               
+     0.7.8.2   Dec 2007        HJB and   Update to 0.7.8.1 to add ADSC jiffie 
+                             CN        by Chris Nielsen, and to add ..._fs    
+                                       and ..._sf macros.                     
 
      ----------------------------------------------------------------------
 
@@ -257,6 +260,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 2.2.2 Writing binary sections
                * 2.2.3 Summary of reading and writing files containing binary
                  sections
+               * 2.2.4 Ordering of array indices
           * 2.3 Low-level function prototypes
                * 2.3.1 cbf_make_handle
                * 2.3.2 cbf_free_handle
@@ -318,11 +322,20 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 2.3.53 cbf_set_doublevalue
                * 2.3.54 cbf_get_integerarrayparameters,
                  cbf_get_integerarrayparameters_wdims,
+                 cbf_get_integerarrayparameters_wdims_fs,
+                 cbf_get_integerarrayparameters_wdims_sf
                  cbf_get_realarrayparameters,
-                 cbf_get_realarrayparameters_wdims
+                       cbf_get_realarrayparameters_wdims,
+                 cbf_get_realarrayparameters_wdims_fs,
+                 cbf_get_realarrayparameters_wdims_sf
                * 2.3.55 cbf_get_integerarray, cbf_get_realarray
-               * 2.3.56 cbf_set_integerarray, cbf_set_integerarray_wdims,
-                 cbf_set_realarray, cbf_set_realarray_wdims
+               * 2.3.56 cbf_set_integerarray,
+                       cbf_set_integerarray_wdims,
+                 cbf_set_integerarray_wdims_fs,
+                 cbf_set_integerarray_wdims_sf,
+                       cbf_set_realarray,
+                       cbf_set_realarray_wdims, cbf_set_realarray_wdims_fs,
+                 cbf_set_realarray_wdims_sf
                * 2.3.57 cbf_failnez
                * 2.3.58 cbf_onfailnez
                * 2.3.59 cbf_require_datablock
@@ -367,11 +380,23 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 2.4.22 cbf_get_date
                * 2.4.23 cbf_set_date
                * 2.4.24 cbf_set_current_time
-               * 2.4.25 cbf_get_image_size, cbf_get_3d_image_size
-               * 2.4.26 cbf_get_image, cbf_get_real_image, cbf_get_3d_image,
-                 cbf_get_real_3d_image
-               * 2.4.27 cbf_set_image, cbf_set_real_image, cbf_set_3d_image,
-                 cbf_set_real_3d_image
+               * 2.4.25 cbf_get_image_size, cbf_get_image_size_fs,
+                 cbf_get_image_size_fs,
+                       cbf_get_3d_image_size, cbf_get_3d_image_size_fs,
+                 cbf_get_3d_image_size_sf
+               * 2.4.26 cbf_get_image, cbf_get_image_fs, cbf_get_image_sf,
+                       cbf_get_real_image, cbf_get_real_image_fs,
+                 cbf_get_real_image_sf,
+                       cbf_get_3d_image, cbf_get_3d_image_fs,
+                 cbf_get_3d_image_sf,
+                       cbf_get_real_3d_image, cbf_get_real_3d_image_fs,
+                 cbf_get_real_3d_image_sf
+               * 2.4.27 cbf_set_image, cbf_set_image_fs, cbf_set_image_sf,
+                       cbf_set_real_image, cbf_set_real_image_fs,
+                 cbf_set_real_image_sf,
+                       cbf_set_3d_image, cbf_set_3d_image, cbf_set_3d_image,
+                       cbf_set_real_3d_image, cbf_set_real_3d_image_fs,
+                 cbf_set_real_3d_image_sf
                * 2.4.28 cbf_get_axis_setting
                * 2.4.29 cbf_set_axis_setting
                * 2.4.30 cbf_construct_goniometer
@@ -384,16 +409,28 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                  cbf_construct_reference_detector,
                  cbf_require_reference_detector
                * 2.4.37 cbf_free_detector
-               * 2.4.38 cbf_get_beam_center, cbf_set_beam_center,
-                 set_reference_beam_center
+               * 2.4.38 cbf_get_beam_center, cbf_get_beam_center_fs,
+                 cbf_get_beam_center_sf,
+                       cbf_set_beam_center, cbf_set_beam_center_fs,
+                 cbf_set_beam_center_sf,
+                       cbf_set_reference_beam_center,
+                 cbf_set_reference_beam_center_fs,
+                 cbf_set_reference_beam_center_sf
                * 2.4.39 cbf_get_detector_distance
                * 2.4.40 cbf_get_detector_normal
-               * 2.4.41 cbf_get_pixel_coordinates
-               * 2.4.42 cbf_get_pixel_normal
-               * 2.4.43 cbf_get_pixel_area
-               * 2.4.44 cbf_get_pixel_size
-               * 2.4.45 cbf_set_pixel_size
-               * 2.4.46 cbf_get_inferred_pixel_size
+               * 2.4.41 cbf_get_pixel_coordinates,
+                 cbf_get_pixel_coordinates_fs, cbf_get_pixel_coordinates_sf
+               * 2.4.42 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
+                 cbf_get_pixel_normal_sf
+               * 2.4.43 cbf_get_pixel_area, cbf_get_pixel_area_fs,
+                 cbf_get_pixel_area_sf
+               * 2.4.44 cbf_get_pixel_size, cbf_get_pixel_size_fs,
+                 cbf_get_pixel_size_sf
+               * 2.4.45 cbf_set_pixel_size, cbf_set_pixel_size_fs,
+                 cbf_set_pixel_size_sf
+               * 2.4.46 cbf_get_inferred_pixel_size,
+                 cbf_get_inferred_pixel_size_fs,
+                 cbf_get_inferred_pixel_size_sf
                * 2.4.47 cbf_get_unit_cell
                * 2.4.48 cbf_set_unit_cell
                * 2.4.49 cbf_get_reciprocal_cell
@@ -589,6 +626,29 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    3. Do not close any files read by CBFlib or written by CBFlib with
    buffering turned on.
    4. Do not attempt to read from a file, then write to the same file.
+
+    2.2.4 Ordering of array indices
+
+   There are two major conventions in the ordering of array indices:
+     * fs: Fast to slow. The first array index (the one numbered "1") is the
+       one for which the values of that index change "fastest". That is as we
+       move forward in memory, the value of this index changes more rapidly
+       than any other.
+     * sf: Slow to fast. The first array index (the one numbered "1") is the
+       one for which the values of that index change "slowest". That is as we
+       move forward in memory, the value of this index changes more slowly
+       than any other.
+
+   During the development of CBFlib, both conventions have been used. In
+   order to avoid confusion, the functions for which array indices are used
+   are available in three forms: a default version which may used either one
+   convention or the other, a form in which the name of the function has an
+   "_fs" suffix for the fast to slow convention and a form in which the name
+   of the function has a "_sf" suffix for the slow to fast convention.
+   Designers of applications are advised to use one of the two conventions.
+   There is no burden on performance for using one convention or the other.
+   The differences are resolved at compile time by use of preprocessor
+   macros.
 
      ----------------------------------------------------------------------
 
@@ -2300,9 +2360,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    DESCRIPTION
 
    cbf_get_value sets *value to point to the ASCII value of the item at the
-   current column and row. cbf_require_value sets *value to point to the ASCII
-   value of the item at the current column and row, creating the data item if
-   necessary and initializing it to a copy of defaultvalue.
+   current column and row. cbf_require_value sets *value to point to the
+   ASCII value of the item at the current column and row, creating the data
+   item if necessary and initializing it to a copy of defaultvalue.
 
    If the value is not ASCII, the function returns CBF_BINARY.
 
@@ -2641,8 +2701,12 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.3.54 cbf_get_integerarrayparameters, cbf_get_integerarrayparameters_wdims,
-    cbf_get_realarrayparameters, cbf_get_realarrayparameters_wdims
+    2.3.54 cbf_get_integerarrayparameters,
+          cbf_get_integerarrayparameters_wdims,
+    cbf_get_integerarrayparameters_wdims_fs,
+    cbf_get_integerarrayparameters_wdims_sf,       cbf_get_realarrayparameters,
+          cbf_get_realarrayparameters_wdims,
+    cbf_get_realarrayparameters_wdims_fs, cbf_get_realarrayparameters_wdims_sf
 
    PROTOTYPE
 
@@ -2651,16 +2715,38 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    int cbf_get_integerarrayparameters (cbf_handle handle, unsigned int
    *compression, int *binary_id, size_t *elsize, int *elsigned, int
    *elunsigned, size_t *elements, int *minelement, int *maxelement);
+    
    int cbf_get_integerarrayparameters_wdims (cbf_handle handle, unsigned int
    *compression, int *binary_id, size_t *elsize, int *elsigned, int
    *elunsigned, size_t *elements, int *minelement, int *maxelement, const
-   char **byteorder, size_t *dim1, size_t *dim2, size_t *dim3, size_t
+   char **byteorder, size_t *dimfast, size_t *dimmid, size_t *dimslow, size_t
    *padding);
+   int cbf_get_integerarrayparameters_wdims_fs (cbf_handle handle, unsigned
+   int *compression, int *binary_id, size_t *elsize, int *elsigned, int
+   *elunsigned, size_t *elements, int *minelement, int *maxelement, const
+   char **byteorder, size_t *dimfast, size_t *dimmid, size_t *dimslow, size_t
+   *padding);
+   int cbf_get_integerarrayparameters_wdims_sf (cbf_handle handle, unsigned
+   int *compression, int *binary_id, size_t *elsize, int *elsigned, int
+   *elunsigned, size_t *elements, int *minelement, int *maxelement, const
+   char **byteorder, size_t *dimslow, size_t *dimmid, size_t *dimfast, size_t
+   *padding);
+    
    int cbf_get_realarrayparameters (cbf_handle handle, unsigned int
    *compression, int *binary_id, size_t *elsize, size_t *elements);
+    
    int cbf_get_realarrayparameters_wdims (cbf_handle handle, unsigned int
    *compression, int *binary_id, size_t *elsize, size_t *elements, const char
-   **byteorder, size_t *dim1, size_t *dim2, size_t *dim3, size_t *padding);
+   **byteorder, size_t *dimfast, size_t *dimmid, size_t *dimslow, size_t
+   *padding);
+   int cbf_get_realarrayparameters_wdims_fs (cbf_handle handle, unsigned int
+   *compression, int *binary_id, size_t *elsize, size_t *elements, const char
+   **byteorder, size_t *dimfast, size_t *dimmid, size_t *dimslow, size_t
+   *padding);
+   int cbf_get_realarrayparameters_wdims_sf (cbf_handle handle, unsigned int
+   *compression, int *binary_id, size_t *elsize, size_t *elements, const char
+   **byteorder, size_t *dimslow, size_t *dimmid, size_t *dimfast, size_t
+   *padding);
 
    DESCRIPTION
 
@@ -2675,10 +2761,14 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    subsequent call to cbf_set_realarray, if a copy of the arry is to be made
    into another CIF or CBF.
 
-   The variants cbf_get_integerarrayparameters_wdims and
-   cbf_get_realarrayparameters_wdims set **byteorder, *dim1, *dim2, *dim3,
-   and *padding as well, providing the additional parameters needed for a
-   subsequent call to cbf_set_integerarray_wdims or cbf_set_realarray_wdims.
+   The variants cbf_get_integerarrayparameters_wdims,
+   cbf_get_integerarrayparameters_wdims_fs,
+   cbf_get_integerarrayparameters_wdims_sf,
+   cbf_get_realarrayparameters_wdims, cbf_get_realarrayparameters_wdims_fs,
+   cbf_get_realarrayparameters_wdims_sf set **byteorder, *dimfast, *dimmid,
+   *dimslow, and *padding as well, providing the additional parameters needed
+   for a subsequent call to cbf_set_integerarray_wdims or
+   cbf_set_realarray_wdims.
 
    The value returned in *byteorder is a pointer either to the string
    "little_endian" or to the string "big_endian". This should be the byte
@@ -2686,9 +2776,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    be made to modify this string. At this time only "little_endian" will be
    returned.
 
-   The values returned in *dim1, *dim2 and *dim3 are the sizes of the fastest
-   changing, second fastest changing and third fastest changing dimensions of
-   the array, if specified, or zero, if not specified.
+   The values returned in *dimfast, *dimmid and *dimslow are the sizes of the
+   fastest changing, second fastest changing and third fastest changing
+   dimensions of the array, if specified, or zero, if not specified.
 
    The value returned in *padding is the size of the post-data padding, if
    any and if specified in the data header. The value is given as a count of
@@ -2710,9 +2800,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      minelement    Pointer to the destination smallest element.               
      maxelement    Pointer to the destination largest element.                
      byteorder     Pointer to the destination byte order.                     
-     dim1          Pointer to the destination fastest dimension.              
-     dim2          Pointer to the destination second fastest dimension.       
-     dim3          Pointer to the destination third fastest dimension.        
+     dimfast       Pointer to the destination fastest dimension.              
+     dimmid        Pointer to the destination second fastest dimension.       
+     dimslow       Pointer to the destination third fastest dimension.        
      padding       Pointer to the destination padding size.                   
 
    RETURN VALUE
@@ -2813,8 +2903,12 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.3.56 cbf_set_integerarray, cbf_set_integerarray_wdims, cbf_set_realarray,
-    cbf_set_realarray_wdims
+    2.3.56 cbf_set_integerarray,
+          cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs,
+    cbf_set_integerarray_wdims_sf,
+          cbf_set_realarray,
+          cbf_set_realarray_wdims, cbf_set_realarray_wdims_fs,
+    cbf_set_realarray_wdims_sf
 
    PROTOTYPE
 
@@ -2822,15 +2916,35 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    int cbf_set_integerarray (cbf_handle handle, unsigned int compression, int
    binary_id, void *array, size_t elsize, int elsigned, size_t elements);
+    
    int cbf_set_integerarray_wdims (cbf_handle handle, unsigned int
    compression, int binary_id, void *array, size_t elsize, int elsigned,
-   size_t elements, const char *byteorder, size_t dim1, size_t dim2, size_t
-   dim3, size_t padding);
+   size_t elements, const char *byteorder, size_t dimfast, size_t dimmid,
+   size_t dimslow, size_t padding);
+   int cbf_set_integerarray_wdims_fs (cbf_handle handle, unsigned int
+   compression, int binary_id, void *array, size_t elsize, int elsigned,
+   size_t elements, const char *byteorder, size_t dimfast, size_t dimmid,
+   size_t dimslow, size_t padding);
+   int cbf_set_integerarray_wdims_sf (cbf_handle handle, unsigned int
+   compression, int binary_id, void *array, size_t elsize, int elsigned,
+   size_t elements, const char *byteorder, size_t dimslow, size_t dimmid,
+   size_t dimfast, size_t padding);
+    
    int cbf_set_realarray (cbf_handle handle, unsigned int compression, int
    binary_id, void *array, size_t elsize, size_t elements);
+    
    int cbf_set_realarray_wdims (cbf_handle handle, unsigned int compression,
    int binary_id, void *array, size_t elsize, size_t elements, const char
-   *byteorder, size_t dim1, size_t dim2, size_t dim3, size_t padding);
+   *byteorder, size_t dimfast, size_t dimmid, size_t dimslow, size_t
+   padding);
+   int cbf_set_realarray_wdims_fs (cbf_handle handle, unsigned int
+   compression, int binary_id, void *array, size_t elsize, size_t elements,
+   const char *byteorder, size_t dimfast, size_t dimmid, size_t dimslow,
+   size_t padding);
+   int cbf_set_realarray_wdims_sf (cbf_handle handle, unsigned int
+   compression, int binary_id, void *array, size_t elsize, size_t elements,
+   const char *byteorder, size_t dimslow, size_t dimmid, size_t dimfast,
+   size_t padding);
 
    DESCRIPTION
 
@@ -2843,10 +2957,13 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    elements elements of elsize bytes each, starting at array. binary_id is
    the binary section identifier.
 
-   The cbf_set_integerarray_wdims and cbf_set_realarray_wdims allow the data
-   header values of byteorder, dim1, dim2, dim3 and padding to be set to the
-   data byte order, the fastest, second fastest and third fastest array
-   dimensions and the size in byte of the post data padding to be used.
+   The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs,
+   cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims,
+   cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants allow
+   the data header values of byteorder, dimfast, dimmid, dimslow and padding
+   to be set to the data byte order, the fastest, second fastest and third
+   fastest array dimensions and the size in byte of the post data padding to
+   be used.
 
    The array will be compressed using the compression scheme specifed by
    compression. Currently, the available schemes are:
@@ -4157,36 +4274,54 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.25 cbf_get_image_size, cbf_get_3d_image_size
+    2.4.25 cbf_get_image_size, cbf_get_image_size_fs, cbf_get_image_size_sf,
+          cbf_get_3d_image_size, cbf_get_3d_image_size_fs,
+    cbf_get_3d_image_size_sf
 
      PROTOTYPE
 
      #include "cbf_simple.h"
 
      int cbf_get_image_size (cbf_handle handle, unsigned int reserved,
-     unsigned int element_number, size_t *ndim1, size_t *ndim2);
+     unsigned int element_number, size_t *ndimslow, size_t *ndimfast);
+     int cbf_get_image_size_fs (cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, size_t *ndimfast, size_t *ndimslow);
+     int cbf_get_image_size_sf (cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, size_t *ndimslow, size_t *ndimfast);
+      
      int cbf_get_3d_image_size (cbf_handle handle, unsigned int reserved,
-     unsigned int element_number, size_t *ndim1, size_t *ndim2, size_t
-     *ndim3);
+     unsigned int element_number, size_t *ndimslow, size_t *ndimmid, size_t
+     *ndimfast); int cbf_get_3d_image_size_fs (cbf_handle handle, unsigned
+     int reserved, unsigned int element_number, size_t *ndimfast, size_t
+     *ndimmid, size_t *ndimslow); int cbf_get_3d_image_size_sf (cbf_handle
+     handle, unsigned int reserved, unsigned int element_number, size_t
+     *ndimslow, size_t *ndimmid, size_t *ndimfast);
 
      DESCRIPTION
 
-     cbf_get_image_size sets *ndim1 and *ndim2 to the slow and fast
-     dimensions of the image array for element number element_number. If the
-     array is 1-dimensional, *ndim1 will be set to the array size and *ndim2
-     will be set to 1. If the array is 3-dimensional an error code will be
-     returned. cbf_get_3d_image_size sets *ndim1, *ndim2 and *ndim3 to the
+     cbf_get_image_size, cbf_get_image_size_fs and cbf_get_image_size_sf set
+     *ndimslow and *ndimfast to the slow and fast dimensions of the image
+     array for element number element_number. If the array is 1-dimensional,
+     *ndimslow will be set to the array size and *ndimfast will be set to 1.
+     If the array is 3-dimensional an error code will be returned.
+     cbf_get_3d_image_size, cbf_get_3d_image_size_fs and
+     cbf_get_3d_image_size_sf set *ndimslow, *ndimmid and *ndimfast to the
      slowest, next fastest and fastest dimensions, respectively, of the 3D
      image array for element number element_number. If the array is
-     1-dimensional, *ndim1 will be set to the array size and *ndim2 and
-     *ndim3 will be set to 1. If the array is 2-dimensional *ndim1 and *ndim2
-     will be set as for a call to cbf_get_image_size and *ndim3 will be set
-     to 1.
+     1-dimensional, *ndimslow will be set to the array size and *ndimmid and
+     *ndimfast will be set to 1. If the array is 2-dimensional *ndimslow and
+     *ndimmid will be set as for a call to cbf_get_image_size and *ndimfast
+     will be set to 1.
+
+     The _fs calls give the dimensions in a fast-to-slow order. The calls
+     with no suffix and the calls _sf calls give the dimensions in
+     slow-to-fast order
 
      Note that the ordering of dimensions is specified by values of the tag
      _array_structure_list.precedence with a precedence of 1 for the fastest
      dimension, 2 for the next slower, etc., which is opposite to the
-     ordering of the dimension arguments for these functions.
+     ordering of the dimension arguments for these functions, except for the
+     ones with the _fs suffix..
 
      Any of the destination pointers may be NULL.
 
@@ -4199,9 +4334,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        element_number   The number of the detector element counting from 0 by 
                       order of appearance in the "diffrn_data_frame"          
                       category.                                               
-       ndim1            Pointer to the destination slowest dimension.         
-       ndim2            Pointer to the destination next faster dimension.     
-       ndim3            Pointer to the destination fastest dimension.         
+       ndimslow         Pointer to the destination slowest dimension.         
+       ndimmid          Pointer to the destination next faster dimension.     
+       ndimfast         Pointer to the destination fastest dimension.         
 
      RETURN VALUE
 
@@ -4209,8 +4344,11 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.26 cbf_get_image, cbf_get_real_image, cbf_get_3d_image,
-    cbf_get_real_3d_image
+    2.4.26 cbf_get_image, cbf_get_image_fs, cbf_get_image_sf,
+          cbf_get_real_image, cbf_get_real_image_fs, cbf_get_real_image_sf,
+          cbf_get_3d_image, cbf_get_3d_image_fs, cbf_get_3d_image_sf,
+          cbf_get_real_3d_image, cbf_get_real_3d_image_fs,
+    cbf_get_real_3d_image_sf
 
      PROTOTYPE
 
@@ -4218,40 +4356,73 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      int cbf_get_image (cbf_handle handle, unsigned int reserved, unsigned
      int element_number, void *array, size_t elsize, int elsign, size_t
-     ndim1, size_t ndim2);
+     ndimslow, size_t ndimfast);
+     int cbf_get_image_fs (cbf_handle handle, unsigned int reserved, unsigned
+     int element_number, void *array, size_t elsize, int elsign, size_t
+     ndimfast, size_t ndimslow);
+     int cbf_get_image_sf (cbf_handle handle, unsigned int reserved, unsigned
+     int element_number, void *array, size_t elsize, int elsign, size_t
+     ndimslow, size_t ndimfast);
+      
      int cbf_get_real_image (cbf_handle handle, unsigned int reserved,
-     unsigned int element_number, void *array, size_t elsize, size_t ndim1,
-     size_t ndim2);
+     unsigned int element_number, void *array, size_t elsize, size_t
+     ndimslow, size_t ndimfast);
+     int cbf_get_real_image_fs (cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, void *array, size_t elsize, size_t
+     ndimfast, size_t ndimslow);
+     int cbf_get_real_image_sf (cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, void *array, size_t elsize, size_t
+     ndimslow, size_t ndimfast);
+      
      int cbf_get_3d_image (cbf_handle handle, unsigned int reserved, unsigned
      int element_number, void *array, size_t elsize, int elsign, size_t
-     ndim1, size_t ndim2, size_t ndim3);
+     ndimslow, size_t ndimmid, size_t ndimfast);
+     int cbf_get_3d_image_fs (cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, void *array, size_t elsize, int elsign,
+     size_t ndimfast, size_t ndimmid, size_t ndimslow);
+     int cbf_get_3d_image_sf (cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, void *array, size_t elsize, int elsign,
+     size_t ndimslow, size_t ndimmid, size_t ndimfast);
+      
      int cbf_get_real_3d_image (cbf_handle handle, unsigned int reserved,
-     unsigned int element_number, void *array, size_t elsize, size_t ndim1,
-     size_t ndim2, size_t ndim3);
+     unsigned int element_number, void *array, size_t elsize, size_t
+     ndimslow, size_t ndimmid, size_t ndimfast); int cbf_get_real_3d_image_fs
+     (cbf_handle handle, unsigned int reserved, unsigned int element_number,
+     void *array, size_t elsize, size_t ndimfast, size_t ndimmid, size_t
+     ndimslow); int cbf_get_real_3d_image_sf (cbf_handle handle, unsigned int
+     reserved, unsigned int element_number, void *array, size_t elsize,
+     size_t ndimslow, size_t ndimmid, size_t ndimfast);
 
      DESCRIPTION
 
-     cbf_get_image reads the image array for element number element_number
-     into an array. The array consists of ndim1 *ndim2 elements of elsize
-     bytes each, starting at array. The elements are signed if elsign is
-     non-0 and unsigned otherwise. cbf_get_real_image reads the image array
-     of IEEE doubles or floats for element number element_number into an
-     array. A real array is always signed. cbf_get_image reads the 3D image
+     cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image
      array for element number element_number into an array. The array
-     consists of ndim1 *ndim2 *ndim3 elements of elsize bytes each, starting
+     consists of ndimslow *ndimfast elements of elsize bytes each, starting
      at array. The elements are signed if elsign is non-0 and unsigned
-     otherwise. cbf_get_real_3d_image reads the 3D image array of IEEE
-     doubles or floats for element number element_number into an array. A
-     real array is always signed.
+     otherwise. cbf_get_real_image, cbf_get_real_image_fs and
+     cbf_get_real_image_sf read the image array of IEEE doubles or floats for
+     element number element_number into an array. A real array is always
+     signed. cbf_get_3d_image, cbf_get_3d_image_fs and cbf_get_3d_image_sf
+     read the 3D image array for element number element_number into an array.
+     The array consists of ndimslow *ndimmid *ndimfast elements of elsize
+     bytes each, starting at array. The elements are signed if elsign is
+     non-0 and unsigned otherwise. cbf_get_real_3d_image,
+     cbf_get_real_3d_image_fs, cbf_get_real_3d_image_sf reads the 3D image
+     array of IEEE doubles or floats for element number element_number into
+     an array. A real array is always signed.
+
+     The _fs calls give the dimensions in a fast-to-slow order. The calls
+     with no suffix and the calls _sf calls give the dimensions in
+     slow-to-fast order
 
      The structure of the array as a 1-, 2- or 3-dimensional array should
      agree with the structure of the array given in the ARRAY_STRUCTURE_LIST
-     category. If the array is 1-dimensional, ndim1 should be the array size
-     and ndim2 and, for the 3D calls, ndim3, should be set to 1 both in the
-     call and in the imgCIF data being processed. If the array is
-     2-dimensional and a 3D call is used, ndim1 and ndim2 should be the array
-     dimensions and ndim3 should be set to 1 both in the call and in the
-     imgCIF data being processed.
+     category. If the array is 1-dimensional, ndimslow should be the array
+     size and ndimfast and, for the 3D calls, ndimmid, should be set to 1
+     both in the call and in the imgCIF data being processed. If the array is
+     2-dimensional and a 3D call is used, ndimslow and ndimmid should be the
+     array dimensions and ndimfast should be set to 1 both in the call and in
+     the imgCIF data being processed.
 
      If any element in the binary data canOt fit into the destination
      element, the destination is set the nearest possible value.
@@ -4280,9 +4451,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        elsize           Size in bytes of each destination array element.      
        elsigned         Set to non-0 if the destination array elements are    
                       signed.                                                 
-       ndim1            Slowest array dimension.                              
-       ndim2            Next faster array dimension.                          
-       ndim3            Fastest array dimension.                              
+       ndimslow         Slowest array dimension.                              
+       ndimmid          Next faster array dimension.                          
+       ndimfast         Fastest array dimension.                              
 
      RETURN VALUE
 
@@ -4290,8 +4461,11 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.27 cbf_set_image, cbf_set_real_image, cbf_set_3d_image,
-    cbf_set_real_3d_image
+    2.4.27 cbf_set_image, cbf_set_image_fs, cbf_set_image_sf,
+          cbf_set_real_image, cbf_set_real_image_fs, cbf_set_real_image_sf,
+          cbf_set_3d_image, cbf_set_3d_image, cbf_set_3d_image,
+          cbf_set_real_3d_image, cbf_set_real_3d_image_fs,
+    cbf_set_real_3d_image_sf
 
      PROTOTYPE
 
@@ -4299,37 +4473,73 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      int cbf_set_image (cbf_handle handle, unsigned int reserved, unsigned
      int element_number, unsigned int compression, void *array, size_t
-     elsize, int elsign, size_t ndim1, size_t ndim2);
+     elsize, int elsign, size_t ndimslow, size_t ndimfast);
+     int cbf_set_image_fs(cbf_handle handle, unsigned int reserved, unsigned
+     int element_number, unsigned int compression, void *array, size_t
+     elsize, int elsign, size_t ndimfast, size_t ndimslow);
+     int cbf_set_image_sf(cbf_handle handle, unsigned int reserved, unsigned
+     int element_number, unsigned int compression, void *array, size_t
+     elsize, int elsign, size_t ndimslow, size_t ndimfast);
+      
      int cbf_set_real_image (cbf_handle handle, unsigned int reserved,
      unsigned int element_number, unsigned int compression, void
-     *array,size_t elsize, size_t ndim1, size_t ndim2);
+     *array,size_t elsize, size_t ndimslow, size_t ndimfast);
+     int cbf_set_real_image_fs(cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, unsigned int compression, void
+     *array,size_t elsize, size_t ndimfast, size_t ndimslow);
+     int cbf_set_real_image_sf(cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, unsigned int compression, void
+     *array,size_t elsize, size_t ndimslow, size_t ndimfast);
+      
      int cbf_set_3d_image (cbf_handle handle, unsigned int reserved, unsigned
      int element_number, unsigned int compression, void *array, size_t
-     elsize, int elsign, size_t ndim1, size_t ndim2, size_t ndim2=3);
+     elsize, int elsign, size_t ndimslow, size_t ndimmid, size_t ndimfast);
+     int cbf_set_3d_image_fs(cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, unsigned int compression, void *array,
+     size_t elsize, int elsign, size_t ndimfast, size_t ndimmid, size_t
+     ndimslow);
+     int cbf_set_3d_image_sf(cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, unsigned int compression, void *array,
+     size_t elsize, int elsign, size_t ndimslow, size_t ndimmid, size_t
+     ndimfast);
+      
      int cbf_set_real_3d_image (cbf_handle handle, unsigned int reserved,
      unsigned int element_number, unsigned int compression, void
-     *array,size_t elsize, size_t ndim1, size_t ndim2, size_t ndim3);
+     *array,size_t elsize, size_t ndimslow, size_t ndimmid, size_t ndimfast);
+     int cbf_set_real_3d_image_fs(cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, unsigned int compression, void
+     *array,size_t elsize, size_t ndimfast, size_t ndimmid, size_t ndimslow);
+     int cbf_set_real_3d_image_sf(cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, unsigned int compression, void
+     *array,size_t elsize, size_t ndimslow, size_t ndimmid, size_t ndimfast);
 
      DESCRIPTION
 
-     cbf_set_image writes the image array for element number element_number.
-     The array consists of ndim1 *ndim2 elements of elsize bytes each,
-     starting at array. The elements are signed if elsign is non-0 and
-     unsigned otherwise. cbf_set_real_image writes the image array for
-     element number element_number. The array consists of ndim1 *ndim2 IEEE
-     double or float elements of elsize bytes each, starting at array.
-     cbf_set_3d_image writes the 3D image array for element number
-     element_number. The array consists of ndim1 *ndim2 *ndim3 elements of
-     elsize bytes each, starting at array. The elements are signed if elsign
-     is non-0 and unsigned otherwise. cbf_set_real_3d_image writes the 3D
+     cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image
+     array for element number element_number. The array consists of ndimfast
+     *ndimslow elements of elsize bytes each, starting at array. The elements
+     are signed if elsign is non-zero and unsigned otherwise.
+     cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf
+     write the image array for element number element_number. The array
+     consists of ndimfast *ndimslow IEEE double or float elements of elsize
+     bytes each, starting at array. cbf_set_3d_image, cbf_set_3d_image_fs and
+     cbf_set_3d_image_sf write the 3D image array for element number
+     element_number. The array consists of ndimfast *ndimmid *ndimslow
+     elements of elsize bytes each, starting at array. The elements are
+     signed if elsign is non-0 and unsigned otherwise. cbf_set_real_3d_image,
+     cbf_set_real_3d_image_fs and cbf_set_real_3d_image_sf writes the 3D
      image array for element number element_number. The array consists of
-     ndim1 *ndim2 *ndim3 IEEE double or float elements of elsize bytes each,
-     starting at array.
+     ndimfast *ndimmid *ndimslow IEEE double or float elements of elsize
+     bytes each, starting at array.
 
-     If the array is 1-dimensional, ndim1 should be the array size and ndim2
-     and, for the 3D calls, ndim3, should be set to 1. If the array is
-     2-dimensional and the 3D calls are used, ndim1 and ndim2 should be used
-     for the array dimensions and ndim3 should be set to 1.
+     The _fs calls give the dimensions in a fast-to-slow order. The calls
+     with no suffix and the calls _sf calls give the dimensions in
+     slow-to-fast order
+
+     If the array is 1-dimensional, ndimslow should be the array size and
+     ndimfast and, for the 3D calls, ndimmid, should be set to 1. If the
+     array is 2-dimensional and the 3D calls are used, ndimslow and ndimmid
+     should be used for the array dimensions and ndimfast should be set to 1.
 
      The array will be compressed using the compression scheme specifed by
      compression. Currently, the available schemes are:
@@ -4363,8 +4573,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        array            Pointer to the image array.                           
        elsize           Size in bytes of each image array element.            
        elsigned         Set to non-0 if the image array elements are signed.  
-       ndim1            Slow array dimension.                                 
-       ndim2            Fast array dimension.                                 
+       ndimslow         Slowest array dimension.                              
+       ndimmid          Second slowest array dimension.                       
+       ndimfast         Fastest array dimension.                              
 
      RETURN VALUE
 
@@ -4706,39 +4917,63 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.38 cbf_get_beam_center, cbf_set_beam_center, set_reference_beam_center
+    2.4.38 cbf_get_beam_center, cbf_get_beam_center_fs, cbf_get_beam_center_sf,
+          cbf_set_beam_center, cbf_set_beam_center_fs, cbf_set_beam_center_sf,
+          set_reference_beam_center, set_reference_beam_center_fs,
+    set_reference_beam_center_fs
 
      PROTOTYPE
 
      #include "cbf_simple.h"
 
-     int cbf_get_beam_center (cbf_detector detector, double *index1, double
-     *index2, double *center1, double *center2);
+     int cbf_get_beam_center (cbf_detector detector, double *indexslow,
+     double *indexfast, double *centerslow, double *centerfast);
+     int cbf_get_beam_center_fs (cbf_detector detector, double *indexfast,
+     double *indexslow, double *centerfast, double *centerslow);
+     int cbf_get_beam_center_sf (cbf_detector detector, double *indexslow,
+     double *indexfast, double *centerslow, double *centerfast);
 
-     int cbf_set_beam_center (cbf_detector detector, double *index1, double
-     *index2, double *center1, double *center2);
+     int cbf_set_beam_center (cbf_detector detector, double *indexslow,
+     double *indexfast, double *centerslow, double *centerfast);
+     int cbf_set_beam_center_fs (cbf_detector detector, double *indexfast,
+     double *indexslow, double *centerfast, double *centerslow);
+     int cbf_set_beam_center_sf (cbf_detector detector, double *indexslow,
+     double *indexfast, double *centerslow, double *centerfast);
 
      int cbf_set_reference_beam_center (cbf_detector detector, double
-     *index1, double *index2, double *center1, double *center2);
+     *indexslow, double *indexfast, double *centerslow, double *centerfast);
+     int cbf_set_reference_beam_center_fs (cbf_detector detector, double
+     *indexfast, double *indexslow, double *centerfast, double *centerslow);
+     int cbf_set_reference_beam_center_sf (cbf_detector detector, double
+     *indexslow, double *indexfast, double *centerslow, double *centerfast);
 
      DESCRIPTION
 
-     cbf_get_beam_center sets *center1 and *center2 to the displacements in
-     mm along the detector axes from pixel (0, 0) to the point at which the
-     beam intersects the detector and *index1 and *index2 to the
-     corresponding indices. cbf_set_beam_center sets the offsets in the axis
-     category for the detector element axis with precedence 1 to place the
-     beam center at the position given in mm by *center1 and *center2 as the
+     cbf_get_beam_center sets *centerfast and *centerslow to the
      displacements in mm along the detector axes from pixel (0, 0) to the
-     point at which the beam intersects the detector at the indices given
-     *index1 and *index2. cbf_set_reference_beam_center sets the reference
-     offsets in the axis category for the the detector element axis with
+     point at which the beam intersects the detector and *indexfast and
+     *indexslow to the corresponding indices. cbf_set_beam_center sets the
+     offsets in the axis category for the detector element axis with
      precedence 1 to place the beam center at the position given in mm by
-     *center1 and *center2 as the displacements in mm along the detector axes
-     from pixel (0, 0) to the point at which the beam intersects the detector
-     at the indices given *index1 and *index2. In order to achieve consistent
-     results, a reference detector should be used for detector to have all
-     axes at their reference settings.
+     *centerfast and *centerslow as the displacements in mm along the
+     detector axes from pixel (0, 0) to the point at which the beam
+     intersects the detector at the indices given *indexfast and *indexslow.
+     cbf_set_reference_beam_center sets the displacments in the
+     array_structure_list_axis category to place the beam center at the
+     position given in mm by *centerfast and *centerslow as the displacements
+     in mm along the detector axes from pixel (0, 0) to the point at which
+     the beam intersects the detector at the indices given by *indexfast and
+     *indexslow. In order to achieve consistent results, a reference detector
+     should be used for detector to have all axes at their reference
+     settings.
+
+     Note that the precedence 1 axis is the fastest axis, so that *centerfast
+     and *indexfast are the fast axis components of the center and
+     *centerslow and *indexslow are the slow axis components of the center.
+
+     The _fs calls give the displacments in a fast-to-slow order. The calls
+     with no suffix and the calls _sf calls give the displacements in
+     slow-to-fast order
 
      Any of the destination pointers may be NULL for getting the beam center.
      For setting the beam axis, either the indices of the center must not be
@@ -4762,12 +4997,12 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ARGUMENTS
 
-       detector   Detector handle.                                            
-       index1     Pointer to the destination slow index.                      
-       index2     Pointer to the destination fast index.                      
-       center1    Pointer to the destination displacement along the slow      
+       detector     Detector handle.                                          
+       indexfast    Pointer to the destination fast index.                    
+       indexslow    Pointer to the destination slow index.                    
+       centerfast   Pointer to the destination displacement along the fast    
                 axis.                                                         
-       center2    Pointer to the destination displacement along the fast      
+       centerslow   Pointer to the destination displacement along the slow    
                 axis.                                                         
 
      RETURN VALUE
@@ -4833,30 +5068,38 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.41 cbf_get_pixel_coordinates
+    2.4.41 cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs,
+    cbf_get_pixel_coordinates_sf
 
      PROTOTYPE
 
      #include "cbf_simple.h"
 
-     int cbf_get_pixel_coordinates (cbf_detector detector, double index1,
-     double index2, double *coordinate1, double *coordinate2, double
+     int cbf_get_pixel_coordinates (cbf_detector detector, double indexslow,
+     double indexfast, double *coordinate1, double *coordinate2, double
      *coordinate3);
+     int cbf_get_pixel_coordinates_fs (cbf_detector detector, double
+     indexfast, double indexslow, double *coordinate1, double *coordinate2,
+     double *coordinate3);
+     int cbf_get_pixel_coordinates_sf (cbf_detector detector, double
+     indexslow, double indexfast, double *coordinate1, double *coordinate2,
+     double *coordinate3);
 
      DESCRIPTION
 
-     cbf_get_pixel_coordinates sets *coordinate1, *coordinate2, and
-     *coordinate3 to the vector position of pixel (index1, index2) on the
-     detector surface. If index1 and index2 are integers then the coordinates
-     correspond to the center of a pixel.
+     cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs and
+     cbf_get_pixel_coordinates_sf ses *coordinate1, *coordinate2, and
+     *coordinate3 to the vector position of pixel (indexfast, indexslow) on
+     the detector surface. If indexslow and indexfast are integers then the
+     coordinates correspond to the center of a pixel.
 
      Any of the destination pointers may be NULL.
 
      ARGUMENTS
 
        detector      Detector handle.                        
-       index1        Slow index.                             
-       index2        Fast index.                             
+       indexslow     Slow index.                             
+       indexfast     Fast index.                             
        coordinate1   Pointer to the destination x component. 
        coordinate2   Pointer to the destination y component. 
        coordinate3   Pointer to the destination z component. 
@@ -4867,33 +5110,39 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.42 cbf_get_pixel_normal
+    2.4.42 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
+    cbf_get_pixel_normal_sf
 
      PROTOTYPE
 
      #include "cbf_simple.h"
 
-     int cbf_get_pixel_normal (cbf_detector detector, double index1, double
-     index2, double *normal1, double *normal2, double *normal3);
+     int cbf_get_pixel_normal (cbf_detector detector, double indexslow,
+     double indexfast, double *normal1, double *normal2, double *normal3);
+     int cbf_get_pixel_normal_fs (cbf_detector detector, double indexfast,
+     double indexslow, double *normal1, double *normal2, double *normal3);
+     int cbf_get_pixel_normal (cbf_detector detector, double indexslow,
+     double indexfast, double *normal1, double *normal2, double *normal3);
 
      DESCRIPTION
 
-     cbf_get_detector_normal sets *normal1, *normal2, and *normal3 to the 3
-     components of the of the normal vector to the pixel at (index1, index2).
-     The vector is normalized.
+     cbf_get_detector_normal, cbf_get_pixel_normal_fs and
+     cbf_get_pixel_normal_sf set *normal1, *normal2, and *normal3 to the 3
+     components of the of the normal vector to the pixel at (indexfast,
+     indexslow). The vector is normalized.
 
      Any of the destination pointers may be NULL.
 
      ARGUMENTS
 
-       detector   Detector handle.                                            
-       index1     Slow index.                                                 
-       index2     Fast index.                                                 
-       normal1    Pointer to the destination x component of the normal        
+       detector    Detector handle.                                           
+       indexslow   Slow index.                                                
+       indexfast   Fast index.                                                
+       normal1     Pointer to the destination x component of the normal       
                 vector.                                                       
-       normal2    Pointer to the destination y component of the normal        
+       normal2     Pointer to the destination y component of the normal       
                 vector.                                                       
-       normal3    Pointer to the destination z component of the normal        
+       normal3     Pointer to the destination z component of the normal       
                 vector.                                                       
 
      RETURN VALUE
@@ -4902,28 +5151,34 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.43 cbf_get_pixel_area
+    2.4.43 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf
 
      PROTOTYPE
 
      #include "cbf_simple.h"
 
-     int cbf_get_pixel_area (cbf_detector detector, double index1, double
-     index2, double *area, double *projected_area);
+     int cbf_get_pixel_area (cbf_detector detector, double indexslow, double
+     indexfast, double *area, double *projected_area);
+     int cbf_get_pixel_area_fs(cbf_detector detector, double indexfast,
+     double indexslow, double *area, double *projected_area);
+     int cbf_get_pixel_area_sf(cbf_detector detector, double indexslow,
+     double indexfast, double *area, double *projected_area);
 
      DESCRIPTION
 
-     cbf_get_pixel_area sets *area to the area of the pixel at (index1,
-     index2) on the detector surface and *projected_area to the apparent area
-     of the pixel as viewed from the sample position.
+     cbf_get_pixel_area, cbf_get_pixel_area_fs and cbf_get_pixel_area_sf set
+     *area to the area of the pixel at (indexfast, indexslow) on the detector
+     surface and *projected_area to the apparent area of the pixel as viewed
+     from the sample position, with indexslow being the slow axis and
+     indexfast being the fast axis.
 
      Either of the destination pointers may be NULL.
 
      ARGUMENTS
 
        detector         Detector handle.                                 
-       index1           Slow index.                                      
-       index2           Fast index.                                      
+       indexfast        Fast index.                                      
+       indexslow        Slow index.                                      
        area             Pointer to the destination area in mm2.          
        projected_area   Pointer to the destination apparent area in mm2. 
 
@@ -4933,21 +5188,32 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.44 cbf_get_pixel_size
+    2.4.44 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf
 
      PROTOTYPE
 
      #include "cbf_simple.h"
 
      int cbf_get_pixel_size (cbf_handle handle, unsigned int element_number,
-     unsigned int axis_number, double *psize);
+     int axis_number, double *psize);
+     int cbf_get_pixel_size_fs(cbf_handle handle, unsigned int
+     element_number, int axis_number, double *psize);
+     int cbf_get_pixel_size_sf(cbf_handle handle, unsigned int
+     element_number, int axis_number, double *psize);
 
      DESCRIPTION
 
-     cbf_get_pixel_size sets *psize to point to the double value in
-     millimeters of the axis axis_number of the detector element
-     element_number. The axis_number is numbered from 1, starting with the
-     fastest axis.
+     cbf_get_pixel_size and cbf_get_pixel_size_sf set *psize to point to the
+     double value in millimeters of the axis axis_number of the detector
+     element element_number. The axis_number is numbered from 1, starting
+     with the slowest axis. cbf_get_pixel_size_fs sets *psize to point to the
+     double value in millimeters of the axis axis_number of the detector
+     element element_number. The axis_number is numbered from 1, starting
+     with the fastest axis.
+
+     If a negative axis number is given, the order of axes is reversed, so
+     that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the
+     fastest axis for cbf_get_pixel_size_sf.
 
      If the pixel size is not given explcitly in the "array_element_size"
      category, the function returns CBF_NOTFOUND.
@@ -4958,8 +5224,10 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        element_number   The number of the detector element counting from 0 by 
                       order of appearance in the "diffrn_data_frame"          
                       category.                                               
-       axis_number      The number of the axis, fastest first, starting from  
-                      1.                                                      
+       axis_number      The number of the axis, starting from 1 for the       
+                      fastest for cbf_get_pixel_size and                      
+                      cbf_get_pixel_size_fs and the slowest for               
+                      cbf_get_pixel_size_sf.                                  
        psize            Pointer to the destination pixel size.                
 
      RETURN VALUE
@@ -4968,23 +5236,38 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.45 cbf_set_pixel_size
+    2.4.45 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf
 
      PROTOTYPE
 
      #include "cbf_simple.h"
 
      int cbf_set_pixel_size (cbf_handle handle, unsigned int element_number,
-     unsigned int axis_number, double psize);
+     int axis_number, double psize);
+     int cbf_set_pixel_size_fs(cbf_handle handle, unsigned int
+     element_number, int axis_number, double psize);
+     int cbf_set_pixel_size_sf(cbf_handle handle, unsigned int
+     element_number, int axis_number, double psize);
 
      DESCRIPTION
 
-     cbf_set_pixel_size sets the item in the &quote;size&quote; column of the
-     "array_structure_list" category at the row which matches axis
-     axis_number of the detector element element_number converting the double
-     pixel size psize from meters to millimeters in storing it in the "size"
-     column for the axis axis_number of the detector element element_number.
-     The axis_number is numbered from 1, starting with the fastest axis.
+     cbf_set_pixel_size and cbf_set_pixel_size_sf set the item in the
+     &quote;size&quote; column of the "array_structure_list" category at the
+     row which matches axis axis_number of the detector element
+     element_number converting the double pixel size psize from meters to
+     millimeters in storing it in the "size" column for the axis axis_number
+     of the detector element element_number. The axis_number is numbered from
+     1, starting with the slowest axis. cbf_set_pixel_size_fs sets the item
+     in the &quote;size&quote; column of the "array_structure_list" category
+     at the row which matches axis axis_number of the detector element
+     element_number converting the double pixel size psize from meters to
+     millimeters in storing it in the "size" column for the axis axis_number
+     of the detector element element_number. The axis_number is numbered from
+     1, starting with the fastest axis.
+
+     If a negative axis number is given, the order of axes is reversed, so
+     that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the
+     fastest axis for cbf_get_pixel_size_sf.
 
      If the "array_structure_list" category does not already exist, it is
      created.
@@ -5011,21 +5294,34 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.46 cbf_get_inferred_pixel_size
+    2.4.46 cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_fs,
+    cbf_get_inferred_pixel_size_sf
 
      PROTOTYPE
 
      #include "cbf_simple.h"
 
-     int cbf_get_inferred_pixel_size (cbf_detector detector, unsigned int
+     int cbf_get_inferred_pixel_size (cbf_detector detector, int axis_number,
+     double *psize);
+     int cbf_get_inferred_pixel_size_fs(cbf_detector detector, int
+     axis_number, double *psize);
+     int cbf_get_inferred_pixel_size_sf(cbf_detector detector, int
      axis_number, double *psize);
 
      DESCRIPTION
 
-     cbf_get_inferred_pixel_size sets *psize to point to the double value in
-     millimeters of the pixel size for the axis axis_number value for pixel
-     at (index1, index2) on the detector surface. The slow index is treated
-     as axis 1 and the fast index is treated as axis 2.
+     cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_sf set *psize
+     to point to the double value in millimeters of the pixel size for the
+     axis axis_number value. The slow index is treated as axis 1 and the next
+     faster index is treated as axis 2. cbf_get_inferred_pixel_size_fs sets
+     *psize to point to the double value in millimeters of the pixel size for
+     the axis axis_number value. The fast index is treated as axis 1 and the
+     next slower index is treated as axis 2.
+
+     If the axis number is negative, the axes are used in the reverse order
+     so that an axis_number of -1 indicates the fast axes in a call to
+     cbf_get_inferred_pixel_size or cbf_get_inferred_pixel_size_sf and
+     indicates the fast axis in a call to cbf_get_inferred_pixel_size_fs.
 
      ARGUMENTS
 
@@ -7311,9 +7607,11 @@ src/                      include/             m4/                  Description
      minimal CBF file with just and image and some lines of text specifying
      the parameters of the data collection as done at SLS and combines the
      result with a template to produce a full CBF. The program cif2cbf can be
-     used to convert among carious compression and encoding schemes.  The 
+     used to convert among carious compression and encoding schemes. The
      program sauter_test.C is a C++ test program contributed by Nick Sauter 
-     to help in resolving a memory leak he found.
+     to help in resolving a memory leak he found. The program adscimg2cif is
+     a "jiffie" contributed by Chris Nielsen of ADSC to convert ADSC images
+     to imgCIF/CBF format.
 
      makecbf.c is a good example of how many of the CBFlib functions can be
      used. To compile makecbf and the other example programs use the Makefile
@@ -7322,6 +7620,8 @@ src/                      include/             m4/                  Description
       make all
 
      This will place the programs in the bin directory.
+
+    makecbf
 
      To run makecbf with the example image, type:
 
@@ -7373,6 +7673,8 @@ src/                      include/             m4/                  Description
       forward or '<' for backwards as the second character of each
       line of output, and in '#' comment lines.
 
+
+    cif2cbf
 
      The test program cif2cbf uses the same command line options as img2cif,
      but accepts either a CIF or a CBF as input instead of an image file:
@@ -7436,6 +7738,8 @@ src/                      include/             m4/                  Description
 
 
 
+    convert_image
+
      The program convert_image requires two arguments: imagefile and cbffile.
      Those are the primary input and output. The detector type is extracted
      from the image file or from the command line, converted to lower case
@@ -7461,7 +7765,7 @@ src/                      include/             m4/                  Description
      the template for the final cbf to be produced.  If template_cbf
      is not specified the name is constructed from the first token
      of the detector name and the image size as
-        template__x.cbf
+        template_<type>_<columns>x<rows>.cbf
 
    -o output_cbf (default: stdout )
      the output cbf combining the image and the template.  If the
@@ -7498,6 +7802,8 @@ src/                      include/             m4/                  Description
      of outputting the alias, the root will be presented in the
      output cbf instead.  These options may be repeated as many
      times as needed.
+
+    convert_minicbf
 
      The program convert_minicbf requires two arguments: minicbf and cbffile.
      Those are the primary input and output. The detector type is extracted
@@ -7576,6 +7882,8 @@ src/                      include/             m4/                  Description
      times as needed.
 
 
+    testreals, testflat and testflatpacked
+
      The example programs testreals, testflat and testflatpacked exercise the
      handling of reals, byte_offset compression and packed compression. Each
      is run without any arguments. testreals will read real images from the
@@ -7600,6 +7908,8 @@ src/                      include/             m4/                  Description
          except for -3 along the main diagonal and the values i+j+k (counting
          from zero) every 1000th pixel
 
+    test_fcb_read_image, test_xds_binary
+
      The example programs test_fcb_read_image and test_xds_binary are
      designed read the output of testflat and testflatpacked using the FCBlib
      routines in lib/libfcb. test_xds_binary reads only the first image and
@@ -7619,16 +7929,37 @@ src/                      include/             m4/                  Description
      gfortran. For g95, this line must be changed to M4FLAGS =
      -Dfcb_bytes_in_rec=4096
 
-     The program sauter_test.C is a C++ test program conbtributed by Nick
+    sauter_test
+
+     The program sauter_test.C is a C++ test program contributed by Nick
      Sauter to help in resolving a memory leak he found. The program is run
-     as bin/sauter_test and should run long enough to allow a check with
-     top to ensure that it has constant memory demands. In addition,
-     starting with release 0.7.8.1, the addition of -DCBFLIB_MEM_DEBUG to
-     the compiler flags will cause detailed reports on memory use to stderr
-   to be reported.
+     as bin/sauter_test and should run long enough to allow a check with top
+     to ensure that it has constant memory demands. In addition, starting
+     with release 0.7.8.1, the addition of -DCBFLIB_MEM_DEBUG to the compiler
+     flags will cause detailed reports on memory use to stderr to be
+     reported.
+
+    adscimg2cbf
+
+     The example program adscimg2cbf accepts any number of raw or compressed
+     ADSC images with .img, .img.gz, .img.bz2 or .img.Z extensions and
+     converts each of them to an imgCIF/CBF file with a .cbf extension.
+
+   adscimg2cbf [--flag[,modifier]] file1.img ... filen.img     (creates file1.cbf ... filen.cbf)
+          Image files may also be compressed (.gz, .bz2, .Z)
+
+   Flags:
+     --cbf_byte_offset   Use BYTE_OFFSET compression (DEFAULT)
+     --cbf_packed        Use CCP4 packing (JPA) compression.
+     --cbf_packed_v2     Use CCP4 packing version 2 (JPA) compression.
+     --no_compression    No compression.
+
+   The following two modifiers can be appended to the flags (syntax: --flag,modifier):
+     flat            Flat (linear) images.
+     uncorrelated    Uncorrelated sections.
 
      ----------------------------------------------------------------------
 
      ----------------------------------------------------------------------
 
-     Updated 29 July 2007. Contact:  yaya at bernstein-plus-sons dot com
+     Updated 24 December 2007. Contact:  yaya at bernstein-plus-sons dot com

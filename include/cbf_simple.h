@@ -412,9 +412,9 @@ int cbf_get_pixel_size(cbf_handle handle, unsigned int element_number,
 
 
 #define cbf_get_pixel_size_fs(handle, element_number, axis_number, psize)  \
-        cbf_get_pixel_size((handle),(element_number),(axis_number),(psize))
-#define cbf_get_pixel_size_sf(handle, element_number, axis_number, psize)  \
         cbf_get_pixel_size((handle),(element_number),-(axis_number),(psize))
+#define cbf_get_pixel_size_sf(handle, element_number, axis_number, psize)  \
+        cbf_get_pixel_size((handle),(element_number),(axis_number),(psize))
   
   /* Set the pixel size of a detector element in a given direction */
 
@@ -423,9 +423,9 @@ int cbf_set_pixel_size(cbf_handle handle, unsigned int element_number,
                                           double psize);
 
 #define cbf_set_pixel_size_fs(handle, element_number, axis_number, psize)  \
-        cbf_set_pixel_size((handle),(element_number),(axis_number),(psize))
-#define cbf_set_pixel_size_sf(handle, element_number, axis_number, psize)  \
         cbf_set_pixel_size((handle),(element_number),-(axis_number),(psize))
+#define cbf_set_pixel_size_sf(handle, element_number, axis_number, psize)  \
+        cbf_set_pixel_size((handle),(element_number),(axis_number),(psize))
 
    
   /* Get the gain of a detector element */
@@ -647,7 +647,7 @@ int cbf_set_image (cbf_handle    handle,
         cbf_set_image ((handle),(reserved),(element_number),(compression),(array),(elsize),(elsign)(ndimslow),(ndimfast) )
 
 
-  /* Save a real image.  ndim1 is the slow dimension, ndim2 is fast. */
+  /* Save a real image.  ndimslow is the slow dimension, ndimfast is fast. */
 
 int cbf_set_real_image (cbf_handle    handle,
                    unsigned int  reserved,
@@ -1078,54 +1078,54 @@ int cbf_free_detector (cbf_detector detector);
 
   /* Get the beam center */
 
-int cbf_get_beam_center (cbf_detector detector, double *index1,
-                                                double *index2,
-                                                double *center1, 
-                                                double *center2);
+int cbf_get_beam_center (cbf_detector detector, double *indexslow,
+                                                double *indexfast,
+                                                double *centerslow, 
+                                                double *centerfast);
 
 #define cbf_get_beam_center_sf(detector, indexslow, indexfast,    \
                                           centerslow, centerfast)  \
-        cbf_get_beam_center((detector),(indexfast),(indexslow),    \
-                                       (centerfast),(centerslow) )
+        cbf_get_beam_center((detector),(indexslow),(indexfast),    \
+                                       (centerslow),(centerfast) )
 #define cbf_get_beam_center_fs(detector, indexfast, indexslow,    \
                                           centerfast, centerslow)  \
-        cbf_get_beam_center((detector),(indexfast),(indexslow),    \
-                                       (centerfast),(centerslow) )
+        cbf_get_beam_center((detector),(indexslow),(indexfast),    \
+                                       (centerslow),(centerfast) )
 
 
   /* Set the beam center */
 
-int cbf_set_beam_center (cbf_detector detector, double *index1,
-                                                double *index2,
-                                                double *center1,
-                                                double *center2);
+int cbf_set_beam_center (cbf_detector detector, double *indexslow,
+                                                double *indexfast,
+                                                double *centerslow,
+                                                double *centerfast);
 
 #define cbf_set_beam_center_sf(detector, indexslow, indexfast,    \
                                           centerslow, centerfast)  \
-        cbf_set_beam_center((detector),(indexfast),(indexslow),    \
-                                       (centerfast),(centerslow) )
+        cbf_set_beam_center((detector),(indexslow),(indexfast),    \
+                                       (centerslow),(centerfast) )
 #define cbf_set_beam_center_fs(detector, indexfast, indexslow,    \
                                           centerfast, centerslow)  \
-        cbf_set_beam_center((detector),(indexfast),(indexslow),    \
-                                       (centerfast),(centerslow) )
+        cbf_set_beam_center((detector),(indexslow),(indexfast),    \
+                                       (centerslow),(centerfast) )
 
 
 
   /* Set the reference beam center */
 
-int cbf_set_reference_beam_center (cbf_detector detector, double *index1,
-                                                double *index2,
-                                                double *center1,
-                                                double *center2);
+int cbf_set_reference_beam_center (cbf_detector detector, double *indexslow,
+                                                double *indexfast,
+                                                double *centerslow,
+                                                double *centerfast);
 
 #define cbf_set_reference_beam_center_sf(detector, indexslow, indexfast,    \
                                           centerslow, centerfast)            \
-        cbf_set_reference_beam_center((detector),(indexfast),(indexslow),    \
-                                       (centerfast),(centerslow) )
+        cbf_set_reference_beam_center((detector),(indexslow),(indexfast),    \
+                                       (centerslow),(centerfast) )
 #define cbf_set_reference_beam_center_fs(detector, indexfast, indexslow,    \
                                           centerfast, centerslow)            \
         cbf_set_reference_beam_center((detector),(indexfast),(indexslow),    \
-                                       (centerfast),(centerslow) )
+                                       (centerslow),(centerfast) )
 
 
 
@@ -1143,8 +1143,8 @@ int cbf_get_detector_normal (cbf_detector detector, double *normal1,
 
   /* Calcluate the coordinates of a pixel */
 
-int cbf_get_pixel_coordinates (cbf_detector detector, double  index1,
-                                                      double  index2,
+int cbf_get_pixel_coordinates (cbf_detector detector, double  indexslow,
+                                                      double  indexfast,
                                                       double *coordinate1,
                                                       double *coordinate2,
                                                       double *coordinate3);
@@ -1161,8 +1161,8 @@ int cbf_get_pixel_coordinates (cbf_detector detector, double  index1,
 
   /* Get the pixel normal */
 
-int cbf_get_pixel_normal (cbf_detector detector, double  index1,
-                                                 double  index2,
+int cbf_get_pixel_normal (cbf_detector detector, double  indexslow,
+                                                 double  indexfast,
                                                  double *normal1,
                                                  double *normal2,
                                                  double *normal3);
@@ -1195,9 +1195,9 @@ int cbf_get_inferred_pixel_size (cbf_detector detector,
                                                double *psize);
 
 #define cbf_get_inferred_pixel_size_fs(detector, axis_number, psize) \
-        cbf_get_inferred_pixel_size((detector), (axis_number), (psize))
-#define cbf_get_inferred_pixel_size_sf(detector, axis_number, psize) \
         cbf_get_inferred_pixel_size((detector), -(axis_number), (psize))
+#define cbf_get_inferred_pixel_size_sf(detector, axis_number, psize) \
+        cbf_get_inferred_pixel_size((detector), (axis_number), (psize))
    
   /* Get the unit cell parameters */
   
