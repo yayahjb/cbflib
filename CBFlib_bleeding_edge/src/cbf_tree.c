@@ -1505,7 +1505,6 @@ int cbf_set_link (cbf_node *link, cbf_node *node)
 
     return CBF_ARGUMENT;
 
-
     /* Change the link */
 
   link->link = node;

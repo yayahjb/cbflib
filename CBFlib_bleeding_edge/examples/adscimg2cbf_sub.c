@@ -175,6 +175,7 @@
  **********************************************************************/
 
 #include "cbf.h"
+#include "cbf_simple.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -1441,10 +1442,32 @@ int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int 
 	for(j = 0; j < smv_size1; j++)
 		*ip++ = 0x0000ffff & *up++;
 
-  cbf_failnez (cbf_set_integerarray (cbf, pack_flags, 1,
-                                 data_as_int, sizeof (int), 1,
-                                 smv_size1 * smv_size2))
-  
+/*
+ int cbf_set_integerarray_wdims (cbf_handle    handle,
+                          unsigned int  compression,
+                          int           id,
+                          void         *value,
+                          size_t        elsize,
+                          int           elsign,
+                          size_t        nelem,
+                          const char   *byteorder,
+                          size_t        dim1,
+                          size_t        dim2,
+                          size_t        dim3,
+                          size_t        padding)
+*/
+ cbf_failnez( cbf_set_integerarray_wdims ((cbf_handle)    cbf,
+                          (unsigned int) pack_flags,
+                          (int)          1,
+                                         data_as_int,
+                          (size_t)        sizeof (int),
+                          (int)           1,
+                          (size_t)        smv_size1 * smv_size2,
+                          	 	"little_endian",
+                          (size_t)        smv_size1,
+                          (size_t)        smv_size1,
+                          (size_t)        0,
+                          (size_t)        0))
 
     /* Write the new file */
 

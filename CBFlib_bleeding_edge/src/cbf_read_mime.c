@@ -317,7 +317,7 @@ int cbf_mime_temp (cbf_node *column, unsigned int row)
   
   const char *byteorder;
   
-  size_t dimover, dim1, dim2, dim3;
+  size_t dimover, dimfast, dimmid, dimslow;
   
   size_t padding;
 
@@ -336,7 +336,7 @@ int cbf_mime_temp (cbf_node *column, unsigned int row)
   cbf_failnez (cbf_get_bintext (column, row, &type,
                                 &id, &file, &start, &size, &checked_digest,
                                 old_digest, &bits, &sign, &realarray,
-                                &byteorder, &dimover, &dim1, &dim2, &dim3, &padding,
+                                &byteorder, &dimover, &dimfast, &dimmid, &dimslow, &padding,
                                 &compression))
 
 
@@ -402,7 +402,7 @@ int cbf_mime_temp (cbf_node *column, unsigned int row)
                                   id, temp_file, temp_start, size,
                                   checked_digest, old_digest, bits,
                                   sign, realarray, byteorder, dimover,
-                                  dim1, dim2, dim3, padding, compression),
+                                  dimfast, dimmid, dimslow, padding, compression),
                     cbf_delete_fileconnection (&temp_file))
 
 
@@ -688,9 +688,9 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
                                           int        *real,
                                           const char **byteorder,
                                           size_t     *dimover,
-                                          size_t     *dim1,
-                                          size_t     *dim2,
-                                          size_t     *dim3,
+                                          size_t     *dimfast,
+                                          size_t     *dimmid,
+                                          size_t     *dimslow,
                                           size_t     *padding)
 {
   static const char *value [] = {
@@ -761,17 +761,17 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
   
     *dimover = 0;
 
-  if (dim1)
+  if (dimfast)
   
-    *dim1 = 0;
+    *dimfast = 0;
     
-  if (dim2)
+  if (dimmid)
   
-    *dim2 = 0;
+    *dimmid = 0;
     
-  if (dim3)
+  if (dimslow)
   
-    *dim3 = 0;
+    *dimslow = 0;
 
   if (padding)
   
@@ -1315,23 +1315,23 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
       
         /* Size of fastest dimension  */
         
-        if (dim1) *dim1 = atol(c);
+        if (dimfast) *dimfast = atol(c);
         
         break;
         
       case 8:
       
-        /* Size of fastest dimension  */
+        /* Size of second-fastest dimension  */
         
-        if (dim2) *dim2 = atol(c);
+        if (dimmid) *dimmid = atol(c);
         
         break;
         
       case 9:
       
-        /* Size of fastest dimension  */
+        /* Size of third-fastest dimension  */
 
-        if (dim3) *dim3 = atol(c);
+        if (dimslow) *dimslow = atol(c);
         
         break;
         
