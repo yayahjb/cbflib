@@ -213,10 +213,12 @@ int local_exit(int status) {
 int getbo()
 {
   long i4;
+  long *pi4;
   short *i2;
 
   i4=1;
-  i2 = (short *) &i4;
+  pi4 = &i4;
+  i2 = (short *) pi4;
 
   if ( *i2 == 1 && *(i2+1) == 0 )
     return (0);
