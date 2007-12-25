@@ -3,7 +3,7 @@
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
                                 Version 0.7.8.2
-                                23 December 2007
+                                25 December 2007
 
                                        by
                                  Paul J. Ellis
