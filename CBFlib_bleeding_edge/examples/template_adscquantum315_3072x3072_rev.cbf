@@ -1,0 +1,255 @@
+###CBF: VERSION 1.1
+
+data_image_1
+
+
+# category DIFFRN
+
+loop_
+_diffrn.id
+_diffrn.crystal_id
+ DIFFRN_ID DIFFRN_CRYSTAL_ID
+
+
+# category DIFFRN_SOURCE
+
+loop_
+_diffrn_source.diffrn_id
+_diffrn_source.source
+_diffrn_source.current
+_diffrn_source.type
+ DIFFRN_ID synchrotron 100.0 'SSRL beamline 1-5'
+
+
+# category DIFFRN_RADIATION
+
+loop_
+_diffrn_radiation.diffrn_id
+_diffrn_radiation.wavelength_id
+_diffrn_radiation.probe
+_diffrn_radiation.monochromator
+_diffrn_radiation.polarizn_source_ratio
+_diffrn_radiation.polarizn_source_norm
+_diffrn_radiation.div_x_source
+_diffrn_radiation.div_y_source
+_diffrn_radiation.div_x_y_source
+_diffrn_radiation.collimation
+ DIFFRN_ID WAVELENGTH1 x-ray 'Si 111' 0.8 0.0 0.08 0.01 0.00 '0.20 mm x 0.20 mm'
+
+
+# category DIFFRN_RADIATION_WAVELENGTH
+
+loop_
+_diffrn_radiation_wavelength.id
+_diffrn_radiation_wavelength.wavelength
+_diffrn_radiation_wavelength.wt
+ WAVELENGTH1 0.979381 1.0
+
+
+# category DIFFRN_DETECTOR
+
+loop_
+_diffrn_detector.diffrn_id
+_diffrn_detector.id
+_diffrn_detector.type
+_diffrn_detector.details
+_diffrn_detector.number_of_axes
+ DIFFRN_ID ADSCQ315-SNXXX 'ADSC QUANTUM315' 'slow mode' 4
+
+
+# category DIFFRN_DETECTOR_AXIS
+
+loop_
+_diffrn_detector_axis.detector_id
+_diffrn_detector_axis.axis_id
+ ADSCQ315-SNXXX DETECTOR_X
+ ADSCQ315-SNXXX DETECTOR_Y
+ ADSCQ315-SNXXX DETECTOR_Z
+ ADSCQ315-SNXXX DETECTOR_PITCH
+
+
+# category DIFFRN_DETECTOR_ELEMENT
+
+loop_
+_diffrn_detector_element.id
+_diffrn_detector_element.detector_id
+ ELEMENT1 ADSCQ315-SNXXX
+
+
+# category DIFFRN_DATA_FRAME
+
+loop_
+_diffrn_data_frame.id
+_diffrn_data_frame.detector_element_id
+_diffrn_data_frame.array_id
+_diffrn_data_frame.binary_id
+ FRAME1 ELEMENT1 ARRAY1 1
+
+
+# category DIFFRN_MEASUREMENT
+
+loop_
+_diffrn_measurement.diffrn_id
+_diffrn_measurement.id
+_diffrn_measurement.number_of_axes
+_diffrn_measurement.method
+_diffrn_measurement.details
+ DIFFRN_ID GONIOMETER 3 rotation 
+ 'i0=1.000 i1=1.000 i2=1.000 ib=1.000 beamstop=20 mm 0% attenuation'
+
+
+# category DIFFRN_MEASUREMENT_AXIS
+
+loop_
+_diffrn_measurement_axis.measurement_id
+_diffrn_measurement_axis.axis_id
+ GONIOMETER GONIOMETER_PHI
+ GONIOMETER GONIOMETER_KAPPA
+ GONIOMETER GONIOMETER_OMEGA
+
+
+# category DIFFRN_SCAN
+
+loop_
+_diffrn_scan.id
+_diffrn_scan.frame_id_start
+_diffrn_scan.frame_id_end
+_diffrn_scan.frames
+ SCAN1 FRAME1 FRAME1 1
+
+
+# category DIFFRN_SCAN_AXIS
+
+loop_
+_diffrn_scan_axis.scan_id
+_diffrn_scan_axis.axis_id
+_diffrn_scan_axis.angle_start
+_diffrn_scan_axis.angle_range
+_diffrn_scan_axis.angle_increment
+_diffrn_scan_axis.displacement_start
+_diffrn_scan_axis.displacement_range
+_diffrn_scan_axis.displacement_increment
+ SCAN1 GONIOMETER_OMEGA 0.0 0.0 0.0 0.0 0.0 0.0
+ SCAN1 GONIOMETER_KAPPA 0.0 0.0 0.0 0.0 0.0 0.0
+ SCAN1 GONIOMETER_PHI   0.0 0.0 0.0 0.0 0.0 0.0
+ SCAN1 DETECTOR_Z       0.0 0.0 0.0 0.0 0.0 0.0
+ SCAN1 DETECTOR_Y       0.0 0.0 0.0 0.0 0.0 0.0
+ SCAN1 DETECTOR_X       0.0 0.0 0.0 0.0 0.0 0.0
+ SCAN1 DETECTOR_PITCH   0.0 0.0 0.0 0.0 0.0 0.0
+
+
+# category DIFFRN_SCAN_FRAME
+
+loop_
+_diffrn_scan_frame.frame_id
+_diffrn_scan_frame.frame_number
+_diffrn_scan_frame.integration_time
+_diffrn_scan_frame.scan_id
+_diffrn_scan_frame.date
+ FRAME1 1 0.0 SCAN1 1997-12-04T10:23:48
+
+
+# category DIFFRN_SCAN_FRAME_AXIS
+
+loop_
+_diffrn_scan_frame_axis.frame_id
+_diffrn_scan_frame_axis.axis_id
+_diffrn_scan_frame_axis.angle
+_diffrn_scan_frame_axis.displacement
+ FRAME1 GONIOMETER_OMEGA 0.0 0.0
+ FRAME1 GONIOMETER_KAPPA 0.0 0.0
+ FRAME1 GONIOMETER_PHI   0.0 0.0
+ FRAME1 DETECTOR_Z       0.0 0.0
+ FRAME1 DETECTOR_Y       0.0 0.0
+ FRAME1 DETECTOR_X       0.0 0.0
+ FRAME1 DETECTOR_PITCH   0.0 0.0
+
+
+# category AXIS
+
+loop_
+_axis.id
+_axis.type
+_axis.equipment
+_axis.depends_on
+_axis.vector[1] _axis.vector[2] _axis.vector[3]
+_axis.offset[1] _axis.offset[2] _axis.offset[3]
+ GONIOMETER_OMEGA rotation    goniometer . 1 0 0 . . .
+ GONIOMETER_KAPPA rotation    goniometer GONIOMETER_OMEGA 0.64279 0 0.76604 . . .
+ GONIOMETER_PHI   rotation    goniometer GONIOMETER_KAPPA 1 0 0 . . .
+ SOURCE           general     source . 0 0 1 . . .
+ GRAVITY          general     gravity . 0 -1 0 . . .
+ DETECTOR_Z       translation detector . 0 0 -1 0 0 0
+ DETECTOR_Y       translation detector DETECTOR_Z 0 1 0 0 0 0
+ DETECTOR_X       translation detector DETECTOR_Y 1 0 0 0 0 0
+ DETECTOR_PITCH   rotation    detector DETECTOR_X 0 1 0 0 0 0
+ ELEMENT_X        translation detector DETECTOR_PITCH 1 0 0 -157.500 157.500 0
+ ELEMENT_Y        translation detector ELEMENT_X 0 1 0 0 0 0
+
+
+# category ARRAY_STRUCTURE_LIST
+
+loop_
+_array_structure_list.array_id
+_array_structure_list.index
+_array_structure_list.dimension
+_array_structure_list.precedence
+_array_structure_list.direction
+_array_structure_list.axis_set_id
+ ARRAY1 1 3072 1 increasing ELEMENT_X
+ ARRAY1 2 3072 2 increasing ELEMENT_Y
+
+
+# category ARRAY_STRUCTURE_LIST_AXIS
+
+loop_
+_array_structure_list_axis.axis_set_id
+_array_structure_list_axis.axis_id
+_array_structure_list_axis.displacement
+_array_structure_list_axis.displacement_increment
+ ELEMENT_X ELEMENT_X 0.051294 0.102588
+ ELEMENT_Y ELEMENT_Y -0.051294 -0.102588
+
+
+# category ARRAY_INTENSITIES
+
+loop_
+_array_intensities.array_id
+_array_intensities.binary_id
+_array_intensities.linearity
+_array_intensities.gain
+_array_intensities.overload
+_array_intensities.undefined_value
+_array_intensities.pixel_slow_bin_size
+_array_intensities.pixel_fast_bin_size
+ ARRAY1 1 linear 2.45 65535 0 2 2
+
+
+# category ARRAY_STRUCTURE
+
+loop_
+_array_structure.id
+_array_structure.encoding_type
+_array_structure.compression_type
+_array_structure.byte_order
+ ARRAY1 "signed 32-bit integer" packed little_endian
+
+
+# category ARRAY_DATA
+
+
+loop_
+_array_element_size.array_id
+_array_element_size.index
+_array_element_size.size
+ ARRAY1 1 0.000102588
+ ARRAY1 2 0.000102588
+
+
+# category ARRAY_DATA
+
+loop_
+_array_data.array_id
+_array_data.binary_id
+_array_data.data
+ ARRAY1 1 ?
