@@ -72,6 +72,12 @@ fi
 if [ ! -e index.html ] ; then
   $LN README.html index.html
 fi
+if [ ! -e gpl.txt ] ; then
+  $LN doc/gpl.txt gpl.txt
+fi
+if [ ! -e lgpl.txt ] ; then
+  $LN doc/lgpl.txt lgpl.txt
+fi
 if [ ! -e CBFlib.tar.gz ] ; then
   $LN ../CBFlib_0.7.8.tar.gz CBFlib.tar.gz
 fi

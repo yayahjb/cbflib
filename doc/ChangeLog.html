@@ -32,8 +32,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <B>An API for CBF/imgCIF<BR>
 Crystallographic Binary Files with ASCII Support</B><BR>
-Version 0.7.8.1<BR>
-28 July 2007<BR>
+Version 0.7.8.2<BR>
+25 December 2007<BR>
 <P>
 </CENTER>
 </font><font color="#000000">
@@ -254,7 +254,82 @@ VALIGN=TOP>&nbsp;&nbsp;Jul 2007<TD
 VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Update to 0.7.8 release to fix
 memory leaks reported by N. Sauter and to update validation checks
 for recent changes.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.8.2">0.7.8.2</A><TD
+VALIGN=TOP>&nbsp;&nbsp;Dec 2007<TD
+VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Update to 0.7.8.1 to add
+ADSC jiffie by Chris Nielsen, and to add ..._fs and ..._sf macros.
 
+
+</TABLE>
+
+<HR>
+<H3><A NAME="0.7.8.2">Release 0.7.8.2</A>, Herbert J. Bernstein, 25 December 2007</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>adscimg2cbf.c adscimg2cbf_sub.c
+<TD>&nbsp;&nbsp;New jiffie by Chris Nielsen of ADSC to convert
+ADSC detector images to CBF.
+<TR><TD VALIGN=TOP>cbf.h cbf_byte_offset.h, cbf_compress.h, cbf_read_mime.h, cbf_simple.h
+<TD>&nbsp;&nbsp;Add _fs and _sf versions of 
+ cbf_get_arrayparameters_wdims,
+ cbf_get_integerarrayparameters_wdims,
+ cbf_get_realarrayparameters_wdims,
+ cbf_set_integerarray_wdims,
+ cbf_set_realarray_wdims,
+ cbf_compress_byte_offset,
+ cbf_compress, cbf_decompress, 
+ cbf_parse_mimeheader, cbf_get_pixel_size,
+ cbf_set_pixel_size, cbf_get_image_size, cbf_get_image, 
+ cbf_get_real_image, cbf_get_3d_image_size, cbf_get_3d_image,
+ cbf_get_real_3d_image, cbf_set_image, cbf_set_real_image, cbf_set_3d_image,
+ cbf_set_real_3d_image, cbf_get_map_array_id, cbf_get_map_segment_size,
+ cbf_get_map_segment, cbf_get_map_segment_mask, cbf_get_real_map_segment,
+ cbf_get_real_map_segment_mask, cbf_set_map_segment, cbf_set_map_segment_mask,
+ cbf_set_real_map_segment, cbf_set_real_map_segment_mask, cbf_get_3d_array_size,
+ cbf_get_3d_array, cbf_set_3d_array, cbf_get_beam_center, cbf_set_beam_center,
+ cbf_set_reference_beam_center, cbf_get_pixel_coordinates, 
+ cbf_get_pixel_normal, cbf_get_pixel_area, cbf_get_inferred_pixel_size
+<TR><TD VALIGN=TOP>cbf_alloc.h
+<TD>&nbsp;&nbspAdd prototype of cbf_free_text.
+<TR><TD VALIGN=TOP>cbf_binary.h
+<TD>&nbsp;&nbspAdd prototype of cbf_check_digest.
+<TR><TD VALIGN=TOP>cbf_canonical.h
+<TD>&nbsp;&nbspAdd definitions of cbf_compress_node and cbf_compress_data,
+and prototypes of cbf_make_compressdata, cbf_free_compressdata,
+cbf_initialise_compressdata, cbf_put_table, cbf_get_table, cbf_put_stopcode,
+cbf_insert_node, cbf_append_node, cbf_order_node, cbf_create_list,
+cbf_reduce_list, cbf_generate_codelengths, cbf_reverse_bitcodes,
+cbf_generate_canonicalcodes, cbf_compare_bitcodes, cbf_construct_tree, 
+cbf_setup_decode, cbf_count_bits, cbf_get_code, cbf_put_code
+and cbf_count_values.
+<TR><TD VALIGN=TOP>cbf_simple.h
+<TD>&nbsp;&nbsp;Add prototypes of cbf_get_detector_id and 
+cbf_gregorian_julian.
+<TR><TD VALIGN=TOP>cbf_string.c, cbf_string.h
+<TD>&nbsp;&nbsp;Add cbf_swab function for MS windows and other
+machines that do not provide swab.
+<TR><TD VALIGN=TOP>cbf.c, cbf_binary.c, cbf_byte_offset.c, cbf_canonical.c, cbf_compress.c, cbf_lex.c, cbf_packed.c, cbf_predictor.c, cbf_read_mime.c, cbf_simple.c, cbf_uncompressed.c, cbf_write_binary.c
+<TD>&nbsp;&nbsp;Change dim1, dim2, dim3 to dimfast, dimmid, dimslow,
+ndim1, ndim2 to ndimslow, ndimfast.
+machines that do not provide swab.
+<TR><TD VALIGN=TOP>cif2c.c
+<TD>&nbsp;&nbsp;Make declaration of xciftmp conditional to avoid compiler warnings.
+<TR><TD VALIGN=TOP>convert_image.c
+<TD>&nbsp;&nbsp;Add code to check variations on pixel_size functions.
+<TR><TD VALIGN=TOP>convert_minicbf.c
+<TD>&nbsp;&nbsp;Add second quick exit option (-Q).  Improve error reporting.
+Update for most recent SLS miniheader.
+<TR><TD VALIGN=TOP>getopt.c
+<TD>&nbsp;&nbsp;Fix some compiler warnings.
+<TR><TD VALIGN=TOP>Makefile.m4
+<TD>&nbsp;&nbsp;add adscimg2cbf support
+<TR><TD VALIGN=TOP>template_pilatus6m_2463x2527.cbf
+<TD>&nbsp;&nbsp;Update pilatus6m template for correct detector axis definitions,
+better comments and to list all categories used by SLS.
+<TR><TD VALIGN=TOP>template_adscquantum315_3072x3072_rev.cbf
+<TD>&nbsp;&nbsp;New, corrected ADSC Quantum 315 template.
 
 </TABLE>
 
@@ -290,7 +365,7 @@ cbf_free_node to avoid memory leaks.
 <TR><TD VALIGN=TOP>cbf_uncompressed.c
 <TD>&nbsp;&nbsp;Add #define __USE_XOPEN to avoid
 a warning on use of swab on some systems.
-<TR><TD VALIGN=TOP>Makefile.m4
+<TR><TD VALIGN=TOP>sauter_test.C Makefile.m4
 <TD>&nbsp;&nbsp;Add sauter_test to stress test for memory leaks.
 On make install, place cbf.h and cbf_simple.h into include
 directory.
@@ -1819,7 +1894,7 @@ This was the first CBFlib release.  It
 supported binary CBF files using binary strings.
 <HR>
 <HR>
-Updated 29 July 2007.  
+Updated 25 December 2007.  
 <script language="javascript" type="text/javascript">
 <!-- 
       var name = "yaya";
