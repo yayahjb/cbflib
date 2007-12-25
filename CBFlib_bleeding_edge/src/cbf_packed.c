@@ -801,7 +801,7 @@ int cbf_pack_nextchunk (cbf_packed_data *data, cbf_file *file,
     in the same row (fastest index) or, at the end of the prior row
     if the next data element to be processed is at the end of a row
     
-    ndim1, ndim2, ndim3 should point to the indices of the same
+    ndimfast, ndimmid, ndimslow should point to the indices of the same
     data element as trail_char_data[0] points to.  These values
     will be incremented to be the indices of the next data element
     to be processed before populating trail_char_data.
@@ -827,7 +827,7 @@ int cbf_pack_nextchunk (cbf_packed_data *data, cbf_file *file,
          - - - - 7 6 5 - - - 
          - - - - - - - - - -
              
-    If there is no prior section (i.e. ndim3 is 0, or 
+    If there is no prior section (i.e. ndimslow is 0, or 
     the CBF_UNCORRELATED_SECTIONS flag is set
     to indicate discontinuous sections), the values
     for trail_char_data[4..7] will all be NULL.  When
@@ -842,16 +842,16 @@ int cbf_pack_nextchunk (cbf_packed_data *data, cbf_file *file,
     is a special case, with no averaging.  This function
     should not be called for that case.
 
-    In the first row of the first section (ndim2 == 0,
-    and ndim3 == 0), after the first element (ndim1 > 0), 
+    In the first row of the first section (ndimmid == 0,
+    and ndimslow == 0), after the first element (ndimfast > 0), 
     only trail_char_data[0] is used
     
     current section:
     
          - - - - 0 * - - - -
 
-    For subsequent rows of the first section (ndim2 > 0,
-    and ndim3 == 0), for the first element (ndim1 == 0), 
+    For subsequent rows of the first section (ndimmid > 0,
+    and ndimslow == 0), for the first element (ndimfast == 0), 
     two elements from the prior row are used:
     
     current section:
@@ -870,7 +870,7 @@ int cbf_pack_nextchunk (cbf_packed_data *data, cbf_file *file,
          - - - - 3 2 1 - - - 
          - - - - - - - - - -
          
-    For the last element of a row (ndim1 == dim1-1), two
+    For the last element of a row (ndimfast == dimfast-1), two
     elements are used
     
     current section:
@@ -891,8 +891,8 @@ int cbf_pack_nextchunk (cbf_packed_data *data, cbf_file *file,
       */
 
 int cbf_update_jpa_pointers(unsigned char * trail_char_data[8],
-                               size_t *ndim1, size_t *ndim2, size_t *ndim3,
-                               size_t   dim1, size_t   dim2, size_t   dim3,
+                               size_t *ndimfast, size_t *ndimmid, size_t *ndimslow,
+                               size_t   dimfast, size_t   dimmid, size_t   dimslow,
                                size_t   elsize, 
                          unsigned int  *average,
                          unsigned int   compression) {
@@ -925,19 +925,19 @@ int cbf_update_jpa_pointers(unsigned char * trail_char_data[8],
     
     for (i = 1; i < numints; i++) average[i] = 0;
                                
-    (*ndim1)++;
+    (*ndimfast)++;
     
-    if (*ndim1 == dim1) {
+    if (*ndimfast == dimfast) {
     
-      *ndim1 = 0;
+      *ndimfast = 0;
       
-      (*ndim2)++;
+      (*ndimmid)++;
       
-      if (*ndim2 == dim2) {
+      if (*ndimmid == dimmid) {
       
-        *ndim2 = 0;
+        *ndimmid = 0;
         
-        (*ndim3)++;
+        (*ndimslow)++;
       	
       }
     	
@@ -945,17 +945,17 @@ int cbf_update_jpa_pointers(unsigned char * trail_char_data[8],
     
     for (i = 1 ; i < 8; i++ ) trail_char_data[i] = NULL;
  
-    if (*ndim2 > 0)  {  /* Not in the first row */
+    if (*ndimmid > 0)  {  /* Not in the first row */
     
-      trail_char_data[1] = trail_char_data[0]-elsize*(dim1-2);   /* down 1 right 2 */
+      trail_char_data[1] = trail_char_data[0]-elsize*(dimfast-2);   /* down 1 right 2 */
       
-      trail_char_data[2] = trail_char_data[0]-elsize*(dim1-1); /* down 1 right 1 */
+      trail_char_data[2] = trail_char_data[0]-elsize*(dimfast-1); /* down 1 right 1 */
 
-      if (*ndim1 > 0 )  {  /* Not in the first column */
+      if (*ndimfast > 0 )  {  /* Not in the first column */
           
-        trail_char_data[3] = trail_char_data[0]-elsize*(dim1);   /* down 1 */
+        trail_char_data[3] = trail_char_data[0]-elsize*(dimfast);   /* down 1 */
         
-        if (*ndim1 == dim1-1)  { /* Last column */
+        if (*ndimfast == dimfast-1)  { /* Last column */
         
           trail_char_data[1] = NULL;
         	
@@ -971,13 +971,13 @@ int cbf_update_jpa_pointers(unsigned char * trail_char_data[8],
       	
       }
 
-      if ( *ndim3 > 0  && (compression&CBF_UNCORRELATED_SECTIONS)== 0) {
+      if ( *ndimslow > 0  && (compression&CBF_UNCORRELATED_SECTIONS)== 0) {
       
         if (trail_char_data[0]) 
 
           trail_char_data[4] = 
 
-            trail_char_data[0] - elsize*dim1*dim2 + elsize;
+            trail_char_data[0] - elsize*dimfast*dimmid + elsize;
       
         for (i = 1; i < 4; i++ ) {
         
@@ -985,7 +985,7 @@ int cbf_update_jpa_pointers(unsigned char * trail_char_data[8],
 
             trail_char_data[i+4] = 
 
-              trail_char_data[i] - elsize*dim1*dim2;
+              trail_char_data[i] - elsize*dimfast*dimmid;
         	
         }
 
@@ -993,11 +993,11 @@ int cbf_update_jpa_pointers(unsigned char * trail_char_data[8],
 
     } else { /* First row of a section */
     
-      if ( *ndim1 == 0 ) { /* First element of first row of a section */
+      if ( *ndimfast == 0 ) { /* First element of first row of a section */
       
         trail_char_data[4] = 
 
-              trail_char_data[0] - elsize*(dim1*dim2-1);
+              trail_char_data[0] - elsize*(dimfast*dimmid-1);
               
         trail_char_data[0] = NULL;   
          
@@ -1090,9 +1090,9 @@ int cbf_compress_packed (void         *source,
                          int          *storedbits,
                          int           realarray,
                          const char   *byteorder,
-                         size_t        dim1,
-                         size_t        dim2,
-                         size_t        dim3,
+                         size_t        dimfast,
+                         size_t        dimmid,
+                         size_t        dimslow,
                          size_t        padding)
 {
   unsigned int minelement, maxelement;
@@ -1107,7 +1107,7 @@ int cbf_compress_packed (void         *source,
   
   unsigned int average[4];
   
-  size_t ndim1, ndim2, ndim3;
+  size_t ndimfast, ndimmid, ndimslow;
 
   cbf_packed_data *data;
   
@@ -1180,7 +1180,7 @@ int cbf_compress_packed (void         *source,
   
   avgflag = 0;
     
-  if (dim1 != 0 || dim2 != 0 || dim3 != 0) avgflag = 1;
+  if (dimfast != 0 || dimmid != 0 || dimslow != 0) avgflag = 1;
   
   if (compression&CBF_FLAT_IMAGE) avgflag = 0;
   
@@ -1188,13 +1188,13 @@ int cbf_compress_packed (void         *source,
   
   if (avgflag) clipbits = bits;
   
-  if (dim3 == 0) dim3 = 1;
+  if (dimslow == 0) dimslow = 1;
   
-  if (dim2 == 0) dim2 = 1;
+  if (dimmid == 0) dimmid = 1;
   
-  if (dim1 == 0) dim1 = nelem/(dim2*dim3);
+  if (dimfast == 0) dimfast = nelem/(dimmid*dimslow);
   
-  if (dim1 * dim2 * dim3 != nelem) return CBF_ARGUMENT;
+  if (dimfast * dimmid * dimslow != nelem) return CBF_ARGUMENT;
 
 
     /* Write the number of elements (64 bits) */
@@ -1286,7 +1286,7 @@ int cbf_compress_packed (void         *source,
   
   lastelement[numints-1] = unsign;
   
-  ndim1 = ndim2 = ndim3 = 0;
+  ndimfast = ndimmid = ndimslow = 0;
 
   for (count = 0; count < nelem; count++)
   {
@@ -1373,8 +1373,8 @@ int cbf_compress_packed (void         *source,
     if (avgflag) {
     
       cbf_update_jpa_pointers(trail_char_data, 
-                       &ndim1,  &ndim2, &ndim3,
-                         dim1,   dim2,   dim3,
+                       &ndimfast,  &ndimmid, &ndimslow,
+                         dimfast,   dimmid,   dimslow,
                           elsize, average, compression);
                               	        
       for (i = 0; i < numints; i++) lastelement[i] = average[i];
@@ -1429,9 +1429,9 @@ int cbf_decompress_packed (void         *destination,
                            int           realarray,
                            const char   *byteorder,
                            size_t        dimover,
-                           size_t        dim1,
-                           size_t        dim2,
-                           size_t        dim3,
+                           size_t        dimfast,
+                           size_t        dimmid,
+                           size_t        dimslow,
                            size_t        padding)
 {
   unsigned int next, pixel=0, pixelcount;
@@ -1446,7 +1446,7 @@ int cbf_decompress_packed (void         *destination,
   
   size_t numints;
   
-  size_t ndim1, ndim2, ndim3;
+  size_t ndimfast, ndimmid, ndimslow;
 
   int errorcode;
   
@@ -1562,7 +1562,7 @@ int cbf_decompress_packed (void         *destination,
   
   avgflag = 1;
 
-  if (dim1 == 0  && dim2 == 0 && dim3 == 0) avgflag = 0;
+  if (dimfast == 0  && dimmid == 0 && dimslow == 0) avgflag = 0;
   
   if (compression&CBF_FLAT_IMAGE) avgflag = 0;
   
@@ -1570,19 +1570,19 @@ int cbf_decompress_packed (void         *destination,
   
   if (avgflag) clipbits = bits;
 
-  if (dim3 == 0) dim3 = 1;
+  if (dimslow == 0) dimslow = 1;
   
-  if (dim2 == 0) dim2 = 1;
+  if (dimmid == 0) dimmid = 1;
   
-  if (dim1 == 0) dim1 = nelem/(dim2*dim3);
+  if (dimfast == 0) dimfast = nelem/(dimmid*dimslow);
   
-  if (dim1 * dim2 * dim3 != nelem) return CBF_ARGUMENT;
+  if (dimfast * dimmid * dimslow != nelem) return CBF_ARGUMENT;
 
     /* Read the elements */
 
   count = 0;
   
-  ndim1 = ndim2 = ndim3 = 0;
+  ndimfast = ndimmid = ndimslow = 0;
 
   while (count < nelem)
   {
@@ -1735,8 +1735,8 @@ int cbf_decompress_packed (void         *destination,
       if (avgflag) {
       	
         cbf_failnez(cbf_update_jpa_pointers(trail_char_data, 
-                       &ndim1,  &ndim2, &ndim3,
-                         dim1,   dim2,   dim3,
+                       &ndimfast,  &ndimmid, &ndimslow,
+                         dimfast,   dimmid,   dimslow,
                           elsize, last_element, compression))
         
         last_element[numints-1] += unsign; 

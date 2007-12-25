@@ -282,9 +282,9 @@ int cbf_compress (void         *source,
                   char         *digest,
                   int           realarray,
                   const char   *byteorder,
-                  size_t        dim1,
-                  size_t        dim2,
-                  size_t        dim3,
+                  size_t        dimfast,
+                  size_t        dimmid,
+                  size_t        dimslow,
                   size_t        padding)
 {
   int errorcode;
@@ -319,7 +319,7 @@ int cbf_compress (void         *source,
       errorcode = cbf_compress_canonical (source, elsize, elsign, nelem,
                                           compression, file,
                                           &size, bits, realarray,
-                                          byteorder, dim1, dim2, dim3, padding);
+                                          byteorder, dimfast, dimmid, dimslow, padding);
       break;
 
     case CBF_PACKED:
@@ -329,7 +329,7 @@ int cbf_compress (void         *source,
       errorcode = cbf_compress_packed (source, elsize, elsign, nelem,
                                        compression, file,
                                        &size, bits, realarray,
-                                       byteorder, dim1, dim2, dim3, padding);
+                                       byteorder, dimfast, dimmid, dimslow, padding);
       break;
 
     case CBF_BYTE_OFFSET:
@@ -337,7 +337,7 @@ int cbf_compress (void         *source,
       errorcode = cbf_compress_byte_offset (source, elsize, elsign, nelem,
                                             compression, file,
                                             &size, bits, realarray,
-                                            byteorder, dim1, dim2, dim3, padding);
+                                            byteorder, dimfast, dimmid, dimslow, padding);
       break;
 
     case CBF_PREDICTOR:
@@ -345,7 +345,7 @@ int cbf_compress (void         *source,
       errorcode = cbf_compress_predictor (source, elsize, elsign, nelem,
                                           compression, file,
                                           &size, bits, realarray,
-                                          byteorder, dim1, dim2, dim3, padding);
+                                          byteorder, dimfast, dimmid, dimslow, padding);
       break;
 
     case CBF_NONE:
@@ -353,7 +353,7 @@ int cbf_compress (void         *source,
       errorcode = cbf_compress_none (source, elsize, elsign, nelem,
                                      compression, file,
                                      &size, bits, realarray,
-                                     byteorder, dim1, dim2, dim3, padding);
+                                     byteorder, dimfast, dimmid, dimslow, padding);
       break;
 
   default:
@@ -550,9 +550,9 @@ int cbf_decompress (void         *destination,
                     int           realarray,
                     const char   *byteorder,
                     size_t        dimover,
-                    size_t        dim1,
-                    size_t        dim2,
-                    size_t        dim3,
+                    size_t        dimfast,
+                    size_t        dimmid,
+                    size_t        dimslow,
                     size_t        padding)
 {
   switch (compression&CBF_COMPRESSION_MASK)
@@ -562,7 +562,7 @@ int cbf_decompress (void         *destination,
       return cbf_decompress_canonical (destination, elsize, elsign, nelem,
                                        nelem_read, compression,
                                        bits, sign, file, realarray, byteorder,
-                                       dimover, dim1, dim2, dim3, padding);
+                                       dimover, dimfast, dimmid, dimslow, padding);
 
     case CBF_PACKED:
     case CBF_PACKED_V2:
@@ -571,28 +571,28 @@ int cbf_decompress (void         *destination,
       return cbf_decompress_packed (destination, elsize, elsign, nelem,
                                     nelem_read, compression,
                                     bits, sign, file, realarray, byteorder,
-                                    dimover, dim1, dim2, dim3, padding);
+                                    dimover, dimfast, dimmid, dimslow, padding);
 
     case CBF_BYTE_OFFSET:
 
       return cbf_decompress_byte_offset (destination, elsize, elsign, nelem,
                                          nelem_read, compression,
                                          bits, sign, file, realarray, byteorder,
-                                         dimover, dim1, dim2, dim3, padding);
+                                         dimover, dimfast, dimmid, dimslow, padding);
 
     case CBF_PREDICTOR:
 
       return cbf_decompress_predictor (destination, elsize, elsign, nelem,
                                        nelem_read, compression,
                                        bits, sign, file, realarray, byteorder,
-                                       dimover, dim1, dim2, dim3, padding);
+                                       dimover, dimfast, dimmid, dimslow, padding);
 
     case CBF_NONE:
 
       return cbf_decompress_none (destination, elsize, elsign, nelem,
                                   nelem_read, compression,
                                   bits, sign, file, realarray, byteorder,
-                                  dimover, dim1, dim2, dim3, padding);
+                                  dimover, dimfast, dimmid, dimslow, padding);
   }
 
 

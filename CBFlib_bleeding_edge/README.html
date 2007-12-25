@@ -35,7 +35,7 @@ ALT="[CBFlib]"></A>
 <font color="#0808A0">
 <H2 ALIGN=CENTER>README</H2>
 <H3 ALIGN=CENTER>
-Information for CBFlib 0.7.8.1, 28 July 2007<BR>
+Information for CBFlib 0.7.8.2, 25 December 2007<BR>
 </H3>
 </font><font color="#000000">
 <CENTER>
@@ -81,7 +81,7 @@ under grants ER63601-1021466-0009501 and ER64212-1027708-0011962, by the
 U. S. National Science Foundation (NSF) under grants DBI-0610407, DBI-0315281 and
 EF-0312612, the U. S. National Institutes of Health (NIH) under grants 1R15GM078077
 from NIGMS and 1R13RR023192 from NCRR and funding from the International
-Union for Crystallographyn (IUCr).  The content is solely the responsibility of 
+Union for Crystallography (IUCr).  The content is solely the responsibility of 
 the authors and does not necessarily represent the official views of 
 DOE, NSF, NIH, NIGMS, NCRR or IUCr.
 <P>
@@ -99,7 +99,7 @@ and write CBF binary data files and imgCIF ASCII data files.
 <P>
 <H3>Installation</H3>
 <P>
-CBFLIB should be built on a disk with at least 250 megabytes of free 
+CBFLIB should be built on a disk with at least 350 megabytes of free 
 space.  <A HREF="../CBFlib_0.7.8.tar.gz">CBFlib_0.7.8.tar.gz</A> is a "gzipped" 
 tar of the code as it now stands.  In addition,
 <A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.8/CBFlib_0.7.8_Data_Files.tar.gz">CBFlib_0.7.8_Data_Files.tar.gz</a>
@@ -147,6 +147,12 @@ and the subdirectories:
 <TR><TD>&nbsp;&nbsp;html_images/<TD>&nbsp;&nbsp;JPEG images used in rendering the HTML files
 </TABLE>
 <p>
+<p>and additional Makefiles for other systems.  All the makefiles are created from
+m4/Makefile.m4.  The current set of Makefiles are Makefile_LINUX, Makefile_LINUX_gcc42,
+Makefile_OSX, Makefile_OSX_gcc42, Makefile_AIX and Makefile_MINGW.  Edit the
+closest approximation to your system, and then copy that variant to Makefile.
+
+
 For instructions on compiling and testing the library, go to
 the top-level directory and type:
 <p>
@@ -158,7 +164,7 @@ the top-level directory and type:
 Please refer to the manual <a HREF="doc/CBFlib.html">doc/CBFlib.html</a>
 for more detailed information.<HR>
 <HR>
-Updated 29 July 2007.  
+Updated 25 December 2007.  
 <script language="javascript" type="text/javascript">
 <!-- 
       var name = "yaya";

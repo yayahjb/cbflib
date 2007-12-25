@@ -302,7 +302,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
   unsigned int file_column, compression;
 
-  size_t size, length=0, code_size, dimover, dim1, dim2, dim3, padding;
+  size_t size, length=0, code_size, dimover, dimfast, dimmid, dimslow, padding;
 
   const char *line;
   
@@ -747,7 +747,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
             /* Read the header */
             
-          dimover=dim1=dim2=dim3=padding = 0;
+          dimover=dimfast=dimmid=dimslow=padding = 0;
           
           byteorder="little_endian";
 
@@ -761,7 +761,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                                     &real,
                                                     &byteorder,
                                                     &dimover,
-                                                    &dim1, &dim2, &dim3,
+                                                    &dimfast, &dimmid, &dimslow,
                                                     &padding), val);
 
 
@@ -961,9 +961,9 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                             id, (void *)file, position, (unsigned long) size, checked_digest,
                             digest, bits, sign, real<1?0:1, 
                             byteorder, (unsigned long)dimover, 
-                            (unsigned long)dim1, 
-                            (unsigned long)dim2, 
-                            (unsigned long)dim3, 
+                            (unsigned long)dimfast, 
+                            (unsigned long)dimmid, 
+                            (unsigned long)dimslow, 
                             (unsigned long)padding,
                             compression);
 

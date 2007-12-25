@@ -1430,9 +1430,9 @@ int cbf_compress_canonical (void         *source,
                             int          *storedbits,
                             int           realarray,
                             const char   *byteorder,
-                            size_t        dim1,
-                            size_t        dim2,
-                            size_t        dim3,
+                            size_t        dimfast,
+                            size_t        dimmid,
+                            size_t        dimslow,
                             size_t        padding)
 {
   int code, minelement, maxelement;
@@ -1685,9 +1685,9 @@ int cbf_decompress_canonical (void         *destination,
                               int           realarray,
                               const char   *byteorder,
                               size_t        dimover,
-                              size_t        dim1,
-                              size_t        dim2,
-                              size_t        dim3,
+                              size_t        dimfast,
+                              size_t        dimmid,
+                              size_t        dimslow,
                               size_t        padding)
 {
   unsigned int bits, element, sign, unsign, limit, count64, count;

@@ -273,10 +273,14 @@ int cbf_compress_predictor (void         *source,
                             int          *storedbits,
                             int           realarray,
                             const char   *byteorder,
-                            size_t        dim1,
-                            size_t        dim2,
-                            size_t        dim3,
+                            size_t        dimfast,
+                            size_t        dimmid,
+                            size_t        dimslow,
                             size_t        padding);
+#define cbf_compress_predictor_fs(source,elsize,elsign,nelem,compression,file,compressedsize,storedbits,realarray,byteorder,dimfast,dimmid,dimslow,padding) \
+        cbf_compress_predictor((source),(elsize),(elsign),(nelem),(compression),(file),(compressedsize),(storedbits),(realarray),(byteorder),(dimfast),(dimmid),(dimslow),(padding)) 
+#define cbf_compress_predictor_sf(source,elsize,elsign,nelem,compression,file,compressedsize,storedbits,realarray,byteorder,dimslow,dimmid,dimfast,padding) \
+        cbf_compress_predictor((source),(elsize),(elsign),(nelem),(compression),(file),(compressedsize),(storedbits),(realarray),(byteorder),(dimfast),(dimmid),(dimslow),(padding)) 
 
 
   /* Decompress an array with the Predictor-Huffman algorithm */
@@ -293,10 +297,15 @@ int cbf_decompress_predictor (void         *destination,
                               int           realarray,
                               const char   *byteorder,
                               size_t        dimover,
-                              size_t        dim1,
-                              size_t        dim2,
-                              size_t        dim3,
+                              size_t        dimfast,
+                              size_t        dimmid,
+                              size_t        dimslow,
                               size_t        padding);
+#define cbf_decompress_predictor_fs(destination,elsize,elsign,nelem,nelem_read,compression,data_bits,data_sign,file,realarray,byteorder,dimover,dimfast,dimmid,dimslow,padding) \
+        cbf_decompress_predictor((destination),(elsize),(elsign),(nelem),(nelem_read),(compression),(data_bits),(data_sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding)) 
+#define cbf_decompress_predictor_sf(destination,elsize,elsign,nelem,nelem_read,compression,data_bits,data_sign,file,realarray,byteorder,dimover,dimslow,dimmid,dimfast,padding) \
+        cbf_decompress_predictor((destination),(elsize),(elsign),(nelem),(nelem_read),(compression),(data_bits),(data_sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding)) 
+
 
 
 #ifdef __cplusplus

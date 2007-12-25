@@ -543,6 +543,7 @@ all:	$(LIB) $(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) symlinksdone \
         $(BIN)/convert_minicbf   \
         $(BIN)/makecbf           \
         $(BIN)/img2cif           \
+        $(BIN)/adscimg2cbf       \
         $(BIN)/cif2cbf           \
 		$(BIN)/testcell          \
 		$(BIN)/cif2c             \
@@ -608,6 +609,8 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin $(INSTALLDIR)/in
 		cp $(BIN)/makecbf $(INSTALLDIR)/bin/makecbf
 		-cp $(INSTALLDIR)/bin/img2cif $(INSTALLDIR)/bin/img2cif_old
 		cp $(BIN)/img2cif $(INSTALLDIR)/bin/img2cif
+		-cp $(INSTALLDIR)/bin/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf_old
+		cp $(BIN)/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf
 		-cp $(INSTALLDIR)/bin/cif2cbf $(INSTALLDIR)/bin/cif2cbf_old
 		cp $(BIN)/cif2cbf $(INSTALLDIR)/bin/cif2cbf
 		-cp $(INSTALLDIR)/bin/cif2c $(INSTALLDIR)/bin/cif2c_old
@@ -798,6 +801,15 @@ $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
               $(EXAMPLES)/makecbf.c  -L$(LIB) \
 	      -lcbf -lm -limg -o $@
 
+
+#
+# adscimg2cbf example program
+#
+$(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c
+	$(CC) $(CFLAGS) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
+              $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c  -L$(LIB) \
+	      -lcbf -lm -o $@
+
 #
 # img2cif example program
 #
@@ -940,19 +952,29 @@ test_xds_bin_testflatout_orig.out: 	$(DATADIR) \
 		> test_xds_bin_testflatout_orig.out
 
 test_xds_bin_testflatpackedout_orig.out: $(DATADIR) \
-		$(DATADIR)/test_xds_bin_testflatout_orig.out$(CEXT)
+		$(DATADIR)/test_xds_bin_testflatpackedout_orig.out$(CEXT)
 		$(DECOMPRESS) < $(DATADIR)/test_xds_bin_testflatpackedout_orig.out$(CEXT) \
 		> test_xds_bin_testflatpackedout_orig.out
 
 test_fcb_read_testflatout_orig.out: $(DATADIR) \
-		$(DATADIR)/test_xds_bin_testflatout_orig.out$(CEXT)
+		$(DATADIR)/test_fcb_read_testflatout_orig.out$(CEXT)
 		$(DECOMPRESS) < $(DATADIR)/test_fcb_read_testflatout_orig.out$(CEXT) \
 		> test_fcb_read_testflatout_orig.out
 
 test_fcb_read_testflatpackedout_orig.out: $(DATADIR) \
-		$(DATADIR)/test_xds_bin_testflatpackedout_orig.out$(CEXT)
+		$(DATADIR)/test_fcb_read_testflatpackedout_orig.out$(CEXT)
 		$(DECOMPRESS) < $(DATADIR)/test_fcb_read_testflatpackedout_orig.out$(CEXT) \
 		> test_fcb_read_testflatpackedout_orig.out
+
+adscconverted_flat_rev_orig.cbf: $(DATADIR) \
+		$(DATADIR)/adscconverted_flat_rev_orig.cbf$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/adscconverted_flat_rev_orig.cbf$(CEXT) \
+		> adscconverted_flat_rev_orig.cbf
+
+mb_LP_1_001_orig.cbf: $(DATADIR) \
+		$(DATADIR)/mb_LP_1_001_orig.cbf$(CEXT)
+		$(DECOMPRESS) < $(DATADIR)/mb_LP_1_001_orig.cbf$(CEXT) \
+		> mb_LP_1_001_orig.cbf
 
 		
 #
@@ -988,8 +1010,9 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf example.mar2300
 extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
 	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image $(BIN)/convert_minicbf \
-	$(BIN)/sauter_test \
+	$(BIN)/sauter_test $(BIN)/adscimg2cbf\
 	makecbf.cbf 9ins.cif example.mar2300 converted_orig.cbf mb_LP_1_001.img\
+	adscconverted_flat_rev_orig.cbf mb_LP_1_001_orig.cbf\
 	adscconverted_orig.cbf testcell_orig.prt testrealin.cbf \
 	testflatin.cbf testflatpackedin.cbf \
 	converted_flat_orig.cbf adscconverted_flat_orig.cbf \
@@ -1014,6 +1037,11 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcel
 	-cmp adscconverted_flat.cbf adscconverted_flat_orig.cbf
 	$(TIME) $(BIN)/convert_image -c diffrn_data_frame=diffrn_frame_data  -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
 	-cmp adscconverted.cbf adscconverted_orig.cbf
+	$(TIME) $(BIN)/convert_image -F -c diffrn_data_frame=diffrn_frame_data  -d adscquantum315 \
+	  -p template_adscquantum315_3072x3072_rev.cbf mb_LP_1_001.img adscconverted_flat_rev.cbf
+	-cmp adscconverted_flat_rev.cbf adscconverted_flat_rev_orig.cbf
+	$(TIME) $(BIN)/adscimg2cbf  --cbf_packed,flat mb_LP_1_001.img
+	-cmp mb_LP_1_001.cbf mb_LP_1_001_orig.cbf
 	$(TIME) $(BIN)/convert_minicbf -c diffrn_data_frame=diffrn_frame_data  -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
 	-cmp insulin_pilatus6mconverted.cbf insulin_pilatus6mconverted_orig.cbf
 	$(TIME) $(BIN)/convert_minicbf -C SLS_1.0 -Q insulin_pilatus6m_prev.cbf insulin_pilatus6m_new.cbf
@@ -1067,6 +1095,7 @@ empty:
 	@-rm -f  $(BIN)/testreals
 	@-rm -f  $(BIN)/testflat
 	@-rm -f  $(BIN)/testflatpacked
+	@-rm -f  $(BIN)/sauter_test
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
@@ -1079,6 +1108,8 @@ empty:
 	@-rm -f  adscconverted.cbf
 	@-rm -f  converted_flat.cbf
 	@-rm -f  adscconverted_flat.cbf
+	@-rm -f  adscconverted_flat_rev.cbf
+	@-rm -f  mb_LP_1_001.cbf
 	@-rm -f  cif2cbf_ehcn.cif
 	@-rm -f  cif2cbf_encp.cbf
 	@-rm -f  9ins.cbf
@@ -1089,6 +1120,8 @@ empty:
 	@-rm -f  adscconverted_orig.cbf
 	@-rm -f  converted_flat_orig.cbf
 	@-rm -f  adscconverted_flat_orig.cbf
+	@-rm -f  adscconverted_flat_rev_orig.cbf
+	@-rm -f  mb_LP_1_001_orig.cbf
 	@-rm -f  insulin_pilatus6mconverted_orig.cbf
 	@-rm -f  insulin_pilatus6m_prev.cbf
 	@-rm -f  insulin_pilatus6m_new.cbf

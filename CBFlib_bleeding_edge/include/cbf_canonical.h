@@ -431,9 +431,9 @@ int cbf_compress_canonical (void         *source,
                             int          *storedbits,
                             int           realarray,
                             const char   *byteorder,
-                            size_t        dim1,
-                            size_t        dim2,
-                            size_t        dim3,
+                            size_t        dimfast,
+                            size_t        dimmid,
+                            size_t        dimslow,
                             size_t        padding);
 
 
@@ -451,10 +451,14 @@ int cbf_decompress_canonical (void         *destination,
                               int           realarray,
                               const char   *byteorder,
                               size_t        dimover,
-                              size_t        dim1,
-                              size_t        dim2,
-                              size_t        dim3,
+                              size_t        dimfast,
+                              size_t        dimmid,
+                              size_t        dimslow,
                               size_t        padding);
+#define cbf_decompress_canonical_fs(destination,elsize,elsign,nelem,nelem_read,compression,bits,sign,file,realarray,byteorder,dimover,dimfast,dimmid,dimslow,padding) \
+        cbf_decompress_canonical((destination),(elsize),(elsign),(nelem),(nelem_read),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding)) 
+#define cbf_decompress_canonical_sf(destination,elsize,elsign,nelem,nelem_read,compression,bits,sign,file,realarray,byteorder,dimover,dimslow,dimmid,dimfast,padding) \
+        cbf_decompress_canonical((destination),(elsize),(elsign),(nelem),(nelem_read),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding)) 
 
 
 #ifdef __cplusplus
