@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_simple -- cbflib simplified API functions                      *
  *                                                                    *
- * Version 0.7.8 4 July 2007                                          *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -683,40 +683,56 @@ int cbf_get_array_id (cbf_handle handle, unsigned int element_number,
   return 0;
 }
 
-  /* Get the pixel size of a detector element in a given direction */
+  /* Get the pixel size of a detector element in a given direction 
+     axis numbering is 1-based, fast to slow */
 
 int cbf_get_pixel_size(cbf_handle handle, unsigned int element_number,
-                                          unsigned int axis_number,
+                                          int axis_number,
                                           double * psize)
 {
   const char *array_id;
-  int        aid, precedence, axis_index;
+  int        aid, precedence, max_precedence, axis_index;
 
   cbf_failnez (cbf_get_array_id   (handle, element_number, &array_id))
 
   cbf_failnez (cbf_find_category (handle, "array_structure_list"))
   cbf_failnez (cbf_find_column   (handle, "array_id"))
 
-  precedence = 0;
+  precedence = max_precedence = axis_index = 0;
 
   while (cbf_find_nextrow (handle, array_id) == 0)
   {
     cbf_failnez (cbf_find_column      (handle, "precedence"))
     cbf_failnez (cbf_get_integervalue (handle, &precedence))
 
-    if (precedence < 1 || precedence > 3)
+    if (precedence < 1 ) return CBF_FORMAT;
+    if (precedence > max_precedence) max_precedence = precedence;
 
-      return CBF_FORMAT;
-
-    cbf_failnez (cbf_find_column      (handle, "index"))
-    cbf_failnez (cbf_get_integervalue (handle, &axis_index))
-
-    if (precedence == axis_number) break;
-
+    if (precedence == axis_number) {
+      cbf_failnez (cbf_find_column      (handle, "index"))
+      cbf_failnez (cbf_get_integervalue (handle, &axis_index))
+      if (axis_index < 1) return CBF_FORMAT;
+    }
     cbf_failnez (cbf_find_column (handle, "array_id"))
   }
+  
+  if (axis_index == 0 && axis_number < 0 ) {
+    cbf_failnez (cbf_rewind_row (handle) )
+    while (cbf_find_nextrow (handle, array_id) == 0) {
+      cbf_failnez (cbf_find_column      (handle, "precedence"))
+      cbf_failnez (cbf_get_integervalue (handle, &precedence))
 
-  if (precedence != axis_number ) return CBF_NOTFOUND;
+      if (precedence == max_precedence+1+axis_number) {
+        cbf_failnez (cbf_find_column      (handle, "index"))
+        cbf_failnez (cbf_get_integervalue (handle, &axis_index))
+        if (axis_index < 1) return CBF_FORMAT;
+        break;
+      }
+      cbf_failnez (cbf_find_column (handle, "array_id"))
+    }
+  }
+
+  if (axis_index == 0 ) return CBF_NOTFOUND;
 
   if ( cbf_find_category  (handle, "array_element_size") == 0 ) {
     cbf_failnez (cbf_rewind_row     (handle))
@@ -739,40 +755,56 @@ int cbf_get_pixel_size(cbf_handle handle, unsigned int element_number,
 
 }
 
-  /* Set the pixel size of a detector element in a given direction */
+  /* Set the pixel size of a detector element in a given direction  
+     axis numbering is 1-based, fast to slow */
 
 int cbf_set_pixel_size(cbf_handle handle, unsigned int element_number,
-                                          unsigned int axis_number,
+                                          int axis_number,
                                           double psize)
 {
   const char *array_id;
-  int        aid, precedence, axis_index;
+  int        aid, precedence, max_precedence, axis_index;
 
   cbf_failnez (cbf_get_array_id   (handle, element_number, &array_id))
 
   cbf_failnez (cbf_find_category (handle, "array_structure_list"))
   cbf_failnez (cbf_find_column   (handle, "array_id"))
 
-  precedence = 0;
+  precedence = max_precedence = axis_index = 0;
 
   while (cbf_find_nextrow (handle, array_id) == 0)
   {
     cbf_failnez (cbf_find_column      (handle, "precedence"))
     cbf_failnez (cbf_get_integervalue (handle, &precedence))
 
-    if (precedence < 1 || precedence > 3)
+    if (precedence < 1 ) return CBF_FORMAT;
+    if (precedence > max_precedence) max_precedence = precedence;
 
-      return CBF_FORMAT;
-
-    cbf_failnez (cbf_find_column      (handle, "index"))
-    cbf_failnez (cbf_get_integervalue (handle, &axis_index))
-
-    if (precedence == axis_number) break;
-
+    if (precedence == axis_number) {
+      cbf_failnez (cbf_find_column      (handle, "index"))
+      cbf_failnez (cbf_get_integervalue (handle, &axis_index))
+      if (axis_index < 1) return CBF_FORMAT;
+    }
     cbf_failnez (cbf_find_column (handle, "array_id"))
   }
 
-  if (precedence != axis_number ) return CBF_NOTFOUND;
+  if (axis_index == 0 && axis_number < 0 ) {
+    cbf_failnez (cbf_rewind_row (handle) )
+    while (cbf_find_nextrow (handle, array_id) == 0) {
+    cbf_failnez (cbf_find_column      (handle, "precedence"))
+    cbf_failnez (cbf_get_integervalue (handle, &precedence))
+
+      if (precedence == max_precedence+1+axis_number) {
+    cbf_failnez (cbf_find_column      (handle, "index"))
+    cbf_failnez (cbf_get_integervalue (handle, &axis_index))
+        if (axis_index < 1) return CBF_FORMAT;
+        break;
+      }
+    cbf_failnez (cbf_find_column (handle, "array_id"))
+    }
+  }
+
+  if (axis_index == 0 ) return CBF_NOTFOUND;
 
   if ( cbf_find_category  (handle, "array_element_size") != 0 ) {
 
@@ -1329,13 +1361,13 @@ int cbf_set_current_timestamp (cbf_handle handle, unsigned int reserved,
 }
 
 
-  /* Get the image size.  ndim1 is the slow dimension, ndim2 is fast. */
+  /* Get the image size.  ndimslow is the slow dimension, ndimfast is fast. */
 
 int cbf_get_image_size (cbf_handle    handle,
                         unsigned int  reserved,
                         unsigned int  element_number,
-                        size_t       *ndim1,
-                        size_t       *ndim2)
+                        size_t       *ndimslow,
+                        size_t       *ndimfast)
 {
   const char *array_id;
   
@@ -1343,7 +1375,7 @@ int cbf_get_image_size (cbf_handle    handle,
     
   cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
 
-  cbf_failnez (cbf_get_3d_array_size (handle, reserved, array_id, &ndim0, ndim1,  ndim2));
+  cbf_failnez (cbf_get_3d_array_size (handle, reserved, array_id, &ndim0, ndimslow,  ndimfast));
   
   if (ndim0 != 1) return CBF_ARGUMENT;
 
@@ -1351,8 +1383,8 @@ int cbf_get_image_size (cbf_handle    handle,
 }
 
 
-  /* Read a binary section into an image.  ndim1 is the 
-                           slow dimension, ndim2 is fast.*/
+  /* Read a binary section into an image.  ndimslow is the 
+                           slow dimension, ndimfast is fast.*/
 
 int cbf_get_image (cbf_handle    handle,
                    unsigned int  reserved,
@@ -1360,8 +1392,8 @@ int cbf_get_image (cbf_handle    handle,
                    void         *array,
                    size_t        elsize,
                    int           elsign,
-                   size_t        ndim1,
-                   size_t        ndim2)
+                   size_t        ndimslow,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
@@ -1372,23 +1404,23 @@ int cbf_get_image (cbf_handle    handle,
   cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
 
   cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, &binary_id, array,
-                   CBF_INTEGER, elsize, elsign, 1, ndim1, ndim2));
+                   CBF_INTEGER, elsize, elsign, 1, ndimslow, ndimfast));
 
  
   return 0;
 }
 
 
-  /* Read a binary section into a real image.  ndim1 is the 
-                            slow dimension, ndim2 is fast.  */
+  /* Read a binary section into a real image.  ndimslow is the 
+                            slow dimension, ndimfast is fast.  */
 
 int cbf_get_real_image (cbf_handle    handle,
                    unsigned int  reserved,
                    unsigned int  element_number,
                    void         *array,
                    size_t        elsize,
-                   size_t        ndim1,
-                   size_t        ndim2)
+                   size_t        ndimslow,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
@@ -1399,38 +1431,38 @@ int cbf_get_real_image (cbf_handle    handle,
   cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
 
   cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, &binary_id, array,
-                   CBF_FLOAT, elsize, 1, 1, ndim1, ndim2));
+                   CBF_FLOAT, elsize, 1, 1, ndimslow, ndimfast));
 
   return 0;
 }
 
 
-  /* Get the 3D image size. ndim1 is the slowest dimension, 
-                            ndim2 is the next faster dimension,
-                            ndim3 is the fastest dimension */
+  /* Get the 3D image size. ndimslow is the slowest dimension, 
+                            ndimmid is the next faster dimension,
+                            ndimfast is the fastest dimension */
 
 int cbf_get_3d_image_size (cbf_handle    handle,
                         unsigned int  reserved,
                         unsigned int  element_number,
-                        size_t       *ndim1,
-                        size_t       *ndim2,
-                        size_t       *ndim3)
+                        size_t       *ndimslow,
+                        size_t       *ndimmid,
+                        size_t       *ndimfast)
 {
   const char *array_id;
 
   cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
 
   cbf_failnez (cbf_get_3d_array_size (handle, reserved, array_id,
-                   ndim1, ndim2, ndim3));
+                   ndimslow, ndimmid, ndimfast));
                    
   return 0;
 }
 
 
   /* Read a 3D binary section into an image.  
-                       ndim1 is the slowest dimension, 
-                       ndim2 is the next faster dimension,
-                       ndim3 is the fastest dimension */
+                       ndimslow is the slowest dimension, 
+                       ndimmid is the next faster dimension,
+                       ndimfast is the fastest dimension */
 
 int cbf_get_3d_image (cbf_handle    handle,
                    unsigned int  reserved,
@@ -1438,9 +1470,9 @@ int cbf_get_3d_image (cbf_handle    handle,
                    void         *array,
                    size_t        elsize,
                    int           elsign,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
@@ -1449,7 +1481,7 @@ int cbf_get_3d_image (cbf_handle    handle,
   cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
 
   cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, &binary_id, array,
-                   CBF_INTEGER, elsize, elsign, ndim1, ndim2, ndim3));
+                   CBF_INTEGER, elsize, elsign, ndimslow, ndimmid, ndimfast));
 
   return 0;
 }
@@ -1457,18 +1489,18 @@ int cbf_get_3d_image (cbf_handle    handle,
 
 
   /* Read a 3D binary section into a real image.  
-                       ndim1 is the slowest dimension, 
-                       ndim2 is the next faster dimension,
-                       ndim3 is the fastest dimension */
+                       ndimslow is the slowest dimension, 
+                       ndimmid is the next faster dimension,
+                       ndimfast is the fastest dimension */
 
 int cbf_get_real_3d_image (cbf_handle    handle,
                    unsigned int  reserved,
                    unsigned int  element_number,
                    void         *array,
                    size_t        elsize,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
@@ -1477,13 +1509,13 @@ int cbf_get_real_3d_image (cbf_handle    handle,
   cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
 
   cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, &binary_id, array,
-                   CBF_FLOAT, elsize, 1, ndim1, ndim2, ndim3));
+                   CBF_FLOAT, elsize, 1, ndimslow, ndimmid, ndimfast));
 
   return 0;
 }
 
 
-  /* Save an image.  ndim1 is the slow dimension, ndim2 is fast. */
+  /* Save an image.  ndimslow is the slow dimension, ndimfast is fast. */
 
 int cbf_set_image (cbf_handle    handle,
                    unsigned int  reserved,
@@ -1492,8 +1524,8 @@ int cbf_set_image (cbf_handle    handle,
                    void         *array,
                    size_t        elsize,
                    int           elsign,
-                   size_t        ndim1,
-                   size_t        ndim2)
+                   size_t        ndimslow,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
@@ -1502,13 +1534,13 @@ int cbf_set_image (cbf_handle    handle,
   cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
   
   cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, &binary_id, compression,
-                   array, CBF_INTEGER, elsize, elsign, 1, ndim1, ndim2));
+                   array, CBF_INTEGER, elsize, elsign, 1, ndimslow, ndimfast));
 
   return 0;
 }
 
 
-  /* Save a real image.  ndim1 is the slow dimension, ndim2 is fast. */
+  /* Save a real image.  ndimslow is the slow dimension, ndimfast is fast. */
 
 int cbf_set_real_image (cbf_handle    handle,
                    unsigned int  reserved,
@@ -1516,8 +1548,8 @@ int cbf_set_real_image (cbf_handle    handle,
                    unsigned int  compression,
                    void         *array,
                    size_t        elsize,
-                   size_t        ndim1,
-                   size_t        ndim2)
+                   size_t        ndimslow,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
@@ -1526,15 +1558,15 @@ int cbf_set_real_image (cbf_handle    handle,
   cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
 
   cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, &binary_id, compression,
-                   array, CBF_FLOAT, elsize, 1, 1, ndim1, ndim2));
+                   array, CBF_FLOAT, elsize, 1, 1, ndimslow, ndimfast));
 
   return 0;
 }
 
 
-  /* Save a 3D image.  ndim1 is the slowest dimension, 
-                       ndim2 is the next faster dimension,
-                       ndim3 is the fastest dimension. */
+  /* Save a 3D image.  ndimslow is the slowest dimension, 
+                       ndimmid is the next faster dimension,
+                       ndimfast is the fastest dimension. */
 
 
 int cbf_set_3d_image (cbf_handle    handle,
@@ -1544,9 +1576,9 @@ int cbf_set_3d_image (cbf_handle    handle,
                    void         *array,
                    size_t        elsize,
                    int           elsign,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
@@ -1555,16 +1587,16 @@ int cbf_set_3d_image (cbf_handle    handle,
   cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
 
   cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, &binary_id, compression,
-                   array, CBF_INTEGER, elsize, elsign, ndim1, ndim2, ndim3));
+                   array, CBF_INTEGER, elsize, elsign, ndimslow, ndimmid, ndimfast));
 
   return 0;
 }
 
 
   /* Save a real 3D image.  
-                       ndim1 is the slowest dimension, 
-                       ndim2 is the next faster dimension,
-                       ndim3 is the fastest dimension */
+                       ndimslow is the slowest dimension, 
+                       ndimmid is the next faster dimension,
+                       ndimfast is the fastest dimension */
 
 int cbf_set_real_3d_image (cbf_handle    handle,
                    unsigned int  reserved,
@@ -1572,9 +1604,9 @@ int cbf_set_real_3d_image (cbf_handle    handle,
                    unsigned int  compression,
                    void         *array,
                    size_t        elsize,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
@@ -1583,16 +1615,16 @@ int cbf_set_real_3d_image (cbf_handle    handle,
   cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
   
   cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, &binary_id,compression,
-                   array, CBF_FLOAT, elsize, 1, ndim1, ndim2, ndim3));
+                   array, CBF_FLOAT, elsize, 1, ndimslow, ndimmid, ndimfast));
 
   return 0;
 }
 
 
   /* Get the array_id for a map segment or map segment mask.
-                       ndim1 is the slowest dimension, 
-                       ndim2 is the next faster dimension,
-                       ndim3 is the fastest dimension. */
+                       ndimslow is the slowest dimension, 
+                       ndimmid is the next faster dimension,
+                       ndimfast is the fastest dimension. */
 
 int cbf_get_map_array_id (cbf_handle    handle,
                    unsigned int  reserved,
@@ -1600,9 +1632,9 @@ int cbf_get_map_array_id (cbf_handle    handle,
                    const char  **array_id,
                    int           ismask,
                    int           require,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   
   if (require) {
@@ -1712,7 +1744,7 @@ int cbf_get_map_array_id (cbf_handle    handle,
       cbf_failnez (cbf_set_integervalue(handle, 1))
       cbf_failnez (cbf_set_typeofvalue(handle, "word"))
       cbf_failnez (cbf_find_column(handle, "dimension"))
-      cbf_failnez (cbf_set_integervalue(handle, ndim3))
+      cbf_failnez (cbf_set_integervalue(handle, ndimfast))
       cbf_failnez (cbf_find_column(handle, "precedence"))
       cbf_failnez (cbf_set_integervalue(handle, 1))
       cbf_failnez (cbf_find_column(handle, "direction"))
@@ -1727,7 +1759,7 @@ int cbf_get_map_array_id (cbf_handle    handle,
       cbf_failnez (cbf_find_column(handle, "index"))
       cbf_failnez (cbf_set_integervalue(handle, 2))
       cbf_failnez (cbf_find_column(handle, "dimension"))
-      cbf_failnez (cbf_set_integervalue(handle, ndim2))
+      cbf_failnez (cbf_set_integervalue(handle, ndimmid))
       cbf_failnez (cbf_find_column(handle, "precedence"))
       cbf_failnez (cbf_set_integervalue(handle, 2))
       cbf_failnez (cbf_find_column(handle, "direction"))
@@ -1742,7 +1774,7 @@ int cbf_get_map_array_id (cbf_handle    handle,
       cbf_failnez (cbf_find_column(handle, "index"))
       cbf_failnez (cbf_set_integervalue(handle, 3))
       cbf_failnez (cbf_find_column(handle, "dimension"))
-      cbf_failnez (cbf_set_integervalue(handle, ndim1))
+      cbf_failnez (cbf_set_integervalue(handle, ndimslow))
       cbf_failnez (cbf_find_column(handle, "precedence"))
       cbf_failnez (cbf_set_integervalue(handle, 3))
       cbf_failnez (cbf_find_column(handle, "direction"))
@@ -1760,9 +1792,9 @@ int cbf_get_map_array_id (cbf_handle    handle,
       cbf_failnez (cbf_set_value(handle, "CELL_A_AXIS"))
       cbf_failnez (cbf_set_typeofvalue(handle, "word"))
       cbf_failnez (cbf_find_column(handle, "fract_displacement"))
-      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndim3*2)))
+      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndimfast*2)))
       cbf_failnez (cbf_find_column(handle, "fract_displacement_increment"))
-      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndim3)))
+      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndimfast)))
       cbf_failnez (cbf_find_column(handle, "axis_id"))
     }
     if (cbf_find_row(handle,"CELL_B_AXIS")) {
@@ -1770,9 +1802,9 @@ int cbf_get_map_array_id (cbf_handle    handle,
       cbf_failnez (cbf_set_value(handle, "CELL_A_AXIS"))
       cbf_failnez (cbf_set_typeofvalue(handle, "word"))
       cbf_failnez (cbf_find_column(handle, "fract_displacement"))
-      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndim2*2)))
+      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndimmid*2)))
       cbf_failnez (cbf_find_column(handle, "fract_displacement_increment"))
-      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndim2)))
+      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndimmid)))
       cbf_failnez (cbf_find_column(handle, "axis_id"))
     }
     if (cbf_find_row(handle,"CELL_C_AXIS")) {
@@ -1780,9 +1812,9 @@ int cbf_get_map_array_id (cbf_handle    handle,
       cbf_failnez (cbf_set_value(handle, "CELL_A_AXIS"))
       cbf_failnez (cbf_set_typeofvalue(handle, "word"))
       cbf_failnez (cbf_find_column(handle, "fract_displacement"))
-      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndim1*2)))
+      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndimslow*2)))
       cbf_failnez (cbf_find_column(handle, "fract_displacement_increment"))
-      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndim1)))
+      cbf_failnez (cbf_set_doublevalue(handle, "%-.15g", (double)1./(double)(ndimslow)))
       cbf_failnez (cbf_find_column(handle, "axis_id"))
     }
   } else {
@@ -1791,33 +1823,33 @@ int cbf_get_map_array_id (cbf_handle    handle,
   return 0;	
 }
 
-  /* Get the map segment size.   ndim1 is the slowest dimension, 
-                                 ndim2 is the next faster dimension,
-                                 ndim3 is the fastest dimension */
+  /* Get the map segment size.   ndimslow is the slowest dimension, 
+                                 ndimmid is the next faster dimension,
+                                 ndimfast is the fastest dimension */
 
 int cbf_get_map_segment_size (cbf_handle    handle,
                         unsigned int  reserved,
                         const char   *segment_id,
                         int          *binary_id,
-                        size_t       *ndim1,
-                        size_t       *ndim2,
-                        size_t       *ndim3)
+                        size_t       *ndimslow,
+                        size_t       *ndimmid,
+                        size_t       *ndimfast)
 {
   const char *array_id;
   
   
   cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
-                                             0, 0, *ndim1, *ndim2,  *ndim3) )
+                                             0, 0, *ndimslow, *ndimmid,  *ndimfast) )
 
-  cbf_failnez (cbf_get_3d_array_size (handle, reserved, array_id, ndim1, ndim2, ndim3));
+  cbf_failnez (cbf_get_3d_array_size (handle, reserved, array_id, ndimslow, ndimmid, ndimfast));
   
   return 0;
 }
 
 
-  /* Read a map segment.  ndim1 is the slowest dimension, 
-                          ndim2 is the next faster dimension,
-                          ndim3 is the fastest dimension */
+  /* Read a map segment.  ndimslow is the slowest dimension, 
+                          ndimmid is the next faster dimension,
+                          ndimfast is the fastest dimension */
 int cbf_get_map_segment (cbf_handle    handle,
                    unsigned int  reserved,
                    const char   *segment_id,
@@ -1825,26 +1857,26 @@ int cbf_get_map_segment (cbf_handle    handle,
                    void         *array,
                    size_t        elsize,
                    int           elsign,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
   
   cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
-                                             0, 0, ndim1, ndim2, ndim3) )
+                                             0, 0, ndimslow, ndimmid, ndimfast) )
 
   cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, binary_id, array,
-                   CBF_INTEGER, elsize, elsign, ndim1, ndim2, ndim3));
+                   CBF_INTEGER, elsize, elsign, ndimslow, ndimmid, ndimfast));
 
  
   return 0;
 }
 
-  /* Read a map segment mask.  ndim1 is the slowest dimension, 
-                               ndim2 is the next faster dimension,
-                               ndim3 is the fastest dimension */
+  /* Read a map segment mask.  ndimslow is the slowest dimension, 
+                               ndimmid is the next faster dimension,
+                               ndimfast is the fastest dimension */
 int cbf_get_map_segment_mask (cbf_handle    handle,
                    unsigned int  reserved,
                    const char   *segment_id,
@@ -1852,27 +1884,27 @@ int cbf_get_map_segment_mask (cbf_handle    handle,
                    void         *array,
                    size_t        elsize,
                    int           elsign,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
   
   cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
-                                             1, 0, ndim1, ndim2, ndim3) )
+                                             1, 0, ndimslow, ndimmid, ndimfast) )
 
   cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, binary_id, array,
-                   CBF_INTEGER, elsize, elsign, ndim1, ndim2, ndim3));
+                   CBF_INTEGER, elsize, elsign, ndimslow, ndimmid, ndimfast));
 
  
   return 0;
 }
 
 
-  /* Read a real map segment.  ndim1 is the slowest dimension, 
-                               ndim2 is the next faster dimension,
-                               ndim3 is the fastest dimension */
+  /* Read a real map segment.  ndimslow is the slowest dimension, 
+                               ndimmid is the next faster dimension,
+                               ndimfast is the fastest dimension */
 
 int cbf_get_real_map_segment (cbf_handle    handle,
                    unsigned int  reserved,
@@ -1880,51 +1912,51 @@ int cbf_get_real_map_segment (cbf_handle    handle,
                    int          *binary_id,
                    void         *array,
                    size_t        elsize,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
   cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
-                                             0, 0, ndim1, ndim2, ndim3) )
+                                             0, 0, ndimslow, ndimmid, ndimfast) )
 
   cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, binary_id, array,
-                   CBF_FLOAT, elsize, 1, ndim1, ndim2, ndim3));
+                   CBF_FLOAT, elsize, 1, ndimslow, ndimmid, ndimfast));
 
   return 0;
 }
 
 
-  /* Read a real map segment mask.  ndim1 is the slowest dimension, 
-                               ndim2 is the next faster dimension,
-                               ndim3 is the fastest dimension */
+  /* Read a real map segment mask.  ndimslow is the slowest dimension, 
+                               ndimmid is the next faster dimension,
+                               ndimfast is the fastest dimension */
 int cbf_get_real_map_segment_mask (cbf_handle    handle,
                    unsigned int  reserved,
                    const char   *segment_id,
                    int          *binary_id,
                    void         *array,
                    size_t        elsize,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
   cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
-                                             1, 0, ndim1, ndim2, ndim3) )
+                                             1, 0, ndimslow, ndimmid, ndimfast) )
 
   cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, binary_id, array,
-                   CBF_FLOAT, elsize, 1, ndim1, ndim2, ndim3));
+                   CBF_FLOAT, elsize, 1, ndimslow, ndimmid, ndimfast));
 
  
   return 0;
 }
 
 
-  /* Save a map segment.  ndim1 is the slowest dimension, 
-                          ndim2 is the next faster dimension,
-                          ndim3 is the fastest dimension */
+  /* Save a map segment.  ndimslow is the slowest dimension, 
+                          ndimmid is the next faster dimension,
+                          ndimfast is the fastest dimension */
 
 
 int cbf_set_map_segment (cbf_handle    handle,
@@ -1935,25 +1967,25 @@ int cbf_set_map_segment (cbf_handle    handle,
                    void         *array,
                    size_t        elsize,
                    int           elsign,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
   cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
-                                             0, 1, ndim1, ndim2,  ndim3) )
+                                             0, 1, ndimslow, ndimmid,  ndimfast) )
 
   cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, binary_id, compression,
-                   array, CBF_INTEGER, elsize, elsign, ndim1, ndim2, ndim3));
+                   array, CBF_INTEGER, elsize, elsign, ndimslow, ndimmid, ndimfast));
 
   return 0;
 }
 
 
-  /* Save a map segment mask.  ndim1 is the slowest dimension, 
-                               ndim2 is the next faster dimension,
-                               ndim3 is the fastest dimension */
+  /* Save a map segment mask.  ndimslow is the slowest dimension, 
+                               ndimmid is the next faster dimension,
+                               ndimfast is the fastest dimension */
 
 int cbf_set_map_segment_mask (cbf_handle    handle,
                    unsigned int  reserved,
@@ -1963,25 +1995,25 @@ int cbf_set_map_segment_mask (cbf_handle    handle,
                    void         *array,
                    size_t        elsize,
                    int           elsign,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
   cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
-                                             1, 1, ndim1, ndim2,  ndim3) )
+                                             1, 1, ndimslow, ndimmid,  ndimfast) )
 
   cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, binary_id, compression,
-                   array, CBF_INTEGER, elsize, elsign, ndim1, ndim2, ndim3));
+                   array, CBF_INTEGER, elsize, elsign, ndimslow, ndimmid, ndimfast));
 
   return 0;
 }
 
 
-  /* Save a real map segment.  ndim1 is the slowest dimension, 
-                               ndim2 is the next faster dimension,
-                               ndim3 is the fastest dimension */
+  /* Save a real map segment.  ndimslow is the slowest dimension, 
+                               ndimmid is the next faster dimension,
+                               ndimfast is the fastest dimension */
 
 int cbf_set_real_map_segment (cbf_handle    handle,
                    unsigned int  reserved,
@@ -1990,25 +2022,25 @@ int cbf_set_real_map_segment (cbf_handle    handle,
                    unsigned int  compression,
                    void         *array,
                    size_t        elsize,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   const char *array_id;
 
   cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
-                                             0, 1, ndim1, ndim2,  ndim3) )
+                                             0, 1, ndimslow, ndimmid,  ndimfast) )
 
   cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, binary_id, compression,
-                   array, CBF_FLOAT, elsize, 1, ndim1, ndim2, ndim3));
+                   array, CBF_FLOAT, elsize, 1, ndimslow, ndimmid, ndimfast));
 
   return 0;
 }
 
 
-  /* Save a real map segment mask.  ndim1 is the slowest dimension, 
-                                    ndim2 is the next faster dimension,
-                                    ndim3 is the fastest dimension */
+  /* Save a real map segment mask.  ndimslow is the slowest dimension, 
+                                    ndimmid is the next faster dimension,
+                                    ndimfast is the fastest dimension */
 
 
 int cbf_set_real_map_segment_mask (cbf_handle    handle,
@@ -2018,33 +2050,33 @@ int cbf_set_real_map_segment_mask (cbf_handle    handle,
                    unsigned int  compression,
                    void         *array,
                    size_t        elsize,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   const char *array_id;
   
   cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
-                                             1, 1, ndim1, ndim2,  ndim3) )
+                                             1, 1, ndimslow, ndimmid,  ndimfast) )
 
   cbf_failnez (cbf_set_3d_array(handle, reserved, array_id, binary_id, compression,
-                   array, CBF_FLOAT, elsize, 1, ndim1, ndim2, ndim3));
+                   array, CBF_FLOAT, elsize, 1, ndimslow, ndimmid, ndimfast));
 
   return 0;
 }
 
 
 
-  /* Get the 3D array size. ndim1 is the slowest dimension, 
-                            ndim2 is the next faster dimension,
-                            ndim3 is the fastest dimension */
+  /* Get the 3D array size. ndimslow is the slowest dimension, 
+                            ndimmid is the next faster dimension,
+                            ndimfast is the fastest dimension */
 
 int cbf_get_3d_array_size (cbf_handle    handle,
                         unsigned int  reserved,
                         const char   *array_id,
-                        size_t       *ndim1,
-                        size_t       *ndim2,
-                        size_t       *ndim3)
+                        size_t       *ndimslow,
+                        size_t       *ndimmid,
+                        size_t       *ndimfast)
 {
 
   int done [4], precedence, dimension [4], kdim[4];
@@ -2106,30 +2138,30 @@ int cbf_get_3d_array_size (cbf_handle    handle,
     kdim [3] = dimension [1];
   }
   
-  if (!done[3])
+  if (done[3])
   {
     kdim [1] = dimension[3];
   }
 
-  if (ndim1)
+  if (ndimslow)
 
-      *ndim1 = kdim [1];
+      *ndimslow = kdim [1];
 
-  if (ndim2)
+  if (ndimmid)
 
-      *ndim2 = kdim [2];
+      *ndimmid = kdim [2];
 
-  if (ndim3)
+  if (ndimfast)
 
-      *ndim3 = kdim [3];
+      *ndimfast = kdim [3];
 
   return 0;
 }
 
   /* Read a 3D array.  
-                       ndim1 is the slowest dimension, 
-                       ndim2 is the next faster dimension,
-                       ndim3 is the fastest dimension */
+                       ndimslow is the slowest dimension, 
+                       ndimmid is the next faster dimension,
+                       ndimfast is the fastest dimension */
 
 int cbf_get_3d_array (cbf_handle    handle,
                    unsigned int  reserved,
@@ -2139,9 +2171,9 @@ int cbf_get_3d_array (cbf_handle    handle,
                    int           eltype,
                    size_t        elsize,
                    int           elsign,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
   const char *direction_string;
 
@@ -2152,7 +2184,7 @@ int cbf_get_3d_array (cbf_handle    handle,
       start2, end2, inc2,
       start3, end3, inc3;
 
-  size_t nelem_read, dim1, dim2, dim3;
+  size_t nelem_read, dimslow, dimmid, dimfast;
 
   char tmp [32], *pixel, *pixel2;
 
@@ -2176,12 +2208,12 @@ int cbf_get_3d_array (cbf_handle    handle,
     /* Get the index dimensions */
 
   cbf_failnez (cbf_get_3d_array_size (handle, reserved, array_id,
-                                   &dim1, &dim2, &dim3))
+                                   &dimslow, &dimmid, &dimfast))
 
 
     /* Check that the fast dimensions correspond */
 
-  if (dim2 != ndim2 || dim3 != ndim3)
+  if (dimmid != ndimmid || dimfast != ndimfast)
 
     return CBF_ARGUMENT;
 
@@ -2290,16 +2322,16 @@ int cbf_get_3d_array (cbf_handle    handle,
 
     /* Read the binary data */
 
-  if ( ndim1 <= 0 || ndim2  <= 0 ||  ndim3 <= 0)
+  if ( ndimslow <= 0 || ndimmid  <= 0 ||  ndimfast <= 0)
 
     return CBF_ARGUMENT;
 
   if (eltype == CBF_INTEGER) {
     cbf_failnez (cbf_get_integerarray (handle, &local_binary_id,
-               array, elsize, elsign, ndim1 * ndim2 * ndim3, &nelem_read))
+               array, elsize, elsign, ndimslow * ndimmid * ndimfast, &nelem_read))
   } else {
   	cbf_failnez (cbf_get_realarray (handle, &local_binary_id,
-               array, elsize, ndim1 * ndim2 * ndim3, &nelem_read))
+               array, elsize, ndimslow * ndimmid * ndimfast, &nelem_read))
   }
   
   if ( binary_id ) *binary_id = local_binary_id;
@@ -2314,12 +2346,12 @@ int cbf_get_3d_array (cbf_handle    handle,
     if (dir1 >= 0)
     {
       start1 = 0;
-      end1 = ndim1;
+      end1 = ndimslow;
       inc1 = 1;
     }
     else
     {
-      start1 = ndim1 - 1;
+      start1 = ndimslow - 1;
       end1 = -1;
       inc1 = -1;
     }
@@ -2327,12 +2359,12 @@ int cbf_get_3d_array (cbf_handle    handle,
     if (dir2 >= 0)
     {
       start2 = 0;
-      end2 = ndim2;
+      end2 = ndimmid;
       inc2 = 1;
     }
     else
     {
-      start2 = ndim2 - 1;
+      start2 = ndimmid - 1;
       end2 = -1;
       inc2 = -1;
     }
@@ -2340,12 +2372,12 @@ int cbf_get_3d_array (cbf_handle    handle,
     if (dir3 >= 0)
     {
       start3 = 0;
-      end3 = ndim3;
+      end3 = ndimfast;
       inc3 = 1;
     }
     else
     {
-      start3 = ndim3 - 1;
+      start3 = ndimfast - 1;
       end3 = -1;
       inc3 = -1;
     }
@@ -2359,7 +2391,7 @@ int cbf_get_3d_array (cbf_handle    handle,
 
         for (index3 = start3; index3 != end3; index3 += inc3)
         {
-          pixel2 = ((char *) array) + (index1*ndim2*ndim3 + index2 * ndim3 + index3) * elsize;
+          pixel2 = ((char *) array) + (index1*ndimmid*ndimfast + index2 * ndimfast + index3) * elsize;
 
           if (pixel < pixel2) {
 
@@ -2384,7 +2416,7 @@ int cbf_get_3d_array (cbf_handle    handle,
 
 #endif
 
-  if (ndim1 * ndim2 * ndim3 != nelem_read)
+  if (ndimslow * ndimmid * ndimfast != nelem_read)
 
     return CBF_ENDOFDATA;
 
@@ -2394,9 +2426,9 @@ int cbf_get_3d_array (cbf_handle    handle,
 
 
   /* Save a 3D array.  
-                       ndim1 is the slowest dimension, 
-                       ndim2 is the next faster dimension,
-                       ndim3 is the fastest dimension */
+                       ndimslow is the slowest dimension, 
+                       ndimmid is the next faster dimension,
+                       ndimfast is the fastest dimension */
 
 int cbf_set_3d_array (cbf_handle    handle,
                    unsigned int  reserved,
@@ -2407,9 +2439,9 @@ int cbf_set_3d_array (cbf_handle    handle,
                    int           eltype,
                    size_t        elsize,
                    int           elsign,
-                   size_t        ndim1,
-                   size_t        ndim2,
-                   size_t        ndim3)
+                   size_t        ndimslow,
+                   size_t        ndimmid,
+                   size_t        ndimfast)
 {
 
   char enctype[30];
@@ -2434,29 +2466,29 @@ int cbf_set_3d_array (cbf_handle    handle,
 
     /* Update the array_structure_list category */
 
-  if (ndim1 == 0)
+  if (ndimslow == 0)
 
     dimension [3] = 1;
 
   else
 
-    dimension [3] = ndim1;
+    dimension [3] = ndimslow;
 
-  if (ndim2 == 0)
+  if (ndimmid == 0)
 
     dimension [2] = 1;
 
   else
 
-    dimension [2] = ndim2;
+    dimension [2] = ndimmid;
     
-  if (ndim3 == 0)
+  if (ndimfast == 0)
 
     dimension [1] = 1;
 
   else
 
-    dimension [1] = ndim3;
+    dimension [1] = ndimfast;
     
   
   done [1] = dimension [1] == 1;
@@ -3837,7 +3869,7 @@ int cbf_construct_detector (cbf_handle    handle,
 
   const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
 
-  const char *surface_axis [2];
+  const char *surface_axis [2];  /* fast, slow */
 
   double displacement [2], increment [2];
 
@@ -5423,10 +5455,11 @@ int cbf_get_pixel_area (cbf_detector detector, double index1,
   /* Calcluate the size of a pixel from the detector element axis displacements */
 
 int cbf_get_inferred_pixel_size (cbf_detector detector,
-                                               unsigned int axis_number,
+                                               int axis_number,
                                                double *psize)
 {
 
+  if (axis_number < 0) axis_number = detector->axes+1+axis_number;
 
   if (!detector || axis_number < 1 || detector-> axes < axis_number )
 

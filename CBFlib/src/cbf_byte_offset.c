@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_byte_offset -- byte-offset compression (not implemented)       *
  *                                                                    *
- * Version 0.7.7 19 February 2007                                     *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -276,9 +276,9 @@ int cbf_compress_byte_offset (void         *source,
                               int          *storedbits,
                               int           realarray,
                               const char   *byteorder,
-                              size_t        dim1,
-                              size_t        dim2,
-                              size_t        dim3,
+                              size_t        dimfast,
+                              size_t        dimmid,
+                              size_t        dimslow,
                               size_t        padding)
 {
   unsigned int count, borrow, element[4], prevelement[4], 
@@ -864,9 +864,9 @@ int cbf_decompress_byte_offset (void         *destination,
                                 int           realarray,
                                 const char   *byteorder,
                                 size_t        dimover,
-                                size_t        dim1,
-                                size_t        dim2,
-                                size_t        dim3,
+                                size_t        dimfast,
+                                size_t        dimmid,
+                                size_t        dimslow,
                                 size_t        padding)
 {
   unsigned int element[4], prevelement[4], sign, unsign, limit;

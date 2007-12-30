@@ -1,7 +1,7 @@
 /**********************************************************************
  * convert_image -- convert an image file to a cbf file               *
  *                                                                    *
- * Version 0.7.7 19 February 2007                                     *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -1466,23 +1466,39 @@ int main (int argc, char *argv [])
   /* Calcluate the area of a pixel */
 
     cbf_get_pixel_area (detector, 1, 3, &d [0], &d [1]);
-    fprintf(stdout, " Pixel area, projected area: %-15g, %-15g\n",d[0], d[1]);
+    fprintf(stdout, " Pixel area, projected area at pixel(3,1): %-15g, %-15g\n",d[0], d[1]);
+
+    cbf_get_pixel_area_fs(detector, 12, 25, &d [0], &d [1]);
+    fprintf(stdout, " Pixel area, projected area at  pixel(12,25): %-15g, %-15g\n",d[0], d[1]);
+
+
   /* Calculate the dimensions of a pixel */
 
-   /* cbf_failnez (cbf_get_inferred_pixel_size (detector, 1, &d [0]))
+    cbf_failnez (cbf_get_inferred_pixel_size (detector, 1, &d [0]))
     cbf_failnez (cbf_get_inferred_pixel_size (detector, 2, &d [1]))
 
     fprintf(stdout, " Template detector size: %-15g x %-15g \n", d[0], d[1]);
+    
+    cbf_failnez (cbf_get_inferred_pixel_size_sf(detector, 1, &d [0]))
+    cbf_failnez (cbf_get_inferred_pixel_size_sf(detector, 2, &d [1]))
+
+    fprintf(stdout, " Inferred detector size (sf) : %-15g x %-15g \n", d[0], d[1]);
 
     cbf_failnez (cbf_set_pixel_size (cbf, 0, 1, d [0]))
     cbf_failnez (cbf_set_pixel_size (cbf, 0, 2, d [1]))
 
-    cbf_failnez (cbf_get_pixel_size (cbf, 0, 1, &d [2]))
-    cbf_failnez (cbf_get_pixel_size (cbf, 0, 2, &d [3]))
+    cbf_failnez (cbf_get_pixel_size_fs(cbf, 0, 1, &d [2]))
+    cbf_failnez (cbf_get_pixel_size_fs(cbf, 0, 2, &d [3]))
 
-    fprintf(stdout, " Array element size:     %-15g x %-15g \n", d[2], d[3]);
-    */
+    fprintf(stdout, " Array element size (fs):  %-15g x %-15g \n", d[2], d[3]);
 
+    cbf_failnez (cbf_set_pixel_size_sf(cbf, 0, 1, d [1]))
+    cbf_failnez (cbf_set_pixel_size_sf(cbf, 0, 2, d [0]))
+
+    cbf_failnez (cbf_get_pixel_size_sf(cbf, 0, 1, &d [2]))
+    cbf_failnez (cbf_get_pixel_size_sf(cbf, 0, 2, &d [3]))
+
+    fprintf(stdout, " Array element size (sf):  %-15g x %-15g \n", d[2], d[3]);
 
   /* Get the bin sizes */
   

@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_read_mime.h                                                    *
  *                                                                    *
- * Version 0.7.7 19 February 2007                                     *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -302,11 +302,14 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
                                           int        *real,
                                           const char **byteorder,
                                           size_t     *dimover,
-                                          size_t     *dim1,
-                                          size_t     *dim2,
-                                          size_t     *dim3,
+                                          size_t     *dimfast,
+                                          size_t     *dimmid,
+                                          size_t     *dimslow,
                                           size_t     *padding);
-
+#define cbf_parse_mimeheader_fs(file, encoding, size, id, digest, compression, bits, sign, real, byteorder, dimover, dimfast, dimmid, dimslow, padding) \
+        cbf_parse_mimeheader((file),(encoding),(size),(id),(digest),(compression),(bits),(sign),(real),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding) )
+#define cbf_parse_mimeheader_sf(file, encoding, size, id, digest, compression, bits, sign, real, byteorder, dimover, dimslow, dimmid, dimfast, padding) \
+        cbf_parse_mimeheader((file),(encoding),(size),(id),(digest),(compression),(bits),(sign),(real),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding) )
 #ifdef __cplusplus
 
 }

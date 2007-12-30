@@ -225,7 +225,7 @@ my_index (str, chr)
   while (*str)
     {
       if (*str == chr)
-	    return str;
+	    return (char *)str;
       str++;
     }
   return 0;
@@ -422,7 +422,7 @@ _getopt_initialize (argc, argv, optstring)
 
   if ( argc < 0 ) {
     fprintf(stderr," invalid argc %d for %s, abort\n", argc, argv[0]);
-    _exit(-1);
+    exit(-1);
   }
 
   /* Determine how to handle the ordering of options and nonoptions.  */
@@ -608,7 +608,13 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	  optind++;
 
 	  if (first_nonopt != last_nonopt && last_nonopt != optind)
+#if defined (__STDC__) && __STDC__
+#ifdef GNUGETOPT
 	    exchange ((char * const *) argv);
+#else
+	    exchange ((char **) argv);
+#endif
+#endif
 	  else if (first_nonopt == last_nonopt)
 	    first_nonopt = optind;
 	  last_nonopt = argc;

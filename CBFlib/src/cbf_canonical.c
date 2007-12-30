@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_canonical -- canonical-code compression                        *
  *                                                                    *
- * Version 0.7.7 19 February 2007                                     *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -270,39 +270,6 @@ extern "C" {
 #define CBF_MAXCODEBITS    64  /* Bits in a code                    */
 
 #define CBF_SHIFT63 (sizeof (int) * CHAR_BIT > 64 ? 63 : 0)
-
-
-  /* Compression tree node */
-
-typedef struct cbf_compress_nodestruct
-{
-  size_t       count;           /* Number in the file                  */
-  unsigned int code;            /* Code                                */
-  unsigned int bitcount;        /* Bits in the minimum-redundancy code */
-  unsigned int bitcode [4];     /* Minimum-redundancy code             */
-
-  struct cbf_compress_nodestruct *next,
-                                 *child [2];
-}
-cbf_compress_node;
-
-
-  /* Compression data */
-
-typedef struct
-{
-  cbf_file    *file;             /* File                           */
-
-  unsigned int bits;             /* Coded bits                     */
-  unsigned int maxbits;          /* Maximum saved bits             */
-  unsigned int endcode;          /* End-of-data code               */
-
-  size_t       nodes;            /* Number of nodes                */
-  size_t       nextnode;         /* Number of nodes used           */
-
-  cbf_compress_node *node;       /* Nodes                       */
-}
-cbf_compress_data;
 
 
   /* Create compression data */
@@ -1463,9 +1430,9 @@ int cbf_compress_canonical (void         *source,
                             int          *storedbits,
                             int           realarray,
                             const char   *byteorder,
-                            size_t        dim1,
-                            size_t        dim2,
-                            size_t        dim3,
+                            size_t        dimfast,
+                            size_t        dimmid,
+                            size_t        dimslow,
                             size_t        padding)
 {
   int code, minelement, maxelement;
@@ -1718,9 +1685,9 @@ int cbf_decompress_canonical (void         *destination,
                               int           realarray,
                               const char   *byteorder,
                               size_t        dimover,
-                              size_t        dim1,
-                              size_t        dim2,
-                              size_t        dim3,
+                              size_t        dimfast,
+                              size_t        dimmid,
+                              size_t        dimslow,
                               size_t        padding)
 {
   unsigned int bits, element, sign, unsign, limit, count64, count;

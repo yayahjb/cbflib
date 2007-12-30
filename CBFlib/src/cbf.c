@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf -- cbflib API functions                                        *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -3520,9 +3520,9 @@ int cbf_get_arrayparameters_wdims (cbf_handle    handle,
                                     int          *maxelem,
                                     int          *realarray,
                                     const char  **byteorder,
-                                    size_t       *dim1,
-                                    size_t       *dim2,
-                                    size_t       *dim3,
+                                    size_t       *dimfast,
+                                    size_t       *dimmid,
+                                    size_t       *dimslow,
                                     size_t       *padding)
 {
     /* Check the arguments */
@@ -3545,7 +3545,7 @@ int cbf_get_arrayparameters_wdims (cbf_handle    handle,
                                 compression, id, NULL, elsize,
                                 elsigned, elunsigned, nelem,
                                 minelem, maxelem, realarray,
-                                byteorder, dim1, dim2, dim3, padding);
+                                byteorder, dimfast, dimmid, dimslow, padding);
 }
 
 
@@ -3601,9 +3601,9 @@ int cbf_get_integerarrayparameters_wdims (cbf_handle    handle,
                                     int          *minelem,
                                     int          *maxelem,
                                     const char  **byteorder,
-                                    size_t       *dim1,
-                                    size_t       *dim2,
-                                    size_t       *dim3,
+                                    size_t       *dimfast,
+                                    size_t       *dimmid,
+                                    size_t       *dimslow,
                                     size_t       *padding)
 {
   int realarray;
@@ -3628,7 +3628,7 @@ int cbf_get_integerarrayparameters_wdims (cbf_handle    handle,
                                 compression, id, NULL, elsize,
                                 elsigned, elunsigned, nelem,
                                 minelem, maxelem, &realarray,
-                                byteorder,dim1,dim2,dim3,padding);
+                                byteorder,dimfast,dimmid,dimslow,padding);
 }
 
 
@@ -3673,9 +3673,9 @@ int cbf_get_realarrayparameters_wdims (cbf_handle    handle,
                                     size_t       *elsize,
                                     size_t       *nelem,
                                     const char  **byteorder,
-                                    size_t       *dim1,
-                                    size_t       *dim2,
-                                    size_t       *dim3,
+                                    size_t       *dimfast,
+                                    size_t       *dimmid,
+                                    size_t       *dimslow,
                                     size_t       *padding)
 {
     /* Check the arguments */
@@ -3698,7 +3698,7 @@ int cbf_get_realarrayparameters_wdims (cbf_handle    handle,
                                 compression, id, NULL, elsize,
                                 NULL, NULL, nelem,
                                 NULL, NULL, NULL,
-                                byteorder,dim1,dim2,dim3,padding);
+                                byteorder,dimfast,dimmid,dimslow,padding);
 }
 
 
@@ -3718,7 +3718,7 @@ int cbf_get_integerarray (cbf_handle  handle,
   
   const char *byteorder;
   
-  size_t dimover, dim1, dim2, dim3, padding;
+  size_t dimover, dimfast, dimmid, dimslow, padding;
 
   if (!handle)
 
@@ -3726,7 +3726,7 @@ int cbf_get_integerarray (cbf_handle  handle,
 
   return cbf_get_binary (handle->node, handle->row, id,
                          value, elsize, elsign, nelem, nelem_read, &realarray,
-                         &byteorder,&dimover, &dim1, &dim2, &dim3, &padding);
+                         &byteorder,&dimover, &dimfast, &dimmid, &dimslow, &padding);
 }
 
 
@@ -3743,7 +3743,7 @@ int cbf_get_realarray (cbf_handle  handle,
   
   const char *byteorder;
   
-  size_t dimover, dim1, dim2, dim3, padding;
+  size_t dimover, dimfast, dimmid, dimslow, padding;
 
   if (!handle)
 
@@ -3751,7 +3751,7 @@ int cbf_get_realarray (cbf_handle  handle,
 
   return cbf_get_binary (handle->node, handle->row, id,
                          value, elsize, 1, nelem, nelem_read, &realarray,
-                         &byteorder, &dimover, &dim1, &dim2, &dim3, &padding);
+                         &byteorder, &dimover, &dimfast, &dimmid, &dimslow, &padding);
 }
 
 
@@ -3784,9 +3784,9 @@ int cbf_set_integerarray_wdims (cbf_handle    handle,
                           int           elsign,
                           size_t        nelem,
                           const char   *byteorder,
-                          size_t        dim1,
-                          size_t        dim2,
-                          size_t        dim3,
+                          size_t        dimfast,
+                          size_t        dimmid,
+                          size_t        dimslow,
                           size_t        padding)
 {
   if (!handle)
@@ -3795,7 +3795,7 @@ int cbf_set_integerarray_wdims (cbf_handle    handle,
 
   return cbf_set_binary (handle->node, handle->row,
                          compression, id, value, elsize, elsign, nelem, 0,
-                         byteorder, nelem, dim1, dim2, dim3, padding);
+                         byteorder, nelem, dimfast, dimmid, dimslow, padding);
 }
 
 
@@ -3827,9 +3827,9 @@ int cbf_set_realarray_wdims (cbf_handle    handle,
                           size_t        elsize,
                           size_t        nelem,
                           const char   *byteorder,
-                          size_t        dim1,
-                          size_t        dim2,
-                          size_t        dim3,
+                          size_t        dimfast,
+                          size_t        dimmid,
+                          size_t        dimslow,
                           size_t        padding)
 {
   if (!handle)
@@ -3838,7 +3838,7 @@ int cbf_set_realarray_wdims (cbf_handle    handle,
 
   return cbf_set_binary (handle->node, handle->row,
                          compression, id, value, elsize, 1, nelem, 1,
-                         byteorder, nelem, dim1, dim2, dim3, padding);
+                         byteorder, nelem, dimfast, dimmid, dimslow, padding);
 }
 
 

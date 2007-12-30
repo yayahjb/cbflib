@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_string -- case-insensitive string comparisons                  *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -256,6 +256,9 @@ extern "C" {
 #include <ctype.h>
 #include <stdlib.h>
 
+#include "cbf.h"
+#include "cbf_string.h"
+
 
   /* Case-insensitive strcmp */
 
@@ -288,6 +291,39 @@ int cbf_cistrncmp (const char *s1, const char *s2, size_t n)
 
   return toupper (*s1) - toupper (*s2);
 }
+
+
+  /* swap bytes in an array (local copy of swab to deal with
+     systems that lack swab) */
+     
+int cbf_swab(const void * src, void * dst, size_t len) 
+{
+
+#ifndef USE_SWAB
+	unsigned char *p1;
+	unsigned char *p2;
+#endif
+	
+	if (len&1) return CBF_ARGUMENT;
+
+#ifndef USE_SWAB
+	p1 = (unsigned char *)src;
+	p2 = (unsigned char *)dst;
+	
+	while (len) {
+	  p2[1] = p1[0];
+	  p2[0] = p1[1];
+	  p1+=2; p2+=2;
+	  len -=2;	
+	}
+#else
+    swab(src,dst,len);
+#endif
+	
+	return 0;
+
+}
+
 
 
 #ifdef __cplusplus

@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_uncompressed -- uncompressed binary sections                   *
  *                                                                    *
- * Version 0.7.7 19 February 2007                                     *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -267,6 +267,7 @@ extern "C" {
 #include "cbf_compress.h"
 #include "cbf_file.h"
 #include "cbf_uncompressed.h"
+#include "cbf_string.h"
 
 #define CBF_SHIFT63 (sizeof (int) * CHAR_BIT > 64 ? 63 : 0)
 
@@ -283,9 +284,9 @@ int cbf_compress_none (void         *source,
                        int          *storedbits,
                        int           realarray,
                        const char   *byteorder,
-                       size_t        dim1,
-                       size_t        dim2,
-                       size_t        dim3,
+                       size_t        dimfast,
+                       size_t        dimmid,
+                       size_t        dimslow,
                        size_t        padding)
 {
   unsigned int count, element[4], unsign, sign, limit, bits;
@@ -431,7 +432,7 @@ int cbf_compress_none (void         *source,
 
   	        if (elsize == 8 && sizeof(int) !=4 ) break;
 
-  	        swab((void *)unsigned_char_data,
+  	        cbf_swab((void *)unsigned_char_data,
   	          (void *)(file->characters+file->characters_used),
   	          nelem*elsize);
   	          
@@ -601,9 +602,9 @@ int cbf_decompress_none (void         *destination,
                          int           realarray,
                          const char   *byteorder,
                          size_t        dimover,
-                         size_t        dim1,
-                         size_t        dim2,
-                         size_t        dim3,
+                         size_t        dimfast,
+                         size_t        dimmid,
+                         size_t        dimslow,
                          size_t        padding)
 {
   unsigned int element[4], sign, unsign, limit, count;

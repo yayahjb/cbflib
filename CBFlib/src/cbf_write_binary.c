@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_write_binary -- write binary sections                          *
  *                                                                    *
- * Version 0.7.7 19 February 2007                                     *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -289,7 +289,7 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
   
   const char *byteorder;
   
-  size_t dimover, dim1, dim2, dim3;
+  size_t dimover, dimfast, dimmid, dimslow;
   
   size_t padding, ip;
 
@@ -324,7 +324,7 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
   cbf_failnez (cbf_get_bintext (column, row, &type, &id, &infile,
                                 &start, &size, &checked_digest,
                                  digest, &bits, &sign, &realarray, 
-                                 &byteorder, &dimover, &dim1, &dim2, &dim3,
+                                 &byteorder, &dimover, &dimfast, &dimmid, &dimslow,
                                  &padding, &compression))
 
   if (padding == 0) {
@@ -365,7 +365,7 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
                                   id, infile, start, size,
                                   checked_digest, digest, bits,
                                   sign,  realarray, 
-                                  byteorder, dimover, dim1, dim2, dim3,
+                                  byteorder, dimover, dimfast, dimmid, dimslow,
                                   padding, compression))
   }
 
@@ -590,32 +590,32 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
     }
 
 
-    if (dim1 > 0) {
+    if (dimfast > 0) {
     
-      sprintf (text, "X-Binary-Size-Fastest-Dimension: %ld\n", (unsigned long)dim1);
+      sprintf (text, "X-Binary-Size-Fastest-Dimension: %ld\n", (unsigned long)dimfast);
     
       cbf_failnez (cbf_write_string (file, text))
     	
     }
 
-    if (dim2 > 0) {
+    if (dimmid > 0) {
     
-      sprintf (text, "X-Binary-Size-Second-Dimension: %ld\n", (unsigned long)dim2);
+      sprintf (text, "X-Binary-Size-Second-Dimension: %ld\n", (unsigned long)dimmid);
     
       cbf_failnez (cbf_write_string (file, text))
     	
     } 
 
     
-    if ((long)dim3 > 0) {
+    if ((long)dimslow > 0) {
     
-      sprintf (text, "X-Binary-Size-Third-Dimension: %ld\n", (unsigned long)dim3);
+      sprintf (text, "X-Binary-Size-Third-Dimension: %ld\n", (unsigned long)dimslow);
     
       cbf_failnez (cbf_write_string (file, text))
     	
-    } else if ((long)dim3 < 0 ) {
+    } else if ((long)dimslow < 0 ) {
 
-      sprintf (text, "X-Binary-Size-Third-Dimension: %ld\n", (unsigned long)(-(long)dim3) );
+      sprintf (text, "X-Binary-Size-Third-Dimension: %ld\n", (unsigned long)(-(long)dimslow) );
     
       cbf_failnez (cbf_write_string (file, text))
     	
@@ -794,7 +794,7 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
     cbf_failnez (cbf_set_bintext (column, row, CBF_TOKEN_BIN,
                                   id, file, start, size, checked_digest,
                                   digest, bits, sign, realarray, 
-                                  byteorder, dimover, dim1, dim2, dim3, padding,
+                                  byteorder, dimover, dimfast, dimmid, dimslow, padding,
                                   compression))
 
 
