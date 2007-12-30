@@ -2,7 +2,7 @@
 # German translation
 # Copyright (C) 1999
 # Elrond <Elrond@Wunder-Nett.org>, 1999.
-# $Revision: 1.1.1.1 $
+# $Revision: 1.2 $
 #
 # Permission is granted to freely copy and distribute
 # this file and modified versions, provided, that this

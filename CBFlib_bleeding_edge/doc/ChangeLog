@@ -44,10 +44,10 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
                                 Version History
 
-   Version   Date            By        Description                            
      0.1       Apr. 1998       PJE       This was the first CBFlib release.   
                                        It supported binary CBF files using    
                                        binary strings.                        
+                                       strings.                                
      0.2       Aug. 1998       HJB       This release added ascii imgCIF      
                                        support using MIME-encoded binary      
                                        sections, added the option of MIME     
