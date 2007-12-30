@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_simple -- cbflib simplified API functions                      *
  *                                                                    *
- * Version 0.7.7 19 February 2007                                     *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -409,7 +409,7 @@ int cbf_get_array_id (cbf_handle handle, unsigned int element_number,
 int cbf_get_pixel_size(cbf_handle handle, unsigned int element_number,
                                           int axis_number,
                                           double * psize);
-
+  
 
 #define cbf_get_pixel_size_fs(handle, element_number, axis_number, psize)  \
         cbf_get_pixel_size((handle),(element_number),-(axis_number),(psize))

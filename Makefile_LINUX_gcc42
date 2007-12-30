@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.7.8 24 Jul 2007                                          #
+# Version 0.7.8 25 Dec 2007                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -314,7 +314,7 @@ CEXT = .bz2
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -ansi -pedantic
+CFLAGS  = -g -O2  -Wall -ansi -pedantic -D_POSIX_SOURCE
 F90C = gfortran
 F90FLAGS = -g -fno-range-check
 F90LDFLAGS = 

@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_simple -- cbflib simplified API functions                      *
  *                                                                    *
- * Version 0.7.8 4 July 2007                                          *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -723,12 +723,12 @@ int cbf_get_pixel_size(cbf_handle handle, unsigned int element_number,
       cbf_failnez (cbf_get_integervalue (handle, &precedence))
 
       if (precedence == max_precedence+1+axis_number) {
-    cbf_failnez (cbf_find_column      (handle, "index"))
-    cbf_failnez (cbf_get_integervalue (handle, &axis_index))
+        cbf_failnez (cbf_find_column      (handle, "index"))
+        cbf_failnez (cbf_get_integervalue (handle, &axis_index))
         if (axis_index < 1) return CBF_FORMAT;
         break;
       }
-    cbf_failnez (cbf_find_column (handle, "array_id"))
+      cbf_failnez (cbf_find_column (handle, "array_id"))
     }
   }
 

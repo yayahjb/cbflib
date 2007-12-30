@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_byte_offset -- byte-offset compression (not implemented)       *
  *                                                                    *
- * Version 0.7.7 19 February 2007                                     *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
