@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_binary.h                                                       *
  *                                                                    *
- * Version 0.7.7 19 February 2007                                     *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -326,6 +326,10 @@ int cbf_set_binary (cbf_node *column, unsigned int row,
                     size_t nelem, int realarray, const char *byteorder,
                     size_t dimover,
                     size_t dim1, size_t dim2, size_t dim3, size_t padding);
+
+  /* Check the message digest */
+
+int cbf_check_digest (cbf_node *column, unsigned int row);
 
 
   /* Get the parameters of a binary value */

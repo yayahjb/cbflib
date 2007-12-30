@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf.h -- cbflib basic API functions                                *
  *                                                                    *
- * Version 0.7.8 28 June 2007                                         *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -908,10 +908,15 @@ int cbf_get_arrayparameters_wdims (cbf_handle    handle,
                                     int          *maxelem,
                                     int          *realarray,
                                     const char  **byteorder,
-                                    size_t       *dim1,
-                                    size_t       *dim2,
-                                    size_t       *dim3,
+                                    size_t       *dimfast,
+                                    size_t       *dimmid,
+                                    size_t       *dimslow,
                                     size_t       *padding);
+#define cbf_get_arrayparameters_wdims_fs(handle, compression, id, elsize, elsigned, elunsigned, nelem, minelem, maxelem, realarray, byteorder, dimfast, dimmid, dimslow, padding) \
+        cbf_get_arrayparameters_wdims((handle),(compression),(id),(elsize),(elsigned),(elunsigned),(nelem),(minelem),(maxelem),(realarray),(byteorder),(dimfast),(dimmid),(dimslow), (padding))
+#define cbf_get_arrayparameters_wdims_sf(handle, compression, id, elsize, elsigned, elunsigned, nelem, minelem, maxelem, realarray, byteorder, dimslow, dimmid, dimfast, padding) \
+        cbf_get_arrayparameters_wdims((handle),(compression),(id),(elsize),(elsigned),(elunsigned),(nelem),(minelem),(maxelem),(realarray),(byteorder),(dimfast),(dimmid),(dimslow), (padding))
+
 
 
   /* Get the parameters of the current (row, column) integer array entry */
@@ -938,10 +943,14 @@ int cbf_get_integerarrayparameters_wdims (cbf_handle    handle,
                                     int          *minelem,
                                     int          *maxelem,
                                     const char  **byteorder,
-                                    size_t       *dim1,
-                                    size_t       *dim2,
-                                    size_t       *dim3,
+                                    size_t       *dimfast,
+                                    size_t       *dimmid,
+                                    size_t       *dimslow,
                                     size_t       *padding);
+#define cbf_get_integerarrayparameters_wdims_fs(handle, compression, id, elsize, elsigned, elunsigned, nelem, minelem, maxelem, byteorder, dimfast, dimmid, dimslow, padding) \
+        cbf_get_integerarrayparameters_wdims((handle),(compression),(id),(elsize),(elsigned),(elunsigned),(nelem),(minelem),(maxelem),(byteorder),(dimfast),(dimmid),(dimslow), (padding))
+#define cbf_get_integerarrayparameters_wdims_sf(handle, compression, id, elsize, elsigned, elunsigned, nelem, minelem, maxelem, byteorder, dimslow, dimmid, dimfast, padding) \
+        cbf_get_integerarrayparameters_wdims((handle),(compression),(id),(elsize),(elsigned),(elunsigned),(nelem),(minelem),(maxelem),(byteorder),(dimfast),(dimmid),(dimslow), (padding))
 
 
   /* Get the integer value of the current (row, column) array entry */
@@ -979,11 +988,14 @@ int cbf_get_realarrayparameters_wdims (cbf_handle    handle,
                                     size_t       *elsize,
                                     size_t       *nelem,
                                     const char  **byteorder,
-                                    size_t       *dim1,
-                                    size_t       *dim2,
-                                    size_t       *dim3,
+                                    size_t       *dimfast,
+                                    size_t       *dimmid,
+                                    size_t       *dimslow,
                                     size_t       *padding);
-
+#define cbf_get_realarrayparameters_wdims_fs(handle,compression,id,elsize,nelem,byteorder,dimfast,dimmid,dimslow,padding) \
+        cbf_get_realarrayparameters_wdims((handle),(compression),(id),(elsize),(nelem),(byteorder),(dimfast),(dimmid),(dimslow),(padding))
+#define cbf_get_realarrayparameters_wdims_sf(handle,compression,id,elsize,nelem,byteorder,dimslow,dimmid,dimfast,padding) \
+        cbf_get_realarrayparameters_wdims((handle),(compression),(id),(elsize),(nelem),(byteorder),(dimfast),(dimmid),(dimslow),(padding))
 
   /* Set the integer value of the current (row, column) array entry */
   
@@ -1005,10 +1017,15 @@ int cbf_set_integerarray_wdims (cbf_handle    handle,
                           int           elsign,
                           size_t        nelem,
                           const char   *byteorder,
-                          size_t        dim1,
-                          size_t        dim2,
-                          size_t        dim3,
+                          size_t        dimfast,
+                          size_t        dimmid,
+                          size_t        dimslow,
                           size_t        padding);
+#define cbf_set_integerarray_wdims_fs(handle, compression, id, value, elsize, elsign, nelem, byteorder, dimfast, dimmid, dimslow, padding) \
+         cbf_set_integerarray_wdims((handle),(compression),(id),(value),(elsize),(elsign),(nelem),(byteorder),(dimfast),(dimmid),(dimslow),(padding))
+#define cbf_set_integerarray_wdims_sf(handle, compression, id, value, elsize, elsign, nelem, byteorder, dimslow, dimmid, dimfast, padding) \
+         cbf_set_integerarray_wdims((handle),(compression),(id),(value),(elsize),(elsign),(nelem),(byteorder),(dimfast),(dimmid),(dimslow),(padding))
+
 
   /* Set the real value of the current (row, column) array entry */
   
@@ -1029,11 +1046,14 @@ int cbf_set_realarray_wdims (cbf_handle    handle,
                           size_t        elsize,
                           size_t        nelem,
                           const char   *byteorder,
-                          size_t        dim1,
-                          size_t        dim2,
-                          size_t        dim3,
+                          size_t        dimfast,
+                          size_t        dimmid,
+                          size_t        dimslow,
                           size_t        padding);
-
+#define cbf_set_realarray_wdims_fs(handle, compression, id, value, elsize, nelem, byteorder, dimfast, dimmid, dimslow, padding) \
+         cbf_set_realarray_wdims((handle),(compression),(id),(value),(elsize),(nelem),(byteorder),(dimfast),(dimmid),(dimslow),(padding))
+#define cbf_set_realarray_wdims_sf(handle, compression, id, value, elsize, nelem, byteorder, dimslow, dimmid, dimfast, padding) \
+         cbf_set_realarray_wdims((handle),(compression),(id),(value),(elsize),(nelem),(byteorder),(dimfast),(dimmid),(dimslow),(padding))
 
   /* Issue a warning message */
 

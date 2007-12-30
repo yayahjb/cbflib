@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_predictor -- Predictor-Huffman compression (not implemented)   *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -273,9 +273,9 @@ int cbf_compress_predictor (void         *source,
                             int          *storedbits,
                             int           realarray,
                             const char   *byteorder,
-                            size_t        dim1,
-                            size_t        dim2,
-                            size_t        dim3,
+                            size_t        dimfast,
+                            size_t        dimmid,
+                            size_t        dimslow,
                             size_t        padding)
 {
   fprintf (stderr,
@@ -301,9 +301,9 @@ int cbf_decompress_predictor (void         *destination,
                               int           realarray,
                               const char   *byteorder,
                               size_t        dimover,
-                              size_t        dim1,
-                              size_t        dim2,
-                              size_t        dim3,
+                              size_t        dimfast,
+                              size_t        dimmid,
+                              size_t        dimslow,
                               size_t        padding)
 {
   fprintf (stderr,

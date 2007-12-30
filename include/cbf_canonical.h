@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_canonical.h                                                    *
  *                                                                    *
- * Version 0.7.7 19 February 2007                                     *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -261,6 +261,164 @@ extern "C" {
 #include "cbf_file.h"
 
 
+  /* Compression tree node */
+
+typedef struct cbf_compress_nodestruct
+{
+  size_t       count;           /* Number in the file                  */
+  unsigned int code;            /* Code                                */
+  unsigned int bitcount;        /* Bits in the minimum-redundancy code */
+  unsigned int bitcode [4];     /* Minimum-redundancy code             */
+
+  struct cbf_compress_nodestruct *next,
+                                 *child [2];
+}
+cbf_compress_node;
+
+
+  /* Compression data */
+
+typedef struct
+{
+  cbf_file    *file;             /* File                           */
+
+  unsigned int bits;             /* Coded bits                     */
+  unsigned int maxbits;          /* Maximum saved bits             */
+  unsigned int endcode;          /* End-of-data code               */
+
+  size_t       nodes;            /* Number of nodes                */
+  size_t       nextnode;         /* Number of nodes used           */
+
+  cbf_compress_node *node;       /* Nodes                       */
+}
+cbf_compress_data;
+
+
+
+  /* Create compression data */
+
+int cbf_make_compressdata (cbf_compress_data **data, cbf_file *file);
+
+  /* Free data */
+
+void cbf_free_compressdata (cbf_compress_data *data);
+
+
+  /* Initialise compression data arrays */
+
+int cbf_initialise_compressdata (cbf_compress_data *data, unsigned int bits,
+                                                          unsigned int maxbits);
+                                                          
+
+  /* Write a compression table */
+
+int cbf_put_table (cbf_compress_data *data, unsigned int *bitcount);
+
+
+  /* Read a compression table */
+
+int cbf_get_table (cbf_compress_data *data);
+
+
+  /* End the bitstream */
+
+int cbf_put_stopcode (cbf_compress_data *data, unsigned int *bitcount);
+
+
+  /* Insert a node into a tree */
+
+cbf_compress_node *cbf_insert_node (cbf_compress_node *tree,
+                                    cbf_compress_node *node);
+                                    
+
+  /* Append a node to a list */
+
+cbf_compress_node *cbf_append_node (cbf_compress_node *list,
+                                    cbf_compress_node *node);
+
+
+
+  /* Convert an ordered tree into an ordered list */
+
+cbf_compress_node *cbf_order_node (cbf_compress_node *tree);
+
+
+  /* Create an ordered list */
+
+cbf_compress_node *cbf_create_list (cbf_compress_data *data);
+
+
+
+  /* Combine the two nodes with minimum count */
+
+cbf_compress_node *cbf_reduce_list (cbf_compress_data *data,
+                                    cbf_compress_node *list);
+
+
+
+  /* Generate the minimum-redundancy code lengths */
+
+int cbf_generate_codelengths (cbf_compress_node *tree, int bitcount);
+
+
+
+  /* Reverse the order of the bits in the bit-codes */
+
+int cbf_reverse_bitcodes (cbf_compress_data *data);
+
+
+
+  /* Generate the canonical bit-codes */
+
+int cbf_generate_canonicalcodes (cbf_compress_data *data);
+
+
+
+  /* Compare the bitcodes of two nodes */
+
+int cbf_compare_bitcodes (const void *void1, const void *void2);
+
+
+
+
+  /* Construct a tree from an ordered set of nodes */
+
+int cbf_construct_tree (cbf_compress_data *data, cbf_compress_node **node,
+                                       int bits, cbf_compress_node **root);
+                                       
+
+   /* Sort the nodes and set up the decoding arrays */
+
+int cbf_setup_decode (cbf_compress_data *data, cbf_compress_node **start);
+
+ 
+   /* Calculate the expected bit count */
+
+unsigned long cbf_count_bits (cbf_compress_data *data);
+
+
+  /* Read a code */
+
+int cbf_get_code (cbf_compress_data *data, cbf_compress_node *root,
+                                                unsigned int *code,
+                                                unsigned int *bitcount);
+                                                
+
+  /* Write a coded integer */
+
+int cbf_put_code (cbf_compress_data *data, int code, unsigned int overflow,
+                                                     unsigned int *bitcount);
+                                                     
+
+  /* Count the values */
+
+int cbf_count_values (cbf_compress_data *data,
+                      void *source, size_t elsize, int elsign, size_t nelem,
+                      int *minelem, int *maxelem);
+
+
+
+
   /* Compress an array */
 
 int cbf_compress_canonical (void         *source, 
@@ -273,9 +431,9 @@ int cbf_compress_canonical (void         *source,
                             int          *storedbits,
                             int           realarray,
                             const char   *byteorder,
-                            size_t        dim1,
-                            size_t        dim2,
-                            size_t        dim3,
+                            size_t        dimfast,
+                            size_t        dimmid,
+                            size_t        dimslow,
                             size_t        padding);
 
 
@@ -293,10 +451,14 @@ int cbf_decompress_canonical (void         *destination,
                               int           realarray,
                               const char   *byteorder,
                               size_t        dimover,
-                              size_t        dim1,
-                              size_t        dim2,
-                              size_t        dim3,
+                              size_t        dimfast,
+                              size_t        dimmid,
+                              size_t        dimslow,
                               size_t        padding);
+#define cbf_decompress_canonical_fs(destination,elsize,elsign,nelem,nelem_read,compression,bits,sign,file,realarray,byteorder,dimover,dimfast,dimmid,dimslow,padding) \
+        cbf_decompress_canonical((destination),(elsize),(elsign),(nelem),(nelem_read),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding)) 
+#define cbf_decompress_canonical_sf(destination,elsize,elsign,nelem,nelem_read,compression,bits,sign,file,realarray,byteorder,dimover,dimslow,dimmid,dimfast,padding) \
+        cbf_decompress_canonical((destination),(elsize),(elsign),(nelem),(nelem_read),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding)) 
 
 
 #ifdef __cplusplus

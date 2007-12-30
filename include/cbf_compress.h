@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_compress.h                                                     *
  *                                                                    *
- * Version 0.7.7 19 February 2007                                     *
+ * Version 0.7.8.2 25 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -274,10 +274,14 @@ int cbf_compress (void         *source,
                   char         *digest,
                   int           realarray,
                   const char   *byteorder,
-                  size_t        dim1,
-                  size_t        dim2,
-                  size_t        dim3,
+                  size_t        dimfast,
+                  size_t        dimmid,
+                  size_t        dimslow,
                   size_t        padding);
+#define cbf_compress_fs(source,elsize,elsign,nelem,compression,file,compressedsize,bits,digest,realarray,byteorder,dimfast,dimmid,dimslow,padding) \
+        cbf_compress((source),(elsize),(elsign),(nelem),(compression),(file),(compressedsize),(bits),(digest),(realarray),(byteorder),(dimfast),(dimmid),(dimslow),(padding)) 
+#define cbf_compress_sf(source,elsize,elsign,nelem,compression,file,compressedsize,bits,digest,realarray,byteorder,dimslow,dimmid,dimfast,padding) \
+        cbf_compress((source),(elsize),(elsign),(nelem),(compression),(file),(compressedsize),(bits),(digest),(realarray),(byteorder),(dimfast),(dimmid),(dimslow),(padding)) 
 
 
   /* Get the parameters of an array (read up to the start of the table) */
@@ -307,10 +311,14 @@ int cbf_decompress (void         *destination,
                     int           realarray,
                     const char   *byteorder,
                     size_t        dimover,
-                    size_t        dim1,
-                    size_t        dim2,
-                    size_t        dim3,
+                    size_t        dimfast,
+                    size_t        dimmid,
+                    size_t        dimslow,
                     size_t        padding);
+#define cbf_decompress_fs(destination,elsize,elsign,nelem,nelem_read,compression,bits,sign,file,realarray,byteorder,dimover,dimfast,dimmid,dimslow,padding) \
+        cbf_decompress((destination),(elsize),(elsign),(nelem),(nelem_read),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding)) 
+#define cbf_decompress_sf(destination,elsize,elsign,nelem,nelem_read,compression,bits,sign,file,realarray,byteorder,dimover,dimslow,dimmid,dimfast,padding) \
+        cbf_decompress((destination),(elsize),(elsign),(nelem),(nelem_read),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding)) 
 
 
 #ifdef __cplusplus

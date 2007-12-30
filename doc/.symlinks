@@ -6,7 +6,7 @@
 #  originally a csh script by H. J. Bernstein                        #
 #  converted to sh by J. Wright, 12 Jun 2007                         #
 #                                                                    #
-# Version 0.7.8 12 Jun 2007                                          #
+# Version 0.7.8.2 25 Sep 2007                                        #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -83,6 +83,9 @@ if [ ! -e cif_img_1.5.dic ] ; then
 fi
 if [ ! -e cif_img_1.5.html ] ; then
   $LN cif_img_1.5.4_28Jul07.html cif_img_1.5.html
+fi
+if [ ! -e cif_img_1.5.4.html ] ; then
+  $LN cif_img_1.5.4_28Jul07.html cif_img_1.5.4.html
 fi
 for file in *
 do
