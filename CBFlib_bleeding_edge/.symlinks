@@ -6,7 +6,7 @@
 #  originally a csh script by H. J. Bernstein                        #
 #  converted to sh by J. Wright, 12 Jun 2007                         #
 #                                                                    #
-# Version 0.7.8.2 25 Dec 2007                                        #
+# Version 0.7.9 29 Dec 2007                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -79,13 +79,10 @@ if [ ! -e lgpl.txt ] ; then
   $LN doc/lgpl.txt lgpl.txt
 fi
 if [ ! -e CBFlib.tar.gz ] ; then
-  $LN ../CBFlib_0.7.8.tar.gz CBFlib.tar.gz
+  $LN ../CBFlib_0.7.9.tar.gz CBFlib.tar.gz
 fi
 if [ ! -e template_adscquantum315_3072x3072.cbf ] ; then
   $LN examples/template_adscquantum315_3072x3072.cbf template_adscquantum315_3072x3072.cbf
-fi
-if [ ! -e template_adscquantum315_3072x3072_rev.cbf ] ; then
-  $LN examples/template_adscquantum315_3072x3072_rev.cbf template_adscquantum315_3072x3072_rev.cbf
 fi
 if [ ! -e template_adscquantum4_2304x2304.cbf ] ; then
   $LN examples/template_adscquantum4_2304x2304.cbf template_adscquantum4_2304x2304.cbf

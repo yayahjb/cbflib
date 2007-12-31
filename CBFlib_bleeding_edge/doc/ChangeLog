@@ -44,10 +44,10 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
                                 Version History
 
+   Version   Date            By        Description                            
      0.1       Apr. 1998       PJE       This was the first CBFlib release.   
                                        It supported binary CBF files using    
                                        binary strings.                        
-                                       strings.                                
      0.2       Aug. 1998       HJB       This release added ascii imgCIF      
                                        support using MIME-encoded binary      
                                        sections, added the option of MIME     
@@ -190,7 +190,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      0.7.8.1   Jul 2007        HJB       Update to 0.7.8 release to fix       
                                        memory leaks reported by N. Sauter and 
                                        to update validation checks for recent 
-                                       changes.                                
+                                       changes.                               
      0.7.8.2   Dec 2007        HJB       Update to 0.7.8.1 to add ADSC jiffie 
                                        by Chris Nielsen, and to add ..._fs    
                                        and ..._sf macros.                     
@@ -292,29 +292,29 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
   Release 0.7.8.1, Herbert J. Bernstein, 28 July 2007
 
-   Source File        Change                                                   
-   cbf.c                Rework cbf_free_handle to ensure release of memory     
+   Source File        Change                                                  
+   cbf.c                Rework cbf_free_handle to ensure release of memory    
                       from root, not current position. Rework                 
                       cbf_read_anyfile to ensure close of file stream on all  
                       exit cases. Fix save frame code in cbf_validate to      
                       restart counts on each save frame. Add name, idname and 
                       aliasname types from latest DDL2 dictionary.            
-   cbf_alloc.c,         Add cbf_free_text to avoid type punning warnings from  
-   cbf_alloc.h        gcc 4. Add memory debug based on adding                  
-                      -DCBFLIB_MEM_DEBUG to CFLAGS.                            
-   cbf_simple.c         Add code to ensure against memory leaks when working   
-                      with a detector or positioner object.                    
+   cbf_alloc.c,         Add cbf_free_text to avoid type punning warnings from 
+   cbf_alloc.h        gcc 4. Add memory debug based on adding                 
+                      -DCBFLIB_MEM_DEBUG to CFLAGS.                           
+   cbf_simple.c         Add code to ensure against memory leaks when working  
+                      with a detector or positioner object.                   
    cbf.stx.y,           Add calls to cbf_undo_links and cbf_free_text to      
    cbf_stx.c          clean up memory leaks in parser. Add validation calls   
                       to mark end of save frames.                             
-   cbf_tree.c,          Add cbf_undo_links to recover memory from links used   
+   cbf_tree.c,          Add cbf_undo_links to recover memory from links used  
    cbf_tree.h         to rotate among columns of a table. Rework              
                       cbf_free_node to avoid memory leaks.                    
-   cbf_uncompressed.c   Add #define __USE_XOPEN to avoid a warning on use of   
-                      swab on some systems.                                    
+   cbf_uncompressed.c   Add #define __USE_XOPEN to avoid a warning on use of  
+                      swab on some systems.                                   
    sauter_test.C        Add sauter_test to stress test for memory leaks. On   
    Makefile.m4        make install, place cbf.h and cbf_simple.h into include 
-                      directory.                                               
+                      directory.                                              
 
      ----------------------------------------------------------------------
 

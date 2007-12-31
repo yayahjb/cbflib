@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.7.8 25 Dec 2007                                          #
+# Version 0.7.9 28 Dec 2007                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -250,7 +250,7 @@
 
 
 # Version string
-VERSION = 0.7.8
+VERSION = 0.7.9
 
 
 #
@@ -290,10 +290,27 @@ RANLIB  = /usr/bin/ranlib
 #
 DECOMPRESS = /usr/bin/bunzip2
 
+
+#
+# Program to use to compress a data file
+#
+COMPRESS = /usr/bin/bzip2
+
+#
+# Program to use to generate a signature
+#
+SIGNATURE = /usr/bin/openssl dgst -md5
+
+
 #
 # Extension for compressed data file (with period)
 #
 CEXT = .bz2
+
+#
+# Extension for signatures of files
+#
+SEXT = .md5
 
 
 # call to time a command
@@ -334,13 +351,18 @@ PYCBF    = $(ROOT)/pycbf
 EXAMPLES = $(ROOT)/examples
 DOC      = $(ROOT)/doc
 GRAPHICS = $(ROOT)/html_graphics
-DATADIR  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files
+DATADIRI  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Input
+DATADIRO  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Output
+DATADIRS  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only
 INSTALLDIR  = $(HOME)
 
 #
-# URL from which to retrieve the data directory
+# URLs from which to retrieve the data directories
 #
-DATAURL	 = http://arcib.dowling.edu/software/CBFlib/downloads/version_$(VERSION)/CBFlib_$(VERSION)_Data_Files.tar.gz
+DATAURLBASE	= http://arcib.dowling.edu/software/CBFlib/downloads/version_$(VERSION)
+DATAURLI	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Input.tar.gz
+DATAURLO	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output.tar.gz
+DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
 
 
 #
@@ -514,10 +536,23 @@ default:
 	@echo ' '
 	@echo '   make tests'
 	@echo ' '
-	@echo ' The tests assume that several data files are in the directory' $(DATADIR)
-	@echo ' This directory can be obtained from'
+	@echo ' The tests assume that several data files are in the directories' 
+	@echo ' $(DATADIRI) and $(DATADIRO)'
 	@echo ' '
-	@echo ' ' $(DATAURL)
+	@echo ' Alternatively tests can be run comaring MD5 signatures only by' 
+	@echo ' '
+	@echo '   make tests_sig_only'
+	@echo ' '
+	@echo ' These signature only tests save space and download time by'
+	@echo ' assume that input data files and the output signatures
+	@echo ' are in the directories' 
+	@echo '  $(DATADIRI) and $(DATADIRS)'
+	@echo ' '
+	@echo ' These directory can be obtained from'
+	@echo ' '
+	@echo ' ' $(DATAURLI)
+	@echo ' ' $(DATAURLO)
+	@echo ' ' $(DATAURLS)
 	@echo ' '
 	@echo ' To clean up the directories type:'
 	@echo ' '
@@ -889,102 +924,171 @@ $(BIN)/test_fcb_read_image: $(LIB)/libfcb.a $(EXAMPLES)/test_fcb_read_image.f90
 # Data files for tests
 #
 
-$(DATADIR):
-		(cd ..; $(DOWNLOAD) $(DATAURL))
-		(cd ..; tar -xvf CBFlib_$(VERSION)_Data_Files.tar.gz)
-		-(cd ..; rm CBFlib_$(VERSION)_Data_Files.tar.gz)
+$(DATADIRI):
+		(cd ..; $(DOWNLOAD) $(DATAURLI))
+		(cd ..; tar -xvf CBFlib_$(VERSION)_Data_Files_Input.tar.gz)
+		-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Input.tar.gz)
+
+$(DATADIRO):
+		(cd ..; $(DOWNLOAD) $(DATAURLO))
+		(cd ..; tar -xvf CBFlib_$(VERSION)_Data_Files_Output.tar.gz)
+		-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Output.tar.gz)
+
+$(DATADIRS):
+		(cd ..; $(DOWNLOAD) $(DATAURLS))
+		(cd ..; tar -xvf CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz)
+		-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz)
 
 
-example.mar2300:	$(DATADIR) $(DATADIR)/example.mar2300$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/example.mar2300$(CEXT) > example.mar2300
+# Input Data Files 
+
+TESTINPUT_BASIC =  example.mar2300
+DATADIRI_INPUT_BASIC = $(DATADIRI)/example.mar2300$(CEXT)
 
 
-converted_flat_orig.cbf:	$(DATADIR) $(DATADIR)/converted_flat_orig.cbf$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/converted_flat_orig.cbf$(CEXT) > converted_flat_orig.cbf
+TESTINPUT_EXTRA =  9ins.cif mb_LP_1_001.img insulin_pilatus6m.cbf testrealin.cbf \
+		testflatin.cbf testflatpackedin.cbf
+DATADIRI_INPUT_EXTRA = $(DATADIRI)/9ins.cif$(CEXT) $(DATADIRI)/mb_LP_1_001.img$(CEXT) \
+		$(DATADIRI)/insulin_pilatus6m.cbf$(CEXT) $(DATADIRI)/testrealin.cbf$(CEXT) \
+		$(DATADIRI)/testflatin.cbf$(CEXT) $(DATADIRI)/testflatpackedin.cbf$(CEXT)
 
 
-adscconverted_flat_orig.cbf:	$(DATADIR) $(DATADIR)/adscconverted_flat_orig.cbf$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/adscconverted_flat_orig.cbf$(CEXT) > adscconverted_flat_orig.cbf
+# Output Data Files
+
+TESTOUTPUT =  adscconverted_flat_orig.cbf \
+		adscconverted_orig.cbf converted_flat_orig.cbf converted_orig.cbf \
+		insulin_pilatus6mconverted_orig.cbf \
+		mb_LP_1_001_orig.cbf testcell_orig.prt \
+		test_xds_bin_testflatout_orig.out \
+		test_xds_bin_testflatpackedout_orig.out test_fcb_read_testflatout_orig.out \
+		test_fcb_read_testflatpackedout_orig.out
+NEWTESTOUTPUT = adscconverted_flat.cbf \
+		adscconverted.cbf converted_flat.cbf converted.cbf \
+		insulin_pilatus6mconverted.cbf \
+		mb_LP_1_001.cbf testcell.prt \
+		test_xds_bin_testflatout.out \
+		test_xds_bin_testflatpackedout.out test_fcb_read_testflatout.out \
+		test_fcb_read_testflatpackedout.out
+DATADIRO_OUTPUT =  $(DATADIRO)/adscconverted_flat_orig.cbf$(CEXT) \
+		$(DATADIRO)/adscconverted_orig.cbf$(CEXT) \
+		$(DATADIRO)/converted_flat_orig.cbf$(CEXT) \
+		$(DATADIRO)/converted_orig.cbf$(CEXT) \
+		$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf$(CEXT) \
+		$(DATADIRO)/mb_LP_1_001_orig.cbf$(CEXT) \
+		$(DATADIRO)/testcell_orig.prt$(CEXT) \
+		$(DATADIRO)/test_xds_bin_testflatout_orig.out$(CEXT) \
+		$(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(CEXT) \
+		$(DATADIRO)/test_fcb_read_testflatout_orig.out$(CEXT) \
+		$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(CEXT)
+DATADIRO_OUTPUT_SIGNATURES =  $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT) \
+		$(DATADIRO)/adscconverted_orig.cbf$(SEXT) \
+		$(DATADIRO)/converted_flat_orig.cbf$(SEXT) \
+		$(DATADIRO)/converted_orig.cbf$(SEXT) \
+		$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf$(SEXT) \
+		$(DATADIRO)/mb_LP_1_001_orig.cbf$(SEXT) \
+		$(DATADIRO)/testcell_orig.prt$(SEXT) \
+		$(DATADIRO)/test_xds_bin_testflatout_orig.out$(SEXT) \
+		$(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(SEXT) \
+		$(DATADIRO)/test_fcb_read_testflatout_orig.out$(SEXT) \
+		$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
 
 
-converted_orig.cbf:	$(DATADIR) $(DATADIR)/converted_orig.cbf$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/converted_orig.cbf$(CEXT) > converted_orig.cbf
+
+# Output Data File Signatures
+
+TESTOUTPUTSIGS = adscconverted_flat_orig.cbf$(SEXT) \
+		adscconverted_orig.cbf$(SEXT) converted_flat_orig.cbf$(SEXT) converted_orig.cbf$(SEXT) \
+		insulin_pilatus6mconverted_orig.cbf$(SEXT) \
+		mb_LP_1_001_orig.cbf$(SEXT) testcell_orig.prt$(SEXT) \
+		test_xds_bin_testflatout_orig.out$(SEXT) \
+		test_xds_bin_testflatpackedout_orig.out$(SEXT) test_fcb_read_testflatout_orig.out$(SEXT) \
+		test_fcb_read_testflatpackedout_orig.out$(SEXT)
+DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
+		$(DATADIRS)/adscconverted_orig.cbf$(SEXT) \
+		$(DATADIRS)/converted_flat_orig.cbf$(SEXT) \
+		$(DATADIRS)/converted_orig.cbf$(SEXT) \
+		$(DATADIRS)/insulin_pilatus6mconverted_orig.cbf$(SEXT) \
+		$(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT) \
+		$(DATADIRS)/testcell_orig.prt$(SEXT) \
+		$(DATADIRS)/test_xds_bin_testflatout_orig.out$(SEXT) \
+		$(DATADIRS)/test_xds_bin_testflatpackedout_orig.out$(SEXT) \
+		$(DATADIRS)/test_fcb_read_testflatout_orig.out$(SEXT) \
+		$(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
+
+# Fetch Input Data Files 
+
+$(TESTINPUT_BASIC):	$(DATADIRI) $(DATADIRI_INPUT_BASIC)
+		$(DECOMPRESS) < $(DATADIRI)/$@$(CEXT) > $@
+		cp $(DATADIRI)/$@$(SEXT)  $@$(SEXT)
+		-$(SIGNATURE) < $@ | diff - $@$(SEXT)
+
+$(TESTINPUT_EXTRA):	$(DATADIRI) $(DATADIRI_INPUT_EXTRA)
+		$(DECOMPRESS) < $(DATADIRI)/$@$(CEXT) > $@
+		cp $(DATADIRI)/$@$(SEXT)  $@$(SEXT)
+		-$(SIGNATURE) < $@ | diff - $@$(SEXT)
 
 
-adscconverted_orig.cbf:	$(DATADIR) $(DATADIR)/adscconverted_orig.cbf$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/adscconverted_orig.cbf$(CEXT) > adscconverted_orig.cbf
+# Fetch Output Data Files and Signatures
 
+$(TESTOUTPUT):	$(DATADIRO) $(DATADIRO_OUTPUT) $(DATADIRO_OUTPUT_SIGNATURES)
+		$(DECOMPRESS) < $(DATADIRO)/$@$(CEXT) > $@
+		cp $(DATADIRO)/$@$(SEXT) $@$(SEXT)
+		-$(SIGNATURE) < $@ | diff - $@$(SEXT)
 
-mb_LP_1_001.img:	$(DATADIR) $(DATADIR)/mb_LP_1_001.img$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/mb_LP_1_001.img$(CEXT) > mb_LP_1_001.img
+# Fetch Output Data File Signatures
 
-insulin_pilatus6m.cbf:	$(DATADIR) $(DATADIR)/insulin_pilatus6m.cbf$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/insulin_pilatus6m.cbf$(CEXT) > insulin_pilatus6m.cbf
+$(TESTOUTPUTSIGS):	$(DATADIRS) $(DATADIRS_OUTPUT_SIGNATURES)
+		cp $(DATADIRS)/$@ $@
 
-insulin_pilatus6m_prev.cbf:	$(DATADIR) $(DATADIR)/insulin_pilatus6m_prev.cbf$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/insulin_pilatus6m_prev.cbf$(CEXT) > insulin_pilatus6m_prev.cbf
-
-insulin_pilatus6mconverted_orig.cbf: $(DATADIR) \
-		$(DATADIR)/insulin_pilatus6mconverted_orig.cbf$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/insulin_pilatus6mconverted_orig.cbf$(CEXT) \
-		> insulin_pilatus6mconverted_orig.cbf
-
-9ins.cif:	$(DATADIR) $(DATADIR)/9ins.cif$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/9ins.cif$(CEXT) > 9ins.cif
-		
-testcell_orig.prt:	$(DATADIR) $(DATADIR)/testcell_orig.prt$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/testcell_orig.prt$(CEXT) > testcell_orig.prt
-
-testrealin.cbf:	$(DATADIR) $(DATADIR)/testrealin.cbf$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/testrealin.cbf$(CEXT) > testrealin.cbf
-
-testflatin.cbf:	$(DATADIR) $(DATADIR)/testflatin.cbf$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/testflatin.cbf$(CEXT) > testflatin.cbf
-
-testflatpackedin.cbf:	$(DATADIR) $(DATADIR)/testflatpackedin.cbf$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/testflatpackedin.cbf$(CEXT) > testflatpackedin.cbf
-
-test_xds_bin_testflatout_orig.out: 	$(DATADIR) \
-		$(DATADIR)/test_xds_bin_testflatout_orig.out$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/test_xds_bin_testflatout_orig.out$(CEXT) \
-		> test_xds_bin_testflatout_orig.out
-
-test_xds_bin_testflatpackedout_orig.out: $(DATADIR) \
-		$(DATADIR)/test_xds_bin_testflatpackedout_orig.out$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/test_xds_bin_testflatpackedout_orig.out$(CEXT) \
-		> test_xds_bin_testflatpackedout_orig.out
-
-test_fcb_read_testflatout_orig.out: $(DATADIR) \
-		$(DATADIR)/test_fcb_read_testflatout_orig.out$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/test_fcb_read_testflatout_orig.out$(CEXT) \
-		> test_fcb_read_testflatout_orig.out
-
-test_fcb_read_testflatpackedout_orig.out: $(DATADIR) \
-		$(DATADIR)/test_fcb_read_testflatpackedout_orig.out$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/test_fcb_read_testflatpackedout_orig.out$(CEXT) \
-		> test_fcb_read_testflatpackedout_orig.out
-
-adscconverted_flat_rev_orig.cbf: $(DATADIR) \
-		$(DATADIR)/adscconverted_flat_rev_orig.cbf$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/adscconverted_flat_rev_orig.cbf$(CEXT) \
-		> adscconverted_flat_rev_orig.cbf
-
-mb_LP_1_001_orig.cbf: $(DATADIR) \
-		$(DATADIR)/mb_LP_1_001_orig.cbf$(CEXT)
-		$(DECOMPRESS) < $(DATADIR)/mb_LP_1_001_orig.cbf$(CEXT) \
-		> mb_LP_1_001_orig.cbf
 
 		
 #
 # Tests
 #
-tests:	$(LIB) $(BIN) symlinksdone basic extra
+tests:				$(LIB) $(BIN) symlinksdone basic extra
+tests_sigs_only:	$(LIB) $(BIN) symlinksdone basic extra_sigs_only
+restore_output:		$(NEWTESTOUTPUT) $(DATADIRO)
+		$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT)
+		$(SIGNATURE) < adscconverted.cbf > $(DATADIRO)/adscconverted_orig.cbf$(SEXT)
+		$(SIGNATURE) < converted_flat.cbf > $(DATADIRO)/converted_flat_orig.cbf$(SEXT)
+		$(SIGNATURE) < converted.cbf > $(DATADIRO)/converted_orig.cbf$(SEXT)
+		$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf$(SEXT)
+		$(SIGNATURE) < mb_LP_1_001.cbf$ > $(DATADIRO)/mb_LP_1_001_orig.cbf$(SEXT)
+		$(SIGNATURE) < testcell.prt > $(DATADIRO)/testcell_orig.prt$(SEXT)
+		$(SIGNATURE) < test_xds_bin_testflatout.out > $(DATADIRO)/test_xds_bin_testflatout_orig.out$(SEXT)
+		$(SIGNATURE) < test_xds_bin_testflatpackedout.out > $(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(SEXT)
+		$(SIGNATURE) < test_fcb_read_testflatout.out > $(DATADIRO)/test_fcb_read_testflatout_orig.out$(SEXT)
+		$(SIGNATURE) < test_fcb_read_testflatpackedout.out > $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
+		$(COMPRESS)  < adscconverted_flat.cbf > $(DATADIRO)/adscconverted_flat_orig.cbf$(CEXT)
+		$(COMPRESS)  < adscconverted.cbf > $(DATADIRO)/adscconverted_orig.cbf$(CEXT)
+		$(COMPRESS)  < converted_flat.cbf > $(DATADIRO)/converted_flat_orig.cbf$(CEXT)
+		$(COMPRESS)  < converted.cbf > $(DATADIRO)/converted_orig.cbf$(CEXT)
+		$(COMPRESS)  < insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf$(CEXT)
+		$(COMPRESS)  < mb_LP_1_001.cbf$ > $(DATADIRO)/mb_LP_1_001_orig.cbf$(CEXT)
+		$(COMPRESS)  < testcell.prt > $(DATADIRO)/testcell_orig.prt$(CEXT)
+		$(COMPRESS)  < test_xds_bin_testflatout.out > $(DATADIRO)/test_xds_bin_testflatout_orig.out$(CEXT)
+		$(COMPRESS)  < test_xds_bin_testflatpackedout.out > $(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(CEXT)
+		$(COMPRESS)  < test_fcb_read_testflatout.out > $(DATADIRO)/test_fcb_read_testflatout_orig.out$(CEXT)
+		$(COMPRESS)  < test_fcb_read_testflatpackedout.out > $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(CEXT)
+restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
+		$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT)
+		$(SIGNATURE) < adscconverted.cbf > $(DATADIRS)/adscconverted_orig.cbf$(SEXT)
+		$(SIGNATURE) < converted_flat.cbf > $(DATADIRS)/converted_flat_orig.cbf$(SEXT)
+		$(SIGNATURE) < converted.cbf > $(DATADIRS)/converted_orig.cbf$(SEXT)
+		$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRS)/insulin_pilatus6mconverted_orig.cbf$(SEXT)
+		$(SIGNATURE) < mb_LP_1_001.cbf$ > $(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT)
+		$(SIGNATURE) < testcell.prt > $(DATADIRS)/testcell_orig.prt$(SEXT)
+		$(SIGNATURE) < test_xds_bin_testflatout.out > $(DATADIRS)/test_xds_bin_testflatout_orig.out$(SEXT)
+		$(SIGNATURE) < test_xds_bin_testflatpackedout.out > $(DATADIRS)/test_xds_bin_testflatpackedout_orig.out$(SEXT)
+		$(SIGNATURE) < test_fcb_read_testflatout.out > $(DATADIRS)/test_fcb_read_testflatout_orig.out$(SEXT)
+		$(SIGNATURE) < test_fcb_read_testflatpackedout.out > $(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
+restore_signatures:	restore_output restore_sigs_only
 
 #
 # Basic Tests
 #
 
-basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf example.mar2300
+basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf $(TESTINPUT_BASIC)
 	$(BIN)/makecbf example.mar2300 makecbf.cbf
 	$(BIN)/img2cif -c packed -m headers -d digest \
 		-e base64  example.mar2300  img2cif_packed.cif
@@ -1002,6 +1106,7 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf example.mar2300
 	-cmp cif2cbf_packed.cbf    img2cif_packed.cbf
 	-cmp cif2cbf_canonical.cbf img2cif_canonical.cbf
 
+
 #
 # Extra Tests
 #
@@ -1009,41 +1114,28 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcel
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
 	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image $(BIN)/convert_minicbf \
 	$(BIN)/sauter_test $(BIN)/adscimg2cbf\
-	makecbf.cbf 9ins.cif example.mar2300 converted_orig.cbf mb_LP_1_001.img\
-	adscconverted_flat_rev_orig.cbf mb_LP_1_001_orig.cbf\
-	adscconverted_orig.cbf testcell_orig.prt testrealin.cbf \
-	testflatin.cbf testflatpackedin.cbf \
-	converted_flat_orig.cbf adscconverted_flat_orig.cbf \
-	insulin_pilatus6mconverted_orig.cbf insulin_pilatus6m_prev.cbf\
-	test_xds_bin_testflatout_orig.out test_xds_bin_testflatpackedout_orig.out \
-	test_fcb_read_testflatout_orig.out test_fcb_read_testflatpackedout_orig.out \
-	insulin_pilatus6m.cbf
+    basic $(TESTINPUT_EXTRA) $(TESTOUTPUT)
 	$(TIME) $(BIN)/cif2cbf -e hex -c none \
 		makecbf.cbf cif2cbf_ehcn.cif
 	$(TIME) $(BIN)/cif2cbf -e none -c packed \
-		cif2cbf_ehcn.cif cif2cbf_encp.cbf
+		cif2cbf_ehcn.cif cif2cbf_encp.cbf; rm cif2cbf_ehcn.cif
 	-cmp makecbf.cbf cif2cbf_encp.cbf
 	$(TIME) $(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
 	-cmp 9ins.cif 9ins.cbf
-	$(TIME) $(BIN)/convert_image -F -c diffrn_data_frame=diffrn_frame_data example.mar2300 converted_flat.cbf
+	$(TIME) $(BIN)/convert_image -F example.mar2300 converted_flat.cbf
 	-cmp converted_flat.cbf converted_flat_orig.cbf
-	$(TIME) $(BIN)/convert_image -c diffrn_data_frame=diffrn_frame_data example.mar2300 converted.cbf
+	$(TIME) $(BIN)/convert_image example.mar2300 converted.cbf
 	-cmp converted.cbf converted_orig.cbf
 	-$(TIME) $(BIN)/testcell < testcell.dat > testcell.prt
 	-cmp testcell.prt testcell_orig.prt
-	$(TIME) $(BIN)/convert_image -F -c diffrn_data_frame=diffrn_frame_data  -d adscquantum315 mb_LP_1_001.img adscconverted_flat.cbf
+	$(TIME) $(BIN)/convert_image -F -d adscquantum315 mb_LP_1_001.img adscconverted_flat.cbf
 	-cmp adscconverted_flat.cbf adscconverted_flat_orig.cbf
-	$(TIME) $(BIN)/convert_image -c diffrn_data_frame=diffrn_frame_data  -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
+	$(TIME) $(BIN)/convert_image -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
 	-cmp adscconverted.cbf adscconverted_orig.cbf
-	$(TIME) $(BIN)/convert_image -F -c diffrn_data_frame=diffrn_frame_data  -d adscquantum315 \
-	  -p template_adscquantum315_3072x3072_rev.cbf mb_LP_1_001.img adscconverted_flat_rev.cbf
-	-cmp adscconverted_flat_rev.cbf adscconverted_flat_rev_orig.cbf
 	$(TIME) $(BIN)/adscimg2cbf  --cbf_packed,flat mb_LP_1_001.img
 	-cmp mb_LP_1_001.cbf mb_LP_1_001_orig.cbf
-	$(TIME) $(BIN)/convert_minicbf -c diffrn_data_frame=diffrn_frame_data  -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
+	$(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
 	-cmp insulin_pilatus6mconverted.cbf insulin_pilatus6mconverted_orig.cbf
-	$(TIME) $(BIN)/convert_minicbf -C SLS_1.0 -Q insulin_pilatus6m_prev.cbf insulin_pilatus6m_new.cbf
-	-cmp insulin_pilatus6m.cbf insulin_pilatus6m_new.cbf
 	$(TIME) $(BIN)/testreals
 	-cmp testrealin.cbf testrealout.cbf
 	$(TIME) $(BIN)/testflat
@@ -1059,6 +1151,56 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcel
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_fcb_read_image > test_fcb_read_testflatpackedout.out
 	-diff test_fcb_read_testflatpackedout.out test_fcb_read_testflatpackedout_orig.out
 	$(TIME) $(BIN)/sauter_test
+
+
+extra_sigs_only:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
+	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
+	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image $(BIN)/convert_minicbf \
+	$(BIN)/sauter_test $(BIN)/adscimg2cbf\
+	basic $(TESTINPUT_EXTRA) $(TESTOUTPUTSIGS)
+	$(TIME) $(BIN)/cif2cbf -e hex -c none \
+		makecbf.cbf cif2cbf_ehcn.cif
+	$(TIME) $(BIN)/cif2cbf -e none -c packed \
+		cif2cbf_ehcn.cif cif2cbf_encp.cbf; rm cif2cbf_ehcn.cif
+	-cmp makecbf.cbf cif2cbf_encp.cbf
+	$(TIME) $(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
+	-cmp 9ins.cif 9ins.cbf
+	$(TIME) $(BIN)/convert_image -F example.mar2300 converted_flat.cbf
+	-$(SIGNATURE) < converted_flat.cbf | diff - converted_flat_orig.cbf$(SEXT); rm converted_flat.cbf
+	$(TIME) $(BIN)/convert_image example.mar2300 converted.cbf
+	-$(SIGNATURE) < converted.cbf | diff - converted_orig.cbf$(SEXT); rm converted.cbf
+	-$(TIME) $(BIN)/testcell < testcell.dat | \
+	$(SIGNATURE) | diff - testcell_orig.prt$(SEXT)
+	$(TIME) $(BIN)/convert_image -F -d adscquantum315 mb_LP_1_001.img adscconverted_flat.cbf
+	-$(SIGNATURE) < adscconverted_flat.cbf | diff - adscconverted_flat_orig.cbf$(SEXT)
+	$(TIME) $(BIN)/convert_image -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
+	-$(SIGNATURE) < adscconverted.cbf | diff - adscconverted_orig.cbf$(SEXT); rm adscconverted.cbf
+	$(TIME) $(BIN)/adscimg2cbf  --cbf_packed,flat mb_LP_1_001.img
+	-$(SIGNATURE) < mb_LP_1_001.cbf | diff - mb_LP_1_001_orig.cbf$(SEXT); rm mb_LP_1_001.cbf
+	$(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
+	-$(SIGNATURE) < insulin_pilatus6mconverted.cbf | diff - insulin_pilatus6mconverted_orig.cbf$(SEXT); rm insulin_pilatus6mconverted.cbf
+	$(TIME) $(BIN)/testreals
+	-cmp testrealin.cbf testrealout.cbf
+	$(TIME) $(BIN)/testflat
+	-cmp testflatin.cbf testflatout.cbf
+	$(TIME) $(BIN)/testflatpacked
+	-cmp testflatpackedin.cbf testflatpackedout.cbf
+	echo testflatout.cbf | $(TIME) $(BIN)/test_xds_binary | \
+	$(SIGNATURE) | diff - test_xds_bin_testflatout_orig.out$(SEXT)
+	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_xds_binary | \
+	$(SIGNATURE) | diff - test_xds_bin_testflatpackedout_orig.out$(SEXT)
+	echo testflatout.cbf | $(TIME) $(BIN)/test_fcb_read_image | \
+	$(SIGNATURE) | diff - test_fcb_read_testflatout_orig.out$(SEXT)
+	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_fcb_read_image | \
+	$(SIGNATURE) | diff - test_fcb_read_testflatpackedout_orig.out$(SEXT)
+	$(TIME) $(BIN)/sauter_test
+	@-rm -f adscconverted_flat.cbf
+	@-rm -f $(TESTINPUT_BASIC) $(TESTINPUT_EXTRA) $(TESTOUTPUTSIGS)
+	@-rm -f cif2cbf_packed.cbf    makecbf.cbf \
+	cif2cbf_packed.cbf    img2cif_packed.cbf \
+	cif2cbf_canonical.cbf img2cif_canonical.cbf
+	@-rm -f testrealout.cbf testflatout.cbf testflatpackedout.cbf \
+	cif2cbf_encp.cbf img2cif_canonical.cif img2cif_packed.cif 9ins.cbf
 
 	
 	
@@ -1121,8 +1263,6 @@ empty:
 	@-rm -f  adscconverted_flat_rev_orig.cbf
 	@-rm -f  mb_LP_1_001_orig.cbf
 	@-rm -f  insulin_pilatus6mconverted_orig.cbf
-	@-rm -f  insulin_pilatus6m_prev.cbf
-	@-rm -f  insulin_pilatus6m_new.cbf
 	@-rm -f  insulin_pilatus6mconverted.cbf
 	@-rm -f  insulin_pilatus6m.cbf
 	@-rm -f  testrealin.cbf
@@ -1152,6 +1292,7 @@ empty:
 	@-rm -f  $(EXAMPLES)/test_fcb_read_image.f90
 	@-rm -f  $(EXAMPLES)/test_xds_binary.f90
 	@-rm -f  symlinksdone
+	@-rm -f  $(TESTOUTPUT) *$(SEXT)
 	./.undosymlinks
 	
 #

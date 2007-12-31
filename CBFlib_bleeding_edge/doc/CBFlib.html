@@ -32,8 +32,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <b>An API for CBF/imgCIF<br />
 Crystallographic Binary Files with ASCII Support</b><br />
-Version 0.7.8.2<br />
-25 December 2007<br />
+Version 0.7.9<br />
+prerelase 30 December 2007<br />
 <p>
 </CENTER>
 </font><font color="#000000">
@@ -267,7 +267,7 @@ VALIGN=TOP>&nbsp;&nbsp;Dec 2007<TD
 VALIGN=TOP>&nbsp;&nbsp;HJB and CN<TD>&nbsp;&nbsp;Update to 0.7.8.1 to add
 ADSC jiffie by Chris Nielsen, and to add ..._fs and ..._sf macros.
 
- </TABLE>
+</TABLE>
 
 <HR>
 </font><font color="#0808A0">
@@ -285,27 +285,42 @@ In order to work with CBFlib, you need:
 <ul>
 <li>the source code, in the form
 of a &quot;gzipped&quot; tar,
-<A HREF="../../CBFlib_0.7.8.tar.gz">CBFlib_0.7.8.tar.gz</A>; and
-<li>the test data, in the form of a &quot;gzipped&quot; tar
-<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.8/CBFlib_0.7.8_Data_Files.tar.gz">CBFlib_0.7.8_Data_Files.tar.gz</a>
+<A HREF="../../CBFlib_0.7.9.tar.gz">CBFlib_0.7.9.tar.gz</A>; and
+<li>the test data:
+<ul>
+<li><A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Input.tar.gz">CBFlib_0.7.9_Data_Files_Input.tar.gz</a>
+(13 MB) a "gzipped" tar of the input data files needed to test the API;
+<li><A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Output.tar.gz">CBFlib_0.7.9_Data_Files_Output.tar.gz</a>
+(34 MB) a "gzipped" tar of the output data files needed to test the API, or, if space is at a premium;
+<li><A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz">CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz</a>
+(1KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
 </ul>
 <P>
-Uncompress both of these files, and unpack them with tar:
+If your system has the program wget, you only need the source code.  The download of the other tar balls will be
+handled automatically.
+<P>
+<b>Be careful about space.  A full build and test can use 350 MB or more.  If space is tight, be sure to read the
+instructions below on using only the signatures of the test files.
+<P>
+Uncompress and unpack :
 <P>
 <ul>
-<li>gunzip &lt; CBFlib_0.7.8.tar.gz | tar xvf -
-<li>gunzip &lt; CBFlib_0.7.8_Data_Files.tar.gz | tar xvf -
+<li>gunzip &lt; CBFlib_0.7.9.tar.gz | tar xvf -
 </ul>
 <P>   
-As with prior releases, to run the test programs, you will also need 
+<p>
+To run the test programs, you will also need 
 Paul Ellis's sample MAR345 image,
-example.mar2300, and
+example.mar2300,
 Chris Nielsen's sample ADSC Quantum 315 image, 
-mb_LP_1_001.img as sample data.  In addition there are
-not various insulin_pilatus6m sample data files from
-E. Eikenberry at SLS.  All these files will be
-extracted by the Makefile from CBFlib_0.7.8_Data_Files.  Do
-not download copies into the top level directory.<P>
+mb_LP_1_001.img, and Eric Eikenberry's SLS sample Pilatus 6m image,
+insulin_pilatus6m, as sample data.  In addition there are
+is a PDB mmCIF file, 9ins.cif, and 3 special test files
+testflatin.cbf, testflatpackedin.cbf and testrealin.cbf.
+ All these files will be
+dowloaded and extracted by the Makefile from CBFlib_0.7.9_Data_Files_Input.  Do
+not download copies into the top level directory.
+<P>
 Thare are various sample Makefiles for common
 configurations.  The Makefile_LINUX and Makefile_OSX
 samples are for systems with gfortran from prior to
@@ -326,7 +341,13 @@ for your Fortan-90/95 compilers, and then
 <p>
 <b>make all</b><br />
 <b>make tests</b>
-
+<P>
+or, if space is at a premium:
+<p>
+<p>
+<b>make all</b><br />
+<b>make tests_sigs_only</b>
+<P>
 <p>
 We have included <A HREF="example.html">examples</A> of
 CBF/imgCIF files produced by CBFlib,
@@ -4564,7 +4585,7 @@ bytes each, starting at <i>array</i>.  The elements are signed if <i>elsign</i> 
 and unsigned otherwise.  cbf_set_real_3d_image, cbf_set_real_3d_image_fs and cbf_set_real_3d_image_sf
 writes the 3D image array for element number <i>element_number</i>.  The <i>array</i> 
 consists of <i>ndimfast</i>&#215;<i>ndimmid</i>&#215;<i>ndimslow</i> IEEE double or float elements of <i>elsize</i> 
-bytes each, starting at <i>array</i>. 
+bytes each, starting at <i>array</i>.
 <p>
 The _fs calls give the dimensions in a fast-to-slow order.  The calls with no suffix and the
 calls _sf calls give the dimensions in slow-to-fast order
