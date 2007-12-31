@@ -2,7 +2,7 @@
 
                                      README
 
-                Information for CBFlib 0.7.8.2, 25 December 2007
+            Information for CBFlib 0.7.9 prerelease 30 December 2007
 
                                        by
                                  Paul J. Ellis
@@ -54,25 +54,38 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
   Installation
 
    CBFLIB should be built on a disk with at least 350 megabytes of free
-   space. CBFlib_0.7.8.tar.gz is a "gzipped" tar of the code as it now
-   stands. In addition, CBFlib_0.7.8_Data_Files.tar.gz is a "gzipped tar of
-   the data files needed to test the API. Place both gzipped tars in the
-   directory that is intended to contain two new directories, named
-   CBFlib_0.7.8 (the "top-level" directory) and CBFlib_0.7.8_Data_Files.
-   Uncompress both tarballs with gunzip and unpack them with tar:
+   space, for a full installation with complete tests. Read the instructions
+   below carefully, if space is a problem.
 
-      gunzip CBFlib_0.7.8.tar.gz
-      tar xvf CBFLIB_0.7.8.tar
-      gunzip CBFlib_0.7.8_Data_Files.tar.gz
-      tar xvf CBFLIB_0.7.8_Data_Files.tar
+   CBFlib_0.7.9.tar.gz is a "gzipped" tar of the code as it now stands.
 
-   As with prior releases, to run the test programs, you will also need Paul
-   Ellis's sample MAR345 image, example.mar2300, and Chris Nielsen's sample
-   ADSC Quantum 315 image, mb_LP_1_001.img as sample data. In addition there
-   are not various insulin_pilatus6m sample data files from E. Eikenberry at
-   SLS. All these files will be extracted by the Makefile from
-   CBFlib_0.7.8_Data_Files. Do not download copies into the top level
-   directory.
+   In addition, CBFlib_0.7.9_Data_Files_Input.tar.gz (13 MB) is a "gzipped"
+   tar of the input data files needed to test the API,
+   CBFlib_0.7.9_Data_Files_Output.tar.gz (34 MB) is a "gzipped" tar of the
+   output data files needed to test the API, and, if space is at a premium,
+   CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz (1KB) is a "gzipped" tar
+   of only the MD5 signatures of the output data files needed to test the
+   API. Place the CBFlib_0.7.9.tar.gz file in the directory that is intended
+   to contain up to 4 new directories, named CBFlib_0.7.9 (the "top-level"
+   directory), CBFlib_0.7.9_Data_Files_Input and either
+   CBFlib_0.7.9_Data_Files_Output or
+   CBFlib_0.7.9_Data_Files_Output_Sigs_Only. If you have wget on your
+   machine, you only need to download the source tarball. If you do not have
+   wget, you will need to download all the tarballs into the same directory
+
+   Uncompress CBFlib_0.7.9.tar.gz with gunzip and unpack it with tar:
+
+      gunzip CBFlib_0.7.9.tar.gz
+      tar xvf CBFLIB_0.7.9.tar
+
+   To run the test programs, you will also need Paul Ellis's sample MAR345
+   image, example.mar2300, Chris Nielsen's sample ADSC Quantum 315 image,
+   mb_LP_1_001.img, and Eric Eikenberry's SLS sample Pilatus 6m image,
+   insulin_pilatus6m, as sample data. In addition there are is a PDB mmCIF
+   file, 9ins.cif, and 3 special test files testflatin.cbf,
+   testflatpackedin.cbf and testrealin.cbf. All these files will be dowloaded
+   and extracted by the Makefile from CBFlib_0.7.9_Data_Files_Input. Do not
+   download copies into the top level directory.
 
    After unpacking the archives, the top-level directory should contain a
    makefile:
@@ -83,13 +96,16 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      src/           CBFLIB source files                                       
      include/       CBFLIB header files                                       
-     m4/            CBFLIB m4 macro files (used to build .f90 files)          
-     examples/      Example program source files                              
+                                                                              
+     bin/           Executable example programs                               
      doc/           Documentation                                             
+     examples/      Example program source files                              
+     html_images/   JPEG images used in rendering the HTML files              
      lib/           Compiled CBFLIB (libcbf.a) and FCBLIB (libfcb.a)          
                   libraries                                                   
-     bin/           Executable example programs                               
-     html_images/   JPEG images used in rendering the HTML files              
+     m4/            CBFLIB m4 macro files (used to build .f90 files)          
+     mswin/         An MS Windows CodeWarrior project file                    
+     pycbf/         Jon Wright's Python bindings                              
 
    and additional Makefiles for other systems. All the makefiles are created
    from m4/Makefile.m4. The current set of Makefiles are Makefile_LINUX,
@@ -100,10 +116,19 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
       make
 
+   Once you have a properly configure Makefile, compile and test the package
+   with
+
+      make tests
+
+   or, if space is at a premium, with
+
+      make tests_sigs_only
+
    Please refer to the manual doc/CBFlib.html for more detailed information.
 
      ----------------------------------------------------------------------
 
      ----------------------------------------------------------------------
 
-   Updated 25 December 2007.  yaya at bernstein-plus-sons dot com
+   Updated 30 December 2007.  yaya at bernstein-plus-sons dot com

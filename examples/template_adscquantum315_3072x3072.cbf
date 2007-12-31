@@ -196,8 +196,8 @@ _array_structure_list.dimension
 _array_structure_list.precedence
 _array_structure_list.direction
 _array_structure_list.axis_set_id
- ARRAY1 1 3072 2 increasing ELEMENT_X
- ARRAY1 2 3072 1 increasing ELEMENT_Y
+ ARRAY1 1 3072 1 increasing ELEMENT_X
+ ARRAY1 2 3072 2 increasing ELEMENT_Y
 
 
 # category ARRAY_STRUCTURE_LIST_AXIS
@@ -218,10 +218,11 @@ _array_intensities.array_id
 _array_intensities.binary_id
 _array_intensities.linearity
 _array_intensities.gain
-_array_intensities.gain_esd
 _array_intensities.overload
 _array_intensities.undefined_value
- ARRAY1 1 linear 0.23 0.03 65000 0
+_array_intensities.pixel_slow_bin_size
+_array_intensities.pixel_fast_bin_size
+ ARRAY1 1 linear 2.45 65535 0 2 2
 
 
 # category ARRAY_STRUCTURE
@@ -232,6 +233,17 @@ _array_structure.encoding_type
 _array_structure.compression_type
 _array_structure.byte_order
  ARRAY1 "signed 32-bit integer" packed little_endian
+
+
+# category ARRAY_DATA
+
+
+loop_
+_array_element_size.array_id
+_array_element_size.index
+_array_element_size.size
+ ARRAY1 1 0.000102588
+ ARRAY1 2 0.000102588
 
 
 # category ARRAY_DATA

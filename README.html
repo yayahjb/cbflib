@@ -35,7 +35,7 @@ ALT="[CBFlib]"></A>
 <font color="#0808A0">
 <H2 ALIGN=CENTER>README</H2>
 <H3 ALIGN=CENTER>
-Information for CBFlib 0.7.8.2, 25 December 2007<BR>
+Information for CBFlib 0.7.9 prerelease 30 December 2007<BR>
 </H3>
 </font><font color="#000000">
 <CENTER>
@@ -100,31 +100,44 @@ and write CBF binary data files and imgCIF ASCII data files.
 <H3>Installation</H3>
 <P>
 CBFLIB should be built on a disk with at least 350 megabytes of free 
-space.  <A HREF="../CBFlib_0.7.8.tar.gz">CBFlib_0.7.8.tar.gz</A> is a "gzipped" 
-tar of the code as it now stands.  In addition,
-<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.8/CBFlib_0.7.8_Data_Files.tar.gz">CBFlib_0.7.8_Data_Files.tar.gz</a>
-is a "gzipped tar of the data files needed to test the API.
-Place both gzipped tars in the directory
-that is intended to contain two new directories, named 
-CBFlib_0.7.8 (the &quot;top-level&quot; directory) and
-CBFlib_0.7.8_Data_Files.
-Uncompress both tarballs with gunzip and unpack them with tar:
+space, for a full installation with complete tests.  <b>Read the
+instructions below carefully, if space is a problem.</b>
+<P>
+<A HREF="../CBFlib_0.7.9.tar.gz">CBFlib_0.7.9.tar.gz</A> is a "gzipped" 
+tar of the code as it now stands.
+<P>
+In addition,
+<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Input.tar.gz">CBFlib_0.7.9_Data_Files_Input.tar.gz</a>
+(13 MB) is a "gzipped" tar of the input data files needed to test the API,
+<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Output.tar.gz">CBFlib_0.7.9_Data_Files_Output.tar.gz</a>
+(34 MB) is a "gzipped" tar of the output data files needed to test the API, and, if space is at a premium,
+<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz">CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz</a>
+(1KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
+
+Place the CBFlib_0.7.9.tar.gz file in the directory
+that is intended to contain up to 4 new directories, named 
+CBFlib_0.7.9 (the &quot;top-level&quot; directory),
+CBFlib_0.7.9_Data_Files_Input and either CBFlib_0.7.9_Data_Files_Output or CBFlib_0.7.9_Data_Files_Output_Sigs_Only.
+If you have wget on your machine, you only need to download the source tarball.  If you do not have wget,
+you will need to download all the tarballs into the same directory
+<p>
+Uncompress CBFlib_0.7.9.tar.gz with gunzip and unpack it with tar:
 <p>
 <PRE>
-     gunzip CBFlib_0.7.8.tar.gz
-     tar xvf CBFLIB_0.7.8.tar
-     gunzip CBFlib_0.7.8_Data_Files.tar.gz
-     tar xvf CBFLIB_0.7.8_Data_Files.tar
+     gunzip CBFlib_0.7.9.tar.gz
+     tar xvf CBFLIB_0.7.9.tar
 </PRE>
 <p>
-As with prior releases, to run the test programs, you will also need 
+To run the test programs, you will also need 
 Paul Ellis's sample MAR345 image,
-example.mar2300, and
+example.mar2300,
 Chris Nielsen's sample ADSC Quantum 315 image, 
-mb_LP_1_001.img as sample data.  In addition there are
-not various insulin_pilatus6m sample data files from
-E. Eikenberry at SLS.  All these files will be
-extracted by the Makefile from CBFlib_0.7.8_Data_Files.  Do
+mb_LP_1_001.img, and Eric Eikenberry's SLS sample Pilatus 6m image,
+insulin_pilatus6m, as sample data.  In addition there are
+is a PDB mmCIF file, 9ins.cif, and 3 special test files
+testflatin.cbf, testflatpackedin.cbf and testrealin.cbf.
+ All these files will be
+dowloaded and extracted by the Makefile from CBFlib_0.7.9_Data_Files_Input.  Do
 not download copies into the top level directory.
 <P>
 After unpacking the archives, the top-level directory should contain
@@ -139,12 +152,15 @@ and the subdirectories:
 <TABLE ALIGN=CENTER>
 <TR><TD>&nbsp;&nbsp;src/<TD>&nbsp;&nbsp;CBFLIB source files
 <TR><TD>&nbsp;&nbsp;include/<TD>&nbsp;&nbsp;CBFLIB header files
-<TR><TD>&nbsp;&nbsp;m4/<TD>&nbsp;&nbsp;CBFLIB m4 macro files (used to build .f90 files)
-<TR><TD>&nbsp;&nbsp;examples/<TD>&nbsp;&nbsp;Example program source files
-<TR><TD>&nbsp;&nbsp;doc/<TD>&nbsp;&nbsp;Documentation
-<TR><TD>&nbsp;&nbsp;lib/<TD>&nbsp;&nbsp;Compiled CBFLIB (libcbf.a) and FCBLIB (libfcb.a) libraries 
+<TR><TD>&nbsp;&nbsp;<TD>&nbsp;&nbsp;
 <TR><TD>&nbsp;&nbsp;bin/<TD>&nbsp;&nbsp;Executable example programs
+<TR><TD>&nbsp;&nbsp;doc/<TD>&nbsp;&nbsp;Documentation
+<TR><TD>&nbsp;&nbsp;examples/<TD>&nbsp;&nbsp;Example program source files
 <TR><TD>&nbsp;&nbsp;html_images/<TD>&nbsp;&nbsp;JPEG images used in rendering the HTML files
+<TR><TD>&nbsp;&nbsp;lib/<TD>&nbsp;&nbsp;Compiled CBFLIB (libcbf.a) and FCBLIB (libfcb.a) libraries 
+<TR><TD>&nbsp;&nbsp;m4/<TD>&nbsp;&nbsp;CBFLIB m4 macro files (used to build .f90 files)
+<TR><TD>&nbsp;&nbsp;mswin/<TD>&nbsp;&nbsp;An MS Windows CodeWarrior project file
+<TR><TD>&nbsp;&nbsp;pycbf/<TD>&nbsp;&nbsp;Jon Wright's Python bindings
 </TABLE>
 <p>
 <p>and additional Makefiles for other systems.  All the makefiles are created from
@@ -159,12 +175,26 @@ the top-level directory and type:
 <PRE>
      make
 </PRE>
+<p>
+Once you have a properly configure Makefile, compile and test the package
+with
+<p>
+<PRE>
+     make tests
+</PRE>
+<p>
+or, if space is at a premium, with
+<PRE>
+     make tests_sigs_only
+</PRE>
+  
+
   
 <P>
 Please refer to the manual <a HREF="doc/CBFlib.html">doc/CBFlib.html</a>
 for more detailed information.<HR>
 <HR>
-Updated 25 December 2007.  
+Updated 30 December 2007.  
 <script language="javascript" type="text/javascript">
 <!-- 
       var name = "yaya";

@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_lex -- lexical scanner for CBF tokens                          *
  *                                                                    *
- * Version 0.7.8.2 25 December 2007                                   *
+ * Version 0.7.9 30 December 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *

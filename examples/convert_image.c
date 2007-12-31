@@ -1,7 +1,7 @@
 /**********************************************************************
  * convert_image -- convert an image file to a cbf file               *
  *                                                                    *
- * Version 0.7.8.2 25 December 2007                                   *
+ * Version 0.7.9 30 December 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -233,7 +233,7 @@
  *  convert_image [-i input_img] [-o output_cbf] [-p template_cbf]\   *
  *    [-d detector name]  -m [x|y|x=y] [-z distance]              \   *
  *    [-c category_alias=category_root]*                          \   *
- *    [-t tag_alias=tag_root]* [-F] [-R]                          \   *
+ *    [-t tag_alias=tag_root]* [-F] [-R] [-S ]                    \   *
  *    [input_img] [output_cbf]                                        *
  *                                                                    *
  *  the options are:                                                  *
@@ -274,6 +274,11 @@
  *  -R                                                                *
  *    if setting a beam center, set reference values of               *
  *    axis settings as well as standard settings                      *
+ *                                                                    *
+ *  -S                                                                *
+ *    when generating a copy of the img header in the .details field, *
+ *    insert a space in front and before and after the equals sign    *
+ *    for compatability with older versions of convert_image          *
  *                                                                    *
  *  -z distance                                                       *
  *    detector distance along Z-axis                                  *
@@ -385,7 +390,7 @@ int outusage ( void ) {
  fprintf(stderr,"  convert_image [-i input_img] [-o output_cbf] [-p template_cbf]\\\n");
  fprintf(stderr,"    [-d detector name] -m [x|y|x=y] [-z distance] \\\n");
  fprintf(stderr,"    [-c category_alias=category_root]* \\\n");
- fprintf(stderr,"    [-t tag_alias=tag_root]* [-F] [-R]\\\n");
+ fprintf(stderr,"    [-t tag_alias=tag_root]* [-F] [-R] [-S]\\\n");
  fprintf(stderr,"    [input_img] [output_cbf]\n");
 
  fprintf(stderr,"  the options are:\n");
@@ -423,9 +428,15 @@ int outusage ( void ) {
  fprintf(stderr,"    rotate the array n times 90 degrees counter clockwise\n");
  fprintf(stderr,"    x -> y, y -> -x for each rotation, n = 1, 2 or 3\n");
 
- fprintf(stderr,"  -R \n");
+ fprintf(stderr,"  -R\n");
  fprintf(stderr,"    if setting a beam center, set reference values of\n");
  fprintf(stderr,"    axis settings as well as standard settings\n");
+ 
+ fprintf(stderr,"  -S\n");
+ fprintf(stderr,"    when generating a copy of the img header in the .details field,\n");
+ fprintf(stderr,"    insert a space in front and before and after the equals sign\n");
+ fprintf(stderr,"    for compatability with older versions of convert_image\n");
+
 
  fprintf(stderr,"  -z distance\n");
  fprintf(stderr,"    detector distance along Z-axis.\n");
@@ -524,6 +535,7 @@ int main (int argc, char *argv [])
   int transpose;
   int fastlen, slowlen;
   int flat;
+  int sequal;
 
     /* Usage */
 
@@ -535,10 +547,11 @@ int main (int argc, char *argv [])
   distancestr = NULL;
   dorefs = 0;
   flat = 0;
+  sequal = 0;
   
   cbf_failnez (cbf_make_handle (&cbf))
 
-  while ((copt = getopt(argc,argv, "FRi:o:p:d:m:r:z:c:t:")) != EOF) {
+  while ((copt = getopt(argc,argv, "FRSi:o:p:d:m:r:z:c:t:")) != EOF) {
 
     switch(copt) {
       case 'i':
@@ -581,6 +594,12 @@ int main (int argc, char *argv [])
       case 'R':
          dorefs = 1;
          break;
+
+      case 'S':
+         if (sequal) errflg++;
+         sequal = 1;
+         break;
+
 
       case 'd':
          if (detector_opt) errflg++;
@@ -734,17 +753,13 @@ int main (int argc, char *argv [])
   {
       if (tag && data) {
 
-      /* fprintf (stderr, " %s = %s;\n", tag, data); */
-
-      header_info_size += (strlen(tag) + strlen(data)+6);
+      header_info_size += (strlen(tag) + strlen(data)+4+sequal*3);
 
       } else {
 
       if (tag && !data) {
 
-        /* fprintf (stderr, " %s;\n", tag); */
-
-        header_info_size += (strlen(tag) +3);
+        header_info_size += (strlen(tag) +2+sequal);
 
       }
 
@@ -760,18 +775,39 @@ int main (int argc, char *argv [])
   for (index = 0; !img_get_next_field(img,(const char **) &tag, (const char **) &data, &index);)
   {
       if (tag && data) {
+      
+        if (sequal)  {
 
       sprintf (header_info+header_info_size, "\n %s = %s;", tag, data);
 
       header_info_size += (strlen(tag) + strlen(data)+6);
+      	
+        } else {
+
+          sprintf (header_info+header_info_size, "\n%s=%s;", tag, data);
+
+          header_info_size += (strlen(tag) + strlen(data)+3);
+        	
+        }
+
 
       } else {
 
       if (tag && !data) {
 
+        if (sequal)  {
+
         sprintf (header_info+header_info_size, " %s;\n", tag);
 
         header_info_size += (strlen(tag) +3);
+
+        } else {
+
+          sprintf (header_info+header_info_size, "%s;\n", tag);
+
+          header_info_size += (strlen(tag) +2);
+        	
+        }
 
       }
 
@@ -1234,7 +1270,7 @@ int main (int argc, char *argv [])
   {
       const char *id;
 
-      double d [4];
+      /* double d [4]; */
 
       /* int i [4]; */
 
@@ -1438,19 +1474,19 @@ int main (int argc, char *argv [])
 
   /* Construct a detector positioner */
 
-     cbf_failnez(cbf_construct_detector (cbf, &detector, 0));
+    /* cbf_failnez(cbf_construct_detector (cbf, &detector, 0)); */
 
 
   /* Get the beam center */
 
-     cbf_get_beam_center (detector, &d [0], &d [1], &d [2], &d [3]); 
+     /* cbf_get_beam_center (detector, &d [0], &d [1], &d [2], &d [3]); 
 
-      fprintf(stderr," convert_image: beam center:  %g %g %g %g\n", d[0], d[1], d[2], d[3]);
+      fprintf(stderr," convert_image: beam center:  %g %g %g %g\n", d[0], d[1], d[2], d[3]); */
 
 
   /* Get the detector distance */
 
-      cbf_get_detector_distance (detector, &d [0]);
+     /*  cbf_get_detector_distance (detector, &d [0]);       */
      /* fprintf(stdout, " detector distance: %-15g\n",d[0]); */
 
   /* Get the detector normal */
@@ -1460,21 +1496,21 @@ int main (int argc, char *argv [])
 
   /* Calcluate the coordinates of a pixel */
 
-     cbf_get_pixel_coordinates (detector, 1, 3, &d [0], &d [1], &d [2]);
+     /* cbf_get_pixel_coordinates (detector, 1, 3, &d [0], &d [1], &d [2]); */
 
 
   /* Calcluate the area of a pixel */
 
-    cbf_get_pixel_area (detector, 1, 3, &d [0], &d [1]);
+    /* cbf_get_pixel_area (detector, 1, 3, &d [0], &d [1]);
     fprintf(stdout, " Pixel area, projected area at pixel(3,1): %-15g, %-15g\n",d[0], d[1]);
 
     cbf_get_pixel_area_fs(detector, 12, 25, &d [0], &d [1]);
-    fprintf(stdout, " Pixel area, projected area at  pixel(12,25): %-15g, %-15g\n",d[0], d[1]);
+    fprintf(stdout, " Pixel area, projected area at  pixel(12,25): %-15g, %-15g\n",d[0], d[1]); */
 
 
   /* Calculate the dimensions of a pixel */
 
-    cbf_failnez (cbf_get_inferred_pixel_size (detector, 1, &d [0]))
+    /* cbf_failnez (cbf_get_inferred_pixel_size (detector, 1, &d [0]))
     cbf_failnez (cbf_get_inferred_pixel_size (detector, 2, &d [1]))
 
     fprintf(stdout, " Template detector size: %-15g x %-15g \n", d[0], d[1]);
@@ -1498,7 +1534,7 @@ int main (int argc, char *argv [])
     cbf_failnez (cbf_get_pixel_size_sf(cbf, 0, 1, &d [2]))
     cbf_failnez (cbf_get_pixel_size_sf(cbf, 0, 2, &d [3]))
 
-    fprintf(stdout, " Array element size (sf):  %-15g x %-15g \n", d[2], d[3]);
+    fprintf(stdout, " Array element size (sf):  %-15g x %-15g \n", d[2], d[3]); */
 
   /* Get the bin sizes */
   
@@ -1512,12 +1548,12 @@ int main (int argc, char *argv [])
 
   /* Free a detector */
 
-    cbf_free_detector (detector);
+    /* cbf_free_detector (detector); */
 
 
   /* Free a goniometer */
 
-    cbf_free_goniometer (goniometer);
+    /* cbf_free_goniometer (goniometer);*/
     }
 
 
