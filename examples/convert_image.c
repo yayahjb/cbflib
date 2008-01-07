@@ -1573,7 +1573,7 @@ int main (int argc, char *argv [])
     exit (1);
   }
 
-  cbf_failnez (cbf_write_file (cbf, out, 1, CBF,
+  cbf_failnez (cbf_write_file (cbf, out, (cbfout && strcmp(cbfout,"-"))?1:0, CBF,
                                MSG_DIGEST | MIME_HEADERS, 0))
 
 
