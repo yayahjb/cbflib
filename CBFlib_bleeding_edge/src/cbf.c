@@ -3414,7 +3414,7 @@ int cbf_set_doublevalue (cbf_handle handle, const char *format, double number)
 {
   char value [64];
 
-  int lopos, hipos;
+  int lopos, hipos, ic;
 
 
     /* Write the value */
@@ -3428,6 +3428,11 @@ int cbf_set_doublevalue (cbf_handle handle, const char *format, double number)
   for (hipos=strlen(value+lopos); hipos>0&&(value[lopos+hipos-1]==' '||value[lopos+hipos-1]=='\t'); hipos--);
 
   *(value+lopos+hipos) = '\0';
+  
+    /* undo locale conversions of '.' to ',' */
+    
+  for (ic = 0; ic < strlen(value+lopos); ic++)
+    if (value[lopos+ic] == ',') value[lopos+ic] = '.';
 
 
     /* Save it */
