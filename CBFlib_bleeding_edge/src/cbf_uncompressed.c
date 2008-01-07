@@ -330,10 +330,6 @@ int cbf_compress_none (void         *source,
    numints = (bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
 
 
-    /* Initialise the pointer */
-
-  unsigned_char_data = (unsigned char *) source;
-
     /* Maximum limits */
 
   sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);

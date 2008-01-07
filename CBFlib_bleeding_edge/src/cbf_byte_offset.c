@@ -337,10 +337,6 @@ int cbf_compress_byte_offset (void         *source,
    numints = (bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
 
 
-    /* Initialise the pointer */
-
-  unsigned_char_data = (unsigned char *) source;
-
     /* Maximum limits */
 
   sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
@@ -475,7 +471,50 @@ int cbf_compress_byte_offset (void         *source,
   	       
   	     }
   	     
-  	     for (count = 0; count < nelem; count++) {
+
+  	     for (count = 0; 3*count < 2*nelem; count++) {
+  	       
+  	       dint = sint[count] - pint;
+           
+           pint = sint[count];
+  	         
+  	       if (dint <= 127 && dint >= -127)  {
+  	         
+  	         *unsigned_char_dest++ = (unsigned char)dint;
+  	           
+  	         csize ++;
+  	         	
+  	       } else {
+  	           	           
+  	         *unsigned_char_dest++ = 0x80;
+
+  	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte0];
+  	             
+  	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte1];
+  	         
+  	         csize += 3;
+
+  	       }
+  	       
+  	     }
+  	     
+         /* At this point nelem-count elements remain and
+            file->characters_size-(csize+file->characters_used)
+            characters remain in the buffer */
+
+         if (elsize*(nelem-count) > file->characters_size-(csize+file->characters_used)) {
+         	
+         	if (compression&CBF_NO_EXPAND) break;
+
+  	        if (cbf_set_output_buffersize(file,1024+(nelem*elsize*3)/2)) break;
+  	             
+  	        unsigned_char_dest = 
+  	             
+  	          (unsigned char *)(file->characters+file->characters_used+csize);
+
+         }
+
+  	     for (; count < nelem; count++) {
   	       
   	       dint = sint[count] - pint;
            
@@ -489,11 +528,15 @@ int cbf_compress_byte_offset (void         *source,
   	         	
   	       } else {
   	         
-  	         if (csize > nelem*elsize-3) {
+  	         if (csize > nelem*elsize-3 ) {
   	           
   	           if (compression&CBF_NO_EXPAND) return CBF_NOCOMPRESSION;
   	               	             
-  	           if (cbf_set_output_buffersize(file,nelem*elsize*2-csize)) break;
+  	         }
+  	         
+  	         if (elsize*(nelem-count) > file->characters_size-(csize+file->characters_used)) {
+  	               	             
+  	           if (cbf_set_output_buffersize(file,1024+nelem*elsize*2)) break;
   	             
   	           unsigned_char_dest = 
   	             
@@ -588,7 +631,74 @@ int cbf_compress_byte_offset (void         *source,
   	     	
   	     }
   	     
-  	     for (count = 0; count < nelem; count++) {
+  	     
+  	     for (count = 0; 7*count < 4*nelem; count++) {
+  	       
+  	       dint = oint[count] - pint;
+           
+           pint = oint[count];
+  	         
+  	       if (dint <= 127 && dint >= -127)  {
+  	         
+  	         *unsigned_char_dest++ = (unsigned char)dint;
+  	           
+  	         csize ++;
+  	         
+
+  	         
+  	       } else if (dint <= 32767 && dint >= -32767) {
+  	       
+  	         *unsigned_char_dest++ = 0x80;
+  	         
+  	         sint = dint;
+  	         
+  	         *unsigned_char_dest++ = ((unsigned char *)&sint)[sbyte0];
+  	             
+  	         *unsigned_char_dest++ = ((unsigned char *)&sint)[sbyte1];
+  	         
+  	         csize += 3;
+  	         
+  	       } else {
+  	           	           
+  	         *unsigned_char_dest++ = 0x80;
+  	         
+  	         *unsigned_char_dest++ = fixup0;
+  	         
+  	         *unsigned_char_dest++ = fixup1;
+
+  	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte0];
+  	             
+  	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte1];
+  	         
+  	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte2];
+  	             
+  	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte3];
+
+  	         csize +=7;
+  	               	         	
+  	     	
+  	     }
+  	     
+  	     } 
+
+         /* At this point nelem-count elements remain and
+            file->characters_size-(csize+file->characters_used)
+            characters remain in the buffer */
+
+         if (elsize*(nelem-count) > file->characters_size-(csize+file->characters_used)) {
+         	
+         	if (compression&CBF_NO_EXPAND) break;
+
+  	        if (cbf_set_output_buffersize(file,1024+(nelem*elsize*7)/4)) break;
+  	             
+  	        unsigned_char_dest = 
+  	             
+  	          (unsigned char *)(file->characters+file->characters_used+csize);
+
+         }
+  	     
+  	     
+  	     for (; count < nelem; count++) {
   	       
   	       dint = oint[count] - pint;
            
@@ -616,11 +726,15 @@ int cbf_compress_byte_offset (void         *source,
   	         
   	       } else {
   	         
-  	         if (csize > nelem*elsize-7) {
+  	         if (csize > nelem*elsize-7 ) {
   	           
   	           if (compression&CBF_NO_EXPAND) return CBF_NOCOMPRESSION;
   	               	             
-  	           if (cbf_set_output_buffersize(file,nelem*elsize*2-csize)) break;
+  	         }
+  	         
+  	         if (elsize*(nelem-count) > file->characters_size-(csize+file->characters_used)) {
+  	               	             
+  	           if (cbf_set_output_buffersize(file,1024+nelem*elsize*2)) break;
   	             
   	           unsigned_char_dest = 
   	             

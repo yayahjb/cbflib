@@ -1292,6 +1292,8 @@ int cbf_compress_packed (void         *source,
   {
       /* Get the next element */
       
+    trail_char_data[0] = unsigned_char_data;
+
     if (numints > 1 ) {
     
       if (border[0] == 'b') {
@@ -1330,11 +1332,11 @@ int cbf_compress_packed (void         *source,
       else
 
         element[0] = *unsigned_char_data;
+
+      unsigned_char_data += elsize;
+
     }
         
-    trail_char_data[0] = unsigned_char_data;
-
-    unsigned_char_data += elsize;
 
       /* Make the element unsigned */
 
