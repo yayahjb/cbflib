@@ -795,7 +795,7 @@ int cbf_isBigEndian()
 {
 	long tmp = 1;
 	
-	return !((char *)(&tmp));
+	return !(*(char *)(&tmp));
 }
 
 void cbf_endianFix(char *str, size_t size, int fromEndian, int toEndian)
