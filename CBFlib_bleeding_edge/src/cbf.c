@@ -3367,6 +3367,10 @@ int cbf_get_doublevalue (cbf_handle handle, double *number)
 {
   const char *value;
 
+  char buffer[80];
+  
+  char *endptr;
+
 
     /* Get the value */
 
@@ -3379,10 +3383,33 @@ int cbf_get_doublevalue (cbf_handle handle, double *number)
 
     return CBF_NOTFOUND;
 
-  if (number)
+  if (number) {
+  
+    *number = strtod(value,&endptr);
+    
+    if (!*endptr) return 0;
+    
+    strncpy(buffer,value,79);
+    
+    buffer[79] = '\0';
+    
+    if (*endptr == '.') *(buffer+(endptr-value)) = ',';
+    
+    if (!cbf_cistrncmp(buffer,",",80) || !cbf_cistrncmp(buffer,"?",80)) {
+    
+      *number = 0;
+      
+      return 0;
+    	
+    }
+    
+    *number = strtod(buffer,&endptr);
 
-    *number = atof (value);
-
+    if (!*endptr || *endptr==' ') return 0;
+    
+    return CBF_FORMAT;
+  	
+  }
 
     /* Success */
 

@@ -623,14 +623,12 @@ Makefile: $(M4)/Makefile.m4
 		-cp Makefile Makefile_old
 		m4 -P -Dcbf_system=default $(M4)/Makefile.m4 > Makefile 
 
-
-
 symlinksdone:
 	./.symlinks $(SLFLAGS)
 	touch symlinksdone
 
-
-install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin $(INSTALLDIR)/include
+install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
+		    $(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib
 		-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
 		cp $(LIB)/libcbf.a $(INSTALLDIR)/lib/libcbf.a
 		-cp $(INSTALLDIR)/lib/libimg.a $(INSTALLDIR)/lib/libimg_old.a
@@ -655,10 +653,10 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin $(INSTALLDIR)/in
 		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
 		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
-		-cp $(INSTALLDIR)/include/cbf.h $(INSTALLDIR)/include/cbf_old.h
-		cp $(INCLUDE)/cbf.h $(INSTALLDIR)/include/cbf.h
-		-cp $(INSTALLDIR)/include/cbf_simple.h $(INSTALLDIR)/include/cbf_simple_old.h
-		cp $(INCLUDE)/cbf_simple.h $(INSTALLDIR)/include/cbf_simple.h
+		-rm -rf $(INSTALLDIR)/include/cbflib_old
+		-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
+		-rm -rf $(INSTALLDIR)/include/cbflib
+		cp -r $(INCLUDE) $(INSTALLDIR)/include/cbflib
 		chmod 644 $(INSTALLDIR)/lib/libcbf.a
 		chmod 755 $(INSTALLDIR)/bin/convert_image
 		chmod 755 $(INSTALLDIR)/bin/convert_minicbf
@@ -669,8 +667,7 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin $(INSTALLDIR)/in
 		chmod 755 $(INSTALLDIR)/bin/testreals
 		chmod 755 $(INSTALLDIR)/bin/testflat
 		chmod 755 $(INSTALLDIR)/bin/testflatpacked
-		chmod 644 $(INSTALLDIR)/include/cbf.h
-		chmod 644 $(INSTALLDIR)/include/cbf_simple.h
+		chmod -R 644 $(INSTALLDIR)/include/cbflib
 		
 		
 #
@@ -729,6 +726,10 @@ $(INSTALLDIR)/bin:  $(INSTALLDIR)
 
 $(INSTALLDIR)/include:  $(INSTALLDIR)
 	mkdir -p $(INSTALLDIR)/include
+	
+$(INSTALLDIR)/include/cbflib: $(INSTALLDIR)/include
+	mkdir -p $(INSTALLDIR)/include/cbflib
+
 
 
 $(LIB):

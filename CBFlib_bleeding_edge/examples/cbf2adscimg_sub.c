@@ -218,8 +218,8 @@ void padhd (char* header, int size)
  * End this field with a ; and new line
  * and mark the end of the header with a }
  */
-  *hp++ = ''; /* ASA 7/2/96 */
-  *hp++ = 10;
+  *hp++ = 0x0c; /* ASA 7/2/96, redone as hex HJB 1/22/2008 */
+  /* *hp++ = 10;*/
 
 /*
  * Make the header a multiple of "size" by padding with spaces
@@ -349,7 +349,14 @@ int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
 				}
 				else
 				{
-					hpequal = strstr(hp, "=");
+					if (NULL == (hpequal = strstr(hp, "=")))
+				    {
+					  fprintf(stderr,"cbf2adscimg_sub:  HEADER_BYTES value not found in item diffrn_data_frame.details\n");
+					fprintf(stderr,"\tIt is assumed this item contains the original SMV image header.\n");
+					fprintf(stderr,"\tTry to reconstruct an SMV header from the CBF header items.\n");
+				}
+				else
+				{
 					sscanf(hpequal + 1, "%d", &header_length);
 					if(0)
 						fprintf(stdout,"header length decoded as: %d\n", header_length);
@@ -361,20 +368,31 @@ int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
 					}
 					clrhd(char_header);
 
-					hp = strstr(smv_header , ";");
-					hp += 2;
+					  hp = strstr(hpequal , ";");
 					hpe = ((char *) smv_header) + strlen(smv_header);
+					  while (hp && hp <= hpe && *hp && *hp != '\n' && *hp != '\r') hp++;
+					  if (hp && *hp == '\n') hp++;
 
 					while(hp <= hpe && '\0' != *hp )
 					{
+					    int tokencnt, tokenstate;
 						fps = hp;
+						while (fps <= hpe && (isspace(*fps)||*fps=='#')) fps++;
 						fpe = strstr(hp, "=");
 						fpe--;
 						vps = fpe + 2;
 						vpe = strstr(hp, ";");
 						vpe--;
-						for(i = 0, cp = fps; cp <= fpe; )
+						for(i = tokencnt = tokenstate = 0, cp = fps; cp <= fpe; ) {
+						    if (isspace(*cp)) {
+						      tokenstate = 1;
+						    } else {
+						      if (tokenstate) tokencnt++;
+						      tokenstate = 0;
+						    }
 							field[i++] = *cp++;
+					    }
+					    if (tokencnt > 0) break;
 						field[i] = '\0';
 						for(i = 0, cp = vps; cp <= vpe; )
 							value[i++] = *cp++;
@@ -387,9 +405,11 @@ int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
 						fprintf(stdout,"Reconstructed header:\n%s\n", char_header);
 					make_smv_header_from_cbf = 0;
 					*header = char_header;
+					
 				}
 			}
 		}
+	}
 	}
 
  
@@ -526,15 +546,15 @@ int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
 
 	if(NULL == (uint_data = (unsigned int *) malloc(dimension[0] * dimension[1] * sizeof (unsigned int))))
 	{
-		fprintf(stderr, "cbfhandle2img: Error allocating %d bytes of memory for integer data image\n", 
-				dimension[0] * dimension[1] * sizeof (unsigned int));
+		fprintf(stderr, "cbfhandle2img: Error allocating %lu bytes of memory for integer data image\n", 
+				(unsigned long)dimension[0] * dimension[1] * sizeof (unsigned int));
 		return(1);
 	}
 
 	if(NULL == (ushort_data = (unsigned short *) malloc(dimension[0] * dimension[1] * sizeof (unsigned short))))
 	{
-		fprintf(stderr, "cbfhandle2img: Error allocating %d bytes of memory for unsigned short data image\n", 
-				dimension[0] * dimension[1] * sizeof (unsigned short));
+		fprintf(stderr, "cbfhandle2img: Error allocating %lu bytes of memory for unsigned short data image\n", 
+				(unsigned long)dimension[0] * dimension[1] * sizeof (unsigned short));
 		return(1);
 	}
 
