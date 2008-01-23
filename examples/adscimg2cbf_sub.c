@@ -1298,7 +1298,7 @@ int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int 
 
     /* Make the _diffrn_frame_data category */  
 
-  cbf_failnez (cbf_new_category     (cbf, "diffrn_frame_data"))
+  cbf_failnez (cbf_new_category     (cbf, "diffrn_data_frame"))
   cbf_failnez (cbf_new_column       (cbf, "id"))
   cbf_failnez (cbf_set_value        (cbf, "frame_1"))
   cbf_failnez (cbf_new_column       (cbf, "detector_element_id"))

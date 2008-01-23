@@ -930,7 +930,8 @@ int cbf_write_category (cbf_handle handle, const cbf_node *category, cbf_file *f
         /* Write the values */
 
       for (row = 0; row < category->child [first]->children; row++)
-      {
+      { unsigned int xcol;
+      
         for (column = first; column < last; column++) {
 
           if (!loop) {
@@ -968,9 +969,9 @@ int cbf_write_category (cbf_handle handle, const cbf_node *category, cbf_file *f
           }
         }
 
-        cbf_failnez (cbf_get_filecoordinates (file, NULL, &column))
+        cbf_failnez (cbf_get_filecoordinates (file, NULL, &xcol))
 
-        if (column)
+        if (xcol)
 
           cbf_failnez (cbf_write_character (file, '\n'))
       }

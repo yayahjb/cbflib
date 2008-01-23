@@ -671,6 +671,8 @@ all:	$(LIB) $(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) symlinksdone \
 		$(LIB)/libcbf.a          \
 		$(LIB)/libfcb.a          \
 		$(LIB)/libimg.a          \
+		$(BIN)/adscimg2cbf       \
+		$(BIN)/cbf2adscimg       \
         $(BIN)/convert_image     \
         $(BIN)/convert_minicbf   \
         $(BIN)/makecbf           \
@@ -721,18 +723,20 @@ Makefile: $(M4)/Makefile.m4
 		-cp Makefile Makefile_old
 		m4 -P -Dcbf_system=default $(M4)/Makefile.m4 > Makefile 
 
-
-
 symlinksdone:
 	./.symlinks $(SLFLAGS)
 	touch symlinksdone
 
-
-install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin $(INSTALLDIR)/include
+install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
+		    $(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib
 		-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
 		cp $(LIB)/libcbf.a $(INSTALLDIR)/lib/libcbf.a
 		-cp $(INSTALLDIR)/lib/libimg.a $(INSTALLDIR)/lib/libimg_old.a
 		cp $(LIB)/libimg.a $(INSTALLDIR)/lib/libimg.a
+		-cp $(INSTALLDIR)/bin/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf_old
+		cp $(BIN)/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf
+		-cp $(INSTALLDIR)/bin/cbf2adscimg $(INSTALLDIR)/bin/cbf2adscimg_old
+		cp $(BIN)/cbf2adscimg $(INSTALLDIR)/bin/cbf2adscimg
 		-cp $(INSTALLDIR)/bin/convert_image $(INSTALLDIR)/bin/convert_image_old
 		cp $(BIN)/convert_image $(INSTALLDIR)/bin/convert_image
 		-cp $(INSTALLDIR)/bin/convert_minicbf $(INSTALLDIR)/bin/convert_minicbf_old
@@ -753,10 +757,10 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin $(INSTALLDIR)/in
 		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
 		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
-		-cp $(INSTALLDIR)/include/cbf.h $(INSTALLDIR)/include/cbf_old.h
-		cp $(INCLUDE)/cbf.h $(INSTALLDIR)/include/cbf.h
-		-cp $(INSTALLDIR)/include/cbf_simple.h $(INSTALLDIR)/include/cbf_simple_old.h
-		cp $(INCLUDE)/cbf_simple.h $(INSTALLDIR)/include/cbf_simple.h
+		-rm -rf $(INSTALLDIR)/include/cbflib_old
+		-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
+		-rm -rf $(INSTALLDIR)/include/cbflib
+		cp -r $(INCLUDE) $(INSTALLDIR)/include/cbflib
 		chmod 644 $(INSTALLDIR)/lib/libcbf.a
 		chmod 755 $(INSTALLDIR)/bin/convert_image
 		chmod 755 $(INSTALLDIR)/bin/convert_minicbf
@@ -767,8 +771,7 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin $(INSTALLDIR)/in
 		chmod 755 $(INSTALLDIR)/bin/testreals
 		chmod 755 $(INSTALLDIR)/bin/testflat
 		chmod 755 $(INSTALLDIR)/bin/testflatpacked
-		chmod 644 $(INSTALLDIR)/include/cbf.h
-		chmod 644 $(INSTALLDIR)/include/cbf_simple.h
+		chmod -R 644 $(INSTALLDIR)/include/cbflib
 		
 		
 #
@@ -827,6 +830,10 @@ $(INSTALLDIR)/bin:  $(INSTALLDIR)
 
 $(INSTALLDIR)/include:  $(INSTALLDIR)
 	mkdir -p $(INSTALLDIR)/include
+
+$(INSTALLDIR)/include/cbflib: $(INSTALLDIR)/include
+	mkdir -p $(INSTALLDIR)/include/cbflib
+
 
 
 $(LIB):
@@ -940,6 +947,14 @@ $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c
 	$(CC) $(CFLAGS) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
               $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c  -L$(LIB) \
+		  -lcbf -lm -o $@
+
+#
+# cbf2adscimg example program
+#
+$(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c
+	$(CC) $(CFLAGS) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
+		      $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c  -L$(LIB) \
 	      -lcbf -lm -o $@
 
 #
@@ -1322,6 +1337,8 @@ empty:
 	@-rm -f  $(PYCBF)/build/*/pycbf_wrap.o
 	@-rm -f  $(LIB)/getopt.o
 	@-rm -f  $(INCLUDE)/getopt.h
+	@-rm -f  $(BIN)/adscimg2cbf
+	@-rm -f  $(BIN)/cbf2adscimg
 	@-rm -f  $(BIN)/makecbf
 	@-rm -f  $(BIN)/img2cif
 	@-rm -f  $(BIN)/cif2cbf
