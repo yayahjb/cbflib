@@ -32,8 +32,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <B>An API for CBF/imgCIF<BR>
 Crystallographic Binary Files with ASCII Support</B><BR>
-Version 0.7.8.2<BR>
-25 December 2007<BR>
+Version 0.7.9<BR>
+24 January 2008<BR>
 <P>
 </CENTER>
 </font><font color="#000000">
@@ -58,7 +58,7 @@ Bernstein + Sons<BR>
 yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 </noscript>
 <p>
-&#169; Copyright 2006, 2007 Herbert J. Bernstein
+&#169; Copyright 2006, 2007, 2008 Herbert J. Bernstein
 <P>
 <hr>
 <b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=gpl.txt>GPL</a>.
@@ -257,14 +257,73 @@ for recent changes.
 <TR>
 <TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.8.2">0.7.8.2</A><TD
 VALIGN=TOP>&nbsp;&nbsp;Dec 2007<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Update to 0.7.8.1 to add
+VALIGN=TOP>&nbsp;&nbsp;CN, HJB<TD>&nbsp;&nbsp;Update to 0.7.8.1 to add
 ADSC jiffie by Chris Nielsen, and to add ..._fs and ..._sf macros.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.9">0.7.9</A><TD
+VALIGN=TOP>&nbsp;&nbsp;Dec 2007<TD
+VALIGN=TOP>&nbsp;&nbsp;CN, HJB<TD>Identical to 0.7.8.2 except for
+a cleanup of deprecated examples, e.g. diffrn_frame_data
+<TR>
 
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.9.1">0.7.9.1</A><TD
+VALIGN=TOP>&nbsp;&nbsp;Jan 2008<TD
+VALIGN=TOP>&nbsp;&nbsp;CN, HJB<TD>&nbsp;&nbsp;Update to 0.7.8.2 to add
+inverse ADSC jiffie by Chris Nielsen, to clean up problems in
+handling maps for RasMol.
 
 </TABLE>
 
 <HR>
-<H3><A NAME="0.7.8.2">Release 0.7.8.2</A>, Herbert J. Bernstein, 25 December 2007</H3>
+<H3><A NAME="0.7.9.1">Release 0.7.9.1</A>, Chris Nielsen, Herbert J. Bernstein, 24 January 2008</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>.symlinks .undosymlinks
+<TD>&nbsp;&nbsp;Update version to 0.7.9
+<TR><TD VALIGN=TOP>Makefile.m4 Makefile, Makefile_AIX ...
+<TD>&nbsp;&nbsp;Update for CN's jiffies, and testing with MD5
+signatures only
+<TR><TD VALIGN=TOP>cbf2adscimg.c cbf2adscimg_sub.c
+<TD>&nbsp;&nbsp;New inverse jiffie by Chris Nielsen of ADSC to convert
+CBF files created by convert_image or adscimg2cbf to ADSC detector images.
+This version depends on the header extract planted by convert_image
+or adscimg2cbf.
+<TR><TD VALIGN=TOP>cbf_byte_offset.c
+<TD>&nbsp;&nbsp;Fix handling of byte offset compression when the data
+does not compress.
+<TR><TD VALIGN=TOP>cbf_codes.c
+<TD>&nbsp;&nbsp;Fix 32K encoding big-endian test as per Ladislav Michnovic 
+<lmichnovic at suse dot cz>.
+<TR><TD VALIGN=TOP>cbf_packed.c
+<TD>&nbsp;&nbsp;Correct mishandling of 64 bit data.
+<TR><TD VALIGN=TOP>cbf_uncompressed.c
+<TD>&nbsp;&nbsp;Remove redundant initialization of unsigned_char_data.
+<TR><TD VALIGN=TOP>cbf_write.c.c
+<TD>&nbsp;&nbsp;Fix conflicting uses of variable column by introducing
+separate variable xcol.
+<TR><TD VALIGN=TOP>README.html README
+<TD>&nbsp;&nbsp;Update to version 0.7.9 directory structure and programs.
+<TR><TD VALIGN=TOP>cbf.c
+<TD>&nbsp;&nbsp;Fix local sensitivity of cbf_get_doublevalue
+and cbf_set_doublevalue so "."  will be accepted and written as the decimal point in 
+locales that use ",".
+
+</table>
+
+<HR>
+<H3><A NAME="0.7.9">Release 0.7.9</A>, Chris Nielsen, Herbert J. Bernstein, 30 December 2007</H3>
+<P>
+<TABLE>
+<TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>Makefiles and test data
+<TD>&nbsp;&nbsp;Change test cases to avoid deprecated features.
+
+</TABLE>
+
+
+<HR>
+<H3><A NAME="0.7.8.2">Release 0.7.8.2</A>, Chris Nielsen, Herbert J. Bernstein, 25 December 2007</H3>
 <P>
 <TABLE>
 <TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
@@ -292,11 +351,11 @@ ADSC detector images to CBF.
  cbf_set_reference_beam_center, cbf_get_pixel_coordinates, 
  cbf_get_pixel_normal, cbf_get_pixel_area, cbf_get_inferred_pixel_size
 <TR><TD VALIGN=TOP>cbf_alloc.h
-<TD>&nbsp;&nbspAdd prototype of cbf_free_text.
+<TD>&nbsp;&nbsp;Add prototype of cbf_free_text.
 <TR><TD VALIGN=TOP>cbf_binary.h
-<TD>&nbsp;&nbspAdd prototype of cbf_check_digest.
+<TD>&nbsp;&nbsp;Add prototype of cbf_check_digest.
 <TR><TD VALIGN=TOP>cbf_canonical.h
-<TD>&nbsp;&nbspAdd definitions of cbf_compress_node and cbf_compress_data,
+<TD>&nbsp;&nbsp;Add definitions of cbf_compress_node and cbf_compress_data,
 and prototypes of cbf_make_compressdata, cbf_free_compressdata,
 cbf_initialise_compressdata, cbf_put_table, cbf_get_table, cbf_put_stopcode,
 cbf_insert_node, cbf_append_node, cbf_order_node, cbf_create_list,
@@ -335,7 +394,7 @@ better comments and to list all categories used by SLS.
 
 
 <HR>
-<H3><A NAME="0.7.8.1">Release 0.7.8.1</A>, Herbert J. Bernstein, 28 July 2007</H3>
+<H3><A NAME="0.7.8.1">Release 0.7.8.1</A>, Chris Nielsen, Herbert J. Bernstein, 28 July 2007</H3>
 <P>
 <TABLE>
 <TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
