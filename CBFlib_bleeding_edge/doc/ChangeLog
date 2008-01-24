@@ -2,8 +2,8 @@
 
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
-                                Version 0.7.8.2
-                                25 December 2007
+                                 Version 0.7.9
+                                24 January 2008
 
                                        by
                                  Paul J. Ellis
@@ -14,7 +14,7 @@
                                 Bernstein + Sons
                       yaya at bernstein-plus-sons dot com
 
-                 (c) Copyright 2006, 2007 Herbert J. Bernstein
+              (c) Copyright 2006, 2007, 2008 Herbert J. Bernstein
 
      ----------------------------------------------------------------------
 
@@ -191,13 +191,57 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                                        memory leaks reported by N. Sauter and 
                                        to update validation checks for recent 
                                        changes.                               
-     0.7.8.2   Dec 2007        HJB       Update to 0.7.8.1 to add ADSC jiffie 
+     0.7.8.2   Dec 2007        CN, HJB   Update to 0.7.8.1 to add ADSC jiffie 
                                        by Chris Nielsen, and to add ..._fs    
                                        and ..._sf macros.                     
+     0.7.9     Dec 2007        CN, HJB Identical to 0.7.8.2 except for a      
+                                       cleanup of deprecated examples, e.g.   
+                                       diffrn_frame_data                      
+     0.7.9.1   Jan 2008        CN, HJB   Update to 0.7.8.2 to add inverse     
+                                       ADSC jiffie by Chris Nielsen, to clean 
+                                       up problems in handling maps for       
+                                       RasMol.                                
 
      ----------------------------------------------------------------------
 
-  Release 0.7.8.2, Herbert J. Bernstein, 25 December 2007
+  Release 0.7.9.1, Chris Nielsen, Herbert J. Bernstein, 24 January 2008
+
+   Source File        Change                                                  
+   .symlinks            Update version to 0.7.9                               
+   .undosymlinks      
+   Makefile.m4          Update for CN's jiffies, and testing with MD5         
+   Makefile,          signatures only                                         
+   Makefile_AIX ...   
+   cbf2adscimg.c        New inverse jiffie by Chris Nielsen of ADSC to        
+   cbf2adscimg_sub.c  convert CBF files created by convert_image or           
+                      adscimg2cbf to ADSC detector images. This version       
+                      depends on the header extract planted by convert_image  
+                      or adscimg2cbf.                                         
+   cbf_byte_offset.c    Fix handling of byte offset compression when the data 
+                      does not compress.                                      
+   cbf_codes.c          Fix 32K encoding big-endian test as per Ladislav      
+                      Michnovic .                                             
+   cbf_packed.c         Correct mishandling of 64 bit data.                   
+   cbf_uncompressed.c   Remove redundant initialization of                    
+                      unsigned_char_data.                                     
+   cbf_write.c.c        Fix conflicting uses of variable column by            
+                      introducing separate variable xcol.                     
+   README.html README   Update to version 0.7.9 directory structure and       
+                      programs.                                               
+   cbf.c                Fix local sensitivity of cbf_get_doublevalue and      
+                      cbf_set_doublevalue so "." will be accepted and written 
+                      as the decimal point in locales that use ",".           
+
+     ----------------------------------------------------------------------
+
+  Release 0.7.9, Chris Nielsen, Herbert J. Bernstein, 30 December 2007
+
+   Source File             Change                                            
+   Makefiles and test data   Change test cases to avoid deprecated features. 
+
+     ----------------------------------------------------------------------
+
+  Release 0.7.8.2, Chris Nielsen, Herbert J. Bernstein, 25 December 2007
 
  Source File                               Change                                
  adscimg2cbf.c adscimg2cbf_sub.c             New jiffie by Chris Nielsen of ADSC 
@@ -240,10 +284,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                                            cbf_get_pixel_normal,                 
                                            cbf_get_pixel_area,                   
                                            cbf_get_inferred_pixel_size           
- cbf_alloc.h                                &nbspAdd prototype of cbf_free_text. 
- cbf_binary.h                               &nbspAdd prototype of                
-                                           cbf_check_digest.                     
- cbf_canonical.h                            &nbspAdd definitions of              
+ cbf_alloc.h                                 Add prototype of cbf_free_text.     
+ cbf_binary.h                                Add prototype of cbf_check_digest.  
+ cbf_canonical.h                             Add definitions of             
                                            cbf_compress_node and                 
                                            cbf_compress_data, and prototypes of  
                                            cbf_make_compressdata,                
@@ -290,7 +333,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-  Release 0.7.8.1, Herbert J. Bernstein, 28 July 2007
+  Release 0.7.8.1, Chris Nielsen, Herbert J. Bernstein, 28 July 2007
 
    Source File        Change                                                  
    cbf.c                Rework cbf_free_handle to ensure release of memory    
