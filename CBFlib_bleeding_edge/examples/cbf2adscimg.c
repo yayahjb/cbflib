@@ -2,6 +2,7 @@
 #include	<stdlib.h>
 #include	<string.h>
 #include	<cbf.h>
+#include	<cbf_string.h>
 
 /****************************************************************/
 
@@ -91,6 +92,7 @@ int	main(int argc, char *argv[])
 	int		status_pclose;
 	char		*header;
 	unsigned short	*data;
+	 char *    lbo; /* local byte order */   
 	static char	*endings[] = {
 					".img",
 					".img.gz",
@@ -228,6 +230,22 @@ int	main(int argc, char *argv[])
 		size2 = atoi(field);
 		
 		data_size = size1 * size2 * sizeof(unsigned short);
+
+		gethd("BYTE_ORDER", field, header);
+
+		cbf_get_local_integer_byte_order(&lbo);
+
+		if (cbf_cistrcmp(field,lbo)) {
+                  unsigned char *p;
+		  unsigned char temp;
+		  size_t ii;
+		  p = (unsigned char *)data;
+		  for (ii=0; ii<data_size; ii+=2) {
+		    temp = p[ii];
+		    p[ii] = p[ii+1];
+		    p[ii+1] = temp;
+                  }
+		}
 
 		if(data_size != fwrite(data, sizeof (char), data_size, fp))
 		{
