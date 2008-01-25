@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_uncompressed -- uncompressed binary sections                   *
  *                                                                    *
- * Version 0.7.8.2 25 December 2007                                   *
+ * Version 0.7.9   30 December 2007                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -329,10 +329,6 @@ int cbf_compress_none (void         *source,
 
    numints = (bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
 
-
-    /* Initialise the pointer */
-
-  unsigned_char_data = (unsigned char *) source;
 
     /* Maximum limits */
 

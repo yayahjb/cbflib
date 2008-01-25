@@ -123,7 +123,6 @@ int	main(int argc, char *argv[])
 
 	int		adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int pack_flags);
 
-
 	if(argc < 2)
 	{
 		usage();

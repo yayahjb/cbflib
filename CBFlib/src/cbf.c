@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf -- cbflib API functions                                        *
  *                                                                    *
- * Version 0.7.8.2 25 December 2007                                   *
+ * Version 0.7.9 30 December 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -3367,6 +3367,10 @@ int cbf_get_doublevalue (cbf_handle handle, double *number)
 {
   const char *value;
 
+  char buffer[80];
+  
+  char *endptr;
+
 
     /* Get the value */
 
@@ -3379,10 +3383,33 @@ int cbf_get_doublevalue (cbf_handle handle, double *number)
 
     return CBF_NOTFOUND;
 
-  if (number)
+  if (number) {
+  
+    *number = strtod(value,&endptr);
+    
+    if (!*endptr) return 0;
+    
+    strncpy(buffer,value,79);
+    
+    buffer[79] = '\0';
+    
+    if (*endptr == '.') *(buffer+(endptr-value)) = ',';
+    
+    if (!cbf_cistrncmp(buffer,",",80) || !cbf_cistrncmp(buffer,"?",80)) {
+    
+      *number = 0;
+      
+      return 0;
+    	
+    }
+    
+    *number = strtod(buffer,&endptr);
 
-    *number = atof (value);
-
+    if (!*endptr || *endptr==' ') return 0;
+    
+    return CBF_FORMAT;
+  	
+  }
 
     /* Success */
 
@@ -3414,7 +3441,7 @@ int cbf_set_doublevalue (cbf_handle handle, const char *format, double number)
 {
   char value [64];
 
-  int lopos, hipos;
+  int lopos, hipos, ic;
 
 
     /* Write the value */
@@ -3428,6 +3455,11 @@ int cbf_set_doublevalue (cbf_handle handle, const char *format, double number)
   for (hipos=strlen(value+lopos); hipos>0&&(value[lopos+hipos-1]==' '||value[lopos+hipos-1]=='\t'); hipos--);
 
   *(value+lopos+hipos) = '\0';
+  
+    /* undo locale conversions of '.' to ',' */
+    
+  for (ic = 0; ic < strlen(value+lopos); ic++)
+    if (value[lopos+ic] == ',') value[lopos+ic] = '.';
 
 
     /* Save it */

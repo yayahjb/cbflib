@@ -2,8 +2,8 @@
 
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
-                                Version 0.7.8.2
-                                25 December 2007
+                                Version 0.7.9.1
+                                24 January 2008
 
                                        by
                                  Paul J. Ellis
@@ -187,13 +187,20 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      0.7.8     Jul 2007        HJB       Release for full support of SLS data 
                                        files with updated convert_minicbf,    
                                        and support for gfortran from gcc 4.2. 
-     0.7.8.1   Jul 2007        HJB       Update to 0.7.8 release to fix 
+     0.7.8.1   Jul 2007        HJB       Update to 0.7.8 release to fix       
                                        memory leaks reported by N. Sauter and 
                                        to update validation checks for recent 
                                        changes.                               
-     0.7.8.2   Dec 2007        HJB and   Update to 0.7.8.1 to add ADSC jiffie 
-                             CN        by Chris Nielsen, and to add ..._fs    
+     0.7.8.2   Dec 2007        CN, HJB   Update to 0.7.8.1 to add ADSC jiffie 
+                                       by Chris Nielsen, and to add ..._fs    
                                        and ..._sf macros.                     
+     0.7.9     Dec 2007        CN, HJB Identical to 0.7.8.2 except for a      
+                                       cleanup of deprecated examples, e.g.   
+                                       diffrn_frame_data                      
+     0.7.9.1   Jan 2008        CN, HJB   Update to 0.7.8.2 to add inverse     
+                                       ADSC jiffie by Chris Nielsen, to clean 
+                                       up problems in handling maps for       
+                                       RasMol.                                
 
      ----------------------------------------------------------------------
 
@@ -206,29 +213,47 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    In order to work with CBFlib, you need:
 
-     * the source code, in the form of a "gzipped" tar, CBFlib_0.7.8.tar.gz;
+     * the source code, in the form of a "gzipped" tar, CBFlib_0.7.9.tar.gz;
        and
-     * the test data, in the form of a "gzipped" tar
-       CBFlib_0.7.8_Data_Files.tar.gz
+     * the test data:
+          * CBFlib_0.7.9_Data_Files_Input.tar.gz (13 MB) a "gzipped" tar of
+            the input data files needed to test the API;
+          * CBFlib_0.7.9_Data_Files_Output.tar.gz (34 MB) a "gzipped" tar of
+            the output data files needed to test the API, or, if space is at
+            a premium;
+          * CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz (1KB) is a
+            "gzipped" tar of only the MD5 signatures of the output data files
+            needed to test the API.
 
-   Uncompress both of these files, and unpack them with tar:
+   If your system has the program wget, you only need the source code. The
+   download of the other tar balls will be handled automatically.
 
-     * gunzip < CBFlib_0.7.8.tar.gz | tar xvf -
-     * gunzip < CBFlib_0.7.8_Data_Files.tar.gz | tar xvf -
+   Be careful about space. A full build and test can use 350 MB or more. If
+   space is tight, be sure to read the instructions below on using only the
+   signatures of the test files.
 
-   As with prior releases, to run the test programs, you will also need Paul
-   Ellis's sample MAR345 image, example.mar2300, and Chris Nielsen's sample
-   ADSC Quantum 315 image, mb_LP_1_001.img as sample data. In addition there
-   are not various insulin_pilatus6m sample data files from E. Eikenberry at
-   SLS. All these files will be extracted by the Makefile from
-   CBFlib_0.7.8_Data_Files. Do not download copies into the top level
-   directory.
+       Uncompress and unpack :
+
+          * gunzip < CBFlib_0.7.9.tar.gz | tar xvf -
+
+   To run the test programs, you will also need Paul Ellis's sample MAR345
+   image, example.mar2300, Chris Nielsen's sample ADSC Quantum 315 image,
+   mb_LP_1_001.img, and Eric Eikenberry's SLS sample Pilatus 6m image,
+   insulin_pilatus6m, as sample data. In addition there are is a PDB mmCIF
+   file, 9ins.cif, and 3 special test files testflatin.cbf,
+   testflatpackedin.cbf and testrealin.cbf. All these files will be dowloaded
+   and extracted by the Makefile from CBFlib_0.7.9_Data_Files_Input. Do not
+   download copies into the top level directory.
 
    Thare are various sample Makefiles for common configurations. The
    Makefile_LINUX and Makefile_OSX samples are for systems with gfortran from
    prior to the release of gcc 4.2. For the most recent gfortran, use
    Makefile_LINUX_gcc42 ot Makfile_OSX_gcc42. All the Makefiles come from
    m4/Makefile.m4.
+
+   The Makefiles use GNU make constructs, such as ifeq and ifneq. If you need
+   to use a diferent version of make, you will need to edit out the
+   conditionals
 
    If necessary, adjust the definition of CC and C++ and other defintions in
    Makefile to point to your compilers. Set the definition of CFLAGS to an
@@ -239,10 +264,19 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    make all
    make tests
 
-   We have included examples of CBF/imgCIF files produced by CBFlib, the
-   current best draft of the CBF Extensions Dictionary, and of Andy
-   Hammersley's CBF definition, updated to become a DRAFT CBF/ImgCIF
-   DEFINITION.
+       or, if space is at a premium:
+
+       make all
+       make tests_sigs_only
+
+   If you do not have a fortran compiler, you will need edit the Makefile or
+   to define the variable NOFORTRAN, either in the Makefile or in the
+   environment
+
+   We have included examples of CBF/imgCIF files produced by CBFlib in the
+   test data CBFlib_0.7.9_Data_Files_Output.tar.gz, the current best draft of
+   the CBF Extensions Dictionary, and of Andy Hammersley's CBF definition,
+   updated to become a DRAFT CBF/ImgCIF DEFINITION.
 
      ----------------------------------------------------------------------
 
@@ -321,10 +355,10 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 2.3.52 cbf_get_doublevalue, cbf_require_doublevalue
                * 2.3.53 cbf_set_doublevalue
                * 2.3.54 cbf_get_integerarrayparameters,
-                 cbf_get_integerarrayparameters_wdims,
+                       cbf_get_integerarrayparameters_wdims,
                  cbf_get_integerarrayparameters_wdims_fs,
                  cbf_get_integerarrayparameters_wdims_sf
-                 cbf_get_realarrayparameters,
+                       cbf_get_realarrayparameters,
                        cbf_get_realarrayparameters_wdims,
                  cbf_get_realarrayparameters_wdims_fs,
                  cbf_get_realarrayparameters_wdims_sf
@@ -2373,9 +2407,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    ARGUMENTS
 
-     handle   CBF handle.                               
-     value    Pointer to the destination value pointer. 
-     value    Default value character string.           
+     handle         CBF handle.                               
+     value          Pointer to the destination value pointer. 
+     defaultvalue   Default value character string.           
 
    RETURN VALUE
 
@@ -2413,9 +2447,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    ARGUMENTS
 
-     handle         CBF handle.          
-     value          ASCII value.         
-     defaultvalue   default ASCII value. 
+     handle   CBF handle.  
+     value    ASCII value. 
 
    RETURN VALUE
 
@@ -5001,9 +5034,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        indexfast    Pointer to the destination fast index.                    
        indexslow    Pointer to the destination slow index.                    
        centerfast   Pointer to the destination displacement along the fast    
-                axis.                                                         
+                  axis.                                                       
        centerslow   Pointer to the destination displacement along the slow    
-                axis.                                                         
+                  axis.                                                       
 
      RETURN VALUE
 
@@ -5139,11 +5172,11 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        indexslow   Slow index.                                                
        indexfast   Fast index.                                                
        normal1     Pointer to the destination x component of the normal       
-                vector.                                                       
+                 vector.                                                      
        normal2     Pointer to the destination y component of the normal       
-                vector.                                                       
+                 vector.                                                      
        normal3     Pointer to the destination z component of the normal       
-                vector.                                                       
+                 vector.                                                      
 
      RETURN VALUE
 
@@ -6171,7 +6204,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        DIM1               The INTEGER(8) value of the fastest dimension of    
                         ARRAY                                                 
        DIM2               The INTEGER(8) value of the second fastest          
-                        dimension                                             
+                          dimension                                           
        DIM3               The INTEGER(8) value of the third fastest dimension 
        TAPIN              The INTEGER Fortran device unit number assigned to  
                         image file.                                           
@@ -6413,7 +6446,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        DIM1               The INTEGER(8) value of the fastest dimension of    
                         ARRAY                                                 
        DIM2               The INTEGER(8) value of the second fastest          
-                        dimension                                             
+                          dimension                                           
        DIM3               The INTEGER(8) value of the third fastest dimension 
        TAPIN              The INTEGER Fortran device unit number assigned to  
                         image file.                                           
@@ -6663,7 +6696,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      "X-BASE16", the file is an imgCIF, and we'll need some other headers to
      process the encoded binary data properly. It is a good practice to give
      headers in all cases. The meanings of various encodings is given in the
-     CBF extensions dictionary, cif_img_1.5.3.dic, as one html file, or as
+     CBF extensions dictionary, cif_img_1.5.4.dic, as one html file, or as
      separate pages for each defintion.
 
      For certain compressions (e.g. CBF_PACKED) MIME headers are essential to
@@ -7283,7 +7316,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
          base pixel value.
       3. If -127 =< delta =< 127, output delta as one byte, make the current
          pixel value the base pixel value and return to step 2.
-      4. Otherwise output -128 (F0 hex).
+         4. Otherwise output -128 (F0 hex).
       5. We still have to output delta. If -32767 =< delta =< 32767, output
          delta as a little_endian 16-bit quantity, make the current pixel
          value the base pixel value and return to step 2.
@@ -7608,10 +7641,10 @@ src/                      include/             m4/                  Description
      the parameters of the data collection as done at SLS and combines the
      result with a template to produce a full CBF. The program cif2cbf can be
      used to convert among carious compression and encoding schemes. The
-     program sauter_test.C is a C++ test program contributed by Nick Sauter 
-     to help in resolving a memory leak he found. The program adscimg2cif is
-     a "jiffie" contributed by Chris Nielsen of ADSC to convert ADSC images
-     to imgCIF/CBF format.
+     program sauter_test.C is a C++ test program contributed by Nick Sauter
+     to help in resolving a memory leak he found. The programs adscimg2cbf
+     and cbf2adscimg are a "jiffies" contributed by Chris Nielsen of ADSC to
+     convert ADSC images to imgCIF/CBF format and vice versa.
 
      makecbf.c is a good example of how many of the CBFlib functions can be
      used. To compile makecbf and the other example programs use the Makefile
@@ -7945,6 +7978,7 @@ src/                      include/             m4/                  Description
      ADSC images with .img, .img.gz, .img.bz2 or .img.Z extensions and
      converts each of them to an imgCIF/CBF file with a .cbf extension.
 
+
    adscimg2cbf [--flag[,modifier]] file1.img ... filen.img     (creates file1.cbf ... filen.cbf)
           Image files may also be compressed (.gz, .bz2, .Z)
 
@@ -7958,8 +7992,22 @@ src/                      include/             m4/                  Description
      flat            Flat (linear) images.
      uncorrelated    Uncorrelated sections.
 
-     ----------------------------------------------------------------------
+    adscimg2cbf
+
+     The example program cbf2adscimg accepts any number of cbfs of ADSC
+     images created by adscimg1cbf or convert_image and produces raw or
+     compressed adsc image files with .img, .img.gz or .img.bz2 extensions.
+
+
+   cbf2adscimg [--flag] file1.cbf ... filen.cbf     (creates file1.img ... filen.img)
+          Image files may be compressed on output: (.gz, .bz2) by using the flags below.\n");
+
+   Flags:
+     --gz    Output a .gz file  (e.g., filen.img.gz).
+     --bz2   Output a .bz2 file (e.g., filen.img.bz2).
 
      ----------------------------------------------------------------------
 
-     Updated 24 December 2007. Contact:  yaya at bernstein-plus-sons dot com
+     ----------------------------------------------------------------------
+
+     Updated 25 January 2008. Contact:  yaya at bernstein-plus-sons dot com
