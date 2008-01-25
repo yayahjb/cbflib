@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_packed -- Packing compression                                  *
  *                                                                    *
- * Version 0.7.8.2 25 December 2007                                   *
+ * Version 0.7.9 30 December 2007                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -1292,6 +1292,8 @@ int cbf_compress_packed (void         *source,
   {
       /* Get the next element */
       
+    trail_char_data[0] = unsigned_char_data;
+
     if (numints > 1 ) {
     
       if (border[0] == 'b') {
@@ -1330,11 +1332,11 @@ int cbf_compress_packed (void         *source,
       else
 
         element[0] = *unsigned_char_data;
+
+      unsigned_char_data += elsize;
+
     }
         
-    trail_char_data[0] = unsigned_char_data;
-
-    unsigned_char_data += elsize;
 
       /* Make the element unsigned */
 

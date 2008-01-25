@@ -21,7 +21,7 @@ ALT="[CBF/imgCIF]"></A>
 | <A HREF = "CBFlib_NOTICES.html">NOTICE</A>
 | <a href=gpl.txt>GPL</a>
 | <a href=lgpl.txt>LGPL</a>
-| <a href="cif_img_1.5.3.html">imgCIF dictionary</a>
+| <a href="cif_img_1.5.4.html">imgCIF dictionary</a>
 |<br />
 | <a href="http://arcib.dowling.edu/donation.shtml">Click Here to Make a Donation</a>
 |<P>
@@ -32,8 +32,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <b>An API for CBF/imgCIF<br />
 Crystallographic Binary Files with ASCII Support</b><br />
-Version 0.7.8.2<br />
-25 December 2007<br />
+Version 0.7.9.1<br />
+24 January 2008<br />
 <p>
 </CENTER>
 </font><font color="#000000">
@@ -264,10 +264,22 @@ for recent changes.
 <TR>
 <TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.8.2">0.7.8.2</A><TD
 VALIGN=TOP>&nbsp;&nbsp;Dec 2007<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB and CN<TD>&nbsp;&nbsp;Update to 0.7.8.1 to add
+VALIGN=TOP>&nbsp;&nbsp;CN, HJB<TD>&nbsp;&nbsp;Update to 0.7.8.1 to add
 ADSC jiffie by Chris Nielsen, and to add ..._fs and ..._sf macros.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.9">0.7.9</A><TD
+VALIGN=TOP>&nbsp;&nbsp;Dec 2007<TD
+VALIGN=TOP>&nbsp;&nbsp;CN, HJB<TD>Identical to 0.7.8.2 except for
+a cleanup of deprecated examples, e.g. diffrn_frame_data
+<TR>
 
- </TABLE>
+<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.9.1">0.7.9.1</A><TD
+VALIGN=TOP>&nbsp;&nbsp;Jan 2008<TD
+VALIGN=TOP>&nbsp;&nbsp;CN, HJB<TD>&nbsp;&nbsp;Update to 0.7.8.2 to add
+inverse ADSC jiffie by Chris Nielsen, to clean up problems in
+handling maps for RasMol.
+
+</TABLE>
 
 <HR>
 </font><font color="#0808A0">
@@ -285,33 +297,53 @@ In order to work with CBFlib, you need:
 <ul>
 <li>the source code, in the form
 of a &quot;gzipped&quot; tar,
-<A HREF="../../CBFlib_0.7.8.tar.gz">CBFlib_0.7.8.tar.gz</A>; and
-<li>the test data, in the form of a &quot;gzipped&quot; tar
-<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.8/CBFlib_0.7.8_Data_Files.tar.gz">CBFlib_0.7.8_Data_Files.tar.gz</a>
+<A HREF="../../CBFlib_0.7.9.tar.gz">CBFlib_0.7.9.tar.gz</A>; and
+<li>the test data:
+<ul>
+<li><A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Input.tar.gz">CBFlib_0.7.9_Data_Files_Input.tar.gz</a>
+(13 MB) a "gzipped" tar of the input data files needed to test the API;
+<li><A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Output.tar.gz">CBFlib_0.7.9_Data_Files_Output.tar.gz</a>
+(34 MB) a "gzipped" tar of the output data files needed to test the API, or, if space is at a premium;
+<li><A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz">CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz</a>
+(1KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
+</ul>
 </ul>
 <P>
-Uncompress both of these files, and unpack them with tar:
+If your system has the program wget, you only need the source code.  The download of the other tar balls will be
+handled automatically.
+<P>
+<b>Be careful about space.  A full build and test can use 350 MB or more.  If space is tight, be sure to read the
+instructions below on using only the signatures of the test files.</b>
+<P>
+Uncompress and unpack :
 <P>
 <ul>
-<li>gunzip &lt; CBFlib_0.7.8.tar.gz | tar xvf -
-<li>gunzip &lt; CBFlib_0.7.8_Data_Files.tar.gz | tar xvf -
+<li>gunzip &lt; CBFlib_0.7.9.tar.gz | tar xvf -
 </ul>
 <P>   
-As with prior releases, to run the test programs, you will also need 
+<p>
+To run the test programs, you will also need 
 Paul Ellis's sample MAR345 image,
-example.mar2300, and
+example.mar2300,
 Chris Nielsen's sample ADSC Quantum 315 image, 
-mb_LP_1_001.img as sample data.  In addition there are
-not various insulin_pilatus6m sample data files from
-E. Eikenberry at SLS.  All these files will be
-extracted by the Makefile from CBFlib_0.7.8_Data_Files.  Do
-not download copies into the top level directory.<P>
+mb_LP_1_001.img, and Eric Eikenberry's SLS sample Pilatus 6m image,
+insulin_pilatus6m, as sample data.  In addition there are
+is a PDB mmCIF file, 9ins.cif, and 3 special test files
+testflatin.cbf, testflatpackedin.cbf and testrealin.cbf.
+ All these files will be
+dowloaded and extracted by the Makefile from CBFlib_0.7.9_Data_Files_Input.  Do
+not download copies into the top level directory.
+<P>
 Thare are various sample Makefiles for common
 configurations.  The Makefile_LINUX and Makefile_OSX
 samples are for systems with gfortran from prior to
 the release of gcc 4.2.  For the most recent gfortran,
 use Makefile_LINUX_gcc42 ot Makfile_OSX_gcc42.  All
 the Makefiles come from m4/Makefile.m4.
+<P>
+<B>The Makefiles use GNU make constructs, such as ifeq
+and ifneq.  If you need to use a diferent version of
+make, you will need to edit out the conditionals</b>
 <P>
 
 If necessary, adjust the definition of CC and C++ and
@@ -326,13 +358,24 @@ for your Fortan-90/95 compilers, and then
 <p>
 <b>make all</b><br />
 <b>make tests</b>
+<P>
+or, if space is at a premium:
+<p>
+<p>
+<b>make all</b><br />
+<b>make tests_sigs_only</b>
+<P>
+If you do not have a fortran compiler, you will need
+edit the Makefile or to define the variable NOFORTRAN, either in the Makefile
+or in the environment
+<P>
 
 <p>
-We have included <A HREF="example.html">examples</A> of
-CBF/imgCIF files produced by CBFlib,
+We have included examples of
+CBF/imgCIF files produced by CBFlib in the test data <A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Output.tar.gz">CBFlib_0.7.9_Data_Files_Output.tar.gz</a>,
 the current best draft of
 the 
-<A HREF="cif_img_1.5.3.html">CBF Extensions Dictionary</A>, 
+<A HREF="cif_img_1.5.4.html">CBF Extensions Dictionary</A>, 
 and of Andy Hammersley's CBF definition, updated to become a 
 <A HREF="cbf_definition_rev.html">
 DRAFT CBF/ImgCIF DEFINITION</A>.
@@ -2428,7 +2471,7 @@ The value must not be modified by the program in any way.
 <TABLE>
 <TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.<br />
 <TR><td valign="top">&nbsp;&nbsp;<i>value</i><td valign="top">&nbsp;&nbsp;Pointer to the destination value pointer.<br />
-<TR><td valign="top">&nbsp;&nbsp;<i>value</i><td valign="top">&nbsp;&nbsp;Default value character string.<br />
+<TR><td valign="top">&nbsp;&nbsp;<i>defaultvalue</i><td valign="top">&nbsp;&nbsp;Default value character string.<br />
 </TABLE>
 <p>
 <b>RETURN VALUE</b>
@@ -2466,7 +2509,6 @@ value <i>value</i>.
 <TABLE>
 <TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.<br />
 <TR><td valign="top">&nbsp;&nbsp;<i>value</i><td valign="top">&nbsp;&nbsp;ASCII value.<br />
-<TR><td valign="top">&nbsp;&nbsp;<i>defaultvalue</i><td valign="top">&nbsp;&nbsp;default ASCII value.<br />
 </TABLE>
 <p>
 <b>RETURN VALUE</b>
@@ -4564,7 +4606,7 @@ bytes each, starting at <i>array</i>.  The elements are signed if <i>elsign</i> 
 and unsigned otherwise.  cbf_set_real_3d_image, cbf_set_real_3d_image_fs and cbf_set_real_3d_image_sf
 writes the 3D image array for element number <i>element_number</i>.  The <i>array</i> 
 consists of <i>ndimfast</i>&#215;<i>ndimmid</i>&#215;<i>ndimslow</i> IEEE double or float elements of <i>elsize</i> 
-bytes each, starting at <i>array</i>. 
+bytes each, starting at <i>array</i>.
 <p>
 The _fs calls give the dimensions in a fast-to-slow order.  The calls with no suffix and the
 calls _sf calls give the dimensions in slow-to-fast order
@@ -6613,7 +6655,7 @@ and we'll need some other headers to
 process the encoded binary data properly.  It is a
 good practice to give headers in all cases.  The meanings of
  various encodings is given in the
-CBF extensions dictionary, <A HREF="cif_img_1.5.3.html">cif_img_1.5.3.dic</A>,
+CBF extensions dictionary, <A HREF="cif_img_1.5.4.html">cif_img_1.5.4.dic</A>,
 as one html file, or as <a href=index.html>separate pages for each defintion</a>.
 <p>
 For certain compressions (e.g. CBF_PACKED) MIME headers are
@@ -7769,8 +7811,9 @@ be used to convert among carious compression and encoding
 schemes.  The program sauter_test.C is a C++ test program
 contributed by Nick Sauter to help in resolving a memory
 leak he found.
-The program adscimg2cif is a &quot;jiffie&quot; contributed
-by Chris Nielsen of ADSC to convert ADSC images to imgCIF/CBF format.
+The programs adscimg2cbf and cbf2adscimg are a &quot;jiffies&quot; contributed
+by Chris Nielsen of ADSC to convert ADSC images to imgCIF/CBF format and
+vice versa.
 <p>
 makecbf.c is a good example of how many of the CBFlib functions can be
 used.
@@ -8128,6 +8171,7 @@ The example program adscimg2cbf accepts any number of raw or compressed ADSC ima
 file with a .cbf extension.
 <p>
 <pre>
+
   adscimg2cbf [--flag[,modifier]] file1.img ... filen.img     (creates file1.cbf ... filen.cbf)
          Image files may also be compressed (.gz, .bz2, .Z)
 
@@ -8141,9 +8185,26 @@ file with a .cbf extension.
     flat            Flat (linear) images.
     uncorrelated    Uncorrelated sections.
 </pre>
+<p>
+<h4>adscimg2cbf</h4>
+<P>
+The example program cbf2adscimg accepts any number of cbfs of ADSC images created by
+adscimg1cbf or convert_image and produces raw or compressed adsc image files with
+.img, .img.gz or .img.bz2 extensions.
+<p>
+<pre>
+
+  cbf2adscimg [--flag] file1.cbf ... filen.cbf     (creates file1.img ... filen.img)
+         Image files may be compressed on output: (.gz, .bz2) by using the flags below.\n");
+
+  Flags:
+    --gz    Output a .gz file  (e.g., filen.img.gz).
+    --bz2   Output a .bz2 file (e.g., filen.img.bz2).
+</pre>
+<p>
 <HR>
 <HR>
-Updated 24 December 2007.
+Updated 25 January 2008.
 Contact:
 <script language="javascript" type="text/javascript">
 <!--

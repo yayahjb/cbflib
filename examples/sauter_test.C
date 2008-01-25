@@ -17,7 +17,7 @@ struct Error : public std::exception {
 };
 
 int main() {
-  std::string file("adscconverted_orig.cbf");
+  std::string file("adscconverted_flat.cbf");
 
   for (int cc=0; cc<20000; ++cc) {
 #ifdef CBFLIB_MEM_DEBUG 
