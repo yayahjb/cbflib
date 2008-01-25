@@ -606,13 +606,13 @@ M4FILES   = $(M4)/fcblib_defines.m4            \
 # Documentation files
 #
 DOCUMENTS = $(DOC)/CBFlib.html                   \
-		    $(DOC)/CBFlib.txt                   \
+            $(DOC)/CBFlib.txt                   \
             $(DOC)/CBFlib_NOTICES.html          \
             $(DOC)/CBFlib_NOTICES.txt           \
             $(DOC)/ChangeLog                    \
             $(DOC)/ChangeLog.html               \
             $(DOC)/MANIFEST                     \
-		    $(DOC)/gpl.txt $(DOC)/lgpl.txt
+            $(DOC)/gpl.txt $(DOC)/lgpl.txt
 
 #
 # HTML Graphics files
@@ -1057,7 +1057,7 @@ $(BIN)/testflatpacked: $(LIB)/libcbf.a $(EXAMPLES)/testflatpacked.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
               $(EXAMPLES)/testflatpacked.c -L$(LIB) \
 	      -lcbf -lm -o $@
-	      
+
 ifneq ($(F90C),)
 #
 # test_xds_binary example program
@@ -1269,7 +1269,7 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcel
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
 	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image $(BIN)/convert_minicbf \
 	$(BIN)/sauter_test $(BIN)/adscimg2cbf $(BIN)/cbf2adscimg \
-	basic $(TESTINPUT_EXTRA) $(TESTOUTPUT)
+    basic $(TESTINPUT_EXTRA) $(TESTOUTPUT)
 else
 extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
@@ -1501,7 +1501,7 @@ distclean:	clean empty
 tar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) $(M4FILES)\
 	 $(EXAMPLES) \
 	 README.html README Makefile \
-	 $(JPEGS)
+	 $(JPEGS) 
 	-/bin/rm -f CBFlib.tar*
 	tar cvBf CBFlib.tar \
 	 $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) $(M4FILES)\

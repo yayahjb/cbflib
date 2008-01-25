@@ -143,6 +143,8 @@
    } \
  }
 
+static char * array_id;
+
 void puthd (char* field, char* value, char* header)
 {
   char   temp[5];
@@ -258,7 +260,7 @@ int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
 	char		field[80], value[80];
 	char		*fps, *fpe, *vps, *vpe, *cp;
 
-	const char	*direction [2], *array_id;
+	const char	*direction [2];
   
 	/*
 	 *	Legal, but uninteresting case.
@@ -278,7 +280,9 @@ int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
 
 	cbf_failnez (cbf_find_column      (cbf, "array_id"))
     
-	cbf_failnez (cbf_get_value        (cbf, &array_id))
+	cbf_failnez (cbf_rewind_row       (cbf))
+
+	cbf_failnez (cbf_get_value        (cbf, (const char **)&array_id))
 
 	/* Get the image dimensions (second dimension = fast, first = slow) */
 
@@ -352,11 +356,11 @@ int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
 					if (NULL == (hpequal = strstr(hp, "=")))
 				    {
 					  fprintf(stderr,"cbf2adscimg_sub:  HEADER_BYTES value not found in item diffrn_data_frame.details\n");
-					fprintf(stderr,"\tIt is assumed this item contains the original SMV image header.\n");
-					fprintf(stderr,"\tTry to reconstruct an SMV header from the CBF header items.\n");
-				}
-				else
-				{
+					  fprintf(stderr,"\tIt is assumed this item contains the original SMV image header.\n");
+					  fprintf(stderr,"\tTry to reconstruct an SMV header from the CBF header items.\n");
+				    }
+				    else 
+				    {
 					sscanf(hpequal + 1, "%d", &header_length);
 					if(0)
 						fprintf(stdout,"header length decoded as: %d\n", header_length);
@@ -368,12 +372,14 @@ int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
 					}
 					clrhd(char_header);
 
-					  hp = strstr(hpequal , ";");
 					hpe = ((char *) smv_header) + strlen(smv_header);
-					  while (hp && hp <= hpe && *hp && *hp != '\n' && *hp != '\r') hp++;
+					while (hp && hp <= hpe && *hp 
+					  && *hp != ';' && *hp != '\n' 
+					  && *hp != '\r') hp++;
+					while (hp && hp <= hpe && *hp && *hp != '\n' && *hp != '\r') hp++;
 					  if (hp && *hp == '\n') hp++;
 
-					while(hp <= hpe && '\0' != *hp )
+					while(hp && hp <= hpe && *hp )
 					{
 					    int tokencnt, tokenstate;
 						fps = hp;
@@ -406,10 +412,10 @@ int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
 					make_smv_header_from_cbf = 0;
 					*header = char_header;
 					
+				   }
 				}
 			}
 		}
-	}
 	}
 
  
@@ -562,6 +568,10 @@ int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
   
 	cbf_failnez (cbf_find_category (cbf, "array_data"))
 	cbf_failnez (cbf_find_column   (cbf, "array_id"))
+
+	/* fprintf(stderr,"array id: %s\n",array_id); */
+
+	cbf_failnez (cbf_rewind_row    (cbf))
 	cbf_failnez (cbf_find_row      (cbf, array_id))
 	cbf_failnez (cbf_find_column   (cbf, "data"))
     
