@@ -210,6 +210,8 @@ int local_exit(int status) {
  *  14-Sep-1994      Marty Stanton       Brandeis University
  *
  */
+/* Commented out 19 June 2008 because of optimization bug in gcc
+   -- HJB
 int getbo()
 {
   long i4;
@@ -227,6 +229,7 @@ int getbo()
   else
     return(2);
 }
+*/
 
 void	short_swap(p,n)
 unsigned short  *p;
@@ -449,6 +452,7 @@ int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int 
   int		*ip;
   unsigned short *up;
   int		i, j;
+  char *  local_bo;
   int		this_bo, smv_bo;
   char		*header_as_details;
   int		header_size;
@@ -769,7 +773,9 @@ int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int 
 /* Make sure to swap bytes if there is a change in byte order
  * between the machine which made the SMV file and this machine */
 
-  this_bo = getbo();
+  /* this_bo = getbo();*/
+  cbf_get_local_integer_byte_order(&local_bo);
+  this_bo = (local_bo[0]=='l'||local_bo[0]=='L')?0:1;
   smv_bo = this_bo;
 
   s[0] = '\0';
