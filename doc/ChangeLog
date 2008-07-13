@@ -207,6 +207,10 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
   Release 0.7.9.1, Chris Nielsen, Herbert J. Bernstein, 24 January 2008
 
    Source File        Change                                                  
+   cbf2adscimg.c        Last minutes fixes on release: Put missing byte swap  
+   cbf2adscimg_sub.c  in cbf2adscimg.c for when byte orders differ. Bypass    
+                      problems with gcc optimization, and handle case then    
+                      array header is there but invalid.                      
    .symlinks            Update version to 0.7.9                               
    .undosymlinks      
    Makefile.m4          Update for CN's jiffies, and testing with MD5         

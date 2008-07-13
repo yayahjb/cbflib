@@ -778,9 +778,9 @@ int main (int argc, char *argv [])
       
         if (sequal)  {
 
-      sprintf (header_info+header_info_size, "\n %s = %s;", tag, data);
+          sprintf (header_info+header_info_size, "\n %s = %s;", tag, data);
 
-      header_info_size += (strlen(tag) + strlen(data)+6);
+          header_info_size += (strlen(tag) + strlen(data)+6);
       	
         } else {
 
@@ -797,10 +797,10 @@ int main (int argc, char *argv [])
 
         if (sequal)  {
 
-        sprintf (header_info+header_info_size, " %s;\n", tag);
+          sprintf (header_info+header_info_size, " %s;\n", tag);
 
-        header_info_size += (strlen(tag) +3);
-
+          header_info_size += (strlen(tag) +3);
+        
         } else {
 
           sprintf (header_info+header_info_size, "%s;\n", tag);
