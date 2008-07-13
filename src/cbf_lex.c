@@ -767,7 +767,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
             /* Check the digest? */
 
-          if ((file->read_headers & MSG_DIGESTNOW) &&
+          if ((file->read_headers & (MSG_DIGESTNOW|MSG_DIGESTWARN) ) &&
                                     cbf_is_base64digest (digest))
           {
               /* Recalculate the digest (note that this will decode the
@@ -839,9 +839,24 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
               /* Compare the old digest to the new one */
 
-            if (strcmp (digest, new_digest) != 0)
+            if (strcmp (digest, new_digest) != 0)  {
+            
+              if((file->read_headers & MSG_DIGESTWARN) ) {
+              
+                char buffer[80];
+                
+                sprintf(buffer, "digest mismatch file %s data %s", digest, new_digest );
+                
+                cbf_warning(buffer);
+              	
+              } else {
+              	
+                cbf_errornez (CBF_FORMAT | 2, val)
 
-              cbf_errornez (CBF_FORMAT | 2, val)
+              }
+
+            	
+            }
 
             checked_digest = 1;
           }

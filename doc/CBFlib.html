@@ -344,7 +344,7 @@ the Makefiles come from m4/Makefile.m4.
 <B>The Makefiles use GNU make constructs, such as ifeq
 and ifneq.  If you need to use a diferent version of
 make, you will need to edit out the conditionals</b>
-<P>
+<p>
 
 If necessary, adjust the definition of CC and C++ and
 other defintions in
@@ -836,13 +836,13 @@ Returns an error code on failure or 0 for success.
 <p>
 <A HREF="#2.3.1">2.3.1  cbf_make_handle</A><br />
 <p><HR><P>
-<h4><A NAME="2.3.3">2.3.3  cbf_read_file</A></H4>
+<h4><A NAME="2.3.3">2.3.3  cbf_read_file, cbf_read_widefile</A></H4>
 <p><b>PROTOTYPE</b>
 <p>
 #include &quot;cbf.h&quot;<p>
 
-int cbf_read_file (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>headers</i>);<br />
-int cbf_read_widefile (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>headers</i>);
+int cbf_read_file (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>flags</i>);<br />
+int cbf_read_widefile (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>flags</i>);
 <p>
 <b>DESCRIPTION</b>
 <p>
@@ -858,14 +858,14 @@ parse, and, if a dictionary was converted, against the value types, value
 enumerations, categories and parent-child relationships specified
 in the dictionary.  
 <p>
-<i>headers</i> controls the interprestation of binary section headers
+<i>flags</i> controls the interprestation of binary section headers
 of imgCIF files.
 <TABLE>
 <TR>
 <TD VALIGN=TOP>&nbsp;&nbsp;MSG_DIGEST:
 <td valign="top">&nbsp;&nbsp;Instructs CBFlib to check that the digest of the
 binary section matches any
-header value.  If the digests do
+header digest value.  If the digests do
 not match, the call will return CBF_FORMAT.  This evaluation and comparison
 is delayed (a &quot;lazy&quot; evaluation) to ensure maximal processing efficiency.
 If an immediately evaluation is required, see MSG_DIGESTNOW, below.
@@ -873,11 +873,23 @@ If an immediately evaluation is required, see MSG_DIGESTNOW, below.
 <TD VALIGN=TOP>&nbsp;&nbsp;MSG_DIGESTNOW:
 <td valign="top">&nbsp;&nbsp;Instructs CBFlib to check that the digest of the
 binary section matches any
-header value.  If the digests do
+header digest value.  If the digests do
 not match, the call will return CBF_FORMAT.  This evaluation and comparison
 is performed during initial parsing of the section to ensure timely
 error reporting at the expense of processing efficiency.
-If a more efficient delayed (&quot;lazy&quot;)  evaluation is required, see MSG_DIGESTNOW, below.
+If a more efficient delayed (&quot;lazy&quot;)  evaluation is required, see MSG_DIGEST, above.
+<TR>
+<TD VALIGN=TOP>&nbsp;&nbsp;MSG_DIGESTWARN:
+<td valign="top">&nbsp;&nbsp;Instructs CBFlib to check that the digest of the
+binary section matches any
+header digeste value.  If the digests do
+not match, a warning message will be sent to stderr, but processing will
+attempt to continue.  This evaluation and comparison
+is first performed during initial parsing of the section to ensure timely
+error reporting at the expense of processing efficiency.
+An mismatch of the message digest usually indicates a serious error, but it
+is sometimes worth continuing processing to try to isolate the cause of
+the error.  <b>Use this option with caution.</b>
 <TR>
 <TD VALIGN=TOP>&nbsp;&nbsp;MSG_NODIGEST:
 <td valign="top">&nbsp;&nbsp;Do not check the digest (default).

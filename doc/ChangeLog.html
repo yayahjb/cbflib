@@ -279,6 +279,10 @@ handling maps for RasMol.
 <P>
 <TABLE>
 <TR><TH ALIGN=LEFT WIDTH="18%">Source File<TH ALIGN=LEFT>Change
+<TR><TD VALIGN=TOP>cbf2adscimg.c cbf2adscimg_sub.c
+<TD>&nbsp;&nbsp;Last minutes fixes on release:  Put missing byte swap in
+cbf2adscimg.c for when byte orders differ.  Bypass problems with gcc
+optimization, and handle case then array header is there but invalid.
 <TR><TD VALIGN=TOP>.symlinks .undosymlinks
 <TD>&nbsp;&nbsp;Update version to 0.7.9
 <TR><TD VALIGN=TOP>Makefile.m4 Makefile, Makefile_AIX ...
@@ -319,7 +323,7 @@ locales that use ",".
 <TR><TD VALIGN=TOP>Makefiles and test data
 <TD>&nbsp;&nbsp;Change test cases to avoid deprecated features.
 
-</TABLE>
+</table>
 
 
 <HR>

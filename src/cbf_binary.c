@@ -755,7 +755,7 @@ int cbf_check_digest (cbf_node *column, unsigned int row)
 
     /* Recalculate and compare the digest? */
 
-  if ((file->read_headers & MSG_DIGEST) && !checked_digest)
+  if ((file->read_headers & (MSG_DIGEST|MSG_DIGESTNOW|MSG_DIGESTWARN) ) && !checked_digest)
 
     if (cbf_is_base64digest (old_digest))
     {
