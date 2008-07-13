@@ -43,7 +43,8 @@
  *  cif2cbf [-i input_cif] [-o output_cbf] \                          *
  *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
  *        {v[2packed]}|{f[latpacked]}[n[one]}] \                      *
- *    [-m {h[eaders]|n[oheaders]}] [-d {d[igest]|n[odigest]}] \       *
+ *    [-m {h[eaders]|n[oheaders]}] \                                  *
+ *    [-d {d[igest]|n[odigest]|w[warndigest]} \                       *
  *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
  *    [-b {f[orward]|b[ackwards]}] \                                  *
@@ -76,9 +77,9 @@
  *    selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996) *
  *    headers within binary data value text fields.                   *
  *                                                                    *
- *  -d [no]digest  (default md5 digest [R. Rivest, RFC 1321, April    *
- *    1992 using"RSA Data Security, Inc. MD5 Message-Digest           *
- *    Algorithm"] when MIME headers are selected)                     *
+ *  -d [no]digest or warndigest  (default md5 digest [R. Rivest,      *
+ *    RFC 1321, April 1992 using"RSA Data Security, Inc. MD5          *
+ *    Message-Digest Algorithm"] when MIME headers are selected)      *                    *
  *                                                                    *
  *  -e encoding (base64, quoted-printable or none, default base64)    *
  *    specifies one of the standard MIME encodings for an ascii cif   *
@@ -456,7 +457,8 @@ int main (int argc, char *argv [])
  *  cif2cbf [-i input_cif] [-o output_cbf] \                          *
  *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
  *        {v[2packed]}|{f[latpacked]}[n[one]}] \                      *
- *    [-m {h[eaders]|n[oheaders]}] [-d {d[igest]|n[odigest]}]  \      *
+ *    [-m {h[eaders]|n[oheaders]}] \                                  *
+ *    [-d {d[igest]|n[odigest]|w[arndigest]}] \                       *
  *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
  *    [-b {f[orward]|b[ackwards]}] \                                  *
@@ -536,7 +538,11 @@ int main (int argc, char *argv [])
            if (optarg[0] == 'n' || optarg[0] == 'N' ) {
            digest = MSG_NODIGEST;
            } else {
-             errflg++;
+             if (optarg[0] == 'w' || optarg[0] == 'W' ) {
+             digest = MSG_DIGESTWARN;
+             } else {
+               errflg++;
+             }
            }
          }
          break;
@@ -632,7 +638,9 @@ int main (int argc, char *argv [])
      fprintf(stderr,
        "        {v[2packed}|{f[latpacked}[n[one]}] \\\n"); 
      fprintf(stderr,
-       "    [-m {h[eaders]|n[oheaders]}] [-d {d[igest]|n[odigest]}] \\\n");
+       "    [-m {h[eaders]|n[oheaders]}] \\\n");
+     fprintf(stderr,
+       "    [-d {d[igest]|n[odigest]|w[arndigest]}] \\\n");
      fprintf(stderr,
        "    [-e {b[ase64]|q[uoted-printable]|\\\n");
      fprintf(stderr,
@@ -777,9 +785,9 @@ int main (int argc, char *argv [])
    }
 
    if (!wide) {
-   	 cbf_failnez (cbf_read_file (cif, in, MSG_DIGEST))
+   	 cbf_failnez (cbf_read_file (cif, in, MSG_DIGEST|(digest&MSG_DIGESTWARN)))
    } else {
-   	 cbf_failnez (cbf_read_widefile (cif, in, MSG_DIGEST))
+   	 cbf_failnez (cbf_read_widefile (cif, in, MSG_DIGEST|(digest&MSG_DIGESTWARN)))
    }
 
    cbf_failnez (cbf_rewind_datablock(cif))
@@ -1058,7 +1066,7 @@ int main (int argc, char *argv [])
    }
 
    if ( ! devnull ){
-   cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif, mime | digest | padflag,
+   cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif, mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag,
                                          encoding | bytedir | term))
    }
    cbf_failnez (cbf_free_handle (cbf))

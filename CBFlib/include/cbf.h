@@ -366,6 +366,7 @@ extern "C" {
 #define MSG_NODIGEST    0x0004  /* Do not check message digests       */
 #define MSG_DIGEST      0x0008  /* Check message digests              */
 #define MSG_DIGESTNOW   0x0010  /* Check message digests immediately  */
+#define MSG_DIGESTWARN  0x0020  /* Warn on message digests immediately*/
 #define PAD_1K          0x0020  /* Pad binaries with 1023 0's         */
 #define PAD_2K          0x0040  /* Pad binaries with 2047 0's         */
 #define PAD_4K          0x0080  /* Pad binaries with 4095 0's         */
@@ -488,13 +489,13 @@ int cbf_free_handle (cbf_handle handle);
 
   /* Read a file */
 
-int cbf_read_file (cbf_handle handle, FILE *stream, int headers);
+int cbf_read_file (cbf_handle handle, FILE *stream, int flags);
 
 
 
   /* Read a wide file */
 
-int cbf_read_widefile (cbf_handle handle, FILE *stream, int headers);
+int cbf_read_widefile (cbf_handle handle, FILE *stream, int flags);
 
 
   /* Write a file */

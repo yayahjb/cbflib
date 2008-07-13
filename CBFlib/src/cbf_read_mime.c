@@ -364,7 +364,7 @@ int cbf_mime_temp (cbf_node *column, unsigned int row)
 
     /* Calculate a new digest if necessary */
 
-  if (cbf_is_base64digest (old_digest) && (file->read_headers & MSG_DIGEST)
+  if (cbf_is_base64digest (old_digest) && (file->read_headers & (MSG_DIGEST|MSG_DIGESTNOW|MSG_DIGESTWARN) )
                                        && !checked_digest)
 
     new_digest = digest;

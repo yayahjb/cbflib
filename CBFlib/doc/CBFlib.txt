@@ -232,9 +232,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    space is tight, be sure to read the instructions below on using only the
    signatures of the test files.
 
-       Uncompress and unpack :
+   Uncompress and unpack :
 
-          * gunzip < CBFlib_0.7.9.tar.gz | tar xvf -
+     * gunzip < CBFlib_0.7.9.tar.gz | tar xvf -
 
    To run the test programs, you will also need Paul Ellis's sample MAR345
    image, example.mar2300, Chris Nielsen's sample ADSC Quantum 315 image,
@@ -264,10 +264,10 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    make all
    make tests
 
-       or, if space is at a premium:
+   or, if space is at a premium:
 
-       make all
-       make tests_sigs_only
+   make all
+   make tests_sigs_only
 
    If you do not have a fortran compiler, you will need edit the Makefile or
    to define the variable NOFORTRAN, either in the Makefile or in the
@@ -6204,7 +6204,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        DIM1               The INTEGER(8) value of the fastest dimension of    
                         ARRAY                                                 
        DIM2               The INTEGER(8) value of the second fastest          
-                          dimension                                           
+                        dimension                                             
        DIM3               The INTEGER(8) value of the third fastest dimension 
        TAPIN              The INTEGER Fortran device unit number assigned to  
                         image file.                                           
@@ -6446,7 +6446,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        DIM1               The INTEGER(8) value of the fastest dimension of    
                         ARRAY                                                 
        DIM2               The INTEGER(8) value of the second fastest          
-                          dimension                                           
+                        dimension                                             
        DIM3               The INTEGER(8) value of the third fastest dimension 
        TAPIN              The INTEGER Fortran device unit number assigned to  
                         image file.                                           
@@ -7316,7 +7316,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
          base pixel value.
       3. If -127 =< delta =< 127, output delta as one byte, make the current
          pixel value the base pixel value and return to step 2.
-         4. Otherwise output -128 (F0 hex).
+      4. Otherwise output -128 (F0 hex).
       5. We still have to output delta. If -32767 =< delta =< 32767, output
          delta as a little_endian 16-bit quantity, make the current pixel
          value the base pixel value and return to step 2.

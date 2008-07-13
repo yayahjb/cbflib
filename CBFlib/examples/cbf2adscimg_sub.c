@@ -361,26 +361,26 @@ int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
 				    }
 				    else 
 				    {
-					sscanf(hpequal + 1, "%d", &header_length);
-					if(0)
+					  sscanf(hpequal + 1, "%d", &header_length);
+					  if(0)
 						fprintf(stdout,"header length decoded as: %d\n", header_length);
-					if(NULL == (char_header = (char *) malloc(header_length)))
-					{
+					  if(NULL == (char_header = (char *) malloc(header_length)))
+					  {
 						fprintf(stderr,"cbf2adscimg_sub: Error allocating %d bytes for header\n",
 										header_length);
 						return(1);
-					}
-					clrhd(char_header);
+					  }
+					  clrhd(char_header);
 
-					hpe = ((char *) smv_header) + strlen(smv_header);
+					  hpe = ((char *) smv_header) + strlen(smv_header);
 					while (hp && hp <= hpe && *hp 
 					  && *hp != ';' && *hp != '\n' 
 					  && *hp != '\r') hp++;
-					while (hp && hp <= hpe && *hp && *hp != '\n' && *hp != '\r') hp++;
+					  while (hp && hp <= hpe && *hp && *hp != '\n' && *hp != '\r') hp++;
 					  if (hp && *hp == '\n') hp++;
 
 					while(hp && hp <= hpe && *hp )
-					{
+					  {
 					    int tokencnt, tokenstate;
 						fps = hp;
 						while (fps <= hpe && (isspace(*fps)||*fps=='#')) fps++;
@@ -406,11 +406,11 @@ int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
 						puthd(field, value, char_header);
 						padhd(char_header, 512);
 						hp = vpe + 3;
-					}
-					if(0)
+					  }
+					  if(0)
 						fprintf(stdout,"Reconstructed header:\n%s\n", char_header);
-					make_smv_header_from_cbf = 0;
-					*header = char_header;
+					  make_smv_header_from_cbf = 0;
+					  *header = char_header;
 					
 				   }
 				}
