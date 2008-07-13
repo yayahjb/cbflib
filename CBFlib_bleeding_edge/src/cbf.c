@@ -349,7 +349,7 @@ int cbf_free_handle (cbf_handle handle)
 
   /* Read a file or a wide file */
 
-static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int headers, int wide)
+static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, int wide)
 {
   cbf_file *file;
 
@@ -375,7 +375,7 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int headers, int w
   }
 
 
-  if (((headers & (MSG_DIGEST | MSG_DIGESTNOW)) && (headers & MSG_NODIGEST))) {
+  if (((flags & (MSG_DIGEST | MSG_DIGESTNOW | MSG_DIGESTWARN)) && (flags & MSG_NODIGEST))) {
 
     fclose (stream);
 
@@ -412,18 +412,18 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int headers, int w
 
     /* Defaults */
 
-  if ((headers & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW)) == 0)
+  if ((flags & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW | MSG_DIGESTWARN )) == 0)
 
-    headers |= (HDR_DEFAULT & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW));
+    flags |= (HDR_DEFAULT & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW | MSG_DIGESTWARN));
 
-  if (headers & MSG_DIGESTNOW)
+  if (flags & (MSG_DIGESTNOW | MSG_DIGESTWARN) )
 
-    headers |= MSG_DIGEST;
+    flags |= MSG_DIGEST;
 
 
     /* Copy the flags */
 
-  file->read_headers = headers;
+  file->read_headers = flags;
 
 
     /* Parse the file */
@@ -488,17 +488,17 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int headers, int w
 
   /* Read a file */
 
-int cbf_read_file (cbf_handle handle, FILE *stream, int headers) 
+int cbf_read_file (cbf_handle handle, FILE *stream, int flags) 
 {
-	return cbf_read_anyfile (handle, stream, headers, 0);
+	return cbf_read_anyfile (handle, stream, flags, 0);
 }
 
   /* Read a wide file */
 
 
-int cbf_read_widefile (cbf_handle handle, FILE *stream, int headers) 
+int cbf_read_widefile (cbf_handle handle, FILE *stream, int flags) 
 {
-	return cbf_read_anyfile (handle, stream, headers, 1);
+	return cbf_read_anyfile (handle, stream, flags, 1);
 }
 
 
@@ -506,7 +506,7 @@ int cbf_read_widefile (cbf_handle handle, FILE *stream, int headers)
 
 int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
                                                      int ciforcbf,
-                                                     int headers,
+                                                     int flags,
                                                      int encoding)
 {
   cbf_file *file;
@@ -541,11 +541,11 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     return CBF_ARGUMENT;
 
-  if (((headers  & MIME_HEADERS)  && (headers  & PLAIN_HEADERS)) ||
-      ((headers  & MSG_DIGEST)    && (headers  & MSG_NODIGEST))  ||
-      ((headers  & MSG_DIGEST)    && (headers  & PLAIN_HEADERS)) ||
-      ((headers  & MSG_DIGESTNOW) && (headers  & MSG_NODIGEST))  ||
-      ((headers  & MSG_DIGESTNOW) && (headers  & PLAIN_HEADERS)) ||
+  if (((flags  & MIME_HEADERS)  && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGEST)    && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGEST)    && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & PLAIN_HEADERS)) ||
       ((encoding & ENC_FORWARD)   && (encoding & ENC_BACKWARD)))
 
     return CBF_ARGUMENT;
@@ -573,29 +573,29 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     /* Defaults */
 
-  if (headers & (MSG_DIGEST | MSG_DIGESTNOW))
+  if (flags & (MSG_DIGEST | MSG_DIGESTNOW))
 
-    headers |= MIME_HEADERS;
-
-  else
-
-    if ((headers & (MIME_HEADERS | PLAIN_HEADERS)) == 0)
-
-      headers |= (HDR_DEFAULT & (MIME_HEADERS | PLAIN_HEADERS));
-
-  if (headers & PLAIN_HEADERS)
-
-    headers |= MSG_NODIGEST;
+    flags |= MIME_HEADERS;
 
   else
 
-    if ((headers & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW)) == 0)
+    if ((flags & (MIME_HEADERS | PLAIN_HEADERS)) == 0)
 
-      headers |= (HDR_DEFAULT & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW));
+      flags |= (HDR_DEFAULT & (MIME_HEADERS | PLAIN_HEADERS));
 
-  if (headers & MSG_DIGESTNOW)
+  if (flags & PLAIN_HEADERS)
 
-    headers |= MSG_DIGEST;
+    flags |= MSG_NODIGEST;
+
+  else
+
+    if ((flags & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW)) == 0)
+
+      flags |= (HDR_DEFAULT & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW));
+
+  if (flags & MSG_DIGESTNOW)
+
+    flags |= MSG_DIGEST;
 
   if ((encoding & (ENC_NONE    |
                    ENC_BASE8   |
@@ -624,7 +624,7 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     /* Copy the flags */
 
-  file->write_headers  = headers;
+  file->write_headers  = flags;
   file->write_encoding = encoding;
   
     /* Reset the reference counts */
@@ -654,7 +654,7 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
 
 int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
                                                      int ciforcbf,
-                                                     int headers,
+                                                     int flags,
                                                      int encoding)
 {
   cbf_file *file;
@@ -689,11 +689,11 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     return CBF_ARGUMENT;
 
-  if (((headers  & MIME_HEADERS)  && (headers  & PLAIN_HEADERS)) ||
-      ((headers  & MSG_DIGEST)    && (headers  & MSG_NODIGEST))  ||
-      ((headers  & MSG_DIGEST)    && (headers  & PLAIN_HEADERS)) ||
-      ((headers  & MSG_DIGESTNOW) && (headers  & MSG_NODIGEST))  ||
-      ((headers  & MSG_DIGESTNOW) && (headers  & PLAIN_HEADERS)) ||
+  if (((flags  & MIME_HEADERS)  && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGEST)    && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGEST)    && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & PLAIN_HEADERS)) ||
       ((encoding & ENC_FORWARD)   && (encoding & ENC_BACKWARD)))
 
     return CBF_ARGUMENT;
@@ -716,29 +716,29 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     /* Defaults */
 
-  if (headers & (MSG_DIGEST | MSG_DIGESTNOW))
+  if (flags & (MSG_DIGEST | MSG_DIGESTNOW))
 
-    headers |= MIME_HEADERS;
-
-  else
-
-    if ((headers & (MIME_HEADERS | PLAIN_HEADERS)) == 0)
-
-      headers |= (HDR_DEFAULT & (MIME_HEADERS | PLAIN_HEADERS));
-
-  if (headers & PLAIN_HEADERS)
-
-    headers |= MSG_NODIGEST;
+    flags |= MIME_HEADERS;
 
   else
 
-    if ((headers & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW)) == 0)
+    if ((flags & (MIME_HEADERS | PLAIN_HEADERS)) == 0)
 
-      headers |= (HDR_DEFAULT & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW));
+      flags |= (HDR_DEFAULT & (MIME_HEADERS | PLAIN_HEADERS));
 
-  if (headers & MSG_DIGESTNOW)
+  if (flags & PLAIN_HEADERS)
 
-    headers |= MSG_DIGEST;
+    flags |= MSG_NODIGEST;
+
+  else
+
+    if ((flags & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW)) == 0)
+
+      flags |= (HDR_DEFAULT & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW));
+
+  if (flags & MSG_DIGESTNOW)
+
+    flags |= MSG_DIGEST;
 
   if ((encoding & (ENC_NONE    |
                    ENC_BASE8   |
@@ -767,7 +767,7 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     /* Copy the flags */
 
-  file->write_headers  = headers;
+  file->write_headers  = flags;
   file->write_encoding = encoding;
 
   node = handle->node;
@@ -795,7 +795,7 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
 
 int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
                                                      int ciforcbf,
-                                                     int headers,
+                                                     int flags,
                                                      int encoding)
 {
   cbf_file *file;
@@ -830,11 +830,11 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
 
     return CBF_ARGUMENT;
 
-  if (((headers  & MIME_HEADERS)  && (headers  & PLAIN_HEADERS)) ||
-      ((headers  & MSG_DIGEST)    && (headers  & MSG_NODIGEST))  ||
-      ((headers  & MSG_DIGEST)    && (headers  & PLAIN_HEADERS)) ||
-      ((headers  & MSG_DIGESTNOW) && (headers  & MSG_NODIGEST))  ||
-      ((headers  & MSG_DIGESTNOW) && (headers  & PLAIN_HEADERS)) ||
+  if (((flags  & MIME_HEADERS)  && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGEST)    && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGEST)    && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & PLAIN_HEADERS)) ||
       ((encoding & ENC_FORWARD)   && (encoding & ENC_BACKWARD)))
 
     return CBF_ARGUMENT;
@@ -862,29 +862,29 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
 
     /* Defaults */
 
-  if (headers & (MSG_DIGEST | MSG_DIGESTNOW))
+  if (flags & (MSG_DIGEST | MSG_DIGESTNOW))
 
-    headers |= MIME_HEADERS;
-
-  else
-
-    if ((headers & (MIME_HEADERS | PLAIN_HEADERS)) == 0)
-
-      headers |= (HDR_DEFAULT & (MIME_HEADERS | PLAIN_HEADERS));
-
-  if (headers & PLAIN_HEADERS)
-
-    headers |= MSG_NODIGEST;
+    flags |= MIME_HEADERS;
 
   else
 
-    if ((headers & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW)) == 0)
+    if ((flags & (MIME_HEADERS | PLAIN_HEADERS)) == 0)
 
-      headers |= (HDR_DEFAULT & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW));
+      flags |= (HDR_DEFAULT & (MIME_HEADERS | PLAIN_HEADERS));
 
-  if (headers & MSG_DIGESTNOW)
+  if (flags & PLAIN_HEADERS)
 
-    headers |= MSG_DIGEST;
+    flags |= MSG_NODIGEST;
+
+  else
+
+    if ((flags & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW)) == 0)
+
+      flags |= (HDR_DEFAULT & (MSG_DIGEST | MSG_NODIGEST | MSG_DIGESTNOW));
+
+  if (flags & MSG_DIGESTNOW)
+
+    flags |= MSG_DIGEST;
 
   if ((encoding & (ENC_NONE    |
                    ENC_BASE8   |
@@ -913,7 +913,7 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
 
     /* Copy the flags */
 
-  file->write_headers  = headers;
+  file->write_headers  = flags;
   file->write_encoding = encoding;
 
 
@@ -5820,9 +5820,9 @@ int cbf_set_tag_category (cbf_handle handle, const char* tagname,
 
     cbf_failnez( cbf_find_column(handle, tagname))
 
-    while (cbf_find_nextrow(dictionary,tagname)) {
+    while (!cbf_find_nextrow(dictionary,tagname)) {
 
-        cbf_failnez( cbf_require_column(dictionary, "catgeory_id"))
+        cbf_failnez( cbf_require_column(dictionary, "category_id"))
 
         if (cbf_get_value(dictionary,(const char **)&tempcat)) {
 

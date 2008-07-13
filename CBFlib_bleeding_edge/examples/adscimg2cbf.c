@@ -140,8 +140,8 @@ int	main(int argc, char *argv[])
 		{
 			fprintf(stderr,"adscimg2cbf: %s is an unknown flag\n\n", argv[1]);
 			usage();
-		exit(0);
-	}
+			exit(0);
+		}
 		switch(j)
 		{
 		  case 0:
@@ -194,11 +194,11 @@ int	main(int argc, char *argv[])
 
 		if(0 == file_type)
 		{
-		if(NULL == (fp = fopen(in_filename, "r")))
-		{
+			if(NULL == (fp = fopen(in_filename, "r")))
+			{
 				fprintf(stderr, "adscimg2cbf: Cannot open %s as input .img file\n", in_filename);
-			exit(0);
-		}
+				exit(0);
+			}
 		}
 		else
 		{
@@ -209,8 +209,8 @@ int	main(int argc, char *argv[])
 			if(NULL == (fp = popen(popen_command, "r")))
 			{
 				fprintf(stderr, "adscimg2cbf: Cannot exec %s command to uncompress input file\n", popen_command);
-			exit(0);
-		}
+				exit(0);
+			}
 		}
 
 		/*
@@ -226,7 +226,7 @@ int	main(int argc, char *argv[])
 		{
 			fprintf(stderr, "adscimg2cbf: Cannot read first header block of file %s.\n", in_filename);
 			if(0 == file_type)
-		fclose(fp);
+				fclose(fp);
 			else
 			{
 				status_pclose = pclose(fp);
