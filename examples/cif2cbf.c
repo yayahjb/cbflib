@@ -45,6 +45,8 @@
  *        {v[2packed]}|{f[latpacked]}[n[one]}] \                      *
  *    [-m {h[eaders]|n[oheaders]}] \                                  *
  *    [-d {d[igest]|n[odigest]|w[warndigest]} \                       *
+ *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
+ *    [-T {read|noread}] [-T {write|nowrite}] \                       *
  *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
  *    [-b {f[orward]|b[ackwards]}] \                                  *
@@ -80,6 +82,19 @@
  *  -d [no]digest or warndigest  (default md5 digest [R. Rivest,      *
  *    RFC 1321, April 1992 using"RSA Data Security, Inc. MD5          *
  *    Message-Digest Algorithm"] when MIME headers are selected)      *                    *
+ *                                                                    *
+ *  -B [no]read or liberal (default noread)                           *
+ *    read to enable reading of DDLm style brackets                   *
+ *    liberal to accept whitespace for commas                         *
+ *                                                                    *
+ *  -B [no]write (default write)                                      *
+ *    write to enable writing of DDLm style brackets                  *
+ *                                                                    *
+ *  -T [no]read or (default noread)                                   *
+ *    read to enable reading of DDLm style triple quotes              *
+ *                                                                    *
+ *  -T [no]write (default write)                                      *
+ *    write to enable writing of DDLm style triple quotes             *
  *                                                                    *
  *  -e encoding (base64, quoted-printable or none, default base64)    *
  *    specifies one of the standard MIME encodings for an ascii cif   *
@@ -426,6 +441,7 @@ int main (int argc, char *argv [])
   int errflg = 0;
   char *cifin, *cbfout;
   char *dictionary[NUMDICTS];
+  int dqrflags[NUMDICTS];
   char *ciftmp=NULL;
 #ifndef NOMKSTEMP
   int ciftmpfd;
@@ -449,6 +465,7 @@ int main (int argc, char *argv [])
   unsigned int rows;
 
   int mime, digest, encoding, compression, bytedir, cbforcif, term;
+  int qrflags, qwflags;
 
 
      /* Extract options */
@@ -459,6 +476,8 @@ int main (int argc, char *argv [])
  *        {v[2packed]}|{f[latpacked]}[n[one]}] \                      *
  *    [-m {h[eaders]|n[oheaders]}] \                                  *
  *    [-d {d[igest]|n[odigest]|w[arndigest]}] \                       *
+ *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
+ *    [-T {read|noread}] [-T {write|nowrite}] \                       *
  *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
  *    [-b {f[orward]|b[ackwards]}] \                                  *
@@ -475,12 +494,13 @@ int main (int argc, char *argv [])
    bytedir = 0;
    ndict = 0;
    padflag = 0;
+   qrflags = qwflags = 0;
 
    cifin = NULL;
    cbfout = NULL;
    ciftmpused = 0;
    
-   while ((c = getopt(argc, argv, "i:o:c:m:d:e:b:p:v:w")) != EOF) {
+   while ((c = getopt(argc, argv, "i:o:c:m:d:B:T:e:b:p:v:w")) != EOF) {
      switch (c) {
        case 'i':
          if (cifin) errflg++;
@@ -518,6 +538,7 @@ int main (int argc, char *argv [])
            }
          }
          break;
+
        case 'm':
          if (mime) errflg++;
          if (optarg[0] == 'h' || optarg[0] == 'H' ) {
@@ -530,6 +551,7 @@ int main (int argc, char *argv [])
            }
          }
          break;
+
        case 'd':
          if (digest) errflg++;
          if (optarg[0] == 'd' || optarg[0] == 'H' ) {
@@ -546,6 +568,44 @@ int main (int argc, char *argv [])
            }
          }
          break;
+
+
+       case 'B':
+         if (!strcmp(optarg,"read")) {
+           if (qrflags&(PARSE_NOBRACKETS|PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS)) errflg++;
+           qrflags |= PARSE_BRACKETS;
+         } else if (!strcmp(optarg,"noread")) {
+           if (qrflags&(PARSE_NOBRACKETS|PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS)) errflg++;
+           qrflags |= PARSE_NOBRACKETS;
+         } else if (!strcmp(optarg,"liberal")) {
+           if (qrflags&(PARSE_NOBRACKETS|PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS)) errflg++;
+           qrflags |= PARSE_LIBERAL_BRACKETS;
+         } else if (!strcmp(optarg,"write")) {
+           if (qwflags&(PARSE_NOBRACKETS|PARSE_BRACKETS)) errflg++;
+           qwflags |= PARSE_BRACKETS;
+         } else if (!strcmp(optarg,"nowrite")) {
+           if (qwflags&(PARSE_NOBRACKETS|PARSE_BRACKETS)) errflg++;
+           qwflags |= PARSE_NOBRACKETS;
+         } else errflg++;
+         break;
+
+       case 'T':
+         if (!strcmp(optarg,"read")) {
+           if (qrflags&(PARSE_NOTRIPLE_QUOTES|PARSE_TRIPLE_QUOTES)) errflg++;
+           qrflags |= PARSE_TRIPLE_QUOTES;
+         } else if (!strcmp(optarg,"noread")) {
+           if (qrflags&(PARSE_NOTRIPLE_QUOTES|PARSE_TRIPLE_QUOTES)) errflg++;
+           qrflags |= PARSE_NOTRIPLE_QUOTES;
+         } else if (!strcmp(optarg,"write")) {
+           if (qwflags&(PARSE_NOTRIPLE_QUOTES|PARSE_TRIPLE_QUOTES)) errflg++;
+           qwflags |= PARSE_TRIPLE_QUOTES;
+         } else if (!strcmp(optarg,"nowrite")) {
+           if (qwflags&(PARSE_NOTRIPLE_QUOTES|PARSE_TRIPLE_QUOTES)) errflg++;
+           qwflags |= PARSE_NOTRIPLE_QUOTES;
+         } else errflg++;
+         break;
+
+
        case 'b':
          if (bytedir) errflg++;
          if (optarg[0] == 'f' || optarg[0] == 'F') {
@@ -601,9 +661,10 @@ int main (int argc, char *argv [])
          }
          break;
        case 'v':
-         if (ndict < NUMDICTS)
+         if (ndict < NUMDICTS) {
+           dqrflags[ndict] = qrflags;
            dictionary[ndict++] = optarg;
-         else if (ndict == NUMDICTS) {
+         } else if (ndict == NUMDICTS) {
            errflg++;
            ndict++;
            fprintf(stderr, " Too many dictionaries, increase NUMDICTS");
@@ -641,6 +702,10 @@ int main (int argc, char *argv [])
        "    [-m {h[eaders]|n[oheaders]}] \\\n");
      fprintf(stderr,
        "    [-d {d[igest]|n[odigest]|w[arndigest]}] \\\n");
+     fprintf(stderr,
+       "    [-B {read|liberal|noread}] [-B {write|nowrite}] \\\n");
+     fprintf(stderr,
+       "    [-T {read|noread}] [-T {write|nowrite}] \\\n");
      fprintf(stderr,
        "    [-e {b[ase64]|q[uoted-printable]|\\\n");
      fprintf(stderr,
@@ -761,7 +826,7 @@ int main (int argc, char *argv [])
      	fprintf (stderr,"Couldn't open the dictionary %s\n", dictionary[kd]);
         exit (1);
      }
-     cbf_failnez(cbf_read_widefile(dic, dict, MSG_DIGEST))
+     cbf_failnez(cbf_read_widefile(dic, dict, MSG_DIGEST|dqrflags[kd]))
      cbf_failnez(cbf_convert_dictionary(cif,dic))
      cbf_failnez(cbf_get_dictionary(cif,&odic))
      cbf_failnez(cbf_set_dictionary(cbf,odic))
@@ -785,9 +850,9 @@ int main (int argc, char *argv [])
    }
 
    if (!wide) {
-   	 cbf_failnez (cbf_read_file (cif, in, MSG_DIGEST|(digest&MSG_DIGESTWARN)))
+   	 cbf_failnez (cbf_read_file (cif, in, MSG_DIGEST|qrflags|(digest&MSG_DIGESTWARN)))
    } else {
-   	 cbf_failnez (cbf_read_widefile (cif, in, MSG_DIGEST|(digest&MSG_DIGESTWARN)))
+   	 cbf_failnez (cbf_read_widefile (cif, in, MSG_DIGEST|qrflags|(digest&MSG_DIGESTWARN)))
    }
 
    cbf_failnez (cbf_rewind_datablock(cif))
@@ -1067,7 +1132,7 @@ int main (int argc, char *argv [])
 
    if ( ! devnull ){
    cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif, mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag,
-                                         encoding | bytedir | term))
+                                         encoding | bytedir | term | qwflags))
    }
    cbf_failnez (cbf_free_handle (cbf))
    b = clock ();

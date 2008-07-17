@@ -290,7 +290,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                                            cbf_get_inferred_pixel_size           
  cbf_alloc.h                                 Add prototype of cbf_free_text.     
  cbf_binary.h                                Add prototype of cbf_check_digest.  
- cbf_canonical.h                             Add definitions of             
+ cbf_canonical.h                             Add definitions of                  
                                            cbf_compress_node and                 
                                            cbf_compress_data, and prototypes of  
                                            cbf_make_compressdata,                

@@ -318,6 +318,25 @@ extern "C" {
 #define CBF_TOKEN_BIN        '\304'     /* Binary section              */
 #define CBF_TOKEN_MIME_BIN   '\305'     /* Mime-encoded binary section */
 #define CBF_TOKEN_TMP_BIN    '\306'     /* Temporary binary section    */
+#define CBF_TOKEN_BKTSTRING  '\311'     /* Composite string []         */
+#define CBF_TOKEN_BRCSTRING  '\312'     /* Composite string {}         */
+#define CBF_TOKEN_PRNSTRING  '\313'     /* Composite string ()         */
+#define CBF_TOKEN_TDQSTRING  '\314'     /* Triple Double-Quoted String */
+#define CBF_TOKEN_TSQSTRING  '\315'     /* Triple Single-Quoted String */
+#define CBF_TOKEN_BKTITEM    '\316'     /* Bracketed item              */
+
+#define cbf_token_term(tokentype) \
+  (((tokentype)==CBF_TOKEN_WORD)?' ':                \
+  (((tokentype)==CBF_TOKEN_SQSTRING)?'\'':           \
+  (((tokentype)==CBF_TOKEN_DQSTRING)?'"':            \
+  (((tokentype)==CBF_TOKEN_SCSTRING)?';':            \
+  (((tokentype)==CBF_TOKEN_BKTSTRING)?']':           \
+  (((tokentype)==CBF_TOKEN_BRCSTRING)?'}':           \
+  (((tokentype)==CBF_TOKEN_PRNSTRING)?')':           \
+  (((tokentype)==CBF_TOKEN_TDQSTRING)?'"':           \
+  (((tokentype)==CBF_TOKEN_TDQSTRING)?'\'': '\0' )))))))) )
+
+
 
   /* Constants for case sensitivity */
   
@@ -371,6 +390,18 @@ extern "C" {
 #define PAD_2K          0x0040  /* Pad binaries with 2047 0's         */
 #define PAD_4K          0x0080  /* Pad binaries with 4095 0's         */
 
+
+  /* Constants used to control CIF parsing */
+  
+#define PARSE_NOBRACKETS        \
+                        0x0100  /* Do not parse DDLm (,..) [,..] {,...}    */
+#define PARSE_BRACKETS  0x0200  /* PARSE DDLm (,..) [,..] {,...}           */ 
+#define PARSE_LIBERAL_BRACKETS  \
+                        0x0400  /* PARSE DDLm (,..) [,..] {,...} liberally */ 
+#define PARSE_TRIPLE_QUOTES     \
+                        0x0800  /* PARSE DDLm """...""" and '''...'''      */
+#define PARSE_NOTRIPLE_QUOTES   \
+                        0x0800  /* Do not PARSE DDLm """...""" and '''...'''*/
 
 #define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)
 
@@ -1275,6 +1306,13 @@ int cbf_mpint_rightshift_acc(unsigned int * acc, size_t acsize, int shift);
 int cbf_mpint_leftshift_acc(unsigned int * acc, size_t acsize, int shift);
 
 
+  /* Check value of type validity */
+  
+int cbf_check_type_contents(const char *type, const char *value);
+
+  /* Regex Match function */
+
+int cbf_match(const char *string, char *pattern);
 
 #ifdef __cplusplus
 

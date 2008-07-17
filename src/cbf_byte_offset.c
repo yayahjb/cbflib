@@ -676,8 +676,8 @@ int cbf_compress_byte_offset (void         *source,
 
   	         csize +=7;
   	               	         	
-  	     	
-  	     }
+
+  	       }
   	     
   	     } 
 
@@ -811,21 +811,21 @@ int cbf_compress_byte_offset (void         *source,
 
     } else {
 
-    if (elsize == sizeof (int))
+      if (elsize == sizeof (int))
 
-      element[0] = *((unsigned int *) unsigned_char_data);
-
-    else
-
-      if (elsize == sizeof (short))
-
-        element[0] = *((unsigned short *) unsigned_char_data);
+        element[0] = *((unsigned int *) unsigned_char_data);
 
       else
 
-        element[0] = *unsigned_char_data;
+        if (elsize == sizeof (short))
 
-    unsigned_char_data += elsize;
+          element[0] = *((unsigned short *) unsigned_char_data);
+
+        else
+
+          element[0] = *unsigned_char_data;
+
+      unsigned_char_data += elsize;
 
     }
 

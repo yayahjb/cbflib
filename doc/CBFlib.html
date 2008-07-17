@@ -32,8 +32,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <b>An API for CBF/imgCIF<br />
 Crystallographic Binary Files with ASCII Support</b><br />
-Version 0.7.9.1<br />
-24 January 2008<br />
+Version 0.8<br />
+29 February 2008<br />
 <p>
 </CENTER>
 </font><font color="#000000">
@@ -297,7 +297,7 @@ In order to work with CBFlib, you need:
 <ul>
 <li>the source code, in the form
 of a &quot;gzipped&quot; tar,
-<A HREF="../../CBFlib_0.7.9.tar.gz">CBFlib_0.7.9.tar.gz</A>; and
+<A HREF="../../CBFlib_0.8.tar.gz">CBFlib_0.8.tar.gz</A>; and
 <li>the test data:
 <ul>
 <li><A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Input.tar.gz">CBFlib_0.7.9_Data_Files_Input.tar.gz</a>
@@ -858,8 +858,8 @@ parse, and, if a dictionary was converted, against the value types, value
 enumerations, categories and parent-child relationships specified
 in the dictionary.  
 <p>
-<i>flags</i> controls the interprestation of binary section headers
-of imgCIF files.
+<i>flags</i> controls the interpretation of binary section headers, the parsing of
+brackets constructs and the parsing of treble-quoted strings.
 <TABLE>
 <TR>
 <TD VALIGN=TOP>&nbsp;&nbsp;MSG_DIGEST:
@@ -873,7 +873,7 @@ If an immediately evaluation is required, see MSG_DIGESTNOW, below.
 <TD VALIGN=TOP>&nbsp;&nbsp;MSG_DIGESTNOW:
 <td valign="top">&nbsp;&nbsp;Instructs CBFlib to check that the digest of the
 binary section matches any
-header digest value.  If the digests do
+header digeste value.  If the digests do
 not match, the call will return CBF_FORMAT.  This evaluation and comparison
 is performed during initial parsing of the section to ensure timely
 error reporting at the expense of processing efficiency.
@@ -893,6 +893,41 @@ the error.  <b>Use this option with caution.</b>
 <TR>
 <TD VALIGN=TOP>&nbsp;&nbsp;MSG_NODIGEST:
 <td valign="top">&nbsp;&nbsp;Do not check the digest (default).
+<tr>
+<td valign="top">&nbsp;&nbsp;PARSE_BRACKETS:
+<td valign="top">&nbsp;&nbsp;Accept DDLm bracket-delimited <b>[item,item,...item]</b> or
+<b>{item,item,...item}</b> or <b>(item,item,...item)</b> constructs as
+valid, stripping non-quoted embedded whitespace and comments.  These constructs may span multiple lines.
+<tr>
+<td valign="top">&nbsp;&nbsp;PARSE_LIBERAL_BRACKETS:
+<td valign="top">&nbsp;&nbsp;Accept DDLm bracket-delimited <b>[item,item,...item]</b> or
+<b>{item,item,...item}</b> or <b>(item,item,...item)</b> constructs as
+valid, stripping embedded non-quoted, non-separating whitespace and comments.  These constructs may span multiple lines.  In
+this case, whitespace may be used as an alternative to the comma.
+<tr>
+<td valign="top">&nbsp;&nbsp;PARSE_TRIPLE_QUOTES:
+<td valign="top">&nbsp;&nbsp;Accept DDLm triple-quotyed <b>&quot;&quot;&quot;item,item,...item&quot;&quot;&quot;</b> or 
+<b>'''item,item,...item'''</b> constructs as
+valid, stripping embedded whitespace and comments.  These constructs may span multiple lines.  If this flag
+is set, then ''' will <b>not</b> be interpreted as a quoted apoptrophe and
+""" will <b>not</b> be interpreted as a quoted double quote mark and
+<tr>
+<td valign="top">&nbsp;&nbsp;PARSE_NOBRACKETS:
+<td valign="top">&nbsp;&nbsp;Do not accept DDLm bracket-delimited <b>[item,item,...item]</b> or
+<b>{item,item,...item}</b> or <b>(item,item,...item)</b> constructs as
+valid, stripping non-quoted embedded whitespace and comments.  These constructs may span multiple lines.
+<tr>
+<td valign="top">&nbsp;&nbsp;PARSE_NOTRIPLE_QUOTES:
+<td valign="top">&nbsp;&nbsp;No not accept DDLm triple-quoted <b>&quot;&quot;&quot;item,item,...item&quot;&quot;&quot;</b> or 
+<b>'''item,item,...item'''</b> constructs as
+valid, stripping embedded whitespace and comments.  These constructs may span multiple lines.  If this flag
+is set, then ''' will be interpreted as a quoted apostrophe and
+""" will be interpreted as a quoted double quote mark.
+
+
+
+
+
 </TABLE>
 <p>
 CBFlib defers reading binary sections as long as possible.  In the current version
