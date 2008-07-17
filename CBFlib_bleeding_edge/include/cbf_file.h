@@ -333,6 +333,11 @@ int cbf_reset_buffer (cbf_file *file);
 int cbf_save_character (cbf_file *file, int c);
 
 
+  /* Add a character to the buffer, trimming trailing spaces */
+
+int cbf_save_character_trim (cbf_file *file, int c);
+
+
   /* Retrieve the buffer */
 
 int cbf_get_buffer (cbf_file *file, const char **buffer, 

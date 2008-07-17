@@ -495,7 +495,7 @@ int cbf_free_node (cbf_node *node)
 
     return CBF_ARGUMENT;
 
-    /* Check for a catgeory */
+    /* Check for a category */
     
   if (node->type == CBF_CATEGORY) {
   

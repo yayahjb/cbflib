@@ -262,6 +262,8 @@ extern "C" {
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <regex.h>
 
 int cbf_parse (void *context);
 
@@ -376,6 +378,15 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, int wid
 
 
   if (((flags & (MSG_DIGEST | MSG_DIGESTNOW | MSG_DIGESTWARN)) && (flags & MSG_NODIGEST))) {
+
+    fclose (stream);
+    
+    return CBF_ARGUMENT;
+    	
+  }
+  
+  if (((flags & PARSE_NOBRACKETS) && (flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS)))
+    ||((flags & PARSE_TRIPLE_QUOTES) && (flags & PARSE_NOTRIPLE_QUOTES)) ) {
 
     fclose (stream);
 
@@ -4639,7 +4650,8 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
       /* Find the name for this defintion */
 
     if (!cbf_find_local_tag(dictionary,"_name") ||
-      !cbf_find_local_tag(dictionary,"_item.name") ) {
+      !cbf_find_local_tag(dictionary,"_item.name") ||
+      !cbf_find_local_tag(dictionary,"_definition.id")) {
     	
        haveitemname = 1; local_node = dictionary->node;
        
@@ -4647,7 +4659,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
        
     }
 
-    if (!haveitemname && !cbf_find_category(dictionary,"item")) haveitemcategory = 1;
+    if (!haveitemname && (!cbf_find_category(dictionary,"item") || !cbf_find_category(dictionary,"name"))) haveitemcategory = 1;
 
     if (haveitemname || haveitemcategory) {
 
@@ -4740,7 +4752,8 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
         dictionary->node = base_node;
         	
         if ( !cbf_find_local_tag(dictionary,"_type") ||
-          !cbf_find_local_tag(dictionary,"_item_type.code") ) {
+          !cbf_find_local_tag(dictionary,"_item_type.code") ||
+          !cbf_find_local_tag(dictionary,"_type.contents") ) {
 
           if (!cbf_get_value(dictionary, &type_code)) {
 
@@ -4925,7 +4938,8 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
     dictionary->node = base_node;
         	
     if (!cbf_find_local_tag(dictionary, "_item_linked.parent_name") ||
-      !cbf_find_local_tag(dictionary, "_item_link_parent"))  {
+      !cbf_find_local_tag(dictionary, "_item_link_parent") || 
+      !cbf_find_local_tag(dictionary, "_category.parent_id"))  {
 
       cbf_failnez( cbf_count_rows (dictionary,(unsigned int *)&numrows))
 
@@ -4940,7 +4954,8 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
         parent_name = NULL;
 
         if (!cbf_find_column(dictionary,"parent_name") ||
-            !cbf_find_column(dictionary,"_list_link_parent") )
+            !cbf_find_column(dictionary,"_list_link_parent") || 
+            !cbf_find_column(dictionary,"parent_id") )
             if (cbf_get_value(dictionary,&parent_name)) parent_name = NULL;
 
         child_name = NULL;
@@ -5696,7 +5711,7 @@ int cbf_find_tag_root (cbf_handle handle, const char* tagname,
 
     if (!dictionary) return CBF_NOTFOUND;
 
-    if ( cbf_find_tag(dictionary, "_item_aliases.alias_name"))
+    if ( cbf_find_tag(dictionary, "_item_aliases.alias_name") && cbf_find_tag(dictionary, "_aliases.definition_id"))
       {
         return CBF_NOTFOUND;
       }
@@ -5818,17 +5833,19 @@ int cbf_set_tag_category (cbf_handle handle, const char* tagname,
 
     cbf_failnez( cbf_rewind_row(dictionary))
 
-    cbf_failnez( cbf_find_column(handle, tagname))
+    cbf_failnez( cbf_find_column(handle, "name"))
 
     while (!cbf_find_nextrow(dictionary,tagname)) {
 
         cbf_failnez( cbf_require_column(dictionary, "category_id"))
 
-        if (cbf_get_value(dictionary,(const char **)&tempcat)) {
+        if (!cbf_get_value(dictionary,(const char **)&tempcat)) {
 
           if (tempcat && !cbf_cistrcmp(tempcat,categoryname))return 0;
 
         }
+
+	    if (!tempcat) return cbf_set_value(dictionary,categoryname);
 
         cbf_failnez( cbf_find_column(dictionary, "name"))
 
@@ -6131,7 +6148,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     
     if (handle->dictionary) {
               	
-      if (!cbf_find_tag(handle->dictionary, "_items.name"))  {
+      if (!cbf_find_tag(handle->dictionary, "_items.name") || !cbf_find_tag(handle->dictionary, "_definition.id"))  {
         
         cbf_failnez(cbf_reset_column(handle->dictionary, "DB_wide_refcounts") )
   
@@ -6229,7 +6246,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 
     if (handle->dictionary) {
 
-      if (!cbf_find_tag(handle->dictionary, "_items.name"))  {
+      if (!cbf_find_tag(handle->dictionary, "_items.name") || !cbf_find_tag(handle->dictionary, "_definition.id"))  {
 
          cbf_failnez(cbf_reset_column(handle->dictionary, "SF_wide_refcounts") )
 
@@ -6332,7 +6349,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     
     if (handle->dictionary) {
               	
-      if (!cbf_find_tag(handle->dictionary, "_items.name"))  {
+      if (!cbf_find_tag(handle->dictionary, "_items.name") || !cbf_find_tag(handle->dictionary, "_definition.id"))  {
         
         cbf_failnez(cbf_reset_column(handle->dictionary, "DBcat_wide_refcounts") )
   	
@@ -6384,7 +6401,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
       
         loopname = NULL;
 
-        if (!cbf_find_tag(handle->dictionary, "_items.name")
+        if ((!cbf_find_tag(handle->dictionary, "_items.name") || !cbf_find_tag(handle->dictionary, "_definition.id"))
         
           && !cbf_compose_itemname(handle, node, itemname, 80)) {
         	
@@ -6551,7 +6568,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     
         if (!cbf_compose_itemname(handle, tnode, itemname, 80)) {
     
-          if (!cbf_find_tag(handle->dictionary, "_items.name")) {
+          if (!cbf_find_tag(handle->dictionary, "_items.name") || !cbf_find_tag(handle->dictionary, "_definition.id")) {
    	            	     
 
     	    if (!cbf_find_hashedvalue(handle->dictionary, itemname, 
@@ -6570,7 +6587,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	          
     	            flptr = valuestring+1;
     	            
-    	            if (cbf_foldtextline((const char **)&flptr, fline, 2048, 1, 0))  {
+    	            if (cbf_foldtextline((const char **)&flptr, fline, 2048, 1, 0, ';'))  {
     	            
     	              tokentype = CBF_TOKEN_SQSTRING;
     	              
@@ -6581,6 +6598,30 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	          }
     	        	
     	        }
+    	        
+    	        if (tokentype==CBF_TOKEN_TSQSTRING
+    	          || tokentype==CBF_TOKEN_TDQSTRING
+    	          || tokentype==CBF_TOKEN_PRNSTRING
+    	          || tokentype==CBF_TOKEN_BRCSTRING
+    	          || tokentype==CBF_TOKEN_BKTSTRING
+    	          ) {
+    	        
+    	          if (valuestring[0]=='\\') {
+    	          
+    	            flptr = valuestring+1;
+    	            
+    	            if (cbf_foldtextline((const char **)&flptr, fline, 2048, 1, 0, '\0'))  {
+    	            
+    	              tokentype = CBF_TOKEN_SQSTRING;
+    	              
+    	              valuestring = fline;
+    	            	
+    	            }
+    	          	
+    	          }
+    	        	
+    	        }
+    	        
     	        
                 if (tokentype==CBF_TOKEN_SQSTRING || tokentype== CBF_TOKEN_DQSTRING) {
                 
@@ -6605,6 +6646,14 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	  break;
     	        	  
     	        	case CBF_TOKEN_WORD:
+ 
+    	        	  if ( !cbf_cistrncmp(dictype,"implied",8) ) {
+    	        	  
+    	        	    goodmatch = 1;
+    	        	    
+    	        	    break;
+    	        	  	
+    	        	  }
  
      	        	  if ( !cbf_cistrncmp(dictype,"uchar3",7) )
      	        	  {
@@ -6647,7 +6696,8 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
      	        	    break;
      	        	  }
      	        	    
-     	        	  if( !cbf_cistrncmp(dictype,"yyyy-",5) )  {
+     	        	  if( !cbf_cistrncmp(dictype,"yyyy-",5) ||
+     	        	      !cbf_cistrncmp(dictype,"date",4) )  {
      	        	  
      	        	    mm=-1, dd=-1, hr=0, mi =0, se=0, sf=0, tz = 0;
      	        	       	        	    
@@ -6697,7 +6747,10 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    || !cbf_cistrncmp(dictype,"phon",4)
     	        	    || !cbf_cistrncmp(dictype,"emai",4)
     	        	    || !cbf_cistrncmp(dictype,"fax", 3)
-    	        	    || !cbf_cistrncmp(dictype,"text",4) )  {
+    	        	    || !cbf_cistrncmp(dictype,"text",4) 
+    	        	    || !cbf_cistrncmp(dictype,"tag",3) 
+    	        	    || !cbf_cistrncmp(dictype,"ctag",4) 
+    	        	    || !cbf_cistrncmp(dictype,"otag",4) )  {
     	        	  	
     	        	    goodmatch = 1; break;
     	        	  	
@@ -6740,9 +6793,20 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
   	        	        	        	    
     	        	  }
     	        	
+    	        	  if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break; }
+    	        	  break;
+    	        	
     	        	case CBF_TOKEN_SQSTRING:
     	        	case CBF_TOKEN_DQSTRING:
     	        	
+    	        	  if ( !cbf_cistrncmp(dictype,"implied",8) ) {
+    	        	  
+    	        	    goodmatch = 1;
+    	        	    
+    	        	    break;
+    	        	  	
+    	        	  }
+
     	        	  if(!cbf_cistrncmp(dictype,"text",4) 
     	        	    || !cbf_cistrncmp(dictype,"any",3)
     	        	    || !cbf_cistrncmp(dictype,"line",4)
@@ -6754,13 +6818,28 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    || !cbf_cistrncmp(dictype,"char",4)
     	        	    || !cbf_cistrncmp(dictype,"ucha",4) ) { goodmatch = 1; break;   }
     	        	
+    	        	  if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break; }
+    	        	  break;
+
+    	        	
     	        	case CBF_TOKEN_SCSTRING:
+    	        	
+    	        	  if ( !cbf_cistrncmp(dictype,"implied",8) ) {
+    	        	  
+    	        	    goodmatch = 1;
+    	        	    
+    	        	    break;
+    	        	  	
+    	        	  }
+
     	        	
     	        	  if(!cbf_cistrncmp(dictype,"text",4) 
     	        	    || !cbf_cistrncmp(dictype,"any",3)
     	        	    || !cbf_cistrncmp(dictype,"char",4)
     	                || !cbf_cistrncmp(dictype,"ucha",4) ) { goodmatch = 1; break;   }
     	        	   
+    	        	  if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break; }
+    	        	  break;
 
     	        	
     	        }
@@ -7452,12 +7531,170 @@ int cbf_mpint_leftshift_acc(unsigned int * acc, size_t acsize, int shift) {
 
 }
 
+  /* Check value of type validity */
+  
+int cbf_check_type_contents (const char *type, const char *value){
+	if (!cbf_cistrcmp(type,"Achar")) {
+		
+		return cbf_match(value,"^[A-Za-z]$");
+		
+	}else if (!cbf_cistrcmp(type,"ANchar")) {
+		
+		return cbf_match(value,"^[A-Za-z0-9]$");
+	
+	}else if (!cbf_cistrcmp(type,"Element")) {
+	
+		/*Achar +*/
+		return cbf_match(value,"^[A-Za-z]+$");
+		
+	}else if (!cbf_cistrcmp(type,"Tag")) {
+	
+		/*_ Ctag [._] Otag*/
+		return cbf_match(value,"^[_][A-Za-z0-9]+[_][._][A-Za-z0-9]+[_]$");
+		
+	}else if (!cbf_cistrcmp(type,"Otag")
+			  || !cbf_cistrcmp(type,"Ctag")
+			  || !cbf_cistrcmp(type,"Filename")) {
+		
+		/* ANchar [_] +*/
+		return cbf_match(value,"^[A-Za-z0-9]+[_]$");
+		
+	}else if (!cbf_cistrcmp(type,"Savename")) {
+		
+		/*$ Otag*/
+		return cbf_match(value,"[$][A-Za-z0-9]+[_]");
+		
+	}else if (!cbf_cistrcmp(type,"Date")) {
+		
+		/*[0-9][0-9][0-9][0-9]-[0-1]?[0-9]-[0-3][0-9]*/
+		return cbf_match(value,"^[0-9][0-9][0-9][0-9]-[0-1]?[0-9]-[0-3][0-9]$");
+		
+	}else if (!cbf_cistrcmp(type,"Version")) {
+		
+		/*Count [.] Count [.] Count*/
+		return cbf_match(value,"^[0-9]+[.][0-9]+[.][0-9]+$");
+		
+	}else if (!cbf_cistrcmp(type,"Range")) {
+		
+		/*Integer ? : Integer ?*/
+		return cbf_match(value,"[+-]?[0-9]+:[+-]?[0-9]+");
+		
+	}else if (!cbf_cistrcmp(type,"Digit")) {
+		
+		/*[0-9]*/
+		return cbf_match(value,"^[0-9]$");
+		
+	}else if (!cbf_cistrcmp(type,"Count")) {
+		
+		/*[0-9]+*/
+		return cbf_match(value,"^[0-9]+$");
+		
+	}else if (!cbf_cistrcmp(type,"Index")) {
+		
+		/*[1-9] Digit +*/
+		return cbf_match(value,"^[1-9]+[0-9]+");
+		
+	}else if (!cbf_cistrcmp(type,"Integer")) {
+		
+		/*[+-]? Count*/
+		return cbf_match(value,"^[+-]?[0-9]+$");
+		
+	}else if (!cbf_cistrcmp(type,"Binary")) {
+		
+		/*0b[0-1]+*/
+		return cbf_match(value,"^0b[0-1]+");
+		
+	}else if (!cbf_cistrcmp(type,"Hexadecimal")) {
+		
+		/*0x[0-7a-fA-F]+*/
+		return cbf_match(value,"^0x[0-9a-fA-F]+$");
+		
+	}else if (!cbf_cistrcmp(type,"Octal")) {
+		
+		/*0o[0-7]+*/
+		return cbf_match(value,"^0o[0-7]+$");
+		
+	}else if (!cbf_cistrcmp(type,"Symop")) {
+		
+		/*[0-1]?[0-9]?[0-9]_[0-9][0-9][0-9]*/
+		return cbf_match(value,"^[0-1]?[0-9]?[0-9]_[0-9][0-9][0-9]$");
+		
+	}else if (!cbf_cistrcmp(type,"YesorNo")) {
+		
+		/*[yes]?[y]?[no]?[n]?*/
+		return cbf_match(value,"^(yes)?(no)?[n]?[y]?$");/*needs fixing noy will work!*/
+		
+	}else if (!cbf_cistrcmp(type,"Pchar")
+			  ||!cbf_cistrcmp(type,"Uri")) {
+		
+		/*[()\[\]_,.;:"&<>/\{}'`~!@#$%?+=*A-Za-z0-9|^-]*/
+		return cbf_match(value,"");
+		
+	}else if (!cbf_cistrcmp(type,"Text")) {
+		
+		/*[][ \n\t()_,.;:"&<>/\{}'`~!@#$%?+=*A-Za-z0-9|^-]*/
+		return cbf_match(value,"");
+		
+	}else if (!cbf_cistrcmp(type,"Code")) {
+		
+		/*[()\[\]_&<>{}~!@#$%?+=*A-Za-z0-9|^-]+*/
+		return cbf_match(value,"");
+		
+	}else if (!cbf_cistrcmp(type,"Dimension")) {
+		
+		/*[[] Count [,]? + []]*/
+		return cbf_match(value,"");
+		
+	}else if (!cbf_cistrcmp(type,"Float")
+			  || !cbf_cistrcmp(type,"Real")) {
+		
+		/*-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?*/
+		return cbf_match(value,"");
+		
+	}else if (!cbf_cistrcmp(type,"Imag")) {
+		
+		/*Real[jJ]*/
+		return cbf_match(value,"");
+		
+	}else if (!cbf_cistrcmp(type,"Label")) {
+		
+		/*[()\[\]_&<>{}~!@#$%?+=*A-Za-z0-9|^-]+*/
+		return cbf_match(value,"");
+		
+	}else if (!cbf_cistrcmp(type,"Formula")) {
+		
+		/*[()\[\]+-=*A-Za-z0-9]+*/
+		return cbf_match(value,"");
+		
+	}
 
+	return 1;
+}
 
-
-
-
-
+  /* Regex Match function */
+  
+int cbf_match(const char *string, char *pattern) { 
+	
+	int status; 
+	
+	regex_t re; 
+	
+	if(regcomp(&re, pattern, REG_EXTENDED|REG_NOSUB) != 0) { 
+		
+    		return 1; 
+	
+	} 
+	
+	status = regexec(&re, string, (size_t)0, NULL, 0); 
+	
+	regfree(&re); 
+	
+	if(status != 0) { 
+	
+	    return 1;
+	} 
+	return 0;
+}
 
 #ifdef __cplusplus
 

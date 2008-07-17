@@ -267,7 +267,8 @@ extern "C" {
 int cbf_foldtextline(const char** string, char* fline, 
                                                 int fline_size,
                                                 int unfoldme,
-                                                int foldme );
+                                                int foldme,
+                                                char termc );
   /* Write an ascii value */
 
 int cbf_write_ascii (const char *string, cbf_file *file);

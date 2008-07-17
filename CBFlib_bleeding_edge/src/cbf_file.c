@@ -261,6 +261,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <ctype.h>
 
 
 
@@ -591,6 +592,55 @@ int cbf_save_character (cbf_file *file, int c)
       cbf_failnez (cbf_set_buffersize (file, new_size))
   }
 
+    /* Add the character */
+
+  file->buffer [file->buffer_used] = (char) c;
+
+  file->buffer_used++;
+
+  file->buffer [file->buffer_used] = '\0';
+
+
+    /* Success */
+
+  return 0;
+}
+
+  /* Add a character to the buffer, trim lines */
+
+int cbf_save_character_trim (cbf_file *file, int c)
+{
+  unsigned int new_size;
+
+    /* Does the file exist? */
+
+  if (!file)
+
+    return CBF_ARGUMENT;
+
+
+    /* Expand the buffer? */
+
+  if (file->buffer_size < file->buffer_used+3) {
+
+    new_size = (file->buffer_used+3)*2;
+
+    if (new_size >= file->buffer_size)
+      cbf_failnez (cbf_set_buffersize (file, new_size))
+  }
+
+    /* Check for end of line, if so, trim */
+    
+  if ((char)c == '\n') {
+
+    while (file->buffer_used > 0 
+      && file->buffer[file->buffer_used-1] != '\n' 
+      && file->buffer[file->buffer_used-1] != '\r' 
+      && isspace(file->buffer[file->buffer_used-1])) {
+      
+      file->buffer_used--;    }
+  	
+  }
     /* Add the character */
 
   file->buffer [file->buffer_used] = (char) c;
