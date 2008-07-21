@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_lex -- lexical scanner for CBF tokens                          *
  *                                                                    *
- * Version 0.7.9 30 December 2007                                     *
+ * Version 0.8.0 20 July 2008                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -464,19 +464,38 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
         cbf_log(handle, "\"loop_\" must be followed by white space", 
           CBF_LOGERROR|CBF_LOGSTARTLOC );
           
-        if (file->temporary)  {
+        if ( file->temporary || file->characters )  {
         
-          file->characters--;
+          if (file->characters > file->characters_base)  {
+         
+            file->characters--;
           
-          file->characters_used++;
+            file->characters_used++;
           
-          file->characters_size++;
+            file->characters_size++;
+          
+          } else  {
+          
+            if (file->characters_used >= file->characters_size)  {
+            
+              cbf_errornez(cbf_set_io_buffersize(file,file->characters_size+1),val)
+            	
+            }
+            
+            if (file->characters_used) memmove(file->characters_base,file->characters_base+1,file->characters_used);
+            
+            file->characters_used++;
+            
+            *(file->characters) = c;
+          	
+          }
         	
         } else  {
-        	
+
           ungetc(c,file->stream);
-      
+          	
         }
+        	
       
         file->column--;
       

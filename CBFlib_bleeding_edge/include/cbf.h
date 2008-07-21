@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf.h -- cbflib basic API functions                                *
  *                                                                    *
- * Version 0.7.9 30 December 2007                                     *
+ * Version 0.8.0 20 July 2008                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -272,7 +272,7 @@ extern "C" {
 
   /* API version and assumed dictionary version */
   
-#define CBF_API_VERSION     "CBFlib v0.7.8"
+#define CBF_API_VERSION     "CBFlib v0.8.0"
 #define CBF_DIC_VERSION     "CBF: VERSION 1.5"
 
   /* Maximum line length */
@@ -280,9 +280,11 @@ extern "C" {
 #define CBF_LINELENGTH_10 80
 #define CBF_LINELENGTH_11 2048
 
-  /* Initial write buffer size */
+  /* Initial io buffer sizes */
   
+#define CBF_INIT_READ_BUFFER 4096
 #define CBF_INIT_WRITE_BUFFER 4096
+#define CBF_TRANSFER_BUFFER 4096
 
 
   /* Error codes */
@@ -401,7 +403,8 @@ extern "C" {
 #define PARSE_TRIPLE_QUOTES     \
                         0x0800  /* PARSE DDLm """...""" and '''...'''      */
 #define PARSE_NOTRIPLE_QUOTES   \
-                        0x0800  /* Do not PARSE DDLm """...""" and '''...'''*/
+                        0x1000  /* Do not PARSE DDLm """...""" and '''...'''*/
+#define PARSE_WIDE      0x2000  /* PARSE wide files                         */
 
 #define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)
 
@@ -527,6 +530,13 @@ int cbf_read_file (cbf_handle handle, FILE *stream, int flags);
   /* Read a wide file */
 
 int cbf_read_widefile (cbf_handle handle, FILE *stream, int flags);
+
+
+  /* Read a pre-read buffered file */
+  
+int cbf_read_buffered_file (cbf_handle handle, FILE *stream, int flags, 
+                            const char * buffer, size_t buffer_len);
+
 
 
   /* Write a file */

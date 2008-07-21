@@ -284,7 +284,7 @@ int cbf_foldtextline(const char** string, char* fline,
     c = *string;
     
     if (foldme && (termc == '\'' || termc == '\"') ) left -=2;
-    
+
     ofl = fline;
     
     savbpos = -1;
@@ -306,7 +306,7 @@ int cbf_foldtextline(const char** string, char* fline,
       return 0;
    	
     }
-
+    
 
     for (ipos=0; c[ipos]; ipos++) {
     
@@ -499,7 +499,7 @@ int cbf_write_ascii (const char *string, cbf_file *file)
         *string == CBF_TOKEN_BKTSTRING)
         
         end = column + 5;
-
+        
       else
 
         end = column + 1;
@@ -851,7 +851,7 @@ int cbf_write_ascii (const char *string, cbf_file *file)
       if (unfoldme && *(c-1)=='\\') {
 
         if (termc == ';') {
-      	cbf_failnez (cbf_write_string (file, "\\\n;\n"))
+          cbf_failnez (cbf_write_string (file, "\\\n;\n"))	
         }  else  {
           cbf_failnez (cbf_write_string (file, "\\\n"))	
           cbf_failnez (cbf_write_character (file, termc )) 
@@ -871,7 +871,7 @@ int cbf_write_ascii (const char *string, cbf_file *file)
         }
 
         if (termc == ';') {
-      	cbf_failnez (cbf_write_string (file, ";\n"))
+          cbf_failnez (cbf_write_string (file, ";\n"))	
         }  else  {
           cbf_failnez (cbf_write_character (file, termc ))        	
           if (*string==CBF_TOKEN_TSQSTRING 

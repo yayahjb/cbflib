@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf -- cbflib API functions                                        *
  *                                                                    *
- * Version 0.7.9 30 December 2007                                     *
+ * Version 0.8.0 20 July 2008                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -320,7 +320,7 @@ int cbf_free_handle (cbf_handle handle)
   int errorcode;
   
   void *memblock;
-
+  
   cbf_node *node;
 
   errorcode = 0;
@@ -351,7 +351,7 @@ int cbf_free_handle (cbf_handle handle)
 
   /* Read a file or a wide file */
 
-static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, int wide)
+static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, const char * buffer, size_t buffer_size)
 {
   cbf_file *file;
 
@@ -360,7 +360,7 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, int wid
   void *parse [4];
 
   int errorcode;
-
+  
   unsigned int children;
 
   const char *name;
@@ -370,16 +370,18 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, int wid
 
   if (!handle) {
 
-    fclose (stream);
-
+    if (stream)
+      fclose (stream);
+    
     return CBF_ARGUMENT;
-
+    	
   }
 
 
   if (((flags & (MSG_DIGEST | MSG_DIGESTNOW | MSG_DIGESTWARN)) && (flags & MSG_NODIGEST))) {
 
-    fclose (stream);
+    if (stream)
+      fclose (stream);
     
     return CBF_ARGUMENT;
     	
@@ -388,37 +390,60 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, int wid
   if (((flags & PARSE_NOBRACKETS) && (flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS)))
     ||((flags & PARSE_TRIPLE_QUOTES) && (flags & PARSE_NOTRIPLE_QUOTES)) ) {
 
-    fclose (stream);
-
+    if (stream)
+      fclose (stream);
+    
     return CBF_ARGUMENT;
     	
   }
+  
+  if (!stream && (!buffer || !buffer_size))
+  
+    return CBF_ARGUMENT;
 
 
     /* Delete the old datablocks */
 
   cbf_onfailnez (cbf_find_parent (&node, handle->node, CBF_ROOT), fclose(stream))
 
-  cbf_onfailnez (cbf_set_children (node, 0), fclose(stream))
+  cbf_onfailnez (cbf_set_children (node, 0), if (stream) fclose(stream))
 
   handle->node = node;
   
-  cbf_onfailnez (cbf_reset_refcounts(handle->dictionary), fclose(stream))
+  cbf_onfailnez (cbf_reset_refcounts(handle->dictionary), if (stream) fclose(stream))
 
 
     /* Create the input file */
 
-  if (wide) {
+  if (flags&PARSE_WIDE) {
   	
-  cbf_onfailnez (cbf_make_widefile (&file, stream), fclose(stream))
+    cbf_onfailnez (cbf_make_widefile (&file, stream), if (stream) fclose(stream))
   
   } else {
 
-  cbf_onfailnez (cbf_make_file (&file, stream), fclose(stream))
+    cbf_onfailnez (cbf_make_file (&file, stream), if (stream) fclose(stream))
   	
   }
   
   handle->file = file;
+  
+  if (buffer && buffer_size != 0) {
+    
+    cbf_onfailnez (cbf_set_io_buffersize(file, buffer_size+1), if (stream) fclose(stream))
+    
+    memmove((void *)file->characters_base,(const void *)buffer,buffer_size);
+    
+    file->characters = file->characters_base;
+    
+    file->characters_used = buffer_size;
+    
+    if (stream) {
+    
+      file->characters[file->characters_used++] = '\n';
+    	
+    }
+    
+  }
 
 
     /* Defaults */
@@ -501,7 +526,7 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, int wid
 
 int cbf_read_file (cbf_handle handle, FILE *stream, int flags) 
 {
-	return cbf_read_anyfile (handle, stream, flags, 0);
+	return cbf_read_anyfile (handle, stream, flags, NULL, 0);
 }
 
   /* Read a wide file */
@@ -509,7 +534,15 @@ int cbf_read_file (cbf_handle handle, FILE *stream, int flags)
 
 int cbf_read_widefile (cbf_handle handle, FILE *stream, int flags) 
 {
-	return cbf_read_anyfile (handle, stream, flags, 1);
+	return cbf_read_anyfile (handle, stream, flags|PARSE_WIDE, NULL, 0);
+}
+
+  /* Read a pre-read buffered file */
+  
+int cbf_read_buffered_file (cbf_handle handle, FILE *stream, int flags, 
+                            const char * buffer, size_t buffer_len)
+{
+	return cbf_read_anyfile (handle, stream, flags, buffer, buffer_len);	
 }
 
 
@@ -3377,7 +3410,7 @@ int cbf_get_integervalue (cbf_handle handle, int *number)
 int cbf_get_doublevalue (cbf_handle handle, double *number)
 {
   const char *value;
-
+  
   char buffer[80];
   
   char *endptr;
@@ -6247,14 +6280,14 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     if (handle->dictionary) {
 
       if (!cbf_find_tag(handle->dictionary, "_items.name") || !cbf_find_tag(handle->dictionary, "_definition.id"))  {
+  	
+        cbf_failnez(cbf_reset_column(handle->dictionary, "SF_wide_refcounts") )
 
-         cbf_failnez(cbf_reset_column(handle->dictionary, "SF_wide_refcounts") )
-
-         cbf_failnez(cbf_reset_column(handle->dictionary, "SFcat_wide_refcounts") )
-
+        cbf_failnez(cbf_reset_column(handle->dictionary, "SFcat_wide_refcounts") )
+        	
       }
-   }
- 
+    }
+
   } else if (type == CBF_CATEGORY ) {
   
     /* We come here at the start of a new datablock element
@@ -6646,7 +6679,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	  break;
     	        	  
     	        	case CBF_TOKEN_WORD:
- 
+    	        	
     	        	  if ( !cbf_cistrncmp(dictype,"implied",8) ) {
     	        	  
     	        	    goodmatch = 1;
@@ -6738,7 +6771,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    || !cbf_cistrncmp(dictype,"code",4)
     	        	    || !cbf_cistrncmp(dictype,"name",4)
     	        	    || !cbf_cistrncmp(dictype,"idna",4)
-                        || !cbf_cistrncmp(dictype,"alia",4)
+    	        	    || !cbf_cistrncmp(dictype,"alia",4)
     	        	    || !cbf_cistrncmp(dictype,"ucod",4)
     	        	    || !cbf_cistrncmp(dictype,"line",4)
     	        	    || !cbf_cistrncmp(dictype,"ulin",4)
@@ -6792,7 +6825,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    }
   	        	        	        	    
     	        	  }
-    	        	
+    	        	  
     	        	  if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break; }
     	        	  break;
     	        	
@@ -6813,11 +6846,11 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    || !cbf_cistrncmp(dictype,"ulin",4)
     	        	    || !cbf_cistrncmp(dictype,"name",4)
     	        	    || !cbf_cistrncmp(dictype,"idna",4)
-                        || !cbf_cistrncmp(dictype,"alia",4)
+    	        	    || !cbf_cistrncmp(dictype,"alia",4)
     	        	    || !cbf_cistrncmp(dictype,"atco",4)
     	        	    || !cbf_cistrncmp(dictype,"char",4)
     	        	    || !cbf_cistrncmp(dictype,"ucha",4) ) { goodmatch = 1; break;   }
-    	        	
+    	        	    
     	        	  if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break; }
     	        	  break;
 

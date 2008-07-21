@@ -351,7 +351,7 @@ int cbf_get_value_type(const char *value, const char **value_type)
     return 0;
 
   }
-
+  
   if (*value == CBF_TOKEN_BRCSTRING) {
 
     *value_type = brcstok;
