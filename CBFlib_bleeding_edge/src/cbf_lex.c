@@ -582,17 +582,29 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
       
       int *tokentype;
       
+      int **vtokentype;
+      
       size_t tokentype_size;
 
       int *state;
+      
+      int **vstate;
       
       size_t state_size;
 
       int *index;
       
+      int **vindex;
+      
       size_t index_size;
       
       tokentype_size = state_size = index_size = 0;
+      
+      vtokentype = &tokentype;
+      
+      vstate = &state;
+      
+      vindex = &index;
       
 
       
@@ -612,13 +624,13 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
             
         tokentype_size = state_size = index_size = 100;
             
-        cbf_errornez(cbf_alloc((void **)&tokentype, NULL, sizeof(int), tokentype_size), val)
+        cbf_errornez(cbf_alloc((void **)vtokentype, NULL, sizeof(int), tokentype_size), val)
             
-        cbf_onerrornez(cbf_alloc((void **)&state, NULL, sizeof(int), state_size), 
-          val, cbf_free((void **)&tokentype, NULL))
+        cbf_onerrornez(cbf_alloc((void **)vstate, NULL, sizeof(int), state_size), 
+          val, cbf_free((void **)vtokentype, NULL))
 
-        cbf_onerrornez(cbf_alloc((void **)&index, NULL, sizeof(int), index_size), 
-          val, {cbf_free((void **)&tokentype, NULL); cbf_free((void **)&state, NULL);})
+        cbf_onerrornez(cbf_alloc((void **)vindex, NULL, sizeof(int), index_size), 
+          val, {cbf_free((void **)vtokentype, NULL); cbf_free((void **)vstate, NULL);})
           
         state[depth-1] = index[depth-1] = 0;
 
@@ -1015,9 +1027,9 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                 cbf_log(handle,"file ended before end of bracketed construct", 
                   CBF_LOGWARNING|CBF_LOGSTARTLOC);
                   
-                cbf_free((void **)&tokentype, NULL);
-                cbf_free((void **)&state, NULL);
-                cbf_free((void **)&index, NULL);
+                cbf_free((void **)vtokentype, NULL);
+                cbf_free((void **)vstate, NULL);
+                cbf_free((void **)vindex, NULL);
  
                return cbf_return_text (STRING, val, &line [1], ttype );
                                                
@@ -1056,9 +1068,9 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
           	    
           	      int ttype=tokentype[0];
           	    
-          	      cbf_free((void **)&tokentype, NULL);
-                  cbf_free((void **)&state, NULL);
-                  cbf_free((void **)&index, NULL);
+          	      cbf_free((void **)vtokentype, NULL);
+                  cbf_free((void **)vstate, NULL);
+                  cbf_free((void **)vindex, NULL);
 
                  return cbf_return_text (STRING, val, &line [1], ttype);
 
@@ -1076,9 +1088,9 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                 if (state[depth-1]==2) {
                 
                   cbf_onerrornez (cbf_save_character_trim (file, ' '), val, 
-          	        { cbf_free((void **)&tokentype, NULL);
-                      cbf_free((void **)&state, NULL);
-                      cbf_free((void **)&index, NULL);})
+          	        { cbf_free((void **)vtokentype, NULL);
+                      cbf_free((void **)vstate, NULL);
+                      cbf_free((void **)vindex, NULL);})
                   
                   state[depth-1]=0;
                 	
@@ -1087,9 +1099,9 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                 state[depth-1]++;
 
           	    cbf_onerrornez (cbf_save_character_trim (file, c), val, 
-          	    { cbf_free((void **)&tokentype, NULL);
-                  cbf_free((void **)&state, NULL);
-                  cbf_free((void **)&index, NULL);})
+          	    { cbf_free((void **)vtokentype, NULL);
+                  cbf_free((void **)vstate, NULL);
+                  cbf_free((void **)vindex, NULL);})
                   
                 savechar = 0;
                 
@@ -1098,10 +1110,10 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
                 if (depth > tokentype_size) {
             
-                  cbf_onerrornez(cbf_realloc((void **)&tokentype, NULL, sizeof(int),tokentype_size*2),
-                    val,{cbf_free((void **)&tokentype, NULL);
-                    cbf_free((void **)&state, NULL);
-                    cbf_free((void **)&index, NULL);})
+                  cbf_onerrornez(cbf_realloc((void **)vtokentype, NULL, sizeof(int),tokentype_size*2),
+                    val,{cbf_free((void **)vtokentype, NULL);
+                    cbf_free((void **)vstate, NULL);
+                    cbf_free((void **)vindex, NULL);})
                 
                   tokentype_size *= 2;
             	
@@ -1109,10 +1121,10 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
                 if (depth > state_size) {
             
-                  cbf_onerrornez(cbf_realloc((void **)&state, NULL, sizeof(int),state_size*2),
-                    val,{cbf_free((void **)&tokentype, NULL);
-                    cbf_free((void **)&state, NULL);
-                    cbf_free((void **)&index, NULL);})
+                  cbf_onerrornez(cbf_realloc((void **)vstate, NULL, sizeof(int),state_size*2),
+                    val,{cbf_free((void **)vtokentype, NULL);
+                    cbf_free((void **)vstate, NULL);
+                    cbf_free((void **)vindex, NULL);})
                 
                   state_size *= 2;
             	
@@ -1121,10 +1133,10 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
                 if (depth > index_size) {
             
-                  cbf_onerrornez(cbf_realloc((void **)&index, NULL, sizeof(int),index_size*2),
-                    val,{cbf_free((void **)&tokentype, NULL);
-                    cbf_free((void **)&state, NULL);
-                    cbf_free((void **)&index, NULL);})
+                  cbf_onerrornez(cbf_realloc((void **)vindex, NULL, sizeof(int),index_size*2),
+                    val,{cbf_free((void **)vtokentype, NULL);
+                    cbf_free((void **)vstate, NULL);
+                    cbf_free((void **)vindex, NULL);})
                 
                   index_size *= 2;
             	
@@ -1162,9 +1174,9 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
             if (savechar) {
             
               cbf_onerrornez (cbf_save_character_trim (file, c), val,
-                {cbf_free((void **)&tokentype, NULL);
-                cbf_free((void **)&state, NULL);
-                cbf_free((void **)&index, NULL);})
+                {cbf_free((void **)vtokentype, NULL);
+                cbf_free((void **)vstate, NULL);
+                cbf_free((void **)vindex, NULL);})
             	
             }
             
