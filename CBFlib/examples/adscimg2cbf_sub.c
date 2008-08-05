@@ -345,7 +345,7 @@ char	*which_facility(int serial_number)
 			break;	
 		case 904:
 		case 911:
-		case 915:
+		case 916:
 			return("necat");
 			break;
 		case 907:
@@ -368,7 +368,7 @@ char	*which_facility(int serial_number)
 		case 909:
 			return("nsrrc");
 			break;
-		case 916:
+		case 915:
 			return("spring8");
 			break;
 		case 917:
@@ -381,11 +381,14 @@ char	*which_facility(int serial_number)
 		case 922:
 			return("dls");
 			break;
+		case 924:
+			return("fip");
+			break;
 		case 927:	
 			return("soleil");
 			break;
 		case 928:
-			return("asp");
+			return("as");
 			break;
 		case 929:
 			return("pohang");
@@ -424,7 +427,12 @@ void	smv_date_to_cbf_date(char *smv_date, char *cbf_date)
 
 }
 
-int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int pack_flags)
+#define	BEAM_CENTER_FROM_HEADER	0
+#define BEAM_CENTER_MOSFLM	1
+#define	BEAM_CENTER_ULHC	2
+#define BEAM_CENTER_LLHC	3
+
+int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int pack_flags, int beam_center_convention)
 {
   FILE *out;
 
@@ -459,6 +467,7 @@ int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int 
   double	oscillation_start, oscillation_range;
   double	detector_center_x, detector_center_y;
   double	det_beam_center_to_origin_dist_x, det_beam_center_to_origin_dist_y;
+  double	header_beam_x, header_beam_y;
 
 
 	if(0 == pack_flags)
@@ -677,22 +686,54 @@ int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int 
  *
  *	Define the origin to be the upper left hand corner, since
  *	this is the "storage origin" of the data array.
+ *
+ *	The incoming beam center value is nominally defined as the
+ *	adxv mm coordinate system:  origin in mm in the lower left hand
+ *	corner.
+ *
+ *	Other conventions are recognized either through additional header
+ *	keywords or "BEAM_CENTER" variants (future) found in the ADSC
+ *	header, or forced through the beam_center_convention parameter
+ *	to adscimg2cbf_sub() function.
  */
 
   s[0] = '\0';
   gethd("BEAM_CENTER_X", s, header);
   if('\0' == s[0])
-	det_beam_center_to_origin_dist_x = - detector_center_x;
+	header_beam_x = detector_center_x;
   else
-	det_beam_center_to_origin_dist_x = - atof(s);
+	header_beam_x = atof(s);
+
+  det_beam_center_to_origin_dist_x = - header_beam_x;
     
   s[0] = '\0';
   gethd("BEAM_CENTER_Y", s, header);
   if('\0' == s[0])
-	det_beam_center_to_origin_dist_y = detector_center_y;
+	header_beam_y = detector_center_y;
   else
-	det_beam_center_to_origin_dist_y = (smv_size1 - 1.5) * pixel_size - atof(s);
+	header_beam_y = atof(s);
     
+	switch(beam_center_convention)
+	{
+		case BEAM_CENTER_FROM_HEADER:
+		case BEAM_CENTER_LLHC:
+		default:
+
+			det_beam_center_to_origin_dist_x = - header_beam_x;
+			det_beam_center_to_origin_dist_y =   (smv_size1 - 1.5) * pixel_size - header_beam_y;
+			break;
+
+		case BEAM_CENTER_ULHC:
+			det_beam_center_to_origin_dist_x = - header_beam_x;
+			det_beam_center_to_origin_dist_y =   header_beam_y;
+			break;
+
+		case BEAM_CENTER_MOSFLM:
+			det_beam_center_to_origin_dist_x = - header_beam_y;
+			det_beam_center_to_origin_dist_y =   header_beam_x;
+			break;
+	}
+
     /* Date */
 
   s[0] = '\0';
