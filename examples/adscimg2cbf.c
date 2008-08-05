@@ -73,13 +73,18 @@ void usage()
 		fprintf(stderr,"Usage: adscimg2cbf [--flag[,modifier]] file1.img ... filen.img     (creates file1.cbf ... filen.cbf)\n");
 		fprintf(stderr,"       Image files may also be compressed (.gz, .bz2, .Z)\n");
 		fprintf(stderr,"Flags:\n");
-		fprintf(stderr,"\t--cbf_byte_offset	Use BYTE_OFFSET compression (DEFAULT).\n");
-		fprintf(stderr,"\t--cbf_packed		Use CCP4 packing (JPA) compression.\n");
-		fprintf(stderr,"\t--cbf_packed_v2	Use CCP4 packing version 2 (JPA) compression.\n");
-		fprintf(stderr,"\t--no_compression	No compression.\n\n");
+		fprintf(stderr,"\t--cbf_byte_offset		Use BYTE_OFFSET compression (DEFAULT).\n");
+		fprintf(stderr,"\t--cbf_packed			Use CCP4 packing (JPA) compression.\n");
+		fprintf(stderr,"\t--cbf_packed_v2		Use CCP4 packing version 2 (JPA) compression.\n");
+		fprintf(stderr,"\t--no_compression		No compression.\n\n");
 		fprintf(stderr,"The following two modifiers can be appended to the flags (syntax: --flag,modifier):\n");
-		fprintf(stderr,"\t,flat			Flat (linear) images.\n");
-		fprintf(stderr,"\t,uncorrelated		Uncorrelated sections.\n");
+		fprintf(stderr,"\t,flat				Flat (linear) images.\n");
+		fprintf(stderr,"\t,uncorrelated			Uncorrelated sections.\n\n");
+		fprintf(stderr,"The following describe how to interpret the beam center in the ADSC header:\n");
+		fprintf(stderr,"\t--beam_center_from_header	Figure out beam center from ADSC header information (default)\n");
+		fprintf(stderr,"\t--beam_center_mosflm		Beam center in ADSC header: MOSFLM coordinates.\n");
+		fprintf(stderr,"\t--beam_center_ulhc		Beam center in ADSC header: origin: upper left hand corner of image.(HKL mm)\n");
+		fprintf(stderr,"\t--beam_center_llhc		Beam center in ADSC header: origin: lower left hand corner of image.(adxv mm)\n");
 }
 
 /*
@@ -90,6 +95,11 @@ void usage()
  */
 
 char	popen_command[1080];
+
+#define BEAM_CENTER_FROM_HEADER 0
+#define BEAM_CENTER_MOSFLM      1
+#define BEAM_CENTER_ULHC        2
+#define BEAM_CENTER_LLHC        3
 
 int	main(int argc, char *argv[])
 {
@@ -106,6 +116,7 @@ int	main(int argc, char *argv[])
 	int		file_type;
 	int		pack_flags;
 	int		status_pclose;
+	int		beam_center_convention;
 	static char	*endings[] = {
 					".img",
 					".img.gz",
@@ -118,10 +129,14 @@ int	main(int argc, char *argv[])
 					"--cbf_packed_v2",
 					"--cbf_packed",
 					"--no_compression",
+					"--beam_center_from_header",
+					"--beam_center_mosflm",
+					"--beam_center_ulhc",
+					"--beam_center_llhc",
 					NULL
 				   };
 
-	int		adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int pack_flags);
+	int		adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int pack_flags, int beam_center_convention);
 
 	if(argc < 2)
 	{
@@ -130,6 +145,7 @@ int	main(int argc, char *argv[])
 	}
 
 	pack_flags = CBF_BYTE_OFFSET;
+	beam_center_convention = BEAM_CENTER_FROM_HEADER;
 
 	while(argc > 1 && argv[1][0] == '-' && argv[1][1] == '-')
 	{
@@ -155,6 +171,18 @@ int	main(int argc, char *argv[])
 			break;
 		  case 3:
 			pack_flags = CBF_NONE;
+			break;
+		  case 4:
+			beam_center_convention = BEAM_CENTER_FROM_HEADER;
+			break;
+		  case 5:
+			beam_center_convention = BEAM_CENTER_MOSFLM;
+			break;
+		  case 6:
+			beam_center_convention = BEAM_CENTER_ULHC;
+			break;
+		  case 7:
+			beam_center_convention = BEAM_CENTER_LLHC;
 			break;
 		}
 		if(j < 3)
@@ -340,7 +368,7 @@ int	main(int argc, char *argv[])
 
 		uptr = ((unsigned short *) (hptr + header_size_char));
 
-		cbf_status = adscimg2cbf_sub(hptr, uptr, out_filename, pack_flags);
+		cbf_status = adscimg2cbf_sub(hptr, uptr, out_filename, pack_flags, beam_center_convention);
 		free(hptr);
 
 		argv++;
