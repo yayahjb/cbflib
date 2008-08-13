@@ -6969,6 +6969,26 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                      
     	                      if (numb) {
     	                      
+    	                        if (loval[0]!= '\0' 
+    	                          && !strcmp(loval,",")
+    	                          && cbf_match(loval, "^-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?")){
+
+                                  sprintf(buffer,"illegal lower range value %s", loval);
+
+                                  cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
+
+                                }
+                                if (hival[0]!= '\0' 
+    	                          && !strcmp(hival,",")
+                                  && cbf_match(hival, "^-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?")){
+
+                                   sprintf(buffer,"illegal higher range value %s", hival);
+
+                                   cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
+
+                                }
+
+    	                      
     	                        if (loval[0] == '\0' || !strcmp(loval,".")) {
     	                        
     	                          if ((!strcmp(enumvaluetype,"open_range") 
@@ -7653,9 +7673,7 @@ int cbf_check_type_contents (const char *type, const char *value){
 		return cbf_match(value,"^[0-1]?[0-9]?[0-9]_[0-9][0-9][0-9]$");
 		
 	}else if (!cbf_cistrcmp(type,"YesorNo")) {
-		
-		/*[yes]?[y]?[no]?[n]?*/
-		return cbf_match(value,"^(yes)?(no)?[n]?[y]?$");/*needs fixing noy will work!*/
+		return cbf_match(value,"^y(es)?$|^n(o)?$"); 
 		
 	}else if (!cbf_cistrcmp(type,"Pchar")
 			  ||!cbf_cistrcmp(type,"Uri")) {
@@ -7682,12 +7700,12 @@ int cbf_check_type_contents (const char *type, const char *value){
 			  || !cbf_cistrcmp(type,"Real")) {
 		
 		/*-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?*/
-		return cbf_match(value,"");
+		return cbf_match(value,"^-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eEdDqQ][+-]?[0-9]+)?");
 		
 	}else if (!cbf_cistrcmp(type,"Imag")) {
 		
 		/*Real[jJ]*/
-		return cbf_match(value,"");
+		return cbf_match(value,"^-?((([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eEdDqQ][+-]?[0-9]+)?)?[iIjJ]");
 		
 	}else if (!cbf_cistrcmp(type,"Label")) {
 		
