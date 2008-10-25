@@ -90,6 +90,8 @@
  *  -B [no]write (default write)                                      *
  *    write to enable writing of DDLm style brackets                  *
  *                                                                    *
+ *  -D test cbf_construct_detector                                    *
+ *                                                                    *
  *  -T [no]read or (default noread)                                   *
  *    read to enable reading of DDLm style triple quotes              *
  *                                                                    *
@@ -341,6 +343,7 @@
  **********************************************************************/
 
 #include "cbf.h"
+#include "cbf_simple.h"
 #include "img.h"
 #include "cbf_string.h"
 
@@ -452,6 +455,7 @@ int main (int argc, char *argv [])
   int ndict = 0;
   int kd;
   int wide = 0;
+  int testconstruct;
   char buf[C2CBUFSIZ];
   unsigned int blocks, categories, blocknum, catnum, blockitems, itemnum;
   CBF_NODETYPE itemtype;
@@ -499,8 +503,9 @@ int main (int argc, char *argv [])
    cifin = NULL;
    cbfout = NULL;
    ciftmpused = 0;
+   testconstruct = 0;
    
-   while ((c = getopt(argc, argv, "i:o:c:m:d:B:T:e:b:p:v:w")) != EOF) {
+   while ((c = getopt(argc, argv, "i:o:c:m:d:B:T:e:b:p:v:wD")) != EOF) {
      switch (c) {
        case 'i':
          if (cifin) errflg++;
@@ -673,6 +678,10 @@ int main (int argc, char *argv [])
      	case 'w':
      	  if (wide) errflg++;
      	  else wide = 1;
+     	  break;
+     	case 'D':
+     	  if (testconstruct) errflg++;
+     	  else testconstruct = 1;
      	  break;
        default:
          errflg++;
@@ -1128,6 +1137,12 @@ int main (int argc, char *argv [])
        printf (" Couldn't open the CIF file %s\n", cbfout);
      }
      exit (1);
+   }
+   
+   if (testconstruct) {
+      cbf_detector detector;
+   	  cbf_failnez(cbf_construct_detector (cbf, &detector, 0))
+   	  cbf_free_detector (detector);
    }
 
    if ( ! devnull ){
