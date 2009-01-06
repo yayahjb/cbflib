@@ -1,2 +1,2 @@
 #!/bin/sh
-./ltconfig ./ltmain.sh `./config.guess`
+./ltconfig ./ltmain.sh
