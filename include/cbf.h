@@ -265,8 +265,11 @@ extern "C" {
 
   /* Currently the cbf library assumes a 32-bit or larger integer */
 
+#ifndef SWIG
+  /* Something wrong with the SWIG preprocessor makes it barf on this when used on a 64-bit OS! */
 #if UINT_MAX / 65535U < 65535U
 #error cbflib assumes int is at least 32 bits
+#endif
 #endif
 
 
