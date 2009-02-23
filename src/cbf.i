@@ -11,20 +11,32 @@
 #include "cbf.h"
 %}
 
+// Include support for C pointers
 %include "cpointer.i"
 
-// wrap some C pointers in classes
-%pointer_class(size_t, sizetp)
-%pointer_class(int, intp)
-%pointer_class(unsigned int, uintp)
-%pointer_class(double, doublep)
+// Wrap some C pointers in classes
+%pointer_class(size_t, sizetP);
+%pointer_class(int, intP);
+%pointer_class(unsigned int, uintP);
+%pointer_class(double, doubleP);
 
-// wrap char** in functions
-%pointer_functions(const char *, charpp)
+// Wrap char** in functions
+%pointer_functions(const char *, charPP);
+
+// Cast to void *
+%pointer_cast(int *, void *, int_void);
+%pointer_cast(double *, void *, double_void);
 
 // Don't expose the memory allocation/de-allocation functions
 %ignore cbf_make_handle(cbf_handle *ppchs);
 %ignore cbf_free_handle(cbf_handle pchs);
+
+// Include support for C arrays
+%include "carrays.i"
+
+// Wrap some arrays in classes
+%array_class(int, intArray);
+%array_class(double, doubleArray);
 
 /* Parse the header file to generate wrappers */
 %include "cbf.h"

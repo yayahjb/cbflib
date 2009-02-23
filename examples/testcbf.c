@@ -1,6 +1,6 @@
 #include "cbf.h"
 
-int main()
+int main(int argc, char *argv [])
 {
     FILE *f;
     cbf_handle ch;
@@ -11,7 +11,10 @@ int main()
     const char *s;
     int i;
 
-    f = fopen("examples/template_pilatus6m_2463x2527.cbf", "rb");
+    if (argc < 2)
+      f = fopen("examples/template_pilatus6m_2463x2527.cbf", "rb");
+    else
+      f = fopen(argv[1], "rb");
 
     cbf_make_handle(&ch);
 
@@ -43,6 +46,9 @@ int main()
     status = cbf_find_column(ch, "array_id");
     printf("find_col (%d)\n", status);
 
+    int d;
+    int dims[2];
+
     /* Attempt to find rows that matches above array_id */
     while ((status = cbf_find_nextrow(ch, arrayid)) == 0) {
 	printf("find_nrow (%d)\n", status);
@@ -51,11 +57,13 @@ int main()
 	printf("find_col (%d)\n", status);
 	status = cbf_get_integervalue(ch, &i);
 	printf("get_int (%d) = %d\n", status, i);
+	d = i - 1;
 
 	status = cbf_find_column(ch, "dimension");
 	printf("find_col (%d)\n", status);
 	status = cbf_get_integervalue(ch, &i);
 	printf("get_int (%d) = %d\n", status, i);
+	dims[d] = i;
 
 	status = cbf_find_column(ch, "precedence");
 	printf("find_col (%d)\n", status);
@@ -76,6 +84,26 @@ int main()
 	printf("find_col (%d)\n", status);
     }
     printf("find_nrow (%d)\n", status);
+
+    printf("Dimensions: %dx%d\n", dims[0], dims[1]);
+
+    size_t dsize = dims[0]*dims[1];
+    size_t rsize;
+    int *data;
+    data = (int *) malloc(sizeof(int)*dsize);
+
+    /* Attempt to load data */
+    status = cbf_find_category(ch, "array_data");
+    printf("find_cat (%d)\n", status);
+    status = cbf_find_column(ch, "array_id");
+    printf("find_col (%d)\n", status);
+    status = cbf_find_row(ch, arrayid);
+    printf("find_row (%d)\n", status);
+    status = cbf_find_column(ch, "data");
+    printf("find_col (%d)\n", status);
+    status = cbf_get_integerarray (ch, &i, (void *)data, sizeof(int), 1, dsize, &rsize);
+    if (status == 0)
+      printf("get_intarray (%d) %d/%d\n", status, (int) rsize, (int) dsize);
 
     /*  fclose(f); *//* let cbflib handle the closing of a file */
     return 0;
