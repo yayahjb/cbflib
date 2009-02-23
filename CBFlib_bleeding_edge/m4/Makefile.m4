@@ -439,7 +439,7 @@ cbf_system,`LINUX',`
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
 F90C = gfortran
 F90FLAGS = -g
 F90LDFLAGS = 
@@ -508,7 +508,7 @@ DECOMPRESS =  bunzip2',
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
 F90C = gfortran
 F90FLAGS = -g
 F90LDFLAGS = 
@@ -620,9 +620,9 @@ F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 		    $(SRC)/fcb_read_image.f90    \
 		    $(SRC)/fcb_read_line.f90     \
 		    $(SRC)/fcb_read_xds_i2.f90   \
-		    $(SRC)/fcb_skip_whitespace.f90 \
-		    $(EXAMPLES)/test_fcb_read_image.f90 \
-		    $(EXAMPLES)/test_xds_binary.f90
+		    $(SRC)/fcb_skip_whitespace.f90
+#		    $(EXAMPLES)/test_fcb_read_image.f90 \
+#		    $(EXAMPLES)/test_xds_binary.f90
 		    
 		   
 #
@@ -770,7 +770,7 @@ default:
 #
 # Compile the library and examples
 #
-all::	$(LIB) $(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) symlinksdone \
+all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) symlinksdone \
 		$(LIB)/libcbf.a          \
 		$(LIB)/libfcb.a          \
 		$(LIB)/libimg.a          \
@@ -794,7 +794,7 @@ all::	$(BIN)/test_xds_binary   \
 		$(BIN)/test_fcb_read_image
 endif
 
-shared:	$(SOLIB) $(SOLIB)/libcbf.so $(SOLIB)/libfcb.so $(SOLIB)/libimg.so
+shared:	$(SOLIB)/libcbf.so $(SOLIB)/libfcb.so $(SOLIB)/libimg.so
 
 javawrapper: shared $(JAVADIR) $(JAVADIR)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
 
@@ -978,7 +978,7 @@ $(SRC)/cbf_stx.c: $(SRC)/cbf.stx.y
 #
 # CBF library
 #
-$(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP)
+$(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(LIB)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(AR) cr $@ *.o
 	rm *.o
@@ -986,7 +986,7 @@ ifneq ($(RANLIB),)
 	$(RANLIB) $@
 endif
 
-$(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP)
+$(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(CC) -o $@ *.o $(SOLDFLAGS)
 	rm *.o
@@ -994,7 +994,7 @@ $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP)
 #
 # IMG library
 #
-$(LIB)/libimg.a: $(EXAMPLES)/img.c $(HEADERS) $(COMMONDEP)
+$(LIB)/libimg.a: $(EXAMPLES)/img.c $(HEADERS) $(COMMONDEP) $(LIB)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
 	$(AR) cr $@ *.o
 	rm *.o
@@ -1002,7 +1002,7 @@ ifneq ($(RANLIB),)
 	$(RANLIB) $@
 endif
 	
-$(SOLIB)/libimg.so: $(SOURCE) $(HEADERS) $(COMMONDEP)
+$(SOLIB)/libimg.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
 	$(CC) -o $@ *.o $(SOLDFLAGS)
 	rm *.o
@@ -1016,7 +1016,7 @@ CBF_IMG_LIBS:  $(LIB)/libcbf.a $(LIB)/libimg.a
 #
 # FCB library
 #
-$(LIB)/libfcb.a: $(F90SOURCE) $(COMMONDEP)
+$(LIB)/libfcb.a: $(F90SOURCE) $(COMMONDEP) $(LIB)
 ifneq ($(F90C),)
 	$(F90C) $(F90FLAGS) -c $(F90SOURCE)
 	$(AR) cr $@ *.o
@@ -1028,7 +1028,7 @@ else
 	echo "Define F90C to build $(LIB)/libfcb.a"
 endif
 
-$(SOLIB)/libfcb.so: $(F90SOURCE) $(HEADERS) $(COMMONDEP)
+$(SOLIB)/libfcb.so: $(F90SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
 ifneq ($(F90C),)
 	$(F90C) $(F90FLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(F90SOURCE)
 	$(F90C) -o $@ *.o $(SOLDFLAGS)
@@ -1057,7 +1057,7 @@ $(JAVADIR)/cbflib-$(VERSION).jar: $(SRC)/cbf.i $(JAVADIR)
 	$(JAVAC) -d . $(JAVADIR)/*.java
 	$(JAR) cf $@ org
 
-$(SOLIB)/libcbf_wrap.so: $(JAVADIR)/cbflib-$(VERSION).jar $(SOLIB)
+$(SOLIB)/libcbf_wrap.so: $(JAVADIR)/cbflib-$(VERSION).jar $(SOLIB)/libimg.so
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(SRC)/cbf_wrap.c
 	$(CC) -o $@ *.o $(SOLDFLAGS) -L$(SOLIB) -lcbf
 
@@ -1215,7 +1215,7 @@ $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
 #
 # testcbf (Java)
 #
-$(BIN)/testcbf.class: $(EXAMPLES)/testcbf.java $(JAVADIR)/cbflib-$(VERSION).jar
+$(BIN)/testcbf.class: $(EXAMPLES)/testcbf.java $(JAVADIR)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
 	$(JAVAC) -cp $(JAVADIR)/cbflib-$(VERSION).jar -d $(BIN) $(EXAMPLES)/testcbf.java
 
 
@@ -1456,9 +1456,9 @@ endif
 	-cmp testflatpackedin.cbf testflatpackedout.cbf
 ifneq ($(F90C),)
 	echo testflatout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatout.out
-	-$(DIFF) -b test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
+	-$(DIFF) -b -c test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatpackedout.out
-	-$(DIFF) -b test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
+	-$(DIFF) -b -c test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
 	echo testflatout.cbf | $(TIME) $(BIN)/test_fcb_read_image  > test_fcb_read_testflatout.out
 	-$(DIFF) test_fcb_read_testflatout.out test_fcb_read_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_fcb_read_image > test_fcb_read_testflatpackedout.out
