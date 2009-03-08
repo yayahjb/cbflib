@@ -606,6 +606,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_uncompressed.c  \
 		    $(SRC)/cbf_write.c         \
 		    $(SRC)/cbf_write_binary.c  \
+		    $(SRC)/cbff.c              \
 		    $(SRC)/md5c.c
  
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
@@ -651,6 +652,7 @@ HEADERS   =  $(INCLUDE)/cbf.h                  \
 		     $(INCLUDE)/cbf_write.h            \
 		     $(INCLUDE)/cbf_write_binary.h     \
 		     $(INCLUDE)/global.h               \
+             $(INCLUDE)/cbff.h                 \
 		     $(INCLUDE)/md5.h
 
 #
