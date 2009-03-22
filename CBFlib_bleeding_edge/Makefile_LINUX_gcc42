@@ -701,6 +701,12 @@ Makefile: $(M4)/Makefile.m4
 		m4 -P -Dcbf_system=default $(M4)/Makefile.m4 > Makefile 
 
 symlinksdone:
+	chmod a+x .symlinks
+	chmod a+x .undosymlinks
+	chmod a+x doc/.symlinks
+	chmod a+x doc/.undosymlinks
+	chmod a+x libtool/.symlinks
+	chmod a+x libtool/.undosymlinks
 	./.symlinks $(SLFLAGS)
 	touch symlinksdone
 
@@ -732,6 +738,7 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
 		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
+		chmod -R 755 $(INSTALLDIR)/include/cbflib
 		-rm -rf $(INSTALLDIR)/include/cbflib_old
 		-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
 		-rm -rf $(INSTALLDIR)/include/cbflib
@@ -746,8 +753,7 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		chmod 755 $(INSTALLDIR)/bin/testreals
 		chmod 755 $(INSTALLDIR)/bin/testflat
 		chmod 755 $(INSTALLDIR)/bin/testflatpacked
-		chmod -R 644 $(INSTALLDIR)/include/cbflib
-		
+		chmod 644 $(INSTALLDIR)/include/cbflib/*.h
 		
 #
 # Changes if a local gnu getopt is used
