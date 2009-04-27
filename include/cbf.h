@@ -399,17 +399,19 @@ extern "C" {
   /* Constants used to control CIF parsing */
   
 #define PARSE_NOBRACKETS        \
-                        0x0100  /* Do not parse DDLm (,..) [,..] {,...}    */
-#define PARSE_BRACKETS  0x0200  /* PARSE DDLm (,..) [,..] {,...}           */ 
+                        0x0100  /* Do not parse DDLm (,..) [,..] {,...}     */
+#define PARSE_BRACKETS  0x0200  /* PARSE DDLm (,..) [,..] {,...}            */ 
 #define PARSE_LIBERAL_BRACKETS  \
-                        0x0400  /* PARSE DDLm (,..) [,..] {,...} liberally */ 
+                        0x0400  /* PARSE DDLm (,..) [,..] {,...} liberally  */ 
 #define PARSE_TRIPLE_QUOTES     \
-                        0x0800  /* PARSE DDLm """...""" and '''...'''      */
+                        0x0800  /* PARSE DDLm """...""" and '''...'''       */
 #define PARSE_NOTRIPLE_QUOTES   \
                         0x1000  /* Do not PARSE DDLm """...""" and '''...'''*/
 #define PARSE_WIDE      0x2000  /* PARSE wide files                         */
+#define PARSE_WS        0x4000  /* PARSE whitespace                         */
+#define PARSE_NOWS      0x8000  /* Do not PARSE whitespace                  */
 
-#define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)
+#define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST | PARSE_NOBRACKETS | PARSE_NOTRIPLE_QUOTES | PARSE_NOWS)
 
 #define MIME_NOHEADERS  PLAIN_HEADERS
 

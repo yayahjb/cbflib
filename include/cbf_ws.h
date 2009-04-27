@@ -1,12 +1,12 @@
 /**********************************************************************
- * cbf_write.h                                                        *
+ * cbf_ws.h                                                           *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.9.0 26 April 2009                                        *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -65,7 +65,7 @@
  *                                                                    * 
  * This software                                                      *
  * -------------                                                      *
- * The term Ôthis softwareÕ, as used in these Notices, refers to      *
+ * The term â€˜this softwareâ€™, as used in these Notices, refers to      *
  * those portions of the software package CBFlib that were created by *
  * employees of the Stanford Linear Accelerator Center, Stanford      *
  * University.                                                        *
@@ -156,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -247,48 +247,60 @@
  * Crystallography                                                    *
  **********************************************************************/
 
-#ifndef CBF_WRITE_H
-#define CBF_WRITE_H
 
+/*  cbf_write_ws_prologue
+    cbf_write_ws_epilogue
+    
+    writes any white space and comments stored just below this node
+    
+    for a root node:           rely on the _ws.prologue of the first
+                               datablock and the _ws.epilogue of the
+                               last datablock.
+    for a CBF_DATABLOCK node:  _ws.prologue and _ws.epilogue
+                               note that the name of the datablock
+                               _ws_ will not be displayed
+    for a CBF_SAVEFRAME node:  _ws.prologue and _ws.epilogue
+    for a CBF_CATEGORY node of name <category_name>:
+                               _<category_name>.ws_prologue
+                               _<category_name>.ws_epilogue
+ */
+
+#ifndef CBF_WS_H
+#define CBF_WS_H
+
+    
 #ifdef __cplusplus
 
 extern "C" {
 
 #endif
 
+#include "cbf.h"
+#include "cbf_ascii.h"
+#include "cbf_binary.h"
+#include "cbf_compress.h"
+#include "cbf_file.h"
 #include "cbf_tree.h"
+#include "cbf_write.h"
+#include "cbf_write_binary.h"
+#include "cbf_read_mime.h"
+#include "cbf_string.h"
 
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <limits.h>
 
-  /* Get the value type of an ascii string */
-
-int cbf_get_value_type(const char *value, const char **value_type);
-
-
-  /* Set the value type of an ascii string */
-
-int cbf_set_value_type(char *value, const char *value_type);
-
-  /* Check the value type */
-    
-int cbf_value_type (char *value);
-
-  /* Write a node to a stream */
-
-int cbf_write_node (cbf_handle handle, const cbf_node *node, cbf_file *file, int isbuffer);
-
-
-  /* Compose an item name from a category and column */
-  
-int cbf_compose_itemname (cbf_handle handle, const cbf_node *column, char * itemname, 
-                                                                     size_t limit);
-
-
+    int cbf_write_ws_ascii (const char *string, cbf_file *file);
+    int cbf_write_ws_value (cbf_node *column, unsigned int row,
+                            cbf_file *file, int isbuffer);
+    int cbf_write_ws_prologue(const cbf_node *node, cbf_file *file, int isbuffer);
+    int cbf_write_ws_epilogue(const cbf_node *node, cbf_file *file, int isbuffer);
 
 #ifdef __cplusplus
-
+    
 }
 
 #endif
 
-#endif /* CBF_WRITE_H */
-
+#endif /* CBF_WS_H */

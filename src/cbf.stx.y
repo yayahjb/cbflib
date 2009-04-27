@@ -288,14 +288,32 @@ typedef union
 #define YYMAXDEPTH  200
 
 int cbf_lex (cbf_handle handle, YYSTYPE *val ); 
+/*
+  vcontext[0]  -- (void *)file
+  vcontext[1]  -- (void *)handle->node
+  vcontext[2]  -- (void *)handle
+  vcontext[3]  -- (void *)node
+*/
+
 
 int cbf_lex_wrapper (void *val, void *vcontext)
 {
   int token;
 
+  cbf_handle cbfhandle;
+  
+  cbf_file *cbffile;
+  
+
   do {
 
-    token = cbf_lex ((cbf_handle)((void **) vcontext) [2], (YYSTYPE *)val);
+    cbffile = (cbf_file*)((void **) vcontext) [0];
+
+    cbfhandle = (cbf_handle)((void **) vcontext) [2]; 
+
+    token = cbf_lex (cbfhandle, (YYSTYPE *)val);
+    
+    if (cbffile->read_headers & PARSE_WS) return token;
     
     if ( token == COMMENT && ((YYSTYPE *)val)->text ) {
 
@@ -361,6 +379,7 @@ int cbf_syntax_error (cbf_handle handle, const char *message)
 %type  <node> CbfThruSFLoopCategory
 %type  <node> CbfThruSFLoopColumn
 %type  <node> CbfThruSFLoopAssignment
+%type  <node> CommentBlock
 %type  <text> DataBlockName
 %type  <text> SaveFrameName
 %type  <text> CategoryName
@@ -386,6 +405,9 @@ cbf:              cbfstart                      {
                 ;
 
 cbfstart:                                       {
+                                                  $$ = ((void **) context) [1];
+                                                }
+                | CommentBlock                  {
                                                   $$ = ((void **) context) [1];
                                                 }
                 ;
@@ -1097,10 +1119,20 @@ CbfThruSFLoopAssignment:
                                                 }
                 ;
 
+CommentBlock:     COMMENT                       { 
+                                                  $$ = $1;
+                                                }
+                | CommentBlock COMMENT          {
+                                                  $$ = $1;
+                                                }
+
 Loop:             LOOP
                 ;
 
-DataBlockName:    DATA                          {
+DataBlockName:  DATA                            {
+                                                  $$ = $1;
+                                                }
+                | DATA CommentBlock             {
                                                   $$ = $1;
                                                 }
                 ;
@@ -1108,8 +1140,15 @@ DataBlockName:    DATA                          {
 SaveFrameName:    SAVE                          {
                                                   $$ = $1;
                                                 }
+                | SAVE CommentBlock             {
+                                                  $$ = $1;
+                                                }
                 ;
+                
 CategoryName:     CATEGORY                      {
+                                                  $$ = $1;
+                                                }
+                | CATEGORY CommentBlock       {
                                                   $$ = $1;
                                                 }
                 ;
@@ -1117,9 +1156,15 @@ CategoryName:     CATEGORY                      {
 ColumnName:       COLUMN                        {
                                                   $$ = $1;
                                                 }
+                | COLUMN CommentBlock           {
+                                                  $$ = $1;
+                                                }
                 ;
 
 ItemName:         ITEM                          {
+                                                  $$ = $1;
+                                                }
+                | ITEM CommentBlock             {
                                                   $$ = $1;
                                                 }
                 ;

@@ -606,7 +606,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_uncompressed.c  \
 		    $(SRC)/cbf_write.c         \
 		    $(SRC)/cbf_write_binary.c  \
-		    $(SRC)/cbff.c              \
+		    $(SRC)/cbf_ws.c            \
 		    $(SRC)/md5c.c
  
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
@@ -651,6 +651,7 @@ HEADERS   =  $(INCLUDE)/cbf.h                  \
 		     $(INCLUDE)/cbf_uncompressed.h     \
 		     $(INCLUDE)/cbf_write.h            \
 		     $(INCLUDE)/cbf_write_binary.h     \
+		     $(INCLUDE)/cbf_ws.h               \
 		     $(INCLUDE)/global.h               \
              $(INCLUDE)/cbff.h                 \
 		     $(INCLUDE)/md5.h
@@ -1464,9 +1465,9 @@ endif
 	-cmp testflatpackedin.cbf testflatpackedout.cbf
 ifneq ($(F90C),)
 	echo testflatout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatout.out
-	-$(DIFF) -b -c test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
+	-$(DIFF)  test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatpackedout.out
-	-$(DIFF) -b -c test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
+	-$(DIFF)  test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
 	echo testflatout.cbf | $(TIME) $(BIN)/test_fcb_read_image  > test_fcb_read_testflatout.out
 	-$(DIFF) test_fcb_read_testflatout.out test_fcb_read_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_fcb_read_image > test_fcb_read_testflatpackedout.out

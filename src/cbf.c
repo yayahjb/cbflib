@@ -388,7 +388,8 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, const c
   }
   
   if (((flags & PARSE_NOBRACKETS) && (flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS)))
-    ||((flags & PARSE_TRIPLE_QUOTES) && (flags & PARSE_NOTRIPLE_QUOTES)) ) {
+    ||((flags & PARSE_TRIPLE_QUOTES) && (flags & PARSE_NOTRIPLE_QUOTES)) 
+    ||((flags & PARSE_WS) && (flags & PARSE_NOWS)) ) {
 
     if (stream)
       fclose (stream);
@@ -455,6 +456,18 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, const c
   if (flags & (MSG_DIGESTNOW | MSG_DIGESTWARN) )
 
     flags |= MSG_DIGEST;
+    
+  if ((flags & (PARSE_BRACKETS | PARSE_LIBERAL_BRACKETS)) == 0 )
+
+    flags |= PARSE_NOBRACKETS;
+
+  if ((flags & PARSE_TRIPLE_QUOTES) == 0 )
+
+    flags |= PARSE_NOTRIPLE_QUOTES;
+
+  if ((flags & PARSE_WS) == 0 )
+
+    flags |= PARSE_NOWS;
 
 
     /* Copy the flags */
@@ -593,6 +606,19 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
       ((encoding & ENC_FORWARD)   && (encoding & ENC_BACKWARD)))
 
     return CBF_ARGUMENT;
+    
+  if ((flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS) && (flags & PARSE_NOBRACKETS)) )
+  
+    return CBF_ARGUMENT;
+
+  if ((flags & PARSE_TRIPLE_QUOTES) && (flags & PARSE_NOTRIPLE_QUOTES))
+  
+    return CBF_ARGUMENT;
+
+  if ((flags & PARSE_WS) && (flags & PARSE_NOWS))
+
+    return CBF_ARGUMENT;
+
 
   if (((encoding & ENC_NONE)    > 0) +
       ((encoding & ENC_BASE8)   > 0) +
@@ -640,6 +666,31 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
   if (flags & MSG_DIGESTNOW)
 
     flags |= MSG_DIGEST;
+
+  if ((flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS) ) !=0 )
+  
+     flags &= (~PARSE_NOBRACKETS);
+  
+  else
+  
+     flags |= PARSE_NOBRACKETS;
+     
+  if ((flags & (PARSE_TRIPLE_QUOTES)) !=0 )
+  
+     flags &= (~PARSE_NOTRIPLE_QUOTES);
+  
+  else
+  
+     flags |= PARSE_NOTRIPLE_QUOTES;
+
+  if ((flags & (PARSE_WS)) !=0 )
+  
+     flags &= (~PARSE_NOWS);
+  
+  else
+  
+     flags |= PARSE_NOWS;
+
 
   if ((encoding & (ENC_NONE    |
                    ENC_BASE8   |
@@ -742,15 +793,39 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     return CBF_ARGUMENT;
 
+
+  if (((flags  & MIME_HEADERS)  && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGEST)    && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGEST)    && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & PLAIN_HEADERS)) ||
+      ((encoding & ENC_FORWARD)   && (encoding & ENC_BACKWARD)))
+
+    return CBF_ARGUMENT;
+    
+  if ((flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS) && (flags & PARSE_NOBRACKETS)) )
+  
+    return CBF_ARGUMENT;
+
+  if ((flags & PARSE_TRIPLE_QUOTES) && (flags & PARSE_NOTRIPLE_QUOTES))
+
+    return CBF_ARGUMENT;
+
+  if ((flags & PARSE_WS) && (flags & PARSE_NOWS))
+  
+    return CBF_ARGUMENT;
+
+
   if (((encoding & ENC_NONE)    > 0) +
       ((encoding & ENC_BASE8)   > 0) +
       ((encoding & ENC_BASE10)  > 0) +
       ((encoding & ENC_BASE16)  > 0) +
       ((encoding & ENC_BASE64)  > 0) +
       ((encoding & ENC_BASE32K) > 0) +
-      ((encoding & ENC_QP)     > 0) > 1)
+      ((encoding & ENC_QP)      > 0) > 1)
 
     return CBF_ARGUMENT;
+
 
 
     /* Create the file */
@@ -883,13 +958,36 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
 
     return CBF_ARGUMENT;
 
+
+  if (((flags  & MIME_HEADERS)  && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGEST)    && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGEST)    && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & PLAIN_HEADERS)) ||
+      ((encoding & ENC_FORWARD)   && (encoding & ENC_BACKWARD)))
+
+    return CBF_ARGUMENT;
+    
+  if ((flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS) && (flags & PARSE_NOBRACKETS)) )
+  
+    return CBF_ARGUMENT;
+
+  if ((flags & PARSE_TRIPLE_QUOTES) && (flags & PARSE_NOTRIPLE_QUOTES))
+  
+    return CBF_ARGUMENT;
+
+  if ((flags & PARSE_WS) && (flags & PARSE_NOWS))
+
+    return CBF_ARGUMENT;
+
+
   if (((encoding & ENC_NONE)    > 0) +
       ((encoding & ENC_BASE8)   > 0) +
       ((encoding & ENC_BASE10)  > 0) +
       ((encoding & ENC_BASE16)  > 0) +
       ((encoding & ENC_BASE64)  > 0) +
       ((encoding & ENC_BASE32K) > 0) +
-      ((encoding & ENC_QP)     > 0) > 1)
+      ((encoding & ENC_QP)      > 0) > 1)
 
     return CBF_ARGUMENT;
 
@@ -929,6 +1027,30 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
   if (flags & MSG_DIGESTNOW)
 
     flags |= MSG_DIGEST;
+
+    if ((flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS) ) !=0 )
+  
+     flags &= (~PARSE_NOBRACKETS);
+  
+  else
+  
+     flags |= PARSE_NOBRACKETS;
+     
+  if ((flags & (PARSE_TRIPLE_QUOTES)) !=0 )
+  
+     flags &= (~PARSE_NOTRIPLE_QUOTES);
+  
+  else
+  
+     flags |= PARSE_NOTRIPLE_QUOTES;
+
+  if ((flags & (PARSE_WS)) !=0 )
+  
+     flags &= (~PARSE_NOWS);
+  
+  else
+  
+     flags |= PARSE_NOWS;
 
   if ((encoding & (ENC_NONE    |
                    ENC_BASE8   |
@@ -4660,6 +4782,8 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
     
     const char *value, *value2, *value_type;
     
+    const char *keytype;
+    
     char buffer[255];
 
     cbf_node * base_node, * local_node;
@@ -5068,9 +5192,13 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
         dictionary->node = base_node;
 
         if (!cbf_find_local_tag(dictionary,"_list_reference") ||
-          !cbf_find_local_tag(dictionary,"_category_key.name") ) {
+          !cbf_find_local_tag(dictionary,"_category_key.name") ||
+          !cbf_find_local_tag(dictionary,"_category_key.primitive") ||
+          !cbf_find_local_tag(dictionary,"_category_key.generic")) {
 
           if (!cbf_get_value(dictionary, &key) && key) {
+
+            cbf_failnez( cbf_get_typeofvalue(dictionary,&keytype))
 
             cbf_failnez( cbf_require_column(cbfdictionary, "key"))
             
@@ -5099,6 +5227,12 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
             }
             
             cbf_failnez(cbf_set_value(cbfdictionary,key))
+            
+            if ( keytype != NULL )  {
+            	
+              cbf_failnez(cbf_set_typeofvalue(cbfdictionary,keytype))
+            
+            }
 
             cbf_failnez(cbf_require_column(cbfdictionary,"mandatory_code"))
             

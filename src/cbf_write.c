@@ -263,6 +263,7 @@ extern "C" {
 #include "cbf_write_binary.h"
 #include "cbf_read_mime.h"
 #include "cbf_string.h"
+#include "cbf_ws.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -1126,6 +1127,9 @@ int cbf_write_node (cbf_handle handle, const cbf_node *node, cbf_file *file, int
 
     return CBF_ARGUMENT;
 
+        /* Write any appropriate white space prologue */
+        
+        cbf_failnez(cbf_write_ws_prologue(node, file, isbuffer))
 
     /* Node type */
 
@@ -1135,18 +1139,25 @@ int cbf_write_node (cbf_handle handle, const cbf_node *node, cbf_file *file, int
 
     case CBF_ROOT:
 
+                if ( (file->write_headers & PARSE_WS) == 0 ) {
+                    
       cbf_failnez (cbf_write_string (file, "###" CBF_DIC_VERSION "\n"))
 
-      if (file->write_encoding & ENC_NONE)
+                    if (file->write_encoding & ENC_NONE) {
 
         cbf_failnez (cbf_write_string (file,
                              "# CBF file written by " CBF_API_VERSION "\n"))
-      else
+                        
+                    } else {
 
         cbf_failnez (cbf_write_string (file,
                              "# CIF file written by " CBF_API_VERSION "\n"))
+                    }
+                    
+                }
 
       break;
+                
 
     case CBF_DATABLOCK:
 
@@ -1185,10 +1196,19 @@ int cbf_write_node (cbf_handle handle, const cbf_node *node, cbf_file *file, int
 
       cbf_failnez (cbf_write_string (file, "\nsave_\n"))
 
+                /* Write any appropriate white space epilogue */
+                    
+                    if ( (file->write_headers & PARSE_WS) != 0 )  {
+                        
+                        cbf_failnez(cbf_write_ws_epilogue(node, file, isbuffer))
+                        
+                    }
+        
+        
+        
     /* Flush the buffers */
 
   return cbf_flush_characters (file);
-
 
 
 }
