@@ -963,8 +963,8 @@ Returns an error code on failure or 0 for success.
 <p>
 #include &quot;cbf.h&quot;<p>
 
-int cbf_write_file (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>readable</i>, int <i>ciforcbf</i>, int <i>headers</i>, int <i>encoding</i>);<br />
-int cbf_write_widefile (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>readable</i>, int <i>ciforcbf</i>, int <i>headers</i>, int <i>encoding</i>);
+int cbf_write_file (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>readable</i>, int <i>ciforcbf</i>, int <i>flags</i>, int <i>encoding</i>);<br />
+int cbf_write_widefile (cbf_handle <i>handle</i>, FILE *<i>file</i>, int <i>readable</i>, int <i>ciforcbf</i>, int <i>flags</i>, int <i>encoding</i>);
 <p>
 
 <b>DESCRIPTION</b>
@@ -996,14 +996,33 @@ the responsibility of the program.
 <TR><td valign="top">&nbsp;&nbsp;CIF<td valign="top">&nbsp;&nbsp;Write an imgCIF file.
 <TR><td valign="top">&nbsp;&nbsp;CBF<td valign="top">&nbsp;&nbsp;Write a CBF file (default).
 </TABLE>
-<i>headers</i> selects the type of header used in CBF binary sections and selects whether message
-digests are generated.  The value of <i>headers</i> can be a logical OR of any of:
+<i>flags</i> selects the type of header used in CBF binary sections, selects whether message
+digests are generated, and controls the style of output.  The value of <i>flags</i> can be a logical OR of any of:
 <TABLE>
 <TR><td valign="top">&nbsp;&nbsp;MIME_HEADERS<td valign="top">&nbsp;&nbsp;Use MIME-type headers (default).
 <TR><td valign="top">&nbsp;&nbsp;MIME_NOHEADERS<td valign="top">&nbsp;&nbsp;Use a simple ASCII headers.
 <TR><td valign="top">&nbsp;&nbsp;MSG_DIGEST<td valign="top">&nbsp;&nbsp;Generate message digests for binary data validation.
 <TR><td valign="top">&nbsp;&nbsp;MSG_NODIGEST<td valign="top">&nbsp;&nbsp;Do not generate message digests (default).
+<TR><td valign="top">&nbsp;&nbsp;PARSE_BRACKETS<td valign="top">&nbsp;&nbsp;Do not convert bracketed strings to text fields (default).
+<TR><td valign="top">&nbsp;&nbsp;PARSE_LIBERAL_BRACKETS<td valign="top">&nbsp;&nbsp;Do not convert bracketed strings to text fields (default).
+<TR><td valign="top">&nbsp;&nbsp;PARSE_NOBRACKETS<td valign="top">&nbsp;&nbsp;Convert bracketed strings to text fields (default).
+<TR><td valign="top">&nbsp;&nbsp;PARSE_TRIPLE_QUOTES<td valign="top">&nbsp;&nbsp;Do not convert triple-quoted strings to text fields (default).
+<TR><td valign="top">&nbsp;&nbsp;PARSE_NOTRIPLE_QUOTES<td valign="top">&nbsp;&nbsp;Convert triple-quoted strings to text fields (default).
+<TR><td valign="top">&nbsp;&nbsp;PAD_1K<td valign="top">&nbsp;&nbsp;Pad binary sections with 1023 nulls.
+<TR><td valign="top">&nbsp;&nbsp;PAD_2K<td valign="top">&nbsp;&nbsp;Pad binary sections with 2047 nulls.
+<TR><td valign="top">&nbsp;&nbsp;PAD_4K<td valign="top">&nbsp;&nbsp;Pad binary sections with 4095 nulls.
 </TABLE>
+
+<p>
+
+<p>
+Note that on output, the types &quot;prns&, &quot;brcs&quot; and &quot;bkts&quot; will be
+converted to &quot;text&quot; fields if PARSE_NOBRACKETS has been set <i>flags</i>, 
+and that the types &quot;tsqs&quot; and &quot;tdqs&quot; will
+be converted to &quot;text&quot; fields if the flag PARSE_NOTRIPLE_QUOTES has been set in the
+<i>flags</i>.  It is an error to set PARSE_NOBRACKETS and to set either PARSE_BRACKETS or
+PARSE_LIBERAL_BRACKETS.  It is an error to set both PARSE_NOTRIPLE_QUOTES and PARSE_TRIPLE_QUOTES.
+<P>
 <i>encoding</i> selects the type of encoding used for binary sections and the type of line-termination in
 imgCIF files. The value can be a logical OR of any of:
 <TABLE>
@@ -2586,11 +2605,53 @@ int cbf_get_typeofvalue (cbf_handle <i>handle</i>, const char **<i>typeofvalue</
 <p>
 cbf_get_value sets *<i>typeofvalue</i>
 to point an ASCII descriptor of the value of the item at the current column and row.
-The strings that may be returned are &quot;null&quot; for a null value indicated
-by a &quot;.&quot; or a &quot;?&quot;, &quot;bnry&quot; for a binary value,
-&quot;word&quot; for an unquoted string, &quot;dblq&quot; for a double-quoted string,
-&quot;sglq&quot; for a single-quoted string, and &quot;text&quot; for a
-semicolon-quoted text field.  A field for which no value has been set sets
+The strings that may be returned are:
+<center>
+<table border=0 cellpadding=3>
+<tr>
+<td>&quot;null&quot;</td><td>for a null value indicated by a &quot;.&quot; or a &quot;?&quot;</td>
+</tr>
+<tr>
+<td>&quot;bnry&quot;</td><td>for a binary value</td>
+</tr>
+<tr>
+<td>&quot;word&quot;</td><td>for an unquoted string</td>
+</tr>
+<tr>
+<td>&quot;dblq&quot;</td><td>for a double-quoted string</td>
+</tr>
+<tr>
+<td>&quot;sglq&quot;</td><td>for a single-quoted string</td>
+</tr>
+<tr>
+<td>&quot;text&quot;</td><td>for a semicolon-quoted string (multiline text field) </td>
+</tr>
+<tr>
+<td>&quot;prns&quot;</td><td>for a parenthesis-bracketed string (multiline text field) </td>
+</tr>
+<tr>
+<td>&quot;brcs&quot;</td><td>for a brace-bracketed string (multiline text field)</td>
+</tr>
+<tr>
+<td>&quot;bkts&quot;</td><td>for a square-bracket-bracketed string (multiline text field)</td>
+</tr>
+<tr>
+<td>&quot;tsqs&quot;</td><td>for a treble-single-quote quoted string (multiline text field)</td>
+</tr>
+<tr>
+<td>&quot;tdqs&quot;</td><td>for a treble-double-quote quoted string (multiline text field)</td>
+
+</tr>
+</table>
+</center>
+<P>
+Not all types are valid for all type of CIF
+files.  In partcular the types &quot;prns&quot;, &quot;brcs&quot;, &quot;bkts&quot; were
+introduced with DDLm and are not valid in DDL1 or DDL2 CIFS.  The types &quot;tsqs&quot; and
+&quot;tdqs&quot; are not formally part of the CIF syntax.
+ 
+ 
+A field for which no value has been set sets
 *<i>typeofvalue</i> to NULL rather than to the
 string &quot;null&quot;.
 
@@ -2634,10 +2695,50 @@ int cbf_set_typeofvalue (cbf_handle <i>handle</i>, const char *<i>typeofvalue</i
 cbf_set_typeofvalue
 sets the type of the item at the current column and row to the type specified by
 the ASCII character string given by <i>typeofvalue</i>. The strings that may be used
-are &quot;null&quot; for a null value indicated by a &quot;.&quot; or a &quot;?&quot;,
-&quot;word&quot; for an unquoted string, &quot;dblq&quot; for a double-quoted string,
-&quot;sglq&quot; for a single-quoted string, and &quot;text&quot; for a semicolon-quoted
-text field.  Not all types may be used for all values.  No changes may be made to the
+are:
+<center>
+<table border=0 cellpadding=3>
+<tr>
+<td>&quot;null&quot;</td><td>for a null value indicated by a &quot;.&quot; or a &quot;?&quot;</td>
+</tr>
+<tr>
+<td>&quot;bnry&quot;</td><td>for a binary value</td>
+</tr>
+<tr>
+<td>&quot;word&quot;</td><td>for an unquoted string</td>
+</tr>
+<tr>
+<td>&quot;dblq&quot;</td><td>for a double-quoted string</td>
+</tr>
+<tr>
+<td>&quot;sglq&quot;</td><td>for a single-quoted string</td>
+</tr>
+<tr>
+<td>&quot;text&quot;</td><td>for a semicolon-quoted string (multiline text field) </td>
+</tr>
+<tr>
+<td>&quot;prns&quot;</td><td>for a parenthesis-bracketed string (multiline text field) </td>
+</tr>
+<tr>
+<td>&quot;brcs&quot;</td><td>for a brace-bracketed string (multiline text field)</td>
+</tr>
+<tr>
+<td>&quot;bkts&quot;</td><td>for a square-bracket-bracketed string (multiline text field)</td>
+</tr>
+<tr>
+<td>&quot;tsqs&quot;</td><td>for a treble-single-quote quoted string (multiline text field)</td>
+</tr>
+<tr>
+<td>&quot;tdqs&quot;</td><td>for a treble-double-quote quoted string (multiline text field)</td>
+
+</tr>
+</table>
+</center>
+
+Not all types may be used for all values.  Not all types are valid for all type of CIF
+files.  In partcular the types &quot;prns&quot;, &quot;brcs&quot;, &quot;bkts&quot; were
+introduced with DDLm and are not valid in DDL1 or DDL2 CIFS.  The types &quot;tsqs&quot; and
+&quot;tdqs&quot; are not formally part of the CIF syntax.  No changes may be made to the
 type of binary values.  You may not set the type of a string that contains a single quote
 followed by a blank or a tab or which contains multiple lines to &quot;sglq&quot;. You may
 not set the type of a string that contains a double quote followed by a

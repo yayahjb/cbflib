@@ -1,12 +1,12 @@
 /**********************************************************************
- * cbf_write.h                                                        *
+ * cbf_ws.h                                                           *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.9.0 26 April 2009                                        *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
  *                                                                    *
  **********************************************************************/
 
@@ -65,7 +65,7 @@
  *                                                                    * 
  * This software                                                      *
  * -------------                                                      *
- * The term Ôthis softwareÕ, as used in these Notices, refers to      *
+ * The term â€˜this softwareâ€™, as used in these Notices, refers to      *
  * those portions of the software package CBFlib that were created by *
  * employees of the Stanford Linear Accelerator Center, Stanford      *
  * University.                                                        *
@@ -156,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
- 
+
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -247,8 +247,32 @@
  * Crystallography                                                    *
  **********************************************************************/
 
-#ifndef CBF_WRITE_H
-#define CBF_WRITE_H
+
+/*  cbf_write_ws_prologue
+ cbf_write_ws_epilogue
+ 
+ writes any white space and comments stored just below this node
+ 
+    for a root node:           rely on the _ws_.prologue of the first
+                                datablock and the _ws_.epilogue of the
+                                last datablock.
+    for a CBF_DATABLOCK node:  _ws_.prologue and _ws_.epilogue
+                               note that the name of the datablock
+                               _ws_.... will not be displayed
+    for a CBF_SAVEFRAME node:  _ws_.prologue and _ws_.epilogue
+    for a CBF_CATEGORY node of name <category_name>:
+                               _<category_name>.ws__prologue
+                               _<category_name>.ws__epilogue
+    for a column of name <category_name>.<column_name>:
+                               <category_name>.ws__<column_name>_prologue
+                                   for whitespace before the tag
+                               <category_name>.ws__<column_name>_intralogue
+                                   for whitespace between the tag and the value
+                               <category_name>.ws__<column_name>_epilogue
+                                   for whitespace after the value
+                               for a loop the ws_ data is by row.
+                                   
+ */
 
 #ifdef __cplusplus
 
@@ -256,39 +280,482 @@ extern "C" {
 
 #endif
 
-#include "cbf_tree.h"
+#include "cbf_ws.h"
 
-
-  /* Get the value type of an ascii string */
-
-int cbf_get_value_type(const char *value, const char **value_type);
-
-
-  /* Set the value type of an ascii string */
-
-int cbf_set_value_type(char *value, const char *value_type);
-
-  /* Check the value type */
     
-int cbf_value_type (char *value);
+    /* Write an ascii value */
+    
+    int cbf_write_ws_ascii (const char *string, cbf_file *file) {
+        
+        int ii, iii, istart;
+        
+        char initc=' ', termc=' ';
+        
+        
+    
+        
+        /* Check the arguments */
+        
+        if (!string) return CBF_ARGUMENT;
+        
+        else
+            
+            if (*string != CBF_TOKEN_WORD       &&
+                *string != CBF_TOKEN_SQSTRING   &&
+                *string != CBF_TOKEN_DQSTRING   &&
+                *string != CBF_TOKEN_SCSTRING   &&
+                *string != CBF_TOKEN_TSQSTRING  &&
+                *string != CBF_TOKEN_TDQSTRING  &&
+                *string != CBF_TOKEN_BKTSTRING  &&
+                *string != CBF_TOKEN_BRCSTRING  &&
+                *string != CBF_TOKEN_PRNSTRING  &&
+                *string != CBF_TOKEN_NULL)
+                
+                return CBF_ARGUMENT;
+        
+        
+        /* Write the value */
+        
+        /* First check if anything other than whitespace appears
+         */
+        
+        switch (*string) {
+            case  CBF_TOKEN_WORD:
+            case  CBF_TOKEN_NULL:
+            case  CBF_TOKEN_SQSTRING:
+            case  CBF_TOKEN_DQSTRING:
+            case  CBF_TOKEN_SCSTRING:
+            case  CBF_TOKEN_TSQSTRING:
+            case  CBF_TOKEN_TDQSTRING:
+                
+                istart = 0;
+                
+                for (ii=0; ii < strlen(string+1); ii++) {
+                    
+                    if ((string+1)[ii] == ' ' || (string+1)[ii] == '\t') {
+                        
+                        if (file->column+ii >= file->columnlimit) {
+                            
+                            cbf_failnez (cbf_write_character (file, '\n'))
+                            
+                            istart = ii+1;
+                            
+                            continue;
+                        }
+                    }
+                    
+                    if ((string+1)[ii] != '#') {
+                        
+                        if (file->column+ii >= file->columnlimit) {
+                            
+                            cbf_failnez (cbf_write_character (file, '\n'))
+                            
+                            istart = ii;
+                            
+                            continue;
+                        }
+                        
+                        cbf_failnez (cbf_write_character (file, '#'))
+                        
+                    }
+                    
+                    for (iii=istart; iii< ii; iii++) {
+                        
+                        cbf_failnez (cbf_write_character (file, (string+1)[iii]))
+                        
+                        if (file->column == 0) {
+                            
+                            cbf_failnez (cbf_write_character (file, '#')) 
+                            
+                        }
+                        
+                        
+                    }
+                    
+                    for (iii=ii; iii<  strlen(string+1); iii++) {
+                        
+                        if (file->column >= file->columnlimit) {
+                            
+                            cbf_failnez (cbf_write_character (file, '\n'))
+                            
+                            if ((string+1)[iii] != '#') {
+                                
+                                cbf_failnez (cbf_write_character (file, '#')) 
+                                
+                            }
+                            
+                        }
+                        
+                        
+                        cbf_failnez (cbf_write_character (file, (string+1)[iii]))
+                        
+                        if (file->column == 0) {
+                            
+                            cbf_failnez (cbf_write_character (file, '#')) 
+                            
+                        }
+                        
+                    }
+                    
+                    if (file->column > 0) {
+                        
+                        cbf_failnez (cbf_write_character (file, '\n'))
+                        
+                    }
+                    
+                    return 0;
+                    
+                }
+                
+                for (iii=istart; iii< ii; iii++) {
+                    
+                    cbf_failnez (cbf_write_character (file, (string+1)[iii]))
+                    
+                }
+                
+                break;
+                
+            case CBF_TOKEN_PRNSTRING:
+            case CBF_TOKEN_BRCSTRING:
+            case CBF_TOKEN_BKTSTRING:
+                
+                switch (*string) {
+                    case CBF_TOKEN_PRNSTRING: initc = '('; termc = ')'; break;
+                    case CBF_TOKEN_BRCSTRING: initc = '{'; termc = '}'; break;
+                    case CBF_TOKEN_BKTSTRING: initc = '['; termc = ']'; break;
+                }
+                
+                
+                istart = 0;
+                
+                for (ii=0; ii < strlen(string+1); ii++) {
+                    
+                    if ((string+1)[ii] == ' ' || (string+1)[ii] == '\t') {
+                        
+                        if (file->column+ii >= file->columnlimit) {
+                            
+                            cbf_failnez (cbf_write_character (file, '\n'))
+                            
+                            istart = ii+1;
+                            
+                            continue;
+                        }
+                    }
+                    
+                    for (iii=istart; iii< ii; iii++) {
+                        
+                        cbf_failnez (cbf_write_character (file, (string+1)[iii]))
+                        
+                        if (file->column == 0) {
+                            
+                            cbf_failnez (cbf_write_character (file, '#')) 
+                            
+                        }
+                        
+                        
+                    }
+                    
+                    if (file->column+ii >= file->columnlimit-1) {
+                        
+                        cbf_failnez (cbf_write_character (file, '\n'))
+                        
+                        continue;
+                    }
+                    
+                    cbf_failnez (cbf_write_character (file, '#'))
+                    
+                    cbf_failnez (cbf_write_character (file, initc))
+                    
+                    for (iii=ii; iii<  strlen(string+1); iii++) {
+                        
+                        if (file->column >= file->columnlimit) {
+                            
+                            cbf_failnez (cbf_write_character (file, '\n'))
+                            
+                            if ((string+1)[iii] != '#') {
+                                
+                                cbf_failnez (cbf_write_character (file, '#')) 
+                                
+                            }
+                            
+                        }
+                        
+                        if (file->column == 0) {
+                            
+                            cbf_failnez (cbf_write_character (file, '#')) 
+                            
+                        }
+                        
+                        if (file->column >= file->columnlimit) {
+                            
+                            cbf_failnez (cbf_write_character (file, '\n'))
+                            
+                            if ((string+1)[iii] != '#') {
+                                
+                                cbf_failnez (cbf_write_character (file, '#')) 
+                                
+                            }
+                            
+                        }
+                        
+                        cbf_failnez (cbf_write_character (file, (string+1)[iii]))
+                        
+                    }
+                    
+                    if (file->column >= file->columnlimit-1) {
+                        
+                        cbf_failnez (cbf_write_character (file, '\n'))
+                        
+                        if ((string+1)[iii] != '#') {
+                            
+                            cbf_failnez (cbf_write_character (file, '#')) 
+                            
+                        }
+                        
+                        cbf_failnez (cbf_write_character (file, termc))
+                        
+                    }
+                    
+                    if (file->column > 0) {
+                        
+                        cbf_failnez (cbf_write_character (file, '\n'))
+                        
+                    }
+                    
+                    return 0;
+                    
+                }
+                
+                for (iii=istart; iii< ii; iii++) {
+                    
+                    cbf_failnez (cbf_write_character (file, (string+1)[iii]))
+                    
+                }
+                
+                break;
+                
+        }
+        
+        return 0;
+        
+        
+    }
+        
+        
+    
+    /* Write a value to a file */
+    
+int cbf_write_ws_value (cbf_node *column, unsigned int row,
+                         cbf_file *file, int isbuffer)
+    {
+        const char *text;
+        
+        
+        /* Check the arguments */
+        
+        if (!column)
+            
+            return CBF_ARGUMENT;
+        
+        if (row >= column->children)
+            
+            return CBF_NOTFOUND;
+        
+        
+        /* Get the value */
+        
+        cbf_failnez (cbf_get_columnrow (&text, column, row))
+        
+        
+        /* Missing value? */
+        
+        if (!text) return 0;
+                
+        
+        /* Plain ASCII? */
+        
+        cbf_failnez (cbf_value_type ((char *) text))
+        
+        if (*text == CBF_TOKEN_WORD     ||
+            *text == CBF_TOKEN_SQSTRING ||
+            *text == CBF_TOKEN_DQSTRING ||
+            *text == CBF_TOKEN_SCSTRING ||
+            *text == CBF_TOKEN_TSQSTRING ||
+            *text == CBF_TOKEN_TDQSTRING ||
+            *text == CBF_TOKEN_PRNSTRING ||
+            *text == CBF_TOKEN_BKTSTRING ||
+            *text == CBF_TOKEN_BRCSTRING ||
+            *text == CBF_TOKEN_NULL)
+            
+            return cbf_write_ws_ascii (text, file);
+        
+        /* Fail */
+        
+        return CBF_ARGUMENT;
+    }
+    
+    
+    
+int cbf_write_ws_prologue(const cbf_node *node, cbf_file *file, int isbuffer) {
 
-  /* Write a node to a stream */
+   unsigned int row;
+   
+   cbf_node *subnode;
+   
+   /* Check the arguments */
+   
+   if (!node || !file)
+   
+       return CBF_ARGUMENT;
+       
+   /* Check if white space is to be processed */
+       
+   if ( (file->write_headers & PARSE_WS) == 0 )
+   
+       return 0;
+       
+   /* Follow any links */
 
-int cbf_write_node (cbf_handle handle, const cbf_node *node, cbf_file *file, int isbuffer);
+    node = cbf_get_link (node);
+    
 
+   /* Node type */
 
-  /* Compose an item name from a category and column */
-  
-int cbf_compose_itemname (cbf_handle handle, const cbf_node *column, char * itemname, 
-                                                                     size_t limit);
+   switch (node->type) {
+   
+       case CBF_ROOT:
+       
+         return 0;  break;
+       
+       case CBF_DATABLOCK:
+       
+       case CBF_SAVEFRAME:
+       
+         if (!cbf_find_typed_child(&subnode, node,"ws_",CBF_CATEGORY)) {
+         
+             if (!cbf_find_child( &subnode, subnode,"prologue")) {
+             
+                 for (row = 0; row < subnode->children; row++) {
+                 
+                   cbf_failnez(cbf_write_ws_value(subnode,row,file,isbuffer))
+                 	
+                 }
+             	
+             }
+         	
+         }
+       
+         return 0;  break;
 
+       case CBF_CATEGORY:
+           
+           if (!cbf_cistrcmp(node->name,"ws_")) {return 0;}
+           
+           if (!cbf_find_child( &subnode, node,"ws__prologue")) {
 
+               for (row = 0; row < subnode->children; row++) {
+                   
+                   cbf_failnez(cbf_write_ws_value(subnode,row,file,isbuffer))
+                   
+               }
+               
+           }
+           
+       
+         return 0;  break;
+       
+       
+       default:
 
-#ifdef __cplusplus
+         return CBF_ARGUMENT;
 
+   }
+
+	
 }
 
+    
+    int cbf_write_ws_epilogue(const cbf_node *node, cbf_file *file, int isbuffer) {
+        
+        unsigned int row;
+        
+        cbf_node *subnode;
+        
+        /* Check the arguments */
+        
+        if (!node || !file)
+            
+            return CBF_ARGUMENT;
+        
+        /* Check if white space is to be processed */
+        
+        if ( (file->write_headers & PARSE_WS) == 0 )
+            
+            return 0;
+        
+        /* Follow any links */
+        
+        node = cbf_get_link (node);
+        
+        
+        /* Node type */
+        
+        switch (node->type) {
+                
+            case CBF_ROOT:
+                
+                return 0;  break;
+                
+            case CBF_DATABLOCK:
+                
+            case CBF_SAVEFRAME:
+                
+                if (!cbf_find_typed_child(&subnode, node,"ws_",CBF_CATEGORY)) {
+                    
+                    if (!cbf_find_child( &subnode, subnode,"epilogue")) {
+                        
+                        for (row = 0; row < subnode->children; row++) {
+                            
+                            cbf_failnez(cbf_write_ws_value(subnode,row,file,isbuffer))
+                            
+                        }
+                        
+                    }
+                    
+                }
+                
+                return 0;  break;
+                
+            case CBF_CATEGORY:
+                
+                if (!cbf_cistrcmp(node->name,"ws_")) {return 0;}
+                
+                if (!cbf_find_child( &subnode, node,"ws__epilogue")) {
+                    
+                    for (row = 0; row < subnode->children; row++) {
+                        
+                        cbf_failnez(cbf_write_ws_value(subnode,row,file,isbuffer))
+                        
+                    }
+                    
+                }
+                
+                
+                return 0;  break;
+                
+                
+            default:
+                
+                return CBF_ARGUMENT;
+                
+        }
+        
+        
+    }
+    
+    
+#ifdef __cplusplus
+    
+}
+        
 #endif
-
-#endif /* CBF_WRITE_H */
-
