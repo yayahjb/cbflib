@@ -1,0 +1,6 @@
+ total = 0
+       othertotal = 0
+       do jkl = 0,20,2 { total = total + jkl 
+          do emm = 1,5 { othertotal = othertotal + 1 } 
+          }
+       end_of_loop = -25.6
