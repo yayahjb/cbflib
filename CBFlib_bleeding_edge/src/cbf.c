@@ -7881,6 +7881,41 @@ int cbf_match(const char *string, char *pattern) {
 	return 0;
 }
 
+/* Interpreter for dREL method expression */
+
+int cbf_drel(const char *itemname, const char *expression) {
+
+	FILE *fp;
+							
+	FILE *fout;
+							
+	char output[255];
+	
+	char valuename[255];
+	
+	char * evaluate = "python ../drel-ply/gu.py ";
+	
+	strcpy(valuename, itemname);
+
+	strcat(evaluate, valuename);
+	
+	fp = fopen("method_expression", "w");
+						
+	fprintf(fp, "%s", expression);
+	
+	fclose(fp);
+						
+	system(evaluate);
+
+	fout = fopen("method_output", "r");
+							
+	fscanf(fout, "%s", output);
+	
+	fclose(fout);
+	
+	return 0;
+}
+
 #ifdef __cplusplus
 
 }
