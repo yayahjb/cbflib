@@ -764,6 +764,34 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                                     &dimfast, &dimmid, &dimslow,
                                                     &padding), val);
 
+           /* Attempt recovery from missing size */
+
+           if (size == 0) {
+	
+ 	     cbf_log(handle,
+		      "binary size missing, attempting recovery", 
+		         CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+
+             size = (dimover*bits+7)/8;
+
+             switch (compression) {
+
+			 case CBF_CANONICAL:
+
+		         case CBF_PACKED:
+
+		         case CBF_PACKED_V2:
+				 size /= 4;
+				 break;
+
+		         case CBF_BYTE_OFFSET:
+				 if (bits < 32) size /= 2;
+				 else size /=4;
+				 break;
+
+		     }
+
+          }
 
             /* Check the digest? */
 
@@ -832,10 +860,14 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
               /* Check the number of characters read */
 
-            if ((size && (size != code_size)) || code_size == 0)
+            if ((size && (size != code_size)) || code_size == 0) {
+
+               cbf_log(handle, 
+	         "size required to process digest", CBF_LOGERROR|CBF_LOGCURRENTLOC);
 
               cbf_errornez (CBF_FORMAT, val)
 
+            }
 
               /* Compare the old digest to the new one */
 
@@ -862,6 +894,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
           }
           else
           {
+
               /* Calculate the minimum number of characters in the data */
 
             if (encoding == ENC_NONE)
@@ -897,11 +930,13 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                     code_size = size / 4;
 
 
+
               /* Skip to the end of the data */
 
-            cbf_errornez (cbf_set_fileposition (file, code_size+padding, SEEK_CUR),
-                                                      val)
+             cbf_errornez (cbf_set_fileposition (file, code_size, SEEK_CUR), val)
+
           }
+
         }
         else
         {
@@ -943,7 +978,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
             cbf_errornez (CBF_FILEREAD, val)
           }
         }
-        while (cprevprev != '\n' || cprev != ';' || !(isspace(c)||c==EOF));
+	while ( !(cprevprev == '\n' && cprev ==';' && (isspace(c) || c==EOF)));
 
 
           /* Check the element size and sign */
