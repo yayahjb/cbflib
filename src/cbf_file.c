@@ -1562,12 +1562,12 @@ int cbf_read_character (cbf_file *file)
 
   last = file->last_read;
 
-  current = cbf_get_character (file);
+  while ( (current = cbf_get_character (file)) == 0);
 
   if ((current == '\n' && last == '\r') ||
       (current == '\r' && last == '\n'))
 
-    current = cbf_get_character (file);
+  while ( (current = cbf_get_character (file)) == 0);
 
 
     /* Convert the end-of-line character and update line and column */
