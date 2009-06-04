@@ -500,7 +500,9 @@ typedef struct _cbf_handle_struct
   struct _cbf_handle_struct *dictionary;
   
   cbf_file * file;                   /* NULL or an active cbf_file for input */
-  
+      
+  cbf_file * commentfile;            /* NULL or file for whitespace and comments */
+
   int  startcolumn, startline;       /* starting location of last token */
   
   FILE * logfile;                    /* NULL or an active stream for error logging */

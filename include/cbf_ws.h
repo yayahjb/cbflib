@@ -248,21 +248,44 @@
  **********************************************************************/
 
 
-/*  cbf_write_ws_prologue
-    cbf_write_ws_epilogue
-    
-    writes any white space and comments stored just below this node
-    
-    for a root node:           rely on the _ws.prologue of the first
-                               datablock and the _ws.epilogue of the
-                               last datablock.
-    for a CBF_DATABLOCK node:  _ws.prologue and _ws.epilogue
-                               note that the name of the datablock
-                               _ws_ will not be displayed
-    for a CBF_SAVEFRAME node:  _ws.prologue and _ws.epilogue
-    for a CBF_CATEGORY node of name <category_name>:
-                               _<category_name>.ws_prologue
-                               _<category_name>.ws_epilogue
+/*     
+ 1.	The prefix ws is reserved for special whitespace categories and tag.
+ 2.	For any given tag, <tag>, in a category, <category>, whitespace 
+ and comments for the tag and its value(s) will be given by 
+ <category>.ws_<tag> (for DDL2 style tag naming) or ws_tag (for DDLm 
+ and DDL1 style undotted naming).  In all cases this tag will be part of 
+ the same category as <tag>
+ 3.	For any given category, <category>, whitespace and comments for 
+ the category as a whole will be given by _ws__<category>.ws_ (note 
+ the double underscore).  This category ws__<category> is distinct 
+ from <category>.
+ 4.	For any given data block or save frame, whitespace and comments 
+ for the data block or save frame as whole will be given by 
+ _ws_.ws_
+ 5.	Whitespace and comments may be given as a prologue (intended to 
+ be presented before the element), zero or more emlogues (intended 
+ to be presented between the initial sub-element, e.g. "loop_" or 
+ the tag name and the rest of the element) or an epilogue (intended 
+ to be presented after the element as a whole).  We use the term 
+ "-logues" for prologues, emlogues and epilogue   The –logues for 
+ an element may be given as a single string, in which case only an 
+ epilogue is intended or as a bracketed construct (using parentheses) 
+ with multiple –logues.   If only one –logue is given, ir is the 
+ epilogue.  If two –logues are given, the first is the prologue and the 
+ second id the epilogue.  If more emlogues are given than there are 
+ breaks in the element, the extra emolgues are prepended to the epilogue.  
+ The emlogues for a bracketed construct may also be bracketed constructs 
+ to provide whitespace and comments within bracketed constructs.
+ 6.	A prologue, emlogue or epilogue is a string of one or more lines 
+ starting with a optional colon-terminated column position for that 
+ line, followed by optional whitespace, followed by an optional comment.  
+ If no column position is given the whitespace begins at the next syntactically 
+ valid location.  If a column position is given, then, on writing, a new 
+ line will be started if necessary to align to that column.  A column 
+ position with no whitespace and no comment simply provides alignment 
+ for the next sub-element.  If the end of a –logue line is a comment, 
+ whatever follows will be forced to a new line 
+ 
  */
 
 #ifndef CBF_WS_H
@@ -290,11 +313,40 @@ extern "C" {
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+    
+    
+    typedef enum {pro, em, epi} logue;
 
+    /* insert a column number into the buffer for the commentfile */
+    
+    int cbf_set_ws_column (cbf_file * commentfile, unsigned long columnumber);
+    
+    /* Apply pending whitespace to new node */
+    
+    int cbf_apply_ws(cbf_handle handle);
+        
+    /* scan a string for a bracketed substring at level targetdepth
+     and index targetindex */
+    
+    int cbf_find_bracketstring(const char * string, 
+                               const char * stringlimit,
+                               const char * stringtype,
+                               char * * bracketstring,
+                               char * * bracketstringlimit,
+                               int  * more,
+                               size_t   targetdepth, 
+                               size_t   targetindex );
+        
+    /* Write an ascii whitespace value */
+    
     int cbf_write_ws_ascii (const char *string, cbf_file *file);
+
+    /* Write a ws and comment value to a file */
+    
     int cbf_write_ws_value (cbf_node *column, unsigned int row,
-                            cbf_file *file, int isbuffer);
+                            cbf_file *file, int isbuffer, logue whichlogue);
     int cbf_write_ws_prologue(const cbf_node *node, cbf_file *file, int isbuffer);
+    int cbf_write_ws_emlogue(const cbf_node *node, cbf_file *file, int isbuffer);
     int cbf_write_ws_epilogue(const cbf_node *node, cbf_file *file, int isbuffer);
 
 #ifdef __cplusplus

@@ -279,6 +279,7 @@ int cbf_make_handle (cbf_handle *handle)
 
   errorcode = cbf_make_node (&(*handle)->node, CBF_ROOT, NULL, NULL);
 
+
   if (errorcode)
 
     return errorcode | cbf_free ((void **) handle, NULL);
@@ -292,6 +293,8 @@ int cbf_make_handle (cbf_handle *handle)
   (*handle)->dictionary = NULL;
   
   (*handle)->file = NULL;
+  
+  (*handle)->commentfile = NULL;
   
   (*handle)->logfile = stderr;
   
@@ -338,6 +341,8 @@ int cbf_free_handle (cbf_handle handle)
 
     }
     
+    if( handle->commentfile) errorcode |= cbf_free_file (&(handle->commentfile));
+      
     errorcode |= cbf_find_parent (&node, handle->node, CBF_ROOT);
 
     if (!errorcode) errorcode |= cbf_free_node (node);
@@ -404,6 +409,8 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, const c
 
 
     /* Delete the old datablocks */
+    
+  if( handle->commentfile) cbf_onfailnez (cbf_free_file (&(handle->commentfile)), fclose(stream));
 
   cbf_onfailnez (cbf_find_parent (&node, handle->node, CBF_ROOT), fclose(stream))
 
