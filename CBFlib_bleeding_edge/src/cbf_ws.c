@@ -338,9 +338,7 @@ extern "C" {
         const char* catname;
         
         const char* colname;
-        
-        int broken;
-        
+                
         char * value;
         
         char * tvalue;
@@ -710,7 +708,7 @@ extern "C" {
         }
         
         
-        
+        return 0;
         
     }
         
@@ -1024,6 +1022,8 @@ extern "C" {
         vstate = &state;
         
         vindex = &index;
+        
+        depth = 0;
         
         /* validate arguments */
         
@@ -1485,6 +1485,8 @@ extern "C" {
                 
             }
         }
+        
+        return 0;
     }
     
     

@@ -470,9 +470,9 @@ F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 		    $(SRC)/fcb_read_image.f90    \
 		    $(SRC)/fcb_read_line.f90     \
 		    $(SRC)/fcb_read_xds_i2.f90   \
-		    $(SRC)/fcb_skip_whitespace.f90
-#		    $(EXAMPLES)/test_fcb_read_image.f90 \
-#		    $(EXAMPLES)/test_xds_binary.f90
+		    $(SRC)/fcb_skip_whitespace.f90 \
+		    $(EXAMPLES)/test_fcb_read_image.f90 \
+		    $(EXAMPLES)/test_xds_binary.f90
 		    
 		   
 #
@@ -708,6 +708,8 @@ symlinksdone:
 
 install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		    $(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib
+		-chmod -R 755 $(INSTALLDIR)/include/cbflib
+		-chmod 755 $(INSTALLDIR)/lib/libcbf.a
 		-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
 		cp $(LIB)/libcbf.a $(INSTALLDIR)/lib/libcbf.a
 		-cp $(INSTALLDIR)/lib/libimg.a $(INSTALLDIR)/lib/libimg_old.a
