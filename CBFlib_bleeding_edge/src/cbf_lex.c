@@ -262,6 +262,7 @@ extern "C" {
 #include "cbf_read_binary.h"
 #include "cbf_read_mime.h"
 #include "cbf_alloc.h"
+#include "cbf_ws.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -305,7 +306,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
   unsigned int file_column, compression;
 
-  size_t size, length=0, code_size, dimover, dimfast, dimmid, dimslow, padding;
+  size_t size, length=0, code_size, dimover, dimfast, dimmid, dimslow, padding, ii;
 
   const char *line;
   
@@ -323,6 +324,37 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
   file = handle->file;
 
   cbf_errornez (cbf_reset_buffer (file), val)
+  
+  if (file->read_headers & PARSE_WS) {
+  
+    if (handle->commentfile == NULL){
+    	
+      cbf_errornez(cbf_make_file(&(handle->commentfile),NULL), val)
+
+    }
+    
+    
+    /* 
+       The commentfile buffer will contain a copy of the whitespace and
+       comments construted as raw material for components of a bracketed
+       construct.  Each component begins with the ascii-encoded 1-based
+       column number followed by a colon.  White space may follow, then
+       an optional comment, which is always followed by a newline.
+       
+       see cbf_apply_ws for the code that processes this buffer
+       
+     */
+  	
+      if (handle->commentfile->buffer_used > 0 ) {
+          
+          cbf_errornez (cbf_save_character (handle->commentfile, ','), val)
+          
+      }
+      
+      cbf_errornez (cbf_set_ws_column  (handle->commentfile, file->column+1), val)
+      
+
+  }
 
   c = file->last_read;
 
@@ -374,7 +406,6 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
         if ( c != EOF && ((unsigned char)c > 126 || (unsigned char )c < 32 ) )
           cbf_log(handle,"invalid character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
 
-      	
       }
 
 
@@ -385,10 +416,15 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
     if (length == 0) {
 
-      if (isspace (c)) 
-      {
+      if (isspace (c)) {
       
       if (c== '\013' || c == '\014') cbf_log(handle,"invalid space character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+      
+      if (file->read_headers & PARSE_WS) {
+       
+          cbf_errornez (cbf_save_character_trim (handle->commentfile, c), val)
+                 
+      }
 
       continue;
       
@@ -571,7 +607,13 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
         depth 1, 2, ... within a bracketed construct
           state 0 looking for the next item
           state 1 found the first item, looking for 
-            then end of the item     
+            then end of the item 
+            
+        on entry, the commentfile buffer has all the leading
+        whitespace.  This can be left as is to be picked up
+        by the parser, except for the bracketed constructs.
+        For the bracketed constructs, we need to bracket
+        the possible internal comments and whitespace.    
                 
                 */
 
@@ -619,7 +661,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
       /* for the bracketed constructs, set up the stacks */
       
       if (c=='[' || c=='{' || c=='(') {
-          	
+                	
         depth = 1;
             
         tokentype_size = state_size = index_size = 100;
@@ -684,6 +726,13 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
       
           if (c== '\013' || c == '\014') 
             cbf_log(handle,"invalid space character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+          
+          if ((file->read_headers & PARSE_WS) && depth > 0) {
+       
+            cbf_errornez (cbf_save_character_trim (handle->commentfile, c), val)
+                 
+          }
+
       
         }  else {
 
@@ -778,397 +827,640 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
           
           breakout = 0;
            
-          switch (state[depth-1]) {
-          
-            /* 
-          	  In state 1 we have started an item and are looking for
-          	  the end of the item.
-          	  
-          	  The possibilities are that the item we are parsing is
-          	    1.  A single-quoted string
-          	    2.  A double-quoted string
-          	    3.  A triple-single-quoted string (only if PARSE_TRIPLE_QUOTES is set) 
-          	    4.  A triple-double-quoted string (only if PARSE_TRIPLE_QUOTES is set)
-          	    5.  A parenthesis-bracketed string
-          	    6.  A brace-bracketed string
-          	    7.  A bracket-bracketed string
-          	    8.  A blank-bracketed string (only if PARSE_LIBERAL_BRACKETS is set)
-          	    9.  A bracket-bracketed item (only if PARSE_LIBERAL_BRACKETS is not set)
-          	    
-          	  In all cases, the depth will have been increased by 1 and the
-          	  appropriate token type stored in tokentype[depth-1], and
-          	  index[depth-1] will accumulate the number of characters
-          	  
-          	  It is important that this code come before the code
-          	  for state 2 so that we can fall through.
-               
-               */
-          	
-          	case (1):
-          	
-          	  /* See if we are looking for a terminal quote mark */
-          	  
-          	  if (cbf_token_term(tokentype[depth-1])=='\'' 
-          	    || cbf_token_term(tokentype[depth-1])=='"' ) {
-          	  
-          	    string = ( cprev != cbf_token_term(tokentype[depth-1])
-          	      || index[depth-1] < 1 
-          	      || !(isspace(c)||c==','||c==cbf_token_term(tokentype[depth-2]) ) );
-          	      
-          	    if (index[depth-1] == 2  && c==cprev && cprev==cprevprev 
-          	      && (file->read_headers & PARSE_TRIPLE_QUOTES ) != 0) {
-          	      tokentype[depth-1] = 
-          	        tokentype[depth-1]==CBF_TOKEN_SQSTRING?CBF_TOKEN_TSQSTRING:CBF_TOKEN_TDQSTRING;
-          	    }
-          	    
-          	    if (tokentype[depth-1]==CBF_TOKEN_TSQSTRING 
-          	      || tokentype[depth-1]==CBF_TOKEN_TDQSTRING) {
-          	      string = !(cprev == cbf_token_term(tokentype[depth-1])
-          	                 && cprevprev == cprev 
-          	                 && cprevprevprev==cprevprev
-          	                 && index[depth-1] > 5
-          	                 && (isspace(c)||c==','||c==cbf_token_term(tokentype[depth-2])
-          	                ));
+            switch (state[depth-1]) {
+                    
+                    /* 
+                     In state 1 we have started an item and are looking for
+                     the end of the item.
+                     
+                     The possibilities are that the item we are parsing is
+                     1.  A single-quoted string
+                     2.  A double-quoted string
+                     3.  A triple-single-quoted string (only if PARSE_TRIPLE_QUOTES is set) 
+                     4.  A triple-double-quoted string (only if PARSE_TRIPLE_QUOTES is set)
+                     5.  A parenthesis-bracketed string
+                     6.  A brace-bracketed string
+                     7.  A bracket-bracketed string
+                     8.  A blank-bracketed string (only if PARSE_LIBERAL_BRACKETS is set)
+                     9.  A bracket-bracketed item (only if PARSE_LIBERAL_BRACKETS is not set)
+                     
+                     In all cases, the depth will have been increased by 1 and the
+                     appropriate token type stored in tokentype[depth-1], and
+                     index[depth-1] will accumulate the number of characters
+                     
+                     It is important that this code come before the code
+                     for state 2 so that we can fall through.
+                     
+                     */
+                    
+                case (1):
+                    
+                    /* See if we are looking for a terminal quote mark */
+                    
+                    if (cbf_token_term(tokentype[depth-1])=='\'' 
+                        || cbf_token_term(tokentype[depth-1])=='"' ) {
+                        
+                        string = ( cprev != cbf_token_term(tokentype[depth-1])
+                                  || index[depth-1] < 1 
+                                  || !(isspace(c)||c==','||c==cbf_token_term(tokentype[depth-2]) ) );
+                        
+                        if (index[depth-1] == 2  && c==cprev && cprev==cprevprev 
+                            && (file->read_headers & PARSE_TRIPLE_QUOTES ) != 0) {
+                            tokentype[depth-1] = 
+                            tokentype[depth-1]==CBF_TOKEN_SQSTRING?CBF_TOKEN_TSQSTRING:CBF_TOKEN_TDQSTRING;
+                        }
+                        
+                        if (tokentype[depth-1]==CBF_TOKEN_TSQSTRING 
+                            || tokentype[depth-1]==CBF_TOKEN_TDQSTRING) {
+                            string = !(cprev == cbf_token_term(tokentype[depth-1])
+                                       && cprevprev == cprev 
+                                       && cprevprevprev==cprevprev
+                                       && index[depth-1] > 5
+                                       && (isspace(c)||c==','||c==cbf_token_term(tokentype[depth-2])
+                                           ));
+                            
+                            if (string && c == EOF) {
+                                
+                                if (cbf_token_term(tokentype[depth-1]) == '\'') {
+                                    
+                                    cbf_log(handle,"ended before end of triple single-quoted string", 
+                                            CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                                    
+                                } else {
+                                    
+                                    cbf_log(handle,"ended before end of triple double-quoted string", 
+                                            CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                                    
+                                }
+                                
+                                string = 0;
+                                
+                            }
+                            
+                        } else {  /* not treble-quoted, just ' or " single quoted */
+                            
+                            if ( string && ( c == '\n' || c == EOF ) )  {
+                                
+                                if (cbf_token_term(tokentype[depth-1]) == '\'') {
+                                    
+                                    cbf_log(handle,"ended before end of single-quoted string", 
+                                            CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                                    
+                                } else {
+                                    
+                                    cbf_log(handle,"ended before end of double-quoted string", 
+                                            CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                                    
+                                }
+                                
+                                string = 0;
+                                
+                            }
+                            
+                            
+                        }
+                        
+                        if ( !string ) {
+                            depth--;  /* drop down from this level */
+                            state[depth-1]++;
+                            
+                            if (depth==1 && c==cbf_token_term(tokentype[0])) {
+                                
+                                int ttype=tokentype[0];
+                                
+                                cbf_free((void **)vtokentype, NULL);
+                                cbf_free((void **)vstate, NULL);
+                                cbf_free((void **)vindex, NULL);
+                                
+                                /* trim all trailing whitespace in bracketed constructs */
+                                
+                                for (ii=length-1; ii >=0 && isspace(line[ii]); ii--);
+                                
+                                file->buffer[ii+1] = '\0';
+                                
+                                return cbf_return_text (STRING, val, (line[1]=='\\'&&line[2]=='\n')?(&line[3]):(&line [1]), ttype);
+                                
+                                
+                            }
 
-          	      if (string && c == EOF) {
-          	      
-          	        if (cbf_token_term(tokentype[depth-1]) == '\'') {
-
-                      cbf_log(handle,"ended before end of triple single-quoted string", 
-                        CBF_LOGWARNING|CBF_LOGSTARTLOC);
-            
+                            savechar = 0;
+                            if (c == EOF || c == '\n') {
+                                
+                                if (c == EOF) breakout = 1;
+                                break;
+                                
+                            }
+                            
+                            if (!isspace(c)) savechar = 1;
+                            /* intentionally fail to do a break */
+                            
+                        } else {
+                            
+                            savechar = 1;
+                            breakout = 0;
+                            index[depth-1]++;
+                            break;
+                            
+                        }
+                        
                     } else {
-                  	
-                      cbf_log(handle,"ended before end of triple double-quoted string", 
-                        CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                        
+                        /* We are not looking for a terminal quote mark */
+                        
+                        /* on a blank-delimited item we may end on a blank,
+                         comma or the next level terminator, or to handle
+                         such constructs as [*[5]] on the starting delimiter
+                         of an embedded bracketed structure*/
+                        
+                        if (cbf_token_term(tokentype[depth-1])==' ') {
+                            
+                            
+                            /* we are still in a blank-delimited item if the
+                             character is not a space, not a comma and not an
+                             opening bracket and not a closing bracket
+                             bracket from the next level.  The string also ends
+                             at eol or eof */
+                            
+                            string = ( !isspace(c)) 
+                            && !(c==','||
+                                 c=='('||
+                                 c=='['||
+                                 c=='{'||
+                                 c==cbf_token_term(tokentype[depth-2]) );
+                            
+                            if ( string && ( c == '\n' || c == EOF ) )  {
+                                
+                                string = 0;
+                                
+                            }
+                            
+                            if ( !string ) {
+                                if (file->read_headers & PARSE_WS) {
+                                    if(c==')' || c=='}' || c==']'){
+                                        
+                                        cbf_onerrornez (cbf_save_character_trim (handle->commentfile, ')'), val, 
+                                                        { cbf_free((void **)vtokentype, NULL);
+                                                        cbf_free((void **)vstate, NULL);
+                                                        cbf_free((void **)vindex, NULL);})
+                                        
+                                    }
+                                    if(c=='[' || c=='{' || c=='['){
+                                        
+                                        cbf_onerrornez (cbf_save_character_trim (handle->commentfile, ','), val, 
+                                                        { cbf_free((void **)vtokentype, NULL);
+                                                        cbf_free((void **)vstate, NULL);
+                                                        cbf_free((void **)vindex, NULL);})
+                                        
+                                        cbf_onerrornez (cbf_save_character_trim (handle->commentfile, '('), val, 
+                                                        { cbf_free((void **)vtokentype, NULL);
+                                                        cbf_free((void **)vstate, NULL);
+                                                        cbf_free((void **)vindex, NULL);})
+                                        
+                                        cbf_errornez (cbf_set_ws_column  (handle->commentfile, file->column+1), val)
+                                        
+                                    }
+                                }
 
+                                if(c=='(' || c=='{' || c=='['){
+                                    
+                                    savechar = 0;
+                                    
+                                    index[depth-2]++;
+                                                                        
+                                    index[depth-1] = state[depth-1] = 0;
+                                    
+                                    switch(c) {
+                                            
+                                        case ('[')  : tokentype[depth-1]=CBF_TOKEN_BKTSTRING; break;
+                                        case ('{')  : tokentype[depth-1]=CBF_TOKEN_BRCSTRING; break;
+                                        case ('(')  : tokentype[depth-1]=CBF_TOKEN_PRNSTRING; break;
+                                            
+                                    }
+                                    cbf_onerrornez (cbf_save_character_trim (file, c), val,
+                                                    {cbf_free((void **)vtokentype, NULL);
+                                                    cbf_free((void **)vstate, NULL);
+                                                    cbf_free((void **)vindex, NULL);})
+                                    
+                                    breakout = 0;
+                                    break;
+                                    
+                                    
+                                }
+                                
+                                if (!isspace(c)&&depth>1&&c!=',') depth--;
+                                depth--;
+                                state[depth-1]++;
+                                savechar = 1;
+                                breakout = 0;
+                                
+                                
+                                if (depth==0 && c==cbf_token_term(tokentype[0])) {
+                                    
+                                    int ttype=tokentype[0];
+                                    
+                                    cbf_free((void **)vtokentype, NULL);
+                                    cbf_free((void **)vstate, NULL);
+                                    cbf_free((void **)vindex, NULL);
+                                    
+                                    /* trim all trailing whitespace in bracketed constructs */
+                                    
+                                    for (ii=length-1; ii >=0 && isspace(line[ii]); ii--);
+                                    
+                                    file->buffer[ii+1] = '\0';
+                                    
+                                    return cbf_return_text (STRING, val, (line[1]=='\\'&&line[2]=='\n')?(&line[3]):(&line [1]), ttype);
+                                    
+                                    
+                                }
+                                
+                                if (c == EOF) breakout = 1;
+                                break;
+                                
+                            } else {
+                                savechar = 1;
+                                breakout = 0;
+                                index[depth-1]++;
+                                break;
+                            }
+                            
+                        } else {
+                            
+                            if (cbf_token_term(tokentype[depth-1])==';') {
+                                
+                                string = ( cprevprev != '\n'
+                                          || cprev != cbf_token_term(tokentype[depth-1]) 
+                                          || index[depth-1] < 3 
+                                          || !(isspace(c) || c==','||c==cbf_token_term(tokentype[depth-2]) ) );
+                                
+                                if ( c == EOF )   {
+                                    
+                                    string = 0;
+                                    
+                                }
+                                
+                                if ( !string ) {
+                                    
+                                    if (file->read_headers & PARSE_WS) {
+                                        
+                                        cbf_onerrornez (cbf_save_character_trim (handle->commentfile, ')'), val, 
+                                                        { cbf_free((void **)vtokentype, NULL);
+                                                        cbf_free((void **)vstate, NULL);
+                                                        cbf_free((void **)vindex, NULL);})
+                                        
+                                    }
+                                    
+                                    depth--;
+                                    state[depth-1]++;
+                                    savechar = 0;
+                                    breakout = 0;
+                                    
+                                    if (depth==1 && c==cbf_token_term(tokentype[0])) {
+                                        
+                                        int ttype=tokentype[0];
+                                        
+                                        cbf_free((void **)vtokentype, NULL);
+                                        cbf_free((void **)vstate, NULL);
+                                        cbf_free((void **)vindex, NULL);
+                                        
+                                        /* trim all trailing whitespace in bracketed constructs */
+                                        
+                                        for (ii=length-1; ii >=0 && isspace(line[ii]); ii--);
+                                        
+                                        file->buffer[ii+1] = '\0';
+                                        
+                                        return cbf_return_text (STRING, val, (line[1]=='\\'&&line[2]=='\n')?(&line[3]):(&line [1]), ttype);
+                                        
+                                        
+                                    }
+                                    
+                                    if (c == EOF) breakout = 1;
+                                    break;
+                                } else {
+                                    savechar = 1;
+                                    breakout = 0;
+                                    index[depth-1]++;
+                                    break;
+                                }
+                                
+                            } else {
+                                
+                                cbf_log(handle,"unrecognized bracketed construct item", 
+                                        CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                            }
+                            
+                        }
+                        
                     }
                     
-                    string = 0;
-
-          	      }
-          	    	
-          	    } else {
-          	    	
-                  if ( string && ( c == '\n' || c == EOF ) )  {
-            
-                    if (cbf_token_term(tokentype[depth-1]) == '\'') {
-
-                      cbf_log(handle,"ended before end of single-quoted string", 
-                        CBF_LOGWARNING|CBF_LOGSTARTLOC);
-            
-                    } else {
-                  	
-                      cbf_log(handle,"ended before end of double-quoted string", 
-                        CBF_LOGWARNING|CBF_LOGSTARTLOC);
-
-                    }
-                
-                    string = 0;
-
-                  }
-
-              
-                }
-
-                if ( !string ) {
-                  depth--;  /* drop down from this level */
-                  state[depth-1]++;
-
-                  savechar = 0;
-                  if (c == EOF || c == '\n') {
-
-                    if (c == EOF) breakout = 1;
-                    break;
-                  	
-                  }
-                  
-                  if (!isspace(c)) savechar = 1;
-                  /* intentionally fail to do a break */
-                  
-                } else {
-                
-                  savechar = 1;
-                  breakout = 0;
-                  index[depth-1]++;
-                  break;
-
-                }
-
-              } else {
-              
-                /* We are not looking for a terminal quote mark */
-                
-                /* on a blank-delimited item we may end on a blank,
-                   comma or the next level terminator */
-              	
-                if (cbf_token_term(tokentype[depth-1])==' ') {
-          	  
-          	  
-          	      /* we are still in a blank-delimited item if the
-          	         character is not a space, not a comma and not the
-          	         bracket from the next level.  The string also ends
-          	         at eol or eof */
-          	         
-          	      string = ( !isspace(c)) 
-          	        && !(c==','||c==cbf_token_term(tokentype[depth-2]) );
- 
-                  if ( string && ( c == '\n' || c == EOF ) )  {
-            
-                    string = 0;
-              
-                  }
-
-                  if ( !string ) {
-                    depth--;
-                    state[depth-1]++;
-                    savechar = 0;
-                    breakout = 0;
+                    /* 
+                     In state 2 we have completed an item and need to scan for
+                     a comma or a terminator.  Since we are not breaking out the
+                     items, we merge this case with state 0.
+                     
+                     */
                     
-                    if (c == EOF) breakout = 1;
-                    break;
-
-                  } else {
+                case (2):
+                    
+                    /* In state 0 we are looking for an item for the construct
+                     We may encounter a comment, a space, a comma, a terminator 
+                     for the construct or the beginning of an item
+                     
+                     If we are parsing whitespace, comments and space simply get
+                     appended to the whitespace.  
+                     
+                     */
+                    
+                case (0):
+                    
+                    if (c=='#') {
+                        
+                        /* if we are parsing whitespace and encounter a comment
+                         the entire comment including the '\n' gets appended to
+                         the whitespace, converting an EOF to a '\n'
+                         
+                         */
+                        
+                        if (file->read_headers & PARSE_WS) {
+                            
+                            cbf_onerrornez (cbf_save_character_trim (handle->commentfile, c), val, 
+                                            { cbf_free((void **)vtokentype, NULL);
+                                            cbf_free((void **)vstate, NULL);
+                                            cbf_free((void **)vindex, NULL);})
+                            
+                        }
+                        
+                        
+                        do {
+                            
+                            cprevprevprev = cprevprev;
+                            
+                            cprevprev = cprev;
+                            
+                            cprev = c;
+                            
+                            c = cbf_read_character (file);
+                            
+                            if (file->column == file->columnlimit+1) {
+                                
+                                cbf_log(handle, "over line size limit", CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+                                
+                            }
+                            
+                            if (file->read_headers & PARSE_WS) {
+                                
+                                if (c == EOF) {
+                                    
+                                    cbf_onerrornez (cbf_save_character_trim (handle->commentfile, '\n'), val, 
+                                                    { cbf_free((void **)vtokentype, NULL);
+                                                    cbf_free((void **)vstate, NULL);
+                                                    cbf_free((void **)vindex, NULL);})
+                                    
+                                } else {
+                                    
+                                    cbf_onerrornez (cbf_save_character_trim (handle->commentfile, c), val, 
+                                                    { cbf_free((void **)vtokentype, NULL);
+                                                    cbf_free((void **)vstate, NULL);
+                                                    cbf_free((void **)vindex, NULL);})
+                                    
+                                }
+                                
+                            }
+                            
+                            
+                            if (isspace (c)) {
+                                
+                                if (c== '\013' || c == '\014') 
+                                    cbf_log(handle,"invalid space character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+                                
+                            } 
+                            
+                            if ( c != EOF && ((unsigned char)c > 126 || (unsigned char )c < 32 ) )
+                                cbf_log(handle,"invalid character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+                            
+                            
+                        } while (c != '\n' && c != EOF);
+                        
+                    }
+                    
+                    if (c==EOF) {
+                        
+                        int ttype=tokentype[0];
+                        
+                        cbf_log(handle,"file ended before end of bracketed construct", 
+                                CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                        
+                        cbf_free((void **)vtokentype, NULL);
+                        cbf_free((void **)vstate, NULL);
+                        cbf_free((void **)vindex, NULL);
+                        
+                        if (file->read_headers & PARSE_WS) {
+                            
+                            cbf_errornez (cbf_save_character_trim (handle->commentfile, '\n'), val)
+                            
+                            
+                        }
+                        
+                        return cbf_return_text (STRING, val, (line[1]=='\\'&&line[2]=='\n')?(&line[3]):(&line [1]), ttype);
+                        
+                        
+                    }
+                    
+                    if (isspace(c)) {
+                        
+                        if (file->read_headers & PARSE_WS) {
+                            
+                            cbf_errornez (cbf_save_character_trim (handle->commentfile, c), val)
+                            
+                        }
+                        savechar = 0;
+                        breakout = 0;
+                        break;
+                        
+                    }
+                    
+                    
+                    if (c==',' ) {
+                        
+                        savechar = 1;           /* Keep the comma */
+                        breakout = 0;
+                        /* depth--; */          /* Stay at this level */
+                        index[depth-1]++;
+                        state[depth-1] = 0;     /* Search for a non-blank */
+                        
+                        /* If we encounter a comma, it is time to break up the whitespace as well */
+                        
+                        if (file->read_headers & PARSE_WS) {
+                            
+                            cbf_errornez (cbf_save_character_trim (handle->commentfile, ','), val)
+                            
+                            cbf_errornez (cbf_set_ws_column  (handle->commentfile, file->column+1), val)
+                            
+                        }
+                        
+                        break;
+                        
+                    }
+                    
+                    if (c==cbf_token_term(tokentype[depth-1]) 
+                        && (cbf_token_term(tokentype[depth-1])==';'?'\n':cprev)==cprev) {
+                        
+                        savechar = 1;
+                        breakout = 0;
+                        if (depth > 0)depth--; /* end the bracket */
+                        
+                        if (depth==0) {
+                            
+                            int ttype=tokentype[0];
+                            
+                            cbf_free((void **)vtokentype, NULL);
+                            cbf_free((void **)vstate, NULL);
+                            cbf_free((void **)vindex, NULL);
+                            
+                            /* trim all trailing whitespace in bracketed constructs */
+                            
+                            for (ii=length-1; ii >=0 && isspace(line[ii]); ii--);
+                            
+                            file->buffer[ii+1] = '\0';
+                            
+                            return cbf_return_text (STRING, val, (line[1]=='\\'&&line[2]=='\n')?(&line[3]):(&line [1]), ttype);
+                            
+                            
+                        }
+                        
+                        /* If we encounter the closing bracket, it is time to break up the whitespace as well */
+                        
+                        if (file->read_headers & PARSE_WS) {
+                            
+                            cbf_errornez (cbf_save_character_trim (handle->commentfile, ')'), val)
+                            
+                        }
+                        
+                        
+                        state[depth-1]++;
+                        break;
+                        
+                        
+                    }
+                    
+                    if ( !isspace(c)) {
+                        
+                        if (file->read_headers & PARSE_WS) {
+                            
+                            cbf_onerrornez (cbf_save_character_trim (handle->commentfile, ','), val, 
+                                            { cbf_free((void **)vtokentype, NULL);
+                                            cbf_free((void **)vstate, NULL);
+                                            cbf_free((void **)vindex, NULL);})
+                            
+                            if (c == '[' || c == '(' || c == '{') {
+                                
+                                cbf_onerrornez (cbf_save_character_trim (handle->commentfile, '('), val, 
+                                                { cbf_free((void **)vtokentype, NULL);
+                                                cbf_free((void **)vstate, NULL);
+                                                cbf_free((void **)vindex, NULL);})
+                                
+                                
+                            }
+                            
+                            cbf_onerrornez (cbf_set_ws_column  (handle->commentfile, file->column+1), val, 
+                                            { cbf_free((void **)vtokentype, NULL);
+                                            cbf_free((void **)vstate, NULL);
+                                            cbf_free((void **)vindex, NULL);})
+                            
+                        }
+                        if (state[depth-1]==2) {
+                            
+                            /* if (!(length==3 && line[1]=='\\' && line[2]=='\n')) {
+                             
+                             cbf_onerrornez (cbf_save_character_trim (file, ' '), val, 
+                             { cbf_free((void **)vtokentype, NULL);
+                             cbf_free((void **)vstate, NULL);
+                             cbf_free((void **)vindex, NULL);})
+                             
+                             }
+                             
+                             */
+                            
+                            state[depth-1]=0;
+                            
+                        }
+                        
+                        state[depth-1]++;
+                        
+                        savechar = 0;
+                        
+                        depth++;
+                        
+                        
+                        if (depth > tokentype_size) {
+                            
+                            cbf_onerrornez(cbf_realloc((void **)vtokentype, NULL, sizeof(int),tokentype_size*2),
+                                           val,{cbf_free((void **)vtokentype, NULL);
+                                           cbf_free((void **)vstate, NULL);
+                                           cbf_free((void **)vindex, NULL);})
+                            
+                            tokentype_size *= 2;
+                            
+                        }
+                        
+                        if (depth > state_size) {
+                            
+                            cbf_onerrornez(cbf_realloc((void **)vstate, NULL, sizeof(int),state_size*2),
+                                           val,{cbf_free((void **)vtokentype, NULL);
+                                           cbf_free((void **)vstate, NULL);
+                                           cbf_free((void **)vindex, NULL);})
+                            
+                            state_size *= 2;
+                            
+                        }
+                        
+                        
+                        if (depth > index_size) {
+                            
+                            cbf_onerrornez(cbf_realloc((void **)vindex, NULL, sizeof(int),index_size*2),
+                                           val,{cbf_free((void **)vtokentype, NULL);
+                                           cbf_free((void **)vstate, NULL);
+                                           cbf_free((void **)vindex, NULL);})
+                            
+                            index_size *= 2;
+                            
+                        }
+                        
+                        index[depth-1] = state[depth-1] = 0;
+                        
+                        switch(c) {
+                                
+                            case ('\'') : tokentype[depth-1]=CBF_TOKEN_SQSTRING; state[depth-1] = 1; break;
+                            case ('"')  : tokentype[depth-1]=CBF_TOKEN_DQSTRING; state[depth-1] = 1; break;
+                            case ('[')  : tokentype[depth-1]=CBF_TOKEN_BKTSTRING; break;
+                            case ('{')  : tokentype[depth-1]=CBF_TOKEN_BRCSTRING; break;
+                            case ('(')  : tokentype[depth-1]=CBF_TOKEN_PRNSTRING; break;
+                            case (';')  : 
+                                if (cprev=='\n') {
+                                    tokentype[depth-1]=CBF_TOKEN_SCSTRING; state[depth-1] = 1; 
+                                    cbf_onerrornez (cbf_save_character_trim (file, '\n'), val,
+                                                    {cbf_free((void **)vtokentype, NULL);
+                                                    cbf_free((void **)vstate, NULL);
+                                                    cbf_free((void **)vindex, NULL);})
+                                    break;
+                                }
+                            default:  tokentype[depth-1]= CBF_TOKEN_WORD; state[depth-1] = 1; break;
+                                
+                        }
+                        cbf_onerrornez (cbf_save_character_trim (file, c), val,
+                                        {cbf_free((void **)vtokentype, NULL);
+                                        cbf_free((void **)vstate, NULL);
+                                        cbf_free((void **)vindex, NULL);})
+                        
+                        breakout = 0;
+                        break;
+                        
+                    }
+                    
+                    
                     savechar = 1;
                     breakout = 0;
-                    index[depth-1]++;
                     break;
-                  }
-
-                } else {
-              	
-                  if (cbf_token_term(tokentype[depth-1])==';') {
-          	  
-          	        string = ( cprevprev != '\n'
-          	          || cprev != cbf_token_term(tokentype[depth-1]) 
-          	          || index[depth-1] < 3 
-          	          || !(isspace(c) || c==','||c==cbf_token_term(tokentype[depth-2]) ) );
- 
-                    if ( c == EOF )   {
-            
-                      string = 0;
-              
-                    }
-
-                    if ( !string ) {
-                      depth--;
-                      state[depth-1]++;
-                      savechar = 0;
-                      breakout = 0;
-                      if (c == EOF) breakout = 1;
-                      break;
-                    } else {
-                      savechar = 1;
-                      breakout = 0;
-                      index[depth-1]++;
-                      break;
-                    }
-
-                  } else {
-              
-                    cbf_log(handle,"unrecognized bracketed construct item", 
-                      CBF_LOGWARNING|CBF_LOGSTARTLOC);
-                  }
-              	
-                }
-              
-              }
-            
-            /* 
-          	  In state 2 we have completed an item and need to scan for
-          	  a comma or a terminator.  Since we are not breaking out the
-          	  items, we merge this case with state 0.
-          	                 
-               */
-               
-            case (2):
-            
-            /* In state 0 we are looking for an item for the construct
-               We may encounter a comment, a space, a comma, a terminator 
-               for the construct or the beginning of an item
-               
-               */
-          
-          	case (0):
-          	
-          	  if (c=='#') do {
-          	  
-          	    cprevprevprev = cprevprev;
-          	  
-          	    cprevprev = cprev;
-      
-                cprev = c;
-
-                c = cbf_read_character (file);
-      
-                if (file->column == file->columnlimit+1) {
-      
-                  cbf_log(handle, "over line size limit", CBF_LOGWARNING|CBF_LOGCURRENTLOC);
-
-                }
-      	
-                if (isspace (c)) {
-      
-                  if (c== '\013' || c == '\014') 
-                    cbf_log(handle,"invalid space character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
-      
-                } 
-                
-                if ( c != EOF && ((unsigned char)c > 126 || (unsigned char )c < 32 ) )
-                  cbf_log(handle,"invalid character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
-
-          	  	
-          	  } while (c != '\n' && c != EOF);
-          	
-          	  if (c==EOF) {
-          	  
-          	    int ttype=tokentype[0];
-          	    
-                cbf_log(handle,"file ended before end of bracketed construct", 
-                  CBF_LOGWARNING|CBF_LOGSTARTLOC);
-                  
-                cbf_free((void **)vtokentype, NULL);
-                cbf_free((void **)vstate, NULL);
-                cbf_free((void **)vindex, NULL);
- 
-               return cbf_return_text (STRING, val, &line [1], ttype );
-                                               
-         	  	
-          	  }
-          	
-          	  if (isspace(c)) {
-          	  
-          	    savechar = 0;
-          	    breakout = 0;
-          	    break;
-          	  	
-          	  }
-          	  
-          	  
-          	  if (c==',' ) {
-          	  
-                savechar = 1;           /* Keep the comma */
-                breakout = 0;
-                /* depth--; */          /* Stay at this level */
-          	    index[depth-1]++;
-          	    state[depth-1] = 0;     /* Search for a non-blank */
-          	    break;
-           	  	
-          	  }
-          	  
-          	  if (c==cbf_token_term(tokentype[depth-1]) 
-          	    && (cbf_token_term(tokentype[depth-1])==';'?'\n':cprev)==cprev) {
-          	  
-                savechar = 1;
-                breakout = 0;
-          	    /* depth--; */ /* end the token */
-          	    if (depth > 0)depth--; /* end the bracket */
-          	    
-          	    if (depth==0) {
-          	    
-          	      int ttype=tokentype[0];
-          	    
-          	      cbf_free((void **)vtokentype, NULL);
-                  cbf_free((void **)vstate, NULL);
-                  cbf_free((void **)vindex, NULL);
-
-                 return cbf_return_text (STRING, val, &line [1], ttype);
-
-          	    	
-          	    }
-          	    
-          	    state[depth-1]++;
-          	    break;
-          	    
-          	  	
-          	  }
-          	
-          	  if ( !isspace(c)) {
-                
-                if (state[depth-1]==2) {
-                
-                  cbf_onerrornez (cbf_save_character_trim (file, ' '), val, 
-          	        { cbf_free((void **)vtokentype, NULL);
-                      cbf_free((void **)vstate, NULL);
-                      cbf_free((void **)vindex, NULL);})
-                  
-                  state[depth-1]=0;
-                	
-                }
-          
-                state[depth-1]++;
-
-          	    cbf_onerrornez (cbf_save_character_trim (file, c), val, 
-          	    { cbf_free((void **)vtokentype, NULL);
-                  cbf_free((void **)vstate, NULL);
-                  cbf_free((void **)vindex, NULL);})
-                  
-                savechar = 0;
-                
-                depth++;
-
-
-                if (depth > tokentype_size) {
-            
-                  cbf_onerrornez(cbf_realloc((void **)vtokentype, NULL, sizeof(int),tokentype_size*2),
-                    val,{cbf_free((void **)vtokentype, NULL);
-                    cbf_free((void **)vstate, NULL);
-                    cbf_free((void **)vindex, NULL);})
-                
-                  tokentype_size *= 2;
-            	
-                }
-
-                if (depth > state_size) {
-            
-                  cbf_onerrornez(cbf_realloc((void **)vstate, NULL, sizeof(int),state_size*2),
-                    val,{cbf_free((void **)vtokentype, NULL);
-                    cbf_free((void **)vstate, NULL);
-                    cbf_free((void **)vindex, NULL);})
-                
-                  state_size *= 2;
-            	
-                }
-
-
-                if (depth > index_size) {
-            
-                  cbf_onerrornez(cbf_realloc((void **)vindex, NULL, sizeof(int),index_size*2),
-                    val,{cbf_free((void **)vtokentype, NULL);
-                    cbf_free((void **)vstate, NULL);
-                    cbf_free((void **)vindex, NULL);})
-                
-                  index_size *= 2;
-            	
-                }
-            
-                index[depth-1] = state[depth-1] = 0;
-            
-                switch(c) {
-            
-                  case ('\'') : tokentype[depth-1]=CBF_TOKEN_SQSTRING; state[depth-1] = 1; break;
-                  case ('"')  : tokentype[depth-1]=CBF_TOKEN_DQSTRING; state[depth-1] = 1; break;
-                  case ('[')  : tokentype[depth-1]=CBF_TOKEN_BKTSTRING; break;
-                  case ('{')  : tokentype[depth-1]=CBF_TOKEN_BRCSTRING; break;
-                  case ('(')  : tokentype[depth-1]=CBF_TOKEN_PRNSTRING; break;
-                  case (';')  : 
-                    if (cprev=='\n') {
-                      tokentype[depth-1]=CBF_TOKEN_SCSTRING; state[depth-1] = 1; break;
-                    }
-                  default:  tokentype[depth-1]= CBF_TOKEN_WORD; state[depth-1] = 1; break;
-            	
-                }
-                
-                breakout = 0;
-                break;
-
-              }
-              
-
-              savechar = 1;
-              breakout = 0;
-              break;
-            
+                    
             }
 
             if (savechar) {
@@ -1177,6 +1469,16 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                 {cbf_free((void **)vtokentype, NULL);
                 cbf_free((void **)vstate, NULL);
                 cbf_free((void **)vindex, NULL);})
+                
+                if (c=='\n' && line[1]=='\\' && file->buffer_used > 3 && line[2]=='\n' && file->buffer[file->buffer_used-2]=='\\') {
+                    
+                    file->buffer_used -=2;
+                    
+                    c = file->buffer[file->buffer_used-1];
+                    
+                    file->buffer[file->buffer_used] = '\0';
+                    
+                }
             	
             }
             
@@ -1194,23 +1496,48 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
        /* COMMENT ([#][^\n]*) */
 
-    if (comment) {
-
-      if (length == 0)
-
-        comment = c == '#';
-
-      else
-
-      {
-        comment = (c != '\n' && c!= EOF);
-
-        if (! comment)
-
-
-          return cbf_return_text (COMMENT, val, &line [1], 0);
+      if (comment) {
+          
+          if (length == 0) {
+              
+              comment = c == '#';
+              
+          } else  {
+              
+              comment = (c != '\n' && c!= EOF);
+              
+              if ((! comment) && !(file->read_headers & PARSE_WS)) {
+                  
+                  return cbf_return_text (COMMENT, val, &line [1], 0);
+              }
+          }
+          
+          if (!comment && length != 0) {
+              
+              cbf_errornez (cbf_get_buffer (file, &line, &length), val)
+              
+              for (ii = 0; ii < length; ii++) {
+                  
+                  cbf_errornez (cbf_save_character_trim (handle->commentfile, line[ii]), val)
+                  
+              }
+              
+              cbf_errornez (cbf_save_character_trim (handle->commentfile, '\n'), val)
+              
+              cbf_errornez (cbf_reset_buffer (file), val)
+              
+              cbf_errornez (cbf_get_buffer (file, &line, &length), val)
+              
+              cprevprevprev = cprevprev = cprev = ' ';
+              
+              column = reprocess = 0;
+              
+              data = save = loop = item = string = comment = 1;
+              
+              continue;
+              
+          }
       }
-    }
 
        /* CBFWORD ([^[:space:]]+) */
 
@@ -1371,11 +1698,11 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
              switch (compression) {
 
-			 case CBF_CANONICAL:
+			   case CBF_CANONICAL:
 
-		         case CBF_PACKED:
+               case CBF_PACKED:
 
-		         case CBF_PACKED_V2:
+               case CBF_PACKED_V2:
 				 size /= 4;
 				 break;
 
@@ -1554,10 +1881,32 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
           /* Find the terminating semi-colon */
 
-        cprev = c = 0;
+        cprevprevprev = cprevprev = cprev = c = 0;
 
-        do
-        {
+        if (mime) {
+            
+            do {
+                if (c==EOF) break;
+                
+                cprevprevprev = cprevprev;
+                
+                cprevprev = cprev;
+                
+                cprev = c;
+                
+                c = cbf_read_character (file);
+                
+                if (c == EOF && (cprevprev != '\n' ||  cprev != ';')) {
+                    
+                    cbf_log(handle, "text field terminated by EOF", CBF_LOGERROR|CBF_LOGCURRENTLOC);
+                    
+                    cbf_errornez (CBF_FILEREAD, val)
+                }
+            } while ( !(cprevprevprev == '-' && cprevprev == '-' && cprev =='-' && c=='-'));
+        }
+          
+        do {
+
           if (c==EOF) break;
           
           cprevprevprev = cprevprev;
@@ -1574,8 +1923,8 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
             cbf_errornez (CBF_FILEREAD, val)
           }
-        }
-	while ( !(cprevprev == '\n' && cprev ==';' && (isspace(c) || c==EOF)));
+            
+        } while ( !(cprevprev == '\n' && cprev ==';' && (isspace(c) || c==EOF)));
 
 
           /* Check the element size and sign */

@@ -670,6 +670,57 @@ int cbf_save_character_trim (cbf_file *file, int c)
   return 0;
 }
 
+  /* Add a character to the buffer at a given position */
+
+int cbf_save_character_at (cbf_file *file, int c, size_t position)
+{
+  unsigned int new_size;
+  
+  size_t ii;
+
+    /* Does the file exist? */
+
+  if (!file)
+
+    return CBF_ARGUMENT;
+    
+  if (position >= file->buffer_used) {
+  
+    if (file->buffer_size < position-2 ) {
+    
+        new_size = (position+2)*2;
+
+        if (new_size >= file->buffer_size) {
+        
+          cbf_failnez (cbf_set_buffersize (file, new_size))
+          
+        }
+        
+        file->buffer [position] = (char) c;
+        
+        file->buffer [position+1] = '\0';
+        
+        for (ii = file->buffer_used; ii < position; ii++ )  {
+        	
+        	file->buffer [ii] = ' ';
+        	
+        }
+        
+        file->buffer_used = position+1;
+    	
+    }
+  	
+  } else {
+  
+    file->buffer [position] = (char) c;
+  	
+  }
+
+    /* Success */
+
+  return 0;
+}
+
 
   /* Retrieve the buffer */
 

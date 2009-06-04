@@ -342,6 +342,10 @@ int cbf_save_character (cbf_file *file, int c);
 
 int cbf_save_character_trim (cbf_file *file, int c);
 
+    /* Add a character to the buffer at a given position */
+    
+int cbf_save_character_at (cbf_file *file, int c, size_t position);
+    
 
   /* Retrieve the buffer */
 

@@ -46,6 +46,7 @@
  *    [-m {h[eaders]|n[oheaders]}] \                                  *
  *    [-d {d[igest]|n[odigest]|w[warndigest]} \                       *
  *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
+ *    [-S {read|noread}] [-S {write|nowrite}] \
  *    [-T {read|noread}] [-T {write|nowrite}] \                       *
  *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
@@ -91,6 +92,12 @@
  *    write to enable writing of DDLm style brackets                  *
  *                                                                    *
  *  -D test cbf_construct_detector                                    *
+ *                                                                    *
+ *  -S [no]read or (default noread)                                   *
+ *    read to enable reading of whitespace and comments               *
+ *                                                                    *
+ *  -S [no]write (default write)                                      *
+ *    write to enable writing of whitespace and comments              *
  *                                                                    *
  *  -T [no]read or (default noread)                                   *
  *    read to enable reading of DDLm style triple quotes              *
@@ -481,6 +488,7 @@ int main (int argc, char *argv [])
  *    [-m {h[eaders]|n[oheaders]}] \                                  *
  *    [-d {d[igest]|n[odigest]|w[arndigest]}] \                       *
  *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
+ *    [-S {read|noread}] [-S {write|nowrite}] \                       *
  *    [-T {read|noread}] [-T {write|nowrite}] \                       *
  *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
@@ -505,7 +513,7 @@ int main (int argc, char *argv [])
    ciftmpused = 0;
    testconstruct = 0;
    
-   while ((c = getopt(argc, argv, "i:o:c:m:d:B:T:e:b:p:v:wD")) != EOF) {
+   while ((c = getopt(argc, argv, "i:o:c:m:d:B:S:T:e:b:p:v:wD")) != EOF) {
      switch (c) {
        case 'i':
          if (cifin) errflg++;
@@ -594,7 +602,23 @@ int main (int argc, char *argv [])
          } else errflg++;
          break;
 
-       case 'T':
+         case 'S':
+         if (!strcmp(optarg,"read")) {
+           if (qrflags&(PARSE_NOWS|PARSE_WS)) errflg++;
+           qrflags |= PARSE_WS;
+         } else if (!strcmp(optarg,"noread")) {
+           if (qrflags&(PARSE_NOWS|PARSE_WS)) errflg++;
+           qrflags |= PARSE_NOWS;
+         } else if (!strcmp(optarg,"write")) {
+           if (qwflags&(PARSE_NOWS|PARSE_WS)) errflg++;
+           qwflags |= PARSE_WS;
+         } else if (!strcmp(optarg,"nowrite")) {
+           if (qwflags&(PARSE_NOWS|PARSE_WS)) errflg++;
+           qwflags |= PARSE_NOWS;
+         } else errflg++;
+         break;
+             
+         case 'T':
          if (!strcmp(optarg,"read")) {
            if (qrflags&(PARSE_NOTRIPLE_QUOTES|PARSE_TRIPLE_QUOTES)) errflg++;
            qrflags |= PARSE_TRIPLE_QUOTES;
@@ -1146,8 +1170,9 @@ int main (int argc, char *argv [])
    }
 
    if ( ! devnull ){
-   cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif, mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag,
-                                         encoding | bytedir | term | qwflags))
+   cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif, 
+                                mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag | qwflags,
+                                         encoding | bytedir | term ))
    }
    cbf_failnez (cbf_free_handle (cbf))
    b = clock ();

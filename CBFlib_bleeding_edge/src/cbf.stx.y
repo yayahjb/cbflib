@@ -263,6 +263,7 @@ extern "C" {
 #include "cbf_tree.h"
 #include "cbf_alloc.h"
 #include "cbf_context.h"
+#include "cbf_ws.h"
 
 #define yyparse       cbf_parse
 #define yylex         cbf_lex_wrapper
@@ -299,22 +300,20 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val );
 int cbf_lex_wrapper (void *val, void *vcontext)
 {
   int token;
-
+  
   cbf_handle cbfhandle;
   
   cbf_file *cbffile;
   
 
   do {
-
+  
     cbffile = (cbf_file*)((void **) vcontext) [0];
 
     cbfhandle = (cbf_handle)((void **) vcontext) [2]; 
 
     token = cbf_lex (cbfhandle, (YYSTYPE *)val);
-    
-    if (cbffile->read_headers & PARSE_WS) return token;
-    
+        
     if ( token == COMMENT && ((YYSTYPE *)val)->text ) {
 
       cbf_free_text(&(((YYSTYPE *)val)->text),NULL);
@@ -379,7 +378,6 @@ int cbf_syntax_error (cbf_handle handle, const char *message)
 %type  <node> CbfThruSFLoopCategory
 %type  <node> CbfThruSFLoopColumn
 %type  <node> CbfThruSFLoopAssignment
-%type  <node> CommentBlock
 %type  <text> DataBlockName
 %type  <text> SaveFrameName
 %type  <text> CategoryName
@@ -402,12 +400,9 @@ cbf:              cbfstart                      {
                                                   
                                                   cbf_failnez (cbf_find_parent (&($$), $$, CBF_ROOT))
                                                 }
-                ;
+                                                ;
 
 cbfstart:                                       {
-                                                  $$ = ((void **) context) [1];
-                                                }
-                | CommentBlock                  {
                                                   $$ = ((void **) context) [1];
                                                 }
                 ;
@@ -435,6 +430,9 @@ CbfThruDBName:   cbf DataBlockName             {
                                                   cbf_failnez (cbf_make_child (&($$), $1, CBF_DATABLOCK, $2))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
+    
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+    
                                                 }
                 | CbfThruSFElement DataBlockName { 
                                                   cbf_log((cbf_handle)(((void **)context)[2]),"prior save frame not terminated",
@@ -463,12 +461,19 @@ CbfThruDBName:   cbf DataBlockName             {
                                                   cbf_failnez (cbf_make_child (&($$), $1, CBF_DATABLOCK, $2))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
-                                                }
+                    
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+ 
+                                                  }
                 ;
 
 ErrorCbfWODBName:
                 cbfstart                       {
                                                   cbf_failnez (cbf_make_child (&($$), $1, CBF_DATABLOCK, NULL))
+                    
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
+                    
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
 
                                                   cbf_log((cbf_handle)(((void **)context)[2]),"no data block",
                                                     CBF_LOGWARNING|CBF_LOGSTARTLOC);
@@ -537,6 +542,8 @@ CbfThruSFElement: CbfThruDBElement SaveFrameName
                                                   cbf_failnez (cbf_make_child (&($$), (cbf_node *) $1, CBF_SAVEFRAME, $2))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
+                                                     
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
                                                    
                                                   ((void **)context)[3] = NULL;
                                                   
@@ -559,6 +566,8 @@ CbfThruSFElement: CbfThruDBElement SaveFrameName
                                                   cbf_failnez (cbf_make_child (&($$), $$, CBF_SAVEFRAME, $2))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
+                                                    
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
                                                    
                                                   ((void **)context)[3] = NULL;
                                                   
@@ -572,7 +581,9 @@ CbfThruSFElement: CbfThruDBElement SaveFrameName
                                                   cbf_failnez (cbf_make_child (&($$), $1, CBF_SAVEFRAME, $2))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
-                                                   
+                                                    
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+
                                                   ((void **)context)[3] = NULL;
                                                   
                                                 }
@@ -621,6 +632,8 @@ CbfThruCategory: CbfThruDBElement CategoryName  {
                                                   cbf_failnez (cbf_make_child (&($$), $1, CBF_CATEGORY, $2))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
+    
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
                                                   
                                                   ((void **)context)[3] = (void *)$$;
                                                   
@@ -631,7 +644,9 @@ CbfThruCategory: CbfThruDBElement CategoryName  {
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
-                                                  ((void **)context)[3] = (void *)$$;
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  
+                                                 ((void **)context)[3] = (void *)$$;
                                                   
                                                 }
                 | CbfThruCategory CategoryName  { cbf_log ((cbf_handle)(((void **)context)[2]),"data name with no value",
@@ -644,6 +659,8 @@ CbfThruCategory: CbfThruDBElement CategoryName  {
                                                   cbf_failnez (cbf_make_child (&($$), $$, CBF_CATEGORY, $2))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
+                                                  
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
                                                   
                                                   ((void **)context)[3] = (void *)$$;
                                                   
@@ -659,6 +676,8 @@ CbfThruCategory: CbfThruDBElement CategoryName  {
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                    
                                                   ((void **)context)[3] = (void *)$$;
                                                   
                                                 }
@@ -668,6 +687,8 @@ CbfThruColumn:    CbfThruCategory ColumnName    {
                                                   cbf_failnez (cbf_make_child (&($$), $1, CBF_COLUMN, $2))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
+    
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
                                                   
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
                                                                                                                   (cbf_node *)(((void **)context)[3])))
@@ -686,7 +707,9 @@ CbfThruColumn:    CbfThruCategory ColumnName    {
                                                   cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
-                                                  
+                    
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                    
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
                                                                                                                   (cbf_node *)(((void **)context)[3])))
                                                   
@@ -699,7 +722,9 @@ CbfThruColumn:    CbfThruCategory ColumnName    {
                                                   cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
-                                                  
+                    
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                                        
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
                                                                                                                   (cbf_node *)(((void **)context)[3])))
                                                 }
@@ -711,7 +736,9 @@ CbfThruColumn:    CbfThruCategory ColumnName    {
                                                   cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
-                                                  
+                    
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                    
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
                                                                                                                   (cbf_node *)(((void **)context)[3])))
                                                 }
@@ -723,6 +750,8 @@ CbfThruAssignment:
                                                   $$ = $1;
 
                                                   cbf_failnez (cbf_set_columnrow ($$, 0, $2, 1))
+                      
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
 
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $2, CBF_VALUE,
                                                                                                                   (cbf_node *) $$))
@@ -733,7 +762,9 @@ CbfThruAssignment:
 ErrorCbfThruExtraValue:
                  CbfThruAssignment Value        {
                                                   $$ = $1;
-                                                  
+                     
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                     
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
                                                   
                                                   cbf_failnez(cbf_free_text(&($2),NULL))
@@ -744,6 +775,8 @@ ErrorCbfThruExtraValue:
                                                 {
                                                   $$ = $1;
                                                   
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
 
                                                   cbf_failnez(cbf_free_text(&($2),NULL))
@@ -752,6 +785,8 @@ ErrorCbfThruExtraValue:
                 | CbfThruLoopStart Value
                                                 {
                                                   $$ = $1;
+                                                    
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
                                                   
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"loop value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
 
@@ -790,12 +825,13 @@ CbfThruLoopCategory:
                                                   ((void **)context)[3] = (void *)$$;
 
                                                   cbf_failnez (cbf_set_link ($1, $$))
-                                                  
+
                                                   ((void **)context)[3] = (void *)$$;
+                                                  
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
 
                                                   $$ = $1;
-
-                                                }
+                                                 }
                 | CbfThruLoopColumn CategoryName {
                                                   cbf_failnez (cbf_find_parent (&($$), $1, CBF_DATABLOCK))
 
@@ -804,6 +840,8 @@ CbfThruLoopCategory:
                                                   cbf_failnez (cbf_set_link ($1, $$))
                                                   
                                                   ((void **)context)[3] = (void *)$$;
+                                                  
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
 
                                                   $$ = $1;
                                                 }
@@ -818,6 +856,8 @@ CbfThruLoopColumn:
                                                   cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
+                                                                                                                                                      
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
                                                   
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
                                                                                                                   (cbf_node *)(((void **)context)[3])))
@@ -835,6 +875,8 @@ CbfThruLoopColumn:
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
                                                                                                                   (cbf_node *)(((void **)context)[3])))
 
@@ -849,6 +891,8 @@ CbfThruLoopColumn:
                                                   cbf_failnez (cbf_make_child (&($$), $1, CBF_COLUMN, $2))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
+                                                 
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
                                                   
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
                                                                                                                   (cbf_node *)(((void **)context)[3])))
@@ -868,6 +912,8 @@ CbfThruLoopAssignment:
                                                   cbf_failnez (cbf_shift_link ($$))
 
                                                   cbf_failnez (cbf_add_columnrow ($$, $2))
+                     
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
 
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $2, CBF_VALUE,
                                                                                                                   (cbf_node *) $$))
@@ -878,6 +924,8 @@ CbfThruLoopAssignment:
                                                   cbf_failnez (cbf_shift_link ($$))
 
                                                   cbf_failnez (cbf_add_columnrow ($$, $2))
+                    
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
 
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $2, CBF_VALUE,
                                                                                                                   (cbf_node *) $$))
@@ -1118,21 +1166,12 @@ CbfThruSFLoopAssignment:
                                                                                                                   (cbf_node *) $$))
                                                 }
                 ;
+                
 
-CommentBlock:     COMMENT                       { 
-                                                  $$ = $1;
-                                                }
-                | CommentBlock COMMENT          {
-                                                  $$ = $1;
-                                                }
-
-Loop:             LOOP
+Loop:             LOOP                          
                 ;
 
 DataBlockName:  DATA                            {
-                                                  $$ = $1;
-                                                }
-                | DATA CommentBlock             {
                                                   $$ = $1;
                                                 }
                 ;
@@ -1140,15 +1179,9 @@ DataBlockName:  DATA                            {
 SaveFrameName:    SAVE                          {
                                                   $$ = $1;
                                                 }
-                | SAVE CommentBlock             {
-                                                  $$ = $1;
-                                                }
                 ;
                 
 CategoryName:     CATEGORY                      {
-                                                  $$ = $1;
-                                                }
-                | CATEGORY CommentBlock       {
                                                   $$ = $1;
                                                 }
                 ;
@@ -1156,15 +1189,9 @@ CategoryName:     CATEGORY                      {
 ColumnName:       COLUMN                        {
                                                   $$ = $1;
                                                 }
-                | COLUMN CommentBlock           {
-                                                  $$ = $1;
-                                                }
                 ;
 
 ItemName:         ITEM                          {
-                                                  $$ = $1;
-                                                }
-                | ITEM CommentBlock             {
                                                   $$ = $1;
                                                 }
                 ;
@@ -1172,7 +1199,7 @@ ItemName:         ITEM                          {
 Value:            STRING                        {
                                                   $$ = $1;
                                                 }
-                | CBFWORD                          {
+                | CBFWORD                       {
                                                   $$ = $1;
                                                 }
                 | BINARY                        {
