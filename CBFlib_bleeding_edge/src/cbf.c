@@ -4763,11 +4763,14 @@ int cbf_find_hashedvalue(cbf_handle handle, const char * value,
 int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dictionary,
                                                                 const char * name)
 {
+
     const char *category_id;
 
     const char *mandatory_code;
 
     const char *itemname;
+	
+	const char *expression;
 
     const char *columnname;
     
@@ -4945,6 +4948,19 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
 
         }
 
+       dictionary->node = base_node;
+        	
+        if (!cbf_find_local_tag(dictionary,"_method.expression"))  {
+
+          if (!cbf_get_value(dictionary, &expression)) {
+		
+           cbf_failnez( cbf_require_column(cbfdictionary, "method_expression"));
+
+            cbf_failnez( cbf_set_value(cbfdictionary, expression))
+
+          }
+
+        }	
 
         dictionary->node = base_node;
         	
@@ -4979,7 +4995,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
     dictionary->node = base_node;
     
     value_type = "value";
-        	
+
     if (!cbf_find_local_tag(dictionary, "_item_enumeration.value") ||
       !cbf_find_local_tag(dictionary, "_enumeration"))  {
       
@@ -5314,7 +5330,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
 
     }
 
-    return 0;
+return 0;
 }
 
   /* Increment a column */
@@ -5379,7 +5395,7 @@ int cbf_reset_refcounts( cbf_handle dictionary ) {
 int cbf_convert_dictionary (cbf_handle handle, cbf_handle dictionary )
 {
     cbf_handle dict;
-
+		
     unsigned int blocks, frames, blockitems;
 
     int blocknum, itemnum;
@@ -5482,7 +5498,9 @@ int cbf_convert_dictionary (cbf_handle handle, cbf_handle dictionary )
 
       cbf_failnez( cbf_require_column   (dict, "parent"))
       
+	  cbf_failnez( cbf_require_column	(dict, "method_expression"))
  
+
     cbf_failnez( cbf_require_category   (dict, "items_enumerations(hash_table)"))
 
       cbf_failnez( cbf_require_column   (dict, "name(hash_next)"))
@@ -5497,7 +5515,7 @@ int cbf_convert_dictionary (cbf_handle handle, cbf_handle dictionary )
       cbf_failnez( cbf_require_column   (dict, "value"))
 
       cbf_failnez( cbf_require_column   (dict, "value_type"))
-           
+
 
       cbf_failnez (cbf_rewind_datablock (dictionary))
 
@@ -5594,7 +5612,7 @@ int cbf_convert_dictionary (cbf_handle handle, cbf_handle dictionary )
     }
 
     if (getenv("CBFLIB_DEBUG") ) cbf_failnez(cbf_write_file(dict,stderr,0,0,0,0))
-
+	
     return 0;
 
 }
@@ -6166,11 +6184,13 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
   
   const char * loopname;
 
+  const char * expression;
+
   unsigned int children, columns, rows;
   
   cbf_file * file;
   
-  char buffer[255];
+  char buffer[512];
   
   char itemname[82];
     
@@ -6587,7 +6607,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
             cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
         	
           } else {
-                      
+        
             if (auxnode->name && auxnode->name[0]) {
             
               loopname = auxnode->name;
@@ -6717,6 +6737,12 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     char * flptr;
     	     
     int goodmatch;
+
+	int nullvalue;
+							
+	FILE *fout;
+
+	char output[255];
     
     long ltest;
 
@@ -6736,7 +6762,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     
     tokentype = (((char *)node)[0]);
 
-
+	nullvalue = 0;
 
     if (handle->dictionary && (tnode = cbf_get_link(auxnode)) && (tnode->name) ){
     
@@ -6750,9 +6776,8 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	
     	      if (!cbf_find_column(handle->dictionary, "type_code") &&
     	        !cbf_get_value(handle->dictionary, &dictype)) {
-     	        
-    	        
-    	        goodmatch = 0;
+    	        	
+					goodmatch = 0;
     	       	                      
     	               
     	        if (tokentype==CBF_TOKEN_SCSTRING) {
@@ -6813,15 +6838,17 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        
     	        	case 0:
 
-    	        	case CBF_TOKEN_NULL:
+    	        	case CBF_TOKEN_NULL:			
+				      
+						nullvalue = 1;
+    	        	  	
+						goodmatch = 1;
 
-    	        	  goodmatch = 1;
-
-    	        	  break;
+    	        	  	break;
     	        	  
     	        	case CBF_TOKEN_WORD:
     	        	
-    	        	  if ( !cbf_cistrncmp(dictype,"implied",8) ) {
+    	        	    if ( !cbf_cistrncmp(dictype,"implied",8) ) {
     	        	  
     	        	    goodmatch = 1;
     	        	    
@@ -6960,20 +6987,19 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	      
     	        	        if (*endptr==')') { goodmatch = 1; break; }
     	        	        
-      	        	      }
-    	        	    	
+      	        	      }       	    	
     	        	    
     	        	    }
   	        	        	        	    
     	        	  }
     	        	  
-    	        	  if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break; }
+					if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break;	}
     	        	  break;
     	        	
     	        	case CBF_TOKEN_SQSTRING:
     	        	case CBF_TOKEN_DQSTRING:
     	        	
-    	        	  if ( !cbf_cistrncmp(dictype,"implied",8) ) {
+    	        if ( !cbf_cistrncmp(dictype,"implied",8) ) {
     	        	  
     	        	    goodmatch = 1;
     	        	    
@@ -6997,15 +7023,14 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 
     	        	
     	        	case CBF_TOKEN_SCSTRING:
-    	        	
-    	        	  if ( !cbf_cistrncmp(dictype,"implied",8) ) {
+
+					if ( !cbf_cistrncmp(dictype,"implied",8) ) {
     	        	  
     	        	    goodmatch = 1;
     	        	    
     	        	    break;
     	        	  	
     	        	  }
-
     	        	
     	        	  if(!cbf_cistrncmp(dictype,"text",4) 
     	        	    || !cbf_cistrncmp(dictype,"any",3)
@@ -7026,16 +7051,131 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	              || (((char *)node)[0]) == CBF_TOKEN_BIN 
     	              || (((char *)node)[0]) == CBF_TOKEN_MIME_BIN )  goodmatch = 1;
     	        	
-    	        } 
-    	                      
+    	        }       
+				if (nullvalue) {
+				
+					int nextrow; 
+				
+					const char *nextitem;
+				
+					char mainitemname[81];
+					
+					mainitemname[80] = '\0';
+					
+					cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
+					
+					strncpy(mainitemname, itemname, 80);
+				
+					if(!cbf_find_tag(handle->dictionary, "_items.method_expression")) {
+						
+						while ( nextrow >=0 ) {
+    	              
+    	                cbf_failnez( cbf_find_column (handle->dictionary, "name"))
+    	                
+    	                cbf_failnez( cbf_select_row (handle->dictionary, nextrow))
+    	                
+    	                cbf_failnez( cbf_get_value (handle->dictionary, &nextitem))
+    	                
+    	                cbf_failnez( cbf_find_column (handle->dictionary, "method_expression"))
+    	                
+    	                cbf_failnez( cbf_get_value(handle->dictionary, &expression))
+
+     	                if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
+    	                	if (expression!=NULL) {
+						
+							/*cbf_drel(mainitemname, expression);*/
+							
+							fout = fopen("method_output", "r");
+						
+							fscanf(fout, "%s", output);
+	
+							fclose(fout);
+							
+							sprintf(buffer, "missing value - CBFlib generated value: %s", output);
+							
+							cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
+							
+							valuestring = output;
+					
+							}
+						
+							break;
+							
+						}
+
+					  }
+				
+					}
+
+				}
+
+     			else {
+						int nextrow; 
+				
+						const char *nextitem;
+				
+		 				char mainitemname[81];
+					
+						mainitemname[80] = '\0';
+					  
+				    	cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
+    	     
+    	            	strncpy(mainitemname, itemname, 80);
+					
+						if(!cbf_find_tag(handle->dictionary, "_items.method_expression")) {
+				
+						while ( nextrow >=0 ) {
+    	              
+    	                cbf_failnez( cbf_find_column (handle->dictionary, "name"))
+    	                
+    	                cbf_failnez( cbf_select_row (handle->dictionary, nextrow))
+    	                
+    	                cbf_failnez( cbf_get_value (handle->dictionary, &nextitem))
+    	                
+    	                cbf_failnez( cbf_find_column (handle->dictionary, "method_expression"))
+    	                
+    	                cbf_failnez( cbf_get_value(handle->dictionary, &expression))
+
+     	                if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
+    	                
+							if (expression!=NULL){
+						
+							/*cbf_drel(mainitemname, expression);*/
+							
+							fout = fopen("method_output", "r");
+						
+							fscanf(fout, "%s", output);
+	
+							fclose(fout);
+							
+							if (cbf_cistrcmp(valuestring,output)) {
+							
+								sprintf(buffer, "data value provided conflicts with generated value.");
+							
+								cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
+						
+							}	
+						
+					 	    }
+						
+							break;
+						
+						}
+					  
+					 }
+				
+					}
+				
+				}
+				
     	        if (!goodmatch)   {
-    	          
+
     	          sprintf(buffer," %s type conflicts with dictionary type %s", itemname, dictype );
 
     	          cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
-    	          
+    	       
     	        } else {
-    	        
+						
     	          if (tokentype != CBF_TOKEN_NULL
     	            && !cbf_find_tag(handle->dictionary,"_items_enumerations.name")) {
     	          
@@ -7049,10 +7189,10 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	              
     	              char * endptr;
     	              
-    	              cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
+    	    		  cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
     	              
     	              valok = numb = 0;
-    	              
+    	        
     	              if ( cbf_cistrncmp(dictype,"numb",4)
     	        	    || cbf_cistrncmp(dictype,"int",3)
     	        	    || cbf_cistrncmp(dictype,"floa",4) ) {
@@ -7061,8 +7201,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    
     	        	    doubleval = strtod(valuestring, &endptr);
     	        	  }
-
-    	              
+					
     	              while ( nextrow >=0 ) {
     	              
     	                cbf_failnez( cbf_find_column (handle->dictionary, "name"))
@@ -7109,7 +7248,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                      strcpy(hival, colonpos+1);
     	                      
     	                      if (numb) {
-    	                      
+
     	                        if (loval[0]!= '\0' 
     	                          && !strcmp(loval,",")
     	                          && cbf_match(loval, "^-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?")){
@@ -7210,7 +7349,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	              } /* while ( nextrow >=0 ) */
     	              
     	              if (!valok) {
-    	              
+   
     	                 sprintf(buffer," %s value out of dictionary range", itemname);
     	              	
     	                 cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
@@ -7771,7 +7910,7 @@ int cbf_check_type_contents (const char *type, const char *value){
 	}else if (!cbf_cistrcmp(type,"Range")) {
 		
 		/*Integer ? : Integer ?*/
-		return cbf_match(value,"[+-]?[0-9]+:[+-]?[0-9]+");
+		return cbf_match(value,"([+-]?[0-9]+)?:([+-]?[0-9]+)?");
 		
 	}else if (!cbf_cistrcmp(type,"Digit")) {
 		
@@ -7890,36 +8029,24 @@ int cbf_match(const char *string, char *pattern) {
 
 /* Interpreter for dREL method expression */
 
-int cbf_drel(const char *itemname, const char *expression) {
-
-	FILE *fp;
+int cbf_drel(const char *mainitemname, const char *expression) {
 							
-	FILE *fout;
-							
-	char output[255];
+	FILE *f; 
 	
-	char valuename[255];
-	
-	char * evaluate = "python ../drel-ply/gu.py ";
-	
-	strcpy(valuename, itemname);
+	char evaluate[255] = "python ../drel-ply/gu.py ";
 
-	strcat(evaluate, valuename);
-	
-	fp = fopen("method_expression", "w");
+	f = fopen("method_expression", "w");
 						
-	fprintf(fp, "%s", expression);
+	fprintf(f, "%s", expression);			
 	
-	fclose(fp);
-						
+	fclose(f);
+	
+	strcat(evaluate, mainitemname);
+
 	system(evaluate);
-
-	fout = fopen("method_output", "r");
-							
-	fscanf(fout, "%s", output);
 	
-	fclose(fout);
-	
+	rename("method_expression", "method_expression.old");
+						
 	return 0;
 }
 
