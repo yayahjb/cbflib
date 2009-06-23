@@ -450,12 +450,12 @@ extern "C" {
                                 
                             }
                             
-                            foundopt++;
-                            
-                            break;
                             
                         }                   
                         
+                            foundopt++;
+                            
+                            break;
                     }
                     
                 } while (*opts);
