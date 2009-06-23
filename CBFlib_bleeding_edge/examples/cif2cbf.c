@@ -360,9 +360,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <errno.h>
-#ifdef GNUGETOPT
-#include "getopt.h"
-#endif
+#include "cbf_getopt.h"
 #include <unistd.h>
 
 #define C2CBUFSIZ 8192
@@ -446,11 +444,12 @@ int main (int argc, char *argv [])
   cbf_handle cbf;
   cbf_handle dic;
   cbf_handle odic;
+  cbf_getopt_handle opts;
   int devnull = 0;
   int c;
   int errflg = 0;
-  char *cifin, *cbfout;
-  char *dictionary[NUMDICTS];
+  const char *cifin, *cbfout;
+  const char *dictionary[NUMDICTS];
   int dqrflags[NUMDICTS];
   char *ciftmp=NULL;
 #ifndef NOMKSTEMP
@@ -477,6 +476,8 @@ int main (int argc, char *argv [])
 
   int mime, digest, encoding, compression, bytedir, cbforcif, term;
   int qrflags, qwflags;
+
+  const char * optarg;
 
 
      /* Extract options */
@@ -513,7 +514,13 @@ int main (int argc, char *argv [])
    ciftmpused = 0;
    testconstruct = 0;
    
-   while ((c = getopt(argc, argv, "i:o:c:m:d:B:S:T:e:b:p:v:wD")) != EOF) {
+   cbf_failnez(cbf_make_getopt_handle(&opts))
+    
+   cbf_failnez(cbf_getopt_parse(opts, argc, argv, "i:o:c:m:d:B:S:T:e:b:p:v:wD"))
+   
+   if (!cbf_rewind_getopt_option(opts))
+   for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
+       if (!c) break;
      switch (c) {
        case 'i':
          if (cifin) errflg++;
@@ -712,12 +719,12 @@ int main (int argc, char *argv [])
          break;
       }
     }
-   for (; optind < argc; optind++) {
+    for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
      if (!cifin) {
-        cifin = argv[optind];
+        cifin = optarg;
      } else {
        if (!cbfout) {
-         cbfout = argv[optind];
+         cbfout = optarg;
        } else {
          errflg++;
        }
@@ -1184,6 +1191,8 @@ int main (int argc, char *argv [])
      fprintf (stderr, " Time to write the CIF image: %.3fs\n",
        ((b - a) * 1.0) / CLOCKS_PER_SEC);
    }
+
+   cbf_failnez (cbf_free_getopt_handle(opts))
 
    exit(0);
 
