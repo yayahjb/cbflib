@@ -602,6 +602,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_compress.c      \
 		    $(SRC)/cbf_context.c       \
 		    $(SRC)/cbf_file.c          \
+            $(SRC)/cbf_getopt.c        \
 		    $(SRC)/cbf_lex.c           \
 		    $(SRC)/cbf_packed.c        \
 		    $(SRC)/cbf_predictor.c     \
@@ -647,6 +648,7 @@ HEADERS   =  $(INCLUDE)/cbf.h                  \
 		     $(INCLUDE)/cbf_compress.h         \
 		     $(INCLUDE)/cbf_context.h          \
 		     $(INCLUDE)/cbf_file.h             \
+		     $(INCLUDE)/cbf_getopt.h           \
 		     $(INCLUDE)/cbf_lex.h              \
 		     $(INCLUDE)/cbf_packed.h           \
 		     $(INCLUDE)/cbf_predictor.h        \
