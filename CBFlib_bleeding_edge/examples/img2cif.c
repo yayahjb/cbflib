@@ -292,9 +292,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-#ifdef GNUGETOPT
-#include "getopt.h"
-#endif
+#include "cbf_getopt.h"
 
 #define I2CBUFSIZ 8192
 
@@ -330,7 +328,7 @@ int main (int argc, char *argv [])
   const char *direction [2];
   int c;
   int errflg = 0;
-  char *imgin, *imgout;
+  const char *imgin, *imgout;
   char *imgtmp=NULL;
 #ifndef NOMKSTEMP
   int imgtmpfd;
@@ -341,6 +339,9 @@ int main (int argc, char *argv [])
 
   int mime, digest, encoding, compression, bytedir, term, cbforcif;
     
+  cbf_getopt_handle opts;
+  const char * optarg;
+
   
      /* Extract options */
 
@@ -365,8 +366,13 @@ int main (int argc, char *argv [])
  imgout = NULL;
  imgtmpused = 0;
     
- while ((c = getopt(argc, argv, "i:o:c:m:d:e:b:")) != EOF)
- {
+ cbf_failnez(cbf_make_getopt_handle(&opts))
+    
+ cbf_failnez(cbf_getopt_parse(opts, argc, argv, "i:o:c:m:d:e:b:"))
+    
+ if (!cbf_rewind_getopt_option(opts))
+ for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
+     if (!c) break;
    switch (c) {
      case 'i':
        if (imgin) errflg++;
@@ -461,12 +467,12 @@ int main (int argc, char *argv [])
        break;
   }
   }
-  for (; optind < argc; optind++) {
+  for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
     if (!imgin) {
-      imgin = argv[optind];
+      imgin = optarg;
     } else {
       if (!imgout) {
-        imgout = argv[optind];
+        imgout = optarg;
       } else {
         errflg++;
       }
@@ -924,6 +930,8 @@ int main (int argc, char *argv [])
     } else {
     fprintf (stderr, "img2cif:  Time to write the CIF image: %.3fs\n", ((b - a) * 1.0) / CLOCKS_PER_SEC); 
     }
+
+  cbf_failnez (cbf_free_getopt_handle(opts))
 
     /* Success */
 
