@@ -256,7 +256,7 @@ VERSION = 0.8.1
 #
 # Definitions to get gnu version of getopt or system version of getopt
 #
-GETOPT		=	SYSTEM
+#GETOPT		=	SYSTEM
 ifeq ($(GETOPT),)
   GETOPT 	=	getopt-1.1.4_cbf
 endif
@@ -362,24 +362,21 @@ endif
 
 #########################################################
 #
-#  Appropriate compiler definitions for MAC OS X
-#  with gcc 4.2
-#  Also change defintion of DOWNLOAD
+#  Appropriate compiler definitions for default (Linux)
 #
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -ansi -pedantic
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
 F90C = gfortran
-F90FLAGS = -g -fno-range-check
-F90LDFLAGS = -bind_at_load
+F90FLAGS = -g
+F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(INSTALLDIR)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
-DOWNLOAD = /opt/local/bin/wget
 
 ifneq ($(NOFORTRAN),)
 F90C =

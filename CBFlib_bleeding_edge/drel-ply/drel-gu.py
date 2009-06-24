@@ -12,7 +12,8 @@ class Process:
 	      	self.lexer = drel_lex.lexer
       		self.parser = drel_yacc.parser
        		#use a simple dictionary
-       		self.testdic = CifFile.CifDic("cif_short.dic", "DDLm")
+       		self.testdic = CifFile.CifDic("cif_short.dic")
+		self.testdic.diclang = "DDLm"
        		self.testblock = CifFile.CifFile("c2ctest5.cif") ["c2ctest5"]
        		#create the global namespace
        		self.namespace = self.testblock.keys()

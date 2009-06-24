@@ -6741,6 +6741,8 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     int goodmatch;
 
 	int nullvalue;
+	
+	int generated;
 							
 	FILE *fout;
 
@@ -6765,6 +6767,8 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     tokentype = (((char *)node)[0]);
 
 	nullvalue = 0;
+
+	generated = 0;
 
     if (handle->dictionary && (tnode = cbf_get_link(auxnode)) && (tnode->name) ){
     
@@ -7093,11 +7097,15 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 	
 							fclose(fout);
 							
-							sprintf(buffer, "missing value - CBFlib generated value: %s", output);
+							sprintf(buffer, "%s value missing - CBFlib generated value: %s", mainitemname, output);
 							
 							cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
 							
 							valuestring = output;
+							
+							tokentype = CBF_VALUE;
+							
+							generated = 1;
 					
 							}
 						
@@ -7152,7 +7160,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 							
 							if (cbf_cistrcmp(valuestring,output)) {
 							
-								sprintf(buffer, "data value provided conflicts with generated value.");
+								sprintf(buffer, "%s value provided conflicts with generated value.", mainitemname);
 							
 								cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
 						
@@ -7353,11 +7361,17 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	              } /* while ( nextrow >=0 ) */
     	              
     	              if (!valok) {
-   
-    	                 sprintf(buffer," %s value out of dictionary range", itemname);
+   						 if (!generated) {
+    	                 sprintf(buffer,"%s value out of dictionary range", itemname);
     	              	
     	                 cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
 
+						}
+						else {
+						 sprintf(buffer,"%s generated value is out of dictionary range", itemname);
+    	              	
+    	                 cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
+						}
     	              }
     	            	
     	            }
