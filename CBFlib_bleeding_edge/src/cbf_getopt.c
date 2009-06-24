@@ -337,7 +337,7 @@ extern "C" {
                         
                         optstruct->optval = NULL;
                         
-                        if (ii+1 < argc && ((*(argv[ii+1])!='-'||hasvalue >0)
+                        if (ii+1 < argc && (hasvalue >0
                                             || (*(argv[ii+1])!='-'&& hasvalue < 0) )) {
                             
                             optstruct->optval = cbf_copy_string(NULL,argv[ii+1],0);
@@ -436,7 +436,7 @@ extern "C" {
                         optstruct->optval = NULL;
                         
                         if ((strlen(argv[ii]+2) > 0) ||
-                            (ii+1 < argc && ((*(argv[ii+1])!='-'||hasvalue >0)
+                            (ii+1 < argc && (hasvalue >0
                                              || (*(argv[ii+1])!='-'&& hasvalue < 0) ))) {
                             if (strlen(argv[ii]+2) > 0) {
                                 
@@ -453,9 +453,9 @@ extern "C" {
                             
                         }                   
                         
-                            foundopt++;
-                            
-                            break;
+                        foundopt++;
+                        
+                        break;
                     }
                     
                 } while (*opts);
