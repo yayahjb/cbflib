@@ -253,13 +253,6 @@
 VERSION = 0.8.1
 
 
-#
-# Definitions to get gnu version of getopt or system version of getopt
-#
-#GETOPT		=	SYSTEM
-ifeq ($(GETOPT),)
-  GETOPT 	=	getopt-1.1.4_cbf
-endif
 
 #
 # Definitions to get versions of PyCifRW and PLY
@@ -769,46 +762,6 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		chmod 755 $(INSTALLDIR)/bin/testflatpacked
 		chmod 644 $(INSTALLDIR)/include/cbflib/*.h
 		
-#
-# Changes if a local gnu getopt is used
-#
-
-ifneq ($(GETOPT),SYSTEM)
-CFLAGS		+=	-DGNUGETOPT
-GOPTLIB		=	$(LIB)/getopt.o
-GOPTINC		=	$(INCLUDE)/getopt.h
-GOPTCLEAN	=	$(GETOPT)_clean
-GOPTBUILD	=	$(GETOPT)_build
-
-GOPTURL		=	http://arcib.dowling.edu/software/getopt/downloads/$(GETOPT).tar.gz
-
-
-#
-# getopt package
-#
-$(GETOPT):
-		$(DOWNLOAD) $(GOPTURL)
-		tar -xvf $(GETOPT).tar.gz
-		-rm $(GETOPT).tar.gz
-
-#
-# build getopt
-#
-$(LIB)/getopt.o:		$(GOPTBUILD)
-		(cd $(GETOPT); cp gnu/getopt.o ../$(LIB) )
-$(INCLUDE)/getopt.h:	$(GOPTBUILD)
-		(cd $(GETOPT); cp gnu/getopt.h ../$(INCLUDE) )
-$(GOPTBUILD):  		$(GETOPT)
-		(cd $(GETOPT); sed "1,\$$s/WITHOUT_GETTEXT=0/WITHOUT_GETTEXT=1/g" Makefile \
-		  | sed "1,\$$s/WITH_GETTEXT/WITHOUT_GETTEXT/g"> Makefile_CBF; \
-		  make -f Makefile_CBF GNUGETOPT=1 LIBCGETOPT=0 gnu/getopt.o; \
-		  touch ../$(GOPTBUILD))
-$(GOPTCLEAN):
-		-(cd $(GETOPT); make clean)
-		-rm -f $(GETOPT)/gnu/getopt.o
-		-rm -f $(GOPTBUILD)
-		
-endif
 
 #
 # PyCifRW
@@ -1449,8 +1402,6 @@ empty:
 	@-rm -f  $(PYCBF)/build/*/_pycbf.so
 	@-rm -f  $(PYCBF)/build/src/cbf_simple.o
 	@-rm -f  $(PYCBF)/build/*/pycbf_wrap.o
-	@-rm -f  $(LIB)/getopt.o
-	@-rm -f  $(INCLUDE)/getopt.h
 	@-rm -f  $(BIN)/adscimg2cbf
 	@-rm -f  $(BIN)/cbf2adscimg
 	@-rm -f  $(BIN)/makecbf
@@ -1535,11 +1486,10 @@ empty:
 #
 # Remove temporary files
 #
-clean:	$(GOPTCLEAN)
+clean:	
 	@-rm -f core 
 	@-rm -f *.o
 	@-rm -f *.u
-	@-rm -f ./lib/getopt.o
 #
 # Restore to distribution state
 #
