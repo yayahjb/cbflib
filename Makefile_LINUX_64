@@ -261,6 +261,12 @@ ifeq ($(GETOPT),)
   GETOPT 	=	getopt-1.1.4_cbf
 endif
 
+#
+# Definitions to get versions of PyCifRW and PLY
+#
+PYCIFRW = PyCifRW-3.2
+PLY = ply-3.2
+
 # Program to use to retrieve a URL
 
 DOWNLOAD = /usr/bin/wget
@@ -405,6 +411,8 @@ DATAURLBASE	= http://arcib.dowling.edu/software/CBFlib/downloads/version_$(VERSI
 DATAURLI	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Input.tar.gz
 DATAURLO	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output.tar.gz
 DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
+PYCIFRWURL	= http://download.berlios.de/pycifrw/PyCifRW-3.2.tar.gz
+PLYURL		= http://www.dabeaz.com/ply/ply-3.2.tar.gz
 
 
 #
@@ -449,6 +457,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_compress.c      \
 		    $(SRC)/cbf_context.c       \
 		    $(SRC)/cbf_file.c          \
+            $(SRC)/cbf_getopt.c        \
 		    $(SRC)/cbf_lex.c           \
 		    $(SRC)/cbf_packed.c        \
 		    $(SRC)/cbf_predictor.c     \
@@ -463,7 +472,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_write_binary.c  \
 		    $(SRC)/cbf_ws.c            \
 		    $(SRC)/md5c.c
- 
+
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 		    $(SRC)/fcb_ci_strncmparr.f90 \
 		    $(SRC)/fcb_exit_binary.f90   \
@@ -494,6 +503,7 @@ HEADERS   =  $(INCLUDE)/cbf.h                  \
 		     $(INCLUDE)/cbf_compress.h         \
 		     $(INCLUDE)/cbf_context.h          \
 		     $(INCLUDE)/cbf_file.h             \
+		     $(INCLUDE)/cbf_getopt.h           \
 		     $(INCLUDE)/cbf_lex.h              \
 		     $(INCLUDE)/cbf_packed.h           \
 		     $(INCLUDE)/cbf_predictor.h        \
@@ -628,7 +638,7 @@ default:
 #
 # Compile the library and examples
 #
-all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) symlinksdone \
+all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(PYCIFRW) $(PLY) symlinksdone \
 		$(LIB)/libcbf.a          \
 		$(LIB)/libfcb.a          \
 		$(LIB)/libimg.a          \
@@ -799,6 +809,24 @@ $(GOPTCLEAN):
 		-rm -f $(GOPTBUILD)
 		
 endif
+
+#
+# PyCifRW
+#
+$(PYCIFRW):
+	$(DOWNLOAD) $(PYCIFRWURL)
+	tar -xvf $(PYCIFRW).tar.gz
+	-rm $(PYCIFRW).tar.gz
+	(cd $(PYCIFRW); python setup.py install )
+
+#
+# PLY
+#
+$(PLY):
+	$(DOWNLOAD) $(PLYURL)
+	tar -xvf $(PLY).tar.gz
+	-rm $(PLY).tar.gz
+	(cd $(PLY); python setup.py install )
 
 
 #

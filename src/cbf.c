@@ -4936,7 +4936,8 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
         dictionary->node = base_node;
         	
         if (!cbf_find_local_tag(dictionary,"_enumeration_default") ||
-          !cbf_find_local_tag(dictionary,"_item_default.value") )  {
+          !cbf_find_local_tag(dictionary,"_item_default.value") ||
+		  !cbf_find_local_tag(dictionary,"_enumeration.default"))  {
 
           if (!cbf_get_value(dictionary, &default_value)) {
 
@@ -5040,7 +5041,8 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
     dictionary->node = base_node;
         	
     if (!cbf_find_local_tag(dictionary, "_item_range.minimum") ||
-      !cbf_find_local_tag(dictionary, "_enumeration_range"))  {
+      !cbf_find_local_tag(dictionary, "_enumeration_range") ||
+      !cbf_find_local_tag(dictionary, "_enumeration.range"))  {
       
       cbf_failnez( cbf_column_number(dictionary, (unsigned int *)&colno))
       
@@ -6959,7 +6961,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	  
     	        	  if ( cbf_cistrncmp(dictype,"numb",4)
     	        	    || cbf_cistrncmp(dictype,"int",3)
-    	        	    || cbf_cistrncmp(dictype,"floa",4) ) {
+    	        	    || cbf_cistrncmp(dictype,"floa",4)) {
     	        	        	        	    
     	        	    ltest = strtol(valuestring, &endptr, 10);
 
@@ -6975,7 +6977,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    }
     	        	    
     	        	    if ( !cbf_cistrncmp(dictype,"numb",4)
-    	        	      || !cbf_cistrncmp(dictype,"floa",4) ) {
+    	        	      || !cbf_cistrncmp(dictype,"floa",4)) {
     	        	      
     	        	      dtest = strtod(valuestring, &endptr);
     	        	      
@@ -7175,10 +7177,10 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	          cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
     	       
     	        } else {
-						
+					
     	          if (tokentype != CBF_TOKEN_NULL
     	            && !cbf_find_tag(handle->dictionary,"_items_enumerations.name")) {
-    	          
+				
     	            if (!cbf_find_hashedvalue(handle->dictionary,itemname,"name", CBF_CASE_INSENSITIVE)) {
     	            
     	              int nextrow, valok, numb;
@@ -7192,15 +7194,17 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	    		  cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
     	              
     	              valok = numb = 0;
-    	        
+					
     	              if ( cbf_cistrncmp(dictype,"numb",4)
     	        	    || cbf_cistrncmp(dictype,"int",3)
-    	        	    || cbf_cistrncmp(dictype,"floa",4) ) {
+    	        	    || cbf_cistrncmp(dictype,"floa",4)
+						|| cbf_cistrncmp(dictype,"real",4)) {
     	        	    
     	        	    numb = 1;
     	        	    
     	        	    doubleval = strtod(valuestring, &endptr);
     	        	  }
+
 					
     	              while ( nextrow >=0 ) {
     	              
@@ -7248,7 +7252,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                      strcpy(hival, colonpos+1);
     	                      
     	                      if (numb) {
-
+								
     	                        if (loval[0]!= '\0' 
     	                          && !strcmp(loval,",")
     	                          && cbf_match(loval, "^-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?")){

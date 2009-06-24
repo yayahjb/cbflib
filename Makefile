@@ -256,10 +256,16 @@ VERSION = 0.8.1
 #
 # Definitions to get gnu version of getopt or system version of getopt
 #
-#GETOPT		=	SYSTEM
+GETOPT		=	SYSTEM
 ifeq ($(GETOPT),)
   GETOPT 	=	getopt-1.1.4_cbf
 endif
+
+#
+# Definitions to get versions of PyCifRW and PLY
+#
+PYCIFRW = PyCifRW-3.2
+PLY = ply-3.2
 
 # Program to use to retrieve a URL
 
@@ -356,21 +362,24 @@ endif
 
 #########################################################
 #
-#  Appropriate compiler definitions for default (Linux)
+#  Appropriate compiler definitions for MAC OS X
+#  with gcc 4.2
+#  Also change defintion of DOWNLOAD
 #
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+CFLAGS  = -g -O2  -Wall -ansi -pedantic
 F90C = gfortran
-F90FLAGS = -g
-F90LDFLAGS = 
+F90FLAGS = -g -fno-range-check
+F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(INSTALLDIR)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
+DOWNLOAD = /opt/local/bin/wget
 
 ifneq ($(NOFORTRAN),)
 F90C =
@@ -403,6 +412,8 @@ DATAURLBASE	= http://arcib.dowling.edu/software/CBFlib/downloads/version_$(VERSI
 DATAURLI	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Input.tar.gz
 DATAURLO	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output.tar.gz
 DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
+PYCIFRWURL	= http://download.berlios.de/pycifrw/PyCifRW-3.2.tar.gz
+PLYURL		= http://www.dabeaz.com/ply/ply-3.2.tar.gz
 
 
 #
@@ -447,6 +458,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_compress.c      \
 		    $(SRC)/cbf_context.c       \
 		    $(SRC)/cbf_file.c          \
+            $(SRC)/cbf_getopt.c        \
 		    $(SRC)/cbf_lex.c           \
 		    $(SRC)/cbf_packed.c        \
 		    $(SRC)/cbf_predictor.c     \
@@ -461,7 +473,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_write_binary.c  \
 		    $(SRC)/cbf_ws.c            \
 		    $(SRC)/md5c.c
- 
+
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 		    $(SRC)/fcb_ci_strncmparr.f90 \
 		    $(SRC)/fcb_exit_binary.f90   \
@@ -492,6 +504,7 @@ HEADERS   =  $(INCLUDE)/cbf.h                  \
 		     $(INCLUDE)/cbf_compress.h         \
 		     $(INCLUDE)/cbf_context.h          \
 		     $(INCLUDE)/cbf_file.h             \
+		     $(INCLUDE)/cbf_getopt.h           \
 		     $(INCLUDE)/cbf_lex.h              \
 		     $(INCLUDE)/cbf_packed.h           \
 		     $(INCLUDE)/cbf_predictor.h        \
@@ -626,7 +639,7 @@ default:
 #
 # Compile the library and examples
 #
-all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) symlinksdone \
+all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(PYCIFRW) $(PLY) symlinksdone \
 		$(LIB)/libcbf.a          \
 		$(LIB)/libfcb.a          \
 		$(LIB)/libimg.a          \
@@ -797,6 +810,24 @@ $(GOPTCLEAN):
 		-rm -f $(GOPTBUILD)
 		
 endif
+
+#
+# PyCifRW
+#
+$(PYCIFRW):
+	$(DOWNLOAD) $(PYCIFRWURL)
+	tar -xvf $(PYCIFRW).tar.gz
+	-rm $(PYCIFRW).tar.gz
+	(cd $(PYCIFRW); python setup.py install )
+
+#
+# PLY
+#
+$(PLY):
+	$(DOWNLOAD) $(PLYURL)
+	tar -xvf $(PLY).tar.gz
+	-rm $(PLY).tar.gz
+	(cd $(PLY); python setup.py install )
 
 
 #
