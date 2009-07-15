@@ -7444,21 +7444,21 @@ and the base pixel value.
 <li>If -127 &le; delta &le; 127, output delta as one byte,
 make the current pixel value the base pixel value and return to step 2.
 
-<li>Otherwise output -128 (F0 hex).
+<li>Otherwise output -128 (80 hex).
 
 <li>We still have to output delta.  If -32767 &le; delta &le; 32767,
 output delta as a little_endian 16-bit quantity,
 make the current pixel value the base pixel value and return to step 2.
 
-<li>Otherwise output -32768 (F000 hex, little_endian, i.e. 00 then
-F0)
+<li>Otherwise output -32768 (8000 hex, little_endian, i.e. 00 then
+80)
 
 <li>We still have to output delta.  If -2147483647 &le; delta &le; 2147483647,
 output delta as a little_endian 32 bit quantity,
 make the current pixel value the base pixel value and return to step 2.
 
-<li>Otherwise output -2147483648 (F0000000 hex, little_endian, i.e.
-00, then 00, then 00, then F0) and then output the pixel value
+<li>Otherwise output -2147483648 (80000000 hex, little_endian, i.e.
+00, then 00, then 00, then 80) and then output the pixel value
 as a little-endian 64 bit quantity,
 make the current pixel value the base pixel value and return to step 2.
 
@@ -7475,21 +7475,21 @@ The &quot;byte_offset&quot; decompression algorithm is the following:
 make that the new base pixel value, place it on the
 output array and return to step 2.
 
-<li>If delta is F0 hex, read the next two bytes as a little_endian
+<li>If delta is 80 hex, read the next two bytes as a little_endian
 16-bit number and make that delta.
 
 <li>If -32767 &le; delta &le; 32767, add delta to the base pixel value,
 make that the new base pixel value, place it on the
 output array and return to step 2.
 
-<li>If delta is F000 hex, read the next 4 bytes as a little_endian
+<li>If delta is 8000 hex, read the next 4 bytes as a little_endian
 32-bit number and make that delta
 
 <li>If -2147483647 &le; delta &le; 2147483647, add delta to the base pixel value,
 make that the new base pixel value, place it on the
 output array and return to step 2.
 
-<li>If delta is F0000000 hex, read the next 4 bytes as a little_endian
+<li>If delta is 80000000 hex, read the next 4 bytes as a little_endian
 32-bit number and make that delta, read the next 8 bytes as a little_endia
 64-bit number and make that delta,  add delta to the base pixel value,
 make that the new base pixel value, place it on the
@@ -8216,7 +8216,7 @@ adscimg1cbf or convert_image and produces raw or compressed adsc image files wit
 <p>
 <HR>
 <HR>
-Updated 25 January 2008.
+Updated 15 July 2009.
 Contact:
 <script language="javascript" type="text/javascript">
 <!--
