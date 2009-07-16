@@ -327,13 +327,11 @@ extern "C" {
                     
                     optord++;
                     
-                    if (!strncmp(longopt,argv[ii]+2,optlen) && longopt[optlen]==')') {
+                    if (longopt && !strncmp(longopt,argv[ii]+2,optlen) && longopt[optlen]==')') {
                                                 
                         optstruct->optopt = optchar;
                         
                         optstruct->optord = optord;
-                        
-                        optstruct->optstr = cbf_copy_string(NULL,longopt,0);
                         
                         optstruct->optval = NULL;
                         
@@ -362,8 +360,6 @@ extern "C" {
                     
                     optstruct->optord = -1;
                     
-                    optstruct->optstr = cbf_copy_string(NULL,longopt,0);
-                    
                     optstruct->optval = NULL;
                     
                     if (ii+1 < argc && *(argv[ii+1])!='-' ) {
@@ -374,7 +370,9 @@ extern "C" {
                         
                         break;
                         
-                    }                   
+                    } 
+                    
+                    continue;                 
                     
                 }
                 
@@ -391,6 +389,8 @@ extern "C" {
                 optstruct->optopt = 0;
                 
                 optstruct->optord = -1;
+                
+                cbf_failnez(cbf_free_text(&(optstruct->optstr),NULL))
                 
                 optstruct->optstr = NULL;
                 
@@ -430,9 +430,7 @@ extern "C" {
                         optstruct->optopt = optchar;
                         
                         optstruct->optord = optord;
-                        
-                        optstruct->optstr = cbf_copy_string(NULL,xc,0);
-                        
+                                               
                         optstruct->optval = NULL;
                         
                         if ((strlen(argv[ii]+2) > 0) ||
@@ -462,7 +460,27 @@ extern "C" {
                 
                 if (foundopt) continue;
                 
-                if (*options == '-')        if (*options=='+') break;
+                if (*options == '-')      {
+                                        
+                    optstruct->optopt = '\1';
+                    
+                    optstruct->optord = -1;
+                    
+                    optstruct->optval = NULL;
+                    
+                    if (ii+1 < argc && *(argv[ii+1])!='-' ) {
+                        
+                        optstruct->optval = cbf_copy_string(NULL,argv[ii+1],0);
+                        
+                        ii++;
+                        
+                        break;
+                        
+                    } 
+                    
+                    continue;                 
+                    
+                };
 
                 
                 /* this is not an expected short option and the option string
@@ -478,6 +496,8 @@ extern "C" {
                 optstruct->optopt = 0;
                 
                 optstruct->optord = -1;
+                
+                cbf_failnez(cbf_free_text(&(optstruct->optstr),NULL))
                 
                 optstruct->optstr = NULL;
                 
