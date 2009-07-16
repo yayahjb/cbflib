@@ -270,7 +270,8 @@ typedef enum
   CBF_SAVEFRAME,        /* Saveframe */
   CBF_CATEGORY,         /* Category  */
   CBF_COLUMN,           /* Column    */
-  CBF_VALUE             /* Value     */  /* Not a visible node type */
+  CBF_VALUE,            /* Value     */  /* Not a visible node type */
+  CBF_FUNCTION          /* Function  */	
 }
 CBF_NODETYPE;
 

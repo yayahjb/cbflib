@@ -298,7 +298,7 @@ int cbf_return_text (int code, YYSTYPE *val, const char *text, char type)
 
 int cbf_lex (cbf_handle handle, YYSTYPE *val )
 {
-  int data, save, loop, item, column, comment, string, ascii,
+  int data, define, save, loop, item, column, comment, string, ascii,
       c, cprev, cprevprev, cprevprevprev, reprocess, errorcode, mime, encoding, 
       bits, sign, checked_digest, real, depth, q3;
 
@@ -368,7 +368,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
   reprocess = (column || comment);
 
-  data = save = loop = item = string = !reprocess;
+  data = define = save = loop = item = string = !reprocess;
 
   comment = !column;
 
@@ -458,6 +458,29 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
     }
 
+       /* DEFINE ([Dd][Ee][Ff][Ii][Nn][Ee][:][:][^[:space:]]*) */
+
+    if (define) {
+
+      if (length < 8) {
+
+         define = toupper (c) == "DEFINE::" [length];
+
+      } else {
+      
+        if ( length == 84 ) cbf_log(handle, "function name exceeds 75 characters",
+          CBF_LOGERROR|CBF_LOGSTARTLOC);
+
+		if (c == EOF) cbf_log(handle, "function has no definition", 
+			CBF_LOGERROR|CBF_LOGSTARTLOC);
+		
+        if (isspace (c))
+
+          return cbf_return_text (DEFINE, val, &line [8], 0);
+
+      }
+
+    }
 
        /* SAVE ([Ss][Aa][Vv][Ee][_][^[:space:]]*) */
 

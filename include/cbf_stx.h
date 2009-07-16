@@ -40,34 +40,36 @@
       know about them.  */
    enum yytokentype {
      DATA = 258,
-     SAVE = 259,
-     SAVEEND = 260,
-     LOOP = 261,
-     ITEM = 262,
-     CATEGORY = 263,
-     COLUMN = 264,
-     STRING = 265,
-     CBFWORD = 266,
-     BINARY = 267,
-     UNKNOWN = 268,
-     COMMENT = 269,
-     ERROR = 270
+     DEFINE = 259,
+     SAVE = 260,
+     SAVEEND = 261,
+     LOOP = 262,
+     ITEM = 263,
+     CATEGORY = 264,
+     COLUMN = 265,
+     STRING = 266,
+     CBFWORD = 267,
+     BINARY = 268,
+     UNKNOWN = 269,
+     COMMENT = 270,
+     ERROR = 271
    };
 #endif
 /* Tokens.  */
 #define DATA 258
-#define SAVE 259
-#define SAVEEND 260
-#define LOOP 261
-#define ITEM 262
-#define CATEGORY 263
-#define COLUMN 264
-#define STRING 265
-#define CBFWORD 266
-#define BINARY 267
-#define UNKNOWN 268
-#define COMMENT 269
-#define ERROR 270
+#define DEFINE 259
+#define SAVE 260
+#define SAVEEND 261
+#define LOOP 262
+#define ITEM 263
+#define CATEGORY 264
+#define COLUMN 265
+#define STRING 266
+#define CBFWORD 267
+#define BINARY 268
+#define UNKNOWN 269
+#define COMMENT 270
+#define ERROR 271
 
 
 

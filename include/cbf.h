@@ -329,6 +329,7 @@ extern "C" {
 #define CBF_TOKEN_TDQSTRING  '\314'     /* Triple Double-Quoted String */
 #define CBF_TOKEN_TSQSTRING  '\315'     /* Triple Single-Quoted String */
 #define CBF_TOKEN_BKTITEM    '\316'     /* Bracketed item              */
+#define CBF_TOKEN_FUNCTION   '\317'     /* Function definition         */
 
 #define cbf_token_term(tokentype) \
   (((tokentype)==CBF_TOKEN_WORD)?' ':                \

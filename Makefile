@@ -262,7 +262,7 @@ PLY = ply-3.2
 
 # Program to use to retrieve a URL
 
-DOWNLOAD = /usr/bin/wget
+DOWNLOAD = /opt/local/bin/wget
 
 # Flag to control symlinks versus copying
 
@@ -355,21 +355,24 @@ endif
 
 #########################################################
 #
-#  Appropriate compiler definitions for default (Linux)
+#  Appropriate compiler definitions for MAC OS X
+#  with gcc 4.2
+#  Also change defintion of DOWNLOAD
 #
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+CFLAGS  = -g -O2  -Wall -ansi -pedantic
 F90C = gfortran
-F90FLAGS = -g
-F90LDFLAGS = 
+F90FLAGS = -g -fno-range-check
+F90LDFLAGS = -bind_at_load
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(INSTALLDIR)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
+DOWNLOAD = /opt/local/bin/wget
 
 ifneq ($(NOFORTRAN),)
 F90C =
