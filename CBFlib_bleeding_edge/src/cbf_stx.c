@@ -67,34 +67,36 @@
       know about them.  */
    enum yytokentype {
      DATA = 258,
-     SAVE = 259,
-     SAVEEND = 260,
-     LOOP = 261,
-     ITEM = 262,
-     CATEGORY = 263,
-     COLUMN = 264,
-     STRING = 265,
-     CBFWORD = 266,
-     BINARY = 267,
-     UNKNOWN = 268,
-     COMMENT = 269,
-     ERROR = 270
+     DEFINE = 259,
+     SAVE = 260,
+     SAVEEND = 261,
+     LOOP = 262,
+     ITEM = 263,
+     CATEGORY = 264,
+     COLUMN = 265,
+     STRING = 266,
+     CBFWORD = 267,
+     BINARY = 268,
+     UNKNOWN = 269,
+     COMMENT = 270,
+     ERROR = 271
    };
 #endif
 /* Tokens.  */
 #define DATA 258
-#define SAVE 259
-#define SAVEEND 260
-#define LOOP 261
-#define ITEM 262
-#define CATEGORY 263
-#define COLUMN 264
-#define STRING 265
-#define CBFWORD 266
-#define BINARY 267
-#define UNKNOWN 268
-#define COMMENT 269
-#define ERROR 270
+#define DEFINE 259
+#define SAVE 260
+#define SAVEEND 261
+#define LOOP 262
+#define ITEM 263
+#define CATEGORY 264
+#define COLUMN 265
+#define STRING 266
+#define CBFWORD 267
+#define BINARY 268
+#define UNKNOWN 269
+#define COMMENT 270
+#define ERROR 271
 
 
 
@@ -527,7 +529,7 @@ typedef short int yytype_int16;
 #define YYSIZE_MAXIMUM ((YYSIZE_T) -1)
 
 #ifndef YY_
-# if defined YYENABLE_NLS && YYENABLE_NLS
+# if YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
 #   define YY_(msgid) dgettext ("bison-runtime", msgid)
@@ -690,22 +692,22 @@ union yyalloc
 #endif
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  24
+#define YYFINAL  25
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   80
+#define YYLAST   82
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  16
+#define YYNTOKENS  17
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  31
+#define YYNNTS  33
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  69
+#define YYNRULES  72
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  81
+#define YYNSTATES  85
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   270
+#define YYMAXUTOK   271
 
 #define YYTRANSLATE(YYX)						\
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -740,7 +742,7 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15
+      15,    16
 };
 
 #if YYDEBUG
@@ -749,48 +751,51 @@ static const yytype_uint8 yytranslate[] =
 static const yytype_uint8 yyprhs[] =
 {
        0,     0,     3,     5,     7,     8,    11,    14,    16,    18,
-      20,    22,    24,    26,    29,    32,    35,    37,    39,    41,
-      44,    47,    50,    53,    56,    59,    62,    65,    68,    71,
-      74,    77,    80,    83,    86,    89,    92,    95,    98,   101,
-     104,   107,   110,   113,   116,   119,   122,   125,   128,   131,
-     134,   137,   140,   143,   146,   149,   152,   155,   158,   161,
-     164,   167,   169,   171,   173,   175,   177,   179,   181,   183
+      20,    22,    24,    26,    28,    31,    34,    37,    39,    41,
+      43,    46,    49,    52,    55,    58,    61,    64,    67,    70,
+      73,    76,    79,    82,    85,    88,    91,    94,    97,   100,
+     103,   106,   109,   112,   115,   118,   121,   124,   127,   130,
+     133,   136,   139,   142,   145,   148,   151,   154,   157,   160,
+     163,   166,   169,   173,   175,   177,   179,   181,   183,   185,
+     187,   189,   191
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
 static const yytype_int8 yyrhs[] =
 {
-      17,     0,    -1,    18,    -1,    21,    -1,    -1,    17,    41,
-      -1,    22,    41,    -1,    18,    -1,    19,    -1,    26,    -1,
-      31,    -1,    23,    -1,    27,    -1,    21,    42,    -1,    22,
-      42,    -1,    20,    42,    -1,    34,    -1,    39,    -1,    35,
-      -1,    22,     5,    -1,    21,    43,    -1,    20,    43,    -1,
-      24,    43,    -1,    25,    43,    -1,    24,    44,    -1,    25,
-      45,    -1,    21,    45,    -1,    20,    45,    -1,    25,    46,
-      -1,    26,    46,    -1,    27,    46,    -1,    28,    46,    -1,
-      21,    40,    -1,    20,    40,    -1,    28,    40,    -1,    28,
-      43,    -1,    30,    43,    -1,    28,    45,    -1,    30,    45,
-      -1,    29,    44,    -1,    30,    46,    -1,    31,    46,    -1,
-      22,    43,    -1,    32,    43,    -1,    33,    43,    -1,    32,
-      44,    -1,    22,    45,    -1,    33,    45,    -1,    33,    46,
-      -1,    34,    46,    -1,    35,    46,    -1,    36,    46,    -1,
-      22,    40,    -1,    36,    40,    -1,    36,    43,    -1,    38,
-      43,    -1,    36,    45,    -1,    38,    45,    -1,    37,    44,
-      -1,    38,    46,    -1,    39,    46,    -1,     6,    -1,     3,
-      -1,     4,    -1,     8,    -1,     9,    -1,     7,    -1,    10,
-      -1,    11,    -1,    12,    -1
+      18,     0,    -1,    19,    -1,    22,    -1,    -1,    18,    43,
+      -1,    23,    43,    -1,    19,    -1,    20,    -1,    27,    -1,
+      32,    -1,    24,    -1,    41,    -1,    28,    -1,    22,    44,
+      -1,    23,    44,    -1,    21,    44,    -1,    35,    -1,    40,
+      -1,    36,    -1,    23,     6,    -1,    22,    45,    -1,    21,
+      45,    -1,    25,    45,    -1,    26,    45,    -1,    25,    46,
+      -1,    26,    47,    -1,    22,    47,    -1,    21,    47,    -1,
+      26,    49,    -1,    27,    49,    -1,    28,    49,    -1,    29,
+      49,    -1,    22,    42,    -1,    21,    42,    -1,    29,    42,
+      -1,    29,    45,    -1,    31,    45,    -1,    29,    47,    -1,
+      31,    47,    -1,    30,    46,    -1,    31,    49,    -1,    32,
+      49,    -1,    23,    45,    -1,    33,    45,    -1,    34,    45,
+      -1,    33,    46,    -1,    23,    47,    -1,    34,    47,    -1,
+      34,    49,    -1,    35,    49,    -1,    36,    49,    -1,    37,
+      49,    -1,    23,    42,    -1,    37,    42,    -1,    37,    45,
+      -1,    39,    45,    -1,    37,    47,    -1,    39,    47,    -1,
+      38,    46,    -1,    39,    49,    -1,    40,    49,    -1,    22,
+      48,    49,    -1,     7,    -1,     3,    -1,     5,    -1,     9,
+      -1,    10,    -1,     8,    -1,     4,    -1,    11,    -1,    12,
+      -1,    13,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   394,   394,   397,   405,   410,   437,   471,   485,   488,
-     500,   512,   523,   537,   551,   575,   590,   598,   606,   616,
-     631,   641,   652,   668,   686,   697,   717,   731,   749,   763,
-     774,   785,   799,   804,   809,   820,   835,   851,   871,   889,
-     909,   921,   936,   943,   957,   971,   979,   992,  1014,  1027,
-    1036,  1044,  1057,  1062,  1072,  1083,  1099,  1115,  1131,  1148,
-    1158,  1171,  1174,  1179,  1184,  1189,  1194,  1199,  1202,  1205
+       0,   397,   397,   400,   408,   413,   441,   475,   489,   492,
+     504,   516,   527,   539,   553,   567,   591,   606,   614,   622,
+     632,   647,   657,   669,   685,   703,   714,   734,   748,   766,
+     779,   790,   801,   815,   820,   825,   836,   851,   867,   887,
+     905,   925,   937,   952,   959,   973,   987,   995,  1008,  1030,
+    1043,  1052,  1060,  1073,  1078,  1088,  1099,  1115,  1131,  1147,
+    1164,  1174,  1186,  1204,  1207,  1212,  1217,  1222,  1227,  1232,
+    1237,  1240,  1243
 };
 #endif
 
@@ -799,18 +804,19 @@ static const yytype_uint16 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "DATA", "SAVE", "SAVEEND", "LOOP",
-  "ITEM", "CATEGORY", "COLUMN", "STRING", "CBFWORD", "BINARY", "UNKNOWN",
-  "COMMENT", "ERROR", "$accept", "cbf", "cbfstart", "CbfThruDBName",
-  "ErrorCbfWODBName", "CbfThruDBElement", "CbfThruSFElement",
-  "CbfThruSaveFrame", "CbfThruCategory", "CbfThruColumn",
-  "CbfThruAssignment", "ErrorCbfThruExtraValue", "CbfThruLoopStart",
-  "CbfThruLoopCategory", "CbfThruLoopColumn", "CbfThruLoopAssignment",
-  "CbfThruSFCategory", "CbfThruSFColumn", "CbfThruSFAssignment",
-  "ErrorCbfThruExtraSFValue", "CbfThruSFLoopStart",
+  "$end", "error", "$undefined", "DATA", "DEFINE", "SAVE", "SAVEEND",
+  "LOOP", "ITEM", "CATEGORY", "COLUMN", "STRING", "CBFWORD", "BINARY",
+  "UNKNOWN", "COMMENT", "ERROR", "$accept", "cbf", "cbfstart",
+  "CbfThruDBName", "ErrorCbfWODBName", "CbfThruDBElement",
+  "CbfThruSFElement", "CbfThruSaveFrame", "CbfThruCategory",
+  "CbfThruColumn", "CbfThruAssignment", "ErrorCbfThruExtraValue",
+  "CbfThruLoopStart", "CbfThruLoopCategory", "CbfThruLoopColumn",
+  "CbfThruLoopAssignment", "CbfThruSFCategory", "CbfThruSFColumn",
+  "CbfThruSFAssignment", "ErrorCbfThruExtraSFValue", "CbfThruSFLoopStart",
   "CbfThruSFLoopCategory", "CbfThruSFLoopColumn",
-  "CbfThruSFLoopAssignment", "Loop", "DataBlockName", "SaveFrameName",
-  "CategoryName", "ColumnName", "ItemName", "Value", 0
+  "CbfThruSFLoopAssignment", "CbfThruFunction", "Loop", "DataBlockName",
+  "SaveFrameName", "CategoryName", "ColumnName", "ItemName",
+  "FunctionName", "Value", 0
 };
 #endif
 
@@ -820,32 +826,34 @@ static const char *const yytname[] =
 static const yytype_uint16 yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
-     265,   266,   267,   268,   269,   270
+     265,   266,   267,   268,   269,   270,   271
 };
 # endif
 
 /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    16,    17,    17,    18,    19,    19,    20,    21,    21,
-      21,    21,    21,    22,    22,    22,    22,    22,    22,    23,
-      24,    24,    24,    24,    25,    25,    25,    25,    26,    27,
-      27,    27,    28,    28,    28,    29,    29,    30,    30,    30,
-      31,    31,    32,    32,    32,    33,    33,    33,    34,    35,
-      35,    35,    36,    36,    37,    37,    38,    38,    38,    39,
-      39,    40,    41,    42,    43,    44,    45,    46,    46,    46
+       0,    17,    18,    18,    19,    20,    20,    21,    22,    22,
+      22,    22,    22,    22,    23,    23,    23,    23,    23,    23,
+      24,    25,    25,    25,    25,    26,    26,    26,    26,    27,
+      28,    28,    28,    29,    29,    29,    30,    30,    31,    31,
+      31,    32,    32,    33,    33,    33,    34,    34,    34,    35,
+      36,    36,    36,    37,    37,    38,    38,    39,    39,    39,
+      40,    40,    41,    42,    43,    44,    45,    46,    47,    48,
+      49,    49,    49
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     1,     1,     0,     2,     2,     1,     1,     1,
-       1,     1,     1,     2,     2,     2,     1,     1,     1,     2,
+       1,     1,     1,     1,     2,     2,     2,     1,     1,     1,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     1,     1,     1,     1,     1,     1,     1,     1,     1
+       2,     2,     3,     1,     1,     1,     1,     1,     1,     1,
+       1,     1,     1
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -854,14 +862,14 @@ static const yytype_uint8 yyr2[] =
 static const yytype_uint8 yydefact[] =
 {
        4,     0,     7,     8,     0,     3,     0,    11,     0,     0,
-       9,    12,     0,     0,     0,    10,     0,     0,    16,    18,
-       0,     0,     0,    17,     1,    62,     5,    63,    61,    66,
-      64,    33,    15,    21,    27,    32,    13,    20,    26,    19,
-      52,     6,    14,    42,    46,    65,    22,    24,    67,    68,
-      69,    23,    25,    28,    29,    30,    34,    35,    37,    31,
-      39,    36,    38,    40,    41,    43,    45,    44,    47,    48,
-      49,    50,    53,    54,    56,    51,    58,    55,    57,    59,
-      60
+       9,    13,     0,     0,     0,    10,     0,     0,    17,    19,
+       0,     0,     0,    18,    12,     1,    64,     5,    65,    63,
+      68,    66,    34,    16,    22,    28,    69,    33,    14,    21,
+      27,     0,    20,    53,     6,    15,    43,    47,    67,    23,
+      25,    70,    71,    72,    24,    26,    29,    30,    31,    35,
+      36,    38,    32,    40,    37,    39,    41,    42,    44,    46,
+      45,    48,    49,    50,    51,    54,    55,    57,    52,    59,
+      56,    58,    60,    61,    62
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
@@ -869,33 +877,33 @@ static const yytype_int8 yydefgoto[] =
 {
       -1,     1,     2,     3,     4,     5,     6,     7,     8,     9,
       10,    11,    12,    13,    14,    15,    16,    17,    18,    19,
-      20,    21,    22,    23,    31,    26,    32,    33,    47,    34,
-      53
+      20,    21,    22,    23,    24,    32,    27,    33,    34,    50,
+      35,    41,    56
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-#define YYPACT_NINF -12
+#define YYPACT_NINF -11
 static const yytype_int8 yypact[] =
 {
-     -12,    21,    23,   -12,    65,    65,    54,   -12,    69,    56,
-      64,    64,    44,    -3,    56,    64,    69,    56,    64,    64,
-      44,    -3,    56,    64,   -12,   -12,   -12,   -12,   -12,   -12,
-     -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,
-     -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,
-     -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,
-     -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,
-     -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,
-     -12
+     -11,     3,    11,   -11,    70,    59,    46,   -11,    29,    61,
+      69,    69,    49,    13,    61,    69,    29,    61,    69,    69,
+      49,    13,    61,    69,   -11,   -11,   -11,   -11,   -11,   -11,
+     -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,
+     -11,    69,   -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,
+     -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,
+     -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,
+     -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,
+     -11,   -11,   -11,   -11,   -11
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,
-     -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,   -12,
-     -12,   -12,   -12,   -12,     8,     2,    74,    -5,   -11,    13,
-      26
+     -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,
+     -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,   -11,
+     -11,   -11,   -11,   -11,   -11,    23,    15,    41,    10,     4,
+      28,   -11,   -10
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -905,43 +913,43 @@ static const yytype_int8 yypgoto[] =
 #define YYTABLE_NINF -3
 static const yytype_int8 yytable[] =
 {
-      37,    43,    60,    46,    51,    66,    45,    57,    41,    61,
-      76,    65,    67,    35,    40,    73,     0,    77,    38,    44,
-      56,    24,    52,    -2,    25,    58,    -2,    62,    72,     0,
-      68,     0,     0,    74,     0,    78,    54,    55,    59,     0,
-      63,    64,     0,    69,    70,    71,    75,     0,    79,    80,
-      28,    29,    30,     0,    48,    49,    50,    25,    27,    39,
-      28,    29,    30,    29,    30,     0,    48,    49,    50,    27,
-       0,    28,    29,    30,    48,    49,    50,    30,    45,    36,
-      42
+      57,    58,    62,    25,    66,    67,    26,    72,    73,    74,
+      78,    -2,    82,    83,    -2,    39,    46,    63,    49,    54,
+      69,    44,    60,    48,    64,    79,    68,    70,    37,    43,
+      76,    84,    80,    40,    47,    59,     0,    55,    31,    48,
+      61,     0,    65,    75,     0,    71,    38,    45,    77,    26,
+      81,    28,    42,    29,    30,    31,    29,    30,    31,     0,
+      51,    52,    53,    36,    28,     0,    29,    30,    31,    30,
+      31,     0,    51,    52,    53,    28,     0,    29,    30,    31,
+      51,    52,    53
 };
 
 static const yytype_int8 yycheck[] =
 {
-       5,     6,    13,     8,     9,    16,     9,    12,     6,    14,
-      21,    16,    17,     5,     6,    20,    -1,    22,     5,     6,
-      12,     0,     9,     0,     3,    12,     3,    14,    20,    -1,
-      17,    -1,    -1,    20,    -1,    22,    10,    11,    12,    -1,
-      14,    15,    -1,    17,    18,    19,    20,    -1,    22,    23,
-       6,     7,     8,    -1,    10,    11,    12,     3,     4,     5,
-       6,     7,     8,     7,     8,    -1,    10,    11,    12,     4,
-      -1,     6,     7,     8,    10,    11,    12,     8,     9,     5,
-       6
+      10,    11,    12,     0,    14,    15,     3,    17,    18,    19,
+      20,     0,    22,    23,     3,     5,     6,    13,     8,     9,
+      16,     6,    12,    10,    14,    21,    16,    17,     5,     6,
+      20,    41,    22,     5,     6,    12,    -1,     9,     9,    10,
+      12,    -1,    14,    20,    -1,    17,     5,     6,    20,     3,
+      22,     5,     6,     7,     8,     9,     7,     8,     9,    -1,
+      11,    12,    13,     4,     5,    -1,     7,     8,     9,     8,
+       9,    -1,    11,    12,    13,     5,    -1,     7,     8,     9,
+      11,    12,    13
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
    symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    17,    18,    19,    20,    21,    22,    23,    24,    25,
-      26,    27,    28,    29,    30,    31,    32,    33,    34,    35,
-      36,    37,    38,    39,     0,     3,    41,     4,     6,     7,
-       8,    40,    42,    43,    45,    40,    42,    43,    45,     5,
-      40,    41,    42,    43,    45,     9,    43,    44,    10,    11,
-      12,    43,    45,    46,    46,    46,    40,    43,    45,    46,
-      44,    43,    45,    46,    46,    43,    44,    43,    45,    46,
-      46,    46,    40,    43,    45,    46,    44,    43,    45,    46,
-      46
+       0,    18,    19,    20,    21,    22,    23,    24,    25,    26,
+      27,    28,    29,    30,    31,    32,    33,    34,    35,    36,
+      37,    38,    39,    40,    41,     0,     3,    43,     5,     7,
+       8,     9,    42,    44,    45,    47,     4,    42,    44,    45,
+      47,    48,     6,    42,    43,    44,    45,    47,    10,    45,
+      46,    11,    12,    13,    45,    47,    49,    49,    49,    42,
+      45,    47,    49,    46,    45,    47,    49,    49,    45,    46,
+      45,    47,    49,    49,    49,    42,    45,    47,    49,    46,
+      45,    47,    49,    49,    49
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1015,7 +1023,7 @@ while (YYID (0))
    we won't break user code: when these are the locations we know.  */
 
 #ifndef YY_LOCATION_PRINT
-# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+# if YYLTYPE_IS_TRIVIAL
 #  define YY_LOCATION_PRINT(File, Loc)			\
      fprintf (File, "%d.%d-%d.%d",			\
 	      (Loc).first_line, (Loc).first_column,	\
@@ -1916,6 +1924,21 @@ yyreduce:
 
   case 12:
 
+    {					
+						  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) (yyvsp[(1) - (1)].node), CBF_CATEGORY,
+                                                                                                                   NULL))
+						  (yyval.node) = (yyvsp[(1) - (1)].node); cbf_failnez (cbf_undo_links (&((yyval.node))))
+
+                                                  cbf_failnez (cbf_find_parent (&((yyval.node)), (yyval.node), CBF_DATABLOCK))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)(yyval.node);
+                                                   
+                                                  ((void **)context)[3] = NULL;
+						;}
+    break;
+
+  case 13:
+
     {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) (yyvsp[(1) - (1)].node), CBF_CATEGORY,
                                                                                                                   NULL))
@@ -1929,7 +1952,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 13:
+  case 14:
 
     {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) (yyvsp[(1) - (2)].node), CBF_CATEGORY,
@@ -1946,7 +1969,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 14:
+  case 15:
 
     { 
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) (yyvsp[(1) - (2)].node), CBF_CATEGORY,
@@ -1973,7 +1996,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 15:
+  case 16:
 
     {
 
@@ -1991,7 +2014,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 16:
+  case 17:
 
     {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) (yyvsp[(1) - (1)].node), CBF_CATEGORY,
@@ -2003,7 +2026,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 17:
+  case 18:
 
     {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) (yyvsp[(1) - (1)].node), CBF_CATEGORY,
@@ -2015,7 +2038,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 18:
+  case 19:
 
     {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) (yyvsp[(1) - (1)].node), CBF_CATEGORY,
@@ -2027,7 +2050,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 19:
+  case 20:
 
     {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) (yyvsp[(1) - (2)].node), CBF_CATEGORY,
@@ -2044,7 +2067,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 20:
+  case 21:
 
     {
                                                   cbf_failnez (cbf_make_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_CATEGORY, (yyvsp[(2) - (2)].text)))
@@ -2058,7 +2081,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 21:
+  case 22:
 
     {
                                                   cbf_failnez (cbf_make_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_CATEGORY, (yyvsp[(2) - (2)].text)))
@@ -2072,9 +2095,9 @@ yyreduce:
                                                 ;}
     break;
 
-  case 22:
+  case 23:
 
-    { cbf_log ((cbf_handle)(((void **)context)[2]),"data name with no value",
+    { cbf_log ((cbf_handle)(((void **)context)[2]),"data name with no value1",
                                                     CBF_LOGERROR|CBF_LOGSTARTLOC);
                                                     
                                                   (yyval.node) = (yyvsp[(1) - (2)].node); cbf_failnez (cbf_undo_links (&((yyval.node))))
@@ -2092,7 +2115,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 23:
+  case 24:
 
     { cbf_log ((cbf_handle)(((void **)context)[2]),"data name with no value",
                                                     CBF_LOGERROR|CBF_LOGSTARTLOC);
@@ -2112,7 +2135,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 24:
+  case 25:
 
     {
                                                   cbf_failnez (cbf_make_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_COLUMN, (yyvsp[(2) - (2)].text)))
@@ -2127,7 +2150,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 25:
+  case 26:
 
     { cbf_log ((cbf_handle)(((void **)context)[2]),"data name with no value",CBF_LOGERROR|CBF_LOGSTARTLOC);
                 
@@ -2151,7 +2174,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 26:
+  case 27:
 
     {
                                                   cbf_failnez (cbf_make_new_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_CATEGORY, (yyvsp[(2) - (2)].text)))
@@ -2169,7 +2192,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 27:
+  case 28:
 
     {
                                                   cbf_failnez (cbf_make_new_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_CATEGORY, (yyvsp[(2) - (2)].text)))
@@ -2187,7 +2210,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 28:
+  case 29:
 
     {
                                                   (yyval.node) = (yyvsp[(1) - (2)].node);
@@ -2201,35 +2224,35 @@ yyreduce:
                                                 ;}
     break;
 
-  case 29:
-
-    {
-                                                  (yyval.node) = (yyvsp[(1) - (2)].node);
-                     
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
-                     
-                                                  cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
-                                                  
-                                                  cbf_failnez(cbf_free_text(&((yyvsp[(2) - (2)].text)),NULL))
-
-                                                ;}
-    break;
-
   case 30:
 
     {
                                                   (yyval.node) = (yyvsp[(1) - (2)].node);
-                                                  
+                     
                                                   cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
-
+                     
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
-
+                                                  
                                                   cbf_failnez(cbf_free_text(&((yyvsp[(2) - (2)].text)),NULL))
 
                                                 ;}
     break;
 
   case 31:
+
+    {
+                                                  (yyval.node) = (yyvsp[(1) - (2)].node);
+                                                  
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+
+                                                  cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
+
+                                                  cbf_failnez(cbf_free_text(&((yyvsp[(2) - (2)].text)),NULL))
+
+                                                ;}
+    break;
+
+  case 32:
 
     {
                                                   (yyval.node) = (yyvsp[(1) - (2)].node);
@@ -2240,15 +2263,6 @@ yyreduce:
 
                                                   cbf_failnez(cbf_free_text(&((yyvsp[(2) - (2)].text)),NULL))
 
-                                                ;}
-    break;
-
-  case 32:
-
-    {
-                                                  cbf_failnez (cbf_make_node (&((yyval.node)), CBF_LINK, NULL, NULL))
-
-                                                  cbf_failnez (cbf_set_link ((yyval.node), (yyvsp[(1) - (2)].node)))
                                                 ;}
     break;
 
@@ -2264,6 +2278,15 @@ yyreduce:
   case 34:
 
     {
+                                                  cbf_failnez (cbf_make_node (&((yyval.node)), CBF_LINK, NULL, NULL))
+
+                                                  cbf_failnez (cbf_set_link ((yyval.node), (yyvsp[(1) - (2)].node)))
+                                                ;}
+    break;
+
+  case 35:
+
+    {
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"redundant \"loop_\" ",CBF_LOGERROR|CBF_LOGSTARTLOC);
                                                   
                                                   cbf_failnez (cbf_make_node (&((yyval.node)), CBF_LINK, NULL, NULL))
@@ -2272,7 +2295,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 35:
+  case 36:
 
     {
                                                   cbf_failnez (cbf_make_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_CATEGORY, (yyvsp[(2) - (2)].text)))
@@ -2291,7 +2314,7 @@ yyreduce:
                                                  ;}
     break;
 
-  case 36:
+  case 37:
 
     {
                                                   cbf_failnez (cbf_find_parent (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_DATABLOCK))
@@ -2308,7 +2331,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 37:
+  case 38:
 
     {
                                                   cbf_failnez (cbf_make_new_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_CATEGORY, (yyvsp[(2) - (2)].text)))
@@ -2332,7 +2355,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 38:
+  case 39:
 
     {
                                                   (yyval.node) = ((void **)context)[3];
@@ -2354,7 +2377,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 39:
+  case 40:
 
     {
                                                   cbf_failnez (cbf_make_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_COLUMN, (yyvsp[(2) - (2)].text)))
@@ -2374,7 +2397,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 40:
+  case 41:
 
     {
                                                   (yyval.node) = (yyvsp[(1) - (2)].node);
@@ -2390,7 +2413,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 41:
+  case 42:
 
     {
                                                   (yyval.node) = (yyvsp[(1) - (2)].node);
@@ -2406,7 +2429,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 42:
+  case 43:
 
     {
                                                   cbf_failnez (cbf_make_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_CATEGORY, (yyvsp[(2) - (2)].text)))
@@ -2417,7 +2440,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 43:
+  case 44:
 
     {  cbf_log((cbf_handle)(((void **)context)[2]), "data name with no value", CBF_LOGERROR|CBF_LOGSTARTLOC);
                                                 
@@ -2433,7 +2456,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 44:
+  case 45:
 
     {  cbf_log((cbf_handle)(((void **)context)[2]), "data name with no value", CBF_LOGERROR|CBF_LOGSTARTLOC);
                 
@@ -2449,7 +2472,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 45:
+  case 46:
 
     {
                                                   cbf_failnez (cbf_make_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_COLUMN, (yyvsp[(2) - (2)].text)))
@@ -2461,7 +2484,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 46:
+  case 47:
 
     {
                                                   cbf_failnez (cbf_make_new_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_CATEGORY, (yyvsp[(2) - (2)].text)))
@@ -2477,7 +2500,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 47:
+  case 48:
 
     {
                                                   cbf_log((cbf_handle)(((void **)context)[2]), "data name with no value", CBF_LOGERROR|CBF_LOGSTARTLOC);
@@ -2499,7 +2522,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 48:
+  case 49:
 
     {
                                                   (yyval.node) = (yyvsp[(1) - (2)].node);
@@ -2511,18 +2534,6 @@ yyreduce:
                                                 ;}
     break;
 
-  case 49:
-
-    {
-                                                  (yyval.node) = (yyvsp[(1) - (2)].node);
-                                                  
-                                                  cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
-
-                                                  cbf_failnez(cbf_free_text(&((yyvsp[(2) - (2)].text)), NULL))
-
-                                                ;}
-    break;
-
   case 50:
 
     {
@@ -2531,10 +2542,22 @@ yyreduce:
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
 
                                                   cbf_failnez(cbf_free_text(&((yyvsp[(2) - (2)].text)), NULL))
+
                                                 ;}
     break;
 
   case 51:
+
+    {
+                                                  (yyval.node) = (yyvsp[(1) - (2)].node);
+                                                  
+                                                  cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
+
+                                                  cbf_failnez(cbf_free_text(&((yyvsp[(2) - (2)].text)), NULL))
+                                                ;}
+    break;
+
+  case 52:
 
     {
                                                   (yyval.node) = (yyvsp[(1) - (2)].node);
@@ -2546,7 +2569,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 52:
+  case 53:
 
     {
                                                   cbf_failnez (cbf_make_node (&((yyval.node)), CBF_LINK, NULL, NULL))
@@ -2555,7 +2578,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 53:
+  case 54:
 
     {
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"redundant \"loop_\" ",CBF_LOGERROR|CBF_LOGSTARTLOC);
@@ -2566,7 +2589,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 54:
+  case 55:
 
     {
                                                   cbf_failnez (cbf_make_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_CATEGORY, (yyvsp[(2) - (2)].text)))
@@ -2581,7 +2604,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 55:
+  case 56:
 
     {
                                                   cbf_failnez (cbf_find_parent (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_SAVEFRAME))
@@ -2598,7 +2621,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 56:
+  case 57:
 
     {
                                                   cbf_failnez (cbf_make_new_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_CATEGORY, (yyvsp[(2) - (2)].text)))
@@ -2618,7 +2641,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 57:
+  case 58:
 
     {
                                                   (yyval.node) = ((void **)context)[3];
@@ -2638,7 +2661,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 58:
+  case 59:
 
     {
                                                   cbf_failnez (cbf_make_child (&((yyval.node)), (yyvsp[(1) - (2)].node), CBF_COLUMN, (yyvsp[(2) - (2)].text)))
@@ -2656,7 +2679,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 59:
+  case 60:
 
     {
                                                   (yyval.node) = (yyvsp[(1) - (2)].node);
@@ -2670,7 +2693,7 @@ yyreduce:
                                                 ;}
     break;
 
-  case 60:
+  case 61:
 
     {
                                                   (yyval.node) = (yyvsp[(1) - (2)].node);
@@ -2686,16 +2709,23 @@ yyreduce:
 
   case 62:
 
-    {
-                                                  (yyval.text) = (yyvsp[(1) - (1)].text);
-                                                ;}
-    break;
-
-  case 63:
-
-    {
-                                                  (yyval.text) = (yyvsp[(1) - (1)].text);
-                                                ;}
+    {								
+		
+					        	cbf_failnez (cbf_make_new_child (&((yyval.node)), (yyvsp[(1) - (3)].node), CBF_FUNCTION, (yyvsp[(2) - (3)].text)))
+                                                  
+                                                        ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)(yyval.node);
+													
+							cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+													
+							((void **)context)[3] = (void *)(yyval.node);
+						
+							cbf_failnez (cbf_make_child (&((yyval.node)), (yyvsp[(1) - (3)].node), CBF_COLUMN, (yyvsp[(2) - (3)].text)))
+							
+							cbf_failnez (cbf_set_columnrow ((yyval.node), 0, (yyvsp[(3) - (3)].text), 1))	
+                                                  	
+							cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) (yyvsp[(3) - (3)].text), CBF_VALUE,
+                                                                                                                  (cbf_node *) (yyval.node)))
+							;}
     break;
 
   case 64:
@@ -2734,6 +2764,27 @@ yyreduce:
     break;
 
   case 69:
+
+    {
+	  					  (yyval.text) = (yyvsp[(1) - (1)].text);
+						;}
+    break;
+
+  case 70:
+
+    {
+                                                  (yyval.text) = (yyvsp[(1) - (1)].text);
+                                                ;}
+    break;
+
+  case 71:
+
+    {
+                                                  (yyval.text) = (yyvsp[(1) - (1)].text);
+                                                ;}
+    break;
+
+  case 72:
 
     {
                                                   (yyval.text) = (yyvsp[(1) - (1)].text);

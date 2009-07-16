@@ -6195,7 +6195,9 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
   char buffer[512];
   
   char itemname[82];
-    
+
+  cbf_node *dbp;
+
   int lcolumn=0, litemname=0;
   
   int count;
@@ -6259,7 +6261,6 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
                     
     */
 
-
     /* First validate the last category before the termination */
     
       cbf_failnez(cbf_validate(handle, node, CBF_CATEGORY, NULL))
@@ -6267,13 +6268,13 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     /* Now check if the parent data block has any content */
 
     if (!cbf_find_parent(&tnode, node, CBF_DATABLOCK)) {
-    
-      cbf_failnez(cbf_count_children(&children, tnode))
-    
+	
+		cbf_failnez(cbf_count_children(&children, tnode))
+
       if ( children == 0 ) {
       
         if (file != (cbf_file *)NULL) {
-        
+
           if ((tnode->name) != (char *)NULL)  {
 
             sprintf(buffer,
@@ -6757,6 +6758,10 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     char loval[255], hival[255];
     	                    
     char * colonpos;
+
+	char * callpos;
+	
+	char functionname[255];
     
     long symop, xlate;
     
@@ -6962,7 +6967,21 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    goodmatch = 1; break;
     	        	  	
     	        	  }
-    	        	  
+					  /*Check if valuestring is a function call*/
+    	        	  if (!cbf_cistrncmp(valuestring,"::",2)) {
+	
+						callpos = strchr(valuestring,':');
+						
+						strcpy(functionname, callpos+2);
+						
+						 cbf_failnez(cbf_find_parent (&dbp, handle->node, CBF_DATABLOCK))
+						
+						
+						sprintf(buffer, "this is a function call to %s.%s", dbp->name,functionname);
+						
+						cbf_warning(buffer);
+					}
+					
     	        	  if ( cbf_cistrncmp(dictype,"numb",4)
     	        	    || cbf_cistrncmp(dictype,"int",3)
     	        	    || cbf_cistrncmp(dictype,"floa",4)) {
@@ -7022,7 +7041,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    || !cbf_cistrncmp(dictype,"alia",4)
     	        	    || !cbf_cistrncmp(dictype,"atco",4)
     	        	    || !cbf_cistrncmp(dictype,"char",4)
-    	        	    || !cbf_cistrncmp(dictype,"ucha",4) ) { goodmatch = 1; break;   }
+    	        	    || !cbf_cistrncmp(dictype,"ucha",4)) { goodmatch = 1; break;   }
     	        	    
     	        	  if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break; }
     	        	  break;
@@ -7041,7 +7060,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	  if(!cbf_cistrncmp(dictype,"text",4) 
     	        	    || !cbf_cistrncmp(dictype,"any",3)
     	        	    || !cbf_cistrncmp(dictype,"char",4)
-    	                || !cbf_cistrncmp(dictype,"ucha",4) ) { goodmatch = 1; break;   }
+    	                || !cbf_cistrncmp(dictype,"ucha",4)) { goodmatch = 1; break;   }
     	        	   
     	        	  if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break; }
     	        	  break;
@@ -7179,7 +7198,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 				}
 				
     	        if (!goodmatch)   {
-
+				
     	          sprintf(buffer," %s type conflicts with dictionary type %s", itemname, dictype );
 
     	          cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);

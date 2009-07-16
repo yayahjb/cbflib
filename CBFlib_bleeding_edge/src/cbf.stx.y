@@ -342,6 +342,7 @@ int cbf_syntax_error (cbf_handle handle, const char *message)
 }
 
 %token <text> DATA
+%token <text> DEFINE
 %token <text> SAVE
 %token        SAVEEND
 %token        LOOP
@@ -378,7 +379,9 @@ int cbf_syntax_error (cbf_handle handle, const char *message)
 %type  <node> CbfThruSFLoopCategory
 %type  <node> CbfThruSFLoopColumn
 %type  <node> CbfThruSFLoopAssignment
+%type  <node> CbfThruFunction
 %type  <text> DataBlockName
+%type  <text> FunctionName
 %type  <text> SaveFrameName
 %type  <text> CategoryName
 %type  <text> ColumnName
@@ -434,6 +437,7 @@ CbfThruDBName:   cbf DataBlockName             {
                                                   cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
     
                                                 }
+
                 | CbfThruSFElement DataBlockName { 
                                                   cbf_log((cbf_handle)(((void **)context)[2]),"prior save frame not terminated",
                                                       CBF_LOGWARNING|CBF_LOGSTARTLOC);
@@ -497,7 +501,7 @@ CbfThruDBElement: CbfThruDBName                 {
                                                    
                                                   ((void **)context)[3] = NULL;
                                                 }
-                | CbfThruLoopAssignment         {
+				| CbfThruLoopAssignment         {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_CATEGORY,
                                                                                                                    NULL))
                                                   
@@ -520,6 +524,18 @@ CbfThruDBElement: CbfThruDBName                 {
                                                    
                                                   ((void **)context)[3] = NULL;
                                                 }
+	        | CbfThruFunction	        {					
+						  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_CATEGORY,
+                                                                                                                   NULL))
+						  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
+
+                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_DATABLOCK))
+                                                  
+                                                  ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
+                                                   
+                                                  ((void **)context)[3] = NULL;
+						}
+				
                 | ErrorCbfThruExtraValue        {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_CATEGORY,
                                                                                                                   NULL))
@@ -649,7 +665,8 @@ CbfThruCategory: CbfThruDBElement CategoryName  {
                                                  ((void **)context)[3] = (void *)$$;
                                                   
                                                 }
-                | CbfThruCategory CategoryName  { cbf_log ((cbf_handle)(((void **)context)[2]),"data name with no value",
+
+                | CbfThruCategory CategoryName  { cbf_log ((cbf_handle)(((void **)context)[2]),"data name with no value1",
                                                     CBF_LOGERROR|CBF_LOGSTARTLOC);
                                                     
                                                   $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
@@ -728,7 +745,7 @@ CbfThruColumn:    CbfThruCategory ColumnName    {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
                                                                                                                   (cbf_node *)(((void **)context)[3])))
                                                 }
-                | ErrorCbfWODBName ItemName     {
+	           | ErrorCbfWODBName ItemName     {
                                                   cbf_failnez (cbf_make_new_child (&($$), $1, CBF_CATEGORY, $2))
                                                   
                                                   ((void **)context)[3] = (void *)$$;
@@ -758,7 +775,6 @@ CbfThruAssignment:
                                                 }
 
                 ;
-
 ErrorCbfThruExtraValue:
                  CbfThruAssignment Value        {
                                                   $$ = $1;
@@ -1167,15 +1183,32 @@ CbfThruSFLoopAssignment:
                                                 }
                 ;
                 
-
+CbfThruFunction: CbfThruDBElement FunctionName Value	{								
+		
+					        	cbf_failnez (cbf_make_new_child (&($$), $1, CBF_FUNCTION, $2))
+                                                  
+                                                        ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
+													
+							cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+													
+							((void **)context)[3] = (void *)$$;
+						
+							cbf_failnez (cbf_make_child (&($$), $1, CBF_COLUMN, $2))
+							
+							cbf_failnez (cbf_set_columnrow ($$, 0, $3, 1))	
+                                                  	
+							cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $3, CBF_VALUE,
+                                                                                                                  (cbf_node *) $$))
+							}
+							;
 Loop:             LOOP                          
                 ;
 
 DataBlockName:  DATA                            {
                                                   $$ = $1;
                                                 }
-                ;
-
+                        ;
+				
 SaveFrameName:    SAVE                          {
                                                   $$ = $1;
                                                 }
@@ -1194,6 +1227,11 @@ ColumnName:       COLUMN                        {
 ItemName:         ITEM                          {
                                                   $$ = $1;
                                                 }
+				;
+				
+FunctionName:    DEFINE				{
+	  					  $$ = $1;
+						}
                 ;
 
 Value:            STRING                        {
