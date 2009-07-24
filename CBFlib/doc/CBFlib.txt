@@ -7316,16 +7316,16 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
          base pixel value.
       3. If -127 =< delta =< 127, output delta as one byte, make the current
          pixel value the base pixel value and return to step 2.
-      4. Otherwise output -128 (80 hex).
+      4. Otherwise output -128 (F0 hex).
       5. We still have to output delta. If -32767 =< delta =< 32767, output
          delta as a little_endian 16-bit quantity, make the current pixel
          value the base pixel value and return to step 2.
-      6. Otherwise output -32768 (8000 hex, little_endian, i.e. 00 then 80)
+      6. Otherwise output -32768 (F000 hex, little_endian, i.e. 00 then F0)
       7. We still have to output delta. If -2147483647 =< delta =<
          2147483647, output delta as a little_endian 32 bit quantity, make
          the current pixel value the base pixel value and return to step 2.
-      8. Otherwise output -2147483648 (80000000 hex, little_endian, i.e. 00,
-         then 00, then 00, then 80) and then output the pixel value as a
+      8. Otherwise output -2147483648 (F0000000 hex, little_endian, i.e. 00,
+         then 00, then 00, then F0) and then output the pixel value as a
          little-endian 64 bit quantity, make the current pixel value the base
          pixel value and return to step 2.
 
@@ -7336,17 +7336,17 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
       3. If -127 =< delta =< 127, add delta to the base pixel value, make
          that the new base pixel value, place it on the output array and
          return to step 2.
-      4. If delta is 80 hex, read the next two bytes as a little_endian
+      4. If delta is F0 hex, read the next two bytes as a little_endian
          16-bit number and make that delta.
       5. If -32767 =< delta =< 32767, add delta to the base pixel value, make
          that the new base pixel value, place it on the output array and
          return to step 2.
-      6. If delta is 8000 hex, read the next 4 bytes as a little_endian
+      6. If delta is F000 hex, read the next 4 bytes as a little_endian
          32-bit number and make that delta
       7. If -2147483647 =< delta =< 2147483647, add delta to the base pixel
          value, make that the new base pixel value, place it on the output
          array and return to step 2.
-      8. If delta is 80000000 hex, read the next 4 bytes as a little_endian
+      8. If delta is F0000000 hex, read the next 4 bytes as a little_endian
          32-bit number and make that delta, read the next 8 bytes as a
          little_endia 64-bit number and make that delta, add delta to the
          base pixel value, make that the new base pixel value, place it on
@@ -8010,4 +8010,4 @@ src/                      include/             m4/                  Description
 
      ----------------------------------------------------------------------
 
-     Updated 15 July 2009. Contact:  yaya at bernstein-plus-sons dot com
+     Updated 25 January 2008. Contact:  yaya at bernstein-plus-sons dot com

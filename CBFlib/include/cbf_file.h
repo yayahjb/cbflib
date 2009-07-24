@@ -318,7 +318,12 @@ int cbf_delete_fileconnection (cbf_file **file);
 int cbf_file_connections (cbf_file *file);
 
 
-  /* Set the size of the buffer */
+  /* Set the size of an input/output buffer */
+
+int cbf_set_io_buffersize (cbf_file *file, size_t size);
+
+
+  /* Set the size of an output buffer */
 
 int cbf_set_buffersize (cbf_file *file, size_t size);
 
@@ -331,6 +336,11 @@ int cbf_reset_buffer (cbf_file *file);
   /* Add a character to the buffer */
 
 int cbf_save_character (cbf_file *file, int c);
+
+
+  /* Add a character to the buffer, trimming trailing spaces */
+
+int cbf_save_character_trim (cbf_file *file, int c);
 
 
   /* Retrieve the buffer */
@@ -389,6 +399,11 @@ int cbf_end_digest (cbf_file *file, char *digest);
   /* Discard any bits in the buffers */
 
 int cbf_reset_bits (cbf_file *file);
+
+
+  /* Discard any bits in the input buffers */
+
+int cbf_reset_in_bits (cbf_file *file);
 
 
   /* Discard any characters in the character buffers */

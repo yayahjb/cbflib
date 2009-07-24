@@ -508,7 +508,7 @@ CbfThruDBElement: CbfThruDBName                 {
 
 
 CbfThruSFElement: CbfThruDBElement SaveFrameName 
-                                                { 
+                                                {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_CATEGORY,
                                                                                                                    NULL))
 

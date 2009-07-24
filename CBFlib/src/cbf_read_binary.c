@@ -309,7 +309,7 @@ int cbf_parse_binaryheader (cbf_file *file, size_t *size,
 
     /* Discard any bits in the buffer */
 
-  cbf_failnez (cbf_reset_bits (file))
+  cbf_failnez (cbf_reset_in_bits (file))
 
     /* If there was a mime header, there is no id,  size or compression */
 

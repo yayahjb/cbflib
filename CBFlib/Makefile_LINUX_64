@@ -356,17 +356,16 @@ endif
 
 #########################################################
 #
-#  Appropriate compiler definitions for MAC OS X
-#  with gcc 4.2
-#  Also change defintion of DOWNLOAD
+#  Appropriate compiler definitions for Linux x86_64
+#  with gcc version 4.2
 #
 #########################################################
-CC	= gcc
-C++	= g++
-CFLAGS  = -g -O2  -Wall -ansi -pedantic
-F90C = gfortran
+CC	= gcc -m64
+C++	= g++ -m64
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
+F90C = gfortran -m64
 F90FLAGS = -g -fno-range-check
-F90LDFLAGS = -bind_at_load
+F90LDFLAGS =
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(INSTALLDIR)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux

@@ -1,7 +1,7 @@
 /**********************************************************************
- * cbf_byte_offset -- byte-offset compression (not implemented)       *
+ * cbf_byte_offset -- byte-offset compression                         *
  *                                                                    *
- * Version 0.7.9 30 December 2007                                     *
+ * Version 0.8.0 20 July 2008                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -495,9 +495,9 @@ int cbf_compress_byte_offset (void         *source,
   	         csize += 3;
 
   	       }
-  	       
-  	     }
   	     
+  	     } 
+
          /* At this point nelem-count elements remain and
             file->characters_size-(csize+file->characters_used)
             characters remain in the buffer */
@@ -531,7 +531,7 @@ int cbf_compress_byte_offset (void         *source,
   	         if (csize > nelem*elsize-3 ) {
   	           
   	           if (compression&CBF_NO_EXPAND) return CBF_NOCOMPRESSION;
-  	               	             
+  	           
   	         }
   	         
   	         if (elsize*(nelem-count) > file->characters_size-(csize+file->characters_used)) {
@@ -676,8 +676,8 @@ int cbf_compress_byte_offset (void         *source,
 
   	         csize +=7;
   	               	         	
-  	     	
-  	     }
+
+  	       }
   	     
   	     } 
 
@@ -729,7 +729,7 @@ int cbf_compress_byte_offset (void         *source,
   	         if (csize > nelem*elsize-7 ) {
   	           
   	           if (compression&CBF_NO_EXPAND) return CBF_NOCOMPRESSION;
-  	               	             
+  	           
   	         }
   	         
   	         if (elsize*(nelem-count) > file->characters_size-(csize+file->characters_used)) {
@@ -811,21 +811,21 @@ int cbf_compress_byte_offset (void         *source,
 
     } else {
 
-    if (elsize == sizeof (int))
+      if (elsize == sizeof (int))
 
-      element[0] = *((unsigned int *) unsigned_char_data);
-
-    else
-
-      if (elsize == sizeof (short))
-
-        element[0] = *((unsigned short *) unsigned_char_data);
+        element[0] = *((unsigned int *) unsigned_char_data);
 
       else
 
-        element[0] = *unsigned_char_data;
+        if (elsize == sizeof (short))
 
-    unsigned_char_data += elsize;
+          element[0] = *((unsigned short *) unsigned_char_data);
+
+        else
+
+          element[0] = *unsigned_char_data;
+
+      unsigned_char_data += elsize;
 
     }
 

@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_simple -- cbflib simplified API functions                      *
  *                                                                    *
- * Version 0.7.9  30 December 2007                                    *
+ * Version 0.8.0 20 July 2008                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -390,7 +390,7 @@ int cbf_count_elements (cbf_handle handle, unsigned int *elements);
 
 int cbf_get_element_id (cbf_handle handle, unsigned int element_number,
                                            const char **element_id);
-                                           
+ 
 
    /* Get the detector id */
 
@@ -409,7 +409,7 @@ int cbf_get_array_id (cbf_handle handle, unsigned int element_number,
 int cbf_get_pixel_size(cbf_handle handle, unsigned int element_number,
                                           int axis_number,
                                           double * psize);
-  
+
 
 #define cbf_get_pixel_size_fs(handle, element_number, axis_number, psize)  \
         cbf_get_pixel_size((handle),(element_number),-(axis_number),(psize))
@@ -1082,7 +1082,7 @@ int cbf_get_beam_center (cbf_detector detector, double *indexslow,
                                                 double *indexfast,
                                                 double *centerslow, 
                                                 double *centerfast);
-
+                                                
 #define cbf_get_beam_center_sf(detector, indexslow, indexfast,    \
                                           centerslow, centerfast)  \
         cbf_get_beam_center((detector),(indexslow),(indexfast),    \
@@ -1148,7 +1148,7 @@ int cbf_get_pixel_coordinates (cbf_detector detector, double  indexslow,
                                                       double *coordinate1,
                                                       double *coordinate2,
                                                       double *coordinate3);
-
+                                                      
 #define cbf_get_pixel_coordinates_sf(detector, indexslow, indexfast,  \
                                 coordinate1, coordinate2, coordinate3) \
         cbf_get_pixel_coordinates ((detector),(indexslow),(indexfast), \

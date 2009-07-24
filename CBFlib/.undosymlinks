@@ -4,12 +4,12 @@
 #  .undosymlinks for CBFlib/doc directory                            #
 #                                                                    #
 #                                                                    #
-# Version 0.7.8.2 25 Dec 2007                                        #
+# Version 0.8.0 20 Jul 2008                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 - 2007 Herbert J. Bernstein                     #
+# (C) Copyright 2006 - 2008 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
@@ -63,7 +63,7 @@
 # Usage ./.undosymlinks
 
 for file in index.html CBFlib.tar.gz template_adscquantum315_3072x3072.cbf \
-  template_adscquantum4_2304x2304.cbf template_adscquantum315_3072x3072_rev.cbf \
+  template_adscquantum4_2304x2304.cbf \
   template_mar345_2300x2300.cbf template_pilatus6m_2463x2527.cbf gpl.txt lgpl.txt
 do
   rm -rf $file
