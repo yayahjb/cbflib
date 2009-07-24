@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf.h -- cbflib basic API functions                                *
  *                                                                    *
- * Version 0.7.9 30 December 2007                                     *
+ * Version 0.8.0 20 July 2008                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -265,14 +265,17 @@ extern "C" {
 
   /* Currently the cbf library assumes a 32-bit or larger integer */
 
+#ifndef SWIG
+  /* Something wrong with the SWIG preprocessor makes it barf on this when used on a 64-bit OS! */
 #if UINT_MAX / 65535U < 65535U
 #error cbflib assumes int is at least 32 bits
+#endif
 #endif
 
 
   /* API version and assumed dictionary version */
   
-#define CBF_API_VERSION     "CBFlib v0.7.8"
+#define CBF_API_VERSION     "CBFlib v0.8.0"
 #define CBF_DIC_VERSION     "CBF: VERSION 1.5"
 
   /* Maximum line length */
@@ -280,9 +283,11 @@ extern "C" {
 #define CBF_LINELENGTH_10 80
 #define CBF_LINELENGTH_11 2048
 
-  /* Initial write buffer size */
+  /* Initial io buffer sizes */
   
+#define CBF_INIT_READ_BUFFER 4096
 #define CBF_INIT_WRITE_BUFFER 4096
+#define CBF_TRANSFER_BUFFER 4096
 
 
   /* Error codes */
@@ -318,6 +323,25 @@ extern "C" {
 #define CBF_TOKEN_BIN        '\304'     /* Binary section              */
 #define CBF_TOKEN_MIME_BIN   '\305'     /* Mime-encoded binary section */
 #define CBF_TOKEN_TMP_BIN    '\306'     /* Temporary binary section    */
+#define CBF_TOKEN_BKTSTRING  '\311'     /* Composite string []         */
+#define CBF_TOKEN_BRCSTRING  '\312'     /* Composite string {}         */
+#define CBF_TOKEN_PRNSTRING  '\313'     /* Composite string ()         */
+#define CBF_TOKEN_TDQSTRING  '\314'     /* Triple Double-Quoted String */
+#define CBF_TOKEN_TSQSTRING  '\315'     /* Triple Single-Quoted String */
+#define CBF_TOKEN_BKTITEM    '\316'     /* Bracketed item              */
+
+#define cbf_token_term(tokentype) \
+  (((tokentype)==CBF_TOKEN_WORD)?' ':                \
+  (((tokentype)==CBF_TOKEN_SQSTRING)?'\'':           \
+  (((tokentype)==CBF_TOKEN_DQSTRING)?'"':            \
+  (((tokentype)==CBF_TOKEN_SCSTRING)?';':            \
+  (((tokentype)==CBF_TOKEN_BKTSTRING)?']':           \
+  (((tokentype)==CBF_TOKEN_BRCSTRING)?'}':           \
+  (((tokentype)==CBF_TOKEN_PRNSTRING)?')':           \
+  (((tokentype)==CBF_TOKEN_TDQSTRING)?'"':           \
+  (((tokentype)==CBF_TOKEN_TDQSTRING)?'\'': '\0' )))))))) )
+
+
 
   /* Constants for case sensitivity */
   
@@ -371,6 +395,19 @@ extern "C" {
 #define PAD_2K          0x0040  /* Pad binaries with 2047 0's         */
 #define PAD_4K          0x0080  /* Pad binaries with 4095 0's         */
 
+
+  /* Constants used to control CIF parsing */
+  
+#define PARSE_NOBRACKETS        \
+                        0x0100  /* Do not parse DDLm (,..) [,..] {,...}    */
+#define PARSE_BRACKETS  0x0200  /* PARSE DDLm (,..) [,..] {,...}           */ 
+#define PARSE_LIBERAL_BRACKETS  \
+                        0x0400  /* PARSE DDLm (,..) [,..] {,...} liberally */ 
+#define PARSE_TRIPLE_QUOTES     \
+                        0x0800  /* PARSE DDLm """...""" and '''...'''      */
+#define PARSE_NOTRIPLE_QUOTES   \
+                        0x1000  /* Do not PARSE DDLm """...""" and '''...'''*/
+#define PARSE_WIDE      0x2000  /* PARSE wide files                         */
 
 #define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)
 
@@ -496,6 +533,13 @@ int cbf_read_file (cbf_handle handle, FILE *stream, int flags);
   /* Read a wide file */
 
 int cbf_read_widefile (cbf_handle handle, FILE *stream, int flags);
+
+
+  /* Read a pre-read buffered file */
+  
+int cbf_read_buffered_file (cbf_handle handle, FILE *stream, int flags, 
+                            const char * buffer, size_t buffer_len);
+
 
 
   /* Write a file */
@@ -859,18 +903,6 @@ int cbf_set_integervalue (cbf_handle handle, int number);
   /* Set the ascii value of the current (row, column) entry from a double */
   
 int cbf_set_doublevalue (cbf_handle handle, const char *format, double number);
-
-
- /* Get the name of the current save frame */
-
-int cbf_saveframe_name (cbf_handle handle, const char **saveframename);
-
-
-  /* Get the ascii value of the current (row, column) entry,
-     setting it to a default value if necessary */
-
-int cbf_require_value (cbf_handle handle, const char **value, 
-                                          const char *defaultvalue);
 
 
   /* Get the (integer) numeric value of the current (row, column) entry, setting it if necessary */
@@ -1275,6 +1307,13 @@ int cbf_mpint_rightshift_acc(unsigned int * acc, size_t acsize, int shift);
 int cbf_mpint_leftshift_acc(unsigned int * acc, size_t acsize, int shift);
 
 
+  /* Check value of type validity */
+  
+int cbf_check_type_contents(const char *type, const char *value);
+
+  /* Regex Match function */
+
+int cbf_match(const char *string, char *pattern);
 
 #ifdef __cplusplus
 

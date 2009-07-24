@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_simple -- cbflib simplified API functions                      *
  *                                                                    *
- * Version 0.7.9 30 December 2007                                     *
+ * Version 0.8.0 20 July 2008                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -791,16 +791,16 @@ int cbf_set_pixel_size(cbf_handle handle, unsigned int element_number,
   if (axis_index == 0 && axis_number < 0 ) {
     cbf_failnez (cbf_rewind_row (handle) )
     while (cbf_find_nextrow (handle, array_id) == 0) {
-    cbf_failnez (cbf_find_column      (handle, "precedence"))
-    cbf_failnez (cbf_get_integervalue (handle, &precedence))
+      cbf_failnez (cbf_find_column      (handle, "precedence"))
+      cbf_failnez (cbf_get_integervalue (handle, &precedence))
 
       if (precedence == max_precedence+1+axis_number) {
-    cbf_failnez (cbf_find_column      (handle, "index"))
-    cbf_failnez (cbf_get_integervalue (handle, &axis_index))
+        cbf_failnez (cbf_find_column      (handle, "index"))
+        cbf_failnez (cbf_get_integervalue (handle, &axis_index))
         if (axis_index < 1) return CBF_FORMAT;
         break;
       }
-    cbf_failnez (cbf_find_column (handle, "array_id"))
+      cbf_failnez (cbf_find_column (handle, "array_id"))
     }
   }
 
@@ -3076,7 +3076,7 @@ int cbf_free_positioner (cbf_positioner positioner)
   void *vaxis;
   
   void *vname;
-
+  
   void *adon;
 
   size_t i;
@@ -3094,7 +3094,7 @@ int cbf_free_positioner (cbf_positioner positioner)
       errorcode |= cbf_free ((void **) &vname, NULL);
       
       positioner->axis [i].name = NULL;
-    
+      
       if (positioner->axis [i].depends_on) {
       
         adon = (void *)(positioner->axis [i].depends_on);
@@ -3164,7 +3164,7 @@ int cbf_add_positioner_axis (cbf_positioner positioner,
     /* Allocate memory and copy the axis names */
     
   axis.name = NULL;
-
+  
   axis.name = (char *)cbf_copy_string(NULL,name,0);
 
   axis.depends_on = NULL;
@@ -3172,7 +3172,7 @@ int cbf_add_positioner_axis (cbf_positioner positioner,
   if (depends_on) {
   
     axis.depends_on = (char *)cbf_copy_string(NULL,depends_on,0);
-                                   
+                                     
   }
 
   if (errorcode)

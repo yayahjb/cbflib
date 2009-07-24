@@ -363,7 +363,7 @@ int cbf_realloc (void **old_block, size_t *old_nelem,
 #endif
 
     free (*old_block);
-
+    
   }
 
 

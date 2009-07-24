@@ -261,6 +261,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <ctype.h>
 
 
 
@@ -284,7 +285,7 @@ int cbf_make_file (cbf_file **file, FILE *stream)
 
   (*file)->stream          = stream;
   (*file)->connections     = 1;
-  (*file)->temporary       = 0;
+  (*file)->temporary       = stream?0:1;
   (*file)->bits [0]        = 0;
   (*file)->bits [1]        = 0;
   (*file)->characters_base = (*file)->characters;
@@ -351,7 +352,7 @@ int cbf_free_file (cbf_file **file)
       
       vcharacters = (void *)(*file)->characters;
       
-      if ((*file)->temporary && (*file)->characters_base) vcharacters = (void *)(*file)->characters_base; 
+      if ((*file)->characters_base) vcharacters = (void *)(*file)->characters_base; 
 
       errorcode |= cbf_free ((void **) &vbuffer,
                                        &(*file)->buffer_size);
@@ -510,21 +511,18 @@ int cbf_reset_buffer (cbf_file *file)
   return 0;
 }
 
-  /* Set output buffer size */
-  
-int cbf_set_output_buffersize (cbf_file *file, size_t size)
+
+  /* Set input/output buffer size */
+
+
+int cbf_set_io_buffersize (cbf_file *file, size_t size)
 {
 
     size_t old_data, old_size, target_size;
       
     char ** fc;
-    
-    /* try to get the needed space by flushing the
-       current output buffer */
-    
-    cbf_failnez (cbf_flush_characters(file))
-    
-    /* if the fails, increase to at least double the
+        
+    /* if insufficient space, increase to at least double the
         old space, but certainly to the requested size */
 
 	if (file->characters_size < CBF_INIT_WRITE_BUFFER
@@ -568,6 +566,24 @@ int cbf_set_output_buffersize (cbf_file *file, size_t size)
 
 }
 
+  
+  
+  /* Set output buffer size */
+  
+int cbf_set_output_buffersize (cbf_file *file, size_t size)
+{
+    
+    /* try to get the needed space by flushing the
+       current output buffer */
+    
+    cbf_failnez (cbf_flush_characters(file))
+    
+    cbf_failnez (cbf_set_io_buffersize(file, size))
+    
+    return 0;
+
+}
+
   /* Add a character to the buffer */
 
 int cbf_save_character (cbf_file *file, int c)
@@ -591,6 +607,55 @@ int cbf_save_character (cbf_file *file, int c)
       cbf_failnez (cbf_set_buffersize (file, new_size))
   }
 
+    /* Add the character */
+
+  file->buffer [file->buffer_used] = (char) c;
+
+  file->buffer_used++;
+
+  file->buffer [file->buffer_used] = '\0';
+
+
+    /* Success */
+
+  return 0;
+}
+
+  /* Add a character to the buffer, trim lines */
+
+int cbf_save_character_trim (cbf_file *file, int c)
+{
+  unsigned int new_size;
+
+    /* Does the file exist? */
+
+  if (!file)
+
+    return CBF_ARGUMENT;
+
+
+    /* Expand the buffer? */
+
+  if (file->buffer_size < file->buffer_used+3) {
+
+    new_size = (file->buffer_used+3)*2;
+
+    if (new_size >= file->buffer_size)
+      cbf_failnez (cbf_set_buffersize (file, new_size))
+  }
+
+    /* Check for end of line, if so, trim */
+    
+  if ((char)c == '\n') {
+
+    while (file->buffer_used > 0 
+      && file->buffer[file->buffer_used-1] != '\n' 
+      && file->buffer[file->buffer_used-1] != '\r' 
+      && isspace(file->buffer[file->buffer_used-1])) {
+      
+      file->buffer_used--;    }
+  	
+  }
     /* Add the character */
 
   file->buffer [file->buffer_used] = (char) c;
@@ -724,8 +789,23 @@ int cbf_get_bit (cbf_file *file)
       }
       	
     } else {
+    
+      if (file->characters_used) {
+      
+        file->bits [1] = *((file->characters)++);
+          
+        file->bits [1] &= 0xFF;
+          
+        file->characters_used--;
+          
+        file->characters_size--;
+        
+      } else {
       	
-      file->bits [1] = getc (file->stream);
+        file->bits [1] = getc (file->stream);
+
+      }
+
     }
 
     if (file->bits [1] == EOF)
@@ -799,8 +879,23 @@ int cbf_get_bits (cbf_file *file, int *bitslist, int bitcount)
       }
       	
     } else {
+
+      if (file->characters_used) {
+      
+        file->bits [1] = *((file->characters)++);
+          
+        file->bits [1] &= 0xFF;
+          
+        file->characters_used--;
+          
+        file->characters_size--;
+        
+      } else {
       	
-      file->bits [1] = getc (file->stream);
+        file->bits [1] = getc (file->stream);
+
+      }
+ 
     }
 
     if (file->bits [1] == EOF)
@@ -1334,6 +1429,20 @@ int cbf_reset_bits (cbf_file *file)
   return cbf_reset_characters (file);
 }
 
+  /* Discard any bits in the bits buffers for input */
+
+int cbf_reset_in_bits (cbf_file *file)
+{
+  if (!file)
+
+    return CBF_ARGUMENT;
+
+  file->bits [0] = 0;
+  file->bits [1] = 0;
+
+  return 0;
+}
+
 
   /* Discard any characters in the character buffers */
 
@@ -1356,10 +1465,61 @@ int cbf_reset_characters (cbf_file *file)
 
 int cbf_get_character (cbf_file *file)
 {
-  if (file->temporary) {
-  
-    if (file->characters_used)  {
+ 
+  if (file->characters_used)  {
     
+    file->last_read = *(file->characters++);
+      
+    file->last_read &= 0xff;
+      
+    (file->characters_used)--;
+      
+    (file->characters_size)--;
+    
+    return file->last_read;
+    
+  }
+ 
+  if (file->temporary) {
+      
+    file->last_read = EOF;
+    	
+    return file->last_read;
+
+  }
+
+  file->last_read = EOF;
+  
+  if (file->stream) {
+  	
+  	size_t increment;
+  	 
+    if (!file->characters_base) {
+    	
+      cbf_failnez(cbf_set_io_buffersize(file,CBF_INIT_READ_BUFFER))
+
+    }
+      
+    increment = file->characters - file->characters_base;
+        
+    file->characters_size += increment;
+        
+    file->characters = file->characters_base;
+      
+    if (!file->characters_size) {
+      
+      cbf_failnez(cbf_set_io_buffersize(file,CBF_INIT_READ_BUFFER))
+      	
+    }
+      
+    if (feof(file->stream) || ferror(file->stream))
+      
+      return EOF;
+                       
+    file->characters_used = fread(file->characters_base,1,file->characters_size,file->stream);
+          
+    if (file->characters_used) {
+
       file->last_read = *(file->characters++);
       
       file->last_read &= 0xff;
@@ -1369,23 +1529,17 @@ int cbf_get_character (cbf_file *file)
       (file->characters_size)--;
           	
     } else {
-    
-      file->last_read = EOF;
-    	
+      
+      if (ferror(file->stream)) 
+        
+        return CBF_FILEREAD;
+          
+      else return EOF;
+        
     }
-    
-    return file->last_read;
 
-  }
-
-  if (file->stream)
-
-    file->last_read = fgetc (file->stream);
-
-  else
-
-    file->last_read = EOF;
-
+  } 
+  
   return file->last_read;
 }
 
@@ -1695,20 +1849,58 @@ int cbf_get_block (cbf_file *file, size_t nelem)
       
       file->characters += done;
     
-    } else  {
-    	
-    
-      if (file->stream)
-
-        done = fread (file->buffer + file->buffer_used, 1,
-                           nelem - file->buffer_used, file->stream);
-
-      else
-
-        done = 0;
+      file->buffer_used += done;
       
+      return 0;
     }
+    	
+    if (file->stream)  {
+      
+      done = 0;
 
+      if (file->characters_used >= nelem-file->buffer_used) {
+      
+        memmove(file->buffer + file->buffer_used,
+          file->characters, nelem-file->buffer_used);
+          
+        done = nelem-file->buffer_used;
+ 
+      } else if (file->characters_used) {
+      
+        memmove(file->buffer + file->buffer_used,
+          file->characters, file->characters_used);
+          
+        done = file->characters_used;
+        	
+      } 
+
+      file->characters_used -= done;
+      
+      file->characters_size -= done;
+      
+      file->characters += done;
+        
+      file->buffer_used += done;
+        
+      done = 0;
+
+      if (nelem > file->buffer_used)
+        done = fread (file->buffer + file->buffer_used, 1,
+                         nelem - file->buffer_used, file->stream);
+                         
+      if ( done < nelem - file->buffer_used ) 
+        return CBF_FILEREAD;
+      
+      file->buffer_used += done;
+      
+      return 0;
+      
+    } else  {
+      	
+      done = 0;
+        
+    }
+      
     if (done <= 0)
 
       return CBF_FILEREAD;
@@ -1882,14 +2074,14 @@ int cbf_copy_file (cbf_file *destination, cbf_file *source, size_t nelem)
   }
 
 
-    /* Copy the characters in blocks of up to 1024 */
+    /* Copy the characters in blocks of up to CBF_TRANSFER_BUFFER */
     
 
   while (nelem > 0)
   {
-    if (nelem >= 1024)
+    if (nelem >= CBF_TRANSFER_BUFFER)
 
-      todo = 1024;
+      todo = CBF_TRANSFER_BUFFER;
 
     else
 
@@ -2011,6 +2203,16 @@ int cbf_get_fileposition (cbf_file *file, long int *position)
 
       return CBF_FILETELL;
       
+    if (file->characters) {
+    	
+      file_position -= file->characters_used;
+      
+      if (file_position < 0 )
+      
+        return CBF_FILETELL;
+
+    }
+      
   }
 
   if (position)
@@ -2056,15 +2258,38 @@ int cbf_set_fileposition (cbf_file *file, long int position, int whence)
    file->characters_size += file->characters-file->characters_base-position;
    
    file->characters = file->characters_base + position;
-
  	
  } else {
 
+   if (file->characters && whence == SEEK_CUR 
+     && ((position >= 0 && file->characters_used > position)
+       || (position < 0 && file->characters - file->characters_base >  -position)))  {
+
+     file->characters += position;
+          
+     file->characters_used -= position;
+          
+     file->characters_size -= position;
+     	
+   } else {
+   
+   if (whence == SEEK_CUR) {
+   
+     position -= file->characters_used;
+   	
+   }
+   	
    if (fseek (file->stream, position, whence) < 0)
 
      return CBF_FILESEEK;
      
    file->characters_used = 0;
+   
+   file->characters_size += (file->characters-file->characters_base);
+   
+   file->characters = file->characters_base;
+   
+   }
    
  }
  

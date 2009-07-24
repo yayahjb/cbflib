@@ -494,8 +494,8 @@ int cbf_free_node (cbf_node *node)
   if (!node)
 
     return CBF_ARGUMENT;
-
-    /* Check for a catgeory */
+    
+    /* Check for a category */
     
   if (node->type == CBF_CATEGORY) {
   
@@ -1506,7 +1506,7 @@ int cbf_set_link (cbf_node *link, cbf_node *node)
     return CBF_ARGUMENT;
 
     /* Change the link */
-
+    
   link->link = node;
 
 

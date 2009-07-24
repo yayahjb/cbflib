@@ -35,7 +35,7 @@ ALT="[CBFlib]"></A>
 <font color="#0808A0">
 <H2 ALIGN=CENTER>README</H2>
 <H3 ALIGN=CENTER>
-Information for CBFlib 0.7.9.1 release of 24 January 2008<BR>
+Information for CBFlib 0.8 pre-release of 20 July 2008<BR>
 </H3>
 </font><font color="#000000">
 <CENTER>
@@ -87,6 +87,11 @@ DOE, NSF, NIH, NIGMS, NCRR or IUCr.
 <P>
 <HR>
 <P>
+<b>NOTE:  This is a partial pre-release of CBFlib version 0.8 needed to support
+changes in RasMol.  This release in imcomplete and should be used with caution.
+There have been significant changes in the input/output logic and in validation.
+Until the ChangeLog is ready, consult the CVS of the CBFlib project on sourceforge.</b>
+<P>
 CBFLIB is a library of ANSI-C functions providing a simple mechanism for 
 accessing Crystallographic Binary Files (CBF files) and Image-supporting 
 CIF (imgCIF) files.  The CBFLIB API is loosely based on the CIFPARSE API
@@ -103,29 +108,33 @@ CBFLIB should be built on a disk with at least 350 megabytes of free
 space, for a full installation with complete tests.  <b>Read the
 instructions below carefully, if space is a problem.</b>
 <P>
-<A HREF="../CBFlib_0.7.9.tar.gz">CBFlib_0.7.9.tar.gz</A> is a "gzipped" 
+<A HREF="../CBFlib_0.8.0.tar.gz">CBFlib_0.8.0.tar.gz</A> is a "gzipped" 
 tar of the code as it now stands.
 <P>
 In addition,
-<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Input.tar.gz">CBFlib_0.7.9_Data_Files_Input.tar.gz</a>
+<A 
+HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.8.0/CBFlib_0.8.0_Data_Files_Input.tar.gz">CBFlib_0.8.0_Data_Files_Input.tar.gz</a>
 (13 MB) is a "gzipped" tar of the input data files needed to test the API,
-<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Output.tar.gz">CBFlib_0.7.9_Data_Files_Output.tar.gz</a>
+<A 
+HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.8.0/CBFlib_0.8.0_Data_Files_Output.tar.gz">CBFlib_0.8.0_Data_Files_Output.tar.gz</a>
 (34 MB) is a "gzipped" tar of the output data files needed to test the API, and, if space is at a premium,
-<A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz">CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz</a>
+<A 
+HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.8.0/CBFlib_0.8.0_Data_Files_Output_Sigs_Only.tar.gz">CBFlib_0.8.0_Data_Files_Output_Sigs_Only.tar.gz</a>
 (1KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
 
-Place the CBFlib_0.7.9.tar.gz file in the directory
+Place the CBFlib_0.8.0.tar.gz file in the directory
 that is intended to contain up to 4 new directories, named 
-CBFlib_0.7.9 (the &quot;top-level&quot; directory),
-CBFlib_0.7.9_Data_Files_Input and either CBFlib_0.7.9_Data_Files_Output or CBFlib_0.7.9_Data_Files_Output_Sigs_Only.
+CBFlib_0.8.0 (the &quot;top-level&quot; directory),
+CBFlib_0.8.0_Data_Files_Input and either CBFlib_0.8.0_Data_Files_Output or 
+CBFlib_0.8.0_Data_Files_Output_Sigs_Only.
 If you have wget on your machine, you only need to download the source tarball.  If you do not have wget,
 you will need to download all the tarballs into the same directory
 <p>
-Uncompress CBFlib_0.7.9.tar.gz with gunzip and unpack it with tar:
+Uncompress CBFlib_0.8.0.tar.gz with gunzip and unpack it with tar:
 <p>
 <PRE>
-     gunzip CBFlib_0.7.9.tar.gz
-     tar xvf CBFLIB_0.7.9.tar
+     gunzip CBFlib_0.8.0.tar.gz
+     tar xvf CBFLIB_0.8.0.tar
 </PRE>
 <p>
 To run the test programs, you will also need 
@@ -137,7 +146,7 @@ insulin_pilatus6m, as sample data.  In addition there are
 is a PDB mmCIF file, 9ins.cif, and 3 special test files
 testflatin.cbf, testflatpackedin.cbf and testrealin.cbf.
  All these files will be
-dowloaded and extracted by the Makefile from CBFlib_0.7.9_Data_Files_Input.  Do
+dowloaded and extracted by the Makefile from CBFlib_0.8.0_Data_Files_Input.  Do
 not download copies into the top level directory.
 <P>
 After unpacking the archives, the top-level directory should contain
@@ -187,7 +196,7 @@ or, if space is at a premium, with
 <PRE>
      make tests_sigs_only
 </PRE>
-  
+
 
   
 <P>

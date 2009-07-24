@@ -399,13 +399,13 @@ int cbf_md5digest (cbf_file *file, size_t size, char *digest)
   MD5Init (&context);
 
 
-    /* Update the digest in blocks of 1024 */
+    /* Update the digest in blocks of CBF_TRANSFER_BUFFER */
 
   while (size > 0)
   {
-    if (size >= 1024)
+    if (size >= CBF_TRANSFER_BUFFER)
 
-      todo = 1024;
+      todo = CBF_TRANSFER_BUFFER;
 
     else
 

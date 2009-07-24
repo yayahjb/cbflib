@@ -1,0 +1,26 @@
+An initial set of Java wrapper classes for CBFlib-0.8.0 has been
+implemented using SWIG. A pair of example programs (testcbf.c and
+testcbf.java) are included that show the similarities and differences
+of using CBFlib in C and Java.
+
+This has been tested using Red Hat EL 4.7 WS for i568 and Red Hat EL
+5.3 WS for x86_64 with Sun's JDK.
+
+In addition to the static methods in org.iucr.cbflib.cbf, six helper
+classes are included: four wrapper classes for C pointers that point
+to size_t (sizetP), int (intP), unsigned int (uintP) and double
+(doubleP); two wrapper classes for C arrays that hold int (intArray)
+and double (doubleArray). Also, some helper functions for a pointer to
+pointer to char (charPP_*) aid the output of strings, and pointer
+casts to void (int_void and double_void). Finally, a constructor and a
+destructor has been added to the cbf_handle_struct class.
+
+Peter.Chang@diamond.ac.uk
+
+23/02/2009
+
+
+
+
+	
+

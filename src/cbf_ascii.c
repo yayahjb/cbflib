@@ -271,7 +271,8 @@ extern "C" {
 int cbf_foldtextline(const char** string, char* fline, 
                                                 int fline_size,
                                                 int unfoldme,
-                                                int foldme ) {
+                                                int foldme,
+                                                char termc ) {
     const char *c;
     
     char *ofl;
@@ -282,6 +283,8 @@ int cbf_foldtextline(const char** string, char* fline,
     
     c = *string;
     
+    if (foldme && (termc == '\'' || termc == '\"') ) left -=2;
+
     ofl = fline;
     
     savbpos = -1;
@@ -290,7 +293,7 @@ int cbf_foldtextline(const char** string, char* fline,
 	
     /* protect folded lines that begin with ; */
       
-    if (c[0] == ';' && (isspace(c[1])|| !c[1]) ){
+    if (c[0] == ';' && termc == ';' && (isspace(c[1])|| !c[1]) ){
 
       *ofl++ = ';';
       
@@ -303,6 +306,7 @@ int cbf_foldtextline(const char** string, char* fline,
       return 0;
    	
     }
+    
 
     for (ipos=0; c[ipos]; ipos++) {
     
@@ -429,6 +433,8 @@ int cbf_write_ascii (const char *string, cbf_file *file)
   static const char missing [] = { CBF_TOKEN_WORD, '?', '\0' };
 
   int end, lw, lc, foldme=0, unfoldme=0;
+  
+  char initc=';', termc=';';
 
   unsigned int column;
 
@@ -449,10 +455,15 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
   else
 
-    if (*string != CBF_TOKEN_WORD     &&
-        *string != CBF_TOKEN_SQSTRING &&
-        *string != CBF_TOKEN_DQSTRING &&
-        *string != CBF_TOKEN_SCSTRING &&
+    if (*string != CBF_TOKEN_WORD       &&
+        *string != CBF_TOKEN_SQSTRING   &&
+        *string != CBF_TOKEN_DQSTRING   &&
+        *string != CBF_TOKEN_SCSTRING   &&
+        *string != CBF_TOKEN_TSQSTRING  &&
+        *string != CBF_TOKEN_TDQSTRING  &&
+        *string != CBF_TOKEN_BKTSTRING  &&
+        *string != CBF_TOKEN_BRCSTRING  &&
+        *string != CBF_TOKEN_PRNSTRING  &&
         *string != CBF_TOKEN_NULL)
 
       return CBF_ARGUMENT;
@@ -478,6 +489,17 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
         end = column + 3;
 
+      else if (*string == CBF_TOKEN_TSQSTRING ||
+        *string == CBF_TOKEN_TDQSTRING)
+        
+        end = column + 6;
+
+      else if (*string == CBF_TOKEN_PRNSTRING ||
+        *string == CBF_TOKEN_BKTSTRING ||
+        *string == CBF_TOKEN_BKTSTRING)
+        
+        end = column + 5;
+        
       else
 
         end = column + 1;
@@ -693,7 +715,7 @@ int cbf_write_ascii (const char *string, cbf_file *file)
       
         int done;
       
-        done = cbf_foldtextline(&c, fline, file->columnlimit, unfoldme, foldme);
+        done = cbf_foldtextline(&c, fline, file->columnlimit, unfoldme, foldme, ';');
         
         cbf_failnez (cbf_write_string (file, fline))
         
@@ -722,6 +744,151 @@ int cbf_write_ascii (const char *string, cbf_file *file)
       end = 0;
 
       break;
+
+    case CBF_TOKEN_TSQSTRING:
+    case CBF_TOKEN_TDQSTRING:
+  	case CBF_TOKEN_PRNSTRING:
+  	case CBF_TOKEN_BRCSTRING:
+  	case CBF_TOKEN_BKTSTRING:
+     
+      unfoldme = 0;
+      
+      foldme = 0;
+     
+      switch (*string) {
+        case CBF_TOKEN_TSQSTRING: initc = termc = '\'';
+          if (file->write_headers & PARSE_NOTRIPLE_QUOTES) initc = termc = ';'; foldme= 1; break;
+        case CBF_TOKEN_TDQSTRING: initc = termc = '"'; 
+          if (file->write_headers & PARSE_NOTRIPLE_QUOTES) initc = termc = ';'; foldme= 1; break;
+        case CBF_TOKEN_PRNSTRING: initc = '('; termc = ')';
+          if (file->write_headers & PARSE_NOBRACKETS) initc = termc = ';'; foldme= 1; break;
+        case CBF_TOKEN_BRCSTRING: initc = '{'; termc = '}'; 
+          if (file->write_headers & PARSE_NOBRACKETS) initc = termc = ';'; foldme= 1; break;
+  	    case CBF_TOKEN_BKTSTRING: initc = '['; termc = ']'; 
+          if (file->write_headers & PARSE_NOBRACKETS) initc = termc = ';'; foldme= 1; break;
+      }
+      
+      if (*(string+1)=='\\' && *(string+2)=='\n' ) unfoldme=2;
+    
+      lw = 0;
+      
+      lc = 1;
+
+      end = 1;
+      
+      for (c = string +1+unfoldme; *c; c++) {
+
+        if (termc==';' && *c == ';' && end == 0 && (isspace(*(c+1))|| !*(c+1))) foldme=1;
+        
+        if (*c == '\n') {
+
+          if (!unfoldme || *(c-1) !='\\') {
+
+            end = 0;
+          
+            if (lc > lw) lw = lc;
+          
+            lc = 0;
+            
+          } else  {
+          
+            lc--;
+          	
+          }
+
+        } else {
+        
+          lc++;
+
+          end = 1;
+        }
+      }
+      
+      if (lc > lw) lw = lc;
+
+      if ( foldme || lw > file->columnlimit || (unfoldme && *(c-1)=='\\')) {
+
+        sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
+
+        cbf_warning(buffer);
+      
+        if (initc==';') {
+          cbf_failnez (cbf_write_string (file, ";\\\n"))
+        } else {
+          cbf_failnez (cbf_write_character (file, initc))
+          cbf_failnez (cbf_write_string (file, "\\\n"))        	
+        }
+        
+        end = 0;
+        
+        foldme = 1;
+      	
+      } else {
+
+        cbf_failnez (cbf_write_character (file, initc))
+        
+        end = 1;
+        
+        foldme = 0;
+      
+      }
+
+            
+      for (c = string + 1+ unfoldme; *c; ) {
+      
+        int done;
+      
+        done = cbf_foldtextline(&c, fline, file->columnlimit
+          -file->column, unfoldme, foldme, termc);
+        
+        cbf_failnez (cbf_write_string (file, fline))
+        
+        if ( !done ) cbf_failnez (cbf_write_character (file, '\n'))
+        
+      }
+      
+
+      if (unfoldme && *(c-1)=='\\') {
+
+        if (termc == ';') {
+          cbf_failnez (cbf_write_string (file, "\\\n;\n"))	
+        }  else  {
+          cbf_failnez (cbf_write_string (file, "\\\n"))	
+          cbf_failnez (cbf_write_character (file, termc )) 
+          if (*string==CBF_TOKEN_TSQSTRING 
+            || *string==CBF_TOKEN_TDQSTRING ) {
+            cbf_failnez (cbf_write_character (file, termc )) 
+            cbf_failnez (cbf_write_character (file, termc ))           	
+          }
+        }
+
+      } else {
+
+        if (file->column) {
+
+      	  cbf_failnez (cbf_write_character (file, '\n'))
+
+        }
+
+        if (termc == ';') {
+          cbf_failnez (cbf_write_string (file, ";\n"))	
+        }  else  {
+          cbf_failnez (cbf_write_character (file, termc ))        	
+          if (*string==CBF_TOKEN_TSQSTRING 
+            || *string==CBF_TOKEN_TDQSTRING ) {
+            cbf_failnez (cbf_write_character (file, termc )) 
+            cbf_failnez (cbf_write_character (file, termc ))           	
+          }
+        }
+
+      }
+      
+
+      end = 0;
+
+      break;
+
+
   }
 
 

@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_packed -- Packing compression                                  *
  *                                                                    *
- * Version 0.7.9 30 December 2007                                     *
+ * Version 0.8.0 20 July 2008                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -1319,19 +1319,19 @@ int cbf_compress_packed (void         *source,
     } else {
     	
 
-    if (elsize == sizeof (int))
+      if (elsize == sizeof (int))
 
-      element[0] = *((unsigned int *) unsigned_char_data);
-
-    else
-
-      if (elsize == sizeof (short))
-
-        element[0] = *((unsigned short *) unsigned_char_data);
+        element[0] = *((unsigned int *) unsigned_char_data);
 
       else
 
-        element[0] = *unsigned_char_data;
+        if (elsize == sizeof (short))
+
+          element[0] = *((unsigned short *) unsigned_char_data);
+
+        else
+
+          element[0] = *unsigned_char_data;
 
       unsigned_char_data += elsize;
 

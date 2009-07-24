@@ -276,6 +276,11 @@ static char texttok[5] = "text";
 static char dblqtok[5] = "dblq";
 static char sglqtok[5] = "sglq";
 static char nulltok[5] = "null";
+static char tsqstok[5] = "tsqs";
+static char tdqstok[5] = "tdqs";
+static char prnstok[5] = "prns";
+static char brcstok[5] = "brcs";
+static char bktstok[5] = "bkts";
 
   /* Get the value type of an ascii string */
 
@@ -339,6 +344,42 @@ int cbf_get_value_type(const char *value, const char **value_type)
 
   }
 
+  if (*value == CBF_TOKEN_BKTSTRING) {
+
+    *value_type = bktstok;
+
+    return 0;
+
+  }
+  
+  if (*value == CBF_TOKEN_BRCSTRING) {
+
+    *value_type = brcstok;
+
+    return 0;
+
+  }
+  if (*value == CBF_TOKEN_PRNSTRING) {
+
+    *value_type = prnstok;
+
+    return 0;
+
+  }
+  if (*value == CBF_TOKEN_TDQSTRING) {
+
+    *value_type = tdqstok;
+
+    return 0;
+
+  }
+  if (*value == CBF_TOKEN_TSQSTRING) {
+
+    *value_type = tsqstok;
+
+    return 0;
+
+  }
   if (*value == CBF_TOKEN_NULL) {
 
     *value_type = nulltok;
@@ -346,6 +387,7 @@ int cbf_get_value_type(const char *value, const char **value_type)
     return 0;
 
   }
+  
 
   return CBF_ARGUMENT;
 
@@ -469,6 +511,82 @@ int cbf_set_value_type(char *value, const char *value_type)
     return 0;
 
   }
+
+
+  if (strcmp(value_type,tsqstok) == 0 ) {
+  
+    cptr = &value[1];
+
+    while (*cptr && (cptr=strstr(cptr,"'''")) ) {
+    
+      if (isspace(cptr[2])) {
+
+        cbf_warning("triple singled-quoted field contains terminator, will be folded on output");
+        
+        break;
+
+      }
+      
+      if (*cptr) cptr++;
+    	
+    }
+
+    *value = CBF_TOKEN_TSQSTRING;
+
+    return 0;
+
+  }
+  
+    if (strcmp(value_type,tdqstok) == 0 ) {
+  
+    cptr = &value[1];
+
+    while (*cptr && (cptr=strstr(cptr,"\"\"\"")) ) {
+    
+      if (isspace(cptr[3])) {
+
+        cbf_warning("triple double-quoted field contains terminator, will be folded on output");
+        
+        break;
+
+      }
+      
+      if (*cptr) cptr++;
+    	
+    }
+
+    *value = CBF_TOKEN_TDQSTRING;
+
+    return 0;
+
+  }
+
+
+  if (strcmp(value_type,prnstok) == 0 ) {
+  
+    *value = CBF_TOKEN_PRNSTRING;
+
+    return 0;
+
+  }
+  
+
+  if (strcmp(value_type,brcstok) == 0 ) {
+  
+    *value = CBF_TOKEN_BRCSTRING;
+
+    return 0;
+
+  }
+
+  if (strcmp(value_type,bktstok) == 0 ) {
+  
+    *value = CBF_TOKEN_BKTSTRING;
+
+    return 0;
+
+  }
+
 
   return CBF_ARGUMENT;
 
@@ -794,6 +912,11 @@ int cbf_write_value (cbf_node *column, unsigned int row,
       *text == CBF_TOKEN_SQSTRING ||
       *text == CBF_TOKEN_DQSTRING ||
       *text == CBF_TOKEN_SCSTRING ||
+      *text == CBF_TOKEN_TSQSTRING ||
+      *text == CBF_TOKEN_TDQSTRING ||
+      *text == CBF_TOKEN_PRNSTRING ||
+      *text == CBF_TOKEN_BKTSTRING ||
+      *text == CBF_TOKEN_BRCSTRING ||
       *text == CBF_TOKEN_NULL)
 
     return cbf_write_ascii (text, file);
