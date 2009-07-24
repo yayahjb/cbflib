@@ -516,7 +516,7 @@ int main (int argc, char *argv [])
    
    cbf_failnez(cbf_make_getopt_handle(&opts))
     
-   cbf_failnez(cbf_getopt_parse(opts, argc, argv, "i:o:c:m:d:B:S:T:e:b:p:v:wD"))
+   cbf_failnez(cbf_getopt_parse(opts, argc, argv, "-i:o:c:m:d:B:S:T:e:b:p:v:wD"))
    
    if (!cbf_rewind_getopt_option(opts))
    for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
@@ -744,6 +744,8 @@ int main (int argc, char *argv [])
        "    [-d {d[igest]|n[odigest]|w[arndigest]}] \\\n");
      fprintf(stderr,
        "    [-B {read|liberal|noread}] [-B {write|nowrite}] \\\n");
+     fprintf(stderr,
+       "    [-S {read|noread}] [-S {write|nowrite}] \\\n");
      fprintf(stderr,
        "    [-T {read|noread}] [-T {write|nowrite}] \\\n");
      fprintf(stderr,

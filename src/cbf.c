@@ -5657,9 +5657,11 @@ int cbf_find_tag (cbf_handle handle, const char *tag)
 
   collen = (tag+strlen(tag))-colstart;
 
-  if (collen) strncpy(columnname,colstart+1,collen);
+  columnname[0] = '_';
 
-  columnname[collen] = '\0';
+  if (collen) strncpy(columnname+(catlen?0:1),colstart+1,collen);
+
+  columnname[collen+(catlen?0:1)] = '\0';
 
   cbf_failnez (cbf_find_parent (&node, handle->node, CBF_ROOT))
 
