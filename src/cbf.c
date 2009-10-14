@@ -6179,16 +6179,18 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
   cbf_node * colnode;
   
   cbf_node * ttnode;
+
+  cbf_handle functions_dict;
   
   const char * dictype;
   
-  const char * catname, * catroot;
+  const char * catname, * catroot, * functionname;
   
   const char * diccat, * diccatroot;
   
   const char * loopname;
 
-  const char * expression;
+  const char * expression, * location;
 
   unsigned int children, columns, rows;
   
@@ -6453,6 +6455,33 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
         	
       }
     }
+
+} else if (type == CBF_FUNCTION) {
+	
+	/* We come here at the start of a function declaration
+	   We need to 
+			check if there is a function definition
+			place declaration in functions dictionary
+	*/
+	
+	 if (!cbf_find_parent (&tnode, node, CBF_DATABLOCK)) {
+   
+   catname = tnode->name;
+
+   if (!cbf_count_children (&columns, tnode)) {
+   
+     if (columns == 0) cbf_log(handle,"function definition is missing",CBF_LOGWARNING|CBF_LOGSTARTLOC);
+     
+     else {
+
+		cbf_find_child (&node, node, catname);
+
+		functionname = node->name;
+
+   	cbf_construct_functions_dictionary(functions_dict, catname, functionname);
+			}
+	   }
+	}
 
   } else if (type == CBF_CATEGORY ) {
   
@@ -8089,6 +8118,35 @@ int cbf_drel(const char *mainitemname, const char *expression) {
 	return 0;
 }
 
+
+/* Construct functions dictionary */
+
+int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablockname, const char *functionname) {
+	
+	const char *location;
+  
+   	cbf_failnez( cbf_require_datablock (dict, "cbf_functions"))
+    
+
+    cbf_failnez( cbf_require_category (dict, "function_definitions"))
+    
+    cbf_failnez( cbf_require_column (dict, "function_location"))
+
+    cbf_failnez( cbf_require_column (dict, "function_expression"))
+
+	strcpy(location, datablockname);
+	strcat(location, ".");
+	strcat(location, functionname);
+	
+	if (!cbf_find_local_tag(dict,"function_location"))  {
+
+            cbf_failnez( cbf_set_value(dict, location))
+
+          }
+
+	cbf_failnez(cbf_write_file(dict,stderr,0,0,0,0))
+	return 0;
+}
 #ifdef __cplusplus
 
 }
