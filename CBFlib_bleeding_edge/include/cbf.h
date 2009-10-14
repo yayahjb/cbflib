@@ -1332,6 +1332,14 @@ int cbf_check_type_contents(const char *type, const char *value);
 
 int cbf_match(const char *string, char *pattern);
 
+  /* Interpreter for dREL method expression */
+
+int cbf_drel(const char *mainitemname, const char *expression);
+
+  /* Construct Functions dictionary */
+
+int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablockname, const char *functionname);
+
 #ifdef __cplusplus
 
 }
