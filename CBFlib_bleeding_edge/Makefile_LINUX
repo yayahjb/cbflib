@@ -625,7 +625,7 @@ default:
 #
 # Compile the library and examples
 #
-all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(PYCIFRW) $(PLY) symlinksdone \
+all:	$(LIB) $(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) symlinksdone \
 		$(LIB)/libcbf.a          \
 		$(LIB)/libfcb.a          \
 		$(LIB)/libimg.a          \
@@ -645,7 +645,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(PYCIFRW) $(PLY) symlinksdone \
 
 
 ifneq ($(F90C),)
-all::	$(BIN)/test_xds_binary   \
+all:	$(BIN)/test_xds_binary   \
 		$(BIN)/test_fcb_read_image
 endif
 
@@ -700,19 +700,11 @@ Makefile: $(M4)/Makefile.m4
 		m4 -P -Dcbf_system=default $(M4)/Makefile.m4 > Makefile 
 
 symlinksdone:
-	chmod a+x .symlinks
-	chmod a+x .undosymlinks
-	chmod a+x doc/.symlinks
-	chmod a+x doc/.undosymlinks
-	chmod a+x libtool/.symlinks
-	chmod a+x libtool/.undosymlinks
 	./.symlinks $(SLFLAGS)
 	touch symlinksdone
 
 install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		    $(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib
-		-chmod -R 755 $(INSTALLDIR)/include/cbflib
-		-chmod 755 $(INSTALLDIR)/lib/libcbf.a
 		-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
 		cp $(LIB)/libcbf.a $(INSTALLDIR)/lib/libcbf.a
 		-cp $(INSTALLDIR)/lib/libimg.a $(INSTALLDIR)/lib/libimg_old.a
@@ -739,7 +731,6 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
 		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
-		chmod -R 755 $(INSTALLDIR)/include/cbflib
 		-rm -rf $(INSTALLDIR)/include/cbflib_old
 		-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
 		-rm -rf $(INSTALLDIR)/include/cbflib
@@ -754,26 +745,49 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		chmod 755 $(INSTALLDIR)/bin/testreals
 		chmod 755 $(INSTALLDIR)/bin/testflat
 		chmod 755 $(INSTALLDIR)/bin/testflatpacked
-		chmod 644 $(INSTALLDIR)/include/cbflib/*.h
+		chmod -R 644 $(INSTALLDIR)/include/cbflib
+		
+		
+#
+# Changes if a local gnu getopt is used
+#
+
+ifneq ($(GETOPT),SYSTEM)
+CFLAGS		+=	-DGNUGETOPT
+GOPTLIB		=	$(LIB)/getopt.o
+GOPTINC		=	$(INCLUDE)/getopt.h
+GOPTCLEAN	=	$(GETOPT)_clean
+GOPTBUILD	=	$(GETOPT)_build
+
+GOPTURL		=	http://arcib.dowling.edu/software/getopt/downloads/$(GETOPT).tar.gz
 		
 
 #
-# PyCifRW
+# getopt package
 #
-$(PYCIFRW):
-	$(DOWNLOAD) $(PYCIFRWURL)
-	tar -xvf $(PYCIFRW).tar.gz
-	-rm $(PYCIFRW).tar.gz
-	(cd $(PYCIFRW); python setup.py install )
+$(GETOPT):
+		$(DOWNLOAD) $(GOPTURL)
+		tar -xvf $(GETOPT).tar.gz
+		-rm $(GETOPT).tar.gz
 
 #
-# PLY
+# build getopt
 #
-$(PLY):
-	$(DOWNLOAD) $(PLYURL)
-	tar -xvf $(PLY).tar.gz
-	-rm $(PLY).tar.gz
-	(cd $(PLY); python setup.py install )
+$(LIB)/getopt.o:		$(GOPTBUILD)
+		(cd $(GETOPT); cp gnu/getopt.o ../$(LIB) )
+$(INCLUDE)/getopt.h:	$(GOPTBUILD)
+		(cd $(GETOPT); cp gnu/getopt.h ../$(INCLUDE) )
+$(GOPTBUILD):  		$(GETOPT)
+		(cd $(GETOPT); sed "1,\$$s/WITHOUT_GETTEXT=0/WITHOUT_GETTEXT=1/g" Makefile \
+		  | sed "1,\$$s/WITH_GETTEXT/WITHOUT_GETTEXT/g"> Makefile_CBF; \
+		  make -f Makefile_CBF GNUGETOPT=1 LIBCGETOPT=0 gnu/getopt.o; \
+		  touch ../$(GOPTBUILD))
+$(GOPTCLEAN):
+		-(cd $(GETOPT); make clean)
+		-rm -f $(GETOPT)/gnu/getopt.o
+		-rm -f $(GOPTBUILD)
+		
+endif
 
 
 #
@@ -1297,9 +1311,9 @@ endif
 	-cmp testflatpackedin.cbf testflatpackedout.cbf
 ifneq ($(F90C),)
 	echo testflatout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatout.out
-	-$(DIFF)  test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
+	-$(DIFF) test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatpackedout.out
-	-$(DIFF)  test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
+	-$(DIFF) test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
 	echo testflatout.cbf | $(TIME) $(BIN)/test_fcb_read_image  > test_fcb_read_testflatout.out
 	-$(DIFF) test_fcb_read_testflatout.out test_fcb_read_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_fcb_read_image > test_fcb_read_testflatpackedout.out
@@ -1339,7 +1353,7 @@ endif
 	$(TIME) $(BIN)/convert_image -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
 	-$(SIGNATURE) < adscconverted.cbf | $(DIFF) - adscconverted_orig.cbf$(SEXT); rm adscconverted.cbf
 	$(TIME) $(BIN)/adscimg2cbf  --cbf_packed,flat mb_LP_1_001.img
-	-$(SIGNATURE) < mb_LP_1_001.cbf | $(DIFF) - mb_LP_1_001_orig.cbf$(SEXT)
+	-$(SIGNATURE) < mb_LP_1_001.cbf | diff - mb_LP_1_001_orig.cbf$(SEXT)
 	mv mb_LP_1_001.cbf nmb_LP_1_001.cbf
 	$(TIME) $(BIN)/cbf2adscimg nmb_LP_1_001.cbf
 	-cmp nmb_LP_1_001.img mb_LP_1_001.img
@@ -1396,6 +1410,8 @@ empty:
 	@-rm -f  $(PYCBF)/build/*/_pycbf.so
 	@-rm -f  $(PYCBF)/build/src/cbf_simple.o
 	@-rm -f  $(PYCBF)/build/*/pycbf_wrap.o
+	@-rm -f  $(LIB)/getopt.o
+	@-rm -f  $(INCLUDE)/getopt.h
 	@-rm -f  $(BIN)/adscimg2cbf
 	@-rm -f  $(BIN)/cbf2adscimg
 	@-rm -f  $(BIN)/makecbf
@@ -1480,10 +1496,11 @@ empty:
 #
 # Remove temporary files
 #
-clean:	
+clean:	$(GOPTCLEAN)
 	@-rm -f core 
 	@-rm -f *.o
 	@-rm -f *.u
+	@-rm -f ./lib/getopt.o
 #
 # Restore to distribution state
 #

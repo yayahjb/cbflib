@@ -392,17 +392,6 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, const c
     	
   }
   
-  if (((flags & PARSE_NOBRACKETS) && (flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS)))
-    ||((flags & PARSE_TRIPLE_QUOTES) && (flags & PARSE_NOTRIPLE_QUOTES)) 
-    ||((flags & PARSE_WS) && (flags & PARSE_NOWS)) ) {
-
-    if (stream)
-      fclose (stream);
-    
-    return CBF_ARGUMENT;
-    	
-  }
-  
   if (!stream && (!buffer || !buffer_size))
   
     return CBF_ARGUMENT;
@@ -423,7 +412,7 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, const c
 
     /* Create the input file */
 
-  if (flags&PARSE_WIDE) {
+  if (flags&CBF_PARSE_WIDE) {
   	
     cbf_onfailnez (cbf_make_widefile (&file, stream), if (stream) fclose(stream))
   
@@ -463,19 +452,6 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, const c
   if (flags & (MSG_DIGESTNOW | MSG_DIGESTWARN) )
 
     flags |= MSG_DIGEST;
-    
-  if ((flags & (PARSE_BRACKETS | PARSE_LIBERAL_BRACKETS)) == 0 )
-
-    flags |= PARSE_NOBRACKETS;
-
-  if ((flags & PARSE_TRIPLE_QUOTES) == 0 )
-
-    flags |= PARSE_NOTRIPLE_QUOTES;
-
-  if ((flags & PARSE_WS) == 0 )
-
-    flags |= PARSE_NOWS;
-
 
     /* Copy the flags */
 
@@ -554,7 +530,7 @@ int cbf_read_file (cbf_handle handle, FILE *stream, int flags)
 
 int cbf_read_widefile (cbf_handle handle, FILE *stream, int flags) 
 {
-	return cbf_read_anyfile (handle, stream, flags|PARSE_WIDE, NULL, 0);
+	return cbf_read_anyfile (handle, stream, flags|CBF_PARSE_WIDE, NULL, 0);
 }
 
   /* Read a pre-read buffered file */
@@ -613,18 +589,6 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
       ((encoding & ENC_FORWARD)   && (encoding & ENC_BACKWARD)))
 
     return CBF_ARGUMENT;
-    
-  if ((flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS) && (flags & PARSE_NOBRACKETS)) )
-  
-    return CBF_ARGUMENT;
-
-  if ((flags & PARSE_TRIPLE_QUOTES) && (flags & PARSE_NOTRIPLE_QUOTES))
-  
-    return CBF_ARGUMENT;
-
-  if ((flags & PARSE_WS) && (flags & PARSE_NOWS))
-
-    return CBF_ARGUMENT;
 
 
   if (((encoding & ENC_NONE)    > 0) +
@@ -673,30 +637,6 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
   if (flags & MSG_DIGESTNOW)
 
     flags |= MSG_DIGEST;
-
-  if ((flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS) ) !=0 )
-  
-     flags &= (~PARSE_NOBRACKETS);
-  
-  else
-  
-     flags |= PARSE_NOBRACKETS;
-     
-  if ((flags & (PARSE_TRIPLE_QUOTES)) !=0 )
-  
-     flags &= (~PARSE_NOTRIPLE_QUOTES);
-  
-  else
-  
-     flags |= PARSE_NOTRIPLE_QUOTES;
-
-  if ((flags & (PARSE_WS)) !=0 )
-  
-     flags &= (~PARSE_NOWS);
-  
-  else
-  
-     flags |= PARSE_NOWS;
 
 
   if ((encoding & (ENC_NONE    |
@@ -807,18 +747,6 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
       ((flags  & MSG_DIGESTNOW) && (flags  & MSG_NODIGEST))  ||
       ((flags  & MSG_DIGESTNOW) && (flags  & PLAIN_HEADERS)) ||
       ((encoding & ENC_FORWARD)   && (encoding & ENC_BACKWARD)))
-
-    return CBF_ARGUMENT;
-    
-  if ((flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS) && (flags & PARSE_NOBRACKETS)) )
-  
-    return CBF_ARGUMENT;
-
-  if ((flags & PARSE_TRIPLE_QUOTES) && (flags & PARSE_NOTRIPLE_QUOTES))
-
-    return CBF_ARGUMENT;
-
-  if ((flags & PARSE_WS) && (flags & PARSE_NOWS))
   
     return CBF_ARGUMENT;
 
@@ -975,18 +903,6 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
 
     return CBF_ARGUMENT;
     
-  if ((flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS) && (flags & PARSE_NOBRACKETS)) )
-  
-    return CBF_ARGUMENT;
-
-  if ((flags & PARSE_TRIPLE_QUOTES) && (flags & PARSE_NOTRIPLE_QUOTES))
-  
-    return CBF_ARGUMENT;
-
-  if ((flags & PARSE_WS) && (flags & PARSE_NOWS))
-
-    return CBF_ARGUMENT;
-
 
   if (((encoding & ENC_NONE)    > 0) +
       ((encoding & ENC_BASE8)   > 0) +
@@ -1034,30 +950,6 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
   if (flags & MSG_DIGESTNOW)
 
     flags |= MSG_DIGEST;
-
-    if ((flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS) ) !=0 )
-  
-     flags &= (~PARSE_NOBRACKETS);
-  
-  else
-  
-     flags |= PARSE_NOBRACKETS;
-     
-  if ((flags & (PARSE_TRIPLE_QUOTES)) !=0 )
-  
-     flags &= (~PARSE_NOTRIPLE_QUOTES);
-  
-  else
-  
-     flags |= PARSE_NOTRIPLE_QUOTES;
-
-  if ((flags & (PARSE_WS)) !=0 )
-  
-     flags &= (~PARSE_NOWS);
-  
-  else
-  
-     flags |= PARSE_NOWS;
 
   if ((encoding & (ENC_NONE    |
                    ENC_BASE8   |
@@ -3754,6 +3646,199 @@ int cbf_get_arrayparameters_wdims (cbf_handle    handle,
 }
 
 
+    /* Get the dimensions of the current (row, column) array entry
+     from the CBF tags */
+    
+    
+    int cbf_get_arraydimensions(cbf_handle handle, 
+                                unsigned long * dimover,
+                                unsigned long * dimfast,
+                                unsigned long * dimmid,
+                                unsigned long * dimslow) {
+        cbf_node *column;
+        
+        unsigned int row;
+        
+        cbf_node *category;
+        
+        cbf_node *asl_category;
+        
+        cbf_node *asl_array_id_col;
+        
+        cbf_node *asl_precedence_col;
+        
+        cbf_node *asl_dimension_col;
+        
+        cbf_node *datablock;
+        
+        cbf_node *array_id_column;
+        
+        const char * array_id;
+        
+        const char * asl_array_id;
+        
+        const char * asl_dimension;
+        
+        const char * asl_precedence;
+        
+        long precedence;
+        
+        unsigned int asl_row, asl_rows;
+        
+        unsigned long asl_dims[3];
+        
+        asl_dims[0] = asl_dims[1] = asl_dims[2] = 0;
+        
+        
+        /* Check the arguments */
+        
+        if (!handle)
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Is the value binary? */
+        
+        if (!cbf_is_binary (handle->node, handle->row))
+            
+            return CBF_ASCII;
+        
+        column = handle->node;
+        
+        row = handle->row;
+        
+        /* Follow any links */
+        
+        column = cbf_get_link (column);
+        
+        
+        /* Check the arguments */
+        
+        if (!column)
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Check the node type */
+        
+        if (column->type != CBF_COLUMN)
+            
+            return CBF_ARGUMENT;
+        
+        
+        if (!column)
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Check the node type */
+        
+        if (column->type != CBF_COLUMN)
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Find the parent category */
+        
+        cbf_failnez(cbf_find_parent(&category,column,CBF_CATEGORY))
+        
+        if (!(category->name) || cbf_cistrncmp(category->name,"array_data",11) ) return CBF_ARGUMENT;
+        
+        /* Find the array id */
+        
+        cbf_failnez (cbf_find_child (&array_id_column, category, "array_id"))
+        
+        if (cbf_is_binary(array_id_column,row)) return CBF_FORMAT;
+        
+        cbf_failnez(cbf_get_columnrow(&array_id, array_id_column,row ))
+        
+        if (!array_id) return CBF_FORMAT;
+        
+        array_id++;
+        
+        
+        /* Find the parent save frame or data block node */
+        
+        if (cbf_find_parent (&datablock, category, CBF_SAVEFRAME)) {
+            
+            cbf_failnez (cbf_find_parent (&datablock, category, CBF_DATABLOCK))
+            
+}
+
+        /* Find the array_structure_list category and extract the dimensions with their precedence
+         for the given array_id */
+        
+        cbf_failnez(cbf_find_typed_child (&asl_category, datablock, "array_structure_list", CBF_CATEGORY))
+        
+        cbf_failnez(cbf_find_typed_child (&asl_array_id_col,   asl_category, "array_id", CBF_COLUMN))
+        
+        cbf_failnez(cbf_find_typed_child (&asl_precedence_col, asl_category, "precedence", CBF_COLUMN))
+        
+        cbf_failnez(cbf_find_typed_child (&asl_dimension_col,  asl_category, "dimension", CBF_COLUMN))
+        
+        cbf_failnez (cbf_count_children (&asl_rows, asl_array_id_col))
+        
+        for (asl_row = 0; asl_row < asl_rows; asl_row++) {
+            
+            /* Is the value ascii? */
+            
+            if (cbf_is_binary (asl_array_id_col, asl_row) ||
+                cbf_is_binary (asl_precedence_col, asl_row) ||
+                cbf_is_binary (asl_dimension_col, asl_row))
+                
+                continue;
+
+
+            /* Get the value of the current row */
+            
+            cbf_failnez (cbf_get_columnrow (&asl_array_id, asl_array_id_col, asl_row))
+            
+            /* Compare the values 
+             If the array_id matches, then store the dimension according to the precedence
+             */
+            
+            if (asl_array_id && !strcmp(asl_array_id+1,array_id)) {
+                
+                cbf_failnez(cbf_get_columnrow (&asl_precedence, asl_precedence_col, asl_row))
+                
+                cbf_failnez(cbf_get_columnrow (&asl_dimension, asl_dimension_col, asl_row))
+                
+                if (asl_precedence && asl_dimension) {
+                    
+                    precedence = atol(asl_precedence+1);
+                    
+                    if (precedence > 0 && precedence < 4) asl_dims[precedence-1] = atol(asl_dimension+1);
+                    
+                }
+                
+            }
+            
+        }
+        
+        if (dimover) *dimover = 1;
+        
+        for (precedence = 0; precedence < 3; precedence++) {
+            
+            if (asl_dims[precedence] > 0) {
+                
+                if (dimover) *dimover *= asl_dims[precedence];
+                
+                switch (precedence) {
+                        
+                    case 0:  if (dimfast) *dimfast = asl_dims[precedence]; break;
+                    case 1:  if (dimmid)  *dimmid  = asl_dims[precedence]; break;
+                    case 2:  if (dimslow) *dimslow = asl_dims[precedence]; break;
+                        
+                }
+                
+            }
+        }
+        
+        return 0;
+        
+    }
+    
+    
 
 
   /* Get the parameters of the current (row, column) integer array entry */
@@ -6180,8 +6265,6 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
   
   cbf_node * ttnode;
 
-  cbf_handle functions_dict;
-  
   const char * dictype;
   
   const char * catname, * catroot, * functionname;
@@ -6190,7 +6273,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
   
   const char * loopname;
 
-  const char * expression, * location;
+  const char * expression;
 
   unsigned int children, columns, rows;
   
@@ -6478,7 +6561,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 
 		functionname = node->name;
 
-   	cbf_construct_functions_dictionary(functions_dict, catname, functionname);
+   	cbf_construct_functions_dictionary(handle->dictionary, catname, functionname);
 			}
 	   }
 	}
@@ -8123,7 +8206,7 @@ int cbf_drel(const char *mainitemname, const char *expression) {
 
 int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablockname, const char *functionname) {
 	
-	const char *location;
+	char location[2049];
   
    	cbf_failnez( cbf_require_datablock (dict, "cbf_functions"))
     
@@ -8135,7 +8218,9 @@ int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablocknam
     cbf_failnez( cbf_require_column (dict, "function_expression"))
 
 	strcpy(location, datablockname);
+
 	strcat(location, ".");
+
 	strcat(location, functionname);
 	
 	if (!cbf_find_local_tag(dict,"function_location"))  {
@@ -8144,7 +8229,8 @@ int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablocknam
 
           }
 
-	cbf_failnez(cbf_write_file(dict,stderr,0,0,0,0))
+	/* cbf_failnez(cbf_write_file(dict,stderr,0,0,0,0)) */
+
 	return 0;
 }
 #ifdef __cplusplus

@@ -298,6 +298,31 @@ extern "C" {
 #include "cbf_alloc.h"
 #include "cbf_ws.h"
     
+    /* create a handle to a bracket_tree */
+    
+    /*  A bracket tree is a pointer to a cbf_node of type CBF_BKT, CBF_BRC or
+        CBF_PRN
+     
+        Each child, in order is one of the following:
+     
+          a bracket tree 
+          a value of type CBF_VALUE, in which case the name is a string
+            following the CBF value conventions
+    */
+    
+    int cbf_create_bracket_tree(cbf_node * * brackettree, CBF_NODETYPE brackettype) {
+        
+        if (brackettype == CBF_BKT || brackettype == CBF_BRC || brackettype == CBF_PRN) {
+            
+            cbf_failnez(cbf_make_node(brackettree, brackettype, NULL, NULL))
+        
+            return 0;
+            
+        } 
+        
+        return CBF_ARGUMENT;
+    }
+    
     /* insert a column number into the buffer for the commentfile */
     
     int cbf_set_ws_column (cbf_file * commentfile, unsigned long columnnumber) {
@@ -1557,7 +1582,7 @@ extern "C" {
         
         /* Check if white space is to be processed */
         
-        if ( (file->write_headers & PARSE_WS) == 0 )
+        if ( (file->write_headers & CBF_PARSE_WS) == 0 )
             
             return 0;
         
@@ -1580,7 +1605,7 @@ extern "C" {
                 
                 if (!cbf_find_typed_child(&subnode, node,"ws_",CBF_CATEGORY)) {
                     
-                    if (!cbf_find_child( &subnode, subnode,"prologue")) {
+                    if (!cbf_find_child( &subnode, subnode,"ws_")) {
                         
                         for (row = 0; row < subnode->children; row++) {
                             
@@ -1635,7 +1660,7 @@ extern "C" {
         
         /* Check if white space is to be processed */
         
-        if ( (file->write_headers & PARSE_WS) == 0 )
+        if ( (file->write_headers & CBF_PARSE_WS) == 0 )
             
             return 0;
         
@@ -1714,7 +1739,7 @@ extern "C" {
         
         /* Check if white space is to be processed */
         
-        if ( (file->write_headers & PARSE_WS) == 0 )
+        if ( (file->write_headers & CBF_PARSE_WS) == 0 )
             
             return 0;
         

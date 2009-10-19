@@ -1272,7 +1272,7 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcel
 endif
 	$(TIME) $(BIN)/cif2cbf -e hex -c none \
 		makecbf.cbf cif2cbf_ehcn.cif
-	$(TIME) $(BIN)/cif2cbf -e none -c packed \
+	$(TIME) $(BIN)/cif2cbf -e none -c flatpacked \
 		cif2cbf_ehcn.cif cif2cbf_encp.cbf; rm cif2cbf_ehcn.cif
 	-cmp makecbf.cbf cif2cbf_encp.cbf
 	$(TIME) $(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
@@ -1287,7 +1287,7 @@ endif
 	-cmp adscconverted_flat.cbf adscconverted_flat_orig.cbf
 	$(TIME) $(BIN)/convert_image -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
 	-cmp adscconverted.cbf adscconverted_orig.cbf
-	$(TIME) $(BIN)/adscimg2cbf  --cbf_packed,flat mb_LP_1_001.img
+	$(TIME) $(BIN)/adscimg2cbf --no_pad  --cbf_packed,flat mb_LP_1_001.img
 	-cmp mb_LP_1_001.cbf mb_LP_1_001_orig.cbf
 	mv mb_LP_1_001.cbf nmb_LP_1_001.cbf
 	$(TIME) $(BIN)/cbf2adscimg nmb_LP_1_001.cbf

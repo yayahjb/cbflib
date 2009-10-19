@@ -1765,7 +1765,7 @@ int img_set_tags (img_handle img, int tags)
     return img_BAD_ARGUMENT;
 
   tags = (tags + 0x03F) & ~0x03F;
-
+    
   if (tags > img->tags)
   {
     img_tag * old_tag = img->tag;

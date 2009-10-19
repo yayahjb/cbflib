@@ -594,7 +594,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_codes.c         \
 		    $(SRC)/cbf_compress.c      \
 		    $(SRC)/cbf_context.c       \
-		    $(SRC)/cbf_file.c          \
+            $(SRC)/cbf_file.c          \
             $(SRC)/cbf_getopt.c        \
 		    $(SRC)/cbf_lex.c           \
 		    $(SRC)/cbf_packed.c        \
@@ -610,7 +610,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_write_binary.c  \
 		    $(SRC)/cbf_ws.c            \
 		    $(SRC)/md5c.c
-
+ 
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 		    $(SRC)/fcb_ci_strncmparr.f90 \
 		    $(SRC)/fcb_exit_binary.f90   \
@@ -803,7 +803,7 @@ endif
 shared:	$(SOLIB)/libcbf.so $(SOLIB)/libfcb.so $(SOLIB)/libimg.so
 
 javawrapper: shared $(JAVADIR) $(JAVADIR)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
-
+		
 Makefiles: Makefile			 \
 		Makefile_LINUX           \
 		Makefile_LINUX_64        \
@@ -816,7 +816,7 @@ Makefiles: Makefile			 \
 
 Makefile_LINUX: $(M4)/Makefile.m4
 		-cp Makefile_LINUX Makefile_LINUX_old
-		m4 -P -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
+        m4 -P -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
 
 Makefile_LINUX_64: $(M4)/Makefile.m4
 		-cp Makefile_LINUX_64 Makefile_LINUX_64_old
@@ -1389,7 +1389,7 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf $(TESTINPUT_BASIC)
 		-e none  example.mar2300  img2cif_packed.cbf
 	$(BIN)/img2cif -c canonical -m headers -d digest \
 		-e none  example.mar2300  img2cif_canonical.cbf
-	$(BIN)/cif2cbf -e none -c packed \
+	$(BIN)/cif2cbf -e none -c flatpacked \
 		img2cif_canonical.cif cif2cbf_packed.cbf
 	$(BIN)/cif2cbf -e none -c canonical \
 		img2cif_packed.cif cif2cbf_canonical.cbf
@@ -1416,7 +1416,7 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcel
 endif
 	$(TIME) $(BIN)/cif2cbf -e hex -c none \
 		makecbf.cbf cif2cbf_ehcn.cif
-	$(TIME) $(BIN)/cif2cbf -e none -c packed \
+	$(TIME) $(BIN)/cif2cbf -e none -c flatpacked \
 		cif2cbf_ehcn.cif cif2cbf_encp.cbf; rm cif2cbf_ehcn.cif
 	-cmp makecbf.cbf cif2cbf_encp.cbf
 	$(TIME) $(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
@@ -1431,7 +1431,7 @@ endif
 	-cmp adscconverted_flat.cbf adscconverted_flat_orig.cbf
 	$(TIME) $(BIN)/convert_image -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
 	-cmp adscconverted.cbf adscconverted_orig.cbf
-	$(TIME) $(BIN)/adscimg2cbf  --cbf_packed,flat mb_LP_1_001.img
+	$(TIME) $(BIN)/adscimg2cbf --no_pad  --cbf_packed,flat mb_LP_1_001.img
 	-cmp mb_LP_1_001.cbf mb_LP_1_001_orig.cbf
 	mv mb_LP_1_001.cbf nmb_LP_1_001.cbf
 	$(TIME) $(BIN)/cbf2adscimg nmb_LP_1_001.cbf

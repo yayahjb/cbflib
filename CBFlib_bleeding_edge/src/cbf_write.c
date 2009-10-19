@@ -1142,7 +1142,7 @@ extern "C" {
             
             case CBF_ROOT: 
                 
-                if ( (file->write_headers & PARSE_WS) == 0 ) {
+                if ( (file->write_headers & CBF_PARSE_WS) == 0 ) {
                     
                     cbf_failnez (cbf_write_string (file, "###" CBF_DIC_VERSION "\n"))
                     
@@ -1204,7 +1204,7 @@ extern "C" {
                     
                 /* Write any appropriate white space epilogue */
                     
-                    if ( (file->write_headers & PARSE_WS) != 0 )  {
+                    if ( (file->write_headers & CBF_PARSE_WS) != 0 )  {
                         
                         cbf_failnez(cbf_write_ws_epilogue(node, file, isbuffer))
                         
