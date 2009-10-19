@@ -115,6 +115,7 @@ int	main(int argc, char *argv[])
 	int		size1, size2;
 	int		file_type;
 	int		pack_flags;
+    int     pad_flag;
 	int		status_pclose;
 	int		beam_center_convention;
 	static char	*endings[] = {
@@ -125,18 +126,27 @@ int	main(int argc, char *argv[])
 					NULL
 				     };
 	static char	*flags[] = {
-					"--cbf_byte_offset",
-					"--cbf_packed_v2",
-					"--cbf_packed",
-					"--no_compression",
-					"--beam_center_from_header",
-					"--beam_center_mosflm",
-					"--beam_center_ulhc",
-					"--beam_center_llhc",
+					"--cbf_byte_offset",            /* 0 */
+					"--cbf_packed_v2",              /* 1 */
+					"--cbf_packed",                 /* 2 */
+					"--no_compression",             /* 3 */
+					"--beam_center_from_header",    /* 4 */
+					"--beam_center_mosflm",         /* 5 */
+					"--beam_center_ulhc",           /* 6 */
+					"--beam_center_llhc",           /* 7 */
+                    "--pad_1K",                     /* 8 */
+                    "--pad_2K",                     /* 9 */
+                    "--pad_4K",                     /*10 */
+                    "--no_pad",                     /*11 */
 					NULL
 				   };
 
-	int		adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int pack_flags, int beam_center_convention);
+	int		adscimg2cbf_sub(char *header, 
+                            unsigned short *data, 
+                            char *cbf_filename, 
+                            int pack_flags, 
+                            int beam_center_convention,
+                            int pad_flag );
 
 	if(argc < 2)
 	{
@@ -146,6 +156,7 @@ int	main(int argc, char *argv[])
 
 	pack_flags = CBF_BYTE_OFFSET;
 	beam_center_convention = BEAM_CENTER_FROM_HEADER;
+    pad_flag = PAD_4K;
 
 	while(argc > 1 && argv[1][0] == '-' && argv[1][1] == '-')
 	{
@@ -160,30 +171,43 @@ int	main(int argc, char *argv[])
 		}
 		switch(j)
 		{
-		  case 0:
-			pack_flags = CBF_BYTE_OFFSET;
-			break;
-		  case 1:
-			pack_flags = CBF_PACKED_V2;
-			break;
-		  case 2:
-			pack_flags = CBF_PACKED;
-			break;
-		  case 3:
-			pack_flags = CBF_NONE;
-			break;
-		  case 4:
-			beam_center_convention = BEAM_CENTER_FROM_HEADER;
-			break;
-		  case 5:
-			beam_center_convention = BEAM_CENTER_MOSFLM;
-			break;
-		  case 6:
-			beam_center_convention = BEAM_CENTER_ULHC;
-			break;
-		  case 7:
-			beam_center_convention = BEAM_CENTER_LLHC;
-			break;
+            case 0:
+                pack_flags = CBF_BYTE_OFFSET;
+                break;
+            case 1:
+                pack_flags = CBF_PACKED_V2;
+                break;
+            case 2:
+                pack_flags = CBF_PACKED;
+                break;
+            case 3:
+                pack_flags = CBF_NONE;
+                break;
+            case 4:
+                beam_center_convention = BEAM_CENTER_FROM_HEADER;
+                break;
+            case 5:
+                beam_center_convention = BEAM_CENTER_MOSFLM;
+                break;
+            case 6:
+                beam_center_convention = BEAM_CENTER_ULHC;
+                break;
+            case 7:
+                beam_center_convention = BEAM_CENTER_LLHC;
+                break;
+            case 8:
+                pad_flag = PAD_1K;
+                break;
+            case 9:
+                pad_flag = PAD_2K;
+                break;
+            case 10:
+                pad_flag = PAD_4K;
+                break;
+            case 11:
+                pad_flag = 0;
+                break;
+                
 		}
 		if(j < 3)
 		{
@@ -368,7 +392,7 @@ int	main(int argc, char *argv[])
 
 		uptr = ((unsigned short *) (hptr + header_size_char));
 
-		cbf_status = adscimg2cbf_sub(hptr, uptr, out_filename, pack_flags, beam_center_convention);
+		cbf_status = adscimg2cbf_sub(hptr, uptr, out_filename, pack_flags, beam_center_convention, pad_flag);
 		free(hptr);
 
 		argv++;

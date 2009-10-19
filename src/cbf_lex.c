@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_lex -- lexical scanner for CBF tokens                          *
  *                                                                    *
- * Version 0.8.0 20 July 2008                                         *
+ * Version 0.9.0 18 October 2009                                      *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -293,13 +293,67 @@ int cbf_return_text (int code, YYSTYPE *val, const char *text, char type)
   return code;
 }
 
+  /* Back up one character in the file */
+  
+int cbf_lex_unget (cbf_file *file, YYSTYPE *val, int c[5]) {
+
+    if ( file->temporary || file->characters )  {
+    
+      if (file->characters > file->characters_base)  {
+     
+        file->characters--;
+      
+        file->characters_used++;
+      
+        file->characters_size++;
+      
+      } else  {
+      
+        if (file->characters_used >= file->characters_size)  {
+        
+          cbf_errornez(cbf_set_io_buffersize(file,file->characters_size+1),val)
+        	
+        }
+        
+        if (file->characters_used) memmove(file->characters_base,file->characters_base+1,file->characters_used);
+        
+        file->characters_used++;
+        
+        *(file->characters) = c[0];
+      	
+      }
+    	
+    } else  {
+
+      ungetc(c[0],file->stream);
+      	
+    }
+    
+    c[0] = c[1];
+    
+    c[1] = c[2];
+    
+    c[2] = c[3];
+    
+    c[3] = c[4];
+    
+    c[4] = ' ';
+  
+    file->column--;
+  
+    file->last_read='\0';
+    
+    return 0;
+}
+
 
   /* Get the next token */
 
 int cbf_lex (cbf_handle handle, YYSTYPE *val )
 {
   int data, define, save, loop, item, column, comment, string, ascii,
-      c, cprev, cprevprev, cprevprevprev, reprocess, errorcode, mime, encoding, 
+      cqueue[5],
+      reprocess, errorcode, mime, encoding, 
       bits, sign, checked_digest, real, depth, q3;
 
   long id, position;
@@ -325,7 +379,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
   cbf_errornez (cbf_reset_buffer (file), val)
   
-  if (file->read_headers & PARSE_WS) {
+  if (file->read_headers & CBF_PARSE_WS) {
   
     if (handle->commentfile == NULL){
     	
@@ -356,15 +410,15 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
   }
 
-  c = file->last_read;
+  cqueue[0] = file->last_read;
 
-  cprevprevprev = cprevprev = cprev = ' ';
+  cqueue[4] = cqueue[3] = cqueue[2] = cqueue[1] = ' ';
   
-  if (file->column == 0) c = '\n';
+  if (file->column == 0) cqueue[0] = '\n';
 
-  column = c == '.';
+  column = cqueue[0] == '.';
 
-  comment = c == '#';
+  comment = cqueue[0] == '#';
 
   reprocess = (column || comment);
 
@@ -382,13 +436,15 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
     } else {
     
-      cprevprevprev = cprevprev;
+      cqueue[4] = cqueue[3];
 
-      cprevprev = cprev;
+      cqueue[3] = cqueue[2];
+
+      cqueue[2] = cqueue[1];
       
-      cprev = c;
+      cqueue[1] = cqueue[0];
 
-      c = cbf_read_character (file);
+      cqueue[0] = cbf_read_character (file);
       
       if (file->column == file->columnlimit+1) {
       
@@ -396,14 +452,14 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
       }
 
-      if (isspace (c)) {
+      if (isspace (cqueue[0])) {
       
-        if (c== '\013' || c == '\014') 
+        if (cqueue[0]== '\013' || cqueue[0] == '\014') 
           cbf_log(handle,"invalid space character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
       
       }  else {
 
-        if ( c != EOF && ((unsigned char)c > 126 || (unsigned char )c < 32 ) )
+        if ( cqueue[0] != EOF && ((unsigned char)cqueue[0] > 126 || (unsigned char )cqueue[0] < 32 ) )
           cbf_log(handle,"invalid character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
 
       }
@@ -416,13 +472,13 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
     if (length == 0) {
 
-      if (isspace (c)) {
+      if (isspace (cqueue[0])) {
       
-      if (c== '\013' || c == '\014') cbf_log(handle,"invalid space character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+      if (cqueue[0]== '\013' || cqueue[0] == '\014') cbf_log(handle,"invalid space character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
       
-      if (file->read_headers & PARSE_WS) {
+      if (file->read_headers & CBF_PARSE_WS) {
        
-          cbf_errornez (cbf_save_character_trim (handle->commentfile, c), val)
+          cbf_errornez (cbf_save_character_trim (handle->commentfile, cqueue[0]), val)
                  
       }
 
@@ -443,14 +499,28 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
       if (length < 5) {
 
-         data = toupper (c) == "DATA_" [length];
+         data = toupper (cqueue[0]) == "DATA_" [length];
 
       } else {
       
         if ( length == 81 ) cbf_log(handle, "data block name exceeds 75 characters",
           CBF_LOGERROR|CBF_LOGSTARTLOC);
 
-        if (isspace (c) || c == EOF)
+        if ((file->read_headers & CBF_PARSE_CIF2_DELIMS) 
+            && (cqueue[0] == '{' || cqueue[0] == '}' || cqueue[0] == '\'' || cqueue[0] == '"' || cqueue[0] == ',' || cqueue[0] == ':')) {
+            
+            	cbf_log(handle,"invalid separator ",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+            	
+            	if (cqueue[0] != ',' && cqueue[0] != ':' ) {
+            	
+            	  cbf_errornez(cbf_lex_unget(file,val,cqueue), val)
+            	  
+            	}
+            	
+            	return cbf_return_text (DATA, val, &line [5], 0);
+            }
+
+        if (isspace (cqueue[0]) || cqueue[0] == EOF)
 
           return cbf_return_text (DATA, val, &line [5], 0);
 
@@ -460,21 +530,38 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
        /* DEFINE ([Dd][Ee][Ff][Ii][Nn][Ee][:][:][^[:space:]]*) */
 
-    if (define) {
+    if (define && (file->read_headers & CBF_PARSE_DEFINES)) {
 
       if (length < 8) {
 
-         define = toupper (c) == "DEFINE::" [length];
+         define = toupper (cqueue[0]) == "DEFINE::" [length];
 
       } else {
       
         if ( length == 84 ) cbf_log(handle, "function name exceeds 75 characters",
           CBF_LOGERROR|CBF_LOGSTARTLOC);
 
-		if (c == EOF) cbf_log(handle, "function has no definition", 
+		if (cqueue[0] == EOF) cbf_log(handle, "function has no definition", 
 			CBF_LOGERROR|CBF_LOGSTARTLOC);
 		
-        if (isspace (c))
+		if ((file->read_headers & CBF_PARSE_CIF2_DELIMS) 
+            && (cqueue[0] == '{' || cqueue[0] == '}' || cqueue[0] == '\'' || cqueue[0] == '"' || cqueue[0] == ',' || cqueue[0] == ':')) {
+            
+            	cbf_log(handle,"invalid separator ",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+            	
+            	if (cqueue[0] != ',' && cqueue[0] != ':' ) {
+            	
+            	   cbf_errornez(cbf_lex_unget(file,val,cqueue), val)
+            	   
+            	};
+            	
+            	return cbf_return_text (DEFINE, val, &line [8], 0);
+        }
+
+        if (isspace (cqueue[0]) || cqueue[0] == EOF)
+
+		
+        if (isspace (cqueue[0]))
 
           return cbf_return_text (DEFINE, val, &line [8], 0);
 
@@ -488,14 +575,30 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
       if (length < 5) {
 
-         save = toupper (c) == "SAVE_" [length];
+         save = toupper (cqueue[0]) == "SAVE_" [length];
 
       } else {
 
         if ( length == 81 ) cbf_log(handle, "save frame name exceeds 75 characters",
           CBF_LOGERROR|CBF_LOGSTARTLOC);
         
-        if (isspace (c) || c == EOF) {
+		if ((file->read_headers & CBF_PARSE_CIF2_DELIMS) 
+            && (cqueue[0] == '{' || cqueue[0] == '}' || cqueue[0] == '\'' || cqueue[0] == '"' || cqueue[0] == ',' || cqueue[0] == ':')) {
+            
+            	cbf_log(handle,"invalid separator ",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+            	
+            	if (cqueue[0] != ',' && cqueue[0] != ':' ) {
+            	
+            	  cbf_errornez(cbf_lex_unget(file,val,cqueue), val)
+            	  
+            	}
+            	
+            	if (length==5) return SAVEEND;
+            	
+            	return cbf_return_text (SAVE, val, &line [5], 0);
+        }
+
+        if (isspace (cqueue[0]) || cqueue[0] == EOF) {
 
           if (length==5) return SAVEEND;
 
@@ -514,51 +617,34 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
     
       loop = 0;
 
-      if (length < 5) loop = (toupper (c) == "LOOP_" [length]);
+      if (length < 5) loop = (toupper (cqueue[0]) == "LOOP_" [length]);
 
       if ((!loop) && (length == 5)) {
       	
-        if (isspace(c) || c == EOF) return LOOP;
-      
-        cbf_log(handle, "\"loop_\" must be followed by white space", 
-          CBF_LOGERROR|CBF_LOGSTARTLOC );
-          
-        if ( file->temporary || file->characters )  {
-        
-          if (file->characters > file->characters_base)  {
-         
-            file->characters--;
-          
-            file->characters_used++;
-          
-            file->characters_size++;
-          
-          } else  {
-          
-            if (file->characters_used >= file->characters_size)  {
+        if ((file->read_headers & CBF_PARSE_CIF2_DELIMS) 
+            && (cqueue[0] == '{' || cqueue[0] == '}' || cqueue[0] == '\'' || cqueue[0] == '"' || cqueue[0] == ',' || cqueue[0] == ':')) {
             
-              cbf_errornez(cbf_set_io_buffersize(file,file->characters_size+1),val)
+            	cbf_log(handle,"invalid separator ",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+            	
+            	if (cqueue[0] != ',' && cqueue[0] != ':' ) {
+            	
+            	  cbf_errornez(cbf_lex_unget(file,val,cqueue), val)
             	
             }
             
-            if (file->characters_used) memmove(file->characters_base,file->characters_base+1,file->characters_used);
-            
-            file->characters_used++;
-            
-            *(file->characters) = c;
-          	
+            	return LOOP;
           }
         	
-        } else  {
-
-          ungetc(c,file->stream);
+        if (isspace(cqueue[0]) || cqueue[0] == EOF) return LOOP;
+      
+        cbf_log(handle, "\"loop_\" must be followed by white space", 
+          CBF_LOGERROR|CBF_LOGSTARTLOC );
+            
+        {
+            	
+            	  cbf_errornez(cbf_lex_unget(file,val,cqueue), val)
           	
         }
-        	
-      
-        file->column--;
-      
-        file->last_read='\0';
       
         return LOOP;
 
@@ -573,15 +659,30 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
       if (length == 0) {
 
-        item = c == '_';
+        item = cqueue[0] == '_';
 
       } else {
 
-        item = !isspace (c) && c != '.' && c != EOF;
+        item = !isspace (cqueue[0]) && cqueue[0] != '.' && cqueue[0] != EOF;
+        
+        if (item && (file->read_headers & CBF_PARSE_CIF2_DELIMS) 
+            && (cqueue[0] == '{' || cqueue[0] == '}' || cqueue[0] == '\'' || cqueue[0] == '"' || cqueue[0] == ',' || cqueue[0] == ':')) {
+            
+            	cbf_log(handle,"invalid separator ",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+            	
+            	if (cqueue[0] != ',' && cqueue[0] != ':' ) {
+            	
+            	  cbf_errornez(cbf_lex_unget(file,val,cqueue), val)
+            	  
+            	}
+            	
+            	item = 0;
+        }
+
 
         if (length >= 2 && !item) {
 
-          if (c == '.') {
+          if (cqueue[0] == '.') {
 
             if ( length > 74 ) cbf_log(handle, "category name exceeds 73 characters",
               CBF_LOGERROR|CBF_LOGSTARTLOC);
@@ -611,7 +712,22 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
     {
 
-      column = (!isspace(c) && c != EOF);
+      column = (!isspace(cqueue[0]) && cqueue[0] != EOF);
+      
+      if (column && (file->read_headers & CBF_PARSE_CIF2_DELIMS) 
+            && (cqueue[0] == '{' || cqueue[0] == '}' || cqueue[0] == '\'' || cqueue[0] == '"' || cqueue[0] == ',' || cqueue[0] == ':')) {
+            
+            	cbf_log(handle,"invalid separator ",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+            	
+            	if (cqueue[0] != ',' && cqueue[0] != ':' ) {
+            	
+            	  cbf_errornez(cbf_lex_unget(file,val,cqueue), val)
+            	  
+            	}
+            	
+            	column = 0;
+      }
+
 
       if (!column)
 
@@ -641,9 +757,11 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                 */
 
     if (string && length==0 && 
-      (c == '\'' || c == '"' 
-      || ((file->read_headers & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS ))
-        && ( c=='[' || c=='{'  ||c=='(')) ) ){
+      (cqueue[0] == '\'' || cqueue[0] == '"' 
+      || ((file->read_headers & CBF_PARSE_BRC) && cqueue[0]=='{')
+      || ((file->read_headers & CBF_PARSE_PRN) && cqueue[0]=='(')
+      || ((file->read_headers & CBF_PARSE_BKT) && cqueue[0]=='[')
+      ) ) {
       
       int *tokentype;
       
@@ -675,7 +793,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
       
       /* Add the boundary character to the text */
 
-      cbf_errornez (cbf_save_character_trim (file, c), val);
+      cbf_errornez (cbf_save_character_trim (file, cqueue[0]), val);
       
       /* initialize depth */
       
@@ -683,7 +801,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
       
       /* for the bracketed constructs, set up the stacks */
       
-      if (c=='[' || c=='{' || c=='(') {
+      if (cqueue[0]=='[' || cqueue[0]=='{' || cqueue[0]=='(') {
                 	
         depth = 1;
             
@@ -699,7 +817,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
           
         state[depth-1] = index[depth-1] = 0;
 
-        switch(c) {
+        switch(cqueue[0]) {
             
           case ('[') : tokentype[depth-1]=CBF_TOKEN_BKTSTRING; break;
           case ('{') : tokentype[depth-1]=CBF_TOKEN_BRCSTRING; break;
@@ -717,22 +835,23 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
          
         int breakout=0;  /* flag to break out of the loop */
 
-      
         /* refresh the line array in case the buffer expanded */
       
         cbf_errornez (cbf_get_buffer (file, &line, &length), val)
         
-        cprevprevprev = cprevprev;
+        cqueue[4] = cqueue[3];
+        
+        cqueue[3] = cqueue[2];
+          
+        cqueue[2] = cqueue[1];
       
-        cprevprev = cprev;
-      
-        cprev = c;
+        cqueue[1] = cqueue[0];
 
-        c = cbf_read_character (file);
+        cqueue[0] = cbf_read_character (file);
         
         /* check for a triple quote */
       
-        q3 = (((file->read_headers & PARSE_TRIPLE_QUOTES ) != 0)
+        q3 = (((file->read_headers & CBF_PARSE_TQ ) != 0)
                          && length > 3
                          && (line[0]=='\'' || line[0]=='"')
                          && line[1] ==  line[0] && line[2] == line[1]);
@@ -745,21 +864,21 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
         
         /* report invalid characters */
       	
-        if (isspace (c)) {
+        if (isspace (cqueue[0])) {
       
-          if (c== '\013' || c == '\014') 
+          if (cqueue[0]== '\013' || cqueue[0] == '\014') 
             cbf_log(handle,"invalid space character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
           
-          if ((file->read_headers & PARSE_WS) && depth > 0) {
+          if ((file->read_headers & CBF_PARSE_WS) && depth > 0) {
        
-            cbf_errornez (cbf_save_character_trim (handle->commentfile, c), val)
+            cbf_errornez (cbf_save_character_trim (handle->commentfile, cqueue[0]), val)
                  
           }
 
       
         }  else {
 
-          if ( c != EOF && ((unsigned char)c > 126 || (unsigned char )c < 32 ) )
+          if ( cqueue[0] != EOF && ((unsigned char)cqueue[0] > 126 || (unsigned char )cqueue[0] < 32 ) )
             cbf_log(handle,"invalid character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
 
         }
@@ -768,14 +887,48 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
         
           /* handle the non-bracketed case */     
         
-          string = !(!q3 && cprev == line[0] && length > 1 && isspace(c))
-                   && !( q3 && length > 5
-                         && cprev ==  line[0] 
-                         && cprevprev == line[1] 
-                         && cprevprevprev == line[2]
-                         && isspace(c));
+          if ((file->read_headers & CBF_PARSE_CIF2_DELIMS)) {
+ 
+            string = !(!q3 && cqueue[0] == line[0] 
+              && (cqueue[1]!='\\'||(cqueue[1]=='\\'&& cqueue[2]=='\\')) && length > 1)
+              && !( q3 && length > 5
+                   && cqueue[0] ==  line[0]
+                   && cqueue[1] == line[1] 
+                   && cqueue[2] == line[2]
+                   && (cqueue[3] != '\\' || (cqueue[3] == '\\' && cqueue[4] == '\\')));
+              
+              if (!string) {
+              
+                cbf_errornez (cbf_save_character_trim (file, cqueue[0]), val)
 
-          if ( string && ( (c == '\n' && !q3) || c == EOF ) )  {
+                cqueue[4] = cqueue[3];
+              
+                cqueue[3] = cqueue[2];
+              
+                cqueue[2] = cqueue[1];
+              
+                cqueue[1] = cqueue[0];
+              
+                cqueue[0] = cbf_read_character (file);
+              
+                if (!isspace(cqueue[0])) {
+              
+                  cbf_log(handle,"invalid separator ",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+              
+                }
+             }
+              
+          } else {
+        
+          string = !(!q3 && cqueue[1] == line[0] && length > 1 && isspace(cqueue[0]))
+                   && !( q3 && length > 5
+                         && cqueue[1] == line[0] 
+                         && cqueue[2] == line[1] 
+                         && cqueue[3] == line[2]
+                         && isspace(cqueue[0]));
+          }
+
+          if ( string && ( (cqueue[0] == '\n' && !q3) || cqueue[0] == EOF ) )  {
             
             if (line[0] == '\'' && !q3) 
 
@@ -802,19 +955,19 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
           if ( !string ) {
 
-            if ( cprev == line[0] && file->buffer_used > 0 ) {
+            if ( cqueue[1] == line[0] && file->buffer_used > 0 ) {
 
               file->buffer_used--;
 
               file->buffer [file->buffer_used] = '\0';
               
-              if (q3 && cprevprev == line[0] && file->buffer_used > 0 ) {
+              if (q3 && cqueue[2] == line[0] && file->buffer_used > 0 ) {
               	
                 file->buffer_used--;
 
                 file->buffer [file->buffer_used] = '\0';
                
-                if (q3 && cprevprevprev == line[0] && file->buffer_used > 0 ) {
+                if (q3 && cqueue[3] == line[0] && file->buffer_used > 0 ) {
 
                   file->buffer_used--;
 
@@ -837,7 +990,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                                   CBF_TOKEN_DQSTRING);
           }
           
-          cbf_errornez (cbf_save_character_trim (file, c), val);
+          cbf_errornez (cbf_save_character_trim (file, cqueue[0]), val);
                     
           continue;
 
@@ -883,26 +1036,26 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                     if (cbf_token_term(tokentype[depth-1])=='\'' 
                         || cbf_token_term(tokentype[depth-1])=='"' ) {
                         
-                        string = ( cprev != cbf_token_term(tokentype[depth-1])
+                        string = ( cqueue[1] != cbf_token_term(tokentype[depth-1])
                                   || index[depth-1] < 1 
-                                  || !(isspace(c)||c==','||c==cbf_token_term(tokentype[depth-2]) ) );
+                                  || !(isspace(cqueue[0])||cqueue[0]==','||cqueue[0]==cbf_token_term(tokentype[depth-2]) ) );
                         
-                        if (index[depth-1] == 2  && c==cprev && cprev==cprevprev 
-                            && (file->read_headers & PARSE_TRIPLE_QUOTES ) != 0) {
+                        if (index[depth-1] == 2  && cqueue[0]==cqueue[1] && cqueue[1]==cqueue[2] 
+                            && (file->read_headers & CBF_PARSE_TQ ) != 0) {
                             tokentype[depth-1] = 
                             tokentype[depth-1]==CBF_TOKEN_SQSTRING?CBF_TOKEN_TSQSTRING:CBF_TOKEN_TDQSTRING;
                         }
                         
                         if (tokentype[depth-1]==CBF_TOKEN_TSQSTRING 
                             || tokentype[depth-1]==CBF_TOKEN_TDQSTRING) {
-                            string = !(cprev == cbf_token_term(tokentype[depth-1])
-                                       && cprevprev == cprev 
-                                       && cprevprevprev==cprevprev
+                            string = !(cqueue[1] == cbf_token_term(tokentype[depth-1])
+                                       && cqueue[2] == cqueue[1] 
+                                       && cqueue[3]==cqueue[2]
                                        && index[depth-1] > 5
-                                       && (isspace(c)||c==','||c==cbf_token_term(tokentype[depth-2])
+                                       && (isspace(cqueue[0])||cqueue[0]==','||cqueue[0]==cbf_token_term(tokentype[depth-2])
                                            ));
                             
-                            if (string && c == EOF) {
+                            if (string && cqueue[0] == EOF) {
                                 
                                 if (cbf_token_term(tokentype[depth-1]) == '\'') {
                                     
@@ -922,7 +1075,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                             
                         } else {  /* not treble-quoted, just ' or " single quoted */
                             
-                            if ( string && ( c == '\n' || c == EOF ) )  {
+                            if ( string && ( cqueue[0] == '\n' || cqueue[0] == EOF ) )  {
                                 
                                 if (cbf_token_term(tokentype[depth-1]) == '\'') {
                                     
@@ -947,7 +1100,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                             depth--;  /* drop down from this level */
                             state[depth-1]++;
                             
-                            if (depth==1 && c==cbf_token_term(tokentype[0])) {
+                            if (depth==1 && cqueue[0]==cbf_token_term(tokentype[0])) {
                                 
                                 int ttype=tokentype[0];
                                 
@@ -967,14 +1120,14 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                             }
 
                             savechar = 0;
-                            if (c == EOF || c == '\n') {
+                            if (cqueue[0] == EOF || cqueue[0] == '\n') {
                                 
-                                if (c == EOF) breakout = 1;
+                                if (cqueue[0] == EOF) breakout = 1;
                                 break;
                                 
                             }
                             
-                            if (!isspace(c)) savechar = 1;
+                            if (!isspace(cqueue[0])) savechar = 1;
                             /* intentionally fail to do a break */
                             
                         } else {
@@ -1004,22 +1157,22 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                              bracket from the next level.  The string also ends
                              at eol or eof */
                             
-                            string = ( !isspace(c)) 
-                            && !(c==','||
-                                 c=='('||
-                                 c=='['||
-                                 c=='{'||
-                                 c==cbf_token_term(tokentype[depth-2]) );
+                            string = ( !isspace(cqueue[0])) 
+                            && !(cqueue[0]==','||
+                                 cqueue[0]=='('||
+                                 cqueue[0]=='['||
+                                 cqueue[0]=='{'||
+                                 cqueue[0]==cbf_token_term(tokentype[depth-2]) );
                             
-                            if ( string && ( c == '\n' || c == EOF ) )  {
+                            if ( string && ( cqueue[0] == '\n' || cqueue[0] == EOF ) )  {
                                 
                                 string = 0;
                                 
                             }
                             
                             if ( !string ) {
-                                if (file->read_headers & PARSE_WS) {
-                                    if(c==')' || c=='}' || c==']'){
+                                if (file->read_headers & CBF_PARSE_WS) {
+                                    if(cqueue[0]==')' || cqueue[0]=='}' || cqueue[0]==']'){
                                         
                                         cbf_onerrornez (cbf_save_character_trim (handle->commentfile, ')'), val, 
                                                         { cbf_free((void **)vtokentype, NULL);
@@ -1027,7 +1180,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                                         cbf_free((void **)vindex, NULL);})
                                         
                                     }
-                                    if(c=='[' || c=='{' || c=='['){
+                                    if(cqueue[0]=='[' || cqueue[0]=='{' || cqueue[0]=='['){
                                         
                                         cbf_onerrornez (cbf_save_character_trim (handle->commentfile, ','), val, 
                                                         { cbf_free((void **)vtokentype, NULL);
@@ -1044,7 +1197,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                     }
                                 }
 
-                                if(c=='(' || c=='{' || c=='['){
+                                if(cqueue[0]=='(' || cqueue[0]=='{' || cqueue[0]=='['){
                                     
                                     savechar = 0;
                                     
@@ -1052,14 +1205,14 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                                                         
                                     index[depth-1] = state[depth-1] = 0;
                                     
-                                    switch(c) {
+                                    switch(cqueue[0]) {
                                             
                                         case ('[')  : tokentype[depth-1]=CBF_TOKEN_BKTSTRING; break;
                                         case ('{')  : tokentype[depth-1]=CBF_TOKEN_BRCSTRING; break;
                                         case ('(')  : tokentype[depth-1]=CBF_TOKEN_PRNSTRING; break;
                                             
                                     }
-                                    cbf_onerrornez (cbf_save_character_trim (file, c), val,
+                                    cbf_onerrornez (cbf_save_character_trim (file, cqueue[0]), val,
                                                     {cbf_free((void **)vtokentype, NULL);
                                                     cbf_free((void **)vstate, NULL);
                                                     cbf_free((void **)vindex, NULL);})
@@ -1070,14 +1223,14 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                     
                                 }
                                 
-                                if (!isspace(c)&&depth>1&&c!=',') depth--;
+                                if (!isspace(cqueue[0])&&depth>1&&cqueue[0]!=',') depth--;
                                 depth--;
                                 state[depth-1]++;
                                 savechar = 1;
                                 breakout = 0;
                                 
                                 
-                                if (depth==0 && c==cbf_token_term(tokentype[0])) {
+                                if (depth==0 && cqueue[0]==cbf_token_term(tokentype[0])) {
                                     
                                     int ttype=tokentype[0];
                                     
@@ -1096,7 +1249,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                     
                                 }
                                 
-                                if (c == EOF) breakout = 1;
+                                if (cqueue[0] == EOF) breakout = 1;
                                 break;
                                 
                             } else {
@@ -1110,12 +1263,12 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                             
                             if (cbf_token_term(tokentype[depth-1])==';') {
                                 
-                                string = ( cprevprev != '\n'
-                                          || cprev != cbf_token_term(tokentype[depth-1]) 
+                                string = ( cqueue[2] != '\n'
+                                          || cqueue[1] != cbf_token_term(tokentype[depth-1]) 
                                           || index[depth-1] < 3 
-                                          || !(isspace(c) || c==','||c==cbf_token_term(tokentype[depth-2]) ) );
+                                          || !(isspace(cqueue[0]) || cqueue[0]==','||cqueue[0]==cbf_token_term(tokentype[depth-2]) ) );
                                 
-                                if ( c == EOF )   {
+                                if ( cqueue[0] == EOF )   {
                                     
                                     string = 0;
                                     
@@ -1123,7 +1276,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                 
                                 if ( !string ) {
                                     
-                                    if (file->read_headers & PARSE_WS) {
+                                    if (file->read_headers & CBF_PARSE_WS) {
                                         
                                         cbf_onerrornez (cbf_save_character_trim (handle->commentfile, ')'), val, 
                                                         { cbf_free((void **)vtokentype, NULL);
@@ -1137,7 +1290,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                     savechar = 0;
                                     breakout = 0;
                                     
-                                    if (depth==1 && c==cbf_token_term(tokentype[0])) {
+                                    if (depth==1 && cqueue[0]==cbf_token_term(tokentype[0])) {
                                         
                                         int ttype=tokentype[0];
                                         
@@ -1156,7 +1309,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                         
                                     }
                                     
-                                    if (c == EOF) breakout = 1;
+                                    if (cqueue[0] == EOF) breakout = 1;
                                     break;
                                 } else {
                                     savechar = 1;
@@ -1195,7 +1348,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                     
                 case (0):
                     
-                    if (c=='#') {
+                    if (cqueue[0]=='#') {
                         
                         /* if we are parsing whitespace and encounter a comment
                          the entire comment including the '\n' gets appended to
@@ -1203,9 +1356,9 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                          
                          */
                         
-                        if (file->read_headers & PARSE_WS) {
+                        if (file->read_headers & CBF_PARSE_WS) {
                             
-                            cbf_onerrornez (cbf_save_character_trim (handle->commentfile, c), val, 
+                            cbf_onerrornez (cbf_save_character_trim (handle->commentfile, cqueue[0]), val, 
                                             { cbf_free((void **)vtokentype, NULL);
                                             cbf_free((void **)vstate, NULL);
                                             cbf_free((void **)vindex, NULL);})
@@ -1215,13 +1368,13 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                         
                         do {
                             
-                            cprevprevprev = cprevprev;
+                            cqueue[3] = cqueue[2];
                             
-                            cprevprev = cprev;
+                            cqueue[2] = cqueue[1];
                             
-                            cprev = c;
+                            cqueue[1] = cqueue[0];
                             
-                            c = cbf_read_character (file);
+                            cqueue[0] = cbf_read_character (file);
                             
                             if (file->column == file->columnlimit+1) {
                                 
@@ -1229,9 +1382,9 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                 
                             }
                             
-                            if (file->read_headers & PARSE_WS) {
+                            if (file->read_headers & CBF_PARSE_WS) {
                                 
-                                if (c == EOF) {
+                                if (cqueue[0] == EOF) {
                                     
                                     cbf_onerrornez (cbf_save_character_trim (handle->commentfile, '\n'), val, 
                                                     { cbf_free((void **)vtokentype, NULL);
@@ -1240,7 +1393,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                     
                                 } else {
                                     
-                                    cbf_onerrornez (cbf_save_character_trim (handle->commentfile, c), val, 
+                                    cbf_onerrornez (cbf_save_character_trim (handle->commentfile, cqueue[0]), val, 
                                                     { cbf_free((void **)vtokentype, NULL);
                                                     cbf_free((void **)vstate, NULL);
                                                     cbf_free((void **)vindex, NULL);})
@@ -1250,22 +1403,22 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                             }
                             
                             
-                            if (isspace (c)) {
+                            if (isspace (cqueue[0])) {
                                 
-                                if (c== '\013' || c == '\014') 
+                                if (cqueue[0]== '\013' || cqueue[0] == '\014') 
                                     cbf_log(handle,"invalid space character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
                                 
                             } 
                             
-                            if ( c != EOF && ((unsigned char)c > 126 || (unsigned char )c < 32 ) )
+                            if ( cqueue[0] != EOF && ((unsigned char)cqueue[0] > 126 || (unsigned char )cqueue[0] < 32 ) )
                                 cbf_log(handle,"invalid character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
                             
                             
-                        } while (c != '\n' && c != EOF);
+                        } while (cqueue[0] != '\n' && cqueue[0] != EOF);
                         
                     }
                     
-                    if (c==EOF) {
+                    if (cqueue[0]==EOF) {
                         
                         int ttype=tokentype[0];
                         
@@ -1276,7 +1429,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                         cbf_free((void **)vstate, NULL);
                         cbf_free((void **)vindex, NULL);
                         
-                        if (file->read_headers & PARSE_WS) {
+                        if (file->read_headers & CBF_PARSE_WS) {
                             
                             cbf_errornez (cbf_save_character_trim (handle->commentfile, '\n'), val)
                             
@@ -1288,11 +1441,11 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                         
                     }
                     
-                    if (isspace(c)) {
+                    if (isspace(cqueue[0])) {
                         
-                        if (file->read_headers & PARSE_WS) {
+                        if (file->read_headers & CBF_PARSE_WS) {
                             
-                            cbf_errornez (cbf_save_character_trim (handle->commentfile, c), val)
+                            cbf_errornez (cbf_save_character_trim (handle->commentfile, cqueue[0]), val)
                             
                         }
                         savechar = 0;
@@ -1302,7 +1455,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                     }
                     
                     
-                    if (c==',' ) {
+                    if (cqueue[0]==',' ) {
                         
                         savechar = 1;           /* Keep the comma */
                         breakout = 0;
@@ -1312,7 +1465,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                         
                         /* If we encounter a comma, it is time to break up the whitespace as well */
                         
-                        if (file->read_headers & PARSE_WS) {
+                        if (file->read_headers & CBF_PARSE_WS) {
                             
                             cbf_errornez (cbf_save_character_trim (handle->commentfile, ','), val)
                             
@@ -1324,8 +1477,8 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                         
                     }
                     
-                    if (c==cbf_token_term(tokentype[depth-1]) 
-                        && (cbf_token_term(tokentype[depth-1])==';'?'\n':cprev)==cprev) {
+                    if (cqueue[0]==cbf_token_term(tokentype[depth-1]) 
+                        && (cbf_token_term(tokentype[depth-1])==';'?'\n':cqueue[1])==cqueue[1]) {
                         
                         savechar = 1;
                         breakout = 0;
@@ -1352,7 +1505,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                         
                         /* If we encounter the closing bracket, it is time to break up the whitespace as well */
                         
-                        if (file->read_headers & PARSE_WS) {
+                        if (file->read_headers & CBF_PARSE_WS) {
                             
                             cbf_errornez (cbf_save_character_trim (handle->commentfile, ')'), val)
                             
@@ -1365,16 +1518,16 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                         
                     }
                     
-                    if ( !isspace(c)) {
+                    if ( !isspace(cqueue[0])) {
                         
-                        if (file->read_headers & PARSE_WS) {
+                        if (file->read_headers & CBF_PARSE_WS) {
                             
                             cbf_onerrornez (cbf_save_character_trim (handle->commentfile, ','), val, 
                                             { cbf_free((void **)vtokentype, NULL);
                                             cbf_free((void **)vstate, NULL);
                                             cbf_free((void **)vindex, NULL);})
                             
-                            if (c == '[' || c == '(' || c == '{') {
+                            if (cqueue[0] == '[' || cqueue[0] == '(' || cqueue[0] == '{') {
                                 
                                 cbf_onerrornez (cbf_save_character_trim (handle->commentfile, '('), val, 
                                                 { cbf_free((void **)vtokentype, NULL);
@@ -1450,7 +1603,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                         
                         index[depth-1] = state[depth-1] = 0;
                         
-                        switch(c) {
+                        switch(cqueue[0]) {
                                 
                             case ('\'') : tokentype[depth-1]=CBF_TOKEN_SQSTRING; state[depth-1] = 1; break;
                             case ('"')  : tokentype[depth-1]=CBF_TOKEN_DQSTRING; state[depth-1] = 1; break;
@@ -1458,7 +1611,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                             case ('{')  : tokentype[depth-1]=CBF_TOKEN_BRCSTRING; break;
                             case ('(')  : tokentype[depth-1]=CBF_TOKEN_PRNSTRING; break;
                             case (';')  : 
-                                if (cprev=='\n') {
+                                if (cqueue[1]=='\n') {
                                     tokentype[depth-1]=CBF_TOKEN_SCSTRING; state[depth-1] = 1; 
                                     cbf_onerrornez (cbf_save_character_trim (file, '\n'), val,
                                                     {cbf_free((void **)vtokentype, NULL);
@@ -1469,7 +1622,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                             default:  tokentype[depth-1]= CBF_TOKEN_WORD; state[depth-1] = 1; break;
                                 
                         }
-                        cbf_onerrornez (cbf_save_character_trim (file, c), val,
+                        cbf_onerrornez (cbf_save_character_trim (file, cqueue[0]), val,
                                         {cbf_free((void **)vtokentype, NULL);
                                         cbf_free((void **)vstate, NULL);
                                         cbf_free((void **)vindex, NULL);})
@@ -1488,16 +1641,16 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
             if (savechar) {
             
-              cbf_onerrornez (cbf_save_character_trim (file, c), val,
+              cbf_onerrornez (cbf_save_character_trim (file, cqueue[0]), val,
                 {cbf_free((void **)vtokentype, NULL);
                 cbf_free((void **)vstate, NULL);
                 cbf_free((void **)vindex, NULL);})
                 
-                if (c=='\n' && line[1]=='\\' && file->buffer_used > 3 && line[2]=='\n' && file->buffer[file->buffer_used-2]=='\\') {
+                if (cqueue[0]=='\n' && line[1]=='\\' && file->buffer_used > 3 && line[2]=='\n' && file->buffer[file->buffer_used-2]=='\\') {
                     
                     file->buffer_used -=2;
                     
-                    c = file->buffer[file->buffer_used-1];
+                    cqueue[0] = file->buffer[file->buffer_used-1];
                     
                     file->buffer[file->buffer_used] = '\0';
                     
@@ -1509,7 +1662,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
             
           }
   
-      } while (c != EOF);
+      } while (cqueue[0] != EOF);
     	
     } else  {
     
@@ -1523,13 +1676,13 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
           
           if (length == 0) {
               
-              comment = c == '#';
+              comment = cqueue[0] == '#';
               
           } else  {
               
-              comment = (c != '\n' && c!= EOF);
+              comment = (cqueue[0] != '\n' && cqueue[0]!= EOF);
               
-              if ((! comment) && !(file->read_headers & PARSE_WS)) {
+              if ((! comment) && !(file->read_headers & CBF_PARSE_WS)) {
                   
                   return cbf_return_text (COMMENT, val, &line [1], 0);
               }
@@ -1551,7 +1704,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
               
               cbf_errornez (cbf_get_buffer (file, &line, &length), val)
               
-              cprevprevprev = cprevprev = cprev = ' ';
+              cqueue[3] = cqueue[2] = cqueue[1] = ' ';
               
               column = reprocess = 0;
               
@@ -1566,7 +1719,22 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
     if (!data && !loop && !item && !comment && !string && !column) {
 
-      if (length && (isspace (c) || c == EOF)) {
+      if (length && (file->read_headers & CBF_PARSE_CIF2_DELIMS) 
+          && (cqueue[0] == '{' || cqueue[0] == '}' || cqueue[0] == '\'' || cqueue[0] == '"' || cqueue[0] == ',' || cqueue[0] == ':')) {
+          
+          cbf_log(handle,"invalid separator ",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+          
+          if (cqueue[0] != ',' && cqueue[0] != ':' ) {
+            	
+            	  cbf_errornez(cbf_lex_unget(file,val,cqueue), val)
+            	  
+            	}
+          
+          cqueue[0] = ' ';
+      }
+              
+
+      if (length && (isspace (cqueue[0]) || cqueue[0] == EOF)) {
 
           /* Missing value? */
 
@@ -1585,7 +1753,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
       /* semicolon-delimited STRING (^;[^\n]*[\n])([^;][^\n]*[\n])*(;) */
 
-    if (length == 0 && c == ';')
+    if (length == 0 && cqueue[0] == ';')
     {
       cbf_errornez (cbf_get_filecoordinates (file, NULL, &file_column), val)
 
@@ -1601,12 +1769,12 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
         {
             /* Save the character */
 
-          cbf_errornez (cbf_save_character_trim (file, c), val)
+          cbf_errornez (cbf_save_character_trim (file, cqueue[0]), val)
 
 
             /* Check for a Mime boundary */
 
-          if (c == '-')
+          if (cqueue[0] == '-')
           {
             cbf_errornez (cbf_get_buffer (file, &line, &length), val)
 
@@ -1622,13 +1790,13 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
             /* Read the next character */
 
-          cprevprevprev = cprevprev; cprevprev = cprev; cprev = c;
+          cqueue[3] = cqueue[2]; cqueue[2] = cqueue[1]; cqueue[1] = cqueue[0];
 
-          c = cbf_read_character (file);
+          cqueue[0] = cbf_read_character (file);
 
-          ascii = isgraph (c) || isspace (c);
+          ascii = isgraph (cqueue[0]) || isspace (cqueue[0]);
           
-          if (!ascii && (unsigned char)c!=12 && (unsigned char)c!=26 && (unsigned char)c!=4 && c != EOF) 
+          if (!ascii && (unsigned char)cqueue[0]!=12 && (unsigned char)cqueue[0]!=26 && (unsigned char)cqueue[0]!=4 && cqueue[0] != EOF) 
           {
           	cbf_log(handle,"invalid character in text field", CBF_LOGWARNING|CBF_LOGCURRENTLOC);
           	
@@ -1647,20 +1815,20 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
           }
 
         }
-        while ((cprevprev != '\n' 
-               || cprev != ';'
+        while ((cqueue[2] != '\n' 
+               || cqueue[1] != ';'
                || file->buffer_used < 3 
-               || !(isspace(c) || c==EOF)) 
-             && !mime && ascii && c != EOF);
+               || !(isspace(cqueue[0]) || cqueue[0]==EOF)) 
+             && !mime && ascii && cqueue[0] != EOF);
 
-        if ( c == EOF && (cprev != ';' || cprevprev != '\n')) {
+        if ( cqueue[0] == EOF && (cqueue[1] != ';' || cqueue[2] != '\n')) {
         
           cbf_log(handle, "text field terminated by EOF", CBF_LOGERROR|CBF_LOGCURRENTLOC);
         	
         }
           /* Plain ASCII string or terminated by EOF */
 
-        if ((!mime && ascii) || c==EOF)
+        if ((!mime && ascii) || cqueue[0]==EOF)
         {
           cbf_errornez (cbf_get_buffer (file, &line, &length), val)
 
@@ -1904,50 +2072,50 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
           /* Find the terminating semi-colon */
 
-        cprevprevprev = cprevprev = cprev = c = 0;
+        cqueue[3] = cqueue[2] = cqueue[1] = cqueue[0] = 0;
 
         if (mime) {
             
             do {
-                if (c==EOF) break;
+                if (cqueue[0]==EOF) break;
                 
-                cprevprevprev = cprevprev;
+                cqueue[3] = cqueue[2];
                 
-                cprevprev = cprev;
+                cqueue[2] = cqueue[1];
                 
-                cprev = c;
+                cqueue[1] = cqueue[0];
                 
-                c = cbf_read_character (file);
+                cqueue[0] = cbf_read_character (file);
                 
-                if (c == EOF && (cprevprev != '\n' ||  cprev != ';')) {
+                if (cqueue[0] == EOF && (cqueue[2] != '\n' ||  cqueue[1] != ';')) {
                     
                     cbf_log(handle, "text field terminated by EOF", CBF_LOGERROR|CBF_LOGCURRENTLOC);
                     
                     cbf_errornez (CBF_FILEREAD, val)
                 }
-            } while ( !(cprevprevprev == '-' && cprevprev == '-' && cprev =='-' && c=='-'));
+            } while ( !(cqueue[3] == '-' && cqueue[2] == '-' && cqueue[1] =='-' && cqueue[0]=='-'));
         }
           
         do {
 
-          if (c==EOF) break;
+          if (cqueue[0]==EOF) break;
           
-          cprevprevprev = cprevprev;
+          cqueue[3] = cqueue[2];
   
-          cprevprev = cprev;
+          cqueue[2] = cqueue[1];
   
-          cprev = c;
+          cqueue[1] = cqueue[0];
 
-          c = cbf_read_character (file);
+          cqueue[0] = cbf_read_character (file);
 
-          if (c == EOF && (cprevprev != '\n' ||  cprev != ';')) {
+          if (cqueue[0] == EOF && (cqueue[2] != '\n' ||  cqueue[1] != ';')) {
 
             cbf_log(handle, "text field terminated by EOF", CBF_LOGERROR|CBF_LOGCURRENTLOC);
 
             cbf_errornez (CBF_FILEREAD, val)
           }
             
-        } while ( !(cprevprev == '\n' && cprev ==';' && (isspace(c) || c==EOF)));
+        } while ( !(cqueue[2] == '\n' && cqueue[1] ==';' && (isspace(cqueue[0]) || cqueue[0]==EOF)));
 
 
           /* Check the element size and sign */
@@ -2007,11 +2175,11 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
       /* Add the character to the text */
 
-    errorcode = cbf_save_character_trim (file, c);
+    errorcode = cbf_save_character_trim (file, cqueue[0]);
 
     cbf_errornez (errorcode, val);
   }
-  while (c != EOF);
+  while (cqueue[0] != EOF);
 
   return 0;
 }

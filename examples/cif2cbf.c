@@ -1,7 +1,7 @@
 /**********************************************************************
  *          cif2cbf -- convert a cif to a cbf file                    *
  *                                                                    *
- * Version 0.7.7 19 February 2007                                     *
+ * Version 0.9  04 August 2009                                        *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -44,15 +44,16 @@
  *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
  *        {v[2packed]}|{f[latpacked]}[n[one]}] \                      *
  *    [-m {h[eaders]|n[oheaders]}] \                                  *
+ *    [-m {dim[ensions]|nod[imensions}] \                             *
  *    [-d {d[igest]|n[odigest]|w[warndigest]} \                       *
  *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
- *    [-S {read|noread}] [-S {write|nowrite}] \
+ *    [-S {read|noread}] [-S {write|nowrite}] \                       *
  *    [-T {read|noread}] [-T {write|nowrite}] \                       *
  *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
  *    [-b {f[orward]|b[ackwards]}] \                                  *
  *    [-p {0|1|2|4}] \                                                *
- *    [-v dictionary]* [-w] \                                         *
+ *    [-v dictionary]* [-w] [-D]\                                     *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
  *  the options are:                                                  *
@@ -69,16 +70,21 @@
  *    if the output_cbf is /dev/null, no output is written.           *
  *                                                                    *
  *  The remaining options specify the characteristics of the          *
- *  output cbf.  The characteristics of the input cif are derived     *
- *  from context.                                                     *
+ *  output cbf.  Most of the characteristics of the input cif are     *
+ *  derived from context, except when modified by the -B, -S, -T, -v  *
+ *  and -w flags.                                                     *
  *                                                                    *
  *  -c compression_scheme (packed, canonical, byte_offset,            *
  *    v2packed, flatpacked or none,                                   *
  *    default packed)                                                 *
  *                                                                    *
- *  -m [no]headers (default headers for cifs, noheaders for cbfs)     *
+ *  -m [no]headers (default headers)                                  *
  *    selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996) *
  *    headers within binary data value text fields.                   *
+ *                                                                    *
+ *  -m [nod]imensions (default dimensions)                            *
+ *    selects detailed recovery of dimensions from the input CIF      *
+ *    for use in the MIME header of the output CIF                    *
  *                                                                    *
  *  -d [no]digest or warndigest  (default md5 digest [R. Rivest,      *
  *    RFC 1321, April 1992 using"RSA Data Security, Inc. MD5          *
@@ -371,6 +377,8 @@
 #define NOTMPDIR
 #endif
 
+#define HDR_FINDDIMS    0x0040  /* On read, find header dims          */
+#define HDR_NOFINDDIMS  0x0080  /* On read, don't find header dims    */
 
 
 int local_exit (int status);
@@ -457,6 +465,7 @@ int main (int argc, char *argv [])
 #endif
   int ciftmpused;
   int padflag;
+  int dimflag;
   int nbytes;
   int ndict = 0;
   int kd;
@@ -476,7 +485,7 @@ int main (int argc, char *argv [])
 
   int mime, digest, encoding, compression, bytedir, cbforcif, term;
   int qrflags, qwflags;
-
+    
   const char * optarg;
 
 
@@ -486,8 +495,9 @@ int main (int argc, char *argv [])
  *  cif2cbf [-i input_cif] [-o output_cbf] \                          *
  *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
  *        {v[2packed]}|{f[latpacked]}[n[one]}] \                      *
- *    [-m {h[eaders]|n[oheaders]}] \                                  *
- *    [-d {d[igest]|n[odigest]|w[arndigest]}] \                       *
+ *    [-m {h[eaders]|noh[eaders]}] \                                  *
+ *    [-m {d[imensions]|nod[imensions}] \                             *
+ *    [-d {d[igest]|n[odigest]|w[warndigest]} \                       *
  *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
  *    [-S {read|noread}] [-S {write|nowrite}] \                       *
  *    [-T {read|noread}] [-T {write|nowrite}] \                       *
@@ -495,7 +505,7 @@ int main (int argc, char *argv [])
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
  *    [-b {f[orward]|b[ackwards]}] \                                  *
  *    [-p {0|1|2|4}] \                                                *
- *    [-v dictionary]* [-w]\                                          *
+ *    [-v dictionary]* [-w] [-D]\                                     *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
  **********************************************************************/
@@ -508,12 +518,13 @@ int main (int argc, char *argv [])
    ndict = 0;
    padflag = 0;
    qrflags = qwflags = 0;
+   dimflag = 0;
 
    cifin = NULL;
    cbfout = NULL;
    ciftmpused = 0;
    testconstruct = 0;
-   
+    
    cbf_failnez(cbf_make_getopt_handle(&opts))
     
    cbf_failnez(cbf_getopt_parse(opts, argc, argv, "-i:o:c:m:d:B:S:T:e:b:p:v:wD"))
@@ -521,7 +532,7 @@ int main (int argc, char *argv [])
    if (!cbf_rewind_getopt_option(opts))
    for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
        if (!c) break;
-     switch (c) {
+       switch (c) {
        case 'i':
          if (cifin) errflg++;
          else cifin = optarg;
@@ -560,15 +571,24 @@ int main (int argc, char *argv [])
          break;
 
        case 'm':
-         if (mime) errflg++;
          if (optarg[0] == 'h' || optarg[0] == 'H' ) {
-           mime = MIME_HEADERS;
+             if (mime) errflg++;
+             mime = MIME_HEADERS;
+         } else if (optarg[0] == 'd' || optarg[0] == 'D' ) {
+             if (dimflag) errflg++;
+             dimflag = HDR_FINDDIMS;
+         } else if (optarg[0] == 'n' || optarg[0] == 'N' ) {
+             if (!strncasecmp(optarg,"noh",3) ){
+                 if (mime) errflg++;
+                 mime = PLAIN_HEADERS;
+             } else if (!strncasecmp(optarg,"nod",3)) {
+                 if (dimflag) errflg++;
+                 dimflag = HDR_NOFINDDIMS;
+             } else {
+                 errflg++;
+             }
          } else {
-           if (optarg[0] == 'n' || optarg[0] == 'N' ) {
-           mime = PLAIN_HEADERS;
-           } else {
              errflg++;
-           }
          }
          break;
 
@@ -591,53 +611,48 @@ int main (int argc, char *argv [])
 
 
        case 'B':
-         if (!strcmp(optarg,"read")) {
-           if (qrflags&(PARSE_NOBRACKETS|PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS)) errflg++;
-           qrflags |= PARSE_BRACKETS;
-         } else if (!strcmp(optarg,"noread")) {
-           if (qrflags&(PARSE_NOBRACKETS|PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS)) errflg++;
-           qrflags |= PARSE_NOBRACKETS;
-         } else if (!strcmp(optarg,"liberal")) {
-           if (qrflags&(PARSE_NOBRACKETS|PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS)) errflg++;
-           qrflags |= PARSE_LIBERAL_BRACKETS;
-         } else if (!strcmp(optarg,"write")) {
-           if (qwflags&(PARSE_NOBRACKETS|PARSE_BRACKETS)) errflg++;
-           qwflags |= PARSE_BRACKETS;
-         } else if (!strcmp(optarg,"nowrite")) {
-           if (qwflags&(PARSE_NOBRACKETS|PARSE_BRACKETS)) errflg++;
-           qwflags |= PARSE_NOBRACKETS;
-         } else errflg++;
-         break;
+           if (!strcmp(optarg,"cif2read")) {
+               qrflags &= ~CBF_PARSE_BRACKETS;
+               qrflags |= CBF_PARSE_BRC;
+           } else if (!strcmp(optarg,"cif2noread")) {
+               qrflags &= ~CBF_PARSE_BRACKETS;
+           } else if (!strcmp(optarg,"write")) {
+               qwflags &= ~CBF_PARSE_BRACKETS;
+               qwflags |= CBF_PARSE_BRC;
+           } else if (!strcmp(optarg,"nowrite")) {
+               qwflags &= ~CBF_PARSE_BRACKETS;
+           } else if (!strcmp(optarg,"read")) {
+               qrflags |= CBF_PARSE_BRACKETS;
+           } else if (!strcmp(optarg,"noread")) {
+               qrflags &= ~CBF_PARSE_BRACKETS;
+           } else if (!strcmp(optarg,"write")) {
+               qwflags |= CBF_PARSE_BRACKETS;
+           } else if (!strcmp(optarg,"nowrite")) {
+               qwflags  &= ~CBF_PARSE_BRACKETS;
+           } else errflg++;
+               break;
 
          case 'S':
          if (!strcmp(optarg,"read")) {
-           if (qrflags&(PARSE_NOWS|PARSE_WS)) errflg++;
-           qrflags |= PARSE_WS;
+           qrflags |= CBF_PARSE_WS;
          } else if (!strcmp(optarg,"noread")) {
-           if (qrflags&(PARSE_NOWS|PARSE_WS)) errflg++;
-           qrflags |= PARSE_NOWS;
+           qrflags &= CBF_PARSE_WS;
          } else if (!strcmp(optarg,"write")) {
-           if (qwflags&(PARSE_NOWS|PARSE_WS)) errflg++;
-           qwflags |= PARSE_WS;
+           qwflags |= CBF_PARSE_WS;
          } else if (!strcmp(optarg,"nowrite")) {
-           if (qwflags&(PARSE_NOWS|PARSE_WS)) errflg++;
-           qwflags |= PARSE_NOWS;
+           qwflags &= CBF_PARSE_WS;
          } else errflg++;
          break;
              
          case 'T':
          if (!strcmp(optarg,"read")) {
-           if (qrflags&(PARSE_NOTRIPLE_QUOTES|PARSE_TRIPLE_QUOTES)) errflg++;
-           qrflags |= PARSE_TRIPLE_QUOTES;
+           qrflags |= CBF_PARSE_TQ;
          } else if (!strcmp(optarg,"noread")) {
-           if (qrflags&(PARSE_NOTRIPLE_QUOTES|PARSE_TRIPLE_QUOTES)) errflg++;
-           qrflags |= PARSE_NOTRIPLE_QUOTES;
+           qrflags &= ~CBF_PARSE_TQ;
          } else if (!strcmp(optarg,"write")) {
-           if (qwflags&(PARSE_NOTRIPLE_QUOTES|PARSE_TRIPLE_QUOTES)) errflg++;
-           qwflags |= PARSE_TRIPLE_QUOTES;
+           qwflags |= CBF_PARSE_TQ;
          } else if (!strcmp(optarg,"nowrite")) {
-           if (qwflags&(PARSE_NOTRIPLE_QUOTES|PARSE_TRIPLE_QUOTES)) errflg++;
-           qwflags |= PARSE_NOTRIPLE_QUOTES;
+           qwflags &= ~CBF_PARSE_TQ;
          } else errflg++;
          break;
 
@@ -793,6 +808,9 @@ int main (int argc, char *argv [])
        digest = MSG_NODIGEST;
      }
    }
+    
+    if (!dimflag) dimflag = HDR_FINDDIMS;
+    
 
      /* Set up for decimal, hexadecimal or octal output */
   if (!bytedir)
@@ -903,250 +921,259 @@ int main (int argc, char *argv [])
 
    for (blocknum = 0; blocknum < blocks;  blocknum++ )
    { /* start of copy loop */
-
-
-     cbf_failnez (cbf_select_datablock(cif, blocknum))
-     cbf_failnez (cbf_datablock_name(cif, &datablock_name))
-     cbf_failnez (cbf_force_new_datablock(cbf, datablock_name))
-
-     if ( !cbf_rewind_blockitem(cif, &itemtype) ) {
-     cbf_failnez (cbf_count_blockitems(cif, &blockitems))
-
-     for (itemnum = 0; itemnum < blockitems;  itemnum++) {
-       cbf_select_blockitem(cif, itemnum, &itemtype);
-       if (itemtype == CBF_CATEGORY) {
-         cbf_category_name(cif,&category_name);
-         cbf_force_new_category(cbf, category_name);
-         cbf_count_rows(cif,&rows);
-         cbf_count_columns(cif,&columns);
-
-         /*  Transfer the columns names from cif to cbf */
-         if ( ! cbf_rewind_column(cif) ) {
-           do {
-             cbf_failnez(cbf_column_name(cif, &column_name))
-             cbf_failnez(cbf_new_column(cbf, column_name))
-           } while ( ! cbf_next_column(cif) );
-           cbf_rewind_column(cif);
-           cbf_rewind_row(cif);
-         }
-         /* Transfer the rows from cif to cbf */
-         for (rownum = 0; rownum < rows; rownum++ ) {
-           cbf_failnez (cbf_select_row(cif, rownum))
-           cbf_failnez (cbf_new_row(cbf))
-           cbf_rewind_column(cif);
-           for (colnum = 0; colnum < columns; colnum++ ) {
-             const char *typeofvalue;
-
-             cbf_failnez (cbf_select_column(cif, colnum))
-             cbf_failnez (cbf_column_name(cif, &column_name))
-
-             if ( ! cbf_get_value(cif, &value) ) {
-               if (compression && value && column_name && !cbf_cistrcmp("compression_type",column_name)) {
-                 cbf_failnez (cbf_select_column(cbf, colnum))
-                 switch (compression&CBF_COMPRESSION_MASK) {
-                   case (CBF_NONE):
-                     cbf_failnez (cbf_set_value      (cbf,"none"))
-                     cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
-                     break;
-                   case (CBF_CANONICAL):
-                     cbf_failnez (cbf_set_value      (cbf,"canonical"))
-                     cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
-                     break;
-                   case (CBF_PACKED):
-                     cbf_failnez (cbf_set_value      (cbf,"packed"))
-                     cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
-                     break;
-                   case (CBF_PACKED_V2):
-                     cbf_failnez (cbf_set_value      (cbf,"packed_v2"))
-                     cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
-                     break;
-                   case (CBF_BYTE_OFFSET):
-                     cbf_failnez (cbf_set_value      (cbf,"byte_offsets"))
-                     cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
-                     break;
-                   case (CBF_PREDICTOR):
-                     cbf_failnez (cbf_set_value      (cbf,"predictor"))
-                     cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
-                     break;
-                   default:
-                     cbf_failnez (cbf_set_value      (cbf,"."))
-                     cbf_failnez (cbf_set_typeofvalue(cbf,"null"))
-                     break;
-                 }
-                 if (compression&CBF_FLAG_MASK) {
-                   if (compression&CBF_UNCORRELATED_SECTIONS) {
-                     cbf_failnez (cbf_require_column   (cbf, "compression_type_flag"))
-                     cbf_failnez (cbf_set_value        (cbf, "uncorrelated_sections"))
-                     cbf_failnez (cbf_set_typeofvalue  (cbf, "word"))
-                   } else if (compression&CBF_FLAT_IMAGE)  {
-                     cbf_failnez (cbf_require_column   (cbf, "compression_type_flag"))
-                     cbf_failnez (cbf_set_value        (cbf, "flat"))
-                     cbf_failnez (cbf_set_typeofvalue  (cbf, "word"))
+       
+       
+       cbf_failnez (cbf_select_datablock(cif, blocknum))
+       cbf_failnez (cbf_datablock_name(cif, &datablock_name))
+       cbf_failnez (cbf_force_new_datablock(cbf, datablock_name))
+       
+       if ( !cbf_rewind_blockitem(cif, &itemtype) ) {
+           cbf_failnez (cbf_count_blockitems(cif, &blockitems))
+           
+           for (itemnum = 0; itemnum < blockitems;  itemnum++) {
+               cbf_select_blockitem(cif, itemnum, &itemtype);
+               if (itemtype == CBF_CATEGORY) {
+                   cbf_category_name(cif,&category_name);
+                   cbf_force_new_category(cbf, category_name);
+                   cbf_count_rows(cif,&rows);
+                   cbf_count_columns(cif,&columns);
+                   
+                   /*  Transfer the columns names from cif to cbf */
+                   if ( ! cbf_rewind_column(cif) ) {
+                       do {
+                           cbf_failnez(cbf_column_name(cif, &column_name))
+                           cbf_failnez(cbf_new_column(cbf, column_name))
+                       } while ( ! cbf_next_column(cif) );
+                       cbf_rewind_column(cif);
+                       cbf_rewind_row(cif);
                    }
-                 } else {
-                   if (!cbf_find_column(cbf, "compression_type_flag")) {
-                     cbf_failnez (cbf_set_value      (cbf,"."))
-                     cbf_failnez (cbf_set_typeofvalue(cbf,"null"))
+                   /* Transfer the rows from cif to cbf */
+                   for (rownum = 0; rownum < rows; rownum++ ) {
+                       cbf_failnez (cbf_select_row(cif, rownum))
+                       cbf_failnez (cbf_new_row(cbf))
+                       cbf_rewind_column(cif);
+                       for (colnum = 0; colnum < columns; colnum++ ) {
+                           const char *typeofvalue;
+                           
+                           cbf_failnez (cbf_select_column(cif, colnum))
+                           cbf_failnez (cbf_column_name(cif, &column_name))
+                           
+                           if ( ! cbf_get_value(cif, &value) ) {
+                               if (compression && value && column_name && !cbf_cistrcmp("compression_type",column_name)) {
+                                   cbf_failnez (cbf_select_column(cbf, colnum))
+                                   switch (compression&CBF_COMPRESSION_MASK) {
+                                       case (CBF_NONE):
+                                           cbf_failnez (cbf_set_value      (cbf,"none"))
+                                           cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                                           break;
+                                       case (CBF_CANONICAL):
+                                           cbf_failnez (cbf_set_value      (cbf,"canonical"))
+                                           cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                                           break;
+                                       case (CBF_PACKED):
+                                           cbf_failnez (cbf_set_value      (cbf,"packed"))
+                                           cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                                           break;
+                                       case (CBF_PACKED_V2):
+                                           cbf_failnez (cbf_set_value      (cbf,"packed_v2"))
+                                           cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                                           break;
+                                       case (CBF_BYTE_OFFSET):
+                                           cbf_failnez (cbf_set_value      (cbf,"byte_offsets"))
+                                           cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                                           break;
+                                       case (CBF_PREDICTOR):
+                                           cbf_failnez (cbf_set_value      (cbf,"predictor"))
+                                           cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                                           break;
+                                       default:
+                                           cbf_failnez (cbf_set_value      (cbf,"."))
+                                           cbf_failnez (cbf_set_typeofvalue(cbf,"null"))
+                                           break;
+                                   }
+                                   if (compression&CBF_FLAG_MASK) {
+                                       if (compression&CBF_UNCORRELATED_SECTIONS) {
+                                           cbf_failnez (cbf_require_column   (cbf, "compression_type_flag"))
+                                           cbf_failnez (cbf_set_value        (cbf, "uncorrelated_sections"))
+                                           cbf_failnez (cbf_set_typeofvalue  (cbf, "word"))
+                                       } else if (compression&CBF_FLAT_IMAGE)  {
+                                           cbf_failnez (cbf_require_column   (cbf, "compression_type_flag"))
+                                           cbf_failnez (cbf_set_value        (cbf, "flat"))
+                                           cbf_failnez (cbf_set_typeofvalue  (cbf, "word"))
+                                       }
+                                   } else {
+                                       if (!cbf_find_column(cbf, "compression_type_flag")) {
+                                           cbf_failnez (cbf_set_value      (cbf,"."))
+                                           cbf_failnez (cbf_set_typeofvalue(cbf,"null"))
+                                       }
+                                   }
+                               } else  if (compression && value && column_name && !cbf_cistrcmp("compression_type_flag",column_name)) {
+                                   if (compression&CBF_FLAG_MASK) {
+                                       if (compression&CBF_UNCORRELATED_SECTIONS) {
+                                           cbf_failnez (cbf_require_column   (cbf, "compression_type_flag"))
+                                           cbf_failnez (cbf_set_value        (cbf, "uncorrelated_sections"))
+                                           cbf_failnez (cbf_set_typeofvalue  (cbf, "word"))
+                                       } else if (compression&CBF_FLAT_IMAGE)  {
+                                           cbf_failnez (cbf_require_column   (cbf, "compression_type_flag"))
+                                           cbf_failnez (cbf_set_value        (cbf, "flat"))
+                                           cbf_failnez (cbf_set_typeofvalue  (cbf, "word"))
+                                       }
+                                   } else {
+                                       if (!cbf_find_column(cbf, "compression_type_flag")) {
+                                           cbf_failnez (cbf_set_value      (cbf,"."))
+                                           cbf_failnez (cbf_set_typeofvalue(cbf,"null"))
+                                       }
+                                   }             	
+                               } else {
+                                   cbf_failnez (cbf_get_typeofvalue(cif, &typeofvalue))
+                                   cbf_failnez (cbf_select_column(cbf, colnum))
+                                   cbf_failnez (cbf_set_value(cbf, value))
+                                   cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
+                               }
+                           } else {
+                               
+                               void * array;
+                               int binary_id, elsigned, elunsigned;
+                               size_t elements,elements_read, elsize;
+                               int minelement, maxelement;
+                               unsigned int cifcompression;
+                               int realarray;
+                               const char *byteorder;
+                               size_t dim1, dim2, dim3, padding;
+                               
+                               cbf_failnez(cbf_get_arrayparameters_wdims_fs(
+                                                                            cif, &cifcompression,
+                                                                            &binary_id, &elsize, &elsigned, &elunsigned,
+                                                                            &elements, &minelement, &maxelement, &realarray,
+                                                                            &byteorder, &dim1, &dim2, &dim3, &padding))
+                               if ((array=malloc(elsize*elements))) {
+                                   cbf_failnez (cbf_select_column(cbf,colnum))
+                                   if (!realarray)  {
+                                       cbf_failnez (cbf_get_integerarray(
+                                                                         cif, &binary_id, array, elsize, elsigned,
+                                                                         elements, &elements_read))
+                                       if (dimflag == HDR_FINDDIMS && dim1==0) {
+                                           cbf_get_arraydimensions(cif,NULL,&dim1,&dim2,&dim3);
+                                       }
+                                       cbf_failnez(cbf_set_integerarray_wdims_fs(
+                                                                                 cbf, compression,
+                                                                                 binary_id, array, elsize, elsigned, elements,
+                                                                                 "little_endian", dim1, dim2, dim3, 0))
+                                   } else {
+                                       cbf_failnez (cbf_get_realarray(
+                                                                      cif, &binary_id, array, elsize,
+                                                                      elements, &elements_read))
+                                       if (dimflag == HDR_FINDDIMS && dim1==0) {
+                                           cbf_get_arraydimensions(cif,NULL,&dim1,&dim2,&dim3);
+                                       }
+                                       cbf_failnez(cbf_set_realarray_wdims_fs(
+                                                                              cbf, compression,
+                                                                              binary_id, array, elsize, elements,
+                                                                              "little_endian", dim1, dim2, dim3, 0))                 	
+                                   }
+                                   free(array);
+                               } else {
+                                   fprintf(stderr,
+                                           "\nFailed to allocate memory %ld bytes",
+                                           (long) elsize*elements);
+                                   exit(1);
+                               }
+                           }
+                       }
                    }
-                 }
-               } else  if (compression && value && column_name && !cbf_cistrcmp("compression_type_flag",column_name)) {
-                 if (compression&CBF_FLAG_MASK) {
-                   if (compression&CBF_UNCORRELATED_SECTIONS) {
-                     cbf_failnez (cbf_require_column   (cbf, "compression_type_flag"))
-                     cbf_failnez (cbf_set_value        (cbf, "uncorrelated_sections"))
-                     cbf_failnez (cbf_set_typeofvalue  (cbf, "word"))
-                   } else if (compression&CBF_FLAT_IMAGE)  {
-                     cbf_failnez (cbf_require_column   (cbf, "compression_type_flag"))
-                     cbf_failnez (cbf_set_value        (cbf, "flat"))
-                     cbf_failnez (cbf_set_typeofvalue  (cbf, "word"))
-                   }
-                 } else {
-                   if (!cbf_find_column(cbf, "compression_type_flag")) {
-                     cbf_failnez (cbf_set_value      (cbf,"."))
-                     cbf_failnez (cbf_set_typeofvalue(cbf,"null"))
-                   }
-                 }             	
                } else {
-                 cbf_failnez (cbf_get_typeofvalue(cif, &typeofvalue))
-                 cbf_failnez (cbf_select_column(cbf, colnum))
-                 cbf_failnez (cbf_set_value(cbf, value))
-                 cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
-               }
-             } else {
-
-               void * array;
-               int binary_id, elsigned, elunsigned;
-               size_t elements,elements_read, elsize;
-                int minelement, maxelement;
-               unsigned int cifcompression;
-               int realarray;
-               const char *byteorder;
-               size_t dim1, dim2, dim3, padding;
-
-               cbf_failnez(cbf_get_arrayparameters_wdims(
-                 cif, &cifcompression,
-                 &binary_id, &elsize, &elsigned, &elunsigned,
-                 &elements, &minelement, &maxelement, &realarray,
-                 &byteorder, &dim1, &dim2, &dim3, &padding))
-               if ((array=malloc(elsize*elements))) {
-                 cbf_failnez (cbf_select_column(cbf,colnum))
-                 if (!realarray)  {
-                   cbf_failnez (cbf_get_integerarray(
-                     cif, &binary_id, array, elsize, elsigned,
-                     elements, &elements_read))
-                   cbf_failnez(cbf_set_integerarray_wdims(
-                     cbf, compression,
-                     binary_id, array, elsize, elsigned, elements,
-                     "little_endian", dim1, dim2, dim3, 0))
-                 } else {
-                   cbf_failnez (cbf_get_realarray(
-                     cif, &binary_id, array, elsize,
-                     elements, &elements_read))
-                   cbf_failnez(cbf_set_realarray_wdims(
-                     cbf, compression,
-                     binary_id, array, elsize, elements,
-                     "little_endian", dim1, dim2, dim3, 0))                 	
-                 }
-                 free(array);
-               } else {
-                 fprintf(stderr,
-                   "\nFailed to allocate memory %ld bytes",
-                   (long) elsize*elements);
-                 exit(1);
-               }
-             }
-           }
-         }
-       } else {
-         cbf_saveframe_name(cif,&saveframe_name);
-         cbf_force_new_saveframe(cbf, saveframe_name);
-
-         if ( !cbf_rewind_category(cif) ) {
-           cbf_failnez (cbf_count_categories(cif, &categories))
-
-           for (catnum = 0; catnum < categories;  catnum++) {
-             cbf_select_category(cif, catnum);
-             cbf_category_name(cif,&category_name);
-             cbf_force_new_category(cbf, category_name);
-             cbf_count_rows(cif,&rows);
-             cbf_count_columns(cif,&columns);
-
-           /*  Transfer the columns names from cif to cbf */
-           if ( ! cbf_rewind_column(cif) ) {
-             do {
-               cbf_failnez(cbf_column_name(cif, &column_name))
-               cbf_failnez(cbf_new_column(cbf, column_name))
-             } while ( ! cbf_next_column(cif) );
-             cbf_rewind_column(cif);
-             cbf_rewind_row(cif);
-           }
-           /* Transfer the rows from cif to cbf */
-           for (rownum = 0; rownum < rows; rownum++ ) {
-             cbf_failnez (cbf_select_row(cif, rownum))
-             cbf_failnez (cbf_new_row(cbf))
-             cbf_rewind_column(cif);
-             for (colnum = 0; colnum < columns; colnum++ ) {
-               const char *typeofvalue;
-
-               cbf_failnez (cbf_select_column(cif, colnum))
-
-               if ( ! cbf_get_value(cif, &value) ) {
-                 cbf_failnez (cbf_get_typeofvalue(cif, &typeofvalue))
-                 cbf_failnez (cbf_select_column(cbf, colnum))
-                 cbf_failnez (cbf_set_value(cbf, value))
-                 cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
-               } else {
-
-                 void * array;
-                 int binary_id, elsigned, elunsigned;
-                 size_t elements,elements_read, elsize;
-                 int minelement, maxelement;
-                 unsigned int cifcompression;
-                 int realarray;
-                 const char * byteorder;
-                 size_t dim1, dim2, dim3, padding;
-
-                 cbf_failnez(cbf_get_arrayparameters_wdims(
-                   cif, &cifcompression,
-                   &binary_id, &elsize, &elsigned, &elunsigned,
-                   &elements, &minelement, &maxelement, &realarray,
-                   &byteorder, &dim1, &dim2, &dim3, &padding))
-                 if ((array=malloc(elsize*elements))) {
-                   cbf_failnez (cbf_select_column(cbf,colnum))
-                   if (!realarray) {
-                   cbf_failnez (cbf_get_integerarray(
-                   cif, &binary_id, array, elsize, elsigned,
-                   elements, &elements_read))
-                   cbf_failnez(cbf_set_integerarray_wdims(
-                     cbf, compression,
-                     binary_id, array, elsize, elsigned, elements,
-                     byteorder, dim1, dim2, dim3, padding))
-                   } else  {
-                     cbf_failnez (cbf_get_realarray(
-                       cif, &binary_id, array, elsize,
-                       elements, &elements_read))
-                     cbf_failnez(cbf_set_realarray_wdims(
-                     cbf, compression,
-                     binary_id, array, elsize, elements,
-                     byteorder, dim1, dim2, dim3, padding))
+                   cbf_saveframe_name(cif,&saveframe_name);
+                   cbf_force_new_saveframe(cbf, saveframe_name);
+                   
+                   if ( !cbf_rewind_category(cif) ) {
+                       cbf_failnez (cbf_count_categories(cif, &categories))
+                       
+                       for (catnum = 0; catnum < categories;  catnum++) {
+                           cbf_select_category(cif, catnum);
+                           cbf_category_name(cif,&category_name);
+                           cbf_force_new_category(cbf, category_name);
+                           cbf_count_rows(cif,&rows);
+                           cbf_count_columns(cif,&columns);
+                           
+                           /*  Transfer the columns names from cif to cbf */
+                           if ( ! cbf_rewind_column(cif) ) {
+                               do {
+                                   cbf_failnez(cbf_column_name(cif, &column_name))
+                                   cbf_failnez(cbf_new_column(cbf, column_name))
+                               } while ( ! cbf_next_column(cif) );
+                               cbf_rewind_column(cif);
+                               cbf_rewind_row(cif);
+                           }
+                           /* Transfer the rows from cif to cbf */
+                           for (rownum = 0; rownum < rows; rownum++ ) {
+                               cbf_failnez (cbf_select_row(cif, rownum))
+                               cbf_failnez (cbf_new_row(cbf))
+                               cbf_rewind_column(cif);
+                               for (colnum = 0; colnum < columns; colnum++ ) {
+                                   const char *typeofvalue;
+                                   
+                                   cbf_failnez (cbf_select_column(cif, colnum))
+                                   
+                                   if ( ! cbf_get_value(cif, &value) ) {
+                                       cbf_failnez (cbf_get_typeofvalue(cif, &typeofvalue))
+                                       cbf_failnez (cbf_select_column(cbf, colnum))
+                                       cbf_failnez (cbf_set_value(cbf, value))
+                                       cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
+                                   } else {
+                                       
+                                       void * array;
+                                       int binary_id, elsigned, elunsigned;
+                                       size_t elements,elements_read, elsize;
+                                       int minelement, maxelement;
+                                       unsigned int cifcompression;
+                                       int realarray;
+                                       const char * byteorder;
+                                       size_t dim1, dim2, dim3, padding;
+                                       
+                                       cbf_failnez(cbf_get_arrayparameters_wdims_fs(
+                                                                                    cif, &cifcompression,
+                                                                                    &binary_id, &elsize, &elsigned, &elunsigned,
+                                                                                    &elements, &minelement, &maxelement, &realarray,
+                                                                                    &byteorder, &dim1, &dim2, &dim3, &padding))
+                                       if ((array=malloc(elsize*elements))) {
+                                           cbf_failnez (cbf_select_column(cbf,colnum))
+                                           if (!realarray) {
+                                               cbf_failnez (cbf_get_integerarray(
+                                                                                 cif, &binary_id, array, elsize, elsigned,
+                                                                                 elements, &elements_read))
+                                               cbf_failnez(cbf_set_integerarray_wdims_fs(
+                                                                                         cbf, compression,
+                                                                                         binary_id, array, elsize, elsigned, elements,
+                                                                                         byteorder, dim1, dim2, dim3, padding))
+                                           } else  {
+                                               cbf_failnez (cbf_get_realarray(
+                                                                              cif, &binary_id, array, elsize,
+                                                                              elements, &elements_read))
+                                               if (dimflag == HDR_FINDDIMS && dim1==0) {
+                                                   cbf_get_arraydimensions(cif,NULL,&dim1,&dim2,&dim3);
+                                               }
+                                               cbf_failnez(cbf_set_realarray_wdims_fs(
+                                                                                      cbf, compression,
+                                                                                      binary_id, array, elsize, elements,
+                                                                                      byteorder, dim1, dim2, dim3, padding))
+                                           }
+                                           free(array);
+                                       } else {
+                                           fprintf(stderr,
+                                                   "\nFailed to allocate memory %ld bytes",
+                                                   (long) elsize*elements);
+                                           exit(1);
+                                       }
+                                   }
+                               }
+                           }
+                       }
                    }
-                   free(array);
-                 } else {
-                   fprintf(stderr,
-                     "\nFailed to allocate memory %ld bytes",
-                     (long) elsize*elements);
-                   exit(1);
-                 }
                }
-             }
            }
-         }
+           
        }
-     }
-   }
-
-   }
-
+       
    }
 
    b = clock ();

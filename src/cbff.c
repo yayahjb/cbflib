@@ -1795,6 +1795,23 @@ extern "C" {
         return errorcode;
     }
     
+    /* Get the dimensions of the current (row, column) array entry
+     from the CBF tags */
+    
+    
+    int cbff_get_arraydimensions(size_t CBFFhandle,
+                                unsigned long * dimover,
+                                unsigned long * dimfast,
+                                unsigned long * dimmid,
+                                unsigned long * dimslow) {
+        
+        return cbff_get_arraydimensions(cbff_cbf_handle(CBFFhandle),
+                                     dimover,
+                                     dimfast,
+                                     dimmid,
+                                     dimslow) {
+            
+    }
     
     
     /* Get the parameters of the current (row, column) integer array entry */

@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_binary -- handle simple binary values                          *
  *                                                                    *
- * Version 0.8.0 20 July 2008                                         *
+ * Version 0.9  04 August 2009                                        *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
+ * (C) Copyright 2006 -- 2009 Herbert J. Bernstein                    *
  *                                                                    *
  **********************************************************************/
 
@@ -272,6 +272,7 @@ static const char * little_endian = "little_endian";
 static const char * unknown = "unknown";
 
 
+
   /* Parse a binary text value */
 
 int cbf_get_bintext (cbf_node  *column, unsigned int row,
@@ -403,6 +404,7 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
     else *byteorder = unknown;
   	
   }
+  
    
   if (dimover)
   

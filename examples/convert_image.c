@@ -1596,7 +1596,7 @@ int main (int argc, char *argv [])
     /* Free the getopt_handle */
 
   cbf_failnez (cbf_free_getopt_handle(opts))
-
+    
 
     /* Success */
 

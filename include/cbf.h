@@ -282,6 +282,7 @@ extern "C" {
 
 #define CBF_LINELENGTH_10 80
 #define CBF_LINELENGTH_11 2048
+#define CBF_LINELENGTH_20 8192
 
   /* Initial io buffer sizes */
   
@@ -399,20 +400,27 @@ extern "C" {
 
   /* Constants used to control CIF parsing */
   
-#define PARSE_NOBRACKETS        \
-                        0x0100  /* Do not parse DDLm (,..) [,..] {,...}     */
-#define PARSE_BRACKETS  0x0200  /* PARSE DDLm (,..) [,..] {,...}            */ 
-#define PARSE_LIBERAL_BRACKETS  \
-                        0x0400  /* PARSE DDLm (,..) [,..] {,...} liberally  */ 
-#define PARSE_TRIPLE_QUOTES     \
-                        0x0800  /* PARSE DDLm """...""" and '''...'''       */
-#define PARSE_NOTRIPLE_QUOTES   \
-                        0x1000  /* Do not PARSE DDLm """...""" and '''...'''*/
-#define PARSE_WIDE      0x2000  /* PARSE wide files                         */
-#define PARSE_WS        0x4000  /* PARSE whitespace                         */
-#define PARSE_NOWS      0x8000  /* Do not PARSE whitespace                  */
+#define CBF_PARSE_BRC   0x0100  /* PARSE DDLm/CIF2 brace {,...}             */
+#define CBF_PARSE_PRN   0x0200  /* PARSE DDLm parens     (,...)             */
+#define CBF_PARSE_BKT   0x0400  /* PARSE DDLm brackets   [,...]             */
+#define CBF_PARSE_BRACKETS \
+                        0x0700  /* PARSE ALL brackets                       */
+#define CBF_PARSE_TQ    0x0800  /* PARSE treble quotes """...""" and '''...'''       */
+#define CBF_PARSE_CIF2_DELIMS  \
+                        0x1000  /* Do not scan past an unescaped close quote
+                                   do not accept {} , : " ' in non-delimited
+                                   strings'{ */                          
+#define CBF_PARSE_DDLm  0x0700  /* For DDLm parse (), [], {}                */
+#define CBF_PARSE_CIF2  0x1F00  /* For CIF2 parse {}, treble quotes,
+                                   stop on unescaped close quotes           */
+#define CBF_PARSE_DEFINES      \
+                        0x2000  /* Do not recognize DEFINE::name            */      
+                        
+  
+#define CBF_PARSE_WIDE      0x2000  /* PARSE wide files                         */
+#define CBF_PARSE_WS        0x4000  /* PARSE whitespace                         */
 
-#define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST | PARSE_NOBRACKETS | PARSE_NOTRIPLE_QUOTES | PARSE_NOWS)
+#define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)
 
 #define MIME_NOHEADERS  PLAIN_HEADERS
 
@@ -967,7 +975,16 @@ int cbf_get_arrayparameters_wdims (cbf_handle    handle,
 #define cbf_get_arrayparameters_wdims_sf(handle, compression, id, elsize, elsigned, elunsigned, nelem, minelem, maxelem, realarray, byteorder, dimslow, dimmid, dimfast, padding) \
         cbf_get_arrayparameters_wdims((handle),(compression),(id),(elsize),(elsigned),(elunsigned),(nelem),(minelem),(maxelem),(realarray),(byteorder),(dimfast),(dimmid),(dimslow), (padding))
 
-
+    /* Get the dimensions of the current (row, column) array entry
+     from the CBF tags */
+    
+    
+    int cbf_get_arraydimensions(cbf_handle handle,
+                                unsigned long * dimover,
+                                unsigned long * dimfast,
+                                unsigned long * dimmid,
+                                unsigned long * dimslow);
+        
 
   /* Get the parameters of the current (row, column) integer array entry */
   

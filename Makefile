@@ -262,7 +262,7 @@ PLY = ply-3.2
 
 # Program to use to retrieve a URL
 
-DOWNLOAD = /opt/local/bin/wget
+DOWNLOAD = /usr/bin/wget
 
 # Flag to control symlinks versus copying
 
@@ -355,24 +355,21 @@ endif
 
 #########################################################
 #
-#  Appropriate compiler definitions for MAC OS X
-#  with gcc 4.2
-#  Also change defintion of DOWNLOAD
+#  Appropriate compiler definitions for default (Linux)
 #
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -ansi -pedantic
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
 F90C = gfortran
-F90FLAGS = -g -fno-range-check
-F90LDFLAGS = -bind_at_load
+F90FLAGS = -g
+F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(INSTALLDIR)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
-DOWNLOAD = /opt/local/bin/wget
 
 ifneq ($(NOFORTRAN),)
 F90C =
@@ -1245,7 +1242,7 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf $(TESTINPUT_BASIC)
 		-e none  example.mar2300  img2cif_packed.cbf
 	$(BIN)/img2cif -c canonical -m headers -d digest \
 		-e none  example.mar2300  img2cif_canonical.cbf
-	$(BIN)/cif2cbf -e none -c packed \
+	$(BIN)/cif2cbf -e none -c flatpacked \
 		img2cif_canonical.cif cif2cbf_packed.cbf
 	$(BIN)/cif2cbf -e none -c canonical \
 		img2cif_packed.cif cif2cbf_canonical.cbf
@@ -1272,7 +1269,7 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcel
 endif
 	$(TIME) $(BIN)/cif2cbf -e hex -c none \
 		makecbf.cbf cif2cbf_ehcn.cif
-	$(TIME) $(BIN)/cif2cbf -e none -c packed \
+	$(TIME) $(BIN)/cif2cbf -e none -c flatpacked \
 		cif2cbf_ehcn.cif cif2cbf_encp.cbf; rm cif2cbf_ehcn.cif
 	-cmp makecbf.cbf cif2cbf_encp.cbf
 	$(TIME) $(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
@@ -1287,7 +1284,7 @@ endif
 	-cmp adscconverted_flat.cbf adscconverted_flat_orig.cbf
 	$(TIME) $(BIN)/convert_image -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
 	-cmp adscconverted.cbf adscconverted_orig.cbf
-	$(TIME) $(BIN)/adscimg2cbf  --cbf_packed,flat mb_LP_1_001.img
+	$(TIME) $(BIN)/adscimg2cbf --no_pad  --cbf_packed,flat mb_LP_1_001.img
 	-cmp mb_LP_1_001.cbf mb_LP_1_001_orig.cbf
 	mv mb_LP_1_001.cbf nmb_LP_1_001.cbf
 	$(TIME) $(BIN)/cbf2adscimg nmb_LP_1_001.cbf

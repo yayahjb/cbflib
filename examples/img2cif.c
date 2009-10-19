@@ -365,7 +365,7 @@ int main (int argc, char *argv [])
  imgin = NULL;
  imgout = NULL;
  imgtmpused = 0;
-    
+
  cbf_failnez(cbf_make_getopt_handle(&opts))
     
  cbf_failnez(cbf_getopt_parse(opts, argc, argv, "i:o:c:m:d:e:b:"))
@@ -373,7 +373,7 @@ int main (int argc, char *argv [])
  if (!cbf_rewind_getopt_option(opts))
  for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
      if (!c) break;
-   switch (c) {
+     switch (c) {
      case 'i':
        if (imgin) errflg++;
        else imgin = optarg;
@@ -933,7 +933,7 @@ int main (int argc, char *argv [])
 
   cbf_failnez (cbf_free_getopt_handle(opts))
 
-    /* Success */
+     /* Success */
 
   return 0;
 }

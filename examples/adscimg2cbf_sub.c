@@ -432,7 +432,12 @@ void	smv_date_to_cbf_date(char *smv_date, char *cbf_date)
 #define	BEAM_CENTER_ULHC	2
 #define BEAM_CENTER_LLHC	3
 
-int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int pack_flags, int beam_center_convention)
+int	adscimg2cbf_sub(char *header, 
+                    unsigned short *data, 
+                    char *cbf_filename, 
+                    int pack_flags, 
+                    int beam_center_convention,
+                    int pad_flag)
 {
   FILE *out;
 
@@ -1492,7 +1497,7 @@ int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int 
 		*ip++ = 0x0000ffff & *up++;
 
 /*
- int cbf_set_integerarray_wdims (cbf_handle    handle,
+ int cbf_set_integerarray_wdims_fs (cbf_handle    handle,
                           unsigned int  compression,
                           int           id,
                           void         *value,
@@ -1500,12 +1505,12 @@ int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int 
                           int           elsign,
                           size_t        nelem,
                           const char   *byteorder,
-                          size_t        dim1,
-                          size_t        dim2,
-                          size_t        dim3,
+                          size_t        dimfast,
+                          size_t        dimmid,
+                          size_t        dimslow,
                           size_t        padding)
 */
- cbf_failnez( cbf_set_integerarray_wdims ((cbf_handle)    cbf,
+ cbf_failnez( cbf_set_integerarray_wdims_fs ((cbf_handle)    cbf,
                           (unsigned int) pack_flags,
                           (int)          1,
                                          data_as_int,
@@ -1514,7 +1519,7 @@ int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int 
                           (size_t)        smv_size1 * smv_size2,
                           	 	"little_endian",
                           (size_t)        smv_size1,
-                          (size_t)        smv_size1,
+                          (size_t)        smv_size2,
                           (size_t)        0,
                           (size_t)        0))
 
@@ -1529,7 +1534,7 @@ int	adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int 
     exit (1);
   }
 
-  cbf_failnez (cbf_write_file (cbf, out, 1, CBF, MSG_DIGEST | MIME_HEADERS, 0))
+  cbf_failnez (cbf_write_file (cbf, out, 1, CBF, MSG_DIGEST | MIME_HEADERS | pad_flag, 0))
   
 
     /* Free the cbf */
