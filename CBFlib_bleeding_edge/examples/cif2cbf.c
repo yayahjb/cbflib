@@ -127,6 +127,7 @@
  *    layered in the order given.                                     *
  *                                                                    *
  *  -w process wide (2048 character) lines                            *
+ *  -W write wide (2048 character) lines                            *
  *                                                                    *
  *                                                                    *
  **********************************************************************/
@@ -470,6 +471,7 @@ int main (int argc, char *argv [])
   int ndict = 0;
   int kd;
   int wide = 0;
+  int Wide = 0;
   int testconstruct;
   char buf[C2CBUFSIZ];
   unsigned int blocks, categories, blocknum, catnum, blockitems, itemnum;
@@ -527,7 +529,7 @@ int main (int argc, char *argv [])
     
    cbf_failnez(cbf_make_getopt_handle(&opts))
     
-   cbf_failnez(cbf_getopt_parse(opts, argc, argv, "-i:o:c:m:d:B:S:T:e:b:p:v:wD"))
+   cbf_failnez(cbf_getopt_parse(opts, argc, argv, "-i:o:c:m:d:B:S:T:e:b:p:v:wWD"))
    
    if (!cbf_rewind_getopt_option(opts))
    for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
@@ -614,12 +616,12 @@ int main (int argc, char *argv [])
            if (!strcmp(optarg,"cif2read")) {
                qrflags &= ~CBF_PARSE_BRACKETS;
                qrflags |= CBF_PARSE_BRC;
-           } else if (!strcmp(optarg,"cif2noread")) {
+           } else if (!strcmp(optarg,"nocif2nread")) {
                qrflags &= ~CBF_PARSE_BRACKETS;
-           } else if (!strcmp(optarg,"write")) {
+           } else if (!strcmp(optarg,"cif2write")) {
                qwflags &= ~CBF_PARSE_BRACKETS;
                qwflags |= CBF_PARSE_BRC;
-           } else if (!strcmp(optarg,"nowrite")) {
+           } else if (!strcmp(optarg,"nocif2write")) {
                qwflags &= ~CBF_PARSE_BRACKETS;
            } else if (!strcmp(optarg,"read")) {
                qrflags |= CBF_PARSE_BRACKETS;
@@ -725,7 +727,11 @@ int main (int argc, char *argv [])
      	  if (wide) errflg++;
      	  else wide = 1;
      	  break;
-     	case 'D':
+        case 'W':
+          if (Wide) errflg++;
+          else Wide = 1;
+          break;
+        case 'D':
      	  if (testconstruct) errflg++;
      	  else testconstruct = 1;
      	  break;
@@ -1206,9 +1212,15 @@ int main (int argc, char *argv [])
    }
 
    if ( ! devnull ){
+       if (Wide) {
+           cbf_failnez (cbf_write_widefile (cbf, out, 1, cbforcif, 
+                                        mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag | qwflags,
+                                        encoding | bytedir | term ))
+       } else {
    cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif, 
                                 mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag | qwflags,
                                          encoding | bytedir | term ))
+       }
    }
    cbf_failnez (cbf_free_handle (cbf))
    b = clock ();

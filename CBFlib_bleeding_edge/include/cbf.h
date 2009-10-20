@@ -414,11 +414,12 @@ extern "C" {
 #define CBF_PARSE_CIF2  0x1F00  /* For CIF2 parse {}, treble quotes,
                                    stop on unescaped close quotes           */
 #define CBF_PARSE_DEFINES      \
-                        0x2000  /* Do not recognize DEFINE::name            */      
+                        0x2000  /* Recognize DEFINE_name            */      
                         
   
-#define CBF_PARSE_WIDE      0x2000  /* PARSE wide files                         */
-#define CBF_PARSE_WS        0x4000  /* PARSE whitespace                         */
+#define CBF_PARSE_WIDE      0x4000  /* PARSE wide files                         */
+#define CBF_PARSE_WS        0x8000  /* PARSE whitespace                         */
+#define CBF_PARSE_UTF8      0x10000 /* PARSE UTF-8                              */
 
 #define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)
 
