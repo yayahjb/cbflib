@@ -773,11 +773,23 @@ int cbf_write_ascii (const char *string, cbf_file *file)
         case CBF_TOKEN_TDQSTRING: initc = termc = '"'; 
               if (!(file->write_headers & CBF_PARSE_TQ)) {initc = termc = ';'; foldme= 1;} break;
         case CBF_TOKEN_PRNSTRING: initc = '('; termc = ')';
-              if (!(file->write_headers & CBF_PARSE_PRN)) {initc = termc = ';'; foldme= 1;} break;
+              if (!(file->write_headers & CBF_PARSE_PRN)) {
+                  if (file->write_headers & CBF_PARSE_BRC){
+                      initc = '{'; termc = '}';
+                  } else {
+                     initc = termc = ';'; foldme= 1;
+                  }
+              } break;
         case CBF_TOKEN_BRCSTRING: initc = '{'; termc = '}'; 
               if (!(file->write_headers & CBF_PARSE_BRC)) {initc = termc = ';'; foldme= 1;} break;
   	    case CBF_TOKEN_BKTSTRING: initc = '['; termc = ']'; 
-              if (!(file->write_headers & CBF_PARSE_BKT)) {initc = termc = ';'; foldme= 1;} break;
+              if (!(file->write_headers & CBF_PARSE_PRN)) {
+                  if (file->write_headers & CBF_PARSE_BRC){
+                      initc = '{'; termc = '}'; 
+                  } else {
+                      initc = termc = ';'; foldme= 1;
+                  }
+              } break;
       }
       
       if (*(string+1)=='\\' && *(string+2)=='\n' ) unfoldme=2;
