@@ -1925,7 +1925,7 @@ yyreduce:
   case 12:
 
     {					
-						  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) (yyvsp[(1) - (1)].node), CBF_CATEGORY,
+						  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) (yyvsp[(1) - (1)].node), CBF_FUNCTION,
                                                                                                                    NULL))
 						  (yyval.node) = (yyvsp[(1) - (1)].node); cbf_failnez (cbf_undo_links (&((yyval.node))))
 

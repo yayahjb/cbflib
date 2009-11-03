@@ -1352,7 +1352,10 @@ int cbf_match(const char *string, char *pattern);
 
   /* Interpreter for dREL method expression */
 
-int cbf_drel(const char *mainitemname, const char *expression);
+int cbf_drel(cbf_handle handle, cbf_handle dict, 
+                               const char *mainitemname, 
+                               const char *datablock, 
+                               const char *expression);
 
   /* Construct Functions dictionary */
 
