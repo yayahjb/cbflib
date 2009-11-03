@@ -6265,6 +6265,8 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
   
   cbf_node * ttnode;
 
+  cbf_handle functions_dict;
+  
   const char * dictype;
   
   const char * catname, * catroot, * functionname;
@@ -6556,12 +6558,35 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
      if (columns == 0) cbf_log(handle,"function definition is missing",CBF_LOGWARNING|CBF_LOGSTARTLOC);
      
      else {
+        char location[255];
 
 		cbf_find_child (&node, node, catname);
 
 		functionname = node->name;
 
-   	cbf_construct_functions_dictionary(handle->dictionary, catname, functionname);
+		cbf_failnez(cbf_require_dictionary(handle, &functions_dict))
+
+		cbf_failnez(cbf_require_datablock(functions_dict, "cbf_functions"))
+
+	    cbf_failnez( cbf_require_category (functions_dict, "function_definitions"))
+
+	    cbf_failnez( cbf_require_column (functions_dict, "function_location"))
+
+	    cbf_failnez( cbf_require_column (functions_dict, "function_expression"))
+		
+		strcpy(location, catname);
+		
+		strcat(location, ".");
+		
+		strcat(location, functionname);
+
+		if (!cbf_find_local_tag(functions_dict,"function_location"))  {
+
+	            cbf_failnez( cbf_set_value(functions_dict, (const char *)location))
+
+	          }
+
+			/*cbf_construct_functions_dictionary(functions_dict, catname, functionname);*/
 			}
 	   }
 	}
@@ -7192,6 +7217,10 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	
     	        }       
 				if (nullvalue) {
+				/*
+				We come here if we come upon a missing value
+				We need to generate a value if there is a given method in the dictionary
+				*/
 				
 					int nextrow; 
 				
@@ -7222,7 +7251,8 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
      	                if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
     	                	if (expression!=NULL) {
 						
-							/*cbf_drel(mainitemname, expression);*/
+							/* Here we call the external compiler for drel*/
+							cbf_drel(handle, handle->dictionary, mainitemname, 	dbp->name, expression);
 							
 							fout = fopen("method_output", "r");
 						
@@ -7253,6 +7283,10 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 				}
 
      			else {
+						/*
+						We come here to check if there is a given method in the dictionary
+						to validate our given value against it
+						*/
 						int nextrow; 
 				
 						const char *nextitem;
@@ -7283,9 +7317,14 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                
 							if (expression!=NULL){
 						
-							/*cbf_drel(mainitemname, expression);*/
+								cbf_failnez(cbf_find_parent (&dbp, handle->node, CBF_DATABLOCK))
+	
+						
+							cbf_drel(handle, handle->dictionary, mainitemname, 	dbp->name, expression);
 							
 							fout = fopen("method_output", "r");
+                                
+                            if (fout) {
 						
 							fscanf(fout, "%s", output);
 	
@@ -7296,6 +7335,8 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 								sprintf(buffer, "%s value provided conflicts with generated value.", mainitemname);
 							
 								cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
+						
+							}	
 						
 							}	
 						
@@ -8180,11 +8221,11 @@ int cbf_match(const char *string, char *pattern) {
 
 /* Interpreter for dREL method expression */
 
-int cbf_drel(const char *mainitemname, const char *expression) {
+int cbf_drel(cbf_handle handle, cbf_handle dict, const char *mainitemname, const char *datablock, const char *expression) {
 							
-	FILE *f; 
+	FILE *f, *fdic, *fdata; 
 	
-	char evaluate[255] = "python ../drel-ply/gu.py ";
+	char evaluate[255] = "python ~/bin/drel_gu.py ";
 
 	f = fopen("method_expression", "w");
 						
@@ -8192,7 +8233,27 @@ int cbf_drel(const char *mainitemname, const char *expression) {
 	
 	fclose(f);
 	
+	fdic = fopen("cbf_dictionary_debug", "w");
+	
+	if (fdic) {
+			
+	  cbf_failnez(cbf_write_widefile(dict,fdic,0,0,0,0))
+	  
+    }
+    
+    fdata = fopen("cbf_data_debug", "w");
+	
+	if (fdata) {
+		
+	  cbf_failnez(cbf_write_widefile(handle,fdata,0,0,0,0))
+	  
+	}
+	
 	strcat(evaluate, mainitemname);
+
+	strcat(evaluate, " ");
+	
+	strcat(evaluate, datablock);
 
 	system(evaluate);
 	
@@ -8207,6 +8268,8 @@ int cbf_drel(const char *mainitemname, const char *expression) {
 int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablockname, const char *functionname) {
 	
 	char location[2049];
+  
+	FILE * ffuncs;
   
    	cbf_failnez( cbf_require_datablock (dict, "cbf_functions"))
     
@@ -8229,8 +8292,10 @@ int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablocknam
 
           }
 
-	/* cbf_failnez(cbf_write_file(dict,stderr,0,0,0,0)) */
+    ffuncs = fopen("cbf_functions_debug","w")
 
+	cbf_failnez(cbf_write_widefile(dict,ffuncs,0,0,0,0))
+	
 	return 0;
 }
 #ifdef __cplusplus

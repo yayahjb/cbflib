@@ -529,20 +529,74 @@ int main (int argc, char *argv [])
     
    cbf_failnez(cbf_make_getopt_handle(&opts))
     
-   cbf_failnez(cbf_getopt_parse(opts, argc, argv, "-i:o:c:m:d:B:S:T:e:b:p:v:wWD"))
+   cbf_failnez(cbf_getopt_parse(opts, argc, argv, "-i(input):" \
+                                "o(output):" \
+                                "b(byte-direction):" \
+                                "B(parse-brackets):" \
+                                "c(compression):" \
+                                "D(test-construct-detector)" \
+                                "d(digest):" \
+                                "e(encoding):" \
+                                "m(mime-header):" \
+                                "p(pad):" \
+                                "P(parse-level):" \
+                                "S(white-space):" \
+                                "T(treble-quotes):" \
+                                "v(validation-dictionary):" \
+                                "w(read-wide)" \
+                                "W(write-wide)" \
+                                ))
    
    if (!cbf_rewind_getopt_option(opts))
    for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
        if (!c) break;
        switch (c) {
-       case 'i':
+           case 'i':     /* input file */
          if (cifin) errflg++;
          else cifin = optarg;
          break;
-       case 'o':
+
+           case 'o':     /* output file */
          if (cbfout) errflg++;
          else cbfout = optarg;
          break;
+
+           case 'b':     /* byte order */
+               if (bytedir) errflg++;
+               if (optarg[0] == 'f' || optarg[0] == 'F') {
+                   bytedir = ENC_FORWARD;
+               } else {
+                   if (optarg[0] == 'b' || optarg[0] == 'B' ) {
+                       bytedir = ENC_BACKWARD;
+                   } else {
+                       errflg++;
+                   }
+               }
+               break;
+               
+           case 'B':
+               if (!strcmp(optarg,"cif20read")) {
+                   qrflags &= ~CBF_PARSE_BRACKETS;
+                   qrflags |= CBF_PARSE_BRC;
+               } else if (!strcmp(optarg,"nocif20read")) {
+                   qrflags &= ~CBF_PARSE_BRACKETS;
+               } else if (!strcmp(optarg,"cif20write")) {
+                   qwflags &= ~CBF_PARSE_BRACKETS;
+                   qwflags |= CBF_PARSE_BRC;
+               } else if (!strcmp(optarg,"nocif20write")) {
+                   qwflags &= ~CBF_PARSE_BRACKETS;
+               } else if (!strcmp(optarg,"read")) {
+                   qrflags |= CBF_PARSE_BRACKETS;
+               } else if (!strcmp(optarg,"noread")) {
+                   qrflags &= ~CBF_PARSE_BRACKETS;
+               } else if (!strcmp(optarg,"write")) {
+                   qwflags |= CBF_PARSE_BRACKETS;
+               } else if (!strcmp(optarg,"nowrite")) {
+                   qwflags  &= ~CBF_PARSE_BRACKETS;
+               } else errflg++;
+               break;
+               
+               
        case 'c':
          if (compression) errflg++;
          if (optarg[0] == 'p' || optarg[0] == 'P') {
@@ -572,28 +626,6 @@ int main (int argc, char *argv [])
          }
          break;
 
-       case 'm':
-         if (optarg[0] == 'h' || optarg[0] == 'H' ) {
-             if (mime) errflg++;
-             mime = MIME_HEADERS;
-         } else if (optarg[0] == 'd' || optarg[0] == 'D' ) {
-             if (dimflag) errflg++;
-             dimflag = HDR_FINDDIMS;
-         } else if (optarg[0] == 'n' || optarg[0] == 'N' ) {
-             if (!strncasecmp(optarg,"noh",3) ){
-                 if (mime) errflg++;
-                 mime = PLAIN_HEADERS;
-             } else if (!strncasecmp(optarg,"nod",3)) {
-                 if (dimflag) errflg++;
-                 dimflag = HDR_NOFINDDIMS;
-             } else {
-                 errflg++;
-             }
-         } else {
-             errflg++;
-         }
-         break;
-
        case 'd':
          if (digest) errflg++;
          if (optarg[0] == 'd' || optarg[0] == 'H' ) {
@@ -611,76 +643,12 @@ int main (int argc, char *argv [])
          }
          break;
 
-
-       case 'B':
-           if (!strcmp(optarg,"cif2read")) {
-               qrflags &= ~CBF_PARSE_BRACKETS;
-               qrflags |= CBF_PARSE_BRC;
-           } else if (!strcmp(optarg,"nocif2nread")) {
-               qrflags &= ~CBF_PARSE_BRACKETS;
-           } else if (!strcmp(optarg,"cif2write")) {
-               qwflags &= ~CBF_PARSE_BRACKETS;
-               qwflags |= CBF_PARSE_BRC;
-           } else if (!strcmp(optarg,"nocif2write")) {
-               qwflags &= ~CBF_PARSE_BRACKETS;
-           } else if (!strcmp(optarg,"read")) {
-               qrflags |= CBF_PARSE_BRACKETS;
-           } else if (!strcmp(optarg,"noread")) {
-               qrflags &= ~CBF_PARSE_BRACKETS;
-           } else if (!strcmp(optarg,"write")) {
-               qwflags |= CBF_PARSE_BRACKETS;
-           } else if (!strcmp(optarg,"nowrite")) {
-               qwflags  &= ~CBF_PARSE_BRACKETS;
-           } else errflg++;
-               break;
-
-         case 'S':
-         if (!strcmp(optarg,"read")) {
-           qrflags |= CBF_PARSE_WS;
-         } else if (!strcmp(optarg,"noread")) {
-           qrflags &= CBF_PARSE_WS;
-         } else if (!strcmp(optarg,"write")) {
-           qwflags |= CBF_PARSE_WS;
-         } else if (!strcmp(optarg,"nowrite")) {
-           qwflags &= CBF_PARSE_WS;
-         } else errflg++;
-         break;
-             
-         case 'T':
-         if (!strcmp(optarg,"read")) {
-           qrflags |= CBF_PARSE_TQ;
-         } else if (!strcmp(optarg,"noread")) {
-           qrflags &= ~CBF_PARSE_TQ;
-         } else if (!strcmp(optarg,"write")) {
-           qwflags |= CBF_PARSE_TQ;
-         } else if (!strcmp(optarg,"nowrite")) {
-           qwflags &= ~CBF_PARSE_TQ;
-         } else errflg++;
+           case 'D':  /* test construct_detector */
+               if (testconstruct) errflg++;
+               else testconstruct = 1;
          break;
 
 
-       case 'b':
-         if (bytedir) errflg++;
-         if (optarg[0] == 'f' || optarg[0] == 'F') {
-           bytedir = ENC_FORWARD;
-         } else {
-           if (optarg[0] == 'b' || optarg[0] == 'B' ) {
-             bytedir = ENC_BACKWARD;
-           } else {
-             errflg++;
-           }
-         }
-         break;
-       case 'p':
-         if (padflag) errflg++;
-         if (optarg[0] == '1') {
-           padflag = PAD_1K;
-         } else if (optarg[0] == '2'){
-           padflag = PAD_2K;
-         } else if (optarg[0] == '4'){
-           padflag = PAD_4K;
-         } else errflg++;
-         break;
        case 'e':
          if (encoding) errflg++;
          if (optarg[0] == 'b' || optarg[0] == 'B' ) {
@@ -712,8 +680,95 @@ int main (int argc, char *argv [])
              }
            }
          }
+               break;
+               
+               
+           case 'm':
+               if (optarg[0] == 'h' || optarg[0] == 'H' ) {
+                   if (mime) errflg++;
+                   mime = MIME_HEADERS;
+               } else if (optarg[0] == 'd' || optarg[0] == 'D' ) {
+                   if (dimflag) errflg++;
+                   dimflag = HDR_FINDDIMS;
+               } else if (optarg[0] == 'n' || optarg[0] == 'N' ) {
+                   if (!strncasecmp(optarg,"noh",3) ){
+                       if (mime) errflg++;
+                       mime = PLAIN_HEADERS;
+                   } else if (!strncasecmp(optarg,"nod",3)) {
+                       if (dimflag) errflg++;
+                       dimflag = HDR_NOFINDDIMS;
+                   } else {
+                       errflg++;
+                   }
+               } else {
+                   errflg++;
+               }
+               break;
+               
+               
+           case 'p':
+               if (padflag) errflg++;
+               if (optarg[0] == '1') {
+                   padflag = PAD_1K;
+               } else if (optarg[0] == '2'){
+                   padflag = PAD_2K;
+               } else if (optarg[0] == '4'){
+                   padflag = PAD_4K;
+               } else errflg++;
+               break;
+               
+               
+           case 'P':    /* Parse level */
+               if (!strcmp(optarg,"cif20read")) {
+                   qrflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
+                   qrflags |= CBF_PARSE_BRC|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8;
+               } else if (!strcmp(optarg,"cif20write")) {
+                   qwflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
+                   qwflags |= CBF_PARSE_BRC|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8;
+               } else if (!strcmp(optarg,"oldddlmread")) {
+                   qrflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
+                   qrflags |= CBF_PARSE_BRACKETS|CBF_PARSE_WIDE;
+               } else if (!strcmp(optarg,"oldddlmwrite")) {
+                   qwflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
+                   qwflags |= CBF_PARSE_BRACKETS|CBF_PARSE_WIDE;
+               } if (!strcmp(optarg,"cif11read")) {
+                   qrflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
+                   qrflags |= CBF_PARSE_WIDE;
+               } else if (!strcmp(optarg,"cif11write")) {
+                   qwflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
+                   qwflags |= CBF_PARSE_WIDE;
+               } else if (!strcmp(optarg,"cif10read")) {
+                   qrflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
+               } else if (!strcmp(optarg,"cif10write")) {
+                   qwflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
+               } else errflg++;
          break;
-       case 'v':
+               
+           case 'S':  /* Parse whitespace */
+               if (!strcmp(optarg,"read")) {
+                   qrflags |= CBF_PARSE_WS;
+               } else if (!strcmp(optarg,"noread")) {
+                   qrflags &= CBF_PARSE_WS;
+               } else if (!strcmp(optarg,"write")) {
+                   qwflags |= CBF_PARSE_WS;
+               } else if (!strcmp(optarg,"nowrite")) {
+                   qwflags &= CBF_PARSE_WS;
+               } else errflg++;
+               break;
+               
+           case 'T':  /* Parse treble quotes */
+               if (!strcmp(optarg,"read")) {
+                   qrflags |= CBF_PARSE_TQ;
+               } else if (!strcmp(optarg,"noread")) {
+                   qrflags &= ~CBF_PARSE_TQ;
+               } else if (!strcmp(optarg,"write")) {
+                   qwflags |= CBF_PARSE_TQ;
+               } else if (!strcmp(optarg,"nowrite")) {
+                   qwflags &= ~CBF_PARSE_TQ;
+               } else errflg++;
+               break;
+
+           case 'v':  /* validate against dictionary */
          if (ndict < NUMDICTS) {
            dqrflags[ndict] = qrflags;
            dictionary[ndict++] = optarg;
@@ -723,18 +778,17 @@ int main (int argc, char *argv [])
            fprintf(stderr, " Too many dictionaries, increase NUMDICTS");
          }
          break;
-     	case 'w':
+
+           case 'w': /* read wide files */
      	  if (wide) errflg++;
      	  else wide = 1;
      	  break;
-        case 'W':
+
+           case 'W': /* write wide files */
           if (Wide) errflg++;
           else Wide = 1;
           break;
-        case 'D':
-     	  if (testconstruct) errflg++;
-     	  else testconstruct = 1;
-     	  break;
+
        default:
          errflg++;
          break;

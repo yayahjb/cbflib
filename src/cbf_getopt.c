@@ -81,6 +81,8 @@ extern "C" {
         
         if (hasvalue) *hasvalue = 0;
         
+        if (*options != '(' && *options != ':' && optchar)*optchar = *options; 
+        
         while ((c=*options)) {
             
             if (c=='(') {
@@ -115,8 +117,6 @@ extern "C" {
                 return options;
                 
             } else if (c) {
-                
-                if (optchar) *optchar = c;
                 
                 options ++;
                 

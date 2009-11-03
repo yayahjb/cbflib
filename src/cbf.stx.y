@@ -525,7 +525,7 @@ CbfThruDBElement: CbfThruDBName                 {
                                                   ((void **)context)[3] = NULL;
                                                 }
 	        | CbfThruFunction	        {					
-						  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_CATEGORY,
+						  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_FUNCTION,
                                                                                                                    NULL))
 						  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
 
