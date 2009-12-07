@@ -3128,6 +3128,57 @@ int cbf_column_name (cbf_handle handle, const char **columnname)
   return cbf_get_name (columnname, node);
 }
 
+    
+    /* Change the name of the current column */
+    
+int cbf_set_column_name (cbf_handle handle, const char *columnname)
+{
+    cbf_node *node;
+    
+    int errorcode;
+    
+    if (!handle)
+        
+        return CBF_ARGUMENT;
+    
+    
+    /* Find the column node */
+    
+    cbf_failnez (cbf_find_parent (&node, handle->node, CBF_COLUMN))
+    
+    
+    /* Copy the name */
+    
+    if (columnname)
+    {
+        columnname = cbf_copy_string (NULL, columnname, 0);
+        
+        if (!columnname)
+            
+            return CBF_ALLOC;
+    }
+    
+    
+    /* Change the name */
+    
+    errorcode = cbf_name_node (node, columnname);
+    
+    if (errorcode)
+    {
+        cbf_free_string (NULL, columnname);
+        
+        return errorcode;
+    }
+    
+    
+    /* Success */
+    
+    handle->node = node;
+    
+    return 0;
+}
+    
+
 
   /* Get the number of the current row */
 

@@ -857,6 +857,11 @@ int cbf_category_name (cbf_handle handle, const char **categoryname);
 int cbf_column_name (cbf_handle handle, const char **columnname);
 
 
+  /* Set the name of the current column */
+    
+int cbf_set_column_name (cbf_handle handle, const char *columnname);
+
+
   /* Get the number of the current row */
   
 int cbf_row_number (cbf_handle handle, unsigned int *row);
