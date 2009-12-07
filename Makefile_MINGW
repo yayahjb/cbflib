@@ -257,12 +257,12 @@ VERSION = 0.8.1
 #
 # Definitions to get versions of PyCifRW and PLY
 #
-PYCIFRW = PyCifRW-3.2
+PYCIFRW = PyCifRW-3.3_6Dec09
 PLY = ply-3.2
 
 # Program to use to retrieve a URL
 
-DOWNLOAD = /usr/bin/wget
+DOWNLOAD = wget
 
 # Flag to control symlinks versus copying
 
@@ -405,7 +405,7 @@ DATAURLBASE	= http://arcib.dowling.edu/software/CBFlib/downloads/version_$(VERSI
 DATAURLI	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Input.tar.gz
 DATAURLO	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output.tar.gz
 DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
-PYCIFRWURL	= http://download.berlios.de/pycifrw/PyCifRW-3.2.tar.gz
+PYCIFRWURL	= http://downloads.sf.net/cbflib/PyCifRW-3.3_6Dec09.tar.gz
 PLYURL		= http://www.dabeaz.com/ply/ply-3.2.tar.gz
 
 
@@ -466,6 +466,11 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_write_binary.c  \
 		    $(SRC)/cbf_ws.c            \
 		    $(SRC)/md5c.c
+		    
+PYSOURCE  = $(SRC)/drel_gu.py	       \
+			$(SRC)/drel_lex.py	       \
+			$(SRC)/drel_yacc.py	       \
+			$(SRC)/drelc.py
 
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 		    $(SRC)/fcb_ci_strncmparr.f90 \
@@ -717,7 +722,8 @@ symlinksdone:
 	touch symlinksdone
 
 install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
-		    $(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib
+		    $(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib \
+		    $(PYSOURCE)
 		-chmod -R 755 $(INSTALLDIR)/include/cbflib
 		-chmod 755 $(INSTALLDIR)/lib/libcbf.a
 		-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
@@ -746,6 +752,10 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
 		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
+		cp $(SRC)/drel_gu.py $(INSTALLDIR)/bin/drel_gu.py
+		cp $(SRC)/drel_lex.py $(INSTALLDIR)/bin/drel_lex.py
+		cp $(SRC)/drel_yacc.py $(INSTALLDIR)/bin/drel_yacc.py
+		cp $(SRC)/drelc.py $(INSTALLDIR)/bin/drelc.py
 		chmod -R 755 $(INSTALLDIR)/include/cbflib
 		-rm -rf $(INSTALLDIR)/include/cbflib_old
 		-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
@@ -1245,7 +1255,7 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf $(TESTINPUT_BASIC)
 		-e none  example.mar2300  img2cif_packed.cbf
 	$(BIN)/img2cif -c canonical -m headers -d digest \
 		-e none  example.mar2300  img2cif_canonical.cbf
-	$(BIN)/cif2cbf -e none -c packed \
+	$(BIN)/cif2cbf -e none -c flatpacked \
 		img2cif_canonical.cif cif2cbf_packed.cbf
 	$(BIN)/cif2cbf -e none -c canonical \
 		img2cif_packed.cif cif2cbf_canonical.cbf
