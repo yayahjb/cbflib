@@ -7295,6 +7295,8 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 					
 						mainitemname[80] = '\0';
 					  
+						/*lookuptable*/
+					  
 				    	cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
     	     
     	            	strncpy(mainitemname, itemname, 80);
@@ -7341,7 +7343,6 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 							}	
 						
 					 	    }
-						
 							break;
 						
 						}
@@ -8225,7 +8226,7 @@ int cbf_drel(cbf_handle handle, cbf_handle dict, const char *mainitemname, const
 							
 	FILE *f, *fdic, *fdata; 
 	
-	char evaluate[255] = "python ~/bin/drel_gu.py ";
+	char evaluate[512] = "python ~/bin/drelc.py ";
 
 	f = fopen("method_expression", "w");
 						
@@ -8260,6 +8261,7 @@ int cbf_drel(cbf_handle handle, cbf_handle dict, const char *mainitemname, const
 	rename("method_expression", "method_expression.old");
 						
 	return 0;
+
 }
 
 
@@ -8292,7 +8294,7 @@ int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablocknam
 
           }
 
-    ffuncs = fopen("cbf_functions_debug","w")
+	ffuncs = fopen("cbf_functions_debug","w");
 
 	cbf_failnez(cbf_write_widefile(dict,ffuncs,0,0,0,0))
 	

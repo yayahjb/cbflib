@@ -257,12 +257,12 @@ VERSION = 0.8.1
 #
 # Definitions to get versions of PyCifRW and PLY
 #
-PYCIFRW = PyCifRW-3.2
+PYCIFRW = PyCifRW-3.3_6Dec09
 PLY = ply-3.2
 
 # Program to use to retrieve a URL
 
-DOWNLOAD = /usr/bin/wget
+DOWNLOAD = wget
 
 # Flag to control symlinks versus copying
 
@@ -398,7 +398,7 @@ DATAURLBASE	= http://arcib.dowling.edu/software/CBFlib/downloads/version_$(VERSI
 DATAURLI	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Input.tar.gz
 DATAURLO	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output.tar.gz
 DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
-PYCIFRWURL	= http://download.berlios.de/pycifrw/PyCifRW-3.2.tar.gz
+PYCIFRWURL	= http://downloads.sf.net/cbflib/PyCifRW-3.3_6Dec09.tar.gz
 PLYURL		= http://www.dabeaz.com/ply/ply-3.2.tar.gz
 
 
@@ -459,6 +459,11 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_write_binary.c  \
 		    $(SRC)/cbf_ws.c            \
 		    $(SRC)/md5c.c
+
+PYSOURCE  = $(SRC)/drel_gu.py	       \
+			$(SRC)/drel_lex.py	       \
+			$(SRC)/drel_yacc.py	       \
+			$(SRC)/drelc.py
 
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 		    $(SRC)/fcb_ci_strncmparr.f90 \
@@ -625,7 +630,7 @@ default:
 #
 # Compile the library and examples
 #
-all:	$(LIB) $(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) symlinksdone \
+all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(PYCIFRW) $(PLY) symlinksdone \
 		$(LIB)/libcbf.a          \
 		$(LIB)/libfcb.a          \
 		$(LIB)/libimg.a          \
@@ -645,7 +650,7 @@ all:	$(LIB) $(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) symlinksdone \
 
 
 ifneq ($(F90C),)
-all:	$(BIN)/test_xds_binary   \
+all::	$(BIN)/test_xds_binary   \
 		$(BIN)/test_fcb_read_image
 endif
 
@@ -700,11 +705,20 @@ Makefile: $(M4)/Makefile.m4
 		m4 -P -Dcbf_system=default $(M4)/Makefile.m4 > Makefile 
 
 symlinksdone:
+	chmod a+x .symlinks
+	chmod a+x .undosymlinks
+	chmod a+x doc/.symlinks
+	chmod a+x doc/.undosymlinks
+	chmod a+x libtool/.symlinks
+	chmod a+x libtool/.undosymlinks
 	./.symlinks $(SLFLAGS)
 	touch symlinksdone
 
 install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
-		    $(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib
+		    $(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib \
+		    $(PYSOURCE)
+		-chmod -R 755 $(INSTALLDIR)/include/cbflib
+		-chmod 755 $(INSTALLDIR)/lib/libcbf.a
 		-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
 		cp $(LIB)/libcbf.a $(INSTALLDIR)/lib/libcbf.a
 		-cp $(INSTALLDIR)/lib/libimg.a $(INSTALLDIR)/lib/libimg_old.a
@@ -731,6 +745,11 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
 		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
+		cp $(SRC)/drel_gu.py $(INSTALLDIR)/bin/drel_gu.py
+		cp $(SRC)/drel_lex.py $(INSTALLDIR)/bin/drel_lex.py
+		cp $(SRC)/drel_yacc.py $(INSTALLDIR)/bin/drel_yacc.py
+		cp $(SRC)/drelc.py $(INSTALLDIR)/bin/drelc.py
+		chmod -R 755 $(INSTALLDIR)/include/cbflib
 		-rm -rf $(INSTALLDIR)/include/cbflib_old
 		-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
 		-rm -rf $(INSTALLDIR)/include/cbflib
@@ -745,49 +764,26 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		chmod 755 $(INSTALLDIR)/bin/testreals
 		chmod 755 $(INSTALLDIR)/bin/testflat
 		chmod 755 $(INSTALLDIR)/bin/testflatpacked
-		chmod -R 644 $(INSTALLDIR)/include/cbflib
+		chmod 644 $(INSTALLDIR)/include/cbflib/*.h
 		
 		
 #
-# Changes if a local gnu getopt is used
+# PyCifRW
 #
-
-ifneq ($(GETOPT),SYSTEM)
-CFLAGS		+=	-DGNUGETOPT
-GOPTLIB		=	$(LIB)/getopt.o
-GOPTINC		=	$(INCLUDE)/getopt.h
-GOPTCLEAN	=	$(GETOPT)_clean
-GOPTBUILD	=	$(GETOPT)_build
-
-GOPTURL		=	http://arcib.dowling.edu/software/getopt/downloads/$(GETOPT).tar.gz
-		
+$(PYCIFRW):
+	$(DOWNLOAD) $(PYCIFRWURL)
+	tar -xvf $(PYCIFRW).tar.gz
+	-rm $(PYCIFRW).tar.gz
+	(cd $(PYCIFRW); python setup.py install )
 
 #
-# getopt package
+# PLY
 #
-$(GETOPT):
-		$(DOWNLOAD) $(GOPTURL)
-		tar -xvf $(GETOPT).tar.gz
-		-rm $(GETOPT).tar.gz
-
-#
-# build getopt
-#
-$(LIB)/getopt.o:		$(GOPTBUILD)
-		(cd $(GETOPT); cp gnu/getopt.o ../$(LIB) )
-$(INCLUDE)/getopt.h:	$(GOPTBUILD)
-		(cd $(GETOPT); cp gnu/getopt.h ../$(INCLUDE) )
-$(GOPTBUILD):  		$(GETOPT)
-		(cd $(GETOPT); sed "1,\$$s/WITHOUT_GETTEXT=0/WITHOUT_GETTEXT=1/g" Makefile \
-		  | sed "1,\$$s/WITH_GETTEXT/WITHOUT_GETTEXT/g"> Makefile_CBF; \
-		  make -f Makefile_CBF GNUGETOPT=1 LIBCGETOPT=0 gnu/getopt.o; \
-		  touch ../$(GOPTBUILD))
-$(GOPTCLEAN):
-		-(cd $(GETOPT); make clean)
-		-rm -f $(GETOPT)/gnu/getopt.o
-		-rm -f $(GOPTBUILD)
-		
-endif
+$(PLY):
+	$(DOWNLOAD) $(PLYURL)
+	tar -xvf $(PLY).tar.gz
+	-rm $(PLY).tar.gz
+	(cd $(PLY); python setup.py install )
 
 
 #
@@ -1252,7 +1248,7 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf $(TESTINPUT_BASIC)
 		-e none  example.mar2300  img2cif_packed.cbf
 	$(BIN)/img2cif -c canonical -m headers -d digest \
 		-e none  example.mar2300  img2cif_canonical.cbf
-	$(BIN)/cif2cbf -e none -c packed \
+	$(BIN)/cif2cbf -e none -c flatpacked \
 		img2cif_canonical.cif cif2cbf_packed.cbf
 	$(BIN)/cif2cbf -e none -c canonical \
 		img2cif_packed.cif cif2cbf_canonical.cbf
@@ -1279,7 +1275,7 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcel
 endif
 	$(TIME) $(BIN)/cif2cbf -e hex -c none \
 		makecbf.cbf cif2cbf_ehcn.cif
-	$(TIME) $(BIN)/cif2cbf -e none -c packed \
+	$(TIME) $(BIN)/cif2cbf -e none -c flatpacked \
 		cif2cbf_ehcn.cif cif2cbf_encp.cbf; rm cif2cbf_ehcn.cif
 	-cmp makecbf.cbf cif2cbf_encp.cbf
 	$(TIME) $(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
@@ -1294,7 +1290,7 @@ endif
 	-cmp adscconverted_flat.cbf adscconverted_flat_orig.cbf
 	$(TIME) $(BIN)/convert_image -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
 	-cmp adscconverted.cbf adscconverted_orig.cbf
-	$(TIME) $(BIN)/adscimg2cbf  --cbf_packed,flat mb_LP_1_001.img
+	$(TIME) $(BIN)/adscimg2cbf --no_pad  --cbf_packed,flat mb_LP_1_001.img
 	-cmp mb_LP_1_001.cbf mb_LP_1_001_orig.cbf
 	mv mb_LP_1_001.cbf nmb_LP_1_001.cbf
 	$(TIME) $(BIN)/cbf2adscimg nmb_LP_1_001.cbf
@@ -1311,9 +1307,9 @@ endif
 	-cmp testflatpackedin.cbf testflatpackedout.cbf
 ifneq ($(F90C),)
 	echo testflatout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatout.out
-	-$(DIFF) test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
+	-$(DIFF)  test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatpackedout.out
-	-$(DIFF) test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
+	-$(DIFF)  test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
 	echo testflatout.cbf | $(TIME) $(BIN)/test_fcb_read_image  > test_fcb_read_testflatout.out
 	-$(DIFF) test_fcb_read_testflatout.out test_fcb_read_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_fcb_read_image > test_fcb_read_testflatpackedout.out
@@ -1353,7 +1349,7 @@ endif
 	$(TIME) $(BIN)/convert_image -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
 	-$(SIGNATURE) < adscconverted.cbf | $(DIFF) - adscconverted_orig.cbf$(SEXT); rm adscconverted.cbf
 	$(TIME) $(BIN)/adscimg2cbf  --cbf_packed,flat mb_LP_1_001.img
-	-$(SIGNATURE) < mb_LP_1_001.cbf | diff - mb_LP_1_001_orig.cbf$(SEXT)
+	-$(SIGNATURE) < mb_LP_1_001.cbf | $(DIFF) - mb_LP_1_001_orig.cbf$(SEXT)
 	mv mb_LP_1_001.cbf nmb_LP_1_001.cbf
 	$(TIME) $(BIN)/cbf2adscimg nmb_LP_1_001.cbf
 	-cmp nmb_LP_1_001.img mb_LP_1_001.img
@@ -1410,8 +1406,6 @@ empty:
 	@-rm -f  $(PYCBF)/build/*/_pycbf.so
 	@-rm -f  $(PYCBF)/build/src/cbf_simple.o
 	@-rm -f  $(PYCBF)/build/*/pycbf_wrap.o
-	@-rm -f  $(LIB)/getopt.o
-	@-rm -f  $(INCLUDE)/getopt.h
 	@-rm -f  $(BIN)/adscimg2cbf
 	@-rm -f  $(BIN)/cbf2adscimg
 	@-rm -f  $(BIN)/makecbf
@@ -1496,11 +1490,10 @@ empty:
 #
 # Remove temporary files
 #
-clean:	$(GOPTCLEAN)
+clean:	
 	@-rm -f core 
 	@-rm -f *.o
 	@-rm -f *.u
-	@-rm -f ./lib/getopt.o
 #
 # Restore to distribution state
 #
