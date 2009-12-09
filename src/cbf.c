@@ -7270,7 +7270,9 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 				if (nullvalue) {
 				/*
 				We come here if we come upon a missing value
+				
 				We need to generate a value if there is a given method in the dictionary
+				
 				*/
 				
 					int nextrow; 
@@ -7300,9 +7302,11 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                cbf_failnez( cbf_get_value(handle->dictionary, &expression))
 
      	                if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
+	
     	                	if (expression!=NULL) {
 						
-							/* Here we call the external compiler for drel*/
+							cbf_failnez(cbf_find_parent (&dbp, handle->node, CBF_DATABLOCK))
+								
 							cbf_drel(handle, handle->dictionary, mainitemname, 	dbp->name, expression);
 							
 							fout = fopen("method_output", "r");
@@ -7335,8 +7339,11 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 
      			else {
 						/*
+						
 						We come here to check if there is a given method in the dictionary
+						
 						to validate our given value against it
+						
 						*/
 						int nextrow; 
 				
@@ -7344,9 +7351,16 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 				
 		 				char mainitemname[81];
 					
+						/* TODO: replace the use of preprocessing script with cbf_set_columname()
+						
+						char columnname[81];	
+						
+						char* columnnametemp;
+						
+						char columnnamelocal[81];
+						
+						*/
 						mainitemname[80] = '\0';
-					  
-						/*lookuptable*/
 					  
 				    	cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
     	     
@@ -7369,11 +7383,34 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
      	                if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
     	                
 							if (expression!=NULL){
+								/*
+							
+								cbf_falinez(cbf_column_name(handle, &columnnametemp))
+								
+								strcpy(columnnametemp, columnname);
+								
+								fprintf(stderr, "Column Name Temp: %s", columnnametemp);
+								
+								strcpy(columnnamelocal, columnname);
+								
+								strcat(columnnamelocal, "_local");
+								
+								fprintf(stderr, "Column Name Local: %s", columnnamelocal);
+								
+								*/
 						
 								cbf_failnez(cbf_find_parent (&dbp, handle->node, CBF_DATABLOCK))
 	
+								/*
+							
+								cbf_failnez(cbf_set_columnname(handle, columnnamelocal))
+								
+								*/
 						
 							cbf_drel(handle, handle->dictionary, mainitemname, 	dbp->name, expression);
+							
+								/*cbf_falinez(cbf_set_columnname(handle, columnname))*/
+								
 							
 							fout = fopen("method_output", "r");
                                 
@@ -8275,7 +8312,11 @@ int cbf_match(const char *string, char *pattern) {
 
 int cbf_drel(cbf_handle handle, cbf_handle dict, const char *mainitemname, const char *datablock, const char *expression) {
 							
+	/* TODO: replace system calls with pipes */
+							
 	FILE *f, *fdic, *fdata; 
+	
+	char preprocess[512] = "python ~/bin/drel_prep.py ";
 	
 	char evaluate[512] = "python ~/bin/drelc.py ";
 
@@ -8300,6 +8341,10 @@ int cbf_drel(cbf_handle handle, cbf_handle dict, const char *mainitemname, const
 	  cbf_failnez(cbf_write_widefile(handle,fdata,0,0,0,0))
 	  
 	}
+	
+	strcat(preprocess, mainitemname);
+	
+	system(preprocess);
 	
 	strcat(evaluate, mainitemname);
 
