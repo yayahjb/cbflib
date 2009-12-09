@@ -611,10 +611,10 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_ws.c            \
 		    $(SRC)/md5c.c
 		    
-PYSOURCE  = $(SRC)/drel_gu.py	       \
-			$(SRC)/drel_lex.py	       \
+PYSOURCE  = $(SRC)/drel_lex.py	       \
 			$(SRC)/drel_yacc.py	       \
-			$(SRC)/drelc.py
+			$(SRC)/drelc.py \
+			$(SRC)/drel_prep.py
  
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 		    $(SRC)/fcb_ci_strncmparr.f90 \
@@ -896,10 +896,10 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
 		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
-		cp $(SRC)/drel_gu.py $(INSTALLDIR)/bin/drel_gu.py
 		cp $(SRC)/drel_lex.py $(INSTALLDIR)/bin/drel_lex.py
 		cp $(SRC)/drel_yacc.py $(INSTALLDIR)/bin/drel_yacc.py
 		cp $(SRC)/drelc.py $(INSTALLDIR)/bin/drelc.py
+		cp $(SRC)/drel_prep.py $(INSTALLDIR)/bin/drel_prep.py
 		chmod -R 755 $(INSTALLDIR)/include/cbflib
 		-rm -rf $(INSTALLDIR)/include/cbflib_old
 		-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
