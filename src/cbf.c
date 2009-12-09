@@ -7422,7 +7422,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 							
 							if (cbf_cistrcmp(valuestring,output)) {
 							
-								sprintf(buffer, "%s value provided conflicts with generated value.", mainitemname);
+								sprintf(buffer, "%s value provided conflicts with generated value. CBFlib generated value %s: ", mainitemname, output);
 							
 								cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
 						
