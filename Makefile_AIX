@@ -443,7 +443,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_codes.c         \
 		    $(SRC)/cbf_compress.c      \
 		    $(SRC)/cbf_context.c       \
-		    $(SRC)/cbf_file.c          \
+            $(SRC)/cbf_file.c          \
             $(SRC)/cbf_getopt.c        \
 		    $(SRC)/cbf_lex.c           \
 		    $(SRC)/cbf_packed.c        \
@@ -460,11 +460,11 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_ws.c            \
 		    $(SRC)/md5c.c
 		    
-PYSOURCE  = $(SRC)/drel_gu.py	       \
-			$(SRC)/drel_lex.py	       \
+PYSOURCE  = $(SRC)/drel_lex.py	       \
 			$(SRC)/drel_yacc.py	       \
-			$(SRC)/drelc.py
-
+			$(SRC)/drelc.py \
+			$(SRC)/drel_prep.py
+ 
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 		    $(SRC)/fcb_ci_strncmparr.f90 \
 		    $(SRC)/fcb_exit_binary.f90   \
@@ -657,7 +657,7 @@ endif
 shared:	$(SOLIB)/libcbf.so $(SOLIB)/libfcb.so $(SOLIB)/libimg.so
 
 javawrapper: shared $(JAVADIR) $(JAVADIR)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
-
+		
 Makefiles: Makefile			 \
 		Makefile_LINUX           \
 		Makefile_LINUX_64        \
@@ -670,7 +670,7 @@ Makefiles: Makefile			 \
 
 Makefile_LINUX: $(M4)/Makefile.m4
 		-cp Makefile_LINUX Makefile_LINUX_old
-		m4 -P -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
+        m4 -P -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
 
 Makefile_LINUX_64: $(M4)/Makefile.m4
 		-cp Makefile_LINUX_64 Makefile_LINUX_64_old
@@ -745,10 +745,10 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
 		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
-		cp $(SRC)/drel_gu.py $(INSTALLDIR)/bin/drel_gu.py
 		cp $(SRC)/drel_lex.py $(INSTALLDIR)/bin/drel_lex.py
 		cp $(SRC)/drel_yacc.py $(INSTALLDIR)/bin/drel_yacc.py
 		cp $(SRC)/drelc.py $(INSTALLDIR)/bin/drelc.py
+		cp $(SRC)/drel_prep.py $(INSTALLDIR)/bin/drel_prep.py
 		chmod -R 755 $(INSTALLDIR)/include/cbflib
 		-rm -rf $(INSTALLDIR)/include/cbflib_old
 		-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
