@@ -445,7 +445,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
       cqueue[1] = cqueue[0];
 
       cqueue[0] = cbf_read_character (file);
-      
+
       if (cqueue[1] == '\\' && cqueue[2] == '\\') cqueue[1] += 0x100;
       
       if (file->column == file->columnlimit+1) {
@@ -472,7 +472,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
             if ( cqueue[0] != EOF &&
                 ( ((unsigned char)cqueue[0] < 32)
                 || ((unsigned char)cqueue[0] == 127) ) ){
-          cbf_log(handle,"invalid character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+                    cbf_log(handle,"invalid character",CBF_LOGWARNING|CBF_LOGCURRENTLOC);
             } 
         }
     
@@ -520,7 +520,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
       
         if ( length == 81 ) cbf_log(handle, "data block name exceeds 75 characters",
           CBF_LOGERROR|CBF_LOGSTARTLOC);
-
+        
         if ((file->read_headers & CBF_PARSE_CIF2_DELIMS) 
             && (cqueue[0] == '{' || cqueue[0] == '}' || cqueue[0] == '\'' || cqueue[0] == '"' || cqueue[0] == ',' || cqueue[0] == ':')) {
             
@@ -635,7 +635,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
       if (length < 5) loop = (toupper (cqueue[0]) == "LOOP_" [length]);
 
       if ((!loop) && (length == 5)) {
-      	
+      
         if ((file->read_headers & CBF_PARSE_CIF2_DELIMS) 
             && (cqueue[0] == '{' || cqueue[0] == '}' || cqueue[0] == '\'' || cqueue[0] == '"' || cqueue[0] == ',' || cqueue[0] == ':')) {
             
@@ -644,19 +644,19 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
             	if (cqueue[0] != ',' && cqueue[0] != ':' ) {
             	
             	  cbf_errornez(cbf_lex_unget(file,val,cqueue), val)
+            	  
+            	}
             	
-            }
-            
             	return LOOP;
-          }
-        	
+        }
+      	
         if (isspace(cqueue[0]) || cqueue[0] == EOF) return LOOP;
       
         cbf_log(handle, "\"loop_\" must be followed by white space", 
           CBF_LOGERROR|CBF_LOGSTARTLOC );
-            	
-            	  cbf_errornez(cbf_lex_unget(file,val,cqueue), val)
-      
+            
+        cbf_errornez(cbf_lex_unget(file,val,cqueue), val)
+            
         return LOOP;
 
       }
@@ -846,11 +846,11 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
         int savechar=1;  /* flag to save the character */
          
         int breakout=0;  /* flag to break out of the loop */
-
+      
         /* refresh the line array in case the buffer expanded */
       
         cbf_errornez (cbf_get_buffer (file, &line, &length), val)
-        
+          
         cqueue[4] = cqueue[3];
         
         cqueue[3] = cqueue[2];
@@ -860,7 +860,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
         cqueue[1] = cqueue[0];
 
         cqueue[0] = cbf_read_character (file);
-        
+          
         if (cqueue[1] == '\\' && cqueue[2] == '\\') cqueue[1] += 0x100;
         
         /* check for a triple quote */
@@ -899,8 +899,8 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
         
         if (depth == 0)  {
         
-          /* handle the non-bracketed case */     
-        
+          /* handle the non-bracketed case */ 
+          
           if ((file->read_headers & CBF_PARSE_CIF2_DELIMS)) {
  
             string = !(!q3 && cqueue[0] == line[0] 
@@ -924,7 +924,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                 cqueue[1] = cqueue[0];
               
                 cqueue[0] = cbf_read_character (file);
-              
+                  
                 if (cqueue[1] == '\\' && cqueue[2] == '\\') cqueue[1] += 0x100;
               
                 if (!isspace(cqueue[0])) {
@@ -1737,7 +1737,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
        /* CBFWORD ([^[:space:]]+) */
 
     if (!data && !loop && !item && !comment && !string && !column) {
-
+          
       if (length && (file->read_headers & CBF_PARSE_CIF2_DELIMS) 
           && (cqueue[0] == '{' || cqueue[0] == '}' || cqueue[0] == '\'' || cqueue[0] == '"' || cqueue[0] == ',' || cqueue[0] == ':')) {
           
@@ -1808,7 +1808,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
 
             /* Read the next character */
-
+            
           cqueue[4] = cqueue[3];
 
           cqueue[3] = cqueue[2];
@@ -2130,7 +2130,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
         do {
 
           if (cqueue[0]==EOF) break;
-          
+            
           cqueue[4] = cqueue[3];
           
           cqueue[3] = cqueue[2];
@@ -2140,7 +2140,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
           cqueue[1] = cqueue[0];
 
           cqueue[0] = cbf_read_character (file);
-
+            
           if (cqueue[1] == '\\' && cqueue[2] == '\\') cqueue[1] += 0x100;
 
           if (cqueue[0] == EOF && (cqueue[2] != '\n' ||  cqueue[1] != ';')) {

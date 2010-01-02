@@ -1924,17 +1924,17 @@ yyreduce:
 
   case 12:
 
-    {					
+    {
 						  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) (yyvsp[(1) - (1)].node), CBF_FUNCTION,
-                                                                                                                   NULL))
-						  (yyval.node) = (yyvsp[(1) - (1)].node); cbf_failnez (cbf_undo_links (&((yyval.node))))
+                                                                                                                  NULL))
+                                                  (yyval.node) = (yyvsp[(1) - (1)].node); cbf_failnez (cbf_undo_links (&((yyval.node))))
 
                                                   cbf_failnez (cbf_find_parent (&((yyval.node)), (yyval.node), CBF_DATABLOCK))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)(yyval.node);
                                                    
                                                   ((void **)context)[3] = NULL;
-						;}
+                                                ;}
     break;
 
   case 13:
@@ -2766,8 +2766,8 @@ yyreduce:
   case 69:
 
     {
-	  					  (yyval.text) = (yyvsp[(1) - (1)].text);
-						;}
+                                                  (yyval.text) = (yyvsp[(1) - (1)].text);
+                                                ;}
     break;
 
   case 70:

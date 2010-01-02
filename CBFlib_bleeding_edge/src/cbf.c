@@ -3814,8 +3814,8 @@ int cbf_get_arrayparameters_wdims (cbf_handle    handle,
             
             cbf_failnez (cbf_find_parent (&datablock, category, CBF_DATABLOCK))
             
-}
-
+        }
+        
         /* Find the array_structure_list category and extract the dimensions with their precedence
          for the given array_id */
         
@@ -6408,9 +6408,9 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     /* Now check if the parent data block has any content */
 
     if (!cbf_find_parent(&tnode, node, CBF_DATABLOCK)) {
-	
-		cbf_failnez(cbf_count_children(&children, tnode))
-
+    
+      cbf_failnez(cbf_count_children(&children, tnode))
+    
       if ( children == 0 ) {
       
         if (file != (cbf_file *)NULL) {
@@ -7171,7 +7171,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 						
 						cbf_warning(buffer);
 					}
-					
+
     	        	  if ( cbf_cistrncmp(dictype,"numb",4)
     	        	    || cbf_cistrncmp(dictype,"int",3)
     	        	    || cbf_cistrncmp(dictype,"floa",4)) {
@@ -7427,8 +7427,8 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 								cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
 						
 							}	
-						
-							}	
+                            
+                            }
 						
 					 	    }
 							break;
@@ -7442,7 +7442,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 				}
 				
     	        if (!goodmatch)   {
-				
+
     	          sprintf(buffer," %s type conflicts with dictionary type %s", itemname, dictype );
 
     	          cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
@@ -8313,11 +8313,11 @@ int cbf_match(const char *string, char *pattern) {
 int cbf_drel(cbf_handle handle, cbf_handle dict, const char *mainitemname, const char *datablock, const char *expression) {
 							
 	/* TODO: replace system calls with pipes */
-							
+
 	FILE *f, *fdic, *fdata; 
 	
 	char preprocess[512] = "python ~/bin/drel_prep.py ";
-	
+
 	char evaluate[512] = "python ~/bin/drelc.py ";
 
 	f = fopen("method_expression", "w");
@@ -8347,7 +8347,7 @@ int cbf_drel(cbf_handle handle, cbf_handle dict, const char *mainitemname, const
 	system(preprocess);
 	
 	strcat(evaluate, mainitemname);
-
+	
 	strcat(evaluate, " ");
 	
 	strcat(evaluate, datablock);
@@ -8366,7 +8366,7 @@ int cbf_drel(cbf_handle handle, cbf_handle dict, const char *mainitemname, const
 int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablockname, const char *functionname) {
 	
 	char location[2049];
-  
+	
 	FILE * ffuncs;
   
    	cbf_failnez( cbf_require_datablock (dict, "cbf_functions"))
@@ -8389,7 +8389,7 @@ int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablocknam
             cbf_failnez( cbf_set_value(dict, location))
 
           }
-
+          
 	ffuncs = fopen("cbf_functions_debug","w");
 
 	cbf_failnez(cbf_write_widefile(dict,ffuncs,0,0,0,0))

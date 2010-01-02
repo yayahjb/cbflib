@@ -552,14 +552,14 @@ int main (int argc, char *argv [])
        if (!c) break;
        switch (c) {
            case 'i':     /* input file */
-         if (cifin) errflg++;
-         else cifin = optarg;
-         break;
+               if (cifin) errflg++;
+               else cifin = optarg;
+               break;
 
            case 'o':     /* output file */
-         if (cbfout) errflg++;
-         else cbfout = optarg;
-         break;
+               if (cbfout) errflg++;
+               else cbfout = optarg;
+               break;
 
            case 'b':     /* byte order */
                if (bytedir) errflg++;
@@ -597,89 +597,89 @@ int main (int argc, char *argv [])
                break;
                
                
-       case 'c':
-         if (compression) errflg++;
-         if (optarg[0] == 'p' || optarg[0] == 'P') {
-           compression = CBF_PACKED;
-         } else {
-           if (optarg[0] == 'c' || optarg[0] == 'C') {
-             compression = CBF_CANONICAL;
-           } else {
-             if (optarg[0] == 'b' || optarg[0] == 'B') {
-               compression = CBF_BYTE_OFFSET;
-             } else {
-               if (optarg[0] == 'n' || optarg[0] == 'N') {
-                 compression = CBF_NONE;
+           case 'c':
+               if (compression) errflg++;
+               if (optarg[0] == 'p' || optarg[0] == 'P') {
+                   compression = CBF_PACKED;
                } else {
-                 if (optarg[0] == 'v' || optarg[0] == 'V') {
-                   compression = CBF_PACKED_V2;
-                 } else {
-                   if (optarg[0] == 'f' || optarg[0] == 'F') {
-                 	 compression = CBF_PACKED|CBF_FLAT_IMAGE;
-                   } else {             
-                     errflg++;
+                   if (optarg[0] == 'c' || optarg[0] == 'C') {
+                       compression = CBF_CANONICAL;
+                   } else {
+                       if (optarg[0] == 'b' || optarg[0] == 'B') {
+                           compression = CBF_BYTE_OFFSET;
+                       } else {
+                           if (optarg[0] == 'n' || optarg[0] == 'N') {
+                               compression = CBF_NONE;
+                           } else {
+                               if (optarg[0] == 'v' || optarg[0] == 'V') {
+                                   compression = CBF_PACKED_V2;
+                               } else {
+                                   if (optarg[0] == 'f' || optarg[0] == 'F') {
+                                       compression = CBF_PACKED|CBF_FLAT_IMAGE;
+                                   } else {             
+                                       errflg++;
+                                   }
+                               }
+                           }
+                       }
                    }
-                 }
                }
-             }
-           }
-         }
-         break;
-
-       case 'd':
-         if (digest) errflg++;
-         if (optarg[0] == 'd' || optarg[0] == 'H' ) {
-           digest = MSG_DIGEST;
-         } else {
-           if (optarg[0] == 'n' || optarg[0] == 'N' ) {
-           digest = MSG_NODIGEST;
-           } else {
-             if (optarg[0] == 'w' || optarg[0] == 'W' ) {
-             digest = MSG_DIGESTWARN;
-             } else {
-               errflg++;
-             }
-           }
-         }
-         break;
-
+               break;
+               
+           case 'd':
+               if (digest) errflg++;
+               if (optarg[0] == 'd' || optarg[0] == 'H' ) {
+                   digest = MSG_DIGEST;
+               } else {
+                   if (optarg[0] == 'n' || optarg[0] == 'N' ) {
+                       digest = MSG_NODIGEST;
+                   } else {
+                       if (optarg[0] == 'w' || optarg[0] == 'W' ) {
+                           digest = MSG_DIGESTWARN;
+                       } else {
+                           errflg++;
+                       }
+                   }
+               }
+               break;
+ 
            case 'D':  /* test construct_detector */
                if (testconstruct) errflg++;
                else testconstruct = 1;
-         break;
-
-
-       case 'e':
-         if (encoding) errflg++;
-         if (optarg[0] == 'b' || optarg[0] == 'B' ) {
-           encoding = ENC_BASE64;
-         } else {
-           if (optarg[0] == 'k' || optarg[0] == 'K' ) {
-             encoding = ENC_BASE32K;
-           } else {
-             if (optarg[0] == 'q' || optarg[0] == 'Q' ) {
-             encoding = ENC_QP;
-             } else {
-               if (optarg[0] == 'd' || optarg[0] == 'D' ) {
-                 encoding = ENC_BASE10;
+               break;
+               
+               
+           case 'e':
+               if (encoding) errflg++;
+               if (optarg[0] == 'b' || optarg[0] == 'B' ) {
+                   encoding = ENC_BASE64;
                } else {
-                 if (optarg[0] == 'h' || optarg[0] == 'H' ) {
-                   encoding = ENC_BASE16;
-                 } else {
-                   if (optarg[0] == 'o' || optarg[0] == 'O' ) {
-                     encoding = ENC_BASE8;
+                   if (optarg[0] == 'k' || optarg[0] == 'K' ) {
+                       encoding = ENC_BASE32K;
                    } else {
-                     if (optarg[0] == 'n' || optarg[0] == 'N' ) {
-                       encoding = ENC_NONE;
-                     } else {
-                       errflg++;
-                     }
+                       if (optarg[0] == 'q' || optarg[0] == 'Q' ) {
+                           encoding = ENC_QP;
+                       } else {
+                           if (optarg[0] == 'd' || optarg[0] == 'D' ) {
+                               encoding = ENC_BASE10;
+                           } else {
+                               if (optarg[0] == 'h' || optarg[0] == 'H' ) {
+                                   encoding = ENC_BASE16;
+                               } else {
+                                   if (optarg[0] == 'o' || optarg[0] == 'O' ) {
+                                       encoding = ENC_BASE8;
+                                   } else {
+                                       if (optarg[0] == 'n' || optarg[0] == 'N' ) {
+                                           encoding = ENC_NONE;
+                                       } else {
+                                           errflg++;
+                                       }
+                                   }
+                               }
+                           }
+                       }
                    }
-                 }
                }
-             }
-           }
-         }
                break;
                
                
@@ -742,7 +742,7 @@ int main (int argc, char *argv [])
                } else if (!strcmp(optarg,"cif10write")) {
                    qwflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
                } else errflg++;
-         break;
+               break;
                
            case 'S':  /* Parse whitespace */
                if (!strcmp(optarg,"read")) {
@@ -769,30 +769,30 @@ int main (int argc, char *argv [])
                break;
 
            case 'v':  /* validate against dictionary */
-         if (ndict < NUMDICTS) {
-           dqrflags[ndict] = qrflags;
-           dictionary[ndict++] = optarg;
-         } else if (ndict == NUMDICTS) {
-           errflg++;
-           ndict++;
-           fprintf(stderr, " Too many dictionaries, increase NUMDICTS");
-         }
-         break;
+               if (ndict < NUMDICTS) {
+                   dqrflags[ndict] = qrflags;
+                   dictionary[ndict++] = optarg;
+               } else if (ndict == NUMDICTS) {
+                   errflg++;
+                   ndict++;
+                   fprintf(stderr, " Too many dictionaries, increase NUMDICTS");
+               }
+               break;
 
            case 'w': /* read wide files */
-     	  if (wide) errflg++;
-     	  else wide = 1;
-     	  break;
+               if (wide) errflg++;
+               else wide = 1;
+               break;
 
            case 'W': /* write wide files */
-          if (Wide) errflg++;
-          else Wide = 1;
-          break;
+               if (Wide) errflg++;
+               else Wide = 1;
+               break;
 
-       default:
-         errflg++;
-         break;
-      }
+           default:
+               errflg++;
+               break;
+       }
     }
     for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
      if (!cifin) {

@@ -405,7 +405,7 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
   	
   }
   
-   
+
   if (dimover)
   
      *dimover = dimover_text;

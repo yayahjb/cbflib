@@ -263,7 +263,7 @@ extern "C" {
 
 typedef enum
 {
-  CBF_UNDEFINED,        /* Undefined */
+  CBF_UNDEFNODE,        /* Undefined */
   CBF_LINK,             /* Link      */
   CBF_ROOT,             /* Root      */
   CBF_DATABLOCK,        /* Datablock */

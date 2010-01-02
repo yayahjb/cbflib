@@ -501,7 +501,7 @@ CbfThruDBElement: CbfThruDBName                 {
                                                    
                                                   ((void **)context)[3] = NULL;
                                                 }
-				| CbfThruLoopAssignment         {
+                | CbfThruLoopAssignment         {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_CATEGORY,
                                                                                                                    NULL))
                                                   
@@ -527,14 +527,14 @@ CbfThruDBElement: CbfThruDBName                 {
 	        | CbfThruFunction	        {					
 						  cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_FUNCTION,
                                                                                                                    NULL))
-						  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
+                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
 
                                                   cbf_failnez (cbf_find_parent (&($$), $$, CBF_DATABLOCK))
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                    
                                                   ((void **)context)[3] = NULL;
-						}
+                                                }
 				
                 | ErrorCbfThruExtraValue        {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_CATEGORY,
@@ -745,7 +745,7 @@ CbfThruColumn:    CbfThruCategory ColumnName    {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
                                                                                                                   (cbf_node *)(((void **)context)[3])))
                                                 }
-	           | ErrorCbfWODBName ItemName     {
+                | ErrorCbfWODBName ItemName     {
                                                   cbf_failnez (cbf_make_new_child (&($$), $1, CBF_CATEGORY, $2))
                                                   
                                                   ((void **)context)[3] = (void *)$$;
@@ -1207,8 +1207,8 @@ Loop:             LOOP
 DataBlockName:  DATA                            {
                                                   $$ = $1;
                                                 }
-                        ;
-				
+                ;
+
 SaveFrameName:    SAVE                          {
                                                   $$ = $1;
                                                 }
@@ -1230,8 +1230,8 @@ ItemName:         ITEM                          {
 				;
 				
 FunctionName:    DEFINE				{
-	  					  $$ = $1;
-						}
+                                                  $$ = $1;
+                                                }
                 ;
 
 Value:            STRING                        {

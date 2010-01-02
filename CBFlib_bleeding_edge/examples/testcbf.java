@@ -5,6 +5,11 @@ import org.iucr.cbflib.*;
 public class testcbf {
 
     static {
+        try {
+	    System.loadLibrary("libgnurx-0");
+	} catch (UnsatisfiedLinkError e) {
+	    //
+	}
 	System.loadLibrary("cbf_wrap");
     }
 
@@ -34,6 +39,10 @@ public class testcbf {
 	status = cbf.cbf_datablock_name(chs, dbnamep);
 	System.out.println("db_name (" + status + ") = " + cbf.charPP_value(dbnamep));
 
+	int[] ntype = {0};
+	status = cbf.cbf_rewind_blockitem(chs, ntype);
+	System.out.println("rewind_bi (" + status + ") = " + ntype[0]);
+
 	status = cbf.cbf_find_category(chs, "diffrn_data_frame");
 	System.out.println("find_cat (" + status + ")");
 
@@ -42,12 +51,14 @@ public class testcbf {
 
 	status = cbf.cbf_find_column(chs, "array_id");
 	System.out.println("find_col (" + status + ")");
+
 	status = cbf.cbf_get_value(chs, s);
 	String arrayid = cbf.charPP_value(s);
 	System.out.println("get_val (" + status + ") = " + arrayid);
 
 	status = cbf.cbf_find_category(chs, "array_structure_list");
 	System.out.println("find_cat (" + status + ")");
+
 	status = cbf.cbf_rewind_row(chs);
 	System.out.println("rewind_row (" + status + ")");
 
@@ -97,7 +108,6 @@ public class testcbf {
 
 	int dsize = dims[0]*dims[1];
 	sizetP rsize = new sizetP();
-	intArray idata = new intArray(dsize);
 
 	// Attempt to load data
 	status = cbf.cbf_find_category(chs, "array_data");
@@ -108,9 +118,42 @@ public class testcbf {
 	System.out.println("find_row (" + status + ")");
 	status = cbf.cbf_find_column(chs, "data");
 	System.out.println("find_col (" + status + ")");
-	status = cbf.cbf_get_integerarray (chs, ip.cast(), cbf.int_void(idata.cast()), 4, 1, dsize, rsize.cast());
-	if (status == 0)
-	    System.out.println("get_intarray (" + status + ") " + rsize.value() + "/" + dsize);
+
+	uintP cifcomp = new uintP();
+	intP bid = new intP(), els = new intP(), elu = new intP();
+	intP minel = new intP(), maxel = new intP(), isre = new intP();
+	sizetP elsize = new sizetP(), elnum = new sizetP();
+	sizetP dim1 = new sizetP(), dim2 = new sizetP(), dim3 = new sizetP(), pad = new sizetP();
+	SWIGTYPE_p_p_char byteorder = cbf.new_charPP();
+
+	status = cbf.cbf_get_arrayparameters_wdims(chs, cifcomp.cast(), bid.cast(), elsize.cast(),
+						   els.cast(), elu.cast(), elnum.cast(),
+						   minel.cast(), maxel.cast(), isre.cast(),
+						   byteorder, dim1.cast(), dim2.cast(), dim3.cast(),
+						   pad.cast());
+	System.out.println("get_aparams (" + status + ") = " + cifcomp.value() + ", "  + bid.value()
+			   + ", "  + elsize.value() + ", "  + els.value() + ", "  + elu.value() + ",");
+	System.out.println(" "  + elnum.value() + ", "  + minel.value() + ", "  + maxel.value()
+			   + ", "  + isre.value() + ", "  + cbf.charPP_value(byteorder) + ",");
+	System.out.println(" " + dim1.value() + ", "  + dim2.value() + ", "  + dim3.value()
+			   + ", "  + pad.value());
+
+	boolean isreal = (isre.value() == 1);
+
+	if (isreal) {
+	    doubleArray ddata = new doubleArray(dsize);
+
+	    status = cbf.cbf_get_realarray(chs, bid.cast(), cbf.double_void(ddata.cast()),
+					   (Double.SIZE / 8), dsize, rsize.cast());
+	    if (status == 0)
+		System.out.println("get_dblarray (" + status + ") " + rsize.value() + "/" + dsize);
+	} else {
+	    intArray idata = new intArray(dsize);
+	    status = cbf.cbf_get_integerarray(chs, ip.cast(), cbf.int_void(idata.cast()),
+					      (Integer.SIZE / 8), els.value(), dsize, rsize.cast());
+	    if (status == 0)
+		System.out.println("get_intarray (" + status + ") " + rsize.value() + "/" + dsize);
+	}
 
     }
 }

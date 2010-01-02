@@ -11533,7 +11533,7 @@ SWIGEXPORT void SWIG_init(void) {
   SWIG_Python_SetConstant(d, "ENC_CRTERM",SWIG_From_int((int)(0x0100)));
   SWIG_Python_SetConstant(d, "ENC_LFTERM",SWIG_From_int((int)(0x0200)));
   SWIG_Python_SetConstant(d, "ENC_DEFAULT",SWIG_From_int((int)((0x0002|0x0200|0x0040))));
-  SWIG_Python_SetConstant(d, "CBF_UNDEFINED",SWIG_From_int((int)(CBF_UNDEFINED)));
+  SWIG_Python_SetConstant(d, "CBF_UNDEFNODE",SWIG_From_int((int)(CBF_UNDEFNODE)));
   SWIG_Python_SetConstant(d, "CBF_LINK",SWIG_From_int((int)(CBF_LINK)));
   SWIG_Python_SetConstant(d, "CBF_ROOT",SWIG_From_int((int)(CBF_ROOT)));
   SWIG_Python_SetConstant(d, "CBF_DATABLOCK",SWIG_From_int((int)(CBF_DATABLOCK)));
