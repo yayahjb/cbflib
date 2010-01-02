@@ -588,7 +588,7 @@ class cbf_detector_struct(_object):
 cbf_detector_struct_swigregister = _pycbf.cbf_detector_struct_swigregister
 cbf_detector_struct_swigregister(cbf_detector_struct)
 
-CBF_UNDEFINED = _pycbf.CBF_UNDEFINED
+CBF_UNDEFNODE = _pycbf.CBF_UNDEFNODE
 CBF_LINK = _pycbf.CBF_LINK
 CBF_ROOT = _pycbf.CBF_ROOT
 CBF_DATABLOCK = _pycbf.CBF_DATABLOCK

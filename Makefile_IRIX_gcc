@@ -342,9 +342,7 @@ JAR = jar
 # Java SDK root directory
 #
 ifeq ($(JDKDIR),)
-# JDKDIR = /dls_sw/dasc/jdk/jdk1.6_i586-current
-# JDKDIR = /dls_sw/dasc/jdk/jdk1.6_x64-current
-  JDKDIR 	=	/usr/lib/jdk1.6.0_10
+  JDKDIR 	=	/usr/lib/java
 endif
 
 
@@ -366,6 +364,7 @@ CFLAGS  = -g -O2  -Wall
 F90C    =
 F90FLAGS =
 M4FLAGS = -Dfcb_bytes_in_rec=4096
+EXTRALIBS = -lm
 TIME    =
 SHAR    = shar
 AR      =  ar
@@ -448,7 +447,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_codes.c         \
 		    $(SRC)/cbf_compress.c      \
 		    $(SRC)/cbf_context.c       \
-            $(SRC)/cbf_file.c          \
+		    $(SRC)/cbf_file.c          \
             $(SRC)/cbf_getopt.c        \
 		    $(SRC)/cbf_lex.c           \
 		    $(SRC)/cbf_packed.c        \
@@ -469,7 +468,7 @@ PYSOURCE  = $(SRC)/drel_lex.py	       \
 			$(SRC)/drel_yacc.py	       \
 			$(SRC)/drelc.py \
 			$(SRC)/drel_prep.py
- 
+
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 		    $(SRC)/fcb_ci_strncmparr.f90 \
 		    $(SRC)/fcb_exit_binary.f90   \
@@ -662,7 +661,7 @@ endif
 shared:	$(SOLIB)/libcbf.so $(SOLIB)/libfcb.so $(SOLIB)/libimg.so
 
 javawrapper: shared $(JAVADIR) $(JAVADIR)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
-		
+
 Makefiles: Makefile			 \
 		Makefile_LINUX           \
 		Makefile_LINUX_64        \
@@ -675,7 +674,7 @@ Makefiles: Makefile			 \
 
 Makefile_LINUX: $(M4)/Makefile.m4
 		-cp Makefile_LINUX Makefile_LINUX_old
-        m4 -P -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
+		m4 -P -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
 
 Makefile_LINUX_64: $(M4)/Makefile.m4
 		-cp Makefile_LINUX_64 Makefile_LINUX_64_old
@@ -837,31 +836,31 @@ $(SRC)/cbf_stx.c: $(SRC)/cbf.stx.y
 $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(LIB)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(AR) cr $@ *.o
-	rm *.o
+	mv *.o $(LIB)
 ifneq ($(RANLIB),)
 	$(RANLIB) $@
 endif
 
 $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
-	$(CC) -o $@ *.o $(SOLDFLAGS)
-	rm *.o
+	mv *.o $(SOLIB)
+	$(CC) -o $@ $(SOLIB)/*.o $(SOLDFLAGS) $(EXTRALIBS)
 
 #
 # IMG library
 #
 $(LIB)/libimg.a: $(EXAMPLES)/img.c $(HEADERS) $(COMMONDEP) $(LIB)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
-	$(AR) cr $@ *.o
-	rm *.o
+	$(AR) cr $@ img.o
 ifneq ($(RANLIB),)
 	$(RANLIB) $@
 endif
+	rm img.o
 	
 $(SOLIB)/libimg.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
-	$(CC) -o $@ *.o $(SOLDFLAGS)
-	rm *.o
+	$(CC) -o $@ img.o $(SOLDFLAGS)
+	rm img.o
 
 #
 # CBF and IMG libraries
@@ -876,10 +875,10 @@ $(LIB)/libfcb.a: $(F90SOURCE) $(COMMONDEP) $(LIB)
 ifneq ($(F90C),)
 	$(F90C) $(F90FLAGS) -c $(F90SOURCE)
 	$(AR) cr $@ *.o
-	rm *.o
 ifneq ($(RANLIB),)
 	$(RANLIB) $@
 endif
+	rm *.o
 else
 	echo "Define F90C to build $(LIB)/libfcb.a"
 endif
@@ -887,7 +886,7 @@ endif
 $(SOLIB)/libfcb.so: $(F90SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
 ifneq ($(F90C),)
 	$(F90C) $(F90FLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(F90SOURCE)
-	$(F90C) -o $@ *.o $(SOLDFLAGS)
+	$(F90C) $(F90FLAGS) -o $@ *.o $(SOLDFLAGS)
 	rm *.o
 else
 	echo "Define F90C to build $(SOLIB)/libfcb.so"
@@ -913,9 +912,10 @@ $(JAVADIR)/cbflib-$(VERSION).jar: $(SRC)/cbf.i $(JAVADIR)
 	$(JAVAC) -d . $(JAVADIR)/*.java
 	$(JAR) cf $@ org
 
-$(SOLIB)/libcbf_wrap.so: $(JAVADIR)/cbflib-$(VERSION).jar $(SOLIB)/libimg.so
+$(SOLIB)/libcbf_wrap.so: $(JAVADIR)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(SRC)/cbf_wrap.c
-	$(CC) -o $@ *.o $(SOLDFLAGS) -L$(SOLIB) -lcbf
+	$(CC) -o $@ cbf_wrap.o $(SOLIB)/*.o $(SOLDFLAGS) $(EXTRALIBS)
+	rm cbf_wrap.o
 
 #
 # F90SOURCE
@@ -946,7 +946,7 @@ $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/im
 					$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf -lm -o $@
+		  -lcbf $(EXTRALIBS) -o $@
 #
 # convert_minicbf example program
 #
@@ -954,7 +954,7 @@ $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
 					$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/convert_minicbf.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf -lm -o $@
+		  -lcbf $(EXTRALIBS) -o $@
 
 #
 # makecbf example program
@@ -962,7 +962,7 @@ $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
 $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/makecbf.c  -L$(LIB) \
-		  -lcbf -lm -limg -o $@
+		  -lcbf $(EXTRALIBS) -limg -o $@
 
 
 #
@@ -971,7 +971,7 @@ $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c
 	$(CC) $(CFLAGS) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c  -L$(LIB) \
-		  -lcbf -lm -o $@
+		  -lcbf $(EXTRALIBS) -o $@
 
 #
 # cbf2adscimg example program
@@ -979,7 +979,7 @@ $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscim
 $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c
 	$(CC) $(CFLAGS) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c  -L$(LIB) \
-		  -lcbf -lm -o $@
+		  -lcbf $(EXTRALIBS) -o $@
 
 #
 # img2cif example program
@@ -988,7 +988,7 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 					$(GOPTLIB) 	$(GOTPINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/img2cif.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf -lm -limg -o $@
+		  -lcbf $(EXTRALIBS) -limg -o $@
 
 #
 # cif2cbf example program
@@ -997,14 +997,14 @@ $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 					$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf -lm -limg -o $@
+		  -lcbf $(EXTRALIBS) -limg -o $@
 #
 # testcell example program
 #
 $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
 	$(C++) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/testcell.C -L$(LIB) \
-		  -lcbf -lm -o $@
+		  -lcbf $(EXTRALIBS) -o $@
 
 #
 # cif2c example program
@@ -1012,7 +1012,7 @@ $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
 $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
 	$(C++) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/cif2c.c -L$(LIB) \
-		  -lcbf -lm -o $@
+		  -lcbf $(EXTRALIBS) -o $@
 
 #
 # sauter_test example program
@@ -1020,7 +1020,7 @@ $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
 $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
 	$(C++) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/sauter_test.C -L$(LIB) \
-		  -lcbf -lm -o $@
+		  -lcbf $(EXTRALIBS) -o $@
 
 #
 # testreals example program
@@ -1028,21 +1028,21 @@ $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
 $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/testreals.c -L$(LIB) \
-		  -lcbf -lm -o $@
+		  -lcbf $(EXTRALIBS) -o $@
 #
 # testflat example program
 #
 $(BIN)/testflat: $(LIB)/libcbf.a $(EXAMPLES)/testflat.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/testflat.c -L$(LIB) \
-		  -lcbf -lm -o $@
+		  -lcbf $(EXTRALIBS) -o $@
 #
 # testflatpacked example program
 #
 $(BIN)/testflatpacked: $(LIB)/libcbf.a $(EXAMPLES)/testflatpacked.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/testflatpacked.c -L$(LIB) \
-		  -lcbf -lm -o $@
+		  -lcbf $(EXTRALIBS) -o $@
 
 ifneq ($(F90C),)
 #
@@ -1066,7 +1066,7 @@ endif
 $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/testcbf.c -L$(LIB) \
-		  -lcbf -lm -o $@
+		  -lcbf $(EXTRALIBS) -o $@
 
 #
 # testcbf (Java)
@@ -1312,9 +1312,9 @@ endif
 	-cmp testflatpackedin.cbf testflatpackedout.cbf
 ifneq ($(F90C),)
 	echo testflatout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatout.out
-	-$(DIFF)  test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
+	-$(DIFF) -b  test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatpackedout.out
-	-$(DIFF)  test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
+	-$(DIFF) -b test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
 	echo testflatout.cbf | $(TIME) $(BIN)/test_fcb_read_image  > test_fcb_read_testflatout.out
 	-$(DIFF) test_fcb_read_testflatout.out test_fcb_read_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_fcb_read_image > test_fcb_read_testflatpackedout.out
@@ -1403,6 +1403,7 @@ javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/libcbf_wrap.so
 # Remove all non-source files
 #
 empty:
+	@-rm -f  $(LIB)/*.o
 	@-rm -f  $(LIB)/libcbf.a
 	@-rm -f  $(LIB)/libfcb.a
 	@-rm -f  $(LIB)/libimg.a
@@ -1483,6 +1484,7 @@ empty:
 	@-rm -f  $(EXAMPLES)/test_xds_binary.f90
 	@-rm -f  symlinksdone
 	@-rm -f  $(TESTOUTPUT) *$(SEXT)
+	@-rm -f  $(SOLIB)/*.o
 	@-rm -f  $(SOLIB)/libcbf.so
 	@-rm -f  $(SOLIB)/libcbf_wrap.so
 	@-rm -f  $(SOLIB)/libimg.so

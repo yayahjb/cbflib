@@ -334,8 +334,8 @@ extern "C" {
     
     CBF_NODETYPE cbff_cbf_nodetype(char * str) {
         CBF_NODETYPE nodetype;
-        if (!strcasecmp(str,"CBF_UNDEFINED")) {
-            nodetype = CBF_UNDEFINED;
+        if (!strcasecmp(str,"CBF_UNDEFNODE")) {
+            nodetype = CBF_UNDEFNODE;
         } else if (!strcasecmp(str,"CBF_LINK")) {
             nodetype = CBF_LINK;
         } else if (!strcasecmp(str,"CBF_ROOT")) {
@@ -350,7 +350,7 @@ extern "C" {
             nodetype = CBF_COLUMN;
         } else if (!strcasecmp(str,"CBF_VALUE")) {
             nodetype = CBF_VALUE;
-        } else nodetype = CBF_UNDEFINED;
+        } else nodetype = CBF_UNDEFNODE;
         return nodetype;
     }
     
@@ -363,8 +363,8 @@ extern "C" {
         size_t length;
         size_t index;
         switch(nodetype) {
-            case  CBF_UNDEFINED:        /* Undefined */
-                strcpy(rstring,"CBF_UNDEFINED"); break;
+            case  CBF_UNDEFNODE:        /* Undefined */
+                strcpy(rstring,"CBF_UNDEFNODE"); break;
             case  CBF_LINK:             /* Link      */
                 strcpy(rstring,"CBF_LINK"); break;
             case  CBF_ROOT:             /* Root      */
@@ -378,9 +378,9 @@ extern "C" {
             case  CBF_COLUMN:           /* Column    */
                 strcpy(rstring,"CBF_COLUMN"); break;
             case  CBF_VALUE:            /* Value     */  /* Not a visible node type */
-                strcpy(rstring,"CBF_UNDEFINED"); break;
+                strcpy(rstring,"CBF_UNDEFNODE"); break;
             default:
-                strcpy(rstring,"CBF_UNDEFINED"); break;                
+                strcpy(rstring,"CBF_UNDEFNODE"); break;                
         }
         length = strlen(rstring);
         for (index = 0; index < length-start_nodetypestring+1
