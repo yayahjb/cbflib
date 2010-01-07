@@ -320,7 +320,7 @@ SEXT = .md5
 #
 # Program to display differences between files
 #
-DIFF = diff -u
+DIFF = diff -u -b
 
 
 #
@@ -1311,9 +1311,9 @@ endif
 	-cmp testflatpackedin.cbf testflatpackedout.cbf
 ifneq ($(F90C),)
 	echo testflatout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatout.out
-	-$(DIFF) -b  test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
+	-$(DIFF) test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatpackedout.out
-	-$(DIFF) -b test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
+	-$(DIFF) test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
 	echo testflatout.cbf | $(TIME) $(BIN)/test_fcb_read_image  > test_fcb_read_testflatout.out
 	-$(DIFF) test_fcb_read_testflatout.out test_fcb_read_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_fcb_read_image > test_fcb_read_testflatpackedout.out
@@ -1411,21 +1411,21 @@ empty:
 	@-rm -f  $(PYCBF)/build/*/_pycbf.so
 	@-rm -f  $(PYCBF)/build/src/cbf_simple.o
 	@-rm -f  $(PYCBF)/build/*/pycbf_wrap.o
-	@-rm -f  $(BIN)/adscimg2cbf
-	@-rm -f  $(BIN)/cbf2adscimg
-	@-rm -f  $(BIN)/makecbf
-	@-rm -f  $(BIN)/img2cif
-	@-rm -f  $(BIN)/cif2cbf
-	@-rm -f  $(BIN)/convert_image
-	@-rm -f  $(BIN)/convert_minicbf
-	@-rm -f  $(BIN)/test_fcb_read_image
-	@-rm -f  $(BIN)/test_xds_binary
-	@-rm -f  $(BIN)/testcell
-	@-rm -f  $(BIN)/cif2c
-	@-rm -f  $(BIN)/testreals
-	@-rm -f  $(BIN)/testflat
-	@-rm -f  $(BIN)/testflatpacked
-	@-rm -f  $(BIN)/sauter_test
+	@-rm -rf  $(BIN)/adscimg2cbf.*
+	@-rm -rf  $(BIN)/cbf2adscimg.*
+	@-rm -rf  $(BIN)/makecbf.*
+	@-rm -rf  $(BIN)/img2cif.*
+	@-rm -rf  $(BIN)/cif2cbf.*
+	@-rm -rf  $(BIN)/convert_image.*
+	@-rm -rf  $(BIN)/convert_minicbf.*
+	@-rm -rf  $(BIN)/test_fcb_read_image.*
+	@-rm -rf  $(BIN)/test_xds_binary.*
+	@-rm -rf  $(BIN)/testcell.*
+	@-rm -rf  $(BIN)/cif2c.*
+	@-rm -rf  $(BIN)/testreals.*
+	@-rm -rf  $(BIN)/testflat.*
+	@-rm -rf  $(BIN)/testflatpacked.*
+	@-rm -rf  $(BIN)/sauter_test.*
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif

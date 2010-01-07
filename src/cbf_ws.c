@@ -325,7 +325,7 @@ extern "C" {
     
     /* insert a column number into the buffer for the commentfile */
     
-    int cbf_set_ws_column (cbf_file * commentfile, unsigned long columnnumber) {
+    int cbf_set_ws_column (cbf_file * commentfile, size_t columnnumber) {
         
         int ii;
         
@@ -333,7 +333,7 @@ extern "C" {
         
         if (columnnumber < 1 || columnnumber >= 999999999) return CBF_ARGUMENT;
         
-        sprintf (numberstring,"%ld:",columnnumber);
+        sprintf (numberstring,"%ld:",(long int)columnnumber);
         
         for (ii=0; ii < strlen(numberstring); ii++) {
             
@@ -1099,7 +1099,7 @@ extern "C" {
         /* strip any initial space characters */
         
         
-        cprev = cprevprev = 0;
+        cprev = cprevprev = cprevprevprev = 0;
         
         while (cptr < stringlimit && isspace(*cptr)) { 
             cprevprev= cprev;

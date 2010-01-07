@@ -300,9 +300,9 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
 
   int id_text, type_text, checked_digest_text, bits_text, sign_text, realarray_text;
   
-  unsigned long dimover_text, dimfast_text, dimmid_text, dimslow_text;
+  size_t dimover_text, dimfast_text, dimmid_text, dimslow_text;
   
-  unsigned long padding_text;
+  size_t padding_text;
 
   unsigned int compression_text;
 
