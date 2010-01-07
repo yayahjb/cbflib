@@ -319,7 +319,7 @@ extern "C" {
 
     /* insert a column number into the buffer for the commentfile */
     
-    int cbf_set_ws_column (cbf_file * commentfile, unsigned long columnumber);
+    int cbf_set_ws_column (cbf_file * commentfile, size_t columnumber);
     
     /* Apply pending whitespace to new node */
     

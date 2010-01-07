@@ -3702,10 +3702,10 @@ int cbf_get_arrayparameters_wdims (cbf_handle    handle,
     
     
     int cbf_get_arraydimensions(cbf_handle handle, 
-                                unsigned long * dimover,
-                                unsigned long * dimfast,
-                                unsigned long * dimmid,
-                                unsigned long * dimslow) {
+                                size_t * dimover,
+                                size_t * dimfast,
+                                size_t * dimmid,
+                                size_t * dimslow) {
         cbf_node *column;
         
         unsigned int row;
@@ -3736,7 +3736,7 @@ int cbf_get_arrayparameters_wdims (cbf_handle    handle,
         
         unsigned int asl_row, asl_rows;
         
-        unsigned long asl_dims[3];
+        size_t asl_dims[3];
         
         asl_dims[0] = asl_dims[1] = asl_dims[2] = 0;
         

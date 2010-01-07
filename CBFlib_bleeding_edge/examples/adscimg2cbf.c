@@ -109,7 +109,7 @@ int	main(int argc, char *argv[])
 	char		*hptr;
 	unsigned short	*uptr;
 	char		header_bytes[6];
-	int		file_size, header_size_char;
+	int		file_size, header_size_char, actread;
 	int		cbf_status;
 	int		i, j, k=0;
 	int		size1, size2;
@@ -246,7 +246,7 @@ int	main(int argc, char *argv[])
 
 		if(0 == file_type)
 		{
-			if(NULL == (fp = fopen(in_filename, "r")))
+			if(NULL == (fp = fopen(in_filename, "rb")))
 			{
 				fprintf(stderr, "adscimg2cbf: Cannot open %s as input .img file\n", in_filename);
 				exit(0);
@@ -258,7 +258,7 @@ int	main(int argc, char *argv[])
 				sprintf(popen_command, "bzcat %s", in_filename);
 			else
 				sprintf(popen_command, "zcat %s", in_filename);
-			if(NULL == (fp = popen(popen_command, "r")))
+			if(NULL == (fp = popen(popen_command, "rb")))
 			{
 				fprintf(stderr, "adscimg2cbf: Cannot exec %s command to uncompress input file\n", popen_command);
 				exit(0);
@@ -274,9 +274,10 @@ int	main(int argc, char *argv[])
 			fprintf(stderr,"adscimg2cbf: cannot allocate memory for first 512 bytes of header of input file %s\n", in_filename);
 			exit(0);
 		}
-		if(512 != fread(hptr, sizeof (char), 512, fp))
+		if(512 != (actread=fread(hptr, sizeof (char), 512, fp)))
 		{
-			fprintf(stderr, "adscimg2cbf: Cannot read first header block of file %s.\n", in_filename);
+			fprintf(stderr, "adscimg2cbf: Cannot read first header block of file %s, actual read %d.\n", 
+                          in_filename,actread);
 			if(0 == file_type)
 				fclose(fp);
 			else
@@ -308,10 +309,12 @@ int	main(int argc, char *argv[])
 
 		if(header_size_char > 512)
 		{
-			if((header_size_char - 512) != fread(hptr + 512, sizeof (char), (header_size_char - 512), fp))
+			if((header_size_char - 512) != (actread=fread(hptr + 512, sizeof (char), 
+                                                        (header_size_char - 512), fp)))
 			{
-				fprintf(stderr, "adscimg2cbf: Cannot read next %d bytes of header of file %s.\n", 
-						header_size_char - 512, in_filename);
+				fprintf(stderr, "adscimg2cbf: Cannot read next %d bytes of header of file %s,"
+                                                " actual read %d.\n", 
+						header_size_char - 512, in_filename, actread);
 				if(0 == file_type)
 					fclose(fp);
 				else
@@ -355,10 +358,12 @@ int	main(int argc, char *argv[])
 						file_size, in_filename);
 			exit(0);
 		}
-		if((file_size - header_size_char) != fread(hptr + header_size_char, sizeof (char), (file_size - header_size_char), fp))
+		if((file_size - header_size_char) != (actread=fread(hptr + header_size_char, sizeof (char), 
+                                                      (file_size - header_size_char), fp)))
 		{
-			fprintf(stderr, "adscimg2cbf: Cannot read data (size %d bytes) from input file %s.\n", 
-					file_size - header_size_char, in_filename);
+			fprintf(stderr, "adscimg2cbf: Cannot read data (size %d bytes) from input file %s."
+                                        " actual read %d\n", 
+					file_size - header_size_char, in_filename, actread);
 			if(0 == file_type)
 				fclose(fp);
 			else

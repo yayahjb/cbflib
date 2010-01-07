@@ -1800,10 +1800,10 @@ extern "C" {
     
     
     int cbff_get_arraydimensions(size_t CBFFhandle,
-                                unsigned long * dimover,
-                                unsigned long * dimfast,
-                                unsigned long * dimmid,
-                                unsigned long * dimslow) {
+                                size_t * dimover,
+                                size_t * dimfast,
+                                size_t * dimmid,
+                                size_t * dimslow) {
         
         return cbff_get_arraydimensions(cbff_cbf_handle(CBFFhandle),
                                      dimover,

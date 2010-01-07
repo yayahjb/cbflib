@@ -986,10 +986,10 @@ int cbf_get_arrayparameters_wdims (cbf_handle    handle,
     
     
     int cbf_get_arraydimensions(cbf_handle handle,
-                                unsigned long * dimover,
-                                unsigned long * dimfast,
-                                unsigned long * dimmid,
-                                unsigned long * dimslow);
+                                size_t * dimover,
+                                size_t * dimfast,
+                                size_t * dimmid,
+                                size_t * dimslow);
         
 
   /* Get the parameters of the current (row, column) integer array entry */
