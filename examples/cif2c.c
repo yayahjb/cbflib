@@ -379,7 +379,7 @@ int main (int argc, char *argv [])
    cbf_failnez(cbf_make_getopt_handle(&opts))
 
 
-   cbf_failnez(cbf_getopt_parse(opts, argc, argv, "-i(input:" \
+   cbf_failnez(cbf_getopt_parse(opts, argc, argv, "-i(input):" \
                                 "-o(output):" \
                                 "-n(name_of_function):" \
                                 ))
@@ -419,7 +419,7 @@ int main (int argc, char *argv [])
    if (errflg) {
      fprintf(stderr,"cif2c:  Usage: \n");
      fprintf(stderr,
-       "  cif2cbf [-i input_cif] [-o output_C_function] \\\n");
+       "  cif2c [-i input_cif] [-o output_C_function] \\\n");
      fprintf(stderr,
        "    [-n name_of_function] \\\n");
      fprintf(stderr,
