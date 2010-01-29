@@ -630,7 +630,7 @@ int cbf_parse_sls_header(cbf_handle cbf, const char * buffer,
     
     ptr = slsstr;
     
-    while (*ptr && (cbf_cistrncmp(ptr," SN",3))) ptr++;
+    while (*ptr && (cbf_cistrncmp(ptr," SN",3))&&(cbf_cistrncmp(ptr," S/N",4))) ptr++;
     
     if (*ptr) *ptr++ = 0;
     
@@ -1501,7 +1501,8 @@ int cbf_parse_sls_header(cbf_handle cbf, const char * buffer,
        
      } else {
      
-       cbf_failnez(CBF_FORMAT);
+       /* cbf_failnez(CBF_FORMAT); */
+       fprintf(stderr," convert_minicbf:  warning did not recognize miniheader string %s\n",slsstr);
      
      }
    
