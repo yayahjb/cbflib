@@ -558,11 +558,13 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     /* CIF or CBF? */
 
-  if (ciforcbf == CIF)
+  if (ciforcbf == CIF) {
 
     encoding = encoding & ~ENC_NONE;
 
-  else
+    if (encoding &(ENC_CRTERM | ENC_LFTERM) ==0 ) encoding |= ENC_LFTERM;
+
+  } else {
 
     encoding = (encoding & ~(ENC_BASE8   |
                              ENC_BASE10  |
@@ -571,8 +573,12 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
                              ENC_BASE32K |
                              ENC_QP      |
                              ENC_FORWARD |
-                             ENC_BACKWARD)) | ENC_NONE | ENC_CRTERM
-                                                       | ENC_LFTERM;
+                             ENC_BACKWARD)) | ENC_NONE;
+                             
+   if (encoding &(ENC_CRTERM | ENC_LFTERM) ==0 ) encoding |= ENC_CRTERM|ENC_LFTERM;
+
+  	
+  }
 
 
     /* Check the arguments */
@@ -708,11 +714,13 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     /* CIF or CBF? */
 
-  if (ciforcbf == CIF)
+  if (ciforcbf == CIF) {
 
     encoding = encoding & ~ENC_NONE;
 
-  else
+    if (encoding &(ENC_CRTERM | ENC_LFTERM) ==0 ) encoding |= ENC_LFTERM;
+
+  } else {
 
     encoding = (encoding & ~(ENC_BASE8   |
                              ENC_BASE10  |
@@ -721,8 +729,12 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
                              ENC_BASE32K |
                              ENC_QP      |
                              ENC_FORWARD |
-                             ENC_BACKWARD)) | ENC_NONE | ENC_CRTERM
-                                                       | ENC_LFTERM;
+                             ENC_BACKWARD)) | ENC_NONE;
+                             
+   if (encoding &(ENC_CRTERM | ENC_LFTERM) ==0 ) encoding |= ENC_CRTERM|ENC_LFTERM;
+
+  	
+  }
 
 
     /* Check the arguments */
@@ -861,11 +873,13 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
 
     /* CIF or CBF? */
 
-  if (ciforcbf == CIF)
+  if (ciforcbf == CIF) {
 
     encoding = encoding & ~ENC_NONE;
 
-  else
+    if (encoding &(ENC_CRTERM | ENC_LFTERM) ==0 ) encoding |= ENC_LFTERM;
+
+  } else {
 
     encoding = (encoding & ~(ENC_BASE8   |
                              ENC_BASE10  |
@@ -874,9 +888,12 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
                              ENC_BASE32K |
                              ENC_QP      |
                              ENC_FORWARD |
-                             ENC_BACKWARD)) | ENC_NONE | ENC_CRTERM
-                                                       | ENC_LFTERM;
+                             ENC_BACKWARD)) | ENC_NONE;
+                             
+   if (encoding &(ENC_CRTERM | ENC_LFTERM) ==0 ) encoding |= ENC_CRTERM|ENC_LFTERM;
 
+  	
+  }
 
     /* Check the arguments */
 
