@@ -1,4 +1,4 @@
-m4_define(`cbf_version',`0.8.1')m4_dnl
+m4_define(`cbf_version',`0.9.0')m4_dnl
 m4_define(`cbf_date',`21 Feb 2009')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
@@ -254,6 +254,11 @@ m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 # Version string
 VERSION = 'cbf_version`
 
+
+#
+# Comment out the next line if scratch test files sould be retain
+#
+CLEANTESTS = yes
 
 
 #
@@ -1408,11 +1413,11 @@ restore_signatures:	restore_output restore_sigs_only
 
 basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf $(TESTINPUT_BASIC)
 	$(BIN)/makecbf example.mar2300 makecbf.cbf
-	$(BIN)/img2cif -c packed -m headers -d digest \
+	$(BIN)/img2cif -c flatpacked -m headers -d digest \
 		-e base64  example.mar2300  img2cif_packed.cif
 	$(BIN)/img2cif -c canonical -m headers -d digest \
 		-e base64  example.mar2300  img2cif_canonical.cif
-	$(BIN)/img2cif -c packed -m headers -d digest \
+	$(BIN)/img2cif -c flatpacked -m headers -d digest \
 		-e none  example.mar2300  img2cif_packed.cbf
 	$(BIN)/img2cif -c canonical -m headers -d digest \
 		-e none  example.mar2300  img2cif_canonical.cbf
@@ -1460,11 +1465,17 @@ endif
 	-cmp adscconverted.cbf adscconverted_orig.cbf
 	$(TIME) $(BIN)/adscimg2cbf --no_pad  --cbf_packed,flat mb_LP_1_001.img
 	-cmp mb_LP_1_001.cbf mb_LP_1_001_orig.cbf
+ifneq ($(CLEANTESTS),)
 	mv mb_LP_1_001.cbf nmb_LP_1_001.cbf
+else
+	cp mb_LP_1_001.cbf nmb_LP_1_001.cbf
+endif
 	$(TIME) $(BIN)/cbf2adscimg nmb_LP_1_001.cbf
 	-cmp nmb_LP_1_001.img mb_LP_1_001.img
 	rm nmb_LP_1_001.cbf
+ifneq ($(CLEANTESTS),)
 	rm nmb_LP_1_001.img
+endif
 	$(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
 	-cmp insulin_pilatus6mconverted.cbf insulin_pilatus6mconverted_orig.cbf
 	$(TIME) $(BIN)/testreals
