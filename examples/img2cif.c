@@ -1,12 +1,12 @@
 /**********************************************************************
  *          img2cif -- convert an image file to a cif file            *
  *                                                                    *
- * Version 0.7.6 28 June 2006                                         *
+ * Version 0.9.1 14 February 2010                                     *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
+ * (C) Copyright 2006 -- 2010 Herbert J. Bernstein                    *
  *                                                                    *
  **********************************************************************/
 
@@ -347,7 +347,8 @@ int main (int argc, char *argv [])
 
 /********************************************************************** 
  *  img2cif [-i input_image] [-o output_cif] \                        *
- *    [-c {p[acked]|c[annonical]|[n[one]}] \                          *
+ *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
+ *        {v[2packed]}|{f[latpacked]}[n[one]}] \                      *
  *    [-m {h[eaders]|n[oheaders]}] [-d {d[igest]|n[odigest]}]  \      *
  *    [-e {b[ase64]|q[uoted-printable]|\                              *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
@@ -374,98 +375,110 @@ int main (int argc, char *argv [])
  for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
      if (!c) break;
      switch (c) {
-     case 'i':
-       if (imgin) errflg++;
-       else imgin = optarg;
-       break;
-     case 'o':
-       if (imgout) errflg++;
-       else imgout = optarg;
-       break;
-     case 'c':
-       if (compression) errflg++;
-       if (optarg[0] == 'p' || optarg[0] == 'P') {
-         compression = CBF_PACKED;
-       } else {
-         if (optarg[0] == 'c' || optarg[0] == 'C') {
-           compression = CBF_CANONICAL;
-         } else {
-           if (optarg[0] == 'n' || optarg[0] == 'N') {
-           compression = CBF_NONE;
-           } else {
-             errflg++;
-           }
-         }
-       }
-       break;
-     case 'm':
-       if (mime) errflg++;
-       if (optarg[0] == 'h' || optarg[0] == 'H' ) {
-         mime = MIME_HEADERS;
-       } else {
-         if (optarg[0] == 'n' || optarg[0] == 'N' ) {
-         mime = PLAIN_HEADERS;
-         } else {
-           errflg++;
-         }
-       }
-       break;
-     case 'd':
-       if (digest) errflg++;
-       if (optarg[0] == 'd' || optarg[0] == 'H' ) {
-         digest = MSG_DIGEST;
-       } else {
-         if (optarg[0] == 'n' || optarg[0] == 'N' ) {
-         digest = MSG_NODIGEST;
-         } else {
-           errflg++;
-         }
-       }
-       break;
-     case 'b':
-      if (bytedir) errflg++;
-      if (optarg[0] == 'f' || optarg[0] == 'F') {
-        bytedir = ENC_FORWARD;
-      } else {
-        if (optarg[0] == 'b' || optarg[0] == 'B' ) {
-          bytedir = ENC_BACKWARD;
-        } else {
-          errflg++;
-        }
-      }
-      break;
-     case 'e':
-       if (encoding) errflg++;
-       if (optarg[0] == 'b' || optarg[0] == 'B' ) {
-         encoding = ENC_BASE64;
-       } else {
-         if (optarg[0] == 'q' || optarg[0] == 'Q' ) {
-           encoding = ENC_QP;
-         } else {
-           if (optarg[0] == 'd' || optarg[0] == 'D' ) {
-             encoding = ENC_BASE10;
-           } else {
-             if (optarg[0] == 'h' || optarg[0] == 'H' ) {
-               encoding = ENC_BASE16;
+         case 'i':
+             if (imgin) errflg++;
+             else imgin = optarg;
+             break;
+         case 'o':
+             if (imgout) errflg++;
+             else imgout = optarg;
+             break;
+         case 'c':
+             if (compression) errflg++;
+             if (optarg[0] == 'p' || optarg[0] == 'P') {
+                 compression = CBF_PACKED;
              } else {
-               if (optarg[0] == 'o' || optarg[0] == 'O' ) {
-                 encoding = ENC_BASE8;
-               } else {
-                 if (optarg[0] == 'n' || optarg[0] == 'N' ) {
-                   encoding = ENC_NONE;
+                 if (optarg[0] == 'c' || optarg[0] == 'C') {
+                     compression = CBF_CANONICAL;
                  } else {
-                   errflg++;
+                     if (optarg[0] == 'b' || optarg[0] == 'B') {
+                         compression = CBF_BYTE_OFFSET;
+                     } else {
+                         if (optarg[0] == 'n' || optarg[0] == 'N') {
+                             compression = CBF_NONE;
+                         } else {
+                             if (optarg[0] == 'v' || optarg[0] == 'V') {
+                                 compression = CBF_PACKED_V2;
+                             } else {
+                                 if (optarg[0] == 'f' || optarg[0] == 'F') {
+                                     compression = CBF_PACKED|CBF_FLAT_IMAGE;
+                                 } else {
+                                     errflg++;
+                                 }
+                             }
+                         }
+                     }
                  }
-               }
              }
-           }
-         }
-       }
-       break;
-     default:
-       errflg++;
-       break;
-  }
+             break;
+         case 'm':
+             if (mime) errflg++;
+             if (optarg[0] == 'h' || optarg[0] == 'H' ) {
+                 mime = MIME_HEADERS;
+             } else {
+                 if (optarg[0] == 'n' || optarg[0] == 'N' ) {
+                     mime = PLAIN_HEADERS;
+                 } else {
+                     errflg++;
+                 }
+             }
+             break;
+         case 'd':
+             if (digest) errflg++;
+             if (optarg[0] == 'd' || optarg[0] == 'H' ) {
+                 digest = MSG_DIGEST;
+             } else {
+                 if (optarg[0] == 'n' || optarg[0] == 'N' ) {
+                     digest = MSG_NODIGEST;
+                 } else {
+                     errflg++;
+                 }
+             }
+             break;
+         case 'b':
+             if (bytedir) errflg++;
+             if (optarg[0] == 'f' || optarg[0] == 'F') {
+                 bytedir = ENC_FORWARD;
+             } else {
+                 if (optarg[0] == 'b' || optarg[0] == 'B' ) {
+                     bytedir = ENC_BACKWARD;
+                 } else {
+                     errflg++;
+                 }
+             }
+             break;
+         case 'e':
+             if (encoding) errflg++;
+             if (optarg[0] == 'b' || optarg[0] == 'B' ) {
+                 encoding = ENC_BASE64;
+             } else {
+                 if (optarg[0] == 'q' || optarg[0] == 'Q' ) {
+                     encoding = ENC_QP;
+                 } else {
+                     if (optarg[0] == 'd' || optarg[0] == 'D' ) {
+                         encoding = ENC_BASE10;
+                     } else {
+                         if (optarg[0] == 'h' || optarg[0] == 'H' ) {
+                             encoding = ENC_BASE16;
+                         } else {
+                             if (optarg[0] == 'o' || optarg[0] == 'O' ) {
+                                 encoding = ENC_BASE8;
+                             } else {
+                                 if (optarg[0] == 'n' || optarg[0] == 'N' ) {
+                                     encoding = ENC_NONE;
+                                 } else {
+                                     errflg++;
+                                 }
+                             }
+                         }
+                     }
+                 }
+             }
+             break;
+         default:
+             errflg++;
+             break;
+     }
   }
   for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
     if (!imgin) {
@@ -481,7 +494,8 @@ int main (int argc, char *argv [])
   if (errflg) {
     fprintf(stderr,"img2cif:  Usage: \n");
     fprintf(stderr,"  img2cif [-i input_image] [-o output_cif] \\\n");
-    fprintf(stderr,"    [-c {p[acked]|c[annonical]|[n[one]}] \\\n");
+    fprintf(stderr,"    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\\\n");
+    fprintf(stderr,"        {v[2packed}|{f[latpacked}[n[one]}] \\\n"); 
     fprintf(stderr,"    [-m {h[eaders]|n[oheaders]}] [-d {d[igest]|n[odigest]}] \\\n");
     fprintf(stderr,"    [-e {b[ase64]|q[uoted-printable]|\\\n");
     fprintf(stderr,"                  d[ecimal]|h[examdecimal|o[ctal]|n[one]}] \\\n");
@@ -894,9 +908,17 @@ int main (int argc, char *argv [])
 
     /* Save the binary data */
 
-  cbf_failnez (cbf_set_integerarray (cbf, compression, 1,
+  if (precedence[0] == 1) {
+  cbf_failnez (cbf_set_integerarray_wdims_fs (cbf, compression, 1,
                                  img_pixelptr (img, 0, 0), sizeof (int), 1,
-                                 img_rows (img) * img_columns (img)))
+                                 img_rows (img) * img_columns (img),
+                                 "little_endian",dimension[0],dimension[1],0,0 ))
+  } else {
+      cbf_failnez (cbf_set_integerarray_wdims_fs (cbf, compression, 1,
+                                                  img_pixelptr (img, 0, 0), sizeof (int), 1,
+                                                  img_rows (img) * img_columns (img),
+                                                  "little_endian",dimension[1],dimension[0],0,0 ))
+  }
   
 
     /* Write the new file */

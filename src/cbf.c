@@ -562,7 +562,7 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     encoding = encoding & ~ENC_NONE;
 
-    if (encoding &(ENC_CRTERM | ENC_LFTERM) ==0 ) encoding |= ENC_LFTERM;
+    if ((encoding &(ENC_CRTERM | ENC_LFTERM)) ==0 ) encoding |= ENC_LFTERM;
 
   } else {
 
@@ -575,7 +575,7 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
                              ENC_FORWARD |
                              ENC_BACKWARD)) | ENC_NONE;
                              
-   if (encoding &(ENC_CRTERM | ENC_LFTERM) ==0 ) encoding |= ENC_CRTERM|ENC_LFTERM;
+   if ((encoding &(ENC_CRTERM | ENC_LFTERM)) ==0 ) encoding |= ENC_CRTERM|ENC_LFTERM;
 
   	
   }
@@ -718,7 +718,7 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     encoding = encoding & ~ENC_NONE;
 
-    if (encoding &(ENC_CRTERM | ENC_LFTERM) ==0 ) encoding |= ENC_LFTERM;
+      if ((encoding &(ENC_CRTERM | ENC_LFTERM))==0 ) encoding |= ENC_LFTERM;
 
   } else {
 
@@ -731,7 +731,7 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
                              ENC_FORWARD |
                              ENC_BACKWARD)) | ENC_NONE;
                              
-   if (encoding &(ENC_CRTERM | ENC_LFTERM) ==0 ) encoding |= ENC_CRTERM|ENC_LFTERM;
+   if ((encoding &(ENC_CRTERM | ENC_LFTERM)) ==0 ) encoding |= ENC_CRTERM|ENC_LFTERM;
 
   	
   }
@@ -877,7 +877,7 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
 
     encoding = encoding & ~ENC_NONE;
 
-    if (encoding &(ENC_CRTERM | ENC_LFTERM) ==0 ) encoding |= ENC_LFTERM;
+    if ((encoding &(ENC_CRTERM | ENC_LFTERM)) ==0 ) encoding |= ENC_LFTERM;
 
   } else {
 
@@ -890,7 +890,7 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
                              ENC_FORWARD |
                              ENC_BACKWARD)) | ENC_NONE;
                              
-   if (encoding &(ENC_CRTERM | ENC_LFTERM) ==0 ) encoding |= ENC_CRTERM|ENC_LFTERM;
+   if ((encoding &(ENC_CRTERM | ENC_LFTERM)) ==0 ) encoding |= ENC_CRTERM|ENC_LFTERM;
 
   	
   }
@@ -4545,7 +4545,26 @@ int cbf_require_dictionary (cbf_handle handle, cbf_handle * dictionary)
 
 }
 
-  /* Put the value into the named column, updating the hash table links */
+  /* Put the value into the named column, updating the hash table links 
+  
+     If valuerow >= 0, the value is to be stored into the row of that
+     number.
+     
+     If valuerow < 0, the value is to be stored into a newly created row.
+     
+     For a given category of name <catname>, the hash table is
+     held in a category of name <catname>(hash_table), e.g.
+     if the category is "atom", the hastable is "atom(hash_table)".
+     For each column of name <colname> the hashtable links,
+     as integer row numbers are held in columns of name
+     <colname>(hash_index), e.g. if the column name is "label",
+     the hash index column name is "label(hash_index)".   The
+     same column name is used in both the hash table category
+     and the original category. 
+  
+  
+  
+  */
 
 int cbf_set_hashedvalue(cbf_handle handle, const char * value, 
                                            const char * columnname, 
@@ -4575,7 +4594,6 @@ int cbf_set_hashedvalue(cbf_handle handle, const char * value,
   
   if ( (catnamelen = strlen(category)) > 80 ) return CBF_ARGUMENT;
   
-  
   strcpy (categoryhashtable,category);
   
   strcpy (categoryhashtable + catnamelen, "(hash_table)");
@@ -4600,7 +4618,7 @@ int cbf_set_hashedvalue(cbf_handle handle, const char * value,
       && !cbf_find_column(handle, colhashnext)
       && !cbf_get_integervalue(handle, &ohashnext)) {
   
-      cbf_failnez( cbf_compute_hashcode(value, &ohashcode))
+      cbf_failnez( cbf_compute_hashcode(ovalue, &ohashcode))
       
       if (hashcode != ohashcode)   {
 
@@ -4714,6 +4732,20 @@ int cbf_set_hashedvalue(cbf_handle handle, const char * value,
     return 0;
   
   }
+    
+  /* nrownum is the row number of the value
+     rownum is the row number of pointed to the by the hash table 
+   
+     If the hash table points higher up, reset the hashtable to
+     point to the new row.
+   
+     We will still have to relink the chain by having this row point
+     to rownum
+   
+     If the hash table point higher up, the hash table remains as
+     is, and the new link is inserted only in the main category
+   
+   */
   
   if (nrownum < rownum) {
   

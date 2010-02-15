@@ -275,8 +275,8 @@ extern "C" {
 
   /* API version and assumed dictionary version */
   
-#define CBF_API_VERSION     "CBFlib v0.8.0"
-#define CBF_DIC_VERSION     "CBF: VERSION 1.5"
+#define CBF_API_VERSION     "CBFlib v0.9.0"
+#define CBF_DIC_VERSION     "CBF: VERSION 1.6"
 
   /* Maximum line length */
 
