@@ -1163,7 +1163,7 @@ int cbf_decompress_byte_offset (void         *destination,
         
       }  else  {
       
-        if (delta[0] & 0x80000) {
+        if (delta[0] & 0x8000) {
         
           delta[0] |= ~0xFFFF;
         	
