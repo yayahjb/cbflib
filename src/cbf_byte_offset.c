@@ -303,6 +303,13 @@ int cbf_compress_byte_offset (void         *source,
  
   int bbflag=0x80000000;
 
+        int byte0, byte1, byte2, byte3;
+        
+        int sbyte0, sbyte1;
+        
+        unsigned char fixup0;
+        
+        unsigned char fixup1;
 
     /* Is the element size valid? */
 
@@ -385,6 +392,39 @@ int cbf_compress_byte_offset (void         *source,
 
   }
 
+        fixup0 = 0x00;
+        
+        fixup1 = 0x80;
+        
+        sbyte0 = byte0 = 0;
+        
+        sbyte1 = byte1 = 1;
+        
+        byte2 = 2;
+        
+        byte3 = 3;
+        
+        if (toupper(border[0]) != toupper(byteorder[0])) {
+            
+            byte0 = 3;
+            
+            byte1 = 2;
+            
+            sbyte0 = byte2 = 1;
+            
+            sbyte1 = byte3 = 0;
+            
+        }
+        
+        
+        if (toupper(byteorder[0]) == 'B'){
+            
+            fixup0 = 0x80;
+            
+            fixup1 = 0x0;
+            
+        }
+        
 
     /* Initialise the pointer */
 
@@ -444,37 +484,25 @@ int cbf_compress_byte_offset (void         *source,
   	
   	   if (!cbf_set_output_buffersize(file,nelem*elsize))  {
   	   
-  	     short int pint, dint;
+                    short int pint;
+                    
+                    long int dint;
   	     
   	     short int *sint;
-  	     
-  	     int byte0, byte1;
   	   
   	     if (sizeof(short int) != 2)  break;
   	     
   	     pint = 0;
-  	     
-  	     byte0 = 0;
-  	     
-  	     byte1 = 1;
   	     
          unsigned_char_dest = 
   	          (unsigned char *)(file->characters+file->characters_used);
   	          
   	     sint = (short int *) unsigned_char_data;
 
-  	     if (toupper(border[0]) != toupper(byteorder[0])) {
-  	     
-  	       byte0 = 1;
-  	       
-  	       byte1 = 0;
-  	       
-  	     }
-  	     
 
   	     for (count = 0; 3*count < 2*nelem; count++) {
   	       
-  	       dint = sint[count] - pint;
+                        dint = (long int)sint[count] - (long int) pint;
            
            pint = sint[count];
   	         
@@ -486,13 +514,35 @@ int cbf_compress_byte_offset (void         *source,
   	         	
   	       } else {
   	           	           
+                            if (dint <= 32767 && dint >= -32767) {
+                                
   	         *unsigned_char_dest++ = 0x80;
 
+                                *unsigned_char_dest++ = ((unsigned char *)&dint)[sbyte0];
+                                
+                                *unsigned_char_dest++ = ((unsigned char *)&dint)[sbyte1];
+                                
+                                csize += 3;
+                                
+                            } else {
+                                                                
+                                *unsigned_char_dest++ = 0x80;
+                                
+                                *unsigned_char_dest++ = fixup0;
+                                
+                                *unsigned_char_dest++ = fixup1;
+                                
   	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte0];
   	             
   	         *unsigned_char_dest++ = ((unsigned char *)&dint)[byte1];
   	         
-  	         csize += 3;
+                                *unsigned_char_dest++ = ((unsigned char *)&dint)[byte2];
+                                
+                                *unsigned_char_dest++ = ((unsigned char *)&dint)[byte3];
+                                
+                                csize +=7;
+                                
+                            }
 
   	       }
   	     
@@ -516,7 +566,7 @@ int cbf_compress_byte_offset (void         *source,
 
   	     for (; count < nelem; count++) {
   	       
-  	       dint = sint[count] - pint;
+                        dint = (long int)sint[count] - (long int)pint;
            
            pint = sint[count];
   	         
@@ -528,6 +578,8 @@ int cbf_compress_byte_offset (void         *source,
   	         	
   	       } else {
   	         
+                            if (dint <= 32767 && dint >= -32767) {
+
   	         if (csize > nelem*elsize-3 ) {
   	           
   	           if (compression&CBF_NO_EXPAND) return CBF_NOCOMPRESSION;
@@ -552,10 +604,46 @@ int cbf_compress_byte_offset (void         *source,
   	         
   	         csize += 3;
 
-  	       }
+                            } else {
+                                
+                                if (csize > nelem*elsize-7 ) {
+                                    
+                                    if (compression&CBF_NO_EXPAND) return CBF_NOCOMPRESSION;
+                                    
+                                }
+                                
+                                if (elsize*(nelem-count) > file->characters_size-(csize+file->characters_used)) {
+                                    
+                                    if (cbf_set_output_buffersize(file,1024+nelem*elsize*2)) break;
+                                    
+                                    unsigned_char_dest = 
+                                    
+                                    (unsigned char *)(file->characters+file->characters_used+csize);
   	     
   	     } 
 
+                                *unsigned_char_dest++ = 0x80;
+                                
+                                *unsigned_char_dest++ = fixup0;
+                                
+                                *unsigned_char_dest++ = fixup1;
+                                
+                                *unsigned_char_dest++ = ((unsigned char *)&dint)[byte0];
+                                
+                                *unsigned_char_dest++ = ((unsigned char *)&dint)[byte1];
+                                
+                                *unsigned_char_dest++ = ((unsigned char *)&dint)[byte2];
+                                
+                                *unsigned_char_dest++ = ((unsigned char *)&dint)[byte3];
+                                
+                                csize +=7;                                
+
+                           }
+                            
+                        }
+                        
+                    } 
+                    
    	     file->characters_used+=csize;
   	  	
   	     if (compressedsize)
@@ -583,14 +671,6 @@ int cbf_compress_byte_offset (void         *source,
   	     short int sint;
   	     
   	     int *oint;
-  	     
-  	     int byte0, byte1, byte2, byte3;
-  	     
-  	     int sbyte0, sbyte1;
-  	     
-  	     unsigned char fixup0 = 0x00;
-  	     
-  	     unsigned char fixup1 = 0x80;
   	   
   	     if (sizeof(short int) != 2)  break;
   	     
@@ -598,39 +678,10 @@ int cbf_compress_byte_offset (void         *source,
   	     
   	     pint = 0;
   	     
-  	     sbyte0 = byte0 = 0;
-  	     
-  	     sbyte1 = byte1 = 1;
-  	     
-  	     byte2 = 2;
-  	     
-  	     byte3 = 3;
-  	     
          unsigned_char_dest = 
   	          (unsigned char *)(file->characters+file->characters_used);
   	          
   	     oint = (int *) unsigned_char_data;
-
-  	     if (toupper(border[0]) != toupper(byteorder[0])) {
-  	     
-  	       byte0 = 3;
-  	       
-  	       byte1 = 2;
-  	       
-  	       sbyte0 = byte2 = 1;
-  	       
-  	       sbyte1 = byte3 = 0;
-  	       
-  	     }
-  	     
-  	     if (toupper(byteorder[0]) == 'B'){
-  	     
-  	       fixup0 = 0x80;
-  	       
-  	       fixup1 = 0x0;
-  	     	
-  	     }
-  	     
   	     
   	     for (count = 0; 7*count < 4*nelem; count++) {
   	       
@@ -643,8 +694,6 @@ int cbf_compress_byte_offset (void         *source,
   	         *unsigned_char_dest++ = (unsigned char)dint;
   	           
   	         csize ++;
-  	         
-
   	         
   	       } else if (dint <= 32767 && dint >= -32767) {
   	       
