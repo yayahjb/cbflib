@@ -2235,14 +2235,14 @@ int cbf_get_fileposition (cbf_file *file, long int *position)
 
     return CBF_ARGUMENT;
 
-  if (!file->stream)
+  /* if (!file->stream)
 
-    return CBF_ARGUMENT;
+    return CBF_ARGUMENT; */
 
 
     /* Get the position */
     
-  if (file->temporary) {
+  if (file->temporary || !file->stream) {
   
     file_position = (long int)(file->characters - file->characters_base);
   	
@@ -2287,14 +2287,14 @@ int cbf_set_fileposition (cbf_file *file, long int position, int whence)
 
     return CBF_ARGUMENT;
 
-  if (!file->stream)
+ /*  if (!file->stream)
 
-    return CBF_ARGUMENT;
+    return CBF_ARGUMENT; */
 
 
     /* Set the position */
     
- if (file->temporary)  {
+ if (file->temporary || !file->stream)  {
  
    if (whence == SEEK_CUR) position += file->characters-file->characters_base;
    
