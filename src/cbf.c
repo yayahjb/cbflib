@@ -312,6 +312,8 @@ int cbf_make_handle (cbf_handle *handle)
 int cbf_set_cbf_logfile (cbf_handle handle, FILE * logfile) 
 {
 	handle ->logfile = logfile;
+
+        if (handle->file) handle->file->logfile = logfile;
 	
 	return 0;
 }
@@ -415,10 +417,14 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, const c
   if (flags&CBF_PARSE_WIDE) {
   	
     cbf_onfailnez (cbf_make_widefile (&file, stream), if (stream) fclose(stream))
+
+    file->logfile = handle->logfile;
   
   } else {
 
     cbf_onfailnez (cbf_make_file (&file, stream), if (stream) fclose(stream))
+
+    file->logfile = handle->logfile;
   	
   }
   
@@ -617,6 +623,8 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
 
   cbf_failnez (cbf_make_file (&file, stream))
 
+  file->logfile = handle->logfile;
+
 
     /* Defaults */
 
@@ -779,6 +787,7 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
 
   cbf_failnez (cbf_make_file (&file, stream))
 
+  file->logfile = handle->logfile;
 
     /* Defaults */
 
@@ -3412,7 +3421,7 @@ int cbf_set_typeofvalue (cbf_handle handle, const char *typeofvalue)
 
   cbf_failnez (cbf_get_columnrow ((const char **)(&text), handle->node, handle->row))
 
-  cbf_failnez (cbf_set_value_type(text, typeofvalue))
+  cbf_failnez (cbf_set_value_type(handle, text, typeofvalue))
 
     /* Success */
 
@@ -4230,9 +4239,17 @@ void cbf_log (cbf_handle handle, const char *message,
   int line=0, column=0;
   
   if (cbf_alloc(&memblock, NULL, 1, strlen(message)+80) ) {
-  	  
-    fprintf (handle->logfile, "CBFlib: memory allocation error\n");
-    
+
+    if (handle->logfile) {
+
+      fprintf (handle->logfile, "CBFlib: memory allocation error\n");
+
+    } else {
+
+      exit(CBF_ALLOC);
+
+    }  
+  
     return;
 
   }
@@ -4267,7 +4284,7 @@ void cbf_log (cbf_handle handle, const char *message,
 
   if ( !handle->logfile ) return;
 
-  if (handle->file) {
+  if ( handle->file) {
   
     if (logflags&CBF_LOGWOLINE)
 
@@ -4292,10 +4309,94 @@ void cbf_log (cbf_handle handle, const char *message,
         line+1, column,
         message);  
 
-    fprintf (handle->logfile, "%s", buffer);
-    
+  } else {
+
+       sprintf (buffer, "CBFlib: %s -- %s\n",
+         (logflags&CBF_LOGERROR)?"error":
+         ((logflags&CBF_LOGWARNING)?("warning"):""),
+         message);
   }
   
+  fprintf (handle->logfile, "%s", buffer);
+
+  cbf_free(&memblock, NULL );
+ 
+  return;
+}
+  /* Issue a log message for a cbf_file */
+
+void cbf_flog (cbf_file *file, const char *message, 
+                                 int logflags)
+
+{
+  char * buffer;
+  
+  void * memblock;
+  
+  int line=0, column=0;
+  
+  if (cbf_alloc(&memblock, NULL, 1, strlen(message)+80) ) {
+  	  
+    if (file->logfile) {
+
+      fprintf (file->logfile, "CBFlib: memory allocation error\n");
+    
+    } else {
+
+      exit(CBF_ALLOC);
+
+    }
+    return;
+
+  }
+  
+  buffer = (char *)memblock;
+  
+  if (logflags & CBF_LOGCURRENTLOC) {
+
+    line = (file->line);
+
+    column = (file->column);
+
+    logflags &= (~CBF_LOGWOLINE);
+
+  } else {
+
+  	logflags |= CBF_LOGWOLINE;
+
+  }
+  
+  if (logflags&CBF_LOGERROR)  file->errors++;
+  
+  else if (logflags&CBF_LOGWARNING) file->warnings++;
+
+  if ( !file->logfile ) return;
+
+  if (logflags&CBF_LOGWOLINE)
+
+      sprintf (buffer, "CBFlib: %s -- %s\n",
+        (logflags&CBF_LOGERROR)?"error":
+        ((logflags&CBF_LOGWARNING)?("warning"):""), 
+        message);
+        
+  else if (logflags&CBF_LOGWOCOLUMN || column==0)  
+
+      sprintf (buffer, "CBFlib: %s input line %d -- %s\n",
+        (logflags&CBF_LOGERROR)?"error":
+        ((logflags&CBF_LOGWARNING)?("warning"):""), 
+        line+1, 
+        message);  
+    
+  else
+
+      sprintf (buffer, "CBFlib: %s input line %d (%d) -- %s\n",
+        (logflags&CBF_LOGERROR)?"error":
+        ((logflags&CBF_LOGWARNING)?("warning"):""), 
+        line+1, column,
+        message);  
+
+  fprintf (file->logfile, "%s", buffer);
+
   cbf_free(&memblock, NULL );
  
   return;
@@ -5278,7 +5379,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
             
             sprintf(buffer,"dictionary:  invalid range of values for %s",itemname);
             
-            cbf_warning(buffer);
+            cbf_log(dictionary,buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
           	
           }
         	
@@ -7218,7 +7319,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 						
 						sprintf(buffer, "this is a function call to %s.%s", dbp->name,functionname);
 						
-						cbf_warning(buffer);
+						cbf_log(handle,buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
 					}
 
     	        	  if ( cbf_cistrncmp(dictype,"numb",4)

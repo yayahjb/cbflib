@@ -284,6 +284,9 @@ int cbf_make_file (cbf_file **file, FILE *stream)
     /* Initialise */
 
   (*file)->stream          = stream;
+  (*file)->logfile         = stderr;
+  (*file)->errors          = 0;
+  (*file)->warnings        = 0;
   (*file)->connections     = 1;
   (*file)->temporary       = stream?0:1;
   (*file)->bits [0]        = 0;
@@ -1825,7 +1828,7 @@ int cbf_read_line (cbf_file *file, const char **line)
       
       sprintf(buffer, "input line %u over size limit",1+file->line);
 
-      cbf_warning(buffer);
+      cbf_flog(file, buffer, CBF_LOGWARNING|CBF_LOGCURRENTLOC);
 
     }
 

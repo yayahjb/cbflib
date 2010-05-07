@@ -439,7 +439,7 @@ int cbf_foldtextline(const char** string, char* fline,
 
   /* Write an ascii value */
 
-int cbf_write_ascii (const char *string, cbf_file *file)
+int cbf_write_ascii (cbf_handle handle, const char *string, cbf_file *file)
 {
   static const char missing [] = { CBF_TOKEN_WORD, '?', '\0' };
 
@@ -603,7 +603,7 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
         sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
 
-        cbf_warning(buffer);
+        cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
       
         if (file->column > 0) {
          
@@ -703,7 +703,7 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
         sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
 
-        cbf_warning(buffer);
+        cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
       
         cbf_failnez (cbf_write_string (file, ";\\\n"))
         
@@ -834,7 +834,7 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
         sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
 
-        cbf_warning(buffer);
+        cbf_log(handle,buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
       
         if (initc==';') {
           if (file->column) cbf_failnez (cbf_write_character (file, '\n'))
