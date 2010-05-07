@@ -266,7 +266,7 @@ int cbf_get_value_type(const char *value, const char **value_type);
 
   /* Set the value type of an ascii string */
 
-int cbf_set_value_type(char *value, const char *value_type);
+int cbf_set_value_type(cbf_handle handle, char *value, const char *value_type);
 
   /* Check the value type */
     

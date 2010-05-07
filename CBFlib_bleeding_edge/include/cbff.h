@@ -1282,6 +1282,11 @@ extern "C" {
     
     void cbf_log (cbf_handle handle, const char *message, int logflags);
     
+
+    /* issue a log message for a cbf_file */
+    
+    void cbf_flog (cbf_file * file, const char *message, int logflags);
+    
     
     
     /* Find a datablock, creating it if necessary */

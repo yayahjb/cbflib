@@ -395,7 +395,7 @@ extern "C" {
     }
     /* Set the value type of an ascii string */
     
-    int cbf_set_value_type(char *value, const char *value_type)
+    int cbf_set_value_type(cbf_handle handle,char *value, const char *value_type)
     {
         
         char *cptr;
@@ -497,7 +497,7 @@ extern "C" {
                 
                 if (isspace(cptr[2])) {
                     
-                    cbf_warning("text field contains terminator, will be folded on output");
+		    cbf_log(handle,"text field contains terminator, will be folded on output",CBF_LOGWARNING);
                     
                     break;
                     
@@ -522,7 +522,8 @@ extern "C" {
                 
                 if (isspace(cptr[2])) {
                     
-                    cbf_warning("triple singled-quoted field contains terminator, will be folded on output");
+                    cbf_log(handle,
+		      "triple singled-quoted field contains terminator, will be folded on output",CBF_LOGWARNING);
                     
                     break;
                     
@@ -546,7 +547,8 @@ extern "C" {
                 
                 if (isspace(cptr[3])) {
                     
-                    cbf_warning("triple double-quoted field contains terminator, will be folded on output");
+                    cbf_log(handle,
+			"triple double-quoted field contains terminator, will be folded on output",CBF_LOGWARNING);
                     
                     break;
                     
@@ -854,7 +856,7 @@ extern "C" {
                      1+file->line, 1+file->column,
                      itemname);
             
-            cbf_warning (buffer);
+            cbf_log(handle,buffer,CBF_LOGWARNING|CBF_LOGCURRENTLOC);
             
         }
         
@@ -876,7 +878,7 @@ extern "C" {
     
     /* Write a value to a file */
     
-    int cbf_write_value (cbf_node *column, unsigned int row,
+    int cbf_write_value (cbf_handle handle, cbf_node *column, unsigned int row,
                          cbf_file *file, int isbuffer)
     {
         const char *text;
@@ -902,7 +904,7 @@ extern "C" {
         
         if (!text)
             
-            return cbf_write_ascii (text, file);
+            return cbf_write_ascii (handle, text, file);
         
         
         /* Plain ASCII? */
@@ -920,7 +922,7 @@ extern "C" {
             *text == CBF_TOKEN_BRCSTRING ||
             *text == CBF_TOKEN_NULL)
             
-            return cbf_write_ascii (text, file);
+            return cbf_write_ascii (handle, text, file);
         
         
         /* Plain binary? */
@@ -1084,7 +1086,7 @@ extern "C" {
                             
                         }
                         
-                        cbf_failnez (cbf_write_value (category->child [column], row,
+                        cbf_failnez (cbf_write_value (handle, category->child [column], row,
                                                       file, isbuffer))
                         if (!loop) {
                             

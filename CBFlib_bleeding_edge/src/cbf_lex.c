@@ -2019,7 +2019,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                 
                 sprintf(buffer, "digest mismatch file %s data %s", digest, new_digest );
                 
-                cbf_warning(buffer);
+                cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGCURRENTLOC);
               	
               } else {
               	
