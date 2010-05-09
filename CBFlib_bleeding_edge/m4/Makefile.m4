@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.0')m4_dnl
-m4_define(`cbf_date',`21 Feb 2009')m4_dnl
+m4_define(`cbf_date',`21 Feb 2010')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -615,6 +615,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_codes.c         \
 		    $(SRC)/cbf_compress.c      \
 		    $(SRC)/cbf_context.c       \
+		    $(SRC)/cbf_copy.c          \
 		    $(SRC)/cbf_file.c          \
             $(SRC)/cbf_getopt.c        \
 		    $(SRC)/cbf_lex.c           \
@@ -666,6 +667,7 @@ HEADERS   =  $(INCLUDE)/cbf.h                  \
 		     $(INCLUDE)/cbf_codes.h            \
 		     $(INCLUDE)/cbf_compress.h         \
 		     $(INCLUDE)/cbf_context.h          \
+		     $(INCLUDE)/cbf_copy.h             \
 		     $(INCLUDE)/cbf_file.h             \
 		     $(INCLUDE)/cbf_getopt.h           \
 		     $(INCLUDE)/cbf_lex.h              \
@@ -810,6 +812,8 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(PYCIFRW) $(PLY) symlinksdone \
 		$(BIN)/cbf2adscimg       \
 		$(BIN)/convert_image     \
 		$(BIN)/convert_minicbf   \
+		$(BIN)/sequence_match    \
+		$(BIN)/arvai_test        \
 		$(BIN)/makecbf           \
 		$(BIN)/img2cif           \
 		$(BIN)/adscimg2cbf       \
@@ -909,6 +913,10 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		cp $(BIN)/img2cif $(INSTALLDIR)/bin/img2cif
 		-cp $(INSTALLDIR)/bin/cif2cbf $(INSTALLDIR)/bin/cif2cbf_old
 		cp $(BIN)/cif2cbf $(INSTALLDIR)/bin/cif2cbf
+		-cp $(INSTALLDIR)/bin/sequence_match $(INSTALLDIR)/bin/sequence_match_old
+		cp $(BIN)/sequence_match $(INSTALLDIR)/bin/sequence_match
+		-cp $(INSTALLDIR)/bin/arvai_test $(INSTALLDIR)/bin/arvai_test_old
+		cp $(BIN)/arvai_test $(INSTALLDIR)/bin/arvai_test
 		-cp $(INSTALLDIR)/bin/cif2c $(INSTALLDIR)/bin/cif2c_old
 		cp $(BIN)/cif2c $(INSTALLDIR)/bin/cif2c
 		-cp $(INSTALLDIR)/bin/testreals $(INSTALLDIR)/bin/testreals_old
@@ -932,6 +940,8 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		chmod 755 $(INSTALLDIR)/bin/makecbf
 		chmod 755 $(INSTALLDIR)/bin/img2cif
 		chmod 755 $(INSTALLDIR)/bin/cif2cbf
+		chmod 755 $(INSTALLDIR)/bin/sequence_match
+		chmod 755 $(INSTALLDIR)/bin/arvai_test
 		chmod 755 $(INSTALLDIR)/bin/cif2c
 		chmod 755 $(INSTALLDIR)/bin/testreals
 		chmod 755 $(INSTALLDIR)/bin/testflat
@@ -1191,12 +1201,31 @@ $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
 		  -lcbf $(EXTRALIBS) -o $@
 
 #
+# sequence_match example program
+#
+$(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libimg.a \
+					$(GOPTLIB)	$(GOPTINC)
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+		      $(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
+		  -lcbf $(EXTRALIBS) -limg -o $@
+
+#
+# Andy Arvai's buffered read test program
+#
+$(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
+					$(GOPTLIB)	$(GOPTINC)
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+		      $(EXAMPLES)/arvai_test.c $(GOPTLIB) -L$(LIB) \
+		  -lcbf $(EXTRALIBS) -limg -o $@
+
+#
 # testreals example program
 #
 $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 		      $(EXAMPLES)/testreals.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
+
 #
 # testflat example program
 #
