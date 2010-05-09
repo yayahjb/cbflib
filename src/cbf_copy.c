@@ -1,12 +1,15 @@
 /**********************************************************************
- * cbf_ascii -- write plain ASCII values                              *
+ * cbf_copy.c -- cbflib copy functions                                *
  *                                                                    *
- * Version 0.7.6 14 July 2006                                         *
+ * Version 0.9.1 23 February 2010                                     *
  *                                                                    *
+ * (C) Copyright 2010 Herbert J. Bernstein                            *
+ *                                                                    *
+ *                      Part of the CBFlib API                        *
+ *                              by                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006 Herbert J. Bernstein                            *
  *                                                                    *
  **********************************************************************/
 
@@ -65,7 +68,7 @@
  *                                                                    *
  * This software                                                      *
  * -------------                                                      *
- * The term Ôthis softwareÕ, as used in these Notices, refers to      *
+ * The term â€˜this softwareâ€™, as used in these Notices, refers to      *
  * those portions of the software package CBFlib that were created by *
  * employees of the Stanford Linear Accelerator Center, Stanford      *
  * University.                                                        *
@@ -250,682 +253,334 @@
 #ifdef __cplusplus
 
 extern "C" {
-
+    
 #endif
-
+    
 #include "cbf.h"
-#include "cbf_ascii.h"
-#include "cbf_tree.h"
-#include "cbf_file.h"
-
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <limits.h>
-
-/* Format the next, possibly folded text line in fline, updating
-   the pointer in string to be ready for the next pass.
-   fline_size is the valid line length.  fline must be
-   one longer to allow for termination.*/
-
-int cbf_foldtextline(const char** string, char* fline, 
-                                                int fline_size,
-                                                int unfoldme,
-                                                int foldme,
-                                                char termc ) {
-    const char *c;
     
-    char *ofl;
+#include "cbf_copy.h"
+#include "cbf_alloc.h"
+#include "cbf_string.h"
     
-    int ipos, left=fline_size;
     
-    int savbpos, savbleft;
+    /* cbf_copy_cbf -- copy cbfin to cbfout */
     
-    c = *string;
-    
-    if (foldme && (termc == '\'' || termc == '\"') ) left -=2;
-
-    ofl = fline;
-    
-    savbpos = -1;
-    
-	savbleft = left+1;
-	
-    /* protect folded lines that begin with ; */
-      
-    if (c[0] == ';' && termc == ';' && (isspace(c[1])|| !c[1]) ){
-
-      *ofl++ = ';';
-      
-      *ofl++ = '\\';
-      
-      *ofl++ = '\n';
-      
-      *string = c+1;
-      
-      return 0;
-   	
-    }
-    
-
-    for (ipos=0; c[ipos]; ipos++) {
-    
-
-      /* save the last blank or tab to break on */
- 
-      if(( c[ipos] == ' ' || c[ipos] == '\t' ) && left < fline_size) {
-
-        savbpos = ipos; savbleft = left;
-
-      }
+    int cbf_copy_cbf(cbf_handle cbfout, cbf_handle cbfin, 
+                     const int compression,
+                     const int dimflag) {
         
-      /* If this is a bracketed construct, break on ',' or
-         the terminating character not at the beginning */
-
+        unsigned int blocknum, blocks;
         
-      if ((termc==')' || termc==']' || termc==',') 
-          && ((c[ipos]==termc || c[ipos]==',') &&  left-1 < fline_size)) {
-
-          savbpos = ipos+1; savbleft = left-1;
-
-      }
-
-      /* check for a backslash */
-      
-      if ( foldme && c[ipos] == '\\') {
-      
-        /* if unfolding, ignore "\\\n" */
+        const char * datablock_name;
         
-        if (unfoldme) {
+        cbf_failnez (cbf_rewind_datablock(cbfin))
         
-           if (c[ipos+1] == '\n' || c[ipos+1] == '\0') {
-           
-             ipos++;
-              
-             continue;
-           	
-           }
-        	
+        cbf_failnez (cbf_count_datablocks(cbfin, &blocks))
+        
+        for (blocknum = 0; blocknum < blocks;  blocknum++ ) {
+            
+            cbf_failnez (cbf_select_datablock(cbfin, blocknum))
+            cbf_failnez (cbf_datablock_name(cbfin, &datablock_name))
+            cbf_failnez (cbf_copy_datablock(cbfout, cbfin, datablock_name, compression, dimflag))
         }
-
-        /* if the backslash would be at the end of the line
-           insert "\\" and end the line */
- 
-        if ( foldme && left < 2) {
-        
-          *ofl++ = '\\';
-          
-          *ofl = '\0';
-          
-          *string = c+ipos;
-          
-          return 0;
-        	
-        }
-      	
-      }
-      
-      /* check if folding would bring "; " to the front of a line
-         if so, end here */
-      
-      if ( foldme && left == 2 && c[ipos+1]==';' && isspace(c[ipos+2])  ) {
-      
-          *ofl++ = '\\';
-          
-          *ofl = '\0';
-          
-          *string = c+ipos;
-          
-          return 0;
-      	
-      }
-      
-      /* now, see if the line has ended by itself */
-      
-      if ( c[ipos+1] == '\n' || !c[ipos+1]) 
-      {
-      
-         *ofl++ = c[ipos];
-         
-         *ofl = '\0';
-         
-         *string = c+ipos+1;
-         
-         if (c[ipos+1] == '\n') (*string)++;
-         
-         if (c[ipos+1]) return 0;
- 
-         return 1;
-      	
-      }
-      
-      /* see if we must fold */
-      
-      if ( foldme && left < 2)  {
-      
-        if (savbleft > left && savbleft < fline_size) {
-
-           ipos = savbpos;
-           
-           ofl = ofl+left-savbleft;
-        }
-        
-        *ofl++ = '\\';
-        
-        *ofl = '\0';
-        
-        *string = c+ipos;
         
         return 0;
-      	
-      }
-
-      *ofl++ = c[ipos];
-      
-      left--;
-    	
+        
     }
     
-    *ofl ='\0';
+    /* cbf_copy_category -- copy the current category from cbfin
+     specified category in cbfout */
     
-    *string = c+ipos;
-    
-    return 1;
-    
-    
-}
-
-
-
-  /* Write an ascii value */
-
-int cbf_write_ascii (cbf_handle handle, const char *string, cbf_file *file)
-{
-  static const char missing [] = { CBF_TOKEN_WORD, '?', '\0' };
-
-  int end, lw, lc, foldme=0, unfoldme=0;
-  
-  char initc=';', termc=';';
-
-  unsigned int column;
-
-  const char *c;
-  
-  char delim, adelim;
-  
-  char buffer[80];
-  
-  char fline[2049];
-
-
-    /* Check the arguments */
-
-  if (!string)
-
-    string = missing;
-
-  else
-
-    if (*string != CBF_TOKEN_WORD       &&
-        *string != CBF_TOKEN_SQSTRING   &&
-        *string != CBF_TOKEN_DQSTRING   &&
-        *string != CBF_TOKEN_SCSTRING   &&
-        *string != CBF_TOKEN_TSQSTRING  &&
-        *string != CBF_TOKEN_TDQSTRING  &&
-        *string != CBF_TOKEN_BKTSTRING  &&
-        *string != CBF_TOKEN_BRCSTRING  &&
-        *string != CBF_TOKEN_PRNSTRING  &&
-        *string != CBF_TOKEN_NULL)
-
-      return CBF_ARGUMENT;
-
-
-    /* Get the current column */
-
-  cbf_failnez (cbf_get_filecoordinates (file, NULL, &column))
-
-
-    /* Do we need to start a new line? */
-
-  if (column) {
-
-    if (*string == CBF_TOKEN_SCSTRING) {
-
-      cbf_failnez (cbf_write_character (file, '\n'))
-
-    } else {
-    
-      if (*string == CBF_TOKEN_WORD ||
-          *string == CBF_TOKEN_NULL )
-
-        end = column + 3;
-
-      else if (*string == CBF_TOKEN_TSQSTRING ||
-        *string == CBF_TOKEN_TDQSTRING)
+    int cbf_copy_category(cbf_handle cbfout, cbf_handle cbfin, 
+                          const char * category_name,
+                          const int compression,
+                          const int dimflag) {
         
-        end = column + 6;
-
-      else if (*string == CBF_TOKEN_PRNSTRING ||
-        *string == CBF_TOKEN_BKTSTRING ||
-        *string == CBF_TOKEN_BKTSTRING)
+        unsigned int rows, columns;
         
-        end = column + 5;
+        unsigned int rownum, colnum;
         
-      else
-
-        end = column + 1;
-
-      for (c = string + 1; *c && end <= (file->columnlimit); c++) {
-
-        if (*c == '\t')
-
-          end = (end & ~0x07) + 8;
-
-        else
-
-          end = end + 1;
-
-      }
-
-      if (end > (file->columnlimit))
-
-        cbf_failnez (cbf_write_character (file, '\n'))
-    }
-
-  }
-
-
-    /* Write the value */
- 
-
-  switch (*string)
-  {
-      /* Simple word? */
-
-    case  CBF_TOKEN_WORD:
-    case  CBF_TOKEN_NULL:
-    
-      if (strlen(string+1) <= file->columnlimit
-        && *(string+1)!='"' && *(string+1)!='\''
-        && !strpbrk(string+1," \t\n\r")
-        && !(strlen(string+1) == file->columnlimit && *(string+1)==';') ) {
-
-        if (strlen(string+1) != file->columnlimit)
-
-          cbf_failnez (cbf_write_character (file, ' '))
-
-        cbf_failnez (cbf_write_string (file, string + 1))
-
-        break;
-      
-      }
-
-
-      /* Single line? */
-
-    case CBF_TOKEN_SQSTRING:
-    case CBF_TOKEN_DQSTRING:
-    
-      if (*string == CBF_TOKEN_SQSTRING) {
-
-        delim = '\'';
+        const char * column_name;
         
-        adelim = '"';
-
-      } else {
-
-        delim = '"';
-
-        adelim = '\'';
+        const char * value;
         
-      }
+        cbf_failnez(cbf_force_new_category(cbfout,category_name))
         
-      if (strchr(string+1,delim) && !strchr(string+1,adelim)) {
-
-        delim = adelim;
-      	  
-      }
-
-      if (strlen(string+1)+2 < file->columnlimit && !strchr(string+1,delim))  {
-
-        if (strlen(string+1)+3 < file->columnlimit) {
-        	
-          cbf_failnez (cbf_write_character (file, ' '))
-        }
-
-        cbf_failnez (cbf_write_character (file, delim))
-
-        cbf_failnez (cbf_write_string (file, string + 1))
-
-        cbf_failnez (cbf_write_character (file, delim))
-
-      } else {
-
-        sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
-
-        cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
-      
-        if (file->column > 0) {
-         
-          cbf_failnez (cbf_write_character (file, '\n'))
-        }
-      
-        cbf_failnez (cbf_write_string (file, ";\\\n"))
-
-        end = 0;
-
-        for (c = string + 1; *c; c++) {
+        cbf_failnez(cbf_count_rows(cbfin,&rows));
         
-          if (((file->column > file->columnlimit-10)&& (isspace(*c)||*c=='\\'))||
-            file->column > file->columnlimit-2) {
-
-          	cbf_failnez (cbf_write_string (file, "\\\n"))
-
-          	end = 0;
-          }
-
-          cbf_failnez (cbf_write_character (file, *c))
-
-          if (*c == ';' && end == 0 && (isspace(*(c+1))||!*(c+1))) 
-          {
-          	cbf_failnez (cbf_write_string (file, "\\\n"))
-          	
-          	end = 0;
-          	
-          	continue;
-          }
-
-          if (*c == '\n')
-
-            end = 0;
-
-          else
-
-            end = 1;
-        }
-
-      cbf_failnez (cbf_write_string (file, "\\\n;\n"))
-
-      end = 0;
-      	
-      }
-
-      break;
-
-
-      /* Multiple lines? */
-
-    case CBF_TOKEN_SCSTRING:
-    
-      unfoldme = 0;
-      
-      foldme = 0;
-      
-      if (*(string+1)=='\\' && *(string+2)=='\n' ) unfoldme=2;
-    
-      lw = 0;
-      
-      lc = 1;
-
-      end = 1;
-      
-      for (c = string +1+unfoldme; *c; c++) {
-
-        if (*c == ';' && end == 0 && (isspace(*(c+1))|| !*(c+1))) foldme=1;
+        cbf_failnez(cbf_count_columns(cbfin,&columns));
         
-        if (*c == '\n') {
-
-          if (!unfoldme || *(c-1) !='\\') {
-
-            end = 0;
-          
-            if (lc > lw) lw = lc;
-          
-            lc = 0;
+        /*  Transfer the column names from cbfin to cbfout */
+        
+        if ( ! cbf_rewind_column(cbfin) ) {
             
-          } else  {
-          
-            lc--;
-          	
-          }
-
-        } else {
-        
-          lc++;
-
-          end = 1;
-        }
-      }
-      
-      if (lc > lw) lw = lc;
-
-      if ( foldme || lw > file->columnlimit || (unfoldme && *(c-1)=='\\')) {
-
-        sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
-
-        cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
-      
-        cbf_failnez (cbf_write_string (file, ";\\\n"))
-        
-        end = 0;
-        
-        foldme = 1;
-      	
-      } else {
-
-        cbf_failnez (cbf_write_character (file, ';'))
-        
-        end = 1;
-        
-        foldme = 0;
-      
-      }
-
+            do {
+                
+                cbf_failnez(cbf_column_name(cbfin, &column_name))
+                
+                cbf_failnez(cbf_new_column(cbfout, column_name))
+                
+            } while ( ! cbf_next_column(cbfin) );
             
-      for (c = string + 1+ unfoldme; *c; ) {
-      
-        int done;
-      
-        done = cbf_foldtextline(&c, fline, file->columnlimit, unfoldme, foldme, ';');
-        
-        cbf_failnez (cbf_write_string (file, fline))
-        
-        if ( !done ) cbf_failnez (cbf_write_character (file, '\n'))
-        
-      }
-      
-
-      if (unfoldme && ((c > string+1+unfoldme && *(c-1)=='\\') ||
-          (c > string+2+unfoldme && *(c-1)=='\0' && *(c-2)=='\\'))) {
-
-      	cbf_failnez (cbf_write_string (file, "\\\n;\n"))
-
-      } else {
-
-        if (file->column) {
-
-      	  cbf_failnez (cbf_write_character (file, '\n'))
-
-        }
-
-      	cbf_failnez (cbf_write_string (file, ";\n"))
-
-      }
-      
-
-      end = 0;
-
-      break;
-
-    case CBF_TOKEN_TSQSTRING:
-    case CBF_TOKEN_TDQSTRING:
-  	case CBF_TOKEN_PRNSTRING:
-  	case CBF_TOKEN_BRCSTRING:
-  	case CBF_TOKEN_BKTSTRING:
-     
-      unfoldme = 0;
-      
-      foldme = 0;
-     
-      switch (*string) {
-        case CBF_TOKEN_TSQSTRING: initc = termc = '\'';
-              if (!(file->write_headers & CBF_PARSE_TQ)) {initc = termc = ';'; foldme= 1;} break;
-        case CBF_TOKEN_TDQSTRING: initc = termc = '"'; 
-              if (!(file->write_headers & CBF_PARSE_TQ)) {initc = termc = ';'; foldme= 1;} break;
-        case CBF_TOKEN_PRNSTRING: initc = '('; termc = ')';
-              if (!(file->write_headers & CBF_PARSE_PRN)) {
-                  if (file->write_headers & CBF_PARSE_BRC){
-                      initc = '{'; termc = '}';
-                  } else {
-                     initc = termc = ';'; foldme= 1;
-                  }
-              } break;
-        case CBF_TOKEN_BRCSTRING: initc = '{'; termc = '}'; 
-              if (!(file->write_headers & CBF_PARSE_BRC)) {initc = termc = ';'; foldme= 1;} break;
-  	    case CBF_TOKEN_BKTSTRING: initc = '['; termc = ']'; 
-              if (!(file->write_headers & CBF_PARSE_PRN)) {
-                  if (file->write_headers & CBF_PARSE_BRC){
-                      initc = '{'; termc = '}'; 
-                  } else {
-                      initc = termc = ';'; foldme= 1;
-                  }
-              } break;
-      }
-      
-      if (*(string+1)=='\\' && *(string+2)=='\n' ) unfoldme=2;
-    
-      lw = 0;
-      
-      lc = 1;
-
-      end = 1;
-      
-      for (c = string +1+unfoldme; *c; c++) {
-
-        if (termc==';' && *c == ';' && end == 0 && (isspace(*(c+1))|| !*(c+1))) foldme=1;
-        
-        if (*c == '\n') {
-
-          if (!unfoldme || *(c-1) !='\\') {
-
-            end = 0;
-          
-            if (lc > lw) lw = lc;
-          
-            lc = 0;
+            cbf_failnez(cbf_rewind_column(cbfin))
             
-          } else  {
-          
-            lc--;
-          	
-          }
-
-        } else {
-        
-          lc++;
-
-          end = 1;
-        }
-      }
-      
-      if (lc > lw) lw = lc;
-
-      if ( foldme || lw > file->columnlimit || (unfoldme && *(c-1)=='\\')) {
-
-        sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
-
-        cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
-      
-        if (initc==';') {
-          if (file->column) cbf_failnez (cbf_write_character (file, '\n'))
-          cbf_failnez (cbf_write_string (file, ";\\\n"))
-        } else {
-          if (file->column) cbf_failnez (cbf_write_character (file, ' '))
-          cbf_failnez (cbf_write_character (file, initc))
-          cbf_failnez (cbf_write_string (file, "\\\n"))        	
+            cbf_failnez(cbf_rewind_row(cbfin))
         }
         
-        end = 0;
+        /* Transfer to rows from cbfin to cbfout */
         
-        foldme = 1;
-      	
-      } else {
-
-        if (file->column) cbf_failnez (cbf_write_character (file, ' '))
-
-        cbf_failnez (cbf_write_character (file, initc))
-        
-        end = 1;
-        
-        foldme = 0;
-      
-      }
-
+        for (rownum = 0; rownum < rows; rownum++ ) {
             
-      for (c = string + 1+ unfoldme; *c; ) {
-      
-        int done;
-      
-        done = cbf_foldtextline(&c, fline, file->columnlimit
-          -file->column, unfoldme, foldme, termc);
-        
-        cbf_failnez (cbf_write_string (file, fline))
-        
-        if ( !done ) cbf_failnez (cbf_write_character (file, '\n'))
-        
-      }
-      
-
-      if (unfoldme && *(c-1)=='\\') {
-
-        if (termc == ';') {
-          cbf_failnez (cbf_write_string (file, "\\\n;\n"))	
-        }  else  {
-          cbf_failnez (cbf_write_string (file, "\\\n"))	
-          cbf_failnez (cbf_write_character (file, termc )) 
-          if (*string==CBF_TOKEN_TSQSTRING 
-            || *string==CBF_TOKEN_TDQSTRING ) {
-            cbf_failnez (cbf_write_character (file, termc )) 
-            cbf_failnez (cbf_write_character (file, termc ))           	
-          }
-        }
-
-      } else {
-
-
-        if (termc == ';') {
-            if (file->column) {
-                cbf_failnez (cbf_write_character (file, '\n'))
+            cbf_failnez (cbf_select_row(cbfin, rownum))
+            
+            cbf_failnez (cbf_new_row(cbfout))
+            
+            cbf_rewind_column(cbfin);
+            
+            for (colnum = 0; colnum < columns; colnum++ ) {
+                
+                const char *typeofvalue;
+                
+                cbf_failnez (cbf_select_column(cbfin, colnum))
+                
+                cbf_failnez (cbf_column_name(cbfin, &column_name))
+                
+                if ( ! cbf_get_value(cbfin, &value) ) {
+                    
+                    if (compression && value && column_name && !cbf_cistrcmp("compression_type",column_name)) {
+                        
+                        cbf_failnez (cbf_select_column(cbfout, colnum))
+                        
+                        switch (compression&CBF_COMPRESSION_MASK) {
+                                
+                            case (CBF_NONE):
+                                cbf_failnez (cbf_set_value      (cbfout,"none"))
+                                cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
+                                break;
+                                
+                            case (CBF_CANONICAL):
+                                cbf_failnez (cbf_set_value      (cbfout,"canonical"))
+                                cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
+                                break;
+                                
+                            case (CBF_PACKED):
+                                cbf_failnez (cbf_set_value      (cbfout,"packed"))
+                                cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
+                                break;
+                                
+                            case (CBF_PACKED_V2):
+                                cbf_failnez (cbf_set_value      (cbfout,"packed_v2"))
+                                cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
+                                break;
+                                
+                            case (CBF_BYTE_OFFSET):
+                                cbf_failnez (cbf_set_value      (cbfout,"byte_offsets"))
+                                cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
+                                break;
+                                
+                            case (CBF_PREDICTOR):
+                                cbf_failnez (cbf_set_value      (cbfout,"predictor"))
+                                cbf_failnez (cbf_set_typeofvalue(cbfout,"word"))
+                                break;
+                                
+                                
+                            default:                                
+                                cbf_failnez (cbf_set_value      (cbfout,"."))
+                                cbf_failnez (cbf_set_typeofvalue(cbfout,"null"))
+                                break;
+                        }
+                        if (compression&CBF_FLAG_MASK) {
+                            
+                            if (compression&CBF_UNCORRELATED_SECTIONS) {
+                                
+                                cbf_failnez (cbf_require_column   (cbfout, "compression_type_flag"))
+                                cbf_failnez (cbf_set_value        (cbfout, "uncorrelated_sections"))
+                                cbf_failnez (cbf_set_typeofvalue  (cbfout, "word"))
+                                
+                            } else if (compression&CBF_FLAT_IMAGE)  {
+                                
+                                cbf_failnez (cbf_require_column   (cbfout, "compression_type_flag"))
+                                cbf_failnez (cbf_set_value        (cbfout, "flat"))
+                                cbf_failnez (cbf_set_typeofvalue  (cbfout, "word"))
+                                
+                            }
+                        } else {
+                            
+                            if (!cbf_find_column(cbfout, "compression_type_flag")) {
+                                cbf_failnez (cbf_set_value      (cbfout,"."))
+                                cbf_failnez (cbf_set_typeofvalue(cbfout,"null"))
+                            }
+                            
+                        }
+                        
+                    } else  if (compression && value && column_name && !cbf_cistrcmp("compression_type_flag",column_name)) {
+                        
+                        if (compression&CBF_FLAG_MASK) {
+                            
+                            if (compression&CBF_UNCORRELATED_SECTIONS) {
+                                cbf_failnez (cbf_require_column   (cbfout, "compression_type_flag"))
+                                cbf_failnez (cbf_set_value        (cbfout, "uncorrelated_sections"))
+                                cbf_failnez (cbf_set_typeofvalue  (cbfout, "word"))
+                                
+                            } else if (compression&CBF_FLAT_IMAGE)  {
+                                cbf_failnez (cbf_require_column   (cbfout, "compression_type_flag"))
+                                cbf_failnez (cbf_set_value        (cbfout, "flat"))
+                                cbf_failnez (cbf_set_typeofvalue  (cbfout, "word"))
+                            }
+                            
+                        } else {
+                            
+                            if (!cbf_find_column(cbfout, "compression_type_flag")) {
+                                cbf_failnez (cbf_set_value      (cbfout,"."))
+                                cbf_failnez (cbf_set_typeofvalue(cbfout,"null"))
+                            }
+                            
+                        }             	
+                    } else {
+                        
+                        cbf_failnez (cbf_get_typeofvalue(cbfin, &typeofvalue))
+                        cbf_failnez (cbf_select_column(cbfout, colnum))
+                        cbf_failnez (cbf_set_value(cbfout, value))
+                        cbf_failnez (cbf_set_typeofvalue(cbfout, typeofvalue))
+                    }
+                    
+                } else {
+                    
+                    void * array;
+                    
+                    int binary_id, elsigned, elunsigned;
+                    
+                    size_t elements,elements_read, elsize;
+                    
+                    int minelement, maxelement;
+                    
+                    unsigned int cifcompression;
+                    
+                    int realarray;
+                    
+                    const char *byteorder;
+                    
+                    size_t dim1, dim2, dim3, padding;
+                    
+                    cbf_failnez(cbf_get_arrayparameters_wdims_fs(
+                                                                 cbfin, &cifcompression,
+                                                                 &binary_id, &elsize, &elsigned, &elunsigned,
+                                                                 &elements, &minelement, &maxelement, &realarray,
+                                                                 &byteorder, &dim1, &dim2, &dim3, &padding))
+                    
+                    if ((array=malloc(elsize*elements))) {
+                        
+                        cbf_failnez (cbf_select_column(cbfout,colnum))
+                        
+                        if (!realarray)  {
+                            
+                            cbf_failnez (cbf_get_integerarray(
+                                                              cbfin, &binary_id, array, elsize, elsigned,
+                                                              elements, &elements_read))
+                            
+                            if (dimflag == CBF_HDR_FINDDIMS && dim1==0) {
+                                cbf_get_arraydimensions(cbfin,NULL,&dim1,&dim2,&dim3);
+                            }
+                            
+                            cbf_failnez(cbf_set_integerarray_wdims_fs(
+                                                                      cbfout, compression,
+                                                                      binary_id, array, elsize, elsigned, elements,
+                                                                      "little_endian", dim1, dim2, dim3, 0))
+                        } else {
+                            
+                            cbf_failnez (cbf_get_realarray(
+                                                           cbfin, &binary_id, array, elsize,
+                                                           elements, &elements_read))
+                            
+                            if (dimflag == CBF_HDR_FINDDIMS && dim1==0) {
+                                cbf_get_arraydimensions(cbfin,NULL,&dim1,&dim2,&dim3);
+                            }
+                            
+                            cbf_failnez(cbf_set_realarray_wdims_fs(
+                                                                   cbfout, compression,
+                                                                   binary_id, array, elsize, elements,
+                                                                   "little_endian", dim1, dim2, dim3, 0))                 	
+                        }
+                        
+                        free(array);
+                        
+                    } else {
+                        
+                        return CBF_ALLOC;
+                    }
+                }
             }
-            cbf_failnez (cbf_write_string (file, ";\n"))	
-        }  else  {
-          cbf_failnez (cbf_write_character (file, termc ))        	
-          if (*string==CBF_TOKEN_TSQSTRING 
-            || *string==CBF_TOKEN_TDQSTRING ) {
-            cbf_failnez (cbf_write_character (file, termc )) 
-            cbf_failnez (cbf_write_character (file, termc ))           	
-          }
         }
-
-      }
-      
-
-      end = 0;
-
-      break;
-
-
-  }
-
-
-    /* Flush the buffer */
-
-  return cbf_flush_characters (file);
-}
-
+        
+        return 0;
+        
+    }
+    
+    /* cbf_copy_datablock -- copy the current datablock from cbfin
+     to the next datablock in cbfout
+     */
+    
+    int cbf_copy_datablock (cbf_handle cbfout, cbf_handle cbfin, 
+                            const char * datablock_name,
+                            const int compression,
+                            const int dimflag) {
+        
+        CBF_NODETYPE itemtype;
+        
+        const char *category_name;
+        
+        const char *saveframe_name;
+        
+        unsigned int itemnum, blockitems,catnum,categories;
+        
+        cbf_failnez (cbf_force_new_datablock(cbfout, datablock_name))
+        
+        if ( !cbf_rewind_blockitem(cbfin, &itemtype) ) {
+            cbf_failnez (cbf_count_blockitems(cbfin, &blockitems))
+            
+            for (itemnum = 0; itemnum < blockitems;  itemnum++) {
+                
+                cbf_failnez(cbf_select_blockitem(cbfin, itemnum, &itemtype))
+                
+                if (itemtype == CBF_CATEGORY) {
+                    
+                    cbf_failnez(cbf_category_name(cbfin,&category_name))
+                    cbf_failnez(cbf_copy_category(cbfout,cbfin,category_name, compression, dimflag))
+                    
+                } else {
+                    
+                    cbf_failnez(cbf_saveframe_name(cbfin,&saveframe_name))
+                    cbf_force_new_saveframe(cbfout, saveframe_name);
+                    
+                    if ( !cbf_rewind_category(cbfin) ) {
+                        
+                        cbf_failnez (cbf_count_categories(cbfin, &categories))
+                        
+                        for (catnum = 0; catnum < categories;  catnum++) {
+                            
+                            cbf_select_category(cbfin, catnum);
+                            cbf_category_name(cbfin,&category_name);
+                            cbf_failnez(cbf_copy_category(cbfout,cbfin,category_name, compression, dimflag))
+                            
+                        }
+                        
+                    }
+                    
+                }
+                
+            }
+            
+        }
+        
+        return 0;
+        
+    }
+    
 #ifdef __cplusplus
-
+    
 }
 
 #endif
+
+
 
