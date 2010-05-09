@@ -1724,4 +1724,3 @@ tar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) $(M4FILES)\
 	 README.html README Makefile \
 	 $(JPEGS)
 	 gzip --best CBFlib.tar
-'
