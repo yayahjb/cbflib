@@ -393,6 +393,7 @@ INCLUDE  = $(ROOT)/include
 M4       = $(ROOT)/m4
 PYCBF    = $(ROOT)/pycbf
 EXAMPLES = $(ROOT)/examples
+DECTRIS_EXAMPLES = $(EXAMPLES)/dectris_cbf_template_test
 DOC      = $(ROOT)/doc
 GRAPHICS = $(ROOT)/html_graphics
 DATADIRI  = $(ROOT)/../CBFlib_$(VERSION)_Data_Files_Input
@@ -1031,6 +1032,15 @@ $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 		      $(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -limg -o $@
 #
+# dectris cbf_template_t program
+#
+$(BIN)/cbf_template_t: $(DECTRIS_EXAMPLES)/cbf_template_t.c \
+			$(DECTRIS_EXAMPLES)/mx_cbf_t_extras.h \
+			$(DECTRIS_EXAMPLES)/mx_parms.h
+	$(CC) $(CFLAGS) -I $(DECTRIS_EXAMPLES)  $(WARNINGS) \
+			$(DECTRIS_EXAMPLES)/cbf_template_t.c -o $@
+
+#
 # testcell example program
 #
 $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
@@ -1251,7 +1261,7 @@ $(TESTOUTPUTSIGS):	$(DATADIRS) $(DATADIRS_OUTPUT_SIGNATURES)
 #
 # Tests
 #
-tests:				$(LIB) $(BIN) symlinksdone basic extra
+tests:				$(LIB) $(BIN) symlinksdone basic extra dectristests pycbftests
 tests_sigs_only:	$(LIB) $(BIN) symlinksdone basic extra_sigs_only
 restore_output:		$(NEWTESTOUTPUT) $(DATADIRO)
 		$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT)
@@ -1456,6 +1466,9 @@ javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/libcbf_wrap.so
 	$(LDPREFIX) java -cp $(JAVADIR)/cbflib-$(VERSION).jar:$(BIN) testcbf > testcbfj.txt
 	$(DIFF) testcbfc.txt testcbfj.txt
 
+dectristests: $(BIN)/cbf_template_t $(DECTRIS_EXAMPLES)/cbf_test_orig.out
+	(cd $(DECTRIS_EXAMPLES); ../../bin/cbf_template_t; diff -a -u cbf_test_orig.out /tmp/cbf_test.out)
+
 #
 # Remove all non-source files
 #
@@ -1483,7 +1496,7 @@ empty:
 	@-rm -rf  $(BIN)/testreals.*
 	@-rm -rf  $(BIN)/testflat.*
 	@-rm -rf  $(BIN)/testflatpacked.*
-	@-rm -rf  $(BIN)/sauter_test.*
+	@-rm -rf  $(BIN)/cbf_template_t.*
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
