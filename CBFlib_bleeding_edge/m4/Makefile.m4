@@ -396,6 +396,28 @@ EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
 DOWNLOAD = /sw/bin/wget',
+cbf_system,`OSX_gcc42_DMALLOC',`
+#########################################################
+#
+#  Appropriate compiler definitions for MAC OS X
+#  with gcc 4.2 and DMALLOC
+#  Also change defintion of DOWNLOAD
+#
+#########################################################
+CC	= gcc
+C++	= g++
+CFLAGS  = -g -O2  -Wall -ansi -pedantic -DDMALLOC -DDMALLOC_FUNC_CHECK -I$(HOME)/include
+F90C = gfortran
+F90FLAGS = -g -fno-range-check
+F90LDFLAGS = -bind_at_load
+SOCFLAGS = -fPIC
+SOLDFLAGS = -shared -Wl,-rpath,$(INSTALLDIR)/lib
+JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
+EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
+M4FLAGS = -Dfcb_bytes_in_rec=131072
+TIME = time
+DOWNLOAD = /sw/bin/wget',
 cbf_system,`LINUX_64',`
 #########################################################
 #
@@ -454,6 +476,45 @@ SOLDFLAGS = -shared -Wl,-rpath,$(INSTALLDIR)/lib
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm
+M4FLAGS = -Dfcb_bytes_in_rec=131072
+TIME = time',
+cbf_system,`LINUX_gcc42_DMALLOC',`
+#########################################################
+#
+#  Appropriate compiler definitions for Linux
+#  with gcc version 4.2 and DMALLOC
+#
+#########################################################
+CC	= gcc
+C++	= g++
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DDMALLOC -DDMALLOC_FUNC_CHECK  -I$(HOME)/include
+F90C = gfortran
+F90FLAGS = -g -fno-range-check
+F90LDFLAGS = 
+SOCFLAGS = -fPIC
+SOLDFLAGS = -shared -Wl,-rpath,$(INSTALLDIR)/lib
+JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
+EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
+M4FLAGS = -Dfcb_bytes_in_rec=131072
+TIME = time',
+cbf_system,`LINUX_DMALLOC',`
+#########################################################
+#
+#  Appropriate compiler definitions for Linux and DMALLOC
+#
+#########################################################
+CC	= gcc
+C++	= g++
+CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing -DDMALLOC -DDMALLOC_FUNC_CHECK  -I$(HOME)/include
+F90C = gfortran
+F90FLAGS = -g
+F90LDFLAGS = 
+SOCFLAGS = -fPIC
+SOLDFLAGS = -shared -Wl,-rpath,$(INSTALLDIR)/lib
+JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
+LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
+EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time',
 cbf_system,`AIX',`
@@ -617,7 +678,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 		    $(SRC)/cbf_context.c       \
 		    $(SRC)/cbf_copy.c          \
 		    $(SRC)/cbf_file.c          \
-            $(SRC)/cbf_getopt.c        \
+		    $(SRC)/cbf_getopt.c        \
 		    $(SRC)/cbf_lex.c           \
 		    $(SRC)/cbf_packed.c        \
 		    $(SRC)/cbf_predictor.c     \
@@ -684,7 +745,7 @@ HEADERS   =  $(INCLUDE)/cbf.h                  \
 		     $(INCLUDE)/cbf_write_binary.h     \
 		     $(INCLUDE)/cbf_ws.h               \
 		     $(INCLUDE)/global.h               \
-             $(INCLUDE)/cbff.h                 \
+		     $(INCLUDE)/cbff.h                 \
 		     $(INCLUDE)/md5.h
 
 #
@@ -838,8 +899,11 @@ Makefiles: Makefile			 \
 		Makefile_LINUX           \
 		Makefile_LINUX_64        \
 		Makefile_LINUX_gcc42     \
+		Makefile_LINUX_DMALLOC   \
+		Makefile_LINUX_gcc42_DMALLOC \
 		Makefile_OSX             \
 		Makefile_OSX_gcc42       \
+		Makefile_OSX_gcc42_DMALLOC   \
 		Makefile_AIX             \
 		Makefile_MINGW           \
 		Makefile_IRIX_gcc
@@ -847,6 +911,10 @@ Makefiles: Makefile			 \
 Makefile_LINUX: $(M4)/Makefile.m4
 		-cp Makefile_LINUX Makefile_LINUX_old
 		m4 -P -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
+
+Makefile_LINUX_DMALLOC: $(M4)/Makefile.m4
+		-cp Makefile_LINUX Makefile_LINUX_old
+		m4 -P -Dcbf_system=LINUX_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_DMALLOC
 
 Makefile_LINUX_64: $(M4)/Makefile.m4
 		-cp Makefile_LINUX_64 Makefile_LINUX_64_old
@@ -856,6 +924,10 @@ Makefile_LINUX_gcc42: $(M4)/Makefile.m4
 		-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
 		m4 -P -Dcbf_system=LINUX_gcc42 $(M4)/Makefile.m4 > Makefile_LINUX_gcc42 
 
+Makefile_LINUX_gcc42_DMALLOC: $(M4)/Makefile.m4
+		-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
+		m4 -P -Dcbf_system=LINUX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_gcc42_DMALLOC 
+
 Makefile_OSX: $(M4)/Makefile.m4
 		-cp Makefile_OSX Makefile_OSX_old
 		m4 -P -Dcbf_system=OSX $(M4)/Makefile.m4 > Makefile_OSX 
@@ -863,6 +935,10 @@ Makefile_OSX: $(M4)/Makefile.m4
 Makefile_OSX_gcc42: $(M4)/Makefile.m4
 		-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
 		m4 -P -Dcbf_system=OSX_gcc42 $(M4)/Makefile.m4 > Makefile_OSX_gcc42 
+
+Makefile_OSX_gcc42_DMALLOC: $(M4)/Makefile.m4
+		-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
+		m4 -P -Dcbf_system=OSX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_OSX_gcc42_DMALLOC
 
 Makefile_AIX: $(M4)/Makefile.m4
 		-cp Makefile_AIX Makefile_AIX_old
@@ -1074,7 +1150,9 @@ endif
 #
 # Python bindings
 #
-$(PYCBF)/_pycbf.so: $(PYCBF)
+$(PYCBF)/_pycbf.so: $(PYCBF)  $(LIB)/libcbf.a          \
+                              $(LIB)/libfcb.a          \
+                              $(LIB)/libimg.a
 	(cd $(PYCBF); python setup.py build; cp build/lib.*/_pycbf.so .) 
 
 
@@ -1592,7 +1670,7 @@ endif
 
 
 	
-pycbftests:  $(PYCBF)/_pycbf.so
+pycbftests:  $(PYCBF)/_pycbf.so tests
 	(cd $(PYCBF); python pycbf_test1.py)
 	(cd $(PYCBF); python pycbf_test2.py)
 	(cd $(PYCBF); python pycbf_test3.py)
