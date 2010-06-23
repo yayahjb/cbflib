@@ -1481,21 +1481,23 @@ empty:
 	@-rm -f  $(PYCBF)/build/*/_pycbf.so
 	@-rm -f  $(PYCBF)/build/src/cbf_simple.o
 	@-rm -f  $(PYCBF)/build/*/pycbf_wrap.o
-	@-rm -rf  $(BIN)/adscimg2cbf.*
-	@-rm -rf  $(BIN)/cbf2adscimg.*
-	@-rm -rf  $(BIN)/makecbf.*
-	@-rm -rf  $(BIN)/img2cif.*
-	@-rm -rf  $(BIN)/cif2cbf.*
-	@-rm -rf  $(BIN)/convert_image.*
-	@-rm -rf  $(BIN)/convert_minicbf.*
-	@-rm -rf  $(BIN)/test_fcb_read_image.*
-	@-rm -rf  $(BIN)/test_xds_binary.*
-	@-rm -rf  $(BIN)/testcell.*
-	@-rm -rf  $(BIN)/cif2c.*
-	@-rm -rf  $(BIN)/testreals.*
-	@-rm -rf  $(BIN)/testflat.*
-	@-rm -rf  $(BIN)/testflatpacked.*
-	@-rm -rf  $(BIN)/cbf_template_t.*
+	@-rm -rf  $(BIN)/adscimg2cbf*
+	@-rm -rf  $(BIN)/cbf2adscimg*
+	@-rm -rf  $(BIN)/makecbf*
+	@-rm -rf  $(BIN)/img2cif*
+	@-rm -rf  $(BIN)/cif2cbf*
+	@-rm -rf  $(BIN)/convert_image*
+	@-rm -rf  $(BIN)/convert_minicbf*
+	@-rm -rf  $(BIN)/test_fcb_read_image*
+	@-rm -rf  $(BIN)/test_xds_binary*
+	@-rm -rf  $(BIN)/testcell*
+	@-rm -rf  $(BIN)/cif2c*
+	@-rm -rf  $(BIN)/testreals*
+	@-rm -rf  $(BIN)/testflat*
+	@-rm -rf  $(BIN)/testflatpacked*
+	@-rm -rf  $(BIN)/cbf_template_t*
+	@-rm -rf  $(BIN)/sauter_test*
+	@-rm -rf  $(BIN)/arvai_test*
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
