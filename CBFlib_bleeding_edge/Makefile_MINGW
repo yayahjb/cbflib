@@ -365,7 +365,7 @@ endif
 #########################################################
 CC	= gcc
 C++	= g++
-CFLAGS  = -g -O2  -Wall -I/usr/include -fno-strict-aliasing
+CFLAGS  = -g -O2  -Wall -static -I/usr/include -fno-strict-aliasing
 F90C = g95
 F90FLAGS = -g
 F90LDFLAGS = 
