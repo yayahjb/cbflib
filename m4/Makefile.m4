@@ -267,6 +267,13 @@ CLEANTESTS = yes
 PYCIFRW = PyCifRW-3.3_6Dec09
 PLY = ply-3.2
 
+#
+# Definitions to get a stable version of regex
+#
+REGEX = regex-20090805
+REGEXDIR = /usr
+REGEXDEP = 
+
 # Program to use to retrieve a URL
 
 DOWNLOAD = wget
@@ -551,6 +558,7 @@ SOCFLAGS = -D_JNI_IMPLEMENTATION_
 SOLDFLAGS = -shared -Wl,--kill-at
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/win32
 EXTRALIBS = -L/usr/lib -lregex -lm
+REGEXDEP = /usr/lib/libregex.a
 TIME =
 JDKDIR = /java
 SWIG = /swig/swig -java
@@ -632,8 +640,13 @@ DATAURLBASE	= http://arcib.dowling.edu/software/CBFlib/downloads/version_$(VERSI
 DATAURLI	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Input.tar.gz
 DATAURLO	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output.tar.gz
 DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
-PYCIFRWURL	= http://downloads.sf.net/cbflib/PyCifRW-3.3_6Dec09.tar.gz
-PLYURL		= http://www.dabeaz.com/ply/ply-3.2.tar.gz
+
+#
+# URLs from which to retrieve needed external package snapshots
+#
+PYCIFRWURL	= http://downloads.sf.net/cbflib/$(PYCIFRW).tar.gz
+PLYURL		= http://www.dabeaz.com/ply/$(PLY).tar.gz
+REGEXURL	= http://downloads.sf.net/cbflib/regex-20090805.tar.gz
 
 
 #
@@ -866,7 +879,7 @@ default:
 #
 # Compile the library and examples
 #
-all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(PYCIFRW) $(PLY) symlinksdone \
+all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(PYCIFRW) $(PLY) symlinksdone $(REGEXDEP) \
 		$(LIB)/libcbf.a          \
 		$(LIB)/libfcb.a          \
 		$(LIB)/libimg.a          \
@@ -1044,6 +1057,21 @@ $(PLY):
 	-rm $(PLY).tar.gz
 	(cd $(PLY); python setup.py install )
 
+
+#
+# REGEX
+#
+
+ifneq ($(REGEXDEP),)
+$(REGEXDEP):	$(REGEX)
+	(cd $(REGEX); ./configure; make install)
+endif
+
+
+$(REGEX):
+	$(DOWNLOAD) $(REGEXURL)
+	tar -xvf $(REGEX).tar.gz
+	-rm $(REGEX).tar.gz
 
 #
 # Directories
