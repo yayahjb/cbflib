@@ -567,7 +567,7 @@ int main (int argc, char *argv [])
 #endif
 #ifdef NOMKSTEMP
         if ((leftintmpstr = mktemp(leftintmpstr)) == NULL ) {
-            fprintf(stderr,"\n seqmatch: Can't create temporary file name %s.\n", leftintmp);
+            fprintf(stderr,"\n seqmatch: Can't create temporary file name %s.\n", leftintmpstr);
             fprintf(stderr,"%s\n",strerror(errno));
             exit(1);
         }
@@ -626,7 +626,7 @@ int main (int argc, char *argv [])
         strcpy(rightintmpstr, "/tmp/seqmatchrXXXXXX");
 #endif
 #ifdef NOMKSTEMP
-        if ((rightintmpstr = mktemp(rightintmp)) == NULL ) {
+        if ((rightintmpstr = mktemp(rightintmpstr)) == NULL ) {
             fprintf(stderr,"\n seqmatch: Can't create temporary file name %s.\n", rightintmpstr);
             fprintf(stderr,"%s\n",strerror(errno));
             exit(1);
