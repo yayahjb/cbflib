@@ -795,7 +795,7 @@ print_cbf_header(bufr, sizeof(bufr), "CBF_BYTE_OFFSET");
 
 
 strcpy(line, "/tmp/cbf_test.out");
-if (!(ofp = fopen(line, "w")))
+if (!(ofp = fopen(line, "w+b")))
 	{
 	printf("Could not open %s for writing\n", line);
 	return 0;
