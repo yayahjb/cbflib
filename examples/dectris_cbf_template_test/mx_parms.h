@@ -1,9 +1,9 @@
-// mx_parms.h - declarations for parsing MX paramters
+/* mx_parms.h - declarations for parsing MX paramters */
 
 #ifndef MX_PARAMS_H
 #define MX_PARAMS_H
 
-// prototypes of functions
+/* prototypes of functions */
 int parse_mx_param_string(char *);
 int format_mx_params(char *, int);
 int format_non_mx_params(char *, int);

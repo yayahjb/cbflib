@@ -1,10 +1,10 @@
-// mx_cbf_t_extras.h - some extra includes for the test/demo program
+/* mx_cbf_t_extras.h - some extra includes for the test/demo program */
 
 #ifndef MX_CBFT_EXTRAS_H
 #define MX_CBFT_EXTRAS_H
 
-#define IMAGE_NCOL 2463		// width of 6M
-#define IMAGE_NROW 2527		// height of 6M
+#define IMAGE_NCOL 2463		/* width of 6M */
+#define IMAGE_NROW 2527		/* height of 6M */
 #define LENFN 180
 
 

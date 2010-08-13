@@ -1,6 +1,6 @@
-// test program to output a CBF header from a template
+/* test program to output a CBF header from a template */
 
-// gcc -g -Wall -o cbf_template_t cbf_template_t.c
+/* gcc -g -Wall -o cbf_template_t cbf_template_t.c */
 
 /*
 **
@@ -29,7 +29,7 @@
 
 
 
-#define MX_PARAMS_MAIN		// turn on space allocations in mx_parms.h
+#define MX_PARAMS_MAIN		/* turn on space allocations in mx_parms.h */
 
 
 #include <stdio.h>
@@ -162,37 +162,37 @@ int i, j, n, idx=0;
 char *p=*pP;
 
 msg[0]='\0';
-while(*p && (isspace(*p) || *p==';' || *p==','))	// space to next command
+while(*p && (isspace(*p) || *p==';' || *p==','))	/* space to next command */
 	p++;
-if (*p == '\0')			// end of line?
+if (*p == '\0')			/* end of line? */
 	return 0;
-for (n=0; *(p+n); n++)	// count characters in command
-	if (!isalnum(*(p+n)) && *(p+n)!='_')	// allows '_'
+for (n=0; *(p+n); n++)	/* count characters in command */
+	if (!isalnum(*(p+n)) && *(p+n)!='_')	/* allows '_' */
 		break;
-j = 0;			// count matching names
+j = 0;			/* count matching names */
 for (i = 0; i < mx_params_count; i++)
 	if ( strncasecmp(p, mx_params_list[i].name, n) == 0 )
 		{
-		idx = i;		// permit unambiguous abbreviations
+		idx = i;		/* permit unambiguous abbreviations */
 		j++;
 		if ( n == strlen(mx_params_list[i].name) )
 			{
-			j = 1;		// to skip next block
-			break;		// exact match is exempt from ambiguity check
+			j = 1;		/* to skip next block */
+			break;		/* exact match is exempt from ambiguity check */
 			}
 		}
 if (j != 1)
 	{
 	for (i=0; *(p+i) && !isspace(*(p+i)); i++)
 		;
-	*(p+i) = '\0';		// isolate command
+	*(p+i) = '\0';		/* isolate command */
 	if (j == 0)
 		sprintf(msg, "Command not found: %s", p);
 	else
 		sprintf(msg, "Command '%s' is ambiguous", p);
 	return 0;
 	}
-*pP += n;		// skip over command name
+*pP += n;		/* skip over command name */
 return mx_params_list[idx].cmnd;
 }
 
@@ -204,7 +204,7 @@ return mx_params_list[idx].cmnd;
 **                                                                           **
 \*****************************************************************************/
 
-// Note that CBF_TXT_HEADER_SIZE must fit within CBF_HEADER_SIZE in cbftvx.c
+/* Note that CBF_TXT_HEADER_SIZE must fit within CBF_HEADER_SIZE in cbftvx.c */
 #define CBF_TXT_HEADER_SIZE 8000
 #define MAX_NODES 30
 
@@ -231,7 +231,7 @@ struct CBF_NODE *tnode, *rnode;
 
 cbf_header_initialized=0;
 
-if (!cbf_template_file[0])		// no template given - no error
+if (!cbf_template_file[0])		/* no template given - no error */
 	return 0;
 
 if ( !(ifp=fopen(cbf_template_file, "r")) )
@@ -242,13 +242,13 @@ if ( !(ifp=fopen(cbf_template_file, "r")) )
 	return -1;
 	}
 
-// read and edit the template
-// ensure that lines end in CRLF (a CBF standard)
+/* read and edit the template
+   ensure that lines end in CRLF (a CBF standard) */
 cbf_template[0]='\0';
 m=0;
 while( (fgets(line, sizeof(line), ifp)) )
 	{
-	// if we find a mini-header, discard it
+	/* if we find a mini-header, discard it */
 	if(strstr(line, "--CIF-BINARY-FORMAT-SECTION--"))
 		break;
 	len = strlen(line);
@@ -260,26 +260,26 @@ while( (fgets(line, sizeof(line), ifp)) )
 		return -1;
 		}
 	p = line+strlen(line);
-	while (p>=line && (*p=='\n' || *p=='\r' || *p=='\0'))	// cut off ending
+	while (p>=line && (*p=='\n' || *p=='\r' || *p=='\0'))	/* cut off ending */
 		p--;
-	strcpy(p+1, "\r\n");		// CRLF is the correct line ending for CBF
+	strcpy(p+1, "\r\n");		/* CRLF is the correct line ending for CBF */
 	p = line;
-	while(!ptxt && (*p==' ' || *p=='\t'))	// in case of leading space
+	while(!ptxt && (*p==' ' || *p=='\t'))	/* in case of leading space */
 		p++;
-	q = cbf_template+m;			// memorize position
-	m+=sprintf(cbf_template+m, "%s", p);		// put line in buffer
-	if (txt)					// start of text has been found
+	q = cbf_template+m;			/* memorize position */
+	m+=sprintf(cbf_template+m, "%s", p);		/* put line in buffer */
+	if (txt)					/* start of text has been found */
 		continue;
 	if (ptxt && line[0]=='_')
-		txt = q;				// confirmed start of text
+		txt = q;				/* confirmed start of text */
 	if (!sub && *q=='@')
-		sub = q;				// position of first substitution
+		sub = q;				/* position of first substitution */
 	if (*q=='@' || *q=='#')
 		continue;
 	if (strstr(q, "--- End of preamble"))
-		txt = cbf_template+m;	// start of next line
+		txt = cbf_template+m;	/* start of next line */
 	if (!txt)
-		ptxt = q;				// possible start of text - probably CRLF
+		ptxt = q;				/* possible start of text - probably CRLF */
 	}
 fclose(ifp);
 
@@ -290,8 +290,9 @@ if (!txt)
 	return -1;
 	}
 
-// the ending is critical for CBF library parsing
-// "\r\n;\r\n;\r\n" is required; we add an extra blank line
+/* the ending is critical for CBF library parsing
+   "\r\n;\r\n;\r\n" is required; we add an extra blank line */
+    
 while(isspace(*(cbf_template+m)) || *(cbf_template+m)=='\0')
 	m--;
 m++;
@@ -314,10 +315,10 @@ m+=sprintf(cbf_template+m, "\r\n;\r\n;\r\n\r\n");
 ** to be printed, followed by a text segment.
 */
 
-memset(nodes, 0, sizeof(nodes));	// doubly linked list
-nodes[0].subP=nodes[0].strP=txt;	// start of text
+memset(nodes, 0, sizeof(nodes));	/* doubly linked list */
+nodes[0].subP=nodes[0].strP=txt;	/* start of text */
 
-// parse the substitutions
+/* parse the substitutions */
 while (sub && *sub=='@')
 	{
 	q=sub+1;
@@ -335,20 +336,20 @@ while (sub && *sub=='@')
 	p = substr;
 	while(!isspace(*q) && *q!='\r' && *q!='\n' && *q!='\0')
 		*p++ = *q++;
-	*p = '\0';						// substr == string to search for
+	*p = '\0';						/* substr == string to search for */
 	while(isspace(*q) && *q!='\r')
 		q++;
 	if(isalnum(*q) || *q=='-')
 		{
-		switch (cmnd)				// store initial value(s)
+		switch (cmnd)				/* store initial value(s) */
 			{
 			case Energy_range:
 				mx_e_range_low = atof(q);
-				while(*q && (isdigit(*q) || *q=='-' || *q=='.'))	// skip number
+				while(*q && (isdigit(*q) || *q=='-' || *q=='.'))	/* skip number */
 					q++;
-				while(*q && (isspace(*q) || *q==','))	// skip to next number
+				while(*q && (isspace(*q) || *q==','))	/* skip to next number */
 					q++;
-				if (*q == '\0')							// end of line?
+				if (*q == '\0')							/* end of line? */
 					return 0;
 				mx_e_range_hi = atof(q);
 				mx_e_range_low_defined=1;
@@ -364,11 +365,11 @@ while (sub && *sub=='@')
 				break;
 			case Beam_xy:
 				mx_beam_x = atof(q);
-				while(*q && (isdigit(*q) || *q=='-' || *q=='.'))	// skip number
+				while(*q && (isdigit(*q) || *q=='-' || *q=='.'))	/* skip number */
 					q++;
-				while(*q && (isspace(*q) || *q==','))	// skip to next number
+				while(*q && (isspace(*q) || *q==','))	/* skip to next number */
 					q++;
-				if (*q == '\0')							// end of line?
+				if (*q == '\0')							/* end of line? */
 					break;
 				mx_beam_y = atof(q);
 				mx_beam_x_defined=1;
@@ -397,7 +398,7 @@ while (sub && *sub=='@')
 			case Angle_increment:
 				mx_angle_increment = atof(q);
 				mx_angle_increment_defined=1;
-				mx_start_angle_defined=1;			// defaults to 0
+				mx_start_angle_defined=1;			/* defaults to 0 */
 				break;
 			case Detector_2theta:
 				mx_det_2theta = atof(q);
@@ -422,7 +423,7 @@ while (sub && *sub=='@')
 			case Phi_increment:
 				mx_phi_increment = atof(q);
 				mx_phi_increment_defined=1;
-				mx_phi_defined=1;					// defaults to 0
+				mx_phi_defined=1;					/* defaults to 0 */
 				break;
 			case Chi:
 				mx_chi = atof(q);
@@ -431,7 +432,7 @@ while (sub && *sub=='@')
 			case Chi_increment:
 				mx_chi_increment = atof(q);
 				mx_chi_increment_defined=1;
-				mx_chi_defined=1;					// defaults to 0
+				mx_chi_defined=1;					/* defaults to 0 */
 				break;
 			case Oscillation_axis:
 				memset(mx_oscillation_axis, 0, TEXT_SIZE);
@@ -451,14 +452,14 @@ while (sub && *sub=='@')
 			case Position_increment:
 				mx_position_increment = atof(q);
 				mx_position_increment_defined=1;
-				mx_start_position_defined=1;		// defaults to 0
+				mx_start_position_defined=1;		/* defaults to 0 */
 				break;
 			case Shutter_time:
 				mx_shutter_time = atof(q);
 				mx_shutter_time_defined=1;
 				break;
 
-			case Timestamp:				// these do not accept an initial value
+			case Timestamp:				/* these do not accept an initial value */
 			case Wavelength:
 			case Exposure_period:
 			case Exposure_time:
@@ -472,8 +473,8 @@ while (sub && *sub=='@')
 			}
 		}
 
-	// find places to substitute variables
-	q = nodes[0].strP;					// start of text
+	/* find places to substitute variables */
+	q = nodes[0].strP;					/* start of text */
 	count=0;
 	while( (p=strstr(q, substr)) )
 		{
@@ -481,15 +482,15 @@ while (sub && *sub=='@')
 		if ( (*(p-1)!=' ' && *(p-1)!='\n') || 
 				(*(p+strlen(substr))!=' ' && *(p+strlen(substr))!='\r'))
 			{
-			q = p+strlen(substr);		// avoid false substring match
+			q = p+strlen(substr);		/* avoid false substring match */
 			continue;
 			}
-		// walk the node list to find where this string fits
+		/* walk the node list to find where this string fits */
 		rnode = &nodes[0];
 		tnode = nodes[0].next;
 		while(tnode && tnode->subP<p)
 			{
-			rnode = tnode;				// remember node
+			rnode = tnode;				/* remember node */
 			tnode = tnode->next;
 			}
 
@@ -500,12 +501,12 @@ while (sub && *sub=='@')
 			return -1;
 			}
 
-		nidx++;									// allocate a new node
-		nodes[nidx].cmnd = cmnd;				// name of variable
-		nodes[nidx].subP = p;					// pointer to substitution string
-		nodes[nidx].strP = p+strlen(substr);	// start of next string
+		nidx++;									/* allocate a new node */
+		nodes[nidx].cmnd = cmnd;				/* name of variable */
+		nodes[nidx].subP = p;					/* pointer to substitution string */
+		nodes[nidx].strP = p+strlen(substr);	/* start of next string */
 												
-		nodes[nidx].next = rnode->next;			// insert new node in chain
+		nodes[nidx].next = rnode->next;			/* insert new node in chain */
 		nodes[nidx].prev = rnode;
 		if (rnode->next)
 			rnode->next->prev = &nodes[nidx];
@@ -520,7 +521,7 @@ while (sub && *sub=='@')
 		return -1;
 		}
 
-#if 0				// print the doubly linked list
+#if 0				/* print the doubly linked list */
 	{char t1[20], t2[20];
 	for(i=0; i<=nidx; i++)
 		{
@@ -549,10 +550,10 @@ while (sub && *sub=='@')
 	}
 #endif
 
-	sub = 1+strchr(sub, '\n');		// next line
+	sub = 1+strchr(sub, '\n');		/* next line */
 	}
 
-// terminate the internal strings
+/* terminate the internal strings */
 tnode = nodes[0].next;
 while(tnode)
 	{
@@ -568,8 +569,8 @@ return 0;
 
 
 
-// print the CBF header from the template into the buffer provided
-// returns size
+/* print the CBF header from the template into the buffer provided
+   returns size */
 int print_cbf_header(char *dest, int size, char *conv)
 {
 struct CBF_NODE *tnode=&nodes[0];
@@ -802,64 +803,65 @@ if (!(ofp = fopen(line, "w+b")))
 	}
 
 
-// The first part of a DECTRIS CBF header in an image file is a comment
-// header containing detector settings and mx_settings (these are 
-// crystallography parameters supplied by the user that are also reproduced 
-// in the CBF syntax below)
+/* The first part of a DECTRIS CBF header in an image file is a comment
+   header containing detector settings and mx_settings (these are 
+   crystallography parameters supplied by the user that are also reproduced 
+   in the CBF syntax below)
+ */
 
 fprintf(ofp, 
-"###CBF: VERSION 1.5, CBFlib v0.7.8 - SLS/DECTRIS PILATUS detectors\r\n\
-\r\n\
-data_test65\r\n\
-\r\n\
-_array_data.header_convention \"SLS/DECTRIS_1.1\"\r\n\
-_array_data.header_contents\r\n\
-;\r\n\
-# Detector: PILATUS 100K, In-house (m141) Test System\r\n\
-# 2010-Jun-16T19:09:48.271\r\n\
-# Pixel_size 172e-6 m x 172e-6 m\r\n\
-# Silicon sensor, thickness 0.000320 m\r\n\
-# Exposure_time 1.0000000 s\r\n\
-# Exposure_period 1.0000000 s\r\n\
-# Tau = 0 s\r\n\
-# Count_cutoff 1048574 counts\r\n\
-# Threshold_setting 0 eV\r\n\
-# Gain_setting not set (vrf = -0.200)\r\n\
-# N_excluded_pixels = 0\r\n\
-# Excluded_pixels: (nil)\r\n\
-# Flat_field: (nil)\r\n\
-# Trim_file: (nil)\r\n\
-# Image_path: /home/det/p2_det/images/\r\n\
-;\r\n\
-");
+"###CBF: VERSION 1.5, CBFlib v0.7.8 - SLS/DECTRIS PILATUS detectors\r\n"
+"\r\n"
+"data_test65\r\n"
+"\r\n"
+"_array_data.header_convention \"SLS/DECTRIS_1.1\"\r\n"
+"_array_data.header_contents\r\n"
+";\r\n"
+"# Detector: PILATUS 100K, In-house (m141) Test System\r\n"
+"# 2010-Jun-16T19:09:48.271\r\n"
+"# Pixel_size 172e-6 m x 172e-6 m\r\n"
+"# Silicon sensor, thickness 0.000320 m\r\n"
+"# Exposure_time 1.0000000 s\r\n"
+"# Exposure_period 1.0000000 s\r\n"
+"# Tau = 0 s\r\n"
+"# Count_cutoff 1048574 counts\r\n"
+"# Threshold_setting 0 eV\r\n"
+"# Gain_setting not set (vrf = -0.200)\r\n"
+"# N_excluded_pixels = 0\r\n"
+"# Excluded_pixels: (nil)\r\n"
+"# Flat_field: (nil)\r\n"
+"# Trim_file: (nil)\r\n"
+"# Image_path: /home/det/p2_det/images/\r\n"
+";\r\n"
+);
 
-// now the part made up from the template
+/* now the part made up from the template */
 
 fprintf(ofp, "%s", bufr);
 
-// now the mini-header and the data
+/* now the mini-header and the data */
 
 fprintf(ofp,
-"_array_data.data\r\n\
-;\r\n\
---CIF-BINARY-FORMAT-SECTION--\r\n\
-Content-Type: application/octet-stream;\r\n\
-     conversions=\"x-CBF_BYTE_OFFSET\"\r\n\
-Content-Transfer-Encoding: BINARY\r\n\
-X-Binary-Size: 94981\r\n\
-X-Binary-ID: 1\r\n\
-X-Binary-Element-Type: \"signed 32-bit integer\"\r\n\
-X-Binary-Element-Byte-Order: LITTLE_ENDIAN\r\n\
-Content-MD5: VwGHOeEVHfClJWkB5v5Geg==\r\n\
-X-Binary-Number-of-Elements: 94965\r\n\
-X-Binary-Size-Fastest-Dimension: 487\r\n\
-X-Binary-Size-Second-Dimension: 195\r\n\
-X-Binary-Size-Padding: 4095\r\n\
-\r\n\
---- data comes here ---\r\n\
---CIF-BINARY-FORMAT-SECTION----\r\n\
-;\r\n\
-");
+"_array_data.data\r\n"
+";\r\n"
+"--CIF-BINARY-FORMAT-SECTION--\r\n"
+"Content-Type: application/octet-stream;\r\n"
+"     conversions=\"x-CBF_BYTE_OFFSET\"\r\n"
+"Content-Transfer-Encoding: BINARY\r\n"
+"X-Binary-Size: 94981\r\n"
+"X-Binary-ID: 1\r\n"
+"X-Binary-Element-Type: \"signed 32-bit integer\"\r\n"
+"X-Binary-Element-Byte-Order: LITTLE_ENDIAN\r\n"
+"Content-MD5: VwGHOeEVHfClJWkB5v5Geg==\r\n"
+"X-Binary-Number-of-Elements: 94965\r\n"
+"X-Binary-Size-Fastest-Dimension: 487\r\n"
+"X-Binary-Size-Second-Dimension: 195\r\n"
+"X-Binary-Size-Padding: 4095\r\n"
+"\r\n"
+"--- data comes here ---\r\n"
+"--CIF-BINARY-FORMAT-SECTION----\r\n"
+";\r\n"
+);
 
 fclose(ofp);
 
