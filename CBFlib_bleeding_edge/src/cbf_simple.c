@@ -3422,67 +3422,68 @@ int cbf_calculate_position (cbf_positioner positioner,
 
       if (positioner->axis [i].type == CBF_TRANSLATION_AXIS)
       {
-        positioner->matrix [0][3] += setting *
-                                     positioner->axis [i].vector [0];
-        positioner->matrix [1][3] += setting *
-                                     positioner->axis [i].vector [1];
-        positioner->matrix [2][3] += setting *
-                                     positioner->axis [i].vector [2];
+          positioner->matrix [0][3] += setting *
+          positioner->axis [i].vector [0];
+          positioner->matrix [1][3] += setting *
+          positioner->axis [i].vector [1];
+          positioner->matrix [2][3] += setting *
+          positioner->axis [i].vector [2];
+          
       }
       else
       {
-        double s, x, y, z, w,
-               xx, yy, zz, xy, xz, xw, yz, yw, zw;
-
-        double rotation [3][3], product [3][3];
-
-        int r1, c1r2, c2;
-
-        s = sin (setting * 0.00872664625997164788461845384244);
-
-        x = positioner->axis [i].vector [0] * s;
-        y = positioner->axis [i].vector [1] * s;
-        z = positioner->axis [i].vector [2] * s;
-
-        w = cos (setting * 0.00872664625997164788461845384244);
-
-        xx = x * x;
-        yy = y * y;
-        zz = z * z;
-        xy = x * y;
-        xz = x * z;
-        xw = x * w;
-        yz = y * z;
-        yw = y * w;
-        zw = z * w;
-
-        rotation [0][0] = 1 - 2 * (yy + zz);
-        rotation [0][1] =     2 * (xy - zw);
-        rotation [0][2] =     2 * (xz + yw);
-        rotation [1][0] =     2 * (xy + zw);
-        rotation [1][1] = 1 - 2 * (xx + zz);
-        rotation [1][2] =     2 * (yz - xw);
-        rotation [2][0] =     2 * (xz - yw);
-        rotation [2][1] =     2 * (yz + xw);
-        rotation [2][2] = 1 - 2 * (xx + yy);
-
-        for (r1 = 0; r1 < 3; r1++)
-
-          for (c2 = 0; c2 < 3; c2++)
-          {
-            product [r1][c2] = 0;
-
-            for (c1r2 = 0; c1r2 < 3; c1r2++)
-
-              product [r1][c2] += rotation [r1][c1r2] *
-                                  positioner->matrix [c1r2][c2];
-          }
-
-        for (r1 = 0; r1 < 3; r1++)
-
-          for (c2 = 0; c2 < 3; c2++)
-
-            positioner->matrix [r1][c2] = product [r1][c2];
+          double s, x, y, z, w,
+          xx, yy, zz, xy, xz, xw, yz, yw, zw;
+          
+          double rotation [3][3], product [3][4];
+          
+          int r1, c1r2, c2;
+          
+          s = sin (setting * 0.00872664625997164788461845384244);
+          
+          x = positioner->axis [i].vector [0] * s;
+          y = positioner->axis [i].vector [1] * s;
+          z = positioner->axis [i].vector [2] * s;
+          
+          w = cos (setting * 0.00872664625997164788461845384244);
+          
+          xx = x * x;
+          yy = y * y;
+          zz = z * z;
+          xy = x * y;
+          xz = x * z;
+          xw = x * w;
+          yz = y * z;
+          yw = y * w;
+          zw = z * w;
+          
+          rotation [0][0] = 1 - 2 * (yy + zz);
+          rotation [0][1] =     2 * (xy - zw);
+          rotation [0][2] =     2 * (xz + yw);
+          rotation [1][0] =     2 * (xy + zw);
+          rotation [1][1] = 1 - 2 * (xx + zz);
+          rotation [1][2] =     2 * (yz - xw);
+          rotation [2][0] =     2 * (xz - yw);
+          rotation [2][1] =     2 * (yz + xw);
+          rotation [2][2] = 1 - 2 * (xx + yy);
+           
+          for (r1 = 0; r1 < 3; r1++)
+              
+              for (c2 = 0; c2 < 4; c2++)
+              {
+                  product [r1][c2] = 0;
+                  
+                  for (c1r2 = 0; c1r2 < 3; c1r2++)
+                      
+                      product [r1][c2] += rotation [r1][c1r2] *
+                      positioner->matrix [c1r2][c2];
+              }
+          
+          for (r1 = 0; r1 < 3; r1++)
+              
+              for (c2 = 0; c2 < 4; c2++)
+                  
+                  positioner->matrix [r1][c2] = product [r1][c2];
       }
 
       positioner->matrix [0][3] += positioner->axis [i].offset [0];
