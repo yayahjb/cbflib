@@ -256,7 +256,7 @@ VERSION = 0.8.1
 #
 # Definitions to get gnu version of getopt or system version of getopt
 #
-#GETOPT		=	SYSTEM
+GETOPT		=	SYSTEM
 ifeq ($(GETOPT),)
   GETOPT 	=	getopt-1.1.4_cbf
 endif
@@ -1314,9 +1314,9 @@ endif
 	-cmp testflatpackedin.cbf testflatpackedout.cbf
 ifneq ($(F90C),)
 	echo testflatout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatout.out
-	-$(DIFF) -b -c test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
+	-$(DIFF) -b test_xds_bin_testflatout.out test_xds_bin_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_xds_binary > test_xds_bin_testflatpackedout.out
-	-$(DIFF) -b -c test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
+	-$(DIFF) -b test_xds_bin_testflatpackedout.out test_xds_bin_testflatpackedout_orig.out
 	echo testflatout.cbf | $(TIME) $(BIN)/test_fcb_read_image  > test_fcb_read_testflatout.out
 	-$(DIFF) test_fcb_read_testflatout.out test_fcb_read_testflatout_orig.out
 	echo testflatpackedout.cbf | $(TIME) $(BIN)/test_fcb_read_image > test_fcb_read_testflatpackedout.out
