@@ -3374,10 +3374,6 @@ int cbf_calculate_position (cbf_positioner positioner,
     {
         size_t i;
         
-        double rotaxis[3];     /* The rotated axis in the frame to this point */
-        
-        double rotoffset[3];   /* The rotated offset of the frame to this point */
-        
         double setting;
         
         if (!positioner)
@@ -3423,39 +3419,18 @@ int cbf_calculate_position (cbf_positioner positioner,
                 for (i = 0; i < positioner->axes; i++)
                 {
                     setting = positioner->axis [i].setting;
-                    
-                    /* Apply the matrix to the axis vector */
-                    
-                    rotaxis[0] = positioner->matrix [0][0]* positioner->axis [i].vector [0]
-                    + positioner->matrix [0][1]* positioner->axis [i].vector [1]
-                    + positioner->matrix [0][2]* positioner->axis [i].vector [2];
-                    rotaxis[1] = positioner->matrix [1][0]* positioner->axis [i].vector [0]
-                    + positioner->matrix [1][1]* positioner->axis [i].vector [1]
-                    + positioner->matrix [1][2]* positioner->axis [i].vector [2];
-                    rotaxis[2] = positioner->matrix [2][0]* positioner->axis [i].vector [0]
-                    + positioner->matrix [2][1]* positioner->axis [i].vector [1]
-                    + positioner->matrix [2][2]* positioner->axis [i].vector [2];
-
-                    rotoffset[0] = positioner->matrix [0][0]* positioner->axis [i].offset [0]
-                    + positioner->matrix [0][1]* positioner->axis [i].offset [1]
-                    + positioner->matrix [0][2]* positioner->axis [i].offset [2];
-                    rotoffset[1] = positioner->matrix [1][0]* positioner->axis [i].offset [0]
-                    + positioner->matrix [1][1]* positioner->axis [i].offset [1]
-                    + positioner->matrix [1][2]* positioner->axis [i].offset [2];
-                    rotoffset[2] = positioner->matrix [2][0]* positioner->axis [i].offset [0]
-                    + positioner->matrix [2][1]* positioner->axis [i].offset [1]
-                    + positioner->matrix [2][2]* positioner->axis [i].offset [2];
-                    
+                                        
                     if (positioner->axis [i].type == CBF_TRANSLATION_AXIS)
                     {
-                        positioner->matrix [0][3] += setting * rotaxis[0];
-                        positioner->matrix [1][3] += setting * rotaxis[1];
-                        positioner->matrix [2][3] += setting * rotaxis[2];
+                        positioner->matrix [0][3] += setting * positioner->axis [i].vector [0];
+                        positioner->matrix [1][3] += setting * positioner->axis [i].vector [1];
+                        positioner->matrix [2][3] += setting * positioner->axis [i].vector [2];
                         /* fprintf(stderr," calculate position, axis %d, translate [%g, %g, %g]\n",
                                 i,
-                                setting * rotaxis[0],
-                                setting * rotaxis[1],
-                                setting * rotaxis[2]); */
+                                setting * positioner->axis [i].vector [0],
+                                setting * positioner->axis [i].vector [1],
+                                setting * positioner->axis [i].vector [2]);
+                         */
                         
                     }
                     else
@@ -3463,15 +3438,15 @@ int cbf_calculate_position (cbf_positioner positioner,
                         double s, x, y, z, w,
                         xx, yy, zz, xy, xz, xw, yz, yw, zw;
                         
-                        double rotation [3][3], product [3][3];
+                        double rotation [3][3], product [3][4];
                         
                         int r1, c1r2, c2;
                         
                         s = sin (setting * 0.00872664625997164788461845384244);
                         
-                        x = rotaxis [0] * s;
-                        y = rotaxis [1] * s;
-                        z = rotaxis [2] * s;
+                        x = positioner->axis [i].vector [0] * s;
+                        y = positioner->axis [i].vector [1] * s;
+                        z = positioner->axis [i].vector [2] * s;
                         
                         w = cos (setting * 0.00872664625997164788461845384244);
                         
@@ -3496,11 +3471,12 @@ int cbf_calculate_position (cbf_positioner positioner,
                         rotation [2][2] = 1 - 2 * (xx + yy);
                         
                         /* fprintf(stderr," calculate position, axis %d, rotate [%g + i*%g + j*%g + k*%g]\n",
-                                i, w, x, y, z); */
+                                i, w, x, y, z);
+                         */
                         
                         for (r1 = 0; r1 < 3; r1++)
                             
-                            for (c2 = 0; c2 < 3; c2++)
+                            for (c2 = 0; c2 < 4; c2++)
                             {
                                 product [r1][c2] = 0;
                                 
@@ -3512,19 +3488,36 @@ int cbf_calculate_position (cbf_positioner positioner,
                         
                         for (r1 = 0; r1 < 3; r1++)
                             
-                            for (c2 = 0; c2 < 3; c2++)
+                            for (c2 = 0; c2 < 4; c2++)
                                 
                                 positioner->matrix [r1][c2] = product [r1][c2];
                     }
                     
-                    positioner->matrix [0][3] += rotoffset [0];
-                    positioner->matrix [1][3] += rotoffset [1];
-                    positioner->matrix [2][3] += rotoffset [2];
+                    positioner->matrix [0][3] += positioner->axis [i].offset [0];
+                    positioner->matrix [1][3] += positioner->axis [i].offset [1];
+                    positioner->matrix [2][3] += positioner->axis [i].offset [2];
                 }
             
             positioner->matrix_is_valid = 1;
         }
         
+        /* fprintf(stderr," Overall matrix [[%g %g %g]] + %g\n"
+                       "                [[%g %g %g]] + %g\n"
+                       "                [[%g %g %g]] + %g\n",
+                positioner->matrix [0][0],
+                positioner->matrix [0][1],
+                positioner->matrix [0][2],
+                positioner->matrix [0][3],
+                positioner->matrix [1][0],
+                positioner->matrix [1][1],
+                positioner->matrix [1][2],
+                positioner->matrix [1][3],
+                positioner->matrix [2][0],
+                positioner->matrix [2][1],
+                positioner->matrix [2][2],
+                positioner->matrix [2][3]);
+        */
+                
         if (final1)
             
             *final1 = positioner->matrix [0][0] * initial1 +
