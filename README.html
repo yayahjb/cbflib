@@ -7,15 +7,23 @@ CBFlib
 </TITLE> 
 </HEAD> 
 <BODY BACKGROUND="html_graphics/cbflibbackground.jpg">
-
-<a href="http://www.iucr.org/iucr-top/welcome.html">
+<table border=2>
+<tr>
+<td><a href="http://www.iucr.org/iucr-top/welcome.html">
 <img alt="[IUCr Home Page]" src="html_graphics/iucrhome.jpg"></a>
-<a href="http://www.iucr.org/iucr-top/cif/home.html">
+</td>
+<td><a href="http://www.iucr.org/iucr-top/cif/home.html">
 <img alt="[CIF Home Page]" src="html_graphics/cifhome.jpg"></a>
-<A HREF="doc/cbf_definition_rev.html"><IMG SRC="html_graphics/CBFbutton.jpg" 
+</td>
+<td><A HREF="doc/cbf_definition_rev.html"><IMG SRC="html_graphics/CBFbutton.jpg" 
 ALT="[CBF/imgCIF]"></A>
-<A HREF="doc/CBFlib.html"><IMG SRC="html_graphics/cbflibbutton.jpg" 
+</td>
+<td><A HREF="doc/CBFlib.html"><IMG SRC="html_graphics/cbflibbutton.jpg" 
 ALT="[CBFlib]"></A> 
+<td><a href="http://sourceforge.net/projects/cbflib"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=167912&amp;type=13" width="120" height="30" alt="Get CBFlib at SourceForge.net. Fast, secure and Free Open Source software downloads" /></a>
+</td>
+</tr>
+</table>
 <hr>
 <CENTER>
 | <a href="http://www.iucr.org/iucr-top/welcome.html">IUCr Home Page</a>
@@ -24,9 +32,10 @@ ALT="[CBFlib]"></A>
 | CBFlib
 |<br />
 | <A HREF = "doc/CBFlib_NOTICES.html">NOTICE</A>
-| <a href=gpl.txt>doc/GPL</a>
-| <a href=lgpl.txt>doc/LGPL</a>
+| <a href=doc/gpl.txt>doc/GPL</a>
+| <a href=doc/lgpl.txt>doc/LGPL</a>
 | <a href="doc/cif_img_1.5.4.html">imgCIF dictionary</a>
+| <a href = "http://sf.net/projects/cbflib">SourceForge CBFlib site</a>
 |<br />
 | <a href="http://arcib.dowling.edu/donation.shtml">Click Here to Make a Donation</a>
 |<P>
@@ -35,7 +44,7 @@ ALT="[CBFlib]"></A>
 <font color="#0808A0">
 <H2 ALIGN=CENTER>README</H2>
 <H3 ALIGN=CENTER>
-Information for CBFlib 0.8 pre-release of 20 July 2008<BR>
+Information for CBFlib 0.9.1 release of 15 August 2010<BR>
 </H3>
 </font><font color="#000000">
 <CENTER>
@@ -58,7 +67,7 @@ Bernstein + Sons<BR>
 yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 </noscript>
 <p>
-&#169; Copyright 2006, 2007, 2008 Herbert J. Bernstein
+&#169; Copyright 2006, 2007, 2008, 2010 Herbert J. Bernstein
 <P>
 <hr>
 <b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=doc/gpl.txt>GPL</a>.
@@ -86,11 +95,32 @@ the authors and does not necessarily represent the official views of
 DOE, NSF, NIH, NIGMS, NCRR or IUCr.
 <P>
 <HR>
+CBFlib 0.9.1 is a release of the latest changes to CBFlib as of August 2010.
+In addition to the axis rotation fix incorporated into CBFlib 0.9.1, the
+following changes have been made since CBFlib 0.9.0.
+<p>
+<ul>
+<li>Padding options added to adscimg2cbf by C. Nielsen.
+<li>System and gnu versions of getopt replaced by cbf_getopt.
+<li>Code to handle CIF2 bracketed constructs and quoted strings added.
+<li>System to log errors and warnings added.
+<li>Java wrapper by Peter Chang added.
+<li>Dectris template code by E. Eikenberry added.
+</ul> 
 <P>
-<b>NOTE:  This is a partial pre-release of CBFlib version 0.8 needed to support
-changes in RasMol.  This release in imcomplete and should be used with caution.
+CBFlib 0.9.1 was a corrected released of CBFlib 0.9.0 to make axis
+the cbf_simple routines apply axis rotations correctly for detectors and to
+pick up corrections for byte offet compression incorporated into the upcoming
+CBFlib 0.9.1 release.  The earlier version had failed to apply the rotations 
+to the accumulated displacements.
+Our thanks to Joerg Kaercher of Bruker-AXS for identifying the rotation
+problem.
+<p>
+CBFlib 0.9.0 was a partial pre-release of CBFlib version 0.8 needed to support
+changes in RasMol.  This release was incomplete and used were advided to use it with caution,
+but it has proven to be a reliable, stable release for 2 years.
 There have been significant changes in the input/output logic and in validation.
-Until the ChangeLog is ready, consult the CVS of the CBFlib project on sourceforge.</b>
+For a ChangeLog consult the SVN of the CBFlib project on sourceforge.
 <P>
 CBFLIB is a library of ANSI-C functions providing a simple mechanism for 
 accessing Crystallographic Binary Files (CBF files) and Image-supporting 
@@ -107,34 +137,33 @@ and write CBF binary data files and imgCIF ASCII data files.
 CBFLIB should be built on a disk with at least 350 megabytes of free 
 space, for a full installation with complete tests.  <b>Read the
 instructions below carefully, if space is a problem.</b>
-<P>
-<A HREF="../CBFlib_0.8.0.tar.gz">CBFlib_0.8.0.tar.gz</A> is a "gzipped" 
-tar of the code as it now stands.
+<p>
+A gizpped tarball of this release is available on sourceforge at
+<p>
+<a href="http://downloads.sf.net/cbflib/CBFlib-0.9.1.tar.gz">http://downloads.sf.net/cbflib/CBFlib-0.9.1.tar.gz</a>
+
 <P>
 In addition,
-<A 
-HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.8.0/CBFlib_0.8.0_Data_Files_Input.tar.gz">CBFlib_0.8.0_Data_Files_Input.tar.gz</a>
+<A href="http://downloads.sf.net/cbflib/CBFlib_0.9.0_Data_Files_Input.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.0_Data_Files_Input.tar.gz</a>
 (13 MB) is a "gzipped" tar of the input data files needed to test the API,
-<A 
-HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.8.0/CBFlib_0.8.0_Data_Files_Output.tar.gz">CBFlib_0.8.0_Data_Files_Output.tar.gz</a>
+<A href="http://downloads.sf.net/cbflib/CBFlib_0.9.0_Data_Files_Output.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.0_Data_Files_Output.tar.gz</a>
 (34 MB) is a "gzipped" tar of the output data files needed to test the API, and, if space is at a premium,
-<A 
-HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.8.0/CBFlib_0.8.0_Data_Files_Output_Sigs_Only.tar.gz">CBFlib_0.8.0_Data_Files_Output_Sigs_Only.tar.gz</a>
+<A href="http://downloads.sf.net/cbflib/CBFlib_0.9.0_Data_Files_Output_Sigs_Only.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.0_Data_Files_Output_Sigs_Only.tar.gz</a>
 (1KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
 
-Place the CBFlib_0.8.0.tar.gz file in the directory
+Place the CBFlib_0.9.1.tar.gz file in the directory
 that is intended to contain up to 4 new directories, named 
-CBFlib_0.8.0 (the &quot;top-level&quot; directory),
-CBFlib_0.8.0_Data_Files_Input and either CBFlib_0.8.0_Data_Files_Output or 
-CBFlib_0.8.0_Data_Files_Output_Sigs_Only.
+CBFlib_0.9.1 (the &quot;top-level&quot; directory),
+CBFlib_0.9.0_Data_Files_Input and either CBFlib_0.9.0_Data_Files_Output or 
+CBFlib_0.9.0_Data_Files_Output_Sigs_Only.
 If you have wget on your machine, you only need to download the source tarball.  If you do not have wget,
 you will need to download all the tarballs into the same directory
 <p>
-Uncompress CBFlib_0.8.0.tar.gz with gunzip and unpack it with tar:
+Uncompress CBFlib_0.9.1.tar.gz with gunzip and unpack it with tar:
 <p>
 <PRE>
-     gunzip CBFlib_0.8.0.tar.gz
-     tar xvf CBFLIB_0.8.0.tar
+     gunzip CBFlib_0.9.1.tar.gz
+     tar xvf CBFLIB_0.9.1.tar
 </PRE>
 <p>
 To run the test programs, you will also need 
@@ -146,7 +175,7 @@ insulin_pilatus6m, as sample data.  In addition there are
 is a PDB mmCIF file, 9ins.cif, and 3 special test files
 testflatin.cbf, testflatpackedin.cbf and testrealin.cbf.
  All these files will be
-dowloaded and extracted by the Makefile from CBFlib_0.8.0_Data_Files_Input.  Do
+dowloaded and extracted by the Makefile from CBFlib_0.9.0_Data_Files_Input.  Do
 not download copies into the top level directory.
 <P>
 After unpacking the archives, the top-level directory should contain
@@ -203,7 +232,7 @@ or, if space is at a premium, with
 Please refer to the manual <a HREF="doc/CBFlib.html">doc/CBFlib.html</a>
 for more detailed information.<HR>
 <HR>
-Updated 30 December 2007.  
+Updated 15 August 2010.  
 <script language="javascript" type="text/javascript">
 <!-- 
       var name = "yaya";
