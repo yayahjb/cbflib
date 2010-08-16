@@ -17,6 +17,7 @@ name_dict = {}
 i=-1
 debug = 0
 # Parse the text
+prototypes = ""
 while i<len(lines)-1:
    i=i+1
    line=lines[i]
@@ -28,11 +29,13 @@ while i<len(lines)-1:
       continue 
    if line.find("int cbf_")>=0: # We found a function
       # keep going up to DESCRIPTION
-      prototypes=""+lines[i].rstrip()+" "
+      prototypes+=""+lines[i].rstrip()+" "
+      # print lines[i].rstrip()
       check=0
-      while lines[i+1].find("DESCRIPTION")==-1:
+      while lines[i+1].find("DESCRIPTION")==-1 and lines[i+1].find("int cbf_")==-1:
          i=i+1
          prototypes+=lines[i].rstrip()+" " # lose the \n
+         # print lines[i].rstrip()
          check+=1
          if check>20:
             raise Exception("Runaway prototype "+prototypes)
@@ -56,16 +59,20 @@ while i<len(lines)-1:
          else:
             docstring =docstring+" "+line.lstrip().rstrip()
       if line.strip()[0] in [str(j) for j in range(9)] or \
-            line.find("SEE ALSO")>=0 or\
-            line.find("________")>=0:
+            line.find("SEE ALSO")>=0 or \
+            line.find("________")>=0 or \
+            line.find("--------")>=0:
          if len(docstring)>0:
-            docstring = docstring.replace("\"", "\\\"") # escape the quotes
+            # print "Prototypes: ",prototypes
+            docstring = docstring.replace("\"", " \\\"") # escape the quotes
             for prototype in prototypes.strip().split(";")[:-1]:
                 name = prototype.split("(")[0].strip()
                 cname = name.split()[1].strip()
                 prototype = prototype.strip()+";"
                 name_dict[cname]=[prototype,docstring]
-      #  print "Found ",prototype
+                # print "Prototype: ",name, cname, prototype
+            prototypes = ""
+            # print "Found ",prototype
             docstring="\n"
             prototype=""
             cname=""

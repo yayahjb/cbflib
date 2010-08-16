@@ -33,6 +33,10 @@ __doc__=""" pycbf - python bindings to the CBFlib library
  Copyright (C) 2007    Jonathan Wright
                        ESRF, Grenoble, France
                 email: wright@esrf.fr
+    
+  Revised, August 2010  Herbert J. Bernstein
+    Add defines from CBFlib 0.9.1
+    
 """
 %}
 
@@ -103,7 +107,9 @@ void get_error_message(){
     sprintf(error_message,"%s %s",error_message,"CBF_UNDEFINED    ");
   if (error_status & CBF_NOTIMPLEMENTED)
     sprintf(error_message,"%s %s",error_message,"CBF_NOTIMPLEMENTED");
-  }
+  if (error_status & CBF_NOCOMPRESSION)
+    sprintf(error_message,"%s %s",error_message,"CBF_NOCOMPRESSION");
+}
 
 
 %} // End of code which is not wrapped but needed to compile
@@ -135,9 +141,19 @@ void get_error_message(){
 #define CBF_FLOAT       0x0020  /* Uncompressed IEEE floating-point   */
 #define CBF_CANONICAL   0x0050  /* Canonical compression              */
 #define CBF_PACKED      0x0060  /* Packed compression                 */
+#define CBF_PACKED_V2   0x0090  /* CCP4 Packed (JPA) compression V2   */
 #define CBF_BYTE_OFFSET 0x0070  /* Byte Offset Compression            */
 #define CBF_PREDICTOR   0x0080  /* Predictor_Huffman Compression      */
 #define CBF_NONE        0x0040  /* No compression flag                */
+#define CBF_COMPRESSION_MASK  \
+                        0x00FF  /* Mask to separate compression
+                                   type from flags              */
+#define CBF_FLAG_MASK   0x0F00  /* Mask to separate flags from
+                                   compression type             */
+#define CBF_UNCORRELATED_SECTIONS \
+                        0x0100  /* Flag for uncorrelated sections     */
+#define CBF_FLAT_IMAGE  0x0200  /* Flag for flat (linear) images      */
+#define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */
 
 
   /* Constants used for headers */
@@ -147,6 +163,33 @@ void get_error_message(){
 #define MSG_NODIGEST    0x0004  /* Do not check message digests       */
 #define MSG_DIGEST      0x0008  /* Check message digests              */
 #define MSG_DIGESTNOW   0x0010  /* Check message digests immediately  */
+#define MSG_DIGESTWARN  0x0020  /* Warn on message digests immediately*/
+#define PAD_1K          0x0020  /* Pad binaries with 1023 0's         */
+#define PAD_2K          0x0040  /* Pad binaries with 2047 0's         */
+#define PAD_4K          0x0080  /* Pad binaries with 4095 0's         */
+
+  /* Constants used to control CIF parsing */
+  
+#define CBF_PARSE_BRC   0x0100  /* PARSE DDLm/CIF2 brace {,...}             */
+#define CBF_PARSE_PRN   0x0200  /* PARSE DDLm parens     (,...)             */
+#define CBF_PARSE_BKT   0x0400  /* PARSE DDLm brackets   [,...]             */
+#define CBF_PARSE_BRACKETS \
+                        0x0700  /* PARSE ALL brackets                       */
+#define CBF_PARSE_TQ    0x0800  /* PARSE treble quotes """...""" and '''...'''       */
+#define CBF_PARSE_CIF2_DELIMS  \
+                        0x1000  /* Do not scan past an unescaped close quote
+                                   do not accept {} , : " ' in non-delimited
+                                   strings'{ */                          
+#define CBF_PARSE_DDLm  0x0700  /* For DDLm parse (), [], {}                */
+#define CBF_PARSE_CIF2  0x1F00  /* For CIF2 parse {}, treble quotes,
+                                   stop on unescaped close quotes           */
+#define CBF_PARSE_DEFINES      \
+                        0x2000  /* Recognize DEFINE_name            */      
+                        
+  
+#define CBF_PARSE_WIDE      0x4000  /* PARSE wide files                         */
+#define CBF_PARSE_WS        0x8000  /* PARSE whitespace                         */
+#define CBF_PARSE_UTF8      0x10000 /* PARSE UTF-8                              */
 
 #define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)
 
@@ -161,14 +204,15 @@ void get_error_message(){
 
 #define ENC_NONE        0x0001  /* Use BINARY encoding                 */
 #define ENC_BASE64      0x0002  /* Use BASE64 encoding                 */
-#define ENC_QP          0x0004  /* Use QUOTED-PRINTABLE encoding       */
-#define ENC_BASE10      0x0008  /* Use BASE10 encoding                 */
-#define ENC_BASE16      0x0010  /* Use BASE16 encoding                 */
-#define ENC_BASE8       0x0020  /* Use BASE8  encoding                 */
-#define ENC_FORWARD     0x0040  /* Map bytes to words forward (1234)   */
-#define ENC_BACKWARD    0x0080  /* Map bytes to words backward (4321)  */
-#define ENC_CRTERM      0x0100  /* Terminate lines with CR             */
-#define ENC_LFTERM      0x0200  /* Terminate lines with LF             */
+#define ENC_BASE32K     0x0004  /* Use X-BASE32K encoding              */
+#define ENC_QP          0x0008  /* Use QUOTED-PRINTABLE encoding       */
+#define ENC_BASE10      0x0010  /* Use BASE10 encoding                 */
+#define ENC_BASE16      0x0020  /* Use BASE16 encoding                 */
+#define ENC_BASE8       0x0040  /* Use BASE8  encoding                 */
+#define ENC_FORWARD     0x0080  /* Map bytes to words forward (1234)   */
+#define ENC_BACKWARD    0x0100  /* Map bytes to words backward (4321)  */
+#define ENC_CRTERM      0x0200  /* Terminate lines with CR             */
+#define ENC_LFTERM      0x0400  /* Terminate lines with LF             */
 
 #define ENC_DEFAULT (ENC_BASE64 | ENC_LFTERM | ENC_FORWARD)
 

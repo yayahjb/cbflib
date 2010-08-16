@@ -906,7 +906,7 @@ valid, stripping embedded non-quoted, non-separating whitespace and comments.  T
 this case, whitespace may be used as an alternative to the comma.
 <tr>
 <td valign="top">&nbsp;&nbsp;PARSE_TRIPLE_QUOTES:
-<td valign="top">&nbsp;&nbsp;Accept DDLm triple-quotyed <b>&quot;&quot;&quot;item,item,...item&quot;&quot;&quot;</b> or 
+<td valign="top">&nbsp;&nbsp;Accept DDLm triple-quoted <b>&quot;&quot;&quot;item,item,...item&quot;&quot;&quot;</b> or 
 <b>'''item,item,...item'''</b> constructs as
 valid, stripping embedded whitespace and comments.  These constructs may span multiple lines.  If this flag
 is set, then ''' will <b>not</b> be interpreted as a quoted apoptrophe and
@@ -1399,7 +1399,7 @@ Returns an error code on failure or 0 for success.
 #include &quot;cbf.h&quot;<p>
 
 int cbf_set_datablockname (cbf_handle <i>handle</i>, const char *<i>datablockname</i>);<br />
-int cbf_set_saveframename (cbf_handle <i>handle</i>. const char *<i>saveframename</i>);
+int cbf_set_saveframename (cbf_handle <i>handle</i>, const char *<i>saveframename</i>);
 <p>
 <b>DESCRIPTION</b>
 <p>
@@ -4490,7 +4490,7 @@ The precision of the new timestamp is specified by the value <i>precision</i> in
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
-int cbf_set_current_timestamp (cbf_handle <i>handle</i>, unsigned int <i>reserved</i>, int <i>timezone</i>)
+int cbf_set_current_timestamp (cbf_handle <i>handle</i>, unsigned int <i>reserved</i>, int <i>timezone</i>);
 <p>
 <b>DESCRIPTION</b>
 <p>
@@ -4524,9 +4524,9 @@ int cbf_get_image_size_sf (cbf_handle <i>handle</i>, unsigned int <i>reserved</i
 size_t *<i>ndimslow</i>, size_t *<i>ndimfast</i>);<br />
 &nbsp;<br />
 int cbf_get_3d_image_size (cbf_handle <i>handle</i>, unsigned int <i>reserved</i>, unsigned int <i>element_number</i>,
-size_t *<i>ndimslow</i>, size_t *<i>ndimmid</i>, size_t *<i>ndimfast</i>);
+size_t *<i>ndimslow</i>, size_t *<i>ndimmid</i>, size_t *<i>ndimfast</i>);<br />
 int cbf_get_3d_image_size_fs (cbf_handle <i>handle</i>, unsigned int <i>reserved</i>, unsigned int <i>element_number</i>,
-size_t *<i>ndimfast</i>, size_t *<i>ndimmid</i>, size_t *<i>ndimslow</i>);
+size_t *<i>ndimfast</i>, size_t *<i>ndimmid</i>, size_t *<i>ndimslow</i>);<br />
 int cbf_get_3d_image_size_sf (cbf_handle <i>handle</i>, unsigned int <i>reserved</i>, unsigned int <i>element_number</i>,
 size_t *<i>ndimslow</i>, size_t *<i>ndimmid</i>, size_t *<i>ndimfast</i>);
 
@@ -4609,13 +4609,13 @@ size_t <i>elsize</i>, int <i>elsign</i>, size_t <i>ndimslow</i>, size_t <i>ndimm
 &nbsp;<br />
 int cbf_get_real_3d_image (cbf_handle <i>handle</i>, unsigned int <i>reserved</i>,
 unsigned int <i>element_number</i>, void *<i>array</i>,
-size_t <i>elsize</i>, size_t <i>ndimslow</i>, size_t <i>ndimmid</i>, size_t <i>ndimfast</i>);
+size_t <i>elsize</i>, size_t <i>ndimslow</i>, size_t <i>ndimmid</i>, size_t <i>ndimfast</i>);<br />
 int cbf_get_real_3d_image_fs (cbf_handle <i>handle</i>, unsigned int <i>reserved</i>,
 unsigned int <i>element_number</i>, void *<i>array</i>,
-size_t <i>elsize</i>, size_t <i>ndimfast</i>, size_t <i>ndimmid</i>, size_t <i>ndimslow</i>);
+size_t <i>elsize</i>, size_t <i>ndimfast</i>, size_t <i>ndimmid</i>, size_t <i>ndimslow</i>);<br />
 int cbf_get_real_3d_image_sf (cbf_handle <i>handle</i>, unsigned int <i>reserved</i>,
 unsigned int <i>element_number</i>, void *<i>array</i>,
-size_t <i>elsize</i>, size_t <i>ndimslow</i>, size_t <i>ndimmid</i>, size_t <i>ndimfast</i>);
+size_t <i>elsize</i>, size_t <i>ndimslow</i>, size_t <i>ndimmid</i>, size_t <i>ndimfast</i>);<br />
 <p>
 <b>DESCRIPTION</b>
 <p>
@@ -4726,15 +4726,15 @@ int <i>elsign</i>, size_t <i>ndimslow</i>, size_t <i>ndimmid</i>, size_t <i>ndim
 int cbf_set_real_3d_image (cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
 unsigned int <i>element_number</i>,
 unsigned int compression, void *<i>array</i>,size_t <i>elsize</i>,
-size_t <i>ndimslow</i>, size_t <i>ndimmid</i>, size_t <i>ndimfast</i>);
+size_t <i>ndimslow</i>, size_t <i>ndimmid</i>, size_t <i>ndimfast</i>);<br />
 int cbf_set_real_3d_image_fs(cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
 unsigned int <i>element_number</i>,
 unsigned int compression, void *<i>array</i>,size_t <i>elsize</i>,
-size_t <i>ndimfast</i>, size_t <i>ndimmid</i>, size_t <i>ndimslow</i>);
+size_t <i>ndimfast</i>, size_t <i>ndimmid</i>, size_t <i>ndimslow</i>);<br />
 int cbf_set_real_3d_image_sf(cbf_handle <i>handle</i>, unsigned int  <i>reserved</i>, 
 unsigned int <i>element_number</i>,
 unsigned int compression, void *<i>array</i>,size_t <i>elsize</i>,
-size_t <i>ndimslow</i>, size_t <i>ndimmid</i>, size_t <i>ndimfast</i>);
+size_t <i>ndimslow</i>, size_t <i>ndimmid</i>, size_t <i>ndimfast</i>);<br />
 
 <p>
 <b>DESCRIPTION</b>
@@ -4905,7 +4905,7 @@ cbf_free_goniometer destroys the goniometer object specified by <i>goniometer</i
 <p>#include "cbf_simple.h"
 <p>
 int cbf_get_rotation_axis (cbf_goniometer <i>goniometer</i>, unsigned int <i>reserved</i>, double *<i>vector1</i>,
-double *<i>vector2</i>, double <i>vector3</i>);
+double *<i>vector2</i>, double *<i>vector3</i>);
 <p>
 <b>DESCRIPTION</b>
 <p>
@@ -5770,11 +5770,11 @@ Returns an error code on failure or 0 for success.
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
-<b>DESCRIPTION</b>
-<p>
 int cbf_get_bin_sizes(cbf_handle <i>handle</i>, unsigned int <i>element_number</i>, double * <i>slowbinsize</i>,
  double * <i>fastbinsize</i>); <br />
 int cbf_set_bin_sizes(cbf_handle <i>handle</i>, unsigned int element_number, double <i>slowbinsize_in</i>,double <i>fastbinsize_in</i>);
+<p>
+<b>DESCRIPTION</b>
 <p>
 cbf_get_bin_sizes sets <i>slowbinsize</i> to point to the value of the
 number of pixels composing one array element in the dimension that changes at
