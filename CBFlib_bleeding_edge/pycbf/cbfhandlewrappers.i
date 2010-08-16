@@ -71,14 +71,14 @@ SEE ALSO
       cbf_failnez(cbf_select_datablock(self,arg));}
 
 /* cfunc cbf_force_new_datablock   pyfunc force_new_datablock  
-   arg cbf_handle handle    arg const char    *datablockname */
+   arg cbf_handle handle    arg const char *datablockname */
 
 %feature("autodoc", "
 Returns : string
 *args   : 
 
 C prototype: int cbf_force_new_datablock (cbf_handle handle,
-                 const char    *datablockname);
+                 const char *datablockname);
 
 CBFLib documentation:
 DESCRIPTION
@@ -98,6 +98,12 @@ SEE ALSO
 ")force_new_datablock;
     void force_new_datablock(const char* arg){
       cbf_failnez(cbf_force_new_datablock(self,arg));}
+
+/* cfunc cbf_get_3d_image_fs   pyfunc get_3d_image_fs  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg int      elsign    arg size_t ndimfast    arg size_t ndimmid    arg size_t ndimslow */
+
+     void get_3d_image_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 
 /* cfunc cbf_reset_datablocks   pyfunc reset_datablocks  
    arg cbf_handle handle */
@@ -125,7 +131,7 @@ Returns :
 *args   : String tagname,String categoryname_in
 
 C prototype: int cbf_set_tag_category (cbf_handle handle, const char* tagname,
-                    const char* categoryname_in);
+                 const char* categoryname_in);
 
 CBFLib documentation:
 DESCRIPTION
@@ -138,13 +144,43 @@ handle            CBF handle. tagname           tag name.
 categoryname      pointer to a returned category name. 
 categoryname_in   input category name.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_tag_category;
 
    void set_tag_category(const char *tagname, const char* categoryname_in){
      cbf_failnez(cbf_set_tag_category(self,tagname, categoryname_in));
      }
+%feature("autodoc", "
+Returns : String tagroot
+*args   : String tagname
+
+C prototype: int cbf_require_tag_root (cbf_handle handle, const char* tagname,
+                 const char** tagroot);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_find_tag_root sets *tagroot to the root tag of which tagname is 
+an alias. cbf_set_tag_root sets tagname as an alias of tagroot_in in 
+the dictionary associated with handle, creating the dictionary if 
+necessary. cbf_require_tag_root sets *tagroot to the root tag of 
+which tagname is an alias, if there is one, or to the value of 
+tagname, if tagname is not an alias.
+A returned tagroot string must not be modified in any way.
+ARGUMENTS
+handle       CBF handle. tagname      tag name which may be an alias. 
+tagroot      pointer to a returned tag root name. tagroot_in   input 
+tag root name.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+
+")require_tag_root;
+
+const char* require_tag_root(const char* tagname){
+ const char* result;
+ cbf_failnez(cbf_require_tag_root(self,tagname,&result));
+ return result;
+ }
 
 /* cfunc cbf_row_number   pyfunc row_number  
    arg cbf_handle handle    arg unsigned int *row */
@@ -171,7 +207,7 @@ SEE ALSO
       return result;}
 
 /* cfunc cbf_set_image   pyfunc set_image  
-   arg cbf_handle handle    arg unsigned int reserved    arg unsigned    int element_number    arg unsigned int compression    arg void *array    arg size_t    elsize    arg int elsign    arg size_t ndim1    arg size_t ndim2 */
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void *array    arg size_t elsize    arg int elsign    arg size_t ndimslow    arg size_t ndimfast */
 
      void set_image(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
@@ -219,12 +255,13 @@ cbf_rewind_category makes the first category in the current data
 block the current category. cbf_rewind_saveframe makes the first 
 saveframe in the current data block the current saveframe. 
 cbf_rewind_blockitem makes the first blockitem (category or 
-saveframe) in the current data block the current blockitem.
+saveframe) in the current data block the current blockitem. The type 
+of the blockitem (CBF_CATEGORY or CBF_SAVEFRAME) is returned in type.
 If there are no categories, saveframes or blockitems the function 
 returns CBF_NOTFOUND.
 The current column and row become undefined.
 ARGUMENTS
-handle   CBF handle.
+handle   CBF handle. type     CBF handle.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
@@ -236,7 +273,7 @@ Returns : int compression,int binary_id,int elsize,int elements
 *args   : 
 
 C prototype: int cbf_get_realarrayparameters (cbf_handle handle,
-                 unsigned int    *compression, int *binary_id, size_t *elsize,
+                 unsigned int *compression, int *binary_id, size_t *elsize,
                  size_t *elements);
 
 CBFLib documentation:
@@ -251,36 +288,42 @@ be made into another CIF or CBF. cbf_get_realarrayparameters sets
 binary value of the item at the current column and row. This provides 
 all the arguments needed for a subsequent call to cbf_set_realarray, 
 if a copy of the arry is to be made into another CIF or CBF.
-The variants cbf_get_integerarrayparameters_wdims and 
-cbf_get_realarrayparameters_wdims set **byteorder, *dim1, *dim2, 
-*dim3, and *padding as well, providing the additional parameters 
-needed for a subsequent call to cbf_set_integerarray_wdims or 
-cbf_set_realarray_wdims.
-The value returned in *byteorder is a pointer either to the string 
-\"little_endian\" or to the string \"big_endian\". This should be the 
-byte order of the data, not necessarily of the host machine. No 
-attempt should be made to modify this string. At this time only 
-\"little_endian\" will be returned.
-The values returned in *dim1, *dim2 and *dim3 are the sizes of the 
-fastest changing, second fastest changing and third fastest changing 
-dimensions of the array, if specified, or zero, if not specified.
+The variants cbf_get_integerarrayparameters_wdims, 
+cbf_get_integerarrayparameters_wdims_fs, 
+cbf_get_integerarrayparameters_wdims_sf, 
+cbf_get_realarrayparameters_wdims, 
+cbf_get_realarrayparameters_wdims_fs, 
+cbf_get_realarrayparameters_wdims_sf set **byteorder, *dimfast, 
+*dimmid, *dimslow, and *padding as well, providing the additional 
+parameters needed for a subsequent call to cbf_set_integerarray_wdims 
+or cbf_set_realarray_wdims.
+The value returned in *byteorder is a pointer either to the string  
+\"little_endian \" or to the string  \"big_endian \". This should be 
+the byte order of the data, not necessarily of the host machine. No 
+attempt should be made to modify this string. At this time only  
+\"little_endian \" will be returned.
+The values returned in *dimfast, *dimmid and *dimslow are the sizes 
+of the fastest changing, second fastest changing and third fastest 
+changing dimensions of the array, if specified, or zero, if not 
+specified.
 The value returned in *padding is the size of the post-data padding, 
 if any and if specified in the data header. The value is given as a 
 count of octets.
 If the value is not binary, the function returns CBF_ASCII.
 ARGUMENTS
-handle   CBF handle. compression   Compression method used. elsize   
-Size in bytes of each array element. binary_id   Pointer to the 
-destination integer binary identifier. elsigned   Pointer to an 
-integer. Set to 1 if the elements can be read as signed integers. 
-elunsigned   Pointer to an integer. Set to 1 if the elements can be 
-read as unsigned integers. elements   Pointer to the destination 
-number of elements. minelement   Pointer to the destination smallest 
-element. maxelement   Pointer to the destination largest element. 
-byteorder   Pointer to the destination byte order. dim1   Pointer to 
-the destination fastest dimension. dim2   Pointer to the destination 
-second fastest dimension. dim3   Pointer to the destination third 
-fastest dimension. padding   Pointer to the destination padding size.
+handle        CBF handle. compression   Compression method used. 
+elsize        Size in bytes of each array element. binary_id     
+Pointer to the destination integer binary identifier. elsigned      
+Pointer to an integer. Set to 1 if the elements can be read as signed 
+integers. elunsigned    Pointer to an integer. Set to 1 if the 
+elements can be read as unsigned integers. elements      Pointer to 
+the destination number of elements. minelement    Pointer to the 
+destination smallest element. maxelement    Pointer to the 
+destination largest element. byteorder     Pointer to the destination 
+byte order. dimfast       Pointer to the destination fastest 
+dimension. dimmid        Pointer to the destination second fastest 
+dimension. dimslow       Pointer to the destination third fastest 
+dimension. padding       Pointer to the destination padding size.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
@@ -301,15 +344,21 @@ SEE ALSO
         *elements = elem;
         }
 
+/* cfunc cbf_get_pixel_size_sf   pyfunc get_pixel_size_sf  
+   arg cbf_handle handle    arg unsigned int element_number    arg int axis_number    arg double *psize */
+
+     void get_pixel_size_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
 /* cfunc cbf_force_new_category   pyfunc force_new_category  
-   arg cbf_handle handle    arg const char    *categoryname */
+   arg cbf_handle handle    arg const char *categoryname */
 
 %feature("autodoc", "
 Returns : string
 *args   : 
 
 C prototype: int cbf_force_new_category (cbf_handle handle,
-                 const char    *categoryname);
+                 const char *categoryname);
 
 CBFLib documentation:
 DESCRIPTION
@@ -331,14 +380,14 @@ SEE ALSO
       cbf_failnez(cbf_force_new_category(self,arg));}
 
 /* cfunc cbf_force_new_saveframe   pyfunc force_new_saveframe  
-   arg cbf_handle handle    arg const char    *saveframename */
+   arg cbf_handle handle    arg const char *saveframename */
 
 %feature("autodoc", "
 Returns : string
 *args   : 
 
 C prototype: int cbf_force_new_saveframe (cbf_handle handle,
-                 const char    *saveframename);
+                 const char *saveframename);
 
 CBFLib documentation:
 DESCRIPTION
@@ -360,14 +409,14 @@ SEE ALSO
       cbf_failnez(cbf_force_new_saveframe(self,arg));}
 
 /* cfunc cbf_count_datablocks   pyfunc count_datablocks  
-   arg cbf_handle handle    arg unsigned int    *datablocks */
+   arg cbf_handle handle    arg unsigned int *datablocks */
 
 %feature("autodoc", "
-Returns : unsigned
+Returns : Integer
 *args   : 
 
 C prototype: int cbf_count_datablocks (cbf_handle handle,
-                 unsigned int    *datablocks);
+                 unsigned int *datablocks);
 
 CBFLib documentation:
 DESCRIPTION
@@ -379,10 +428,10 @@ RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
 ")count_datablocks;
-    unsigned count_datablocks(void){
-     unsigned result;
-       cbf_failnez(cbf_count_datablocks(self,&result));
-       return result;}
+    unsigned int count_datablocks(void){
+      unsigned int result;
+      cbf_failnez(cbf_count_datablocks(self,&result));
+      return result;}
 
 /* cfunc cbf_find_row   pyfunc find_row  
    arg cbf_handle handle    arg const char *value */
@@ -438,20 +487,27 @@ Returns : pycbf detector object
 *args   : Integer element_number
 
 C prototype: int cbf_construct_detector (cbf_handle handle,
-                 cbf_detector *detector,    unsigned int element_number);
+                 cbf_detector *detector, unsigned int element_number);
 
 CBFLib documentation:
 DESCRIPTION
 cbf_construct_detector constructs a detector object for detector 
 element number element_number using the description in the CBF object 
 handle and initialises the detector handle *detector.
+cbf_construct_reference_detector constructs a detector object for 
+detector element number element_number using the description in the 
+CBF object handle and initialises the detector handle *detector using 
+the reference settings of the axes. cbf_require_reference_detector is 
+similar, but try to force the creations of missing intermediate 
+categories needed to construct a detector object.
 ARGUMENTS
-handle   CBF handle. detector   Pointer to the destination detector 
-handle. element_number   The number of the detector element counting 
-from 0 by order of appearance in the \"diffrn_data_frame\" category.
+handle           CBF handle. detector         Pointer to the 
+destination detector handle. element_number   The number of the 
+detector element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")construct_detector;
 
  cbf_detector construct_detector(unsigned int element_number){
@@ -488,7 +544,7 @@ Returns : Float defaultvalue
 *args   : String columnname,Float Value
 
 C prototype: int cbf_require_column_doublevalue (cbf_handle handle,
-                 const char    *columnname, double *number,
+                 const char *columnname, double *number,
                  const double defaultvalue);
 
 CBFLib documentation:
@@ -499,10 +555,10 @@ item at the current row for the column given with the name given by
 number, or to the number given by defaultvalue if the item cannot be 
 found.
 ARGUMENTS
-handle   CBF handle. columnname   Name of the column containing the 
-number. number   pointer to the location to receive the 
-floating-point value. defaultvalue   Value to use if the requested 
-column and value cannot be found.
+handle         CBF handle. columnname     Name of the column 
+containing the number. number         pointer to the location to 
+receive the floating-point value. defaultvalue   Value to use if the 
+requested column and value cannot be found.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
@@ -520,8 +576,8 @@ Returns : int year,int month,int day,int hour,int minute,double second,
 *args   : 
 
 C prototype: int cbf_get_datestamp (cbf_handle handle, unsigned int reserved,
-                 int    *year, int *month, int *day, int *hour, int *minute,
-                 double *second,    int *timezone);
+                 int *year, int *month, int *day, int *hour, int *minute,
+                 double      *second, int *timezone);
 
 CBFLib documentation:
 DESCRIPTION
@@ -531,17 +587,17 @@ cbf_get_datestamp sets *year, *month, *day, *hour, *minute and
 parameter < i>reserved is presently unused and should be set to 0.
 Any of the destination pointers may be NULL.
 ARGUMENTS
-handle   CBF handle. reserved   Unused. Any value other than 0 is 
-invalid. year   Pointer to the destination timestamp year. month   
-Pointer to the destination timestamp month (1-12). day   Pointer to 
-the destination timestamp day (1-31). hour   Pointer to the 
-destination timestamp hour (0-23). minute   Pointer to the 
-destination timestamp minute (0-59). second   Pointer to the 
+handle     CBF handle. reserved   Unused. Any value other than 0 is 
+invalid. year       Pointer to the destination timestamp year. month  
+    Pointer to the destination timestamp month (1-12). day        
+Pointer to the destination timestamp day (1-31). hour       Pointer 
+to the destination timestamp hour (0-23). minute     Pointer to the 
+destination timestamp minute (0-59). second     Pointer to the 
 destination timestamp second (0-60.0). timezone   Pointer to the 
 destination timezone difference from UTC in minutes.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_datestamp;
 
 %apply int *OUTPUT {int *year, int *month, int *day, int *hour, 
@@ -596,7 +652,7 @@ C prototype: int cbf_get_crystal_id (cbf_handle handle,
 CBFLib documentation:
 DESCRIPTION
 cbf_get_crystal_id sets *crystal_id to point to the ASCII value of 
-the \"diffrn.crystal_id\" entry.
+the  \"diffrn.crystal_id \" entry.
 If the value is not ASCII, the function returns CBF_BINARY.
 The value will be valid as long as the item exists and has not been 
 set to a new value.
@@ -605,8 +661,8 @@ ARGUMENTS
 handle       CBF handle. crystal_id   Pointer to the destination 
 value pointer.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_crystal_id;
     const char* get_crystal_id(void){
     const char* result;
@@ -643,7 +699,7 @@ SEE ALSO
        return result;}
 
 /* cfunc cbf_get_unit_cell   pyfunc get_unit_cell  
-   arg cbf_handle handle    arg double cell[6]    arg double    cell_esd[6] */
+   arg cbf_handle handle    arg double cell[6]    arg double cell_esd[6] */
 
      void get_unit_cell(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
@@ -686,12 +742,13 @@ cbf_rewind_category makes the first category in the current data
 block the current category. cbf_rewind_saveframe makes the first 
 saveframe in the current data block the current saveframe. 
 cbf_rewind_blockitem makes the first blockitem (category or 
-saveframe) in the current data block the current blockitem.
+saveframe) in the current data block the current blockitem. The type 
+of the blockitem (CBF_CATEGORY or CBF_SAVEFRAME) is returned in type.
 If there are no categories, saveframes or blockitems the function 
 returns CBF_NOTFOUND.
 The current column and row become undefined.
 ARGUMENTS
-handle   CBF handle.
+handle   CBF handle. type     CBF handle.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
@@ -713,16 +770,17 @@ C prototype: int cbf_get_value (cbf_handle handle, const char **value);
 CBFLib documentation:
 DESCRIPTION
 cbf_get_value sets *value to point to the ASCII value of the item at 
-the current column and row. cbf_set_value sets *value to point to the 
-ASCII value of the item at the current column and row, creating the 
-data item if necessary and initializing it to a copy of defaultvalue.
+the current column and row. cbf_require_value sets *value to point to 
+the ASCII value of the item at the current column and row, creating 
+the data item if necessary and initializing it to a copy of 
+defaultvalue.
 If the value is not ASCII, the function returns CBF_BINARY.
 The value will be valid as long as the item exists and has not been 
 set to a new value.
 The value must not be modified by the program in any way.
 ARGUMENTS
-handle   CBF handle. value    Pointer to the destination value 
-pointer. value    Default value character string.
+handle         CBF handle. value          Pointer to the destination 
+value pointer. defaultvalue   Default value character string.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
@@ -732,21 +790,15 @@ SEE ALSO
     cbf_failnez(cbf_get_value(self, &result));
     return result;}
 
-/* cfunc cbf_set_reciprocal_cell   pyfunc set_reciprocal_cell  
-   arg cbf_handle handle    arg double cell[6]    arg double    cell_esd[6] */
-
-     void set_reciprocal_cell(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
-
 /* cfunc cbf_count_categories   pyfunc count_categories  
-   arg cbf_handle handle    arg unsigned int    *categories */
+   arg cbf_handle handle    arg unsigned int *categories */
 
 %feature("autodoc", "
-Returns : unsigned
+Returns : Integer
 *args   : 
 
 C prototype: int cbf_count_categories (cbf_handle handle,
-                 unsigned int    *categories);
+                 unsigned int *categories);
 
 CBFLib documentation:
 DESCRIPTION
@@ -759,13 +811,13 @@ RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
 ")count_categories;
-    unsigned count_categories(void){
-     unsigned result;
-       cbf_failnez(cbf_count_categories(self,&result));
-       return result;}
+    unsigned int count_categories(void){
+      unsigned int result;
+      cbf_failnez(cbf_count_categories(self,&result));
+      return result;}
 
 /* cfunc cbf_read_widefile   pyfunc read_widefile  
-   arg cbf_handle handle    arg FILE *file    arg int headers */
+   arg cbf_handle handle    arg FILE *file    arg int flags */
 
      void read_widefile(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
@@ -781,16 +833,21 @@ C prototype: int cbf_set_wavelength (cbf_handle handle, double wavelength);
 
 CBFLib documentation:
 DESCRIPTION
-cbf_set_wavelength sets the current wavelength in Angstrom to 
-wavelength.
+cbf_set_wavelength sets the current wavelength in AA to wavelength.
 ARGUMENTS
-handle       CBF handle. wavelength   Wavelength in Angstrom.
+handle       CBF handle. wavelength   Wavelength in AA.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_wavelength;
      void set_wavelength(double wavelength){
         cbf_failnez(cbf_set_wavelength(self,wavelength));}
+
+/* cfunc cbf_set_pixel_size_sf   pyfunc set_pixel_size_sf  
+   arg cbf_handle handle    arg unsigned int element_number    arg int axis_number    arg double psize */
+
+     void set_pixel_size_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 
 /* cfunc cbf_get_diffrn_id   pyfunc get_diffrn_id  
    arg cbf_handle handle    arg const char **diffrn_id */
@@ -804,10 +861,10 @@ C prototype: int cbf_get_diffrn_id (cbf_handle handle,
 
 CBFLib documentation:
 DESCRIPTION
-cbf_get_diffrn_id sets *diffrn_id to point to the ASCII value of the 
-\"diffrn.id\" entry. cbf_require_diffrn_id also sets *diffrn_id to 
-point to the ASCII value of the \"diffrn.id\" entry, but, if the 
-\"diffrn.id\" entry does not exist, it sets the value in the CBF and 
+cbf_get_diffrn_id sets *diffrn_id to point to the ASCII value of the  
+\"diffrn.id \" entry. cbf_require_diffrn_id also sets *diffrn_id to 
+point to the ASCII value of the  \"diffrn.id \" entry, but, if the  
+\"diffrn.id \" entry does not exist, it sets the value in the CBF and 
 in*diffrn_id to the character string given by default_id, creating 
 the category and column is necessary.
 The diffrn_id will be valid as long as the item exists and has not 
@@ -817,49 +874,46 @@ ARGUMENTS
 handle       CBF handle. diffrn_id    Pointer to the destination 
 value pointer. default_id   Character string default value.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_diffrn_id;
     const char* get_diffrn_id(void){
     const char* result;
     cbf_failnez(cbf_get_diffrn_id(self, &result));
     return result;}
+
+/* cfunc cbf_find_datablock   pyfunc find_datablock  
+   arg cbf_handle handle    arg const char *datablockname */
+
 %feature("autodoc", "
-Returns : CBFHandle dictionary
+Returns : string
 *args   : 
 
-C prototype: int cbf_get_dictionary (cbf_handle handle,
-                 cbf_handle * dictionary);
+C prototype: int cbf_find_datablock (cbf_handle handle,
+                 const char *datablockname);
 
 CBFLib documentation:
 DESCRIPTION
-cbf_get_dictionary sets *dictionary to the handle of a CBF which has 
-been associated with the CBF handle by cbf_set_dictionary. 
-cbf_set_dictionary associates the CBF handle dictionary_in with 
-handle as its dictionary. cbf_require_dictionary sets *dictionary to 
-the handle of a CBF which has been associated with the CBF handle by 
-cbf_set_dictionary or creates a new empty CBF and associates it with 
-handle, returning the new handle in *dictionary.
+cbf_find_datablock makes the data block with name datablockname the 
+current data block.
+The comparison is case-insensitive.
+If the data block does not exist, the function returns CBF_NOTFOUND.
+The current category becomes undefined.
 ARGUMENTS
-handle          CBF handle. dictionary      Pointer to CBF handle of 
-dictionary. dictionary_in   CBF handle of dcitionary.
+handle          CBF handle. datablockname   The name of the data 
+block to find.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
-")get_dictionary;
-
-cbf_handle get_dictionary(){
-   cbf_handle temp;
-   cbf_failnez(cbf_get_dictionary(self,&temp));
-   return temp;
-}
+Returns an error code on failure or 0 for success.
+SEE ALSO
+")find_datablock;
+    void find_datablock(const char* arg){
+      cbf_failnez(cbf_find_datablock(self,arg));}
 %feature("autodoc", "
 Returns : float polarizn_source_ratio,float polarizn_source_norm
 *args   : 
 
 C prototype: int cbf_get_polarization (cbf_handle handle,
-                 double    *polarizn_source_ratio,
-                 double *polarizn_source_norm);
+                 double *polarizn_source_ratio, double *polarizn_source_norm);
 
 CBFLib documentation:
 DESCRIPTION
@@ -868,12 +922,12 @@ cbf_get_polarization sets *polarizn_source_ratio and
 parameters.
 Either destination pointer may be NULL.
 ARGUMENTS
-handle   CBF handle. polarizn_source_ratio   Pointer to the 
-destination polarizn_source_ratio. polarizn_source_norm   Pointer to 
-the destination polarizn_source_norm.
+handle                  CBF handle. polarizn_source_ratio   Pointer 
+to the destination polarizn_source_ratio. polarizn_source_norm    
+Pointer to the destination polarizn_source_norm.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_polarization;
 
      /* Returns a pair of double values */
@@ -907,11 +961,17 @@ SEE ALSO
 ")select_category;
     void select_category(unsigned int arg){
       cbf_failnez(cbf_select_category(self,arg));}
+
+/* cfunc cbf_get_pixel_size_fs   pyfunc get_pixel_size_fs  
+   arg cbf_handle handle    arg unsigned int element_number    arg int axis_number    arg double *psize */
+
+     void get_pixel_size_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 %feature("autodoc", "
 Returns : 
 *args   : String filename,Integer headers
 
-C prototype: int cbf_read_file (cbf_handle handle, FILE *file, int headers);
+C prototype: int cbf_read_file (cbf_handle handle, FILE *file, int flags);
 
 CBFLib documentation:
 DESCRIPTION
@@ -925,24 +985,59 @@ Validation is performed in three ways levels: during the lexical
 scan, during the parse, and, if a dictionary was converted, against 
 the value types, value enumerations, categories and parent-child 
 relationships specified in the dictionary.
-headers controls the interprestation of binary section headers of 
-imgCIF files.
-MSG_DIGEST:   Instructs CBFlib to check that the digest of the binary 
-section matches any header value. If the digests do not match, the 
-call will return CBF_FORMAT. This evaluation and comparison is 
-delayed (a \"lazy\" evaluation) to ensure maximal processing 
-efficiency. If an immediately evaluation is required, see 
-MSG_DIGESTNOW, below. MSG_DIGESTNOW:   Instructs CBFlib to check that 
-the digest of the binary section matches any header value. If the 
-digests do not match, the call will return CBF_FORMAT. This 
-evaluation and comparison is performed during initial parsing of the 
-section to ensure timely error reporting at the expense of processing 
-efficiency. If a more efficient delayed (\"lazy\") evaluation is 
-required, see MSG_DIGESTNOW, below. MSG_NODIGEST:   Do not check the 
-digest (default).
+flags controls the interpretation of binary section headers, the 
+parsing of brackets constructs and the parsing of treble-quoted 
+strings.
+MSG_DIGEST:               Instructs CBFlib to check that the digest 
+of the binary section matches any header digest value. If the digests 
+do not match, the call will return CBF_FORMAT. This evaluation and 
+comparison is delayed (a  \"lazy \" evaluation) to ensure maximal 
+processing efficiency. If an immediately evaluation is required, see 
+MSG_DIGESTNOW, below. MSG_DIGESTNOW:            Instructs CBFlib to 
+check that the digest of the binary section matches any header 
+digeste value. If the digests do not match, the call will return 
+CBF_FORMAT. This evaluation and comparison is performed during 
+initial parsing of the section to ensure timely error reporting at 
+the expense of processing efficiency. If a more efficient delayed ( 
+\"lazy \") evaluation is required, see MSG_DIGEST, above. 
+MSG_DIGESTWARN:           Instructs CBFlib to check that the digest 
+of the binary section matches any header digeste value. If the 
+digests do not match, a warning message will be sent to stderr, but 
+processing will attempt to continue. This evaluation and comparison 
+is first performed during initial parsing of the section to ensure 
+timely error reporting at the expense of processing efficiency. An 
+mismatch of the message digest usually indicates a serious error, but 
+it is sometimes worth continuing processing to try to isolate the 
+cause of the error. Use this option with caution. MSG_NODIGEST:       
+      Do not check the digest (default). PARSE_BRACKETS:           
+Accept DDLm bracket-delimited [item,item,...item] or 
+{item,item,...item} or (item,item,...item) constructs as valid, 
+stripping non-quoted embedded whitespace and comments. These 
+constructs may span multiple lines. PARSE_LIBERAL_BRACKETS:   Accept 
+DDLm bracket-delimited [item,item,...item] or {item,item,...item} or 
+(item,item,...item) constructs as valid, stripping embedded 
+non-quoted, non-separating whitespace and comments. These constructs 
+may span multiple lines. In this case, whitespace may be used as an 
+alternative to the comma. PARSE_TRIPLE_QUOTES:      Accept DDLm 
+triple-quoted  \" \" \"item,item,...item \" \" \" or 
+'''item,item,...item''' constructs as valid, stripping embedded 
+whitespace and comments. These constructs may span multiple lines. If 
+this flag is set, then ''' will not be interpreted as a quoted 
+apoptrophe and  \" \" \" will not be interpreted as a quoted double 
+quote mark and PARSE_NOBRACKETS:         Do not accept DDLm 
+bracket-delimited [item,item,...item] or {item,item,...item} or 
+(item,item,...item) constructs as valid, stripping non-quoted 
+embedded whitespace and comments. These constructs may span multiple 
+lines. PARSE_NOTRIPLE_QUOTES:    No not accept DDLm triple-quoted  \" 
+\" \"item,item,...item \" \" \" or '''item,item,...item''' constructs 
+as valid, stripping embedded whitespace and comments. These 
+constructs may span multiple lines. If this flag is set, then ''' 
+will be interpreted as a quoted apostrophe and  \" \" \" will be 
+interpreted as a quoted double quote mark.
 CBFlib defers reading binary sections as long as possible. In the 
 current version of CBFlib, this means that:
-1. The file must be a random-access file opened in binary mode (fopen
+1. The file must be a random-access file opened in binary mode (fopen 
+( ,  \"rb \")).
 ")read_file;
 
     void read_file(char* filename, int headers){
@@ -958,14 +1053,14 @@ current version of CBFlib, this means that:
        }
 
 /* cfunc cbf_datablock_name   pyfunc datablock_name  
-   arg cbf_handle handle    arg const char    **datablockname */
+   arg cbf_handle handle    arg const char **datablockname */
 
 %feature("autodoc", "
 Returns : 
 *args   : string
 
 C prototype: int cbf_datablock_name (cbf_handle handle,
-                 const char    **datablockname);
+                 const char **datablockname);
 
 CBFLib documentation:
 DESCRIPTION
@@ -987,9 +1082,21 @@ SEE ALSO
     return result;}
 
 /* cfunc cbf_set_realarray_wdims   pyfunc set_realarray_wdims  
-   arg cbf_handle handle    arg unsigned int    compression    arg int binary_id    arg void *array    arg size_t elsize    arg size_t    elements    arg const char *byteorder    arg size_t dim1    arg size_t dim2    arg size_t    dim3    arg size_t padding */
+   arg cbf_handle handle    arg unsigned int compression    arg int binary_id    arg void *array    arg size_t elsize    arg size_t elements    arg const char *byteorder    arg size_t dimfast    arg size_t dimmid    arg size_t dimslow    arg size_t padding */
 
      void set_realarray_wdims(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
+/* cfunc cbf_construct_reference_detector   pyfunc construct_reference_detector  
+   arg cbf_handle handle    arg cbf_detector *detector    arg unsigned int element_number */
+
+     void construct_reference_detector(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
+/* cfunc cbf_get_real_3d_image_fs   pyfunc get_real_3d_image_fs  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg size_t ndimfast    arg size_t ndimmid    arg size_t ndimslow */
+
+     void get_real_3d_image_fs(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
 
 /* cfunc cbf_rewind_row   pyfunc rewind_row  
@@ -1020,7 +1127,7 @@ Returns : Float start,Float increment
 *args   : String axis_id
 
 C prototype: int cbf_get_axis_setting (cbf_handle handle,
-                 unsigned int reserved,    const char *axis_id, double *start,
+                 unsigned int reserved, const char *axis_id, double *start,
                  double *increment);
 
 CBFLib documentation:
@@ -1034,8 +1141,8 @@ handle      CBF handle. reserved    Unused. Any value other than 0 is
 invalid. axis_id     Axis id. start       Pointer to the destination 
 start value. increment   Pointer to the destination increment value.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_axis_setting;
 
 %apply double *OUTPUT {double *start, double *increment} get_axis_setting;
@@ -1077,7 +1184,7 @@ Returns : Float time,Integer timezone
 *args   : 
 
 C prototype: int cbf_get_timestamp (cbf_handle handle, unsigned int reserved,
-                    double *time, int *timezone);
+                 double *time, int *timezone);
 
 CBFLib documentation:
 DESCRIPTION
@@ -1091,8 +1198,8 @@ handle     CBF handle. reserved   Unused. Any value other than 0 is
 invalid. time       Pointer to the destination collection timestamp. 
 timezone   Pointer to the destination timezone difference.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_timestamp;
 
 %apply double *OUTPUT {double *time} get_timestamp;
@@ -1130,36 +1237,12 @@ SEE ALSO
 ")find_nextrow;
     void find_nextrow(const char* arg){
       cbf_failnez(cbf_find_nextrow(self,arg));}
-%feature("autodoc", "
-Returns : String tagroot
-*args   : String tagname
 
-C prototype: int cbf_require_tag_root (cbf_handle handle, const char* tagname,
-                    const char** tagroot);
+/* cfunc cbf_get_realarrayparameters_wdims_sf   pyfunc get_realarrayparameters_wdims_sf  
+   arg cbf_handle handle    arg unsigned int *compression    arg int *binary_id    arg size_t *elsize    arg size_t    *elements    arg const char **byteorder    arg size_t *dimslow    arg size_t *dimmid    arg size_t *dimfast    arg size_t *padding */
 
-CBFLib documentation:
-DESCRIPTION
-cbf_find_tag_root sets *tagroot to the root tag of which tagname is 
-an alias. cbf_set_tag_root sets tagname as an alias of tagroot_in in 
-the dictionary associated with handle, creating the dictionary if 
-necessary. cbf_require_tag_root sets *tagroot to the root tag of 
-which tagname is an alias, if there is one, or to the value of 
-tagname, if tagname is not an alias.
-A returned tagroot string must not be modified in any way.
-ARGUMENTS
-handle       CBF handle. tagname      tag name which may be an alias. 
-tagroot      pointer to a returned tag root name. tagroot_in   input 
-tag root name.
-RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
-")require_tag_root;
-
-const char* require_tag_root(const char* tagname){
- const char* result;
- cbf_failnez(cbf_require_tag_root(self,tagname,&result));
- return result;
- }
+     void get_realarrayparameters_wdims_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 
 /* cfunc cbf_reset_datablock   pyfunc reset_datablock  
    arg cbf_handle handle */
@@ -1183,12 +1266,45 @@ SEE ALSO
 ")reset_datablock;
     void reset_datablock(void){
       cbf_failnez(cbf_reset_datablock(self));}
+
+/* cfunc cbf_set_3d_image_fs   pyfunc set_3d_image_fs  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void      *array    arg size_t elsize    arg int elsign    arg size_t ndimfast    arg size_t ndimmid    arg size_t ndimslow */
+
+     void set_3d_image_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
+/* cfunc cbf_set_saveframename   pyfunc set_saveframename  
+   arg cbf_handle handle    arg const char *saveframename */
+
+%feature("autodoc", "
+Returns : string
+*args   : 
+
+C prototype: int cbf_set_saveframename (cbf_handle handle,
+                 const char *saveframename);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_set_datablockname changes the name of the current data block to 
+datablockname. cbf_set_saveframename changes the name of the current 
+save frame to saveframename.
+If a data block or save frame with this name already exists 
+(comparison is case-insensitive), the function returns CBF_IDENTICAL.
+ARGUMENTS
+handle          CBF handle. datablockname   The new data block name. 
+datablockname   The new save frame name.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+SEE ALSO
+")set_saveframename;
+    void set_saveframename(const char* arg){
+      cbf_failnez(cbf_set_saveframename(self,arg));}
 %feature("autodoc", "
 Returns : Int number
 *args   : Int thedefault
 
 C prototype: int cbf_require_integervalue (cbf_handle handle, int *number,
-                 int    defaultvalue);
+                 int defaultvalue);
 
 CBFLib documentation:
 DESCRIPTION
@@ -1219,7 +1335,7 @@ Returns : int compression,int binary_id,int elsize,int elsigned,int elunsigned,
 *args   : 
 
 C prototype: int cbf_get_integerarrayparameters (cbf_handle handle,
-                 unsigned int    *compression, int *binary_id, size_t *elsize,
+                 unsigned int *compression, int *binary_id, size_t *elsize,
                  int *elsigned, int    *elunsigned, size_t *elements,
                  int *minelement, int *maxelement);
 
@@ -1235,36 +1351,42 @@ be made into another CIF or CBF. cbf_get_realarrayparameters sets
 binary value of the item at the current column and row. This provides 
 all the arguments needed for a subsequent call to cbf_set_realarray, 
 if a copy of the arry is to be made into another CIF or CBF.
-The variants cbf_get_integerarrayparameters_wdims and 
-cbf_get_realarrayparameters_wdims set **byteorder, *dim1, *dim2, 
-*dim3, and *padding as well, providing the additional parameters 
-needed for a subsequent call to cbf_set_integerarray_wdims or 
-cbf_set_realarray_wdims.
-The value returned in *byteorder is a pointer either to the string 
-\"little_endian\" or to the string \"big_endian\". This should be the 
-byte order of the data, not necessarily of the host machine. No 
-attempt should be made to modify this string. At this time only 
-\"little_endian\" will be returned.
-The values returned in *dim1, *dim2 and *dim3 are the sizes of the 
-fastest changing, second fastest changing and third fastest changing 
-dimensions of the array, if specified, or zero, if not specified.
+The variants cbf_get_integerarrayparameters_wdims, 
+cbf_get_integerarrayparameters_wdims_fs, 
+cbf_get_integerarrayparameters_wdims_sf, 
+cbf_get_realarrayparameters_wdims, 
+cbf_get_realarrayparameters_wdims_fs, 
+cbf_get_realarrayparameters_wdims_sf set **byteorder, *dimfast, 
+*dimmid, *dimslow, and *padding as well, providing the additional 
+parameters needed for a subsequent call to cbf_set_integerarray_wdims 
+or cbf_set_realarray_wdims.
+The value returned in *byteorder is a pointer either to the string  
+\"little_endian \" or to the string  \"big_endian \". This should be 
+the byte order of the data, not necessarily of the host machine. No 
+attempt should be made to modify this string. At this time only  
+\"little_endian \" will be returned.
+The values returned in *dimfast, *dimmid and *dimslow are the sizes 
+of the fastest changing, second fastest changing and third fastest 
+changing dimensions of the array, if specified, or zero, if not 
+specified.
 The value returned in *padding is the size of the post-data padding, 
 if any and if specified in the data header. The value is given as a 
 count of octets.
 If the value is not binary, the function returns CBF_ASCII.
 ARGUMENTS
-handle   CBF handle. compression   Compression method used. elsize   
-Size in bytes of each array element. binary_id   Pointer to the 
-destination integer binary identifier. elsigned   Pointer to an 
-integer. Set to 1 if the elements can be read as signed integers. 
-elunsigned   Pointer to an integer. Set to 1 if the elements can be 
-read as unsigned integers. elements   Pointer to the destination 
-number of elements. minelement   Pointer to the destination smallest 
-element. maxelement   Pointer to the destination largest element. 
-byteorder   Pointer to the destination byte order. dim1   Pointer to 
-the destination fastest dimension. dim2   Pointer to the destination 
-second fastest dimension. dim3   Pointer to the destination third 
-fastest dimension. padding   Pointer to the destination padding size.
+handle        CBF handle. compression   Compression method used. 
+elsize        Size in bytes of each array element. binary_id     
+Pointer to the destination integer binary identifier. elsigned      
+Pointer to an integer. Set to 1 if the elements can be read as signed 
+integers. elunsigned    Pointer to an integer. Set to 1 if the 
+elements can be read as unsigned integers. elements      Pointer to 
+the destination number of elements. minelement    Pointer to the 
+destination smallest element. maxelement    Pointer to the 
+destination largest element. byteorder     Pointer to the destination 
+byte order. dimfast       Pointer to the destination fastest 
+dimension. dimmid        Pointer to the destination second fastest 
+dimension. dimslow       Pointer to the destination third fastest 
+dimension. padding       Pointer to the destination padding size.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
@@ -1287,12 +1409,18 @@ SEE ALSO
         *elsize = elsiz;
         *elements = elem;
         }
+
+/* cfunc cbf_set_real_3d_image_sf   pyfunc set_real_3d_image_sf  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void      *array    arg size_t elsize    arg size_t ndimslow    arg size_t ndimmid    arg size_t ndimfast */
+
+     void set_real_3d_image_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 %feature("autodoc", "
 Returns : 
 *args   : String filename,Integer ciforcbf,Integer Headers,Integer encoding
 
 C prototype: int cbf_write_file (cbf_handle handle, FILE *file, int readable,
-                 int    ciforcbf, int headers, int encoding);
+                 int ciforcbf, int flags, int encoding);
 
 CBFLib documentation:
 DESCRIPTION
@@ -1313,32 +1441,48 @@ If readable is non-0, CBFlib will close the file when it is no longer
 required, otherwise this is the responsibility of the program.
 ciforcbf selects the format in which the binary sections are written:
 CIF   Write an imgCIF file. CBF   Write a CBF file (default).
-headers selects the type of header used in CBF binary sections and 
-selects whether message digests are generated. The value of headers 
-can be a logical OR of any of:
-MIME_HEADERS     Use MIME-type headers (default). MIME_NOHEADERS   
-Use a simple ASCII headers. MSG_DIGEST       Generate message digests 
-for binary data validation. MSG_NODIGEST     Do not generate message 
-digests (default).
+flags selects the type of header used in CBF binary sections, selects 
+whether message digests are generated, and controls the style of 
+output. The value of flags can be a logical OR of any of:
+MIME_HEADERS             Use MIME-type headers (default). 
+MIME_NOHEADERS           Use a simple ASCII headers. MSG_DIGEST       
+        Generate message digests for binary data validation. 
+MSG_NODIGEST             Do not generate message digests (default). 
+PARSE_BRACKETS           Do not convert bracketed strings to text 
+fields (default). PARSE_LIBERAL_BRACKETS   Do not convert bracketed 
+strings to text fields (default). PARSE_NOBRACKETS         Convert 
+bracketed strings to text fields (default). PARSE_TRIPLE_QUOTES      
+Do not convert triple-quoted strings to text fields (default). 
+PARSE_NOTRIPLE_QUOTES    Convert triple-quoted strings to text fields 
+(default). PAD_1K                   Pad binary sections with 1023 
+nulls. PAD_2K                   Pad binary sections with 2047 nulls. 
+PAD_4K                   Pad binary sections with 4095 nulls.
+Note that on output, the types  \"prns&,  \"brcs \" and  \"bkts \" 
+will be converted to  \"text \" fields if PARSE_NOBRACKETS has been 
+set flags, and that the types  \"tsqs \" and  \"tdqs \" will be 
+converted to  \"text \" fields if the flag PARSE_NOTRIPLE_QUOTES has 
+been set in the flags. It is an error to set PARSE_NOBRACKETS and to 
+set either PARSE_BRACKETS or PARSE_LIBERAL_BRACKETS. It is an error 
+to set both PARSE_NOTRIPLE_QUOTES and PARSE_TRIPLE_QUOTES.
 encoding selects the type of encoding used for binary sections and 
 the type of line-termination in imgCIF files. The value can be a 
 logical OR of any of:
-ENC_BASE64   Use BASE64 encoding (default). ENC_QP   Use 
-QUOTED-PRINTABLE encoding. ENC_BASE8   Use BASE8 (octal) encoding. 
-ENC_BASE10   Use BASE10 (decimal) encoding. ENC_BASE16   Use BASE16 
-(hexadecimal) encoding. ENC_FORWARD   For BASE8, BASE10 or BASE16 
-encoding, map bytes to words forward (1234) (default on little-endian 
-machines). ENC_BACKWARD   Map bytes to words backward (4321) (default 
-on big-endian machines). ENC_CRTERM   Terminate lines with CR. 
-ENC_LFTERM   Terminate lines with LF (default).
+ENC_BASE64     Use BASE64 encoding (default). ENC_QP         Use 
+QUOTED-PRINTABLE encoding. ENC_BASE8      Use BASE8 (octal) encoding. 
+ENC_BASE10     Use BASE10 (decimal) encoding. ENC_BASE16     Use 
+BASE16 (hexadecimal) encoding. ENC_FORWARD    For BASE8, BASE10 or 
+BASE16 encoding, map bytes to words forward (1234) (default on 
+little-endian machines). ENC_BACKWARD   Map bytes to words backward 
+(4321) (default on big-endian machines). ENC_CRTERM     Terminate 
+lines with CR. ENC_LFTERM     Terminate lines with LF (default).
 ARGUMENTS
-handle   CBF handle. file   Pointer to a file descriptor. readable   
-If non-0: this file is random-access and readable and can be used as 
-a buffer. ciforcbf   Selects the format in which the binary sections 
-are written (CIF/CBF). headers   Selects the type of header in CBF 
-binary sections and message digest generation. encoding   Selects the 
-type of encoding used for binary sections and the type of 
-line-termination in imgCIF files.
+handle     CBF handle. file       Pointer to a file descriptor. 
+readable   If non-0: this file is random-access and readable and can 
+be used as a buffer. ciforcbf   Selects the format in which the 
+binary sections are written (CIF/CBF). headers    Selects the type of 
+header in CBF binary sections and message digest generation. encoding 
+  Selects the type of encoding used for binary sections and the type 
+of line-termination in imgCIF files.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
@@ -1364,7 +1508,7 @@ Returns :
 *args   : Float div_x_source,Float div_y_source,Float div_x_y_source
 
 C prototype: int cbf_set_divergence (cbf_handle handle, double div_x_source,
-                 double    div_y_source, double div_x_y_source);
+                 double div_y_source, double div_x_y_source);
 
 CBFLib documentation:
 DESCRIPTION
@@ -1375,8 +1519,8 @@ handle           CBF handle. div_x_source     New value of
 div_x_source. div_y_source     New value of div_y_source. 
 div_x_y_source   New value of div_x_y_source.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_divergence;
 
    void set_divergence ( double div_x_source, double div_y_source,
@@ -1424,44 +1568,25 @@ cbf_count_elements sets *elements to the number of detector elements.
 ARGUMENTS
 handle     CBF handle. elements   Pointer to the destination count.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")count_elements;
     unsigned int count_elements(void){
       unsigned int result;
       cbf_failnez(cbf_count_elements(self,&result));
       return result;}
-%feature("autodoc", "
-Returns : Float pixel_size
-*args   : Int element_number,Int axis_number
 
-C prototype: int cbf_get_pixel_size (cbf_handle handle,
-                 unsigned int    element_number, unsigned int axis_number,
-                 double *psize);
+/* cfunc cbf_set_image_fs   pyfunc set_image_fs  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void *array    arg size_t elsize    arg int elsign    arg size_t ndimfast    arg size_t ndimslow */
 
-CBFLib documentation:
-DESCRIPTION
-cbf_get_pixel_size sets *psize to point to the double value in 
-millimeters of the axis axis_number of the detector element 
-element_number. The axis_number is numbered from 1, starting with the 
-fastest axis.
-If the pixel size is not given explcitly in the 
-\"array_element_size\" category, the function returns CBF_NOTFOUND.
-ARGUMENTS
-handle   CBF handle. element_number   The number of the detector 
-element counting from 0 by order of appearance in the 
-\"diffrn_data_frame\" category. axis_number   The number of the axis, 
-fastest first, starting from 1.
-")get_pixel_size;
+     void set_image_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 
-%apply double *OUTPUT {double *psize} get_pixel_size;
-    void get_pixel_size(unsigned int element_number, 
-                        unsigned int axis_number, double *psize){
-        cbf_failnez(cbf_get_pixel_size(self, 
-                                       element_number, 
-                                       axis_number, 
-                                       psize));
-    }
+/* cfunc cbf_require_reference_detector   pyfunc require_reference_detector  
+   arg cbf_handle handle    arg cbf_detector *detector    arg unsigned int element_number */
+
+     void require_reference_detector(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 
 /* cfunc cbf_next_category   pyfunc next_category  
    arg cbf_handle handle */
@@ -1498,16 +1623,16 @@ C prototype: int cbf_set_diffrn_id (cbf_handle handle, const char *diffrn_id);
 
 CBFLib documentation:
 DESCRIPTION
-cbf_set_diffrn_id sets the \"diffrn.id\" entry of the current 
+cbf_set_diffrn_id sets the  \"diffrn.id \" entry of the current 
 datablock to the ASCII value diffrn_id.
-This function also changes corresponding \"diffrn_id\" entries in the 
-\"diffrn_source\", \"diffrn_radiation\", \"diffrn_detector\" and 
-\"diffrn_measurement\" categories.
+This function also changes corresponding  \"diffrn_id \" entries in 
+the  \"diffrn_source \",  \"diffrn_radiation \",  \"diffrn_detector 
+\" and  \"diffrn_measurement \" categories.
 ARGUMENTS
 handle      CBF handle. diffrn_id   ASCII value.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_diffrn_id;
     void set_diffrn_id(const char* arg){
       cbf_failnez(cbf_set_diffrn_id(self,arg));}
@@ -1516,7 +1641,7 @@ Returns :
 *args   : Float time,Integer timezone,Float precision
 
 C prototype: int cbf_set_timestamp (cbf_handle handle, unsigned int reserved,
-                    double time, int timezone, double precision);
+                 double time, int timezone, double precision);
 
 CBFLib documentation:
 DESCRIPTION
@@ -1529,13 +1654,13 @@ The precision of the new timestamp is specified by the value
 precision in seconds. If precision is 0, the saved timestamp is 
 assumed accurate to 1 second.
 ARGUMENTS
-handle   CBF handle. reserved   Unused. Any value other than 0 is 
-invalid. time   Timestamp in seconds since January 1 1970. timezone   
-Timezone difference from UTC in minutes or CBF_NOTIMEZONE. precision  
- Timestamp precision in seconds.
+handle      CBF handle. reserved    Unused. Any value other than 0 is 
+invalid. time        Timestamp in seconds since January 1 1970. 
+timezone    Timezone difference from UTC in minutes or 
+CBF_NOTIMEZONE. precision   Timestamp precision in seconds.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_timestamp;
 
     void set_timestamp(double time, int timezone, double precision){
@@ -1550,23 +1675,24 @@ Returns : Float matrix_0,Float matrix_1,Float matrix_2,Float matrix_3,
 *args   : 
 
 C prototype: int cbf_get_orientation_matrix (cbf_handle handle,
-                 double    ub_matrix[9]);
+                 double ub_matrix[9]);
 
 CBFLib documentation:
 DESCRIPTION
 cbf_get_orientation_matrix sets ub_matrix to point to the array of 
-orientation matrix entries in the \"diffrn\" category in the order of 
-columns:
-\"UB[1][1]\" \"UB[1][2]\" \"UB[1][3]\" \"UB[2][1]\" \"UB[2][2]\" 
-\"UB[2][3]\" \"UB[3][1]\" \"UB[3][2]\" \"UB[3][3]\"
-cbf_set_orientation_matrix sets the values in the \"diffrn\" category 
-to the values pointed to by ub_matrix.
+orientation matrix entries in the  \"diffrn \" category in the order 
+of columns:
+ \"UB[1][1] \"  \"UB[1][2] \"  \"UB[1][3] \"  \"UB[2][1] \"  
+\"UB[2][2] \"  \"UB[2][3] \"  \"UB[3][1] \"  \"UB[3][2] \"  
+\"UB[3][3] \"
+cbf_set_orientation_matrix sets the values in the  \"diffrn \" 
+category to the values pointed to by ub_matrix.
 ARGUMENTS
-handle   CBF handle. ubmatric   Source or destination array of 9 
+handle     CBF handle. ubmatric   Source or destination array of 9 
 doubles giving the orientation matrix parameters.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_orientation_matrix;
 
 %apply double *OUTPUT {double *m0,double *m1,double *m2,
@@ -1581,12 +1707,18 @@ double *m7,double *m8){
         *m3 = m[3]; *m4=m[4] ; *m5=m[5] ;
         *m6 = m[6]; *m7=m[7] ; *m8=m[8] ;
         }
+
+/* cfunc cbf_get_image_size_fs   pyfunc get_image_size_fs  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg size_t *ndimfast    arg size_t      *ndimslow */
+
+     void get_image_size_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 %feature("autodoc", "
 Returns : Float div_x_source,Float div_y_source,Float div_x_y_source
 *args   : 
 
 C prototype: int cbf_get_divergence (cbf_handle handle, double *div_x_source,
-                    double *div_y_source, double *div_x_y_source);
+                 double *div_y_source, double *div_x_y_source);
 
 CBFLib documentation:
 DESCRIPTION
@@ -1599,8 +1731,8 @@ destination div_x_source. div_y_source     Pointer to the destination
 div_y_source. div_x_y_source   Pointer to the destination 
 div_x_y_source.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_divergence;
 
 %apply double *OUTPUT {double *div_x_source, double *div_y_source,
@@ -1628,12 +1760,13 @@ cbf_rewind_category makes the first category in the current data
 block the current category. cbf_rewind_saveframe makes the first 
 saveframe in the current data block the current saveframe. 
 cbf_rewind_blockitem makes the first blockitem (category or 
-saveframe) in the current data block the current blockitem.
+saveframe) in the current data block the current blockitem. The type 
+of the blockitem (CBF_CATEGORY or CBF_SAVEFRAME) is returned in type.
 If there are no categories, saveframes or blockitems the function 
 returns CBF_NOTFOUND.
 The current column and row become undefined.
 ARGUMENTS
-handle   CBF handle.
+handle   CBF handle. type     CBF handle.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
@@ -1655,8 +1788,8 @@ ARGUMENTS
 handle   Pointer to a CBF handle. file     Pointer to a file 
 descriptor.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")read_template;
 
     void read_template(char* filename){
@@ -1696,6 +1829,24 @@ SEE ALSO
     void select_row(unsigned int arg){
       cbf_failnez(cbf_select_row(self,arg));}
 
+/* cfunc cbf_get_image_fs   pyfunc get_image_fs  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg int elsign    arg size_t ndimfast    arg size_t ndimslow */
+
+     void get_image_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
+/* cfunc cbf_get_image_size_sf   pyfunc get_image_size_sf  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg size_t *ndimslow    arg size_t      *ndimfast */
+
+     void get_image_size_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
+/* cfunc cbf_get_real_image_fs   pyfunc get_real_image_fs  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg size_t      ndimfast    arg size_t ndimslow */
+
+     void get_real_image_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
 /* cfunc cbf_count_columns   pyfunc count_columns  
    arg cbf_handle handle    arg unsigned int *columns */
 
@@ -1722,7 +1873,7 @@ SEE ALSO
       return result;}
 
 /* cfunc cbf_get_integerarrayparameters_wdims   pyfunc get_integerarrayparameters_wdims  
-   arg cbf_handle handle    arg unsigned    int *compression    arg int *binary_id    arg size_t *elsize    arg int *elsigned    arg int    *elunsigned    arg size_t *elements    arg int *minelement    arg int *maxelement    arg const    char **byteorder    arg size_t *dim1    arg size_t *dim2    arg size_t *dim3    arg size_t    *padding */
+   arg cbf_handle handle    arg unsigned int *compression    arg int *binary_id    arg size_t *elsize    arg int *elsigned    arg int *elunsigned    arg size_t *elements    arg int *minelement    arg int *maxelement    arg const char **byteorder    arg size_t *dimfast    arg size_t *dimmid    arg size_t    *dimslow    arg size_t *padding */
 
      void get_integerarrayparameters_wdims(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
@@ -1731,7 +1882,7 @@ Returns : Float gain,Float gain_esd
 *args   : 
 
 C prototype: int cbf_get_gain (cbf_handle handle, unsigned int element_number,
-                    double *gain, double *gain_esd);
+                 double *gain, double *gain_esd);
 
 CBFLib documentation:
 DESCRIPTION
@@ -1739,13 +1890,14 @@ cbf_get_gain sets *gain and *gain_esd to the corresponding gain
 parameters for element number element_number.
 Either of the destination pointers may be NULL.
 ARGUMENTS
-handle   CBF handle. element_number   The number of the detector 
-element counting from 0 by order of appearance in the 
-\"diffrn_data_frame\" category. gain   Pointer to the destination 
-gain. gain_esd   Pointer to the destination gain_esd.
+handle           CBF handle. element_number   The number of the 
+detector element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. gain             Pointer to the 
+destination gain. gain_esd         Pointer to the destination 
+gain_esd.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_gain;
 
 %apply double *OUTPUT {double *gain, double *gain_esd} get_gain;
@@ -1787,7 +1939,7 @@ Returns :
 *args   : Float polarizn_source_ratio,Float polarizn_source_norm
 
 C prototype: int cbf_set_polarization (cbf_handle handle,
-                 double    polarizn_source_ratio, double polarizn_source_norm);
+                 double polarizn_source_ratio, double polarizn_source_norm);
 
 CBFLib documentation:
 DESCRIPTION
@@ -1798,8 +1950,8 @@ handle                  CBF handle. polarizn_source_ratio   New value
 of polarizn_source_ratio. polarizn_source_norm    New value of 
 polarizn_source_norm.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_polarization;
 
      void set_polarization (double polarizn_source_ratio,
@@ -1810,7 +1962,7 @@ _________________________________________________________________
      }
 
 /* cfunc cbf_set_real_3d_image   pyfunc set_real_3d_image  
-   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void    *array    arg size_t elsize    arg size_t ndim1    arg size_t ndim2    arg size_t ndim3 */
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void      *array    arg size_t elsize    arg size_t ndimslow    arg size_t ndimmid    arg size_t ndimfast */
 
      void set_real_3d_image(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
@@ -1889,26 +2041,33 @@ SEE ALSO
 ")remove_saveframe;
     void remove_saveframe(void){
       cbf_failnez(cbf_remove_saveframe(self));}
+
+/* cfunc cbf_set_integerarray_wdims_sf   pyfunc set_integerarray_wdims_sf  
+   arg cbf_handle handle    arg unsigned int compression    arg int binary_id    arg void *array    arg size_t elsize    arg int    elsigned    arg size_t elements    arg const char *byteorder    arg size_t dimslow    arg size_t dimmid    arg size_t dimfast    arg size_t padding */
+
+     void set_integerarray_wdims_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 %feature("autodoc", "
 Returns : String Value
 *args   : String defaultvalue
 
 C prototype: int cbf_require_value (cbf_handle handle, const char **value,
-                 const    char *defaultvalue );
+                 const char *defaultvalue );
 
 CBFLib documentation:
 DESCRIPTION
 cbf_get_value sets *value to point to the ASCII value of the item at 
-the current column and row. cbf_set_value sets *value to point to the 
-ASCII value of the item at the current column and row, creating the 
-data item if necessary and initializing it to a copy of defaultvalue.
+the current column and row. cbf_require_value sets *value to point to 
+the ASCII value of the item at the current column and row, creating 
+the data item if necessary and initializing it to a copy of 
+defaultvalue.
 If the value is not ASCII, the function returns CBF_BINARY.
 The value will be valid as long as the item exists and has not been 
 set to a new value.
 The value must not be modified by the program in any way.
 ARGUMENTS
-handle   CBF handle. value    Pointer to the destination value 
-pointer. value    Default value character string.
+handle         CBF handle. value          Pointer to the destination 
+value pointer. defaultvalue   Default value character string.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
@@ -1925,8 +2084,7 @@ Returns : Int Value
 *args   : String Columnvalue,Int default
 
 C prototype: int cbf_require_column_integervalue (cbf_handle handle,
-                 const char    *columnname, int *number,
-                 const int defaultvalue);
+                 const char *columnname, int *number, const int defaultvalue);
 
 CBFLib documentation:
 DESCRIPTION
@@ -1935,10 +2093,10 @@ item at the current row for the column given with the name given by
 *columnname, with the value interpreted as an integer number, or to 
 the number given by defaultvalue if the item cannot be found.
 ARGUMENTS
-handle   CBF handle. columnname   Name of the column containing the 
-number. number   pointer to the location to receive the integer 
-value. defaultvalue   Value to use if the requested column and value 
-cannot be found.
+handle         CBF handle. columnname     Name of the column 
+containing the number. number         pointer to the location to 
+receive the integer value. defaultvalue   Value to use if the 
+requested column and value cannot be found.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
@@ -1955,29 +2113,42 @@ Returns :
 *args   : Int element_number,Int axis_number,Float pixel size
 
 C prototype: int cbf_set_pixel_size (cbf_handle handle,
-                 unsigned int    element_number, unsigned int axis_number,
-                 double psize);
+                 unsigned int element_number, int axis_number, double psize);
 
 CBFLib documentation:
 DESCRIPTION
-cbf_set_pixel_size sets the item in the &quote;size&quote; column of 
-the \"array_structure_list\" category at the row which matches axis 
-axis_number of the detector element element_number converting the 
-double pixel size psize from meters to millimeters in storing it in 
-the \"size\" column for the axis axis_number of the detector element 
-element_number. The axis_number is numbered from 1, starting with the 
-fastest axis.
-If the \"array_structure_list\" category does not already exist, it 
+cbf_set_pixel_size and cbf_set_pixel_size_sf set the item in the 
+&quote;size&quote; column of the  \"array_structure_list \" category 
+at the row which matches axis axis_number of the detector element 
+element_number converting the double pixel size psize from meters to 
+millimeters in storing it in the  \"size \" column for the axis 
+axis_number of the detector element element_number. The axis_number 
+is numbered from 1, starting with the slowest axis. 
+cbf_set_pixel_size_fs sets the item in the &quote;size&quote; column 
+of the  \"array_structure_list \" category at the row which matches 
+axis axis_number of the detector element element_number converting 
+the double pixel size psize from meters to millimeters in storing it 
+in the  \"size \" column for the axis axis_number of the detector 
+element element_number. The axis_number is numbered from 1, starting 
+with the fastest axis.
+If a negative axis number is given, the order of axes is reversed, so 
+that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the 
+fastest axis for cbf_get_pixel_size_sf.
+If the  \"array_structure_list \" category does not already exist, it 
 is created.
-If the appropriate row in the \"array_structure_list\" catgeory does 
-not already exist, it is created.
-If the pixel size is not given explcitly in the \"array_element_size 
-category\", the function returns CBF_NOTFOUND.
+If the appropriate row in the  \"array_structure_list \" catgeory 
+does not already exist, it is created.
+If the pixel size is not given explcitly in the  \"array_element_size 
+category \", the function returns CBF_NOTFOUND.
 ARGUMENTS
-handle   CBF handle. element_number   The number of the detector 
-element counting from 0 by order of appearance in the 
-\"diffrn_data_frame\" category. axis_number   The number of the axis, 
-fastest first, starting from 1.
+handle           CBF handle. element_number   The number of the 
+detector element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. axis_number      The number of the 
+axis, fastest first, starting from 1. psize            The pixel size 
+in millimeters.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+
 ")set_pixel_size;
 
      void set_pixel_size (unsigned int element_number, 
@@ -2011,6 +2182,18 @@ SEE ALSO
 ")next_column;
     void next_column(void){
       cbf_failnez(cbf_next_column(self));}
+
+/* cfunc cbf_get_3d_image_size_sf   pyfunc get_3d_image_size_sf  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg size_t *ndimslow    arg size_t      *ndimmid    arg size_t *ndimfast */
+
+     void get_3d_image_size_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
+/* cfunc cbf_get_realarrayparameters_wdims_fs   pyfunc get_realarrayparameters_wdims_fs  
+   arg cbf_handle handle    arg unsigned int *compression    arg int *binary_id    arg size_t *elsize    arg size_t    *elements    arg const char **byteorder    arg size_t *dimfast    arg size_t *dimmid    arg size_t *dimslow    arg size_t *padding */
+
+     void get_realarrayparameters_wdims_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 
 /* cfunc cbf_get_realarray   pyfunc get_realarray  
    arg cbf_handle handle    arg int *binary_id    arg void *array    arg size_t elsize    arg size_t elements    arg size_t *elements_read */
@@ -2049,7 +2232,7 @@ Returns : pycbf goniometer object
 *args   : 
 
 C prototype: int cbf_construct_goniometer (cbf_handle handle,
-                 cbf_goniometer    *goniometer);
+                 cbf_goniometer *goniometer);
 
 CBFLib documentation:
 DESCRIPTION
@@ -2060,8 +2243,8 @@ ARGUMENTS
 handle       CBF handle. goniometer   Pointer to the destination 
 goniometer handle.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")construct_goniometer;
 
  cbf_goniometer construct_goniometer(){
@@ -2071,14 +2254,14 @@ _________________________________________________________________
     }
 
 /* cfunc cbf_set_datablockname   pyfunc set_datablockname  
-   arg cbf_handle handle    arg const char    *datablockname */
+   arg cbf_handle handle    arg const char *datablockname */
 
 %feature("autodoc", "
 Returns : string
 *args   : 
 
 C prototype: int cbf_set_datablockname (cbf_handle handle,
-                 const char    *datablockname);
+                 const char *datablockname);
 
 CBFLib documentation:
 DESCRIPTION
@@ -2109,13 +2292,13 @@ C prototype: int cbf_set_crystal_id (cbf_handle handle,
 
 CBFLib documentation:
 DESCRIPTION
-cbf_set_crystal_id sets the \"diffrn.crystal_id\" entry to the ASCII 
-value crystal_id.
+cbf_set_crystal_id sets the  \"diffrn.crystal_id \" entry to the 
+ASCII value crystal_id.
 ARGUMENTS
 handle       CBF handle. crystal_id   ASCII value.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_crystal_id;
     void set_crystal_id(const char* arg){
       cbf_failnez(cbf_set_crystal_id(self,arg));}
@@ -2124,7 +2307,7 @@ Returns : (Binary)String
 *args   : 
 
 C prototype: int cbf_get_integerarray (cbf_handle handle, int *binary_id,
-                 void    *array, size_t elsize, int elsigned, size_t elements,
+                 void *array, size_t elsize, int elsigned, size_t elements,
                  size_t    *elements_read);
 
 CBFLib documentation:
@@ -2159,12 +2342,13 @@ This restriction will be removed in a future release. For
 cbf_get_realarray, only IEEE format is supported. No conversion to 
 other floating point formats is done at this time.
 ARGUMENTS
-handle   CBF handle. binary_id   Pointer to the destination integer 
-binary identifier. array   Pointer to the destination array. elsize   
-Size in bytes of each destination array element. elsigned   Set to 
-non-0 if the destination array elements are signed. elements   The 
-number of elements to read. elements_read   Pointer to the 
-destination number of elements actually read.
+handle          CBF handle. binary_id       Pointer to the 
+destination integer binary identifier. array           Pointer to the 
+destination array. elsize          Size in bytes of each destination 
+array element. elsigned        Set to non-0 if the destination array 
+elements are signed. elements        The number of elements to read. 
+elements_read   Pointer to the destination number of elements 
+actually read.
 RETURN VALUE
 Returns an error code on failure or 0 for success. SEE ALSO
 ")get_integerarray_as_string;
@@ -2201,7 +2385,7 @@ Returns an error code on failure or 0 for success. SEE ALSO
       }
 
 /* cfunc cbf_set_3d_image   pyfunc set_3d_image  
-   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void *array    arg size_t elsize    arg int elsign    arg size_t ndim1    arg size_t ndim2    arg size_t    ndim2=3 */
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void *array    arg size_t elsize    arg int elsign    arg size_t ndimslow    arg size_t ndimmid    arg size_t ndimfast */
 
      void set_3d_image(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
@@ -2225,8 +2409,8 @@ ARGUMENTS
 handle          CBF handle. dictionary      Pointer to CBF handle of 
 dictionary. dictionary_in   CBF handle of dcitionary.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_dictionary;
 
 void set_dictionary(cbf_handle other){
@@ -2237,7 +2421,7 @@ Returns : String categoryname_in
 *args   : String tagname
 
 C prototype: int cbf_find_tag_category (cbf_handle handle,
-                 const char* tagname,    const char** categoryname);
+                 const char* tagname, const char** categoryname);
 
 CBFLib documentation:
 DESCRIPTION
@@ -2250,8 +2434,8 @@ handle            CBF handle. tagname           tag name.
 categoryname      pointer to a returned category name. 
 categoryname_in   input category name.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")find_tag_category;
 
 
@@ -2260,6 +2444,12 @@ _________________________________________________________________
      cbf_failnez(cbf_find_tag_category(self,tagname, &result));
      return result;
      }
+
+/* cfunc cbf_get_real_3d_image_sf   pyfunc get_real_3d_image_sf  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg size_t ndimslow    arg size_t ndimmid    arg size_t ndimfast */
+
+     void get_real_3d_image_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 
 /* cfunc cbf_set_typeofvalue   pyfunc set_typeofvalue  
    arg cbf_handle handle    arg const char *typeofvalue */
@@ -2275,16 +2465,27 @@ CBFLib documentation:
 DESCRIPTION
 cbf_set_typeofvalue sets the type of the item at the current column 
 and row to the type specified by the ASCII character string given by 
-typeofvalue. The strings that may be used are \"null\" for a null 
-value indicated by a \".\" or a \"?\", \"word\" for an unquoted 
-string, \"dblq\" for a double-quoted string, \"sglq\" for a 
-single-quoted string, and \"text\" for a semicolon-quoted text field. 
-Not all types may be used for all values. No changes may be made to 
-the type of binary values. You may not set the type of a string that 
-contains a single quote followed by a blank or a tab or which 
-contains multiple lines to \"sglq\". You may not set the type of a 
-string that contains a double quote followed by a blank or a tab or 
-which contains multiple lines to \"dblq\".
+typeofvalue. The strings that may be used are:
+ \"null \" for a null value indicated by a  \". \" or a  \"? \"  
+\"bnry \" for a binary value  \"word \" for an unquoted string  
+\"dblq \" for a double-quoted string  \"sglq \" for a single-quoted 
+string  \"text \" for a semicolon-quoted string (multiline text 
+field)  \"prns \" for a parenthesis-bracketed string (multiline text 
+field)  \"brcs \" for a brace-bracketed string (multiline text field) 
+ \"bkts \" for a square-bracket-bracketed string (multiline text 
+field)  \"tsqs \" for a treble-single-quote quoted string (multiline 
+text field)  \"tdqs \" for a treble-double-quote quoted string 
+(multiline text field)
+Not all types may be used for all values. Not all types are valid for 
+all type of CIF files. In partcular the types  \"prns \",  \"brcs \", 
+ \"bkts \" were introduced with DDLm and are not valid in DDL1 or 
+DDL2 CIFS. The types  \"tsqs \" and  \"tdqs \" are not formally part 
+of the CIF syntax. No changes may be made to the type of binary 
+values. You may not set the type of a string that contains a single 
+quote followed by a blank or a tab or which contains multiple lines 
+to  \"sglq \". You may not set the type of a string that contains a 
+double quote followed by a blank or a tab or which contains multiple 
+lines to  \"dblq \".
 ARGUMENTS
 handle        CBF handle. typeofvalue   ASCII string for desired type 
 of value.
@@ -2296,7 +2497,7 @@ SEE ALSO
       cbf_failnez(cbf_set_typeofvalue(self,arg));}
 
 /* cfunc cbf_set_integerarray_wdims   pyfunc set_integerarray_wdims  
-   arg cbf_handle handle    arg unsigned int    compression    arg int binary_id    arg void *array    arg size_t elsize    arg int elsigned    arg size_t elements    arg const char *byteorder    arg size_t dim1    arg size_t dim2    arg size_t dim3    arg size_t padding */
+   arg cbf_handle handle    arg unsigned int compression    arg int binary_id    arg void *array    arg size_t elsize    arg int elsigned    arg size_t elements    arg const char *byteorder    arg size_t dimfast    arg size_t dimmid    arg size_t dimslow    arg size_t padding */
 
      void set_integerarray_wdims(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
@@ -2305,7 +2506,7 @@ Returns :
 *args   : Float time
 
 C prototype: int cbf_set_integration_time (cbf_handle handle,
-                 unsigned int    reserved, double time);
+                 unsigned int reserved, double time);
 
 CBFLib documentation:
 DESCRIPTION
@@ -2316,8 +2517,8 @@ ARGUMENTS
 handle             CBF handle. reserved           Unused. Any value 
 other than 0 is invalid. time Integration   time in seconds.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_integration_time;
 
    void set_integration_time(double time){
@@ -2330,7 +2531,7 @@ Returns :
 *args   : String axis_id,Float start,Float increment
 
 C prototype: int cbf_set_axis_setting (cbf_handle handle,
-                 unsigned int reserved,    const char *axis_id, double start,
+                 unsigned int reserved, const char *axis_id, double start,
                  double increment);
 
 CBFLib documentation:
@@ -2343,8 +2544,8 @@ handle      CBF handle. reserved    Unused. Any value other than 0 is
 invalid. axis_id     Axis id. start       Start value. increment   
 Increment value.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_axis_setting;
 
    void set_axis_setting(const char *axis_id,
@@ -2356,29 +2557,41 @@ _________________________________________________________________
         }
 
 /* cfunc cbf_get_real_image   pyfunc get_real_image  
-   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg size_t ndim1    arg size_t ndim2 */
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg size_t      ndimslow    arg size_t ndimfast */
 
      void get_real_image(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
+/* cfunc cbf_get_3d_image_sf   pyfunc get_3d_image_sf  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg int      elsign    arg size_t ndimslow    arg size_t ndimmid    arg size_t ndimfast */
+
+     void get_3d_image_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
+/* cfunc cbf_set_real_image_fs   pyfunc set_real_image_fs  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void      *array    arg size_t elsize    arg size_t ndimfast    arg size_t ndimslow */
+
+     void set_real_image_fs(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
 %feature("autodoc", "
 Returns : Float overload
 *args   : Integer element_number
 
 C prototype: int cbf_get_overload (cbf_handle handle,
-                 unsigned int element_number,    double *overload);
+                 unsigned int element_number, double *overload);
 
 CBFLib documentation:
 DESCRIPTION
 cbf_get_overload sets *overload to the overload value for element 
 number element_number.
 ARGUMENTS
-handle   CBF handle. element_number   The number of the detector 
-element counting from 0 by order of appearance in the 
-\"diffrn_data_frame\" category. overload   Pointer to the destination 
-overload.
+handle           CBF handle. element_number   The number of the 
+detector element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. overload         Pointer to the 
+destination overload.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_overload;
 
 %apply double *OUTPUT {double *overload} get_overload;
@@ -2397,13 +2610,12 @@ C prototype: int cbf_get_wavelength (cbf_handle handle, double *wavelength);
 
 CBFLib documentation:
 DESCRIPTION
-cbf_get_wavelength sets *wavelength to the current wavelength in 
-Angstrom.
+cbf_get_wavelength sets *wavelength to the current wavelength in AA.
 ARGUMENTS
 handle       CBF handle. wavelength   Pointer to the destination.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_wavelength;
     double get_wavelength(void){
      double result;
@@ -2435,7 +2647,7 @@ SEE ALSO
       cbf_failnez(cbf_next_datablock(self));}
 
 /* cfunc cbf_get_realarrayparameters_wdims   pyfunc get_realarrayparameters_wdims  
-   arg cbf_handle handle    arg unsigned int    *compression    arg int *binary_id    arg size_t *elsize    arg size_t *elements    arg const    char **byteorder    arg size_t *dim1    arg size_t *dim2    arg size_t *dim3    arg size_t    *padding */
+   arg cbf_handle handle    arg unsigned int *compression    arg int *binary_id    arg size_t *elsize    arg size_t *elements    arg const char **byteorder    arg size_t *dimfast    arg size_t *dimmid    arg size_t *dimslow    arg size_t *padding */
 
      void get_realarrayparameters_wdims(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
@@ -2446,23 +2658,24 @@ Returns :
           Float matrix_8
 
 C prototype: int cbf_set_orientation_matrix (cbf_handle handle,
-                 double    ub_matrix[9]);
+                 double ub_matrix[9]);
 
 CBFLib documentation:
 DESCRIPTION
 cbf_get_orientation_matrix sets ub_matrix to point to the array of 
-orientation matrix entries in the \"diffrn\" category in the order of 
-columns:
-\"UB[1][1]\" \"UB[1][2]\" \"UB[1][3]\" \"UB[2][1]\" \"UB[2][2]\" 
-\"UB[2][3]\" \"UB[3][1]\" \"UB[3][2]\" \"UB[3][3]\"
-cbf_set_orientation_matrix sets the values in the \"diffrn\" category 
-to the values pointed to by ub_matrix.
+orientation matrix entries in the  \"diffrn \" category in the order 
+of columns:
+ \"UB[1][1] \"  \"UB[1][2] \"  \"UB[1][3] \"  \"UB[2][1] \"  
+\"UB[2][2] \"  \"UB[2][3] \"  \"UB[3][1] \"  \"UB[3][2] \"  
+\"UB[3][3] \"
+cbf_set_orientation_matrix sets the values in the  \"diffrn \" 
+category to the values pointed to by ub_matrix.
 ARGUMENTS
-handle   CBF handle. ubmatric   Source or destination array of 9 
+handle     CBF handle. ubmatric   Source or destination array of 9 
 doubles giving the orientation matrix parameters.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_orientation_matrix;
 
    void set_orientation_matrix(  double m0,double m1,
@@ -2505,20 +2718,20 @@ Returns :
 *args   : Float gain,Float gain_esd
 
 C prototype: int cbf_set_gain (cbf_handle handle, unsigned int element_number,
-                    double gain, double gain_esd);
+                 double gain, double gain_esd);
 
 CBFLib documentation:
 DESCRIPTION
 cbf_set_gain sets the gain of element number element_number to the 
 values specified by gain and gain_esd.
 ARGUMENTS
-handle   CBF handle. element_number   The number of the detector 
-element counting from 0 by order of appearance in the 
-\"diffrn_data_frame\" category. gain   New gain value. gain_esd   New 
-gain_esd value.
+handle           CBF handle. element_number   The number of the 
+detector element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. gain             New gain value. 
+gain_esd         New gain_esd value.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_gain;
 
     void set_gain (unsigned int element_number, double gain, double gain_esd){
@@ -2572,15 +2785,68 @@ SEE ALSO
     void remove_category(void){
       cbf_failnez(cbf_remove_category(self));}
 
+/* cfunc cbf_get_integerarrayparameters_wdims_sf   pyfunc get_integerarrayparameters_wdims_sf  
+   arg cbf_handle handle    arg unsigned int *compression    arg int *binary_id    arg size_t *elsize    arg int    *elsigned    arg int *elunsigned    arg size_t *elements    arg int *minelement    arg int *maxelement    arg const char **byteorder    arg size_t *dimslow    arg size_t    *dimmid    arg size_t *dimfast    arg size_t *padding */
+
+     void get_integerarrayparameters_wdims_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+%feature("autodoc", "
+Returns : Float pixel_size
+*args   : Int element_number,Int axis_number
+
+C prototype: int cbf_get_pixel_size (cbf_handle handle,
+                 unsigned int element_number, int axis_number, double *psize);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_get_pixel_size and cbf_get_pixel_size_sf set *psize to point to 
+the double value in millimeters of the axis axis_number of the 
+detector element element_number. The axis_number is numbered from 1, 
+starting with the slowest axis. cbf_get_pixel_size_fs sets *psize to 
+point to the double value in millimeters of the axis axis_number of 
+the detector element element_number. The axis_number is numbered from 
+1, starting with the fastest axis.
+If a negative axis number is given, the order of axes is reversed, so 
+that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the 
+fastest axis for cbf_get_pixel_size_sf.
+If the pixel size is not given explcitly in the  \"array_element_size 
+\" category, the function returns CBF_NOTFOUND.
+ARGUMENTS
+handle           CBF handle. element_number   The number of the 
+detector element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. axis_number      The number of the 
+axis, starting from 1 for the fastest for cbf_get_pixel_size and 
+cbf_get_pixel_size_fs and the slowest for cbf_get_pixel_size_sf. 
+psize            Pointer to the destination pixel size.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+
+")get_pixel_size;
+
+%apply double *OUTPUT {double *psize} get_pixel_size;
+    void get_pixel_size(unsigned int element_number, 
+                        unsigned int axis_number, double *psize){
+        cbf_failnez(cbf_get_pixel_size(self, 
+                                       element_number, 
+                                       axis_number, 
+                                       psize));
+    }
+
+/* cfunc cbf_set_real_image_sf   pyfunc set_real_image_sf  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void      *array    arg size_t elsize    arg size_t ndimslow    arg size_t ndimfast */
+
+     void set_real_image_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
 /* cfunc cbf_require_category   pyfunc require_category  
-   arg cbf_handle handle    arg const char    *categoryname */
+   arg cbf_handle handle    arg const char *categoryname */
 
 %feature("autodoc", "
 Returns : string
 *args   : 
 
 C prototype: int cbf_require_category (cbf_handle handle,
-                 const char    *categoryname);
+                 const char *categoryname);
 
 CBFLib documentation:
 DESCRIPTION
@@ -2600,13 +2866,13 @@ SEE ALSO
       cbf_failnez(cbf_require_category(self,arg));}
 
 /* cfunc cbf_get_reciprocal_cell   pyfunc get_reciprocal_cell  
-   arg cbf_handle handle    arg double cell[6]    arg double    cell_esd[6] */
+   arg cbf_handle handle    arg double cell[6]    arg double cell_esd[6] */
 
      void get_reciprocal_cell(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
 
 /* cfunc cbf_get_3d_image_size   pyfunc get_3d_image_size  
-   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg size_t *ndim1    arg size_t *ndim2    arg size_t    *ndim3 */
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg size_t *ndimslow    arg size_t *ndimmid    arg size_t *ndimfast */
 
      void get_3d_image_size(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
@@ -2615,7 +2881,7 @@ Returns : String tagroot
 *args   : String tagname
 
 C prototype: int cbf_find_tag_root (cbf_handle handle, const char* tagname,
-                 const    char** tagroot);
+                 const char** tagroot);
 
 CBFLib documentation:
 DESCRIPTION
@@ -2631,8 +2897,8 @@ handle       CBF handle. tagname      tag name which may be an alias.
 tagroot      pointer to a returned tag root name. tagroot_in   input 
 tag root name.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")find_tag_root;
 
 const char * find_tag_root(const char* tagname){
@@ -2645,7 +2911,7 @@ Returns : String categoryroot
 *args   : String Categoryname
 
 C prototype: int cbf_require_category_root (cbf_handle handle,
-                 const char*    categoryname, const char** categoryroot);
+                 const char* categoryname, const char** categoryroot);
 
 CBFLib documentation:
 DESCRIPTION
@@ -2662,8 +2928,8 @@ handle            CBF handle. categoryname      category name which
 may be an alias. categoryroot      pointer to a returned category 
 root name. categoryroot_in   input category root name.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")cbf_require_category_root;
 
 const char* require_category_root (const char* categoryname){
@@ -2671,6 +2937,12 @@ const char* require_category_root (const char* categoryname){
   cbf_failnez(cbf_require_category_root(self,categoryname, &result));
   return result;
 }
+
+/* cfunc cbf_set_realarray_wdims_sf   pyfunc set_realarray_wdims_sf  
+   arg cbf_handle handle    arg unsigned int compression    arg int binary_id    arg void *array    arg size_t elsize    arg size_t    elements    arg const char *byteorder    arg size_t dimslow    arg size_t dimmid    arg size_t dimfast    arg size_t padding */
+
+     void set_realarray_wdims_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 
 /* cfunc cbf_set_integervalue   pyfunc set_integervalue  
    arg cbf_handle handle    arg int number */
@@ -2736,15 +3008,26 @@ CBFLib documentation:
 DESCRIPTION
 cbf_get_value sets *typeofvalue to point an ASCII descriptor of the 
 value of the item at the current column and row. The strings that may 
-be returned are \"null\" for a null value indicated by a \".\" or a 
-\"?\", \"bnry\" for a binary value, \"word\" for an unquoted string, 
-\"dblq\" for a double-quoted string, \"sglq\" for a single-quoted 
-string, and \"text\" for a semicolon-quoted text field. A field for 
-which no value has been set sets *typeofvalue to NULL rather than to 
-the string \"null\".
+be returned are:
+ \"null \" for a null value indicated by a  \". \" or a  \"? \"  
+\"bnry \" for a binary value  \"word \" for an unquoted string  
+\"dblq \" for a double-quoted string  \"sglq \" for a single-quoted 
+string  \"text \" for a semicolon-quoted string (multiline text 
+field)  \"prns \" for a parenthesis-bracketed string (multiline text 
+field)  \"brcs \" for a brace-bracketed string (multiline text field) 
+ \"bkts \" for a square-bracket-bracketed string (multiline text 
+field)  \"tsqs \" for a treble-single-quote quoted string (multiline 
+text field)  \"tdqs \" for a treble-double-quote quoted string 
+(multiline text field)
+Not all types are valid for all type of CIF files. In partcular the 
+types  \"prns \",  \"brcs \",  \"bkts \" were introduced with DDLm 
+and are not valid in DDL1 or DDL2 CIFS. The types  \"tsqs \" and  
+\"tdqs \" are not formally part of the CIF syntax. A field for which 
+no value has been set sets *typeofvalue to NULL rather than to the 
+string  \"null \".
 The typeofvalue must not be modified by the program in any way.
 ARGUMENTS
-handle   CBF handle. typeofvalue   Pointer to the destination 
+handle        CBF handle. typeofvalue   Pointer to the destination 
 type-of-value string pointer.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
@@ -2756,13 +3039,13 @@ SEE ALSO
     return result;}
 
 /* cfunc cbf_set_real_image   pyfunc set_real_image  
-   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void    *array    arg size_t elsize    arg size_t ndim1    arg size_t ndim2 */
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void      *array    arg size_t elsize    arg size_t ndimslow    arg size_t ndimfast */
 
      void set_real_image(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
 
 /* cfunc cbf_get_3d_image   pyfunc get_3d_image  
-   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg int elsign    arg size_t ndim1    arg size_t ndim2    arg size_t ndim3 */
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg int elsign    arg size_t ndimslow    arg size_t ndimmid    arg size_t ndimfast */
 
      void get_3d_image(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
@@ -2794,19 +3077,19 @@ Returns :
 *args   : Integer element_number,Float overload
 
 C prototype: int cbf_set_overload (cbf_handle handle,
-                 unsigned int element_number,    double overload);
+                 unsigned int element_number, double overload);
 
 CBFLib documentation:
 DESCRIPTION
 cbf_set_overload sets the overload value of element number 
 element_number to overload.
 ARGUMENTS
-handle   CBF handle. element_number   The number of the detector 
-element counting from 0 by order of appearance in the 
-\"diffrn_data_frame\" category. overload   New overload value.
+handle           CBF handle. element_number   The number of the 
+detector element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. overload         New overload value.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_overload;
 
    void set_overload(unsigned int element_number, double overload){
@@ -2817,19 +3100,45 @@ Returns : size_t ndim1,size_t ndim2
 *args   : Integer element_number
 
 C prototype: int cbf_get_image_size (cbf_handle handle, unsigned int reserved,
-                    unsigned int element_number, size_t *ndim1, size_t *ndim2);
+                 unsigned int element_number, size_t *ndimslow,
+                 size_t *ndimfast);
 
 CBFLib documentation:
 DESCRIPTION
-cbf_get_image_size sets *ndim1 and *ndim2 to the slow and fast 
-dimensions of the image array for element number element_number. If 
-the array is 1-dimensional, *ndim1 will be set to the array size and 
-*ndim2 will be set to 1. If the array is 3-dimensional an error code 
-will be returned. cbf_get_3d_image_size sets *ndim1, *ndim2 and 
-*ndim3 to the slowest, next fastest and fastest dimensions, 
-respectively, of the 3D image array for element number 
-element_number. If the array is 1-dimensional, *ndim1 will be set to 
-the array size and *ndim2 and
+cbf_get_image_size, cbf_get_image_size_fs and cbf_get_image_size_sf 
+set *ndimslow and *ndimfast to the slow and fast dimensions of the 
+image array for element number element_number. If the array is 
+1-dimensional, *ndimslow will be set to the array size and *ndimfast 
+will be set to 1. If the array is 3-dimensional an error code will be 
+returned. cbf_get_3d_image_size, cbf_get_3d_image_size_fs and 
+cbf_get_3d_image_size_sf set *ndimslow, *ndimmid and *ndimfast to the 
+slowest, next fastest and fastest dimensions, respectively, of the 3D 
+image array for element number element_number. If the array is 
+1-dimensional, *ndimslow will be set to the array size and *ndimmid 
+and *ndimfast will be set to 1. If the array is 2-dimensional 
+*ndimslow and *ndimmid will be set as for a call to 
+cbf_get_image_size and *ndimfast will be set to 1.
+The _fs calls give the dimensions in a fast-to-slow order. The calls 
+with no suffix and the calls _sf calls give the dimensions in 
+slow-to-fast order
+Note that the ordering of dimensions is specified by values of the 
+tag _array_structure_list.precedence with a precedence of 1 for the 
+fastest dimension, 2 for the next slower, etc., which is opposite to 
+the ordering of the dimension arguments for these functions, except 
+for the ones with the _fs suffix..
+Any of the destination pointers may be NULL.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle           CBF handle. reserved         Unused. Any value other 
+than 0 is invalid. element_number   The number of the detector 
+element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. ndimslow         Pointer to the 
+destination slowest dimension. ndimmid          Pointer to the 
+destination next faster dimension. ndimfast         Pointer to the 
+destination fastest dimension.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+
 ")get_image_size;
 
 %apply int *OUTPUT {int *ndim1, int *ndim2} get_image_size;
@@ -2842,8 +3151,20 @@ the array size and *ndim2 and
         *ndim2 = in2; 
         }
 
+/* cfunc cbf_set_3d_image_sf   pyfunc set_3d_image_sf  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void      *array    arg size_t elsize    arg int elsign    arg size_t ndimslow    arg size_t ndimmid    arg size_t ndimfast */
+
+     void set_3d_image_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
+/* cfunc cbf_get_real_image_sf   pyfunc get_real_image_sf  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg size_t      ndimslow    arg size_t ndimfast */
+
+     void get_real_image_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
 /* cfunc cbf_get_image   pyfunc get_image  
-   arg cbf_handle handle    arg unsigned int reserved    arg unsigned    int element_number    arg void *array    arg size_t elsize    arg int elsign    arg size_t    ndim1    arg size_t ndim2 */
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg int elsign    arg size_t ndimslow    arg size_t ndimfast */
 
      void get_image(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
@@ -2852,7 +3173,7 @@ Returns :
 *args   : String tagname,String tagroot_in
 
 C prototype: int cbf_set_tag_root (cbf_handle handle, const char* tagname,
-                 const    char*tagroot_in);
+                 const char*tagroot_in);
 
 CBFLib documentation:
 DESCRIPTION
@@ -2868,8 +3189,8 @@ handle       CBF handle. tagname      tag name which may be an alias.
 tagroot      pointer to a returned tag root name. tagroot_in   input 
 tag root name.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_tag_root;
 
 void  set_tag_root(const char* tagname, const char* tagroot_in){
@@ -2877,7 +3198,7 @@ void  set_tag_root(const char* tagname, const char* tagroot_in){
 }
 
 /* cfunc cbf_write_widefile   pyfunc write_widefile  
-   arg cbf_handle handle    arg FILE *file    arg int readable    arg int ciforcbf    arg int headers    arg int encoding */
+   arg cbf_handle handle    arg FILE *file    arg int readable    arg int ciforcbf    arg int flags    arg int encoding */
 
      void write_widefile(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
@@ -2907,14 +3228,14 @@ SEE ALSO
       return result;}
 
 /* cfunc cbf_require_datablock   pyfunc require_datablock  
-   arg cbf_handle handle    arg const char    *datablockname */
+   arg cbf_handle handle    arg const char *datablockname */
 
 %feature("autodoc", "
 Returns : string
 *args   : 
 
 C prototype: int cbf_require_datablock (cbf_handle handle,
-                 const char    *datablockname);
+                 const char *datablockname);
 
 CBFLib documentation:
 DESCRIPTION
@@ -2937,7 +3258,7 @@ Returns :
           int elsigned,int elements
 
 C prototype: int cbf_set_integerarray (cbf_handle handle,
-                 unsigned int compression,    int binary_id, void *array,
+                 unsigned int compression, int binary_id, void *array,
                  size_t elsize, int elsigned, size_t    elements);
 
 CBFLib documentation:
@@ -2950,20 +3271,23 @@ binary section identifier. cbf_set_realarray sets the binary value of
 the item at the current column and row to an integer array. The array 
 consists of elements elements of elsize bytes each, starting at 
 array. binary_id is the binary section identifier.
-The cbf_set_integerarray_wdims and cbf_set_realarray_wdims allow the 
-data header values of byteorder, dim1, dim2, dim3 and padding to be 
-set to the data byte order, the fastest, second fastest and third 
-fastest array dimensions and the size in byte of the post data 
-padding to be used.
+The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+allow the data header values of byteorder, dimfast, dimmid, dimslow 
+and padding to be set to the data byte order, the fastest, second 
+fastest and third fastest array dimensions and the size in byte of 
+the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-  CCP4-style packing (section 3.3.2) CBF_PACKED_V2   CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple 
-\"byte_offset\" compression. CBF_NONE   No compression. NOTE: This 
-scheme is by far the slowest of the four and uses much more disk 
-space. It is intended for routine use with small arrays only. With 
-large arrays (like images) it should be used only for debugging.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+ CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+Simple  \"byte_offset \" compression. CBF_NONE          No 
+compression. NOTE: This scheme is by far the slowest of the four and 
+uses much more disk space. It is intended for routine use with small 
+arrays only. With large arrays (like images) it should be used only 
+for debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -3024,8 +3348,8 @@ Returns :
           int timezone,Float precision
 
 C prototype: int cbf_set_datestamp (cbf_handle handle, unsigned int reserved,
-                 int    year, int month, int day, int hour, int minute,
-                 double second, int    timezone, double precision);
+                 int year, int month, int day, int hour, int minute,
+                 double second,      int timezone, double precision);
 
 CBFLib documentation:
 DESCRIPTION
@@ -3043,8 +3367,8 @@ invalid. time      Timestamp in seconds since January 1 1970.
 timezone  Timezone difference from UTC in minutes or CBF_NOTIMEZONE. 
 precision Timestamp precision in seconds.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_datestamp;
 
    void set_datestamp(int year, int month, int day, int hour, 
@@ -3084,7 +3408,7 @@ Returns :
 *args   : String categoryname,String categoryroot
 
 C prototype: int cbf_set_category_root (cbf_handle handle,
-                 const char*    categoryname_in, const char*categoryroot);
+                 const char* categoryname_in, const char*categoryroot);
 
 CBFLib documentation:
 DESCRIPTION
@@ -3101,13 +3425,19 @@ handle            CBF handle. categoryname      category name which
 may be an alias. categoryroot      pointer to a returned category 
 root name. categoryroot_in   input category root name.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")set_category_root;
 
 void  set_category_root(const char* categoryname, const char* categoryroot){
    cbf_failnez(cbf_set_category_root(self,categoryname,categoryroot));
 }
+
+/* cfunc cbf_set_pixel_size_fs   pyfunc set_pixel_size_fs  
+   arg cbf_handle handle    arg unsigned int element_number    arg int axis_number    arg double psize */
+
+     void set_pixel_size_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 
 /* cfunc cbf_insert_row   pyfunc insert_row  
    arg cbf_handle handle    arg unsigned int rownumber */
@@ -3160,7 +3490,7 @@ SEE ALSO
       cbf_failnez(cbf_new_column(self,arg));}
 
 /* cfunc cbf_get_real_3d_image   pyfunc get_real_3d_image  
-   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg size_t ndim1    arg size_t ndim2    arg size_t ndim3 */
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg size_t      ndimslow    arg size_t ndimmid    arg size_t ndimfast */
 
      void get_real_3d_image(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
@@ -3169,7 +3499,7 @@ Returns : Float time
 *args   : 
 
 C prototype: int cbf_get_integration_time (cbf_handle handle,
-                 unsigned int    reserved, double *time);
+                 unsigned int reserved, double *time);
 
 CBFLib documentation:
 DESCRIPTION
@@ -3180,8 +3510,8 @@ ARGUMENTS
 handle     CBF handle. reserved   Unused. Any value other than 0 is 
 invalid. time       Pointer to the destination time.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_integration_time;
 
 %apply double *OUTPUT {double *time} get_integration_time;
@@ -3201,12 +3531,12 @@ Returns : String
 *args   : Integer element_number
 
 C prototype: int cbf_get_element_id (cbf_handle handle,
-                 unsigned int    element_number, const char **element_id);
+                 unsigned int element_number, const char **element_id);
 
 CBFLib documentation:
 DESCRIPTION
 cbf_get_element_id sets *element_id to point to the ASCII value of 
-the element_number th \"diffrn_data_frame.detector_element_id\" 
+the element_number'th  \"diffrn_data_frame.detector_element_id \" 
 entry, counting from 0.
 If the detector element does not exist, the function returns 
 CBF_NOTFOUND.
@@ -3214,13 +3544,13 @@ The element_id will be valid as long as the item exists and has not
 been set to a new value.
 The element_id must not be modified by the program in any way.
 ARGUMENTS
-handle   CBF handle. element_number   The number of the detector 
-element counting from 0 by order of appearance in the 
-\"diffrn_data_frame\" category. element_id   Pointer to the 
+handle           CBF handle. element_number   The number of the 
+detector element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. element_id       Pointer to the 
 destination.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_element_id;
 
    const char * get_element_id(unsigned int element_number){
@@ -3228,6 +3558,18 @@ _________________________________________________________________
        cbf_failnez(cbf_get_element_id (self, element_number, &result));
        return result;
        }
+
+/* cfunc cbf_get_image_sf   pyfunc get_image_sf  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg void *array    arg size_t elsize    arg int elsign    arg size_t ndimslow    arg size_t ndimfast */
+
+     void get_image_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
+/* cfunc cbf_get_3d_image_size_fs   pyfunc get_3d_image_size_fs  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg size_t *ndimfast    arg size_t      *ndimmid    arg size_t *ndimslow */
+
+     void get_3d_image_size_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 
 /* cfunc cbf_set_value   pyfunc set_value  
    arg cbf_handle handle    arg const char *value */
@@ -3243,8 +3585,7 @@ DESCRIPTION
 cbf_set_value sets the item at the current column and row to the 
 ASCII value value.
 ARGUMENTS
-handle         CBF handle. value          ASCII value. defaultvalue   
-default ASCII value.
+handle   CBF handle. value    ASCII value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
@@ -3252,11 +3593,40 @@ SEE ALSO
     void set_value(const char* arg){
       cbf_failnez(cbf_set_value(self,arg));}
 %feature("autodoc", "
+Returns : 
+*args   : Integer timezone
+
+C prototype: int cbf_set_current_timestamp (cbf_handle handle,
+                 unsigned int reserved, int timezone);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_set_current_timestamp sets the collection timestamp to the 
+current time. The timezone difference from UTC in minutes is set to 
+timezone. If no timezone is desired, timezone should be 
+CBF_NOTIMEZONE. If no timezone is used, the timest amp will be UTC. 
+The parameter reserved is presently unused and should be set to 0.
+The new timestamp will have a precision of 1 second.
+ARGUMENTS
+handle     CBF handle. reserved   Unused.   Any value other than 0 is 
+invalid. timezone   Timezone difference from UTC in minutes or 
+CBF_NOTIMEZONE.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+
+")set_current_timestamp;
+
+    void set_current_timestamp(int timezone){
+        unsigned int reserved;
+        reserved = 0; 
+        cbf_failnez(cbf_set_current_timestamp(self,reserved,timezone));
+        }
+%feature("autodoc", "
 Returns : Float Number
 *args   : Float Default
 
 C prototype: int cbf_require_doublevalue (cbf_handle handle, double *number,
-                 double    defaultvalue);
+                 double defaultvalue);
 
 CBFLib documentation:
 DESCRIPTION
@@ -3307,7 +3677,7 @@ Returns : String Name
 *args   : String columnnanme,String Default
 
 C prototype: int cbf_require_column_value (cbf_handle handle,
-                 const char    *columnname, const char **value,
+                 const char *columnname, const char **value,
                  const char *defaultvalue);
 
 CBFLib documentation:
@@ -3316,10 +3686,10 @@ cbf_require_column_doublevalue sets *value to the ASCII item at the
 current row for the column given with the name given by *columnname, 
 or to the string given by defaultvalue if the item cannot be found.
 ARGUMENTS
-handle   CBF handle. columnname   Name of the column containing the 
-number. value   pointer to the location to receive the value. 
-defaultvalue   Value to use if the requested column and value cannot 
-be found.
+handle         CBF handle. columnname     Name of the column 
+containing the number. value          pointer to the location to 
+receive the value. defaultvalue   Value to use if the requested 
+column and value cannot be found.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
@@ -3332,33 +3702,35 @@ SEE ALSO
                                     &result,defaultvalue));
    return result;
 }
-
-/* cfunc cbf_find_datablock   pyfunc find_datablock  
-   arg cbf_handle handle    arg const char *datablockname */
-
 %feature("autodoc", "
-Returns : string
+Returns : CBFHandle dictionary
 *args   : 
 
-C prototype: int cbf_find_datablock (cbf_handle handle,
-                 const char *datablockname);
+C prototype: int cbf_get_dictionary (cbf_handle handle,
+                 cbf_handle * dictionary);
 
 CBFLib documentation:
 DESCRIPTION
-cbf_find_datablock makes the data block with name datablockname the 
-current data block.
-The comparison is case-insensitive.
-If the data block does not exist, the function returns CBF_NOTFOUND.
-The current category becomes undefined.
+cbf_get_dictionary sets *dictionary to the handle of a CBF which has 
+been associated with the CBF handle by cbf_set_dictionary. 
+cbf_set_dictionary associates the CBF handle dictionary_in with 
+handle as its dictionary. cbf_require_dictionary sets *dictionary to 
+the handle of a CBF which has been associated with the CBF handle by 
+cbf_set_dictionary or creates a new empty CBF and associates it with 
+handle, returning the new handle in *dictionary.
 ARGUMENTS
-handle          CBF handle. datablockname   The name of the data 
-block to find.
+handle          CBF handle. dictionary      Pointer to CBF handle of 
+dictionary. dictionary_in   CBF handle of dcitionary.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
-SEE ALSO
-")find_datablock;
-    void find_datablock(const char* arg){
-      cbf_failnez(cbf_find_datablock(self,arg));}
+
+")get_dictionary;
+
+cbf_handle get_dictionary(){
+   cbf_handle temp;
+   cbf_failnez(cbf_get_dictionary(self,&temp));
+   return temp;
+}
 
 /* cfunc cbf_reset_saveframe   pyfunc reset_saveframe  
    arg cbf_handle handle */
@@ -3382,12 +3754,24 @@ SEE ALSO
 ")reset_saveframe;
     void reset_saveframe(void){
       cbf_failnez(cbf_reset_saveframe(self));}
+
+/* cfunc cbf_set_reciprocal_cell   pyfunc set_reciprocal_cell  
+   arg cbf_handle handle    arg double cell[6]    arg double cell_esd[6] */
+
+     void set_reciprocal_cell(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
+/* cfunc cbf_set_real_3d_image_fs   pyfunc set_real_3d_image_fs  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void      *array    arg size_t elsize    arg size_t ndimfast    arg size_t ndimmid    arg size_t ndimslow */
+
+     void set_real_3d_image_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 %feature("autodoc", "
 Returns : 
 *args   : String format,Float number
 
 C prototype: int cbf_set_doublevalue (cbf_handle handle, const char *format,
-                 double    number);
+                 double number);
 
 CBFLib documentation:
 DESCRIPTION
@@ -3431,12 +3815,24 @@ SEE ALSO
 ")find_category;
     void find_category(const char* arg){
       cbf_failnez(cbf_find_category(self,arg));}
+
+/* cfunc cbf_get_integerarrayparameters_wdims_fs   pyfunc get_integerarrayparameters_wdims_fs  
+   arg cbf_handle handle    arg unsigned int *compression    arg int *binary_id    arg size_t *elsize    arg int    *elsigned    arg int *elunsigned    arg size_t *elements    arg int *minelement    arg int *maxelement    arg const char **byteorder    arg size_t *dimfast    arg size_t    *dimmid    arg size_t *dimslow    arg size_t *padding */
+
+     void get_integerarrayparameters_wdims_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
+/* cfunc cbf_set_realarray_wdims_fs   pyfunc set_realarray_wdims_fs  
+   arg cbf_handle handle    arg unsigned int compression    arg int binary_id    arg void *array    arg size_t elsize    arg size_t    elements    arg const char *byteorder    arg size_t dimfast    arg size_t dimmid    arg size_t dimslow    arg size_t padding */
+
+     void set_realarray_wdims_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
 %feature("autodoc", "
 Returns : String categoryroot
 *args   : String categoryname
 
 C prototype: int cbf_find_category_root (cbf_handle handle,
-                 const char*    categoryname, const char** categoryroot);
+                 const char* categoryname, const char** categoryroot);
 
 CBFLib documentation:
 DESCRIPTION
@@ -3453,8 +3849,8 @@ handle            CBF handle. categoryname      category name which
 may be an alias. categoryroot      pointer to a returned category 
 root name. categoryroot_in   input category root name.
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")find_category_root;
 
 const char*  find_category_root(const char* categoryname){
@@ -3463,8 +3859,20 @@ const char*  find_category_root(const char* categoryname){
    return result;
 }
 
+/* cfunc cbf_set_integerarray_wdims_fs   pyfunc set_integerarray_wdims_fs  
+   arg cbf_handle handle    arg unsigned int compression    arg int binary_id    arg void *array    arg size_t elsize    arg int    elsigned    arg size_t elements    arg const char *byteorder    arg size_t dimfast    arg size_t dimmid    arg size_t dimslow    arg size_t padding */
+
+     void set_integerarray_wdims_fs(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
+/* cfunc cbf_set_image_sf   pyfunc set_image_sf  
+   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg unsigned int compression    arg void *array    arg size_t elsize    arg int elsign    arg size_t ndimslow    arg size_t ndimfast */
+
+     void set_image_sf(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
 /* cfunc cbf_set_unit_cell   pyfunc set_unit_cell  
-   arg cbf_handle handle    arg double cell[6]    arg double    cell_esd[6] */
+   arg cbf_handle handle    arg double cell[6]    arg double cell_esd[6] */
 
      void set_unit_cell(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}

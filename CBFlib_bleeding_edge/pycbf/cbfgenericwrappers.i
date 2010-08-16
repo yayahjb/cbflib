@@ -21,16 +21,16 @@ cbf_get_local_real_format returns the format of floats on the machine
 on which the API is being run in the form of a character string 
 returned as the value pointed to by real_format. The strings returned 
 must not be modified in any way.
-The values returned in byte_order may be the strings 
-\"little_endian\" or \"big-endian\". The values returned in 
-real_format may be the strings \"ieee 754-1985\" or \"other\". 
-Additional values may be returned by future versions of the API.
+The values returned in byte_order may be the strings  \"little_endian 
+\" or  \"big-endian \". The values returned in real_format may be the 
+strings  \"ieee 754-1985 \" or  \"other \". Additional values may be 
+returned by future versions of the API.
 ARGUMENTS
 byte_order    pointer to the returned string real_format   pointer to 
 the returned string
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_local_integer_byte_order;
 %inline %{
    char* get_local_integer_byte_order(void);
@@ -65,16 +65,16 @@ cbf_get_local_real_format returns the format of floats on the machine
 on which the API is being run in the form of a character string 
 returned as the value pointed to by real_format. The strings returned 
 must not be modified in any way.
-The values returned in byte_order may be the strings 
-\"little_endian\" or \"big-endian\". The values returned in 
-real_format may be the strings \"ieee 754-1985\" or \"other\". 
-Additional values may be returned by future versions of the API.
+The values returned in byte_order may be the strings  \"little_endian 
+\" or  \"big-endian \". The values returned in real_format may be the 
+strings  \"ieee 754-1985 \" or  \"other \". Additional values may be 
+returned by future versions of the API.
 ARGUMENTS
 byte_order    pointer to the returned string real_format   pointer to 
 the returned string
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_local_real_format;
 %inline %{
    char* get_local_real_format(void);
@@ -105,16 +105,16 @@ cbf_get_local_real_format returns the format of floats on the machine
 on which the API is being run in the form of a character string 
 returned as the value pointed to by real_format. The strings returned 
 must not be modified in any way.
-The values returned in byte_order may be the strings 
-\"little_endian\" or \"big-endian\". The values returned in 
-real_format may be the strings \"ieee 754-1985\" or \"other\". 
-Additional values may be returned by future versions of the API.
+The values returned in byte_order may be the strings  \"little_endian 
+\" or  \"big-endian \". The values returned in real_format may be the 
+strings  \"ieee 754-1985 \" or  \"other \". Additional values may be 
+returned by future versions of the API.
 ARGUMENTS
 byte_order    pointer to the returned string real_format   pointer to 
 the returned string
 RETURN VALUE
-Returns an error code on failure or 0 for success. 
-_________________________________________________________________
+Returns an error code on failure or 0 for success.
+
 ")get_local_real_byte_order;
 %inline %{
    char* get_local_real_byte_order(void);
