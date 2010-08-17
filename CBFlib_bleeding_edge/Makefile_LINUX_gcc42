@@ -336,9 +336,20 @@ DIFF = diff -u -b
 
 
 #
+# Program to generate wrapper classes for Python
+#
+PYSWIG = swig -python
+
+#
 # Program to generate wrapper classes for Java
 #
-SWIG = swig -java
+JSWIG = swig -java
+
+#
+# Program to generate LaTex and HTML program documentation
+#
+
+NUWEB = nuweb
 
 #
 # Compiler for Java
@@ -457,125 +468,125 @@ COMMONDEP = Makefile
 # Source files
 #
 SOURCE   =  $(SRC)/cbf.c               \
-		    $(SRC)/cbf_alloc.c         \
-		    $(SRC)/cbf_ascii.c         \
-		    $(SRC)/cbf_binary.c        \
-		    $(SRC)/cbf_byte_offset.c   \
-		    $(SRC)/cbf_canonical.c     \
-		    $(SRC)/cbf_codes.c         \
-		    $(SRC)/cbf_compress.c      \
-		    $(SRC)/cbf_context.c       \
-		    $(SRC)/cbf_copy.c          \
-		    $(SRC)/cbf_file.c          \
-		    $(SRC)/cbf_getopt.c        \
-		    $(SRC)/cbf_lex.c           \
-		    $(SRC)/cbf_packed.c        \
-		    $(SRC)/cbf_predictor.c     \
-		    $(SRC)/cbf_read_binary.c   \
-		    $(SRC)/cbf_read_mime.c     \
-		    $(SRC)/cbf_simple.c        \
-		    $(SRC)/cbf_string.c        \
-		    $(SRC)/cbf_stx.c           \
-		    $(SRC)/cbf_tree.c          \
-		    $(SRC)/cbf_uncompressed.c  \
-		    $(SRC)/cbf_write.c         \
-		    $(SRC)/cbf_write_binary.c  \
-		    $(SRC)/cbf_ws.c            \
-		    $(SRC)/md5c.c
-		    
-PYSOURCE  = $(SRC)/drel_lex.py	       \
-			$(SRC)/drel_yacc.py	       \
+			$(SRC)/cbf_alloc.c         \
+			$(SRC)/cbf_ascii.c         \
+			$(SRC)/cbf_binary.c        \
+			$(SRC)/cbf_byte_offset.c   \
+			$(SRC)/cbf_canonical.c     \
+			$(SRC)/cbf_codes.c         \
+			$(SRC)/cbf_compress.c      \
+			$(SRC)/cbf_context.c       \
+			$(SRC)/cbf_copy.c          \
+			$(SRC)/cbf_file.c          \
+			$(SRC)/cbf_getopt.c        \
+			$(SRC)/cbf_lex.c           \
+			$(SRC)/cbf_packed.c        \
+			$(SRC)/cbf_predictor.c     \
+			$(SRC)/cbf_read_binary.c   \
+			$(SRC)/cbf_read_mime.c     \
+			$(SRC)/cbf_simple.c        \
+			$(SRC)/cbf_string.c        \
+			$(SRC)/cbf_stx.c           \
+			$(SRC)/cbf_tree.c          \
+			$(SRC)/cbf_uncompressed.c  \
+			$(SRC)/cbf_write.c         \
+			$(SRC)/cbf_write_binary.c  \
+			$(SRC)/cbf_ws.c            \
+			$(SRC)/md5c.c
+			
+PYSOURCE  = $(SRC)/drel_lex.py		   \
+			$(SRC)/drel_yacc.py		   \
 			$(SRC)/drelc.py \
 			$(SRC)/drel_prep.py
 
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
-		    $(SRC)/fcb_ci_strncmparr.f90 \
-		    $(SRC)/fcb_exit_binary.f90   \
-		    $(SRC)/fcb_nblen_array.f90   \
-		    $(SRC)/fcb_next_binary.f90   \
-		    $(SRC)/fcb_open_cifin.f90    \
-		    $(SRC)/fcb_packed.f90        \
-		    $(SRC)/fcb_read_bits.f90     \
-		    $(SRC)/fcb_read_byte.f90     \
-		    $(SRC)/fcb_read_image.f90    \
-		    $(SRC)/fcb_read_line.f90     \
-		    $(SRC)/fcb_read_xds_i2.f90   \
-		    $(SRC)/fcb_skip_whitespace.f90 \
-		    $(EXAMPLES)/test_fcb_read_image.f90 \
-		    $(EXAMPLES)/test_xds_binary.f90
-		    
+			$(SRC)/fcb_ci_strncmparr.f90 \
+			$(SRC)/fcb_exit_binary.f90   \
+			$(SRC)/fcb_nblen_array.f90   \
+			$(SRC)/fcb_next_binary.f90   \
+			$(SRC)/fcb_open_cifin.f90    \
+			$(SRC)/fcb_packed.f90        \
+			$(SRC)/fcb_read_bits.f90     \
+			$(SRC)/fcb_read_byte.f90     \
+			$(SRC)/fcb_read_image.f90    \
+			$(SRC)/fcb_read_line.f90     \
+			$(SRC)/fcb_read_xds_i2.f90   \
+			$(SRC)/fcb_skip_whitespace.f90 \
+			$(EXAMPLES)/test_fcb_read_image.f90 \
+			$(EXAMPLES)/test_xds_binary.f90
+			
 		   
 #
 # Header files
 #
 HEADERS   =  $(INCLUDE)/cbf.h                  \
-		     $(INCLUDE)/cbf_alloc.h            \
-		     $(INCLUDE)/cbf_ascii.h            \
-		     $(INCLUDE)/cbf_binary.h           \
-		     $(INCLUDE)/cbf_byte_offset.h      \
-		     $(INCLUDE)/cbf_canonical.h        \
-		     $(INCLUDE)/cbf_codes.h            \
-		     $(INCLUDE)/cbf_compress.h         \
-		     $(INCLUDE)/cbf_context.h          \
-		     $(INCLUDE)/cbf_copy.h             \
-		     $(INCLUDE)/cbf_file.h             \
-		     $(INCLUDE)/cbf_getopt.h           \
-		     $(INCLUDE)/cbf_lex.h              \
-		     $(INCLUDE)/cbf_packed.h           \
-		     $(INCLUDE)/cbf_predictor.h        \
-		     $(INCLUDE)/cbf_read_binary.h      \
-		     $(INCLUDE)/cbf_read_mime.h        \
-		     $(INCLUDE)/cbf_simple.h           \
-		     $(INCLUDE)/cbf_string.h           \
-		     $(INCLUDE)/cbf_stx.h              \
-		     $(INCLUDE)/cbf_tree.h             \
-		     $(INCLUDE)/cbf_uncompressed.h     \
-		     $(INCLUDE)/cbf_write.h            \
-		     $(INCLUDE)/cbf_write_binary.h     \
-		     $(INCLUDE)/cbf_ws.h               \
-		     $(INCLUDE)/global.h               \
-		     $(INCLUDE)/cbff.h                 \
-		     $(INCLUDE)/md5.h
+			 $(INCLUDE)/cbf_alloc.h            \
+			 $(INCLUDE)/cbf_ascii.h            \
+			 $(INCLUDE)/cbf_binary.h           \
+			 $(INCLUDE)/cbf_byte_offset.h      \
+			 $(INCLUDE)/cbf_canonical.h        \
+			 $(INCLUDE)/cbf_codes.h            \
+			 $(INCLUDE)/cbf_compress.h         \
+			 $(INCLUDE)/cbf_context.h          \
+			 $(INCLUDE)/cbf_copy.h             \
+			 $(INCLUDE)/cbf_file.h             \
+			 $(INCLUDE)/cbf_getopt.h           \
+			 $(INCLUDE)/cbf_lex.h              \
+			 $(INCLUDE)/cbf_packed.h           \
+			 $(INCLUDE)/cbf_predictor.h        \
+			 $(INCLUDE)/cbf_read_binary.h      \
+			 $(INCLUDE)/cbf_read_mime.h        \
+			 $(INCLUDE)/cbf_simple.h           \
+			 $(INCLUDE)/cbf_string.h           \
+			 $(INCLUDE)/cbf_stx.h              \
+			 $(INCLUDE)/cbf_tree.h             \
+			 $(INCLUDE)/cbf_uncompressed.h     \
+			 $(INCLUDE)/cbf_write.h            \
+			 $(INCLUDE)/cbf_write_binary.h     \
+			 $(INCLUDE)/cbf_ws.h               \
+			 $(INCLUDE)/global.h               \
+			 $(INCLUDE)/cbff.h                 \
+			 $(INCLUDE)/md5.h
 
 #
 # m4 macro files
 #
 M4FILES   = $(M4)/fcblib_defines.m4            \
-		    $(M4)/fcb_exit_binary.m4           \
-		    $(M4)/fcb_next_binary.m4           \
-		    $(M4)/fcb_open_cifin.m4            \
-		    $(M4)/fcb_packed.m4                \
-		    $(M4)/fcb_read_bits.m4             \
-		    $(M4)/fcb_read_image.m4            \
-		    $(M4)/fcb_read_xds_i2.m4           \
-		    $(M4)/test_fcb_read_image.m4       \
-		    $(M4)/test_xds_binary.m4
+			$(M4)/fcb_exit_binary.m4           \
+			$(M4)/fcb_next_binary.m4           \
+			$(M4)/fcb_open_cifin.m4            \
+			$(M4)/fcb_packed.m4                \
+			$(M4)/fcb_read_bits.m4             \
+			$(M4)/fcb_read_image.m4            \
+			$(M4)/fcb_read_xds_i2.m4           \
+			$(M4)/test_fcb_read_image.m4       \
+			$(M4)/test_xds_binary.m4
 
 
 #
 # Documentation files
 #
 DOCUMENTS = $(DOC)/CBFlib.html                   \
-		    $(DOC)/CBFlib.txt                   \
-		    $(DOC)/CBFlib_NOTICES.html          \
-		    $(DOC)/CBFlib_NOTICES.txt           \
-		    $(DOC)/ChangeLog                    \
-		    $(DOC)/ChangeLog.html               \
-		    $(DOC)/MANIFEST                     \
-		    $(DOC)/gpl.txt $(DOC)/lgpl.txt
+			$(DOC)/CBFlib.txt                   \
+			$(DOC)/CBFlib_NOTICES.html          \
+			$(DOC)/CBFlib_NOTICES.txt           \
+			$(DOC)/ChangeLog                    \
+			$(DOC)/ChangeLog.html               \
+			$(DOC)/MANIFEST                     \
+			$(DOC)/gpl.txt $(DOC)/lgpl.txt
 
 #
 # HTML Graphics files
 #
 JPEGS     = $(GRAPHICS)/CBFbackground.jpg      \
-		    $(GRAPHICS)/CBFbig.jpg             \
-		    $(GRAPHICS)/CBFbutton.jpg          \
-		    $(GRAPHICS)/cbflibbackground.jpg   \
-		    $(GRAPHICS)/cbflibbig.jpg          \
-		    $(GRAPHICS)/cbflibbutton.jpg       \
-		    $(GRAPHICS)/cifhome.jpg            \
-		    $(GRAPHICS)/iucrhome.jpg           \
-		    $(GRAPHICS)/noticeButton.jpg
+			$(GRAPHICS)/CBFbig.jpg             \
+			$(GRAPHICS)/CBFbutton.jpg          \
+			$(GRAPHICS)/cbflibbackground.jpg   \
+			$(GRAPHICS)/cbflibbig.jpg          \
+			$(GRAPHICS)/cbflibbutton.jpg       \
+			$(GRAPHICS)/cifhome.jpg            \
+			$(GRAPHICS)/iucrhome.jpg           \
+			$(GRAPHICS)/noticeButton.jpg
 
 
 #
@@ -756,8 +767,8 @@ symlinksdone:
 	touch symlinksdone
 
 install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
-		    $(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib \
-		    $(PYSOURCE)
+			$(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib \
+			$(PYSOURCE)
 		-chmod -R 755 $(INSTALLDIR)/include/cbflib
 		-chmod 755 $(INSTALLDIR)/lib/libcbf.a
 		-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
@@ -955,20 +966,42 @@ endif
 # Python bindings
 #
 $(PYCBF)/_pycbf.so: $(PYCBF)  $(LIB)/libcbf.a          \
-                              $(LIB)/libfcb.a          \
-                              $(LIB)/libimg.a
+			                  $(LIB)/libfcb.a          \
+			                  $(LIB)/libimg.a          \
+			                  $(PYCBF)/pycbf.i         \
+			                  $(PYCBF)/cbfhandlewrappers.i   \
+			                  $(PYCBF)/cbfdetectorwrappers.i \
+			                  $(PYCBF)/cbfgenericwrappers.i  \
+			                  $(PYCBF)/cbfgoniometerwrappers.i
 	(cd $(PYCBF); python setup.py build; cp build/lib.*/_pycbf.so .) 
 
 
 $(LIB)/_pycbf.so: $(PYCBF)/_pycbf.so
 	cp $(PYCBF)/_pycbf.so $(LIB)/_pycbf.so
+	
+$(PYCBF)/pycbf.pdf: $(PYCBF)/pycbf.w
+	(cd $(PYCBF); \
+	$(NUWEB) pycbf; \
+	latex pycbf; \
+	$(NUWEB) pycbf; \
+	latex pycbf; \
+	dvipdfm pycbf )
+	
+$(PYCBF)/CBFlib.txt: $(DOC)/CBFlib.html
+	links -dump $(DOC)/CBFlib.html > $(PYCBF)/CBFlib.txt
+
+$(PYCBF)/cbfhandlewrappers.i   \
+$(PYCBF)/cbfdetectorwrappers.i \
+$(PYCBF)/cbfgenericwrappers.i  \
+$(PYCBF)/cbfgoniometerwrappers.i:  $(PYCBF)/CBFlib.txt $(PYCBF)/make_pycbf.py
+	(cd $(PYCBF);  python make_pycbf.py; $(PYSWIG) pycbf.i; python setup.py build)
 
 
 #
 # Java bindings
 #
 $(JAVADIR)/cbflib-$(VERSION).jar: $(SRC)/cbf.i $(JAVADIR)
-	$(SWIG) -I$(INCLUDE) -package org.iucr.cbflib -outdir $(JAVADIR) $(SRC)/cbf.i
+	$(JSWIG) -I$(INCLUDE) -package org.iucr.cbflib -outdir $(JAVADIR) $(SRC)/cbf.i
 	$(JAVAC) -d . $(JAVADIR)/*.java
 	$(JAR) cf $@ org
 
@@ -1005,7 +1038,7 @@ $(EXAMPLES)/test_xds_binary.f90: $(M4)/test_xds_binary.m4 $(M4)/fcblib_defines.m
 $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c \
 					$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
+			  $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 #
 # convert_minicbf example program
@@ -1013,7 +1046,7 @@ $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/im
 $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
 					$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/convert_minicbf.c $(GOPTLIB) -L$(LIB) \
+			  $(EXAMPLES)/convert_minicbf.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
 #
@@ -1021,7 +1054,7 @@ $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
 #
 $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/makecbf.c  -L$(LIB) \
+			  $(EXAMPLES)/makecbf.c  -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -limg -o $@
 
 
@@ -1030,7 +1063,7 @@ $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 #
 $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c
 	$(CC) $(CFLAGS) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c  -L$(LIB) \
+			  $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c  -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
 #
@@ -1038,7 +1071,7 @@ $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscim
 #
 $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c
 	$(CC) $(CFLAGS) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c  -L$(LIB) \
+			  $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c  -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
 #
@@ -1047,7 +1080,7 @@ $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2ad
 $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 					$(GOPTLIB) 	$(GOTPINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/img2cif.c $(GOPTLIB) -L$(LIB) \
+			  $(EXAMPLES)/img2cif.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -limg -o $@
 
 #
@@ -1056,7 +1089,7 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 					$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
+			  $(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -limg -o $@
 #
 # dectris cbf_template_t program
@@ -1072,7 +1105,7 @@ $(BIN)/cbf_template_t: $(DECTRIS_EXAMPLES)/cbf_template_t.c \
 #
 $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
 	$(C++) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/testcell.C -L$(LIB) \
+			  $(EXAMPLES)/testcell.C -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
 #
@@ -1080,7 +1113,7 @@ $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
 #
 $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
 	$(C++) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/cif2c.c -L$(LIB) \
+			  $(EXAMPLES)/cif2c.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
 #
@@ -1088,7 +1121,7 @@ $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
 #
 $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
 	$(C++) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/sauter_test.C -L$(LIB) \
+			  $(EXAMPLES)/sauter_test.C -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
 #
@@ -1097,7 +1130,7 @@ $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
 $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libimg.a \
 					$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
+			  $(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -limg -o $@
 
 #
@@ -1106,7 +1139,7 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
 					$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/arvai_test.c $(GOPTLIB) -L$(LIB) \
+			  $(EXAMPLES)/arvai_test.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -limg -o $@
 
 #
@@ -1114,7 +1147,7 @@ $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
 #
 $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/testreals.c -L$(LIB) \
+			  $(EXAMPLES)/testreals.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
 #
@@ -1122,14 +1155,14 @@ $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
 #
 $(BIN)/testflat: $(LIB)/libcbf.a $(EXAMPLES)/testflat.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/testflat.c -L$(LIB) \
+			  $(EXAMPLES)/testflat.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 #
 # testflatpacked example program
 #
 $(BIN)/testflatpacked: $(LIB)/libcbf.a $(EXAMPLES)/testflatpacked.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/testflatpacked.c -L$(LIB) \
+			  $(EXAMPLES)/testflatpacked.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
 ifneq ($(F90C),)
@@ -1153,7 +1186,7 @@ endif
 #
 $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-		      $(EXAMPLES)/testcbf.c -L$(LIB) \
+			  $(EXAMPLES)/testcbf.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
 #

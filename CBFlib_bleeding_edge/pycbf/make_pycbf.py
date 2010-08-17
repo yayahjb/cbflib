@@ -70,7 +70,7 @@ while i<len(lines)-1:
                 cname = name.split()[1].strip()
                 prototype = prototype.strip()+";"
                 name_dict[cname]=[prototype,docstring]
-                # print "Prototype: ",name, cname, prototype
+                # print "Prototype: ","::",cname,"::",name,"::", prototype
             prototypes = ""
             # print "Found ",prototype
             docstring="\n"
@@ -257,7 +257,44 @@ cbfhandle_specials = {
         }
 ""","get_image_size",["Integer element_number"],["size_t ndim1","size_t ndim2"]],
 
+"cbf_get_3d_image_size": ["""
+%apply int *OUTPUT {int *ndimslow, int *ndimmid, int *ndimfast} get_3d_image_size;
+     void get_3d_image_size(unsigned int element_number, int *ndimslow, int *ndimmid, int *ndimfast){
+        unsigned int reserved;
+        size_t inslow, inmid, infast;
+        reserved = 0;
+        cbf_failnez(cbf_get_3d_image_size(self,reserved,element_number,&inslow,&inmid,&infast));
+        *ndimslow = (int)inslow; /* FIXME - is that how to convert? */
+        *ndimmid = (int)inmid; 
+        *ndimfast = (int)infast;
+        }
+""","get_3d_image_size",["Integer element_number"],["size_t ndimslow","size_t ndimmid","size_t ndimfast"]],
 
+"cbf_get_3d_image_size_fs": ["""
+%apply int *OUTPUT {int *ndimslow, int *ndimmid, int *ndimfast} get_3d_image_size;
+     void get_3d_image_size_fs(unsigned int element_number, int *ndimfast, int *ndimmid, int *ndimslow){
+        unsigned int reserved;
+        size_t inslow, inmid, infast;
+        reserved = 0;
+        cbf_failnez(cbf_get_3d_image_size_fs(self,reserved,element_number,&infast,&inmid,&inslow));
+        *ndimslow = (int)inslow; /* FIXME - is that how to convert? */
+        *ndimmid = (int)inmid; 
+        *ndimfast = (int)infast;
+        }
+""","get_3d_image_size",["Integer element_number"],["size_t ndimfast","size_t ndimmid","size_t ndimslow"]],
+
+"cbf_get_3d_image_size_sf": ["""
+%apply int *OUTPUT {int *ndimslow, int *ndimmid, int *ndimfast} get_3d_image_size_sf;
+     void get_3d_image_size_sf(unsigned int element_number, int *ndimslow, int *ndimmid, int *ndimfast){
+        unsigned int reserved;
+        size_t inslow, inmid, infast;
+        reserved = 0;
+        cbf_failnez(cbf_get_3d_image_size_sf(self,reserved,element_number,&inslow,&inmid,&infast));
+        *ndimslow = (int)inslow; /* FIXME - is that how to convert? */
+        *ndimmid = (int)inmid; 
+        *ndimfast = (int)infast;
+        }
+""","get_3d_image_size_sf",["Integer element_number"],["size_t ndimslow","size_t ndimmid","size_t ndimfast"]],
 
 "cbf_get_pixel_size" : ["""
 %apply double *OUTPUT {double *psize} get_pixel_size;
@@ -271,6 +308,17 @@ cbfhandle_specials = {
 ""","get_pixel_size",["Int element_number","Int axis_number"],
                      ["Float pixel_size"]] ,
 
+"cbf_get_pixel_size_sf" : ["""
+%apply double *OUTPUT {double *psize} get_pixel_size;
+    void get_pixel_size_sf(unsigned int element_number, 
+                        unsigned int axis_number, double *psize){
+        cbf_failnez(cbf_get_pixel_size_sf(self, 
+                                       element_number, 
+                                       axis_number, 
+                                       psize));
+    }
+""","get_pixel_size_sf",["Int element_number","Int axis_number"],
+                     ["Float pixel_size"]] ,
 
 
 "cbf_set_pixel_size":["""
@@ -306,6 +354,25 @@ cbfhandle_specials = {
 ""","write_file",["String filename","Integer ciforcbf","Integer Headers", 
                   "Integer encoding"],[]],
 
+"cbf_write_widefile" : ["""
+    void write_widefile(const char* filename, int ciforcbf, int headers, 
+                    int encoding){
+       FILE *stream;
+       int readable;
+       /* Make the file non-0 to make CBFlib close the file */
+       readable = 1;
+       if ( ! ( stream = fopen (filename, "w+b")) ){
+         cbf_failnez(CBF_FILEOPEN);
+        }
+        else{
+        cbf_failnez(cbf_write_widefile(self, stream, readable, 
+                    ciforcbf, headers, encoding));
+
+        }
+       }
+""","write_widefile",["String filename","Integer ciforcbf","Integer Headers", 
+                  "Integer encoding"],[]],
+
 
 "cbf_read_template":["""
     void read_template(char* filename){
@@ -335,6 +402,20 @@ cbfhandle_specials = {
     }
        }
 ""","read_file",["String filename","Integer headers"],[]],
+
+"cbf_read_widefile" : ["""
+    void read_widefile(char* filename, int headers){
+       /* CBFlib needs a stream that will remain open 
+          hence DO NOT open from python */
+       FILE *stream;
+       if ( ! ( stream = fopen (filename, "rb")) ){
+         cbf_failnez(CBF_FILEOPEN);
+        }
+        else{
+         cbf_failnez(cbf_read_widefile(self, stream, headers)); 
+    }
+       }
+""","read_widefile",["String filename","Integer headers"],[]],
 
 
 "cbf_set_doublevalue":["""
@@ -620,6 +701,20 @@ double *m7,double *m8){
 ""","get_orientation_matrix",
     [],[ "Float matrix_%d"%(ind) for ind in range(9) ]],
 
+"cbf_get_unit_cell":["""
+   void get_unit_cell(double *cell, double *cell_esd) {
+     cbf_failnez(cbf_get_unit_cell(self,cell,cell_esd));
+   }
+""","get_unit_cell",
+    [],["doubleArray cell", "doubleArray cell_esd"] ],
+
+
+"cbf_set_unit_cell":["""
+   void set_unit_cell(double *cell, double *cell_esd) {
+     cbf_failnez(cbf_set_unit_cell(self,cell,cell_esd));
+   }
+""","set_unit_cell",
+    ["doubleArray cell", "doubleArray cell_esd"],[] ],
 
 "cbf_set_tag_category":["""
    void set_tag_category(const char *tagname, const char* categoryname_in){
@@ -636,7 +731,7 @@ double *m7,double *m8){
      cbf_failnez(cbf_find_tag_category(self,tagname, &result));
      return result;
      }
-""","find_tag_category",["String tagname"],["String categoryname_in"] ],
+""","find_tag_category",["String tagname"],["String categoryname"] ],
 
 
 "cbf_require_tag_root":["""
@@ -703,6 +798,12 @@ double  m7,double  m8){
         }
 ""","set_orientation_matrix",
     [ "Float matrix_%d"%(ind) for ind in range(9) ] ,[]],
+    
+"cbf_set_bin_sizes":["""
+   void set_bin_sizes( int element_number, double slowbinsize_in, double fastbinsize_in) {
+     cbf_failnez(cbf_set_bin_sizes(self,element_number,slowbinsize_in,fastbinsize_in));
+   }
+""","set_bin_sizes",["Integer element_number","Float slowbinsize_in","Float fastbinsize_in"],[] ],
 
 
 # cbfhandle dict functions UNTESTED
@@ -824,6 +925,7 @@ typedef cbf_handle_struct handle;
    def get_code(self):
        return self.code+self.tail
    def wrap(self,cfunc,prototype,args,docstring):
+       # print "cfunc: ", cfunc
        pyfunc = cfunc.replace("cbf_","")
        # Insert a comment for debugging this script
        code = "\n/* cfunc %s   pyfunc %s  \n"%(cfunc,pyfunc)
@@ -853,6 +955,7 @@ typedef cbf_handle_struct handle;
            return
        except KeyError:
            not_found = 1
+           # print "KeyError"
        except ValueError:
            print "problem in",cfunc
            for item in cbfhandle_specials[cfunc]:
@@ -1106,11 +1209,24 @@ cbf_detector_specials = {
              double *coordinate1,   
              double *coordinate2, 
              double *coordinate3){
-      cbf_failnez(cbf_get_pixel_coordinates(self,index1,index2,
-             coordinate1,coordinate2,coordinate3));
+      cbf_failnez(cbf_get_pixel_coordinates(self, index1, index2,
+             coordinate1, coordinate2, coordinate3));
    }
 ""","get_pixel_coordinates",["double index1","double index2"],
 ["double coordinate1", "double coordinate2", "double coordinate3"] ],
+
+"cbf_get_pixel_coordinates_fs":["""
+%apply double *OUTPUT {double *coordinate1,  
+         double *coordinate2, double *coordinate3};
+   void get_pixel_coordinates_fs(double indexfast, double indexslow, 
+             double *coordinate1,   
+             double *coordinate2, 
+             double *coordinate3){
+      cbf_failnez(cbf_get_pixel_coordinates_fs(self, indexfast, indexslow, coordinate1, coordinate2, coordinate3));
+   }
+""","get_pixel_coordinates_fs",["double indexfast","double indexslow"],
+["double coordinate1", "double coordinate2", "double coordinate3"] ],
+
 
 "cbf_get_beam_center":["""
 %apply double *OUTPUT {double *index1, double *index2, 
@@ -1123,6 +1239,24 @@ cbf_detector_specials = {
 ""","get_beam_center",[],
 ["double index1", "double index2", "double center1","double center2"]],
 
+
+"cbf_set_beam_center_fs":["""
+    void set_beam_center_fs(double *indexfast, double *indexslow, 
+                         double *centerfast,double *centerslow){
+        cbf_failnez(cbf_set_beam_center_fs(self, indexfast, indexslow, 
+                                       centerfast, centerslow));
+        }
+""","set_beam_center_fs",
+["double indexfast", "double indexslow", "double centerfast","double centerslow"],[]],
+
+"cbf_set_reference_beam_center_fs":["""
+    void set_reference_beam_center_fs(double *indexfast, double *indexslow, 
+                         double *centerfast,double *centerslow){
+        cbf_failnez(cbf_set_reference_beam_center_fs(self, indexfast, indexslow, 
+                                       centerfast, centerslow));
+        }
+""","set_reference_beam_center_fs",
+["double indexfast", "double indexslow", "double centerfast","double centerslow"],[]],
 
 
 "cbf_get_inferred_pixel_size" : ["""
@@ -1238,6 +1372,7 @@ def generate_wrappers(name_dict):
    for cname in names:
       prototype = name_dict[cname][0]
       docstring = name_dict[cname][1]
+      # print "Generate wrappers: ", "::",cname,"::", prototype,"::", docstring
       # Check prototype begins with "int cbf_"
       if prototype.find("int cbf_")!=0:
          print "problem with:",prototype
@@ -1245,9 +1380,10 @@ def generate_wrappers(name_dict):
       try:
          args = prototype.split("(")[1].split(")")[0].split(",")
          args = [ s.lstrip().rstrip() for s in args ] # strip spaces off ends
+         # print "Args: ", args
       except:
-         print cname
-         print prototype
+         # print cname
+         # print prototype
          raise
       if args[0].find("cbf_handle")>=0: # This is for the cbfhandle object
          cbf_handle_wrapper.wrap(cname,prototype,args,docstring)

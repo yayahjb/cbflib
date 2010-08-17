@@ -211,12 +211,50 @@ SEE ALSO
 
      void set_image(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
+%feature("autodoc", "
+Returns : 
+*args   : Integer element_number,Float slowbinsize_in,Float fastbinsize_in
 
-/* cfunc cbf_set_bin_sizes   pyfunc set_bin_sizes  
-   arg cbf_handle handle    arg unsigned int element_number    arg double slowbinsize_in    arg double fastbinsize_in */
+C prototype: int cbf_set_bin_sizes(cbf_handle handle,
+                 unsigned int element_number, double slowbinsize_in,
+                double fastbinsize_in);
 
-     void set_bin_sizes(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_get_bin_sizes sets slowbinsize to point to the value of the 
+number of pixels composing one array element in the dimension that 
+changes at the second-fastest rate and fastbinsize to point to the 
+value of the number of pixels composing one array element in the 
+dimension that changes at the fastest rate for the dectector element 
+with the ordinal element_number. cbf_set_bin_sizes sets the the pixel 
+bin sizes in the  \"array_intensities \" category to the values of 
+slowbinsize_in for the number of pixels composing one array element 
+in the dimension that changes at the second-fastest rate and 
+fastbinsize_in for the number of pixels composing one array element 
+in the dimension that changes at the fastest rate for the dectector 
+element with the ordinal element_number.
+In order to allow for software binning involving fractions of pixels, 
+the bin sizes are doubles rather than ints.
+ARGUMENTS
+handle           CBF handle. element_number   The number of the 
+detector element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. slowbinsize      Pointer to the 
+returned number of pixels composing one array element in the 
+dimension that changes at the second-fastest rate. fastbinsize      
+Pointer to the returned number of pixels composing one array element 
+in the dimension that changes at the fastest rate. slowbinsize_in   
+The number of pixels composing one array element in the dimension 
+that changes at the second-fastest rate. fastbinsize_in   The number 
+of pixels composing one array element in the dimension that changes 
+at the fastest rate.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+
+")set_bin_sizes;
+
+   void set_bin_sizes( int element_number, double slowbinsize_in, double fastbinsize_in) {
+     cbf_failnez(cbf_set_bin_sizes(self,element_number,slowbinsize_in,fastbinsize_in));
+   }
 
 /* cfunc cbf_new_row   pyfunc new_row  
    arg cbf_handle handle */
@@ -343,12 +381,47 @@ SEE ALSO
         *elsize = elsiz;
         *elements = elem;
         }
+%feature("autodoc", "
+Returns : Float pixel_size
+*args   : Int element_number,Int axis_number
 
-/* cfunc cbf_get_pixel_size_sf   pyfunc get_pixel_size_sf  
-   arg cbf_handle handle    arg unsigned int element_number    arg int axis_number    arg double *psize */
+C prototype: int cbf_get_pixel_size_sf(cbf_handle handle,
+                 unsigned int element_number, int axis_number, double *psize);
 
-     void get_pixel_size_sf(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_get_pixel_size and cbf_get_pixel_size_sf set *psize to point to 
+the double value in millimeters of the axis axis_number of the 
+detector element element_number. The axis_number is numbered from 1, 
+starting with the slowest axis. cbf_get_pixel_size_fs sets *psize to 
+point to the double value in millimeters of the axis axis_number of 
+the detector element element_number. The axis_number is numbered from 
+1, starting with the fastest axis.
+If a negative axis number is given, the order of axes is reversed, so 
+that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the 
+fastest axis for cbf_get_pixel_size_sf.
+If the pixel size is not given explcitly in the  \"array_element_size 
+\" category, the function returns CBF_NOTFOUND.
+ARGUMENTS
+handle           CBF handle. element_number   The number of the 
+detector element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. axis_number      The number of the 
+axis, starting from 1 for the fastest for cbf_get_pixel_size and 
+cbf_get_pixel_size_fs and the slowest for cbf_get_pixel_size_sf. 
+psize            Pointer to the destination pixel size.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+
+")get_pixel_size_sf;
+
+%apply double *OUTPUT {double *psize} get_pixel_size;
+    void get_pixel_size_sf(unsigned int element_number, 
+                        unsigned int axis_number, double *psize){
+        cbf_failnez(cbf_get_pixel_size_sf(self, 
+                                       element_number, 
+                                       axis_number, 
+                                       psize));
+    }
 
 /* cfunc cbf_force_new_category   pyfunc force_new_category  
    arg cbf_handle handle    arg const char *categoryname */
@@ -697,12 +770,42 @@ SEE ALSO
      double result;
        cbf_failnez(cbf_get_doublevalue(self,&result));
        return result;}
+%feature("autodoc", "
+Returns : doubleArray cell,doubleArray cell_esd
+*args   : 
 
-/* cfunc cbf_get_unit_cell   pyfunc get_unit_cell  
-   arg cbf_handle handle    arg double cell[6]    arg double cell_esd[6] */
+C prototype: int cbf_get_unit_cell (cbf_handle handle, double cell[6],
+                 double cell_esd[6] );
 
-     void get_unit_cell(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_get_unit_cell sets cell[0:2] to the double values of the cell 
+edge lengths a, b and c in AAngstroms, cell[3:5] to the double values 
+of the cell angles a, b and g in degrees, cell_esd[0:2] to the double 
+values of the estimated strandard deviations of the cell edge lengths 
+a, b and c in AAngstroms, cell_esd[3:5] to the double values of the 
+estimated standard deviations of the the cell angles a, b and g in 
+degrees.
+The values returned are retrieved from the first row of the  \"cell 
+\" category. The value of  \"_cell.entry_id \" is ignored.
+cell or cell_esd may be NULL.
+If cell is NULL, the cell parameters are not retrieved.
+If cell_esd is NULL, the cell parameter esds are not retrieved.
+If the  \"cell \" category is present, but some of the values are 
+missing, zeros are returned for the missing values.
+ARGUMENTS
+handle     CBF handle. cell       Pointer to the destination array of 
+6 doubles for the cell parameters. cell_esd   Pointer to the 
+destination array of 6 doubles for the cell parameter esds.
+RETURN VALUE
+Returns an error code on failure or 0 for success. No errors is 
+returned for missing values if the  \"cell \" category exists.
+SEE ALSO
+")get_unit_cell;
+
+   void get_unit_cell(double *cell, double *cell_esd) {
+     cbf_failnez(cbf_get_unit_cell(self,cell,cell_esd));
+   }
 
 /* cfunc cbf_remove_column   pyfunc remove_column  
    arg cbf_handle handle */
@@ -815,12 +918,90 @@ SEE ALSO
       unsigned int result;
       cbf_failnez(cbf_count_categories(self,&result));
       return result;}
+%feature("autodoc", "
+Returns : 
+*args   : String filename,Integer headers
 
-/* cfunc cbf_read_widefile   pyfunc read_widefile  
-   arg cbf_handle handle    arg FILE *file    arg int flags */
+C prototype: int cbf_read_widefile (cbf_handle handle, FILE *file, int flags);
 
-     void read_widefile(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_read_file reads the CBF or CIF file file into the CBF object 
+specified by handle, using the CIF 1.0 convention of 80 character 
+lines. cbf_read_widefile reads the CBF or CIF file file into the CBF 
+object specified by handle, using the CIF 1.1 convention of 2048 
+character lines. A warning is issued to stderr for ascii lines over 
+the limit. No test is performed on binary sections.
+Validation is performed in three ways levels: during the lexical 
+scan, during the parse, and, if a dictionary was converted, against 
+the value types, value enumerations, categories and parent-child 
+relationships specified in the dictionary.
+flags controls the interpretation of binary section headers, the 
+parsing of brackets constructs and the parsing of treble-quoted 
+strings.
+MSG_DIGEST:               Instructs CBFlib to check that the digest 
+of the binary section matches any header digest value. If the digests 
+do not match, the call will return CBF_FORMAT. This evaluation and 
+comparison is delayed (a  \"lazy \" evaluation) to ensure maximal 
+processing efficiency. If an immediately evaluation is required, see 
+MSG_DIGESTNOW, below. MSG_DIGESTNOW:            Instructs CBFlib to 
+check that the digest of the binary section matches any header 
+digeste value. If the digests do not match, the call will return 
+CBF_FORMAT. This evaluation and comparison is performed during 
+initial parsing of the section to ensure timely error reporting at 
+the expense of processing efficiency. If a more efficient delayed ( 
+\"lazy \") evaluation is required, see MSG_DIGEST, above. 
+MSG_DIGESTWARN:           Instructs CBFlib to check that the digest 
+of the binary section matches any header digeste value. If the 
+digests do not match, a warning message will be sent to stderr, but 
+processing will attempt to continue. This evaluation and comparison 
+is first performed during initial parsing of the section to ensure 
+timely error reporting at the expense of processing efficiency. An 
+mismatch of the message digest usually indicates a serious error, but 
+it is sometimes worth continuing processing to try to isolate the 
+cause of the error. Use this option with caution. MSG_NODIGEST:       
+      Do not check the digest (default). PARSE_BRACKETS:           
+Accept DDLm bracket-delimited [item,item,...item] or 
+{item,item,...item} or (item,item,...item) constructs as valid, 
+stripping non-quoted embedded whitespace and comments. These 
+constructs may span multiple lines. PARSE_LIBERAL_BRACKETS:   Accept 
+DDLm bracket-delimited [item,item,...item] or {item,item,...item} or 
+(item,item,...item) constructs as valid, stripping embedded 
+non-quoted, non-separating whitespace and comments. These constructs 
+may span multiple lines. In this case, whitespace may be used as an 
+alternative to the comma. PARSE_TRIPLE_QUOTES:      Accept DDLm 
+triple-quoted  \" \" \"item,item,...item \" \" \" or 
+'''item,item,...item''' constructs as valid, stripping embedded 
+whitespace and comments. These constructs may span multiple lines. If 
+this flag is set, then ''' will not be interpreted as a quoted 
+apoptrophe and  \" \" \" will not be interpreted as a quoted double 
+quote mark and PARSE_NOBRACKETS:         Do not accept DDLm 
+bracket-delimited [item,item,...item] or {item,item,...item} or 
+(item,item,...item) constructs as valid, stripping non-quoted 
+embedded whitespace and comments. These constructs may span multiple 
+lines. PARSE_NOTRIPLE_QUOTES:    No not accept DDLm triple-quoted  \" 
+\" \"item,item,...item \" \" \" or '''item,item,...item''' constructs 
+as valid, stripping embedded whitespace and comments. These 
+constructs may span multiple lines. If this flag is set, then ''' 
+will be interpreted as a quoted apostrophe and  \" \" \" will be 
+interpreted as a quoted double quote mark.
+CBFlib defers reading binary sections as long as possible. In the 
+current version of CBFlib, this means that:
+1. The file must be a random-access file opened in binary mode (fopen 
+( ,  \"rb \")).
+")read_widefile;
+
+    void read_widefile(char* filename, int headers){
+       /* CBFlib needs a stream that will remain open 
+          hence DO NOT open from python */
+       FILE *stream;
+       if ( ! ( stream = fopen (filename, "rb")) ){
+         cbf_failnez(CBF_FILEOPEN);
+        }
+        else{
+         cbf_failnez(cbf_read_widefile(self, stream, headers)); 
+    }
+       }
 
 /* cfunc cbf_set_wavelength   pyfunc set_wavelength  
    arg cbf_handle handle    arg double wavelength */
@@ -2182,12 +2363,62 @@ SEE ALSO
 ")next_column;
     void next_column(void){
       cbf_failnez(cbf_next_column(self));}
+%feature("autodoc", "
+Returns : size_t ndimslow,size_t ndimmid,size_t ndimfast
+*args   : Integer element_number
 
-/* cfunc cbf_get_3d_image_size_sf   pyfunc get_3d_image_size_sf  
-   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg size_t *ndimslow    arg size_t      *ndimmid    arg size_t *ndimfast */
+C prototype: int cbf_get_3d_image_size_sf (cbf_handle handle,
+                 unsigned int reserved, unsigned int element_number,
+                 size_t *ndimslow, size_t      *ndimmid, size_t *ndimfast);
 
-     void get_3d_image_size_sf(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_get_image_size, cbf_get_image_size_fs and cbf_get_image_size_sf 
+set *ndimslow and *ndimfast to the slow and fast dimensions of the 
+image array for element number element_number. If the array is 
+1-dimensional, *ndimslow will be set to the array size and *ndimfast 
+will be set to 1. If the array is 3-dimensional an error code will be 
+returned. cbf_get_3d_image_size, cbf_get_3d_image_size_fs and 
+cbf_get_3d_image_size_sf set *ndimslow, *ndimmid and *ndimfast to the 
+slowest, next fastest and fastest dimensions, respectively, of the 3D 
+image array for element number element_number. If the array is 
+1-dimensional, *ndimslow will be set to the array size and *ndimmid 
+and *ndimfast will be set to 1. If the array is 2-dimensional 
+*ndimslow and *ndimmid will be set as for a call to 
+cbf_get_image_size and *ndimfast will be set to 1.
+The _fs calls give the dimensions in a fast-to-slow order. The calls 
+with no suffix and the calls _sf calls give the dimensions in 
+slow-to-fast order
+Note that the ordering of dimensions is specified by values of the 
+tag _array_structure_list.precedence with a precedence of 1 for the 
+fastest dimension, 2 for the next slower, etc., which is opposite to 
+the ordering of the dimension arguments for these functions, except 
+for the ones with the _fs suffix..
+Any of the destination pointers may be NULL.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle           CBF handle. reserved         Unused. Any value other 
+than 0 is invalid. element_number   The number of the detector 
+element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. ndimslow         Pointer to the 
+destination slowest dimension. ndimmid          Pointer to the 
+destination next faster dimension. ndimfast         Pointer to the 
+destination fastest dimension.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+
+")get_3d_image_size_sf;
+
+%apply int *OUTPUT {int *ndimslow, int *ndimmid, int *ndimfast} get_3d_image_size_sf;
+     void get_3d_image_size_sf(unsigned int element_number, int *ndimslow, int *ndimmid, int *ndimfast){
+        unsigned int reserved;
+        size_t inslow, inmid, infast;
+        reserved = 0;
+        cbf_failnez(cbf_get_3d_image_size_sf(self,reserved,element_number,&inslow,&inmid,&infast));
+        *ndimslow = (int)inslow; /* FIXME - is that how to convert? */
+        *ndimmid = (int)inmid; 
+        *ndimfast = (int)infast;
+        }
 
 /* cfunc cbf_get_realarrayparameters_wdims_fs   pyfunc get_realarrayparameters_wdims_fs  
    arg cbf_handle handle    arg unsigned int *compression    arg int *binary_id    arg size_t *elsize    arg size_t    *elements    arg const char **byteorder    arg size_t *dimfast    arg size_t *dimmid    arg size_t *dimslow    arg size_t *padding */
@@ -2417,7 +2648,7 @@ void set_dictionary(cbf_handle other){
    cbf_failnez(cbf_set_dictionary(self,other));
 }
 %feature("autodoc", "
-Returns : String categoryname_in
+Returns : String categoryname
 *args   : String tagname
 
 C prototype: int cbf_find_tag_category (cbf_handle handle,
@@ -2870,12 +3101,62 @@ SEE ALSO
 
      void get_reciprocal_cell(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
+%feature("autodoc", "
+Returns : size_t ndimslow,size_t ndimmid,size_t ndimfast
+*args   : Integer element_number
 
-/* cfunc cbf_get_3d_image_size   pyfunc get_3d_image_size  
-   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg size_t *ndimslow    arg size_t *ndimmid    arg size_t *ndimfast */
+C prototype: int cbf_get_3d_image_size (cbf_handle handle,
+                 unsigned int reserved, unsigned int element_number,
+                 size_t *ndimslow, size_t *ndimmid,      size_t *ndimfast);
 
-     void get_3d_image_size(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_get_image_size, cbf_get_image_size_fs and cbf_get_image_size_sf 
+set *ndimslow and *ndimfast to the slow and fast dimensions of the 
+image array for element number element_number. If the array is 
+1-dimensional, *ndimslow will be set to the array size and *ndimfast 
+will be set to 1. If the array is 3-dimensional an error code will be 
+returned. cbf_get_3d_image_size, cbf_get_3d_image_size_fs and 
+cbf_get_3d_image_size_sf set *ndimslow, *ndimmid and *ndimfast to the 
+slowest, next fastest and fastest dimensions, respectively, of the 3D 
+image array for element number element_number. If the array is 
+1-dimensional, *ndimslow will be set to the array size and *ndimmid 
+and *ndimfast will be set to 1. If the array is 2-dimensional 
+*ndimslow and *ndimmid will be set as for a call to 
+cbf_get_image_size and *ndimfast will be set to 1.
+The _fs calls give the dimensions in a fast-to-slow order. The calls 
+with no suffix and the calls _sf calls give the dimensions in 
+slow-to-fast order
+Note that the ordering of dimensions is specified by values of the 
+tag _array_structure_list.precedence with a precedence of 1 for the 
+fastest dimension, 2 for the next slower, etc., which is opposite to 
+the ordering of the dimension arguments for these functions, except 
+for the ones with the _fs suffix..
+Any of the destination pointers may be NULL.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle           CBF handle. reserved         Unused. Any value other 
+than 0 is invalid. element_number   The number of the detector 
+element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. ndimslow         Pointer to the 
+destination slowest dimension. ndimmid          Pointer to the 
+destination next faster dimension. ndimfast         Pointer to the 
+destination fastest dimension.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+
+")get_3d_image_size;
+
+%apply int *OUTPUT {int *ndimslow, int *ndimmid, int *ndimfast} get_3d_image_size;
+     void get_3d_image_size(unsigned int element_number, int *ndimslow, int *ndimmid, int *ndimfast){
+        unsigned int reserved;
+        size_t inslow, inmid, infast;
+        reserved = 0;
+        cbf_failnez(cbf_get_3d_image_size(self,reserved,element_number,&inslow,&inmid,&infast));
+        *ndimslow = (int)inslow; /* FIXME - is that how to convert? */
+        *ndimmid = (int)inmid; 
+        *ndimfast = (int)infast;
+        }
 %feature("autodoc", "
 Returns : String tagroot
 *args   : String tagname
@@ -3196,12 +3477,94 @@ Returns an error code on failure or 0 for success.
 void  set_tag_root(const char* tagname, const char* tagroot_in){
    cbf_failnez(cbf_set_tag_root(self,tagname,tagroot_in));
 }
+%feature("autodoc", "
+Returns : 
+*args   : String filename,Integer ciforcbf,Integer Headers,Integer encoding
 
-/* cfunc cbf_write_widefile   pyfunc write_widefile  
-   arg cbf_handle handle    arg FILE *file    arg int readable    arg int ciforcbf    arg int flags    arg int encoding */
+C prototype: int cbf_write_widefile (cbf_handle handle, FILE *file,
+                 int readable, int ciforcbf, int flags, int encoding);
 
-     void write_widefile(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_write_file writes the CBF object specified by handle into the 
+file file, following CIF 1.0 conventions of 80 character lines. 
+cbf_write_widefile writes the CBF object specified by handle into the 
+file file, following CIF 1.1 conventions of 2048 character lines. A 
+warning is issued to stderr for ascii lines over the limit, and an 
+attempt is made to fold lines to fit. No test is performed on binary 
+sections.
+If a dictionary has been provided, aliases will be applied on output.
+Unlike cbf_read_file, the file does not have to be random-access.
+If the file is random-access and readable, readable can be set to 
+non-0 to indicate to CBFlib that the file can be used as a buffer to 
+conserve disk space. If the file is not random-access or not 
+readable, readable must be 0.
+If readable is non-0, CBFlib will close the file when it is no longer 
+required, otherwise this is the responsibility of the program.
+ciforcbf selects the format in which the binary sections are written:
+CIF   Write an imgCIF file. CBF   Write a CBF file (default).
+flags selects the type of header used in CBF binary sections, selects 
+whether message digests are generated, and controls the style of 
+output. The value of flags can be a logical OR of any of:
+MIME_HEADERS             Use MIME-type headers (default). 
+MIME_NOHEADERS           Use a simple ASCII headers. MSG_DIGEST       
+        Generate message digests for binary data validation. 
+MSG_NODIGEST             Do not generate message digests (default). 
+PARSE_BRACKETS           Do not convert bracketed strings to text 
+fields (default). PARSE_LIBERAL_BRACKETS   Do not convert bracketed 
+strings to text fields (default). PARSE_NOBRACKETS         Convert 
+bracketed strings to text fields (default). PARSE_TRIPLE_QUOTES      
+Do not convert triple-quoted strings to text fields (default). 
+PARSE_NOTRIPLE_QUOTES    Convert triple-quoted strings to text fields 
+(default). PAD_1K                   Pad binary sections with 1023 
+nulls. PAD_2K                   Pad binary sections with 2047 nulls. 
+PAD_4K                   Pad binary sections with 4095 nulls.
+Note that on output, the types  \"prns&,  \"brcs \" and  \"bkts \" 
+will be converted to  \"text \" fields if PARSE_NOBRACKETS has been 
+set flags, and that the types  \"tsqs \" and  \"tdqs \" will be 
+converted to  \"text \" fields if the flag PARSE_NOTRIPLE_QUOTES has 
+been set in the flags. It is an error to set PARSE_NOBRACKETS and to 
+set either PARSE_BRACKETS or PARSE_LIBERAL_BRACKETS. It is an error 
+to set both PARSE_NOTRIPLE_QUOTES and PARSE_TRIPLE_QUOTES.
+encoding selects the type of encoding used for binary sections and 
+the type of line-termination in imgCIF files. The value can be a 
+logical OR of any of:
+ENC_BASE64     Use BASE64 encoding (default). ENC_QP         Use 
+QUOTED-PRINTABLE encoding. ENC_BASE8      Use BASE8 (octal) encoding. 
+ENC_BASE10     Use BASE10 (decimal) encoding. ENC_BASE16     Use 
+BASE16 (hexadecimal) encoding. ENC_FORWARD    For BASE8, BASE10 or 
+BASE16 encoding, map bytes to words forward (1234) (default on 
+little-endian machines). ENC_BACKWARD   Map bytes to words backward 
+(4321) (default on big-endian machines). ENC_CRTERM     Terminate 
+lines with CR. ENC_LFTERM     Terminate lines with LF (default).
+ARGUMENTS
+handle     CBF handle. file       Pointer to a file descriptor. 
+readable   If non-0: this file is random-access and readable and can 
+be used as a buffer. ciforcbf   Selects the format in which the 
+binary sections are written (CIF/CBF). headers    Selects the type of 
+header in CBF binary sections and message digest generation. encoding 
+  Selects the type of encoding used for binary sections and the type 
+of line-termination in imgCIF files.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+SEE ALSO
+")write_widefile;
+
+    void write_widefile(const char* filename, int ciforcbf, int headers, 
+                    int encoding){
+       FILE *stream;
+       int readable;
+       /* Make the file non-0 to make CBFlib close the file */
+       readable = 1;
+       if ( ! ( stream = fopen (filename, "w+b")) ){
+         cbf_failnez(CBF_FILEOPEN);
+        }
+        else{
+        cbf_failnez(cbf_write_widefile(self, stream, readable, 
+                    ciforcbf, headers, encoding));
+
+        }
+       }
 
 /* cfunc cbf_count_rows   pyfunc count_rows  
    arg cbf_handle handle    arg unsigned int *rows */
@@ -3564,12 +3927,62 @@ Returns an error code on failure or 0 for success.
 
      void get_image_sf(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
+%feature("autodoc", "
+Returns : size_t ndimfast,size_t ndimmid,size_t ndimslow
+*args   : Integer element_number
 
-/* cfunc cbf_get_3d_image_size_fs   pyfunc get_3d_image_size_fs  
-   arg cbf_handle handle    arg unsigned int reserved    arg unsigned int element_number    arg size_t *ndimfast    arg size_t      *ndimmid    arg size_t *ndimslow */
+C prototype: int cbf_get_3d_image_size_fs (cbf_handle handle,
+                 unsigned int reserved, unsigned int element_number,
+                 size_t *ndimfast, size_t      *ndimmid, size_t *ndimslow);
 
-     void get_3d_image_size_fs(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_get_image_size, cbf_get_image_size_fs and cbf_get_image_size_sf 
+set *ndimslow and *ndimfast to the slow and fast dimensions of the 
+image array for element number element_number. If the array is 
+1-dimensional, *ndimslow will be set to the array size and *ndimfast 
+will be set to 1. If the array is 3-dimensional an error code will be 
+returned. cbf_get_3d_image_size, cbf_get_3d_image_size_fs and 
+cbf_get_3d_image_size_sf set *ndimslow, *ndimmid and *ndimfast to the 
+slowest, next fastest and fastest dimensions, respectively, of the 3D 
+image array for element number element_number. If the array is 
+1-dimensional, *ndimslow will be set to the array size and *ndimmid 
+and *ndimfast will be set to 1. If the array is 2-dimensional 
+*ndimslow and *ndimmid will be set as for a call to 
+cbf_get_image_size and *ndimfast will be set to 1.
+The _fs calls give the dimensions in a fast-to-slow order. The calls 
+with no suffix and the calls _sf calls give the dimensions in 
+slow-to-fast order
+Note that the ordering of dimensions is specified by values of the 
+tag _array_structure_list.precedence with a precedence of 1 for the 
+fastest dimension, 2 for the next slower, etc., which is opposite to 
+the ordering of the dimension arguments for these functions, except 
+for the ones with the _fs suffix..
+Any of the destination pointers may be NULL.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle           CBF handle. reserved         Unused. Any value other 
+than 0 is invalid. element_number   The number of the detector 
+element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. ndimslow         Pointer to the 
+destination slowest dimension. ndimmid          Pointer to the 
+destination next faster dimension. ndimfast         Pointer to the 
+destination fastest dimension.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+
+")get_3d_image_size;
+
+%apply int *OUTPUT {int *ndimslow, int *ndimmid, int *ndimfast} get_3d_image_size;
+     void get_3d_image_size_fs(unsigned int element_number, int *ndimfast, int *ndimmid, int *ndimslow){
+        unsigned int reserved;
+        size_t inslow, inmid, infast;
+        reserved = 0;
+        cbf_failnez(cbf_get_3d_image_size_fs(self,reserved,element_number,&infast,&inmid,&inslow));
+        *ndimslow = (int)inslow; /* FIXME - is that how to convert? */
+        *ndimmid = (int)inmid; 
+        *ndimfast = (int)infast;
+        }
 
 /* cfunc cbf_set_value   pyfunc set_value  
    arg cbf_handle handle    arg const char *value */
@@ -3870,11 +4283,42 @@ const char*  find_category_root(const char* categoryname){
 
      void set_image_sf(void){
         cbf_failnez(CBF_NOTIMPLEMENTED);}
+%feature("autodoc", "
+Returns : 
+*args   : doubleArray cell,doubleArray cell_esd
 
-/* cfunc cbf_set_unit_cell   pyfunc set_unit_cell  
-   arg cbf_handle handle    arg double cell[6]    arg double cell_esd[6] */
+C prototype: int cbf_set_unit_cell (cbf_handle handle, double cell[6],
+                 double cell_esd[6] );
 
-     void set_unit_cell(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_set_unit_cell sets the cell parameters to the double values given 
+in cell[0:2] for the cell edge lengths a, b and c in AAngstroms, the 
+double values given in cell[3:5] for the cell angles a, b and g in 
+degrees, the double values given in cell_esd[0:2] for the estimated 
+strandard deviations of the cell edge lengths a, b and c in 
+AAngstroms, and the double values given in cell_esd[3:5] for the 
+estimated standard deviations of the the cell angles a, b and g in 
+degrees.
+The values are placed in the first row of the  \"cell \" category. If 
+no value has been given for  \"_cell.entry_id \", it is set to the 
+value of the  \"diffrn.id \" entry of the current data block.
+cell or cell_esd may be NULL.
+If cell is NULL, the cell parameters are not set.
+If cell_esd is NULL, the cell parameter esds are not set.
+If the  \"cell \" category is not present, it is created. If any of 
+the necessary columns are not present, they are created.
+ARGUMENTS
+handle     CBF handle. cell       Pointer to the array of 6 doubles 
+for the cell parameters. cell_esd   Pointer to the array of 6 doubles 
+for the cell parameter esds.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+SEE ALSO
+")set_unit_cell;
+
+   void set_unit_cell(double *cell, double *cell_esd) {
+     cbf_failnez(cbf_set_unit_cell(self,cell,cell_esd));
+   }
 
 }; // End of cbf_handle_struct

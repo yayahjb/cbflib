@@ -1,3 +1,10 @@
+   [IUCr Home Page] [CIF Home Page] [CBF/imgCIF]
+
+     ----------------------------------------------------------------------------------------------------------------------------------
+
+                                          | IUCr Home Page | CIF Home Page | CBF/imgCIF | CBFlib |
+                                                | NOTICE | GPL | LGPL | imgCIF dictionary |
+                                                     | Click Here to Make a Donation |
 
                                                                    CBFlib
 
