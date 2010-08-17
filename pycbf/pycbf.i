@@ -52,6 +52,13 @@ __doc__=""" pycbf - python bindings to the CBFlib library
 // return values
 %include "typemaps.i"
 
+// Arrays are needed
+%include "carrays.i"
+%array_class(double, doubleArray)
+%array_class(int, intArray)
+%array_class(short, shortArray)
+%array_class(long, longArray)
+
 
 %{  // Here is the c code needed to compile the wrappers, but not 
     // to be wrapped 
