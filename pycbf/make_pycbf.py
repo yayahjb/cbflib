@@ -166,29 +166,33 @@ cbfhandle_specials = {
      "int elements", "int minelement", "int maxelement"]],
 
 "cbf_get_integerarrayparameters_wdims":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
 %apply int *OUTPUT {int *compression,int *binary_id, 
                     int *elsize, int *elsigned, int *elunsigned, 
                     int *elements, int *minelement, int *maxelement,
-                    char* byteorder,
                     int *dimfast, int *dimmid, int *dimslow, int *padding} 
                   get_integerarrayparameters_wdims;
 
     void get_integerarrayparameters_wdims(int *compression,int *binary_id, 
                         int *elsize, int *elsigned, int *elunsigned, 
                         int *elements, int *minelement, int *maxelement,
-                        char *byteorder,
+                        char **bo, int *bolen,
                         int *dimfast, int *dimmid, int *dimslow, int *padding
                         ){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
-        const char * bo;
+        const char * byteorder;
+        char * bot;
         cbf_failnez(cbf_get_integerarrayparameters_wdims(self, 
          &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
-          minelement, maxelement, &bo,&df,&dm,&ds,&pd ));
-        *compression = comp; /* FIXME - does this convert in C? */
+          minelement, maxelement, &byteorder,&df,&dm,&ds,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
         *elsize = elsiz;
         *elements = elem;
-        *byteorder = *bo;
         *dimfast = df;
         *dimmid = dm;
         *dimslow = ds;
@@ -197,33 +201,37 @@ cbfhandle_specials = {
         }
 ""","get_integerarrayparameters_wdims",[],["int compression","int binary_id", 
      "int elsize", "int elsigned", "int elunsigned", 
-     "int elements", "int minelement", "int maxelement"  "char byteorder",
-      "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+     "int elements", "int minelement", "int maxelement", "char **bo", "int *bolen",
+     "int dimfast", "int dimmid", "int dimslow", "int padding"]],
 
 "cbf_get_integerarrayparameters_wdims_fs":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
 %apply int *OUTPUT {int *compression,int *binary_id, 
                     int *elsize, int *elsigned, int *elunsigned, 
                     int *elements, int *minelement, int *maxelement,
-                    char* byteorder,
                     int *dimfast, int *dimmid, int *dimslow, int *padding} 
                   get_integerarrayparameters_wdims_fs;
 
     void get_integerarrayparameters_wdims_fs(int *compression,int *binary_id, 
                         int *elsize, int *elsigned, int *elunsigned, 
                         int *elements, int *minelement, int *maxelement,
-                        char *byteorder,
+                        char **bo, int *bolen,
                         int *dimfast, int *dimmid, int *dimslow, int *padding
                         ){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
-        const char * bo;
+        const char * byteorder;
+        char * bot;
         cbf_failnez(cbf_get_integerarrayparameters_wdims_fs(self, 
          &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
-          minelement, maxelement, &bo,&df,&dm,&ds,&pd ));
-        *compression = comp; /* FIXME - does this convert in C? */
+          minelement, maxelement, &byteorder,&df,&dm,&ds,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp; 
         *elsize = elsiz;
         *elements = elem;
-        *byteorder = *bo;
         *dimfast = df;
         *dimmid = dm;
         *dimslow = ds;
@@ -232,34 +240,38 @@ cbfhandle_specials = {
         }
 ""","get_integerarrayparameters_wdims_fs",[],["int compression","int binary_id", 
      "int elsize", "int elsigned", "int elunsigned", 
-     "int elements", "int minelement", "int maxelement",  "char byteorder",
+     "int elements", "int minelement", "int maxelement", "char **bo", "int *bolen",
       "int dimfast", "int dimmid", "int dimslow", "int padding"]],
 
 
 "cbf_get_integerarrayparameters_wdims_sf":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
 %apply int *OUTPUT {int *compression,int *binary_id, 
                     int *elsize, int *elsigned, int *elunsigned, 
                     int *elements, int *minelement, int *maxelement,
-                    char* byteorder,
                     int *dimslow, int *dimmid, int *dimfast, int *padding} 
                   get_integerarrayparameters_wdims_sf;
 
     void get_integerarrayparameters_wdims_sf(int *compression,int *binary_id, 
                         int *elsize, int *elsigned, int *elunsigned, 
                         int *elements, int *minelement, int *maxelement,
-                        char *byteorder,
+                        char **bo, int *bolen,
                         int *dimslow, int *dimmid, int *dimfast, int *padding
                         ){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
-        const char * bo;
+        const char * byteorder;
+        char * bot;
         cbf_failnez(cbf_get_integerarrayparameters_wdims_sf(self, 
          &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
-          minelement, maxelement, &bo,&ds,&dm,&df,&pd ));
-        *compression = comp; /* FIXME - does this convert in C? */
+          minelement, maxelement, &byteorder,&ds,&dm,&df,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
         *elsize = elsiz;
         *elements = elem;
-        *byteorder = *bo;
         *dimfast = df;
         *dimmid = dm;
         *dimslow = ds;
@@ -268,7 +280,7 @@ cbfhandle_specials = {
         }
 ""","get_integerarrayparameters_wdims_sf",[],["int compression","int binary_id", 
      "int elsize", "int elsigned", "int elunsigned", 
-     "int elements", "int minelement", "int maxelement",  "char byteorder",
+     "int elements", "int minelement", "int maxelement", "char **bo", "int *bolen",
       "int dimslow", "int dimmid", "int dimfast", "int padding"]],
 
 
@@ -290,30 +302,74 @@ cbfhandle_specials = {
 ""","get_realarrayparameters",[],["int compression","int binary_id", 
      "int elsize", "int elements"]],
 
-"cbf_get_realarrayparameters_wdims_sf":["""
+"cbf_get_realarrayparameters_wdims":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
 %apply int *OUTPUT {int *compression,int *binary_id, 
                     int *elsize, 
                     int *elements,
-                    char* byteorder,
-                    int *dimfast, int *dimmid, int *dimslow, int *padding} 
-                  get_realarrayparameters_wdims_sf;
+                    int *dimslow, int *dimmid, int *dimfast, int *padding} 
+                  get_realarrayparameters_wdims;
 
-    void get_realarrayparameters_wdims_sf(int *compression,int *binary_id, 
+    void get_realarrayparameters_wdims(int *compression,int *binary_id, 
                         int *elsize, 
                         int *elements, 
-                        char *byteorder,
+                        char **bo, int *bolen,
                         int *dimfast, int *dimmid, int *dimslow, int *padding
                         ){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
-        const char * bo;
-        cbf_failnez(cbf_get_realarrayparameters_wdims_sf(self, 
+        const char * byteorder;
+        char * bot;
+        cbf_failnez(cbf_get_realarrayparameters_wdims(self, 
          &comp,binary_id, &elsiz, &elem, 
-         &bo,&df,&dm,&ds,&pd ));
-        *compression = comp; /* FIXME - does this convert in C? */
+         &byteorder,&ds,&dm,&ds,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
         *elsize = elsiz;
         *elements = elem;
-        *byteorder = *bo;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
+""","get_realarrayparameters_wdims",[],["int compression","int binary_id", 
+     "int elsize", 
+     "int elements", "char **bo", "int *bolen",
+     "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+
+
+"cbf_get_realarrayparameters_wdims_fs":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, 
+                    int *elements,
+                    int *dimslow, int *dimmid, int *dimfast, int *padding} 
+                  get_realarrayparameters_wdims_fs;
+
+    void get_realarrayparameters_wdims_fs(int *compression,int *binary_id, 
+                        int *elsize, 
+                        int *elements, 
+                        char **bo, int *bolen,
+                        int *dimfast, int *dimmid, int *dimslow, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * byteorder;
+        char * bot;
+        cbf_failnez(cbf_get_realarrayparameters_wdims_fs(self, 
+         &comp,binary_id, &elsiz, &elem, 
+         &byteorder,&ds,&dm,&ds,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
+        *elsize = elsiz;
+        *elements = elem;
         *dimfast = df;
         *dimmid = dm;
         *dimslow = ds;
@@ -322,34 +378,38 @@ cbfhandle_specials = {
         }
 ""","get_realarrayparameters_wdims_fs",[],["int compression","int binary_id", 
      "int elsize", 
-     "int elements", "char byteorder",
+     "int elements", "char **bo", "int *bolen",
       "int dimfast", "int dimmid", "int dimslow", "int padding"]],
 
 
 "cbf_get_realarrayparameters_wdims_sf":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
 %apply int *OUTPUT {int *compression,int *binary_id, 
                     int *elsize, 
                     int *elements,
-                    char* byteorder,
                     int *dimslow, int *dimmid, int *dimfast, int *padding} 
                   get_realarrayparameters_wdims_sf;
 
     void get_realarrayparameters_wdims_sf(int *compression,int *binary_id, 
                         int *elsize, 
                         int *elements, 
-                        char *byteorder,
+                        char **bo, int *bolen,
                         int *dimslow, int *dimmid, int *dimfast, int *padding
                         ){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
-        const char * bo;
+        const char * byteorder;
+        char * bot;
         cbf_failnez(cbf_get_realarrayparameters_wdims_sf(self, 
          &comp,binary_id, &elsiz, &elem, 
-         &bo,&ds,&dm,&df,&pd ));
-        *compression = comp; /* FIXME - does this convert in C? */
+         &byteorder,&ds,&dm,&df,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
         *elsize = elsiz;
         *elements = elem;
-        *byteorder = *bo;
         *dimfast = df;
         *dimmid = dm;
         *dimslow = ds;
@@ -358,7 +418,7 @@ cbfhandle_specials = {
         }
 ""","get_realarrayparameters_wdims_sf",[],["int compression","int binary_id", 
      "int elsize", 
-     "int elements", "char byteorder",
+     "int elements", "char **bo", "int *bolen",
       "int dimslow", "int dimmid", "int dimfast", "int padding"]],
 
 
@@ -791,6 +851,103 @@ cbfhandle_specials = {
 [ "int compression", "int binary_id","(binary) String data", 
  "int elsize", "int elsigned","int elements"],[]],
 
+"cbf_set_integerarray_wdims":["""
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_integerarray_wdims;
+
+    void set_integerarray_wdims(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elsigned, int elements,
+             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_integerarray_wdims (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
+           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_integerarray_wdims",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+
+"cbf_set_integerarray_wdims_sf":["""
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims_sf;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_integerarray_wdims_sf;
+
+    void set_integerarray_wdims_sf(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elsigned, int elements,
+             char *bo, int bolen, int dimslow, int dimmid, int dimfast, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_integerarray_wdims_sf (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
+           (size_t)dimslow, (size_t)dimmid, (size_t)dimfast, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_integerarray_wdims_sf",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],
+
+"cbf_set_integerarray_wdims_fs":["""
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims_fs;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_integerarray_wdims_fs;
+
+    void set_integerarray_wdims_fs(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elsigned, int elements,
+             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_integerarray_wdims_fs (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
+           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_integerarray_wdims_fs",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+
+
 "cbf_set_realarray":["""
     /* CBFlib must NOT modify the data string which belongs to the scripting 
        language we will get and check the length via a typemap */
@@ -815,6 +972,102 @@ cbfhandle_specials = {
 ""","set_realarray",
 [ "int compression", "int binary_id","(binary) String data", 
  "int elsize","int elements"],[]],
+
+"cbf_set_realarray_wdims":["""
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray_wdims;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_realarray_wdims;
+
+    void set_realarray_wdims(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elements,
+             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_realarray_wdims (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
+           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_realarray_wdims",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+
+"cbf_set_realarray_wdims_sf":["""
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray_wdims_sf;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_realarray_wdims_sf;
+
+    void set_realarray_wdims_sf(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elements,
+             char *bo, int bolen, int dimslow, int dimmid, int dimfast, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_realarray_wdims_sf (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
+           (size_t) dimslow, (size_t) dimmid, (size_t) dimfast, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_realarray_wdims_sf",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],
+
+"cbf_set_realarray_wdims_fs":["""
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray_wdims_fs;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_realarray_wdims_fs;
+
+    void set_realarray_wdims_fs(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elements,
+             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_realarray_wdims_fs (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
+           (size_t) dimfast, (size_t) dimmid, (size_t) dimslow, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_realarray_wdims_fs",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
 
 
 "cbf_set_image":["""
@@ -1856,6 +2109,13 @@ double  m7,double  m8){
 ""","set_bin_sizes",["Integer element_number","Float slowbinsize_in","Float fastbinsize_in"],[] ],
 
 
+"cbf_get_bin_sizes":["""
+%apply double *OUTPUT {double *slowbinsize,double *fastbinsize};
+  void get_bin_sizes(int element_number, double *slowbinsize, double *fastbinsize) {
+    cbf_failnez(cbf_get_bin_sizes (self, (unsigned int)element_number, slowbinsize, fastbinsize));
+  }
+""","get_bin_sizes",["Integer element_number"],["Float slowbinsize","Float fastbinsize"] ],
+
 # cbfhandle dict functions UNTESTED
 
 
@@ -2389,6 +2649,15 @@ cbf_detector_specials = {
 ""","get_beam_center_sf",[],
 ["double indexslow", "double indexfast", "double centerslow","double centerfast"]],
 
+
+"cbf_set_beam_center":["""
+    void set_beam_center(double *indexslow, double *indexfast, 
+                         double *centerslow,double *centerfast){
+        cbf_failnez(cbf_set_beam_center(self, indexslow, indexfast, 
+                                       centerslow, centerfast));
+        }
+""","set_beam_center",
+["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
 
 
 "cbf_set_beam_center_fs":["""
