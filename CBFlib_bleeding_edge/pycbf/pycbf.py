@@ -957,6 +957,71 @@ class cbf_detector_struct(_object):
         """
         return _pycbf.cbf_detector_struct_get_pixel_coordinates_sf(self, *args)
 
+    def set_beam_center(self, *args):
+        """
+        Returns : 
+        *args   : double indexslow,double indexfast,double centerslow,double centerfast
+
+        C prototype: int cbf_set_beam_center (cbf_detector detector,
+                         double *indexslow, double *indexfast, double *centerslow,
+                         double *centerfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_beam_center sets *centerfast and *centerslow to the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector and *indexfast and 
+        *indexslow to the corresponding indices. cbf_set_beam_center sets the 
+        offsets in the axis category for the detector element axis with 
+        precedence 1 to place the beam center at the position given in mm by 
+        *centerfast and *centerslow as the displacements in mm along the 
+        detector axes from pixel (0, 0) to the point at which the beam 
+        intersects the detector at the indices given *indexfast and 
+        *indexslow. cbf_set_reference_beam_center sets the displacments in 
+        the array_structure_list_axis category to place the beam center at 
+        the position given in mm by *centerfast and *centerslow as the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector at the indices given 
+        by *indexfast and *indexslow. In order to achieve consistent results, 
+        a reference detector should be used for detector to have all axes at 
+        their reference settings.
+        Note that the precedence 1 axis is the fastest axis, so that 
+        *centerfast and *indexfast are the fast axis components of the center 
+        and *centerslow and *indexslow are the slow axis components of the 
+        center.
+        The _fs calls give the displacments in a fast-to-slow order. The 
+        calls with no suffix and the calls _sf calls give the displacements 
+        in slow-to-fast order
+        Any of the destination pointers may be NULL for getting the beam 
+        center. For setting the beam axis, either the indices of the center 
+        must not be NULL.
+        The indices are non-negative for beam centers within the detector 
+        surface, but the center for an axis with a negative increment will be 
+        negative for a beam center within the detector surface.
+        For cbf_set_beam_center if the diffrn_data_frame category exists with 
+        a row for the corresponding element id, the values will be set for 
+        _diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
+        millimetres and the value of _diffrn_data_frame.center_units will be 
+        set to 'mm'.
+        For cbf_set_reference_beam_center if the diffrn_detector_element 
+        category exists with a row for the corresponding element id, the 
+        values will be set for _diffrn_detector_element.reference_center_fast 
+        and _diffrn_detector_element.reference_center_slow in millimetres and 
+        the value of _diffrn_detector_element.reference_units will be set to 
+        'mm'.
+        ARGUMENTS
+        detector     Detector handle. indexfast    Pointer to the destination 
+        fast index. indexslow    Pointer to the destination slow index. 
+        centerfast   Pointer to the destination displacement along the fast 
+        axis. centerslow   Pointer to the destination displacement along the 
+        slow axis.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_detector_struct_set_beam_center(self, *args)
+
     def get_pixel_area_fs(self, *args):
         """
         Returns : double area,double projected_area
@@ -2768,7 +2833,49 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_datablock_name(self, *args)
 
     def set_realarray_wdims(self, *args):
-        """set_realarray_wdims(self)"""
+        """
+        Returns : 
+        *args   : int compression,int binary_id,(binary) String data,int elsize,
+                  int elements,String byteorder,int dimfast,int dimmid,int dimslow,
+                  int padding
+
+        C prototype: int cbf_set_realarray_wdims (cbf_handle handle,
+                         unsigned int compression, int binary_id, void *array,
+                         size_t elsize, size_t elements,    const char *byteorder,
+                         size_t dimfast, size_t dimmid, size_t dimslow, size_t padding);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_integerarray sets the binary value of the item at the current 
+        column and row to an integer array. The array consists of elements 
+        elements of elsize bytes each, starting at array. The elements are 
+        signed if elsigned is non-0 and unsigned otherwise. binary_id is the 
+        binary section identifier. cbf_set_realarray sets the binary value of 
+        the item at the current column and row to an integer array. The array 
+        consists of elements elements of elsize bytes each, starting at 
+        array. binary_id is the binary section identifier.
+        The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+        cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+        cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+        allow the data header values of byteorder, dimfast, dimmid, dimslow 
+        and padding to be set to the data byte order, the fastest, second 
+        fastest and third fastest array dimensions and the size in byte of 
+        the post data padding to be used.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        Simple  "byte_offset " compression. CBF_NONE          No 
+        compression. NOTE: This scheme is by far the slowest of the four and 
+        uses much more disk space. It is intended for routine use with small 
+        arrays only. With large arrays (like images) it should be used only 
+        for debugging.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+
+        """
         return _pycbf.cbf_handle_struct_set_realarray_wdims(self, *args)
 
     def construct_reference_detector(self, *args):
@@ -2996,8 +3103,8 @@ class cbf_handle_struct(_object):
 
     def get_realarrayparameters_wdims_sf(self):
         """
-        Returns : int compression,int binary_id,int elsize,int elements,char byteorder,
-                  int dimslow,int dimmid,int dimfast,int padding
+        Returns : int compression,int binary_id,int elsize,int elements,char **bo,
+                  int *bolen,int dimslow,int dimmid,int dimfast,int padding
         *args   : 
 
         C prototype: int cbf_get_realarrayparameters_wdims_sf (cbf_handle handle,
@@ -4037,8 +4144,8 @@ class cbf_handle_struct(_object):
     def get_integerarrayparameters_wdims(self):
         """
         Returns : int compression,int binary_id,int elsize,int elsigned,int elunsigned,
-                  int elements,int minelement,int maxelementchar byteorder,int dimfast,
-                  int dimmid,int dimslow,int padding
+                  int elements,int minelement,int maxelement,char **bo,int *bolen,
+                  int dimfast,int dimmid,int dimslow,int padding
         *args   : 
 
         C prototype: int cbf_get_integerarrayparameters_wdims (cbf_handle handle,
@@ -4317,7 +4424,50 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_remove_saveframe(self, *args)
 
     def set_integerarray_wdims_sf(self, *args):
-        """set_integerarray_wdims_sf(self)"""
+        """
+        Returns : 
+        *args   : int compression,int binary_id,(binary) String data,int elsize,
+                  int elements,String byteorder,int dimslow,int dimmid,int dimfast,
+                  int padding
+
+        C prototype: int cbf_set_integerarray_wdims_sf (cbf_handle handle,
+                         unsigned int compression, int binary_id, void *array,
+                         size_t elsize, int    elsigned, size_t elements,
+                         const char *byteorder, size_t dimslow, size_t dimmid,
+                         size_t dimfast, size_t padding);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_integerarray sets the binary value of the item at the current 
+        column and row to an integer array. The array consists of elements 
+        elements of elsize bytes each, starting at array. The elements are 
+        signed if elsigned is non-0 and unsigned otherwise. binary_id is the 
+        binary section identifier. cbf_set_realarray sets the binary value of 
+        the item at the current column and row to an integer array. The array 
+        consists of elements elements of elsize bytes each, starting at 
+        array. binary_id is the binary section identifier.
+        The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+        cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+        cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+        allow the data header values of byteorder, dimfast, dimmid, dimslow 
+        and padding to be set to the data byte order, the fastest, second 
+        fastest and third fastest array dimensions and the size in byte of 
+        the post data padding to be used.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        Simple  "byte_offset " compression. CBF_NONE          No 
+        compression. NOTE: This scheme is by far the slowest of the four and 
+        uses much more disk space. It is intended for routine use with small 
+        arrays only. With large arrays (like images) it should be used only 
+        for debugging.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+
+        """
         return _pycbf.cbf_handle_struct_set_integerarray_wdims_sf(self, *args)
 
     def require_value(self, *args):
@@ -4492,9 +4642,71 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_get_3d_image_size_sf(self, *args)
 
-    def get_realarrayparameters_wdims_fs(self, *args):
-        """get_realarrayparameters_wdims_fs(self)"""
-        return _pycbf.cbf_handle_struct_get_realarrayparameters_wdims_fs(self, *args)
+    def get_realarrayparameters_wdims_fs(self):
+        """
+        Returns : int compression,int binary_id,int elsize,int elements,char **bo,
+                  int *bolen,int dimfast,int dimmid,int dimslow,int padding
+        *args   : 
+
+        C prototype: int cbf_get_realarrayparameters_wdims_fs (cbf_handle handle,
+                         unsigned int *compression, int *binary_id, size_t *elsize,
+                         size_t    *elements, const char **byteorder, size_t *dimfast,
+                         size_t *dimmid, size_t *dimslow, size_t *padding);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_integerarrayparameters sets *compression, *binary_id, 
+        *elsize, *elsigned, *elunsigned, *elements, *minelement and 
+        *maxelement to values read from the binary value of the item at the 
+        current column and row. This provides all the arguments needed for a 
+        subsequent call to cbf_set_integerarray, if a copy of the array is to 
+        be made into another CIF or CBF. cbf_get_realarrayparameters sets 
+        *compression, *binary_id, *elsize, *elements to values read from the 
+        binary value of the item at the current column and row. This provides 
+        all the arguments needed for a subsequent call to cbf_set_realarray, 
+        if a copy of the arry is to be made into another CIF or CBF.
+        The variants cbf_get_integerarrayparameters_wdims, 
+        cbf_get_integerarrayparameters_wdims_fs, 
+        cbf_get_integerarrayparameters_wdims_sf, 
+        cbf_get_realarrayparameters_wdims, 
+        cbf_get_realarrayparameters_wdims_fs, 
+        cbf_get_realarrayparameters_wdims_sf set **byteorder, *dimfast, 
+        *dimmid, *dimslow, and *padding as well, providing the additional 
+        parameters needed for a subsequent call to cbf_set_integerarray_wdims 
+        or cbf_set_realarray_wdims.
+        The value returned in *byteorder is a pointer either to the string  
+        "little_endian " or to the string  "big_endian ". This should be 
+        the byte order of the data, not necessarily of the host machine. No 
+        attempt should be made to modify this string. At this time only  
+        "little_endian " will be returned.
+        The values returned in *dimfast, *dimmid and *dimslow are the sizes 
+        of the fastest changing, second fastest changing and third fastest 
+        changing dimensions of the array, if specified, or zero, if not 
+        specified.
+        The value returned in *padding is the size of the post-data padding, 
+        if any and if specified in the data header. The value is given as a 
+        count of octets.
+        If the value is not binary, the function returns CBF_ASCII.
+        ARGUMENTS
+        handle        CBF handle. compression   Compression method used. 
+        elsize        Size in bytes of each array element. binary_id     
+        Pointer to the destination integer binary identifier. elsigned      
+        Pointer to an integer. Set to 1 if the elements can be read as signed 
+        integers. elunsigned    Pointer to an integer. Set to 1 if the 
+        elements can be read as unsigned integers. elements      Pointer to 
+        the destination number of elements. minelement    Pointer to the 
+        destination smallest element. maxelement    Pointer to the 
+        destination largest element. byteorder     Pointer to the destination 
+        byte order. dimfast       Pointer to the destination fastest 
+        dimension. dimmid        Pointer to the destination second fastest 
+        dimension. dimslow       Pointer to the destination third fastest 
+        dimension. padding       Pointer to the destination padding size.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        SEE ALSO
+
+        """
+        return _pycbf.cbf_handle_struct_get_realarrayparameters_wdims_fs(self)
 
     def get_realarray_as_string(self):
         """
@@ -4551,7 +4763,47 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_get_realarray_as_string(self)
 
     def get_bin_sizes(self, *args):
-        """get_bin_sizes(self)"""
+        """
+        Returns : Float slowbinsize,Float fastbinsize
+        *args   : Integer element_number
+
+        C prototype: int cbf_get_bin_sizes(cbf_handle handle,
+                         unsigned int element_number, double * slowbinsize,
+                         double * fastbinsize);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_bin_sizes sets slowbinsize to point to the value of the 
+        number of pixels composing one array element in the dimension that 
+        changes at the second-fastest rate and fastbinsize to point to the 
+        value of the number of pixels composing one array element in the 
+        dimension that changes at the fastest rate for the dectector element 
+        with the ordinal element_number. cbf_set_bin_sizes sets the the pixel 
+        bin sizes in the  "array_intensities " category to the values of 
+        slowbinsize_in for the number of pixels composing one array element 
+        in the dimension that changes at the second-fastest rate and 
+        fastbinsize_in for the number of pixels composing one array element 
+        in the dimension that changes at the fastest rate for the dectector 
+        element with the ordinal element_number.
+        In order to allow for software binning involving fractions of pixels, 
+        the bin sizes are doubles rather than ints.
+        ARGUMENTS
+        handle           CBF handle. element_number   The number of the 
+        detector element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. slowbinsize      Pointer to the 
+        returned number of pixels composing one array element in the 
+        dimension that changes at the second-fastest rate. fastbinsize      
+        Pointer to the returned number of pixels composing one array element 
+        in the dimension that changes at the fastest rate. slowbinsize_in   
+        The number of pixels composing one array element in the dimension 
+        that changes at the second-fastest rate. fastbinsize_in   The number 
+        of pixels composing one array element in the dimension that changes 
+        at the fastest rate.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_get_bin_sizes(self, *args)
 
     def reset_category(self, *args):
@@ -4930,7 +5182,50 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_set_typeofvalue(self, *args)
 
     def set_integerarray_wdims(self, *args):
-        """set_integerarray_wdims(self)"""
+        """
+        Returns : 
+        *args   : int compression,int binary_id,(binary) String data,int elsize,
+                  int elements,String byteorder,int dimfast,int dimmid,int dimslow,
+                  int padding
+
+        C prototype: int cbf_set_integerarray_wdims (cbf_handle handle,
+                         unsigned int compression, int binary_id, void *array,
+                         size_t elsize, int elsigned,    size_t elements,
+                         const char *byteorder, size_t dimfast, size_t dimmid,
+                         size_t dimslow, size_t padding);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_integerarray sets the binary value of the item at the current 
+        column and row to an integer array. The array consists of elements 
+        elements of elsize bytes each, starting at array. The elements are 
+        signed if elsigned is non-0 and unsigned otherwise. binary_id is the 
+        binary section identifier. cbf_set_realarray sets the binary value of 
+        the item at the current column and row to an integer array. The array 
+        consists of elements elements of elsize bytes each, starting at 
+        array. binary_id is the binary section identifier.
+        The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+        cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+        cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+        allow the data header values of byteorder, dimfast, dimmid, dimslow 
+        and padding to be set to the data byte order, the fastest, second 
+        fastest and third fastest array dimensions and the size in byte of 
+        the post data padding to be used.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        Simple  "byte_offset " compression. CBF_NONE          No 
+        compression. NOTE: This scheme is by far the slowest of the four and 
+        uses much more disk space. It is intended for routine use with small 
+        arrays only. With large arrays (like images) it should be used only 
+        for debugging.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+
+        """
         return _pycbf.cbf_handle_struct_set_integerarray_wdims(self, *args)
 
     def set_integration_time(self, *args):
@@ -5252,9 +5547,71 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_next_datablock(self, *args)
 
-    def get_realarrayparameters_wdims(self, *args):
-        """get_realarrayparameters_wdims(self)"""
-        return _pycbf.cbf_handle_struct_get_realarrayparameters_wdims(self, *args)
+    def get_realarrayparameters_wdims(self):
+        """
+        Returns : int compression,int binary_id,int elsize,int elements,char **bo,
+                  int *bolen,int dimfast,int dimmid,int dimslow,int padding
+        *args   : 
+
+        C prototype: int cbf_get_realarrayparameters_wdims (cbf_handle handle,
+                         unsigned int *compression, int *binary_id, size_t *elsize,
+                         size_t *elements,    const char **byteorder, size_t *dimfast,
+                         size_t *dimmid, size_t *dimslow, size_t *padding);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_integerarrayparameters sets *compression, *binary_id, 
+        *elsize, *elsigned, *elunsigned, *elements, *minelement and 
+        *maxelement to values read from the binary value of the item at the 
+        current column and row. This provides all the arguments needed for a 
+        subsequent call to cbf_set_integerarray, if a copy of the array is to 
+        be made into another CIF or CBF. cbf_get_realarrayparameters sets 
+        *compression, *binary_id, *elsize, *elements to values read from the 
+        binary value of the item at the current column and row. This provides 
+        all the arguments needed for a subsequent call to cbf_set_realarray, 
+        if a copy of the arry is to be made into another CIF or CBF.
+        The variants cbf_get_integerarrayparameters_wdims, 
+        cbf_get_integerarrayparameters_wdims_fs, 
+        cbf_get_integerarrayparameters_wdims_sf, 
+        cbf_get_realarrayparameters_wdims, 
+        cbf_get_realarrayparameters_wdims_fs, 
+        cbf_get_realarrayparameters_wdims_sf set **byteorder, *dimfast, 
+        *dimmid, *dimslow, and *padding as well, providing the additional 
+        parameters needed for a subsequent call to cbf_set_integerarray_wdims 
+        or cbf_set_realarray_wdims.
+        The value returned in *byteorder is a pointer either to the string  
+        "little_endian " or to the string  "big_endian ". This should be 
+        the byte order of the data, not necessarily of the host machine. No 
+        attempt should be made to modify this string. At this time only  
+        "little_endian " will be returned.
+        The values returned in *dimfast, *dimmid and *dimslow are the sizes 
+        of the fastest changing, second fastest changing and third fastest 
+        changing dimensions of the array, if specified, or zero, if not 
+        specified.
+        The value returned in *padding is the size of the post-data padding, 
+        if any and if specified in the data header. The value is given as a 
+        count of octets.
+        If the value is not binary, the function returns CBF_ASCII.
+        ARGUMENTS
+        handle        CBF handle. compression   Compression method used. 
+        elsize        Size in bytes of each array element. binary_id     
+        Pointer to the destination integer binary identifier. elsigned      
+        Pointer to an integer. Set to 1 if the elements can be read as signed 
+        integers. elunsigned    Pointer to an integer. Set to 1 if the 
+        elements can be read as unsigned integers. elements      Pointer to 
+        the destination number of elements. minelement    Pointer to the 
+        destination smallest element. maxelement    Pointer to the 
+        destination largest element. byteorder     Pointer to the destination 
+        byte order. dimfast       Pointer to the destination fastest 
+        dimension. dimmid        Pointer to the destination second fastest 
+        dimension. dimslow       Pointer to the destination third fastest 
+        dimension. padding       Pointer to the destination padding size.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        SEE ALSO
+
+        """
+        return _pycbf.cbf_handle_struct_get_realarrayparameters_wdims(self)
 
     def set_orientation_matrix(self, *args):
         """
@@ -5380,8 +5737,8 @@ class cbf_handle_struct(_object):
     def get_integerarrayparameters_wdims_sf(self):
         """
         Returns : int compression,int binary_id,int elsize,int elsigned,int elunsigned,
-                  int elements,int minelement,int maxelement,char byteorder,int dimslow,
-                  int dimmid,int dimfast,int padding
+                  int elements,int minelement,int maxelement,char **bo,int *bolen,
+                  int dimslow,int dimmid,int dimfast,int padding
         *args   : 
 
         C prototype: int cbf_get_integerarrayparameters_wdims_sf (cbf_handle handle,
@@ -5702,7 +6059,49 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_require_category_root(self, *args)
 
     def set_realarray_wdims_sf(self, *args):
-        """set_realarray_wdims_sf(self)"""
+        """
+        Returns : 
+        *args   : int compression,int binary_id,(binary) String data,int elsize,
+                  int elements,String byteorder,int dimslow,int dimmid,int dimfast,
+                  int padding
+
+        C prototype: int cbf_set_realarray_wdims_sf (cbf_handle handle,
+                         unsigned int compression, int binary_id, void *array,
+                         size_t elsize, size_t    elements, const char *byteorder,
+                         size_t dimslow, size_t dimmid, size_t dimfast, size_t padding);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_integerarray sets the binary value of the item at the current 
+        column and row to an integer array. The array consists of elements 
+        elements of elsize bytes each, starting at array. The elements are 
+        signed if elsigned is non-0 and unsigned otherwise. binary_id is the 
+        binary section identifier. cbf_set_realarray sets the binary value of 
+        the item at the current column and row to an integer array. The array 
+        consists of elements elements of elsize bytes each, starting at 
+        array. binary_id is the binary section identifier.
+        The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+        cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+        cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+        allow the data header values of byteorder, dimfast, dimmid, dimslow 
+        and padding to be set to the data byte order, the fastest, second 
+        fastest and third fastest array dimensions and the size in byte of 
+        the post data padding to be used.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        Simple  "byte_offset " compression. CBF_NONE          No 
+        compression. NOTE: This scheme is by far the slowest of the four and 
+        uses much more disk space. It is intended for routine use with small 
+        arrays only. With large arrays (like images) it should be used only 
+        for debugging.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+
+        """
         return _pycbf.cbf_handle_struct_set_realarray_wdims_sf(self, *args)
 
     def set_integervalue(self, *args):
@@ -7182,8 +7581,8 @@ class cbf_handle_struct(_object):
     def get_integerarrayparameters_wdims_fs(self):
         """
         Returns : int compression,int binary_id,int elsize,int elsigned,int elunsigned,
-                  int elements,int minelement,int maxelement,char byteorder,int dimfast,
-                  int dimmid,int dimslow,int padding
+                  int elements,int minelement,int maxelement,char **bo,int *bolen,
+                  int dimfast,int dimmid,int dimslow,int padding
         *args   : 
 
         C prototype: int cbf_get_integerarrayparameters_wdims_fs (cbf_handle handle,
@@ -7249,7 +7648,49 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_get_integerarrayparameters_wdims_fs(self)
 
     def set_realarray_wdims_fs(self, *args):
-        """set_realarray_wdims_fs(self)"""
+        """
+        Returns : 
+        *args   : int compression,int binary_id,(binary) String data,int elsize,
+                  int elements,String byteorder,int dimfast,int dimmid,int dimslow,
+                  int padding
+
+        C prototype: int cbf_set_realarray_wdims_fs (cbf_handle handle,
+                         unsigned int compression, int binary_id, void *array,
+                         size_t elsize, size_t    elements, const char *byteorder,
+                         size_t dimfast, size_t dimmid, size_t dimslow, size_t padding);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_integerarray sets the binary value of the item at the current 
+        column and row to an integer array. The array consists of elements 
+        elements of elsize bytes each, starting at array. The elements are 
+        signed if elsigned is non-0 and unsigned otherwise. binary_id is the 
+        binary section identifier. cbf_set_realarray sets the binary value of 
+        the item at the current column and row to an integer array. The array 
+        consists of elements elements of elsize bytes each, starting at 
+        array. binary_id is the binary section identifier.
+        The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+        cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+        cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+        allow the data header values of byteorder, dimfast, dimmid, dimslow 
+        and padding to be set to the data byte order, the fastest, second 
+        fastest and third fastest array dimensions and the size in byte of 
+        the post data padding to be used.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        Simple  "byte_offset " compression. CBF_NONE          No 
+        compression. NOTE: This scheme is by far the slowest of the four and 
+        uses much more disk space. It is intended for routine use with small 
+        arrays only. With large arrays (like images) it should be used only 
+        for debugging.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+
+        """
         return _pycbf.cbf_handle_struct_set_realarray_wdims_fs(self, *args)
 
     def find_category_root(self, *args):
@@ -7282,7 +7723,50 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_find_category_root(self, *args)
 
     def set_integerarray_wdims_fs(self, *args):
-        """set_integerarray_wdims_fs(self)"""
+        """
+        Returns : 
+        *args   : int compression,int binary_id,(binary) String data,int elsize,
+                  int elements,String byteorder,int dimfast,int dimmid,int dimslow,
+                  int padding
+
+        C prototype: int cbf_set_integerarray_wdims_fs (cbf_handle handle,
+                         unsigned int compression, int binary_id, void *array,
+                         size_t elsize, int    elsigned, size_t elements,
+                         const char *byteorder, size_t dimfast, size_t dimmid,
+                         size_t dimslow, size_t padding);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_integerarray sets the binary value of the item at the current 
+        column and row to an integer array. The array consists of elements 
+        elements of elsize bytes each, starting at array. The elements are 
+        signed if elsigned is non-0 and unsigned otherwise. binary_id is the 
+        binary section identifier. cbf_set_realarray sets the binary value of 
+        the item at the current column and row to an integer array. The array 
+        consists of elements elements of elsize bytes each, starting at 
+        array. binary_id is the binary section identifier.
+        The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+        cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+        cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+        allow the data header values of byteorder, dimfast, dimmid, dimslow 
+        and padding to be set to the data byte order, the fastest, second 
+        fastest and third fastest array dimensions and the size in byte of 
+        the post data padding to be used.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        Simple  "byte_offset " compression. CBF_NONE          No 
+        compression. NOTE: This scheme is by far the slowest of the four and 
+        uses much more disk space. It is intended for routine use with small 
+        arrays only. With large arrays (like images) it should be used only 
+        for debugging.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+
+        """
         return _pycbf.cbf_handle_struct_set_integerarray_wdims_fs(self, *args)
 
     def set_image_sf(self, *args):

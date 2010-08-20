@@ -1562,12 +1562,76 @@ SEE ALSO
     const char* result;
     cbf_failnez(cbf_datablock_name(self, &result));
     return result;}
+%feature("autodoc", "
+Returns : 
+*args   : int compression,int binary_id,(binary) String data,int elsize,
+          int elements,String byteorder,int dimfast,int dimmid,int dimslow,
+          int padding
 
-/* cfunc cbf_set_realarray_wdims   pyfunc set_realarray_wdims  
-   arg cbf_handle handle    arg unsigned int compression    arg int binary_id    arg void *array    arg size_t elsize    arg size_t elements    arg const char *byteorder    arg size_t dimfast    arg size_t dimmid    arg size_t dimslow    arg size_t padding */
+C prototype: int cbf_set_realarray_wdims (cbf_handle handle,
+                 unsigned int compression, int binary_id, void *array,
+                 size_t elsize, size_t elements,    const char *byteorder,
+                 size_t dimfast, size_t dimmid, size_t dimslow, size_t padding);
 
-     void set_realarray_wdims(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_set_integerarray sets the binary value of the item at the current 
+column and row to an integer array. The array consists of elements 
+elements of elsize bytes each, starting at array. The elements are 
+signed if elsigned is non-0 and unsigned otherwise. binary_id is the 
+binary section identifier. cbf_set_realarray sets the binary value of 
+the item at the current column and row to an integer array. The array 
+consists of elements elements of elsize bytes each, starting at 
+array. binary_id is the binary section identifier.
+The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+allow the data header values of byteorder, dimfast, dimmid, dimslow 
+and padding to be set to the data byte order, the fastest, second 
+fastest and third fastest array dimensions and the size in byte of 
+the post data padding to be used.
+The array will be compressed using the compression scheme specifed by 
+compression. Currently, the available schemes are:
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+ CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+Simple  \"byte_offset \" compression. CBF_NONE          No 
+compression. NOTE: This scheme is by far the slowest of the four and 
+uses much more disk space. It is intended for routine use with small 
+arrays only. With large arrays (like images) it should be used only 
+for debugging.
+The values compressed are limited to 64 bits. If any element in the 
+array is larger than 64 bits, the value compressed is the nearest 
+64-bit value.
+")set_realarray_wdims;
+
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray_wdims;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_realarray_wdims;
+
+    void set_realarray_wdims(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elements,
+             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_realarray_wdims (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
+           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
 %feature("autodoc", "
 Returns : pycbf detector object
 *args   : Integer element_number
@@ -1829,8 +1893,8 @@ SEE ALSO
     void find_nextrow(const char* arg){
       cbf_failnez(cbf_find_nextrow(self,arg));}
 %feature("autodoc", "
-Returns : int compression,int binary_id,int elsize,int elements,char byteorder,
-          int dimslow,int dimmid,int dimfast,int padding
+Returns : int compression,int binary_id,int elsize,int elements,char **bo,
+          int *bolen,int dimslow,int dimmid,int dimfast,int padding
 *args   : 
 
 C prototype: int cbf_get_realarrayparameters_wdims_sf (cbf_handle handle,
@@ -1891,29 +1955,33 @@ Returns an error code on failure or 0 for success.
 SEE ALSO
 ")get_realarrayparameters_wdims_sf;
 
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
 %apply int *OUTPUT {int *compression,int *binary_id, 
                     int *elsize, 
                     int *elements,
-                    char* byteorder,
                     int *dimslow, int *dimmid, int *dimfast, int *padding} 
                   get_realarrayparameters_wdims_sf;
 
     void get_realarrayparameters_wdims_sf(int *compression,int *binary_id, 
                         int *elsize, 
                         int *elements, 
-                        char *byteorder,
+                        char **bo, int *bolen,
                         int *dimslow, int *dimmid, int *dimfast, int *padding
                         ){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
-        const char * bo;
+        const char * byteorder;
+        char * bot;
         cbf_failnez(cbf_get_realarrayparameters_wdims_sf(self, 
          &comp,binary_id, &elsiz, &elem, 
-         &bo,&ds,&dm,&df,&pd ));
-        *compression = comp; /* FIXME - does this convert in C? */
+         &byteorder,&ds,&dm,&df,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
         *elsize = elsiz;
         *elements = elem;
-        *byteorder = *bo;
         *dimfast = df;
         *dimmid = dm;
         *dimslow = ds;
@@ -3086,8 +3154,8 @@ SEE ALSO
       return result;}
 %feature("autodoc", "
 Returns : int compression,int binary_id,int elsize,int elsigned,int elunsigned,
-          int elements,int minelement,int maxelementchar byteorder,int dimfast,
-          int dimmid,int dimslow,int padding
+          int elements,int minelement,int maxelement,char **bo,int *bolen,
+          int dimfast,int dimmid,int dimslow,int padding
 *args   : 
 
 C prototype: int cbf_get_integerarrayparameters_wdims (cbf_handle handle,
@@ -3150,29 +3218,33 @@ Returns an error code on failure or 0 for success.
 SEE ALSO
 ")get_integerarrayparameters_wdims;
 
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
 %apply int *OUTPUT {int *compression,int *binary_id, 
                     int *elsize, int *elsigned, int *elunsigned, 
                     int *elements, int *minelement, int *maxelement,
-                    char* byteorder,
                     int *dimfast, int *dimmid, int *dimslow, int *padding} 
                   get_integerarrayparameters_wdims;
 
     void get_integerarrayparameters_wdims(int *compression,int *binary_id, 
                         int *elsize, int *elsigned, int *elunsigned, 
                         int *elements, int *minelement, int *maxelement,
-                        char *byteorder,
+                        char **bo, int *bolen,
                         int *dimfast, int *dimmid, int *dimslow, int *padding
                         ){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
-        const char * bo;
+        const char * byteorder;
+        char * bot;
         cbf_failnez(cbf_get_integerarrayparameters_wdims(self, 
          &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
-          minelement, maxelement, &bo,&df,&dm,&ds,&pd ));
-        *compression = comp; /* FIXME - does this convert in C? */
+          minelement, maxelement, &byteorder,&df,&dm,&ds,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
         *elsize = elsiz;
         *elements = elem;
-        *byteorder = *bo;
         *dimfast = df;
         *dimmid = dm;
         *dimslow = ds;
@@ -3426,12 +3498,77 @@ SEE ALSO
 ")remove_saveframe;
     void remove_saveframe(void){
       cbf_failnez(cbf_remove_saveframe(self));}
+%feature("autodoc", "
+Returns : 
+*args   : int compression,int binary_id,(binary) String data,int elsize,
+          int elements,String byteorder,int dimslow,int dimmid,int dimfast,
+          int padding
 
-/* cfunc cbf_set_integerarray_wdims_sf   pyfunc set_integerarray_wdims_sf  
-   arg cbf_handle handle    arg unsigned int compression    arg int binary_id    arg void *array    arg size_t elsize    arg int    elsigned    arg size_t elements    arg const char *byteorder    arg size_t dimslow    arg size_t dimmid    arg size_t dimfast    arg size_t padding */
+C prototype: int cbf_set_integerarray_wdims_sf (cbf_handle handle,
+                 unsigned int compression, int binary_id, void *array,
+                 size_t elsize, int    elsigned, size_t elements,
+                 const char *byteorder, size_t dimslow, size_t dimmid,
+                 size_t dimfast, size_t padding);
 
-     void set_integerarray_wdims_sf(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_set_integerarray sets the binary value of the item at the current 
+column and row to an integer array. The array consists of elements 
+elements of elsize bytes each, starting at array. The elements are 
+signed if elsigned is non-0 and unsigned otherwise. binary_id is the 
+binary section identifier. cbf_set_realarray sets the binary value of 
+the item at the current column and row to an integer array. The array 
+consists of elements elements of elsize bytes each, starting at 
+array. binary_id is the binary section identifier.
+The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+allow the data header values of byteorder, dimfast, dimmid, dimslow 
+and padding to be set to the data byte order, the fastest, second 
+fastest and third fastest array dimensions and the size in byte of 
+the post data padding to be used.
+The array will be compressed using the compression scheme specifed by 
+compression. Currently, the available schemes are:
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+ CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+Simple  \"byte_offset \" compression. CBF_NONE          No 
+compression. NOTE: This scheme is by far the slowest of the four and 
+uses much more disk space. It is intended for routine use with small 
+arrays only. With large arrays (like images) it should be used only 
+for debugging.
+The values compressed are limited to 64 bits. If any element in the 
+array is larger than 64 bits, the value compressed is the nearest 
+64-bit value.
+")set_integerarray_wdims_sf;
+
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims_sf;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_integerarray_wdims_sf;
+
+    void set_integerarray_wdims_sf(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elsigned, int elements,
+             char *bo, int bolen, int dimslow, int dimmid, int dimfast, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_integerarray_wdims_sf (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
+           (size_t)dimslow, (size_t)dimmid, (size_t)dimfast, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
 %feature("autodoc", "
 Returns : String Value
 *args   : String defaultvalue
@@ -3623,12 +3760,102 @@ Returns an error code on failure or 0 for success.
         *ndimmid = (int)inmid; 
         *ndimfast = (int)infast;
         }
+%feature("autodoc", "
+Returns : int compression,int binary_id,int elsize,int elements,char **bo,
+          int *bolen,int dimfast,int dimmid,int dimslow,int padding
+*args   : 
 
-/* cfunc cbf_get_realarrayparameters_wdims_fs   pyfunc get_realarrayparameters_wdims_fs  
-   arg cbf_handle handle    arg unsigned int *compression    arg int *binary_id    arg size_t *elsize    arg size_t    *elements    arg const char **byteorder    arg size_t *dimfast    arg size_t *dimmid    arg size_t *dimslow    arg size_t *padding */
+C prototype: int cbf_get_realarrayparameters_wdims_fs (cbf_handle handle,
+                 unsigned int *compression, int *binary_id, size_t *elsize,
+                 size_t    *elements, const char **byteorder, size_t *dimfast,
+                 size_t *dimmid, size_t *dimslow, size_t *padding);
 
-     void get_realarrayparameters_wdims_fs(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_get_integerarrayparameters sets *compression, *binary_id, 
+*elsize, *elsigned, *elunsigned, *elements, *minelement and 
+*maxelement to values read from the binary value of the item at the 
+current column and row. This provides all the arguments needed for a 
+subsequent call to cbf_set_integerarray, if a copy of the array is to 
+be made into another CIF or CBF. cbf_get_realarrayparameters sets 
+*compression, *binary_id, *elsize, *elements to values read from the 
+binary value of the item at the current column and row. This provides 
+all the arguments needed for a subsequent call to cbf_set_realarray, 
+if a copy of the arry is to be made into another CIF or CBF.
+The variants cbf_get_integerarrayparameters_wdims, 
+cbf_get_integerarrayparameters_wdims_fs, 
+cbf_get_integerarrayparameters_wdims_sf, 
+cbf_get_realarrayparameters_wdims, 
+cbf_get_realarrayparameters_wdims_fs, 
+cbf_get_realarrayparameters_wdims_sf set **byteorder, *dimfast, 
+*dimmid, *dimslow, and *padding as well, providing the additional 
+parameters needed for a subsequent call to cbf_set_integerarray_wdims 
+or cbf_set_realarray_wdims.
+The value returned in *byteorder is a pointer either to the string  
+\"little_endian \" or to the string  \"big_endian \". This should be 
+the byte order of the data, not necessarily of the host machine. No 
+attempt should be made to modify this string. At this time only  
+\"little_endian \" will be returned.
+The values returned in *dimfast, *dimmid and *dimslow are the sizes 
+of the fastest changing, second fastest changing and third fastest 
+changing dimensions of the array, if specified, or zero, if not 
+specified.
+The value returned in *padding is the size of the post-data padding, 
+if any and if specified in the data header. The value is given as a 
+count of octets.
+If the value is not binary, the function returns CBF_ASCII.
+ARGUMENTS
+handle        CBF handle. compression   Compression method used. 
+elsize        Size in bytes of each array element. binary_id     
+Pointer to the destination integer binary identifier. elsigned      
+Pointer to an integer. Set to 1 if the elements can be read as signed 
+integers. elunsigned    Pointer to an integer. Set to 1 if the 
+elements can be read as unsigned integers. elements      Pointer to 
+the destination number of elements. minelement    Pointer to the 
+destination smallest element. maxelement    Pointer to the 
+destination largest element. byteorder     Pointer to the destination 
+byte order. dimfast       Pointer to the destination fastest 
+dimension. dimmid        Pointer to the destination second fastest 
+dimension. dimslow       Pointer to the destination third fastest 
+dimension. padding       Pointer to the destination padding size.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+SEE ALSO
+")get_realarrayparameters_wdims_fs;
+
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, 
+                    int *elements,
+                    int *dimslow, int *dimmid, int *dimfast, int *padding} 
+                  get_realarrayparameters_wdims_fs;
+
+    void get_realarrayparameters_wdims_fs(int *compression,int *binary_id, 
+                        int *elsize, 
+                        int *elements, 
+                        char **bo, int *bolen,
+                        int *dimfast, int *dimmid, int *dimslow, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * byteorder;
+        char * bot;
+        cbf_failnez(cbf_get_realarrayparameters_wdims_fs(self, 
+         &comp,binary_id, &elsiz, &elem, 
+         &byteorder,&ds,&dm,&ds,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
+        *elsize = elsiz;
+        *elements = elem;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
 %feature("autodoc", "
 Returns : (Binary)String
 *args   : 
@@ -3709,12 +3936,51 @@ Returns an error code on failure or 0 for success. SEE ALSO
         *slen = elsize*elements;
         *s = (char *) array;
       }
+%feature("autodoc", "
+Returns : Float slowbinsize,Float fastbinsize
+*args   : Integer element_number
 
-/* cfunc cbf_get_bin_sizes   pyfunc get_bin_sizes  
-   arg cbf_handle handle    arg unsigned int element_number    arg double * slowbinsize    arg double * fastbinsize */
+C prototype: int cbf_get_bin_sizes(cbf_handle handle,
+                 unsigned int element_number, double * slowbinsize,
+                 double * fastbinsize);
 
-     void get_bin_sizes(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_get_bin_sizes sets slowbinsize to point to the value of the 
+number of pixels composing one array element in the dimension that 
+changes at the second-fastest rate and fastbinsize to point to the 
+value of the number of pixels composing one array element in the 
+dimension that changes at the fastest rate for the dectector element 
+with the ordinal element_number. cbf_set_bin_sizes sets the the pixel 
+bin sizes in the  \"array_intensities \" category to the values of 
+slowbinsize_in for the number of pixels composing one array element 
+in the dimension that changes at the second-fastest rate and 
+fastbinsize_in for the number of pixels composing one array element 
+in the dimension that changes at the fastest rate for the dectector 
+element with the ordinal element_number.
+In order to allow for software binning involving fractions of pixels, 
+the bin sizes are doubles rather than ints.
+ARGUMENTS
+handle           CBF handle. element_number   The number of the 
+detector element counting from 0 by order of appearance in the  
+\"diffrn_data_frame \" category. slowbinsize      Pointer to the 
+returned number of pixels composing one array element in the 
+dimension that changes at the second-fastest rate. fastbinsize      
+Pointer to the returned number of pixels composing one array element 
+in the dimension that changes at the fastest rate. slowbinsize_in   
+The number of pixels composing one array element in the dimension 
+that changes at the second-fastest rate. fastbinsize_in   The number 
+of pixels composing one array element in the dimension that changes 
+at the fastest rate.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+
+")get_bin_sizes;
+
+%apply double *OUTPUT {double *slowbinsize,double *fastbinsize};
+  void get_bin_sizes(int element_number, double *slowbinsize, double *fastbinsize) {
+    cbf_failnez(cbf_get_bin_sizes (self, (unsigned int)element_number, slowbinsize, fastbinsize));
+  }
 
 /* cfunc cbf_reset_category   pyfunc reset_category  
    arg cbf_handle handle */
@@ -4169,12 +4435,77 @@ SEE ALSO
 ")set_typeofvalue;
     void set_typeofvalue(const char* arg){
       cbf_failnez(cbf_set_typeofvalue(self,arg));}
+%feature("autodoc", "
+Returns : 
+*args   : int compression,int binary_id,(binary) String data,int elsize,
+          int elements,String byteorder,int dimfast,int dimmid,int dimslow,
+          int padding
 
-/* cfunc cbf_set_integerarray_wdims   pyfunc set_integerarray_wdims  
-   arg cbf_handle handle    arg unsigned int compression    arg int binary_id    arg void *array    arg size_t elsize    arg int elsigned    arg size_t elements    arg const char *byteorder    arg size_t dimfast    arg size_t dimmid    arg size_t dimslow    arg size_t padding */
+C prototype: int cbf_set_integerarray_wdims (cbf_handle handle,
+                 unsigned int compression, int binary_id, void *array,
+                 size_t elsize, int elsigned,    size_t elements,
+                 const char *byteorder, size_t dimfast, size_t dimmid,
+                 size_t dimslow, size_t padding);
 
-     void set_integerarray_wdims(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_set_integerarray sets the binary value of the item at the current 
+column and row to an integer array. The array consists of elements 
+elements of elsize bytes each, starting at array. The elements are 
+signed if elsigned is non-0 and unsigned otherwise. binary_id is the 
+binary section identifier. cbf_set_realarray sets the binary value of 
+the item at the current column and row to an integer array. The array 
+consists of elements elements of elsize bytes each, starting at 
+array. binary_id is the binary section identifier.
+The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+allow the data header values of byteorder, dimfast, dimmid, dimslow 
+and padding to be set to the data byte order, the fastest, second 
+fastest and third fastest array dimensions and the size in byte of 
+the post data padding to be used.
+The array will be compressed using the compression scheme specifed by 
+compression. Currently, the available schemes are:
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+ CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+Simple  \"byte_offset \" compression. CBF_NONE          No 
+compression. NOTE: This scheme is by far the slowest of the four and 
+uses much more disk space. It is intended for routine use with small 
+arrays only. With large arrays (like images) it should be used only 
+for debugging.
+The values compressed are limited to 64 bits. If any element in the 
+array is larger than 64 bits, the value compressed is the nearest 
+64-bit value.
+")set_integerarray_wdims;
+
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_integerarray_wdims;
+
+    void set_integerarray_wdims(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elsigned, int elements,
+             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_integerarray_wdims (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
+           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
 %feature("autodoc", "
 Returns : 
 *args   : Float time
@@ -4566,12 +4897,102 @@ SEE ALSO
 ")next_datablock;
     void next_datablock(void){
       cbf_failnez(cbf_next_datablock(self));}
+%feature("autodoc", "
+Returns : int compression,int binary_id,int elsize,int elements,char **bo,
+          int *bolen,int dimfast,int dimmid,int dimslow,int padding
+*args   : 
 
-/* cfunc cbf_get_realarrayparameters_wdims   pyfunc get_realarrayparameters_wdims  
-   arg cbf_handle handle    arg unsigned int *compression    arg int *binary_id    arg size_t *elsize    arg size_t *elements    arg const char **byteorder    arg size_t *dimfast    arg size_t *dimmid    arg size_t *dimslow    arg size_t *padding */
+C prototype: int cbf_get_realarrayparameters_wdims (cbf_handle handle,
+                 unsigned int *compression, int *binary_id, size_t *elsize,
+                 size_t *elements,    const char **byteorder, size_t *dimfast,
+                 size_t *dimmid, size_t *dimslow, size_t *padding);
 
-     void get_realarrayparameters_wdims(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_get_integerarrayparameters sets *compression, *binary_id, 
+*elsize, *elsigned, *elunsigned, *elements, *minelement and 
+*maxelement to values read from the binary value of the item at the 
+current column and row. This provides all the arguments needed for a 
+subsequent call to cbf_set_integerarray, if a copy of the array is to 
+be made into another CIF or CBF. cbf_get_realarrayparameters sets 
+*compression, *binary_id, *elsize, *elements to values read from the 
+binary value of the item at the current column and row. This provides 
+all the arguments needed for a subsequent call to cbf_set_realarray, 
+if a copy of the arry is to be made into another CIF or CBF.
+The variants cbf_get_integerarrayparameters_wdims, 
+cbf_get_integerarrayparameters_wdims_fs, 
+cbf_get_integerarrayparameters_wdims_sf, 
+cbf_get_realarrayparameters_wdims, 
+cbf_get_realarrayparameters_wdims_fs, 
+cbf_get_realarrayparameters_wdims_sf set **byteorder, *dimfast, 
+*dimmid, *dimslow, and *padding as well, providing the additional 
+parameters needed for a subsequent call to cbf_set_integerarray_wdims 
+or cbf_set_realarray_wdims.
+The value returned in *byteorder is a pointer either to the string  
+\"little_endian \" or to the string  \"big_endian \". This should be 
+the byte order of the data, not necessarily of the host machine. No 
+attempt should be made to modify this string. At this time only  
+\"little_endian \" will be returned.
+The values returned in *dimfast, *dimmid and *dimslow are the sizes 
+of the fastest changing, second fastest changing and third fastest 
+changing dimensions of the array, if specified, or zero, if not 
+specified.
+The value returned in *padding is the size of the post-data padding, 
+if any and if specified in the data header. The value is given as a 
+count of octets.
+If the value is not binary, the function returns CBF_ASCII.
+ARGUMENTS
+handle        CBF handle. compression   Compression method used. 
+elsize        Size in bytes of each array element. binary_id     
+Pointer to the destination integer binary identifier. elsigned      
+Pointer to an integer. Set to 1 if the elements can be read as signed 
+integers. elunsigned    Pointer to an integer. Set to 1 if the 
+elements can be read as unsigned integers. elements      Pointer to 
+the destination number of elements. minelement    Pointer to the 
+destination smallest element. maxelement    Pointer to the 
+destination largest element. byteorder     Pointer to the destination 
+byte order. dimfast       Pointer to the destination fastest 
+dimension. dimmid        Pointer to the destination second fastest 
+dimension. dimslow       Pointer to the destination third fastest 
+dimension. padding       Pointer to the destination padding size.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+SEE ALSO
+")get_realarrayparameters_wdims;
+
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, 
+                    int *elements,
+                    int *dimslow, int *dimmid, int *dimfast, int *padding} 
+                  get_realarrayparameters_wdims;
+
+    void get_realarrayparameters_wdims(int *compression,int *binary_id, 
+                        int *elsize, 
+                        int *elements, 
+                        char **bo, int *bolen,
+                        int *dimfast, int *dimmid, int *dimslow, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * byteorder;
+        char * bot;
+        cbf_failnez(cbf_get_realarrayparameters_wdims(self, 
+         &comp,binary_id, &elsiz, &elem, 
+         &byteorder,&ds,&dm,&ds,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
+        *elsize = elsiz;
+        *elements = elem;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
 %feature("autodoc", "
 Returns : 
 *args   : Float matrix_0,Float matrix_1,Float matrix_2,Float matrix_3,
@@ -4707,8 +5128,8 @@ SEE ALSO
       cbf_failnez(cbf_remove_category(self));}
 %feature("autodoc", "
 Returns : int compression,int binary_id,int elsize,int elsigned,int elunsigned,
-          int elements,int minelement,int maxelement,char byteorder,int dimslow,
-          int dimmid,int dimfast,int padding
+          int elements,int minelement,int maxelement,char **bo,int *bolen,
+          int dimslow,int dimmid,int dimfast,int padding
 *args   : 
 
 C prototype: int cbf_get_integerarrayparameters_wdims_sf (cbf_handle handle,
@@ -4771,29 +5192,33 @@ Returns an error code on failure or 0 for success.
 SEE ALSO
 ")get_integerarrayparameters_wdims_sf;
 
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
 %apply int *OUTPUT {int *compression,int *binary_id, 
                     int *elsize, int *elsigned, int *elunsigned, 
                     int *elements, int *minelement, int *maxelement,
-                    char* byteorder,
                     int *dimslow, int *dimmid, int *dimfast, int *padding} 
                   get_integerarrayparameters_wdims_sf;
 
     void get_integerarrayparameters_wdims_sf(int *compression,int *binary_id, 
                         int *elsize, int *elsigned, int *elunsigned, 
                         int *elements, int *minelement, int *maxelement,
-                        char *byteorder,
+                        char **bo, int *bolen,
                         int *dimslow, int *dimmid, int *dimfast, int *padding
                         ){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
-        const char * bo;
+        const char * byteorder;
+        char * bot;
         cbf_failnez(cbf_get_integerarrayparameters_wdims_sf(self, 
          &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
-          minelement, maxelement, &bo,&ds,&dm,&df,&pd ));
-        *compression = comp; /* FIXME - does this convert in C? */
+          minelement, maxelement, &byteorder,&ds,&dm,&df,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
         *elsize = elsiz;
         *elements = elem;
-        *byteorder = *bo;
         *dimfast = df;
         *dimmid = dm;
         *dimslow = ds;
@@ -5172,12 +5597,76 @@ const char* require_category_root (const char* categoryname){
   cbf_failnez(cbf_require_category_root(self,categoryname, &result));
   return result;
 }
+%feature("autodoc", "
+Returns : 
+*args   : int compression,int binary_id,(binary) String data,int elsize,
+          int elements,String byteorder,int dimslow,int dimmid,int dimfast,
+          int padding
 
-/* cfunc cbf_set_realarray_wdims_sf   pyfunc set_realarray_wdims_sf  
-   arg cbf_handle handle    arg unsigned int compression    arg int binary_id    arg void *array    arg size_t elsize    arg size_t    elements    arg const char *byteorder    arg size_t dimslow    arg size_t dimmid    arg size_t dimfast    arg size_t padding */
+C prototype: int cbf_set_realarray_wdims_sf (cbf_handle handle,
+                 unsigned int compression, int binary_id, void *array,
+                 size_t elsize, size_t    elements, const char *byteorder,
+                 size_t dimslow, size_t dimmid, size_t dimfast, size_t padding);
 
-     void set_realarray_wdims_sf(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_set_integerarray sets the binary value of the item at the current 
+column and row to an integer array. The array consists of elements 
+elements of elsize bytes each, starting at array. The elements are 
+signed if elsigned is non-0 and unsigned otherwise. binary_id is the 
+binary section identifier. cbf_set_realarray sets the binary value of 
+the item at the current column and row to an integer array. The array 
+consists of elements elements of elsize bytes each, starting at 
+array. binary_id is the binary section identifier.
+The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+allow the data header values of byteorder, dimfast, dimmid, dimslow 
+and padding to be set to the data byte order, the fastest, second 
+fastest and third fastest array dimensions and the size in byte of 
+the post data padding to be used.
+The array will be compressed using the compression scheme specifed by 
+compression. Currently, the available schemes are:
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+ CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+Simple  \"byte_offset \" compression. CBF_NONE          No 
+compression. NOTE: This scheme is by far the slowest of the four and 
+uses much more disk space. It is intended for routine use with small 
+arrays only. With large arrays (like images) it should be used only 
+for debugging.
+The values compressed are limited to 64 bits. If any element in the 
+array is larger than 64 bits, the value compressed is the nearest 
+64-bit value.
+")set_realarray_wdims_sf;
+
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray_wdims_sf;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_realarray_wdims_sf;
+
+    void set_realarray_wdims_sf(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elements,
+             char *bo, int bolen, int dimslow, int dimmid, int dimfast, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_realarray_wdims_sf (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
+           (size_t) dimslow, (size_t) dimmid, (size_t) dimfast, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
 
 /* cfunc cbf_set_integervalue   pyfunc set_integervalue  
    arg cbf_handle handle    arg int number */
@@ -7010,8 +7499,8 @@ SEE ALSO
       cbf_failnez(cbf_find_category(self,arg));}
 %feature("autodoc", "
 Returns : int compression,int binary_id,int elsize,int elsigned,int elunsigned,
-          int elements,int minelement,int maxelement,char byteorder,int dimfast,
-          int dimmid,int dimslow,int padding
+          int elements,int minelement,int maxelement,char **bo,int *bolen,
+          int dimfast,int dimmid,int dimslow,int padding
 *args   : 
 
 C prototype: int cbf_get_integerarrayparameters_wdims_fs (cbf_handle handle,
@@ -7074,41 +7563,109 @@ Returns an error code on failure or 0 for success.
 SEE ALSO
 ")get_integerarrayparameters_wdims_fs;
 
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
 %apply int *OUTPUT {int *compression,int *binary_id, 
                     int *elsize, int *elsigned, int *elunsigned, 
                     int *elements, int *minelement, int *maxelement,
-                    char* byteorder,
                     int *dimfast, int *dimmid, int *dimslow, int *padding} 
                   get_integerarrayparameters_wdims_fs;
 
     void get_integerarrayparameters_wdims_fs(int *compression,int *binary_id, 
                         int *elsize, int *elsigned, int *elunsigned, 
                         int *elements, int *minelement, int *maxelement,
-                        char *byteorder,
+                        char **bo, int *bolen,
                         int *dimfast, int *dimmid, int *dimslow, int *padding
                         ){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
-        const char * bo;
+        const char * byteorder;
+        char * bot;
         cbf_failnez(cbf_get_integerarrayparameters_wdims_fs(self, 
          &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
-          minelement, maxelement, &bo,&df,&dm,&ds,&pd ));
-        *compression = comp; /* FIXME - does this convert in C? */
+          minelement, maxelement, &byteorder,&df,&dm,&ds,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp; 
         *elsize = elsiz;
         *elements = elem;
-        *byteorder = *bo;
         *dimfast = df;
         *dimmid = dm;
         *dimslow = ds;
         *padding = pd;
         
         }
+%feature("autodoc", "
+Returns : 
+*args   : int compression,int binary_id,(binary) String data,int elsize,
+          int elements,String byteorder,int dimfast,int dimmid,int dimslow,
+          int padding
 
-/* cfunc cbf_set_realarray_wdims_fs   pyfunc set_realarray_wdims_fs  
-   arg cbf_handle handle    arg unsigned int compression    arg int binary_id    arg void *array    arg size_t elsize    arg size_t    elements    arg const char *byteorder    arg size_t dimfast    arg size_t dimmid    arg size_t dimslow    arg size_t padding */
+C prototype: int cbf_set_realarray_wdims_fs (cbf_handle handle,
+                 unsigned int compression, int binary_id, void *array,
+                 size_t elsize, size_t    elements, const char *byteorder,
+                 size_t dimfast, size_t dimmid, size_t dimslow, size_t padding);
 
-     void set_realarray_wdims_fs(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_set_integerarray sets the binary value of the item at the current 
+column and row to an integer array. The array consists of elements 
+elements of elsize bytes each, starting at array. The elements are 
+signed if elsigned is non-0 and unsigned otherwise. binary_id is the 
+binary section identifier. cbf_set_realarray sets the binary value of 
+the item at the current column and row to an integer array. The array 
+consists of elements elements of elsize bytes each, starting at 
+array. binary_id is the binary section identifier.
+The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+allow the data header values of byteorder, dimfast, dimmid, dimslow 
+and padding to be set to the data byte order, the fastest, second 
+fastest and third fastest array dimensions and the size in byte of 
+the post data padding to be used.
+The array will be compressed using the compression scheme specifed by 
+compression. Currently, the available schemes are:
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+ CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+Simple  \"byte_offset \" compression. CBF_NONE          No 
+compression. NOTE: This scheme is by far the slowest of the four and 
+uses much more disk space. It is intended for routine use with small 
+arrays only. With large arrays (like images) it should be used only 
+for debugging.
+The values compressed are limited to 64 bits. If any element in the 
+array is larger than 64 bits, the value compressed is the nearest 
+64-bit value.
+")set_realarray_wdims_fs;
+
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray_wdims_fs;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_realarray_wdims_fs;
+
+    void set_realarray_wdims_fs(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elements,
+             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_realarray_wdims_fs (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
+           (size_t) dimfast, (size_t) dimmid, (size_t) dimslow, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
 %feature("autodoc", "
 Returns : String categoryroot
 *args   : String categoryname
@@ -7140,12 +7697,77 @@ const char*  find_category_root(const char* categoryname){
    cbf_failnez(cbf_find_category_root(self,categoryname,&result));
    return result;
 }
+%feature("autodoc", "
+Returns : 
+*args   : int compression,int binary_id,(binary) String data,int elsize,
+          int elements,String byteorder,int dimfast,int dimmid,int dimslow,
+          int padding
 
-/* cfunc cbf_set_integerarray_wdims_fs   pyfunc set_integerarray_wdims_fs  
-   arg cbf_handle handle    arg unsigned int compression    arg int binary_id    arg void *array    arg size_t elsize    arg int    elsigned    arg size_t elements    arg const char *byteorder    arg size_t dimfast    arg size_t dimmid    arg size_t dimslow    arg size_t padding */
+C prototype: int cbf_set_integerarray_wdims_fs (cbf_handle handle,
+                 unsigned int compression, int binary_id, void *array,
+                 size_t elsize, int    elsigned, size_t elements,
+                 const char *byteorder, size_t dimfast, size_t dimmid,
+                 size_t dimslow, size_t padding);
 
-     void set_integerarray_wdims_fs(void){
-        cbf_failnez(CBF_NOTIMPLEMENTED);}
+CBFLib documentation:
+DESCRIPTION
+cbf_set_integerarray sets the binary value of the item at the current 
+column and row to an integer array. The array consists of elements 
+elements of elsize bytes each, starting at array. The elements are 
+signed if elsigned is non-0 and unsigned otherwise. binary_id is the 
+binary section identifier. cbf_set_realarray sets the binary value of 
+the item at the current column and row to an integer array. The array 
+consists of elements elements of elsize bytes each, starting at 
+array. binary_id is the binary section identifier.
+The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+allow the data header values of byteorder, dimfast, dimmid, dimslow 
+and padding to be set to the data byte order, the fastest, second 
+fastest and third fastest array dimensions and the size in byte of 
+the post data padding to be used.
+The array will be compressed using the compression scheme specifed by 
+compression. Currently, the available schemes are:
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+ CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+Simple  \"byte_offset \" compression. CBF_NONE          No 
+compression. NOTE: This scheme is by far the slowest of the four and 
+uses much more disk space. It is intended for routine use with small 
+arrays only. With large arrays (like images) it should be used only 
+for debugging.
+The values compressed are limited to 64 bits. If any element in the 
+array is larger than 64 bits, the value compressed is the nearest 
+64-bit value.
+")set_integerarray_wdims_fs;
+
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims_fs;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_integerarray_wdims_fs;
+
+    void set_integerarray_wdims_fs(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elsigned, int elements,
+             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_integerarray_wdims_fs (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
+           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
 %feature("autodoc", "
 Returns : 
 *args   : int element_number,int compression,(binary) String data,int elsize,

@@ -3335,6 +3335,10 @@ SWIGINTERN void cbf_detector_struct_get_detector_normal(cbf_detector_struct *sel
 SWIGINTERN void cbf_detector_struct_get_pixel_coordinates_sf(cbf_detector_struct *self,double indexslow,double indexfast,double *coordinate1,double *coordinate2,double *coordinate3){
       {(error_status = cbf_get_pixel_coordinates_sf(self, indexslow, indexfast, coordinate1, coordinate2, coordinate3));};
    }
+SWIGINTERN void cbf_detector_struct_set_beam_center(cbf_detector_struct *self,double *indexslow,double *indexfast,double *centerslow,double *centerfast){
+        {(error_status = cbf_set_beam_center(self, indexslow, indexfast, 
+                                       centerslow, centerfast));};
+        }
 SWIGINTERN void cbf_detector_struct_get_pixel_area_fs(cbf_detector_struct *self,double indexfast,double indexslow,double *area,double *projected_area){
        {(error_status = cbf_get_pixel_area_fs (self,
                                        indexfast, indexslow, area,projected_area));};
@@ -3664,8 +3668,24 @@ SWIGINTERN char const *cbf_handle_struct_datablock_name(cbf_handle_struct *self)
     const char* result;
     {(error_status = cbf_datablock_name(self, &result));};
     return result;}
-SWIGINTERN void cbf_handle_struct_set_realarray_wdims(cbf_handle_struct *self){
-        {(error_status = CBF_NOTIMPLEMENTED);};}
+SWIGINTERN void cbf_handle_struct_set_realarray_wdims(cbf_handle_struct *self,unsigned int compression,int binary_id,char *data,int len,int elsize,int elements,char *bo,int bolen,int dimfast,int dimmid,int dimslow,int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           {(error_status = cbf_set_realarray_wdims (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
+           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding));}; 
+        }else{
+           {(error_status = CBF_ARGUMENT);};
+        }
+    }
 SWIGINTERN cbf_detector cbf_handle_struct_construct_reference_detector(cbf_handle_struct *self,unsigned int element_number){
     cbf_detector detector;
     {(error_status = cbf_construct_reference_detector(self,&detector,element_number));};
@@ -3703,17 +3723,21 @@ SWIGINTERN void cbf_handle_struct_get_timestamp(cbf_handle_struct *self,double *
         }
 SWIGINTERN void cbf_handle_struct_find_nextrow(cbf_handle_struct *self,char const *arg){
       {(error_status = cbf_find_nextrow(self,arg));};}
-SWIGINTERN void cbf_handle_struct_get_realarrayparameters_wdims_sf(cbf_handle_struct *self,int *compression,int *binary_id,int *elsize,int *elements,char *byteorder,int *dimslow,int *dimmid,int *dimfast,int *padding){
+SWIGINTERN void cbf_handle_struct_get_realarrayparameters_wdims_sf(cbf_handle_struct *self,int *compression,int *binary_id,int *elsize,int *elements,char **bo,int *bolen,int *dimslow,int *dimmid,int *dimfast,int *padding){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
-        const char * bo;
+        const char * byteorder;
+        char * bot;
         {(error_status = cbf_get_realarrayparameters_wdims_sf(self, 
          &comp,binary_id, &elsiz, &elem, 
-         &bo,&ds,&dm,&df,&pd ));};
-        *compression = comp; /* FIXME - does this convert in C? */
+         &byteorder,&ds,&dm,&df,&pd ));};
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {{(error_status = CBF_ALLOC);}}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
         *elsize = elsiz;
         *elements = elem;
-        *byteorder = *bo;
         *dimfast = df;
         *dimmid = dm;
         *dimslow = ds;
@@ -3899,17 +3923,21 @@ SWIGINTERN unsigned int cbf_handle_struct_count_columns(cbf_handle_struct *self)
       unsigned int result;
       {(error_status = cbf_count_columns(self,&result));};
       return result;}
-SWIGINTERN void cbf_handle_struct_get_integerarrayparameters_wdims(cbf_handle_struct *self,int *compression,int *binary_id,int *elsize,int *elsigned,int *elunsigned,int *elements,int *minelement,int *maxelement,char *byteorder,int *dimfast,int *dimmid,int *dimslow,int *padding){
+SWIGINTERN void cbf_handle_struct_get_integerarrayparameters_wdims(cbf_handle_struct *self,int *compression,int *binary_id,int *elsize,int *elsigned,int *elunsigned,int *elements,int *minelement,int *maxelement,char **bo,int *bolen,int *dimfast,int *dimmid,int *dimslow,int *padding){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
-        const char * bo;
+        const char * byteorder;
+        char * bot;
         {(error_status = cbf_get_integerarrayparameters_wdims(self, 
          &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
-          minelement, maxelement, &bo,&df,&dm,&ds,&pd ));};
-        *compression = comp; /* FIXME - does this convert in C? */
+          minelement, maxelement, &byteorder,&df,&dm,&ds,&pd ));};
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {{(error_status = CBF_ALLOC);}}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
         *elsize = elsiz;
         *elements = elem;
-        *byteorder = *bo;
         *dimfast = df;
         *dimmid = dm;
         *dimslow = ds;
@@ -3949,8 +3977,24 @@ SWIGINTERN char const *cbf_handle_struct_column_name(cbf_handle_struct *self){
     return result;}
 SWIGINTERN void cbf_handle_struct_remove_saveframe(cbf_handle_struct *self){
       {(error_status = cbf_remove_saveframe(self));};}
-SWIGINTERN void cbf_handle_struct_set_integerarray_wdims_sf(cbf_handle_struct *self){
-        {(error_status = CBF_NOTIMPLEMENTED);};}
+SWIGINTERN void cbf_handle_struct_set_integerarray_wdims_sf(cbf_handle_struct *self,unsigned int compression,int binary_id,char *data,int len,int elsize,int elsigned,int elements,char *bo,int bolen,int dimslow,int dimmid,int dimfast,int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           {(error_status = cbf_set_integerarray_wdims_sf (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
+           (size_t)dimslow, (size_t)dimmid, (size_t)dimfast, (size_t)padding));}; 
+        }else{
+           {(error_status = CBF_ARGUMENT);};
+        }
+    }
 SWIGINTERN char const *cbf_handle_struct_require_value(cbf_handle_struct *self,char const *defaultvalue){
      const char * result;
      {(error_status = cbf_require_value(self, &result, defaultvalue));};
@@ -3977,8 +4021,27 @@ SWIGINTERN void cbf_handle_struct_get_3d_image_size_sf(cbf_handle_struct *self,u
         *ndimmid = (int)inmid; 
         *ndimfast = (int)infast;
         }
-SWIGINTERN void cbf_handle_struct_get_realarrayparameters_wdims_fs(cbf_handle_struct *self){
-        {(error_status = CBF_NOTIMPLEMENTED);};}
+SWIGINTERN void cbf_handle_struct_get_realarrayparameters_wdims_fs(cbf_handle_struct *self,int *compression,int *binary_id,int *elsize,int *elements,char **bo,int *bolen,int *dimfast,int *dimmid,int *dimslow,int *padding){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * byteorder;
+        char * bot;
+        {(error_status = cbf_get_realarrayparameters_wdims_fs(self, 
+         &comp,binary_id, &elsiz, &elem, 
+         &byteorder,&ds,&dm,&ds,&pd ));};
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {{(error_status = CBF_ALLOC);}}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
+        *elsize = elsiz;
+        *elements = elem;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
 SWIGINTERN void cbf_handle_struct_get_realarray_as_string(cbf_handle_struct *self,char **s,int *slen){
         int binary_id;
         size_t elements, elements_read, elsize;
@@ -4001,8 +4064,9 @@ SWIGINTERN void cbf_handle_struct_get_realarray_as_string(cbf_handle_struct *sel
         *slen = elsize*elements;
         *s = (char *) array;
       }
-SWIGINTERN void cbf_handle_struct_get_bin_sizes(cbf_handle_struct *self){
-        {(error_status = CBF_NOTIMPLEMENTED);};}
+SWIGINTERN void cbf_handle_struct_get_bin_sizes(cbf_handle_struct *self,int element_number,double *slowbinsize,double *fastbinsize){
+    {(error_status = cbf_get_bin_sizes (self, (unsigned int)element_number, slowbinsize, fastbinsize));};
+  }
 SWIGINTERN void cbf_handle_struct_reset_category(cbf_handle_struct *self){
       {(error_status = cbf_reset_category(self));};}
 SWIGINTERN cbf_goniometer cbf_handle_struct_construct_goniometer(cbf_handle_struct *self){
@@ -4077,8 +4141,24 @@ SWIGINTERN void cbf_handle_struct_get_real_3d_image_sf_as_string(cbf_handle_stru
       }
 SWIGINTERN void cbf_handle_struct_set_typeofvalue(cbf_handle_struct *self,char const *arg){
       {(error_status = cbf_set_typeofvalue(self,arg));};}
-SWIGINTERN void cbf_handle_struct_set_integerarray_wdims(cbf_handle_struct *self){
-        {(error_status = CBF_NOTIMPLEMENTED);};}
+SWIGINTERN void cbf_handle_struct_set_integerarray_wdims(cbf_handle_struct *self,unsigned int compression,int binary_id,char *data,int len,int elsize,int elsigned,int elements,char *bo,int bolen,int dimfast,int dimmid,int dimslow,int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           {(error_status = cbf_set_integerarray_wdims (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
+           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding));}; 
+        }else{
+           {(error_status = CBF_ARGUMENT);};
+        }
+    }
 SWIGINTERN void cbf_handle_struct_set_integration_time(cbf_handle_struct *self,double time){
         unsigned int reserved;
         reserved = 0;
@@ -4144,8 +4224,27 @@ SWIGINTERN double cbf_handle_struct_get_wavelength(cbf_handle_struct *self){
        return result;}
 SWIGINTERN void cbf_handle_struct_next_datablock(cbf_handle_struct *self){
       {(error_status = cbf_next_datablock(self));};}
-SWIGINTERN void cbf_handle_struct_get_realarrayparameters_wdims(cbf_handle_struct *self){
-        {(error_status = CBF_NOTIMPLEMENTED);};}
+SWIGINTERN void cbf_handle_struct_get_realarrayparameters_wdims(cbf_handle_struct *self,int *compression,int *binary_id,int *elsize,int *elements,char **bo,int *bolen,int *dimfast,int *dimmid,int *dimslow,int *padding){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * byteorder;
+        char * bot;
+        {(error_status = cbf_get_realarrayparameters_wdims(self, 
+         &comp,binary_id, &elsiz, &elem, 
+         &byteorder,&ds,&dm,&ds,&pd ));};
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {{(error_status = CBF_ALLOC);}}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
+        *elsize = elsiz;
+        *elements = elem;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
 SWIGINTERN void cbf_handle_struct_set_orientation_matrix(cbf_handle_struct *self,double m0,double m1,double m2,double m3,double m4,double m5,double m6,double m7,double m8){
         double m[9];
         m[0] = m0; m[1]=m1 ; m[2]=m2 ;
@@ -4162,17 +4261,21 @@ SWIGINTERN void cbf_handle_struct_find_column(cbf_handle_struct *self,char const
       {(error_status = cbf_find_column(self,arg));};}
 SWIGINTERN void cbf_handle_struct_remove_category(cbf_handle_struct *self){
       {(error_status = cbf_remove_category(self));};}
-SWIGINTERN void cbf_handle_struct_get_integerarrayparameters_wdims_sf(cbf_handle_struct *self,int *compression,int *binary_id,int *elsize,int *elsigned,int *elunsigned,int *elements,int *minelement,int *maxelement,char *byteorder,int *dimslow,int *dimmid,int *dimfast,int *padding){
+SWIGINTERN void cbf_handle_struct_get_integerarrayparameters_wdims_sf(cbf_handle_struct *self,int *compression,int *binary_id,int *elsize,int *elsigned,int *elunsigned,int *elements,int *minelement,int *maxelement,char **bo,int *bolen,int *dimslow,int *dimmid,int *dimfast,int *padding){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
-        const char * bo;
+        const char * byteorder;
+        char * bot;
         {(error_status = cbf_get_integerarrayparameters_wdims_sf(self, 
          &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
-          minelement, maxelement, &bo,&ds,&dm,&df,&pd ));};
-        *compression = comp; /* FIXME - does this convert in C? */
+          minelement, maxelement, &byteorder,&ds,&dm,&df,&pd ));};
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {{(error_status = CBF_ALLOC);}}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
         *elsize = elsiz;
         *elements = elem;
-        *byteorder = *bo;
         *dimfast = df;
         *dimmid = dm;
         *dimslow = ds;
@@ -4241,8 +4344,24 @@ SWIGINTERN char const *cbf_handle_struct_require_category_root(cbf_handle_struct
   {(error_status = cbf_require_category_root(self,categoryname, &result));};
   return result;
 }
-SWIGINTERN void cbf_handle_struct_set_realarray_wdims_sf(cbf_handle_struct *self){
-        {(error_status = CBF_NOTIMPLEMENTED);};}
+SWIGINTERN void cbf_handle_struct_set_realarray_wdims_sf(cbf_handle_struct *self,unsigned int compression,int binary_id,char *data,int len,int elsize,int elements,char *bo,int bolen,int dimslow,int dimmid,int dimfast,int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           {(error_status = cbf_set_realarray_wdims_sf (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
+           (size_t) dimslow, (size_t) dimmid, (size_t) dimfast, (size_t)padding));}; 
+        }else{
+           {(error_status = CBF_ARGUMENT);};
+        }
+    }
 SWIGINTERN void cbf_handle_struct_set_integervalue(cbf_handle_struct *self,int number){
         {(error_status = cbf_set_integervalue(self,number));};}
 SWIGINTERN char const *cbf_handle_struct_category_name(cbf_handle_struct *self){
@@ -4513,32 +4632,68 @@ SWIGINTERN void cbf_handle_struct_set_doublevalue(cbf_handle_struct *self,char c
         {(error_status = cbf_set_doublevalue(self,format,number));};}
 SWIGINTERN void cbf_handle_struct_find_category(cbf_handle_struct *self,char const *arg){
       {(error_status = cbf_find_category(self,arg));};}
-SWIGINTERN void cbf_handle_struct_get_integerarrayparameters_wdims_fs(cbf_handle_struct *self,int *compression,int *binary_id,int *elsize,int *elsigned,int *elunsigned,int *elements,int *minelement,int *maxelement,char *byteorder,int *dimfast,int *dimmid,int *dimslow,int *padding){
+SWIGINTERN void cbf_handle_struct_get_integerarrayparameters_wdims_fs(cbf_handle_struct *self,int *compression,int *binary_id,int *elsize,int *elsigned,int *elunsigned,int *elements,int *minelement,int *maxelement,char **bo,int *bolen,int *dimfast,int *dimmid,int *dimslow,int *padding){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
-        const char * bo;
+        const char * byteorder;
+        char * bot;
         {(error_status = cbf_get_integerarrayparameters_wdims_fs(self, 
          &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
-          minelement, maxelement, &bo,&df,&dm,&ds,&pd ));};
-        *compression = comp; /* FIXME - does this convert in C? */
+          minelement, maxelement, &byteorder,&df,&dm,&ds,&pd ));};
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {{(error_status = CBF_ALLOC);}}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp; 
         *elsize = elsiz;
         *elements = elem;
-        *byteorder = *bo;
         *dimfast = df;
         *dimmid = dm;
         *dimslow = ds;
         *padding = pd;
         
         }
-SWIGINTERN void cbf_handle_struct_set_realarray_wdims_fs(cbf_handle_struct *self){
-        {(error_status = CBF_NOTIMPLEMENTED);};}
+SWIGINTERN void cbf_handle_struct_set_realarray_wdims_fs(cbf_handle_struct *self,unsigned int compression,int binary_id,char *data,int len,int elsize,int elements,char *bo,int bolen,int dimfast,int dimmid,int dimslow,int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           {(error_status = cbf_set_realarray_wdims_fs (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
+           (size_t) dimfast, (size_t) dimmid, (size_t) dimslow, (size_t)padding));}; 
+        }else{
+           {(error_status = CBF_ARGUMENT);};
+        }
+    }
 SWIGINTERN char const *cbf_handle_struct_find_category_root(cbf_handle_struct *self,char const *categoryname){
    const char * result;
    {(error_status = cbf_find_category_root(self,categoryname,&result));};
    return result;
 }
-SWIGINTERN void cbf_handle_struct_set_integerarray_wdims_fs(cbf_handle_struct *self){
-        {(error_status = CBF_NOTIMPLEMENTED);};}
+SWIGINTERN void cbf_handle_struct_set_integerarray_wdims_fs(cbf_handle_struct *self,unsigned int compression,int binary_id,char *data,int len,int elsize,int elsigned,int elements,char *bo,int bolen,int dimfast,int dimmid,int dimslow,int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           {(error_status = cbf_set_integerarray_wdims_fs (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
+           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding));}; 
+        }else{
+           {(error_status = CBF_ARGUMENT);};
+        }
+    }
 SWIGINTERN void cbf_handle_struct_set_image_sf(cbf_handle_struct *self,unsigned int element_number,unsigned int compression,char *data,int len,int elsize,int elsign,int ndimslow,int ndimfast){
         /* safety check on args */
         size_t els;
@@ -6940,6 +7095,71 @@ SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_pixel_coordinates_sf(PyObject
     int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_double, new_flags));
   }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_cbf_detector_struct_set_beam_center(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
+  double *arg2 = (double *) 0 ;
+  double *arg3 = (double *) 0 ;
+  double *arg4 = (double *) 0 ;
+  double *arg5 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  void *argp3 = 0 ;
+  int res3 = 0 ;
+  void *argp4 = 0 ;
+  int res4 = 0 ;
+  void *argp5 = 0 ;
+  int res5 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:cbf_detector_struct_set_beam_center",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_detector_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_set_beam_center" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
+  }
+  arg1 = (cbf_detector_struct *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_detector_struct_set_beam_center" "', argument " "2"" of type '" "double *""'"); 
+  }
+  arg2 = (double *)(argp2);
+  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "cbf_detector_struct_set_beam_center" "', argument " "3"" of type '" "double *""'"); 
+  }
+  arg3 = (double *)(argp3);
+  res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "cbf_detector_struct_set_beam_center" "', argument " "4"" of type '" "double *""'"); 
+  }
+  arg4 = (double *)(argp4);
+  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res5)) {
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "cbf_detector_struct_set_beam_center" "', argument " "5"" of type '" "double *""'"); 
+  }
+  arg5 = (double *)(argp5);
+  {
+    error_status=0;
+    cbf_detector_struct_set_beam_center(arg1,arg2,arg3,arg4,arg5);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
   return NULL;
@@ -9750,19 +9970,117 @@ fail:
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_realarray_wdims(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  unsigned int arg2 ;
+  int arg3 ;
+  char *arg4 = (char *) 0 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
+  char *arg8 = (char *) 0 ;
+  int arg9 ;
+  int arg10 ;
+  int arg11 ;
+  int arg12 ;
+  int arg13 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int res4 ;
+  char *buf4 = 0 ;
+  size_t size4 = 0 ;
+  int alloc4 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int res8 ;
+  char *buf8 = 0 ;
+  size_t size8 = 0 ;
+  int alloc8 = 0 ;
+  int val10 ;
+  int ecode10 = 0 ;
+  int val11 ;
+  int ecode11 = 0 ;
+  int val12 ;
+  int ecode12 = 0 ;
+  int val13 ;
+  int ecode13 = 0 ;
   PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:cbf_handle_struct_set_realarray_wdims",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOO:cbf_handle_struct_set_realarray_wdims",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_set_realarray_wdims" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
   }
   arg1 = (cbf_handle_struct *)(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "cbf_handle_struct_set_realarray_wdims" "', argument " "2"" of type '" "unsigned int""'");
+  } 
+  arg2 = (unsigned int)(val2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "cbf_handle_struct_set_realarray_wdims" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, &size4, &alloc4);
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "cbf_handle_struct_set_realarray_wdims" "', argument " "4"" of type '" "char *""'");
+  }  
+  arg4 = (char *)(buf4);
+  arg5 = (int)(size4 - 1);
+  ecode6 = SWIG_AsVal_int(obj4, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "cbf_handle_struct_set_realarray_wdims" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  ecode7 = SWIG_AsVal_int(obj5, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "cbf_handle_struct_set_realarray_wdims" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  res8 = SWIG_AsCharPtrAndSize(obj6, &buf8, &size8, &alloc8);
+  if (!SWIG_IsOK(res8)) {
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "cbf_handle_struct_set_realarray_wdims" "', argument " "8"" of type '" "char *""'");
+  }  
+  arg8 = (char *)(buf8);
+  arg9 = (int)(size8 - 1);
+  ecode10 = SWIG_AsVal_int(obj7, &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "cbf_handle_struct_set_realarray_wdims" "', argument " "10"" of type '" "int""'");
+  } 
+  arg10 = (int)(val10);
+  ecode11 = SWIG_AsVal_int(obj8, &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "cbf_handle_struct_set_realarray_wdims" "', argument " "11"" of type '" "int""'");
+  } 
+  arg11 = (int)(val11);
+  ecode12 = SWIG_AsVal_int(obj9, &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "cbf_handle_struct_set_realarray_wdims" "', argument " "12"" of type '" "int""'");
+  } 
+  arg12 = (int)(val12);
+  ecode13 = SWIG_AsVal_int(obj10, &val13);
+  if (!SWIG_IsOK(ecode13)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "cbf_handle_struct_set_realarray_wdims" "', argument " "13"" of type '" "int""'");
+  } 
+  arg13 = (int)(val13);
   {
     error_status=0;
-    cbf_handle_struct_set_realarray_wdims(arg1);
+    cbf_handle_struct_set_realarray_wdims(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -9770,8 +10088,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_realarray_wdims(PyObject *SWIGU
     }
   }
   resultobj = SWIG_Py_Void();
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc8 == SWIG_NEWOBJ) free((char*)buf8);
   return resultobj;
 fail:
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc8 == SWIG_NEWOBJ) free((char*)buf8);
   return NULL;
 }
 
@@ -10126,11 +10448,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_realarrayparameters_wdims_sf(Py
   int *arg3 = (int *) 0 ;
   int *arg4 = (int *) 0 ;
   int *arg5 = (int *) 0 ;
-  char *arg6 = (char *) 0 ;
+  char **arg6 = (char **) 0 ;
   int *arg7 = (int *) 0 ;
   int *arg8 = (int *) 0 ;
   int *arg9 = (int *) 0 ;
   int *arg10 = (int *) 0 ;
+  int *arg11 = (int *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int temp2 ;
@@ -10141,27 +10464,27 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_realarrayparameters_wdims_sf(Py
   int res4 = SWIG_TMPOBJ ;
   int temp5 ;
   int res5 = SWIG_TMPOBJ ;
-  char temp6 ;
-  int res6 = SWIG_TMPOBJ ;
-  int temp7 ;
-  int res7 = SWIG_TMPOBJ ;
+  char *temp6 = 0 ;
+  int tempn6 ;
   int temp8 ;
   int res8 = SWIG_TMPOBJ ;
   int temp9 ;
   int res9 = SWIG_TMPOBJ ;
   int temp10 ;
   int res10 = SWIG_TMPOBJ ;
+  int temp11 ;
+  int res11 = SWIG_TMPOBJ ;
   PyObject * obj0 = 0 ;
   
   arg2 = &temp2;
   arg3 = &temp3;
   arg4 = &temp4;
   arg5 = &temp5;
-  arg6 = &temp6;
-  arg7 = &temp7;
+  arg6 = &temp6; arg7 = &tempn6;
   arg8 = &temp8;
   arg9 = &temp9;
   arg10 = &temp10;
+  arg11 = &temp11;
   if (!PyArg_ParseTuple(args,(char *)"O:cbf_handle_struct_get_realarrayparameters_wdims_sf",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -10170,7 +10493,7 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_realarrayparameters_wdims_sf(Py
   arg1 = (cbf_handle_struct *)(argp1);
   {
     error_status=0;
-    cbf_handle_struct_get_realarrayparameters_wdims_sf(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
+    cbf_handle_struct_get_realarrayparameters_wdims_sf(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -10202,17 +10525,9 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_realarrayparameters_wdims_sf(Py
     int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_int, new_flags));
   }
-  if (SWIG_IsTmpObj(res6)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg6)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_char, new_flags));
-  }
-  if (SWIG_IsTmpObj(res7)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg7)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_int, new_flags));
+  if (*arg6) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtrAndSize(*arg6,*arg7));
+    free(*arg6);
   }
   if (SWIG_IsTmpObj(res8)) {
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg8)));
@@ -10231,6 +10546,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_realarrayparameters_wdims_sf(Py
   } else {
     int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res11)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg11)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res11) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg11), SWIGTYPE_p_int, new_flags));
   }
   return resultobj;
 fail:
@@ -11716,11 +12037,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims(Py
   int *arg7 = (int *) 0 ;
   int *arg8 = (int *) 0 ;
   int *arg9 = (int *) 0 ;
-  char *arg10 = (char *) 0 ;
+  char **arg10 = (char **) 0 ;
   int *arg11 = (int *) 0 ;
   int *arg12 = (int *) 0 ;
   int *arg13 = (int *) 0 ;
   int *arg14 = (int *) 0 ;
+  int *arg15 = (int *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int temp2 ;
@@ -11739,16 +12061,16 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims(Py
   int res8 = SWIG_TMPOBJ ;
   int temp9 ;
   int res9 = SWIG_TMPOBJ ;
-  char temp10 ;
-  int res10 = SWIG_TMPOBJ ;
-  int temp11 ;
-  int res11 = SWIG_TMPOBJ ;
+  char *temp10 = 0 ;
+  int tempn10 ;
   int temp12 ;
   int res12 = SWIG_TMPOBJ ;
   int temp13 ;
   int res13 = SWIG_TMPOBJ ;
   int temp14 ;
   int res14 = SWIG_TMPOBJ ;
+  int temp15 ;
+  int res15 = SWIG_TMPOBJ ;
   PyObject * obj0 = 0 ;
   
   arg2 = &temp2;
@@ -11759,11 +12081,11 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims(Py
   arg7 = &temp7;
   arg8 = &temp8;
   arg9 = &temp9;
-  arg10 = &temp10;
-  arg11 = &temp11;
+  arg10 = &temp10; arg11 = &tempn10;
   arg12 = &temp12;
   arg13 = &temp13;
   arg14 = &temp14;
+  arg15 = &temp15;
   if (!PyArg_ParseTuple(args,(char *)"O:cbf_handle_struct_get_integerarrayparameters_wdims",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -11772,7 +12094,7 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims(Py
   arg1 = (cbf_handle_struct *)(argp1);
   {
     error_status=0;
-    cbf_handle_struct_get_integerarrayparameters_wdims(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+    cbf_handle_struct_get_integerarrayparameters_wdims(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -11828,17 +12150,9 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims(Py
     int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_int, new_flags));
   }
-  if (SWIG_IsTmpObj(res10)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg10)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_char, new_flags));
-  }
-  if (SWIG_IsTmpObj(res11)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg11)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res11) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg11), SWIGTYPE_p_int, new_flags));
+  if (*arg10) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtrAndSize(*arg10,*arg11));
+    free(*arg10);
   }
   if (SWIG_IsTmpObj(res12)) {
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg12)));
@@ -11857,6 +12171,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims(Py
   } else {
     int new_flags = SWIG_IsNewObj(res14) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg14), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res15)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg15)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res15) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg15), SWIGTYPE_p_int, new_flags));
   }
   return resultobj;
 fail:
@@ -12208,19 +12528,126 @@ fail:
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_integerarray_wdims_sf(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  unsigned int arg2 ;
+  int arg3 ;
+  char *arg4 = (char *) 0 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
+  int arg8 ;
+  char *arg9 = (char *) 0 ;
+  int arg10 ;
+  int arg11 ;
+  int arg12 ;
+  int arg13 ;
+  int arg14 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int res4 ;
+  char *buf4 = 0 ;
+  size_t size4 = 0 ;
+  int alloc4 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int res9 ;
+  char *buf9 = 0 ;
+  size_t size9 = 0 ;
+  int alloc9 = 0 ;
+  int val11 ;
+  int ecode11 = 0 ;
+  int val12 ;
+  int ecode12 = 0 ;
+  int val13 ;
+  int ecode13 = 0 ;
+  int val14 ;
+  int ecode14 = 0 ;
   PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
+  PyObject * obj11 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:cbf_handle_struct_set_integerarray_wdims_sf",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOO:cbf_handle_struct_set_integerarray_wdims_sf",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_set_integerarray_wdims_sf" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
   }
   arg1 = (cbf_handle_struct *)(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "cbf_handle_struct_set_integerarray_wdims_sf" "', argument " "2"" of type '" "unsigned int""'");
+  } 
+  arg2 = (unsigned int)(val2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "cbf_handle_struct_set_integerarray_wdims_sf" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, &size4, &alloc4);
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "cbf_handle_struct_set_integerarray_wdims_sf" "', argument " "4"" of type '" "char *""'");
+  }  
+  arg4 = (char *)(buf4);
+  arg5 = (int)(size4 - 1);
+  ecode6 = SWIG_AsVal_int(obj4, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "cbf_handle_struct_set_integerarray_wdims_sf" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  ecode7 = SWIG_AsVal_int(obj5, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "cbf_handle_struct_set_integerarray_wdims_sf" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  ecode8 = SWIG_AsVal_int(obj6, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "cbf_handle_struct_set_integerarray_wdims_sf" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = (int)(val8);
+  res9 = SWIG_AsCharPtrAndSize(obj7, &buf9, &size9, &alloc9);
+  if (!SWIG_IsOK(res9)) {
+    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "cbf_handle_struct_set_integerarray_wdims_sf" "', argument " "9"" of type '" "char *""'");
+  }  
+  arg9 = (char *)(buf9);
+  arg10 = (int)(size9 - 1);
+  ecode11 = SWIG_AsVal_int(obj8, &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "cbf_handle_struct_set_integerarray_wdims_sf" "', argument " "11"" of type '" "int""'");
+  } 
+  arg11 = (int)(val11);
+  ecode12 = SWIG_AsVal_int(obj9, &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "cbf_handle_struct_set_integerarray_wdims_sf" "', argument " "12"" of type '" "int""'");
+  } 
+  arg12 = (int)(val12);
+  ecode13 = SWIG_AsVal_int(obj10, &val13);
+  if (!SWIG_IsOK(ecode13)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "cbf_handle_struct_set_integerarray_wdims_sf" "', argument " "13"" of type '" "int""'");
+  } 
+  arg13 = (int)(val13);
+  ecode14 = SWIG_AsVal_int(obj11, &val14);
+  if (!SWIG_IsOK(ecode14)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "cbf_handle_struct_set_integerarray_wdims_sf" "', argument " "14"" of type '" "int""'");
+  } 
+  arg14 = (int)(val14);
   {
     error_status=0;
-    cbf_handle_struct_set_integerarray_wdims_sf(arg1);
+    cbf_handle_struct_set_integerarray_wdims_sf(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -12228,8 +12655,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_integerarray_wdims_sf(PyObject 
     }
   }
   resultobj = SWIG_Py_Void();
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc9 == SWIG_NEWOBJ) free((char*)buf9);
   return resultobj;
 fail:
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc9 == SWIG_NEWOBJ) free((char*)buf9);
   return NULL;
 }
 
@@ -12492,10 +12923,47 @@ fail:
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_realarrayparameters_wdims_fs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  int *arg2 = (int *) 0 ;
+  int *arg3 = (int *) 0 ;
+  int *arg4 = (int *) 0 ;
+  int *arg5 = (int *) 0 ;
+  char **arg6 = (char **) 0 ;
+  int *arg7 = (int *) 0 ;
+  int *arg8 = (int *) 0 ;
+  int *arg9 = (int *) 0 ;
+  int *arg10 = (int *) 0 ;
+  int *arg11 = (int *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
+  int temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  int temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  int temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  int temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  char *temp6 = 0 ;
+  int tempn6 ;
+  int temp8 ;
+  int res8 = SWIG_TMPOBJ ;
+  int temp9 ;
+  int res9 = SWIG_TMPOBJ ;
+  int temp10 ;
+  int res10 = SWIG_TMPOBJ ;
+  int temp11 ;
+  int res11 = SWIG_TMPOBJ ;
   PyObject * obj0 = 0 ;
   
+  arg2 = &temp2;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  arg6 = &temp6; arg7 = &tempn6;
+  arg8 = &temp8;
+  arg9 = &temp9;
+  arg10 = &temp10;
+  arg11 = &temp11;
   if (!PyArg_ParseTuple(args,(char *)"O:cbf_handle_struct_get_realarrayparameters_wdims_fs",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -12504,7 +12972,7 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_realarrayparameters_wdims_fs(Py
   arg1 = (cbf_handle_struct *)(argp1);
   {
     error_status=0;
-    cbf_handle_struct_get_realarrayparameters_wdims_fs(arg1);
+    cbf_handle_struct_get_realarrayparameters_wdims_fs(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -12512,6 +12980,58 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_realarrayparameters_wdims_fs(Py
     }
   }
   resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_int, new_flags));
+  }
+  if (*arg6) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtrAndSize(*arg6,*arg7));
+    free(*arg6);
+  }
+  if (SWIG_IsTmpObj(res8)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg8)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res9)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg9)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res10)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg10)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res11)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg11)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res11) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg11), SWIGTYPE_p_int, new_flags));
+  }
   return resultobj;
 fail:
   return NULL;
@@ -12559,19 +13079,36 @@ fail:
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_bin_sizes(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  int arg2 ;
+  double *arg3 = (double *) 0 ;
+  double *arg4 = (double *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  double temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  double temp4 ;
+  int res4 = SWIG_TMPOBJ ;
   PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:cbf_handle_struct_get_bin_sizes",&obj0)) SWIG_fail;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_handle_struct_get_bin_sizes",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_get_bin_sizes" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
   }
   arg1 = (cbf_handle_struct *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "cbf_handle_struct_get_bin_sizes" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
   {
     error_status=0;
-    cbf_handle_struct_get_bin_sizes(arg1);
+    cbf_handle_struct_get_bin_sizes(arg1,arg2,arg3,arg4);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -12579,6 +13116,18 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_bin_sizes(PyObject *SWIGUNUSEDP
     }
   }
   resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, new_flags));
+  }
   return resultobj;
 fail:
   return NULL;
@@ -13078,19 +13627,126 @@ fail:
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_integerarray_wdims(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  unsigned int arg2 ;
+  int arg3 ;
+  char *arg4 = (char *) 0 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
+  int arg8 ;
+  char *arg9 = (char *) 0 ;
+  int arg10 ;
+  int arg11 ;
+  int arg12 ;
+  int arg13 ;
+  int arg14 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int res4 ;
+  char *buf4 = 0 ;
+  size_t size4 = 0 ;
+  int alloc4 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int res9 ;
+  char *buf9 = 0 ;
+  size_t size9 = 0 ;
+  int alloc9 = 0 ;
+  int val11 ;
+  int ecode11 = 0 ;
+  int val12 ;
+  int ecode12 = 0 ;
+  int val13 ;
+  int ecode13 = 0 ;
+  int val14 ;
+  int ecode14 = 0 ;
   PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
+  PyObject * obj11 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:cbf_handle_struct_set_integerarray_wdims",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOO:cbf_handle_struct_set_integerarray_wdims",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_set_integerarray_wdims" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
   }
   arg1 = (cbf_handle_struct *)(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "cbf_handle_struct_set_integerarray_wdims" "', argument " "2"" of type '" "unsigned int""'");
+  } 
+  arg2 = (unsigned int)(val2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "cbf_handle_struct_set_integerarray_wdims" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, &size4, &alloc4);
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "cbf_handle_struct_set_integerarray_wdims" "', argument " "4"" of type '" "char *""'");
+  }  
+  arg4 = (char *)(buf4);
+  arg5 = (int)(size4 - 1);
+  ecode6 = SWIG_AsVal_int(obj4, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "cbf_handle_struct_set_integerarray_wdims" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  ecode7 = SWIG_AsVal_int(obj5, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "cbf_handle_struct_set_integerarray_wdims" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  ecode8 = SWIG_AsVal_int(obj6, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "cbf_handle_struct_set_integerarray_wdims" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = (int)(val8);
+  res9 = SWIG_AsCharPtrAndSize(obj7, &buf9, &size9, &alloc9);
+  if (!SWIG_IsOK(res9)) {
+    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "cbf_handle_struct_set_integerarray_wdims" "', argument " "9"" of type '" "char *""'");
+  }  
+  arg9 = (char *)(buf9);
+  arg10 = (int)(size9 - 1);
+  ecode11 = SWIG_AsVal_int(obj8, &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "cbf_handle_struct_set_integerarray_wdims" "', argument " "11"" of type '" "int""'");
+  } 
+  arg11 = (int)(val11);
+  ecode12 = SWIG_AsVal_int(obj9, &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "cbf_handle_struct_set_integerarray_wdims" "', argument " "12"" of type '" "int""'");
+  } 
+  arg12 = (int)(val12);
+  ecode13 = SWIG_AsVal_int(obj10, &val13);
+  if (!SWIG_IsOK(ecode13)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "cbf_handle_struct_set_integerarray_wdims" "', argument " "13"" of type '" "int""'");
+  } 
+  arg13 = (int)(val13);
+  ecode14 = SWIG_AsVal_int(obj11, &val14);
+  if (!SWIG_IsOK(ecode14)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "cbf_handle_struct_set_integerarray_wdims" "', argument " "14"" of type '" "int""'");
+  } 
+  arg14 = (int)(val14);
   {
     error_status=0;
-    cbf_handle_struct_set_integerarray_wdims(arg1);
+    cbf_handle_struct_set_integerarray_wdims(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -13098,8 +13754,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_integerarray_wdims(PyObject *SW
     }
   }
   resultobj = SWIG_Py_Void();
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc9 == SWIG_NEWOBJ) free((char*)buf9);
   return resultobj;
 fail:
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc9 == SWIG_NEWOBJ) free((char*)buf9);
   return NULL;
 }
 
@@ -13566,10 +14226,47 @@ fail:
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_realarrayparameters_wdims(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  int *arg2 = (int *) 0 ;
+  int *arg3 = (int *) 0 ;
+  int *arg4 = (int *) 0 ;
+  int *arg5 = (int *) 0 ;
+  char **arg6 = (char **) 0 ;
+  int *arg7 = (int *) 0 ;
+  int *arg8 = (int *) 0 ;
+  int *arg9 = (int *) 0 ;
+  int *arg10 = (int *) 0 ;
+  int *arg11 = (int *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
+  int temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  int temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  int temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  int temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  char *temp6 = 0 ;
+  int tempn6 ;
+  int temp8 ;
+  int res8 = SWIG_TMPOBJ ;
+  int temp9 ;
+  int res9 = SWIG_TMPOBJ ;
+  int temp10 ;
+  int res10 = SWIG_TMPOBJ ;
+  int temp11 ;
+  int res11 = SWIG_TMPOBJ ;
   PyObject * obj0 = 0 ;
   
+  arg2 = &temp2;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  arg6 = &temp6; arg7 = &tempn6;
+  arg8 = &temp8;
+  arg9 = &temp9;
+  arg10 = &temp10;
+  arg11 = &temp11;
   if (!PyArg_ParseTuple(args,(char *)"O:cbf_handle_struct_get_realarrayparameters_wdims",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -13578,7 +14275,7 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_realarrayparameters_wdims(PyObj
   arg1 = (cbf_handle_struct *)(argp1);
   {
     error_status=0;
-    cbf_handle_struct_get_realarrayparameters_wdims(arg1);
+    cbf_handle_struct_get_realarrayparameters_wdims(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -13586,6 +14283,58 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_realarrayparameters_wdims(PyObj
     }
   }
   resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_int, new_flags));
+  }
+  if (*arg6) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtrAndSize(*arg6,*arg7));
+    free(*arg6);
+  }
+  if (SWIG_IsTmpObj(res8)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg8)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res9)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg9)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res10)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg10)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res11)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg11)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res11) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg11), SWIGTYPE_p_int, new_flags));
+  }
   return resultobj;
 fail:
   return NULL;
@@ -13880,11 +14629,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims_sf
   int *arg7 = (int *) 0 ;
   int *arg8 = (int *) 0 ;
   int *arg9 = (int *) 0 ;
-  char *arg10 = (char *) 0 ;
+  char **arg10 = (char **) 0 ;
   int *arg11 = (int *) 0 ;
   int *arg12 = (int *) 0 ;
   int *arg13 = (int *) 0 ;
   int *arg14 = (int *) 0 ;
+  int *arg15 = (int *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int temp2 ;
@@ -13903,16 +14653,16 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims_sf
   int res8 = SWIG_TMPOBJ ;
   int temp9 ;
   int res9 = SWIG_TMPOBJ ;
-  char temp10 ;
-  int res10 = SWIG_TMPOBJ ;
-  int temp11 ;
-  int res11 = SWIG_TMPOBJ ;
+  char *temp10 = 0 ;
+  int tempn10 ;
   int temp12 ;
   int res12 = SWIG_TMPOBJ ;
   int temp13 ;
   int res13 = SWIG_TMPOBJ ;
   int temp14 ;
   int res14 = SWIG_TMPOBJ ;
+  int temp15 ;
+  int res15 = SWIG_TMPOBJ ;
   PyObject * obj0 = 0 ;
   
   arg2 = &temp2;
@@ -13923,11 +14673,11 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims_sf
   arg7 = &temp7;
   arg8 = &temp8;
   arg9 = &temp9;
-  arg10 = &temp10;
-  arg11 = &temp11;
+  arg10 = &temp10; arg11 = &tempn10;
   arg12 = &temp12;
   arg13 = &temp13;
   arg14 = &temp14;
+  arg15 = &temp15;
   if (!PyArg_ParseTuple(args,(char *)"O:cbf_handle_struct_get_integerarrayparameters_wdims_sf",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -13936,7 +14686,7 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims_sf
   arg1 = (cbf_handle_struct *)(argp1);
   {
     error_status=0;
-    cbf_handle_struct_get_integerarrayparameters_wdims_sf(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+    cbf_handle_struct_get_integerarrayparameters_wdims_sf(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -13992,17 +14742,9 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims_sf
     int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_int, new_flags));
   }
-  if (SWIG_IsTmpObj(res10)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg10)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_char, new_flags));
-  }
-  if (SWIG_IsTmpObj(res11)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg11)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res11) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg11), SWIGTYPE_p_int, new_flags));
+  if (*arg10) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtrAndSize(*arg10,*arg11));
+    free(*arg10);
   }
   if (SWIG_IsTmpObj(res12)) {
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg12)));
@@ -14021,6 +14763,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims_sf
   } else {
     int new_flags = SWIG_IsNewObj(res14) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg14), SWIGTYPE_p_int, new_flags));
+  }
+  if (SWIG_IsTmpObj(res15)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg15)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res15) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg15), SWIGTYPE_p_int, new_flags));
   }
   return resultobj;
 fail:
@@ -14548,19 +15296,117 @@ fail:
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_realarray_wdims_sf(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  unsigned int arg2 ;
+  int arg3 ;
+  char *arg4 = (char *) 0 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
+  char *arg8 = (char *) 0 ;
+  int arg9 ;
+  int arg10 ;
+  int arg11 ;
+  int arg12 ;
+  int arg13 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int res4 ;
+  char *buf4 = 0 ;
+  size_t size4 = 0 ;
+  int alloc4 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int res8 ;
+  char *buf8 = 0 ;
+  size_t size8 = 0 ;
+  int alloc8 = 0 ;
+  int val10 ;
+  int ecode10 = 0 ;
+  int val11 ;
+  int ecode11 = 0 ;
+  int val12 ;
+  int ecode12 = 0 ;
+  int val13 ;
+  int ecode13 = 0 ;
   PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:cbf_handle_struct_set_realarray_wdims_sf",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOO:cbf_handle_struct_set_realarray_wdims_sf",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_set_realarray_wdims_sf" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
   }
   arg1 = (cbf_handle_struct *)(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "cbf_handle_struct_set_realarray_wdims_sf" "', argument " "2"" of type '" "unsigned int""'");
+  } 
+  arg2 = (unsigned int)(val2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "cbf_handle_struct_set_realarray_wdims_sf" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, &size4, &alloc4);
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "cbf_handle_struct_set_realarray_wdims_sf" "', argument " "4"" of type '" "char *""'");
+  }  
+  arg4 = (char *)(buf4);
+  arg5 = (int)(size4 - 1);
+  ecode6 = SWIG_AsVal_int(obj4, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "cbf_handle_struct_set_realarray_wdims_sf" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  ecode7 = SWIG_AsVal_int(obj5, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "cbf_handle_struct_set_realarray_wdims_sf" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  res8 = SWIG_AsCharPtrAndSize(obj6, &buf8, &size8, &alloc8);
+  if (!SWIG_IsOK(res8)) {
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "cbf_handle_struct_set_realarray_wdims_sf" "', argument " "8"" of type '" "char *""'");
+  }  
+  arg8 = (char *)(buf8);
+  arg9 = (int)(size8 - 1);
+  ecode10 = SWIG_AsVal_int(obj7, &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "cbf_handle_struct_set_realarray_wdims_sf" "', argument " "10"" of type '" "int""'");
+  } 
+  arg10 = (int)(val10);
+  ecode11 = SWIG_AsVal_int(obj8, &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "cbf_handle_struct_set_realarray_wdims_sf" "', argument " "11"" of type '" "int""'");
+  } 
+  arg11 = (int)(val11);
+  ecode12 = SWIG_AsVal_int(obj9, &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "cbf_handle_struct_set_realarray_wdims_sf" "', argument " "12"" of type '" "int""'");
+  } 
+  arg12 = (int)(val12);
+  ecode13 = SWIG_AsVal_int(obj10, &val13);
+  if (!SWIG_IsOK(ecode13)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "cbf_handle_struct_set_realarray_wdims_sf" "', argument " "13"" of type '" "int""'");
+  } 
+  arg13 = (int)(val13);
   {
     error_status=0;
-    cbf_handle_struct_set_realarray_wdims_sf(arg1);
+    cbf_handle_struct_set_realarray_wdims_sf(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -14568,8 +15414,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_realarray_wdims_sf(PyObject *SW
     }
   }
   resultobj = SWIG_Py_Void();
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc8 == SWIG_NEWOBJ) free((char*)buf8);
   return resultobj;
 fail:
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc8 == SWIG_NEWOBJ) free((char*)buf8);
   return NULL;
 }
 
@@ -16792,11 +17642,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims_fs
   int *arg7 = (int *) 0 ;
   int *arg8 = (int *) 0 ;
   int *arg9 = (int *) 0 ;
-  char *arg10 = (char *) 0 ;
+  char **arg10 = (char **) 0 ;
   int *arg11 = (int *) 0 ;
   int *arg12 = (int *) 0 ;
   int *arg13 = (int *) 0 ;
   int *arg14 = (int *) 0 ;
+  int *arg15 = (int *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int temp2 ;
@@ -16815,16 +17666,16 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims_fs
   int res8 = SWIG_TMPOBJ ;
   int temp9 ;
   int res9 = SWIG_TMPOBJ ;
-  char temp10 ;
-  int res10 = SWIG_TMPOBJ ;
-  int temp11 ;
-  int res11 = SWIG_TMPOBJ ;
+  char *temp10 = 0 ;
+  int tempn10 ;
   int temp12 ;
   int res12 = SWIG_TMPOBJ ;
   int temp13 ;
   int res13 = SWIG_TMPOBJ ;
   int temp14 ;
   int res14 = SWIG_TMPOBJ ;
+  int temp15 ;
+  int res15 = SWIG_TMPOBJ ;
   PyObject * obj0 = 0 ;
   
   arg2 = &temp2;
@@ -16835,11 +17686,11 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims_fs
   arg7 = &temp7;
   arg8 = &temp8;
   arg9 = &temp9;
-  arg10 = &temp10;
-  arg11 = &temp11;
+  arg10 = &temp10; arg11 = &tempn10;
   arg12 = &temp12;
   arg13 = &temp13;
   arg14 = &temp14;
+  arg15 = &temp15;
   if (!PyArg_ParseTuple(args,(char *)"O:cbf_handle_struct_get_integerarrayparameters_wdims_fs",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -16848,7 +17699,7 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims_fs
   arg1 = (cbf_handle_struct *)(argp1);
   {
     error_status=0;
-    cbf_handle_struct_get_integerarrayparameters_wdims_fs(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+    cbf_handle_struct_get_integerarrayparameters_wdims_fs(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -16904,17 +17755,9 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims_fs
     int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_int, new_flags));
   }
-  if (SWIG_IsTmpObj(res10)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg10)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_char, new_flags));
-  }
-  if (SWIG_IsTmpObj(res11)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg11)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res11) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg11), SWIGTYPE_p_int, new_flags));
+  if (*arg10) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtrAndSize(*arg10,*arg11));
+    free(*arg10);
   }
   if (SWIG_IsTmpObj(res12)) {
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg12)));
@@ -16934,6 +17777,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_integerarrayparameters_wdims_fs
     int new_flags = SWIG_IsNewObj(res14) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg14), SWIGTYPE_p_int, new_flags));
   }
+  if (SWIG_IsTmpObj(res15)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg15)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res15) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg15), SWIGTYPE_p_int, new_flags));
+  }
   return resultobj;
 fail:
   return NULL;
@@ -16943,19 +17792,117 @@ fail:
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_realarray_wdims_fs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  unsigned int arg2 ;
+  int arg3 ;
+  char *arg4 = (char *) 0 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
+  char *arg8 = (char *) 0 ;
+  int arg9 ;
+  int arg10 ;
+  int arg11 ;
+  int arg12 ;
+  int arg13 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int res4 ;
+  char *buf4 = 0 ;
+  size_t size4 = 0 ;
+  int alloc4 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int res8 ;
+  char *buf8 = 0 ;
+  size_t size8 = 0 ;
+  int alloc8 = 0 ;
+  int val10 ;
+  int ecode10 = 0 ;
+  int val11 ;
+  int ecode11 = 0 ;
+  int val12 ;
+  int ecode12 = 0 ;
+  int val13 ;
+  int ecode13 = 0 ;
   PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:cbf_handle_struct_set_realarray_wdims_fs",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOO:cbf_handle_struct_set_realarray_wdims_fs",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_set_realarray_wdims_fs" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
   }
   arg1 = (cbf_handle_struct *)(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "cbf_handle_struct_set_realarray_wdims_fs" "', argument " "2"" of type '" "unsigned int""'");
+  } 
+  arg2 = (unsigned int)(val2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "cbf_handle_struct_set_realarray_wdims_fs" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, &size4, &alloc4);
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "cbf_handle_struct_set_realarray_wdims_fs" "', argument " "4"" of type '" "char *""'");
+  }  
+  arg4 = (char *)(buf4);
+  arg5 = (int)(size4 - 1);
+  ecode6 = SWIG_AsVal_int(obj4, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "cbf_handle_struct_set_realarray_wdims_fs" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  ecode7 = SWIG_AsVal_int(obj5, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "cbf_handle_struct_set_realarray_wdims_fs" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  res8 = SWIG_AsCharPtrAndSize(obj6, &buf8, &size8, &alloc8);
+  if (!SWIG_IsOK(res8)) {
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "cbf_handle_struct_set_realarray_wdims_fs" "', argument " "8"" of type '" "char *""'");
+  }  
+  arg8 = (char *)(buf8);
+  arg9 = (int)(size8 - 1);
+  ecode10 = SWIG_AsVal_int(obj7, &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "cbf_handle_struct_set_realarray_wdims_fs" "', argument " "10"" of type '" "int""'");
+  } 
+  arg10 = (int)(val10);
+  ecode11 = SWIG_AsVal_int(obj8, &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "cbf_handle_struct_set_realarray_wdims_fs" "', argument " "11"" of type '" "int""'");
+  } 
+  arg11 = (int)(val11);
+  ecode12 = SWIG_AsVal_int(obj9, &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "cbf_handle_struct_set_realarray_wdims_fs" "', argument " "12"" of type '" "int""'");
+  } 
+  arg12 = (int)(val12);
+  ecode13 = SWIG_AsVal_int(obj10, &val13);
+  if (!SWIG_IsOK(ecode13)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "cbf_handle_struct_set_realarray_wdims_fs" "', argument " "13"" of type '" "int""'");
+  } 
+  arg13 = (int)(val13);
   {
     error_status=0;
-    cbf_handle_struct_set_realarray_wdims_fs(arg1);
+    cbf_handle_struct_set_realarray_wdims_fs(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -16963,8 +17910,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_realarray_wdims_fs(PyObject *SW
     }
   }
   resultobj = SWIG_Py_Void();
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc8 == SWIG_NEWOBJ) free((char*)buf8);
   return resultobj;
 fail:
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc8 == SWIG_NEWOBJ) free((char*)buf8);
   return NULL;
 }
 
@@ -17014,19 +17965,126 @@ fail:
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_integerarray_wdims_fs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  unsigned int arg2 ;
+  int arg3 ;
+  char *arg4 = (char *) 0 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
+  int arg8 ;
+  char *arg9 = (char *) 0 ;
+  int arg10 ;
+  int arg11 ;
+  int arg12 ;
+  int arg13 ;
+  int arg14 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
+  unsigned int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int res4 ;
+  char *buf4 = 0 ;
+  size_t size4 = 0 ;
+  int alloc4 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int res9 ;
+  char *buf9 = 0 ;
+  size_t size9 = 0 ;
+  int alloc9 = 0 ;
+  int val11 ;
+  int ecode11 = 0 ;
+  int val12 ;
+  int ecode12 = 0 ;
+  int val13 ;
+  int ecode13 = 0 ;
+  int val14 ;
+  int ecode14 = 0 ;
   PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
+  PyObject * obj11 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:cbf_handle_struct_set_integerarray_wdims_fs",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOO:cbf_handle_struct_set_integerarray_wdims_fs",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_set_integerarray_wdims_fs" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
   }
   arg1 = (cbf_handle_struct *)(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "cbf_handle_struct_set_integerarray_wdims_fs" "', argument " "2"" of type '" "unsigned int""'");
+  } 
+  arg2 = (unsigned int)(val2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "cbf_handle_struct_set_integerarray_wdims_fs" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, &size4, &alloc4);
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "cbf_handle_struct_set_integerarray_wdims_fs" "', argument " "4"" of type '" "char *""'");
+  }  
+  arg4 = (char *)(buf4);
+  arg5 = (int)(size4 - 1);
+  ecode6 = SWIG_AsVal_int(obj4, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "cbf_handle_struct_set_integerarray_wdims_fs" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = (int)(val6);
+  ecode7 = SWIG_AsVal_int(obj5, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "cbf_handle_struct_set_integerarray_wdims_fs" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = (int)(val7);
+  ecode8 = SWIG_AsVal_int(obj6, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "cbf_handle_struct_set_integerarray_wdims_fs" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = (int)(val8);
+  res9 = SWIG_AsCharPtrAndSize(obj7, &buf9, &size9, &alloc9);
+  if (!SWIG_IsOK(res9)) {
+    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "cbf_handle_struct_set_integerarray_wdims_fs" "', argument " "9"" of type '" "char *""'");
+  }  
+  arg9 = (char *)(buf9);
+  arg10 = (int)(size9 - 1);
+  ecode11 = SWIG_AsVal_int(obj8, &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "cbf_handle_struct_set_integerarray_wdims_fs" "', argument " "11"" of type '" "int""'");
+  } 
+  arg11 = (int)(val11);
+  ecode12 = SWIG_AsVal_int(obj9, &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "cbf_handle_struct_set_integerarray_wdims_fs" "', argument " "12"" of type '" "int""'");
+  } 
+  arg12 = (int)(val12);
+  ecode13 = SWIG_AsVal_int(obj10, &val13);
+  if (!SWIG_IsOK(ecode13)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "cbf_handle_struct_set_integerarray_wdims_fs" "', argument " "13"" of type '" "int""'");
+  } 
+  arg13 = (int)(val13);
+  ecode14 = SWIG_AsVal_int(obj11, &val14);
+  if (!SWIG_IsOK(ecode14)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "cbf_handle_struct_set_integerarray_wdims_fs" "', argument " "14"" of type '" "int""'");
+  } 
+  arg14 = (int)(val14);
   {
     error_status=0;
-    cbf_handle_struct_set_integerarray_wdims_fs(arg1);
+    cbf_handle_struct_set_integerarray_wdims_fs(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -17034,8 +18092,12 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_integerarray_wdims_fs(PyObject 
     }
   }
   resultobj = SWIG_Py_Void();
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc9 == SWIG_NEWOBJ) free((char*)buf9);
   return resultobj;
 fail:
+  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  if (alloc9 == SWIG_NEWOBJ) free((char*)buf9);
   return NULL;
 }
 
@@ -17872,6 +18934,68 @@ static PyMethodDef SwigMethods[] = {
 		" Fast index. coordinate1   Pointer to the destination x component. \n"
 		"coordinate2   Pointer to the destination y component. coordinate3   \n"
 		"Pointer to the destination z component.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"\n"
+		"\n"
+		""},
+	 { (char *)"cbf_detector_struct_set_beam_center", _wrap_cbf_detector_struct_set_beam_center, METH_VARARGS, (char *)"\n"
+		"Returns : \n"
+		"*args   : double indexslow,double indexfast,double centerslow,double centerfast\n"
+		"\n"
+		"C prototype: int cbf_set_beam_center (cbf_detector detector,\n"
+		"                 double *indexslow, double *indexfast, double *centerslow,\n"
+		"                 double *centerfast);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_beam_center sets *centerfast and *centerslow to the \n"
+		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
+		"point at which the beam intersects the detector and *indexfast and \n"
+		"*indexslow to the corresponding indices. cbf_set_beam_center sets the \n"
+		"offsets in the axis category for the detector element axis with \n"
+		"precedence 1 to place the beam center at the position given in mm by \n"
+		"*centerfast and *centerslow as the displacements in mm along the \n"
+		"detector axes from pixel (0, 0) to the point at which the beam \n"
+		"intersects the detector at the indices given *indexfast and \n"
+		"*indexslow. cbf_set_reference_beam_center sets the displacments in \n"
+		"the array_structure_list_axis category to place the beam center at \n"
+		"the position given in mm by *centerfast and *centerslow as the \n"
+		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
+		"point at which the beam intersects the detector at the indices given \n"
+		"by *indexfast and *indexslow. In order to achieve consistent results, \n"
+		"a reference detector should be used for detector to have all axes at \n"
+		"their reference settings.\n"
+		"Note that the precedence 1 axis is the fastest axis, so that \n"
+		"*centerfast and *indexfast are the fast axis components of the center \n"
+		"and *centerslow and *indexslow are the slow axis components of the \n"
+		"center.\n"
+		"The _fs calls give the displacments in a fast-to-slow order. The \n"
+		"calls with no suffix and the calls _sf calls give the displacements \n"
+		"in slow-to-fast order\n"
+		"Any of the destination pointers may be NULL for getting the beam \n"
+		"center. For setting the beam axis, either the indices of the center \n"
+		"must not be NULL.\n"
+		"The indices are non-negative for beam centers within the detector \n"
+		"surface, but the center for an axis with a negative increment will be \n"
+		"negative for a beam center within the detector surface.\n"
+		"For cbf_set_beam_center if the diffrn_data_frame category exists with \n"
+		"a row for the corresponding element id, the values will be set for \n"
+		"_diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in \n"
+		"millimetres and the value of _diffrn_data_frame.center_units will be \n"
+		"set to 'mm'.\n"
+		"For cbf_set_reference_beam_center if the diffrn_detector_element \n"
+		"category exists with a row for the corresponding element id, the \n"
+		"values will be set for _diffrn_detector_element.reference_center_fast \n"
+		"and _diffrn_detector_element.reference_center_slow in millimetres and \n"
+		"the value of _diffrn_detector_element.reference_units will be set to \n"
+		"'mm'.\n"
+		"ARGUMENTS\n"
+		"detector     Detector handle. indexfast    Pointer to the destination \n"
+		"fast index. indexslow    Pointer to the destination slow index. \n"
+		"centerfast   Pointer to the destination displacement along the fast \n"
+		"axis. centerslow   Pointer to the destination displacement along the \n"
+		"slow axis.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"\n"
@@ -19510,7 +20634,49 @@ static PyMethodDef SwigMethods[] = {
 		"SEE ALSO\n"
 		"\n"
 		""},
-	 { (char *)"cbf_handle_struct_set_realarray_wdims", _wrap_cbf_handle_struct_set_realarray_wdims, METH_VARARGS, (char *)"cbf_handle_struct_set_realarray_wdims(cbf_handle_struct self)"},
+	 { (char *)"cbf_handle_struct_set_realarray_wdims", _wrap_cbf_handle_struct_set_realarray_wdims, METH_VARARGS, (char *)"\n"
+		"Returns : \n"
+		"*args   : int compression,int binary_id,(binary) String data,int elsize,\n"
+		"          int elements,String byteorder,int dimfast,int dimmid,int dimslow,\n"
+		"          int padding\n"
+		"\n"
+		"C prototype: int cbf_set_realarray_wdims (cbf_handle handle,\n"
+		"                 unsigned int compression, int binary_id, void *array,\n"
+		"                 size_t elsize, size_t elements,    const char *byteorder,\n"
+		"                 size_t dimfast, size_t dimmid, size_t dimslow, size_t padding);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_set_integerarray sets the binary value of the item at the current \n"
+		"column and row to an integer array. The array consists of elements \n"
+		"elements of elsize bytes each, starting at array. The elements are \n"
+		"signed if elsigned is non-0 and unsigned otherwise. binary_id is the \n"
+		"binary section identifier. cbf_set_realarray sets the binary value of \n"
+		"the item at the current column and row to an integer array. The array \n"
+		"consists of elements elements of elsize bytes each, starting at \n"
+		"array. binary_id is the binary section identifier.\n"
+		"The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, \n"
+		"cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, \n"
+		"cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants \n"
+		"allow the data header values of byteorder, dimfast, dimmid, dimslow \n"
+		"and padding to be set to the data byte order, the fastest, second \n"
+		"fastest and third fastest array dimensions and the size in byte of \n"
+		"the post data padding to be used.\n"
+		"The array will be compressed using the compression scheme specifed by \n"
+		"compression. Currently, the available schemes are:\n"
+		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
+		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"Simple  \"byte_offset \" compression. CBF_NONE          No \n"
+		"compression. NOTE: This scheme is by far the slowest of the four and \n"
+		"uses much more disk space. It is intended for routine use with small \n"
+		"arrays only. With large arrays (like images) it should be used only \n"
+		"for debugging.\n"
+		"The values compressed are limited to 64 bits. If any element in the \n"
+		"array is larger than 64 bits, the value compressed is the nearest \n"
+		"64-bit value.\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_construct_reference_detector", _wrap_cbf_handle_struct_construct_reference_detector, METH_VARARGS, (char *)"\n"
 		"Returns : pycbf detector object\n"
 		"*args   : Integer element_number\n"
@@ -19714,8 +20880,8 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_realarrayparameters_wdims_sf", _wrap_cbf_handle_struct_get_realarrayparameters_wdims_sf, METH_VARARGS, (char *)"\n"
-		"Returns : int compression,int binary_id,int elsize,int elements,char byteorder,\n"
-		"          int dimslow,int dimmid,int dimfast,int padding\n"
+		"Returns : int compression,int binary_id,int elsize,int elements,char **bo,\n"
+		"          int *bolen,int dimslow,int dimmid,int dimfast,int padding\n"
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_realarrayparameters_wdims_sf (cbf_handle handle,\n"
@@ -20677,8 +21843,8 @@ static PyMethodDef SwigMethods[] = {
 		""},
 	 { (char *)"cbf_handle_struct_get_integerarrayparameters_wdims", _wrap_cbf_handle_struct_get_integerarrayparameters_wdims, METH_VARARGS, (char *)"\n"
 		"Returns : int compression,int binary_id,int elsize,int elsigned,int elunsigned,\n"
-		"          int elements,int minelement,int maxelementchar byteorder,int dimfast,\n"
-		"          int dimmid,int dimslow,int padding\n"
+		"          int elements,int minelement,int maxelement,char **bo,int *bolen,\n"
+		"          int dimfast,int dimmid,int dimslow,int padding\n"
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_integerarrayparameters_wdims (cbf_handle handle,\n"
@@ -20933,7 +22099,50 @@ static PyMethodDef SwigMethods[] = {
 		"SEE ALSO\n"
 		"\n"
 		""},
-	 { (char *)"cbf_handle_struct_set_integerarray_wdims_sf", _wrap_cbf_handle_struct_set_integerarray_wdims_sf, METH_VARARGS, (char *)"cbf_handle_struct_set_integerarray_wdims_sf(cbf_handle_struct self)"},
+	 { (char *)"cbf_handle_struct_set_integerarray_wdims_sf", _wrap_cbf_handle_struct_set_integerarray_wdims_sf, METH_VARARGS, (char *)"\n"
+		"Returns : \n"
+		"*args   : int compression,int binary_id,(binary) String data,int elsize,\n"
+		"          int elements,String byteorder,int dimslow,int dimmid,int dimfast,\n"
+		"          int padding\n"
+		"\n"
+		"C prototype: int cbf_set_integerarray_wdims_sf (cbf_handle handle,\n"
+		"                 unsigned int compression, int binary_id, void *array,\n"
+		"                 size_t elsize, int    elsigned, size_t elements,\n"
+		"                 const char *byteorder, size_t dimslow, size_t dimmid,\n"
+		"                 size_t dimfast, size_t padding);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_set_integerarray sets the binary value of the item at the current \n"
+		"column and row to an integer array. The array consists of elements \n"
+		"elements of elsize bytes each, starting at array. The elements are \n"
+		"signed if elsigned is non-0 and unsigned otherwise. binary_id is the \n"
+		"binary section identifier. cbf_set_realarray sets the binary value of \n"
+		"the item at the current column and row to an integer array. The array \n"
+		"consists of elements elements of elsize bytes each, starting at \n"
+		"array. binary_id is the binary section identifier.\n"
+		"The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, \n"
+		"cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, \n"
+		"cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants \n"
+		"allow the data header values of byteorder, dimfast, dimmid, dimslow \n"
+		"and padding to be set to the data byte order, the fastest, second \n"
+		"fastest and third fastest array dimensions and the size in byte of \n"
+		"the post data padding to be used.\n"
+		"The array will be compressed using the compression scheme specifed by \n"
+		"compression. Currently, the available schemes are:\n"
+		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
+		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"Simple  \"byte_offset \" compression. CBF_NONE          No \n"
+		"compression. NOTE: This scheme is by far the slowest of the four and \n"
+		"uses much more disk space. It is intended for routine use with small \n"
+		"arrays only. With large arrays (like images) it should be used only \n"
+		"for debugging.\n"
+		"The values compressed are limited to 64 bits. If any element in the \n"
+		"array is larger than 64 bits, the value compressed is the nearest \n"
+		"64-bit value.\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_require_value", _wrap_cbf_handle_struct_require_value, METH_VARARGS, (char *)"\n"
 		"Returns : String Value\n"
 		"*args   : String defaultvalue\n"
@@ -21091,7 +22300,69 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"\n"
 		""},
-	 { (char *)"cbf_handle_struct_get_realarrayparameters_wdims_fs", _wrap_cbf_handle_struct_get_realarrayparameters_wdims_fs, METH_VARARGS, (char *)"cbf_handle_struct_get_realarrayparameters_wdims_fs(cbf_handle_struct self)"},
+	 { (char *)"cbf_handle_struct_get_realarrayparameters_wdims_fs", _wrap_cbf_handle_struct_get_realarrayparameters_wdims_fs, METH_VARARGS, (char *)"\n"
+		"Returns : int compression,int binary_id,int elsize,int elements,char **bo,\n"
+		"          int *bolen,int dimfast,int dimmid,int dimslow,int padding\n"
+		"*args   : \n"
+		"\n"
+		"C prototype: int cbf_get_realarrayparameters_wdims_fs (cbf_handle handle,\n"
+		"                 unsigned int *compression, int *binary_id, size_t *elsize,\n"
+		"                 size_t    *elements, const char **byteorder, size_t *dimfast,\n"
+		"                 size_t *dimmid, size_t *dimslow, size_t *padding);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_integerarrayparameters sets *compression, *binary_id, \n"
+		"*elsize, *elsigned, *elunsigned, *elements, *minelement and \n"
+		"*maxelement to values read from the binary value of the item at the \n"
+		"current column and row. This provides all the arguments needed for a \n"
+		"subsequent call to cbf_set_integerarray, if a copy of the array is to \n"
+		"be made into another CIF or CBF. cbf_get_realarrayparameters sets \n"
+		"*compression, *binary_id, *elsize, *elements to values read from the \n"
+		"binary value of the item at the current column and row. This provides \n"
+		"all the arguments needed for a subsequent call to cbf_set_realarray, \n"
+		"if a copy of the arry is to be made into another CIF or CBF.\n"
+		"The variants cbf_get_integerarrayparameters_wdims, \n"
+		"cbf_get_integerarrayparameters_wdims_fs, \n"
+		"cbf_get_integerarrayparameters_wdims_sf, \n"
+		"cbf_get_realarrayparameters_wdims, \n"
+		"cbf_get_realarrayparameters_wdims_fs, \n"
+		"cbf_get_realarrayparameters_wdims_sf set **byteorder, *dimfast, \n"
+		"*dimmid, *dimslow, and *padding as well, providing the additional \n"
+		"parameters needed for a subsequent call to cbf_set_integerarray_wdims \n"
+		"or cbf_set_realarray_wdims.\n"
+		"The value returned in *byteorder is a pointer either to the string  \n"
+		"\"little_endian \" or to the string  \"big_endian \". This should be \n"
+		"the byte order of the data, not necessarily of the host machine. No \n"
+		"attempt should be made to modify this string. At this time only  \n"
+		"\"little_endian \" will be returned.\n"
+		"The values returned in *dimfast, *dimmid and *dimslow are the sizes \n"
+		"of the fastest changing, second fastest changing and third fastest \n"
+		"changing dimensions of the array, if specified, or zero, if not \n"
+		"specified.\n"
+		"The value returned in *padding is the size of the post-data padding, \n"
+		"if any and if specified in the data header. The value is given as a \n"
+		"count of octets.\n"
+		"If the value is not binary, the function returns CBF_ASCII.\n"
+		"ARGUMENTS\n"
+		"handle        CBF handle. compression   Compression method used. \n"
+		"elsize        Size in bytes of each array element. binary_id     \n"
+		"Pointer to the destination integer binary identifier. elsigned      \n"
+		"Pointer to an integer. Set to 1 if the elements can be read as signed \n"
+		"integers. elunsigned    Pointer to an integer. Set to 1 if the \n"
+		"elements can be read as unsigned integers. elements      Pointer to \n"
+		"the destination number of elements. minelement    Pointer to the \n"
+		"destination smallest element. maxelement    Pointer to the \n"
+		"destination largest element. byteorder     Pointer to the destination \n"
+		"byte order. dimfast       Pointer to the destination fastest \n"
+		"dimension. dimmid        Pointer to the destination second fastest \n"
+		"dimension. dimslow       Pointer to the destination third fastest \n"
+		"dimension. padding       Pointer to the destination padding size.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"SEE ALSO\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_get_realarray_as_string", _wrap_cbf_handle_struct_get_realarray_as_string, METH_VARARGS, (char *)"\n"
 		"Returns : (Binary)String\n"
 		"*args   : \n"
@@ -21143,7 +22414,47 @@ static PyMethodDef SwigMethods[] = {
 		"Returns an error code on failure or 0 for success. SEE ALSO\n"
 		"\n"
 		""},
-	 { (char *)"cbf_handle_struct_get_bin_sizes", _wrap_cbf_handle_struct_get_bin_sizes, METH_VARARGS, (char *)"cbf_handle_struct_get_bin_sizes(cbf_handle_struct self)"},
+	 { (char *)"cbf_handle_struct_get_bin_sizes", _wrap_cbf_handle_struct_get_bin_sizes, METH_VARARGS, (char *)"\n"
+		"Returns : Float slowbinsize,Float fastbinsize\n"
+		"*args   : Integer element_number\n"
+		"\n"
+		"C prototype: int cbf_get_bin_sizes(cbf_handle handle,\n"
+		"                 unsigned int element_number, double * slowbinsize,\n"
+		"                 double * fastbinsize);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_bin_sizes sets slowbinsize to point to the value of the \n"
+		"number of pixels composing one array element in the dimension that \n"
+		"changes at the second-fastest rate and fastbinsize to point to the \n"
+		"value of the number of pixels composing one array element in the \n"
+		"dimension that changes at the fastest rate for the dectector element \n"
+		"with the ordinal element_number. cbf_set_bin_sizes sets the the pixel \n"
+		"bin sizes in the  \"array_intensities \" category to the values of \n"
+		"slowbinsize_in for the number of pixels composing one array element \n"
+		"in the dimension that changes at the second-fastest rate and \n"
+		"fastbinsize_in for the number of pixels composing one array element \n"
+		"in the dimension that changes at the fastest rate for the dectector \n"
+		"element with the ordinal element_number.\n"
+		"In order to allow for software binning involving fractions of pixels, \n"
+		"the bin sizes are doubles rather than ints.\n"
+		"ARGUMENTS\n"
+		"handle           CBF handle. element_number   The number of the \n"
+		"detector element counting from 0 by order of appearance in the  \n"
+		"\"diffrn_data_frame \" category. slowbinsize      Pointer to the \n"
+		"returned number of pixels composing one array element in the \n"
+		"dimension that changes at the second-fastest rate. fastbinsize      \n"
+		"Pointer to the returned number of pixels composing one array element \n"
+		"in the dimension that changes at the fastest rate. slowbinsize_in   \n"
+		"The number of pixels composing one array element in the dimension \n"
+		"that changes at the second-fastest rate. fastbinsize_in   The number \n"
+		"of pixels composing one array element in the dimension that changes \n"
+		"at the fastest rate.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_reset_category", _wrap_cbf_handle_struct_reset_category, METH_VARARGS, (char *)"\n"
 		"Returns : \n"
 		"*args   : \n"
@@ -21489,7 +22800,50 @@ static PyMethodDef SwigMethods[] = {
 		"SEE ALSO\n"
 		"\n"
 		""},
-	 { (char *)"cbf_handle_struct_set_integerarray_wdims", _wrap_cbf_handle_struct_set_integerarray_wdims, METH_VARARGS, (char *)"cbf_handle_struct_set_integerarray_wdims(cbf_handle_struct self)"},
+	 { (char *)"cbf_handle_struct_set_integerarray_wdims", _wrap_cbf_handle_struct_set_integerarray_wdims, METH_VARARGS, (char *)"\n"
+		"Returns : \n"
+		"*args   : int compression,int binary_id,(binary) String data,int elsize,\n"
+		"          int elements,String byteorder,int dimfast,int dimmid,int dimslow,\n"
+		"          int padding\n"
+		"\n"
+		"C prototype: int cbf_set_integerarray_wdims (cbf_handle handle,\n"
+		"                 unsigned int compression, int binary_id, void *array,\n"
+		"                 size_t elsize, int elsigned,    size_t elements,\n"
+		"                 const char *byteorder, size_t dimfast, size_t dimmid,\n"
+		"                 size_t dimslow, size_t padding);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_set_integerarray sets the binary value of the item at the current \n"
+		"column and row to an integer array. The array consists of elements \n"
+		"elements of elsize bytes each, starting at array. The elements are \n"
+		"signed if elsigned is non-0 and unsigned otherwise. binary_id is the \n"
+		"binary section identifier. cbf_set_realarray sets the binary value of \n"
+		"the item at the current column and row to an integer array. The array \n"
+		"consists of elements elements of elsize bytes each, starting at \n"
+		"array. binary_id is the binary section identifier.\n"
+		"The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, \n"
+		"cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, \n"
+		"cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants \n"
+		"allow the data header values of byteorder, dimfast, dimmid, dimslow \n"
+		"and padding to be set to the data byte order, the fastest, second \n"
+		"fastest and third fastest array dimensions and the size in byte of \n"
+		"the post data padding to be used.\n"
+		"The array will be compressed using the compression scheme specifed by \n"
+		"compression. Currently, the available schemes are:\n"
+		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
+		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"Simple  \"byte_offset \" compression. CBF_NONE          No \n"
+		"compression. NOTE: This scheme is by far the slowest of the four and \n"
+		"uses much more disk space. It is intended for routine use with small \n"
+		"arrays only. With large arrays (like images) it should be used only \n"
+		"for debugging.\n"
+		"The values compressed are limited to 64 bits. If any element in the \n"
+		"array is larger than 64 bits, the value compressed is the nearest \n"
+		"64-bit value.\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_set_integration_time", _wrap_cbf_handle_struct_set_integration_time, METH_VARARGS, (char *)"\n"
 		"Returns : \n"
 		"*args   : Float time\n"
@@ -21785,7 +23139,69 @@ static PyMethodDef SwigMethods[] = {
 		"SEE ALSO\n"
 		"\n"
 		""},
-	 { (char *)"cbf_handle_struct_get_realarrayparameters_wdims", _wrap_cbf_handle_struct_get_realarrayparameters_wdims, METH_VARARGS, (char *)"cbf_handle_struct_get_realarrayparameters_wdims(cbf_handle_struct self)"},
+	 { (char *)"cbf_handle_struct_get_realarrayparameters_wdims", _wrap_cbf_handle_struct_get_realarrayparameters_wdims, METH_VARARGS, (char *)"\n"
+		"Returns : int compression,int binary_id,int elsize,int elements,char **bo,\n"
+		"          int *bolen,int dimfast,int dimmid,int dimslow,int padding\n"
+		"*args   : \n"
+		"\n"
+		"C prototype: int cbf_get_realarrayparameters_wdims (cbf_handle handle,\n"
+		"                 unsigned int *compression, int *binary_id, size_t *elsize,\n"
+		"                 size_t *elements,    const char **byteorder, size_t *dimfast,\n"
+		"                 size_t *dimmid, size_t *dimslow, size_t *padding);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_integerarrayparameters sets *compression, *binary_id, \n"
+		"*elsize, *elsigned, *elunsigned, *elements, *minelement and \n"
+		"*maxelement to values read from the binary value of the item at the \n"
+		"current column and row. This provides all the arguments needed for a \n"
+		"subsequent call to cbf_set_integerarray, if a copy of the array is to \n"
+		"be made into another CIF or CBF. cbf_get_realarrayparameters sets \n"
+		"*compression, *binary_id, *elsize, *elements to values read from the \n"
+		"binary value of the item at the current column and row. This provides \n"
+		"all the arguments needed for a subsequent call to cbf_set_realarray, \n"
+		"if a copy of the arry is to be made into another CIF or CBF.\n"
+		"The variants cbf_get_integerarrayparameters_wdims, \n"
+		"cbf_get_integerarrayparameters_wdims_fs, \n"
+		"cbf_get_integerarrayparameters_wdims_sf, \n"
+		"cbf_get_realarrayparameters_wdims, \n"
+		"cbf_get_realarrayparameters_wdims_fs, \n"
+		"cbf_get_realarrayparameters_wdims_sf set **byteorder, *dimfast, \n"
+		"*dimmid, *dimslow, and *padding as well, providing the additional \n"
+		"parameters needed for a subsequent call to cbf_set_integerarray_wdims \n"
+		"or cbf_set_realarray_wdims.\n"
+		"The value returned in *byteorder is a pointer either to the string  \n"
+		"\"little_endian \" or to the string  \"big_endian \". This should be \n"
+		"the byte order of the data, not necessarily of the host machine. No \n"
+		"attempt should be made to modify this string. At this time only  \n"
+		"\"little_endian \" will be returned.\n"
+		"The values returned in *dimfast, *dimmid and *dimslow are the sizes \n"
+		"of the fastest changing, second fastest changing and third fastest \n"
+		"changing dimensions of the array, if specified, or zero, if not \n"
+		"specified.\n"
+		"The value returned in *padding is the size of the post-data padding, \n"
+		"if any and if specified in the data header. The value is given as a \n"
+		"count of octets.\n"
+		"If the value is not binary, the function returns CBF_ASCII.\n"
+		"ARGUMENTS\n"
+		"handle        CBF handle. compression   Compression method used. \n"
+		"elsize        Size in bytes of each array element. binary_id     \n"
+		"Pointer to the destination integer binary identifier. elsigned      \n"
+		"Pointer to an integer. Set to 1 if the elements can be read as signed \n"
+		"integers. elunsigned    Pointer to an integer. Set to 1 if the \n"
+		"elements can be read as unsigned integers. elements      Pointer to \n"
+		"the destination number of elements. minelement    Pointer to the \n"
+		"destination smallest element. maxelement    Pointer to the \n"
+		"destination largest element. byteorder     Pointer to the destination \n"
+		"byte order. dimfast       Pointer to the destination fastest \n"
+		"dimension. dimmid        Pointer to the destination second fastest \n"
+		"dimension. dimslow       Pointer to the destination third fastest \n"
+		"dimension. padding       Pointer to the destination padding size.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"SEE ALSO\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_set_orientation_matrix", _wrap_cbf_handle_struct_set_orientation_matrix, METH_VARARGS, (char *)"\n"
 		"Returns : \n"
 		"*args   : Float matrix_0,Float matrix_1,Float matrix_2,Float matrix_3,\n"
@@ -21894,8 +23310,8 @@ static PyMethodDef SwigMethods[] = {
 		""},
 	 { (char *)"cbf_handle_struct_get_integerarrayparameters_wdims_sf", _wrap_cbf_handle_struct_get_integerarrayparameters_wdims_sf, METH_VARARGS, (char *)"\n"
 		"Returns : int compression,int binary_id,int elsize,int elsigned,int elunsigned,\n"
-		"          int elements,int minelement,int maxelement,char byteorder,int dimslow,\n"
-		"          int dimmid,int dimfast,int padding\n"
+		"          int elements,int minelement,int maxelement,char **bo,int *bolen,\n"
+		"          int dimslow,int dimmid,int dimfast,int padding\n"
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_integerarrayparameters_wdims_sf (cbf_handle handle,\n"
@@ -22189,7 +23605,49 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_require_category_root", _wrap_cbf_handle_struct_require_category_root, METH_VARARGS, (char *)"cbf_handle_struct_require_category_root(cbf_handle_struct self, char categoryname) -> char"},
-	 { (char *)"cbf_handle_struct_set_realarray_wdims_sf", _wrap_cbf_handle_struct_set_realarray_wdims_sf, METH_VARARGS, (char *)"cbf_handle_struct_set_realarray_wdims_sf(cbf_handle_struct self)"},
+	 { (char *)"cbf_handle_struct_set_realarray_wdims_sf", _wrap_cbf_handle_struct_set_realarray_wdims_sf, METH_VARARGS, (char *)"\n"
+		"Returns : \n"
+		"*args   : int compression,int binary_id,(binary) String data,int elsize,\n"
+		"          int elements,String byteorder,int dimslow,int dimmid,int dimfast,\n"
+		"          int padding\n"
+		"\n"
+		"C prototype: int cbf_set_realarray_wdims_sf (cbf_handle handle,\n"
+		"                 unsigned int compression, int binary_id, void *array,\n"
+		"                 size_t elsize, size_t    elements, const char *byteorder,\n"
+		"                 size_t dimslow, size_t dimmid, size_t dimfast, size_t padding);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_set_integerarray sets the binary value of the item at the current \n"
+		"column and row to an integer array. The array consists of elements \n"
+		"elements of elsize bytes each, starting at array. The elements are \n"
+		"signed if elsigned is non-0 and unsigned otherwise. binary_id is the \n"
+		"binary section identifier. cbf_set_realarray sets the binary value of \n"
+		"the item at the current column and row to an integer array. The array \n"
+		"consists of elements elements of elsize bytes each, starting at \n"
+		"array. binary_id is the binary section identifier.\n"
+		"The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, \n"
+		"cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, \n"
+		"cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants \n"
+		"allow the data header values of byteorder, dimfast, dimmid, dimslow \n"
+		"and padding to be set to the data byte order, the fastest, second \n"
+		"fastest and third fastest array dimensions and the size in byte of \n"
+		"the post data padding to be used.\n"
+		"The array will be compressed using the compression scheme specifed by \n"
+		"compression. Currently, the available schemes are:\n"
+		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
+		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"Simple  \"byte_offset \" compression. CBF_NONE          No \n"
+		"compression. NOTE: This scheme is by far the slowest of the four and \n"
+		"uses much more disk space. It is intended for routine use with small \n"
+		"arrays only. With large arrays (like images) it should be used only \n"
+		"for debugging.\n"
+		"The values compressed are limited to 64 bits. If any element in the \n"
+		"array is larger than 64 bits, the value compressed is the nearest \n"
+		"64-bit value.\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_set_integervalue", _wrap_cbf_handle_struct_set_integervalue, METH_VARARGS, (char *)"\n"
 		"Returns : int number\n"
 		"*args   : \n"
@@ -23546,8 +25004,8 @@ static PyMethodDef SwigMethods[] = {
 		""},
 	 { (char *)"cbf_handle_struct_get_integerarrayparameters_wdims_fs", _wrap_cbf_handle_struct_get_integerarrayparameters_wdims_fs, METH_VARARGS, (char *)"\n"
 		"Returns : int compression,int binary_id,int elsize,int elsigned,int elunsigned,\n"
-		"          int elements,int minelement,int maxelement,char byteorder,int dimfast,\n"
-		"          int dimmid,int dimslow,int padding\n"
+		"          int elements,int minelement,int maxelement,char **bo,int *bolen,\n"
+		"          int dimfast,int dimmid,int dimslow,int padding\n"
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_integerarrayparameters_wdims_fs (cbf_handle handle,\n"
@@ -23610,7 +25068,49 @@ static PyMethodDef SwigMethods[] = {
 		"SEE ALSO\n"
 		"\n"
 		""},
-	 { (char *)"cbf_handle_struct_set_realarray_wdims_fs", _wrap_cbf_handle_struct_set_realarray_wdims_fs, METH_VARARGS, (char *)"cbf_handle_struct_set_realarray_wdims_fs(cbf_handle_struct self)"},
+	 { (char *)"cbf_handle_struct_set_realarray_wdims_fs", _wrap_cbf_handle_struct_set_realarray_wdims_fs, METH_VARARGS, (char *)"\n"
+		"Returns : \n"
+		"*args   : int compression,int binary_id,(binary) String data,int elsize,\n"
+		"          int elements,String byteorder,int dimfast,int dimmid,int dimslow,\n"
+		"          int padding\n"
+		"\n"
+		"C prototype: int cbf_set_realarray_wdims_fs (cbf_handle handle,\n"
+		"                 unsigned int compression, int binary_id, void *array,\n"
+		"                 size_t elsize, size_t    elements, const char *byteorder,\n"
+		"                 size_t dimfast, size_t dimmid, size_t dimslow, size_t padding);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_set_integerarray sets the binary value of the item at the current \n"
+		"column and row to an integer array. The array consists of elements \n"
+		"elements of elsize bytes each, starting at array. The elements are \n"
+		"signed if elsigned is non-0 and unsigned otherwise. binary_id is the \n"
+		"binary section identifier. cbf_set_realarray sets the binary value of \n"
+		"the item at the current column and row to an integer array. The array \n"
+		"consists of elements elements of elsize bytes each, starting at \n"
+		"array. binary_id is the binary section identifier.\n"
+		"The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, \n"
+		"cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, \n"
+		"cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants \n"
+		"allow the data header values of byteorder, dimfast, dimmid, dimslow \n"
+		"and padding to be set to the data byte order, the fastest, second \n"
+		"fastest and third fastest array dimensions and the size in byte of \n"
+		"the post data padding to be used.\n"
+		"The array will be compressed using the compression scheme specifed by \n"
+		"compression. Currently, the available schemes are:\n"
+		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
+		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"Simple  \"byte_offset \" compression. CBF_NONE          No \n"
+		"compression. NOTE: This scheme is by far the slowest of the four and \n"
+		"uses much more disk space. It is intended for routine use with small \n"
+		"arrays only. With large arrays (like images) it should be used only \n"
+		"for debugging.\n"
+		"The values compressed are limited to 64 bits. If any element in the \n"
+		"array is larger than 64 bits, the value compressed is the nearest \n"
+		"64-bit value.\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_find_category_root", _wrap_cbf_handle_struct_find_category_root, METH_VARARGS, (char *)"\n"
 		"Returns : String categoryroot\n"
 		"*args   : String categoryname\n"
@@ -23637,7 +25137,50 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"\n"
 		""},
-	 { (char *)"cbf_handle_struct_set_integerarray_wdims_fs", _wrap_cbf_handle_struct_set_integerarray_wdims_fs, METH_VARARGS, (char *)"cbf_handle_struct_set_integerarray_wdims_fs(cbf_handle_struct self)"},
+	 { (char *)"cbf_handle_struct_set_integerarray_wdims_fs", _wrap_cbf_handle_struct_set_integerarray_wdims_fs, METH_VARARGS, (char *)"\n"
+		"Returns : \n"
+		"*args   : int compression,int binary_id,(binary) String data,int elsize,\n"
+		"          int elements,String byteorder,int dimfast,int dimmid,int dimslow,\n"
+		"          int padding\n"
+		"\n"
+		"C prototype: int cbf_set_integerarray_wdims_fs (cbf_handle handle,\n"
+		"                 unsigned int compression, int binary_id, void *array,\n"
+		"                 size_t elsize, int    elsigned, size_t elements,\n"
+		"                 const char *byteorder, size_t dimfast, size_t dimmid,\n"
+		"                 size_t dimslow, size_t padding);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_set_integerarray sets the binary value of the item at the current \n"
+		"column and row to an integer array. The array consists of elements \n"
+		"elements of elsize bytes each, starting at array. The elements are \n"
+		"signed if elsigned is non-0 and unsigned otherwise. binary_id is the \n"
+		"binary section identifier. cbf_set_realarray sets the binary value of \n"
+		"the item at the current column and row to an integer array. The array \n"
+		"consists of elements elements of elsize bytes each, starting at \n"
+		"array. binary_id is the binary section identifier.\n"
+		"The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, \n"
+		"cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, \n"
+		"cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants \n"
+		"allow the data header values of byteorder, dimfast, dimmid, dimslow \n"
+		"and padding to be set to the data byte order, the fastest, second \n"
+		"fastest and third fastest array dimensions and the size in byte of \n"
+		"the post data padding to be used.\n"
+		"The array will be compressed using the compression scheme specifed by \n"
+		"compression. Currently, the available schemes are:\n"
+		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
+		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"Simple  \"byte_offset \" compression. CBF_NONE          No \n"
+		"compression. NOTE: This scheme is by far the slowest of the four and \n"
+		"uses much more disk space. It is intended for routine use with small \n"
+		"arrays only. With large arrays (like images) it should be used only \n"
+		"for debugging.\n"
+		"The values compressed are limited to 64 bits. If any element in the \n"
+		"array is larger than 64 bits, the value compressed is the nearest \n"
+		"64-bit value.\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_set_image_sf", _wrap_cbf_handle_struct_set_image_sf, METH_VARARGS, (char *)"\n"
 		"Returns : \n"
 		"*args   : int element_number,int compression,(binary) String data,int elsize,\n"
