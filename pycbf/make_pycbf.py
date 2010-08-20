@@ -165,6 +165,112 @@ cbfhandle_specials = {
      "int elsize", "int elsigned", "int elunsigned", 
      "int elements", "int minelement", "int maxelement"]],
 
+"cbf_get_integerarrayparameters_wdims":["""
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, int *elsigned, int *elunsigned, 
+                    int *elements, int *minelement, int *maxelement,
+                    char* byteorder,
+                    int *dimfast, int *dimmid, int *dimslow, int *padding} 
+                  get_integerarrayparameters_wdims;
+
+    void get_integerarrayparameters_wdims(int *compression,int *binary_id, 
+                        int *elsize, int *elsigned, int *elunsigned, 
+                        int *elements, int *minelement, int *maxelement,
+                        char *byteorder,
+                        int *dimfast, int *dimmid, int *dimslow, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * bo;
+        cbf_failnez(cbf_get_integerarrayparameters_wdims(self, 
+         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
+          minelement, maxelement, &bo,&df,&dm,&ds,&pd ));
+        *compression = comp; /* FIXME - does this convert in C? */
+        *elsize = elsiz;
+        *elements = elem;
+        *byteorder = *bo;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
+""","get_integerarrayparameters_wdims",[],["int compression","int binary_id", 
+     "int elsize", "int elsigned", "int elunsigned", 
+     "int elements", "int minelement", "int maxelement"  "char byteorder",
+      "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+
+"cbf_get_integerarrayparameters_wdims_fs":["""
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, int *elsigned, int *elunsigned, 
+                    int *elements, int *minelement, int *maxelement,
+                    char* byteorder,
+                    int *dimfast, int *dimmid, int *dimslow, int *padding} 
+                  get_integerarrayparameters_wdims_fs;
+
+    void get_integerarrayparameters_wdims_fs(int *compression,int *binary_id, 
+                        int *elsize, int *elsigned, int *elunsigned, 
+                        int *elements, int *minelement, int *maxelement,
+                        char *byteorder,
+                        int *dimfast, int *dimmid, int *dimslow, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * bo;
+        cbf_failnez(cbf_get_integerarrayparameters_wdims_fs(self, 
+         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
+          minelement, maxelement, &bo,&df,&dm,&ds,&pd ));
+        *compression = comp; /* FIXME - does this convert in C? */
+        *elsize = elsiz;
+        *elements = elem;
+        *byteorder = *bo;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
+""","get_integerarrayparameters_wdims_fs",[],["int compression","int binary_id", 
+     "int elsize", "int elsigned", "int elunsigned", 
+     "int elements", "int minelement", "int maxelement",  "char byteorder",
+      "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+
+
+"cbf_get_integerarrayparameters_wdims_sf":["""
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, int *elsigned, int *elunsigned, 
+                    int *elements, int *minelement, int *maxelement,
+                    char* byteorder,
+                    int *dimslow, int *dimmid, int *dimfast, int *padding} 
+                  get_integerarrayparameters_wdims_sf;
+
+    void get_integerarrayparameters_wdims_sf(int *compression,int *binary_id, 
+                        int *elsize, int *elsigned, int *elunsigned, 
+                        int *elements, int *minelement, int *maxelement,
+                        char *byteorder,
+                        int *dimslow, int *dimmid, int *dimfast, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * bo;
+        cbf_failnez(cbf_get_integerarrayparameters_wdims_sf(self, 
+         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
+          minelement, maxelement, &bo,&ds,&dm,&df,&pd ));
+        *compression = comp; /* FIXME - does this convert in C? */
+        *elsize = elsiz;
+        *elements = elem;
+        *byteorder = *bo;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
+""","get_integerarrayparameters_wdims_sf",[],["int compression","int binary_id", 
+     "int elsize", "int elsigned", "int elunsigned", 
+     "int elements", "int minelement", "int maxelement",  "char byteorder",
+      "int dimslow", "int dimmid", "int dimfast", "int padding"]],
+
 
 "cbf_get_realarrayparameters":["""
 %apply int *OUTPUT {int *compression,int *binary_id, 
@@ -183,6 +289,77 @@ cbfhandle_specials = {
         }
 ""","get_realarrayparameters",[],["int compression","int binary_id", 
      "int elsize", "int elements"]],
+
+"cbf_get_realarrayparameters_wdims_sf":["""
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, 
+                    int *elements,
+                    char* byteorder,
+                    int *dimfast, int *dimmid, int *dimslow, int *padding} 
+                  get_realarrayparameters_wdims_sf;
+
+    void get_realarrayparameters_wdims_sf(int *compression,int *binary_id, 
+                        int *elsize, 
+                        int *elements, 
+                        char *byteorder,
+                        int *dimfast, int *dimmid, int *dimslow, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * bo;
+        cbf_failnez(cbf_get_realarrayparameters_wdims_sf(self, 
+         &comp,binary_id, &elsiz, &elem, 
+         &bo,&df,&dm,&ds,&pd ));
+        *compression = comp; /* FIXME - does this convert in C? */
+        *elsize = elsiz;
+        *elements = elem;
+        *byteorder = *bo;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
+""","get_realarrayparameters_wdims_fs",[],["int compression","int binary_id", 
+     "int elsize", 
+     "int elements", "char byteorder",
+      "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+
+
+"cbf_get_realarrayparameters_wdims_sf":["""
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, 
+                    int *elements,
+                    char* byteorder,
+                    int *dimslow, int *dimmid, int *dimfast, int *padding} 
+                  get_realarrayparameters_wdims_sf;
+
+    void get_realarrayparameters_wdims_sf(int *compression,int *binary_id, 
+                        int *elsize, 
+                        int *elements, 
+                        char *byteorder,
+                        int *dimslow, int *dimmid, int *dimfast, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * bo;
+        cbf_failnez(cbf_get_realarrayparameters_wdims_sf(self, 
+         &comp,binary_id, &elsiz, &elem, 
+         &bo,&ds,&dm,&df,&pd ));
+        *compression = comp; /* FIXME - does this convert in C? */
+        *elsize = elsiz;
+        *elements = elem;
+        *byteorder = *bo;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
+""","get_realarrayparameters_wdims_sf",[],["int compression","int binary_id", 
+     "int elsize", 
+     "int elements", "char byteorder",
+      "int dimslow", "int dimmid", "int dimfast", "int padding"]],
 
 
 
@@ -219,6 +396,376 @@ cbfhandle_specials = {
       }
 ""","get_integerarray_as_string",[],["(Binary)String"] ],
 
+
+"cbf_get_image":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_image_as_string;
+
+// Get the length correct
+
+    void get_image_as_string(int element_number, char **s, int *slen,
+    int elsize, int elsign, int ndimslow, int ndimfast){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimslow))) {
+               cbf_failnez (cbf_get_image(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize, elsign,
+               (size_t) ndimslow, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimslow;
+        *s = (char *) array;
+      }
+""","get_image_as_string",["int element_number", 
+    "int elsize", "int elsign", "int ndimslow", "int ndimfast"],["(Binary)String"] ],
+
+"cbf_get_image_fs":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_image_fs_as_string;
+
+// Get the length correct
+
+    void get_image_fs_as_string(int element_number, char **s, int *slen,
+    int elsize, int elsign, int ndimfast, int ndimslow){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimslow))) {
+               cbf_failnez (cbf_get_image_fs(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize, elsign,
+               (size_t) ndimfast, (size_t)ndimslow));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimslow;
+        *s = (char *) array;
+      }
+""","get_image_fs_as_string",["int element_number", 
+    "int elsize", "int elsign", "int ndimfast", "int ndimslow"],["(Binary)String"] ],
+
+
+"cbf_get_image_sf":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_image_fs_as_string;
+
+// Get the length correct
+
+    void get_image_sf_as_string(int element_number, char **s, int *slen,
+    int elsize, int elsign, int ndimslow, int ndimfast){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimslow))) {
+               cbf_failnez (cbf_get_image_sf(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize, elsign,
+               (size_t) ndimslow, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimslow;
+        *s = (char *) array;
+      }
+""","get_image_sf_as_string",["int element_number", 
+    "int elsize", "int elsign", "int ndimslow", "int ndimfast"],["(Binary)String"] ],
+
+"cbf_get_real_image":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_real_image_as_string;
+
+// Get the length correct
+
+    void get_real_image_as_string(int element_number, char **s, int *slen,
+    int elsize, int ndimslow, int ndimfast){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimslow))) {
+               cbf_failnez (cbf_get_real_image(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize,
+               (size_t) ndimslow, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimslow;
+        *s = (char *) array;
+      }
+""","get_real_image_as_string",["int element_number", 
+    "int elsize", "int ndimslow", "int ndimfast"],["(Binary)String"] ],
+
+"cbf_get_real_image_fs":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_real_image_fs_as_string;
+
+// Get the length correct
+
+    void get_real_image_fs_as_string(int element_number, char **s, int *slen,
+    int elsize, int ndimfast, int ndimslow){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimslow))) {
+               cbf_failnez (cbf_get_real_image_fs(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize,
+               (size_t) ndimfast, (size_t)ndimslow));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimslow;
+        *s = (char *) array;
+      }
+""","get_real_image_fs_as_string",["int element_number", 
+    "int elsize", "int ndimfast", "int ndimslow"],["(Binary)String"] ],
+
+"cbf_get_real_image_sf":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_real_image_sf_as_string;
+
+// Get the length correct
+
+    void get_real_image_sf_as_string(int element_number, char **s, int *slen,
+    int elsize, int ndimslow, int ndimfast){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimslow))) {
+               cbf_failnez (cbf_get_real_image_sf(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize,
+               (size_t) ndimslow, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimslow;
+        *s = (char *) array;
+      }
+""","get_real_image_sf_as_string",["int element_number", 
+    "int elsize", "int ndimslow", "int ndimfast"],["(Binary)String"] ],
+
+
+
+
+"cbf_get_3d_image":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_3d_image_as_string;
+
+// Get the length correct
+
+    void get_3d_image_as_string(int element_number, char **s, int *slen,
+    int elsize, int elsign, int ndimfast, int ndimmid, int ndimslow){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {
+               cbf_failnez (cbf_get_3d_image(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize, elsign,
+               (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimmid*ndimslow;
+        *s = (char *) array;
+      }
+""","get_3d_image_as_string",["int element_number", 
+    "int elsize", "int elsign", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],
+
+
+
+"cbf_get_3d_image_fs":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_3d_image_fs_as_string;
+
+// Get the length correct
+
+    void get_3d_image_fs_as_string(int element_number, char **s, int *slen,
+    int elsize, int elsign, int ndimfast, int ndimmid, int ndimslow){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {
+               cbf_failnez (cbf_get_3d_image_fs(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize, elsign,
+               (size_t) ndimfast, (size_t)ndimmid, (size_t)ndimslow));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimmid*ndimslow;
+        *s = (char *) array;
+      }
+""","get_3d_image_fs_as_string",["int element_number", 
+    "int elsize", "int elsign", "int ndimfast", "int ndimmid", "int ndimslow"],["(Binary)String"] ],
+
+
+
+"cbf_get_3d_image_sf":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_3d_image_sf_as_string;
+
+// Get the length correct
+
+    void get_3d_image_sf_as_string(int element_number, char **s, int *slen,
+    int elsize, int elsign, int ndimfast, int ndimmid, int ndimslow){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {
+               cbf_failnez (cbf_get_3d_image_sf(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize, elsign,
+               (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimmid*ndimslow;
+        *s = (char *) array;
+      }
+""","get_3d_image_sf_as_string",["int element_number", 
+    "int elsize", "int elsign", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],
+
+"cbf_get_real_3d_image":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_real_3d_image_as_string;
+
+// Get the length correct
+
+    void get_real_3d_image_as_string(int element_number, char **s, int *slen,
+    int elsize, int ndimslow, int ndimmid, int ndimfast){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {
+               cbf_failnez (cbf_get_real_3d_image(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize,
+               (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimmid*ndimslow;
+        *s = (char *) array;
+      }
+""","get_real_3d_image_as_string",["int element_number", 
+    "int elsize", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],
+
+
+
+"cbf_get_real_3d_image_fs":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_real_3d_image_fs_as_string;
+
+// Get the length correct
+
+    void get_real_3d_image_fs_as_string(int element_number, char **s, int *slen,
+    int elsize, int ndimfast, int ndimmid, int ndimslow){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {
+               cbf_failnez (cbf_get_real_3d_image_fs(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize,
+               (size_t) ndimfast, (size_t)ndimmid, (size_t)ndimslow));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimmid*ndimslow;
+        *s = (char *) array;
+      }
+""","get_real_3d_image_fs_as_string",["int element_number", 
+    "int elsize", "int ndimfast", "int ndimmid", "int ndimslow"],["(Binary)String"] ],
+
+"cbf_get_real_3d_image_sf":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_real_3d_image_sf_as_string;
+
+// Get the length correct
+
+    void get_real_3d_image_sf_as_string(int element_number, char **s, int *slen,
+    int elsize, int ndimslow, int ndimmid, int ndimfast){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {
+               cbf_failnez (cbf_get_real_3d_image_sf(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize,
+               (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimmid*ndimslow;
+        *s = (char *) array;
+      }
+""","get_real_3d_image_sf_as_string",["int element_number", 
+    "int elsize", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],
+
+
+
+"cbf_get_realarray":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_realarray_as_string;
+
+// Get the length correct
+
+    void get_realarray_as_string(char **s, int *slen){
+        int binary_id;
+        size_t elements, elements_read, elsize;
+        unsigned int compression;
+        void * array;
+        *slen = 0; /* Initialise in case of problems */
+        cbf_failnez(cbf_get_realarrayparameters(self, &compression,
+               &binary_id, &elsize,
+               &elements));
+
+        if ((array=malloc(elsize*elements))) {
+              /* cbf_failnez (cbf_select_column(cbf,colnum)) */
+               cbf_failnez (cbf_get_realarray(self, &binary_id, 
+                            (void *)array, elsize,
+                            elements, &elements_read));
+
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*elements;
+        *s = (char *) array;
+      }
+""","get_realarray_as_string",[],["(Binary)String"] ],
+
+
 "cbf_set_integerarray":["""
     /* CBFlib must NOT modify the data string which belongs to the scripting 
        language we will get and check the length via a typemap */
@@ -244,18 +791,398 @@ cbfhandle_specials = {
 [ "int compression", "int binary_id","(binary) String data", 
  "int elsize", "int elsigned","int elements"],[]],
 
+"cbf_set_realarray":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray;
+
+    void set_realarray(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elements){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        if(len == elsize*elements){
+           array = data;
+           els = elsize;
+           ele = elements;
+           cbf_failnez(cbf_set_realarray (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_realarray",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements"],[]],
+
+
+"cbf_set_image":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_image;
+
+    void set_image(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int elsign, int ndimslow, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_image (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_image",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int elsign", "int dimslow", "int dimfast"],[]],
+
+"cbf_set_image_fs":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_image;
+
+    void set_image_fs(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int elsign, int ndimfast, int ndimslow){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_image (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, elsign, (size_t) ndimfast, (size_t)ndimslow)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_image_fs",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int elsign", "int dimfast", "int dimslow"],[]],
+
+"cbf_set_image_sf":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_image_sf;
+
+    void set_image_sf(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int elsign, int ndimslow, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_image_sf (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_image_sf",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int elsign", "int dimslow", "int dimfast"],[]],
+
+
+"cbf_set_real_image":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_image;
+
+    void set_real_image(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int ndimslow, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_real_image (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_real_image",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int dimslow", "int dimfast"],[]],
+
+
+"cbf_set_real_image_fs":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_image;
+
+    void set_real_image_fs(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int ndimfast, int ndimslow){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_real_image_fs (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, (size_t) ndimfast, (size_t)ndimslow)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_real_image_fs",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int dimfast", "int dimslow"],[]],
+
+
+"cbf_set_real_image_sf":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_image_sf;
+
+    void set_real_image_sf(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int ndimslow, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_real_image_sf (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_real_image_sf",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int dimslow", "int dimfast"],[]],
+
+"cbf_set_3d_image":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_3d_image;
+
+    void set_3d_image(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int elsign, int ndimslow, int ndimmid, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimmid*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_3d_image (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t) ndimmid, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_3d_image",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int elsign", "int dimslow", "int dimmid", "int dimfast"],[]],
+
+"cbf_set_3d_image_fs":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_3d_image;
+
+    void set_3d_image_fs(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int elsign, int ndimfast, int ndimmid, int ndimslow){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimmid*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_3d_image_fs (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, elsign, (size_t) ndimfast, (size_t) ndimmid, (size_t)ndimslow)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_3d_image_fs",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int elsign", "int dimfast", "int dimmid", "int dimslow"],[]],
+
+"cbf_set_3d_image_sf":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_3d_image;
+
+    void set_3d_image_sf(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int elsign, int ndimslow, int ndimmid, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimmid*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_3d_image_sf (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t) ndimmid, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_3d_image_sf",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int elsign", "int dimslow", "int dimmid", "int dimfast"],[]],
+
+
+"cbf_set_real_3d_image":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_3d_image_sf;
+
+    void set_real_3d_image(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int ndimslow, int ndimmid, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimmid*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_real_3d_image (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_real_3d_image",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int dimslow", "int dimmid", "int dimfast"],[]],
+
+"cbf_set_real_3d_image_fs":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_3d_image_fs;
+
+    void set_real_3d_image_fs(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int ndimfast, int ndimmid, int ndimslow){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimmid*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_real_3d_image_fs (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, (size_t) ndimfast, (size_t)ndimmid, (size_t)ndimslow)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_real_3d_image_fs",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int dimfast", "int dimmid", "int dimslow"],[]],
+
+"cbf_set_real_3d_image_sf":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_3d_image_sf;
+
+    void set_real_3d_image_sf(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int ndimslow, int ndimmid, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimmid*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_real_3d_image_sf (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_real_3d_image_sf",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int dimslow", "int dimmid", "int dimfast"],[]],
+
+
 
 "cbf_get_image_size": ["""
-%apply int *OUTPUT {int *ndim1, int *ndim2} get_image_size;
-     void get_image_size(unsigned int element_number, int *ndim1, int *ndim2){
+%apply int *OUTPUT {int *ndimslow, int *ndimfast} get_image_size;
+     void get_image_size(unsigned int element_number, int *ndimslow, int *ndimfast){
         unsigned int reserved;
-        size_t in1, in2;
+        size_t inslow, infast;
         reserved = 0;
-        cbf_failnez(cbf_get_image_size(self,reserved,element_number,&in1,&in2));
-        *ndim1 = in1; /* FIXME - is that how to convert? */
-        *ndim2 = in2; 
+        cbf_failnez(cbf_get_image_size(self,reserved,element_number,&inslow,&infast));
+        *ndimslow = (int)inslow;
+        *ndimfast = (int)infast; 
         }
 ""","get_image_size",["Integer element_number"],["size_t ndim1","size_t ndim2"]],
+
+"cbf_get_image_size_fs": ["""
+%apply int *OUTPUT {int *ndimfast, int *ndimslow} get_image_size_fs;
+     void get_image_size_fs(unsigned int element_number, int *ndimfast, int *ndimslow){
+        unsigned int reserved;
+        size_t infast, inslow;
+        reserved = 0;
+        cbf_failnez(cbf_get_image_size_fs(self,reserved,element_number,&infast,&inslow));
+        *ndimfast = (int)infast; /* FIXME - is that how to convert? */
+        *ndimslow = (int)inslow; 
+        }
+""","get_image_size_fs",["Integer element_number"],["size_t ndimfast","size_t ndimslow"]],
+
+"cbf_get_image_size_sf": ["""
+%apply int *OUTPUT {int *ndimslow, int *ndimfast} get_image_size_sf;
+     void get_image_size_sf(unsigned int element_number, int *ndimslow, int *ndimfast){
+        unsigned int reserved;
+        size_t inslow, infast;
+        reserved = 0;
+        cbf_failnez(cbf_get_image_size(self,reserved,element_number,&inslow,&infast));
+        *ndimslow = (int)inslow;
+        *ndimfast = (int)infast; 
+        }
+""","get_image_size_sf",["Integer element_number"],["size_t ndimslow","size_t ndimfast"]],
+
 
 "cbf_get_3d_image_size": ["""
 %apply int *OUTPUT {int *ndimslow, int *ndimmid, int *ndimfast} get_3d_image_size;
@@ -308,6 +1235,19 @@ cbfhandle_specials = {
 ""","get_pixel_size",["Int element_number","Int axis_number"],
                      ["Float pixel_size"]] ,
 
+"cbf_get_pixel_size_fs" : ["""
+%apply double *OUTPUT {double *psize} get_pixel_size;
+    void get_pixel_size_fs(unsigned int element_number, 
+                        unsigned int axis_number, double *psize){
+        cbf_failnez(cbf_get_pixel_size_fs(self, 
+                                       element_number, 
+                                       axis_number, 
+                                       psize));
+    }
+""","get_pixel_size_fs",["Int element_number","Int axis_number"],
+                     ["Float pixel_size"]] ,
+
+
 "cbf_get_pixel_size_sf" : ["""
 %apply double *OUTPUT {double *psize} get_pixel_size;
     void get_pixel_size_sf(unsigned int element_number, 
@@ -332,6 +1272,28 @@ cbfhandle_specials = {
 ""","set_pixel_size",
    ["Int element_number","Int axis_number","Float pixel size"],[]],
 
+"cbf_set_pixel_size_fs":["""
+     void set_pixel_size_fs (unsigned int element_number, 
+                          unsigned int axis_number, double psize){
+         cbf_failnez(cbf_set_pixel_size_fs(self, 
+                                        element_number, 
+                                        axis_number, 
+                                        psize));
+     }
+""","set_pixel_size_fs",
+   ["Int element_number","Int axis_number","Float pixel size"],[]],
+
+
+"cbf_set_pixel_size_sf":["""
+     void set_pixel_size_sf (unsigned int element_number, 
+                          unsigned int axis_number, double psize){
+         cbf_failnez(cbf_set_pixel_size_sf(self, 
+                                        element_number, 
+                                        axis_number, 
+                                        psize));
+     }
+""","set_pixel_size_sf",
+   ["Int element_number","Int axis_number","Float pixel size"],[]],
 
 
 
@@ -678,10 +1640,12 @@ void require_column_integervalue(const char *columnname,
 
 "cbf_get_integration_time":["""
 %apply double *OUTPUT {double *time} get_integration_time;
-   void get_integration_time(double *time){
+   void get_integration_time( double *time ){
         unsigned int reserved;
+        double tim;
         reserved = 0;
-        cbf_failnez(cbf_get_integration_time(self,reserved,time));
+        cbf_failnez(cbf_get_integration_time(self,reserved,&tim));
+        *time = tim;
         }
 ""","get_integration_time",[],["Float time"]],
 
@@ -702,19 +1666,105 @@ double *m7,double *m8){
     [],[ "Float matrix_%d"%(ind) for ind in range(9) ]],
 
 "cbf_get_unit_cell":["""
-   void get_unit_cell(double *cell, double *cell_esd) {
-     cbf_failnez(cbf_get_unit_cell(self,cell,cell_esd));
+%apply double *OUTPUT {double *a, double *b, double *c,
+  double *alpha, double *beta, double *gamma} get_unit_cell;
+     void get_unit_cell(double *a, double *b, double *c,
+  double *alpha, double *beta, double *gamma) {
+     double cell[6];
+     cbf_failnez(cbf_get_unit_cell(self,cell,NULL));
+     *a = cell[0];
+     *b = cell[1];
+     *c = cell[2];
+     *alpha = cell[3];
+     *beta = cell[4];
+     *gamma = cell[5];
    }
 ""","get_unit_cell",
-    [],["doubleArray cell", "doubleArray cell_esd"] ],
+    [],["doubleArray cell"] ],
+
+"cbf_get_unit_cell_esd":["""
+%apply double *OUTPUT {double *a_esd, double *b_esd, double *c_esd,
+  double *alpha_esd, double *beta_esd, double *gamma_esd} get_unit_cell_esd;
+     void get_unit_cell_esd(double *a_esd, double *b_esd, double *c_esd,
+  double *alpha_esd, double *beta_esd, double *gamma_esd) {
+     double cell_esd[6];
+     cbf_failnez(cbf_get_unit_cell(self,NULL,cell_esd));
+     *a_esd = cell_esd[0];
+     *b_esd = cell_esd[1];
+     *c_esd = cell_esd[2];
+     *alpha_esd = cell_esd[3];
+     *beta_esd = cell_esd[4];
+     *gamma_esd = cell_esd[5];
+   }
+""","get_unit_cell",
+    [],["doubleArray cell"] ],
+
+
+"cbf_get_reciprocal_cell":["""
+%apply double *OUTPUT {double *a, double *b, double *c,
+  double *alpha, double *beta, double *gamma} get_reciprocal_cell;
+     void get_reciprocal_cell(double *a, double *b, double *c,
+  double *alpha, double *beta, double *gamma) {
+     double cell[6];
+     cbf_failnez(cbf_get_reciprocal_cell(self,cell,NULL));
+     *a = cell[0];
+     *b = cell[1];
+     *c = cell[2];
+     *alpha = cell[3];
+     *beta = cell[4];
+     *gamma = cell[5];
+   }
+""","get_reciprocal_cell",
+    [],["doubleArray cell"] ],
+
+"cbf_get_reciprocal_cell_esd":["""
+%apply double *OUTPUT {double *a_esd, double *b_esd, double *c_esd,
+  double *alpha_esd, double *beta_esd, double *gamma_esd} get_reciprocal_cell_esd;
+     void get_reciprocal_cell_esd(double *a_esd, double *b_esd, double *c_esd,
+  double *alpha_esd, double *beta_esd, double *gamma_esd) {
+     double cell_esd[6];
+     cbf_failnez(cbf_get_reciprocal_cell(self,NULL,cell_esd));
+     *a_esd = cell_esd[0];
+     *b_esd = cell_esd[1];
+     *c_esd = cell_esd[2];
+     *alpha_esd = cell_esd[3];
+     *beta_esd = cell_esd[4];
+     *gamma_esd = cell_esd[5];
+   }
+""","get_reciprocal_cell",
+    [],["doubleArray cell"] ],
+
 
 
 "cbf_set_unit_cell":["""
-   void set_unit_cell(double *cell, double *cell_esd) {
-     cbf_failnez(cbf_set_unit_cell(self,cell,cell_esd));
+   void set_unit_cell(double cell[6]) {
+     cbf_failnez(cbf_set_unit_cell(self,cell,NULL));
    }
 ""","set_unit_cell",
-    ["doubleArray cell", "doubleArray cell_esd"],[] ],
+    ["double cell[6]"],[] ],
+
+"cbf_set_unit_cell_esd":["""
+   void set_unit_cell_esd(double cell_esd[6]) {
+     cbf_failnez(cbf_set_unit_cell(self,NULL,cell_esd));
+   }
+""","set_unit_cell_esd",
+    ["double cell_esd[6]"],[] ],
+
+
+"cbf_set_reciprocal_cell":["""
+   void set_reciprocal_cell(double cell[6]) {
+     cbf_failnez(cbf_set_reciprocal_cell(self,cell,NULL));
+   }
+""","set_reciprocal_cell",
+    ["double cell[6]"],[] ],
+
+"cbf_set_reciprocal_cell_esd":["""
+   void set_reciprocal_cell(double cell_esd[6]) {
+     cbf_failnez(cbf_set_reciprocal_cell(self,NULL,cell_esd));
+   }
+""","set_reciprocal_cell_esd",
+    ["double cell_esd[6]"],[] ],
+
 
 "cbf_set_tag_category":["""
    void set_tag_category(const char *tagname, const char* categoryname_in){
@@ -855,6 +1905,22 @@ void convert_dictionary(cbf_handle other){
     return detector;
     }
 ""","construct_detector",["Integer element_number"],["pycbf detector object"]],
+
+"cbf_construct_reference_detector":["""
+ cbf_detector construct_reference_detector(unsigned int element_number){
+    cbf_detector detector;
+    cbf_failnez(cbf_construct_reference_detector(self,&detector,element_number));
+    return detector;
+    }
+""","construct_reference_detector",["Integer element_number"],["pycbf detector object"]],
+
+"cbf_require_reference_detector":["""
+ cbf_detector require_reference_detector(unsigned int element_number){
+    cbf_detector detector;
+    cbf_failnez(cbf_require_reference_detector(self,&detector,element_number));
+    return detector;
+    }
+""","require_reference_detector",["Integer element_number"],["pycbf detector object"]],
 
 
 # Prelude to the next section of the nuweb doc
@@ -1174,6 +2240,29 @@ cbf_detector_specials = {
 ""","get_pixel_normal",["double index1","double index2"] ,
  ["double normal1","double normal2", "double normal3" ] ],
 
+"cbf_get_pixel_normal_fs":["""
+%apply double *OUTPUT {double *normalfast,double *normalslow, double *normal3};
+   void get_pixel_normal_fs ( double indexfast, double indexslow, 
+                          double *normal1,double *normal2, double *normal3){
+       cbf_failnez(cbf_get_pixel_normal_fs(self,
+                                    indexfast,indexslow,normal1,normal2,normal3));
+   }
+
+""","get_pixel_normal_fs",["double indexfast","double indexslow"] ,
+ ["double normal1","double normal2", "double normal3" ] ],
+
+"cbf_get_pixel_normal_sf":["""
+%apply double *OUTPUT {double *normalslow,double *normalfast, double *normal3};
+   void get_pixel_normal_sf ( double indexslow, double indexfast, 
+                          double *normal1,double *normal2, double *normal3){
+       cbf_failnez(cbf_get_pixel_normal_sf(self,
+                                    indexslow,indexfast,normal1,normal2,normal3));
+   }
+
+""","get_pixel_normal_sf",["double indexslow","double indexfast"] ,
+ ["double normal1","double normal2", "double normal3" ] ],
+
+
 "cbf_get_pixel_area":["""
 %apply double *OUTPUT{double *area,double *projected_area};
     void get_pixel_area(double index1, double index2,
@@ -1183,6 +2272,30 @@ cbf_detector_specials = {
       }
 ""","get_pixel_area",["double index1", "double index2"],
      ["double area","double projected_area"] ],
+
+
+"cbf_get_pixel_area_fs":["""
+%apply double *OUTPUT{double *area,double *projected_area};
+    void get_pixel_area_fs(double indexfast, double indexslow,
+                        double *area,double *projected_area){
+       cbf_failnez(cbf_get_pixel_area_fs (self,
+                                       indexfast, indexslow, area,projected_area));
+      }
+""","get_pixel_area_fs",["double indexfast", "double indexslow"],
+     ["double area","double projected_area"] ],
+
+
+
+"cbf_get_pixel_area_sf":["""
+%apply double *OUTPUT{double *area,double *projected_area};
+    void get_pixel_area_sf(double indexslow, double indexfast,
+                        double *area,double *projected_area){
+       cbf_failnez(cbf_get_pixel_area_sf (self,
+                                       indexslow, indexfast, area,projected_area));
+      }
+""","get_pixel_area_sf",["double indexslow", "double indexfast"],
+     ["double area","double projected_area"] ],
+
 
 "cbf_get_detector_distance":["""
 %apply double *OUTPUT {double *distance};
@@ -1228,6 +2341,19 @@ cbf_detector_specials = {
 ["double coordinate1", "double coordinate2", "double coordinate3"] ],
 
 
+"cbf_get_pixel_coordinates_sf":["""
+%apply double *OUTPUT {double *coordinate1,  
+         double *coordinate2, double *coordinate3};
+   void get_pixel_coordinates_sf(double indexslow, double indexfast, 
+             double *coordinate1,   
+             double *coordinate2, 
+             double *coordinate3){
+      cbf_failnez(cbf_get_pixel_coordinates_sf(self, indexslow, indexfast, coordinate1, coordinate2, coordinate3));
+   }
+""","get_pixel_coordinates_sf",["double indexslow","double indexfast"],
+["double coordinate1", "double coordinate2", "double coordinate3"] ],
+
+
 "cbf_get_beam_center":["""
 %apply double *OUTPUT {double *index1, double *index2, 
  double *center1,double *center2};
@@ -1239,6 +2365,31 @@ cbf_detector_specials = {
 ""","get_beam_center",[],
 ["double index1", "double index2", "double center1","double center2"]],
 
+"cbf_get_beam_center_fs":["""
+%apply double *OUTPUT {double *indexfast, double *indexslow, 
+ double *centerfast,double *centerslow};
+    void get_beam_center_fs(double *indexfast, double *indexslow, 
+                         double *centerfast,double *centerslow){
+        cbf_failnez(cbf_get_beam_center_fs(self, indexfast, indexslow, 
+                                       centerfast, centerslow));
+        }
+""","get_beam_center_fs",[],
+["double indexfast", "double indexslow", "double centerfast","double centerslow"]],
+
+
+
+"cbf_get_beam_center_sf":["""
+%apply double *OUTPUT {double *indexslow, double *indexfast, 
+ double *centerslow,double *centerfast};
+    void get_beam_center_sf(double *indexslow, double *indexfast, 
+                         double *centerslow,double *centerfast){
+        cbf_failnez(cbf_get_beam_center_sf(self, indexslow, indexfast, 
+                                       centerslow, centerfast));
+        }
+""","get_beam_center_sf",[],
+["double indexslow", "double indexfast", "double centerslow","double centerfast"]],
+
+
 
 "cbf_set_beam_center_fs":["""
     void set_beam_center_fs(double *indexfast, double *indexslow, 
@@ -1248,6 +2399,26 @@ cbf_detector_specials = {
         }
 ""","set_beam_center_fs",
 ["double indexfast", "double indexslow", "double centerfast","double centerslow"],[]],
+
+"cbf_set_beam_center_sf":["""
+    void set_beam_center_sf(double *indexslow, double *indexfast, 
+                         double *centerslow,double *centerfast){
+        cbf_failnez(cbf_set_beam_center_sf(self, indexslow, indexfast, 
+                                       centerslow, centerfast));
+        }
+""","set_beam_center_sf",
+["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
+
+"cbf_set_reference_beam_center":["""
+    void set_reference_beam_center(double *indexslow, double *indexfast, 
+                         double *centerslow,double *centerfast){
+        cbf_failnez(cbf_set_reference_beam_center(self, indexslow, indexfast, 
+                                       centerslow, centerfast));
+        }
+""","set_reference_beam_center",
+["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
+
+
 
 "cbf_set_reference_beam_center_fs":["""
     void set_reference_beam_center_fs(double *indexfast, double *indexslow, 
@@ -1259,15 +2430,40 @@ cbf_detector_specials = {
 ["double indexfast", "double indexslow", "double centerfast","double centerslow"],[]],
 
 
+"cbf_set_reference_beam_center_sf":["""
+    void set_reference_beam_center_sf(double *indexslow, double *indexfast, 
+                         double *centerslow,double *centerfast){
+        cbf_failnez(cbf_set_reference_beam_center_sf(self, indexslow, indexfast, 
+                                       centerslow, centerfast));
+        }
+""","set_reference_beam_center_sf",
+["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
+
+
 "cbf_get_inferred_pixel_size" : ["""
 %apply double *OUTPUT { double *psize } get_inferred_pixel_size;
 void get_inferred_pixel_size(unsigned int axis_number, double* psize){
    cbf_failnez(cbf_get_inferred_pixel_size(self, axis_number, psize));
    }
-""","get_inferred_pixel_size",["Int axis_number"],["Float pixel size"] ]
+""","get_inferred_pixel_size",["Int axis_number"],["Float pixel size"] ],
+
+"cbf_get_inferred_pixel_size_fs" : ["""
+%apply double *OUTPUT { double *psize } get_inferred_pixel_size;
+void get_inferred_pixel_size_fs(unsigned int axis_number, double* psize){
+   cbf_failnez(cbf_get_inferred_pixel_size_fs(self, axis_number, psize));
+   }
+""","get_inferred_pixel_size_fs",["Int axis_number"],["Float pixel size"] ],
+
+"cbf_get_inferred_pixel_size_sf" : ["""
+%apply double *OUTPUT { double *psize } get_inferred_pixel_size;
+void get_inferred_pixel_size_sf(unsigned int axis_number, double* psize){
+   cbf_failnez(cbf_get_inferred_pixel_size_sf(self, axis_number, psize));
+   }
+""","get_inferred_pixel_size_sf",["Int axis_number"],["Float pixel size"] ]
 
 
 }
+
 
 
 
@@ -1387,6 +2583,14 @@ def generate_wrappers(name_dict):
          raise
       if args[0].find("cbf_handle")>=0: # This is for the cbfhandle object
          cbf_handle_wrapper.wrap(cname,prototype,args,docstring)
+         if (cname=="cbf_get_unit_cell"):
+           cbf_handle_wrapper.wrap("cbf_get_unit_cell_esd",prototype,args,docstring)
+         if (cname=="cbf_get_reciprocal_cell"):
+           cbf_handle_wrapper.wrap("cbf_get_reciprocal_cell_esd",prototype,args,docstring)
+         if (cname=="cbf_set_unit_cell"):
+           cbf_handle_wrapper.wrap("cbf_set_unit_cell_esd",prototype,args,docstring)
+         if (cname=="cbf_set_reciprocal_cell"):
+           cbf_handle_wrapper.wrap("cbf_set_reciprocal_cell_esd",prototype,args,docstring)
          continue
       if args[0].find("cbf_goniometer")>=0: # This is for the cbfgoniometer
          cbf_goniometer_wrapper.wrap(cname,prototype,args,docstring)

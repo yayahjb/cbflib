@@ -644,7 +644,7 @@ int cbf_set_image (cbf_handle    handle,
 #define cbf_set_image_fs(handle, reserved, element_number, compression, array, elsize, elsign, ndimfast, ndimslow) \
         cbf_set_image ((handle),(reserved),(element_number),(compression),(array),(elsize),(elsign),(ndimslow),(ndimfast) )
 #define cbf_set_image_sf(handle, reserved, element_number, compression, array, elsize, elsign, ndimslow, ndimfast) \
-        cbf_set_image ((handle),(reserved),(element_number),(compression),(array),(elsize),(elsign)(ndimslow),(ndimfast) )
+        cbf_set_image ((handle),(reserved),(element_number),(compression),(array),(elsize),(elsign),(ndimslow),(ndimfast) )
 
 
   /* Save a real image.  ndimslow is the slow dimension, ndimfast is fast. */

@@ -754,6 +754,100 @@ class cbf_detector_struct(_object):
         """
         return _pycbf.cbf_detector_struct_get_pixel_area(self, *args)
 
+    def get_pixel_normal_fs(self, *args):
+        """
+        Returns : double normal1,double normal2,double normal3
+        *args   : double indexfast,double indexslow
+
+        C prototype: int cbf_get_pixel_normal_fs (cbf_detector detector,
+                         double indexfast, double indexslow, double *normal1,
+                         double *normal2, double      *normal3);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_detector_normal, cbf_get_pixel_normal_fs and 
+        cbf_get_pixel_normal_sf set *normal1, *normal2, and *normal3 to the 3 
+        components of the of the normal vector to the pixel at (indexfast, 
+        indexslow). The vector is normalized.
+        Any of the destination pointers may be NULL.
+        ARGUMENTS
+        detector    Detector handle. indexslow   Slow index. indexfast   Fast 
+        index. normal1     Pointer to the destination x component of the 
+        normal vector. normal2     Pointer to the destination y component of 
+        the normal vector. normal3     Pointer to the destination z component 
+        of the normal vector.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_detector_struct_get_pixel_normal_fs(self, *args)
+
+    def set_reference_beam_center(self, *args):
+        """
+        Returns : 
+        *args   : double indexslow,double indexfast,double centerslow,double centerfast
+
+        C prototype: int cbf_set_reference_beam_center (cbf_detector detector,
+                         double *indexslow, double *indexfast, double *centerslow,
+                         double      *centerfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_beam_center sets *centerfast and *centerslow to the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector and *indexfast and 
+        *indexslow to the corresponding indices. cbf_set_beam_center sets the 
+        offsets in the axis category for the detector element axis with 
+        precedence 1 to place the beam center at the position given in mm by 
+        *centerfast and *centerslow as the displacements in mm along the 
+        detector axes from pixel (0, 0) to the point at which the beam 
+        intersects the detector at the indices given *indexfast and 
+        *indexslow. cbf_set_reference_beam_center sets the displacments in 
+        the array_structure_list_axis category to place the beam center at 
+        the position given in mm by *centerfast and *centerslow as the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector at the indices given 
+        by *indexfast and *indexslow. In order to achieve consistent results, 
+        a reference detector should be used for detector to have all axes at 
+        their reference settings.
+        Note that the precedence 1 axis is the fastest axis, so that 
+        *centerfast and *indexfast are the fast axis components of the center 
+        and *centerslow and *indexslow are the slow axis components of the 
+        center.
+        The _fs calls give the displacments in a fast-to-slow order. The 
+        calls with no suffix and the calls _sf calls give the displacements 
+        in slow-to-fast order
+        Any of the destination pointers may be NULL for getting the beam 
+        center. For setting the beam axis, either the indices of the center 
+        must not be NULL.
+        The indices are non-negative for beam centers within the detector 
+        surface, but the center for an axis with a negative increment will be 
+        negative for a beam center within the detector surface.
+        For cbf_set_beam_center if the diffrn_data_frame category exists with 
+        a row for the corresponding element id, the values will be set for 
+        _diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
+        millimetres and the value of _diffrn_data_frame.center_units will be 
+        set to 'mm'.
+        For cbf_set_reference_beam_center if the diffrn_detector_element 
+        category exists with a row for the corresponding element id, the 
+        values will be set for _diffrn_detector_element.reference_center_fast 
+        and _diffrn_detector_element.reference_center_slow in millimetres and 
+        the value of _diffrn_detector_element.reference_units will be set to 
+        'mm'.
+        ARGUMENTS
+        detector     Detector handle. indexfast    Pointer to the destination 
+        fast index. indexslow    Pointer to the destination slow index. 
+        centerfast   Pointer to the destination displacement along the fast 
+        axis. centerslow   Pointer to the destination displacement along the 
+        slow axis.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_detector_struct_set_reference_beam_center(self, *args)
+
     def get_detector_distance(self):
         """
         Returns : double distance
@@ -775,6 +869,38 @@ class cbf_detector_struct(_object):
 
         """
         return _pycbf.cbf_detector_struct_get_detector_distance(self)
+
+    def get_inferred_pixel_size_fs(self, *args):
+        """
+        Returns : Float pixel size
+        *args   : Int axis_number
+
+        C prototype: int cbf_get_inferred_pixel_size_fs(cbf_detector detector,
+                         int axis_number, double *psize);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_sf set 
+        *psize to point to the double value in millimeters of the pixel size 
+        for the axis axis_number value. The slow index is treated as axis 1 
+        and the next faster index is treated as axis 2. 
+        cbf_get_inferred_pixel_size_fs sets *psize to point to the double 
+        value in millimeters of the pixel size for the axis axis_number 
+        value. The fast index is treated as axis 1 and the next slower index 
+        is treated as axis 2.
+        If the axis number is negative, the axes are used in the reverse 
+        order so that an axis_number of -1 indicates the fast axes in a call 
+        to cbf_get_inferred_pixel_size or cbf_get_inferred_pixel_size_sf and 
+        indicates the fast axis in a call to cbf_get_inferred_pixel_size_fs.
+        ARGUMENTS
+        detector      Detector handle. axis_number   The number of the axis. 
+        area          Pointer to the destination pizel size in mm.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_detector_struct_get_inferred_pixel_size_fs(self, *args)
 
     def get_detector_normal(self):
         """
@@ -801,6 +927,161 @@ class cbf_detector_struct(_object):
 
         """
         return _pycbf.cbf_detector_struct_get_detector_normal(self)
+
+    def get_pixel_coordinates_sf(self, *args):
+        """
+        Returns : double coordinate1,double coordinate2,double coordinate3
+        *args   : double indexslow,double indexfast
+
+        C prototype: int cbf_get_pixel_coordinates_sf (cbf_detector detector,
+                         double indexslow, double indexfast, double *coordinate1,
+                         double      *coordinate2, double *coordinate3);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs and 
+        cbf_get_pixel_coordinates_sf ses *coordinate1, *coordinate2, and 
+        *coordinate3 to the vector position of pixel (indexfast, indexslow) 
+        on the detector surface. If indexslow and indexfast are integers then 
+        the coordinates correspond to the center of a pixel.
+        Any of the destination pointers may be NULL.
+        ARGUMENTS
+        detector      Detector handle. indexslow     Slow index. indexfast    
+         Fast index. coordinate1   Pointer to the destination x component. 
+        coordinate2   Pointer to the destination y component. coordinate3   
+        Pointer to the destination z component.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_detector_struct_get_pixel_coordinates_sf(self, *args)
+
+    def get_pixel_area_fs(self, *args):
+        """
+        Returns : double area,double projected_area
+        *args   : double indexfast,double indexslow
+
+        C prototype: int cbf_get_pixel_area_fs(cbf_detector detector,
+                         double indexfast, double indexslow, double *area,
+                         double *projected_area);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_pixel_area, cbf_get_pixel_area_fs and cbf_get_pixel_area_sf 
+        set *area to the area of the pixel at (indexfast, indexslow) on the 
+        detector surface and *projected_area to the apparent area of the 
+        pixel as viewed from the sample position, with indexslow being the 
+        slow axis and indexfast being the fast axis.
+        Either of the destination pointers may be NULL.
+        ARGUMENTS
+        detector         Detector handle. indexfast        Fast index. 
+        indexslow        Slow index. area             Pointer to the 
+        destination area in mm2. projected_area   Pointer to the destination 
+        apparent area in mm2.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_detector_struct_get_pixel_area_fs(self, *args)
+
+    def get_beam_center_fs(self):
+        """
+        Returns : double indexfast,double indexslow,double centerfast,double centerslow
+        *args   : 
+
+        C prototype: int cbf_get_beam_center_fs (cbf_detector detector,
+                         double *indexfast, double *indexslow, double *centerfast,
+                         double *centerslow);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_beam_center sets *centerfast and *centerslow to the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector and *indexfast and 
+        *indexslow to the corresponding indices. cbf_set_beam_center sets the 
+        offsets in the axis category for the detector element axis with 
+        precedence 1 to place the beam center at the position given in mm by 
+        *centerfast and *centerslow as the displacements in mm along the 
+        detector axes from pixel (0, 0) to the point at which the beam 
+        intersects the detector at the indices given *indexfast and 
+        *indexslow. cbf_set_reference_beam_center sets the displacments in 
+        the array_structure_list_axis category to place the beam center at 
+        the position given in mm by *centerfast and *centerslow as the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector at the indices given 
+        by *indexfast and *indexslow. In order to achieve consistent results, 
+        a reference detector should be used for detector to have all axes at 
+        their reference settings.
+        Note that the precedence 1 axis is the fastest axis, so that 
+        *centerfast and *indexfast are the fast axis components of the center 
+        and *centerslow and *indexslow are the slow axis components of the 
+        center.
+        The _fs calls give the displacments in a fast-to-slow order. The 
+        calls with no suffix and the calls _sf calls give the displacements 
+        in slow-to-fast order
+        Any of the destination pointers may be NULL for getting the beam 
+        center. For setting the beam axis, either the indices of the center 
+        must not be NULL.
+        The indices are non-negative for beam centers within the detector 
+        surface, but the center for an axis with a negative increment will be 
+        negative for a beam center within the detector surface.
+        For cbf_set_beam_center if the diffrn_data_frame category exists with 
+        a row for the corresponding element id, the values will be set for 
+        _diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
+        millimetres and the value of _diffrn_data_frame.center_units will be 
+        set to 'mm'.
+        For cbf_set_reference_beam_center if the diffrn_detector_element 
+        category exists with a row for the corresponding element id, the 
+        values will be set for _diffrn_detector_element.reference_center_fast 
+        and _diffrn_detector_element.reference_center_slow in millimetres and 
+        the value of _diffrn_detector_element.reference_units will be set to 
+        'mm'.
+        ARGUMENTS
+        detector     Detector handle. indexfast    Pointer to the destination 
+        fast index. indexslow    Pointer to the destination slow index. 
+        centerfast   Pointer to the destination displacement along the fast 
+        axis. centerslow   Pointer to the destination displacement along the 
+        slow axis.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_detector_struct_get_beam_center_fs(self)
+
+    def get_inferred_pixel_size_sf(self, *args):
+        """
+        Returns : Float pixel size
+        *args   : Int axis_number
+
+        C prototype: int cbf_get_inferred_pixel_size_sf(cbf_detector detector,
+                         int axis_number, double *psize);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_sf set 
+        *psize to point to the double value in millimeters of the pixel size 
+        for the axis axis_number value. The slow index is treated as axis 1 
+        and the next faster index is treated as axis 2. 
+        cbf_get_inferred_pixel_size_fs sets *psize to point to the double 
+        value in millimeters of the pixel size for the axis axis_number 
+        value. The fast index is treated as axis 1 and the next slower index 
+        is treated as axis 2.
+        If the axis number is negative, the axes are used in the reverse 
+        order so that an axis_number of -1 indicates the fast axes in a call 
+        to cbf_get_inferred_pixel_size or cbf_get_inferred_pixel_size_sf and 
+        indicates the fast axis in a call to cbf_get_inferred_pixel_size_fs.
+        ARGUMENTS
+        detector      Detector handle. axis_number   The number of the axis. 
+        area          Pointer to the destination pizel size in mm.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_detector_struct_get_inferred_pixel_size_sf(self, *args)
 
     def get_pixel_coordinates(self, *args):
         """
@@ -830,6 +1111,100 @@ class cbf_detector_struct(_object):
 
         """
         return _pycbf.cbf_detector_struct_get_pixel_coordinates(self, *args)
+
+    def get_beam_center_sf(self):
+        """
+        Returns : double indexslow,double indexfast,double centerslow,double centerfast
+        *args   : 
+
+        C prototype: int cbf_get_beam_center_sf (cbf_detector detector,
+                         double *indexslow, double *indexfast, double *centerslow,
+                         double *centerfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_beam_center sets *centerfast and *centerslow to the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector and *indexfast and 
+        *indexslow to the corresponding indices. cbf_set_beam_center sets the 
+        offsets in the axis category for the detector element axis with 
+        precedence 1 to place the beam center at the position given in mm by 
+        *centerfast and *centerslow as the displacements in mm along the 
+        detector axes from pixel (0, 0) to the point at which the beam 
+        intersects the detector at the indices given *indexfast and 
+        *indexslow. cbf_set_reference_beam_center sets the displacments in 
+        the array_structure_list_axis category to place the beam center at 
+        the position given in mm by *centerfast and *centerslow as the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector at the indices given 
+        by *indexfast and *indexslow. In order to achieve consistent results, 
+        a reference detector should be used for detector to have all axes at 
+        their reference settings.
+        Note that the precedence 1 axis is the fastest axis, so that 
+        *centerfast and *indexfast are the fast axis components of the center 
+        and *centerslow and *indexslow are the slow axis components of the 
+        center.
+        The _fs calls give the displacments in a fast-to-slow order. The 
+        calls with no suffix and the calls _sf calls give the displacements 
+        in slow-to-fast order
+        Any of the destination pointers may be NULL for getting the beam 
+        center. For setting the beam axis, either the indices of the center 
+        must not be NULL.
+        The indices are non-negative for beam centers within the detector 
+        surface, but the center for an axis with a negative increment will be 
+        negative for a beam center within the detector surface.
+        For cbf_set_beam_center if the diffrn_data_frame category exists with 
+        a row for the corresponding element id, the values will be set for 
+        _diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
+        millimetres and the value of _diffrn_data_frame.center_units will be 
+        set to 'mm'.
+        For cbf_set_reference_beam_center if the diffrn_detector_element 
+        category exists with a row for the corresponding element id, the 
+        values will be set for _diffrn_detector_element.reference_center_fast 
+        and _diffrn_detector_element.reference_center_slow in millimetres and 
+        the value of _diffrn_detector_element.reference_units will be set to 
+        'mm'.
+        ARGUMENTS
+        detector     Detector handle. indexfast    Pointer to the destination 
+        fast index. indexslow    Pointer to the destination slow index. 
+        centerfast   Pointer to the destination displacement along the fast 
+        axis. centerslow   Pointer to the destination displacement along the 
+        slow axis.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_detector_struct_get_beam_center_sf(self)
+
+    def get_pixel_area_sf(self, *args):
+        """
+        Returns : double area,double projected_area
+        *args   : double indexslow,double indexfast
+
+        C prototype: int cbf_get_pixel_area_sf(cbf_detector detector,
+                         double indexslow, double indexfast, double *area,
+                         double *projected_area);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_pixel_area, cbf_get_pixel_area_fs and cbf_get_pixel_area_sf 
+        set *area to the area of the pixel at (indexfast, indexslow) on the 
+        detector surface and *projected_area to the apparent area of the 
+        pixel as viewed from the sample position, with indexslow being the 
+        slow axis and indexfast being the fast axis.
+        Either of the destination pointers may be NULL.
+        ARGUMENTS
+        detector         Detector handle. indexfast        Fast index. 
+        indexslow        Slow index. area             Pointer to the 
+        destination area in mm2. projected_area   Pointer to the destination 
+        apparent area in mm2.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_detector_struct_get_pixel_area_sf(self, *args)
 
     def get_beam_center(self):
         """
@@ -895,6 +1270,136 @@ class cbf_detector_struct(_object):
 
         """
         return _pycbf.cbf_detector_struct_get_beam_center(self)
+
+    def set_reference_beam_center_sf(self):
+        """
+        Returns : 
+        *args   : double indexslow,double indexfast,double centerslow,double centerfast
+
+        C prototype: int cbf_set_reference_beam_center_sf (cbf_detector detector,
+                         double *indexslow, double *indexfast, double *centerslow,
+                         double      *centerfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_beam_center sets *centerfast and *centerslow to the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector and *indexfast and 
+        *indexslow to the corresponding indices. cbf_set_beam_center sets the 
+        offsets in the axis category for the detector element axis with 
+        precedence 1 to place the beam center at the position given in mm by 
+        *centerfast and *centerslow as the displacements in mm along the 
+        detector axes from pixel (0, 0) to the point at which the beam 
+        intersects the detector at the indices given *indexfast and 
+        *indexslow. cbf_set_reference_beam_center sets the displacments in 
+        the array_structure_list_axis category to place the beam center at 
+        the position given in mm by *centerfast and *centerslow as the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector at the indices given 
+        by *indexfast and *indexslow. In order to achieve consistent results, 
+        a reference detector should be used for detector to have all axes at 
+        their reference settings.
+        Note that the precedence 1 axis is the fastest axis, so that 
+        *centerfast and *indexfast are the fast axis components of the center 
+        and *centerslow and *indexslow are the slow axis components of the 
+        center.
+        The _fs calls give the displacments in a fast-to-slow order. The 
+        calls with no suffix and the calls _sf calls give the displacements 
+        in slow-to-fast order
+        Any of the destination pointers may be NULL for getting the beam 
+        center. For setting the beam axis, either the indices of the center 
+        must not be NULL.
+        The indices are non-negative for beam centers within the detector 
+        surface, but the center for an axis with a negative increment will be 
+        negative for a beam center within the detector surface.
+        For cbf_set_beam_center if the diffrn_data_frame category exists with 
+        a row for the corresponding element id, the values will be set for 
+        _diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
+        millimetres and the value of _diffrn_data_frame.center_units will be 
+        set to 'mm'.
+        For cbf_set_reference_beam_center if the diffrn_detector_element 
+        category exists with a row for the corresponding element id, the 
+        values will be set for _diffrn_detector_element.reference_center_fast 
+        and _diffrn_detector_element.reference_center_slow in millimetres and 
+        the value of _diffrn_detector_element.reference_units will be set to 
+        'mm'.
+        ARGUMENTS
+        detector     Detector handle. indexfast    Pointer to the destination 
+        fast index. indexslow    Pointer to the destination slow index. 
+        centerfast   Pointer to the destination displacement along the fast 
+        axis. centerslow   Pointer to the destination displacement along the 
+        slow axis.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_detector_struct_set_reference_beam_center_sf(self)
+
+    def set_beam_center_sf(self):
+        """
+        Returns : 
+        *args   : double indexslow,double indexfast,double centerslow,double centerfast
+
+        C prototype: int cbf_set_beam_center_sf (cbf_detector detector,
+                         double *indexslow, double *indexfast, double *centerslow,
+                         double *centerfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_beam_center sets *centerfast and *centerslow to the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector and *indexfast and 
+        *indexslow to the corresponding indices. cbf_set_beam_center sets the 
+        offsets in the axis category for the detector element axis with 
+        precedence 1 to place the beam center at the position given in mm by 
+        *centerfast and *centerslow as the displacements in mm along the 
+        detector axes from pixel (0, 0) to the point at which the beam 
+        intersects the detector at the indices given *indexfast and 
+        *indexslow. cbf_set_reference_beam_center sets the displacments in 
+        the array_structure_list_axis category to place the beam center at 
+        the position given in mm by *centerfast and *centerslow as the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector at the indices given 
+        by *indexfast and *indexslow. In order to achieve consistent results, 
+        a reference detector should be used for detector to have all axes at 
+        their reference settings.
+        Note that the precedence 1 axis is the fastest axis, so that 
+        *centerfast and *indexfast are the fast axis components of the center 
+        and *centerslow and *indexslow are the slow axis components of the 
+        center.
+        The _fs calls give the displacments in a fast-to-slow order. The 
+        calls with no suffix and the calls _sf calls give the displacements 
+        in slow-to-fast order
+        Any of the destination pointers may be NULL for getting the beam 
+        center. For setting the beam axis, either the indices of the center 
+        must not be NULL.
+        The indices are non-negative for beam centers within the detector 
+        surface, but the center for an axis with a negative increment will be 
+        negative for a beam center within the detector surface.
+        For cbf_set_beam_center if the diffrn_data_frame category exists with 
+        a row for the corresponding element id, the values will be set for 
+        _diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
+        millimetres and the value of _diffrn_data_frame.center_units will be 
+        set to 'mm'.
+        For cbf_set_reference_beam_center if the diffrn_detector_element 
+        category exists with a row for the corresponding element id, the 
+        values will be set for _diffrn_detector_element.reference_center_fast 
+        and _diffrn_detector_element.reference_center_slow in millimetres and 
+        the value of _diffrn_detector_element.reference_units will be set to 
+        'mm'.
+        ARGUMENTS
+        detector     Detector handle. indexfast    Pointer to the destination 
+        fast index. indexslow    Pointer to the destination slow index. 
+        centerfast   Pointer to the destination displacement along the fast 
+        axis. centerslow   Pointer to the destination displacement along the 
+        slow axis.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_detector_struct_set_beam_center_sf(self)
 
     def get_pixel_normal(self, *args):
         """
@@ -1009,9 +1514,74 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_force_new_datablock(self, *args)
 
-    def get_3d_image_fs(self, *args):
-        """get_3d_image_fs(self)"""
-        return _pycbf.cbf_handle_struct_get_3d_image_fs(self, *args)
+    def get_3d_image_fs_as_string(self, *args):
+        """
+        Returns : (Binary)String
+        *args   : int element_number,int elsize,int elsign,int ndimfast,int ndimmid,
+                  int ndimslow
+
+        C prototype: int cbf_get_3d_image_fs (cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number, void *array,
+                         size_t elsize, int      elsign, size_t ndimfast, size_t ndimmid,
+                         size_t ndimslow);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image 
+        array for element number element_number into an array. The array 
+        consists of ndimslow *ndimfast elements of elsize bytes each, 
+        starting at array. The elements are signed if elsign is non-0 and 
+        unsigned otherwise. cbf_get_real_image, cbf_get_real_image_fs and 
+        cbf_get_real_image_sf read the image array of IEEE doubles or floats 
+        for element number element_number into an array. A real array is 
+        always signed. cbf_get_3d_image, cbf_get_3d_image_fs and 
+        cbf_get_3d_image_sf read the 3D image array for element number 
+        element_number into an array. The array consists of ndimslow *ndimmid 
+        *ndimfast elements of elsize bytes each, starting at array. The 
+        elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_get_real_3d_image, cbf_get_real_3d_image_fs, 
+        cbf_get_real_3d_image_sf reads the 3D image array of IEEE doubles or 
+        floats for element number element_number into an array. A real array 
+        is always signed.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        The structure of the array as a 1-, 2- or 3-dimensional array should 
+        agree with the structure of the array given in the 
+        ARRAY_STRUCTURE_LIST category. If the array is 1-dimensional, 
+        ndimslow should be the array size and ndimfast and, for the 3D calls, 
+        ndimmid, should be set to 1 both in the call and in the imgCIF data 
+        being processed. If the array is 2-dimensional and a 3D call is used, 
+        ndimslow and ndimmid should be the array dimensions and ndimfast 
+        should be set to 1 both in the call and in the imgCIF data being 
+        processed.
+        If any element in the binary data canOt fit into the destination 
+        element, the destination is set the nearest possible value.
+        If the value is not binary, the function returns CBF_ASCII.
+        If the requested number of elements canOt be read, the function will 
+        read as many as it can and then return CBF_ENDOFDATA.
+        Currently, the destination array must consist of chars, shorts or 
+        ints (signed or unsigned) for cbf_get_image, or IEEE doubles or 
+        floats for cbf_get_real_image. If elsize is not equal to sizeof 
+        (char), sizeof (short), sizeof (int), sizeof(double) or 
+        sizeof(float), the function returns CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. array            Pointer to the 
+        destination array. elsize           Size in bytes of each destination 
+        array element. elsigned         Set to non-0 if the destination array 
+        elements are signed. ndimslow         Slowest array dimension. 
+        ndimmid          Next faster array dimension. ndimfast         
+        Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_handle_struct_get_3d_image_fs_as_string(self, *args)
 
     def reset_datablocks(self, *args):
         """
@@ -1107,7 +1677,73 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_row_number(self, *args)
 
     def set_image(self, *args):
-        """set_image(self)"""
+        """
+        Returns : 
+        *args   : int element_number,int compression,(binary) String data,int elsize,
+                  int elsign,int dimslow,int dimfast
+
+        C prototype: int cbf_set_image (cbf_handle handle, unsigned int reserved,
+                         unsigned int element_number, unsigned int compression,
+                         void *array,      size_t elsize, int elsign, size_t ndimslow,
+                         size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image 
+        array for element number element_number. The array consists of 
+        ndimfast *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-zero and unsigned otherwise. 
+        cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf 
+        write the image array for element number element_number. The array 
+        consists of ndimfast *ndimslow IEEE double or float elements of 
+        elsize bytes each, starting at array. cbf_set_3d_image, 
+        cbf_set_3d_image_fs and cbf_set_3d_image_sf write the 3D image array 
+        for element number element_number. The array consists of ndimfast 
+        *ndimmid *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_set_real_3d_image, cbf_set_real_3d_image_fs and 
+        cbf_set_real_3d_image_sf writes the 3D image array for element number 
+        element_number. The array consists of ndimfast *ndimmid *ndimslow 
+        IEEE double or float elements of elsize bytes each, starting at 
+        array.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        If the array is 1-dimensional, ndimslow should be the array size and 
+        ndimfast and, for the 3D calls, ndimmid, should be set to 1. If the 
+        array is 2-dimensional and the 3D calls are used, ndimslow and 
+        ndimmid should be used for the array dimensions and ndimfast should 
+        be set to 1.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
+             CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
+        packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
+        "byte_offset " compression. CBF_NONE        No compression.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+        Currently, the source array must consist of chars, shorts or ints 
+        (signed or unsigned)for cbf_set_image, or IEEE doubles or floats for 
+        cbf_set_real_image. If elsize is not equal to sizeof (short), sizeof 
+        (int), sizeof(double) or sizeof(float), the function returns 
+        CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. compression      Compression type. 
+        array            Pointer to the image array. elsize           Size in 
+        bytes of each image array element. elsigned         Set to non-0 if 
+        the image array elements are signed. ndimslow         Slowest array 
+        dimension. ndimmid          Second slowest array dimension. ndimfast  
+               Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_image(self, *args)
 
     def set_bin_sizes(self, *args):
@@ -1612,9 +2248,9 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_get_doublevalue(self, *args)
 
-    def get_unit_cell(self, *args):
+    def get_unit_cell(self):
         """
-        Returns : doubleArray cell,doubleArray cell_esd
+        Returns : doubleArray cell
         *args   : 
 
         C prototype: int cbf_get_unit_cell (cbf_handle handle, double cell[6],
@@ -1646,7 +2282,11 @@ class cbf_handle_struct(_object):
         SEE ALSO
 
         """
-        return _pycbf.cbf_handle_struct_get_unit_cell(self, *args)
+        return _pycbf.cbf_handle_struct_get_unit_cell(self)
+
+    def get_unit_cell_esd(self):
+        """get_unit_cell_esd(self)"""
+        return _pycbf.cbf_handle_struct_get_unit_cell_esd(self)
 
     def remove_column(self, *args):
         """
@@ -1842,7 +2482,49 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_set_wavelength(self, *args)
 
     def set_pixel_size_sf(self, *args):
-        """set_pixel_size_sf(self)"""
+        """
+        Returns : 
+        *args   : Int element_number,Int axis_number,Float pixel size
+
+        C prototype: int cbf_set_pixel_size_sf(cbf_handle handle,
+                         unsigned int element_number, int axis_number, double psize);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_pixel_size and cbf_set_pixel_size_sf set the item in the 
+        &quote;size&quote; column of the  "array_structure_list " category 
+        at the row which matches axis axis_number of the detector element 
+        element_number converting the double pixel size psize from meters to 
+        millimeters in storing it in the  "size " column for the axis 
+        axis_number of the detector element element_number. The axis_number 
+        is numbered from 1, starting with the slowest axis. 
+        cbf_set_pixel_size_fs sets the item in the &quote;size&quote; column 
+        of the  "array_structure_list " category at the row which matches 
+        axis axis_number of the detector element element_number converting 
+        the double pixel size psize from meters to millimeters in storing it 
+        in the  "size " column for the axis axis_number of the detector 
+        element element_number. The axis_number is numbered from 1, starting 
+        with the fastest axis.
+        If a negative axis number is given, the order of axes is reversed, so 
+        that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the 
+        fastest axis for cbf_get_pixel_size_sf.
+        If the  "array_structure_list " category does not already exist, it 
+        is created.
+        If the appropriate row in the  "array_structure_list " catgeory 
+        does not already exist, it is created.
+        If the pixel size is not given explcitly in the  "array_element_size 
+        category ", the function returns CBF_NOTFOUND.
+        ARGUMENTS
+        handle           CBF handle. element_number   The number of the 
+        detector element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. axis_number      The number of the 
+        axis, fastest first, starting from 1. psize            The pixel size 
+        in millimeters.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_pixel_size_sf(self, *args)
 
     def get_diffrn_id(self, *args):
@@ -1949,7 +2631,39 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_select_category(self, *args)
 
     def get_pixel_size_fs(self, *args):
-        """get_pixel_size_fs(self)"""
+        """
+        Returns : Float pixel_size
+        *args   : Int element_number,Int axis_number
+
+        C prototype: int cbf_get_pixel_size_fs(cbf_handle handle,
+                         unsigned int element_number, int axis_number, double *psize);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_pixel_size and cbf_get_pixel_size_sf set *psize to point to 
+        the double value in millimeters of the axis axis_number of the 
+        detector element element_number. The axis_number is numbered from 1, 
+        starting with the slowest axis. cbf_get_pixel_size_fs sets *psize to 
+        point to the double value in millimeters of the axis axis_number of 
+        the detector element element_number. The axis_number is numbered from 
+        1, starting with the fastest axis.
+        If a negative axis number is given, the order of axes is reversed, so 
+        that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the 
+        fastest axis for cbf_get_pixel_size_sf.
+        If the pixel size is not given explcitly in the  "array_element_size 
+        " category, the function returns CBF_NOTFOUND.
+        ARGUMENTS
+        handle           CBF handle. element_number   The number of the 
+        detector element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. axis_number      The number of the 
+        axis, starting from 1 for the fastest for cbf_get_pixel_size and 
+        cbf_get_pixel_size_fs and the slowest for cbf_get_pixel_size_sf. 
+        psize            Pointer to the destination pixel size.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_get_pixel_size_fs(self, *args)
 
     def read_file(self, *args):
@@ -2058,12 +2772,103 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_set_realarray_wdims(self, *args)
 
     def construct_reference_detector(self, *args):
-        """construct_reference_detector(self)"""
+        """
+        Returns : pycbf detector object
+        *args   : Integer element_number
+
+        C prototype: int cbf_construct_reference_detector (cbf_handle handle,
+                         cbf_detector *detector, unsigned int element_number);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_construct_detector constructs a detector object for detector 
+        element number element_number using the description in the CBF object 
+        handle and initialises the detector handle *detector.
+        cbf_construct_reference_detector constructs a detector object for 
+        detector element number element_number using the description in the 
+        CBF object handle and initialises the detector handle *detector using 
+        the reference settings of the axes. cbf_require_reference_detector is 
+        similar, but try to force the creations of missing intermediate 
+        categories needed to construct a detector object.
+        ARGUMENTS
+        handle           CBF handle. detector         Pointer to the 
+        destination detector handle. element_number   The number of the 
+        detector element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_construct_reference_detector(self, *args)
 
-    def get_real_3d_image_fs(self, *args):
-        """get_real_3d_image_fs(self)"""
-        return _pycbf.cbf_handle_struct_get_real_3d_image_fs(self, *args)
+    def get_real_3d_image_fs_as_string(self, *args):
+        """
+        Returns : (Binary)String
+        *args   : int element_number,int elsize,int ndimfast,int ndimmid,int ndimslow
+
+        C prototype: int cbf_get_real_3d_image_fs (cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number, void *array,
+                         size_t elsize,      size_t ndimfast, size_t ndimmid,
+                         size_t ndimslow);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image 
+        array for element number element_number into an array. The array 
+        consists of ndimslow *ndimfast elements of elsize bytes each, 
+        starting at array. The elements are signed if elsign is non-0 and 
+        unsigned otherwise. cbf_get_real_image, cbf_get_real_image_fs and 
+        cbf_get_real_image_sf read the image array of IEEE doubles or floats 
+        for element number element_number into an array. A real array is 
+        always signed. cbf_get_3d_image, cbf_get_3d_image_fs and 
+        cbf_get_3d_image_sf read the 3D image array for element number 
+        element_number into an array. The array consists of ndimslow *ndimmid 
+        *ndimfast elements of elsize bytes each, starting at array. The 
+        elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_get_real_3d_image, cbf_get_real_3d_image_fs, 
+        cbf_get_real_3d_image_sf reads the 3D image array of IEEE doubles or 
+        floats for element number element_number into an array. A real array 
+        is always signed.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        The structure of the array as a 1-, 2- or 3-dimensional array should 
+        agree with the structure of the array given in the 
+        ARRAY_STRUCTURE_LIST category. If the array is 1-dimensional, 
+        ndimslow should be the array size and ndimfast and, for the 3D calls, 
+        ndimmid, should be set to 1 both in the call and in the imgCIF data 
+        being processed. If the array is 2-dimensional and a 3D call is used, 
+        ndimslow and ndimmid should be the array dimensions and ndimfast 
+        should be set to 1 both in the call and in the imgCIF data being 
+        processed.
+        If any element in the binary data canOt fit into the destination 
+        element, the destination is set the nearest possible value.
+        If the value is not binary, the function returns CBF_ASCII.
+        If the requested number of elements canOt be read, the function will 
+        read as many as it can and then return CBF_ENDOFDATA.
+        Currently, the destination array must consist of chars, shorts or 
+        ints (signed or unsigned) for cbf_get_image, or IEEE doubles or 
+        floats for cbf_get_real_image. If elsize is not equal to sizeof 
+        (char), sizeof (short), sizeof (int), sizeof(double) or 
+        sizeof(float), the function returns CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. array            Pointer to the 
+        destination array. elsize           Size in bytes of each destination 
+        array element. elsigned         Set to non-0 if the destination array 
+        elements are signed. ndimslow         Slowest array dimension. 
+        ndimmid          Next faster array dimension. ndimfast         
+        Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_handle_struct_get_real_3d_image_fs_as_string(self, *args)
 
     def rewind_row(self, *args):
         """
@@ -2189,9 +2994,71 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_find_nextrow(self, *args)
 
-    def get_realarrayparameters_wdims_sf(self, *args):
-        """get_realarrayparameters_wdims_sf(self)"""
-        return _pycbf.cbf_handle_struct_get_realarrayparameters_wdims_sf(self, *args)
+    def get_realarrayparameters_wdims_sf(self):
+        """
+        Returns : int compression,int binary_id,int elsize,int elements,char byteorder,
+                  int dimslow,int dimmid,int dimfast,int padding
+        *args   : 
+
+        C prototype: int cbf_get_realarrayparameters_wdims_sf (cbf_handle handle,
+                         unsigned int *compression, int *binary_id, size_t *elsize,
+                         size_t    *elements, const char **byteorder, size_t *dimslow,
+                         size_t *dimmid, size_t *dimfast, size_t *padding);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_integerarrayparameters sets *compression, *binary_id, 
+        *elsize, *elsigned, *elunsigned, *elements, *minelement and 
+        *maxelement to values read from the binary value of the item at the 
+        current column and row. This provides all the arguments needed for a 
+        subsequent call to cbf_set_integerarray, if a copy of the array is to 
+        be made into another CIF or CBF. cbf_get_realarrayparameters sets 
+        *compression, *binary_id, *elsize, *elements to values read from the 
+        binary value of the item at the current column and row. This provides 
+        all the arguments needed for a subsequent call to cbf_set_realarray, 
+        if a copy of the arry is to be made into another CIF or CBF.
+        The variants cbf_get_integerarrayparameters_wdims, 
+        cbf_get_integerarrayparameters_wdims_fs, 
+        cbf_get_integerarrayparameters_wdims_sf, 
+        cbf_get_realarrayparameters_wdims, 
+        cbf_get_realarrayparameters_wdims_fs, 
+        cbf_get_realarrayparameters_wdims_sf set **byteorder, *dimfast, 
+        *dimmid, *dimslow, and *padding as well, providing the additional 
+        parameters needed for a subsequent call to cbf_set_integerarray_wdims 
+        or cbf_set_realarray_wdims.
+        The value returned in *byteorder is a pointer either to the string  
+        "little_endian " or to the string  "big_endian ". This should be 
+        the byte order of the data, not necessarily of the host machine. No 
+        attempt should be made to modify this string. At this time only  
+        "little_endian " will be returned.
+        The values returned in *dimfast, *dimmid and *dimslow are the sizes 
+        of the fastest changing, second fastest changing and third fastest 
+        changing dimensions of the array, if specified, or zero, if not 
+        specified.
+        The value returned in *padding is the size of the post-data padding, 
+        if any and if specified in the data header. The value is given as a 
+        count of octets.
+        If the value is not binary, the function returns CBF_ASCII.
+        ARGUMENTS
+        handle        CBF handle. compression   Compression method used. 
+        elsize        Size in bytes of each array element. binary_id     
+        Pointer to the destination integer binary identifier. elsigned      
+        Pointer to an integer. Set to 1 if the elements can be read as signed 
+        integers. elunsigned    Pointer to an integer. Set to 1 if the 
+        elements can be read as unsigned integers. elements      Pointer to 
+        the destination number of elements. minelement    Pointer to the 
+        destination smallest element. maxelement    Pointer to the 
+        destination largest element. byteorder     Pointer to the destination 
+        byte order. dimfast       Pointer to the destination fastest 
+        dimension. dimmid        Pointer to the destination second fastest 
+        dimension. dimslow       Pointer to the destination third fastest 
+        dimension. padding       Pointer to the destination padding size.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        SEE ALSO
+
+        """
+        return _pycbf.cbf_handle_struct_get_realarrayparameters_wdims_sf(self)
 
     def reset_datablock(self, *args):
         """
@@ -2215,7 +3082,73 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_reset_datablock(self, *args)
 
     def set_3d_image_fs(self, *args):
-        """set_3d_image_fs(self)"""
+        """
+        Returns : 
+        *args   : int element_number,int compression,(binary) String data,int elsize,
+                  int elsign,int dimfast,int dimmid,int dimslow
+
+        C prototype: int cbf_set_3d_image_fs(cbf_handle handle, unsigned int reserved,
+                         unsigned int element_number, unsigned int compression,
+                         void      *array, size_t elsize, int elsign, size_t ndimfast,
+                         size_t ndimmid, size_t ndimslow);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image 
+        array for element number element_number. The array consists of 
+        ndimfast *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-zero and unsigned otherwise. 
+        cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf 
+        write the image array for element number element_number. The array 
+        consists of ndimfast *ndimslow IEEE double or float elements of 
+        elsize bytes each, starting at array. cbf_set_3d_image, 
+        cbf_set_3d_image_fs and cbf_set_3d_image_sf write the 3D image array 
+        for element number element_number. The array consists of ndimfast 
+        *ndimmid *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_set_real_3d_image, cbf_set_real_3d_image_fs and 
+        cbf_set_real_3d_image_sf writes the 3D image array for element number 
+        element_number. The array consists of ndimfast *ndimmid *ndimslow 
+        IEEE double or float elements of elsize bytes each, starting at 
+        array.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        If the array is 1-dimensional, ndimslow should be the array size and 
+        ndimfast and, for the 3D calls, ndimmid, should be set to 1. If the 
+        array is 2-dimensional and the 3D calls are used, ndimslow and 
+        ndimmid should be used for the array dimensions and ndimfast should 
+        be set to 1.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
+             CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
+        packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
+        "byte_offset " compression. CBF_NONE        No compression.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+        Currently, the source array must consist of chars, shorts or ints 
+        (signed or unsigned)for cbf_set_image, or IEEE doubles or floats for 
+        cbf_set_real_image. If elsize is not equal to sizeof (short), sizeof 
+        (int), sizeof(double) or sizeof(float), the function returns 
+        CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. compression      Compression type. 
+        array            Pointer to the image array. elsize           Size in 
+        bytes of each image array element. elsigned         Set to non-0 if 
+        the image array elements are signed. ndimslow         Slowest array 
+        dimension. ndimmid          Second slowest array dimension. ndimfast  
+               Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_3d_image_fs(self, *args)
 
     def set_saveframename(self, *args):
@@ -2336,7 +3269,73 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_get_integerarrayparameters(self)
 
     def set_real_3d_image_sf(self, *args):
-        """set_real_3d_image_sf(self)"""
+        """
+        Returns : 
+        *args   : int element_number,int compression,(binary) String data,int elsize,
+                  int dimslow,int dimmid,int dimfast
+
+        C prototype: int cbf_set_real_3d_image_sf(cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number,
+                         unsigned int compression, void      *array,size_t elsize,
+                         size_t ndimslow, size_t ndimmid, size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image 
+        array for element number element_number. The array consists of 
+        ndimfast *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-zero and unsigned otherwise. 
+        cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf 
+        write the image array for element number element_number. The array 
+        consists of ndimfast *ndimslow IEEE double or float elements of 
+        elsize bytes each, starting at array. cbf_set_3d_image, 
+        cbf_set_3d_image_fs and cbf_set_3d_image_sf write the 3D image array 
+        for element number element_number. The array consists of ndimfast 
+        *ndimmid *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_set_real_3d_image, cbf_set_real_3d_image_fs and 
+        cbf_set_real_3d_image_sf writes the 3D image array for element number 
+        element_number. The array consists of ndimfast *ndimmid *ndimslow 
+        IEEE double or float elements of elsize bytes each, starting at 
+        array.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        If the array is 1-dimensional, ndimslow should be the array size and 
+        ndimfast and, for the 3D calls, ndimmid, should be set to 1. If the 
+        array is 2-dimensional and the 3D calls are used, ndimslow and 
+        ndimmid should be used for the array dimensions and ndimfast should 
+        be set to 1.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
+             CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
+        packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
+        "byte_offset " compression. CBF_NONE        No compression.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+        Currently, the source array must consist of chars, shorts or ints 
+        (signed or unsigned)for cbf_set_image, or IEEE doubles or floats for 
+        cbf_set_real_image. If elsize is not equal to sizeof (short), sizeof 
+        (int), sizeof(double) or sizeof(float), the function returns 
+        CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. compression      Compression type. 
+        array            Pointer to the image array. elsize           Size in 
+        bytes of each image array element. elsigned         Set to non-0 if 
+        the image array elements are signed. ndimslow         Slowest array 
+        dimension. ndimmid          Second slowest array dimension. ndimfast  
+               Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_real_3d_image_sf(self, *args)
 
     def write_file(self, *args):
@@ -2480,11 +3479,104 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_count_elements(self, *args)
 
     def set_image_fs(self, *args):
-        """set_image_fs(self)"""
+        """
+        Returns : 
+        *args   : int element_number,int compression,(binary) String data,int elsize,
+                  int elsign,int dimfast,int dimslow
+
+        C prototype: int cbf_set_image_fs(cbf_handle handle, unsigned int reserved,
+                         unsigned int element_number, unsigned int compression,
+                         void *array,      size_t elsize, int elsign, size_t ndimfast,
+                         size_t ndimslow);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image 
+        array for element number element_number. The array consists of 
+        ndimfast *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-zero and unsigned otherwise. 
+        cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf 
+        write the image array for element number element_number. The array 
+        consists of ndimfast *ndimslow IEEE double or float elements of 
+        elsize bytes each, starting at array. cbf_set_3d_image, 
+        cbf_set_3d_image_fs and cbf_set_3d_image_sf write the 3D image array 
+        for element number element_number. The array consists of ndimfast 
+        *ndimmid *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_set_real_3d_image, cbf_set_real_3d_image_fs and 
+        cbf_set_real_3d_image_sf writes the 3D image array for element number 
+        element_number. The array consists of ndimfast *ndimmid *ndimslow 
+        IEEE double or float elements of elsize bytes each, starting at 
+        array.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        If the array is 1-dimensional, ndimslow should be the array size and 
+        ndimfast and, for the 3D calls, ndimmid, should be set to 1. If the 
+        array is 2-dimensional and the 3D calls are used, ndimslow and 
+        ndimmid should be used for the array dimensions and ndimfast should 
+        be set to 1.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
+             CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
+        packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
+        "byte_offset " compression. CBF_NONE        No compression.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+        Currently, the source array must consist of chars, shorts or ints 
+        (signed or unsigned)for cbf_set_image, or IEEE doubles or floats for 
+        cbf_set_real_image. If elsize is not equal to sizeof (short), sizeof 
+        (int), sizeof(double) or sizeof(float), the function returns 
+        CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. compression      Compression type. 
+        array            Pointer to the image array. elsize           Size in 
+        bytes of each image array element. elsigned         Set to non-0 if 
+        the image array elements are signed. ndimslow         Slowest array 
+        dimension. ndimmid          Second slowest array dimension. ndimfast  
+               Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_image_fs(self, *args)
 
     def require_reference_detector(self, *args):
-        """require_reference_detector(self)"""
+        """
+        Returns : pycbf detector object
+        *args   : Integer element_number
+
+        C prototype: int cbf_require_reference_detector (cbf_handle handle,
+                         cbf_detector *detector, unsigned int element_number);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_construct_detector constructs a detector object for detector 
+        element number element_number using the description in the CBF object 
+        handle and initialises the detector handle *detector.
+        cbf_construct_reference_detector constructs a detector object for 
+        detector element number element_number using the description in the 
+        CBF object handle and initialises the detector handle *detector using 
+        the reference settings of the axes. cbf_require_reference_detector is 
+        similar, but try to force the creations of missing intermediate 
+        categories needed to construct a detector object.
+        ARGUMENTS
+        handle           CBF handle. detector         Pointer to the 
+        destination detector handle. element_number   The number of the 
+        detector element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_require_reference_detector(self, *args)
 
     def next_category(self, *args):
@@ -2593,7 +3685,52 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_get_orientation_matrix(self)
 
     def get_image_size_fs(self, *args):
-        """get_image_size_fs(self)"""
+        """
+        Returns : size_t ndimfast,size_t ndimslow
+        *args   : Integer element_number
+
+        C prototype: int cbf_get_image_size_fs (cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number,
+                         size_t *ndimfast, size_t      *ndimslow);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image_size, cbf_get_image_size_fs and cbf_get_image_size_sf 
+        set *ndimslow and *ndimfast to the slow and fast dimensions of the 
+        image array for element number element_number. If the array is 
+        1-dimensional, *ndimslow will be set to the array size and *ndimfast 
+        will be set to 1. If the array is 3-dimensional an error code will be 
+        returned. cbf_get_3d_image_size, cbf_get_3d_image_size_fs and 
+        cbf_get_3d_image_size_sf set *ndimslow, *ndimmid and *ndimfast to the 
+        slowest, next fastest and fastest dimensions, respectively, of the 3D 
+        image array for element number element_number. If the array is 
+        1-dimensional, *ndimslow will be set to the array size and *ndimmid 
+        and *ndimfast will be set to 1. If the array is 2-dimensional 
+        *ndimslow and *ndimmid will be set as for a call to 
+        cbf_get_image_size and *ndimfast will be set to 1.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        Note that the ordering of dimensions is specified by values of the 
+        tag _array_structure_list.precedence with a precedence of 1 for the 
+        fastest dimension, 2 for the next slower, etc., which is opposite to 
+        the ordering of the dimension arguments for these functions, except 
+        for the ones with the _fs suffix..
+        Any of the destination pointers may be NULL.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. ndimslow         Pointer to the 
+        destination slowest dimension. ndimmid          Pointer to the 
+        destination next faster dimension. ndimfast         Pointer to the 
+        destination fastest dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_get_image_size_fs(self, *args)
 
     def get_divergence(self):
@@ -2693,17 +3830,188 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_select_row(self, *args)
 
-    def get_image_fs(self, *args):
-        """get_image_fs(self)"""
-        return _pycbf.cbf_handle_struct_get_image_fs(self, *args)
+    def get_image_fs_as_string(self, *args):
+        """
+        Returns : (Binary)String
+        *args   : int element_number,int elsize,int elsign,int ndimfast,int ndimslow
+
+        C prototype: int cbf_get_image_fs (cbf_handle handle, unsigned int reserved,
+                         unsigned int element_number, void *array, size_t elsize,
+                         int elsign,      size_t ndimfast, size_t ndimslow);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image 
+        array for element number element_number into an array. The array 
+        consists of ndimslow *ndimfast elements of elsize bytes each, 
+        starting at array. The elements are signed if elsign is non-0 and 
+        unsigned otherwise. cbf_get_real_image, cbf_get_real_image_fs and 
+        cbf_get_real_image_sf read the image array of IEEE doubles or floats 
+        for element number element_number into an array. A real array is 
+        always signed. cbf_get_3d_image, cbf_get_3d_image_fs and 
+        cbf_get_3d_image_sf read the 3D image array for element number 
+        element_number into an array. The array consists of ndimslow *ndimmid 
+        *ndimfast elements of elsize bytes each, starting at array. The 
+        elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_get_real_3d_image, cbf_get_real_3d_image_fs, 
+        cbf_get_real_3d_image_sf reads the 3D image array of IEEE doubles or 
+        floats for element number element_number into an array. A real array 
+        is always signed.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        The structure of the array as a 1-, 2- or 3-dimensional array should 
+        agree with the structure of the array given in the 
+        ARRAY_STRUCTURE_LIST category. If the array is 1-dimensional, 
+        ndimslow should be the array size and ndimfast and, for the 3D calls, 
+        ndimmid, should be set to 1 both in the call and in the imgCIF data 
+        being processed. If the array is 2-dimensional and a 3D call is used, 
+        ndimslow and ndimmid should be the array dimensions and ndimfast 
+        should be set to 1 both in the call and in the imgCIF data being 
+        processed.
+        If any element in the binary data canOt fit into the destination 
+        element, the destination is set the nearest possible value.
+        If the value is not binary, the function returns CBF_ASCII.
+        If the requested number of elements canOt be read, the function will 
+        read as many as it can and then return CBF_ENDOFDATA.
+        Currently, the destination array must consist of chars, shorts or 
+        ints (signed or unsigned) for cbf_get_image, or IEEE doubles or 
+        floats for cbf_get_real_image. If elsize is not equal to sizeof 
+        (char), sizeof (short), sizeof (int), sizeof(double) or 
+        sizeof(float), the function returns CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. array            Pointer to the 
+        destination array. elsize           Size in bytes of each destination 
+        array element. elsigned         Set to non-0 if the destination array 
+        elements are signed. ndimslow         Slowest array dimension. 
+        ndimmid          Next faster array dimension. ndimfast         
+        Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_handle_struct_get_image_fs_as_string(self, *args)
 
     def get_image_size_sf(self, *args):
-        """get_image_size_sf(self)"""
+        """
+        Returns : size_t ndimslow,size_t ndimfast
+        *args   : Integer element_number
+
+        C prototype: int cbf_get_image_size_sf (cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number,
+                         size_t *ndimslow, size_t      *ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image_size, cbf_get_image_size_fs and cbf_get_image_size_sf 
+        set *ndimslow and *ndimfast to the slow and fast dimensions of the 
+        image array for element number element_number. If the array is 
+        1-dimensional, *ndimslow will be set to the array size and *ndimfast 
+        will be set to 1. If the array is 3-dimensional an error code will be 
+        returned. cbf_get_3d_image_size, cbf_get_3d_image_size_fs and 
+        cbf_get_3d_image_size_sf set *ndimslow, *ndimmid and *ndimfast to the 
+        slowest, next fastest and fastest dimensions, respectively, of the 3D 
+        image array for element number element_number. If the array is 
+        1-dimensional, *ndimslow will be set to the array size and *ndimmid 
+        and *ndimfast will be set to 1. If the array is 2-dimensional 
+        *ndimslow and *ndimmid will be set as for a call to 
+        cbf_get_image_size and *ndimfast will be set to 1.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        Note that the ordering of dimensions is specified by values of the 
+        tag _array_structure_list.precedence with a precedence of 1 for the 
+        fastest dimension, 2 for the next slower, etc., which is opposite to 
+        the ordering of the dimension arguments for these functions, except 
+        for the ones with the _fs suffix..
+        Any of the destination pointers may be NULL.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. ndimslow         Pointer to the 
+        destination slowest dimension. ndimmid          Pointer to the 
+        destination next faster dimension. ndimfast         Pointer to the 
+        destination fastest dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_get_image_size_sf(self, *args)
 
-    def get_real_image_fs(self, *args):
-        """get_real_image_fs(self)"""
-        return _pycbf.cbf_handle_struct_get_real_image_fs(self, *args)
+    def get_real_image_fs_as_string(self, *args):
+        """
+        Returns : (Binary)String
+        *args   : int element_number,int elsize,int ndimfast,int ndimslow
+
+        C prototype: int cbf_get_real_image_fs (cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number, void *array,
+                         size_t elsize, size_t      ndimfast, size_t ndimslow);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image 
+        array for element number element_number into an array. The array 
+        consists of ndimslow *ndimfast elements of elsize bytes each, 
+        starting at array. The elements are signed if elsign is non-0 and 
+        unsigned otherwise. cbf_get_real_image, cbf_get_real_image_fs and 
+        cbf_get_real_image_sf read the image array of IEEE doubles or floats 
+        for element number element_number into an array. A real array is 
+        always signed. cbf_get_3d_image, cbf_get_3d_image_fs and 
+        cbf_get_3d_image_sf read the 3D image array for element number 
+        element_number into an array. The array consists of ndimslow *ndimmid 
+        *ndimfast elements of elsize bytes each, starting at array. The 
+        elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_get_real_3d_image, cbf_get_real_3d_image_fs, 
+        cbf_get_real_3d_image_sf reads the 3D image array of IEEE doubles or 
+        floats for element number element_number into an array. A real array 
+        is always signed.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        The structure of the array as a 1-, 2- or 3-dimensional array should 
+        agree with the structure of the array given in the 
+        ARRAY_STRUCTURE_LIST category. If the array is 1-dimensional, 
+        ndimslow should be the array size and ndimfast and, for the 3D calls, 
+        ndimmid, should be set to 1 both in the call and in the imgCIF data 
+        being processed. If the array is 2-dimensional and a 3D call is used, 
+        ndimslow and ndimmid should be the array dimensions and ndimfast 
+        should be set to 1 both in the call and in the imgCIF data being 
+        processed.
+        If any element in the binary data canOt fit into the destination 
+        element, the destination is set the nearest possible value.
+        If the value is not binary, the function returns CBF_ASCII.
+        If the requested number of elements canOt be read, the function will 
+        read as many as it can and then return CBF_ENDOFDATA.
+        Currently, the destination array must consist of chars, shorts or 
+        ints (signed or unsigned) for cbf_get_image, or IEEE doubles or 
+        floats for cbf_get_real_image. If elsize is not equal to sizeof 
+        (char), sizeof (short), sizeof (int), sizeof(double) or 
+        sizeof(float), the function returns CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. array            Pointer to the 
+        destination array. elsize           Size in bytes of each destination 
+        array element. elsigned         Set to non-0 if the destination array 
+        elements are signed. ndimslow         Slowest array dimension. 
+        ndimmid          Next faster array dimension. ndimfast         
+        Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_handle_struct_get_real_image_fs_as_string(self, *args)
 
     def count_columns(self, *args):
         """
@@ -2726,9 +4034,74 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_count_columns(self, *args)
 
-    def get_integerarrayparameters_wdims(self, *args):
-        """get_integerarrayparameters_wdims(self)"""
-        return _pycbf.cbf_handle_struct_get_integerarrayparameters_wdims(self, *args)
+    def get_integerarrayparameters_wdims(self):
+        """
+        Returns : int compression,int binary_id,int elsize,int elsigned,int elunsigned,
+                  int elements,int minelement,int maxelementchar byteorder,int dimfast,
+                  int dimmid,int dimslow,int padding
+        *args   : 
+
+        C prototype: int cbf_get_integerarrayparameters_wdims (cbf_handle handle,
+                         unsigned int *compression, int *binary_id, size_t *elsize,
+                         int *elsigned,    int *elunsigned, size_t *elements,
+                         int *minelement, int *maxelement, const char **byteorder,
+                         size_t *dimfast, size_t *dimmid, size_t    *dimslow,
+                         size_t *padding);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_integerarrayparameters sets *compression, *binary_id, 
+        *elsize, *elsigned, *elunsigned, *elements, *minelement and 
+        *maxelement to values read from the binary value of the item at the 
+        current column and row. This provides all the arguments needed for a 
+        subsequent call to cbf_set_integerarray, if a copy of the array is to 
+        be made into another CIF or CBF. cbf_get_realarrayparameters sets 
+        *compression, *binary_id, *elsize, *elements to values read from the 
+        binary value of the item at the current column and row. This provides 
+        all the arguments needed for a subsequent call to cbf_set_realarray, 
+        if a copy of the arry is to be made into another CIF or CBF.
+        The variants cbf_get_integerarrayparameters_wdims, 
+        cbf_get_integerarrayparameters_wdims_fs, 
+        cbf_get_integerarrayparameters_wdims_sf, 
+        cbf_get_realarrayparameters_wdims, 
+        cbf_get_realarrayparameters_wdims_fs, 
+        cbf_get_realarrayparameters_wdims_sf set **byteorder, *dimfast, 
+        *dimmid, *dimslow, and *padding as well, providing the additional 
+        parameters needed for a subsequent call to cbf_set_integerarray_wdims 
+        or cbf_set_realarray_wdims.
+        The value returned in *byteorder is a pointer either to the string  
+        "little_endian " or to the string  "big_endian ". This should be 
+        the byte order of the data, not necessarily of the host machine. No 
+        attempt should be made to modify this string. At this time only  
+        "little_endian " will be returned.
+        The values returned in *dimfast, *dimmid and *dimslow are the sizes 
+        of the fastest changing, second fastest changing and third fastest 
+        changing dimensions of the array, if specified, or zero, if not 
+        specified.
+        The value returned in *padding is the size of the post-data padding, 
+        if any and if specified in the data header. The value is given as a 
+        count of octets.
+        If the value is not binary, the function returns CBF_ASCII.
+        ARGUMENTS
+        handle        CBF handle. compression   Compression method used. 
+        elsize        Size in bytes of each array element. binary_id     
+        Pointer to the destination integer binary identifier. elsigned      
+        Pointer to an integer. Set to 1 if the elements can be read as signed 
+        integers. elunsigned    Pointer to an integer. Set to 1 if the 
+        elements can be read as unsigned integers. elements      Pointer to 
+        the destination number of elements. minelement    Pointer to the 
+        destination smallest element. maxelement    Pointer to the 
+        destination largest element. byteorder     Pointer to the destination 
+        byte order. dimfast       Pointer to the destination fastest 
+        dimension. dimmid        Pointer to the destination second fastest 
+        dimension. dimslow       Pointer to the destination third fastest 
+        dimension. padding       Pointer to the destination padding size.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        SEE ALSO
+
+        """
+        return _pycbf.cbf_handle_struct_get_integerarrayparameters_wdims(self)
 
     def get_gain(self, *args):
         """
@@ -2807,7 +4180,73 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_set_polarization(self, *args)
 
     def set_real_3d_image(self, *args):
-        """set_real_3d_image(self)"""
+        """
+        Returns : 
+        *args   : int element_number,int compression,(binary) String data,int elsize,
+                  int dimslow,int dimmid,int dimfast
+
+        C prototype: int cbf_set_real_3d_image (cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number,
+                         unsigned int compression, void      *array,size_t elsize,
+                         size_t ndimslow, size_t ndimmid, size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image 
+        array for element number element_number. The array consists of 
+        ndimfast *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-zero and unsigned otherwise. 
+        cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf 
+        write the image array for element number element_number. The array 
+        consists of ndimfast *ndimslow IEEE double or float elements of 
+        elsize bytes each, starting at array. cbf_set_3d_image, 
+        cbf_set_3d_image_fs and cbf_set_3d_image_sf write the 3D image array 
+        for element number element_number. The array consists of ndimfast 
+        *ndimmid *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_set_real_3d_image, cbf_set_real_3d_image_fs and 
+        cbf_set_real_3d_image_sf writes the 3D image array for element number 
+        element_number. The array consists of ndimfast *ndimmid *ndimslow 
+        IEEE double or float elements of elsize bytes each, starting at 
+        array.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        If the array is 1-dimensional, ndimslow should be the array size and 
+        ndimfast and, for the 3D calls, ndimmid, should be set to 1. If the 
+        array is 2-dimensional and the 3D calls are used, ndimslow and 
+        ndimmid should be used for the array dimensions and ndimfast should 
+        be set to 1.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
+             CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
+        packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
+        "byte_offset " compression. CBF_NONE        No compression.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+        Currently, the source array must consist of chars, shorts or ints 
+        (signed or unsigned)for cbf_set_image, or IEEE doubles or floats for 
+        cbf_set_real_image. If elsize is not equal to sizeof (short), sizeof 
+        (int), sizeof(double) or sizeof(float), the function returns 
+        CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. compression      Compression type. 
+        array            Pointer to the image array. elsize           Size in 
+        bytes of each image array element. elsigned         Set to non-0 if 
+        the image array elements are signed. ndimslow         Slowest array 
+        dimension. ndimmid          Second slowest array dimension. ndimfast  
+               Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_real_3d_image(self, *args)
 
     def delete_row(self, *args):
@@ -3057,9 +4496,59 @@ class cbf_handle_struct(_object):
         """get_realarrayparameters_wdims_fs(self)"""
         return _pycbf.cbf_handle_struct_get_realarrayparameters_wdims_fs(self, *args)
 
-    def get_realarray(self, *args):
-        """get_realarray(self)"""
-        return _pycbf.cbf_handle_struct_get_realarray(self, *args)
+    def get_realarray_as_string(self):
+        """
+        Returns : (Binary)String
+        *args   : 
+
+        C prototype: int cbf_get_realarray (cbf_handle handle, int *binary_id,
+                         void *array, size_t elsize, size_t elements,
+                         size_t *elements_read);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_integerarray reads the binary value of the item at the 
+        current column and row into an integer array. The array consists of 
+        elements elements of elsize bytes each, starting at array. The 
+        elements are signed if elsigned is non-0 and unsigned otherwise. 
+        *binary_id is set to the binary section identifier and *elements_read 
+        to the number of elements actually read. cbf_get_realarray reads the 
+        binary value of the item at the current column and row into a real 
+        array. The array consists of elements elements of elsize bytes each, 
+        starting at array. *binary_id is set to the binary section identifier 
+        and *elements_read to the number of elements actually read.
+        If any element in the integer binary data cant fit into the 
+        destination element, the destination is set the nearest possible 
+        value.
+        If the value is not binary, the function returns CBF_ASCII.
+        If the requested number of elements cant be read, the function will 
+        read as many as it can and then return CBF_ENDOFDATA.
+        Currently, the destination array must consist of chars, shorts or 
+        ints (signed or unsigned). If elsize is not equal to sizeof (char), 
+        sizeof (short) or sizeof (int), for cbf_get_integerarray, or 
+        sizeof(double) or sizeof(float), for cbf_get_realarray the function 
+        returns CBF_ARGUMENT.
+        An additional restriction in the current version of CBFlib is that 
+        values too large to fit in an int are not correctly decompressed. As 
+        an example, if the machine with 32-bit ints is reading an array 
+        containing a value outside the range 0 .. 2^32-1 (unsigned) or -2^31 
+        .. 2^31-1 (signed), the array will not be correctly decompressed. 
+        This restriction will be removed in a future release. For 
+        cbf_get_realarray, only IEEE format is supported. No conversion to 
+        other floating point formats is done at this time.
+        ARGUMENTS
+        handle          CBF handle. binary_id       Pointer to the 
+        destination integer binary identifier. array           Pointer to the 
+        destination array. elsize          Size in bytes of each destination 
+        array element. elsigned        Set to non-0 if the destination array 
+        elements are signed. elements        The number of elements to read. 
+        elements_read   Pointer to the destination number of elements 
+        actually read.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success. SEE ALSO
+
+        """
+        return _pycbf.cbf_handle_struct_get_realarray_as_string(self)
 
     def get_bin_sizes(self, *args):
         """get_bin_sizes(self)"""
@@ -3208,7 +4697,73 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_get_integerarray_as_string(self)
 
     def set_3d_image(self, *args):
-        """set_3d_image(self)"""
+        """
+        Returns : 
+        *args   : int element_number,int compression,(binary) String data,int elsize,
+                  int elsign,int dimslow,int dimmid,int dimfast
+
+        C prototype: int cbf_set_3d_image (cbf_handle handle, unsigned int reserved,
+                         unsigned int element_number, unsigned int compression,
+                         void *array,      size_t elsize, int elsign, size_t ndimslow,
+                         size_t ndimmid, size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image 
+        array for element number element_number. The array consists of 
+        ndimfast *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-zero and unsigned otherwise. 
+        cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf 
+        write the image array for element number element_number. The array 
+        consists of ndimfast *ndimslow IEEE double or float elements of 
+        elsize bytes each, starting at array. cbf_set_3d_image, 
+        cbf_set_3d_image_fs and cbf_set_3d_image_sf write the 3D image array 
+        for element number element_number. The array consists of ndimfast 
+        *ndimmid *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_set_real_3d_image, cbf_set_real_3d_image_fs and 
+        cbf_set_real_3d_image_sf writes the 3D image array for element number 
+        element_number. The array consists of ndimfast *ndimmid *ndimslow 
+        IEEE double or float elements of elsize bytes each, starting at 
+        array.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        If the array is 1-dimensional, ndimslow should be the array size and 
+        ndimfast and, for the 3D calls, ndimmid, should be set to 1. If the 
+        array is 2-dimensional and the 3D calls are used, ndimslow and 
+        ndimmid should be used for the array dimensions and ndimfast should 
+        be set to 1.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
+             CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
+        packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
+        "byte_offset " compression. CBF_NONE        No compression.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+        Currently, the source array must consist of chars, shorts or ints 
+        (signed or unsigned)for cbf_set_image, or IEEE doubles or floats for 
+        cbf_set_real_image. If elsize is not equal to sizeof (short), sizeof 
+        (int), sizeof(double) or sizeof(float), the function returns 
+        CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. compression      Compression type. 
+        array            Pointer to the image array. elsize           Size in 
+        bytes of each image array element. elsigned         Set to non-0 if 
+        the image array elements are signed. ndimslow         Slowest array 
+        dimension. ndimmid          Second slowest array dimension. ndimfast  
+               Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_3d_image(self, *args)
 
     def set_dictionary(self, *args):
@@ -3263,9 +4818,73 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_find_tag_category(self, *args)
 
-    def get_real_3d_image_sf(self, *args):
-        """get_real_3d_image_sf(self)"""
-        return _pycbf.cbf_handle_struct_get_real_3d_image_sf(self, *args)
+    def get_real_3d_image_sf_as_string(self, *args):
+        """
+        Returns : (Binary)String
+        *args   : int element_number,int elsize,int ndimslow,int ndimmid,int ndimfast
+
+        C prototype: int cbf_get_real_3d_image_sf (cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number, void *array,
+                         size_t elsize,      size_t ndimslow, size_t ndimmid,
+                         size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image 
+        array for element number element_number into an array. The array 
+        consists of ndimslow *ndimfast elements of elsize bytes each, 
+        starting at array. The elements are signed if elsign is non-0 and 
+        unsigned otherwise. cbf_get_real_image, cbf_get_real_image_fs and 
+        cbf_get_real_image_sf read the image array of IEEE doubles or floats 
+        for element number element_number into an array. A real array is 
+        always signed. cbf_get_3d_image, cbf_get_3d_image_fs and 
+        cbf_get_3d_image_sf read the 3D image array for element number 
+        element_number into an array. The array consists of ndimslow *ndimmid 
+        *ndimfast elements of elsize bytes each, starting at array. The 
+        elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_get_real_3d_image, cbf_get_real_3d_image_fs, 
+        cbf_get_real_3d_image_sf reads the 3D image array of IEEE doubles or 
+        floats for element number element_number into an array. A real array 
+        is always signed.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        The structure of the array as a 1-, 2- or 3-dimensional array should 
+        agree with the structure of the array given in the 
+        ARRAY_STRUCTURE_LIST category. If the array is 1-dimensional, 
+        ndimslow should be the array size and ndimfast and, for the 3D calls, 
+        ndimmid, should be set to 1 both in the call and in the imgCIF data 
+        being processed. If the array is 2-dimensional and a 3D call is used, 
+        ndimslow and ndimmid should be the array dimensions and ndimfast 
+        should be set to 1 both in the call and in the imgCIF data being 
+        processed.
+        If any element in the binary data canOt fit into the destination 
+        element, the destination is set the nearest possible value.
+        If the value is not binary, the function returns CBF_ASCII.
+        If the requested number of elements canOt be read, the function will 
+        read as many as it can and then return CBF_ENDOFDATA.
+        Currently, the destination array must consist of chars, shorts or 
+        ints (signed or unsigned) for cbf_get_image, or IEEE doubles or 
+        floats for cbf_get_real_image. If elsize is not equal to sizeof 
+        (char), sizeof (short), sizeof (int), sizeof(double) or 
+        sizeof(float), the function returns CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. array            Pointer to the 
+        destination array. elsize           Size in bytes of each destination 
+        array element. elsigned         Set to non-0 if the destination array 
+        elements are signed. ndimslow         Slowest array dimension. 
+        ndimmid          Next faster array dimension. ndimfast         
+        Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_handle_struct_get_real_3d_image_sf_as_string(self, *args)
 
     def set_typeofvalue(self, *args):
         """
@@ -3362,16 +4981,210 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_set_axis_setting(self, *args)
 
-    def get_real_image(self, *args):
-        """get_real_image(self)"""
-        return _pycbf.cbf_handle_struct_get_real_image(self, *args)
+    def get_real_image_as_string(self, *args):
+        """
+        Returns : (Binary)String
+        *args   : int element_number,int elsize,int ndimslow,int ndimfast
 
-    def get_3d_image_sf(self, *args):
-        """get_3d_image_sf(self)"""
-        return _pycbf.cbf_handle_struct_get_3d_image_sf(self, *args)
+        C prototype: int cbf_get_real_image (cbf_handle handle, unsigned int reserved,
+                         unsigned int element_number, void *array, size_t elsize,
+                         size_t      ndimslow, size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image 
+        array for element number element_number into an array. The array 
+        consists of ndimslow *ndimfast elements of elsize bytes each, 
+        starting at array. The elements are signed if elsign is non-0 and 
+        unsigned otherwise. cbf_get_real_image, cbf_get_real_image_fs and 
+        cbf_get_real_image_sf read the image array of IEEE doubles or floats 
+        for element number element_number into an array. A real array is 
+        always signed. cbf_get_3d_image, cbf_get_3d_image_fs and 
+        cbf_get_3d_image_sf read the 3D image array for element number 
+        element_number into an array. The array consists of ndimslow *ndimmid 
+        *ndimfast elements of elsize bytes each, starting at array. The 
+        elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_get_real_3d_image, cbf_get_real_3d_image_fs, 
+        cbf_get_real_3d_image_sf reads the 3D image array of IEEE doubles or 
+        floats for element number element_number into an array. A real array 
+        is always signed.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        The structure of the array as a 1-, 2- or 3-dimensional array should 
+        agree with the structure of the array given in the 
+        ARRAY_STRUCTURE_LIST category. If the array is 1-dimensional, 
+        ndimslow should be the array size and ndimfast and, for the 3D calls, 
+        ndimmid, should be set to 1 both in the call and in the imgCIF data 
+        being processed. If the array is 2-dimensional and a 3D call is used, 
+        ndimslow and ndimmid should be the array dimensions and ndimfast 
+        should be set to 1 both in the call and in the imgCIF data being 
+        processed.
+        If any element in the binary data canOt fit into the destination 
+        element, the destination is set the nearest possible value.
+        If the value is not binary, the function returns CBF_ASCII.
+        If the requested number of elements canOt be read, the function will 
+        read as many as it can and then return CBF_ENDOFDATA.
+        Currently, the destination array must consist of chars, shorts or 
+        ints (signed or unsigned) for cbf_get_image, or IEEE doubles or 
+        floats for cbf_get_real_image. If elsize is not equal to sizeof 
+        (char), sizeof (short), sizeof (int), sizeof(double) or 
+        sizeof(float), the function returns CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. array            Pointer to the 
+        destination array. elsize           Size in bytes of each destination 
+        array element. elsigned         Set to non-0 if the destination array 
+        elements are signed. ndimslow         Slowest array dimension. 
+        ndimmid          Next faster array dimension. ndimfast         
+        Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_handle_struct_get_real_image_as_string(self, *args)
+
+    def get_3d_image_sf_as_string(self, *args):
+        """
+        Returns : (Binary)String
+        *args   : int element_number,int elsize,int elsign,int ndimslow,int ndimmid,
+                  int ndimfast
+
+        C prototype: int cbf_get_3d_image_sf (cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number, void *array,
+                         size_t elsize, int      elsign, size_t ndimslow, size_t ndimmid,
+                         size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image 
+        array for element number element_number into an array. The array 
+        consists of ndimslow *ndimfast elements of elsize bytes each, 
+        starting at array. The elements are signed if elsign is non-0 and 
+        unsigned otherwise. cbf_get_real_image, cbf_get_real_image_fs and 
+        cbf_get_real_image_sf read the image array of IEEE doubles or floats 
+        for element number element_number into an array. A real array is 
+        always signed. cbf_get_3d_image, cbf_get_3d_image_fs and 
+        cbf_get_3d_image_sf read the 3D image array for element number 
+        element_number into an array. The array consists of ndimslow *ndimmid 
+        *ndimfast elements of elsize bytes each, starting at array. The 
+        elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_get_real_3d_image, cbf_get_real_3d_image_fs, 
+        cbf_get_real_3d_image_sf reads the 3D image array of IEEE doubles or 
+        floats for element number element_number into an array. A real array 
+        is always signed.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        The structure of the array as a 1-, 2- or 3-dimensional array should 
+        agree with the structure of the array given in the 
+        ARRAY_STRUCTURE_LIST category. If the array is 1-dimensional, 
+        ndimslow should be the array size and ndimfast and, for the 3D calls, 
+        ndimmid, should be set to 1 both in the call and in the imgCIF data 
+        being processed. If the array is 2-dimensional and a 3D call is used, 
+        ndimslow and ndimmid should be the array dimensions and ndimfast 
+        should be set to 1 both in the call and in the imgCIF data being 
+        processed.
+        If any element in the binary data canOt fit into the destination 
+        element, the destination is set the nearest possible value.
+        If the value is not binary, the function returns CBF_ASCII.
+        If the requested number of elements canOt be read, the function will 
+        read as many as it can and then return CBF_ENDOFDATA.
+        Currently, the destination array must consist of chars, shorts or 
+        ints (signed or unsigned) for cbf_get_image, or IEEE doubles or 
+        floats for cbf_get_real_image. If elsize is not equal to sizeof 
+        (char), sizeof (short), sizeof (int), sizeof(double) or 
+        sizeof(float), the function returns CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. array            Pointer to the 
+        destination array. elsize           Size in bytes of each destination 
+        array element. elsigned         Set to non-0 if the destination array 
+        elements are signed. ndimslow         Slowest array dimension. 
+        ndimmid          Next faster array dimension. ndimfast         
+        Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_handle_struct_get_3d_image_sf_as_string(self, *args)
 
     def set_real_image_fs(self, *args):
-        """set_real_image_fs(self)"""
+        """
+        Returns : 
+        *args   : int element_number,int compression,(binary) String data,int elsize,
+                  int dimfast,int dimslow
+
+        C prototype: int cbf_set_real_image_fs(cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number,
+                         unsigned int compression, void      *array,size_t elsize,
+                         size_t ndimfast, size_t ndimslow);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image 
+        array for element number element_number. The array consists of 
+        ndimfast *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-zero and unsigned otherwise. 
+        cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf 
+        write the image array for element number element_number. The array 
+        consists of ndimfast *ndimslow IEEE double or float elements of 
+        elsize bytes each, starting at array. cbf_set_3d_image, 
+        cbf_set_3d_image_fs and cbf_set_3d_image_sf write the 3D image array 
+        for element number element_number. The array consists of ndimfast 
+        *ndimmid *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_set_real_3d_image, cbf_set_real_3d_image_fs and 
+        cbf_set_real_3d_image_sf writes the 3D image array for element number 
+        element_number. The array consists of ndimfast *ndimmid *ndimslow 
+        IEEE double or float elements of elsize bytes each, starting at 
+        array.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        If the array is 1-dimensional, ndimslow should be the array size and 
+        ndimfast and, for the 3D calls, ndimmid, should be set to 1. If the 
+        array is 2-dimensional and the 3D calls are used, ndimslow and 
+        ndimmid should be used for the array dimensions and ndimfast should 
+        be set to 1.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
+             CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
+        packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
+        "byte_offset " compression. CBF_NONE        No compression.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+        Currently, the source array must consist of chars, shorts or ints 
+        (signed or unsigned)for cbf_set_image, or IEEE doubles or floats for 
+        cbf_set_real_image. If elsize is not equal to sizeof (short), sizeof 
+        (int), sizeof(double) or sizeof(float), the function returns 
+        CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. compression      Compression type. 
+        array            Pointer to the image array. elsize           Size in 
+        bytes of each image array element. elsigned         Set to non-0 if 
+        the image array elements are signed. ndimslow         Slowest array 
+        dimension. ndimmid          Second slowest array dimension. ndimfast  
+               Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_real_image_fs(self, *args)
 
     def get_overload(self, *args):
@@ -3564,9 +5377,74 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_remove_category(self, *args)
 
-    def get_integerarrayparameters_wdims_sf(self, *args):
-        """get_integerarrayparameters_wdims_sf(self)"""
-        return _pycbf.cbf_handle_struct_get_integerarrayparameters_wdims_sf(self, *args)
+    def get_integerarrayparameters_wdims_sf(self):
+        """
+        Returns : int compression,int binary_id,int elsize,int elsigned,int elunsigned,
+                  int elements,int minelement,int maxelement,char byteorder,int dimslow,
+                  int dimmid,int dimfast,int padding
+        *args   : 
+
+        C prototype: int cbf_get_integerarrayparameters_wdims_sf (cbf_handle handle,
+                         unsigned int *compression, int *binary_id, size_t *elsize,
+                         int    *elsigned, int *elunsigned, size_t *elements,
+                         int *minelement, int *maxelement, const char **byteorder,
+                         size_t *dimslow, size_t    *dimmid, size_t *dimfast,
+                         size_t *padding);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_integerarrayparameters sets *compression, *binary_id, 
+        *elsize, *elsigned, *elunsigned, *elements, *minelement and 
+        *maxelement to values read from the binary value of the item at the 
+        current column and row. This provides all the arguments needed for a 
+        subsequent call to cbf_set_integerarray, if a copy of the array is to 
+        be made into another CIF or CBF. cbf_get_realarrayparameters sets 
+        *compression, *binary_id, *elsize, *elements to values read from the 
+        binary value of the item at the current column and row. This provides 
+        all the arguments needed for a subsequent call to cbf_set_realarray, 
+        if a copy of the arry is to be made into another CIF or CBF.
+        The variants cbf_get_integerarrayparameters_wdims, 
+        cbf_get_integerarrayparameters_wdims_fs, 
+        cbf_get_integerarrayparameters_wdims_sf, 
+        cbf_get_realarrayparameters_wdims, 
+        cbf_get_realarrayparameters_wdims_fs, 
+        cbf_get_realarrayparameters_wdims_sf set **byteorder, *dimfast, 
+        *dimmid, *dimslow, and *padding as well, providing the additional 
+        parameters needed for a subsequent call to cbf_set_integerarray_wdims 
+        or cbf_set_realarray_wdims.
+        The value returned in *byteorder is a pointer either to the string  
+        "little_endian " or to the string  "big_endian ". This should be 
+        the byte order of the data, not necessarily of the host machine. No 
+        attempt should be made to modify this string. At this time only  
+        "little_endian " will be returned.
+        The values returned in *dimfast, *dimmid and *dimslow are the sizes 
+        of the fastest changing, second fastest changing and third fastest 
+        changing dimensions of the array, if specified, or zero, if not 
+        specified.
+        The value returned in *padding is the size of the post-data padding, 
+        if any and if specified in the data header. The value is given as a 
+        count of octets.
+        If the value is not binary, the function returns CBF_ASCII.
+        ARGUMENTS
+        handle        CBF handle. compression   Compression method used. 
+        elsize        Size in bytes of each array element. binary_id     
+        Pointer to the destination integer binary identifier. elsigned      
+        Pointer to an integer. Set to 1 if the elements can be read as signed 
+        integers. elunsigned    Pointer to an integer. Set to 1 if the 
+        elements can be read as unsigned integers. elements      Pointer to 
+        the destination number of elements. minelement    Pointer to the 
+        destination smallest element. maxelement    Pointer to the 
+        destination largest element. byteorder     Pointer to the destination 
+        byte order. dimfast       Pointer to the destination fastest 
+        dimension. dimmid        Pointer to the destination second fastest 
+        dimension. dimslow       Pointer to the destination third fastest 
+        dimension. padding       Pointer to the destination padding size.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        SEE ALSO
+
+        """
+        return _pycbf.cbf_handle_struct_get_integerarrayparameters_wdims_sf(self)
 
     def get_pixel_size(self, *args):
         """
@@ -3605,7 +5483,73 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_get_pixel_size(self, *args)
 
     def set_real_image_sf(self, *args):
-        """set_real_image_sf(self)"""
+        """
+        Returns : 
+        *args   : int element_number,int compression,(binary) String data,int elsize,
+                  int dimslow,int dimfast
+
+        C prototype: int cbf_set_real_image_sf(cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number,
+                         unsigned int compression, void      *array,size_t elsize,
+                         size_t ndimslow, size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image 
+        array for element number element_number. The array consists of 
+        ndimfast *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-zero and unsigned otherwise. 
+        cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf 
+        write the image array for element number element_number. The array 
+        consists of ndimfast *ndimslow IEEE double or float elements of 
+        elsize bytes each, starting at array. cbf_set_3d_image, 
+        cbf_set_3d_image_fs and cbf_set_3d_image_sf write the 3D image array 
+        for element number element_number. The array consists of ndimfast 
+        *ndimmid *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_set_real_3d_image, cbf_set_real_3d_image_fs and 
+        cbf_set_real_3d_image_sf writes the 3D image array for element number 
+        element_number. The array consists of ndimfast *ndimmid *ndimslow 
+        IEEE double or float elements of elsize bytes each, starting at 
+        array.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        If the array is 1-dimensional, ndimslow should be the array size and 
+        ndimfast and, for the 3D calls, ndimmid, should be set to 1. If the 
+        array is 2-dimensional and the 3D calls are used, ndimslow and 
+        ndimmid should be used for the array dimensions and ndimfast should 
+        be set to 1.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
+             CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
+        packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
+        "byte_offset " compression. CBF_NONE        No compression.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+        Currently, the source array must consist of chars, shorts or ints 
+        (signed or unsigned)for cbf_set_image, or IEEE doubles or floats for 
+        cbf_set_real_image. If elsize is not equal to sizeof (short), sizeof 
+        (int), sizeof(double) or sizeof(float), the function returns 
+        CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. compression      Compression type. 
+        array            Pointer to the image array. elsize           Size in 
+        bytes of each image array element. elsigned         Set to non-0 if 
+        the image array elements are signed. ndimslow         Slowest array 
+        dimension. ndimmid          Second slowest array dimension. ndimfast  
+               Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_real_image_sf(self, *args)
 
     def require_category(self, *args):
@@ -3633,9 +5577,48 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_require_category(self, *args)
 
-    def get_reciprocal_cell(self, *args):
-        """get_reciprocal_cell(self)"""
-        return _pycbf.cbf_handle_struct_get_reciprocal_cell(self, *args)
+    def get_reciprocal_cell(self):
+        """
+        Returns : doubleArray cell
+        *args   : 
+
+        C prototype: int cbf_get_reciprocal_cell (cbf_handle handle, double cell[6],
+                         double cell_esd[6] );
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_reciprocal_cell sets cell[0:2] to the double values of the 
+        reciprocal cell edge lengths a*, b* and c* in AAngstroms-1, cell[3:5] 
+        to the double values of the reciprocal cell angles a*, b* and g* in 
+        degrees, cell_esd[0:2] to the double values of the estimated 
+        strandard deviations of the reciprocal cell edge lengths a*, b* and 
+        c* in AAngstroms-1, cell_esd[3:5] to the double values of the 
+        estimated standard deviations of the the reciprocal cell angles a*, 
+        b* and g* in degrees.
+        The values returned are retrieved from the first row of the  "cell 
+        " category. The value of  "_cell.entry_id " is ignored.
+        cell or cell_esd may be NULL.
+        If cell is NULL, the reciprocal cell parameters are not retrieved.
+        If cell_esd is NULL, the reciprocal cell parameter esds are not 
+        retrieved.
+        If the  "cell " category is present, but some of the values are 
+        missing, zeros are returned for the missing values.
+        ARGUMENTS
+        handle     CBF handle. cell       Pointer to the destination array of 
+        6 doubles for the reciprocal cell parameters. cell_esd   Pointer to 
+        the destination array of 6 doubles for the reciprocal cell parameter 
+        esds.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success. No errors is 
+        returned for missing values if the  "cell " category exists.
+        SEE ALSO
+
+        """
+        return _pycbf.cbf_handle_struct_get_reciprocal_cell(self)
+
+    def get_reciprocal_cell_esd(self):
+        """get_reciprocal_cell_esd(self)"""
+        return _pycbf.cbf_handle_struct_get_reciprocal_cell_esd(self)
 
     def get_3d_image_size(self, *args):
         """
@@ -3807,12 +5790,143 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_get_typeofvalue(self, *args)
 
     def set_real_image(self, *args):
-        """set_real_image(self)"""
+        """
+        Returns : 
+        *args   : int element_number,int compression,(binary) String data,int elsize,
+                  int dimslow,int dimfast
+
+        C prototype: int cbf_set_real_image (cbf_handle handle, unsigned int reserved,
+                         unsigned int element_number, unsigned int compression,
+                         void      *array,size_t elsize, size_t ndimslow,
+                         size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image 
+        array for element number element_number. The array consists of 
+        ndimfast *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-zero and unsigned otherwise. 
+        cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf 
+        write the image array for element number element_number. The array 
+        consists of ndimfast *ndimslow IEEE double or float elements of 
+        elsize bytes each, starting at array. cbf_set_3d_image, 
+        cbf_set_3d_image_fs and cbf_set_3d_image_sf write the 3D image array 
+        for element number element_number. The array consists of ndimfast 
+        *ndimmid *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_set_real_3d_image, cbf_set_real_3d_image_fs and 
+        cbf_set_real_3d_image_sf writes the 3D image array for element number 
+        element_number. The array consists of ndimfast *ndimmid *ndimslow 
+        IEEE double or float elements of elsize bytes each, starting at 
+        array.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        If the array is 1-dimensional, ndimslow should be the array size and 
+        ndimfast and, for the 3D calls, ndimmid, should be set to 1. If the 
+        array is 2-dimensional and the 3D calls are used, ndimslow and 
+        ndimmid should be used for the array dimensions and ndimfast should 
+        be set to 1.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
+             CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
+        packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
+        "byte_offset " compression. CBF_NONE        No compression.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+        Currently, the source array must consist of chars, shorts or ints 
+        (signed or unsigned)for cbf_set_image, or IEEE doubles or floats for 
+        cbf_set_real_image. If elsize is not equal to sizeof (short), sizeof 
+        (int), sizeof(double) or sizeof(float), the function returns 
+        CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. compression      Compression type. 
+        array            Pointer to the image array. elsize           Size in 
+        bytes of each image array element. elsigned         Set to non-0 if 
+        the image array elements are signed. ndimslow         Slowest array 
+        dimension. ndimmid          Second slowest array dimension. ndimfast  
+               Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_real_image(self, *args)
 
-    def get_3d_image(self, *args):
-        """get_3d_image(self)"""
-        return _pycbf.cbf_handle_struct_get_3d_image(self, *args)
+    def get_3d_image_as_string(self, *args):
+        """
+        Returns : (Binary)String
+        *args   : int element_number,int elsize,int elsign,int ndimslow,int ndimmid,
+                  int ndimfast
+
+        C prototype: int cbf_get_3d_image (cbf_handle handle, unsigned int reserved,
+                         unsigned int element_number, void *array, size_t elsize,
+                         int elsign,      size_t ndimslow, size_t ndimmid,
+                         size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image 
+        array for element number element_number into an array. The array 
+        consists of ndimslow *ndimfast elements of elsize bytes each, 
+        starting at array. The elements are signed if elsign is non-0 and 
+        unsigned otherwise. cbf_get_real_image, cbf_get_real_image_fs and 
+        cbf_get_real_image_sf read the image array of IEEE doubles or floats 
+        for element number element_number into an array. A real array is 
+        always signed. cbf_get_3d_image, cbf_get_3d_image_fs and 
+        cbf_get_3d_image_sf read the 3D image array for element number 
+        element_number into an array. The array consists of ndimslow *ndimmid 
+        *ndimfast elements of elsize bytes each, starting at array. The 
+        elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_get_real_3d_image, cbf_get_real_3d_image_fs, 
+        cbf_get_real_3d_image_sf reads the 3D image array of IEEE doubles or 
+        floats for element number element_number into an array. A real array 
+        is always signed.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        The structure of the array as a 1-, 2- or 3-dimensional array should 
+        agree with the structure of the array given in the 
+        ARRAY_STRUCTURE_LIST category. If the array is 1-dimensional, 
+        ndimslow should be the array size and ndimfast and, for the 3D calls, 
+        ndimmid, should be set to 1 both in the call and in the imgCIF data 
+        being processed. If the array is 2-dimensional and a 3D call is used, 
+        ndimslow and ndimmid should be the array dimensions and ndimfast 
+        should be set to 1 both in the call and in the imgCIF data being 
+        processed.
+        If any element in the binary data canOt fit into the destination 
+        element, the destination is set the nearest possible value.
+        If the value is not binary, the function returns CBF_ASCII.
+        If the requested number of elements canOt be read, the function will 
+        read as many as it can and then return CBF_ENDOFDATA.
+        Currently, the destination array must consist of chars, shorts or 
+        ints (signed or unsigned) for cbf_get_image, or IEEE doubles or 
+        floats for cbf_get_real_image. If elsize is not equal to sizeof 
+        (char), sizeof (short), sizeof (int), sizeof(double) or 
+        sizeof(float), the function returns CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. array            Pointer to the 
+        destination array. elsize           Size in bytes of each destination 
+        array element. elsigned         Set to non-0 if the destination array 
+        elements are signed. ndimslow         Slowest array dimension. 
+        ndimmid          Next faster array dimension. ndimfast         
+        Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_handle_struct_get_3d_image_as_string(self, *args)
 
     def remove_row(self, *args):
         """
@@ -3908,16 +6022,208 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_get_image_size(self, *args)
 
     def set_3d_image_sf(self, *args):
-        """set_3d_image_sf(self)"""
+        """
+        Returns : 
+        *args   : int element_number,int compression,(binary) String data,int elsize,
+                  int elsign,int dimslow,int dimmid,int dimfast
+
+        C prototype: int cbf_set_3d_image_sf(cbf_handle handle, unsigned int reserved,
+                         unsigned int element_number, unsigned int compression,
+                         void      *array, size_t elsize, int elsign, size_t ndimslow,
+                         size_t ndimmid, size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image 
+        array for element number element_number. The array consists of 
+        ndimfast *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-zero and unsigned otherwise. 
+        cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf 
+        write the image array for element number element_number. The array 
+        consists of ndimfast *ndimslow IEEE double or float elements of 
+        elsize bytes each, starting at array. cbf_set_3d_image, 
+        cbf_set_3d_image_fs and cbf_set_3d_image_sf write the 3D image array 
+        for element number element_number. The array consists of ndimfast 
+        *ndimmid *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_set_real_3d_image, cbf_set_real_3d_image_fs and 
+        cbf_set_real_3d_image_sf writes the 3D image array for element number 
+        element_number. The array consists of ndimfast *ndimmid *ndimslow 
+        IEEE double or float elements of elsize bytes each, starting at 
+        array.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        If the array is 1-dimensional, ndimslow should be the array size and 
+        ndimfast and, for the 3D calls, ndimmid, should be set to 1. If the 
+        array is 2-dimensional and the 3D calls are used, ndimslow and 
+        ndimmid should be used for the array dimensions and ndimfast should 
+        be set to 1.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
+             CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
+        packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
+        "byte_offset " compression. CBF_NONE        No compression.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+        Currently, the source array must consist of chars, shorts or ints 
+        (signed or unsigned)for cbf_set_image, or IEEE doubles or floats for 
+        cbf_set_real_image. If elsize is not equal to sizeof (short), sizeof 
+        (int), sizeof(double) or sizeof(float), the function returns 
+        CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. compression      Compression type. 
+        array            Pointer to the image array. elsize           Size in 
+        bytes of each image array element. elsigned         Set to non-0 if 
+        the image array elements are signed. ndimslow         Slowest array 
+        dimension. ndimmid          Second slowest array dimension. ndimfast  
+               Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_3d_image_sf(self, *args)
 
-    def get_real_image_sf(self, *args):
-        """get_real_image_sf(self)"""
-        return _pycbf.cbf_handle_struct_get_real_image_sf(self, *args)
+    def get_real_image_sf_as_string(self, *args):
+        """
+        Returns : (Binary)String
+        *args   : int element_number,int elsize,int ndimslow,int ndimfast
 
-    def get_image(self, *args):
-        """get_image(self)"""
-        return _pycbf.cbf_handle_struct_get_image(self, *args)
+        C prototype: int cbf_get_real_image_sf (cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number, void *array,
+                         size_t elsize, size_t      ndimslow, size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image 
+        array for element number element_number into an array. The array 
+        consists of ndimslow *ndimfast elements of elsize bytes each, 
+        starting at array. The elements are signed if elsign is non-0 and 
+        unsigned otherwise. cbf_get_real_image, cbf_get_real_image_fs and 
+        cbf_get_real_image_sf read the image array of IEEE doubles or floats 
+        for element number element_number into an array. A real array is 
+        always signed. cbf_get_3d_image, cbf_get_3d_image_fs and 
+        cbf_get_3d_image_sf read the 3D image array for element number 
+        element_number into an array. The array consists of ndimslow *ndimmid 
+        *ndimfast elements of elsize bytes each, starting at array. The 
+        elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_get_real_3d_image, cbf_get_real_3d_image_fs, 
+        cbf_get_real_3d_image_sf reads the 3D image array of IEEE doubles or 
+        floats for element number element_number into an array. A real array 
+        is always signed.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        The structure of the array as a 1-, 2- or 3-dimensional array should 
+        agree with the structure of the array given in the 
+        ARRAY_STRUCTURE_LIST category. If the array is 1-dimensional, 
+        ndimslow should be the array size and ndimfast and, for the 3D calls, 
+        ndimmid, should be set to 1 both in the call and in the imgCIF data 
+        being processed. If the array is 2-dimensional and a 3D call is used, 
+        ndimslow and ndimmid should be the array dimensions and ndimfast 
+        should be set to 1 both in the call and in the imgCIF data being 
+        processed.
+        If any element in the binary data canOt fit into the destination 
+        element, the destination is set the nearest possible value.
+        If the value is not binary, the function returns CBF_ASCII.
+        If the requested number of elements canOt be read, the function will 
+        read as many as it can and then return CBF_ENDOFDATA.
+        Currently, the destination array must consist of chars, shorts or 
+        ints (signed or unsigned) for cbf_get_image, or IEEE doubles or 
+        floats for cbf_get_real_image. If elsize is not equal to sizeof 
+        (char), sizeof (short), sizeof (int), sizeof(double) or 
+        sizeof(float), the function returns CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. array            Pointer to the 
+        destination array. elsize           Size in bytes of each destination 
+        array element. elsigned         Set to non-0 if the destination array 
+        elements are signed. ndimslow         Slowest array dimension. 
+        ndimmid          Next faster array dimension. ndimfast         
+        Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_handle_struct_get_real_image_sf_as_string(self, *args)
+
+    def get_image_as_string(self, *args):
+        """
+        Returns : (Binary)String
+        *args   : int element_number,int elsize,int elsign,int ndimslow,int ndimfast
+
+        C prototype: int cbf_get_image (cbf_handle handle, unsigned int reserved,
+                         unsigned int element_number, void *array, size_t elsize,
+                         int elsign,      size_t ndimslow, size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image 
+        array for element number element_number into an array. The array 
+        consists of ndimslow *ndimfast elements of elsize bytes each, 
+        starting at array. The elements are signed if elsign is non-0 and 
+        unsigned otherwise. cbf_get_real_image, cbf_get_real_image_fs and 
+        cbf_get_real_image_sf read the image array of IEEE doubles or floats 
+        for element number element_number into an array. A real array is 
+        always signed. cbf_get_3d_image, cbf_get_3d_image_fs and 
+        cbf_get_3d_image_sf read the 3D image array for element number 
+        element_number into an array. The array consists of ndimslow *ndimmid 
+        *ndimfast elements of elsize bytes each, starting at array. The 
+        elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_get_real_3d_image, cbf_get_real_3d_image_fs, 
+        cbf_get_real_3d_image_sf reads the 3D image array of IEEE doubles or 
+        floats for element number element_number into an array. A real array 
+        is always signed.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        The structure of the array as a 1-, 2- or 3-dimensional array should 
+        agree with the structure of the array given in the 
+        ARRAY_STRUCTURE_LIST category. If the array is 1-dimensional, 
+        ndimslow should be the array size and ndimfast and, for the 3D calls, 
+        ndimmid, should be set to 1 both in the call and in the imgCIF data 
+        being processed. If the array is 2-dimensional and a 3D call is used, 
+        ndimslow and ndimmid should be the array dimensions and ndimfast 
+        should be set to 1 both in the call and in the imgCIF data being 
+        processed.
+        If any element in the binary data canOt fit into the destination 
+        element, the destination is set the nearest possible value.
+        If the value is not binary, the function returns CBF_ASCII.
+        If the requested number of elements canOt be read, the function will 
+        read as many as it can and then return CBF_ENDOFDATA.
+        Currently, the destination array must consist of chars, shorts or 
+        ints (signed or unsigned) for cbf_get_image, or IEEE doubles or 
+        floats for cbf_get_real_image. If elsize is not equal to sizeof 
+        (char), sizeof (short), sizeof (int), sizeof(double) or 
+        sizeof(float), the function returns CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. array            Pointer to the 
+        destination array. elsize           Size in bytes of each destination 
+        array element. elsigned         Set to non-0 if the destination array 
+        elements are signed. ndimslow         Slowest array dimension. 
+        ndimmid          Next faster array dimension. ndimfast         
+        Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_handle_struct_get_image_as_string(self, *args)
 
     def set_tag_root(self, *args):
         """
@@ -4222,7 +6528,49 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_set_category_root(self, *args)
 
     def set_pixel_size_fs(self, *args):
-        """set_pixel_size_fs(self)"""
+        """
+        Returns : 
+        *args   : Int element_number,Int axis_number,Float pixel size
+
+        C prototype: int cbf_set_pixel_size_fs(cbf_handle handle,
+                         unsigned int element_number, int axis_number, double psize);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_pixel_size and cbf_set_pixel_size_sf set the item in the 
+        &quote;size&quote; column of the  "array_structure_list " category 
+        at the row which matches axis axis_number of the detector element 
+        element_number converting the double pixel size psize from meters to 
+        millimeters in storing it in the  "size " column for the axis 
+        axis_number of the detector element element_number. The axis_number 
+        is numbered from 1, starting with the slowest axis. 
+        cbf_set_pixel_size_fs sets the item in the &quote;size&quote; column 
+        of the  "array_structure_list " category at the row which matches 
+        axis axis_number of the detector element element_number converting 
+        the double pixel size psize from meters to millimeters in storing it 
+        in the  "size " column for the axis axis_number of the detector 
+        element element_number. The axis_number is numbered from 1, starting 
+        with the fastest axis.
+        If a negative axis number is given, the order of axes is reversed, so 
+        that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the 
+        fastest axis for cbf_get_pixel_size_sf.
+        If the  "array_structure_list " category does not already exist, it 
+        is created.
+        If the appropriate row in the  "array_structure_list " catgeory 
+        does not already exist, it is created.
+        If the pixel size is not given explcitly in the  "array_element_size 
+        category ", the function returns CBF_NOTFOUND.
+        ARGUMENTS
+        handle           CBF handle. element_number   The number of the 
+        detector element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. axis_number      The number of the 
+        axis, fastest first, starting from 1. psize            The pixel size 
+        in millimeters.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_pixel_size_fs(self, *args)
 
     def insert_row(self, *args):
@@ -4271,9 +6619,73 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_new_column(self, *args)
 
-    def get_real_3d_image(self, *args):
-        """get_real_3d_image(self)"""
-        return _pycbf.cbf_handle_struct_get_real_3d_image(self, *args)
+    def get_real_3d_image_as_string(self, *args):
+        """
+        Returns : (Binary)String
+        *args   : int element_number,int elsize,int ndimslow,int ndimmid,int ndimfast
+
+        C prototype: int cbf_get_real_3d_image (cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number, void *array,
+                         size_t elsize, size_t      ndimslow, size_t ndimmid,
+                         size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image 
+        array for element number element_number into an array. The array 
+        consists of ndimslow *ndimfast elements of elsize bytes each, 
+        starting at array. The elements are signed if elsign is non-0 and 
+        unsigned otherwise. cbf_get_real_image, cbf_get_real_image_fs and 
+        cbf_get_real_image_sf read the image array of IEEE doubles or floats 
+        for element number element_number into an array. A real array is 
+        always signed. cbf_get_3d_image, cbf_get_3d_image_fs and 
+        cbf_get_3d_image_sf read the 3D image array for element number 
+        element_number into an array. The array consists of ndimslow *ndimmid 
+        *ndimfast elements of elsize bytes each, starting at array. The 
+        elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_get_real_3d_image, cbf_get_real_3d_image_fs, 
+        cbf_get_real_3d_image_sf reads the 3D image array of IEEE doubles or 
+        floats for element number element_number into an array. A real array 
+        is always signed.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        The structure of the array as a 1-, 2- or 3-dimensional array should 
+        agree with the structure of the array given in the 
+        ARRAY_STRUCTURE_LIST category. If the array is 1-dimensional, 
+        ndimslow should be the array size and ndimfast and, for the 3D calls, 
+        ndimmid, should be set to 1 both in the call and in the imgCIF data 
+        being processed. If the array is 2-dimensional and a 3D call is used, 
+        ndimslow and ndimmid should be the array dimensions and ndimfast 
+        should be set to 1 both in the call and in the imgCIF data being 
+        processed.
+        If any element in the binary data canOt fit into the destination 
+        element, the destination is set the nearest possible value.
+        If the value is not binary, the function returns CBF_ASCII.
+        If the requested number of elements canOt be read, the function will 
+        read as many as it can and then return CBF_ENDOFDATA.
+        Currently, the destination array must consist of chars, shorts or 
+        ints (signed or unsigned) for cbf_get_image, or IEEE doubles or 
+        floats for cbf_get_real_image. If elsize is not equal to sizeof 
+        (char), sizeof (short), sizeof (int), sizeof(double) or 
+        sizeof(float), the function returns CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. array            Pointer to the 
+        destination array. elsize           Size in bytes of each destination 
+        array element. elsigned         Set to non-0 if the destination array 
+        elements are signed. ndimslow         Slowest array dimension. 
+        ndimmid          Next faster array dimension. ndimfast         
+        Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_handle_struct_get_real_3d_image_as_string(self, *args)
 
     def get_integration_time(self):
         """
@@ -4299,7 +6711,47 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_get_integration_time(self)
 
     def set_realarray(self, *args):
-        """set_realarray(self)"""
+        """
+        Returns : 
+        *args   : int compression,int binary_id,(binary) String data,int elsize,
+                  int elements
+
+        C prototype: int cbf_set_realarray (cbf_handle handle,
+                         unsigned int compression, int binary_id, void *array,
+                         size_t elsize, size_t elements);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_integerarray sets the binary value of the item at the current 
+        column and row to an integer array. The array consists of elements 
+        elements of elsize bytes each, starting at array. The elements are 
+        signed if elsigned is non-0 and unsigned otherwise. binary_id is the 
+        binary section identifier. cbf_set_realarray sets the binary value of 
+        the item at the current column and row to an integer array. The array 
+        consists of elements elements of elsize bytes each, starting at 
+        array. binary_id is the binary section identifier.
+        The cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, 
+        cbf_set_integerarray_wdims_sf, cbf_set_realarray_wdims, 
+        cbf_set_realarray_wdims_fs and cbf_set_realarray_wdims_sf variants 
+        allow the data header values of byteorder, dimfast, dimmid, dimslow 
+        and padding to be set to the data byte order, the fastest, second 
+        fastest and third fastest array dimensions and the size in byte of 
+        the post data padding to be used.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        Simple  "byte_offset " compression. CBF_NONE          No 
+        compression. NOTE: This scheme is by far the slowest of the four and 
+        uses much more disk space. It is intended for routine use with small 
+        arrays only. With large arrays (like images) it should be used only 
+        for debugging.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+
+        """
         return _pycbf.cbf_handle_struct_set_realarray(self, *args)
 
     def get_element_id(self, *args):
@@ -4332,9 +6784,72 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_get_element_id(self, *args)
 
-    def get_image_sf(self, *args):
-        """get_image_sf(self)"""
-        return _pycbf.cbf_handle_struct_get_image_sf(self, *args)
+    def get_image_sf_as_string(self, *args):
+        """
+        Returns : (Binary)String
+        *args   : int element_number,int elsize,int elsign,int ndimslow,int ndimfast
+
+        C prototype: int cbf_get_image_sf (cbf_handle handle, unsigned int reserved,
+                         unsigned int element_number, void *array, size_t elsize,
+                         int elsign,      size_t ndimslow, size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_image, cbf_get_image_fs and cbf_get_image_sf read the image 
+        array for element number element_number into an array. The array 
+        consists of ndimslow *ndimfast elements of elsize bytes each, 
+        starting at array. The elements are signed if elsign is non-0 and 
+        unsigned otherwise. cbf_get_real_image, cbf_get_real_image_fs and 
+        cbf_get_real_image_sf read the image array of IEEE doubles or floats 
+        for element number element_number into an array. A real array is 
+        always signed. cbf_get_3d_image, cbf_get_3d_image_fs and 
+        cbf_get_3d_image_sf read the 3D image array for element number 
+        element_number into an array. The array consists of ndimslow *ndimmid 
+        *ndimfast elements of elsize bytes each, starting at array. The 
+        elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_get_real_3d_image, cbf_get_real_3d_image_fs, 
+        cbf_get_real_3d_image_sf reads the 3D image array of IEEE doubles or 
+        floats for element number element_number into an array. A real array 
+        is always signed.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        The structure of the array as a 1-, 2- or 3-dimensional array should 
+        agree with the structure of the array given in the 
+        ARRAY_STRUCTURE_LIST category. If the array is 1-dimensional, 
+        ndimslow should be the array size and ndimfast and, for the 3D calls, 
+        ndimmid, should be set to 1 both in the call and in the imgCIF data 
+        being processed. If the array is 2-dimensional and a 3D call is used, 
+        ndimslow and ndimmid should be the array dimensions and ndimfast 
+        should be set to 1 both in the call and in the imgCIF data being 
+        processed.
+        If any element in the binary data canOt fit into the destination 
+        element, the destination is set the nearest possible value.
+        If the value is not binary, the function returns CBF_ASCII.
+        If the requested number of elements canOt be read, the function will 
+        read as many as it can and then return CBF_ENDOFDATA.
+        Currently, the destination array must consist of chars, shorts or 
+        ints (signed or unsigned) for cbf_get_image, or IEEE doubles or 
+        floats for cbf_get_real_image. If elsize is not equal to sizeof 
+        (char), sizeof (short), sizeof (int), sizeof(double) or 
+        sizeof(float), the function returns CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. array            Pointer to the 
+        destination array. elsize           Size in bytes of each destination 
+        array element. elsigned         Set to non-0 if the destination array 
+        elements are signed. ndimslow         Slowest array dimension. 
+        ndimmid          Next faster array dimension. ndimfast         
+        Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
+        return _pycbf.cbf_handle_struct_get_image_sf_as_string(self, *args)
 
     def get_3d_image_size_fs(self, *args):
         """get_3d_image_size_fs(self, unsigned int element_number)"""
@@ -4510,11 +7025,110 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_reset_saveframe(self, *args)
 
     def set_reciprocal_cell(self, *args):
-        """set_reciprocal_cell(self)"""
+        """
+        Returns : 
+        *args   : double cell[6]
+
+        C prototype: int cbf_set_reciprocal_cell (cbf_handle handle, double cell[6],
+                         double cell_esd[6] );
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_reciprocal_cell sets the reciprocal cell parameters to the 
+        double values given in cell[0:2] for the reciprocal cell edge lengths 
+        a*, b* and c* in AAngstroms-1, the double values given in cell[3:5] 
+        for the reciprocal cell angles a*, b* and g* in degrees, the double 
+        values given in cell_esd[0:2] for the estimated strandard deviations 
+        of the reciprocal cell edge lengths a*, b* and c* in AAngstroms, and 
+        the double values given in cell_esd[3:5] for the estimated standard 
+        deviations of the reciprocal cell angles a*, b* and g* in degrees.
+        The values are placed in the first row of the  "cell " category. If 
+        no value has been given for  "_cell.entry_id ", it is set to the 
+        value of the  "diffrn.id " entry of the current data block.
+        cell or cell_esd may be NULL.
+        If cell is NULL, the reciprocal cell parameters are not set.
+        If cell_esd is NULL, the reciprocal cell parameter esds are not set.
+        If the  "cell " category is not present, it is created. If any of 
+        the necessary columns are not present, they are created.
+        ARGUMENTS
+        handle     CBF handle. cell       Pointer to the array of 6 doubles 
+        for the reciprocal cell parameters. cell_esd   Pointer to the array 
+        of 6 doubles for the reciprocal cell parameter esds.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        SEE ALSO
+
+        """
         return _pycbf.cbf_handle_struct_set_reciprocal_cell(self, *args)
 
     def set_real_3d_image_fs(self, *args):
-        """set_real_3d_image_fs(self)"""
+        """
+        Returns : 
+        *args   : int element_number,int compression,(binary) String data,int elsize,
+                  int dimfast,int dimmid,int dimslow
+
+        C prototype: int cbf_set_real_3d_image_fs(cbf_handle handle,
+                         unsigned int reserved, unsigned int element_number,
+                         unsigned int compression, void      *array,size_t elsize,
+                         size_t ndimfast, size_t ndimmid, size_t ndimslow);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image 
+        array for element number element_number. The array consists of 
+        ndimfast *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-zero and unsigned otherwise. 
+        cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf 
+        write the image array for element number element_number. The array 
+        consists of ndimfast *ndimslow IEEE double or float elements of 
+        elsize bytes each, starting at array. cbf_set_3d_image, 
+        cbf_set_3d_image_fs and cbf_set_3d_image_sf write the 3D image array 
+        for element number element_number. The array consists of ndimfast 
+        *ndimmid *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_set_real_3d_image, cbf_set_real_3d_image_fs and 
+        cbf_set_real_3d_image_sf writes the 3D image array for element number 
+        element_number. The array consists of ndimfast *ndimmid *ndimslow 
+        IEEE double or float elements of elsize bytes each, starting at 
+        array.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        If the array is 1-dimensional, ndimslow should be the array size and 
+        ndimfast and, for the 3D calls, ndimmid, should be set to 1. If the 
+        array is 2-dimensional and the 3D calls are used, ndimslow and 
+        ndimmid should be used for the array dimensions and ndimfast should 
+        be set to 1.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
+             CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
+        packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
+        "byte_offset " compression. CBF_NONE        No compression.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+        Currently, the source array must consist of chars, shorts or ints 
+        (signed or unsigned)for cbf_set_image, or IEEE doubles or floats for 
+        cbf_set_real_image. If elsize is not equal to sizeof (short), sizeof 
+        (int), sizeof(double) or sizeof(float), the function returns 
+        CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. compression      Compression type. 
+        array            Pointer to the image array. elsize           Size in 
+        bytes of each image array element. elsigned         Set to non-0 if 
+        the image array elements are signed. ndimslow         Slowest array 
+        dimension. ndimmid          Second slowest array dimension. ndimfast  
+               Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_real_3d_image_fs(self, *args)
 
     def set_doublevalue(self, *args):
@@ -4565,9 +7179,74 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_find_category(self, *args)
 
-    def get_integerarrayparameters_wdims_fs(self, *args):
-        """get_integerarrayparameters_wdims_fs(self)"""
-        return _pycbf.cbf_handle_struct_get_integerarrayparameters_wdims_fs(self, *args)
+    def get_integerarrayparameters_wdims_fs(self):
+        """
+        Returns : int compression,int binary_id,int elsize,int elsigned,int elunsigned,
+                  int elements,int minelement,int maxelement,char byteorder,int dimfast,
+                  int dimmid,int dimslow,int padding
+        *args   : 
+
+        C prototype: int cbf_get_integerarrayparameters_wdims_fs (cbf_handle handle,
+                         unsigned int *compression, int *binary_id, size_t *elsize,
+                         int    *elsigned, int *elunsigned, size_t *elements,
+                         int *minelement, int *maxelement, const char **byteorder,
+                         size_t *dimfast, size_t    *dimmid, size_t *dimslow,
+                         size_t *padding);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_integerarrayparameters sets *compression, *binary_id, 
+        *elsize, *elsigned, *elunsigned, *elements, *minelement and 
+        *maxelement to values read from the binary value of the item at the 
+        current column and row. This provides all the arguments needed for a 
+        subsequent call to cbf_set_integerarray, if a copy of the array is to 
+        be made into another CIF or CBF. cbf_get_realarrayparameters sets 
+        *compression, *binary_id, *elsize, *elements to values read from the 
+        binary value of the item at the current column and row. This provides 
+        all the arguments needed for a subsequent call to cbf_set_realarray, 
+        if a copy of the arry is to be made into another CIF or CBF.
+        The variants cbf_get_integerarrayparameters_wdims, 
+        cbf_get_integerarrayparameters_wdims_fs, 
+        cbf_get_integerarrayparameters_wdims_sf, 
+        cbf_get_realarrayparameters_wdims, 
+        cbf_get_realarrayparameters_wdims_fs, 
+        cbf_get_realarrayparameters_wdims_sf set **byteorder, *dimfast, 
+        *dimmid, *dimslow, and *padding as well, providing the additional 
+        parameters needed for a subsequent call to cbf_set_integerarray_wdims 
+        or cbf_set_realarray_wdims.
+        The value returned in *byteorder is a pointer either to the string  
+        "little_endian " or to the string  "big_endian ". This should be 
+        the byte order of the data, not necessarily of the host machine. No 
+        attempt should be made to modify this string. At this time only  
+        "little_endian " will be returned.
+        The values returned in *dimfast, *dimmid and *dimslow are the sizes 
+        of the fastest changing, second fastest changing and third fastest 
+        changing dimensions of the array, if specified, or zero, if not 
+        specified.
+        The value returned in *padding is the size of the post-data padding, 
+        if any and if specified in the data header. The value is given as a 
+        count of octets.
+        If the value is not binary, the function returns CBF_ASCII.
+        ARGUMENTS
+        handle        CBF handle. compression   Compression method used. 
+        elsize        Size in bytes of each array element. binary_id     
+        Pointer to the destination integer binary identifier. elsigned      
+        Pointer to an integer. Set to 1 if the elements can be read as signed 
+        integers. elunsigned    Pointer to an integer. Set to 1 if the 
+        elements can be read as unsigned integers. elements      Pointer to 
+        the destination number of elements. minelement    Pointer to the 
+        destination smallest element. maxelement    Pointer to the 
+        destination largest element. byteorder     Pointer to the destination 
+        byte order. dimfast       Pointer to the destination fastest 
+        dimension. dimmid        Pointer to the destination second fastest 
+        dimension. dimslow       Pointer to the destination third fastest 
+        dimension. padding       Pointer to the destination padding size.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        SEE ALSO
+
+        """
+        return _pycbf.cbf_handle_struct_get_integerarrayparameters_wdims_fs(self)
 
     def set_realarray_wdims_fs(self, *args):
         """set_realarray_wdims_fs(self)"""
@@ -4607,13 +7286,79 @@ class cbf_handle_struct(_object):
         return _pycbf.cbf_handle_struct_set_integerarray_wdims_fs(self, *args)
 
     def set_image_sf(self, *args):
-        """set_image_sf(self)"""
+        """
+        Returns : 
+        *args   : int element_number,int compression,(binary) String data,int elsize,
+                  int elsign,int dimslow,int dimfast
+
+        C prototype: int cbf_set_image_sf(cbf_handle handle, unsigned int reserved,
+                         unsigned int element_number, unsigned int compression,
+                         void *array,      size_t elsize, int elsign, size_t ndimslow,
+                         size_t ndimfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_image, cbf_set_image_fs and cbf_set_image_sf write the image 
+        array for element number element_number. The array consists of 
+        ndimfast *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-zero and unsigned otherwise. 
+        cbf_set_real_image, cbf_set_real_image_fs and cbf_set_real_image_sf 
+        write the image array for element number element_number. The array 
+        consists of ndimfast *ndimslow IEEE double or float elements of 
+        elsize bytes each, starting at array. cbf_set_3d_image, 
+        cbf_set_3d_image_fs and cbf_set_3d_image_sf write the 3D image array 
+        for element number element_number. The array consists of ndimfast 
+        *ndimmid *ndimslow elements of elsize bytes each, starting at array. 
+        The elements are signed if elsign is non-0 and unsigned otherwise. 
+        cbf_set_real_3d_image, cbf_set_real_3d_image_fs and 
+        cbf_set_real_3d_image_sf writes the 3D image array for element number 
+        element_number. The array consists of ndimfast *ndimmid *ndimslow 
+        IEEE double or float elements of elsize bytes each, starting at 
+        array.
+        The _fs calls give the dimensions in a fast-to-slow order. The calls 
+        with no suffix and the calls _sf calls give the dimensions in 
+        slow-to-fast order
+        If the array is 1-dimensional, ndimslow should be the array size and 
+        ndimfast and, for the 3D calls, ndimmid, should be set to 1. If the 
+        array is 2-dimensional and the 3D calls are used, ndimslow and 
+        ndimmid should be used for the array dimensions and ndimfast should 
+        be set to 1.
+        The array will be compressed using the compression scheme specifed by 
+        compression. Currently, the available schemes are:
+        CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
+             CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
+        packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
+        "byte_offset " compression. CBF_NONE        No compression.
+        The values compressed are limited to 64 bits. If any element in the 
+        array is larger than 64 bits, the value compressed is the nearest 
+        64-bit value.
+        Currently, the source array must consist of chars, shorts or ints 
+        (signed or unsigned)for cbf_set_image, or IEEE doubles or floats for 
+        cbf_set_real_image. If elsize is not equal to sizeof (short), sizeof 
+        (int), sizeof(double) or sizeof(float), the function returns 
+        CBF_ARGUMENT.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle           CBF handle. reserved         Unused. Any value other 
+        than 0 is invalid. element_number   The number of the detector 
+        element counting from 0 by order of appearance in the  
+        "diffrn_data_frame " category. compression      Compression type. 
+        array            Pointer to the image array. elsize           Size in 
+        bytes of each image array element. elsigned         Set to non-0 if 
+        the image array elements are signed. ndimslow         Slowest array 
+        dimension. ndimmid          Second slowest array dimension. ndimfast  
+               Fastest array dimension.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+
+
+        """
         return _pycbf.cbf_handle_struct_set_image_sf(self, *args)
 
     def set_unit_cell(self, *args):
         """
         Returns : 
-        *args   : doubleArray cell,doubleArray cell_esd
+        *args   : double cell[6]
 
         C prototype: int cbf_set_unit_cell (cbf_handle handle, double cell[6],
                          double cell_esd[6] );
@@ -4646,6 +7391,43 @@ class cbf_handle_struct(_object):
 
         """
         return _pycbf.cbf_handle_struct_set_unit_cell(self, *args)
+
+    def set_unit_cell_esd(self, *args):
+        """
+        Returns : 
+        *args   : double cell_esd[6]
+
+        C prototype: int cbf_set_unit_cell (cbf_handle handle, double cell[6],
+                         double cell_esd[6] );
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_unit_cell sets the cell parameters to the double values given 
+        in cell[0:2] for the cell edge lengths a, b and c in AAngstroms, the 
+        double values given in cell[3:5] for the cell angles a, b and g in 
+        degrees, the double values given in cell_esd[0:2] for the estimated 
+        strandard deviations of the cell edge lengths a, b and c in 
+        AAngstroms, and the double values given in cell_esd[3:5] for the 
+        estimated standard deviations of the the cell angles a, b and g in 
+        degrees.
+        The values are placed in the first row of the  "cell " category. If 
+        no value has been given for  "_cell.entry_id ", it is set to the 
+        value of the  "diffrn.id " entry of the current data block.
+        cell or cell_esd may be NULL.
+        If cell is NULL, the cell parameters are not set.
+        If cell_esd is NULL, the cell parameter esds are not set.
+        If the  "cell " category is not present, it is created. If any of 
+        the necessary columns are not present, they are created.
+        ARGUMENTS
+        handle     CBF handle. cell       Pointer to the array of 6 doubles 
+        for the cell parameters. cell_esd   Pointer to the array of 6 doubles 
+        for the cell parameter esds.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        SEE ALSO
+
+        """
+        return _pycbf.cbf_handle_struct_set_unit_cell_esd(self, *args)
 
 cbf_handle_struct_swigregister = _pycbf.cbf_handle_struct_swigregister
 cbf_handle_struct_swigregister(cbf_handle_struct)

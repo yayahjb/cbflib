@@ -5550,16 +5550,17 @@ int cbf_set_unit_cell (cbf_handle handle, double cell[6], double cell_esd[6])
     const char * diffrn_id;
     const char * entry_id;
 
-    cbf_failnez(cbf_get_diffrn_id    (handle, &diffrn_id))
+    
+    if (!(cbf_get_diffrn_id    (handle, &diffrn_id))) diffrn_id = NULL;
 
     cbf_failnez(cbf_require_category (handle, "cell"))
     cbf_failnez(cbf_rewind_row       (handle))
 
     cbf_failnez(cbf_require_column   (handle, "entry_id"))
 
-    entry_id = 0;
-    if (cbf_get_value(handle, &entry_id) ||
-        !entry_id || *entry_id == '\0') {
+    entry_id = NULL;
+    if (diffrn_id && (cbf_get_value(handle, &entry_id) ||
+        !entry_id || *entry_id == '\0')) {
       cbf_failnez(cbf_set_value      (handle, diffrn_id))
     }
 
@@ -5654,19 +5655,19 @@ int cbf_set_reciprocal_cell (cbf_handle handle, double cell[6], double cell_esd[
     const char * diffrn_id;
     const char * entry_id;
 
-    cbf_failnez(cbf_get_diffrn_id    (handle, &diffrn_id))
+    if (!(cbf_get_diffrn_id    (handle, &diffrn_id))) diffrn_id = NULL;
 
     cbf_failnez(cbf_require_category (handle, "cell"))
     cbf_failnez(cbf_rewind_row       (handle))
 
     cbf_failnez(cbf_require_column   (handle, "entry_id"))
 
-    entry_id = 0;
-    if (cbf_get_value(handle, &entry_id) ||
-        !entry_id || *entry_id == '\0') {
-      cbf_failnez(cbf_set_value      (handle, diffrn_id))
+    entry_id = NULL;
+    if (diffrn_id && (cbf_get_value(handle, &entry_id) ||
+                      !entry_id || *entry_id == '\0')) {
+        cbf_failnez(cbf_set_value      (handle, diffrn_id))
     }
-
+    
     if (cell) {
 
     cbf_failnez (cbf_require_column  (handle, "reciprocal_length_a"))

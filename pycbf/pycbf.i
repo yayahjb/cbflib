@@ -60,6 +60,116 @@ __doc__=""" pycbf - python bindings to the CBFlib library
 %array_class(long, longArray)
 
 
+// Following the SWIG 1.3 documentation at
+// http://www.swig.org/Doc1.3/Python.html
+// section 31.9.5, we map sequences of
+// PyFloat, PyLong and PyInt to
+// C arrays of double, long and int
+//
+// But with the strct checking of being a float
+// commented out to allow automatic conversions
+%{
+static int convert_darray(PyObject *input, double *ptr, int size) {
+  int i;
+  if (!PySequence_Check(input)) {
+      PyErr_SetString(PyExc_TypeError,"Expecting a sequence");
+      return 0;
+  }
+  if (PyObject_Length(input) != size) {
+      PyErr_SetString(PyExc_ValueError,"Sequence size mismatch");
+      return 0;
+  }
+  for (i =0; i < size; i++) {
+      PyObject *o = PySequence_GetItem(input,i);
+     /*if (!PyFloat_Check(o)) {
+        
+         Py_XDECREF(o);
+         PyErr_SetString(PyExc_ValueError,"Expecting a sequence of floats");
+         return 0;
+      }*/
+      ptr[i] = PyFloat_AsDouble(o);
+      Py_DECREF(o);
+  }
+  return 1;
+}
+%}
+
+%typemap(in) double [ANY](double temp[$1_dim0]) {
+    if ($input == Py_None) $1 = NULL;
+    else 
+    if (!convert_darray($input,temp,$1_dim0)) {
+      return NULL;
+    }
+    $1 = &temp[0];
+}
+
+%{
+    static long convert_larray(PyObject *input, long *ptr, int size) {
+        int i;
+        if (!PySequence_Check(input)) {
+            PyErr_SetString(PyExc_TypeError,"Expecting a sequence");
+            return 0;
+        }
+        if (PyObject_Length(input) != size) {
+            PyErr_SetString(PyExc_ValueError,"Sequence size mismatch");
+            return 0;
+        }
+        for (i =0; i < size; i++) {
+            PyObject *o = PySequence_GetItem(input,i);
+            /*if (!PyLong_Check(o)) {
+                Py_XDECREF(o);
+                PyErr_SetString(PyExc_ValueError,"Expecting a sequence of long integers");
+                return 0;
+            }*/
+            ptr[i] = PyLong_AsLong(o);
+            Py_DECREF(o);
+        }
+        return 1;
+    }
+%}
+
+%typemap(in) long [ANY](long temp[$1_dim0]) {
+    if (!convert_larray($input,temp,$1_dim0)) {
+        return NULL;
+    }
+    $1 = &temp[0];
+}
+
+%{
+    static int convert_iarray(PyObject *input, int *ptr, int size) {
+        int i;
+        if (!PySequence_Check(input)) {
+            PyErr_SetString(PyExc_TypeError,"Expecting a sequence");
+            return 0;
+        }
+        if (PyObject_Length(input) != size) {
+            PyErr_SetString(PyExc_ValueError,"Sequence size mismatch");
+            return 0;
+        }
+        for (i =0; i < size; i++) {
+            PyObject *o = PySequence_GetItem(input,i);
+            /*if (!PyInt_Check(o)) {
+                Py_XDECREF(o);
+                PyErr_SetString(PyExc_ValueError,"Expecting a sequence of long integers");
+                return 0;
+            }*/
+            ptr[i] = (int)PyInt_AsLong(o);
+            Py_DECREF(o);
+        }
+        return 1;
+    }
+%}
+
+%typemap(in) int [ANY](int temp[$1_dim0]) {
+    if (!convert_iarray($input,temp,$1_dim0)) {
+        return NULL;
+    }
+    $1 = &temp[0];
+}
+
+
+
+
 %{  // Here is the c code needed to compile the wrappers, but not 
     // to be wrapped 
 
