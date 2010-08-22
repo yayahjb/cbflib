@@ -3212,6 +3212,11 @@ SWIG_FromCharPtr(const char *cptr)
 }
 
 
+  void compute_cell_volume(double cell[6], double *volume) {
+  {(error_status = cbf_compute_cell_volume(cell,volume));};
+  }
+  
+
    char* get_local_real_format(void);
    char* get_local_real_format(void){
       char *r;
@@ -3225,6 +3230,19 @@ SWIG_FromCharPtr(const char *cptr)
       error_status = cbf_get_local_real_byte_order(&r);
       return r; }
 
+
+  void compute_reciprocal_cell(double cell[6], double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar) {
+    double rcell[6];
+    {(error_status = cbf_compute_reciprocal_cell(cell,rcell));};
+    *astar =      rcell[0];
+    *bstar =      rcell[1];
+    *cstar =      rcell[2];
+    *alphastar =  rcell[3];
+    *betastar =   rcell[4];
+    *gammastar =  rcell[5];
+  }
+  
 
 SWIGINTERNINLINE PyObject* 
 SWIG_From_unsigned_SS_long  (unsigned long value)
@@ -4305,15 +4323,15 @@ SWIGINTERN void cbf_handle_struct_set_real_image_sf(cbf_handle_struct *self,unsi
     }
 SWIGINTERN void cbf_handle_struct_require_category(cbf_handle_struct *self,char const *arg){
       {(error_status = cbf_require_category(self,arg));};}
-SWIGINTERN void cbf_handle_struct_get_reciprocal_cell(cbf_handle_struct *self,double *a,double *b,double *c,double *alpha,double *beta,double *gamma){
-     double cell[6];
-     {(error_status = cbf_get_reciprocal_cell(self,cell,NULL));};
-     *a = cell[0];
-     *b = cell[1];
-     *c = cell[2];
-     *alpha = cell[3];
-     *beta = cell[4];
-     *gamma = cell[5];
+SWIGINTERN void cbf_handle_struct_get_reciprocal_cell(cbf_handle_struct *self,double *astar,double *bstar,double *cstar,double *alphastar,double *betastar,double *gammastar){
+     double rcell[6];
+     {(error_status = cbf_get_reciprocal_cell(self,rcell,NULL));};
+    *astar =      rcell[0];
+    *bstar =      rcell[1];
+    *cstar =      rcell[2];
+    *alphastar =  rcell[3];
+    *betastar =   rcell[4];
+    *gammastar =  rcell[5];
    }
 SWIGINTERN void cbf_handle_struct_get_reciprocal_cell_esd(cbf_handle_struct *self,double *a_esd,double *b_esd,double *c_esd,double *alpha_esd,double *beta_esd,double *gamma_esd){
      double cell_esd[6];
@@ -5395,6 +5413,47 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_compute_cell_volume(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  double *arg1 ;
+  double *arg2 = (double *) 0 ;
+  double temp1[6] ;
+  double temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject * obj0 = 0 ;
+  
+  arg2 = &temp2;
+  if (!PyArg_ParseTuple(args,(char *)"O:compute_cell_volume",&obj0)) SWIG_fail;
+  {
+    if (obj0 == Py_None) arg1 = NULL;
+    else 
+    if (!convert_darray(obj0,temp1,6)) {
+      return NULL;
+    }
+    arg1 = &temp1[0];
+  }
+  {
+    error_status=0;
+    compute_cell_volume(arg1,arg2);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, new_flags));
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_get_local_real_format(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   char *result = 0 ;
@@ -5431,6 +5490,97 @@ SWIGINTERN PyObject *_wrap_get_local_real_byte_order(PyObject *SWIGUNUSEDPARM(se
     }
   }
   resultobj = SWIG_FromCharPtr((const char *)result);
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_compute_reciprocal_cell(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  double *arg1 ;
+  double *arg2 = (double *) 0 ;
+  double *arg3 = (double *) 0 ;
+  double *arg4 = (double *) 0 ;
+  double *arg5 = (double *) 0 ;
+  double *arg6 = (double *) 0 ;
+  double *arg7 = (double *) 0 ;
+  double temp1[6] ;
+  double temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  double temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  double temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  double temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  double temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  double temp7 ;
+  int res7 = SWIG_TMPOBJ ;
+  PyObject * obj0 = 0 ;
+  
+  arg2 = &temp2;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  arg6 = &temp6;
+  arg7 = &temp7;
+  if (!PyArg_ParseTuple(args,(char *)"O:compute_reciprocal_cell",&obj0)) SWIG_fail;
+  {
+    if (obj0 == Py_None) arg1 = NULL;
+    else 
+    if (!convert_darray(obj0,temp1,6)) {
+      return NULL;
+    }
+    arg1 = &temp1[0];
+  }
+  {
+    error_status=0;
+    compute_reciprocal_cell(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res7)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg7)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_double, new_flags));
+  }
   return resultobj;
 fail:
   return NULL;
@@ -18347,6 +18497,26 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"\n"
 		""},
+	 { (char *)"compute_cell_volume", _wrap_compute_cell_volume, METH_VARARGS, (char *)"\n"
+		"Returns : Float volume\n"
+		"*args   : double cell[6]\n"
+		"\n"
+		"C prototype: int cbf_compute_cell_volume ( double cell[6], double *volume );\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_compute_cell_volume sets *volume to point to the volume of the \n"
+		"unit cell computed from the double values in cell[0:2] for the cell \n"
+		"edge lengths a, b and c in AAngstroms and the double values given in \n"
+		"cell[3:5] for the cell angles a, b and g in degrees.\n"
+		"ARGUMENTS\n"
+		"cell     Pointer to the array of 6 doubles giving the cell \n"
+		"parameters. volume   Pointer to the doubles for cell volume.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"SEE ALSO\n"
+		"\n"
+		""},
 	 { (char *)"get_local_real_format", _wrap_get_local_real_format, METH_VARARGS, (char *)"\n"
 		"Returns : string\n"
 		"*args   : \n"
@@ -18407,16 +18577,43 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"\n"
 		""},
-	 { (char *)"cbf_positioner_struct_matrix_set", _wrap_cbf_positioner_struct_matrix_set, METH_VARARGS, NULL},
-	 { (char *)"cbf_positioner_struct_matrix_get", _wrap_cbf_positioner_struct_matrix_get, METH_VARARGS, NULL},
-	 { (char *)"cbf_positioner_struct_axis_set", _wrap_cbf_positioner_struct_axis_set, METH_VARARGS, NULL},
-	 { (char *)"cbf_positioner_struct_axis_get", _wrap_cbf_positioner_struct_axis_get, METH_VARARGS, NULL},
-	 { (char *)"cbf_positioner_struct_axes_set", _wrap_cbf_positioner_struct_axes_set, METH_VARARGS, NULL},
-	 { (char *)"cbf_positioner_struct_axes_get", _wrap_cbf_positioner_struct_axes_get, METH_VARARGS, NULL},
-	 { (char *)"cbf_positioner_struct_matrix_is_valid_set", _wrap_cbf_positioner_struct_matrix_is_valid_set, METH_VARARGS, NULL},
-	 { (char *)"cbf_positioner_struct_matrix_is_valid_get", _wrap_cbf_positioner_struct_matrix_is_valid_get, METH_VARARGS, NULL},
-	 { (char *)"cbf_positioner_struct_axes_are_connected_set", _wrap_cbf_positioner_struct_axes_are_connected_set, METH_VARARGS, NULL},
-	 { (char *)"cbf_positioner_struct_axes_are_connected_get", _wrap_cbf_positioner_struct_axes_are_connected_get, METH_VARARGS, NULL},
+	 { (char *)"compute_reciprocal_cell", _wrap_compute_reciprocal_cell, METH_VARARGS, (char *)"\n"
+		"Returns : Float astar,Float bstar,Float cstar,Float alphastar,Float betastar,\n"
+		"          Float gammastar\n"
+		"*args   : double cell[6]\n"
+		"\n"
+		"C prototype: int cbf_compute_reciprocal_cell ( double cell[6],\n"
+		"                 double rcell[6] );\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_compute_reciprocal_cell sets rcell to point to the array of \n"
+		"reciprocal cell parameters computed from the double values cell[0:2] \n"
+		"giving the cell edge lengths a, b and c in AAngstroms, and the double \n"
+		"values cell[3:5] giving the cell angles a, b and g in degrees. The \n"
+		"double values rcell[0:2] will be set to the reciprocal cell lengths \n"
+		"a*, b* and c* in AAngstroms-1 and the double values rcell[3:5] will \n"
+		"be set to the reciprocal cell angles a*, b* and g* in degrees.\n"
+		"ARGUMENTS\n"
+		"cell     Pointer to the array of 6 doubles giving the cell \n"
+		"parameters. rcell    Pointer to the destination array of 6 doubles \n"
+		"giving the reciprocal cell parameters. volume   Pointer to the \n"
+		"doubles for cell volume.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"SEE ALSO\n"
+		"\n"
+		""},
+	 { (char *)"cbf_positioner_struct_matrix_set", _wrap_cbf_positioner_struct_matrix_set, METH_VARARGS, (char *)"cbf_positioner_struct_matrix_set(cbf_positioner_struct self, double matrix)"},
+	 { (char *)"cbf_positioner_struct_matrix_get", _wrap_cbf_positioner_struct_matrix_get, METH_VARARGS, (char *)"cbf_positioner_struct_matrix_get(cbf_positioner_struct self) -> double"},
+	 { (char *)"cbf_positioner_struct_axis_set", _wrap_cbf_positioner_struct_axis_set, METH_VARARGS, (char *)"cbf_positioner_struct_axis_set(cbf_positioner_struct self, cbf_axis_struct axis)"},
+	 { (char *)"cbf_positioner_struct_axis_get", _wrap_cbf_positioner_struct_axis_get, METH_VARARGS, (char *)"cbf_positioner_struct_axis_get(cbf_positioner_struct self) -> cbf_axis_struct"},
+	 { (char *)"cbf_positioner_struct_axes_set", _wrap_cbf_positioner_struct_axes_set, METH_VARARGS, (char *)"cbf_positioner_struct_axes_set(cbf_positioner_struct self, size_t axes)"},
+	 { (char *)"cbf_positioner_struct_axes_get", _wrap_cbf_positioner_struct_axes_get, METH_VARARGS, (char *)"cbf_positioner_struct_axes_get(cbf_positioner_struct self) -> size_t"},
+	 { (char *)"cbf_positioner_struct_matrix_is_valid_set", _wrap_cbf_positioner_struct_matrix_is_valid_set, METH_VARARGS, (char *)"cbf_positioner_struct_matrix_is_valid_set(cbf_positioner_struct self, int matrix_is_valid)"},
+	 { (char *)"cbf_positioner_struct_matrix_is_valid_get", _wrap_cbf_positioner_struct_matrix_is_valid_get, METH_VARARGS, (char *)"cbf_positioner_struct_matrix_is_valid_get(cbf_positioner_struct self) -> int"},
+	 { (char *)"cbf_positioner_struct_axes_are_connected_set", _wrap_cbf_positioner_struct_axes_are_connected_set, METH_VARARGS, (char *)"cbf_positioner_struct_axes_are_connected_set(cbf_positioner_struct self, int axes_are_connected)"},
+	 { (char *)"cbf_positioner_struct_axes_are_connected_get", _wrap_cbf_positioner_struct_axes_are_connected_get, METH_VARARGS, (char *)"cbf_positioner_struct_axes_are_connected_get(cbf_positioner_struct self) -> int"},
 	 { (char *)"new_cbf_positioner_struct", _wrap_new_cbf_positioner_struct, METH_VARARGS, (char *)"new_cbf_positioner_struct() -> cbf_positioner_struct"},
 	 { (char *)"delete_cbf_positioner_struct", _wrap_delete_cbf_positioner_struct, METH_VARARGS, (char *)"delete_cbf_positioner_struct(cbf_positioner_struct self)"},
 	 { (char *)"cbf_positioner_struct_get_rotation_range", _wrap_cbf_positioner_struct_get_rotation_range, METH_VARARGS, (char *)"\n"
@@ -20164,7 +20361,7 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_unit_cell", _wrap_cbf_handle_struct_get_unit_cell, METH_VARARGS, (char *)"\n"
-		"Returns : doubleArray cell\n"
+		"Returns : Float a,Float b,Float c,Float alpha,Float beta,Float gamma\n"
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_unit_cell (cbf_handle handle, double cell[6],\n"
@@ -23497,7 +23694,8 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_reciprocal_cell", _wrap_cbf_handle_struct_get_reciprocal_cell, METH_VARARGS, (char *)"\n"
-		"Returns : doubleArray cell\n"
+		"Returns : Float astar,Float bstar,Float cstar,Float alphastar,Float betastar,\n"
+		"          Float gammastar\n"
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_reciprocal_cell (cbf_handle handle, double cell[6],\n"

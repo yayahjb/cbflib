@@ -358,7 +358,6 @@ void get_error_message(){
                       "\nCBFlib error %d in \"x\"\n", err); \
                          { c; } return err; }}
 
-
 %include "cbfgenericwrappers.i"
 
 // cbf_goniometer object

@@ -1,4 +1,6 @@
+
 // Start of generic functions
+%feature("autodoc","1");
 
 /* cfunc cbf_get_local_integer_byte_order   pyfunc get_local_integer_byte_order  
    arg char ** byte_order */
@@ -43,6 +45,33 @@ char* get_local_integer_byte_order(void);
 /* cfunc cbf_compute_cell_volume   pyfunc compute_cell_volume  
    arg double cell[6]    arg double *volume */
 
+%feature("autodoc", "
+Returns : Float volume
+*args   : double cell[6]
+
+C prototype: int cbf_compute_cell_volume ( double cell[6], double *volume );
+
+CBFLib documentation:
+DESCRIPTION
+cbf_compute_cell_volume sets *volume to point to the volume of the 
+unit cell computed from the double values in cell[0:2] for the cell 
+edge lengths a, b and c in AAngstroms and the double values given in 
+cell[3:5] for the cell angles a, b and g in degrees.
+ARGUMENTS
+cell     Pointer to the array of 6 doubles giving the cell 
+parameters. volume   Pointer to the doubles for cell volume.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+SEE ALSO
+")compute_cell_volume;
+
+
+%apply double *OUTPUT {double *volume};
+  %inline {
+  void compute_cell_volume(double cell[6], double *volume) {
+  cbf_failnez(cbf_compute_cell_volume(cell,volume));
+  }
+  }
 
 /* cfunc cbf_get_local_real_format   pyfunc get_local_real_format  
    arg char ** real_format */
@@ -126,5 +155,48 @@ Returns an error code on failure or 0 for success.
 char* get_local_real_byte_order(void);
 /* cfunc cbf_compute_reciprocal_cell   pyfunc compute_reciprocal_cell  
    arg double cell[6]    arg double rcell[6] */
+
+%feature("autodoc", "
+Returns : Float astar,Float bstar,Float cstar,Float alphastar,Float betastar,
+          Float gammastar
+*args   : double cell[6]
+
+C prototype: int cbf_compute_reciprocal_cell ( double cell[6],
+                 double rcell[6] );
+
+CBFLib documentation:
+DESCRIPTION
+cbf_compute_reciprocal_cell sets rcell to point to the array of 
+reciprocal cell parameters computed from the double values cell[0:2] 
+giving the cell edge lengths a, b and c in AAngstroms, and the double 
+values cell[3:5] giving the cell angles a, b and g in degrees. The 
+double values rcell[0:2] will be set to the reciprocal cell lengths 
+a*, b* and c* in AAngstroms-1 and the double values rcell[3:5] will 
+be set to the reciprocal cell angles a*, b* and g* in degrees.
+ARGUMENTS
+cell     Pointer to the array of 6 doubles giving the cell 
+parameters. rcell    Pointer to the destination array of 6 doubles 
+giving the reciprocal cell parameters. volume   Pointer to the 
+doubles for cell volume.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+SEE ALSO
+")compute_reciprocal_cell;
+
+%apply double *OUTPUT {double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar};
+  %inline {
+  void compute_reciprocal_cell(double cell[6], double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar) {
+    double rcell[6];
+    cbf_failnez(cbf_compute_reciprocal_cell(cell,rcell));
+    *astar =      rcell[0];
+    *bstar =      rcell[1];
+    *cstar =      rcell[2];
+    *alphastar =  rcell[3];
+    *betastar =   rcell[4];
+    *gammastar =  rcell[5];
+  }
+  }
 
 // End of generic functions
