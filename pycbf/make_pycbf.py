@@ -138,7 +138,38 @@ def docstringwrite(pyfunc,input,output,prototype,cbflibdoc):
    doc += pyfunc+";\n"
    return doc
 
+cbfgeneric_specials = {
+"cbf_compute_cell_volume":["""
 
+%apply double *OUTPUT {double *volume};
+  %inline {
+  void compute_cell_volume(double cell[6], double *volume) {
+  cbf_failnez(cbf_compute_cell_volume(cell,volume));
+  }
+  }
+""","compute_cell_volume",["double cell[6]"],["Float volume"]],
+
+"cbf_compute_reciprocal_cell":["""
+%apply double *OUTPUT {double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar};
+  %inline {
+  void compute_reciprocal_cell(double cell[6], double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar) {
+    double rcell[6];
+    cbf_failnez(cbf_compute_reciprocal_cell(cell,rcell));
+    *astar =      rcell[0];
+    *bstar =      rcell[1];
+    *cstar =      rcell[2];
+    *alphastar =  rcell[3];
+    *betastar =   rcell[4];
+    *gammastar =  rcell[5];
+  }
+  }
+
+""","compute_reciprocal_cell",["double cell[6]"],
+["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ]
+
+}
 
 
 cbfhandle_specials = {
@@ -1933,7 +1964,7 @@ double *m7,double *m8){
      *gamma = cell[5];
    }
 ""","get_unit_cell",
-    [],["doubleArray cell"] ],
+    [],["Float a", "Float b", "Float c", "Float alpha", "Float beta", "Float gamma" ] ],
 
 "cbf_get_unit_cell_esd":["""
 %apply double *OUTPUT {double *a_esd, double *b_esd, double *c_esd,
@@ -1954,21 +1985,21 @@ double *m7,double *m8){
 
 
 "cbf_get_reciprocal_cell":["""
-%apply double *OUTPUT {double *a, double *b, double *c,
-  double *alpha, double *beta, double *gamma} get_reciprocal_cell;
-     void get_reciprocal_cell(double *a, double *b, double *c,
-  double *alpha, double *beta, double *gamma) {
-     double cell[6];
-     cbf_failnez(cbf_get_reciprocal_cell(self,cell,NULL));
-     *a = cell[0];
-     *b = cell[1];
-     *c = cell[2];
-     *alpha = cell[3];
-     *beta = cell[4];
-     *gamma = cell[5];
+%apply double *OUTPUT {double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar} get_reciprocal_cell;
+     void get_reciprocal_cell(double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar) {
+     double rcell[6];
+     cbf_failnez(cbf_get_reciprocal_cell(self,rcell,NULL));
+    *astar =      rcell[0];
+    *bstar =      rcell[1];
+    *cstar =      rcell[2];
+    *alphastar =  rcell[3];
+    *betastar =   rcell[4];
+    *gammastar =  rcell[5];
    }
 ""","get_reciprocal_cell",
-    [],["doubleArray cell"] ],
+    [],["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ],
 
 "cbf_get_reciprocal_cell_esd":["""
 %apply double *OUTPUT {double *a_esd, double *b_esd, double *c_esd,
@@ -2792,7 +2823,10 @@ cbf_detector_wrapper = cbfdetectorwrapper()
 
 class genericwrapper:
    def __init__(self):
-       self.code = "// Start of generic functions\n"
+       self.code = """
+// Start of generic functions
+%feature("autodoc","1");
+"""
        self.tail = "// End of generic functions\n"
    def get_code(self):
        return self.code + self.tail
@@ -2805,6 +2839,20 @@ class genericwrapper:
        code += "*/\n\n"
        self.code+=code
        code = ""
+       not_found = 0
+       try:
+           code, pyname, input, output = cbfgeneric_specials[cfunc]
+           self.code +=  docstringwrite(pyname,input,output,
+                                              prototype,docstring)+ code
+           return
+       except KeyError:
+           not_found = 1
+           # print "KeyError"
+       except ValueError:
+           print "problem in generic",cfunc
+           for item in cbfgeneric_specials[cfunc]:
+              print "***",item
+           raise
        if len(args)==1 and args[0].find("char")>-1 and \
                            args[0].find("**")>-1                :# return string
            # first write the c code and inline it

@@ -937,7 +937,7 @@ SEE ALSO
        cbf_failnez(cbf_get_doublevalue(self,&result));
        return result;}
 %feature("autodoc", "
-Returns : doubleArray cell
+Returns : Float a,Float b,Float c,Float alpha,Float beta,Float gamma
 *args   : 
 
 C prototype: int cbf_get_unit_cell (cbf_handle handle, double cell[6],
@@ -5383,7 +5383,8 @@ SEE ALSO
     void require_category(const char* arg){
       cbf_failnez(cbf_require_category(self,arg));}
 %feature("autodoc", "
-Returns : doubleArray cell
+Returns : Float astar,Float bstar,Float cstar,Float alphastar,Float betastar,
+          Float gammastar
 *args   : 
 
 C prototype: int cbf_get_reciprocal_cell (cbf_handle handle, double cell[6],
@@ -5418,18 +5419,18 @@ returned for missing values if the  \"cell \" category exists.
 SEE ALSO
 ")get_reciprocal_cell;
 
-%apply double *OUTPUT {double *a, double *b, double *c,
-  double *alpha, double *beta, double *gamma} get_reciprocal_cell;
-     void get_reciprocal_cell(double *a, double *b, double *c,
-  double *alpha, double *beta, double *gamma) {
-     double cell[6];
-     cbf_failnez(cbf_get_reciprocal_cell(self,cell,NULL));
-     *a = cell[0];
-     *b = cell[1];
-     *c = cell[2];
-     *alpha = cell[3];
-     *beta = cell[4];
-     *gamma = cell[5];
+%apply double *OUTPUT {double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar} get_reciprocal_cell;
+     void get_reciprocal_cell(double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar) {
+     double rcell[6];
+     cbf_failnez(cbf_get_reciprocal_cell(self,rcell,NULL));
+    *astar =      rcell[0];
+    *bstar =      rcell[1];
+    *cstar =      rcell[2];
+    *alphastar =  rcell[3];
+    *betastar =   rcell[4];
+    *gammastar =  rcell[5];
    }
 %feature("autodoc", "
 Returns : doubleArray cell
