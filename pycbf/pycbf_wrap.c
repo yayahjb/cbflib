@@ -3164,12 +3164,16 @@ void get_error_message(){
 
 
 
-   char* get_local_integer_byte_order(void);
-   char* get_local_integer_byte_order(void){
-      char *r;
-      error_status = cbf_get_local_integer_byte_order(&r);
-      return r; }
-
+  void get_local_integer_byte_order(char **bo, int *bolen) {
+        char * byteorder;
+        char * bot;
+        error_status = cbf_get_local_integer_byte_order(&byteorder);
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {{(error_status = CBF_ALLOC);}}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+  }
+  
 
 SWIGINTERN swig_type_info*
 SWIG_pchar_descriptor(void)
@@ -3205,31 +3209,32 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 }
 
 
-SWIGINTERNINLINE PyObject * 
-SWIG_FromCharPtr(const char *cptr)
-{ 
-  return SWIG_FromCharPtrAndSize(cptr, (cptr ? strlen(cptr) : 0));
-}
-
-
   void compute_cell_volume(double cell[6], double *volume) {
   {(error_status = cbf_compute_cell_volume(cell,volume));};
   }
   
 
-   char* get_local_real_format(void);
-   char* get_local_real_format(void){
-      char *r;
-      error_status = cbf_get_local_real_format(&r);
-      return r; }
+  void get_local_real_format(char **rf, int *rflen) {
+        char * real_format;
+        char * rft;
+        error_status = cbf_get_local_real_format(&real_format);
+        *rflen = strlen(real_format);
+        if (!(rft = (char *)malloc(*rflen))) {{(error_status = CBF_ALLOC);}}
+        strncpy(rft,real_format,*rflen);
+        *rf = rft;
+  }
+  
 
-
-   char* get_local_real_byte_order(void);
-   char* get_local_real_byte_order(void){
-      char *r;
-      error_status = cbf_get_local_real_byte_order(&r);
-      return r; }
-
+  void get_local_real_byte_order(char **bo, int *bolen) {
+        char * byteorder;
+        char * bot;
+        error_status = cbf_get_local_real_byte_order(&byteorder);
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {{(error_status = CBF_ALLOC);}}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+  }
+  
 
   void compute_reciprocal_cell(double cell[6], double *astar, double *bstar, double *cstar,
   double *alphastar, double *betastar, double *gammastar) {
@@ -3512,6 +3517,13 @@ SWIGINTERN char const *cbf_handle_struct_require_tag_root(cbf_handle_struct *sel
  {(error_status = cbf_require_tag_root(self,tagname,&result));};
  return result;
  }
+
+SWIGINTERNINLINE PyObject * 
+SWIG_FromCharPtr(const char *cptr)
+{ 
+  return SWIG_FromCharPtrAndSize(cptr, (cptr ? strlen(cptr) : 0));
+}
+
 SWIGINTERN unsigned int cbf_handle_struct_row_number(cbf_handle_struct *self){
       unsigned int result;
       {(error_status = cbf_row_number(self,&result));};
@@ -4631,6 +4643,9 @@ SWIGINTERN void cbf_handle_struct_reset_saveframe(cbf_handle_struct *self){
 SWIGINTERN void cbf_handle_struct_set_reciprocal_cell(cbf_handle_struct *self,double cell[6]){
      {(error_status = cbf_set_reciprocal_cell(self,cell,NULL));};
    }
+SWIGINTERN void cbf_handle_struct_set_reciprocal_cell_esd(cbf_handle_struct *self,double cell_esd[6]){
+     {(error_status = cbf_set_reciprocal_cell(self,NULL,cell_esd));};
+   }
 SWIGINTERN void cbf_handle_struct_set_real_3d_image_fs(cbf_handle_struct *self,unsigned int element_number,unsigned int compression,char *data,int len,int elsize,int ndimfast,int ndimmid,int ndimslow){
         /* safety check on args */
         size_t els;
@@ -5394,19 +5409,27 @@ SWIGINTERN PyObject *longArray_swigregister(PyObject *SWIGUNUSEDPARM(self), PyOb
 
 SWIGINTERN PyObject *_wrap_get_local_integer_byte_order(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  char *result = 0 ;
+  char **arg1 = (char **) 0 ;
+  int *arg2 = (int *) 0 ;
+  char *temp1 = 0 ;
+  int tempn1 ;
   
+  arg1 = &temp1; arg2 = &tempn1;
   if (!PyArg_ParseTuple(args,(char *)":get_local_integer_byte_order")) SWIG_fail;
   {
     error_status=0;
-    result = (char *)get_local_integer_byte_order();
+    get_local_integer_byte_order(arg1,arg2);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
       return NULL;
     }
   }
-  resultobj = SWIG_FromCharPtr((const char *)result);
+  resultobj = SWIG_Py_Void();
+  if (*arg1) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtrAndSize(*arg1,*arg2));
+    free(*arg1);
+  }
   return resultobj;
 fail:
   return NULL;
@@ -5456,19 +5479,27 @@ fail:
 
 SWIGINTERN PyObject *_wrap_get_local_real_format(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  char *result = 0 ;
+  char **arg1 = (char **) 0 ;
+  int *arg2 = (int *) 0 ;
+  char *temp1 = 0 ;
+  int tempn1 ;
   
+  arg1 = &temp1; arg2 = &tempn1;
   if (!PyArg_ParseTuple(args,(char *)":get_local_real_format")) SWIG_fail;
   {
     error_status=0;
-    result = (char *)get_local_real_format();
+    get_local_real_format(arg1,arg2);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
       return NULL;
     }
   }
-  resultobj = SWIG_FromCharPtr((const char *)result);
+  resultobj = SWIG_Py_Void();
+  if (*arg1) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtrAndSize(*arg1,*arg2));
+    free(*arg1);
+  }
   return resultobj;
 fail:
   return NULL;
@@ -5477,19 +5508,27 @@ fail:
 
 SWIGINTERN PyObject *_wrap_get_local_real_byte_order(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  char *result = 0 ;
+  char **arg1 = (char **) 0 ;
+  int *arg2 = (int *) 0 ;
+  char *temp1 = 0 ;
+  int tempn1 ;
   
+  arg1 = &temp1; arg2 = &tempn1;
   if (!PyArg_ParseTuple(args,(char *)":get_local_real_byte_order")) SWIG_fail;
   {
     error_status=0;
-    result = (char *)get_local_real_byte_order();
+    get_local_real_byte_order(arg1,arg2);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
       return NULL;
     }
   }
-  resultobj = SWIG_FromCharPtr((const char *)result);
+  resultobj = SWIG_Py_Void();
+  if (*arg1) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtrAndSize(*arg1,*arg2));
+    free(*arg1);
+  }
   return resultobj;
 fail:
   return NULL;
@@ -17592,6 +17631,46 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_reciprocal_cell_esd(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  double *arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double temp2[6] ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_handle_struct_set_reciprocal_cell_esd",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_set_reciprocal_cell_esd" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+  }
+  arg1 = (cbf_handle_struct *)(argp1);
+  {
+    if (obj1 == Py_None) arg2 = NULL;
+    else 
+    if (!convert_darray(obj1,temp2,6)) {
+      return NULL;
+    }
+    arg2 = &temp2[0];
+  }
+  {
+    error_status=0;
+    cbf_handle_struct_set_reciprocal_cell_esd(arg1,arg2);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_real_3d_image_fs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
@@ -18468,7 +18547,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"longArray_frompointer", _wrap_longArray_frompointer, METH_VARARGS, NULL},
 	 { (char *)"longArray_swigregister", longArray_swigregister, METH_VARARGS, NULL},
 	 { (char *)"get_local_integer_byte_order", _wrap_get_local_integer_byte_order, METH_VARARGS, (char *)"\n"
-		"Returns : string\n"
+		"Returns : char **bo,int *bolen\n"
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_local_integer_byte_order (char ** byte_order);\n"
@@ -18518,7 +18597,7 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		""},
 	 { (char *)"get_local_real_format", _wrap_get_local_real_format, METH_VARARGS, (char *)"\n"
-		"Returns : string\n"
+		"Returns : char **rf,int *rflen\n"
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_local_real_format (char ** real_format );\n"
@@ -18548,7 +18627,7 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		""},
 	 { (char *)"get_local_real_byte_order", _wrap_get_local_real_byte_order, METH_VARARGS, (char *)"\n"
-		"Returns : string\n"
+		"Returns : char **bo,int *bolen\n"
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_local_real_byte_order (char ** byte_order);\n"
@@ -25060,6 +25139,40 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"cbf_handle_struct_set_reciprocal_cell", _wrap_cbf_handle_struct_set_reciprocal_cell, METH_VARARGS, (char *)"\n"
 		"Returns : \n"
 		"*args   : double cell[6]\n"
+		"\n"
+		"C prototype: int cbf_set_reciprocal_cell (cbf_handle handle, double cell[6],\n"
+		"                 double cell_esd[6] );\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_set_reciprocal_cell sets the reciprocal cell parameters to the \n"
+		"double values given in cell[0:2] for the reciprocal cell edge lengths \n"
+		"a*, b* and c* in AAngstroms-1, the double values given in cell[3:5] \n"
+		"for the reciprocal cell angles a*, b* and g* in degrees, the double \n"
+		"values given in cell_esd[0:2] for the estimated strandard deviations \n"
+		"of the reciprocal cell edge lengths a*, b* and c* in AAngstroms, and \n"
+		"the double values given in cell_esd[3:5] for the estimated standard \n"
+		"deviations of the reciprocal cell angles a*, b* and g* in degrees.\n"
+		"The values are placed in the first row of the  \"cell \" category. If \n"
+		"no value has been given for  \"_cell.entry_id \", it is set to the \n"
+		"value of the  \"diffrn.id \" entry of the current data block.\n"
+		"cell or cell_esd may be NULL.\n"
+		"If cell is NULL, the reciprocal cell parameters are not set.\n"
+		"If cell_esd is NULL, the reciprocal cell parameter esds are not set.\n"
+		"If the  \"cell \" category is not present, it is created. If any of \n"
+		"the necessary columns are not present, they are created.\n"
+		"ARGUMENTS\n"
+		"handle     CBF handle. cell       Pointer to the array of 6 doubles \n"
+		"for the reciprocal cell parameters. cell_esd   Pointer to the array \n"
+		"of 6 doubles for the reciprocal cell parameter esds.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"SEE ALSO\n"
+		"\n"
+		""},
+	 { (char *)"cbf_handle_struct_set_reciprocal_cell_esd", _wrap_cbf_handle_struct_set_reciprocal_cell_esd, METH_VARARGS, (char *)"\n"
+		"Returns : \n"
+		"*args   : double cell_esd[6]\n"
 		"\n"
 		"C prototype: int cbf_set_reciprocal_cell (cbf_handle handle, double cell[6],\n"
 		"                 double cell_esd[6] );\n"

@@ -104,13 +104,12 @@ package in order to give the author easy access to binary cif files.
 \section*{Things to do}
 
 \begin{itemize}
-\item get\_image and set\_image not implemented yet (decide how that should be done)
 \item Write test code to test each and every function for good and bad args etc
 \end{itemize}
 
 \section{Introduction}
 
-The CBFlib library (version 0.7.4) is written in the c language, offering c
+The CBFlib library (version 0.7.4) is written in the C language, offering C
  (and C++)
 programmers a convenient interface to such files.
 The current author uses a different language (python) from day to day and 
@@ -324,9 +323,19 @@ pycbf.CONSTANT\_NAME.
 #define CBF_FLOAT       0x0020  /* Uncompressed IEEE floating-point   */
 #define CBF_CANONICAL   0x0050  /* Canonical compression              */
 #define CBF_PACKED      0x0060  /* Packed compression                 */
+#define CBF_PACKED_V2   0x0090  /* CCP4 Packed (JPA) compression V2   */
 #define CBF_BYTE_OFFSET 0x0070  /* Byte Offset Compression            */
 #define CBF_PREDICTOR   0x0080  /* Predictor_Huffman Compression      */
 #define CBF_NONE        0x0040  /* No compression flag                */
+#define CBF_COMPRESSION_MASK  \
+                        0x00FF  /* Mask to separate compression
+                                   type from flags              */
+#define CBF_FLAG_MASK   0x0F00  /* Mask to separate flags from
+                                   compression type             */
+#define CBF_UNCORRELATED_SECTIONS \
+                        0x0100  /* Flag for uncorrelated sections     */
+#define CBF_FLAT_IMAGE  0x0200  /* Flag for flat (linear) images      */
+#define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */
 
 
   /* Constants used for headers */
@@ -336,6 +345,33 @@ pycbf.CONSTANT\_NAME.
 #define MSG_NODIGEST    0x0004  /* Do not check message digests       */
 #define MSG_DIGEST      0x0008  /* Check message digests              */
 #define MSG_DIGESTNOW   0x0010  /* Check message digests immediately  */
+#define MSG_DIGESTWARN  0x0020  /* Warn on message digests immediately*/
+#define PAD_1K          0x0020  /* Pad binaries with 1023 0's         */
+#define PAD_2K          0x0040  /* Pad binaries with 2047 0's         */
+#define PAD_4K          0x0080  /* Pad binaries with 4095 0's         */
+
+  /* Constants used to control CIF parsing */
+  
+#define CBF_PARSE_BRC   0x0100  /* PARSE DDLm/CIF2 brace {,...}             */
+#define CBF_PARSE_PRN   0x0200  /* PARSE DDLm parens     (,...)             */
+#define CBF_PARSE_BKT   0x0400  /* PARSE DDLm brackets   [,...]             */
+#define CBF_PARSE_BRACKETS \
+                        0x0700  /* PARSE ALL brackets                       */
+#define CBF_PARSE_TQ    0x0800  /* PARSE treble quotes """...""" and '''...'''       */
+#define CBF_PARSE_CIF2_DELIMS  \
+                        0x1000  /* Do not scan past an unescaped close quote
+                                   do not accept {} , : " ' in non-delimited
+                                   strings'{ */                          
+#define CBF_PARSE_DDLm  0x0700  /* For DDLm parse (), [], {}                */
+#define CBF_PARSE_CIF2  0x1F00  /* For CIF2 parse {}, treble quotes,
+                                   stop on unescaped close quotes           */
+#define CBF_PARSE_DEFINES      \
+                        0x2000  /* Recognize DEFINE_name            */      
+                        
+  
+#define CBF_PARSE_WIDE      0x4000  /* PARSE wide files                         */
+#define CBF_PARSE_WS        0x8000  /* PARSE whitespace                         */
+#define CBF_PARSE_UTF8      0x10000 /* PARSE UTF-8                              */
 
 #define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)
 
@@ -350,16 +386,18 @@ pycbf.CONSTANT\_NAME.
 
 #define ENC_NONE        0x0001  /* Use BINARY encoding                 */
 #define ENC_BASE64      0x0002  /* Use BASE64 encoding                 */
-#define ENC_QP          0x0004  /* Use QUOTED-PRINTABLE encoding       */
-#define ENC_BASE10      0x0008  /* Use BASE10 encoding                 */
-#define ENC_BASE16      0x0010  /* Use BASE16 encoding                 */
-#define ENC_BASE8       0x0020  /* Use BASE8  encoding                 */
-#define ENC_FORWARD     0x0040  /* Map bytes to words forward (1234)   */
-#define ENC_BACKWARD    0x0080  /* Map bytes to words backward (4321)  */
-#define ENC_CRTERM      0x0100  /* Terminate lines with CR             */
-#define ENC_LFTERM      0x0200  /* Terminate lines with LF             */
+#define ENC_BASE32K     0x0004  /* Use X-BASE32K encoding              */
+#define ENC_QP          0x0008  /* Use QUOTED-PRINTABLE encoding       */
+#define ENC_BASE10      0x0010  /* Use BASE10 encoding                 */
+#define ENC_BASE16      0x0020  /* Use BASE16 encoding                 */
+#define ENC_BASE8       0x0040  /* Use BASE8  encoding                 */
+#define ENC_FORWARD     0x0080  /* Map bytes to words forward (1234)   */
+#define ENC_BACKWARD    0x0100  /* Map bytes to words backward (4321)  */
+#define ENC_CRTERM      0x0200  /* Terminate lines with CR             */
+#define ENC_LFTERM      0x0400  /* Terminate lines with LF             */
 
 #define ENC_DEFAULT (ENC_BASE64 | ENC_LFTERM | ENC_FORWARD)
+
 
 @}
 
@@ -427,6 +465,8 @@ void get_error_message(){
     sprintf(error_message,"%s %s",error_message,"CBF_UNDEFINED    ");
   if (error_status & CBF_NOTIMPLEMENTED)
     sprintf(error_message,"%s %s",error_message,"CBF_NOTIMPLEMENTED");
+  if (error_status & CBF_NOCOMPRESSION)
+    sprintf(error_message,"%s %s",error_message,"CBF_NOCOMPRESSION");
   }
 @} 
 
@@ -504,6 +544,7 @@ name_dict = {}
 i=-1
 debug = 0
 # Parse the text
+prototypes = ""
 while i<len(lines)-1:
    i=i+1
    line=lines[i]
@@ -515,11 +556,13 @@ while i<len(lines)-1:
       continue 
    if line.find("int cbf_")>=0: # We found a function
       # keep going up to DESCRIPTION
-      prototypes=""+lines[i].rstrip()+" "
+      prototypes+=""+lines[i].rstrip()+" "
+      # print lines[i].rstrip()
       check=0
-      while lines[i+1].find("DESCRIPTION")==-1:
+      while lines[i+1].find("DESCRIPTION")==-1 and lines[i+1].find("int cbf_")==-1:
          i=i+1
          prototypes+=lines[i].rstrip()+" " # lose the \n
+         # print lines[i].rstrip()
          check+=1
          if check>20:
             raise Exception("Runaway prototype "+prototypes)
@@ -543,16 +586,20 @@ while i<len(lines)-1:
          else:
             docstring =docstring+" "+line.lstrip().rstrip()
       if line.strip()[0] in [str(j) for j in range(9)] or \
-            line.find("SEE ALSO")>=0 or\
-            line.find("________")>=0:
+            line.find("SEE ALSO")>=0 or \
+            line.find("________")>=0 or \
+            line.find("--------")>=0:
          if len(docstring)>0:
-            docstring = docstring.replace("\"", "\\\"") # escape the quotes
+            # print "Prototypes: ",prototypes
+            docstring = docstring.replace("\"", " \\\"") # escape the quotes
             for prototype in prototypes.strip().split(";")[:-1]:
                 name = prototype.split("(")[0].strip()
                 cname = name.split()[1].strip()
                 prototype = prototype.strip()+";"
                 name_dict[cname]=[prototype,docstring]
-		#  print "Found ",prototype
+                # print "Prototype: ","::",cname,"::",name,"::", prototype
+            prototypes = ""
+            # print "Found ",prototype
             docstring="\n"
             prototype=""
             cname=""
@@ -564,62 +611,40 @@ while i<len(lines)-1:
 
 # End of CBFlib.txt file - now generate wrapper code for swig
 
+
+
+def myformat(s,l,indent=0,breakon=" "):
+   """
+   Try to pretty print lines - this is a pain...
+   """
+   lines = s.rstrip().split("\n")
+   out=""
+   for line in lines:
+      if len(line)==0:
+         continue # skip blank lines
+      if len(line)>l:
+         words = line.split(breakon)
+         newline=words[0]
+         if len(words)>1:
+            for word in words[1:]:
+               if len(newline)+len(word)+1 < l:
+                  newline=newline+breakon+word
+               else:
+                  out = out+newline+breakon+"\n"+indent*" "
+                  newline=word       
+            out += newline+"\n"
+         else:
+            out += "\n"
+      else:
+         out += line+"\n" # Last one
+   if out == "":
+      return "\n"
+   else:
+      return out
+
+
 @<  docstringwrite @>
-@<  cbfhandlewrapper @>
-
-cbf_handle_wrapper = cbfhandlewrapper()
-
-@<  cbfgoniometerwrapper @>
-
-cbf_goniometer_wrapper = cbfgoniometerwrapper()
-
-@<  cbfdetectorwrapper @>
-
-cbf_detector_wrapper = cbfdetectorwrapper()
-
-@< genericwrapper @>
-
-generic_wrapper = genericwrapper()
-
-def generate_wrappers(name_dict):
-   names = name_dict.keys()
-   for cname in names:
-      prototype = name_dict[cname][0]
-      docstring = name_dict[cname][1]
-      # Check prototype begins with "int cbf_"
-      if prototype.find("int cbf_")!=0:
-         print "problem with:",prototype
-      # Get arguments from prototypes
-      try:
-         args = prototype.split("(")[1].split(")")[0].split(",")
-         args = [ s.lstrip().rstrip() for s in args ] # strip spaces off ends
-      except:
-         print cname
-         print prototype
-         raise
-      if args[0].find("cbf_handle")>=0: # This is for the cbfhandle object
-         cbf_handle_wrapper.wrap(cname,prototype,args,docstring)
-         continue
-      if args[0].find("cbf_goniometer")>=0: # This is for the cbfgoniometer
-         cbf_goniometer_wrapper.wrap(cname,prototype,args,docstring)
-         continue
-      if args[0].find("cbf_detector")>=0: # This is for the cbfdetector
-         cbf_detector_wrapper.wrap(cname,prototype,args,docstring)
-         continue
-      generic_wrapper.wrap(cname,prototype,args,docstring)
- 
-
-generate_wrappers(name_dict)
-open("cbfgoniometerwrappers.i","w").write(cbf_goniometer_wrapper.get_code())
-open("cbfdetectorwrappers.i","w").write(cbf_detector_wrapper.get_code())
-open("cbfhandlewrappers.i","w").write(cbf_handle_wrapper.get_code())
-open("cbfgenericwrappers.i","w").write(generic_wrapper.get_code())
-
-print "End of output from make_pycbf.py"
-print "\\end{verbatim}"
-
 @}
-
 
 A little helper function called docstringwriter is used to try to 
 format the documentation giving the python calling sequence and 
@@ -650,270 +675,9 @@ def docstringwrite(pyfunc,input,output,prototype,cbflibdoc):
    doc += "\nCBFLib documentation:\n"+myformat(cbflibdoc,70)+"\")"
    doc += pyfunc+";\n"
    return doc
+   
 @}
 
-Finally a little function to break lines at the first space before n
-characters is hit as the python doc formatting tools don't seem to do that.
-
-@d myformat
-@{
-def myformat(s,l,indent=0,breakon=" "):
-   """
-   Try to pretty print lines - this is a pain...
-   """
-   lines = s.rstrip().split("\n")
-   out=""
-   for line in lines:
-      if len(line)==0:
-         continue # skip blank lines
-      if len(line)>l:
-         words = line.split(breakon)
-         newline=words[0]
-         if len(words)>1:
-            for word in words[1:]:
-               if len(newline)+len(word)+1 < l:
-                  newline=newline+breakon+word
-               else:
-                  out = out+newline+breakon+"\n"+indent*" "
-                  newline=word       
-            out += newline+"\n"
-         else:
-            out += "\n"
-      else:
-         out += line+"\n" # Last one
-   if out == "":
-      return "\n"
-   else:
-      return out
-@}   
-
-\subsection{A generic wrapper}
-
-There are a few utility functions which do not work on one of the three exposed 
-objects in the library, these are wrapped here:
-
-@D genericwrapper
-@{
-
-class genericwrapper:
-   def __init__(self):
-       self.code = "// Start of generic functions\n"
-       self.tail = "// End of generic functions\n"
-   def get_code(self):
-       return self.code + self.tail
-   def wrap(self,cfunc,prototype,args,docstring):
-       pyfunc = cfunc.replace("cbf_","")
-       # Insert a comment for debugging this script
-       code = "\n/* cfunc %s   pyfunc %s  \n"%(cfunc,pyfunc)
-       for a in args:
-           code += "   arg %s "%(a)
-       code += "*/\n\n"
-       self.code+=code
-       code = ""
-       if len(args)==1 and args[0].find("char")>-1 and \
-                           args[0].find("**")>-1                :# return string
-           # first write the c code and inline it
-           code += docstringwrite(pyfunc,[],["string"],prototype,docstring)
-           code += "%%inline %%{\n   char* %s(void);\n"%(pyfunc)
-           code += "   char* %s(void){\n"%(pyfunc)
-           code += "      char *r;\n"
-           code += "      error_status = %s(&r);\n"%(cfunc)
-           code += "      return r; }\n%}\n"
-           # now the thing to wrap is:
-           code += "char* %s(void);"%(pyfunc)
-           self.code=self.code+code
-           return
-           
-#       code+= "     void %s(void){\n"%(pyfunc)
-#       code +="        cbf_failnez(CBF_NOTIMPLEMENTED);}\n"
-#       self.code=self.code+code
-       print "Have not implemented:"
-       for s in [cfunc, pyfunc] + args:
-           print "\t",s 
-       print
-       return
-
-@}
-
-
-\subsection{CBFHandles}
-
-A cif file seems to be represented and accessed in the library 
-via a pointer to a cbf\_handle\_structure.
-
-There are lots of functions which have such a thing as their
-first argument. They are broken up here according to 
-there input and output arguments.
-
-
-@D cbfhandlewrapper 
-@{
-
-@< cbfhandlespecials @>
-
-class cbfhandlewrapper:
-   def __init__(self):
-      self.code = """
-// Tell SWIG not to make constructor for these objects
-%nodefault cbf_handle;
-%nodefault cbf_handle_struct;
-%nodefault cbf_node;
-
-// A couple of blockitem functions return CBF_NODETYPE
-typedef enum
-{
-  CBF_UNDEFNODE,        /* Undefined */
-  CBF_LINK,             /* Link      */
-  CBF_ROOT,             /* Root      */
-  CBF_DATABLOCK,        /* Datablock */
-  CBF_SAVEFRAME,        /* Saveframe */
-  CBF_CATEGORY,         /* Category  */
-  CBF_COLUMN            /* Column    */
-}
-CBF_NODETYPE;
-
-
-// Tell SWIG what the object is, so we can build the class
-
-typedef struct
-{
-  cbf_node *node;
-
-  int row, search_row;
-}  cbf_handle_struct;
-
-typedef cbf_handle_struct *cbf_handle;
-
-typedef cbf_handle_struct handle;
-%feature("autodoc","1");
-
-%extend cbf_handle_struct{   // Tell SWIG to attach functions to the structure
-
-    cbf_handle_struct(){  // Constructor
-       cbf_handle handle;
-       cbf_failnez(cbf_make_handle(&handle));
-       return handle;
-       } 
-
-    ~cbf_handle_struct(){ // Destructor
-       cbf_failnez(cbf_free_handle(self));
-       }
-"""
-      self.tail = """
-}; // End of cbf_handle_struct
-"""
-   # End of init function
-   def get_code(self):
-       return self.code+self.tail
-   def wrap(self,cfunc,prototype,args,docstring):
-       pyfunc = cfunc.replace("cbf_","")
-       # Insert a comment for debugging this script
-       code = "\n/* cfunc %s   pyfunc %s  \n"%(cfunc,pyfunc)
-       for a in args:
-          code += "   arg %s "%(a)
-       code += "*/\n\n"
-       # Make and free handle are done in the header so skip
-       if cfunc.find("cbf_make_handle")>-1 or cfunc.find("cbf_free_handle")>-1:
-          # Constructor and destructor done in headers
-          return
-       if args[0] != "cbf_handle handle": # Must be for cbfhandle
-          print "problem",cfunc,pyfunc,args
-          return
-       if len(args)==1: # Only takes CBFhandle arg
-          code+= docstringwrite(pyfunc,[],[],prototype,docstring)
-          code+= "    void %s(void){\n"%(pyfunc)
-          code+= "      cbf_failnez(%s(self));}\n"%(cfunc) 
-          self.code=self.code+code
-          return
-       # Now case by case rather than writing a proper parser
-       # Special cases ...
-       not_found=0
-       try:
-           code, pyname, input, output = cbfhandle_specials[cfunc]
-           self.code +=  docstringwrite(pyname,input,output,
-                                              prototype,docstring)+ code
-           return
-       except KeyError:
-           not_found = 1
-       except ValueError:
-           print "problem in",cfunc
-           for item in cbfhandle_specials[cfunc]:
-              print "***",item
-           raise
-       if len(args)==2:
-          if args[1].find("const char")>-1 and \
-             args[1].find("*")>-1          and \
-             args[1].find("**")==-1            :
-             # 1 input string
-             code += docstringwrite(pyfunc,[],["string"],prototype,docstring)
-             code += "    void %s(const char* arg){\n"%(pyfunc)
-             code +="      cbf_failnez(%s(self,arg));}\n"%(cfunc)
-             self.code=self.code+code
-             return
-          if args[1].find("const char")>-1 and \
-             args[1].find("**")>-1                :# return string
-             code += docstringwrite(pyfunc,["string"],[],prototype,docstring)
-             code += "    const char* %s(void){\n"%(pyfunc)
-             code += "    const char* result;\n"
-             code += "    cbf_failnez(%s(self, &result));\n"%(cfunc)
-             code += "    return result;}\n"
-             self.code=self.code+code
-             return
-          if args[1].find("unsigned int")>-1 and args[1].find("*")==-1:
-             # set uint
-             if args[1].find("reserved")>-1:
-                raise Exception("Setting reserved??? %s %s %s"%(pyfunc,
-                                                           cfunc,str(args)))
-             code += docstringwrite(pyfunc,["Integer"],[],prototype,docstring)
-             code +="    void %s(unsigned int arg){\n"%(pyfunc)
-             code +="      cbf_failnez(%s(self,arg));}\n"%(cfunc)
-             self.code=self.code+code
-             return
-          if args[1].find("unsigned int *")>-1 and args[1].find("**")==-1:
-             # output uint
-             if args[1].find("reserved")>-1:
-                raise Exception("Setting reserved??? %s %s %s"%(pyfunc,
-                                                           cfunc,str(args)))
-             code += docstringwrite(pyfunc,[],["Integer"],prototype,docstring)
-             code +="    unsigned int %s(void){\n"%(pyfunc)
-             code +="      unsigned int result;\n"
-             code +="      cbf_failnez(%s(self,&result));\n"%(cfunc)
-             code +="      return result;}\n"
-             self.code=self.code+code
-             return
-          # For the rest attempt to guess
-          if args[1].find("cbf")==-1: # but do not try the goniometer constructor
-             if args[1].find("*")>-1 and args[1].find("cbf")==-1:
-                # pointer used for returning something
-                type = args[1].split(" ")[0]
-                code += docstringwrite(pyfunc,[],[type.replace("*","")],
-                                                          prototype,docstring)
-                code+= "    "+type+" "+pyfunc+"(void){\n"
-                code+= "     "+type+" result;\n"
-                code+= "       cbf_failnez(%s(self,&result));\n"%(cfunc)
-                code+= "       return result;}\n"
-                self.code=self.code+code
-                return
-             else:
-                var = args[1].split(" ")[-1]
-                code += docstringwrite(pyfunc,[],[args[1]],prototype,docstring)
-                code+= "     void %s(%s){\n"%(pyfunc,args[1])
-                code +="        cbf_failnez(%s(self,%s));}\n"%(cfunc,var)
-                self.code=self.code+code
-                return
-       if not_found:
-             code+= "     void %s(void){\n"%(pyfunc)
-             code +="        cbf_failnez(CBF_NOTIMPLEMENTED);}\n"
-             self.code=self.code+code
-             print "Have not implemented: cbfhandle.%s"%(pyfunc)
-             print "   ",cfunc
-             print "    args:"
-             for a in args:
-                 print "       ",a 
-             print
-             return
-
-@}
 
 
 \subsubsection{Manually wrapped things for cbfhandle object}
@@ -950,6 +714,124 @@ cbfhandle_specials = {
      "int elsize", "int elsigned", "int elunsigned", 
      "int elements", "int minelement", "int maxelement"]],
 
+"cbf_get_integerarrayparameters_wdims":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, int *elsigned, int *elunsigned, 
+                    int *elements, int *minelement, int *maxelement,
+                    int *dimfast, int *dimmid, int *dimslow, int *padding} 
+                  get_integerarrayparameters_wdims;
+
+    void get_integerarrayparameters_wdims(int *compression,int *binary_id, 
+                        int *elsize, int *elsigned, int *elunsigned, 
+                        int *elements, int *minelement, int *maxelement,
+                        char **bo, int *bolen,
+                        int *dimfast, int *dimmid, int *dimslow, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * byteorder;
+        char * bot;
+        cbf_failnez(cbf_get_integerarrayparameters_wdims(self, 
+         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
+          minelement, maxelement, &byteorder,&df,&dm,&ds,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
+        *elsize = elsiz;
+        *elements = elem;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
+""","get_integerarrayparameters_wdims",[],["int compression","int binary_id", 
+     "int elsize", "int elsigned", "int elunsigned", 
+     "int elements", "int minelement", "int maxelement", "char **bo", "int *bolen",
+     "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+
+"cbf_get_integerarrayparameters_wdims_fs":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, int *elsigned, int *elunsigned, 
+                    int *elements, int *minelement, int *maxelement,
+                    int *dimfast, int *dimmid, int *dimslow, int *padding} 
+                  get_integerarrayparameters_wdims_fs;
+
+    void get_integerarrayparameters_wdims_fs(int *compression,int *binary_id, 
+                        int *elsize, int *elsigned, int *elunsigned, 
+                        int *elements, int *minelement, int *maxelement,
+                        char **bo, int *bolen,
+                        int *dimfast, int *dimmid, int *dimslow, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * byteorder;
+        char * bot;
+        cbf_failnez(cbf_get_integerarrayparameters_wdims_fs(self, 
+         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
+          minelement, maxelement, &byteorder,&df,&dm,&ds,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp; 
+        *elsize = elsiz;
+        *elements = elem;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
+""","get_integerarrayparameters_wdims_fs",[],["int compression","int binary_id", 
+     "int elsize", "int elsigned", "int elunsigned", 
+     "int elements", "int minelement", "int maxelement", "char **bo", "int *bolen",
+      "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+
+
+"cbf_get_integerarrayparameters_wdims_sf":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, int *elsigned, int *elunsigned, 
+                    int *elements, int *minelement, int *maxelement,
+                    int *dimslow, int *dimmid, int *dimfast, int *padding} 
+                  get_integerarrayparameters_wdims_sf;
+
+    void get_integerarrayparameters_wdims_sf(int *compression,int *binary_id, 
+                        int *elsize, int *elsigned, int *elunsigned, 
+                        int *elements, int *minelement, int *maxelement,
+                        char **bo, int *bolen,
+                        int *dimslow, int *dimmid, int *dimfast, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * byteorder;
+        char * bot;
+        cbf_failnez(cbf_get_integerarrayparameters_wdims_sf(self, 
+         &comp,binary_id, &elsiz, elsigned, elunsigned, &elem, 
+          minelement, maxelement, &byteorder,&ds,&dm,&df,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
+        *elsize = elsiz;
+        *elements = elem;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
+""","get_integerarrayparameters_wdims_sf",[],["int compression","int binary_id", 
+     "int elsize", "int elsigned", "int elunsigned", 
+     "int elements", "int minelement", "int maxelement", "char **bo", "int *bolen",
+      "int dimslow", "int dimmid", "int dimfast", "int padding"]],
+
 
 "cbf_get_realarrayparameters":["""
 %apply int *OUTPUT {int *compression,int *binary_id, 
@@ -968,6 +850,125 @@ cbfhandle_specials = {
         }
 ""","get_realarrayparameters",[],["int compression","int binary_id", 
      "int elsize", "int elements"]],
+
+"cbf_get_realarrayparameters_wdims":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, 
+                    int *elements,
+                    int *dimslow, int *dimmid, int *dimfast, int *padding} 
+                  get_realarrayparameters_wdims;
+
+    void get_realarrayparameters_wdims(int *compression,int *binary_id, 
+                        int *elsize, 
+                        int *elements, 
+                        char **bo, int *bolen,
+                        int *dimfast, int *dimmid, int *dimslow, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * byteorder;
+        char * bot;
+        cbf_failnez(cbf_get_realarrayparameters_wdims(self, 
+         &comp,binary_id, &elsiz, &elem, 
+         &byteorder,&ds,&dm,&ds,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
+        *elsize = elsiz;
+        *elements = elem;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
+""","get_realarrayparameters_wdims",[],["int compression","int binary_id", 
+     "int elsize", 
+     "int elements", "char **bo", "int *bolen",
+     "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+
+
+"cbf_get_realarrayparameters_wdims_fs":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, 
+                    int *elements,
+                    int *dimslow, int *dimmid, int *dimfast, int *padding} 
+                  get_realarrayparameters_wdims_fs;
+
+    void get_realarrayparameters_wdims_fs(int *compression,int *binary_id, 
+                        int *elsize, 
+                        int *elements, 
+                        char **bo, int *bolen,
+                        int *dimfast, int *dimmid, int *dimslow, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * byteorder;
+        char * bot;
+        cbf_failnez(cbf_get_realarrayparameters_wdims_fs(self, 
+         &comp,binary_id, &elsiz, &elem, 
+         &byteorder,&ds,&dm,&ds,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
+        *elsize = elsiz;
+        *elements = elem;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
+""","get_realarrayparameters_wdims_fs",[],["int compression","int binary_id", 
+     "int elsize", 
+     "int elements", "char **bo", "int *bolen",
+      "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+
+
+"cbf_get_realarrayparameters_wdims_sf":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+%apply int *OUTPUT {int *compression,int *binary_id, 
+                    int *elsize, 
+                    int *elements,
+                    int *dimslow, int *dimmid, int *dimfast, int *padding} 
+                  get_realarrayparameters_wdims_sf;
+
+    void get_realarrayparameters_wdims_sf(int *compression,int *binary_id, 
+                        int *elsize, 
+                        int *elements, 
+                        char **bo, int *bolen,
+                        int *dimslow, int *dimmid, int *dimfast, int *padding
+                        ){
+        unsigned int  comp;
+        size_t elsiz, elem, df,dm,ds,pd;
+        const char * byteorder;
+        char * bot;
+        cbf_failnez(cbf_get_realarrayparameters_wdims_sf(self, 
+         &comp,binary_id, &elsiz, &elem, 
+         &byteorder,&ds,&dm,&df,&pd ));
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+        *compression = comp;
+        *elsize = elsiz;
+        *elements = elem;
+        *dimfast = df;
+        *dimmid = dm;
+        *dimslow = ds;
+        *padding = pd;
+        
+        }
+""","get_realarrayparameters_wdims_sf",[],["int compression","int binary_id", 
+     "int elsize", 
+     "int elements", "char **bo", "int *bolen",
+      "int dimslow", "int dimmid", "int dimfast", "int padding"]],
 
 
 
@@ -990,7 +991,7 @@ cbfhandle_specials = {
                &binary_id, &elsize, &elsigned, &elunsigned,
                &elements, &minelement, &maxelement));
 
-	     if ((array=malloc(elsize*elements))) {
+        if ((array=malloc(elsize*elements))) {
               /* cbf_failnez (cbf_select_column(cbf,colnum)) */
                cbf_failnez (cbf_get_integerarray(self, &binary_id, 
                             (void *)array, elsize, elsigned,
@@ -1003,6 +1004,376 @@ cbfhandle_specials = {
         *s = (char *) array;
       }
 ""","get_integerarray_as_string",[],["(Binary)String"] ],
+
+
+"cbf_get_image":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_image_as_string;
+
+// Get the length correct
+
+    void get_image_as_string(int element_number, char **s, int *slen,
+    int elsize, int elsign, int ndimslow, int ndimfast){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimslow))) {
+               cbf_failnez (cbf_get_image(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize, elsign,
+               (size_t) ndimslow, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimslow;
+        *s = (char *) array;
+      }
+""","get_image_as_string",["int element_number", 
+    "int elsize", "int elsign", "int ndimslow", "int ndimfast"],["(Binary)String"] ],
+
+"cbf_get_image_fs":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_image_fs_as_string;
+
+// Get the length correct
+
+    void get_image_fs_as_string(int element_number, char **s, int *slen,
+    int elsize, int elsign, int ndimfast, int ndimslow){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimslow))) {
+               cbf_failnez (cbf_get_image_fs(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize, elsign,
+               (size_t) ndimfast, (size_t)ndimslow));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimslow;
+        *s = (char *) array;
+      }
+""","get_image_fs_as_string",["int element_number", 
+    "int elsize", "int elsign", "int ndimfast", "int ndimslow"],["(Binary)String"] ],
+
+
+"cbf_get_image_sf":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_image_fs_as_string;
+
+// Get the length correct
+
+    void get_image_sf_as_string(int element_number, char **s, int *slen,
+    int elsize, int elsign, int ndimslow, int ndimfast){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimslow))) {
+               cbf_failnez (cbf_get_image_sf(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize, elsign,
+               (size_t) ndimslow, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimslow;
+        *s = (char *) array;
+      }
+""","get_image_sf_as_string",["int element_number", 
+    "int elsize", "int elsign", "int ndimslow", "int ndimfast"],["(Binary)String"] ],
+
+"cbf_get_real_image":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_real_image_as_string;
+
+// Get the length correct
+
+    void get_real_image_as_string(int element_number, char **s, int *slen,
+    int elsize, int ndimslow, int ndimfast){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimslow))) {
+               cbf_failnez (cbf_get_real_image(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize,
+               (size_t) ndimslow, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimslow;
+        *s = (char *) array;
+      }
+""","get_real_image_as_string",["int element_number", 
+    "int elsize", "int ndimslow", "int ndimfast"],["(Binary)String"] ],
+
+"cbf_get_real_image_fs":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_real_image_fs_as_string;
+
+// Get the length correct
+
+    void get_real_image_fs_as_string(int element_number, char **s, int *slen,
+    int elsize, int ndimfast, int ndimslow){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimslow))) {
+               cbf_failnez (cbf_get_real_image_fs(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize,
+               (size_t) ndimfast, (size_t)ndimslow));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimslow;
+        *s = (char *) array;
+      }
+""","get_real_image_fs_as_string",["int element_number", 
+    "int elsize", "int ndimfast", "int ndimslow"],["(Binary)String"] ],
+
+"cbf_get_real_image_sf":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_real_image_sf_as_string;
+
+// Get the length correct
+
+    void get_real_image_sf_as_string(int element_number, char **s, int *slen,
+    int elsize, int ndimslow, int ndimfast){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimslow))) {
+               cbf_failnez (cbf_get_real_image_sf(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize,
+               (size_t) ndimslow, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimslow;
+        *s = (char *) array;
+      }
+""","get_real_image_sf_as_string",["int element_number", 
+    "int elsize", "int ndimslow", "int ndimfast"],["(Binary)String"] ],
+
+
+
+
+"cbf_get_3d_image":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_3d_image_as_string;
+
+// Get the length correct
+
+    void get_3d_image_as_string(int element_number, char **s, int *slen,
+    int elsize, int elsign, int ndimfast, int ndimmid, int ndimslow){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {
+               cbf_failnez (cbf_get_3d_image(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize, elsign,
+               (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimmid*ndimslow;
+        *s = (char *) array;
+      }
+""","get_3d_image_as_string",["int element_number", 
+    "int elsize", "int elsign", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],
+
+
+
+"cbf_get_3d_image_fs":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_3d_image_fs_as_string;
+
+// Get the length correct
+
+    void get_3d_image_fs_as_string(int element_number, char **s, int *slen,
+    int elsize, int elsign, int ndimfast, int ndimmid, int ndimslow){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {
+               cbf_failnez (cbf_get_3d_image_fs(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize, elsign,
+               (size_t) ndimfast, (size_t)ndimmid, (size_t)ndimslow));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimmid*ndimslow;
+        *s = (char *) array;
+      }
+""","get_3d_image_fs_as_string",["int element_number", 
+    "int elsize", "int elsign", "int ndimfast", "int ndimmid", "int ndimslow"],["(Binary)String"] ],
+
+
+
+"cbf_get_3d_image_sf":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_3d_image_sf_as_string;
+
+// Get the length correct
+
+    void get_3d_image_sf_as_string(int element_number, char **s, int *slen,
+    int elsize, int elsign, int ndimfast, int ndimmid, int ndimslow){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {
+               cbf_failnez (cbf_get_3d_image_sf(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize, elsign,
+               (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimmid*ndimslow;
+        *s = (char *) array;
+      }
+""","get_3d_image_sf_as_string",["int element_number", 
+    "int elsize", "int elsign", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],
+
+"cbf_get_real_3d_image":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_real_3d_image_as_string;
+
+// Get the length correct
+
+    void get_real_3d_image_as_string(int element_number, char **s, int *slen,
+    int elsize, int ndimslow, int ndimmid, int ndimfast){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {
+               cbf_failnez (cbf_get_real_3d_image(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize,
+               (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimmid*ndimslow;
+        *s = (char *) array;
+      }
+""","get_real_3d_image_as_string",["int element_number", 
+    "int elsize", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],
+
+
+
+"cbf_get_real_3d_image_fs":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_real_3d_image_fs_as_string;
+
+// Get the length correct
+
+    void get_real_3d_image_fs_as_string(int element_number, char **s, int *slen,
+    int elsize, int ndimfast, int ndimmid, int ndimslow){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {
+               cbf_failnez (cbf_get_real_3d_image_fs(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize,
+               (size_t) ndimfast, (size_t)ndimmid, (size_t)ndimslow));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimmid*ndimslow;
+        *s = (char *) array;
+      }
+""","get_real_3d_image_fs_as_string",["int element_number", 
+    "int elsize", "int ndimfast", "int ndimmid", "int ndimslow"],["(Binary)String"] ],
+
+"cbf_get_real_3d_image_sf":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_real_3d_image_sf_as_string;
+
+// Get the length correct
+
+    void get_real_3d_image_sf_as_string(int element_number, char **s, int *slen,
+    int elsize, int ndimslow, int ndimmid, int ndimfast){
+        void *array;
+        int reserved = 0;
+        *slen = 0; /* Initialise in case of problems */
+        if ((array=malloc(elsize*ndimfast*ndimmid*ndimslow))) {
+               cbf_failnez (cbf_get_real_3d_image_sf(self, 
+               reserved, (unsigned int)element_number,
+               (void *)array, (size_t)elsize,
+               (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast));
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*ndimfast*ndimmid*ndimslow;
+        *s = (char *) array;
+      }
+""","get_real_3d_image_sf_as_string",["int element_number", 
+    "int elsize", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],
+
+
+
+"cbf_get_realarray":["""
+// Ensure we free the local temporary
+
+%cstring_output_allocate_size(char ** s, int *slen, free(*$1))
+       get_realarray_as_string;
+
+// Get the length correct
+
+    void get_realarray_as_string(char **s, int *slen){
+        int binary_id;
+        size_t elements, elements_read, elsize;
+        unsigned int compression;
+        void * array;
+        *slen = 0; /* Initialise in case of problems */
+        cbf_failnez(cbf_get_realarrayparameters(self, &compression,
+               &binary_id, &elsize,
+               &elements));
+
+        if ((array=malloc(elsize*elements))) {
+              /* cbf_failnez (cbf_select_column(cbf,colnum)) */
+               cbf_failnez (cbf_get_realarray(self, &binary_id, 
+                            (void *)array, elsize,
+                            elements, &elements_read));
+
+         }else{
+               cbf_failnez(CBF_ALLOC);
+         }
+        *slen = elsize*elements;
+        *s = (char *) array;
+      }
+""","get_realarray_as_string",[],["(Binary)String"] ],
+
 
 "cbf_set_integerarray":["""
     /* CBFlib must NOT modify the data string which belongs to the scripting 
@@ -1029,20 +1400,630 @@ cbfhandle_specials = {
 [ "int compression", "int binary_id","(binary) String data", 
  "int elsize", "int elsigned","int elements"],[]],
 
+"cbf_set_integerarray_wdims":["""
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_integerarray_wdims;
+
+    void set_integerarray_wdims(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elsigned, int elements,
+             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_integerarray_wdims (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
+           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_integerarray_wdims",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+
+"cbf_set_integerarray_wdims_sf":["""
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims_sf;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_integerarray_wdims_sf;
+
+    void set_integerarray_wdims_sf(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elsigned, int elements,
+             char *bo, int bolen, int dimslow, int dimmid, int dimfast, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_integerarray_wdims_sf (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
+           (size_t)dimslow, (size_t)dimmid, (size_t)dimfast, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_integerarray_wdims_sf",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],
+
+"cbf_set_integerarray_wdims_fs":["""
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_integerarray_wdims_fs;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_integerarray_wdims_fs;
+
+    void set_integerarray_wdims_fs(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elsigned, int elements,
+             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_integerarray_wdims_fs (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
+           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_integerarray_wdims_fs",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+
+
+"cbf_set_realarray":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray;
+
+    void set_realarray(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elements){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        if(len == elsize*elements){
+           array = data;
+           els = elsize;
+           ele = elements;
+           cbf_failnez(cbf_set_realarray (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_realarray",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements"],[]],
+
+"cbf_set_realarray_wdims":["""
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray_wdims;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_realarray_wdims;
+
+    void set_realarray_wdims(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elements,
+             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_realarray_wdims (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
+           (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_realarray_wdims",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+
+"cbf_set_realarray_wdims_sf":["""
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray_wdims_sf;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_realarray_wdims_sf;
+
+    void set_realarray_wdims_sf(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elements,
+             char *bo, int bolen, int dimslow, int dimmid, int dimfast, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_realarray_wdims_sf (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
+           (size_t) dimslow, (size_t) dimmid, (size_t) dimfast, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_realarray_wdims_sf",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],
+
+"cbf_set_realarray_wdims_fs":["""
+    /* CBFlib must NOT modify the data string nor the byteorder string
+       which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_realarray_wdims_fs;
+%apply (char *STRING, int LENGTH) { (char *bo, int bolen) } set_realarray_wdims_fs;
+
+    void set_realarray_wdims_fs(unsigned int compression, int binary_id, 
+             char *data, int len, int elsize, int elements,
+             char *bo, int bolen, int dimfast, int dimmid, int dimslow, int padding){
+        /* safety check on args */
+        size_t els, ele;
+        void *array;
+        char byteorder[15];
+        if(len == elsize*elements && elements==dimfast*dimmid*dimslow){
+           array = data;
+           els = elsize;
+           ele = elements;
+           strncpy(byteorder,bo,bolen<15?bolen:14);
+           byteorder[bolen<15?14:bolen] = 0;
+           cbf_failnez(cbf_set_realarray_wdims_fs (self, compression, binary_id, 
+           (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
+           (size_t) dimfast, (size_t) dimmid, (size_t) dimslow, (size_t)padding)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_realarray_wdims_fs",
+[ "int compression", "int binary_id","(binary) String data", 
+ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+
+
+"cbf_set_image":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_image;
+
+    void set_image(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int elsign, int ndimslow, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_image (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_image",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int elsign", "int dimslow", "int dimfast"],[]],
+
+"cbf_set_image_fs":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_image;
+
+    void set_image_fs(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int elsign, int ndimfast, int ndimslow){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_image (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, elsign, (size_t) ndimfast, (size_t)ndimslow)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_image_fs",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int elsign", "int dimfast", "int dimslow"],[]],
+
+"cbf_set_image_sf":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_image_sf;
+
+    void set_image_sf(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int elsign, int ndimslow, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_image_sf (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_image_sf",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int elsign", "int dimslow", "int dimfast"],[]],
+
+
+"cbf_set_real_image":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_image;
+
+    void set_real_image(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int ndimslow, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_real_image (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_real_image",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int dimslow", "int dimfast"],[]],
+
+
+"cbf_set_real_image_fs":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_image;
+
+    void set_real_image_fs(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int ndimfast, int ndimslow){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_real_image_fs (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, (size_t) ndimfast, (size_t)ndimslow)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_real_image_fs",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int dimfast", "int dimslow"],[]],
+
+
+"cbf_set_real_image_sf":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_image_sf;
+
+    void set_real_image_sf(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int ndimslow, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_real_image_sf (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_real_image_sf",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int dimslow", "int dimfast"],[]],
+
+"cbf_set_3d_image":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_3d_image;
+
+    void set_3d_image(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int elsign, int ndimslow, int ndimmid, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimmid*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_3d_image (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t) ndimmid, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_3d_image",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int elsign", "int dimslow", "int dimmid", "int dimfast"],[]],
+
+"cbf_set_3d_image_fs":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_3d_image;
+
+    void set_3d_image_fs(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int elsign, int ndimfast, int ndimmid, int ndimslow){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimmid*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_3d_image_fs (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, elsign, (size_t) ndimfast, (size_t) ndimmid, (size_t)ndimslow)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_3d_image_fs",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int elsign", "int dimfast", "int dimmid", "int dimslow"],[]],
+
+"cbf_set_3d_image_sf":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_3d_image;
+
+    void set_3d_image_sf(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int elsign, int ndimslow, int ndimmid, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimmid*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_3d_image_sf (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, elsign, (size_t) ndimslow, (size_t) ndimmid, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_3d_image_sf",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int elsign", "int dimslow", "int dimmid", "int dimfast"],[]],
+
+
+"cbf_set_real_3d_image":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_3d_image_sf;
+
+    void set_real_3d_image(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int ndimslow, int ndimmid, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimmid*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_real_3d_image (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_real_3d_image",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int dimslow", "int dimmid", "int dimfast"],[]],
+
+"cbf_set_real_3d_image_fs":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_3d_image_fs;
+
+    void set_real_3d_image_fs(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int ndimfast, int ndimmid, int ndimslow){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimmid*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_real_3d_image_fs (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, (size_t) ndimfast, (size_t)ndimmid, (size_t)ndimslow)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_real_3d_image_fs",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int dimfast", "int dimmid", "int dimslow"],[]],
+
+"cbf_set_real_3d_image_sf":["""
+    /* CBFlib must NOT modify the data string which belongs to the scripting 
+       language we will get and check the length via a typemap */
+
+%apply (char *STRING, int LENGTH) { (char *data, int len) } set_real_3d_image_sf;
+
+    void set_real_3d_image_sf(unsigned int element_number,
+             unsigned int compression, 
+             char *data, int len, int elsize, int ndimslow, int ndimmid, int ndimfast){
+        /* safety check on args */
+        size_t els;
+        unsigned int reserved;
+        void *array;
+        if(len == elsize*ndimslow*ndimmid*ndimfast){
+           array = data;
+           els = elsize;
+           reserved = 0;
+           cbf_failnez(cbf_set_real_3d_image_sf (self, reserved, element_number, compression,
+           (void *) data,  (size_t) elsize, (size_t) ndimslow, (size_t)ndimmid, (size_t)ndimfast)); 
+        }else{
+           cbf_failnez(CBF_ARGUMENT);
+        }
+    }
+""","set_real_3d_image_sf",
+[ "int element_number","int compression","(binary) String data", 
+ "int elsize", "int dimslow", "int dimmid", "int dimfast"],[]],
+
+
 
 "cbf_get_image_size": ["""
-%apply int *OUTPUT {int *ndim1, int *ndim2} get_image_size;
-     void get_image_size(unsigned int element_number, int *ndim1, int *ndim2){
+%apply int *OUTPUT {int *ndimslow, int *ndimfast} get_image_size;
+     void get_image_size(unsigned int element_number, int *ndimslow, int *ndimfast){
         unsigned int reserved;
-        size_t in1, in2;
+        size_t inslow, infast;
         reserved = 0;
-        cbf_failnez(cbf_get_image_size(self,reserved,element_number,&in1,&in2));
-        *ndim1 = in1; /* FIXME - is that how to convert? */
-        *ndim2 = in2; 
+        cbf_failnez(cbf_get_image_size(self,reserved,element_number,&inslow,&infast));
+        *ndimslow = (int)inslow;
+        *ndimfast = (int)infast; 
         }
 ""","get_image_size",["Integer element_number"],["size_t ndim1","size_t ndim2"]],
 
+"cbf_get_image_size_fs": ["""
+%apply int *OUTPUT {int *ndimfast, int *ndimslow} get_image_size_fs;
+     void get_image_size_fs(unsigned int element_number, int *ndimfast, int *ndimslow){
+        unsigned int reserved;
+        size_t infast, inslow;
+        reserved = 0;
+        cbf_failnez(cbf_get_image_size_fs(self,reserved,element_number,&infast,&inslow));
+        *ndimfast = (int)infast; /* FIXME - is that how to convert? */
+        *ndimslow = (int)inslow; 
+        }
+""","get_image_size_fs",["Integer element_number"],["size_t ndimfast","size_t ndimslow"]],
 
+"cbf_get_image_size_sf": ["""
+%apply int *OUTPUT {int *ndimslow, int *ndimfast} get_image_size_sf;
+     void get_image_size_sf(unsigned int element_number, int *ndimslow, int *ndimfast){
+        unsigned int reserved;
+        size_t inslow, infast;
+        reserved = 0;
+        cbf_failnez(cbf_get_image_size(self,reserved,element_number,&inslow,&infast));
+        *ndimslow = (int)inslow;
+        *ndimfast = (int)infast; 
+        }
+""","get_image_size_sf",["Integer element_number"],["size_t ndimslow","size_t ndimfast"]],
+
+
+"cbf_get_3d_image_size": ["""
+%apply int *OUTPUT {int *ndimslow, int *ndimmid, int *ndimfast} get_3d_image_size;
+     void get_3d_image_size(unsigned int element_number, int *ndimslow, int *ndimmid, int *ndimfast){
+        unsigned int reserved;
+        size_t inslow, inmid, infast;
+        reserved = 0;
+        cbf_failnez(cbf_get_3d_image_size(self,reserved,element_number,&inslow,&inmid,&infast));
+        *ndimslow = (int)inslow; /* FIXME - is that how to convert? */
+        *ndimmid = (int)inmid; 
+        *ndimfast = (int)infast;
+        }
+""","get_3d_image_size",["Integer element_number"],["size_t ndimslow","size_t ndimmid","size_t ndimfast"]],
+
+"cbf_get_3d_image_size_fs": ["""
+%apply int *OUTPUT {int *ndimslow, int *ndimmid, int *ndimfast} get_3d_image_size;
+     void get_3d_image_size_fs(unsigned int element_number, int *ndimfast, int *ndimmid, int *ndimslow){
+        unsigned int reserved;
+        size_t inslow, inmid, infast;
+        reserved = 0;
+        cbf_failnez(cbf_get_3d_image_size_fs(self,reserved,element_number,&infast,&inmid,&inslow));
+        *ndimslow = (int)inslow; /* FIXME - is that how to convert? */
+        *ndimmid = (int)inmid; 
+        *ndimfast = (int)infast;
+        }
+""","get_3d_image_size",["Integer element_number"],["size_t ndimfast","size_t ndimmid","size_t ndimslow"]],
+
+"cbf_get_3d_image_size_sf": ["""
+%apply int *OUTPUT {int *ndimslow, int *ndimmid, int *ndimfast} get_3d_image_size_sf;
+     void get_3d_image_size_sf(unsigned int element_number, int *ndimslow, int *ndimmid, int *ndimfast){
+        unsigned int reserved;
+        size_t inslow, inmid, infast;
+        reserved = 0;
+        cbf_failnez(cbf_get_3d_image_size_sf(self,reserved,element_number,&inslow,&inmid,&infast));
+        *ndimslow = (int)inslow; /* FIXME - is that how to convert? */
+        *ndimmid = (int)inmid; 
+        *ndimfast = (int)infast;
+        }
+""","get_3d_image_size_sf",["Integer element_number"],["size_t ndimslow","size_t ndimmid","size_t ndimfast"]],
 
 "cbf_get_pixel_size" : ["""
 %apply double *OUTPUT {double *psize} get_pixel_size;
@@ -1056,6 +2037,30 @@ cbfhandle_specials = {
 ""","get_pixel_size",["Int element_number","Int axis_number"],
                      ["Float pixel_size"]] ,
 
+"cbf_get_pixel_size_fs" : ["""
+%apply double *OUTPUT {double *psize} get_pixel_size;
+    void get_pixel_size_fs(unsigned int element_number, 
+                        unsigned int axis_number, double *psize){
+        cbf_failnez(cbf_get_pixel_size_fs(self, 
+                                       element_number, 
+                                       axis_number, 
+                                       psize));
+    }
+""","get_pixel_size_fs",["Int element_number","Int axis_number"],
+                     ["Float pixel_size"]] ,
+
+
+"cbf_get_pixel_size_sf" : ["""
+%apply double *OUTPUT {double *psize} get_pixel_size;
+    void get_pixel_size_sf(unsigned int element_number, 
+                        unsigned int axis_number, double *psize){
+        cbf_failnez(cbf_get_pixel_size_sf(self, 
+                                       element_number, 
+                                       axis_number, 
+                                       psize));
+    }
+""","get_pixel_size_sf",["Int element_number","Int axis_number"],
+                     ["Float pixel_size"]] ,
 
 
 "cbf_set_pixel_size":["""
@@ -1069,6 +2074,28 @@ cbfhandle_specials = {
 ""","set_pixel_size",
    ["Int element_number","Int axis_number","Float pixel size"],[]],
 
+"cbf_set_pixel_size_fs":["""
+     void set_pixel_size_fs (unsigned int element_number, 
+                          unsigned int axis_number, double psize){
+         cbf_failnez(cbf_set_pixel_size_fs(self, 
+                                        element_number, 
+                                        axis_number, 
+                                        psize));
+     }
+""","set_pixel_size_fs",
+   ["Int element_number","Int axis_number","Float pixel size"],[]],
+
+
+"cbf_set_pixel_size_sf":["""
+     void set_pixel_size_sf (unsigned int element_number, 
+                          unsigned int axis_number, double psize){
+         cbf_failnez(cbf_set_pixel_size_sf(self, 
+                                        element_number, 
+                                        axis_number, 
+                                        psize));
+     }
+""","set_pixel_size_sf",
+   ["Int element_number","Int axis_number","Float pixel size"],[]],
 
 
 
@@ -1089,6 +2116,25 @@ cbfhandle_specials = {
         }
        }
 ""","write_file",["String filename","Integer ciforcbf","Integer Headers", 
+                  "Integer encoding"],[]],
+
+"cbf_write_widefile" : ["""
+    void write_widefile(const char* filename, int ciforcbf, int headers, 
+                    int encoding){
+       FILE *stream;
+       int readable;
+       /* Make the file non-0 to make CBFlib close the file */
+       readable = 1;
+       if ( ! ( stream = fopen (filename, "w+b")) ){
+         cbf_failnez(CBF_FILEOPEN);
+        }
+        else{
+        cbf_failnez(cbf_write_widefile(self, stream, readable, 
+                    ciforcbf, headers, encoding));
+
+        }
+       }
+""","write_widefile",["String filename","Integer ciforcbf","Integer Headers", 
                   "Integer encoding"],[]],
 
 
@@ -1117,9 +2163,23 @@ cbfhandle_specials = {
         }
         else{
          cbf_failnez(cbf_read_file(self, stream, headers)); 
-	 }
+    }
        }
 ""","read_file",["String filename","Integer headers"],[]],
+
+"cbf_read_widefile" : ["""
+    void read_widefile(char* filename, int headers){
+       /* CBFlib needs a stream that will remain open 
+          hence DO NOT open from python */
+       FILE *stream;
+       if ( ! ( stream = fopen (filename, "rb")) ){
+         cbf_failnez(CBF_FILEOPEN);
+        }
+        else{
+         cbf_failnez(cbf_read_widefile(self, stream, headers)); 
+    }
+       }
+""","read_widefile",["String filename","Integer headers"],[]],
 
 
 "cbf_set_doublevalue":["""
@@ -1180,7 +2240,7 @@ void require_column_integervalue(const char *columnname,
 ""","require_column_integervalue",["String Columnvalue","Int default"],
  ["Int Value"]],
 
-		     
+           
 
 
 "cbf_require_value" : ["""
@@ -1226,7 +2286,7 @@ void require_column_integervalue(const char *columnname,
 
 "cbf_get_divergence":["""
 %apply double *OUTPUT {double *div_x_source, double *div_y_source,
-	                    double *div_x_y_source } get_divergence;
+                       double *div_x_y_source } get_divergence;
     void get_divergence(double *div_x_source, double *div_y_source,
        double *div_x_y_source){
        cbf_failnez(cbf_get_divergence(self, 
@@ -1382,10 +2442,12 @@ void require_column_integervalue(const char *columnname,
 
 "cbf_get_integration_time":["""
 %apply double *OUTPUT {double *time} get_integration_time;
-   void get_integration_time(double *time){
+   void get_integration_time( double *time ){
         unsigned int reserved;
+        double tim;
         reserved = 0;
-        cbf_failnez(cbf_get_integration_time(self,reserved,time));
+        cbf_failnez(cbf_get_integration_time(self,reserved,&tim));
+        *time = tim;
         }
 ""","get_integration_time",[],["Float time"]],
 
@@ -1405,6 +2467,106 @@ double *m7,double *m8){
 ""","get_orientation_matrix",
     [],[ "Float matrix_%d"%(ind) for ind in range(9) ]],
 
+"cbf_get_unit_cell":["""
+%apply double *OUTPUT {double *a, double *b, double *c,
+  double *alpha, double *beta, double *gamma} get_unit_cell;
+     void get_unit_cell(double *a, double *b, double *c,
+  double *alpha, double *beta, double *gamma) {
+     double cell[6];
+     cbf_failnez(cbf_get_unit_cell(self,cell,NULL));
+     *a = cell[0];
+     *b = cell[1];
+     *c = cell[2];
+     *alpha = cell[3];
+     *beta = cell[4];
+     *gamma = cell[5];
+   }
+""","get_unit_cell",
+    [],["Float a", "Float b", "Float c", "Float alpha", "Float beta", "Float gamma" ] ],
+
+"cbf_get_unit_cell_esd":["""
+%apply double *OUTPUT {double *a_esd, double *b_esd, double *c_esd,
+  double *alpha_esd, double *beta_esd, double *gamma_esd} get_unit_cell_esd;
+     void get_unit_cell_esd(double *a_esd, double *b_esd, double *c_esd,
+  double *alpha_esd, double *beta_esd, double *gamma_esd) {
+     double cell_esd[6];
+     cbf_failnez(cbf_get_unit_cell(self,NULL,cell_esd));
+     *a_esd = cell_esd[0];
+     *b_esd = cell_esd[1];
+     *c_esd = cell_esd[2];
+     *alpha_esd = cell_esd[3];
+     *beta_esd = cell_esd[4];
+     *gamma_esd = cell_esd[5];
+   }
+""","get_unit_cell",
+    [],["doubleArray cell"] ],
+
+
+"cbf_get_reciprocal_cell":["""
+%apply double *OUTPUT {double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar} get_reciprocal_cell;
+     void get_reciprocal_cell(double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar) {
+     double rcell[6];
+     cbf_failnez(cbf_get_reciprocal_cell(self,rcell,NULL));
+    *astar =      rcell[0];
+    *bstar =      rcell[1];
+    *cstar =      rcell[2];
+    *alphastar =  rcell[3];
+    *betastar =   rcell[4];
+    *gammastar =  rcell[5];
+   }
+""","get_reciprocal_cell",
+    [],["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ],
+
+"cbf_get_reciprocal_cell_esd":["""
+%apply double *OUTPUT {double *a_esd, double *b_esd, double *c_esd,
+  double *alpha_esd, double *beta_esd, double *gamma_esd} get_reciprocal_cell_esd;
+     void get_reciprocal_cell_esd(double *a_esd, double *b_esd, double *c_esd,
+  double *alpha_esd, double *beta_esd, double *gamma_esd) {
+     double cell_esd[6];
+     cbf_failnez(cbf_get_reciprocal_cell(self,NULL,cell_esd));
+     *a_esd = cell_esd[0];
+     *b_esd = cell_esd[1];
+     *c_esd = cell_esd[2];
+     *alpha_esd = cell_esd[3];
+     *beta_esd = cell_esd[4];
+     *gamma_esd = cell_esd[5];
+   }
+""","get_reciprocal_cell",
+    [],["doubleArray cell"] ],
+
+
+
+"cbf_set_unit_cell":["""
+   void set_unit_cell(double cell[6]) {
+     cbf_failnez(cbf_set_unit_cell(self,cell,NULL));
+   }
+""","set_unit_cell",
+    ["double cell[6]"],[] ],
+
+"cbf_set_unit_cell_esd":["""
+   void set_unit_cell_esd(double cell_esd[6]) {
+     cbf_failnez(cbf_set_unit_cell(self,NULL,cell_esd));
+   }
+""","set_unit_cell_esd",
+    ["double cell_esd[6]"],[] ],
+
+
+"cbf_set_reciprocal_cell":["""
+   void set_reciprocal_cell(double cell[6]) {
+     cbf_failnez(cbf_set_reciprocal_cell(self,cell,NULL));
+   }
+""","set_reciprocal_cell",
+    ["double cell[6]"],[] ],
+
+"cbf_set_reciprocal_cell_esd":["""
+   void set_reciprocal_cell_esd(double cell_esd[6]) {
+     cbf_failnez(cbf_set_reciprocal_cell(self,NULL,cell_esd));
+   }
+""","set_reciprocal_cell_esd",
+    ["double cell_esd[6]"],[] ],
+
 
 "cbf_set_tag_category":["""
    void set_tag_category(const char *tagname, const char* categoryname_in){
@@ -1421,7 +2583,7 @@ double *m7,double *m8){
      cbf_failnez(cbf_find_tag_category(self,tagname, &result));
      return result;
      }
-""","find_tag_category",["String tagname"],["String categoryname_in"] ],
+""","find_tag_category",["String tagname"],["String categoryname"] ],
 
 
 "cbf_require_tag_root":["""
@@ -1488,7 +2650,20 @@ double  m7,double  m8){
         }
 ""","set_orientation_matrix",
     [ "Float matrix_%d"%(ind) for ind in range(9) ] ,[]],
+    
+"cbf_set_bin_sizes":["""
+   void set_bin_sizes( int element_number, double slowbinsize_in, double fastbinsize_in) {
+     cbf_failnez(cbf_set_bin_sizes(self,element_number,slowbinsize_in,fastbinsize_in));
+   }
+""","set_bin_sizes",["Integer element_number","Float slowbinsize_in","Float fastbinsize_in"],[] ],
 
+
+"cbf_get_bin_sizes":["""
+%apply double *OUTPUT {double *slowbinsize,double *fastbinsize};
+  void get_bin_sizes(int element_number, double *slowbinsize, double *fastbinsize) {
+    cbf_failnez(cbf_get_bin_sizes (self, (unsigned int)element_number, slowbinsize, fastbinsize));
+  }
+""","get_bin_sizes",["Integer element_number"],["Float slowbinsize","Float fastbinsize"] ],
 
 # cbfhandle dict functions UNTESTED
 
@@ -1540,6 +2715,22 @@ void convert_dictionary(cbf_handle other){
     }
 ""","construct_detector",["Integer element_number"],["pycbf detector object"]],
 
+"cbf_construct_reference_detector":["""
+ cbf_detector construct_reference_detector(unsigned int element_number){
+    cbf_detector detector;
+    cbf_failnez(cbf_construct_reference_detector(self,&detector,element_number));
+    return detector;
+    }
+""","construct_reference_detector",["Integer element_number"],["pycbf detector object"]],
+
+"cbf_require_reference_detector":["""
+ cbf_detector require_reference_detector(unsigned int element_number){
+    cbf_detector detector;
+    cbf_failnez(cbf_require_reference_detector(self,&detector,element_number));
+    return detector;
+    }
+""","require_reference_detector",["Integer element_number"],["pycbf detector object"]],
+
 
 # Prelude to the next section of the nuweb doc
 
@@ -1552,8 +2743,178 @@ void convert_dictionary(cbf_handle other){
 ""","construct_goniometer",[],["pycbf goniometer object"]],
 
 }
-@}
 
+
+class cbfhandlewrapper:
+   def __init__(self):
+      self.code = """
+// Tell SWIG not to make constructor for these objects
+%nodefault cbf_handle;
+%nodefault cbf_handle_struct;
+%nodefault cbf_node;
+
+// A couple of blockitem functions return CBF_NODETYPE
+typedef enum
+{
+  CBF_UNDEFNODE,        /* Undefined */
+  CBF_LINK,             /* Link      */
+  CBF_ROOT,             /* Root      */
+  CBF_DATABLOCK,        /* Datablock */
+  CBF_SAVEFRAME,        /* Saveframe */
+  CBF_CATEGORY,         /* Category  */
+  CBF_COLUMN            /* Column    */
+}
+CBF_NODETYPE;
+
+
+// Tell SWIG what the object is, so we can build the class
+
+typedef struct
+{
+  cbf_node *node;
+
+  int row, search_row;
+}  cbf_handle_struct;
+
+typedef cbf_handle_struct *cbf_handle;
+
+typedef cbf_handle_struct handle;
+%feature("autodoc","1");
+
+%extend cbf_handle_struct{   // Tell SWIG to attach functions to the structure
+
+    cbf_handle_struct(){  // Constructor
+       cbf_handle handle;
+       cbf_failnez(cbf_make_handle(&handle));
+       return handle;
+       } 
+
+    ~cbf_handle_struct(){ // Destructor
+       cbf_failnez(cbf_free_handle(self));
+       }
+"""
+      self.tail = """
+}; // End of cbf_handle_struct
+"""
+   # End of init function
+   def get_code(self):
+       return self.code+self.tail
+   def wrap(self,cfunc,prototype,args,docstring):
+       # print "cfunc: ", cfunc
+       pyfunc = cfunc.replace("cbf_","")
+       # Insert a comment for debugging this script
+       code = "\n/* cfunc %s   pyfunc %s  \n"%(cfunc,pyfunc)
+       for a in args:
+          code += "   arg %s "%(a)
+       code += "*/\n\n"
+       # Make and free handle are done in the header so skip
+       if cfunc.find("cbf_make_handle")>-1 or cfunc.find("cbf_free_handle")>-1:
+          # Constructor and destructor done in headers
+          return
+       if args[0] != "cbf_handle handle": # Must be for cbfhandle
+          print "problem",cfunc,pyfunc,args
+          return
+       if len(args)==1: # Only takes CBFhandle arg
+          code+= docstringwrite(pyfunc,[],[],prototype,docstring)
+          code+= "    void %s(void){\n"%(pyfunc)
+          code+= "      cbf_failnez(%s(self));}\n"%(cfunc) 
+          self.code=self.code+code
+          return
+       # Now case by case rather than writing a proper parser
+       # Special cases ...
+       not_found=0
+       try:
+           code, pyname, input, output = cbfhandle_specials[cfunc]
+           self.code +=  docstringwrite(pyname,input,output,
+                                              prototype,docstring)+ code
+           return
+       except KeyError:
+           not_found = 1
+           # print "KeyError"
+       except ValueError:
+           print "problem in",cfunc
+           for item in cbfhandle_specials[cfunc]:
+              print "***",item
+           raise
+       if len(args)==2:
+          if args[1].find("const char")>-1 and \
+             args[1].find("*")>-1          and \
+             args[1].find("**")==-1            :
+             # 1 input string
+             code += docstringwrite(pyfunc,[],["string"],prototype,docstring)
+             code += "    void %s(const char* arg){\n"%(pyfunc)
+             code +="      cbf_failnez(%s(self,arg));}\n"%(cfunc)
+             self.code=self.code+code
+             return
+          if args[1].find("const char")>-1 and \
+             args[1].find("**")>-1                :# return string
+             code += docstringwrite(pyfunc,["string"],[],prototype,docstring)
+             code += "    const char* %s(void){\n"%(pyfunc)
+             code += "    const char* result;\n"
+             code += "    cbf_failnez(%s(self, &result));\n"%(cfunc)
+             code += "    return result;}\n"
+             self.code=self.code+code
+             return
+          if args[1].find("unsigned int")>-1 and args[1].find("*")==-1:
+             # set uint
+             if args[1].find("reserved")>-1:
+                raise Exception("Setting reserved??? %s %s %s"%(pyfunc,
+                                                           cfunc,str(args)))
+             code += docstringwrite(pyfunc,["Integer"],[],prototype,docstring)
+             code +="    void %s(unsigned int arg){\n"%(pyfunc)
+             code +="      cbf_failnez(%s(self,arg));}\n"%(cfunc)
+             self.code=self.code+code
+             return
+          if args[1].find("unsigned int *")>-1 and args[1].find("**")==-1:
+             # output uint
+             if args[1].find("reserved")>-1:
+                raise Exception("Setting reserved??? %s %s %s"%(pyfunc,
+                                                           cfunc,str(args)))
+             code += docstringwrite(pyfunc,[],["Integer"],prototype,docstring)
+             code +="    unsigned int %s(void){\n"%(pyfunc)
+             code +="      unsigned int result;\n"
+             code +="      cbf_failnez(%s(self,&result));\n"%(cfunc)
+             code +="      return result;}\n"
+             self.code=self.code+code
+             return
+          # For the rest attempt to guess
+          if args[1].find("cbf")==-1: # but do not try the goniometer constructor
+             if args[1].find("*")>-1 and args[1].find("cbf")==-1:
+                # pointer used for returning something
+                type = args[1].split(" ")[0]
+                code += docstringwrite(pyfunc,[],[type.replace("*","")],
+                                                          prototype,docstring)
+                code+= "    "+type+" "+pyfunc+"(void){\n"
+                code+= "     "+type+" result;\n"
+                code+= "       cbf_failnez(%s(self,&result));\n"%(cfunc)
+                code+= "       return result;}\n"
+                self.code=self.code+code
+                return
+             else:
+                var = args[1].split(" ")[-1]
+                code += docstringwrite(pyfunc,[],[args[1]],prototype,docstring)
+                code+= "     void %s(%s){\n"%(pyfunc,args[1])
+                code +="        cbf_failnez(%s(self,%s));}\n"%(cfunc,var)
+                self.code=self.code+code
+                return
+       if not_found:
+             code+= "     void %s(void){\n"%(pyfunc)
+             code +="        cbf_failnez(CBF_NOTIMPLEMENTED);}\n"
+             self.code=self.code+code
+             print "Have not implemented: cbfhandle.%s"%(pyfunc)
+             print "   ",cfunc
+             print "    args:"
+             for a in args:
+                 print "       ",a 
+             print
+             return
+
+
+
+cbf_handle_wrapper = cbfhandlewrapper()
+
+
+@}
 
 \subsection{CBFGoniometers}
 
@@ -1681,18 +3042,11 @@ typedef cbf_positioner_struct *cbf_goniometer;
         print "TODO: Goniometer:",prototype
    def get_code(self):
      return self.code+self.tail
-@}
 
 
-\subsection{CBFDetectors}
-
-This subsection is pretty similar to the one about goniometers, but
-wrapping the detector functionality instead. The constructor
-can be found in the CBFhandle subsection (FIXME latex xref).
+cbf_goniometer_wrapper = cbfgoniometerwrapper()
 
 
-@D  cbfdetectorwrapper 
-@{
 
 cbf_detector_specials = {
 "cbf_get_pixel_normal":["""
@@ -1706,6 +3060,29 @@ cbf_detector_specials = {
 ""","get_pixel_normal",["double index1","double index2"] ,
  ["double normal1","double normal2", "double normal3" ] ],
 
+"cbf_get_pixel_normal_fs":["""
+%apply double *OUTPUT {double *normalfast,double *normalslow, double *normal3};
+   void get_pixel_normal_fs ( double indexfast, double indexslow, 
+                          double *normal1,double *normal2, double *normal3){
+       cbf_failnez(cbf_get_pixel_normal_fs(self,
+                                    indexfast,indexslow,normal1,normal2,normal3));
+   }
+
+""","get_pixel_normal_fs",["double indexfast","double indexslow"] ,
+ ["double normal1","double normal2", "double normal3" ] ],
+
+"cbf_get_pixel_normal_sf":["""
+%apply double *OUTPUT {double *normalslow,double *normalfast, double *normal3};
+   void get_pixel_normal_sf ( double indexslow, double indexfast, 
+                          double *normal1,double *normal2, double *normal3){
+       cbf_failnez(cbf_get_pixel_normal_sf(self,
+                                    indexslow,indexfast,normal1,normal2,normal3));
+   }
+
+""","get_pixel_normal_sf",["double indexslow","double indexfast"] ,
+ ["double normal1","double normal2", "double normal3" ] ],
+
+
 "cbf_get_pixel_area":["""
 %apply double *OUTPUT{double *area,double *projected_area};
     void get_pixel_area(double index1, double index2,
@@ -1715,6 +3092,30 @@ cbf_detector_specials = {
       }
 ""","get_pixel_area",["double index1", "double index2"],
      ["double area","double projected_area"] ],
+
+
+"cbf_get_pixel_area_fs":["""
+%apply double *OUTPUT{double *area,double *projected_area};
+    void get_pixel_area_fs(double indexfast, double indexslow,
+                        double *area,double *projected_area){
+       cbf_failnez(cbf_get_pixel_area_fs (self,
+                                       indexfast, indexslow, area,projected_area));
+      }
+""","get_pixel_area_fs",["double indexfast", "double indexslow"],
+     ["double area","double projected_area"] ],
+
+
+
+"cbf_get_pixel_area_sf":["""
+%apply double *OUTPUT{double *area,double *projected_area};
+    void get_pixel_area_sf(double indexslow, double indexfast,
+                        double *area,double *projected_area){
+       cbf_failnez(cbf_get_pixel_area_sf (self,
+                                       indexslow, indexfast, area,projected_area));
+      }
+""","get_pixel_area_sf",["double indexslow", "double indexfast"],
+     ["double area","double projected_area"] ],
+
 
 "cbf_get_detector_distance":["""
 %apply double *OUTPUT {double *distance};
@@ -1741,11 +3142,37 @@ cbf_detector_specials = {
              double *coordinate1,   
              double *coordinate2, 
              double *coordinate3){
-      cbf_failnez(cbf_get_pixel_coordinates(self,index1,index2,
-             coordinate1,coordinate2,coordinate3));
+      cbf_failnez(cbf_get_pixel_coordinates(self, index1, index2,
+             coordinate1, coordinate2, coordinate3));
    }
 ""","get_pixel_coordinates",["double index1","double index2"],
 ["double coordinate1", "double coordinate2", "double coordinate3"] ],
+
+"cbf_get_pixel_coordinates_fs":["""
+%apply double *OUTPUT {double *coordinate1,  
+         double *coordinate2, double *coordinate3};
+   void get_pixel_coordinates_fs(double indexfast, double indexslow, 
+             double *coordinate1,   
+             double *coordinate2, 
+             double *coordinate3){
+      cbf_failnez(cbf_get_pixel_coordinates_fs(self, indexfast, indexslow, coordinate1, coordinate2, coordinate3));
+   }
+""","get_pixel_coordinates_fs",["double indexfast","double indexslow"],
+["double coordinate1", "double coordinate2", "double coordinate3"] ],
+
+
+"cbf_get_pixel_coordinates_sf":["""
+%apply double *OUTPUT {double *coordinate1,  
+         double *coordinate2, double *coordinate3};
+   void get_pixel_coordinates_sf(double indexslow, double indexfast, 
+             double *coordinate1,   
+             double *coordinate2, 
+             double *coordinate3){
+      cbf_failnez(cbf_get_pixel_coordinates_sf(self, indexslow, indexfast, coordinate1, coordinate2, coordinate3));
+   }
+""","get_pixel_coordinates_sf",["double indexslow","double indexfast"],
+["double coordinate1", "double coordinate2", "double coordinate3"] ],
+
 
 "cbf_get_beam_center":["""
 %apply double *OUTPUT {double *index1, double *index2, 
@@ -1758,6 +3185,88 @@ cbf_detector_specials = {
 ""","get_beam_center",[],
 ["double index1", "double index2", "double center1","double center2"]],
 
+"cbf_get_beam_center_fs":["""
+%apply double *OUTPUT {double *indexfast, double *indexslow, 
+ double *centerfast,double *centerslow};
+    void get_beam_center_fs(double *indexfast, double *indexslow, 
+                         double *centerfast,double *centerslow){
+        cbf_failnez(cbf_get_beam_center_fs(self, indexfast, indexslow, 
+                                       centerfast, centerslow));
+        }
+""","get_beam_center_fs",[],
+["double indexfast", "double indexslow", "double centerfast","double centerslow"]],
+
+
+
+"cbf_get_beam_center_sf":["""
+%apply double *OUTPUT {double *indexslow, double *indexfast, 
+ double *centerslow,double *centerfast};
+    void get_beam_center_sf(double *indexslow, double *indexfast, 
+                         double *centerslow,double *centerfast){
+        cbf_failnez(cbf_get_beam_center_sf(self, indexslow, indexfast, 
+                                       centerslow, centerfast));
+        }
+""","get_beam_center_sf",[],
+["double indexslow", "double indexfast", "double centerslow","double centerfast"]],
+
+
+"cbf_set_beam_center":["""
+    void set_beam_center(double *indexslow, double *indexfast, 
+                         double *centerslow,double *centerfast){
+        cbf_failnez(cbf_set_beam_center(self, indexslow, indexfast, 
+                                       centerslow, centerfast));
+        }
+""","set_beam_center",
+["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
+
+
+"cbf_set_beam_center_fs":["""
+    void set_beam_center_fs(double *indexfast, double *indexslow, 
+                         double *centerfast,double *centerslow){
+        cbf_failnez(cbf_set_beam_center_fs(self, indexfast, indexslow, 
+                                       centerfast, centerslow));
+        }
+""","set_beam_center_fs",
+["double indexfast", "double indexslow", "double centerfast","double centerslow"],[]],
+
+"cbf_set_beam_center_sf":["""
+    void set_beam_center_sf(double *indexslow, double *indexfast, 
+                         double *centerslow,double *centerfast){
+        cbf_failnez(cbf_set_beam_center_sf(self, indexslow, indexfast, 
+                                       centerslow, centerfast));
+        }
+""","set_beam_center_sf",
+["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
+
+"cbf_set_reference_beam_center":["""
+    void set_reference_beam_center(double *indexslow, double *indexfast, 
+                         double *centerslow,double *centerfast){
+        cbf_failnez(cbf_set_reference_beam_center(self, indexslow, indexfast, 
+                                       centerslow, centerfast));
+        }
+""","set_reference_beam_center",
+["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
+
+
+
+"cbf_set_reference_beam_center_fs":["""
+    void set_reference_beam_center_fs(double *indexfast, double *indexslow, 
+                         double *centerfast,double *centerslow){
+        cbf_failnez(cbf_set_reference_beam_center_fs(self, indexfast, indexslow, 
+                                       centerfast, centerslow));
+        }
+""","set_reference_beam_center_fs",
+["double indexfast", "double indexslow", "double centerfast","double centerslow"],[]],
+
+
+"cbf_set_reference_beam_center_sf":["""
+    void set_reference_beam_center_sf(double *indexslow, double *indexfast, 
+                         double *centerslow,double *centerfast){
+        cbf_failnez(cbf_set_reference_beam_center_sf(self, indexslow, indexfast, 
+                                       centerslow, centerfast));
+        }
+""","set_reference_beam_center_sf",
+["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
 
 
 "cbf_get_inferred_pixel_size" : ["""
@@ -1765,10 +3274,25 @@ cbf_detector_specials = {
 void get_inferred_pixel_size(unsigned int axis_number, double* psize){
    cbf_failnez(cbf_get_inferred_pixel_size(self, axis_number, psize));
    }
-""","get_inferred_pixel_size",["Int axis_number"],["Float pixel size"] ]
+""","get_inferred_pixel_size",["Int axis_number"],["Float pixel size"] ],
+
+"cbf_get_inferred_pixel_size_fs" : ["""
+%apply double *OUTPUT { double *psize } get_inferred_pixel_size;
+void get_inferred_pixel_size_fs(unsigned int axis_number, double* psize){
+   cbf_failnez(cbf_get_inferred_pixel_size_fs(self, axis_number, psize));
+   }
+""","get_inferred_pixel_size_fs",["Int axis_number"],["Float pixel size"] ],
+
+"cbf_get_inferred_pixel_size_sf" : ["""
+%apply double *OUTPUT { double *psize } get_inferred_pixel_size;
+void get_inferred_pixel_size_sf(unsigned int axis_number, double* psize){
+   cbf_failnez(cbf_get_inferred_pixel_size_sf(self, axis_number, psize));
+   }
+""","get_inferred_pixel_size_sf",["Int axis_number"],["Float pixel size"] ]
 
 
 }
+
 
 
 
@@ -1820,6 +3344,213 @@ typedef cbf_detector_struct *cbf_detector;
         print "TODO: Detector:",prototype
    def get_code(self):
      return self.code+self.tail
+
+
+     cbf_detector_wrapper = cbfdetectorwrapper()
+     
+@}
+
+
+\subsection{A generic wrapper}
+
+There are a few utility functions which do not work on one of the three exposed 
+objects in the library, these are wrapped here:
+
+@D  genericwrapper 
+@{
+
+
+cbfgeneric_specials = {
+"cbf_get_local_integer_byte_order":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+  %inline {
+  void get_local_integer_byte_order(char **bo, int *bolen) {
+        const char * byteorder;
+        char * bot;
+        error_status = cbf_get_local_integer_byte_order(&byteorder);
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+  }
+  }
+""","get_local_integer_byte_order",[],["char **bo", "int *bolen"]],
+
+"cbf_get_local_real_format":["""
+%cstring_output_allocate_size(char **rf, int *rflen, free(*$1));
+  %inline {
+  void get_local_real_format(char **rf, int *rflen) {
+        const char * real_format;
+        char * rft;
+        error_status = cbf_get_local_real_format(&real_format);
+        *rflen = strlen(byteorder);
+        if (!(rft = (char *)malloc(*rflen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(rft,real_format,*rflen);
+        *rf = rft;
+  }
+  }
+""","get_local_real_format",[],["char **rf", "int *rflen"]],
+
+"cbf_get_local_real_byte_order":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+  %inline {
+  void get_local_real_byte_order(char **bo, int *bolen) {
+        const char * byteorder;
+        char * bot;
+        error_status = cbf_get_local_real_byte_order(&byteorder);
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+  }
+  }
+""","get_local_real_byte_order",[],["char **bo", "int *bolen"]],
+
+
+
+
+"cbf_compute_cell_volume":["""
+
+%apply double *OUTPUT {double *volume};
+  %inline {
+  void compute_cell_volume(double cell[6], double *volume) {
+  cbf_failnez(cbf_compute_cell_volume(cell,volume));
+  }
+  }
+""","compute_cell_volume",["double cell[6]"],["Float volume"]],
+
+"cbf_compute_reciprocal_cell":["""
+%apply double *OUTPUT {double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar};
+  %inline {
+  void compute_reciprocal_cell(double cell[6], double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar) {
+    double rcell[6];
+    cbf_failnez(cbf_compute_reciprocal_cell(cell,rcell));
+    *astar =      rcell[0];
+    *bstar =      rcell[1];
+    *cstar =      rcell[2];
+    *alphastar =  rcell[3];
+    *betastar =   rcell[4];
+    *gammastar =  rcell[5];
+  }
+  }
+
+""","compute_reciprocal_cell",["double cell[6]"],
+["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ]
+
+}
+
+
+
+class genericwrapper:
+   def __init__(self):
+       self.code = """
+// Start of generic functions
+%feature("autodoc","1");
+"""
+       self.tail = "// End of generic functions\n"
+   def get_code(self):
+       return self.code + self.tail
+   def wrap(self,cfunc,prototype,args,docstring):
+       pyfunc = cfunc.replace("cbf_","")
+       # Insert a comment for debugging this script
+       code = "\n/* cfunc %s   pyfunc %s  \n"%(cfunc,pyfunc)
+       for a in args:
+           code += "   arg %s "%(a)
+       code += "*/\n\n"
+       self.code+=code
+       code = ""
+       not_found = 0
+       try:
+           code, pyname, input, output = cbfgeneric_specials[cfunc]
+           self.code +=  docstringwrite(pyname,input,output,
+                                              prototype,docstring)+ code
+           return
+       except KeyError:
+           not_found = 1
+           # print "KeyError"
+       except ValueError:
+           print "problem in generic",cfunc
+           for item in cbfgeneric_specials[cfunc]:
+              print "***",item
+           raise
+       if len(args)==1 and args[0].find("char")>-1 and \
+                           args[0].find("**")>-1                :# return string
+           # first write the c code and inline it
+           code += docstringwrite(pyfunc,[],["string"],prototype,docstring)
+           code += "%%inline %%{\n   char* %s(void);\n"%(pyfunc)
+           code += "   char* %s(void){\n"%(pyfunc)
+           code += "      char *r;\n"
+           code += "      error_status = %s(&r);\n"%(cfunc)
+           code += "      return r; }\n%}\n"
+           # now the thing to wrap is:
+           code += "char* %s(void);"%(pyfunc)
+           self.code=self.code+code
+           return
+           
+#       code+= "     void %s(void){\n"%(pyfunc)
+#       code +="        cbf_failnez(CBF_NOTIMPLEMENTED);}\n"
+#       self.code=self.code+code
+       print "Have not implemented:"
+       for s in [cfunc, pyfunc] + args:
+           print "\t",s 
+       print
+       return
+
+
+
+generic_wrapper = genericwrapper()
+
+def generate_wrappers(name_dict):
+   names = name_dict.keys()
+   for cname in names:
+      prototype = name_dict[cname][0]
+      docstring = name_dict[cname][1]
+      # print "Generate wrappers: ", "::",cname,"::", prototype,"::", docstring
+      # Check prototype begins with "int cbf_"
+      if prototype.find("int cbf_")!=0:
+         print "problem with:",prototype
+      # Get arguments from prototypes
+      try:
+         args = prototype.split("(")[1].split(")")[0].split(",")
+         args = [ s.lstrip().rstrip() for s in args ] # strip spaces off ends
+         # print "Args: ", args
+      except:
+         # print cname
+         # print prototype
+         raise
+      if args[0].find("cbf_handle")>=0: # This is for the cbfhandle object
+         cbf_handle_wrapper.wrap(cname,prototype,args,docstring)
+         if (cname=="cbf_get_unit_cell"):
+           cbf_handle_wrapper.wrap("cbf_get_unit_cell_esd",prototype,args,docstring)
+         if (cname=="cbf_get_reciprocal_cell"):
+           cbf_handle_wrapper.wrap("cbf_get_reciprocal_cell_esd",prototype,args,docstring)
+         if (cname=="cbf_set_unit_cell"):
+           cbf_handle_wrapper.wrap("cbf_set_unit_cell_esd",prototype,args,docstring)
+         if (cname=="cbf_set_reciprocal_cell"):
+           cbf_handle_wrapper.wrap("cbf_set_reciprocal_cell_esd",prototype,args,docstring)
+         continue
+      if args[0].find("cbf_goniometer")>=0: # This is for the cbfgoniometer
+         cbf_goniometer_wrapper.wrap(cname,prototype,args,docstring)
+         continue
+      if args[0].find("cbf_detector")>=0: # This is for the cbfdetector
+         cbf_detector_wrapper.wrap(cname,prototype,args,docstring)
+         continue
+      generic_wrapper.wrap(cname,prototype,args,docstring)
+ 
+
+generate_wrappers(name_dict)
+open("cbfgoniometerwrappers.i","w").write(cbf_goniometer_wrapper.get_code())
+open("cbfdetectorwrappers.i","w").write(cbf_detector_wrapper.get_code())
+open("cbfhandlewrappers.i","w").write(cbf_handle_wrapper.get_code())
+open("cbfgenericwrappers.i","w").write(generic_wrapper.get_code())
+
+print "End of output from make_pycbf.py"
+print "\\end{verbatim}"
+
+
+
 @}
 
 
@@ -1845,10 +3576,10 @@ from distutils.core import setup, Extension
 
 e = Extension('_pycbf',
               sources = ["pycbf_wrap.c","../src/cbf_simple.c"],
-	      extra_compile_args=["-g"],
-	      library_dirs=["../lib/"],
-	      libraries=["cbf"],
-	      include_dirs = ["../include"] )
+         extra_compile_args=["-g"],
+         library_dirs=["../lib/"],
+         libraries=["cbf"],
+         include_dirs = ["../include"] )
             
 # Build it
 setup(name="_pycbf",ext_modules=[e],)
