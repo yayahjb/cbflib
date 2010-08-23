@@ -138,39 +138,6 @@ def docstringwrite(pyfunc,input,output,prototype,cbflibdoc):
    doc += pyfunc+";\n"
    return doc
 
-cbfgeneric_specials = {
-"cbf_compute_cell_volume":["""
-
-%apply double *OUTPUT {double *volume};
-  %inline {
-  void compute_cell_volume(double cell[6], double *volume) {
-  cbf_failnez(cbf_compute_cell_volume(cell,volume));
-  }
-  }
-""","compute_cell_volume",["double cell[6]"],["Float volume"]],
-
-"cbf_compute_reciprocal_cell":["""
-%apply double *OUTPUT {double *astar, double *bstar, double *cstar,
-  double *alphastar, double *betastar, double *gammastar};
-  %inline {
-  void compute_reciprocal_cell(double cell[6], double *astar, double *bstar, double *cstar,
-  double *alphastar, double *betastar, double *gammastar) {
-    double rcell[6];
-    cbf_failnez(cbf_compute_reciprocal_cell(cell,rcell));
-    *astar =      rcell[0];
-    *bstar =      rcell[1];
-    *cstar =      rcell[2];
-    *alphastar =  rcell[3];
-    *betastar =   rcell[4];
-    *gammastar =  rcell[5];
-  }
-  }
-
-""","compute_reciprocal_cell",["double cell[6]"],
-["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ]
-
-}
-
 
 cbfhandle_specials = {
 
@@ -2043,7 +2010,7 @@ double *m7,double *m8){
     ["double cell[6]"],[] ],
 
 "cbf_set_reciprocal_cell_esd":["""
-   void set_reciprocal_cell(double cell_esd[6]) {
+   void set_reciprocal_cell_esd(double cell_esd[6]) {
      cbf_failnez(cbf_set_reciprocal_cell(self,NULL,cell_esd));
    }
 ""","set_reciprocal_cell_esd",
@@ -2818,6 +2785,89 @@ typedef cbf_detector_struct *cbf_detector;
 
 
 cbf_detector_wrapper = cbfdetectorwrapper()
+
+
+
+cbfgeneric_specials = {
+"cbf_get_local_integer_byte_order":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+  %inline {
+  void get_local_integer_byte_order(char **bo, int *bolen) {
+        char * byteorder;
+        char * bot;
+        error_status = cbf_get_local_integer_byte_order(&byteorder);
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+  }
+  }
+""","get_local_integer_byte_order",[],["char **bo", "int *bolen"]],
+
+"cbf_get_local_real_format":["""
+%cstring_output_allocate_size(char **rf, int *rflen, free(*$1));
+  %inline {
+  void get_local_real_format(char **rf, int *rflen) {
+        char * real_format;
+        char * rft;
+        error_status = cbf_get_local_real_format(&real_format);
+        *rflen = strlen(real_format);
+        if (!(rft = (char *)malloc(*rflen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(rft,real_format,*rflen);
+        *rf = rft;
+  }
+  }
+""","get_local_real_format",[],["char **rf", "int *rflen"]],
+
+"cbf_get_local_real_byte_order":["""
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+  %inline {
+  void get_local_real_byte_order(char **bo, int *bolen) {
+        char * byteorder;
+        char * bot;
+        error_status = cbf_get_local_real_byte_order(&byteorder);
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+  }
+  }
+""","get_local_real_byte_order",[],["char **bo", "int *bolen"]],
+
+
+
+
+"cbf_compute_cell_volume":["""
+
+%apply double *OUTPUT {double *volume};
+  %inline {
+  void compute_cell_volume(double cell[6], double *volume) {
+  cbf_failnez(cbf_compute_cell_volume(cell,volume));
+  }
+  }
+""","compute_cell_volume",["double cell[6]"],["Float volume"]],
+
+"cbf_compute_reciprocal_cell":["""
+%apply double *OUTPUT {double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar};
+  %inline {
+  void compute_reciprocal_cell(double cell[6], double *astar, double *bstar, double *cstar,
+  double *alphastar, double *betastar, double *gammastar) {
+    double rcell[6];
+    cbf_failnez(cbf_compute_reciprocal_cell(cell,rcell));
+    *astar =      rcell[0];
+    *bstar =      rcell[1];
+    *cstar =      rcell[2];
+    *alphastar =  rcell[3];
+    *betastar =   rcell[4];
+    *gammastar =  rcell[5];
+  }
+  }
+
+""","compute_reciprocal_cell",["double cell[6]"],
+["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ]
+
+}
 
 
 

@@ -249,7 +249,7 @@ ENC_DEFAULT = _pycbf.ENC_DEFAULT
 
 def get_local_integer_byte_order():
   """
-    Returns : string
+    Returns : char **bo,int *bolen
     *args   : 
 
     C prototype: int cbf_get_local_integer_byte_order (char ** byte_order);
@@ -305,7 +305,7 @@ def compute_cell_volume(*args):
 
 def get_local_real_format():
   """
-    Returns : string
+    Returns : char **rf,int *rflen
     *args   : 
 
     C prototype: int cbf_get_local_real_format (char ** real_format );
@@ -338,7 +338,7 @@ def get_local_real_format():
 
 def get_local_real_byte_order():
   """
-    Returns : string
+    Returns : char **bo,int *bolen
     *args   : 
 
     C prototype: int cbf_get_local_real_byte_order (char ** byte_order);
@@ -7514,6 +7514,43 @@ class cbf_handle_struct(_object):
 
         """
         return _pycbf.cbf_handle_struct_set_reciprocal_cell(self, *args)
+
+    def set_reciprocal_cell_esd(self, *args):
+        """
+        Returns : 
+        *args   : double cell_esd[6]
+
+        C prototype: int cbf_set_reciprocal_cell (cbf_handle handle, double cell[6],
+                         double cell_esd[6] );
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_set_reciprocal_cell sets the reciprocal cell parameters to the 
+        double values given in cell[0:2] for the reciprocal cell edge lengths 
+        a*, b* and c* in AAngstroms-1, the double values given in cell[3:5] 
+        for the reciprocal cell angles a*, b* and g* in degrees, the double 
+        values given in cell_esd[0:2] for the estimated strandard deviations 
+        of the reciprocal cell edge lengths a*, b* and c* in AAngstroms, and 
+        the double values given in cell_esd[3:5] for the estimated standard 
+        deviations of the reciprocal cell angles a*, b* and g* in degrees.
+        The values are placed in the first row of the  "cell " category. If 
+        no value has been given for  "_cell.entry_id ", it is set to the 
+        value of the  "diffrn.id " entry of the current data block.
+        cell or cell_esd may be NULL.
+        If cell is NULL, the reciprocal cell parameters are not set.
+        If cell_esd is NULL, the reciprocal cell parameter esds are not set.
+        If the  "cell " category is not present, it is created. If any of 
+        the necessary columns are not present, they are created.
+        ARGUMENTS
+        handle     CBF handle. cell       Pointer to the array of 6 doubles 
+        for the reciprocal cell parameters. cell_esd   Pointer to the array 
+        of 6 doubles for the reciprocal cell parameter esds.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        SEE ALSO
+
+        """
+        return _pycbf.cbf_handle_struct_set_reciprocal_cell_esd(self, *args)
 
     def set_real_3d_image_fs(self, *args):
         """

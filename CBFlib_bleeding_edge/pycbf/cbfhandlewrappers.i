@@ -7357,7 +7357,7 @@ Returns an error code on failure or 0 for success.
 SEE ALSO
 ")set_reciprocal_cell_esd;
 
-   void set_reciprocal_cell(double cell_esd[6]) {
+   void set_reciprocal_cell_esd(double cell_esd[6]) {
      cbf_failnez(cbf_set_reciprocal_cell(self,NULL,cell_esd));
    }
 %feature("autodoc", "

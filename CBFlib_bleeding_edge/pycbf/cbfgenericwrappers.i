@@ -6,7 +6,7 @@
    arg char ** byte_order */
 
 %feature("autodoc", "
-Returns : string
+Returns : char **bo,int *bolen
 *args   : 
 
 C prototype: int cbf_get_local_integer_byte_order (char ** byte_order);
@@ -34,14 +34,20 @@ RETURN VALUE
 Returns an error code on failure or 0 for success.
 
 ")get_local_integer_byte_order;
-%inline %{
-   char* get_local_integer_byte_order(void);
-   char* get_local_integer_byte_order(void){
-      char *r;
-      error_status = cbf_get_local_integer_byte_order(&r);
-      return r; }
-%}
-char* get_local_integer_byte_order(void);
+
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+  %inline {
+  void get_local_integer_byte_order(char **bo, int *bolen) {
+        char * byteorder;
+        char * bot;
+        error_status = cbf_get_local_integer_byte_order(&byteorder);
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+  }
+  }
+
 /* cfunc cbf_compute_cell_volume   pyfunc compute_cell_volume  
    arg double cell[6]    arg double *volume */
 
@@ -77,7 +83,7 @@ SEE ALSO
    arg char ** real_format */
 
 %feature("autodoc", "
-Returns : string
+Returns : char **rf,int *rflen
 *args   : 
 
 C prototype: int cbf_get_local_real_format (char ** real_format );
@@ -105,19 +111,25 @@ RETURN VALUE
 Returns an error code on failure or 0 for success.
 
 ")get_local_real_format;
-%inline %{
-   char* get_local_real_format(void);
-   char* get_local_real_format(void){
-      char *r;
-      error_status = cbf_get_local_real_format(&r);
-      return r; }
-%}
-char* get_local_real_format(void);
+
+%cstring_output_allocate_size(char **rf, int *rflen, free(*$1));
+  %inline {
+  void get_local_real_format(char **rf, int *rflen) {
+        char * real_format;
+        char * rft;
+        error_status = cbf_get_local_real_format(&real_format);
+        *rflen = strlen(real_format);
+        if (!(rft = (char *)malloc(*rflen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(rft,real_format,*rflen);
+        *rf = rft;
+  }
+  }
+
 /* cfunc cbf_get_local_real_byte_order   pyfunc get_local_real_byte_order  
    arg char ** byte_order */
 
 %feature("autodoc", "
-Returns : string
+Returns : char **bo,int *bolen
 *args   : 
 
 C prototype: int cbf_get_local_real_byte_order (char ** byte_order);
@@ -145,14 +157,20 @@ RETURN VALUE
 Returns an error code on failure or 0 for success.
 
 ")get_local_real_byte_order;
-%inline %{
-   char* get_local_real_byte_order(void);
-   char* get_local_real_byte_order(void){
-      char *r;
-      error_status = cbf_get_local_real_byte_order(&r);
-      return r; }
-%}
-char* get_local_real_byte_order(void);
+
+%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
+  %inline {
+  void get_local_real_byte_order(char **bo, int *bolen) {
+        char * byteorder;
+        char * bot;
+        error_status = cbf_get_local_real_byte_order(&byteorder);
+        *bolen = strlen(byteorder);
+        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
+        strncpy(bot,byteorder,*bolen);
+        *bo = bot;
+  }
+  }
+
 /* cfunc cbf_compute_reciprocal_cell   pyfunc compute_reciprocal_cell  
    arg double cell[6]    arg double rcell[6] */
 
