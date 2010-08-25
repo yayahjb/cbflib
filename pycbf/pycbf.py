@@ -68,7 +68,7 @@ except AttributeError:
 
 __author__ = "Jon Wright <wright@esrf.fr>"
 __date__ = "14 Dec 2005"
-__version__ = "still_being_written"
+__version__ = "CBFlib 0.9"
 __credits__ = """Paul Ellis and Herbert Bernstein for the excellent CBFlib!"""
 __doc__=""" pycbf - python bindings to the CBFlib library
 
@@ -228,7 +228,6 @@ CBF_PARSE_DDLm = _pycbf.CBF_PARSE_DDLm
 CBF_PARSE_CIF2 = _pycbf.CBF_PARSE_CIF2
 CBF_PARSE_DEFINES = _pycbf.CBF_PARSE_DEFINES
 CBF_PARSE_WIDE = _pycbf.CBF_PARSE_WIDE
-CBF_PARSE_WS = _pycbf.CBF_PARSE_WS
 CBF_PARSE_UTF8 = _pycbf.CBF_PARSE_UTF8
 HDR_DEFAULT = _pycbf.HDR_DEFAULT
 MIME_NOHEADERS = _pycbf.MIME_NOHEADERS

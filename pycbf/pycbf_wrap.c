@@ -3118,7 +3118,6 @@ static char error_message[1024] ; // hope that is long enough
 /* prototype */
 void get_error_message(void);
 
-
 void get_error_message(){
   sprintf(error_message,"%s","CBFlib Error(s):");
   if (error_status & CBF_FORMAT        )
@@ -26364,7 +26363,6 @@ SWIG_init(void) {
   SWIG_Python_SetConstant(d, "CBF_PARSE_CIF2",SWIG_From_int((int)(0x1F00)));
   SWIG_Python_SetConstant(d, "CBF_PARSE_DEFINES",SWIG_From_int((int)(0x2000)));
   SWIG_Python_SetConstant(d, "CBF_PARSE_WIDE",SWIG_From_int((int)(0x4000)));
-  SWIG_Python_SetConstant(d, "CBF_PARSE_WS",SWIG_From_int((int)(0x8000)));
   SWIG_Python_SetConstant(d, "CBF_PARSE_UTF8",SWIG_From_int((int)(0x10000)));
   SWIG_Python_SetConstant(d, "HDR_DEFAULT",SWIG_From_int((int)((0x0002|0x0004))));
   SWIG_Python_SetConstant(d, "MIME_NOHEADERS",SWIG_From_int((int)(0x0001)));
