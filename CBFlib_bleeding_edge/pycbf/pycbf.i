@@ -7,7 +7,7 @@
 %pythoncode %{
 __author__ = "Jon Wright <wright@esrf.fr>"
 __date__ = "14 Dec 2005"
-__version__ = "still_being_written"
+__version__ = "CBFlib 0.9"
 __credits__ = """Paul Ellis and Herbert Bernstein for the excellent CBFlib!"""
 __doc__=""" pycbf - python bindings to the CBFlib library
 
@@ -41,8 +41,6 @@ __doc__=""" pycbf - python bindings to the CBFlib library
 %}
 
 
-
-
 // Used later to pass back binary data
 %include "cstring.i"
 
@@ -59,14 +57,13 @@ __doc__=""" pycbf - python bindings to the CBFlib library
 %array_class(short, shortArray)
 %array_class(long, longArray)
 
-
 // Following the SWIG 1.3 documentation at
 // http://www.swig.org/Doc1.3/Python.html
 // section 31.9.5, we map sequences of
 // PyFloat, PyLong and PyInt to
 // C arrays of double, long and int
 //
-// But with the strct checking of being a float
+// But with the strict checking of being a float
 // commented out to allow automatic conversions
 %{
 static int convert_darray(PyObject *input, double *ptr, int size) {
@@ -168,8 +165,6 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
 }
 
 
-
-
 %{  // Here is the c code needed to compile the wrappers, but not 
     // to be wrapped 
 
@@ -184,7 +179,6 @@ static char error_message[1024] ; // hope that is long enough
 
 /* prototype */
 void get_error_message(void);
-
 
 void get_error_message(){
   sprintf(error_message,"%s","CBFlib Error(s):");
@@ -232,22 +226,6 @@ void get_error_message(){
 %} // End of code which is not wrapped but needed to compile
 
 
-
-// REMOVE ME
-/* 
-// Type mapping for grabbing a FILE * from Python
-//%typemap(python,in) FILE * {
-// if (!PyFile_Check($input)) {
-//      PyErr_SetString(PyExc_TypeError, "Need a file!");
-//      return NULL;
-//  }
-//  $1 = PyFile_AsFile($input);
-//}
-*/
-// Gives an IO error when file is closed - check CBFlib API on that...
-
-
-
 // The actual wrappers 
 
 // Constants needed from header files
@@ -273,6 +251,7 @@ void get_error_message(){
 #define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */
 
 
+
   /* Constants used for headers */
 
 #define PLAIN_HEADERS   0x0001  /* Use plain ASCII headers            */
@@ -284,6 +263,8 @@ void get_error_message(){
 #define PAD_1K          0x0020  /* Pad binaries with 1023 0's         */
 #define PAD_2K          0x0040  /* Pad binaries with 2047 0's         */
 #define PAD_4K          0x0080  /* Pad binaries with 4095 0's         */
+
+
 
   /* Constants used to control CIF parsing */
   
@@ -305,7 +286,7 @@ void get_error_message(){
                         
   
 #define CBF_PARSE_WIDE      0x4000  /* PARSE wide files                         */
-#define CBF_PARSE_WS        0x8000  /* PARSE whitespace                         */
+
 #define CBF_PARSE_UTF8      0x10000 /* PARSE UTF-8                              */
 
 #define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)
@@ -316,6 +297,8 @@ void get_error_message(){
 
 #define CBF             0x0000  /* Use simple binary sections         */
 #define CIF             0x0001  /* Use MIME-encoded binary sections   */
+
+
 
   /* Constants used for encoding */
 
@@ -357,6 +340,7 @@ void get_error_message(){
 #define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
                       "\nCBFlib error %d in \"x\"\n", err); \
                          { c; } return err; }}
+
 
 %include "cbfgenericwrappers.i"
 

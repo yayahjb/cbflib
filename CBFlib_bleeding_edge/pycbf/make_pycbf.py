@@ -1,6 +1,59 @@
 
 print "\\begin{verbatim}"
 print "This output comes from make_pycbf.py which generates the wrappers"
+print "pycbf Copyright (C) 2005  Jonathan Wright, no warranty, LGPL"
+
+
+######################################################################
+#                                                                    #
+# YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE INCLUDING PYCBF UNDER THE  #
+# TERMS OF THE GPL                                                   #
+#                                                                    #
+# ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API INCLUDING PYCBF  #
+# UNDER THE TERMS OF THE LGPL                                        #
+#                                                                    #
+######################################################################
+
+
+########################### GPL NOTICES ##############################
+#                                                                    #
+# This program is free software; you can redistribute it and/or      #
+# modify it under the terms of the GNU General Public License as     #
+# published by the Free Software Foundation; either version 2 of     #
+# (the License, or (at your option) any later version.               #
+#                                                                    #
+# This program is distributed in the hope that it will be useful,    #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of     #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      #
+# GNU General Public License for more details.                       #
+#                                                                    #
+# You should have received a copy of the GNU General Public License  #
+# along with this program; if not, write to the Free Software        #
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           #
+# 02111-1307  USA                                                    #
+#                                                                    #
+######################################################################
+
+
+######################### LGPL NOTICES ###############################
+#                                                                    #
+# This library is free software; you can redistribute it and/or      #
+# modify it under the terms of the GNU Lesser General Public         #
+# License as published by the Free Software Foundation; either       #
+# version 2.1 of the License, or (at your option) any later version. #
+#                                                                    #
+# This library is distributed in the hope that it will be useful,    #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of     #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  #
+# Lesser General Public License for more details.                    #
+#                                                                    #
+# You should have received a copy of the GNU Lesser General Public   #
+# License along with this library; if not, write to the Free         #
+# Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    #
+# MA  02110-1301  USA                                                #
+#                                                                    #
+######################################################################
+
 
 # Get the ascii text as a list of strings 
 lines = open("CBFlib.txt","r").readlines()
@@ -11,6 +64,7 @@ name=""
 
 # Flag to indicate we have not read anything useful yet
 on=0
+
 
 # Dictionary of function prototypes and documentation, keyed by name in C.
 name_dict = {}
@@ -79,11 +133,8 @@ while i<len(lines)-1:
             on=0
          else:
             raise Exception("bad docstring")
-   
-
 
 # End of CBFlib.txt file - now generate wrapper code for swig
-
 
 
 def myformat(s,l,indent=0,breakon=" "):
@@ -163,6 +214,7 @@ cbfhandle_specials = {
      "int elsize", "int elsigned", "int elunsigned", 
      "int elements", "int minelement", "int maxelement"]],
 
+
 "cbf_get_integerarrayparameters_wdims":["""
 %cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
 %apply int *OUTPUT {int *compression,int *binary_id, 
@@ -201,6 +253,7 @@ cbfhandle_specials = {
      "int elsize", "int elsigned", "int elunsigned", 
      "int elements", "int minelement", "int maxelement", "char **bo", "int *bolen",
      "int dimfast", "int dimmid", "int dimslow", "int padding"]],
+
 
 "cbf_get_integerarrayparameters_wdims_fs":["""
 %cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
@@ -299,6 +352,7 @@ cbfhandle_specials = {
         }
 ""","get_realarrayparameters",[],["int compression","int binary_id", 
      "int elsize", "int elements"]],
+
 
 "cbf_get_realarrayparameters_wdims":["""
 %cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
@@ -420,7 +474,6 @@ cbfhandle_specials = {
       "int dimslow", "int dimmid", "int dimfast", "int padding"]],
 
 
-
 "cbf_get_integerarray":["""
 // Ensure we free the local temporary
 
@@ -482,6 +535,7 @@ cbfhandle_specials = {
 ""","get_image_as_string",["int element_number", 
     "int elsize", "int elsign", "int ndimslow", "int ndimfast"],["(Binary)String"] ],
 
+
 "cbf_get_image_fs":["""
 // Ensure we free the local temporary
 
@@ -537,6 +591,7 @@ cbfhandle_specials = {
 ""","get_image_sf_as_string",["int element_number", 
     "int elsize", "int elsign", "int ndimslow", "int ndimfast"],["(Binary)String"] ],
 
+
 "cbf_get_real_image":["""
 // Ensure we free the local temporary
 
@@ -563,6 +618,7 @@ cbfhandle_specials = {
       }
 ""","get_real_image_as_string",["int element_number", 
     "int elsize", "int ndimslow", "int ndimfast"],["(Binary)String"] ],
+
 
 "cbf_get_real_image_fs":["""
 // Ensure we free the local temporary
@@ -591,6 +647,7 @@ cbfhandle_specials = {
 ""","get_real_image_fs_as_string",["int element_number", 
     "int elsize", "int ndimfast", "int ndimslow"],["(Binary)String"] ],
 
+
 "cbf_get_real_image_sf":["""
 // Ensure we free the local temporary
 
@@ -617,8 +674,6 @@ cbfhandle_specials = {
       }
 ""","get_real_image_sf_as_string",["int element_number", 
     "int elsize", "int ndimslow", "int ndimfast"],["(Binary)String"] ],
-
-
 
 
 "cbf_get_3d_image":["""
@@ -649,7 +704,6 @@ cbfhandle_specials = {
     "int elsize", "int elsign", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],
 
 
-
 "cbf_get_3d_image_fs":["""
 // Ensure we free the local temporary
 
@@ -676,7 +730,6 @@ cbfhandle_specials = {
       }
 ""","get_3d_image_fs_as_string",["int element_number", 
     "int elsize", "int elsign", "int ndimfast", "int ndimmid", "int ndimslow"],["(Binary)String"] ],
-
 
 
 "cbf_get_3d_image_sf":["""
@@ -706,6 +759,7 @@ cbfhandle_specials = {
 ""","get_3d_image_sf_as_string",["int element_number", 
     "int elsize", "int elsign", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],
 
+
 "cbf_get_real_3d_image":["""
 // Ensure we free the local temporary
 
@@ -732,7 +786,6 @@ cbfhandle_specials = {
       }
 ""","get_real_3d_image_as_string",["int element_number", 
     "int elsize", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],
-
 
 
 "cbf_get_real_3d_image_fs":["""
@@ -788,7 +841,6 @@ cbfhandle_specials = {
       }
 ""","get_real_3d_image_sf_as_string",["int element_number", 
     "int elsize", "int ndimslow", "int ndimmid", "int ndimfast"],["(Binary)String"] ],
-
 
 
 "cbf_get_realarray":["""
@@ -849,6 +901,7 @@ cbfhandle_specials = {
 [ "int compression", "int binary_id","(binary) String data", 
  "int elsize", "int elsigned","int elements"],[]],
 
+
 "cbf_set_integerarray_wdims":["""
     /* CBFlib must NOT modify the data string nor the byteorder string
        which belongs to the scripting 
@@ -880,6 +933,7 @@ cbfhandle_specials = {
 ""","set_integerarray_wdims",
 [ "int compression", "int binary_id","(binary) String data", 
  "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+
 
 "cbf_set_integerarray_wdims_sf":["""
     /* CBFlib must NOT modify the data string nor the byteorder string
@@ -971,6 +1025,7 @@ cbfhandle_specials = {
 [ "int compression", "int binary_id","(binary) String data", 
  "int elsize","int elements"],[]],
 
+
 "cbf_set_realarray_wdims":["""
     /* CBFlib must NOT modify the data string nor the byteorder string
        which belongs to the scripting 
@@ -1003,6 +1058,7 @@ cbfhandle_specials = {
 [ "int compression", "int binary_id","(binary) String data", 
  "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
 
+
 "cbf_set_realarray_wdims_sf":["""
     /* CBFlib must NOT modify the data string nor the byteorder string
        which belongs to the scripting 
@@ -1034,6 +1090,7 @@ cbfhandle_specials = {
 ""","set_realarray_wdims_sf",
 [ "int compression", "int binary_id","(binary) String data", 
  "int elsize","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],
+
 
 "cbf_set_realarray_wdims_fs":["""
     /* CBFlib must NOT modify the data string nor the byteorder string
@@ -1095,6 +1152,7 @@ cbfhandle_specials = {
 [ "int element_number","int compression","(binary) String data", 
  "int elsize", "int elsign", "int dimslow", "int dimfast"],[]],
 
+
 "cbf_set_image_fs":["""
     /* CBFlib must NOT modify the data string which belongs to the scripting 
        language we will get and check the length via a typemap */
@@ -1121,6 +1179,7 @@ cbfhandle_specials = {
 ""","set_image_fs",
 [ "int element_number","int compression","(binary) String data", 
  "int elsize", "int elsign", "int dimfast", "int dimslow"],[]],
+
 
 "cbf_set_image_sf":["""
     /* CBFlib must NOT modify the data string which belongs to the scripting 
@@ -1233,6 +1292,7 @@ cbfhandle_specials = {
 [ "int element_number","int compression","(binary) String data", 
  "int elsize", "int dimslow", "int dimfast"],[]],
 
+
 "cbf_set_3d_image":["""
     /* CBFlib must NOT modify the data string which belongs to the scripting 
        language we will get and check the length via a typemap */
@@ -1260,6 +1320,7 @@ cbfhandle_specials = {
 [ "int element_number","int compression","(binary) String data", 
  "int elsize", "int elsign", "int dimslow", "int dimmid", "int dimfast"],[]],
 
+
 "cbf_set_3d_image_fs":["""
     /* CBFlib must NOT modify the data string which belongs to the scripting 
        language we will get and check the length via a typemap */
@@ -1286,6 +1347,7 @@ cbfhandle_specials = {
 ""","set_3d_image_fs",
 [ "int element_number","int compression","(binary) String data", 
  "int elsize", "int elsign", "int dimfast", "int dimmid", "int dimslow"],[]],
+
 
 "cbf_set_3d_image_sf":["""
     /* CBFlib must NOT modify the data string which belongs to the scripting 
@@ -1342,6 +1404,7 @@ cbfhandle_specials = {
 [ "int element_number","int compression","(binary) String data", 
  "int elsize", "int dimslow", "int dimmid", "int dimfast"],[]],
 
+
 "cbf_set_real_3d_image_fs":["""
     /* CBFlib must NOT modify the data string which belongs to the scripting 
        language we will get and check the length via a typemap */
@@ -1368,6 +1431,7 @@ cbfhandle_specials = {
 ""","set_real_3d_image_fs",
 [ "int element_number","int compression","(binary) String data", 
  "int elsize", "int dimfast", "int dimmid", "int dimslow"],[]],
+
 
 "cbf_set_real_3d_image_sf":["""
     /* CBFlib must NOT modify the data string which belongs to the scripting 
@@ -1397,7 +1461,6 @@ cbfhandle_specials = {
  "int elsize", "int dimslow", "int dimmid", "int dimfast"],[]],
 
 
-
 "cbf_get_image_size": ["""
 %apply int *OUTPUT {int *ndimslow, int *ndimfast} get_image_size;
      void get_image_size(unsigned int element_number, int *ndimslow, int *ndimfast){
@@ -1410,6 +1473,7 @@ cbfhandle_specials = {
         }
 ""","get_image_size",["Integer element_number"],["size_t ndim1","size_t ndim2"]],
 
+
 "cbf_get_image_size_fs": ["""
 %apply int *OUTPUT {int *ndimfast, int *ndimslow} get_image_size_fs;
      void get_image_size_fs(unsigned int element_number, int *ndimfast, int *ndimslow){
@@ -1421,6 +1485,7 @@ cbfhandle_specials = {
         *ndimslow = (int)inslow; 
         }
 ""","get_image_size_fs",["Integer element_number"],["size_t ndimfast","size_t ndimslow"]],
+
 
 "cbf_get_image_size_sf": ["""
 %apply int *OUTPUT {int *ndimslow, int *ndimfast} get_image_size_sf;
@@ -1448,6 +1513,7 @@ cbfhandle_specials = {
         }
 ""","get_3d_image_size",["Integer element_number"],["size_t ndimslow","size_t ndimmid","size_t ndimfast"]],
 
+
 "cbf_get_3d_image_size_fs": ["""
 %apply int *OUTPUT {int *ndimslow, int *ndimmid, int *ndimfast} get_3d_image_size;
      void get_3d_image_size_fs(unsigned int element_number, int *ndimfast, int *ndimmid, int *ndimslow){
@@ -1460,6 +1526,7 @@ cbfhandle_specials = {
         *ndimfast = (int)infast;
         }
 ""","get_3d_image_size",["Integer element_number"],["size_t ndimfast","size_t ndimmid","size_t ndimslow"]],
+
 
 "cbf_get_3d_image_size_sf": ["""
 %apply int *OUTPUT {int *ndimslow, int *ndimmid, int *ndimfast} get_3d_image_size_sf;
@@ -1474,6 +1541,7 @@ cbfhandle_specials = {
         }
 ""","get_3d_image_size_sf",["Integer element_number"],["size_t ndimslow","size_t ndimmid","size_t ndimfast"]],
 
+
 "cbf_get_pixel_size" : ["""
 %apply double *OUTPUT {double *psize} get_pixel_size;
     void get_pixel_size(unsigned int element_number, 
@@ -1485,6 +1553,7 @@ cbfhandle_specials = {
     }
 ""","get_pixel_size",["Int element_number","Int axis_number"],
                      ["Float pixel_size"]] ,
+
 
 "cbf_get_pixel_size_fs" : ["""
 %apply double *OUTPUT {double *psize} get_pixel_size;
@@ -1523,6 +1592,7 @@ cbfhandle_specials = {
 ""","set_pixel_size",
    ["Int element_number","Int axis_number","Float pixel size"],[]],
 
+
 "cbf_set_pixel_size_fs":["""
      void set_pixel_size_fs (unsigned int element_number, 
                           unsigned int axis_number, double psize){
@@ -1547,7 +1617,6 @@ cbfhandle_specials = {
    ["Int element_number","Int axis_number","Float pixel size"],[]],
 
 
-
 "cbf_write_file" : ["""
     void write_file(const char* filename, int ciforcbf, int headers, 
                     int encoding){
@@ -1566,6 +1635,7 @@ cbfhandle_specials = {
        }
 ""","write_file",["String filename","Integer ciforcbf","Integer Headers", 
                   "Integer encoding"],[]],
+
 
 "cbf_write_widefile" : ["""
     void write_widefile(const char* filename, int ciforcbf, int headers, 
@@ -1615,6 +1685,8 @@ cbfhandle_specials = {
     }
        }
 ""","read_file",["String filename","Integer headers"],[]],
+
+
 
 "cbf_read_widefile" : ["""
     void read_widefile(char* filename, int headers){
@@ -2114,6 +2186,8 @@ double  m7,double  m8){
   }
 ""","get_bin_sizes",["Integer element_number"],["Float slowbinsize","Float fastbinsize"] ],
 
+
+
 # cbfhandle dict functions UNTESTED
 
 
@@ -2149,11 +2223,6 @@ void convert_dictionary(cbf_handle other){
    cbf_failnez(cbf_convert_dictionary(self,other));
 }
 ""","convert_dictionary",["CBFHandle dictionary"],[]],
-
-
-
-
-# Prelude to the next but one section of the nuweb doc
 
 
 "cbf_construct_detector":["""
@@ -2363,8 +2432,6 @@ typedef cbf_handle_struct handle;
 cbf_handle_wrapper = cbfhandlewrapper()
 
 
-
-
 cbf_goniometer_specials = {
 "cbf_get_rotation_range":["""
 %apply double *OUTPUT {double *start,double *increment};
@@ -2509,6 +2576,7 @@ cbf_detector_specials = {
 ""","get_pixel_normal_fs",["double indexfast","double indexslow"] ,
  ["double normal1","double normal2", "double normal3" ] ],
 
+
 "cbf_get_pixel_normal_sf":["""
 %apply double *OUTPUT {double *normalslow,double *normalfast, double *normal3};
    void get_pixel_normal_sf ( double indexslow, double indexfast, 
@@ -2543,7 +2611,6 @@ cbf_detector_specials = {
      ["double area","double projected_area"] ],
 
 
-
 "cbf_get_pixel_area_sf":["""
 %apply double *OUTPUT{double *area,double *projected_area};
     void get_pixel_area_sf(double indexslow, double indexfast,
@@ -2562,6 +2629,7 @@ cbf_detector_specials = {
   }
 ""","get_detector_distance",[],["double distance"]],
 
+
 "cbf_get_detector_normal":["""
 %apply double *OUTPUT {double *normal1, double *normal2, double *normal3};
    void get_detector_normal(double *normal1, 
@@ -2572,6 +2640,7 @@ cbf_detector_specials = {
    }
 ""","get_detector_normal",[],
 ["double normal1", "double normal2", "double normal3"]],
+
 
 "cbf_get_pixel_coordinates":["""
 %apply double *OUTPUT {double *coordinate1,  
@@ -2585,6 +2654,7 @@ cbf_detector_specials = {
    }
 ""","get_pixel_coordinates",["double index1","double index2"],
 ["double coordinate1", "double coordinate2", "double coordinate3"] ],
+
 
 "cbf_get_pixel_coordinates_fs":["""
 %apply double *OUTPUT {double *coordinate1,  
@@ -2623,6 +2693,7 @@ cbf_detector_specials = {
 ""","get_beam_center",[],
 ["double index1", "double index2", "double center1","double center2"]],
 
+
 "cbf_get_beam_center_fs":["""
 %apply double *OUTPUT {double *indexfast, double *indexslow, 
  double *centerfast,double *centerslow};
@@ -2633,7 +2704,6 @@ cbf_detector_specials = {
         }
 ""","get_beam_center_fs",[],
 ["double indexfast", "double indexslow", "double centerfast","double centerslow"]],
-
 
 
 "cbf_get_beam_center_sf":["""
@@ -2667,6 +2737,7 @@ cbf_detector_specials = {
 ""","set_beam_center_fs",
 ["double indexfast", "double indexslow", "double centerfast","double centerslow"],[]],
 
+
 "cbf_set_beam_center_sf":["""
     void set_beam_center_sf(double *indexslow, double *indexfast, 
                          double *centerslow,double *centerfast){
@@ -2676,6 +2747,7 @@ cbf_detector_specials = {
 ""","set_beam_center_sf",
 ["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
 
+
 "cbf_set_reference_beam_center":["""
     void set_reference_beam_center(double *indexslow, double *indexfast, 
                          double *centerslow,double *centerfast){
@@ -2684,7 +2756,6 @@ cbf_detector_specials = {
         }
 ""","set_reference_beam_center",
 ["double indexslow", "double indexfast", "double centerslow","double centerfast"],[]],
-
 
 
 "cbf_set_reference_beam_center_fs":["""
@@ -2714,12 +2785,14 @@ void get_inferred_pixel_size(unsigned int axis_number, double* psize){
    }
 ""","get_inferred_pixel_size",["Int axis_number"],["Float pixel size"] ],
 
+
 "cbf_get_inferred_pixel_size_fs" : ["""
 %apply double *OUTPUT { double *psize } get_inferred_pixel_size;
 void get_inferred_pixel_size_fs(unsigned int axis_number, double* psize){
    cbf_failnez(cbf_get_inferred_pixel_size_fs(self, axis_number, psize));
    }
 ""","get_inferred_pixel_size_fs",["Int axis_number"],["Float pixel size"] ],
+
 
 "cbf_get_inferred_pixel_size_sf" : ["""
 %apply double *OUTPUT { double *psize } get_inferred_pixel_size;
@@ -2730,8 +2803,6 @@ void get_inferred_pixel_size_sf(unsigned int axis_number, double* psize){
 
 
 }
-
-
 
 
 class cbfdetectorwrapper:
@@ -2787,7 +2858,6 @@ typedef cbf_detector_struct *cbf_detector;
 cbf_detector_wrapper = cbfdetectorwrapper()
 
 
-
 cbfgeneric_specials = {
 "cbf_get_local_integer_byte_order":["""
 %cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
@@ -2804,6 +2874,7 @@ cbfgeneric_specials = {
   }
 ""","get_local_integer_byte_order",[],["char **bo", "int *bolen"]],
 
+
 "cbf_get_local_real_format":["""
 %cstring_output_allocate_size(char **rf, int *rflen, free(*$1));
   %inline {
@@ -2818,6 +2889,7 @@ cbfgeneric_specials = {
   }
   }
 ""","get_local_real_format",[],["char **rf", "int *rflen"]],
+
 
 "cbf_get_local_real_byte_order":["""
 %cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
@@ -2835,8 +2907,6 @@ cbfgeneric_specials = {
 ""","get_local_real_byte_order",[],["char **bo", "int *bolen"]],
 
 
-
-
 "cbf_compute_cell_volume":["""
 
 %apply double *OUTPUT {double *volume};
@@ -2846,6 +2916,7 @@ cbfgeneric_specials = {
   }
   }
 ""","compute_cell_volume",["double cell[6]"],["Float volume"]],
+
 
 "cbf_compute_reciprocal_cell":["""
 %apply double *OUTPUT {double *astar, double *bstar, double *cstar,
@@ -2868,7 +2939,6 @@ cbfgeneric_specials = {
 ["Float astar", "Float bstar", "Float cstar", "Float alphastar", "Float betastar", "Float gammastar"] ]
 
 }
-
 
 
 class genericwrapper:
@@ -2927,8 +2997,8 @@ class genericwrapper:
        return
 
 
-
 generic_wrapper = genericwrapper()
+
 
 def generate_wrappers(name_dict):
    names = name_dict.keys()
@@ -2966,7 +3036,7 @@ def generate_wrappers(name_dict):
          cbf_detector_wrapper.wrap(cname,prototype,args,docstring)
          continue
       generic_wrapper.wrap(cname,prototype,args,docstring)
- 
+
 
 generate_wrappers(name_dict)
 open("cbfgoniometerwrappers.i","w").write(cbf_goniometer_wrapper.get_code())
@@ -2976,4 +3046,3 @@ open("cbfgenericwrappers.i","w").write(generic_wrapper.get_code())
 
 print "End of output from make_pycbf.py"
 print "\\end{verbatim}"
-

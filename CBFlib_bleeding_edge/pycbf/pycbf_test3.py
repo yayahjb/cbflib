@@ -15,8 +15,8 @@ class GenericTests(unittest.TestCase):
                           'ieee 754-1985')
 
     def test_compute_cell_volume(self):
-	self.assertEqual( pycbf.compute_cell_volume((2.,3.,4.,90.,90.,90.)),
-                          24.0)
+        self.assertEqual( pycbf.compute_cell_volume((2.,3.,4.,90.,90.,90.)),
+                           24.0)
 if __name__=="__main__":
     unittest.main()
 
