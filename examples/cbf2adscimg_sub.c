@@ -147,7 +147,7 @@ static char * array_id;
 
 void puthd (char* field, char* value, char* header)
 {
-  char   temp[5];
+  char   temp[6];
   int    i, diff;
   char   *hp, *vp, *tp, *fp;
 
