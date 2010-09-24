@@ -209,7 +209,7 @@ puthd (temp, "    0", header);
 void padhd (char* header, int size)
 {
   int i, diff;
-  char temp[5], *hp, *tp;
+  char temp[6], *hp, *tp;
 
 /*
  * find the } marking the end of the header
