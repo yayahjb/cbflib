@@ -539,20 +539,21 @@ DRAFT CBF/ImgCIF DEFINITION</A>.
 	    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.4.38">cbf_set_reference_beam_center, cbf_set_reference_beam_center_fs, cbf_set_reference_beam_center_sf</a>
 	  <LI><A HREF="#2.4.39">2.4.39 cbf_get_detector_distance</a>
 	  <LI><A HREF="#2.4.40">2.4.40 cbf_get_detector_normal</a>
-	  <LI><A HREF="#2.4.41">2.4.41 cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs, cbf_get_pixel_coordinates_sf</a>
-	  <LI><A HREF="#2.4.42">2.4.42 cbf_get_pixel_normal, cbf_get_pixel_normal_fs, cbf_get_pixel_normal_sf</a>
-	  <LI><A HREF="#2.4.43">2.4.43 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf</a>
-	  <LI><A HREF="#2.4.44">2.4.44 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf</a>
-	  <LI><A HREF="#2.4.45">2.4.45 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf</a>
-	  <LI><A HREF="#2.4.46">2.4.46 cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_fs, cbf_get_inferred_pixel_size_sf</a>
-	  <LI><A HREF="#2.4.47">2.4.47 cbf_get_unit_cell</a>
-	  <LI><A HREF="#2.4.48">2.4.48 cbf_set_unit_cell</a>
-	  <LI><A HREF="#2.4.49">2.4.49 cbf_get_reciprocal_cell</a>
-	  <LI><A HREF="#2.4.50">2.4.50 cbf_set_reciprocal_cell</a>
-	  <LI><A HREF="#2.4.51">2.4.51 cbf_compute_cell_volume</a>
-	  <LI><A HREF="#2.4.52">2.4.52 cbf_compute_reciprocal_cell</a>
-      <LI><A HREF="#2.4.53">2.4.53 cbf_get_orientation_matrix, cbf_set_orientation_matrix</a>
-      <LI><A HREF="#2.4.54">2.4.54 cbf_get_bin_sizes, cbf_set_bin_sizes</a>
+      <LI><A HREF="#2.4.41">2.4.41 cbf_get_detector_axis_slow, cbf_get_detector_axis_fast, cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf
+	  <LI><A HREF="#2.4.42">2.4.42 cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs, cbf_get_pixel_coordinates_sf</a>
+	  <LI><A HREF="#2.4.43">2.4.43 cbf_get_pixel_normal, cbf_get_pixel_normal_fs, cbf_get_pixel_normal_sf</a>
+	  <LI><A HREF="#2.4.44">2.4.44 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf</a>
+	  <LI><A HREF="#2.4.45">2.4.45 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf</a>
+	  <LI><A HREF="#2.4.46">2.4.46 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf</a>
+	  <LI><A HREF="#2.4.47">2.4.47 cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_fs, cbf_get_inferred_pixel_size_sf</a>
+	  <LI><A HREF="#2.4.48">2.4.48 cbf_get_unit_cell</a>
+	  <LI><A HREF="#2.4.49">2.4.49 cbf_set_unit_cell</a>
+	  <LI><A HREF="#2.4.50">2.4.50 cbf_get_reciprocal_cell</a>
+	  <LI><A HREF="#2.4.51">2.4.51 cbf_set_reciprocal_cell</a>
+	  <LI><A HREF="#2.4.52">2.4.52 cbf_compute_cell_volume</a>
+	  <LI><A HREF="#2.4.53">2.4.53 cbf_compute_reciprocal_cell</a>
+      <LI><A HREF="#2.4.54">2.4.54 cbf_get_orientation_matrix, cbf_set_orientation_matrix</a>
+      <LI><A HREF="#2.4.55">2.4.55 cbf_get_bin_sizes, cbf_set_bin_sizes</a>
     </UL>
     <LI><A HREF="#2.5">2.5   F90 function interfaces</A>
     <UL>
@@ -764,7 +765,7 @@ write to the same file.<br />
 There are two major conventions in the ordering of array indices:
 <ul>
 <li><b>fs</b>: Fast to slow.  The first array index (the one numbered &quot;1&quot;) is the one
-for which the values of that index change &quot;fastest&quot;.  That is as we move
+for which the values of that index change &quot;fastest&quot;.  That is, as we move
 forward in memory, the value of this index changes more rapidly than any other.
 <li><b>sf</b>: Slow to fast.  The first array index (the one numbered &quot;1&quot;) is the one
 for which the values of that index change &quot;slowest&quot;.  That is as we move
@@ -776,7 +777,7 @@ the functions for which array indices are used are available in three forms: a d
 which may used either one convention or the other, a form in which the name of the function
 has an &quot;_fs&quot; suffix for the fast to slow convention and a form in which the name of the
 function has a &quot;_sf&quot; suffix for the slow to fast convention.  Designers of applications
-are advised to use one of the two conventions.  There is no burden on performance for using
+are advised to use one of the two suffix conventions.  There is no burden on performance for using
 one convention or the other.  The differences are resolved at compile time by use of
 preprocessor macros.
 <HR><HR>
@@ -5206,7 +5207,53 @@ Any of the destination pointers may be NULL.
 <p>
 Returns an error code on failure or 0 for success.
 <p><hr><P>
-<h4><A NAME="2.4.41">2.4.41 cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs, cbf_get_pixel_coordinates_sf
+<h4><A NAME="2.4.41">2.4.41 cbf_get_detector_axis_slow, cbf_get_detector_axis_slow, cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf </A></h4>
+<p><b>PROTOTYPE</b>
+<p>#include "cbf_simple.h"
+<p>
+int cbf_get_detector_axis_slow (cbf_detector <i>detector</i>, double *<i>slowaxis1</i>, double *<i>slowaxis2</i>,
+double *<i>slowaxis3</i>);<br />
+int cbf_get_detector_axis_fast (cbf_detector <i>detector</i>, double *<i>fastaxis1</i>, double *<i>fastaxis2</i>,
+double *<i>fastaxis3</i>);<br />
+int cbf_get_detector_axes (cbf_detector <i>detector</i>, double *<i>slowaxis1</i>, double *<i>slowaxis2</i>,
+double *<i>slowaxis3</i>, double *<i>fastaxis1</i>, double *<i>fastaxis2</i>,
+double *<i>fastaxis3</i>);<br />
+int cbf_get_detector_axes_fs (cbf_detector <i>detector</i>, double *<i>fastaxis1</i>, double *<i>fastaxis2</i>,
+double *<i>fastaxis3</i>, double *<i>slowaxis1</i>, double *<i>slowaxis2</i>,
+double *<i>slowaxis3</i>);<br />
+int cbf_get_detector_axes_sf (cbf_detector <i>detector</i>, double *<i>slowaxis1</i>, double *<i>slowaxis2</i>,
+double *<i>slowaxis3</i>, double *<i>fastaxis1</i>, double *<i>fastaxis2</i>,
+double *<i>fastaxis3</i>);<br />
+<p>
+<b>DESCRIPTION</b>
+<p>
+cbf_get_detector_axis_slow sets *<i>slowaxis1</i>, *<i>slowaxis2</i>, and *<i>slowaxis3</i> to the 3 components of
+the slow axis of the specified detector at the current settings of all axes.
+cbf_get_detector_axis_slow sets *<i>fastaxis1</i>, *<i>fastaxis2</i>, and *<i>fastaxis3</i> to the 3 components of
+the fast axis of the specified detector at the current settings of all axes.
+cbf_get_detector_axes, cbf_get_detector_axes_fs and int cbf_get_detector_axes_sf set  
+*<i>slowaxis1</i>, *<i>slowaxis2</i>, and *<i>slowaxis3</i> to the 3 components of
+the slow axis and *<i>fastaxis1</i>, *<i>fastaxis2</i>, and *<i>fastaxis3</i> to the 3 components of
+the fast axis of the specified detector at the current settings of all axes.
+<p>
+Any of the destination pointers may be NULL.
+<p>
+<b>ARGUMENTS</b><br />
+<TABLE>
+<TR><td valign="top">&nbsp;&nbsp;<i>detector</i><td valign="top">&nbsp;&nbsp;Detector handle.<br />
+<TR><td valign="top">&nbsp;&nbsp;<i>slowaxis1</i><td valign="top">&nbsp;&nbsp;Pointer to the destination x component of the slow axis vector.<br />
+<TR><td valign="top">&nbsp;&nbsp;<i>slowaxis2</i><td valign="top">&nbsp;&nbsp;Pointer to the destination y component of the slow axis vector.<br />
+<TR><td valign="top">&nbsp;&nbsp;<i>slowaxis3</i><td valign="top">&nbsp;&nbsp;Pointer to the destination z component of the slow axis vector.<br />
+<TR><td valign="top">&nbsp;&nbsp;<i>fastaxis1</i><td valign="top">&nbsp;&nbsp;Pointer to the destination x component of the fast axis vector.<br />
+<TR><td valign="top">&nbsp;&nbsp;<i>fastaxis2</i><td valign="top">&nbsp;&nbsp;Pointer to the destination y component of the fast axis vector.<br />
+<TR><td valign="top">&nbsp;&nbsp;<i>fastaxis3</i><td valign="top">&nbsp;&nbsp;Pointer to the destination z component of the fast axis vector.<br />
+</TABLE>
+<p>
+<b>RETURN VALUE</b>
+<p>
+Returns an error code on failure or 0 for success.
+<p><hr><P>
+<h4><A NAME="2.4.42">2.4.42 cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs, cbf_get_pixel_coordinates_sf
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5241,7 +5288,7 @@ Any of the destination pointers may be NULL.
 <p>
 Returns an error code on failure or 0 for success.
 <p><hr><P>
-<h4><A NAME="2.4.42">2.4.42 cbf_get_pixel_normal, cbf_get_pixel_normal_fs, cbf_get_pixel_normal_sf
+<h4><A NAME="2.4.43">2.4.43 cbf_get_pixel_normal, cbf_get_pixel_normal_fs, cbf_get_pixel_normal_sf
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5275,7 +5322,7 @@ Any of the destination pointers may be NULL.
 <p>
 Returns an error code on failure or 0 for success.
 <p><hr><P>
-<h4><A NAME="2.4.43">2.4.43 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf
+<h4><A NAME="2.4.44">2.4.44 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5310,7 +5357,7 @@ Either of the destination pointers may be NULL.
 Returns an error code on failure or 0 for success.
 <p><hr><P>
 
-<h4><A NAME="2.4.44">2.4.44 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf</A></h4>
+<h4><A NAME="2.4.45">2.4.45 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
@@ -5351,7 +5398,7 @@ cbf_get_pixel_size and cbf_get_pixel_size_fs and the slowest for cbf_get_pixel_s
 <p><hr><P>
 
 
-<h4><A NAME="2.4.45">2.4.45 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf</A></h4>
+<h4><A NAME="2.4.46">2.4.46 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
@@ -5397,7 +5444,7 @@ If the pixel size is not given explcitly in the &quot;array_element_size categor
 <p>Returns an error code on failure or 0 for success.
 <p><hr><P>
 
-<h4><A NAME="2.4.46">2.4.46 cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_fs, cbf_get_inferred_pixel_size_sf
+<h4><A NAME="2.4.47">2.4.47 cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_fs, cbf_get_inferred_pixel_size_sf
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5437,7 +5484,7 @@ and indicates the fast axis in a call to cbf_get_inferred_pixel_size_fs.
 Returns an error code on failure or 0 for success.
 <p><hr><P>
 
-<h4><A NAME="2.4.47">2.4.47 cbf_get_unit_cell
+<h4><A NAME="2.4.48">2.4.48 cbf_get_unit_cell
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5480,13 +5527,13 @@ missing values if the &quot;cell&quot; category exists.
 <p>
 <b>SEE ALSO</b>
 <p>
-<A HREF="#2.4.48">2.4.48 cbf_set_unit_cell<br />
-<A HREF="#2.4.49">2.4.49 cbf_get_reciprocal_cell<br />
-<A HREF="#2.4.50">2.4.50 cbf_set_reciprocal_cell<br />
-<A HREF="#2.4.51">2.4.51 cbf_compute_cell_volume<br />
-<A HREF="#2.4.52">2.4.52 cbf_compute_reciprocal_cell<br />
+<A HREF="#2.4.49">2.4.49 cbf_set_unit_cell<br />
+<A HREF="#2.4.50">2.4.50 cbf_get_reciprocal_cell<br />
+<A HREF="#2.4.51">2.4.51 cbf_set_reciprocal_cell<br />
+<A HREF="#2.4.52">2.4.52 cbf_compute_cell_volume<br />
+<A HREF="#2.4.53">2.4.53 cbf_compute_reciprocal_cell<br />
 <p><hr><P>
-<h4><A NAME="2.4.48">2.4.48 cbf_set_unit_cell
+<h4><A NAME="2.4.49">2.4.49 cbf_set_unit_cell
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5530,14 +5577,14 @@ Returns an error code on failure or 0 for success.
 <p>
 <b>SEE ALSO</b>
 <p>
-<A HREF="#2.4.47">2.4.47 cbf_get_unit_cell<br />
-<A HREF="#2.4.49">2.4.49 cbf_get_reciprocal_cell<br />
-<A HREF="#2.4.50">2.4.50 cbf_set_reciprocal_cell<br />
-<A HREF="#2.4.51">2.4.51 cbf_compute_cell_volume<br />
-<A HREF="#2.4.52">2.4.52 cbf_compute_reciprocal_cell<br />
+<A HREF="#2.4.48">2.4.48 cbf_get_unit_cell<br />
+<A HREF="#2.4.50">2.4.50 cbf_get_reciprocal_cell<br />
+<A HREF="#2.4.51">2.4.51 cbf_set_reciprocal_cell<br />
+<A HREF="#2.4.52">2.4.52 cbf_compute_cell_volume<br />
+<A HREF="#2.4.53">2.4.53 cbf_compute_reciprocal_cell<br />
 <p><hr><P>
 <b>SEE ALSO</b>
-<h4><A NAME="2.4.49">2.4.49 cbf_get_reciprocal_cell
+<h4><A NAME="2.4.50">2.4.50 cbf_get_reciprocal_cell
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5582,13 +5629,13 @@ missing values if the &quot;cell&quot; category exists.
 <p>
 <b>SEE ALSO</b>
 <p>
-<A HREF="#2.4.47">2.4.47 cbf_get_unit_cell<br />
-<A HREF="#2.4.48">2.4.48 cbf_set_unit_cell<br />
-<A HREF="#2.4.50">2.4.50 cbf_set_reciprocal_cell<br />
-<A HREF="#2.4.51">2.4.51 cbf_compute_cell_volume<br />
-<A HREF="#2.4.52">2.4.52 cbf_compute_reciprocal_cell<br />
+<A HREF="#2.4.48">2.4.48 cbf_get_unit_cell<br />
+<A HREF="#2.4.49">2.4.49 cbf_set_unit_cell<br />
+<A HREF="#2.4.51">2.4.51 cbf_set_reciprocal_cell<br />
+<A HREF="#2.4.52">2.4.52 cbf_compute_cell_volume<br />
+<A HREF="#2.4.53">2.4.53 cbf_compute_reciprocal_cell<br />
 <p><hr><P>
-<h4><A NAME="2.4.50">2.4.50 cbf_set_reciprocal_cell
+<h4><A NAME="2.4.51">2.4.51 cbf_set_reciprocal_cell
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5638,14 +5685,14 @@ Returns an error code on failure or 0 for success.
 <p>
 <b>SEE ALSO</b>
 <p>
-<A HREF="#2.4.47">2.4.47 cbf_get_unit_cell<br />
-<A HREF="#2.4.48">2.4.48 cbf_set_unit_cell<br />
+<A HREF="#2.4.48">2.4.48 cbf_get_unit_cell<br />
+<A HREF="#2.4.49">2.4.49 cbf_set_unit_cell<br />
 <A HREF="#2.4.50">2.4.50 cbf_get_reciprocal_cell<br />
-<A HREF="#2.4.51">2.4.51 cbf_compute_cell_volume<br />
-<A HREF="#2.4.52">2.4.52 cbf_compute_reciprocal_cell<br />
+<A HREF="#2.4.52">2.4.52 cbf_compute_cell_volume<br />
+<A HREF="#2.4.53">2.4.53 cbf_compute_reciprocal_cell<br />
 <p><hr><P>
 
-<h4><A NAME="2.4.51">2.4.51 cbf_compute_cell_volume
+<h4><A NAME="2.4.52">2.4.52 cbf_compute_cell_volume
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5675,15 +5722,15 @@ Returns an error code on failure or 0 for success.
 <p>
 <b>SEE ALSO</b>
 <p>
-<A HREF="#2.4.47">2.4.46 cbf_get_unit_cell<br />
-<A HREF="#2.4.48">2.4.47 cbf_set_unit_cell<br />
-<A HREF="#2.4.49">2.4.50 cbf_get_reciprocal_cell<br />
-<A HREF="#2.4.50">2.4.50 cbf_set_reciprocal_cell<br />
-<A HREF="#2.4.52">2.4.52 cbf_compute_reciprocal_cell<br />
+<A HREF="#2.4.48">2.4.48 cbf_get_unit_cell<br />
+<A HREF="#2.4.49">2.4.49 cbf_set_unit_cell<br />
+<A HREF="#2.4.50">2.4.50 cbf_get_reciprocal_cell<br />
+<A HREF="#2.4.51">2.4.51 cbf_set_reciprocal_cell<br />
+<A HREF="#2.4.53">2.4.53 cbf_compute_reciprocal_cell<br />
 <p><hr><P>
 
 
-<h4><A NAME="2.4.52">2.4.52 cbf_compute_reciprocal_cell
+<h4><A NAME="2.4.53">2.4.53 cbf_compute_reciprocal_cell
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5719,16 +5766,16 @@ Returns an error code on failure or 0 for success.
 <p>
 <b>SEE ALSO</b>
 <p>
-<A HREF="#2.4.47">2.4.46 cbf_get_unit_cell<br />
-<A HREF="#2.4.48">2.4.47 cbf_set_unit_cell<br />
-<A HREF="#2.4.49">2.4.50 cbf_get_reciprocal_cell<br />
-<A HREF="#2.4.50">2.4.50 cbf_set_reciprocal_cell<br />
-<A HREF="#2.4.51">2.4.51 cbf_compute_cell_volume<br />
+<A HREF="#2.4.48">2.4.48 cbf_get_unit_cell<br />
+<A HREF="#2.4.49">2.4.49 cbf_set_unit_cell<br />
+<A HREF="#2.4.50">2.4.50 cbf_get_reciprocal_cell<br />
+<A HREF="#2.4.51">2.4.51 cbf_set_reciprocal_cell<br />
+<A HREF="#2.4.52">2.4.52 cbf_compute_cell_volume<br />
 <p><hr><P>
 
 
 
-<h4><A NAME="2.4.53">2.4.53 cbf_get_orientation_matrix, cbf_set_orientation_matrix
+<h4><A NAME="2.4.54">2.4.54 cbf_get_orientation_matrix, cbf_set_orientation_matrix
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5765,7 +5812,7 @@ Returns an error code on failure or 0 for success.
 
 
 
-<h4><A NAME="2.4.54">2.4.54 cbf_get_bin_sizes, cbf_set_bin_sizes
+<h4><A NAME="2.4.55">2.4.55 cbf_get_bin_sizes, cbf_set_bin_sizes
 </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"

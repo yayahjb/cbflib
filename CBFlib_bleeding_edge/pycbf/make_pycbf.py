@@ -2480,7 +2480,7 @@ cbf_goniometer_specials = {
     ["double reciprocal1","double reciprocal2", "double reciprocal3" ]],
 
 "cbf_get_rotation_axis":["""
-%apply double *OUTPUT {double *vector1,double *vector2, double *vector3};
+%apply double *OUTPUT {double *vector1, double *vector2, double *vector3};
 
 void get_rotation_axis (double *vector1, double *vector2, double *vector3){
      unsigned int reserved;
@@ -2566,7 +2566,7 @@ cbf_detector_specials = {
  ["double normal1","double normal2", "double normal3" ] ],
 
 "cbf_get_pixel_normal_fs":["""
-%apply double *OUTPUT {double *normalfast,double *normalslow, double *normal3};
+%apply double *OUTPUT {double *normal1,double *normal2, double *normal3};
    void get_pixel_normal_fs ( double indexfast, double indexslow, 
                           double *normal1,double *normal2, double *normal3){
        cbf_failnez(cbf_get_pixel_normal_fs(self,
@@ -2578,15 +2578,78 @@ cbf_detector_specials = {
 
 
 "cbf_get_pixel_normal_sf":["""
-%apply double *OUTPUT {double *normalslow,double *normalfast, double *normal3};
+%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};
    void get_pixel_normal_sf ( double indexslow, double indexfast, 
-                          double *normal1,double *normal2, double *normal3){
+                          double *normal1, double *normal2, double *normal3){
        cbf_failnez(cbf_get_pixel_normal_sf(self,
                                     indexslow,indexfast,normal1,normal2,normal3));
    }
 
 ""","get_pixel_normal_sf",["double indexslow","double indexfast"] ,
  ["double normal1","double normal2", "double normal3" ] ],
+
+
+"cbf_get_detector_axis_slow":["""
+%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3};
+   void get_detector_axis_slow ( double *slowaxis1, double *slowaxis2, double *slowaxis3){
+       cbf_failnez(cbf_get_detector_axis_slow(self,
+                                    slowaxis1,slowaxis2,slowaxis3));
+   }
+
+""","get_detector_axis_slow", [ ],
+ ["double slowaxis1","double slowaxis2", "double slowaxis3" ] ],
+
+"cbf_get_detector_axis_fast":["""
+%apply double *OUTPUT {double *fastaxis1, double *fastaxis2, double *fastaxis3};
+   void get_detector_axis_fast ( double *fastaxis1, double *fastaxis2, double *fastaxis3){
+       cbf_failnez(cbf_get_detector_axis_fast(self,
+                                    fastaxis1,fastaxis2,fastaxis3));
+   }
+
+""","get_detector_axis_fast", [ ],
+ ["double fastaxis1","double fastaxis2", "double fastaxis3" ] ],
+
+"cbf_get_detector_axes":["""
+%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3,
+                       double *fastaxis1, double *fastaxis2, double *fastaxis3};
+   void get_detector_axes ( double *slowaxis1, double *slowaxis2, double *slowaxis3,
+                            double *fastaxis1, double *fastaxis2, double *fastaxis3){
+       cbf_failnez(cbf_get_detector_axes(self,
+                                    slowaxis1,slowaxis2,slowaxis3,
+                                    fastaxis1,fastaxis2,fastaxis3));
+   }
+
+""","get_detector_axes", [ ],
+ ["double slowaxis1","double slowaxis2", "double slowaxis3",
+ "double fastaxis1","double fastaxis2", "double fastaxis3" ] ],
+
+"cbf_get_detector_axes_fs":["""
+%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3,
+                       double *fastaxis1, double *fastaxis2, double *fastaxis3};
+   void get_detector_axes_fs ( double *fastaxis1, double *fastaxis2, double *fastaxis3,
+                               double *slowaxis1, double *slowaxis2, double *slowaxis3){
+       cbf_failnez(cbf_get_detector_axes(self,
+                                    slowaxis1,slowaxis2,slowaxis3,
+                                    fastaxis1,fastaxis2,fastaxis3));
+   }
+
+""","get_detector_axes", [ ],
+ ["double fastaxis1","double fastaxis2", "double fastaxis3",
+  "double slowaxis1","double slowaxis2", "double slowaxis3"] ],
+
+"cbf_get_detector_axes_sf":["""
+%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3,
+                       double *fastaxis1, double *fastaxis2, double *fastaxis3};
+   void get_detector_axes_sf ( double *slowaxis1, double *slowaxis2, double *slowaxis3,
+                            double *fastaxis1, double *fastaxis2, double *fastaxis3){
+       cbf_failnez(cbf_get_detector_axes(self,
+                                    slowaxis1,slowaxis2,slowaxis3,
+                                    fastaxis1,fastaxis2,fastaxis3));
+   }
+
+""","get_detector_axes_sf", [ ],
+ ["double slowaxis1","double slowaxis2", "double slowaxis3",
+ "double fastaxis1","double fastaxis2", "double fastaxis3" ] ],
 
 
 "cbf_get_pixel_area":["""

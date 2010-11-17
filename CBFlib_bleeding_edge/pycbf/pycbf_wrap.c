@@ -3340,10 +3340,19 @@ SWIGINTERN void cbf_detector_struct_get_pixel_normal_fs(cbf_detector_struct *sel
        {(error_status = cbf_get_pixel_normal_fs(self,
                                     indexfast,indexslow,normal1,normal2,normal3));};
    }
+SWIGINTERN void cbf_detector_struct_get_detector_axes(cbf_detector_struct *self,double *slowaxis1,double *slowaxis2,double *slowaxis3,double *fastaxis1,double *fastaxis2,double *fastaxis3){
+       {(error_status = cbf_get_detector_axes(self,
+                                    slowaxis1,slowaxis2,slowaxis3,
+                                    fastaxis1,fastaxis2,fastaxis3));};
+   }
 SWIGINTERN void cbf_detector_struct_set_reference_beam_center(cbf_detector_struct *self,double *indexslow,double *indexfast,double *centerslow,double *centerfast){
         {(error_status = cbf_set_reference_beam_center(self, indexslow, indexfast, 
                                        centerslow, centerfast));};
         }
+SWIGINTERN void cbf_detector_struct_get_detector_axis_slow(cbf_detector_struct *self,double *slowaxis1,double *slowaxis2,double *slowaxis3){
+       {(error_status = cbf_get_detector_axis_slow(self,
+                                    slowaxis1,slowaxis2,slowaxis3));};
+   }
 SWIGINTERN void cbf_detector_struct_get_detector_distance(cbf_detector_struct *self,double *distance){
   {(error_status = cbf_get_detector_distance(self,distance));};
   }
@@ -3353,6 +3362,20 @@ SWIGINTERN void cbf_detector_struct_get_inferred_pixel_size_fs(cbf_detector_stru
 SWIGINTERN void cbf_detector_struct_get_detector_normal(cbf_detector_struct *self,double *normal1,double *normal2,double *normal3){
      {(error_status = cbf_get_detector_normal(self,
                     normal1, normal2, normal3));};
+   }
+SWIGINTERN void cbf_detector_struct_get_detector_axis_fast(cbf_detector_struct *self,double *fastaxis1,double *fastaxis2,double *fastaxis3){
+       {(error_status = cbf_get_detector_axis_fast(self,
+                                    fastaxis1,fastaxis2,fastaxis3));};
+   }
+SWIGINTERN void cbf_detector_struct_get_detector_axes_fs(cbf_detector_struct *self,double *fastaxis1,double *fastaxis2,double *fastaxis3,double *slowaxis1,double *slowaxis2,double *slowaxis3){
+       {(error_status = cbf_get_detector_axes(self,
+                                    slowaxis1,slowaxis2,slowaxis3,
+                                    fastaxis1,fastaxis2,fastaxis3));};
+   }
+SWIGINTERN void cbf_detector_struct_get_detector_axes_sf(cbf_detector_struct *self,double *slowaxis1,double *slowaxis2,double *slowaxis3,double *fastaxis1,double *fastaxis2,double *fastaxis3){
+       {(error_status = cbf_get_detector_axes(self,
+                                    slowaxis1,slowaxis2,slowaxis3,
+                                    fastaxis1,fastaxis2,fastaxis3));};
    }
 SWIGINTERN void cbf_detector_struct_get_pixel_coordinates_sf(cbf_detector_struct *self,double indexslow,double indexfast,double *coordinate1,double *coordinate2,double *coordinate3){
       {(error_status = cbf_get_pixel_coordinates_sf(self, indexslow, indexfast, coordinate1, coordinate2, coordinate3));};
@@ -6940,20 +6963,20 @@ SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_pixel_normal_fs(PyObject *SWI
   int ecode2 = 0 ;
   double val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
+  double temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  double temp5 ;
+  int res5 = SWIG_TMPOBJ ;
   double temp6 ;
   int res6 = SWIG_TMPOBJ ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
-  PyObject * obj4 = 0 ;
   
+  arg4 = &temp4;
+  arg5 = &temp5;
   arg6 = &temp6;
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:cbf_detector_struct_get_pixel_normal_fs",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:cbf_detector_struct_get_pixel_normal_fs",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_detector_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_get_pixel_normal_fs" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
@@ -6969,16 +6992,6 @@ SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_pixel_normal_fs(PyObject *SWI
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "cbf_detector_struct_get_pixel_normal_fs" "', argument " "3"" of type '" "double""'");
   } 
   arg3 = (double)(val3);
-  res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "cbf_detector_struct_get_pixel_normal_fs" "', argument " "4"" of type '" "double *""'"); 
-  }
-  arg4 = (double *)(argp4);
-  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "cbf_detector_struct_get_pixel_normal_fs" "', argument " "5"" of type '" "double *""'"); 
-  }
-  arg5 = (double *)(argp5);
   {
     error_status=0;
     cbf_detector_struct_get_pixel_normal_fs(arg1,arg2,arg3,arg4,arg5,arg6);
@@ -6989,11 +7002,112 @@ SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_pixel_normal_fs(PyObject *SWI
     }
   }
   resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_double, new_flags));
+  }
   if (SWIG_IsTmpObj(res6)) {
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg6)));
   } else {
     int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_double, new_flags));
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_detector_axes(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
+  double *arg2 = (double *) 0 ;
+  double *arg3 = (double *) 0 ;
+  double *arg4 = (double *) 0 ;
+  double *arg5 = (double *) 0 ;
+  double *arg6 = (double *) 0 ;
+  double *arg7 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  double temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  double temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  double temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  double temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  double temp7 ;
+  int res7 = SWIG_TMPOBJ ;
+  PyObject * obj0 = 0 ;
+  
+  arg2 = &temp2;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  arg6 = &temp6;
+  arg7 = &temp7;
+  if (!PyArg_ParseTuple(args,(char *)"O:cbf_detector_struct_get_detector_axes",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_detector_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_get_detector_axes" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
+  }
+  arg1 = (cbf_detector_struct *)(argp1);
+  {
+    error_status=0;
+    cbf_detector_struct_get_detector_axes(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res7)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg7)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_double, new_flags));
   }
   return resultobj;
 fail:
@@ -7060,6 +7174,65 @@ SWIGINTERN PyObject *_wrap_cbf_detector_struct_set_reference_beam_center(PyObjec
     }
   }
   resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_detector_axis_slow(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
+  double *arg2 = (double *) 0 ;
+  double *arg3 = (double *) 0 ;
+  double *arg4 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  double temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  double temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject * obj0 = 0 ;
+  
+  arg2 = &temp2;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  if (!PyArg_ParseTuple(args,(char *)"O:cbf_detector_struct_get_detector_axis_slow",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_detector_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_get_detector_axis_slow" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
+  }
+  arg1 = (cbf_detector_struct *)(argp1);
+  {
+    error_status=0;
+    cbf_detector_struct_get_detector_axis_slow(arg1,arg2,arg3,arg4);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, new_flags));
+  }
   return resultobj;
 fail:
   return NULL;
@@ -7205,6 +7378,243 @@ SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_detector_normal(PyObject *SWI
   } else {
     int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, new_flags));
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_detector_axis_fast(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
+  double *arg2 = (double *) 0 ;
+  double *arg3 = (double *) 0 ;
+  double *arg4 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  double temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  double temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject * obj0 = 0 ;
+  
+  arg2 = &temp2;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  if (!PyArg_ParseTuple(args,(char *)"O:cbf_detector_struct_get_detector_axis_fast",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_detector_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_get_detector_axis_fast" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
+  }
+  arg1 = (cbf_detector_struct *)(argp1);
+  {
+    error_status=0;
+    cbf_detector_struct_get_detector_axis_fast(arg1,arg2,arg3,arg4);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, new_flags));
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_detector_axes_fs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
+  double *arg2 = (double *) 0 ;
+  double *arg3 = (double *) 0 ;
+  double *arg4 = (double *) 0 ;
+  double *arg5 = (double *) 0 ;
+  double *arg6 = (double *) 0 ;
+  double *arg7 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  double temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  double temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  double temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  double temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  double temp7 ;
+  int res7 = SWIG_TMPOBJ ;
+  PyObject * obj0 = 0 ;
+  
+  arg2 = &temp2;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  arg6 = &temp6;
+  arg7 = &temp7;
+  if (!PyArg_ParseTuple(args,(char *)"O:cbf_detector_struct_get_detector_axes_fs",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_detector_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_get_detector_axes_fs" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
+  }
+  arg1 = (cbf_detector_struct *)(argp1);
+  {
+    error_status=0;
+    cbf_detector_struct_get_detector_axes_fs(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res7)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg7)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_double, new_flags));
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_detector_axes_sf(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
+  double *arg2 = (double *) 0 ;
+  double *arg3 = (double *) 0 ;
+  double *arg4 = (double *) 0 ;
+  double *arg5 = (double *) 0 ;
+  double *arg6 = (double *) 0 ;
+  double *arg7 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  double temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  double temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  double temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  double temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  double temp7 ;
+  int res7 = SWIG_TMPOBJ ;
+  PyObject * obj0 = 0 ;
+  
+  arg2 = &temp2;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  arg6 = &temp6;
+  arg7 = &temp7;
+  if (!PyArg_ParseTuple(args,(char *)"O:cbf_detector_struct_get_detector_axes_sf",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_detector_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_get_detector_axes_sf" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
+  }
+  arg1 = (cbf_detector_struct *)(argp1);
+  {
+    error_status=0;
+    cbf_detector_struct_get_detector_axes_sf(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res7)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg7)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_double, new_flags));
   }
   return resultobj;
 fail:
@@ -18572,7 +18982,7 @@ static PyMethodDef SwigMethods[] = {
 		"the returned string\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"compute_cell_volume", _wrap_compute_cell_volume, METH_VARARGS, (char *)"\n"
@@ -18622,7 +19032,7 @@ static PyMethodDef SwigMethods[] = {
 		"the returned string\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"get_local_real_byte_order", _wrap_get_local_real_byte_order, METH_VARARGS, (char *)"\n"
@@ -18652,7 +19062,7 @@ static PyMethodDef SwigMethods[] = {
 		"the returned string\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"compute_reciprocal_cell", _wrap_compute_reciprocal_cell, METH_VARARGS, (char *)"\n"
@@ -18699,7 +19109,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_rotation_range (cbf_goniometer goniometer,\n"
-		"                 unsigned int reserved, double *start, double *increment);\n"
+		"                 unsigned int      reserved, double *start, double *increment);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -18714,7 +19124,7 @@ static PyMethodDef SwigMethods[] = {
 		"value. increment    Pointer to the destination increment value.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_positioner_struct_rotate_vector", _wrap_cbf_positioner_struct_rotate_vector, METH_VARARGS, (char *)"\n"
@@ -18722,8 +19132,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double ratio,double initial1,double initial2,double initial3\n"
 		"\n"
 		"C prototype: int cbf_rotate_vector (cbf_goniometer goniometer,\n"
-		"                 unsigned int reserved, double ratio, double initial1,\n"
-		"                 double initial2, double      initial3, double *final1,\n"
+		"                 unsigned int reserved,      double ratio, double initial1,\n"
+		"                 double initial2, double initial3, double      *final1,\n"
 		"                 double *final2, double *final3);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -18747,7 +19157,7 @@ static PyMethodDef SwigMethods[] = {
 		"to the destination z component of the final vector.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_positioner_struct_get_reciprocal", _wrap_cbf_positioner_struct_get_reciprocal, METH_VARARGS, (char *)"\n"
@@ -18755,9 +19165,10 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double ratio,double wavelength,double real1,double real2,double real3\n"
 		"\n"
 		"C prototype: int cbf_get_reciprocal (cbf_goniometer goniometer,\n"
-		"                 unsigned int reserved, double ratio, double wavelength,\n"
-		"                 double real1, double      real2, double real3,\n"
-		"                 double *reciprocal1, double *reciprocal2, double *reciprocal3);\n"
+		"                 unsigned int      reserved, double ratio, double wavelength,\n"
+		"                 double real1, double real2,      double real3,\n"
+		"                 double *reciprocal1, double *reciprocal2,\n"
+		"                 double      *reciprocal3);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -18784,7 +19195,7 @@ static PyMethodDef SwigMethods[] = {
 		"reciprocal-space vector.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_positioner_struct_get_rotation_axis", _wrap_cbf_positioner_struct_get_rotation_axis, METH_VARARGS, (char *)"\n"
@@ -18792,7 +19203,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_rotation_axis (cbf_goniometer goniometer,\n"
-		"                 unsigned int reserved, double *vector1, double *vector2,\n"
+		"                 unsigned int      reserved, double *vector1, double *vector2,\n"
 		"                 double *vector3);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -18809,7 +19220,7 @@ static PyMethodDef SwigMethods[] = {
 		"the destination z component of the rotation axis.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_positioner_struct_swigregister", cbf_positioner_struct_swigregister, METH_VARARGS, NULL},
@@ -18830,95 +19241,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double indexfast,double indexslow,double centerfast,double centerslow\n"
 		"\n"
 		"C prototype: int cbf_set_reference_beam_center_fs (cbf_detector detector,\n"
-		"                 double *indexfast, double *indexslow, double *centerfast,\n"
-		"                 double      *centerslow);\n"
-		"\n"
-		"CBFLib documentation:\n"
-		"DESCRIPTION\n"
-		"cbf_get_beam_center sets *centerfast and *centerslow to the \n"
-		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
-		"point at which the beam intersects the detector and *indexfast and \n"
-		"*indexslow to the corresponding indices. cbf_set_beam_center sets the \n"
-		"offsets in the axis category for the detector element axis with \n"
-		"precedence 1 to place the beam center at the position given in mm by \n"
-		"*centerfast and *centerslow as the displacements in mm along the \n"
-		"detector axes from pixel (0, 0) to the point at which the beam \n"
-		"intersects the detector at the indices given *indexfast and \n"
-		"*indexslow. cbf_set_reference_beam_center sets the displacments in \n"
-		"the array_structure_list_axis category to place the beam center at \n"
-		"the position given in mm by *centerfast and *centerslow as the \n"
-		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
-		"point at which the beam intersects the detector at the indices given \n"
-		"by *indexfast and *indexslow. In order to achieve consistent results, \n"
-		"a reference detector should be used for detector to have all axes at \n"
-		"their reference settings.\n"
-		"Note that the precedence 1 axis is the fastest axis, so that \n"
-		"*centerfast and *indexfast are the fast axis components of the center \n"
-		"and *centerslow and *indexslow are the slow axis components of the \n"
-		"center.\n"
-		"The _fs calls give the displacments in a fast-to-slow order. The \n"
-		"calls with no suffix and the calls _sf calls give the displacements \n"
-		"in slow-to-fast order\n"
-		"Any of the destination pointers may be NULL for getting the beam \n"
-		"center. For setting the beam axis, either the indices of the center \n"
-		"must not be NULL.\n"
-		"The indices are non-negative for beam centers within the detector \n"
-		"surface, but the center for an axis with a negative increment will be \n"
-		"negative for a beam center within the detector surface.\n"
-		"For cbf_set_beam_center if the diffrn_data_frame category exists with \n"
-		"a row for the corresponding element id, the values will be set for \n"
-		"_diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in \n"
-		"millimetres and the value of _diffrn_data_frame.center_units will be \n"
-		"set to 'mm'.\n"
-		"For cbf_set_reference_beam_center if the diffrn_detector_element \n"
-		"category exists with a row for the corresponding element id, the \n"
-		"values will be set for _diffrn_detector_element.reference_center_fast \n"
-		"and _diffrn_detector_element.reference_center_slow in millimetres and \n"
-		"the value of _diffrn_detector_element.reference_units will be set to \n"
-		"'mm'.\n"
-		"ARGUMENTS\n"
-		"detector     Detector handle. indexfast    Pointer to the destination \n"
-		"fast index. indexslow    Pointer to the destination slow index. \n"
-		"centerfast   Pointer to the destination displacement along the fast \n"
-		"axis. centerslow   Pointer to the destination displacement along the \n"
-		"slow axis.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
-		"\n"
-		""},
-	 { (char *)"cbf_detector_struct_get_pixel_coordinates_fs", _wrap_cbf_detector_struct_get_pixel_coordinates_fs, METH_VARARGS, (char *)"\n"
-		"Returns : double coordinate1,double coordinate2,double coordinate3\n"
-		"*args   : double indexfast,double indexslow\n"
-		"\n"
-		"C prototype: int cbf_get_pixel_coordinates_fs (cbf_detector detector,\n"
-		"                 double indexfast, double indexslow, double *coordinate1,\n"
-		"                 double      *coordinate2, double *coordinate3);\n"
-		"\n"
-		"CBFLib documentation:\n"
-		"DESCRIPTION\n"
-		"cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs and \n"
-		"cbf_get_pixel_coordinates_sf ses *coordinate1, *coordinate2, and \n"
-		"*coordinate3 to the vector position of pixel (indexfast, indexslow) \n"
-		"on the detector surface. If indexslow and indexfast are integers then \n"
-		"the coordinates correspond to the center of a pixel.\n"
-		"Any of the destination pointers may be NULL.\n"
-		"ARGUMENTS\n"
-		"detector      Detector handle. indexslow     Slow index. indexfast    \n"
-		" Fast index. coordinate1   Pointer to the destination x component. \n"
-		"coordinate2   Pointer to the destination y component. coordinate3   \n"
-		"Pointer to the destination z component.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
-		"\n"
-		""},
-	 { (char *)"cbf_detector_struct_set_beam_center_fs", _wrap_cbf_detector_struct_set_beam_center_fs, METH_VARARGS, (char *)"\n"
-		"Returns : \n"
-		"*args   : double indexfast,double indexslow,double centerfast,double centerslow\n"
-		"\n"
-		"C prototype: int cbf_set_beam_center_fs (cbf_detector detector,\n"
-		"                 double *indexfast, double *indexslow, double *centerfast,\n"
+		"                 double      *indexfast, double *indexslow, double *centerfast,\n"
 		"                 double *centerslow);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -18972,96 +19295,42 @@ static PyMethodDef SwigMethods[] = {
 		"slow axis.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
-		"\n"
-		""},
-	 { (char *)"cbf_detector_struct_get_inferred_pixel_size", _wrap_cbf_detector_struct_get_inferred_pixel_size, METH_VARARGS, (char *)"\n"
-		"Returns : Float pixel size\n"
-		"*args   : Int axis_number\n"
-		"\n"
-		"C prototype: int cbf_get_inferred_pixel_size (cbf_detector detector,\n"
-		"                 int axis_number, double *psize);\n"
-		"\n"
-		"CBFLib documentation:\n"
-		"DESCRIPTION\n"
-		"cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_sf set \n"
-		"*psize to point to the double value in millimeters of the pixel size \n"
-		"for the axis axis_number value. The slow index is treated as axis 1 \n"
-		"and the next faster index is treated as axis 2. \n"
-		"cbf_get_inferred_pixel_size_fs sets *psize to point to the double \n"
-		"value in millimeters of the pixel size for the axis axis_number \n"
-		"value. The fast index is treated as axis 1 and the next slower index \n"
-		"is treated as axis 2.\n"
-		"If the axis number is negative, the axes are used in the reverse \n"
-		"order so that an axis_number of -1 indicates the fast axes in a call \n"
-		"to cbf_get_inferred_pixel_size or cbf_get_inferred_pixel_size_sf and \n"
-		"indicates the fast axis in a call to cbf_get_inferred_pixel_size_fs.\n"
-		"ARGUMENTS\n"
-		"detector      Detector handle. axis_number   The number of the axis. \n"
-		"area          Pointer to the destination pizel size in mm.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
-	 { (char *)"cbf_detector_struct_get_pixel_area", _wrap_cbf_detector_struct_get_pixel_area, METH_VARARGS, (char *)"\n"
-		"Returns : double area,double projected_area\n"
-		"*args   : double index1,double index2\n"
-		"\n"
-		"C prototype: int cbf_get_pixel_area (cbf_detector detector, double indexslow,\n"
-		"                 double indexfast, double *area, double *projected_area);\n"
-		"\n"
-		"CBFLib documentation:\n"
-		"DESCRIPTION\n"
-		"cbf_get_pixel_area, cbf_get_pixel_area_fs and cbf_get_pixel_area_sf \n"
-		"set *area to the area of the pixel at (indexfast, indexslow) on the \n"
-		"detector surface and *projected_area to the apparent area of the \n"
-		"pixel as viewed from the sample position, with indexslow being the \n"
-		"slow axis and indexfast being the fast axis.\n"
-		"Either of the destination pointers may be NULL.\n"
-		"ARGUMENTS\n"
-		"detector         Detector handle. indexfast        Fast index. \n"
-		"indexslow        Slow index. area             Pointer to the \n"
-		"destination area in mm2. projected_area   Pointer to the destination \n"
-		"apparent area in mm2.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
-		"\n"
-		""},
-	 { (char *)"cbf_detector_struct_get_pixel_normal_fs", _wrap_cbf_detector_struct_get_pixel_normal_fs, METH_VARARGS, (char *)"\n"
-		"Returns : double normal1,double normal2,double normal3\n"
+	 { (char *)"cbf_detector_struct_get_pixel_coordinates_fs", _wrap_cbf_detector_struct_get_pixel_coordinates_fs, METH_VARARGS, (char *)"\n"
+		"Returns : double coordinate1,double coordinate2,double coordinate3\n"
 		"*args   : double indexfast,double indexslow\n"
 		"\n"
-		"C prototype: int cbf_get_pixel_normal_fs (cbf_detector detector,\n"
-		"                 double indexfast, double indexslow, double *normal1,\n"
-		"                 double *normal2, double      *normal3);\n"
+		"C prototype: int cbf_get_pixel_coordinates_fs (cbf_detector detector,\n"
+		"                 double      indexfast, double indexslow, double *coordinate1,\n"
+		"                 double *coordinate2,      double *coordinate3);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
-		"cbf_get_detector_normal, cbf_get_pixel_normal_fs and \n"
-		"cbf_get_pixel_normal_sf set *normal1, *normal2, and *normal3 to the 3 \n"
-		"components of the of the normal vector to the pixel at (indexfast, \n"
-		"indexslow). The vector is normalized.\n"
+		"cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs and \n"
+		"cbf_get_pixel_coordinates_sf ses *coordinate1, *coordinate2, and \n"
+		"*coordinate3 to the vector position of pixel (indexfast, indexslow) \n"
+		"on the detector surface. If indexslow and indexfast are integers then \n"
+		"the coordinates correspond to the center of a pixel.\n"
 		"Any of the destination pointers may be NULL.\n"
 		"ARGUMENTS\n"
-		"detector    Detector handle. indexslow   Slow index. indexfast   Fast \n"
-		"index. normal1     Pointer to the destination x component of the \n"
-		"normal vector. normal2     Pointer to the destination y component of \n"
-		"the normal vector. normal3     Pointer to the destination z component \n"
-		"of the normal vector.\n"
+		"detector      Detector handle. indexslow     Slow index. indexfast    \n"
+		" Fast index. coordinate1   Pointer to the destination x component. \n"
+		"coordinate2   Pointer to the destination y component. coordinate3   \n"
+		"Pointer to the destination z component.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
-	 { (char *)"cbf_detector_struct_set_reference_beam_center", _wrap_cbf_detector_struct_set_reference_beam_center, METH_VARARGS, (char *)"\n"
+	 { (char *)"cbf_detector_struct_set_beam_center_fs", _wrap_cbf_detector_struct_set_beam_center_fs, METH_VARARGS, (char *)"\n"
 		"Returns : \n"
-		"*args   : double indexslow,double indexfast,double centerslow,double centerfast\n"
+		"*args   : double indexfast,double indexslow,double centerfast,double centerslow\n"
 		"\n"
-		"C prototype: int cbf_set_reference_beam_center (cbf_detector detector,\n"
-		"                 double *indexslow, double *indexfast, double *centerslow,\n"
-		"                 double      *centerfast);\n"
+		"C prototype: int cbf_set_beam_center_fs (cbf_detector detector,\n"
+		"                 double *indexfast,      double *indexslow, double *centerfast,\n"
+		"                 double *centerslow);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -19114,7 +19383,221 @@ static PyMethodDef SwigMethods[] = {
 		"slow axis.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
+		""},
+	 { (char *)"cbf_detector_struct_get_inferred_pixel_size", _wrap_cbf_detector_struct_get_inferred_pixel_size, METH_VARARGS, (char *)"\n"
+		"Returns : Float pixel size\n"
+		"*args   : Int axis_number\n"
+		"\n"
+		"C prototype: int cbf_get_inferred_pixel_size (cbf_detector detector,\n"
+		"                 int axis_number,      double *psize);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_sf set \n"
+		"*psize to point to the double value in millimeters of the pixel size \n"
+		"for the axis axis_number value. The slow index is treated as axis 1 \n"
+		"and the next faster index is treated as axis 2. \n"
+		"cbf_get_inferred_pixel_size_fs sets *psize to point to the double \n"
+		"value in millimeters of the pixel size for the axis axis_number \n"
+		"value. The fast index is treated as axis 1 and the next slower index \n"
+		"is treated as axis 2.\n"
+		"If the axis number is negative, the axes are used in the reverse \n"
+		"order so that an axis_number of -1 indicates the fast axes in a call \n"
+		"to cbf_get_inferred_pixel_size or cbf_get_inferred_pixel_size_sf and \n"
+		"indicates the fast axis in a call to cbf_get_inferred_pixel_size_fs.\n"
+		"ARGUMENTS\n"
+		"detector      Detector handle. axis_number   The number of the axis. \n"
+		"area          Pointer to the destination pizel size in mm.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
+	 { (char *)"cbf_detector_struct_get_pixel_area", _wrap_cbf_detector_struct_get_pixel_area, METH_VARARGS, (char *)"\n"
+		"Returns : double area,double projected_area\n"
+		"*args   : double index1,double index2\n"
+		"\n"
+		"C prototype: int cbf_get_pixel_area (cbf_detector detector, double indexslow,\n"
+		"                 double      indexfast, double *area, double *projected_area);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_pixel_area, cbf_get_pixel_area_fs and cbf_get_pixel_area_sf \n"
+		"set *area to the area of the pixel at (indexfast, indexslow) on the \n"
+		"detector surface and *projected_area to the apparent area of the \n"
+		"pixel as viewed from the sample position, with indexslow being the \n"
+		"slow axis and indexfast being the fast axis.\n"
+		"Either of the destination pointers may be NULL.\n"
+		"ARGUMENTS\n"
+		"detector         Detector handle. indexfast        Fast index. \n"
+		"indexslow        Slow index. area             Pointer to the \n"
+		"destination area in mm2. projected_area   Pointer to the destination \n"
+		"apparent area in mm2.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
+	 { (char *)"cbf_detector_struct_get_pixel_normal_fs", _wrap_cbf_detector_struct_get_pixel_normal_fs, METH_VARARGS, (char *)"\n"
+		"Returns : double normal1,double normal2,double normal3\n"
+		"*args   : double indexfast,double indexslow\n"
+		"\n"
+		"C prototype: int cbf_get_pixel_normal_fs (cbf_detector detector,\n"
+		"                 double indexfast,      double indexslow, double *normal1,\n"
+		"                 double *normal2, double *normal3);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_detector_normal, cbf_get_pixel_normal_fs and \n"
+		"cbf_get_pixel_normal_sf set *normal1, *normal2, and *normal3 to the 3 \n"
+		"components of the of the normal vector to the pixel at (indexfast, \n"
+		"indexslow). The vector is normalized.\n"
+		"Any of the destination pointers may be NULL.\n"
+		"ARGUMENTS\n"
+		"detector    Detector handle. indexslow   Slow index. indexfast   Fast \n"
+		"index. normal1     Pointer to the destination x component of the \n"
+		"normal vector. normal2     Pointer to the destination y component of \n"
+		"the normal vector. normal3     Pointer to the destination z component \n"
+		"of the normal vector.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
+	 { (char *)"cbf_detector_struct_get_detector_axes", _wrap_cbf_detector_struct_get_detector_axes, METH_VARARGS, (char *)"\n"
+		"Returns : double slowaxis1,double slowaxis2,double slowaxis3,double fastaxis1,\n"
+		"          double fastaxis2,double fastaxis3\n"
+		"*args   : \n"
+		"\n"
+		"C prototype: int cbf_get_detector_axes (cbf_detector detector,\n"
+		"                 double *slowaxis1,      double *slowaxis2, double *slowaxis3,\n"
+		"                 double *fastaxis1, double      *fastaxis2, double *fastaxis3);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_detector_axis_slow sets *slowaxis1, *slowaxis2, and \n"
+		"*slowaxis3 to the 3 components of the slow axis of the specified \n"
+		"detector at the current settings of all axes. \n"
+		"cbf_get_detector_axis_slow sets *fastaxis1, *fastaxis2, and \n"
+		"*fastaxis3 to the 3 components of the fast axis of the specified \n"
+		"detector at the current settings of all axes. cbf_get_detector_axes, \n"
+		"cbf_get_detector_axes_fs and int cbf_get_detector_axes_sf set \n"
+		"*slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the \n"
+		"slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 \n"
+		"components of the fast axis of the specified detector at the current \n"
+		"settings of all axes.\n"
+		"Any of the destination pointers may be NULL.\n"
+		"ARGUMENTS\n"
+		"detector    Detector handle. slowaxis1   Pointer to the destination x \n"
+		"component of the slow axis vector. slowaxis2   Pointer to the \n"
+		"destination y component of the slow axis vector. slowaxis3   Pointer \n"
+		"to the destination z component of the slow axis vector. fastaxis1   \n"
+		"Pointer to the destination x component of the fast axis vector. \n"
+		"fastaxis2   Pointer to the destination y component of the fast axis \n"
+		"vector. fastaxis3   Pointer to the destination z component of the \n"
+		"fast axis vector.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
+	 { (char *)"cbf_detector_struct_set_reference_beam_center", _wrap_cbf_detector_struct_set_reference_beam_center, METH_VARARGS, (char *)"\n"
+		"Returns : \n"
+		"*args   : double indexslow,double indexfast,double centerslow,double centerfast\n"
+		"\n"
+		"C prototype: int cbf_set_reference_beam_center (cbf_detector detector,\n"
+		"                 double      *indexslow, double *indexfast, double *centerslow,\n"
+		"                 double *centerfast);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_beam_center sets *centerfast and *centerslow to the \n"
+		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
+		"point at which the beam intersects the detector and *indexfast and \n"
+		"*indexslow to the corresponding indices. cbf_set_beam_center sets the \n"
+		"offsets in the axis category for the detector element axis with \n"
+		"precedence 1 to place the beam center at the position given in mm by \n"
+		"*centerfast and *centerslow as the displacements in mm along the \n"
+		"detector axes from pixel (0, 0) to the point at which the beam \n"
+		"intersects the detector at the indices given *indexfast and \n"
+		"*indexslow. cbf_set_reference_beam_center sets the displacments in \n"
+		"the array_structure_list_axis category to place the beam center at \n"
+		"the position given in mm by *centerfast and *centerslow as the \n"
+		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
+		"point at which the beam intersects the detector at the indices given \n"
+		"by *indexfast and *indexslow. In order to achieve consistent results, \n"
+		"a reference detector should be used for detector to have all axes at \n"
+		"their reference settings.\n"
+		"Note that the precedence 1 axis is the fastest axis, so that \n"
+		"*centerfast and *indexfast are the fast axis components of the center \n"
+		"and *centerslow and *indexslow are the slow axis components of the \n"
+		"center.\n"
+		"The _fs calls give the displacments in a fast-to-slow order. The \n"
+		"calls with no suffix and the calls _sf calls give the displacements \n"
+		"in slow-to-fast order\n"
+		"Any of the destination pointers may be NULL for getting the beam \n"
+		"center. For setting the beam axis, either the indices of the center \n"
+		"must not be NULL.\n"
+		"The indices are non-negative for beam centers within the detector \n"
+		"surface, but the center for an axis with a negative increment will be \n"
+		"negative for a beam center within the detector surface.\n"
+		"For cbf_set_beam_center if the diffrn_data_frame category exists with \n"
+		"a row for the corresponding element id, the values will be set for \n"
+		"_diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in \n"
+		"millimetres and the value of _diffrn_data_frame.center_units will be \n"
+		"set to 'mm'.\n"
+		"For cbf_set_reference_beam_center if the diffrn_detector_element \n"
+		"category exists with a row for the corresponding element id, the \n"
+		"values will be set for _diffrn_detector_element.reference_center_fast \n"
+		"and _diffrn_detector_element.reference_center_slow in millimetres and \n"
+		"the value of _diffrn_detector_element.reference_units will be set to \n"
+		"'mm'.\n"
+		"ARGUMENTS\n"
+		"detector     Detector handle. indexfast    Pointer to the destination \n"
+		"fast index. indexslow    Pointer to the destination slow index. \n"
+		"centerfast   Pointer to the destination displacement along the fast \n"
+		"axis. centerslow   Pointer to the destination displacement along the \n"
+		"slow axis.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
+	 { (char *)"cbf_detector_struct_get_detector_axis_slow", _wrap_cbf_detector_struct_get_detector_axis_slow, METH_VARARGS, (char *)"\n"
+		"Returns : double slowaxis1,double slowaxis2,double slowaxis3\n"
+		"*args   : \n"
+		"\n"
+		"C prototype: int cbf_get_detector_axis_slow (cbf_detector detector,\n"
+		"                 double      *slowaxis1, double *slowaxis2, double *slowaxis3);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_detector_axis_slow sets *slowaxis1, *slowaxis2, and \n"
+		"*slowaxis3 to the 3 components of the slow axis of the specified \n"
+		"detector at the current settings of all axes. \n"
+		"cbf_get_detector_axis_slow sets *fastaxis1, *fastaxis2, and \n"
+		"*fastaxis3 to the 3 components of the fast axis of the specified \n"
+		"detector at the current settings of all axes. cbf_get_detector_axes, \n"
+		"cbf_get_detector_axes_fs and int cbf_get_detector_axes_sf set \n"
+		"*slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the \n"
+		"slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 \n"
+		"components of the fast axis of the specified detector at the current \n"
+		"settings of all axes.\n"
+		"Any of the destination pointers may be NULL.\n"
+		"ARGUMENTS\n"
+		"detector    Detector handle. slowaxis1   Pointer to the destination x \n"
+		"component of the slow axis vector. slowaxis2   Pointer to the \n"
+		"destination y component of the slow axis vector. slowaxis3   Pointer \n"
+		"to the destination z component of the slow axis vector. fastaxis1   \n"
+		"Pointer to the destination x component of the fast axis vector. \n"
+		"fastaxis2   Pointer to the destination y component of the fast axis \n"
+		"vector. fastaxis3   Pointer to the destination z component of the \n"
+		"fast axis vector.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_get_detector_distance", _wrap_cbf_detector_struct_get_detector_distance, METH_VARARGS, (char *)"\n"
@@ -19133,7 +19616,7 @@ static PyMethodDef SwigMethods[] = {
 		"distance.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_get_inferred_pixel_size_fs", _wrap_cbf_detector_struct_get_inferred_pixel_size_fs, METH_VARARGS, (char *)"\n"
@@ -19141,7 +19624,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Int axis_number\n"
 		"\n"
 		"C prototype: int cbf_get_inferred_pixel_size_fs(cbf_detector detector,\n"
-		"                 int axis_number, double *psize);\n"
+		"                 int      axis_number, double *psize);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -19162,7 +19645,7 @@ static PyMethodDef SwigMethods[] = {
 		"area          Pointer to the destination pizel size in mm.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_get_detector_normal", _wrap_cbf_detector_struct_get_detector_normal, METH_VARARGS, (char *)"\n"
@@ -19170,7 +19653,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_detector_normal (cbf_detector detector,\n"
-		"                 double *normal1, double *normal2, double *normal3);\n"
+		"                 double *normal1,      double *normal2, double *normal3);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -19185,7 +19668,80 @@ static PyMethodDef SwigMethods[] = {
 		"destination z component of the normal vector.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
+		""},
+	 { (char *)"cbf_detector_struct_get_detector_axis_fast", _wrap_cbf_detector_struct_get_detector_axis_fast, METH_VARARGS, (char *)"\n"
+		"Returns : double fastaxis1,double fastaxis2,double fastaxis3\n"
+		"*args   : \n"
+		"\n"
+		"C prototype: int cbf_get_detector_axis_fast (cbf_detector detector,\n"
+		"                 double      *fastaxis1, double *fastaxis2, double *fastaxis3);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_detector_axis_slow sets *slowaxis1, *slowaxis2, and \n"
+		"*slowaxis3 to the 3 components of the slow axis of the specified \n"
+		"detector at the current settings of all axes. \n"
+		"cbf_get_detector_axis_slow sets *fastaxis1, *fastaxis2, and \n"
+		"*fastaxis3 to the 3 components of the fast axis of the specified \n"
+		"detector at the current settings of all axes. cbf_get_detector_axes, \n"
+		"cbf_get_detector_axes_fs and int cbf_get_detector_axes_sf set \n"
+		"*slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the \n"
+		"slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 \n"
+		"components of the fast axis of the specified detector at the current \n"
+		"settings of all axes.\n"
+		"Any of the destination pointers may be NULL.\n"
+		"ARGUMENTS\n"
+		"detector    Detector handle. slowaxis1   Pointer to the destination x \n"
+		"component of the slow axis vector. slowaxis2   Pointer to the \n"
+		"destination y component of the slow axis vector. slowaxis3   Pointer \n"
+		"to the destination z component of the slow axis vector. fastaxis1   \n"
+		"Pointer to the destination x component of the fast axis vector. \n"
+		"fastaxis2   Pointer to the destination y component of the fast axis \n"
+		"vector. fastaxis3   Pointer to the destination z component of the \n"
+		"fast axis vector.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
+	 { (char *)"cbf_detector_struct_get_detector_axes_fs", _wrap_cbf_detector_struct_get_detector_axes_fs, METH_VARARGS, (char *)"cbf_detector_struct_get_detector_axes_fs(cbf_detector_struct self)"},
+	 { (char *)"cbf_detector_struct_get_detector_axes_sf", _wrap_cbf_detector_struct_get_detector_axes_sf, METH_VARARGS, (char *)"\n"
+		"Returns : double slowaxis1,double slowaxis2,double slowaxis3,double fastaxis1,\n"
+		"          double fastaxis2,double fastaxis3\n"
+		"*args   : \n"
+		"\n"
+		"C prototype: int cbf_get_detector_axes_sf (cbf_detector detector,\n"
+		"                 double *slowaxis1,      double *slowaxis2, double *slowaxis3,\n"
+		"                 double *fastaxis1, double      *fastaxis2, double *fastaxis3);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_detector_axis_slow sets *slowaxis1, *slowaxis2, and \n"
+		"*slowaxis3 to the 3 components of the slow axis of the specified \n"
+		"detector at the current settings of all axes. \n"
+		"cbf_get_detector_axis_slow sets *fastaxis1, *fastaxis2, and \n"
+		"*fastaxis3 to the 3 components of the fast axis of the specified \n"
+		"detector at the current settings of all axes. cbf_get_detector_axes, \n"
+		"cbf_get_detector_axes_fs and int cbf_get_detector_axes_sf set \n"
+		"*slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the \n"
+		"slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 \n"
+		"components of the fast axis of the specified detector at the current \n"
+		"settings of all axes.\n"
+		"Any of the destination pointers may be NULL.\n"
+		"ARGUMENTS\n"
+		"detector    Detector handle. slowaxis1   Pointer to the destination x \n"
+		"component of the slow axis vector. slowaxis2   Pointer to the \n"
+		"destination y component of the slow axis vector. slowaxis3   Pointer \n"
+		"to the destination z component of the slow axis vector. fastaxis1   \n"
+		"Pointer to the destination x component of the fast axis vector. \n"
+		"fastaxis2   Pointer to the destination y component of the fast axis \n"
+		"vector. fastaxis3   Pointer to the destination z component of the \n"
+		"fast axis vector.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_get_pixel_coordinates_sf", _wrap_cbf_detector_struct_get_pixel_coordinates_sf, METH_VARARGS, (char *)"\n"
@@ -19193,8 +19749,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double indexslow,double indexfast\n"
 		"\n"
 		"C prototype: int cbf_get_pixel_coordinates_sf (cbf_detector detector,\n"
-		"                 double indexslow, double indexfast, double *coordinate1,\n"
-		"                 double      *coordinate2, double *coordinate3);\n"
+		"                 double      indexslow, double indexfast, double *coordinate1,\n"
+		"                 double *coordinate2,      double *coordinate3);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -19211,7 +19767,7 @@ static PyMethodDef SwigMethods[] = {
 		"Pointer to the destination z component.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_set_beam_center", _wrap_cbf_detector_struct_set_beam_center, METH_VARARGS, (char *)"\n"
@@ -19219,7 +19775,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double indexslow,double indexfast,double centerslow,double centerfast\n"
 		"\n"
 		"C prototype: int cbf_set_beam_center (cbf_detector detector,\n"
-		"                 double *indexslow, double *indexfast, double *centerslow,\n"
+		"                 double *indexslow,      double *indexfast, double *centerslow,\n"
 		"                 double *centerfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -19273,7 +19829,7 @@ static PyMethodDef SwigMethods[] = {
 		"slow axis.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_get_pixel_area_fs", _wrap_cbf_detector_struct_get_pixel_area_fs, METH_VARARGS, (char *)"\n"
@@ -19281,7 +19837,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double indexfast,double indexslow\n"
 		"\n"
 		"C prototype: int cbf_get_pixel_area_fs(cbf_detector detector,\n"
-		"                 double indexfast, double indexslow, double *area,\n"
+		"                 double indexfast,      double indexslow, double *area,\n"
 		"                 double *projected_area);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -19299,7 +19855,7 @@ static PyMethodDef SwigMethods[] = {
 		"apparent area in mm2.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_get_beam_center_fs", _wrap_cbf_detector_struct_get_beam_center_fs, METH_VARARGS, (char *)"\n"
@@ -19307,7 +19863,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_beam_center_fs (cbf_detector detector,\n"
-		"                 double *indexfast, double *indexslow, double *centerfast,\n"
+		"                 double *indexfast,      double *indexslow, double *centerfast,\n"
 		"                 double *centerslow);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -19361,7 +19917,7 @@ static PyMethodDef SwigMethods[] = {
 		"slow axis.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_get_inferred_pixel_size_sf", _wrap_cbf_detector_struct_get_inferred_pixel_size_sf, METH_VARARGS, (char *)"\n"
@@ -19369,7 +19925,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Int axis_number\n"
 		"\n"
 		"C prototype: int cbf_get_inferred_pixel_size_sf(cbf_detector detector,\n"
-		"                 int axis_number, double *psize);\n"
+		"                 int      axis_number, double *psize);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -19390,7 +19946,7 @@ static PyMethodDef SwigMethods[] = {
 		"area          Pointer to the destination pizel size in mm.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_get_pixel_coordinates", _wrap_cbf_detector_struct_get_pixel_coordinates, METH_VARARGS, (char *)"\n"
@@ -19398,8 +19954,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double index1,double index2\n"
 		"\n"
 		"C prototype: int cbf_get_pixel_coordinates (cbf_detector detector,\n"
-		"                 double indexslow, double indexfast, double *coordinate1,\n"
-		"                 double *coordinate2,      double *coordinate3);\n"
+		"                 double indexslow,      double indexfast, double *coordinate1,\n"
+		"                 double *coordinate2, double      *coordinate3);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -19416,7 +19972,7 @@ static PyMethodDef SwigMethods[] = {
 		"Pointer to the destination z component.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_get_beam_center_sf", _wrap_cbf_detector_struct_get_beam_center_sf, METH_VARARGS, (char *)"\n"
@@ -19424,7 +19980,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_beam_center_sf (cbf_detector detector,\n"
-		"                 double *indexslow, double *indexfast, double *centerslow,\n"
+		"                 double *indexslow,      double *indexfast, double *centerslow,\n"
 		"                 double *centerfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -19478,7 +20034,7 @@ static PyMethodDef SwigMethods[] = {
 		"slow axis.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_get_pixel_area_sf", _wrap_cbf_detector_struct_get_pixel_area_sf, METH_VARARGS, (char *)"\n"
@@ -19486,7 +20042,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double indexslow,double indexfast\n"
 		"\n"
 		"C prototype: int cbf_get_pixel_area_sf(cbf_detector detector,\n"
-		"                 double indexslow, double indexfast, double *area,\n"
+		"                 double indexslow,      double indexfast, double *area,\n"
 		"                 double *projected_area);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -19504,7 +20060,7 @@ static PyMethodDef SwigMethods[] = {
 		"apparent area in mm2.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_get_beam_center", _wrap_cbf_detector_struct_get_beam_center, METH_VARARGS, (char *)"\n"
@@ -19512,7 +20068,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_beam_center (cbf_detector detector,\n"
-		"                 double *indexslow, double *indexfast, double *centerslow,\n"
+		"                 double *indexslow,      double *indexfast, double *centerslow,\n"
 		"                 double *centerfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -19566,7 +20122,7 @@ static PyMethodDef SwigMethods[] = {
 		"slow axis.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_set_reference_beam_center_sf", _wrap_cbf_detector_struct_set_reference_beam_center_sf, METH_VARARGS, (char *)"\n"
@@ -19574,69 +20130,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double indexslow,double indexfast,double centerslow,double centerfast\n"
 		"\n"
 		"C prototype: int cbf_set_reference_beam_center_sf (cbf_detector detector,\n"
-		"                 double *indexslow, double *indexfast, double *centerslow,\n"
-		"                 double      *centerfast);\n"
-		"\n"
-		"CBFLib documentation:\n"
-		"DESCRIPTION\n"
-		"cbf_get_beam_center sets *centerfast and *centerslow to the \n"
-		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
-		"point at which the beam intersects the detector and *indexfast and \n"
-		"*indexslow to the corresponding indices. cbf_set_beam_center sets the \n"
-		"offsets in the axis category for the detector element axis with \n"
-		"precedence 1 to place the beam center at the position given in mm by \n"
-		"*centerfast and *centerslow as the displacements in mm along the \n"
-		"detector axes from pixel (0, 0) to the point at which the beam \n"
-		"intersects the detector at the indices given *indexfast and \n"
-		"*indexslow. cbf_set_reference_beam_center sets the displacments in \n"
-		"the array_structure_list_axis category to place the beam center at \n"
-		"the position given in mm by *centerfast and *centerslow as the \n"
-		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
-		"point at which the beam intersects the detector at the indices given \n"
-		"by *indexfast and *indexslow. In order to achieve consistent results, \n"
-		"a reference detector should be used for detector to have all axes at \n"
-		"their reference settings.\n"
-		"Note that the precedence 1 axis is the fastest axis, so that \n"
-		"*centerfast and *indexfast are the fast axis components of the center \n"
-		"and *centerslow and *indexslow are the slow axis components of the \n"
-		"center.\n"
-		"The _fs calls give the displacments in a fast-to-slow order. The \n"
-		"calls with no suffix and the calls _sf calls give the displacements \n"
-		"in slow-to-fast order\n"
-		"Any of the destination pointers may be NULL for getting the beam \n"
-		"center. For setting the beam axis, either the indices of the center \n"
-		"must not be NULL.\n"
-		"The indices are non-negative for beam centers within the detector \n"
-		"surface, but the center for an axis with a negative increment will be \n"
-		"negative for a beam center within the detector surface.\n"
-		"For cbf_set_beam_center if the diffrn_data_frame category exists with \n"
-		"a row for the corresponding element id, the values will be set for \n"
-		"_diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in \n"
-		"millimetres and the value of _diffrn_data_frame.center_units will be \n"
-		"set to 'mm'.\n"
-		"For cbf_set_reference_beam_center if the diffrn_detector_element \n"
-		"category exists with a row for the corresponding element id, the \n"
-		"values will be set for _diffrn_detector_element.reference_center_fast \n"
-		"and _diffrn_detector_element.reference_center_slow in millimetres and \n"
-		"the value of _diffrn_detector_element.reference_units will be set to \n"
-		"'mm'.\n"
-		"ARGUMENTS\n"
-		"detector     Detector handle. indexfast    Pointer to the destination \n"
-		"fast index. indexslow    Pointer to the destination slow index. \n"
-		"centerfast   Pointer to the destination displacement along the fast \n"
-		"axis. centerslow   Pointer to the destination displacement along the \n"
-		"slow axis.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
-		"\n"
-		""},
-	 { (char *)"cbf_detector_struct_set_beam_center_sf", _wrap_cbf_detector_struct_set_beam_center_sf, METH_VARARGS, (char *)"\n"
-		"Returns : \n"
-		"*args   : double indexslow,double indexfast,double centerslow,double centerfast\n"
-		"\n"
-		"C prototype: int cbf_set_beam_center_sf (cbf_detector detector,\n"
-		"                 double *indexslow, double *indexfast, double *centerslow,\n"
+		"                 double      *indexslow, double *indexfast, double *centerslow,\n"
 		"                 double *centerfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -19690,7 +20184,69 @@ static PyMethodDef SwigMethods[] = {
 		"slow axis.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
+		""},
+	 { (char *)"cbf_detector_struct_set_beam_center_sf", _wrap_cbf_detector_struct_set_beam_center_sf, METH_VARARGS, (char *)"\n"
+		"Returns : \n"
+		"*args   : double indexslow,double indexfast,double centerslow,double centerfast\n"
+		"\n"
+		"C prototype: int cbf_set_beam_center_sf (cbf_detector detector,\n"
+		"                 double *indexslow,      double *indexfast, double *centerslow,\n"
+		"                 double *centerfast);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_beam_center sets *centerfast and *centerslow to the \n"
+		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
+		"point at which the beam intersects the detector and *indexfast and \n"
+		"*indexslow to the corresponding indices. cbf_set_beam_center sets the \n"
+		"offsets in the axis category for the detector element axis with \n"
+		"precedence 1 to place the beam center at the position given in mm by \n"
+		"*centerfast and *centerslow as the displacements in mm along the \n"
+		"detector axes from pixel (0, 0) to the point at which the beam \n"
+		"intersects the detector at the indices given *indexfast and \n"
+		"*indexslow. cbf_set_reference_beam_center sets the displacments in \n"
+		"the array_structure_list_axis category to place the beam center at \n"
+		"the position given in mm by *centerfast and *centerslow as the \n"
+		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
+		"point at which the beam intersects the detector at the indices given \n"
+		"by *indexfast and *indexslow. In order to achieve consistent results, \n"
+		"a reference detector should be used for detector to have all axes at \n"
+		"their reference settings.\n"
+		"Note that the precedence 1 axis is the fastest axis, so that \n"
+		"*centerfast and *indexfast are the fast axis components of the center \n"
+		"and *centerslow and *indexslow are the slow axis components of the \n"
+		"center.\n"
+		"The _fs calls give the displacments in a fast-to-slow order. The \n"
+		"calls with no suffix and the calls _sf calls give the displacements \n"
+		"in slow-to-fast order\n"
+		"Any of the destination pointers may be NULL for getting the beam \n"
+		"center. For setting the beam axis, either the indices of the center \n"
+		"must not be NULL.\n"
+		"The indices are non-negative for beam centers within the detector \n"
+		"surface, but the center for an axis with a negative increment will be \n"
+		"negative for a beam center within the detector surface.\n"
+		"For cbf_set_beam_center if the diffrn_data_frame category exists with \n"
+		"a row for the corresponding element id, the values will be set for \n"
+		"_diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in \n"
+		"millimetres and the value of _diffrn_data_frame.center_units will be \n"
+		"set to 'mm'.\n"
+		"For cbf_set_reference_beam_center if the diffrn_detector_element \n"
+		"category exists with a row for the corresponding element id, the \n"
+		"values will be set for _diffrn_detector_element.reference_center_fast \n"
+		"and _diffrn_detector_element.reference_center_slow in millimetres and \n"
+		"the value of _diffrn_detector_element.reference_units will be set to \n"
+		"'mm'.\n"
+		"ARGUMENTS\n"
+		"detector     Detector handle. indexfast    Pointer to the destination \n"
+		"fast index. indexslow    Pointer to the destination slow index. \n"
+		"centerfast   Pointer to the destination displacement along the fast \n"
+		"axis. centerslow   Pointer to the destination displacement along the \n"
+		"slow axis.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_get_pixel_normal", _wrap_cbf_detector_struct_get_pixel_normal, METH_VARARGS, (char *)"\n"
@@ -19698,8 +20254,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double index1,double index2\n"
 		"\n"
 		"C prototype: int cbf_get_pixel_normal (cbf_detector detector,\n"
-		"                 double indexslow, double indexfast, double *normal1,\n"
-		"                 double *normal2, double      *normal3);\n"
+		"                 double indexslow,      double indexfast, double *normal1,\n"
+		"                 double *normal2, double *normal3);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -19716,7 +20272,7 @@ static PyMethodDef SwigMethods[] = {
 		"of the normal vector.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_detector_struct_swigregister", cbf_detector_struct_swigregister, METH_VARARGS, NULL},
@@ -19754,7 +20310,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_force_new_datablock (cbf_handle handle,\n"
-		"                 const char *datablockname);\n"
+		"                 const char    *datablockname);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -19779,9 +20335,9 @@ static PyMethodDef SwigMethods[] = {
 		"          int ndimslow\n"
 		"\n"
 		"C prototype: int cbf_get_3d_image_fs (cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number, void *array,\n"
-		"                 size_t elsize, int      elsign, size_t ndimfast, size_t ndimmid,\n"
-		"                 size_t ndimslow);\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
+		"                 void *array, size_t elsize, int elsign,      size_t ndimfast,\n"
+		"                 size_t ndimmid, size_t ndimslow);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -19810,33 +20366,7 @@ static PyMethodDef SwigMethods[] = {
 		"ndimslow should be the array size and ndimfast and, for the 3D calls, \n"
 		"ndimmid, should be set to 1 both in the call and in the imgCIF data \n"
 		"being processed. If the array is 2-dimensional and a 3D call is used, \n"
-		"ndimslow and ndimmid should be the array dimensions and ndimfast \n"
-		"should be set to 1 both in the call and in the imgCIF data being \n"
-		"processed.\n"
-		"If any element in the binary data canOt fit into the destination \n"
-		"element, the destination is set the nearest possible value.\n"
-		"If the value is not binary, the function returns CBF_ASCII.\n"
-		"If the requested number of elements canOt be read, the function will \n"
-		"read as many as it can and then return CBF_ENDOFDATA.\n"
-		"Currently, the destination array must consist of chars, shorts or \n"
-		"ints (signed or unsigned) for cbf_get_image, or IEEE doubles or \n"
-		"floats for cbf_get_real_image. If elsize is not equal to sizeof \n"
-		"(char), sizeof (short), sizeof (int), sizeof(double) or \n"
-		"sizeof(float), the function returns CBF_ARGUMENT.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. array            Pointer to the \n"
-		"destination array. elsize           Size in bytes of each destination \n"
-		"array element. elsigned         Set to non-0 if the destination array \n"
-		"elements are signed. ndimslow         Slowest array dimension. \n"
-		"ndimmid          Next faster array dimension. ndimfast         \n"
-		"Fastest array dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"ndimslow and ndimmid should be the\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_reset_datablocks", _wrap_cbf_handle_struct_reset_datablocks, METH_VARARGS, (char *)"\n"
@@ -19861,7 +20391,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String tagname,String categoryname_in\n"
 		"\n"
 		"C prototype: int cbf_set_tag_category (cbf_handle handle, const char* tagname,\n"
-		"                 const char* categoryname_in);\n"
+		"                 const      char* categoryname_in);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -19875,7 +20405,7 @@ static PyMethodDef SwigMethods[] = {
 		"categoryname_in   input category name.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_require_tag_root", _wrap_cbf_handle_struct_require_tag_root, METH_VARARGS, (char *)"\n"
@@ -19883,7 +20413,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String tagname\n"
 		"\n"
 		"C prototype: int cbf_require_tag_root (cbf_handle handle, const char* tagname,\n"
-		"                 const char** tagroot);\n"
+		"                 const      char** tagroot);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -19900,7 +20430,7 @@ static PyMethodDef SwigMethods[] = {
 		"tag root name.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_row_number", _wrap_cbf_handle_struct_row_number, METH_VARARGS, (char *)"\n"
@@ -19926,8 +20456,8 @@ static PyMethodDef SwigMethods[] = {
 		"          int elsign,int dimslow,int dimfast\n"
 		"\n"
 		"C prototype: int cbf_set_image (cbf_handle handle, unsigned int reserved,\n"
-		"                 unsigned int element_number, unsigned int compression,\n"
-		"                 void *array,      size_t elsize, int elsign, size_t ndimslow,\n"
+		"                 unsigned      int element_number, unsigned int compression,\n"
+		"                 void *array, size_t      elsize, int elsign, size_t ndimslow,\n"
 		"                 size_t ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -19984,7 +20514,7 @@ static PyMethodDef SwigMethods[] = {
 		"       Fastest array dimension.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_bin_sizes", _wrap_cbf_handle_struct_set_bin_sizes, METH_VARARGS, (char *)"\n"
@@ -19992,7 +20522,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer element_number,Float slowbinsize_in,Float fastbinsize_in\n"
 		"\n"
 		"C prototype: int cbf_set_bin_sizes(cbf_handle handle,\n"
-		"                 unsigned int element_number, double slowbinsize_in,\n"
+		"                 unsigned int element_number,      double slowbinsize_in,\n"
 		"                double fastbinsize_in);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -20025,7 +20555,7 @@ static PyMethodDef SwigMethods[] = {
 		"at the fastest rate.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_new_row", _wrap_cbf_handle_struct_new_row, METH_VARARGS, (char *)"\n"
@@ -20074,7 +20604,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_realarrayparameters (cbf_handle handle,\n"
-		"                 unsigned int *compression, int *binary_id, size_t *elsize,\n"
+		"                 unsigned int    *compression, int *binary_id, size_t *elsize,\n"
 		"                 size_t *elements);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -20135,7 +20665,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Int element_number,Int axis_number\n"
 		"\n"
 		"C prototype: int cbf_get_pixel_size_sf(cbf_handle handle,\n"
-		"                 unsigned int element_number, int axis_number, double *psize);\n"
+		"                 unsigned int      element_number, int axis_number,\n"
+		"                 double *psize);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -20160,7 +20691,7 @@ static PyMethodDef SwigMethods[] = {
 		"psize            Pointer to the destination pixel size.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_force_new_category", _wrap_cbf_handle_struct_force_new_category, METH_VARARGS, (char *)"\n"
@@ -20192,7 +20723,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_force_new_saveframe (cbf_handle handle,\n"
-		"                 const char *saveframename);\n"
+		"                 const char    *saveframename);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -20274,7 +20805,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer element_number\n"
 		"\n"
 		"C prototype: int cbf_construct_detector (cbf_handle handle,\n"
-		"                 cbf_detector *detector, unsigned int element_number);\n"
+		"                 cbf_detector *detector,      unsigned int element_number);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -20294,7 +20825,7 @@ static PyMethodDef SwigMethods[] = {
 		"\"diffrn_data_frame \" category.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_rewind_column", _wrap_cbf_handle_struct_rewind_column, METH_VARARGS, (char *)"\n"
@@ -20321,7 +20852,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String columnname,Float Value\n"
 		"\n"
 		"C prototype: int cbf_require_column_doublevalue (cbf_handle handle,\n"
-		"                 const char *columnname, double *number,\n"
+		"                 const char      *columnname, double *number,\n"
 		"                 const double defaultvalue);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -20347,8 +20878,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_datestamp (cbf_handle handle, unsigned int reserved,\n"
-		"                 int *year, int *month, int *day, int *hour, int *minute,\n"
-		"                 double      *second, int *timezone);\n"
+		"                 int      *year, int *month, int *day, int *hour, int *minute,\n"
+		"                 double *second, int      *timezone);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -20368,7 +20899,7 @@ static PyMethodDef SwigMethods[] = {
 		"destination timezone difference from UTC in minutes.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_integervalue", _wrap_cbf_handle_struct_get_integervalue, METH_VARARGS, (char *)"\n"
@@ -20413,7 +20944,7 @@ static PyMethodDef SwigMethods[] = {
 		"value pointer.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_doublevalue", _wrap_cbf_handle_struct_get_doublevalue, METH_VARARGS, (char *)"\n"
@@ -20443,7 +20974,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_unit_cell (cbf_handle handle, double cell[6],\n"
-		"                 double cell_esd[6] );\n"
+		"                 double      cell_esd[6] );\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -20628,7 +21159,7 @@ static PyMethodDef SwigMethods[] = {
 		"CBFlib defers reading binary sections as long as possible. In the \n"
 		"current version of CBFlib, this means that:\n"
 		"1. The file must be a random-access file opened in binary mode (fopen \n"
-		"( ,  \"rb \")).\n"
+		"( ,\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_wavelength", _wrap_cbf_handle_struct_set_wavelength, METH_VARARGS, (char *)"\n"
@@ -20644,7 +21175,7 @@ static PyMethodDef SwigMethods[] = {
 		"handle       CBF handle. wavelength   Wavelength in AA.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_pixel_size_sf", _wrap_cbf_handle_struct_set_pixel_size_sf, METH_VARARGS, (char *)"\n"
@@ -20652,7 +21183,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Int element_number,Int axis_number,Float pixel size\n"
 		"\n"
 		"C prototype: int cbf_set_pixel_size_sf(cbf_handle handle,\n"
-		"                 unsigned int element_number, int axis_number, double psize);\n"
+		"                 unsigned int      element_number, int axis_number,\n"
+		"                 double psize);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -20663,31 +21195,7 @@ static PyMethodDef SwigMethods[] = {
 		"millimeters in storing it in the  \"size \" column for the axis \n"
 		"axis_number of the detector element element_number. The axis_number \n"
 		"is numbered from 1, starting with the slowest axis. \n"
-		"cbf_set_pixel_size_fs sets the item in the &quote;size&quote; column \n"
-		"of the  \"array_structure_list \" category at the row which matches \n"
-		"axis axis_number of the detector element element_number converting \n"
-		"the double pixel size psize from meters to millimeters in storing it \n"
-		"in the  \"size \" column for the axis axis_number of the detector \n"
-		"element element_number. The axis_number is numbered from 1, starting \n"
-		"with the fastest axis.\n"
-		"If a negative axis number is given, the order of axes is reversed, so \n"
-		"that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the \n"
-		"fastest axis for cbf_get_pixel_size_sf.\n"
-		"If the  \"array_structure_list \" category does not already exist, it \n"
-		"is created.\n"
-		"If the appropriate row in the  \"array_structure_list \" catgeory \n"
-		"does not already exist, it is created.\n"
-		"If the pixel size is not given explcitly in the  \"array_element_size \n"
-		"category \", the function returns CBF_NOTFOUND.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. element_number   The number of the \n"
-		"detector element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. axis_number      The number of the \n"
-		"axis, fastest first, starting from 1. psize            The pixel size \n"
-		"in millimeters.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"cbf_set_pixel_size_fs sets the item\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_diffrn_id", _wrap_cbf_handle_struct_get_diffrn_id, METH_VARARGS, (char *)"\n"
@@ -20713,7 +21221,7 @@ static PyMethodDef SwigMethods[] = {
 		"value pointer. default_id   Character string default value.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_find_datablock", _wrap_cbf_handle_struct_find_datablock, METH_VARARGS, (char *)"\n"
@@ -20743,7 +21251,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_polarization (cbf_handle handle,\n"
-		"                 double *polarizn_source_ratio, double *polarizn_source_norm);\n"
+		"                 double      *polarizn_source_ratio,\n"
+		"                 double *polarizn_source_norm);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -20757,7 +21266,7 @@ static PyMethodDef SwigMethods[] = {
 		"Pointer to the destination polarizn_source_norm.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_select_category", _wrap_cbf_handle_struct_select_category, METH_VARARGS, (char *)"\n"
@@ -20786,7 +21295,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Int element_number,Int axis_number\n"
 		"\n"
 		"C prototype: int cbf_get_pixel_size_fs(cbf_handle handle,\n"
-		"                 unsigned int element_number, int axis_number, double *psize);\n"
+		"                 unsigned int      element_number, int axis_number,\n"
+		"                 double *psize);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -20811,7 +21321,7 @@ static PyMethodDef SwigMethods[] = {
 		"psize            Pointer to the destination pixel size.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_read_file", _wrap_cbf_handle_struct_read_file, METH_VARARGS, (char *)"\n"
@@ -20884,7 +21394,7 @@ static PyMethodDef SwigMethods[] = {
 		"CBFlib defers reading binary sections as long as possible. In the \n"
 		"current version of CBFlib, this means that:\n"
 		"1. The file must be a random-access file opened in binary mode (fopen \n"
-		"( ,  \"rb \")).\n"
+		"( ,\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_datablock_name", _wrap_cbf_handle_struct_datablock_name, METH_VARARGS, (char *)"\n"
@@ -20916,9 +21426,10 @@ static PyMethodDef SwigMethods[] = {
 		"          int padding\n"
 		"\n"
 		"C prototype: int cbf_set_realarray_wdims (cbf_handle handle,\n"
-		"                 unsigned int compression, int binary_id, void *array,\n"
-		"                 size_t elsize, size_t elements,    const char *byteorder,\n"
-		"                 size_t dimfast, size_t dimmid, size_t dimslow, size_t padding);\n"
+		"                 unsigned int compression,    int binary_id, void *array,\n"
+		"                 size_t elsize, size_t elements, const char    *byteorder,\n"
+		"                 size_t dimfast, size_t dimmid, size_t dimslow,\n"
+		"                 size_t    padding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -20950,6 +21461,20 @@ static PyMethodDef SwigMethods[] = {
 		"The values compressed are limited to 64 bits. If any element in the \n"
 		"array is larger than 64 bits, the value compressed is the nearest \n"
 		"64-bit value.\n"
+		"Currently, the source array must consist of chars, shorts or ints \n"
+		"(signed or unsigned), for cbf_set_integerarray, or IEEE doubles or \n"
+		"floats for cbf_set_realarray. If elsize is not equal to sizeof \n"
+		"(char), sizeof (short) or sizeof (int), the function returns \n"
+		"CBF_ARGUMENT.\n"
+		"ARGUMENTS\n"
+		"handle        CBF handle. compression   Compression method to use. \n"
+		"binary_id     Integer binary identifier. array         Pointer to the \n"
+		"source array. elsize        Size in bytes of each source array \n"
+		"element. elsigned      Set to non-0 if the source array elements are \n"
+		"signed. elements: The number of elements in the array.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"SEE ALSO\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_construct_reference_detector", _wrap_cbf_handle_struct_construct_reference_detector, METH_VARARGS, (char *)"\n"
@@ -20957,7 +21482,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer element_number\n"
 		"\n"
 		"C prototype: int cbf_construct_reference_detector (cbf_handle handle,\n"
-		"                 cbf_detector *detector, unsigned int element_number);\n"
+		"                 cbf_detector      *detector, unsigned int element_number);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -20977,7 +21502,7 @@ static PyMethodDef SwigMethods[] = {
 		"\"diffrn_data_frame \" category.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_real_3d_image_fs_as_string", _wrap_cbf_handle_struct_get_real_3d_image_fs_as_string, METH_VARARGS, (char *)"\n"
@@ -20985,9 +21510,9 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : int element_number,int elsize,int ndimfast,int ndimmid,int ndimslow\n"
 		"\n"
 		"C prototype: int cbf_get_real_3d_image_fs (cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number, void *array,\n"
-		"                 size_t elsize,      size_t ndimfast, size_t ndimmid,\n"
-		"                 size_t ndimslow);\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
+		"                 void *array, size_t elsize, size_t      ndimfast,\n"
+		"                 size_t ndimmid, size_t ndimslow);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -21016,33 +21541,7 @@ static PyMethodDef SwigMethods[] = {
 		"ndimslow should be the array size and ndimfast and, for the 3D calls, \n"
 		"ndimmid, should be set to 1 both in the call and in the imgCIF data \n"
 		"being processed. If the array is 2-dimensional and a 3D call is used, \n"
-		"ndimslow and ndimmid should be the array dimensions and ndimfast \n"
-		"should be set to 1 both in the call and in the imgCIF data being \n"
-		"processed.\n"
-		"If any element in the binary data canOt fit into the destination \n"
-		"element, the destination is set the nearest possible value.\n"
-		"If the value is not binary, the function returns CBF_ASCII.\n"
-		"If the requested number of elements canOt be read, the function will \n"
-		"read as many as it can and then return CBF_ENDOFDATA.\n"
-		"Currently, the destination array must consist of chars, shorts or \n"
-		"ints (signed or unsigned) for cbf_get_image, or IEEE doubles or \n"
-		"floats for cbf_get_real_image. If elsize is not equal to sizeof \n"
-		"(char), sizeof (short), sizeof (int), sizeof(double) or \n"
-		"sizeof(float), the function returns CBF_ARGUMENT.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. array            Pointer to the \n"
-		"destination array. elsize           Size in bytes of each destination \n"
-		"array element. elsigned         Set to non-0 if the destination array \n"
-		"elements are signed. ndimslow         Slowest array dimension. \n"
-		"ndimmid          Next faster array dimension. ndimfast         \n"
-		"Fastest array dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"ndimslow and ndimmid should be the\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_rewind_row", _wrap_cbf_handle_struct_rewind_row, METH_VARARGS, (char *)"\n"
@@ -21069,7 +21568,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String axis_id\n"
 		"\n"
 		"C prototype: int cbf_get_axis_setting (cbf_handle handle,\n"
-		"                 unsigned int reserved, const char *axis_id, double *start,\n"
+		"                 unsigned int reserved,      const char *axis_id, double *start,\n"
 		"                 double *increment);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -21084,7 +21583,7 @@ static PyMethodDef SwigMethods[] = {
 		"start value. increment   Pointer to the destination increment value.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_require_column", _wrap_cbf_handle_struct_require_column, METH_VARARGS, (char *)"\n"
@@ -21113,7 +21612,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_timestamp (cbf_handle handle, unsigned int reserved,\n"
-		"                 double *time, int *timezone);\n"
+		"                 double      *time, int *timezone);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -21128,7 +21627,7 @@ static PyMethodDef SwigMethods[] = {
 		"timezone   Pointer to the destination timezone difference.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_find_nextrow", _wrap_cbf_handle_struct_find_nextrow, METH_VARARGS, (char *)"\n"
@@ -21160,9 +21659,9 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_realarrayparameters_wdims_sf (cbf_handle handle,\n"
-		"                 unsigned int *compression, int *binary_id, size_t *elsize,\n"
-		"                 size_t    *elements, const char **byteorder, size_t *dimslow,\n"
-		"                 size_t *dimmid, size_t *dimfast, size_t *padding);\n"
+		"                 unsigned int    *compression, int *binary_id, size_t *elsize,\n"
+		"                 size_t *elements, const char    **byteorder, size_t *dimslow,\n"
+		"                 size_t *dimmid, size_t *dimfast, size_t    *padding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -21241,9 +21740,9 @@ static PyMethodDef SwigMethods[] = {
 		"          int elsign,int dimfast,int dimmid,int dimslow\n"
 		"\n"
 		"C prototype: int cbf_set_3d_image_fs(cbf_handle handle, unsigned int reserved,\n"
-		"                 unsigned int element_number, unsigned int compression,\n"
-		"                 void      *array, size_t elsize, int elsign, size_t ndimfast,\n"
-		"                 size_t ndimmid, size_t ndimslow);\n"
+		"                      unsigned int element_number, unsigned int compression,\n"
+		"                 void *array,      size_t elsize, int elsign, size_t ndimfast,\n"
+		"                 size_t ndimmid, size_t      ndimslow);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -21299,7 +21798,7 @@ static PyMethodDef SwigMethods[] = {
 		"       Fastest array dimension.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_saveframename", _wrap_cbf_handle_struct_set_saveframename, METH_VARARGS, (char *)"\n"
@@ -21329,7 +21828,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Int thedefault\n"
 		"\n"
 		"C prototype: int cbf_require_integervalue (cbf_handle handle, int *number,\n"
-		"                 int defaultvalue);\n"
+		"                 int    defaultvalue);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -21353,7 +21852,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_integerarrayparameters (cbf_handle handle,\n"
-		"                 unsigned int *compression, int *binary_id, size_t *elsize,\n"
+		"                 unsigned int    *compression, int *binary_id, size_t *elsize,\n"
 		"                 int *elsigned, int    *elunsigned, size_t *elements,\n"
 		"                 int *minelement, int *maxelement);\n"
 		"\n"
@@ -21416,7 +21915,7 @@ static PyMethodDef SwigMethods[] = {
 		"          int dimslow,int dimmid,int dimfast\n"
 		"\n"
 		"C prototype: int cbf_set_real_3d_image_sf(cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number,\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
 		"                 unsigned int compression, void      *array,size_t elsize,\n"
 		"                 size_t ndimslow, size_t ndimmid, size_t ndimfast);\n"
 		"\n"
@@ -21474,7 +21973,7 @@ static PyMethodDef SwigMethods[] = {
 		"       Fastest array dimension.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_write_file", _wrap_cbf_handle_struct_write_file, METH_VARARGS, (char *)"\n"
@@ -21482,7 +21981,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String filename,Integer ciforcbf,Integer Headers,Integer encoding\n"
 		"\n"
 		"C prototype: int cbf_write_file (cbf_handle handle, FILE *file, int readable,\n"
-		"                 int ciforcbf, int flags, int encoding);\n"
+		"                 int    ciforcbf, int flags, int encoding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -21499,55 +21998,6 @@ static PyMethodDef SwigMethods[] = {
 		"non-0 to indicate to CBFlib that the file can be used as a buffer to \n"
 		"conserve disk space. If the file is not random-access or not \n"
 		"readable, readable must be 0.\n"
-		"If readable is non-0, CBFlib will close the file when it is no longer \n"
-		"required, otherwise this is the responsibility of the program.\n"
-		"ciforcbf selects the format in which the binary sections are written:\n"
-		"CIF   Write an imgCIF file. CBF   Write a CBF file (default).\n"
-		"flags selects the type of header used in CBF binary sections, selects \n"
-		"whether message digests are generated, and controls the style of \n"
-		"output. The value of flags can be a logical OR of any of:\n"
-		"MIME_HEADERS             Use MIME-type headers (default). \n"
-		"MIME_NOHEADERS           Use a simple ASCII headers. MSG_DIGEST       \n"
-		"        Generate message digests for binary data validation. \n"
-		"MSG_NODIGEST             Do not generate message digests (default). \n"
-		"PARSE_BRACKETS           Do not convert bracketed strings to text \n"
-		"fields (default). PARSE_LIBERAL_BRACKETS   Do not convert bracketed \n"
-		"strings to text fields (default). PARSE_NOBRACKETS         Convert \n"
-		"bracketed strings to text fields (default). PARSE_TRIPLE_QUOTES      \n"
-		"Do not convert triple-quoted strings to text fields (default). \n"
-		"PARSE_NOTRIPLE_QUOTES    Convert triple-quoted strings to text fields \n"
-		"(default). PAD_1K                   Pad binary sections with 1023 \n"
-		"nulls. PAD_2K                   Pad binary sections with 2047 nulls. \n"
-		"PAD_4K                   Pad binary sections with 4095 nulls.\n"
-		"Note that on output, the types  \"prns&,  \"brcs \" and  \"bkts \" \n"
-		"will be converted to  \"text \" fields if PARSE_NOBRACKETS has been \n"
-		"set flags, and that the types  \"tsqs \" and  \"tdqs \" will be \n"
-		"converted to  \"text \" fields if the flag PARSE_NOTRIPLE_QUOTES has \n"
-		"been set in the flags. It is an error to set PARSE_NOBRACKETS and to \n"
-		"set either PARSE_BRACKETS or PARSE_LIBERAL_BRACKETS. It is an error \n"
-		"to set both PARSE_NOTRIPLE_QUOTES and PARSE_TRIPLE_QUOTES.\n"
-		"encoding selects the type of encoding used for binary sections and \n"
-		"the type of line-termination in imgCIF files. The value can be a \n"
-		"logical OR of any of:\n"
-		"ENC_BASE64     Use BASE64 encoding (default). ENC_QP         Use \n"
-		"QUOTED-PRINTABLE encoding. ENC_BASE8      Use BASE8 (octal) encoding. \n"
-		"ENC_BASE10     Use BASE10 (decimal) encoding. ENC_BASE16     Use \n"
-		"BASE16 (hexadecimal) encoding. ENC_FORWARD    For BASE8, BASE10 or \n"
-		"BASE16 encoding, map bytes to words forward (1234) (default on \n"
-		"little-endian machines). ENC_BACKWARD   Map bytes to words backward \n"
-		"(4321) (default on big-endian machines). ENC_CRTERM     Terminate \n"
-		"lines with CR. ENC_LFTERM     Terminate lines with LF (default).\n"
-		"ARGUMENTS\n"
-		"handle     CBF handle. file       Pointer to a file descriptor. \n"
-		"readable   If non-0: this file is random-access and readable and can \n"
-		"be used as a buffer. ciforcbf   Selects the format in which the \n"
-		"binary sections are written (CIF/CBF). headers    Selects the type of \n"
-		"header in CBF binary sections and message digest generation. encoding \n"
-		"  Selects the type of encoding used for binary sections and the type \n"
-		"of line-termination in imgCIF files.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"SEE ALSO\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_divergence", _wrap_cbf_handle_struct_set_divergence, METH_VARARGS, (char *)"\n"
@@ -21555,7 +22005,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Float div_x_source,Float div_y_source,Float div_x_y_source\n"
 		"\n"
 		"C prototype: int cbf_set_divergence (cbf_handle handle, double div_x_source,\n"
-		"                 double div_y_source, double div_x_y_source);\n"
+		"                 double      div_y_source, double div_x_y_source);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -21567,7 +22017,7 @@ static PyMethodDef SwigMethods[] = {
 		"div_x_y_source   New value of div_x_y_source.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_remove_datablock", _wrap_cbf_handle_struct_remove_datablock, METH_VARARGS, (char *)"\n"
@@ -21602,7 +22052,7 @@ static PyMethodDef SwigMethods[] = {
 		"handle     CBF handle. elements   Pointer to the destination count.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_image_fs", _wrap_cbf_handle_struct_set_image_fs, METH_VARARGS, (char *)"\n"
@@ -21611,8 +22061,8 @@ static PyMethodDef SwigMethods[] = {
 		"          int elsign,int dimfast,int dimslow\n"
 		"\n"
 		"C prototype: int cbf_set_image_fs(cbf_handle handle, unsigned int reserved,\n"
-		"                 unsigned int element_number, unsigned int compression,\n"
-		"                 void *array,      size_t elsize, int elsign, size_t ndimfast,\n"
+		"                 unsigned      int element_number, unsigned int compression,\n"
+		"                 void *array, size_t      elsize, int elsign, size_t ndimfast,\n"
 		"                 size_t ndimslow);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -21669,7 +22119,7 @@ static PyMethodDef SwigMethods[] = {
 		"       Fastest array dimension.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_require_reference_detector", _wrap_cbf_handle_struct_require_reference_detector, METH_VARARGS, (char *)"\n"
@@ -21677,7 +22127,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer element_number\n"
 		"\n"
 		"C prototype: int cbf_require_reference_detector (cbf_handle handle,\n"
-		"                 cbf_detector *detector, unsigned int element_number);\n"
+		"                 cbf_detector      *detector, unsigned int element_number);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -21697,7 +22147,7 @@ static PyMethodDef SwigMethods[] = {
 		"\"diffrn_data_frame \" category.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_next_category", _wrap_cbf_handle_struct_next_category, METH_VARARGS, (char *)"\n"
@@ -21736,7 +22186,7 @@ static PyMethodDef SwigMethods[] = {
 		"handle      CBF handle. diffrn_id   ASCII value.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_timestamp", _wrap_cbf_handle_struct_set_timestamp, METH_VARARGS, (char *)"\n"
@@ -21744,26 +22194,13 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Float time,Integer timezone,Float precision\n"
 		"\n"
 		"C prototype: int cbf_set_timestamp (cbf_handle handle, unsigned int reserved,\n"
-		"                 double time, int timezone, double precision);\n"
+		"                 double      time, int timezone, double precision);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
 		"cbf_set_timestamp sets the collection timestamp in seconds since \n"
 		"January 1 1970 to the value specified by time. The timezone \n"
-		"difference from UTC in minutes is set to timezone. If no timezone is \n"
-		"desired, timezone should be CBF_NOTIM EZONE. The parameter reserved \n"
-		"is presently unused and should be set to 0.\n"
-		"The precision of the new timestamp is specified by the value \n"
-		"precision in seconds. If precision is 0, the saved timestamp is \n"
-		"assumed accurate to 1 second.\n"
-		"ARGUMENTS\n"
-		"handle      CBF handle. reserved    Unused. Any value other than 0 is \n"
-		"invalid. time        Timestamp in seconds since January 1 1970. \n"
-		"timezone    Timezone difference from UTC in minutes or \n"
-		"CBF_NOTIMEZONE. precision   Timestamp precision in seconds.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"difference from UTC\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_orientation_matrix", _wrap_cbf_handle_struct_get_orientation_matrix, METH_VARARGS, (char *)"\n"
@@ -21790,7 +22227,7 @@ static PyMethodDef SwigMethods[] = {
 		"doubles giving the orientation matrix parameters.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_image_size_fs", _wrap_cbf_handle_struct_get_image_size_fs, METH_VARARGS, (char *)"\n"
@@ -21798,8 +22235,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer element_number\n"
 		"\n"
 		"C prototype: int cbf_get_image_size_fs (cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number,\n"
-		"                 size_t *ndimfast, size_t      *ndimslow);\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
+		"                 size_t *ndimfast, size_t *ndimslow);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -21813,30 +22250,7 @@ static PyMethodDef SwigMethods[] = {
 		"slowest, next fastest and fastest dimensions, respectively, of the 3D \n"
 		"image array for element number element_number. If the array is \n"
 		"1-dimensional, *ndimslow will be set to the array size and *ndimmid \n"
-		"and *ndimfast will be set to 1. If the array is 2-dimensional \n"
-		"*ndimslow and *ndimmid will be set as for a call to \n"
-		"cbf_get_image_size and *ndimfast will be set to 1.\n"
-		"The _fs calls give the dimensions in a fast-to-slow order. The calls \n"
-		"with no suffix and the calls _sf calls give the dimensions in \n"
-		"slow-to-fast order\n"
-		"Note that the ordering of dimensions is specified by values of the \n"
-		"tag _array_structure_list.precedence with a precedence of 1 for the \n"
-		"fastest dimension, 2 for the next slower, etc., which is opposite to \n"
-		"the ordering of the dimension arguments for these functions, except \n"
-		"for the ones with the _fs suffix..\n"
-		"Any of the destination pointers may be NULL.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. ndimslow         Pointer to the \n"
-		"destination slowest dimension. ndimmid          Pointer to the \n"
-		"destination next faster dimension. ndimfast         Pointer to the \n"
-		"destination fastest dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"and\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_divergence", _wrap_cbf_handle_struct_get_divergence, METH_VARARGS, (char *)"\n"
@@ -21844,7 +22258,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_divergence (cbf_handle handle, double *div_x_source,\n"
-		"                 double *div_y_source, double *div_x_y_source);\n"
+		"                 double      *div_y_source, double *div_x_y_source);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -21858,7 +22272,7 @@ static PyMethodDef SwigMethods[] = {
 		"div_x_y_source.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_rewind_category", _wrap_cbf_handle_struct_rewind_category, METH_VARARGS, (char *)"\n"
@@ -21901,7 +22315,7 @@ static PyMethodDef SwigMethods[] = {
 		"descriptor.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_select_row", _wrap_cbf_handle_struct_select_row, METH_VARARGS, (char *)"\n"
@@ -21929,8 +22343,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : int element_number,int elsize,int elsign,int ndimfast,int ndimslow\n"
 		"\n"
 		"C prototype: int cbf_get_image_fs (cbf_handle handle, unsigned int reserved,\n"
-		"                 unsigned int element_number, void *array, size_t elsize,\n"
-		"                 int elsign,      size_t ndimfast, size_t ndimslow);\n"
+		"                 unsigned      int element_number, void *array, size_t elsize,\n"
+		"                 int elsign, size_t      ndimfast, size_t ndimslow);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -21959,33 +22373,7 @@ static PyMethodDef SwigMethods[] = {
 		"ndimslow should be the array size and ndimfast and, for the 3D calls, \n"
 		"ndimmid, should be set to 1 both in the call and in the imgCIF data \n"
 		"being processed. If the array is 2-dimensional and a 3D call is used, \n"
-		"ndimslow and ndimmid should be the array dimensions and ndimfast \n"
-		"should be set to 1 both in the call and in the imgCIF data being \n"
-		"processed.\n"
-		"If any element in the binary data canOt fit into the destination \n"
-		"element, the destination is set the nearest possible value.\n"
-		"If the value is not binary, the function returns CBF_ASCII.\n"
-		"If the requested number of elements canOt be read, the function will \n"
-		"read as many as it can and then return CBF_ENDOFDATA.\n"
-		"Currently, the destination array must consist of chars, shorts or \n"
-		"ints (signed or unsigned) for cbf_get_image, or IEEE doubles or \n"
-		"floats for cbf_get_real_image. If elsize is not equal to sizeof \n"
-		"(char), sizeof (short), sizeof (int), sizeof(double) or \n"
-		"sizeof(float), the function returns CBF_ARGUMENT.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. array            Pointer to the \n"
-		"destination array. elsize           Size in bytes of each destination \n"
-		"array element. elsigned         Set to non-0 if the destination array \n"
-		"elements are signed. ndimslow         Slowest array dimension. \n"
-		"ndimmid          Next faster array dimension. ndimfast         \n"
-		"Fastest array dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"ndimslow and ndimmid should be the\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_image_size_sf", _wrap_cbf_handle_struct_get_image_size_sf, METH_VARARGS, (char *)"\n"
@@ -21993,8 +22381,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer element_number\n"
 		"\n"
 		"C prototype: int cbf_get_image_size_sf (cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number,\n"
-		"                 size_t *ndimslow, size_t      *ndimfast);\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
+		"                 size_t *ndimslow, size_t *ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22008,30 +22396,7 @@ static PyMethodDef SwigMethods[] = {
 		"slowest, next fastest and fastest dimensions, respectively, of the 3D \n"
 		"image array for element number element_number. If the array is \n"
 		"1-dimensional, *ndimslow will be set to the array size and *ndimmid \n"
-		"and *ndimfast will be set to 1. If the array is 2-dimensional \n"
-		"*ndimslow and *ndimmid will be set as for a call to \n"
-		"cbf_get_image_size and *ndimfast will be set to 1.\n"
-		"The _fs calls give the dimensions in a fast-to-slow order. The calls \n"
-		"with no suffix and the calls _sf calls give the dimensions in \n"
-		"slow-to-fast order\n"
-		"Note that the ordering of dimensions is specified by values of the \n"
-		"tag _array_structure_list.precedence with a precedence of 1 for the \n"
-		"fastest dimension, 2 for the next slower, etc., which is opposite to \n"
-		"the ordering of the dimension arguments for these functions, except \n"
-		"for the ones with the _fs suffix..\n"
-		"Any of the destination pointers may be NULL.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. ndimslow         Pointer to the \n"
-		"destination slowest dimension. ndimmid          Pointer to the \n"
-		"destination next faster dimension. ndimfast         Pointer to the \n"
-		"destination fastest dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"and\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_real_image_fs_as_string", _wrap_cbf_handle_struct_get_real_image_fs_as_string, METH_VARARGS, (char *)"\n"
@@ -22039,8 +22404,9 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : int element_number,int elsize,int ndimfast,int ndimslow\n"
 		"\n"
 		"C prototype: int cbf_get_real_image_fs (cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number, void *array,\n"
-		"                 size_t elsize, size_t      ndimfast, size_t ndimslow);\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
+		"                 void *array, size_t elsize, size_t      ndimfast,\n"
+		"                 size_t ndimslow);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22069,33 +22435,7 @@ static PyMethodDef SwigMethods[] = {
 		"ndimslow should be the array size and ndimfast and, for the 3D calls, \n"
 		"ndimmid, should be set to 1 both in the call and in the imgCIF data \n"
 		"being processed. If the array is 2-dimensional and a 3D call is used, \n"
-		"ndimslow and ndimmid should be the array dimensions and ndimfast \n"
-		"should be set to 1 both in the call and in the imgCIF data being \n"
-		"processed.\n"
-		"If any element in the binary data canOt fit into the destination \n"
-		"element, the destination is set the nearest possible value.\n"
-		"If the value is not binary, the function returns CBF_ASCII.\n"
-		"If the requested number of elements canOt be read, the function will \n"
-		"read as many as it can and then return CBF_ENDOFDATA.\n"
-		"Currently, the destination array must consist of chars, shorts or \n"
-		"ints (signed or unsigned) for cbf_get_image, or IEEE doubles or \n"
-		"floats for cbf_get_real_image. If elsize is not equal to sizeof \n"
-		"(char), sizeof (short), sizeof (int), sizeof(double) or \n"
-		"sizeof(float), the function returns CBF_ARGUMENT.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. array            Pointer to the \n"
-		"destination array. elsize           Size in bytes of each destination \n"
-		"array element. elsigned         Set to non-0 if the destination array \n"
-		"elements are signed. ndimslow         Slowest array dimension. \n"
-		"ndimmid          Next faster array dimension. ndimfast         \n"
-		"Fastest array dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"ndimslow and ndimmid should be the\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_count_columns", _wrap_cbf_handle_struct_count_columns, METH_VARARGS, (char *)"\n"
@@ -22123,11 +22463,11 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_integerarrayparameters_wdims (cbf_handle handle,\n"
-		"                 unsigned int *compression, int *binary_id, size_t *elsize,\n"
-		"                 int *elsigned,    int *elunsigned, size_t *elements,\n"
-		"                 int *minelement, int *maxelement, const char **byteorder,\n"
-		"                 size_t *dimfast, size_t *dimmid, size_t    *dimslow,\n"
-		"                 size_t *padding);\n"
+		"                 unsigned int    *compression, int *binary_id, size_t *elsize,\n"
+		"                 int *elsigned, int    *elunsigned, size_t *elements,\n"
+		"                 int *minelement, int *maxelement, const    char **byteorder,\n"
+		"                 size_t *dimfast, size_t *dimmid, size_t *dimslow,\n"
+		"                 size_t    *padding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22187,7 +22527,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_gain (cbf_handle handle, unsigned int element_number,\n"
-		"                 double *gain, double *gain_esd);\n"
+		"                 double      *gain, double *gain_esd);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22202,7 +22542,7 @@ static PyMethodDef SwigMethods[] = {
 		"gain_esd.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_new_saveframe", _wrap_cbf_handle_struct_new_saveframe, METH_VARARGS, (char *)"\n"
@@ -22234,7 +22574,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Float polarizn_source_ratio,Float polarizn_source_norm\n"
 		"\n"
 		"C prototype: int cbf_set_polarization (cbf_handle handle,\n"
-		"                 double polarizn_source_ratio, double polarizn_source_norm);\n"
+		"                 double      polarizn_source_ratio,\n"
+		"                 double polarizn_source_norm);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22246,7 +22587,7 @@ static PyMethodDef SwigMethods[] = {
 		"polarizn_source_norm.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_real_3d_image", _wrap_cbf_handle_struct_set_real_3d_image, METH_VARARGS, (char *)"\n"
@@ -22255,7 +22596,7 @@ static PyMethodDef SwigMethods[] = {
 		"          int dimslow,int dimmid,int dimfast\n"
 		"\n"
 		"C prototype: int cbf_set_real_3d_image (cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number,\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
 		"                 unsigned int compression, void      *array,size_t elsize,\n"
 		"                 size_t ndimslow, size_t ndimmid, size_t ndimfast);\n"
 		"\n"
@@ -22313,7 +22654,7 @@ static PyMethodDef SwigMethods[] = {
 		"       Fastest array dimension.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_delete_row", _wrap_cbf_handle_struct_delete_row, METH_VARARGS, (char *)"\n"
@@ -22381,10 +22722,10 @@ static PyMethodDef SwigMethods[] = {
 		"          int padding\n"
 		"\n"
 		"C prototype: int cbf_set_integerarray_wdims_sf (cbf_handle handle,\n"
-		"                 unsigned int compression, int binary_id, void *array,\n"
-		"                 size_t elsize, int    elsigned, size_t elements,\n"
+		"                 unsigned int    compression, int binary_id, void *array,\n"
+		"                 size_t elsize, int elsigned,    size_t elements,\n"
 		"                 const char *byteorder, size_t dimslow, size_t dimmid,\n"
-		"                 size_t dimfast, size_t padding);\n"
+		"                    size_t dimfast, size_t padding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22416,6 +22757,20 @@ static PyMethodDef SwigMethods[] = {
 		"The values compressed are limited to 64 bits. If any element in the \n"
 		"array is larger than 64 bits, the value compressed is the nearest \n"
 		"64-bit value.\n"
+		"Currently, the source array must consist of chars, shorts or ints \n"
+		"(signed or unsigned), for cbf_set_integerarray, or IEEE doubles or \n"
+		"floats for cbf_set_realarray. If elsize is not equal to sizeof \n"
+		"(char), sizeof (short) or sizeof (int), the function returns \n"
+		"CBF_ARGUMENT.\n"
+		"ARGUMENTS\n"
+		"handle        CBF handle. compression   Compression method to use. \n"
+		"binary_id     Integer binary identifier. array         Pointer to the \n"
+		"source array. elsize        Size in bytes of each source array \n"
+		"element. elsigned      Set to non-0 if the source array elements are \n"
+		"signed. elements: The number of elements in the array.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"SEE ALSO\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_require_value", _wrap_cbf_handle_struct_require_value, METH_VARARGS, (char *)"\n"
@@ -22423,7 +22778,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String defaultvalue\n"
 		"\n"
 		"C prototype: int cbf_require_value (cbf_handle handle, const char **value,\n"
-		"                 const char *defaultvalue );\n"
+		"                 const char    *defaultvalue );\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22449,7 +22804,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String Columnvalue,Int default\n"
 		"\n"
 		"C prototype: int cbf_require_column_integervalue (cbf_handle handle,\n"
-		"                 const char *columnname, int *number, const int defaultvalue);\n"
+		"                 const char      *columnname, int *number,\n"
+		"                 const int defaultvalue);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22472,7 +22828,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Int element_number,Int axis_number,Float pixel size\n"
 		"\n"
 		"C prototype: int cbf_set_pixel_size (cbf_handle handle,\n"
-		"                 unsigned int element_number, int axis_number, double psize);\n"
+		"                 unsigned int element_number,      int axis_number,\n"
+		"                 double psize);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22483,31 +22840,7 @@ static PyMethodDef SwigMethods[] = {
 		"millimeters in storing it in the  \"size \" column for the axis \n"
 		"axis_number of the detector element element_number. The axis_number \n"
 		"is numbered from 1, starting with the slowest axis. \n"
-		"cbf_set_pixel_size_fs sets the item in the &quote;size&quote; column \n"
-		"of the  \"array_structure_list \" category at the row which matches \n"
-		"axis axis_number of the detector element element_number converting \n"
-		"the double pixel size psize from meters to millimeters in storing it \n"
-		"in the  \"size \" column for the axis axis_number of the detector \n"
-		"element element_number. The axis_number is numbered from 1, starting \n"
-		"with the fastest axis.\n"
-		"If a negative axis number is given, the order of axes is reversed, so \n"
-		"that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the \n"
-		"fastest axis for cbf_get_pixel_size_sf.\n"
-		"If the  \"array_structure_list \" category does not already exist, it \n"
-		"is created.\n"
-		"If the appropriate row in the  \"array_structure_list \" catgeory \n"
-		"does not already exist, it is created.\n"
-		"If the pixel size is not given explcitly in the  \"array_element_size \n"
-		"category \", the function returns CBF_NOTFOUND.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. element_number   The number of the \n"
-		"detector element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. axis_number      The number of the \n"
-		"axis, fastest first, starting from 1. psize            The pixel size \n"
-		"in millimeters.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"cbf_set_pixel_size_fs sets the item\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_next_column", _wrap_cbf_handle_struct_next_column, METH_VARARGS, (char *)"\n"
@@ -22534,8 +22867,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer element_number\n"
 		"\n"
 		"C prototype: int cbf_get_3d_image_size_sf (cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number,\n"
-		"                 size_t *ndimslow, size_t      *ndimmid, size_t *ndimfast);\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
+		"                 size_t *ndimslow, size_t *ndimmid, size_t      *ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22549,30 +22882,7 @@ static PyMethodDef SwigMethods[] = {
 		"slowest, next fastest and fastest dimensions, respectively, of the 3D \n"
 		"image array for element number element_number. If the array is \n"
 		"1-dimensional, *ndimslow will be set to the array size and *ndimmid \n"
-		"and *ndimfast will be set to 1. If the array is 2-dimensional \n"
-		"*ndimslow and *ndimmid will be set as for a call to \n"
-		"cbf_get_image_size and *ndimfast will be set to 1.\n"
-		"The _fs calls give the dimensions in a fast-to-slow order. The calls \n"
-		"with no suffix and the calls _sf calls give the dimensions in \n"
-		"slow-to-fast order\n"
-		"Note that the ordering of dimensions is specified by values of the \n"
-		"tag _array_structure_list.precedence with a precedence of 1 for the \n"
-		"fastest dimension, 2 for the next slower, etc., which is opposite to \n"
-		"the ordering of the dimension arguments for these functions, except \n"
-		"for the ones with the _fs suffix..\n"
-		"Any of the destination pointers may be NULL.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. ndimslow         Pointer to the \n"
-		"destination slowest dimension. ndimmid          Pointer to the \n"
-		"destination next faster dimension. ndimfast         Pointer to the \n"
-		"destination fastest dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"and\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_realarrayparameters_wdims_fs", _wrap_cbf_handle_struct_get_realarrayparameters_wdims_fs, METH_VARARGS, (char *)"\n"
@@ -22581,9 +22891,9 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_realarrayparameters_wdims_fs (cbf_handle handle,\n"
-		"                 unsigned int *compression, int *binary_id, size_t *elsize,\n"
-		"                 size_t    *elements, const char **byteorder, size_t *dimfast,\n"
-		"                 size_t *dimmid, size_t *dimslow, size_t *padding);\n"
+		"                 unsigned int    *compression, int *binary_id, size_t *elsize,\n"
+		"                 size_t *elements, const char    **byteorder, size_t *dimfast,\n"
+		"                 size_t *dimmid, size_t *dimslow, size_t    *padding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22643,7 +22953,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_realarray (cbf_handle handle, int *binary_id,\n"
-		"                 void *array, size_t elsize, size_t elements,\n"
+		"                 void *array,    size_t elsize, size_t elements,\n"
 		"                 size_t *elements_read);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -22694,7 +23004,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer element_number\n"
 		"\n"
 		"C prototype: int cbf_get_bin_sizes(cbf_handle handle,\n"
-		"                 unsigned int element_number, double * slowbinsize,\n"
+		"                 unsigned int element_number,      double * slowbinsize,\n"
 		"                 double * fastbinsize);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -22727,7 +23037,7 @@ static PyMethodDef SwigMethods[] = {
 		"at the fastest rate.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_reset_category", _wrap_cbf_handle_struct_reset_category, METH_VARARGS, (char *)"\n"
@@ -22751,7 +23061,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_construct_goniometer (cbf_handle handle,\n"
-		"                 cbf_goniometer *goniometer);\n"
+		"                 cbf_goniometer      *goniometer);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22763,7 +23073,7 @@ static PyMethodDef SwigMethods[] = {
 		"goniometer handle.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_datablockname", _wrap_cbf_handle_struct_set_datablockname, METH_VARARGS, (char *)"\n"
@@ -22803,7 +23113,7 @@ static PyMethodDef SwigMethods[] = {
 		"handle       CBF handle. crystal_id   ASCII value.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_integerarray_as_string", _wrap_cbf_handle_struct_get_integerarray_as_string, METH_VARARGS, (char *)"\n"
@@ -22811,8 +23121,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_integerarray (cbf_handle handle, int *binary_id,\n"
-		"                 void *array, size_t elsize, int elsigned, size_t elements,\n"
-		"                 size_t    *elements_read);\n"
+		"                 void *array,    size_t elsize, int elsigned, size_t elements,\n"
+		"                 size_t *elements_read);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22863,8 +23173,8 @@ static PyMethodDef SwigMethods[] = {
 		"          int elsign,int dimslow,int dimmid,int dimfast\n"
 		"\n"
 		"C prototype: int cbf_set_3d_image (cbf_handle handle, unsigned int reserved,\n"
-		"                 unsigned int element_number, unsigned int compression,\n"
-		"                 void *array,      size_t elsize, int elsign, size_t ndimslow,\n"
+		"                 unsigned      int element_number, unsigned int compression,\n"
+		"                 void *array, size_t      elsize, int elsign, size_t ndimslow,\n"
 		"                 size_t ndimmid, size_t ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -22921,7 +23231,7 @@ static PyMethodDef SwigMethods[] = {
 		"       Fastest array dimension.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_dictionary", _wrap_cbf_handle_struct_set_dictionary, METH_VARARGS, (char *)"\n"
@@ -22945,7 +23255,7 @@ static PyMethodDef SwigMethods[] = {
 		"dictionary. dictionary_in   CBF handle of dcitionary.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_find_tag_category", _wrap_cbf_handle_struct_find_tag_category, METH_VARARGS, (char *)"\n"
@@ -22953,7 +23263,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String tagname\n"
 		"\n"
 		"C prototype: int cbf_find_tag_category (cbf_handle handle,\n"
-		"                 const char* tagname, const char** categoryname);\n"
+		"                 const char* tagname, const      char** categoryname);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -22967,7 +23277,7 @@ static PyMethodDef SwigMethods[] = {
 		"categoryname_in   input category name.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_real_3d_image_sf_as_string", _wrap_cbf_handle_struct_get_real_3d_image_sf_as_string, METH_VARARGS, (char *)"\n"
@@ -22975,9 +23285,9 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : int element_number,int elsize,int ndimslow,int ndimmid,int ndimfast\n"
 		"\n"
 		"C prototype: int cbf_get_real_3d_image_sf (cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number, void *array,\n"
-		"                 size_t elsize,      size_t ndimslow, size_t ndimmid,\n"
-		"                 size_t ndimfast);\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
+		"                 void *array, size_t elsize, size_t      ndimslow,\n"
+		"                 size_t ndimmid, size_t ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -23006,33 +23316,7 @@ static PyMethodDef SwigMethods[] = {
 		"ndimslow should be the array size and ndimfast and, for the 3D calls, \n"
 		"ndimmid, should be set to 1 both in the call and in the imgCIF data \n"
 		"being processed. If the array is 2-dimensional and a 3D call is used, \n"
-		"ndimslow and ndimmid should be the array dimensions and ndimfast \n"
-		"should be set to 1 both in the call and in the imgCIF data being \n"
-		"processed.\n"
-		"If any element in the binary data canOt fit into the destination \n"
-		"element, the destination is set the nearest possible value.\n"
-		"If the value is not binary, the function returns CBF_ASCII.\n"
-		"If the requested number of elements canOt be read, the function will \n"
-		"read as many as it can and then return CBF_ENDOFDATA.\n"
-		"Currently, the destination array must consist of chars, shorts or \n"
-		"ints (signed or unsigned) for cbf_get_image, or IEEE doubles or \n"
-		"floats for cbf_get_real_image. If elsize is not equal to sizeof \n"
-		"(char), sizeof (short), sizeof (int), sizeof(double) or \n"
-		"sizeof(float), the function returns CBF_ARGUMENT.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. array            Pointer to the \n"
-		"destination array. elsize           Size in bytes of each destination \n"
-		"array element. elsigned         Set to non-0 if the destination array \n"
-		"elements are signed. ndimslow         Slowest array dimension. \n"
-		"ndimmid          Next faster array dimension. ndimfast         \n"
-		"Fastest array dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"ndimslow and ndimmid should be the\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_typeofvalue", _wrap_cbf_handle_struct_set_typeofvalue, METH_VARARGS, (char *)"\n"
@@ -23082,10 +23366,10 @@ static PyMethodDef SwigMethods[] = {
 		"          int padding\n"
 		"\n"
 		"C prototype: int cbf_set_integerarray_wdims (cbf_handle handle,\n"
-		"                 unsigned int compression, int binary_id, void *array,\n"
+		"                 unsigned int    compression, int binary_id, void *array,\n"
 		"                 size_t elsize, int elsigned,    size_t elements,\n"
 		"                 const char *byteorder, size_t dimfast, size_t dimmid,\n"
-		"                 size_t dimslow, size_t padding);\n"
+		"                    size_t dimslow, size_t padding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -23117,6 +23401,20 @@ static PyMethodDef SwigMethods[] = {
 		"The values compressed are limited to 64 bits. If any element in the \n"
 		"array is larger than 64 bits, the value compressed is the nearest \n"
 		"64-bit value.\n"
+		"Currently, the source array must consist of chars, shorts or ints \n"
+		"(signed or unsigned), for cbf_set_integerarray, or IEEE doubles or \n"
+		"floats for cbf_set_realarray. If elsize is not equal to sizeof \n"
+		"(char), sizeof (short) or sizeof (int), the function returns \n"
+		"CBF_ARGUMENT.\n"
+		"ARGUMENTS\n"
+		"handle        CBF handle. compression   Compression method to use. \n"
+		"binary_id     Integer binary identifier. array         Pointer to the \n"
+		"source array. elsize        Size in bytes of each source array \n"
+		"element. elsigned      Set to non-0 if the source array elements are \n"
+		"signed. elements: The number of elements in the array.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"SEE ALSO\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_integration_time", _wrap_cbf_handle_struct_set_integration_time, METH_VARARGS, (char *)"\n"
@@ -23124,7 +23422,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Float time\n"
 		"\n"
 		"C prototype: int cbf_set_integration_time (cbf_handle handle,\n"
-		"                 unsigned int reserved, double time);\n"
+		"                 unsigned int reserved,      double time);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -23136,7 +23434,7 @@ static PyMethodDef SwigMethods[] = {
 		"other than 0 is invalid. time Integration   time in seconds.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_axis_setting", _wrap_cbf_handle_struct_set_axis_setting, METH_VARARGS, (char *)"\n"
@@ -23144,7 +23442,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String axis_id,Float start,Float increment\n"
 		"\n"
 		"C prototype: int cbf_set_axis_setting (cbf_handle handle,\n"
-		"                 unsigned int reserved, const char *axis_id, double start,\n"
+		"                 unsigned int reserved,      const char *axis_id, double start,\n"
 		"                 double increment);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -23158,7 +23456,7 @@ static PyMethodDef SwigMethods[] = {
 		"Increment value.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_real_image_as_string", _wrap_cbf_handle_struct_get_real_image_as_string, METH_VARARGS, (char *)"\n"
@@ -23166,7 +23464,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : int element_number,int elsize,int ndimslow,int ndimfast\n"
 		"\n"
 		"C prototype: int cbf_get_real_image (cbf_handle handle, unsigned int reserved,\n"
-		"                 unsigned int element_number, void *array, size_t elsize,\n"
+		"                      unsigned int element_number, void *array, size_t elsize,\n"
 		"                 size_t      ndimslow, size_t ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -23196,33 +23494,7 @@ static PyMethodDef SwigMethods[] = {
 		"ndimslow should be the array size and ndimfast and, for the 3D calls, \n"
 		"ndimmid, should be set to 1 both in the call and in the imgCIF data \n"
 		"being processed. If the array is 2-dimensional and a 3D call is used, \n"
-		"ndimslow and ndimmid should be the array dimensions and ndimfast \n"
-		"should be set to 1 both in the call and in the imgCIF data being \n"
-		"processed.\n"
-		"If any element in the binary data canOt fit into the destination \n"
-		"element, the destination is set the nearest possible value.\n"
-		"If the value is not binary, the function returns CBF_ASCII.\n"
-		"If the requested number of elements canOt be read, the function will \n"
-		"read as many as it can and then return CBF_ENDOFDATA.\n"
-		"Currently, the destination array must consist of chars, shorts or \n"
-		"ints (signed or unsigned) for cbf_get_image, or IEEE doubles or \n"
-		"floats for cbf_get_real_image. If elsize is not equal to sizeof \n"
-		"(char), sizeof (short), sizeof (int), sizeof(double) or \n"
-		"sizeof(float), the function returns CBF_ARGUMENT.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. array            Pointer to the \n"
-		"destination array. elsize           Size in bytes of each destination \n"
-		"array element. elsigned         Set to non-0 if the destination array \n"
-		"elements are signed. ndimslow         Slowest array dimension. \n"
-		"ndimmid          Next faster array dimension. ndimfast         \n"
-		"Fastest array dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"ndimslow and ndimmid should be the\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_3d_image_sf_as_string", _wrap_cbf_handle_struct_get_3d_image_sf_as_string, METH_VARARGS, (char *)"\n"
@@ -23231,9 +23503,9 @@ static PyMethodDef SwigMethods[] = {
 		"          int ndimfast\n"
 		"\n"
 		"C prototype: int cbf_get_3d_image_sf (cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number, void *array,\n"
-		"                 size_t elsize, int      elsign, size_t ndimslow, size_t ndimmid,\n"
-		"                 size_t ndimfast);\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
+		"                 void *array, size_t elsize, int elsign,      size_t ndimslow,\n"
+		"                 size_t ndimmid, size_t ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -23262,33 +23534,7 @@ static PyMethodDef SwigMethods[] = {
 		"ndimslow should be the array size and ndimfast and, for the 3D calls, \n"
 		"ndimmid, should be set to 1 both in the call and in the imgCIF data \n"
 		"being processed. If the array is 2-dimensional and a 3D call is used, \n"
-		"ndimslow and ndimmid should be the array dimensions and ndimfast \n"
-		"should be set to 1 both in the call and in the imgCIF data being \n"
-		"processed.\n"
-		"If any element in the binary data canOt fit into the destination \n"
-		"element, the destination is set the nearest possible value.\n"
-		"If the value is not binary, the function returns CBF_ASCII.\n"
-		"If the requested number of elements canOt be read, the function will \n"
-		"read as many as it can and then return CBF_ENDOFDATA.\n"
-		"Currently, the destination array must consist of chars, shorts or \n"
-		"ints (signed or unsigned) for cbf_get_image, or IEEE doubles or \n"
-		"floats for cbf_get_real_image. If elsize is not equal to sizeof \n"
-		"(char), sizeof (short), sizeof (int), sizeof(double) or \n"
-		"sizeof(float), the function returns CBF_ARGUMENT.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. array            Pointer to the \n"
-		"destination array. elsize           Size in bytes of each destination \n"
-		"array element. elsigned         Set to non-0 if the destination array \n"
-		"elements are signed. ndimslow         Slowest array dimension. \n"
-		"ndimmid          Next faster array dimension. ndimfast         \n"
-		"Fastest array dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"ndimslow and ndimmid should be the\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_real_image_fs", _wrap_cbf_handle_struct_set_real_image_fs, METH_VARARGS, (char *)"\n"
@@ -23297,7 +23543,7 @@ static PyMethodDef SwigMethods[] = {
 		"          int dimfast,int dimslow\n"
 		"\n"
 		"C prototype: int cbf_set_real_image_fs(cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number,\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
 		"                 unsigned int compression, void      *array,size_t elsize,\n"
 		"                 size_t ndimfast, size_t ndimslow);\n"
 		"\n"
@@ -23355,7 +23601,7 @@ static PyMethodDef SwigMethods[] = {
 		"       Fastest array dimension.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_overload", _wrap_cbf_handle_struct_get_overload, METH_VARARGS, (char *)"\n"
@@ -23363,7 +23609,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer element_number\n"
 		"\n"
 		"C prototype: int cbf_get_overload (cbf_handle handle,\n"
-		"                 unsigned int element_number, double *overload);\n"
+		"                 unsigned int element_number,      double *overload);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -23376,7 +23622,7 @@ static PyMethodDef SwigMethods[] = {
 		"destination overload.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_wavelength", _wrap_cbf_handle_struct_get_wavelength, METH_VARARGS, (char *)"\n"
@@ -23392,7 +23638,7 @@ static PyMethodDef SwigMethods[] = {
 		"handle       CBF handle. wavelength   Pointer to the destination.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_next_datablock", _wrap_cbf_handle_struct_next_datablock, METH_VARARGS, (char *)"\n"
@@ -23420,9 +23666,9 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_realarrayparameters_wdims (cbf_handle handle,\n"
-		"                 unsigned int *compression, int *binary_id, size_t *elsize,\n"
-		"                 size_t *elements,    const char **byteorder, size_t *dimfast,\n"
-		"                 size_t *dimmid, size_t *dimslow, size_t *padding);\n"
+		"                 unsigned int    *compression, int *binary_id, size_t *elsize,\n"
+		"                 size_t *elements, const char    **byteorder, size_t *dimfast,\n"
+		"                 size_t *dimmid, size_t *dimslow, size_t    *padding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -23501,7 +23747,7 @@ static PyMethodDef SwigMethods[] = {
 		"doubles giving the orientation matrix parameters.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_new_category", _wrap_cbf_handle_struct_new_category, METH_VARARGS, (char *)"\n"
@@ -23530,7 +23776,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Float gain,Float gain_esd\n"
 		"\n"
 		"C prototype: int cbf_set_gain (cbf_handle handle, unsigned int element_number,\n"
-		"                 double gain, double gain_esd);\n"
+		"                 double      gain, double gain_esd);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -23543,7 +23789,7 @@ static PyMethodDef SwigMethods[] = {
 		"gain_esd         New gain_esd value.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_find_column", _wrap_cbf_handle_struct_find_column, METH_VARARGS, (char *)"\n"
@@ -23590,11 +23836,11 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_integerarrayparameters_wdims_sf (cbf_handle handle,\n"
-		"                 unsigned int *compression, int *binary_id, size_t *elsize,\n"
-		"                 int    *elsigned, int *elunsigned, size_t *elements,\n"
-		"                 int *minelement, int *maxelement, const char **byteorder,\n"
-		"                 size_t *dimslow, size_t    *dimmid, size_t *dimfast,\n"
-		"                 size_t *padding);\n"
+		"                 unsigned    int *compression, int *binary_id, size_t *elsize,\n"
+		"                 int *elsigned, int    *elunsigned, size_t *elements,\n"
+		"                 int *minelement, int *maxelement, const    char **byteorder,\n"
+		"                 size_t *dimslow, size_t *dimmid, size_t *dimfast,\n"
+		"                 size_t    *padding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -23654,7 +23900,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Int element_number,Int axis_number\n"
 		"\n"
 		"C prototype: int cbf_get_pixel_size (cbf_handle handle,\n"
-		"                 unsigned int element_number, int axis_number, double *psize);\n"
+		"                 unsigned int element_number,      int axis_number,\n"
+		"                 double *psize);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -23679,7 +23926,7 @@ static PyMethodDef SwigMethods[] = {
 		"psize            Pointer to the destination pixel size.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_real_image_sf", _wrap_cbf_handle_struct_set_real_image_sf, METH_VARARGS, (char *)"\n"
@@ -23688,7 +23935,7 @@ static PyMethodDef SwigMethods[] = {
 		"          int dimslow,int dimfast\n"
 		"\n"
 		"C prototype: int cbf_set_real_image_sf(cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number,\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
 		"                 unsigned int compression, void      *array,size_t elsize,\n"
 		"                 size_t ndimslow, size_t ndimfast);\n"
 		"\n"
@@ -23746,7 +23993,7 @@ static PyMethodDef SwigMethods[] = {
 		"       Fastest array dimension.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_require_category", _wrap_cbf_handle_struct_require_category, METH_VARARGS, (char *)"\n"
@@ -23777,7 +24024,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_reciprocal_cell (cbf_handle handle, double cell[6],\n"
-		"                 double cell_esd[6] );\n"
+		"                 double      cell_esd[6] );\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -23814,8 +24061,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer element_number\n"
 		"\n"
 		"C prototype: int cbf_get_3d_image_size (cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number,\n"
-		"                 size_t *ndimslow, size_t *ndimmid,      size_t *ndimfast);\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
+		"                 size_t *ndimslow, size_t *ndimmid, size_t      *ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -23829,30 +24076,7 @@ static PyMethodDef SwigMethods[] = {
 		"slowest, next fastest and fastest dimensions, respectively, of the 3D \n"
 		"image array for element number element_number. If the array is \n"
 		"1-dimensional, *ndimslow will be set to the array size and *ndimmid \n"
-		"and *ndimfast will be set to 1. If the array is 2-dimensional \n"
-		"*ndimslow and *ndimmid will be set as for a call to \n"
-		"cbf_get_image_size and *ndimfast will be set to 1.\n"
-		"The _fs calls give the dimensions in a fast-to-slow order. The calls \n"
-		"with no suffix and the calls _sf calls give the dimensions in \n"
-		"slow-to-fast order\n"
-		"Note that the ordering of dimensions is specified by values of the \n"
-		"tag _array_structure_list.precedence with a precedence of 1 for the \n"
-		"fastest dimension, 2 for the next slower, etc., which is opposite to \n"
-		"the ordering of the dimension arguments for these functions, except \n"
-		"for the ones with the _fs suffix..\n"
-		"Any of the destination pointers may be NULL.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. ndimslow         Pointer to the \n"
-		"destination slowest dimension. ndimmid          Pointer to the \n"
-		"destination next faster dimension. ndimfast         Pointer to the \n"
-		"destination fastest dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"and\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_find_tag_root", _wrap_cbf_handle_struct_find_tag_root, METH_VARARGS, (char *)"\n"
@@ -23860,7 +24084,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String tagname\n"
 		"\n"
 		"C prototype: int cbf_find_tag_root (cbf_handle handle, const char* tagname,\n"
-		"                 const char** tagroot);\n"
+		"                 const      char** tagroot);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -23877,7 +24101,7 @@ static PyMethodDef SwigMethods[] = {
 		"tag root name.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_require_category_root", _wrap_cbf_handle_struct_require_category_root, METH_VARARGS, (char *)"cbf_handle_struct_require_category_root(cbf_handle_struct self, char categoryname) -> char"},
@@ -23888,9 +24112,10 @@ static PyMethodDef SwigMethods[] = {
 		"          int padding\n"
 		"\n"
 		"C prototype: int cbf_set_realarray_wdims_sf (cbf_handle handle,\n"
-		"                 unsigned int compression, int binary_id, void *array,\n"
-		"                 size_t elsize, size_t    elements, const char *byteorder,\n"
-		"                 size_t dimslow, size_t dimmid, size_t dimfast, size_t padding);\n"
+		"                 unsigned int    compression, int binary_id, void *array,\n"
+		"                 size_t elsize, size_t elements,    const char *byteorder,\n"
+		"                 size_t dimslow, size_t dimmid, size_t dimfast,\n"
+		"                    size_t padding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -23922,6 +24147,20 @@ static PyMethodDef SwigMethods[] = {
 		"The values compressed are limited to 64 bits. If any element in the \n"
 		"array is larger than 64 bits, the value compressed is the nearest \n"
 		"64-bit value.\n"
+		"Currently, the source array must consist of chars, shorts or ints \n"
+		"(signed or unsigned), for cbf_set_integerarray, or IEEE doubles or \n"
+		"floats for cbf_set_realarray. If elsize is not equal to sizeof \n"
+		"(char), sizeof (short) or sizeof (int), the function returns \n"
+		"CBF_ARGUMENT.\n"
+		"ARGUMENTS\n"
+		"handle        CBF handle. compression   Compression method to use. \n"
+		"binary_id     Integer binary identifier. array         Pointer to the \n"
+		"source array. elsize        Size in bytes of each source array \n"
+		"element. elsigned      Set to non-0 if the source array elements are \n"
+		"signed. elements: The number of elements in the array.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"SEE ALSO\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_integervalue", _wrap_cbf_handle_struct_set_integervalue, METH_VARARGS, (char *)"\n"
@@ -24005,7 +24244,7 @@ static PyMethodDef SwigMethods[] = {
 		"          int dimslow,int dimfast\n"
 		"\n"
 		"C prototype: int cbf_set_real_image (cbf_handle handle, unsigned int reserved,\n"
-		"                 unsigned int element_number, unsigned int compression,\n"
+		"                      unsigned int element_number, unsigned int compression,\n"
 		"                 void      *array,size_t elsize, size_t ndimslow,\n"
 		"                 size_t ndimfast);\n"
 		"\n"
@@ -24063,7 +24302,7 @@ static PyMethodDef SwigMethods[] = {
 		"       Fastest array dimension.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_3d_image_as_string", _wrap_cbf_handle_struct_get_3d_image_as_string, METH_VARARGS, (char *)"\n"
@@ -24072,8 +24311,8 @@ static PyMethodDef SwigMethods[] = {
 		"          int ndimfast\n"
 		"\n"
 		"C prototype: int cbf_get_3d_image (cbf_handle handle, unsigned int reserved,\n"
-		"                 unsigned int element_number, void *array, size_t elsize,\n"
-		"                 int elsign,      size_t ndimslow, size_t ndimmid,\n"
+		"                 unsigned      int element_number, void *array, size_t elsize,\n"
+		"                 int elsign, size_t      ndimslow, size_t ndimmid,\n"
 		"                 size_t ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -24103,33 +24342,7 @@ static PyMethodDef SwigMethods[] = {
 		"ndimslow should be the array size and ndimfast and, for the 3D calls, \n"
 		"ndimmid, should be set to 1 both in the call and in the imgCIF data \n"
 		"being processed. If the array is 2-dimensional and a 3D call is used, \n"
-		"ndimslow and ndimmid should be the array dimensions and ndimfast \n"
-		"should be set to 1 both in the call and in the imgCIF data being \n"
-		"processed.\n"
-		"If any element in the binary data canOt fit into the destination \n"
-		"element, the destination is set the nearest possible value.\n"
-		"If the value is not binary, the function returns CBF_ASCII.\n"
-		"If the requested number of elements canOt be read, the function will \n"
-		"read as many as it can and then return CBF_ENDOFDATA.\n"
-		"Currently, the destination array must consist of chars, shorts or \n"
-		"ints (signed or unsigned) for cbf_get_image, or IEEE doubles or \n"
-		"floats for cbf_get_real_image. If elsize is not equal to sizeof \n"
-		"(char), sizeof (short), sizeof (int), sizeof(double) or \n"
-		"sizeof(float), the function returns CBF_ARGUMENT.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. array            Pointer to the \n"
-		"destination array. elsize           Size in bytes of each destination \n"
-		"array element. elsigned         Set to non-0 if the destination array \n"
-		"elements are signed. ndimslow         Slowest array dimension. \n"
-		"ndimmid          Next faster array dimension. ndimfast         \n"
-		"Fastest array dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"ndimslow and ndimmid should be the\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_remove_row", _wrap_cbf_handle_struct_remove_row, METH_VARARGS, (char *)"\n"
@@ -24155,7 +24368,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer element_number,Float overload\n"
 		"\n"
 		"C prototype: int cbf_set_overload (cbf_handle handle,\n"
-		"                 unsigned int element_number, double overload);\n"
+		"                 unsigned int element_number,      double overload);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24167,7 +24380,7 @@ static PyMethodDef SwigMethods[] = {
 		"\"diffrn_data_frame \" category. overload         New overload value.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_image_size", _wrap_cbf_handle_struct_get_image_size, METH_VARARGS, (char *)"\n"
@@ -24175,7 +24388,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer element_number\n"
 		"\n"
 		"C prototype: int cbf_get_image_size (cbf_handle handle, unsigned int reserved,\n"
-		"                 unsigned int element_number, size_t *ndimslow,\n"
+		"                      unsigned int element_number, size_t *ndimslow,\n"
 		"                 size_t *ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -24190,30 +24403,7 @@ static PyMethodDef SwigMethods[] = {
 		"slowest, next fastest and fastest dimensions, respectively, of the 3D \n"
 		"image array for element number element_number. If the array is \n"
 		"1-dimensional, *ndimslow will be set to the array size and *ndimmid \n"
-		"and *ndimfast will be set to 1. If the array is 2-dimensional \n"
-		"*ndimslow and *ndimmid will be set as for a call to \n"
-		"cbf_get_image_size and *ndimfast will be set to 1.\n"
-		"The _fs calls give the dimensions in a fast-to-slow order. The calls \n"
-		"with no suffix and the calls _sf calls give the dimensions in \n"
-		"slow-to-fast order\n"
-		"Note that the ordering of dimensions is specified by values of the \n"
-		"tag _array_structure_list.precedence with a precedence of 1 for the \n"
-		"fastest dimension, 2 for the next slower, etc., which is opposite to \n"
-		"the ordering of the dimension arguments for these functions, except \n"
-		"for the ones with the _fs suffix..\n"
-		"Any of the destination pointers may be NULL.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. ndimslow         Pointer to the \n"
-		"destination slowest dimension. ndimmid          Pointer to the \n"
-		"destination next faster dimension. ndimfast         Pointer to the \n"
-		"destination fastest dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"and\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_3d_image_sf", _wrap_cbf_handle_struct_set_3d_image_sf, METH_VARARGS, (char *)"\n"
@@ -24222,9 +24412,9 @@ static PyMethodDef SwigMethods[] = {
 		"          int elsign,int dimslow,int dimmid,int dimfast\n"
 		"\n"
 		"C prototype: int cbf_set_3d_image_sf(cbf_handle handle, unsigned int reserved,\n"
-		"                 unsigned int element_number, unsigned int compression,\n"
-		"                 void      *array, size_t elsize, int elsign, size_t ndimslow,\n"
-		"                 size_t ndimmid, size_t ndimfast);\n"
+		"                      unsigned int element_number, unsigned int compression,\n"
+		"                 void *array,      size_t elsize, int elsign, size_t ndimslow,\n"
+		"                 size_t ndimmid, size_t      ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24280,7 +24470,7 @@ static PyMethodDef SwigMethods[] = {
 		"       Fastest array dimension.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_real_image_sf_as_string", _wrap_cbf_handle_struct_get_real_image_sf_as_string, METH_VARARGS, (char *)"\n"
@@ -24288,8 +24478,9 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : int element_number,int elsize,int ndimslow,int ndimfast\n"
 		"\n"
 		"C prototype: int cbf_get_real_image_sf (cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number, void *array,\n"
-		"                 size_t elsize, size_t      ndimslow, size_t ndimfast);\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
+		"                 void *array, size_t elsize, size_t      ndimslow,\n"
+		"                 size_t ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24318,33 +24509,7 @@ static PyMethodDef SwigMethods[] = {
 		"ndimslow should be the array size and ndimfast and, for the 3D calls, \n"
 		"ndimmid, should be set to 1 both in the call and in the imgCIF data \n"
 		"being processed. If the array is 2-dimensional and a 3D call is used, \n"
-		"ndimslow and ndimmid should be the array dimensions and ndimfast \n"
-		"should be set to 1 both in the call and in the imgCIF data being \n"
-		"processed.\n"
-		"If any element in the binary data canOt fit into the destination \n"
-		"element, the destination is set the nearest possible value.\n"
-		"If the value is not binary, the function returns CBF_ASCII.\n"
-		"If the requested number of elements canOt be read, the function will \n"
-		"read as many as it can and then return CBF_ENDOFDATA.\n"
-		"Currently, the destination array must consist of chars, shorts or \n"
-		"ints (signed or unsigned) for cbf_get_image, or IEEE doubles or \n"
-		"floats for cbf_get_real_image. If elsize is not equal to sizeof \n"
-		"(char), sizeof (short), sizeof (int), sizeof(double) or \n"
-		"sizeof(float), the function returns CBF_ARGUMENT.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. array            Pointer to the \n"
-		"destination array. elsize           Size in bytes of each destination \n"
-		"array element. elsigned         Set to non-0 if the destination array \n"
-		"elements are signed. ndimslow         Slowest array dimension. \n"
-		"ndimmid          Next faster array dimension. ndimfast         \n"
-		"Fastest array dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"ndimslow and ndimmid should be the\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_image_as_string", _wrap_cbf_handle_struct_get_image_as_string, METH_VARARGS, (char *)"\n"
@@ -24352,8 +24517,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : int element_number,int elsize,int elsign,int ndimslow,int ndimfast\n"
 		"\n"
 		"C prototype: int cbf_get_image (cbf_handle handle, unsigned int reserved,\n"
-		"                 unsigned int element_number, void *array, size_t elsize,\n"
-		"                 int elsign,      size_t ndimslow, size_t ndimfast);\n"
+		"                 unsigned      int element_number, void *array, size_t elsize,\n"
+		"                 int elsign, size_t      ndimslow, size_t ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24382,33 +24547,7 @@ static PyMethodDef SwigMethods[] = {
 		"ndimslow should be the array size and ndimfast and, for the 3D calls, \n"
 		"ndimmid, should be set to 1 both in the call and in the imgCIF data \n"
 		"being processed. If the array is 2-dimensional and a 3D call is used, \n"
-		"ndimslow and ndimmid should be the array dimensions and ndimfast \n"
-		"should be set to 1 both in the call and in the imgCIF data being \n"
-		"processed.\n"
-		"If any element in the binary data canOt fit into the destination \n"
-		"element, the destination is set the nearest possible value.\n"
-		"If the value is not binary, the function returns CBF_ASCII.\n"
-		"If the requested number of elements canOt be read, the function will \n"
-		"read as many as it can and then return CBF_ENDOFDATA.\n"
-		"Currently, the destination array must consist of chars, shorts or \n"
-		"ints (signed or unsigned) for cbf_get_image, or IEEE doubles or \n"
-		"floats for cbf_get_real_image. If elsize is not equal to sizeof \n"
-		"(char), sizeof (short), sizeof (int), sizeof(double) or \n"
-		"sizeof(float), the function returns CBF_ARGUMENT.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. array            Pointer to the \n"
-		"destination array. elsize           Size in bytes of each destination \n"
-		"array element. elsigned         Set to non-0 if the destination array \n"
-		"elements are signed. ndimslow         Slowest array dimension. \n"
-		"ndimmid          Next faster array dimension. ndimfast         \n"
-		"Fastest array dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"ndimslow and ndimmid should be the\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_tag_root", _wrap_cbf_handle_struct_set_tag_root, METH_VARARGS, (char *)"\n"
@@ -24416,7 +24555,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String tagname,String tagroot_in\n"
 		"\n"
 		"C prototype: int cbf_set_tag_root (cbf_handle handle, const char* tagname,\n"
-		"                 const char*tagroot_in);\n"
+		"                 const      char*tagroot_in);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24433,7 +24572,7 @@ static PyMethodDef SwigMethods[] = {
 		"tag root name.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_write_widefile", _wrap_cbf_handle_struct_write_widefile, METH_VARARGS, (char *)"\n"
@@ -24441,7 +24580,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String filename,Integer ciforcbf,Integer Headers,Integer encoding\n"
 		"\n"
 		"C prototype: int cbf_write_widefile (cbf_handle handle, FILE *file,\n"
-		"                 int readable, int ciforcbf, int flags, int encoding);\n"
+		"                 int readable, int    ciforcbf, int flags, int encoding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24458,55 +24597,6 @@ static PyMethodDef SwigMethods[] = {
 		"non-0 to indicate to CBFlib that the file can be used as a buffer to \n"
 		"conserve disk space. If the file is not random-access or not \n"
 		"readable, readable must be 0.\n"
-		"If readable is non-0, CBFlib will close the file when it is no longer \n"
-		"required, otherwise this is the responsibility of the program.\n"
-		"ciforcbf selects the format in which the binary sections are written:\n"
-		"CIF   Write an imgCIF file. CBF   Write a CBF file (default).\n"
-		"flags selects the type of header used in CBF binary sections, selects \n"
-		"whether message digests are generated, and controls the style of \n"
-		"output. The value of flags can be a logical OR of any of:\n"
-		"MIME_HEADERS             Use MIME-type headers (default). \n"
-		"MIME_NOHEADERS           Use a simple ASCII headers. MSG_DIGEST       \n"
-		"        Generate message digests for binary data validation. \n"
-		"MSG_NODIGEST             Do not generate message digests (default). \n"
-		"PARSE_BRACKETS           Do not convert bracketed strings to text \n"
-		"fields (default). PARSE_LIBERAL_BRACKETS   Do not convert bracketed \n"
-		"strings to text fields (default). PARSE_NOBRACKETS         Convert \n"
-		"bracketed strings to text fields (default). PARSE_TRIPLE_QUOTES      \n"
-		"Do not convert triple-quoted strings to text fields (default). \n"
-		"PARSE_NOTRIPLE_QUOTES    Convert triple-quoted strings to text fields \n"
-		"(default). PAD_1K                   Pad binary sections with 1023 \n"
-		"nulls. PAD_2K                   Pad binary sections with 2047 nulls. \n"
-		"PAD_4K                   Pad binary sections with 4095 nulls.\n"
-		"Note that on output, the types  \"prns&,  \"brcs \" and  \"bkts \" \n"
-		"will be converted to  \"text \" fields if PARSE_NOBRACKETS has been \n"
-		"set flags, and that the types  \"tsqs \" and  \"tdqs \" will be \n"
-		"converted to  \"text \" fields if the flag PARSE_NOTRIPLE_QUOTES has \n"
-		"been set in the flags. It is an error to set PARSE_NOBRACKETS and to \n"
-		"set either PARSE_BRACKETS or PARSE_LIBERAL_BRACKETS. It is an error \n"
-		"to set both PARSE_NOTRIPLE_QUOTES and PARSE_TRIPLE_QUOTES.\n"
-		"encoding selects the type of encoding used for binary sections and \n"
-		"the type of line-termination in imgCIF files. The value can be a \n"
-		"logical OR of any of:\n"
-		"ENC_BASE64     Use BASE64 encoding (default). ENC_QP         Use \n"
-		"QUOTED-PRINTABLE encoding. ENC_BASE8      Use BASE8 (octal) encoding. \n"
-		"ENC_BASE10     Use BASE10 (decimal) encoding. ENC_BASE16     Use \n"
-		"BASE16 (hexadecimal) encoding. ENC_FORWARD    For BASE8, BASE10 or \n"
-		"BASE16 encoding, map bytes to words forward (1234) (default on \n"
-		"little-endian machines). ENC_BACKWARD   Map bytes to words backward \n"
-		"(4321) (default on big-endian machines). ENC_CRTERM     Terminate \n"
-		"lines with CR. ENC_LFTERM     Terminate lines with LF (default).\n"
-		"ARGUMENTS\n"
-		"handle     CBF handle. file       Pointer to a file descriptor. \n"
-		"readable   If non-0: this file is random-access and readable and can \n"
-		"be used as a buffer. ciforcbf   Selects the format in which the \n"
-		"binary sections are written (CIF/CBF). headers    Selects the type of \n"
-		"header in CBF binary sections and message digest generation. encoding \n"
-		"  Selects the type of encoding used for binary sections and the type \n"
-		"of line-termination in imgCIF files.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"SEE ALSO\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_count_rows", _wrap_cbf_handle_struct_count_rows, METH_VARARGS, (char *)"\n"
@@ -24531,7 +24621,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_require_datablock (cbf_handle handle,\n"
-		"                 const char *datablockname);\n"
+		"                 const char      *datablockname);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24553,8 +24643,8 @@ static PyMethodDef SwigMethods[] = {
 		"          int elsigned,int elements\n"
 		"\n"
 		"C prototype: int cbf_set_integerarray (cbf_handle handle,\n"
-		"                 unsigned int compression, int binary_id, void *array,\n"
-		"                 size_t elsize, int elsigned, size_t    elements);\n"
+		"                 unsigned int compression, int    binary_id, void *array,\n"
+		"                 size_t elsize, int elsigned, size_t elements);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24586,6 +24676,20 @@ static PyMethodDef SwigMethods[] = {
 		"The values compressed are limited to 64 bits. If any element in the \n"
 		"array is larger than 64 bits, the value compressed is the nearest \n"
 		"64-bit value.\n"
+		"Currently, the source array must consist of chars, shorts or ints \n"
+		"(signed or unsigned), for cbf_set_integerarray, or IEEE doubles or \n"
+		"floats for cbf_set_realarray. If elsize is not equal to sizeof \n"
+		"(char), sizeof (short) or sizeof (int), the function returns \n"
+		"CBF_ARGUMENT.\n"
+		"ARGUMENTS\n"
+		"handle        CBF handle. compression   Compression method to use. \n"
+		"binary_id     Integer binary identifier. array         Pointer to the \n"
+		"source array. elsize        Size in bytes of each source array \n"
+		"element. elsigned      Set to non-0 if the source array elements are \n"
+		"signed. elements: The number of elements in the array.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"SEE ALSO\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_new_datablock", _wrap_cbf_handle_struct_new_datablock, METH_VARARGS, (char *)"\n"
@@ -24618,27 +24722,14 @@ static PyMethodDef SwigMethods[] = {
 		"          int timezone,Float precision\n"
 		"\n"
 		"C prototype: int cbf_set_datestamp (cbf_handle handle, unsigned int reserved,\n"
-		"                 int year, int month, int day, int hour, int minute,\n"
-		"                 double second,      int timezone, double precision);\n"
+		"                 int      year, int month, int day, int hour, int minute,\n"
+		"                 double second, int      timezone, double precision);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
 		"cbf_set_datestamp sets the collection timestamp in seconds since \n"
 		"January 1 1970 to the value specified by time. The timezone \n"
-		"difference from UTC in minutes is set to timezone. If no timezone is \n"
-		"desired, timezone should be CBF_NOTIM EZONE. The parameter reserved \n"
-		"is presently unused and should be set to 0.\n"
-		"The precision of the new timestamp is specified by the value \n"
-		"precision in seconds. If precision is 0, the saved timestamp is \n"
-		"assumed accurate to 1 second.\n"
-		"ARGUMENTS\n"
-		"handle    CBF handle. reserved  Unused. Any value other than 0 is \n"
-		"invalid. time      Timestamp in seconds since January 1 1970. \n"
-		"timezone  Timezone difference from UTC in minutes or CBF_NOTIMEZONE. \n"
-		"precision Timestamp precision in seconds.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"difference from UTC\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_next_row", _wrap_cbf_handle_struct_next_row, METH_VARARGS, (char *)"\n"
@@ -24665,7 +24756,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String categoryname,String categoryroot\n"
 		"\n"
 		"C prototype: int cbf_set_category_root (cbf_handle handle,\n"
-		"                 const char* categoryname_in, const char*categoryroot);\n"
+		"                 const char*      categoryname_in, const char*categoryroot);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24683,7 +24774,7 @@ static PyMethodDef SwigMethods[] = {
 		"root name. categoryroot_in   input category root name.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_pixel_size_fs", _wrap_cbf_handle_struct_set_pixel_size_fs, METH_VARARGS, (char *)"\n"
@@ -24691,7 +24782,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Int element_number,Int axis_number,Float pixel size\n"
 		"\n"
 		"C prototype: int cbf_set_pixel_size_fs(cbf_handle handle,\n"
-		"                 unsigned int element_number, int axis_number, double psize);\n"
+		"                 unsigned int      element_number, int axis_number,\n"
+		"                 double psize);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24702,31 +24794,7 @@ static PyMethodDef SwigMethods[] = {
 		"millimeters in storing it in the  \"size \" column for the axis \n"
 		"axis_number of the detector element element_number. The axis_number \n"
 		"is numbered from 1, starting with the slowest axis. \n"
-		"cbf_set_pixel_size_fs sets the item in the &quote;size&quote; column \n"
-		"of the  \"array_structure_list \" category at the row which matches \n"
-		"axis axis_number of the detector element element_number converting \n"
-		"the double pixel size psize from meters to millimeters in storing it \n"
-		"in the  \"size \" column for the axis axis_number of the detector \n"
-		"element element_number. The axis_number is numbered from 1, starting \n"
-		"with the fastest axis.\n"
-		"If a negative axis number is given, the order of axes is reversed, so \n"
-		"that -1 specifies the slowest axis for cbf_get_pixel_size_fs and the \n"
-		"fastest axis for cbf_get_pixel_size_sf.\n"
-		"If the  \"array_structure_list \" category does not already exist, it \n"
-		"is created.\n"
-		"If the appropriate row in the  \"array_structure_list \" catgeory \n"
-		"does not already exist, it is created.\n"
-		"If the pixel size is not given explcitly in the  \"array_element_size \n"
-		"category \", the function returns CBF_NOTFOUND.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. element_number   The number of the \n"
-		"detector element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. axis_number      The number of the \n"
-		"axis, fastest first, starting from 1. psize            The pixel size \n"
-		"in millimeters.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"cbf_set_pixel_size_fs sets the item\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_insert_row", _wrap_cbf_handle_struct_insert_row, METH_VARARGS, (char *)"\n"
@@ -24774,9 +24842,9 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : int element_number,int elsize,int ndimslow,int ndimmid,int ndimfast\n"
 		"\n"
 		"C prototype: int cbf_get_real_3d_image (cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number, void *array,\n"
-		"                 size_t elsize, size_t      ndimslow, size_t ndimmid,\n"
-		"                 size_t ndimfast);\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
+		"                 void *array, size_t elsize, size_t      ndimslow,\n"
+		"                 size_t ndimmid, size_t ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24805,33 +24873,7 @@ static PyMethodDef SwigMethods[] = {
 		"ndimslow should be the array size and ndimfast and, for the 3D calls, \n"
 		"ndimmid, should be set to 1 both in the call and in the imgCIF data \n"
 		"being processed. If the array is 2-dimensional and a 3D call is used, \n"
-		"ndimslow and ndimmid should be the array dimensions and ndimfast \n"
-		"should be set to 1 both in the call and in the imgCIF data being \n"
-		"processed.\n"
-		"If any element in the binary data canOt fit into the destination \n"
-		"element, the destination is set the nearest possible value.\n"
-		"If the value is not binary, the function returns CBF_ASCII.\n"
-		"If the requested number of elements canOt be read, the function will \n"
-		"read as many as it can and then return CBF_ENDOFDATA.\n"
-		"Currently, the destination array must consist of chars, shorts or \n"
-		"ints (signed or unsigned) for cbf_get_image, or IEEE doubles or \n"
-		"floats for cbf_get_real_image. If elsize is not equal to sizeof \n"
-		"(char), sizeof (short), sizeof (int), sizeof(double) or \n"
-		"sizeof(float), the function returns CBF_ARGUMENT.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. array            Pointer to the \n"
-		"destination array. elsize           Size in bytes of each destination \n"
-		"array element. elsigned         Set to non-0 if the destination array \n"
-		"elements are signed. ndimslow         Slowest array dimension. \n"
-		"ndimmid          Next faster array dimension. ndimfast         \n"
-		"Fastest array dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"ndimslow and ndimmid should be the\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_integration_time", _wrap_cbf_handle_struct_get_integration_time, METH_VARARGS, (char *)"\n"
@@ -24839,7 +24881,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_integration_time (cbf_handle handle,\n"
-		"                 unsigned int reserved, double *time);\n"
+		"                 unsigned int reserved,      double *time);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24851,7 +24893,7 @@ static PyMethodDef SwigMethods[] = {
 		"invalid. time       Pointer to the destination time.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_realarray", _wrap_cbf_handle_struct_set_realarray, METH_VARARGS, (char *)"\n"
@@ -24860,7 +24902,7 @@ static PyMethodDef SwigMethods[] = {
 		"          int elements\n"
 		"\n"
 		"C prototype: int cbf_set_realarray (cbf_handle handle,\n"
-		"                 unsigned int compression, int binary_id, void *array,\n"
+		"                 unsigned int compression, int    binary_id, void *array,\n"
 		"                 size_t elsize, size_t elements);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -24893,6 +24935,20 @@ static PyMethodDef SwigMethods[] = {
 		"The values compressed are limited to 64 bits. If any element in the \n"
 		"array is larger than 64 bits, the value compressed is the nearest \n"
 		"64-bit value.\n"
+		"Currently, the source array must consist of chars, shorts or ints \n"
+		"(signed or unsigned), for cbf_set_integerarray, or IEEE doubles or \n"
+		"floats for cbf_set_realarray. If elsize is not equal to sizeof \n"
+		"(char), sizeof (short) or sizeof (int), the function returns \n"
+		"CBF_ARGUMENT.\n"
+		"ARGUMENTS\n"
+		"handle        CBF handle. compression   Compression method to use. \n"
+		"binary_id     Integer binary identifier. array         Pointer to the \n"
+		"source array. elsize        Size in bytes of each source array \n"
+		"element. elsigned      Set to non-0 if the source array elements are \n"
+		"signed. elements: The number of elements in the array.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"SEE ALSO\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_element_id", _wrap_cbf_handle_struct_get_element_id, METH_VARARGS, (char *)"\n"
@@ -24900,7 +24956,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer element_number\n"
 		"\n"
 		"C prototype: int cbf_get_element_id (cbf_handle handle,\n"
-		"                 unsigned int element_number, const char **element_id);\n"
+		"                 unsigned int element_number,      const char **element_id);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24919,7 +24975,7 @@ static PyMethodDef SwigMethods[] = {
 		"destination.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_image_sf_as_string", _wrap_cbf_handle_struct_get_image_sf_as_string, METH_VARARGS, (char *)"\n"
@@ -24927,8 +24983,8 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : int element_number,int elsize,int elsign,int ndimslow,int ndimfast\n"
 		"\n"
 		"C prototype: int cbf_get_image_sf (cbf_handle handle, unsigned int reserved,\n"
-		"                 unsigned int element_number, void *array, size_t elsize,\n"
-		"                 int elsign,      size_t ndimslow, size_t ndimfast);\n"
+		"                 unsigned      int element_number, void *array, size_t elsize,\n"
+		"                 int elsign, size_t      ndimslow, size_t ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -24957,33 +25013,7 @@ static PyMethodDef SwigMethods[] = {
 		"ndimslow should be the array size and ndimfast and, for the 3D calls, \n"
 		"ndimmid, should be set to 1 both in the call and in the imgCIF data \n"
 		"being processed. If the array is 2-dimensional and a 3D call is used, \n"
-		"ndimslow and ndimmid should be the array dimensions and ndimfast \n"
-		"should be set to 1 both in the call and in the imgCIF data being \n"
-		"processed.\n"
-		"If any element in the binary data canOt fit into the destination \n"
-		"element, the destination is set the nearest possible value.\n"
-		"If the value is not binary, the function returns CBF_ASCII.\n"
-		"If the requested number of elements canOt be read, the function will \n"
-		"read as many as it can and then return CBF_ENDOFDATA.\n"
-		"Currently, the destination array must consist of chars, shorts or \n"
-		"ints (signed or unsigned) for cbf_get_image, or IEEE doubles or \n"
-		"floats for cbf_get_real_image. If elsize is not equal to sizeof \n"
-		"(char), sizeof (short), sizeof (int), sizeof(double) or \n"
-		"sizeof(float), the function returns CBF_ARGUMENT.\n"
-		"The parameter reserved is presently unused and should be set to 0.\n"
-		"ARGUMENTS\n"
-		"handle           CBF handle. reserved         Unused. Any value other \n"
-		"than 0 is invalid. element_number   The number of the detector \n"
-		"element counting from 0 by order of appearance in the  \n"
-		"\"diffrn_data_frame \" category. array            Pointer to the \n"
-		"destination array. elsize           Size in bytes of each destination \n"
-		"array element. elsigned         Set to non-0 if the destination array \n"
-		"elements are signed. ndimslow         Slowest array dimension. \n"
-		"ndimmid          Next faster array dimension. ndimfast         \n"
-		"Fastest array dimension.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"ndimslow and ndimmid should be the\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_3d_image_size_fs", _wrap_cbf_handle_struct_get_3d_image_size_fs, METH_VARARGS, (char *)"cbf_handle_struct_get_3d_image_size_fs(cbf_handle_struct self, unsigned int element_number)"},
@@ -25009,7 +25039,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Integer timezone\n"
 		"\n"
 		"C prototype: int cbf_set_current_timestamp (cbf_handle handle,\n"
-		"                 unsigned int reserved, int timezone);\n"
+		"                 unsigned int reserved,      int timezone);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -25025,7 +25055,7 @@ static PyMethodDef SwigMethods[] = {
 		"CBF_NOTIMEZONE.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_require_doublevalue", _wrap_cbf_handle_struct_require_doublevalue, METH_VARARGS, (char *)"\n"
@@ -25033,7 +25063,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : Float Default\n"
 		"\n"
 		"C prototype: int cbf_require_doublevalue (cbf_handle handle, double *number,\n"
-		"                 double defaultvalue);\n"
+		"                 double    defaultvalue);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -25075,7 +25105,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String columnnanme,String Default\n"
 		"\n"
 		"C prototype: int cbf_require_column_value (cbf_handle handle,\n"
-		"                 const char *columnname, const char **value,\n"
+		"                 const char *columnname,      const char **value,\n"
 		"                 const char *defaultvalue);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -25114,7 +25144,7 @@ static PyMethodDef SwigMethods[] = {
 		"dictionary. dictionary_in   CBF handle of dcitionary.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_reset_saveframe", _wrap_cbf_handle_struct_reset_saveframe, METH_VARARGS, (char *)"\n"
@@ -25140,7 +25170,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double cell[6]\n"
 		"\n"
 		"C prototype: int cbf_set_reciprocal_cell (cbf_handle handle, double cell[6],\n"
-		"                 double cell_esd[6] );\n"
+		"                 double      cell_esd[6] );\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -25174,7 +25204,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double cell_esd[6]\n"
 		"\n"
 		"C prototype: int cbf_set_reciprocal_cell (cbf_handle handle, double cell[6],\n"
-		"                 double cell_esd[6] );\n"
+		"                 double      cell_esd[6] );\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -25209,7 +25239,7 @@ static PyMethodDef SwigMethods[] = {
 		"          int dimfast,int dimmid,int dimslow\n"
 		"\n"
 		"C prototype: int cbf_set_real_3d_image_fs(cbf_handle handle,\n"
-		"                 unsigned int reserved, unsigned int element_number,\n"
+		"                 unsigned int reserved,      unsigned int element_number,\n"
 		"                 unsigned int compression, void      *array,size_t elsize,\n"
 		"                 size_t ndimfast, size_t ndimmid, size_t ndimslow);\n"
 		"\n"
@@ -25267,7 +25297,7 @@ static PyMethodDef SwigMethods[] = {
 		"       Fastest array dimension.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_doublevalue", _wrap_cbf_handle_struct_set_doublevalue, METH_VARARGS, (char *)"\n"
@@ -25275,7 +25305,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String format,Float number\n"
 		"\n"
 		"C prototype: int cbf_set_doublevalue (cbf_handle handle, const char *format,\n"
-		"                 double number);\n"
+		"                 double    number);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -25319,11 +25349,11 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : \n"
 		"\n"
 		"C prototype: int cbf_get_integerarrayparameters_wdims_fs (cbf_handle handle,\n"
-		"                 unsigned int *compression, int *binary_id, size_t *elsize,\n"
-		"                 int    *elsigned, int *elunsigned, size_t *elements,\n"
-		"                 int *minelement, int *maxelement, const char **byteorder,\n"
-		"                 size_t *dimfast, size_t    *dimmid, size_t *dimslow,\n"
-		"                 size_t *padding);\n"
+		"                 unsigned    int *compression, int *binary_id, size_t *elsize,\n"
+		"                 int *elsigned, int    *elunsigned, size_t *elements,\n"
+		"                 int *minelement, int *maxelement, const    char **byteorder,\n"
+		"                 size_t *dimfast, size_t *dimmid, size_t *dimslow,\n"
+		"                 size_t    *padding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -25385,9 +25415,10 @@ static PyMethodDef SwigMethods[] = {
 		"          int padding\n"
 		"\n"
 		"C prototype: int cbf_set_realarray_wdims_fs (cbf_handle handle,\n"
-		"                 unsigned int compression, int binary_id, void *array,\n"
-		"                 size_t elsize, size_t    elements, const char *byteorder,\n"
-		"                 size_t dimfast, size_t dimmid, size_t dimslow, size_t padding);\n"
+		"                 unsigned int    compression, int binary_id, void *array,\n"
+		"                 size_t elsize, size_t elements,    const char *byteorder,\n"
+		"                 size_t dimfast, size_t dimmid, size_t dimslow,\n"
+		"                    size_t padding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -25419,6 +25450,20 @@ static PyMethodDef SwigMethods[] = {
 		"The values compressed are limited to 64 bits. If any element in the \n"
 		"array is larger than 64 bits, the value compressed is the nearest \n"
 		"64-bit value.\n"
+		"Currently, the source array must consist of chars, shorts or ints \n"
+		"(signed or unsigned), for cbf_set_integerarray, or IEEE doubles or \n"
+		"floats for cbf_set_realarray. If elsize is not equal to sizeof \n"
+		"(char), sizeof (short) or sizeof (int), the function returns \n"
+		"CBF_ARGUMENT.\n"
+		"ARGUMENTS\n"
+		"handle        CBF handle. compression   Compression method to use. \n"
+		"binary_id     Integer binary identifier. array         Pointer to the \n"
+		"source array. elsize        Size in bytes of each source array \n"
+		"element. elsigned      Set to non-0 if the source array elements are \n"
+		"signed. elements: The number of elements in the array.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"SEE ALSO\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_find_category_root", _wrap_cbf_handle_struct_find_category_root, METH_VARARGS, (char *)"\n"
@@ -25426,7 +25471,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : String categoryname\n"
 		"\n"
 		"C prototype: int cbf_find_category_root (cbf_handle handle,\n"
-		"                 const char* categoryname, const char** categoryroot);\n"
+		"                 const char* categoryname,      const char** categoryroot);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -25444,7 +25489,7 @@ static PyMethodDef SwigMethods[] = {
 		"root name. categoryroot_in   input category root name.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_integerarray_wdims_fs", _wrap_cbf_handle_struct_set_integerarray_wdims_fs, METH_VARARGS, (char *)"\n"
@@ -25454,10 +25499,10 @@ static PyMethodDef SwigMethods[] = {
 		"          int padding\n"
 		"\n"
 		"C prototype: int cbf_set_integerarray_wdims_fs (cbf_handle handle,\n"
-		"                 unsigned int compression, int binary_id, void *array,\n"
-		"                 size_t elsize, int    elsigned, size_t elements,\n"
+		"                 unsigned int    compression, int binary_id, void *array,\n"
+		"                 size_t elsize, int elsigned,    size_t elements,\n"
 		"                 const char *byteorder, size_t dimfast, size_t dimmid,\n"
-		"                 size_t dimslow, size_t padding);\n"
+		"                    size_t dimslow, size_t padding);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -25489,6 +25534,20 @@ static PyMethodDef SwigMethods[] = {
 		"The values compressed are limited to 64 bits. If any element in the \n"
 		"array is larger than 64 bits, the value compressed is the nearest \n"
 		"64-bit value.\n"
+		"Currently, the source array must consist of chars, shorts or ints \n"
+		"(signed or unsigned), for cbf_set_integerarray, or IEEE doubles or \n"
+		"floats for cbf_set_realarray. If elsize is not equal to sizeof \n"
+		"(char), sizeof (short) or sizeof (int), the function returns \n"
+		"CBF_ARGUMENT.\n"
+		"ARGUMENTS\n"
+		"handle        CBF handle. compression   Compression method to use. \n"
+		"binary_id     Integer binary identifier. array         Pointer to the \n"
+		"source array. elsize        Size in bytes of each source array \n"
+		"element. elsigned      Set to non-0 if the source array elements are \n"
+		"signed. elements: The number of elements in the array.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"SEE ALSO\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_image_sf", _wrap_cbf_handle_struct_set_image_sf, METH_VARARGS, (char *)"\n"
@@ -25497,8 +25556,8 @@ static PyMethodDef SwigMethods[] = {
 		"          int elsign,int dimslow,int dimfast\n"
 		"\n"
 		"C prototype: int cbf_set_image_sf(cbf_handle handle, unsigned int reserved,\n"
-		"                 unsigned int element_number, unsigned int compression,\n"
-		"                 void *array,      size_t elsize, int elsign, size_t ndimslow,\n"
+		"                 unsigned      int element_number, unsigned int compression,\n"
+		"                 void *array, size_t      elsize, int elsign, size_t ndimslow,\n"
 		"                 size_t ndimfast);\n"
 		"\n"
 		"CBFLib documentation:\n"
@@ -25555,7 +25614,7 @@ static PyMethodDef SwigMethods[] = {
 		"       Fastest array dimension.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
-		"\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_set_unit_cell", _wrap_cbf_handle_struct_set_unit_cell, METH_VARARGS, (char *)"\n"
@@ -25563,7 +25622,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double cell[6]\n"
 		"\n"
 		"C prototype: int cbf_set_unit_cell (cbf_handle handle, double cell[6],\n"
-		"                 double cell_esd[6] );\n"
+		"                 double      cell_esd[6] );\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
@@ -25597,7 +25656,7 @@ static PyMethodDef SwigMethods[] = {
 		"*args   : double cell_esd[6]\n"
 		"\n"
 		"C prototype: int cbf_set_unit_cell (cbf_handle handle, double cell[6],\n"
-		"                 double cell_esd[6] );\n"
+		"                 double      cell_esd[6] );\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"

@@ -38,7 +38,7 @@ Returns : Float start,Float increment
 *args   : 
 
 C prototype: int cbf_get_rotation_range (cbf_goniometer goniometer,
-                 unsigned int reserved, double *start, double *increment);
+                 unsigned int      reserved, double *start, double *increment);
 
 CBFLib documentation:
 DESCRIPTION
@@ -53,7 +53,7 @@ than 0 is invalid. start        Pointer to the destination start
 value. increment    Pointer to the destination increment value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
-
+----------------------------------------------------------------------
 ")get_rotation_range;
 
 %apply double *OUTPUT {double *start,double *increment};
@@ -68,8 +68,8 @@ Returns : double final1,double final2,double final3
 *args   : double ratio,double initial1,double initial2,double initial3
 
 C prototype: int cbf_rotate_vector (cbf_goniometer goniometer,
-                 unsigned int reserved, double ratio, double initial1,
-                 double initial2, double      initial3, double *final1,
+                 unsigned int reserved,      double ratio, double initial1,
+                 double initial2, double initial3, double      *final1,
                  double *final2, double *final3);
 
 CBFLib documentation:
@@ -93,7 +93,7 @@ the destination y component of the final vector. vector3      Pointer
 to the destination z component of the final vector.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
-
+----------------------------------------------------------------------
 ")rotate_vector;
 
 
@@ -111,9 +111,10 @@ Returns : double reciprocal1,double reciprocal2,double reciprocal3
 *args   : double ratio,double wavelength,double real1,double real2,double real3
 
 C prototype: int cbf_get_reciprocal (cbf_goniometer goniometer,
-                 unsigned int reserved, double ratio, double wavelength,
-                 double real1, double      real2, double real3,
-                 double *reciprocal1, double *reciprocal2, double *reciprocal3);
+                 unsigned int      reserved, double ratio, double wavelength,
+                 double real1, double real2,      double real3,
+                 double *reciprocal1, double *reciprocal2,
+                 double      *reciprocal3);
 
 CBFLib documentation:
 DESCRIPTION
@@ -140,7 +141,7 @@ reciprocal3   Pointer to the destination z component of the
 reciprocal-space vector.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
-
+----------------------------------------------------------------------
 ")get_reciprocal;
 
 %apply double *OUTPUT {double *reciprocal1,double *reciprocal2, 
@@ -161,7 +162,7 @@ Returns : double vector1,double vector2,double vector3
 *args   : 
 
 C prototype: int cbf_get_rotation_axis (cbf_goniometer goniometer,
-                 unsigned int reserved, double *vector1, double *vector2,
+                 unsigned int      reserved, double *vector1, double *vector2,
                  double *vector3);
 
 CBFLib documentation:
@@ -178,10 +179,10 @@ destination y component of the rotation axis. vector3      Pointer to
 the destination z component of the rotation axis.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
-
+----------------------------------------------------------------------
 ")get_rotation_axis;
 
-%apply double *OUTPUT {double *vector1,double *vector2, double *vector3};
+%apply double *OUTPUT {double *vector1, double *vector2, double *vector3};
 
 void get_rotation_axis (double *vector1, double *vector2, double *vector3){
      unsigned int reserved;

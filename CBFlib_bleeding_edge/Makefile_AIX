@@ -1511,7 +1511,7 @@ endif
 
 
 	
-pycbftests:  $(PYCBF)/_pycbf.so tests
+pycbftests:  $(PYCBF)/_pycbf.so 
 	(cd $(PYCBF); python pycbf_test1.py)
 	(cd $(PYCBF); python pycbf_test2.py)
 	(cd $(PYCBF); python pycbf_test3.py)
