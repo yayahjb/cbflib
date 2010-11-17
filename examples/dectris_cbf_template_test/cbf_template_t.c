@@ -733,10 +733,10 @@ while(tnode && m<size-TEXT_SIZE)
 			m += sprintf(dest+m, "%s", image_timestamp);
 			break;
 		case Exposure_period:
-			m += sprintf(dest+m, "%.6lf", dcb_get_exposure_period());
+			m += sprintf(dest+m, "%.6f", dcb_get_exposure_period());
 			break;
 		case Exposure_time:
-			m += sprintf(dest+m, "%.6lf", exposure_time);
+			m += sprintf(dest+m, "%.6f", exposure_time);
 			break;
 		case Count_cutoff:
 			m += sprintf(dest+m, "%u", count_cutoff);
@@ -816,7 +816,9 @@ fprintf(ofp,
 "\r\n"
 "_array_data.header_convention \"SLS/DECTRIS_1.1\"\r\n"
 "_array_data.header_contents\r\n"
-";\r\n"
+";\r\n");
+
+fprintf(ofp,
 "# Detector: PILATUS 100K, In-house (m141) Test System\r\n"
 "# 2010-Jun-16T19:09:48.271\r\n"
 "# Pixel_size 172e-6 m x 172e-6 m\r\n"
@@ -848,6 +850,8 @@ fprintf(ofp,
 "Content-Type: application/octet-stream;\r\n"
 "     conversions=\"x-CBF_BYTE_OFFSET\"\r\n"
 "Content-Transfer-Encoding: BINARY\r\n"
+);
+fprintf(ofp,
 "X-Binary-Size: 94981\r\n"
 "X-Binary-ID: 1\r\n"
 "X-Binary-Element-Type: \"signed 32-bit integer\"\r\n"

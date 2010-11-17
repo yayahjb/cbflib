@@ -1175,7 +1175,33 @@ int cbf_get_pixel_normal (cbf_detector detector, double  indexslow,
         cbf_get_pixel_normal ((detector),(indexslow),(indexfast), \
                               (normal1), (normal2), (normal3) )
 
+    /* Calcluate the slow axis of a detector */
+    
+int cbf_get_detector_axis_slow (cbf_detector detector, double *slowaxis1,
+                                                       double *slowaxis2,
+                                                       double *slowaxis3);
+    /* Calcluate the fast axis of a detector */
+    
+int cbf_get_detector_axis_fast (cbf_detector detector, double *fastaxis1,
+                                                       double *fastaxis2,
+                                                       double *fastaxis3);
+    
+    /* Calcluate the axes of a detector */
+    
+int cbf_get_detector_axes (cbf_detector detector, double *slowaxis1,
+                                                  double *slowaxis2,
+                                                  double *slowaxis3,
+                                                  double *fastaxis1,
+                                                  double *fastaxis2,
+                           double *fastaxis3);
 
+#define cbf_get_detector_axes_sf(detector, slowaxis1, slowaxis2, slowaxis3, fastaxis1, fastaxis2, fastaxis3) \
+        cbf_get_detector_axes ((detector), (slowaxis1), (slowaxis2), (slowaxis3), (fastaxis1), (fastaxis2), (fastaxis3))
+#define cbf_get_detector_axes_fs(detector, fastaxis1, fastaxis2, fastaxis3, slowaxis1, slowaxis2, slowaxis3) \
+        cbf_get_detector_axes ((detector), (slowaxis1), (slowaxis2), (slowaxis3), (fastaxis1), (fastaxis2), (fastaxis3))
+    
+    
+    
   /* Calcluate the area of a pixel */
 
 int cbf_get_pixel_area (cbf_detector detector, double  indexslow,

@@ -32,7 +32,7 @@ byte_order    pointer to the returned string real_format   pointer to
 the returned string
 RETURN VALUE
 Returns an error code on failure or 0 for success.
-
+----------------------------------------------------------------------
 ")get_local_integer_byte_order;
 
 %cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
@@ -109,7 +109,7 @@ byte_order    pointer to the returned string real_format   pointer to
 the returned string
 RETURN VALUE
 Returns an error code on failure or 0 for success.
-
+----------------------------------------------------------------------
 ")get_local_real_format;
 
 %cstring_output_allocate_size(char **rf, int *rflen, free(*$1));
@@ -155,7 +155,7 @@ byte_order    pointer to the returned string real_format   pointer to
 the returned string
 RETURN VALUE
 Returns an error code on failure or 0 for success.
-
+----------------------------------------------------------------------
 ")get_local_real_byte_order;
 
 %cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
