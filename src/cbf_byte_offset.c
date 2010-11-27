@@ -441,6 +441,7 @@ int cbf_compress_byte_offset (void         *source,
         
         /* Write the elements */
         
+#ifndef CBF_NOFAST_BYTE_OFFSET
         /* First try a fast memory-memory transfer */  
         
         switch (elsize) {
@@ -449,28 +450,49 @@ int cbf_compress_byte_offset (void         *source,
              not make much sense, but we can at
              least do it quickly */
                 
-                if (!cbf_set_output_buffersize(file,nelem))  {
-                    
-                    unsigned char pc;
+                if (!cbf_set_output_buffersize(file,nelem*2))  {
                     
                     unsigned_char_dest = 
                     (unsigned char *)(file->characters+file->characters_used);
                     
-                    pc = 0x00;
-                    
-                    for (count = 0; count < nelem; count+= 8) {
-                        
-                        *unsigned_char_dest++ = *unsigned_char_data - pc;
-                        
+                    if (elsign) {
+                      char pc = 0;
+                      int delta;
+                      for (count = 0; count < nelem; count++) {
+                        delta = *unsigned_char_data - pc;
+                        if (delta < -127 || delta > 127) {
+                          *unsigned_char_dest++ = 0x80;
+                          *unsigned_char_dest++ = delta & 0xff;
+                          *unsigned_char_dest++ = (delta >> 8) & 0xff;
+                          csize += 3;
+                        } else {
+                          *unsigned_char_dest++ = delta;
+                          csize++;
+                        }
                         pc = *unsigned_char_data++;
-                        
+                      }
+                    } else {
+                      unsigned char pc = 0;
+                      int delta;
+                      for (count = 0; count < nelem; count++) {
+                        delta = *unsigned_char_data - pc;
+                        if (delta < -127 || delta > 127) {
+                          *unsigned_char_dest++ = 0x80;
+                          *unsigned_char_dest++ = delta & 0xff;
+                          *unsigned_char_dest++ = (delta >> 8) & 0xff;
+                          csize += 3;
+                        } else {
+                          *unsigned_char_dest++ = delta;
+                          csize++;
+                        }
+                        pc = *unsigned_char_data++;
+                      }
                     }
-                    
-                    file->characters_used+=nelem;
+                    file->characters_used+=csize;
                     
                     if (compressedsize)
                         
-                        *compressedsize = nelem;
+                        *compressedsize = csize;
                     
                     return 0;
                     
@@ -828,6 +850,7 @@ int cbf_compress_byte_offset (void         *source,
             default:
                 break;
         }
+#endif
         
         /* If we got here, we will do it the slow, painful way */
         
@@ -901,6 +924,8 @@ int cbf_compress_byte_offset (void         *source,
                 
                 cbf_failnez(cbf_mpint_add_acc((unsigned int *)delta, numints, element, numints))
                 
+                if (delta[numints-1] & sign) delta[numints-1] |= (~limit);
+                
             } else  {
                 
                 delta[0] = element[0] - prevelement[0];
@@ -968,7 +993,7 @@ int cbf_compress_byte_offset (void         *source,
                     
                     cbf_failnez(cbf_put_bits(file,&bflag,24))
                     
-                    for (iint = 0; iint < numints; iint++) {
+                    for (iint = 0; iint < kint+1; iint++) {
                         
                         cbf_failnez (cbf_put_integer (file, delta[iint],
                                                       iint==numints-1?1:0,
@@ -984,7 +1009,7 @@ int cbf_compress_byte_offset (void         *source,
                     
                     cbf_failnez(cbf_put_bits(file,&bbflag,32))
                     
-                    for (iint = 0; iint < numints; iint++) {
+                    for (iint = 0; iint < kint+1; iint++) {
                         
                         cbf_failnez (cbf_put_integer (file, delta[iint],
                                                       iint==numints-1?1:0,
