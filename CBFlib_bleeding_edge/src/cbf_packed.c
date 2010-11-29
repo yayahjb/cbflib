@@ -539,7 +539,7 @@ int cbf_add_offset (cbf_packed_data *data, unsigned int *element,
     
     cbf_failnez(cbf_mpint_add_acc(offset,numints,element,numints))
   	
-  } else{
+  } else {
   	
     offset[0] = element[0] - last_element[0];
   
@@ -641,7 +641,9 @@ int cbf_pack_chunk (cbf_packed_data *data, int size, int chunk,
                                            unsigned long *bitcount,
                                            int v2flag, int clipbits)
 {
-  unsigned int count, index, pbits;
+  unsigned int count, index, pbits, j;
+    
+  size_t numints;
   
   int zero[4] = { 0, 0, 0, 0};
   
@@ -654,6 +656,10 @@ int cbf_pack_chunk (cbf_packed_data *data, int size, int chunk,
   pbits = v2flag?cbf_packedv2_bits[size]:cbf_packed_bits[size];
   
   if (clipbits && pbits==65) pbits = clipbits;
+    
+  numints = (pbits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
+    
+  if (!clipbits) numints=1;
 
   if (size > 0) {
 
@@ -661,13 +667,20 @@ int cbf_pack_chunk (cbf_packed_data *data, int size, int chunk,
     
     if (pbits == 65) {
 
-      for (count = chunk; count; count--, index++) {
-
-        cbf_failnez (cbf_put_bits (file, (int *)data->offset [index & 127],
-                                       sizeof(int)*CHAR_BIT))
-    	
-        cbf_failnez (cbf_put_bits (file, zero, pbits-sizeof(int)*CHAR_BIT))
-      }
+        for (count = chunk; count; count--, index++) {
+            
+            for (j = 0; j < numints; j++) {
+                
+                cbf_failnez (cbf_put_bits (file, (int *)(j+(data->offset [index & 127])),
+                                           sizeof(int)*CHAR_BIT))
+            }
+            
+            if (pbits > numints*sizeof(int)*CHAR_BIT) {
+                
+                cbf_failnez (cbf_put_bits (file, zero, pbits-numints*sizeof(int)*CHAR_BIT))
+                
+            }
+        }
 
     } else {
 
@@ -1609,8 +1622,7 @@ int cbf_decompress_packed (void         *destination,
     else bits = cbf_packed_bits [(next >> 3) & 7];
     
     if (avgflag && bits == 65) bits = clipbits;
-    
-
+      
       /* Read the offsets */
 
     if (pixelcount + count > nelem)
