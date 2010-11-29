@@ -922,6 +922,8 @@ int cbf_construct_tree (cbf_compress_data *data, cbf_compress_node **node,
                                        int bits, cbf_compress_node **root)
 {
   cbf_compress_node *nextnode;
+    
+  if (bits > CBF_MAXMAXBITS) return CBF_ARGUMENT;
 
   if (node == NULL)
   {
@@ -945,22 +947,24 @@ int cbf_construct_tree (cbf_compress_data *data, cbf_compress_node **node,
     (*root)->child [0] = *node;
 
     (*node)++;
-  }
-  else
+
+  } else {
 
     cbf_failnez (cbf_construct_tree (data, node, bits + 1,
                  &(*root)->child [0]))
+  }
 
   if ((*node)->bitcount == bits)
   {
     (*root)->child [1] = *node;
 
     (*node)++;
-  }
-  else
+      
+  } else {
 
     cbf_failnez (cbf_construct_tree (data, node, bits + 1,
                  &(*root)->child [1]))
+  }
 
 
     /* Success */
@@ -994,52 +998,54 @@ int cbf_setup_decode (cbf_compress_data *data, cbf_compress_node **start)
 
 unsigned long cbf_count_bits (cbf_compress_data *data)
 {
-  unsigned int endcode, codes, code;
-
-  unsigned long bitcount;
-
-  cbf_compress_node *node;
-
-  endcode = 1 << data->bits;
-
-  node = data->node;
-
-
+    unsigned int endcode, codes, code;
+    
+    unsigned long bitcount;
+    
+    cbf_compress_node *node;
+    
+    endcode = 1 << data->bits;
+    
+    node = data->node;
+    
+    
     /* Basic entries */
-
-  bitcount = 4 * 64;
-
-
+    
+    bitcount = 4 * 64;
+    
+    
     /* How many symbols do we actually use? */
-
-  for (codes = endcode + data->maxbits; node [codes].bitcount == 0; codes--);
-
-  codes++;
-
-
+    
+    for (codes = endcode + data->maxbits; node [codes].bitcount == 0; codes--);
+    
+    codes++;
+    
+    
     /* Compression table */
-
-  if (codes > endcode + data->bits)
-
-    bitcount += 2 * CBF_TABLEENTRYBITS +
-                (codes - data->bits) * CBF_TABLEENTRYBITS;
-
-  else
-
-    bitcount += 2 * CBF_TABLEENTRYBITS + (endcode + 1) * CBF_TABLEENTRYBITS;
-
-
+    
+    if (codes > endcode + data->bits) {
+        
+        bitcount += 2 * CBF_TABLEENTRYBITS +
+        (codes - data->bits) * CBF_TABLEENTRYBITS;
+        
+    } else {
+        
+        bitcount += 2 * CBF_TABLEENTRYBITS + (endcode + 1) * CBF_TABLEENTRYBITS;
+        
+    }
+    
+    
     /* Compressed data */
-
-  for (code = 0; code < endcode; code++, node++)
-
-    bitcount += node->count * node->bitcount;
-
-  for (; code < codes; code++, node++)
-
-    bitcount += node->count * (node->bitcount + code - endcode);
-
-  return bitcount;
+    
+    for (code = 0; code < endcode; code++, node++)
+        
+        bitcount += node->count * node->bitcount;
+    
+    for (; code < codes; code++, node++)
+        
+        bitcount += node->count * (node->bitcount + code - endcode);
+    
+    return bitcount;
 }
 
 
