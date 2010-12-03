@@ -923,7 +923,11 @@ int cbf_construct_tree (cbf_compress_data *data, cbf_compress_node **node,
 {
   cbf_compress_node *nextnode;
     
-  if (bits > CBF_MAXMAXBITS) return CBF_ARGUMENT;
+    if (bits > CBF_MAXMAXBITS) {
+        
+        return CBF_ARGUMENT;
+        
+    }
 
   if (node == NULL)
   {
