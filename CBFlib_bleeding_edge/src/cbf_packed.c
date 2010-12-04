@@ -1025,62 +1025,68 @@ int cbf_update_jpa_pointers(unsigned char * trail_char_data[8],
       
     if (numints == 1) {
     	
-      for (i = 0; i < 8; i++) {
-      
-        if (trail_char_data[i]) {
+        for (i = 0; i < 8; i++) {
+            
+            if (trail_char_data[i]) {
+                
+                j++;
+                
+                if (elsize == sizeof (int))
+                    
+                    average[0] += *((unsigned int *) (trail_char_data[i]) );
+                
+                else
+                    
+                    if (elsize == sizeof (short))
+                        
+                        average[0] += *((unsigned short *) (trail_char_data[i]));
+                
+                    else
+                        
+                        average[0] += *(trail_char_data[i]);
+                
+            }
+        }
         
-          j++;
+        k = j>> 1;
         
-            if (elsize == sizeof (int))
-
-              average[0] += *((unsigned int *) (trail_char_data[i]) );
-
-            else
-
-              if (elsize == sizeof (short))
-
-                average[0] += *((unsigned short *) (trail_char_data[i]));
-
-              else
-
-                average[0] += *(trail_char_data[i]);
-        	
-          }
-      }
+        if (average[0] & signbit) average[0] |= ~mask;
         
-      k = j>> 1;
-      
-      if (average[0] & signbit) average[0] |= ~mask;
-      
-      else average[0] &= mask;
-
-      if (k > 0) average[0] = (unsigned int) (((int)average[0] + k) >> log2[k-1]);
+        else average[0] &= mask;
+        
+        if (k > 0) average[0] = (unsigned int) (((int)average[0] + k) >> log2[k-1]);
         
     } else {
-
-     for (i = 0; i < 8; i++) {
-     
-       cbf_failnez(cbf_mpint_add_acc(average, numints, (unsigned int *)&(trail_char_data[i]), numints))
-     
-     }
-     
-       if (j > 1) {
-       	
-         k = j >> 1;
-       
-         cbf_failnez(cbf_mpint_add_acc(average,numints, (unsigned int *)&j , 1))
-
-         if (average[numints-1] & signbit) average[numints-1] |= ~mask;
-      
-         else average[numints-1] &= mask;
-         
-         if (k > 0) {
-         	
-           cbf_failnez(cbf_mpint_rightshift_acc(average,numints,log2[k-1]))
-           
-         }
-         
-       }
+        
+        for (i = 0; i < 8; i++) {
+            
+            if (trail_char_data[i]) {
+                
+                j++;
+                
+                cbf_failnez(cbf_mpint_add_acc(average, numints, (unsigned int *)(trail_char_data[i]), numints))
+                
+            }
+            
+        }
+        
+        if (j > 1) {
+            
+            k = j >> 1;
+            
+            if (average[numints-1] & signbit) average[numints-1] |= ~mask;
+            
+            else average[numints-1] &= mask;
+            
+            if (k > 0) {
+                
+                cbf_failnez(cbf_mpint_add_acc(average,numints, (unsigned int *)&k , 1))
+                
+                cbf_failnez(cbf_mpint_rightshift_acc(average,numints,log2[k-1]))
+                
+            }
+            
+        }
     	
     }
 
