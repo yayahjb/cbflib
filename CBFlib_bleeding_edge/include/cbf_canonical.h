@@ -414,7 +414,7 @@ int cbf_put_code (cbf_compress_data *data, int code, unsigned int overflow,
 
 int cbf_count_values (cbf_compress_data *data,
                       void *source, size_t elsize, int elsign, size_t nelem,
-                      int *minelem, int *maxelem);
+                      int *minelem, int *maxelem, char *border);
 
 
 
