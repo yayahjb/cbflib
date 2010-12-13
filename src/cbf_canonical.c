@@ -1152,6 +1152,106 @@ int cbf_get_code (cbf_compress_data *data, cbf_compress_node *root,
   return CBF_ENDOFDATA;
 }
 
+    /* Read a multi-precision integer code */
+    
+int cbf_get_mpint_code (cbf_compress_data *data, cbf_compress_node *root,
+                      unsigned int code[4],
+                      unsigned int *bitcount, int numints)
+{
+    int bits0, bits1;
+    
+    /* Decode the bitstream  */
+    
+    bits0 = data->file->bits [0];
+    bits1 = data->file->bits [1];
+    code[0] = code[1] = code[2] = code[3] = 0;
+    
+    while (*(root->child))
+    {
+        if (bits0 == 0) {
+            
+            if (data->file->temporary) {
+                
+                if (data->file->characters_used) {
+                    
+                    bits1 = *((data->file->characters)++);
+                    
+                    bits1 &= 0xFF;
+                    
+                    data->file->characters_used--;
+                    
+                    data->file->characters_size--;
+                    
+                } else {
+                    
+                    bits1 = EOF;
+                    
+                }
+                
+            } else  {
+                
+                bits1 = getc (data->file->stream);
+                
+            }
+            
+            if (bits1 == EOF)
+            {
+                data->file->bits [0] =
+                data->file->bits [1] = 0;
+                
+                return CBF_FILEREAD;
+            }
+            
+            bits0 = 8;
+        }
+        
+        root = root->child [bits1 & 1];
+        
+        bits1 >>= 1;
+        
+        bits0--;
+    }
+    
+    data->file->bits [0] = bits0;
+    data->file->bits [1] = bits1;
+    
+    code[0] = root->code;
+    
+    
+    /* Simple coding? */
+    
+    if ((int) code[0] < (int) data->endcode)
+    {
+        *bitcount = data->bits;
+        
+        return 0;
+    }
+    
+    
+    /* Coded bit count? */
+    
+    code[0] -= data->endcode;
+    
+    if (code[0]) {
+        
+        if (code[0] > data->maxbits)
+            
+            return CBF_FORMAT;
+        
+        else
+        {
+            *bitcount = code[0];
+            
+            return cbf_get_bits (data->file, (int *) code, *bitcount);
+        }
+        
+    }
+    
+    /* End code */
+    
+    return CBF_ENDOFDATA;
+}
+    
 
   /* Write a coded integer */
 
@@ -1233,31 +1333,155 @@ int cbf_put_code (cbf_compress_data *data, int code, unsigned int overflow,
   return 0;
 }
 
+    
+    /* Write a coded multi-precision integer */
+    
+int cbf_put_mpint_code (cbf_compress_data *data, int code[5], unsigned int overflow,
+                      unsigned int *bitcount, int numints)
+{
+    unsigned int bits, kbits, m, endcode;
+    
+    int *usecode;
+    
+    int i, j, doover;
+    
+    int signstat;
+    
+    cbf_compress_node *node;
+    
+    endcode = 1 << data->bits;
+    
+    signstat = code[numints-1];
+    
+    doover = overflow||(signstat!= 0 && signstat !=~0);
+    
+    if (!doover) {
+    
+        for (i = numints-1; i >= 1; i--) {
+          
+          if (code[i] == signstat) continue;
+        
+          doover = 1;
+        
+          break;
+        }
+        
+    }
+    
+    
+    
+    /* Does the number fit in an integer? */
+    
+    if (!doover)
+    {
+        /* Code direct? */
+        
+        m = (code[0] ^ (code[0] << 1));
+        
+        if ((m & -((int) endcode)) == 0)
+        {
+            /* Code the number */
+            
+            node = data->node + (code[0] & (endcode - 1));
+            
+            bits = node->bitcount;
+            
+            cbf_put_bits (data->file, (int *) node->bitcode, bits);
+            
+            *bitcount = bits;
+            
+            return 0;
+        }
+        
+        /* Count the number of bits */
+        
+        bits = sizeof (int) * CHAR_BIT;
+        
+        while (((m >> (bits - 1)) & 1) == 0)
+            
+            bits--;
+        
+        usecode = code;
+    }
+    else
+    {
+        /* Overflow */
+                
+        usecode = code;
+        
+        bits = numints*sizeof (int) * CHAR_BIT;
+    }
+    
+    
+    /* Code the number of bits */
+    
+    node = data->node + endcode + bits;
+    
+    cbf_put_bits (data->file, (int *) node->bitcode, node->bitcount);
+    
+    
+    /* Write the number */
+    
+        
+        for (j = 0; j < bits; j += sizeof(int)*CHAR_BIT) {
+            
+            kbits = sizeof(int)*CHAR_BIT;
+            
+            if (j+kbits > bits) kbits = bits - j;
+            
+            cbf_put_bits (data->file,usecode, kbits);
+            
+            usecode++;
+            
+        }
+    
+    *bitcount = bits + node->bitcount;
+    
+    
+    /* Success */
+    
+    return 0;
+}
+    
+    
 
   /* Count the values */
 
 int cbf_count_values (cbf_compress_data *data,
                       void *source, size_t elsize, int elsign, size_t nelem,
-                      int *minelem, int *maxelem)
+                      int *minelem, int *maxelem, char * border)
 {
-  int code;
+  int code[5];
 
-  unsigned int count, element, lastelement, minelement, maxelement,
+  unsigned int bits, count, element[4], lastelement[4],
+    minelement[4], maxelement[4], iint,
            unsign, sign, bitcount, m, endcode, limit;
 
   unsigned char *unsigned_char_data;
+    
+  size_t numints;
 
   cbf_compress_node *node;
-
+    
 
     /* Is the element size valid? */
 
   if (elsize != sizeof (int) &&
       elsize != sizeof (short) &&
-      elsize != sizeof (char))
-
+      elsize != sizeof (char) &&
+      elsize != 2*sizeof(unsigned int) &&
+      elsize != 4*sizeof(unsigned int))
+      
     return CBF_ARGUMENT;
 
+    bits = elsize * CHAR_BIT;
+    
+    if (bits < 1 || bits > 64)
+        
+        return CBF_ARGUMENT;
+    
+    numints = (bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
+    
 
     /* Initialise the pointers */
 
@@ -1267,20 +1491,25 @@ int cbf_count_values (cbf_compress_data *data,
 
 
     /* Maximum limit (unsigned) is 64 bits */
-
-  if (elsize * CHAR_BIT > 64)
-  {
-    sign = 1 << CBF_SHIFT63;
-
-    limit = ~-(sign << 1);
-  }
-  else
-  {
-    sign = 1 << (elsize * CHAR_BIT - 1);
-
-    limit = ~0;
-  }
-
+    
+    sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
+    
+    if (elsize == numints*sizeof(int) )
+        
+        limit = ~0;
+    
+    else
+        
+        if (numints == 1) {
+            
+            limit = ~-(1 << (elsize * CHAR_BIT));
+            
+        } else {
+            
+            limit = ~-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT));
+            
+        }
+    
 
     /* Offset to make the value unsigned */
 
@@ -1291,79 +1520,156 @@ int cbf_count_values (cbf_compress_data *data,
   else
 
     unsign = 0;
-
+    
 
     /* Initialise the minimum and maximum elements */
 
-  minelement = ~0;
+  minelement[0] = minelement[1] = minelement[2] = minelement[3] = ~0;
 
-  maxelement = 0;
+  maxelement[0] = maxelement[1] = maxelement[2] = maxelement[3] = 0;
 
 
     /* Start from 0 */
 
-  lastelement = unsign;
+    for (iint = 0; iint < numints; iint++)
+        
+        lastelement [iint] = 0;
+    
+    lastelement [numints-1] = unsign;
+    
 
   endcode = 1 << data->bits;
 
   for (count = 0; count < nelem; count++)
   {
       /* Get the next element */
+      
+      
+      if (numints > 1 ) {
+          
+          if (border[0] == 'b') {
+              
+              for (iint = numints; iint; iint--) {
+                  
+                  element[iint-1] = *((unsigned int *) unsigned_char_data);
+                  
+                  unsigned_char_data += sizeof (int);
+                  
+              }
+              
+          } else {
+              
+              for (iint = 0; iint < numints; iint++) {
+                  
+                  element[iint] = *((unsigned int *) unsigned_char_data);
+                  
+                  unsigned_char_data += sizeof (int);
+              }
+          }
+          
+          unsigned_char_data -= numints*sizeof (int);
+                    
+      } else {
+          
+          if (elsize == sizeof (int))
+              
+            element[0] = *((unsigned int *) unsigned_char_data);
+          
+          else
+              
+              if (elsize == sizeof (short))
+                  
+                  element[0] = *((unsigned short *) unsigned_char_data);
+          
+              else
+                  
+                  element[0] = *unsigned_char_data;
 
-    if (elsize == sizeof (int))
+          unsigned_char_data += elsize;
+      }
 
-      element = *((unsigned int *) unsigned_char_data);
+      
 
-    else
-
-      if (elsize == sizeof (short))
-
-        element = *((unsigned short *) unsigned_char_data);
-
-      else
-
-        element = *unsigned_char_data;
-
-    unsigned_char_data += elsize;
 
 
       /* Make the element unsigned */
-
-    element += unsign;
-
+      
+      element[numints-1] += unsign;
+            
 
       /* Limit the value to 64 bits */
 
-    if (element > limit) {
+    if (element[numints-1] > limit) {
 
-      if (elsign && (int) (element - unsign) < 0)
+      if (elsign && (int) (element[numints-1] - unsign) < 0)
 
-        element = 0;
+        element[numints-1] = 0;
 
       else
 
-        element = limit;
+        element[numints-1] = limit;
     }
 
       /* Update the minimum and maximum values */
+      
+      if (numints == 1) {
+          
+          if (element[0] < minelement[0])
+              
+              minelement[0] = element[0];
+          
+          if (element[0] > maxelement[0])
+              
+              maxelement[0] = element[0];
 
-    if (element < minelement)
+          /* Calculate the offset to save */
+          
+          code[0] = element[0] - lastelement[0];
+          
+      } else {
+          
+          for (iint = 0; iint < numints; iint++) ((unsigned int *)code)[iint] = minelement[iint];
+          
+          code[numints] = 0;
+          
+          cbf_mpint_negate_acc((unsigned int *)&code[0],numints+1);
+          
+          cbf_mpint_add_acc((unsigned int *)&code[0],numints+1,element,numints);
+          
+          if (code[numints] < 0) 
+              
+              for (iint = 0; iint < numints; iint++) ((unsigned int *)minelement)[iint] = element[iint];
+          
+          for (iint = 0; iint < numints; iint++)  ((unsigned int *)code)[iint] = maxelement[iint];
+          
+          code[numints] = 0;
+          
+          cbf_mpint_negate_acc((unsigned int *)&code[0],numints+1);
+          
+          cbf_mpint_add_acc((unsigned int *)&code[0],numints+1,element,numints);
+          
+          if (code[numints] > 0) 
+              
+              for (iint = 0; iint < numints; iint++) ((unsigned int *)maxelement)[iint] = element[iint];
+          
+          for (iint = 0; iint < numints; iint++)  ((unsigned int *)code)[iint] = lastelement[iint];
+          
+          cbf_mpint_negate_acc((unsigned int *)&code[0],numints);
+          
+          cbf_mpint_add_acc((unsigned int *)&code[0],numints,element,numints);
+          
+      }
 
-      minelement = element;
-
-    if (element > maxelement)
-
-      maxelement = element;
-
-
-      /* Calculate the offset to save */
-
-    code = element - lastelement;
-
-
-      /* Overflow? */
-
-    if ((element < lastelement) ^ (code < 0))
+      /*  code is the signed difference element - lastelement
+       
+          if code is negative and element is > lastelement as
+          unsigned values, or code is non-negative and element
+          is <- lastelement as unsigned values, we have an overflow
+       
+       */
+      
+    if ((numints==1 && ((element[0] < lastelement[0])^(code[0] < 0)))||
+        (numints > 1 && (code[numints]<0) ^ (code[numints-1]<0)))
 
       node [endcode + sizeof (int) * CHAR_BIT + 1].count++;
 
@@ -1371,13 +1677,13 @@ int cbf_count_values (cbf_compress_data *data,
     {
         /* Encode the offset */
 
-      m = (code ^ (code << 1));
+      m = (code[0] ^ (code[0] << 1));
 
       if ((m & -((int) endcode)) == 0)
 
           /* Simple code */
 
-        node [code & (endcode - 1)].count++;
+        node [code[0] & (endcode - 1)].count++;
 
       else
       {
@@ -1396,23 +1702,31 @@ int cbf_count_values (cbf_compress_data *data,
 
       /* Update the previous element */
 
-    lastelement = element;
+      for (iint=0; iint < numints; iint++) lastelement[iint] = element[iint];
   }
 
 
     /* Make the minimum and maxium signed? */
 
-  minelement -= unsign;
-  maxelement -= unsign;
+  minelement[numints-1] -= unsign;
+  maxelement[numints-1] -= unsign;
+    
+    if (numints == 1) {
+        int minsign, maxsign;
+        minsign = -(((int)minelement[0])<0 && elsign);
+        maxsign = -(((int)maxelement[0])<0 && elsign);
+        minelement[1] = minelement[2] = minelement[3] = minsign;
+        maxelement[1] = maxelement[2] = maxelement[3] = maxsign;
+    }
 
 
     /* Save the minimum and maximum */
 
   if (nelem)
-  {
-    *minelem = (int) minelement;
-    *maxelem = (int) maxelement;
-  }
+      for (iint=0; iint < 4; iint++) {
+        minelem[iint] = (int) minelement[iint];
+        maxelem[iint] = (int) maxelement[iint];
+      }
 
 
     /* End code */
@@ -1445,9 +1759,9 @@ int cbf_compress_canonical (void         *source,
                             size_t        dimslow,
                             size_t        padding)
 {
-  int code, minelement, maxelement;
+  int code[5], minelement[4], maxelement[4];
 
-  unsigned int count, element, lastelement, bits, unsign, sign, limit, endcode;
+  unsigned int count, i, iint, element[4], lastelement[4], bits, unsign, sign, limit, endcode;
 
   unsigned long bitcount, expected_bitcount;
 
@@ -1456,15 +1770,57 @@ int cbf_compress_canonical (void         *source,
   cbf_compress_node *node, *start;
 
   cbf_compress_data *data;
+    
+  int numints;
+    
+    char * border;
+    
+    char * rformat;
+
 
 
     /* Is the element size valid? */
 
   if (elsize != sizeof (int) &&
       elsize != sizeof (short) &&
-      elsize != sizeof (char))
+      elsize != sizeof (char) &&
+      elsize != 2*sizeof (int) &&
+      elsize != 4*sizeof (int) )      
 
     return CBF_ARGUMENT;
+    
+    /* check for compatible real format */
+    
+    if ( realarray ) {
+        
+        cbf_failnez (cbf_get_local_real_format(&rformat) )
+        
+        if ( strncmp(rformat,"ieee",4) ) return CBF_ARGUMENT;
+        
+    }
+    
+    /* Get the local byte order */
+    
+    if (realarray) {
+        
+        cbf_get_local_real_byte_order(&border);
+        
+    } else {
+        
+        cbf_get_local_integer_byte_order(&border);
+        
+    }
+    
+    
+    
+    bits = elsize * CHAR_BIT;
+    
+    if (bits < 1 || bits > 64)
+        
+        return CBF_ARGUMENT;
+    
+    numints = (bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
+    
 
 
     /* Create and initialise the compression data */
@@ -1478,7 +1834,7 @@ int cbf_compress_canonical (void         *source,
     /* Count the symbols */
 
   cbf_onfailnez (cbf_count_values (data, source, elsize, elsign, nelem,
-                                   &minelement, &maxelement),
+                                   minelement, maxelement, border),
                                    cbf_free_compressdata (data))
 
 
@@ -1506,13 +1862,13 @@ int cbf_compress_canonical (void         *source,
 
     /* Write the minimum element (64 bits) */
 
-  cbf_onfailnez (cbf_put_integer (file, minelement, elsign, 64),
+  cbf_onfailnez (cbf_put_bits (file, minelement, 64),
                  cbf_free_compressdata (data))
 
 
     /* Write the maximum element (64 bits) */
 
-  cbf_onfailnez (cbf_put_integer (file, maxelement, elsign, 64),
+  cbf_onfailnez (cbf_put_bits (file, maxelement, 64),
                  cbf_free_compressdata (data))
 
 
@@ -1545,28 +1901,28 @@ int cbf_compress_canonical (void         *source,
 
 
     /* Maximum limit (unsigned) is 64 bits */
+    
+    sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
+    
+    if (elsize == sizeof (int) || elsize == numints*sizeof(int) )
+        
+        limit = ~0;
+    
+    else
+        
+        if (numints == 1) {
+            
+            limit = ~-(1 << (elsize * CHAR_BIT));
+            
+        } else {
+            
+            limit = ~-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT));
+            
+        }
 
-  if (elsize * CHAR_BIT > 64)
-  {
-    sign = 1 << CBF_SHIFT63;
-
-    limit = ~-(sign << 1);
-
-    if (storedbits)
-
-      *storedbits = 64;
-  }
-  else
-  {
-    sign = 1 << (elsize * CHAR_BIT - 1);
-
-    limit = ~0;
-
-    if (storedbits)
-
-      *storedbits = elsize * CHAR_BIT;
-  }
-
+    if (storedbits) 
+        
+        *storedbits = (numints > 1)?(numints*sizeof(int)*CHAR_BIT):(elsize*CHAR_BIT);
 
     /* Offset to make the value unsigned */
 
@@ -1581,67 +1937,120 @@ int cbf_compress_canonical (void         *source,
 
     /* Start from 0 */
 
-  lastelement = unsign;
-
+    for (i = 0; i < numints-1; i++ ) lastelement[i] = 0;
+    
+    lastelement[numints-1] = unsign;
+    
   endcode = 1 << data->bits;
 
   for (count = 0; count < nelem; count++)
   {
       /* Get the next element */
-
-    if (elsize == sizeof (int))
-
-      element = *((unsigned int *) unsigned_char_data);
-
-    else
-
-      if (elsize == sizeof (short))
-
-        element = *((unsigned short *) unsigned_char_data);
-
-      else
-
-        element = *unsigned_char_data;
-
-    unsigned_char_data += elsize;
-
-
+      
+      if (numints > 1 ) {
+          
+          if (border[0] == 'b') {
+              
+              for (iint = numints; iint; iint--) {
+                  
+                  element[iint-1] = *((unsigned int *) unsigned_char_data);
+                  
+                  unsigned_char_data += sizeof (int);
+                  
+              }
+              
+          } else {
+              
+              for (iint = 0; iint < numints; iint++) {
+                  
+                  element[iint] = *((unsigned int *) unsigned_char_data);
+                  
+                  unsigned_char_data += sizeof (int);
+              }
+          }
+          
+      } else {
+          
+          
+          if (elsize == sizeof (int))
+              
+              element[0] = *((unsigned int *) unsigned_char_data);
+          
+          else
+              
+              if (elsize == sizeof (short))
+                  
+                  element[0] = *((unsigned short *) unsigned_char_data);
+          
+              else
+                  
+                  element[0] = *unsigned_char_data;
+          
+          unsigned_char_data += elsize;
+      }
+      
+      
       /* Make the element unsigned */
-
-    element += unsign;
-
-
+      
+      element[numints-1] += unsign;
+      
+      
       /* Limit the value to 64 bits */
-
-    if (element > limit) {
-
-      if (elsign && (int) (element - unsign) < 0)
-
-        element = 0;
-
-      else
-
-        element = limit;
-    }
-
-
+      
+      if (element[numints-1] > limit) {
+          
+          if (elsign && (int) (element[numints-1] - unsign) < 0)
+              
+          {
+              for(i=0; i <numints-1; i++) element[numints]=0;
+              
+              element[numints-1] = 0;
+          }
+          
+          else
+              
+          {
+              for(i=0; i <numints-1; i++) element[numints]=0;
+              
+              element[numints-1] = limit;
+          }
+      }
+      
+      
       /* Calculate the offset to save */
-
-    code = element - lastelement;
-
-
-      /* Write the (overflowed?) code */
-
-    cbf_onfailnez (cbf_put_code (data, code,
-                  (element < lastelement) ^ (code < 0), &bits),
-                   cbf_free_compressdata (data))
-
-    bitcount += bits;
-
-
+      
+      if (numints==1) {
+          
+          code[0] = element[0] - lastelement[0];
+          
+          
+          
+          /* Write the (overflowed?) code */
+          
+          cbf_onfailnez (cbf_put_code (data, code[0],
+                                       (element[0] < lastelement[0]) ^ (code[0] < 0), &bits),
+                         cbf_free_compressdata (data))
+          
+      } else {
+          for (i=0;i<numints;i++) code[i] = lastelement[i];
+          code[numints] = 0;
+          cbf_mpint_negate_acc((unsigned int *)code,numints+1);
+          cbf_mpint_add_acc((unsigned int *)code,numints+1,(unsigned int *)element,numints);
+          cbf_onfailnez (cbf_put_mpint_code (data, code,
+                                             (code[numints] < 0) ^ (code[numints-1] < 0), 
+                                             &bits, numints),
+                         cbf_free_compressdata (data))
+          
+          
+      }
+      
+      
+      bitcount += bits;
+      
+      
       /* Update the previous element */
-
-    lastelement = element;
+      
+      for (i=0;i<numints;i++) lastelement[i] = element[i];
   }
 
 
@@ -1677,10 +2086,6 @@ int cbf_compress_canonical (void         *source,
 }
 
 
-  /*****************************************************************/
-  /* THIS FUNCTION WILL FAIL WITH VALUES OUTSIDE THE INTEGER RANGE */
-  /*****************************************************************/
-
   /* Decompress an array (from the start of the table) */
 
 int cbf_decompress_canonical (void         *destination,
@@ -1700,7 +2105,7 @@ int cbf_decompress_canonical (void         *destination,
                               size_t        dimslow,
                               size_t        padding)
 {
-  unsigned int bits, element, sign, unsign, limit, count64, count;
+  unsigned int bits, element[4], sign, unsign, limit, count64, count;
 
   unsigned char *unsigned_char_data;
 
@@ -1709,19 +2114,48 @@ int cbf_decompress_canonical (void         *destination,
   cbf_compress_node *start;
 
   unsigned int offset [4], last_element [4];
+    
+  size_t numints;
 
   int errorcode;
+    
+    int i, iint;
+    
+    char* rformat;
+    
+    char* border;
 
 
     /* Is the element size valid? */
 
   if (elsize != sizeof (int) &&
       elsize != sizeof (short) &&
-      elsize != sizeof (char))
-
+      elsize != sizeof (char) &&
+      elsize != 2*sizeof(unsigned int) &&
+      elsize != 4*sizeof(unsigned int))
+      
     return CBF_ARGUMENT;
 
-
+    /* check for compatible real format */
+    
+    if ( realarray ) {
+        
+        cbf_failnez (cbf_get_local_real_format(&rformat) )
+        
+        if ( strncmp(rformat,"ieee",4) ) return CBF_ARGUMENT;
+        
+    }
+    
+    bits = elsize * CHAR_BIT;
+    
+    if (bits < 1 || bits > 64)
+        
+        return CBF_ARGUMENT;
+    
+    numints = (bits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
+    
+    
+    
     /* Discard the reserved entry (64 bits) */
 
   cbf_failnez (cbf_get_integer (file, NULL, 0, 64))
@@ -1748,37 +2182,48 @@ int cbf_decompress_canonical (void         *destination,
 
 
     /* Maximum limit (unsigned) is 64 bits */
-
-  if (elsize * CHAR_BIT > 64)
-  {
-    sign = 1 << CBF_SHIFT63;
-
-    limit = ~-(sign << 1);
-  }
-  else
-  {
-    sign = 1 << (elsize * CHAR_BIT - 1);
-
-    if (elsize == sizeof (int))
-
-      limit = ~0;
-
+        
+    sign = 1 << ((elsize-(numints-1)*sizeof(int))* CHAR_BIT - 1);
+    
+    if (elsize == numints*sizeof(int) )
+        
+        limit = ~0;
+    
     else
-
-      limit = ~-(1 << (elsize * CHAR_BIT));
-  }
-
-
+        
+        if (numints == 1) {
+            
+            limit = ~-(1 << (elsize * CHAR_BIT));
+            
+        } else {
+            
+            limit = ~-(1 << ((elsize-(numints-1)*sizeof(int)) * CHAR_BIT));
+            
+        }
+    
+    
     /* Offset to make the value unsigned */
-
-  if (elsign)
-
-    unsign = sign;
-
-  else
-
-    unsign = 0;
-
+    
+    if (elsign)
+        
+        unsign = sign;
+    
+    else
+        
+        unsign = 0;
+    
+    /* Get the local byte order */
+    
+    if (realarray) {
+        
+        cbf_get_local_real_byte_order(&border);
+        
+    } else {
+        
+        cbf_get_local_integer_byte_order(&border);
+        
+    }
+    
 
     /* How many ints do we need to hold 64 bits? */
 
@@ -1787,21 +2232,21 @@ int cbf_decompress_canonical (void         *destination,
 
     /* Initialise the first element */
 
-  last_element [0] = unsign;
+  for (iint = 0; iint < numints-1; iint++)
 
-  for (count = 1; count < count64; count++)
+    last_element [iint] = 0;
 
-    last_element [count] = 0;
-
+  last_element [numints-1] = unsign;
 
     /* Read the elements */
 
   for (count = 0; count < nelem; count++)
   {
       /* Read the offset */
-
-    errorcode = cbf_get_code (data, start, offset, &bits);
-
+      
+         
+          errorcode = cbf_get_mpint_code (data, start, offset, &bits, numints);
+      
     if (errorcode)
     {
       if (nelem_read)
@@ -1815,46 +2260,82 @@ int cbf_decompress_canonical (void         *destination,
 
 
       /* Update the current element */
+      
+      if (numints == 1) {
 
     last_element [0] += offset [0];
 
-    element = last_element [0];
+    element[0] = last_element [0];
 
+      } else {
+          
+          cbf_mpint_add_acc(last_element,numints,offset,(bits+sizeof(int)*CHAR_BIT-1)/(sizeof(int)*CHAR_BIT));
+          
+          for (i=0; i < numints; i++) element[i] = last_element[i];
+          
+      }
 
       /* Limit the value to fit the element size */
 
-    if (element > limit) {
+    if (element[numints-1] > limit) {
 
-      if (elsign && (int) (element - unsign) < 0)
+      if (elsign && (int) (element[numints-1] - unsign) < 0)
 
-        element = 0;
+        element[numints-1] = 0;
 
       else
 
-        element = limit;
+        element[numints-1] = limit;
 
     }
 
       /* Make the element signed? */
 
-    element -= unsign;
+    element[numints-1] -= unsign;
 
 
       /* Save the element */
 
     if (elsize == sizeof (int))
 
-      *((unsigned int *) unsigned_char_data) = element;
+      *((unsigned int *) unsigned_char_data) = element[0];
 
     else
 
       if (elsize == sizeof (short))
 
-        *((unsigned short *) unsigned_char_data) = element;
+        *((unsigned short *) unsigned_char_data) = element[0];
 
       else
 
-        *unsigned_char_data = element;
+        if (elsize == sizeof (char))
+            
+          *unsigned_char_data = element[0];
+      
+        else {
+            if (border[0] == 'b') {
+                
+                for (iint = numints; iint; iint--) {
+                    
+                    *((unsigned int *) unsigned_char_data) = element[iint-1];
+                    
+                    unsigned_char_data += sizeof (int);
+                    
+                }
+                
+            } else {
+                
+                for (iint = 0; iint < numints; iint++) {
+                    
+                    *((unsigned int *) unsigned_char_data) = element[iint];
+                    
+                    unsigned_char_data += sizeof (int);
+                }
+                
+            }
+            
+        }
+      
 
     unsigned_char_data += elsize;
   }
