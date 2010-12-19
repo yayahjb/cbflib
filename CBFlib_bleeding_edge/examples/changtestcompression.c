@@ -570,7 +570,7 @@ int main(int argc, char **argv)
   char *fn;
 
   if (argc < 2)
-    fn = "crap.cbf";
+    fn = "CTC.cbf";
   else
     fn = argv[1];
 
