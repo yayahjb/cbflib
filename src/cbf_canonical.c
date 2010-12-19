@@ -443,7 +443,7 @@ int cbf_put_table (cbf_compress_data *data, unsigned int *bitcount)
   cbf_failnez (cbf_put_integer (data->file, data->bits, 0, CBF_TABLEENTRYBITS))
 
   *bitcount = CBF_TABLEENTRYBITS;
-
+    
 
     /* How many symbols do we actually use? */
 
@@ -453,7 +453,6 @@ int cbf_put_table (cbf_compress_data *data, unsigned int *bitcount)
        codes--);
 
   codes++;
-
 
     /* Maximum bits used */
 
@@ -466,6 +465,7 @@ int cbf_put_table (cbf_compress_data *data, unsigned int *bitcount)
     maxbits = data->bits;
 
   cbf_failnez (cbf_put_integer (data->file, maxbits, 0, CBF_TABLEENTRYBITS))
+ 
 
   *bitcount += CBF_TABLEENTRYBITS;
 
@@ -481,7 +481,8 @@ int cbf_put_table (cbf_compress_data *data, unsigned int *bitcount)
     cbf_failnez (cbf_put_integer (data->file,
                                   data->node [count].bitcount, 0,
                                   CBF_TABLEENTRYBITS))
-
+      
+ 
     *bitcount += CBF_TABLEENTRYBITS;
   }
 
@@ -496,7 +497,7 @@ int cbf_put_table (cbf_compress_data *data, unsigned int *bitcount)
 
 int cbf_get_table (cbf_compress_data *data)
 {
-  unsigned int bits, maxbits, endcode, count;
+  unsigned int bits, maxbits, endcode, count, tbits;
 
 
     /* Coded bits */
@@ -510,7 +511,6 @@ int cbf_get_table (cbf_compress_data *data)
   cbf_failnez (cbf_get_integer (data->file, (int *) &maxbits, 0,
                                 CBF_TABLEENTRYBITS))
 
-
     /* Initialise the data */
 
   cbf_failnez (cbf_initialise_compressdata (data, bits, maxbits))
@@ -522,19 +522,28 @@ int cbf_get_table (cbf_compress_data *data)
 
   data->nextnode = endcode + data->maxbits + 1;
 
+    
 
     /* Read the table */
-
-  for (count = 0; count <= endcode + maxbits; count++)
+    
+    tbits = bits;
+    
+  for (count = 0; count <= endcode+maxbits; count++)
   {
+      
+      if (tbits == maxbits && count ==endcode+1) break;
+
     cbf_failnez (cbf_get_integer (data->file, (int *) &bits, 0,
                                   CBF_TABLEENTRYBITS))
-
-    if (count == endcode + 1)
-
-      count = endcode + data->bits + 1;
+      
+      if (count == endcode + 1) {
+          
+        count = endcode + data->bits + 1;
+          
+      }
 
     data->node [count].bitcount = bits;
+    
   }
 
 
@@ -1449,7 +1458,7 @@ int cbf_put_mpint_code (cbf_compress_data *data, int code[5], unsigned int overf
 
 int cbf_count_values (cbf_compress_data *data,
                       void *source, size_t elsize, int elsign, size_t nelem,
-                      int *minelem, int *maxelem, char * border)
+                      int *minelem, int *maxelem, char *border)
 {
   int code[5];
 
@@ -1601,13 +1610,17 @@ int cbf_count_values (cbf_compress_data *data,
 
     if (element[numints-1] > limit) {
 
-      if (elsign && (int) (element[numints-1] - unsign) < 0)
+        if (elsign && (int) (element[numints-1] - unsign) < 0) {
 
-        element[numints-1] = 0;
+            for (iint = 0; iint < numints; iint++) element[iint] = 0;
 
-      else
+        } else {
+            
+           element[numints-1] = limit;
 
-        element[numints-1] = limit;
+           for (iint = 0; iint < numints-1 ; iint++) element[iint] = ~0;
+            
+        }
     }
 
       /* Update the minimum and maximum values */
