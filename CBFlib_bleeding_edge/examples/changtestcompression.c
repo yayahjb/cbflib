@@ -10,9 +10,11 @@
 
 #include "cbf.h"
 
+#ifdef CBF_USE_LONG_LONG
 #ifndef LLONG_MAX
 #define LLONG_MAX (1ll << (sizeof(long long) * CHAR_BIT - 1))
 #define ULLONG_MAX (~0ll)
+#endif
 #endif
 
 #define NSTEPS 5
@@ -30,10 +32,15 @@ double urand()
 #define DATASI 5
 #define DATAUL 6
 #define DATASL 7
+#ifdef CBF_USE_LONG_LONG
 #define DATAULL 8
 #define DATASLL 9
 #define DATAF 10
 #define DATAD 11
+#else
+#define DATAF 8
+#define DATAD 9
+#endif
 
 /*
  * Create images where spots are separated by a uniform distribution of mean
@@ -50,8 +57,10 @@ size_t createtestimage(void **data, int type, int nelem)
   signed int *sidata;
   unsigned long *uldata;
   signed long *sldata;
+#ifdef CBF_USE_LONG_LONG
   unsigned long long *ulldata;
   signed long long *slldata;
+#endif
   float *fdata;
   double *ddata;
 
@@ -131,6 +140,7 @@ size_t createtestimage(void **data, int type, int nelem)
     }
     *data = sldata;
     break;
+#ifdef CBF_USE_LONG_LONG
   case DATAULL: /* unsigned long long */
     ulldata = (unsigned long long *)calloc(nelem, sizeof(long long));
     elsize = sizeof(long long);
@@ -149,6 +159,7 @@ size_t createtestimage(void **data, int type, int nelem)
     }
     *data = slldata;
     break;
+#endif
   case DATAF: /* float */
     fdata = (float *)calloc(nelem, sizeof(float));
     elsize = sizeof(float);
@@ -284,7 +295,11 @@ size_t readtestimage(const char *fn, void **data, size_t *size, int *sign)
             return rsize;
         }
         if (elsize == sizeof(char) || elsize == sizeof(short) ||
-            elsize == sizeof(int) || elsize == sizeof(long) || elsize == sizeof(long long)) {
+            elsize == sizeof(int) || elsize == sizeof(long) 
+#ifdef CBF_USE_LONG_LONG
+            || elsize == sizeof(long long)
+#endif
+            ) {
             void *idata = malloc(elsize * elnum);
             status = cbf_get_integerarray(ch, &id, idata, elsize, els, elnum, &rsize);
             if (status) printf("get_integerarray (%d)\n", status);
@@ -314,8 +329,10 @@ void checkdata(int type, int nelem, void *data, void *idata)
   signed int *sidata, *siidata;
   unsigned long *uldata, *ulidata;
   signed long *sldata, *slidata;
+#ifdef CBF_USE_LONG_LONG
   unsigned long long *ulldata, *ullidata;
   signed long long *slldata, *sllidata;
+#endif
   float *fdata, *fidata;
   double *ddata, *didata;
 
@@ -414,6 +431,7 @@ void checkdata(int type, int nelem, void *data, void *idata)
       i++;
     }
     break;
+#ifdef CBF_USE_LONG_LONG
   case DATAULL: /* unsigned long long */
     ulldata = (unsigned long long *)data;
     ullidata = (unsigned long long *)idata;
@@ -438,6 +456,7 @@ void checkdata(int type, int nelem, void *data, void *idata)
       i++;
     }
     break;
+#endif
   case DATAF: /* float */
     fdata = (float *)data;
     fidata = (float *)idata;
@@ -547,7 +566,10 @@ void testall(const char *fn)
     char * datastr[] = { "unsigned char",
     "signed char", "unsigned short", "signed short",
     "unsigned int", "signed int", "unsigned long",
-    "signed long", "unsigned long long", "signed long long",
+    "signed long", 
+#ifdef CBF_USE_LONG_LONG
+    "unsigned long long", "signed long long",
+#endif
     "float", "double" 
     };
     
