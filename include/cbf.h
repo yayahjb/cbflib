@@ -271,6 +271,10 @@ extern "C" {
 #error cbflib assumes int is at least 32 bits
 #endif
 #endif
+    
+#ifdef LLONG_MAX
+#define  CBF_USE_LONG_LONG 
+#endif
 
 
   /* API version and assumed dictionary version */
@@ -1349,7 +1353,10 @@ int cbf_mpint_rightshift_acc(unsigned int * acc, size_t acsize, int shift);
   /* Shift accumulator left */
 
 int cbf_mpint_leftshift_acc(unsigned int * acc, size_t acsize, int shift);
-
+    
+    /* get accumulator bit length */
+    
+int cbf_mpint_get_acc_bitlength(unsigned int * acc, size_t acsize, size_t * bitlength);
 
   /* Check value of type validity */
   

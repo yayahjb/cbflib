@@ -284,7 +284,9 @@ typedef struct
 
   unsigned int bits;             /* Coded bits                     */
   unsigned int maxbits;          /* Maximum saved bits             */
-  unsigned int endcode;          /* End-of-data code               */
+   
+  unsigned int endcode;          /* End-of-data code 
+                                    endcode = 1 << bits == 2^bits  */
 
   size_t       nodes;            /* Number of nodes                */
   size_t       nextnode;         /* Number of nodes used           */

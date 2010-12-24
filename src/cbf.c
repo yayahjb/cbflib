@@ -8294,6 +8294,82 @@ int cbf_mpint_leftshift_acc(unsigned int * acc, size_t acsize, int shift) {
   return 0;
 
 }
+    
+    /* get accumulator bit length */
+    
+int cbf_mpint_get_acc_bitlength(unsigned int * acc, size_t acsize, size_t * bitlength) {
+    
+    /*  Get the bitlength that would be required to hold the bits
+        of the accumulator as a sign-extended integer */
+        
+    unsigned int sign;
+    
+    unsigned int tbit;
+    
+    size_t bcount, word, boffset;
+    
+    unsigned int testword;
+    
+    sign = 1 << (sizeof(unsigned int)*CHAR_BIT-1);
+    
+    word = acsize - 1;
+    
+    testword = acc[word];
+    
+    if ( word == 0 && testword == 0) {
+        
+        *bitlength = 1;
+        
+        return 0;
+        
+    }    
+    
+    sign &= testword; /* sign bit of acc */
+    
+    tbit = 0;
+    
+    if (sign) tbit = 1;
+    
+    bcount = acsize * sizeof (int) * CHAR_BIT-2;
+    
+    boffset = bcount - (acsize - 1) * sizeof (int) * CHAR_BIT;
+    
+    while ( bcount) {
+        
+        if ( ( (testword >> boffset) & 1) ^ tbit ) break;
+        
+        if (boffset == 0) {
+                        
+            word --;
+            
+            testword = acc[word];
+            
+            if ( word == 0 && testword == 0) {
+                
+                *bitlength = 1;
+                
+                return 0;
+                
+            }
+            
+            
+            boffset = sizeof (int) * CHAR_BIT;
+        }
+        
+        bcount --;
+        
+        boffset --;
+            
+    }
+        
+    *bitlength = bcount + 2;
+    
+    if (bcount > acsize * sizeof (int) * CHAR_BIT -2) *bitlength = acsize * sizeof (int) * CHAR_BIT;
+
+    return 0;
+    
+}
+    
 
   /* Check value of type validity */
   
