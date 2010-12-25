@@ -959,6 +959,7 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
   
   size_t text_dimover;
 
+  size_t size;
 
     /* Check the digest (this will also decode it if necessary) */
 
@@ -986,7 +987,7 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
     /* Parse the value */
 
   cbf_failnez (cbf_get_bintext (column, row, NULL,
-                                id, &file, &start, NULL,
+                                id, &file, &start, &size,
                                  NULL, NULL, &bits, &sign, realarray,
                                  byteorder, &text_dimover, dimfast, dimmid, dimslow, padding,
                                  &compression))
@@ -1012,7 +1013,7 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
 
 
   return cbf_decompress (value, elsize, elsign, nelem, nelem_read,
-                         compression, bits, sign, file, *realarray,
+                         size, compression, bits, sign, file, *realarray,
                          *byteorder, text_dimover, *dimfast, *dimmid, *dimslow, *padding);
 }
 

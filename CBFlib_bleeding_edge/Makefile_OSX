@@ -1072,6 +1072,14 @@ $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2ad
 		  -lcbf $(EXTRALIBS) -o $@
 
 #
+# changtestcompression example program
+#
+$(BIN)/changtestcompression: $(LIB)/libcbf.a $(EXAMPLES)/changtestcompression.c
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+			  $(EXAMPLES)/changtestcompression.c -L$(LIB) \
+		  -lcbf $(EXTRALIBS) -o $@
+
+#
 # img2cif example program
 #
 $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
@@ -1388,6 +1396,7 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcel
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
 	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image $(BIN)/convert_minicbf \
 	$(BIN)/sauter_test $(BIN)/adscimg2cbf $(BIN)/cbf2adscimg \
+    $(BIN)/changtestcompression \
 	basic $(TESTINPUT_EXTRA) $(TESTOUTPUT)
 else
 extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
@@ -1445,6 +1454,7 @@ ifneq ($(F90C),)
 	-$(DIFF) test_fcb_read_testflatpackedout.out test_fcb_read_testflatpackedout_orig.out
 endif
 	$(TIME) $(BIN)/sauter_test
+	$(TIME) $(BIN)/changtestcompression
 
 
 ifneq ($(F90C),)
@@ -1556,6 +1566,7 @@ empty:
 	@-rm -rf  $(BIN)/cbf_template_t*
 	@-rm -rf  $(BIN)/sauter_test*
 	@-rm -rf  $(BIN)/arvai_test*
+	@-rm -rf  $(BIN)/changtestcompression*
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
@@ -1591,6 +1602,7 @@ empty:
 	@-rm -f  testflatout.cbf
 	@-rm -f  testflatpackedin.cbf
 	@-rm -f  testflatpackedout.cbf
+	@-rm -f  CTC.cbf
 	@-rm -f  test_fcb_read_testflatout.out
 	@-rm -f  test_fcb_read_testflatpackedout.out
 	@-rm -f  test_xds_bin_testflatpackedout.out
