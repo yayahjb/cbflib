@@ -1805,11 +1805,11 @@ extern "C" {
                                 size_t * dimmid,
                                 size_t * dimslow) {
         
-        return cbff_get_arraydimensions(cbff_cbf_handle(CBFFhandle),
+        return cbf_get_arraydimensions(cbff_cbf_handle(CBFFhandle),
                                      dimover,
                                      dimfast,
                                      dimmid,
-                                     dimslow) {
+                                     dimslow);
             
     }
     
