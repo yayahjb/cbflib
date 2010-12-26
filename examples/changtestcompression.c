@@ -32,15 +32,10 @@ double urand()
 #define DATASI 5
 #define DATAUL 6
 #define DATASL 7
-#ifdef CBF_USE_LONG_LONG
 #define DATAULL 8
 #define DATASLL 9
 #define DATAF 10
 #define DATAD 11
-#else
-#define DATAF 8
-#define DATAD 9
-#endif
 
 /*
  * Create images where spots are separated by a uniform distribution of mean
@@ -57,10 +52,8 @@ size_t createtestimage(void **data, int type, int nelem)
   signed int *sidata;
   unsigned long *uldata;
   signed long *sldata;
-#ifdef CBF_USE_LONG_LONG
-  unsigned long long *ulldata;
-  signed long long *slldata;
-#endif
+  CBF_ull_type *ulldata;
+  CBF_sll_type *slldata;
   float *fdata;
   double *ddata;
 
@@ -159,6 +152,35 @@ size_t createtestimage(void **data, int type, int nelem)
     }
     *data = slldata;
     break;
+#else
+      case DATAULL: /* unsigned long long as an array */
+          ulldata = (CBF_ull_type *)calloc(nelem, sizeof(CBF_ull_type));
+          elsize = sizeof(CBF_ull_type);
+          while (i < nelem) {
+              ulldata[i].el0 = urand() * INT_MAX;
+              ulldata[i].el1 = urand() * INT_MAX;
+#if CBF_ULL_INTS == 4
+              ulldata[i].el2 = urand() * INT_MAX;
+              ulldata[i].el3 = urand() * INT_MAX;
+#endif
+              i += 1 + urand() * NSTEPS;
+          }
+          *data = ulldata;
+          break;
+      case DATASLL: /* signed long long */
+          slldata = (CBF_sll_type *)calloc(nelem, sizeof(CBF_sll_type));
+          elsize = sizeof(CBF_sll_type);
+          while (i < nelem) {
+              slldata[i].el0 = urand() * INT_MAX;
+              slldata[i].el1 = urand() * INT_MAX;
+#if CBF_ULL_INTS == 4
+              slldata[i].el2 = urand() * INT_MAX;
+              slldata[i].el3 = urand() * INT_MAX;
+#endif
+              i += 1 + urand() * NSTEPS;
+          }
+          *data = slldata;
+          break;          
 #endif
   case DATAF: /* float */
     fdata = (float *)calloc(nelem, sizeof(float));
@@ -298,6 +320,8 @@ size_t readtestimage(const char *fn, void **data, size_t *size, int *sign)
             elsize == sizeof(int) || elsize == sizeof(long) 
 #ifdef CBF_USE_LONG_LONG
             || elsize == sizeof(long long)
+#else
+            || elsize == sizeof(CBF_sll_type)
 #endif
             ) {
             void *idata = malloc(elsize * elnum);
@@ -332,6 +356,9 @@ void checkdata(int type, int nelem, void *data, void *idata)
 #ifdef CBF_USE_LONG_LONG
   unsigned long long *ulldata, *ullidata;
   signed long long *slldata, *sllidata;
+#else
+    CBF_ull_type *ulldata, *ullidata;
+    CBF_sll_type *slldata, *sllidata;    
 #endif
   float *fdata, *fidata;
   double *ddata, *didata;
@@ -449,13 +476,64 @@ void checkdata(int type, int nelem, void *data, void *idata)
     while (i < nelem) {
       if (slldata[i] != sllidata[i]) {
         fprintf(stderr, "SLL element %d did not match (%lld != %lld)\n", i, slldata[i], sllidata[i]);
-        fprintf(stderr, "Previous SLL elements are    (%llx    %llx)\n", slldata[i-1], sllidata[i-1]);
-        fprintf(stderr, "Previous SLL elements are   ~(%llx    %llx)\n", ~slldata[i-1], ~sllidata[i-1]);
         return;
       }
       i++;
     }
     break;
+#else
+      case DATAULL: /* unsigned long long */
+          ulldata = (CBF_ull_type *)data;
+          ullidata = (CBF_ull_type *)idata;
+          while (i < nelem) {
+#if CBF_ULL_INTS == 2
+              if (ulldata[i].el0 != ullidata[i].el0
+                  || ulldata[i].el1 != ullidata[i].el1) {
+                  fprintf(stderr, "ULL element %d did not match (%x %x != %x %x)\n",
+                          i, ulldata[i].el1,ulldata[i].el0,
+                             ullidata[i].el1,ullidata[i].el0);
+                  return;
+              }
+#else
+              if (ulldata[i].el0 != ullidata[i].el0
+                  || ulldata[i].el1 != ullidata[i].el1
+                  || ulldata[i].el2 != ullidata[i].el2
+                  || ulldata[i].el3 != ullidata[i].el3) {
+                  fprintf(stderr, "ULL element %d did not match (%x %x %x %x != %x %x %x %x)\n",
+                          i, ulldata[i].el3,ulldata[i].el2,ulldata[i].el1,ulldata[i].el0,
+                          ullidata[i].el3,ullidata[i].el2,ullidata[i].el1,ullidata[i].el0);
+                  return;
+              }
+#endif
+              i++;
+          }
+          break;
+      case DATASLL: /* signed long long */
+          slldata = (CBF_sll_type *)data;
+          sllidata = (CBF_sll_type *)idata;
+          while (i < nelem) {
+#if CBF_SLL_INTS == 2
+              if (slldata[i].el0 != sllidata[i].el0
+                  || slldata[i].el1 != sllidata[i].el1) {
+                  fprintf(stderr, "SLL element %d did not match (%x %x != %x %x)\n",
+                          i, slldata[i].el1,slldata[i].el0,
+                          sllidata[i].el1,sllidata[i].el0);
+                  return;
+              }
+#else
+              if (slldata[i].el0 != sllidata[i].el0
+                  || slldata[i].el1 != sllidata[i].el1
+                  || slldata[i].el2 != sllidata[i].el2
+                  || slldata[i].el3 != sllidata[i].el3) {
+                  fprintf(stderr, "ULL element %d did not match (%x %x %x %x != %x %x %x %x)\n",
+                          i, ulldata[i].el3,ulldata[i].el2,ulldata[i].el1,ulldata[i].el0,
+                          ullidata[i].el3,ullidata[i].el2,ullidata[i].el1,ullidata[i].el0);
+                  return;
+              }
+#endif
+              i++;
+          }
+          break;          
 #endif
   case DATAF: /* float */
     fdata = (float *)data;
@@ -500,7 +578,7 @@ void testinteger(const char *fn, int rows, int cols, int type, int comp)
     fprintf(stderr, "Could not create test file\n");
     return;
   }
-
+    
   if (readtestimage(fn, &idata, &isize, &isign) != nelem) {
     fprintf(stderr, "Did not read %ld elements\n", (long) nelem);
   }
@@ -569,6 +647,8 @@ void testall(const char *fn)
     "signed long", 
 #ifdef CBF_USE_LONG_LONG
     "unsigned long long", "signed long long",
+#else
+    "CBF_ull_type", "CBF_sll_type",
 #endif
     "float", "double" 
     };
