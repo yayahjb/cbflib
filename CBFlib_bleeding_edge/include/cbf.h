@@ -271,9 +271,42 @@ extern "C" {
 #error cbflib assumes int is at least 32 bits
 #endif
 #endif
-    
-#ifdef LLONG_MAX
-#define  CBF_USE_LONG_LONG 
+   
+#if defined(CBF_DONT_USE_LONG_LONG) || defined(__cplusplus)
+#undef ULLONG_MAX
+#undef CBF_USE_LONG_LONG
+#endif
+
+#if defined(ULLONG_MAX) && defined(LLONG_MAX)
+  #if ULLONG_MAX >= 18446744073709551615U
+    #define  CBF_USE_LONG_LONG
+    typedef long long CBF_sll_type;
+    typedef unsigned long long CBF_ull_type;
+  #else
+    #if UINT_MAX >= 4294967295U
+      typedef struct { unsigned int el0:32;unsigned int el1:32;} CBF_sll_type;
+      typedef struct { unsigned int el0:32;unsigned int el1:32;} CBF_ull_type;
+      #define CBF_SLL_INTS 2
+      #define CBF_ULL_INTS 2
+    #else
+      typedef struct { unsigned int el0:32;unsigned int el1:32;unsigned int el2:32;unsigned int el3:32;} CBF_sll_type;
+      typedef struct { unsigned int el0:32;unsigned int el1:32;unsigned int el2:32;unsigned int el3:32;} CBF_ull_type;
+      #define CBF_SLL_INTS 4
+      #define CBF_ULL_INTS 4
+    #endif
+  #endif
+#else
+  #if UINT_MAX >= 4294967295U
+    typedef struct { unsigned int el0:32;unsigned int el1:32;} CBF_sll_type;
+    typedef struct { unsigned int el0:32;unsigned int el1:32;} CBF_ull_type;
+    #define CBF_SLL_INTS 2
+    #define CBF_ULL_INTS 2
+  #else
+    typedef struct { unsigned int el0:32;unsigned int el1:32;unsigned int el2:32;unsigned int el3:32;} CBF_sll_type;
+    typedef struct { unsigned int el0:32;unsigned int el1:32;unsigned int el2:32;unsigned int el3:32;} CBF_ull_type;
+    #define CBF_SLL_INTS 4
+    #define CBF_ULL_INTS 4
+  #endif
 #endif
 
 

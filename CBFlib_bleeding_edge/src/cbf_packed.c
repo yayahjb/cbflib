@@ -1457,7 +1457,7 @@ int cbf_decompress_packed (void         *destination,
 {
   unsigned int next, pixel=0, pixelcount;
 
-  unsigned int bits, ibits, iint, element[4], sign, unsign, limit, count;
+  unsigned int bits, iint, element[4], sign, unsign, limit, count;
 
   unsigned char *unsigned_char_data;
 
