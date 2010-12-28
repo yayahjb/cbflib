@@ -927,8 +927,8 @@ endif
 
 $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
-	mv *.o $(SOLIB)
-	$(CC) -o $@ $(SOLIB)/*.o $(SOLDFLAGS) $(EXTRALIBS)
+	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS)
+	rm *.o
 
 #
 # IMG library
@@ -1020,9 +1020,9 @@ $(JCBF)/cbflib-$(VERSION).jar: $(JCBF) $(JCBF)/jcbf.i
 	$(JAVAC) -d . $(JCBF)/*.java
 	$(JAR) cf $@ org
 
-$(SOLIB)/libjcbf.so: $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
+$(SOLIB)/libcbf_wrap.so: $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
 	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(JCBF)/jcbf_wrap.c
-	$(CC) -o $@ jcbf_wrap.o $(SOLIB)/*.o $(SOLDFLAGS) $(EXTRALIBS)
+	$(CC) -o $@ jcbf_wrap.o $(SOLDFLAGS) -L$(SOLIB) -lcbf
 	rm jcbf_wrap.o
 
 #
@@ -1224,7 +1224,7 @@ $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
 #
 # testcbf (Java)
 #
-$(BIN)/testcbf.class: $(EXAMPLES)/testcbf.java $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
+$(BIN)/testcbf.class: $(EXAMPLES)/testcbf.java $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
 	$(JAVAC) -cp $(JCBF)/cbflib-$(VERSION).jar -d $(BIN) $(EXAMPLES)/testcbf.java
 
 
@@ -1653,11 +1653,12 @@ empty:
 	@-rm -f  symlinksdone
 	@-rm -f  $(TESTOUTPUT) *$(SEXT)
 	@-rm -f  $(SOLIB)/*.o
-	@-rm -f  $(SOLIB)/libcbf.so
 	@-rm -f  $(SOLIB)/libcbf_wrap.so
+	@-rm -f  $(SOLIB)/libjcbf.so
 	@-rm -f  $(SOLIB)/libimg.so
 	@-rm -f  $(SOLIB)/libfcb.so
-	@-rm -rf $(JCBF) org
+	@-rm -rf $(JCBF)/org
+	@-rm -r $(JCBF)/*.java
 	@-rm -f  $(SRC)/cbf_wrap.c 
 	@-rm -f  $(BIN)/ctestcbf $(BIN)/testcbf.class testcbfc.txt testcbfj.txt
 	./.undosymlinks
