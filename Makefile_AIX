@@ -269,6 +269,7 @@ PLY = ply-3.2
 # Definition to get a version of tifflib to support tiff2cbf
 #
 TIFF = tiff-3.9.4-rev-27Dec10
+TIFFPREFIX = $(HOME)
 
 
 #
@@ -435,6 +436,7 @@ DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
 PYCIFRWURL	= http://downloads.sf.net/cbflib/$(PYCIFRW).tar.gz
 PLYURL		= http://www.dabeaz.com/ply/$(PLY).tar.gz
 REGEXURL	= http://downloads.sf.net/cbflib/regex-20090805.tar.gz
+TIFFURL		= http://downloads.sf.net/cbflib/tiff-3.9.4-rev-27Dec10.tar.gz
 
 
 #
@@ -869,7 +871,7 @@ $(TIFF):
 	$(DOWNLOAD) $(TIFFURL)
 	tar -xvf $(TIFF).tar.gz
 	-rm $(TIFF).tar.gz
-	(cd $(TIFF); ./configure; make install)
+	(cd $(TIFF); ./configure --prefix=$(TIFFPREFIX); make install)
     
 
 #
@@ -1163,8 +1165,8 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 					$(GOPTLIB)	$(GOPTINC) $(TIFF)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf $(EXTRALIBS) -limg -o $@
+			  -I$(TIFFPREFIX)/include $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
+		  -lcbf -L$(TIFFPREFIX)/lib -ltiff $(EXTRALIBS) -limg -o $@
 
 #
 # Andy Arvais buffered read test program
