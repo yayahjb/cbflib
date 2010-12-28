@@ -1097,10 +1097,10 @@ $(REGEX):
 # TIFF
 #
 $(TIFF):
-    $(DOWNLOAD) $(TIFFURL)
-    tar -xvf $(TIFF).tar.gz
-    -rm $(TIFF).tar.gz
-    (cd $(TIFF); ./configure; make install)
+	$(DOWNLOAD) $(TIFFURL)
+	tar -xvf $(TIFF).tar.gz
+	-rm $(TIFF).tar.gz
+	(cd $(TIFF); ./configure; make install)
     
 
 #

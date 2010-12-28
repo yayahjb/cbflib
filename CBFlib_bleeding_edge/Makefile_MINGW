@@ -266,6 +266,12 @@ PYCIFRW = PyCifRW-3.3_6Dec09
 PLY = ply-3.2
 
 #
+# Definition to get a version of tifflib to support tiff2cbf
+#
+TIFF = tiff-3.9.4-rev-27Dec10
+
+
+#
 # Definitions to get a stable version of regex
 #
 REGEX = regex-20090805
@@ -413,6 +419,7 @@ endif
 ROOT     = .
 LIB      = $(ROOT)/lib
 SOLIB    = $(ROOT)/solib
+JCBF     = $(ROOT)/jcbf
 JAVADIR  = $(ROOT)/java
 BIN      = $(ROOT)/bin
 SRC      = $(ROOT)/src
@@ -867,6 +874,17 @@ $(REGEX):
 	$(DOWNLOAD) $(REGEXURL)
 	tar -xvf $(REGEX).tar.gz
 	-rm $(REGEX).tar.gz
+    
+
+#
+# TIFF
+#
+$(TIFF):
+	$(DOWNLOAD) $(TIFFURL)
+	tar -xvf $(TIFF).tar.gz
+	-rm $(TIFF).tar.gz
+	(cd $(TIFF); ./configure; make install)
+    
 
 #
 # Directories
@@ -898,6 +916,9 @@ $(SOLIB):
 	mkdir $@
 
 $(JAVADIR):
+	mkdir $@
+
+$(JCBF):
 	mkdir $@
 
 #
@@ -1009,15 +1030,15 @@ $(PYCBF)/cbfgoniometerwrappers.i:  $(PYCBF)/CBFlib.txt $(PYCBF)/make_pycbf.py
 #
 # Java bindings
 #
-$(JAVADIR)/cbflib-$(VERSION).jar: $(SRC)/cbf.i $(JAVADIR)
-	$(JSWIG) -I$(INCLUDE) -package org.iucr.cbflib -outdir $(JAVADIR) $(SRC)/cbf.i
-	$(JAVAC) -d . $(JAVADIR)/*.java
+$(JCBF)/cbflib-$(VERSION).jar: $(JCBF) $(JCBF)/jcbf.i
+	$(JSWIG) -I$(INCLUDE) -package org.iucr.cbflib -outdir $(JCBF) $(JCBF)/jcbf.i
+	$(JAVAC) -d . $(JCBF)/*.java
 	$(JAR) cf $@ org
 
-$(SOLIB)/libcbf_wrap.so: $(JAVADIR)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(SRC)/cbf_wrap.c
-	$(CC) -o $@ cbf_wrap.o $(SOLIB)/*.o $(SOLDFLAGS) $(EXTRALIBS)
-	rm cbf_wrap.o
+$(SOLIB)/libjcbf.so: $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
+	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(JCBF)/jcbf_wrap.c
+	$(CC) -o $@ jcbf_wrap.o $(SOLIB)/*.o $(SOLDFLAGS) $(EXTRALIBS)
+	rm jcbf_wrap.o
 
 #
 # F90SOURCE
@@ -1148,6 +1169,15 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 					$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
+		  -lcbf $(EXTRALIBS) -limg -o $@
+
+#
+# tiff2cbf example program
+#
+$(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
+					$(GOPTLIB)	$(GOPTINC) $(TIFF)
+	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+			  $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -limg -o $@
 
 #
