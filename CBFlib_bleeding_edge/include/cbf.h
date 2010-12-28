@@ -270,6 +270,10 @@ extern "C" {
 #if UINT_MAX / 65535U < 65535U
 #error cbflib assumes int is at least 32 bits
 #endif
+#else
+    #define CBF_USE_LONG_LONG
+    typedef long long CBF_sll_type;
+    typedef unsigned long long CBF_ull_type;
 #endif
    
 #if defined(CBF_DONT_USE_LONG_LONG) || defined(__cplusplus)
@@ -277,6 +281,7 @@ extern "C" {
 #undef CBF_USE_LONG_LONG
 #endif
 
+#ifndef SWIG
 #if defined(ULLONG_MAX) && defined(LLONG_MAX)
   #if ULLONG_MAX >= 18446744073709551615U
     #define  CBF_USE_LONG_LONG
@@ -308,7 +313,7 @@ extern "C" {
     #define CBF_ULL_INTS 4
   #endif
 #endif
-
+#endif
 
   /* API version and assumed dictionary version */
   

@@ -1665,7 +1665,8 @@ empty:
 	@-rm -f  $(SOLIB)/libimg.so
 	@-rm -f  $(SOLIB)/libfcb.so
 	@-rm -rf $(JCBF)/org
-	@-rm -r $(JCBF)/*.java
+	@-rm -f $(JCBF)/*.java
+	@-rm -f $(JCBF)/jcbf_wrap.c
 	@-rm -f  $(SRC)/cbf_wrap.c 
 	@-rm -f  $(BIN)/ctestcbf $(BIN)/testcbf.class testcbfc.txt testcbfj.txt
 	./.undosymlinks
