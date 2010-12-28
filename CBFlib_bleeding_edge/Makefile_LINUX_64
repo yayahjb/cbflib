@@ -703,7 +703,7 @@ endif
 
 shared:	$(SOLIB)/libcbf.so $(SOLIB)/libfcb.so $(SOLIB)/libimg.so
 
-javawrapper: shared $(JAVADIR) $(JAVADIR)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
+javawrapper: shared $(JCBF) $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
 
 Makefiles: Makefile			 \
 		Makefile_LINUX           \
@@ -907,9 +907,6 @@ $(BIN):
 	mkdir $@
 
 $(SOLIB):
-	mkdir $@
-
-$(JAVADIR):
 	mkdir $@
 
 $(JCBF):
@@ -1233,8 +1230,8 @@ $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
 #
 # testcbf (Java)
 #
-$(BIN)/testcbf.class: $(EXAMPLES)/testcbf.java $(JAVADIR)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
-	$(JAVAC) -cp $(JAVADIR)/cbflib-$(VERSION).jar -d $(BIN) $(EXAMPLES)/testcbf.java
+$(BIN)/testcbf.class: $(EXAMPLES)/testcbf.java $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
+	$(JAVAC) -cp $(JCBF)/cbflib-$(VERSION).jar -d $(BIN) $(EXAMPLES)/testcbf.java
 
 
 #
@@ -1566,7 +1563,7 @@ pycbftests:  $(PYCBF)/_pycbf.so
 
 javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/libcbf_wrap.so
 	$(BIN)/ctestcbf > testcbfc.txt
-	$(LDPREFIX) java -cp $(JAVADIR)/cbflib-$(VERSION).jar:$(BIN) testcbf > testcbfj.txt
+	$(LDPREFIX) java -cp $(JCBF)/cbflib-$(VERSION).jar:$(BIN) testcbf > testcbfj.txt
 	$(DIFF) testcbfc.txt testcbfj.txt
 
 dectristests: $(BIN)/cbf_template_t $(DECTRIS_EXAMPLES)/cbf_test_orig.out
@@ -1666,7 +1663,7 @@ empty:
 	@-rm -f  $(SOLIB)/libcbf_wrap.so
 	@-rm -f  $(SOLIB)/libimg.so
 	@-rm -f  $(SOLIB)/libfcb.so
-	@-rm -rf $(JAVADIR) org
+	@-rm -rf $(JCBF) org
 	@-rm -f  $(SRC)/cbf_wrap.c 
 	@-rm -f  $(BIN)/ctestcbf $(BIN)/testcbf.class testcbfc.txt testcbfj.txt
 	./.undosymlinks
