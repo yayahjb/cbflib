@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.0 21 Feb 2010                                          #
+# Version 0.9.0 19 Jan 2011                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -260,12 +260,6 @@ CLEANTESTS = yes
 
 
 #
-# Definitions to get versions of PyCifRW and PLY
-#
-PYCIFRW = PyCifRW-3.3_6Dec09
-PLY = ply-3.2
-
-#
 # Definition to get a version of tifflib to support tiff2cbf
 #
 TIFF = tiff-3.9.4-rev-27Dec10
@@ -439,8 +433,6 @@ DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
 #
 # URLs from which to retrieve needed external package snapshots
 #
-PYCIFRWURL	= http://downloads.sf.net/cbflib/$(PYCIFRW).tar.gz
-PLYURL		= http://www.dabeaz.com/ply/$(PLY).tar.gz
 REGEXURL	= http://downloads.sf.net/cbflib/regex-20090805.tar.gz
 TIFFURL		= http://downloads.sf.net/cbflib/tiff-3.9.4-rev-27Dec10.tar.gz
 
@@ -503,11 +495,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 			$(SRC)/cbf_write_binary.c  \
 			$(SRC)/cbf_ws.c            \
 			$(SRC)/md5c.c
-			
-PYSOURCE  = $(SRC)/drel_lex.py		   \
-			$(SRC)/drel_yacc.py		   \
-			$(SRC)/drelc.py \
-			$(SRC)/drel_prep.py
+
 
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 			$(SRC)/fcb_ci_strncmparr.f90 \
@@ -675,7 +663,8 @@ default:
 #
 # Compile the library and examples
 #
-all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(PYCIFRW) $(PLY) symlinksdone $(REGEXDEP) \
+all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
+		symlinksdone $(REGEXDEP) \
 		$(LIB)/libcbf.a          \
 		$(LIB)/libfcb.a          \
 		$(LIB)/libimg.a          \
@@ -705,6 +694,12 @@ shared:	$(SOLIB)/libcbf.so $(SOLIB)/libfcb.so $(SOLIB)/libimg.so
 
 javawrapper: shared $(JCBF) $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
 
+ifneq ($(CBFLIB_USE_PYCIFRW),)
+PYCIFRWDEF = -Dcbf_use_pycifrw=yes
+else
+PYCIFRWDEF =
+endif
+
 Makefiles: Makefile			 \
 		Makefile_LINUX           \
 		Makefile_LINUX_64        \
@@ -718,53 +713,54 @@ Makefiles: Makefile			 \
 		Makefile_MINGW           \
 		Makefile_IRIX_gcc
 
+
 Makefile_LINUX: $(M4)/Makefile.m4
 		-cp Makefile_LINUX Makefile_LINUX_old
-		m4 -P -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
 
 Makefile_LINUX_DMALLOC: $(M4)/Makefile.m4
 		-cp Makefile_LINUX Makefile_LINUX_old
-		m4 -P -Dcbf_system=LINUX_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_DMALLOC
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_DMALLOC
 
 Makefile_LINUX_64: $(M4)/Makefile.m4
 		-cp Makefile_LINUX_64 Makefile_LINUX_64_old
-		m4 -P -Dcbf_system=LINUX_64 $(M4)/Makefile.m4 > Makefile_LINUX_64
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_64 $(M4)/Makefile.m4 > Makefile_LINUX_64
 
 Makefile_LINUX_gcc42: $(M4)/Makefile.m4
 		-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
-		m4 -P -Dcbf_system=LINUX_gcc42 $(M4)/Makefile.m4 > Makefile_LINUX_gcc42 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42 $(M4)/Makefile.m4 > Makefile_LINUX_gcc42 
 
 Makefile_LINUX_gcc42_DMALLOC: $(M4)/Makefile.m4
 		-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
-		m4 -P -Dcbf_system=LINUX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_gcc42_DMALLOC 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_gcc42_DMALLOC 
 
 Makefile_OSX: $(M4)/Makefile.m4
 		-cp Makefile_OSX Makefile_OSX_old
-		m4 -P -Dcbf_system=OSX $(M4)/Makefile.m4 > Makefile_OSX 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX $(M4)/Makefile.m4 > Makefile_OSX 
 
 Makefile_OSX_gcc42: $(M4)/Makefile.m4
 		-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
-		m4 -P -Dcbf_system=OSX_gcc42 $(M4)/Makefile.m4 > Makefile_OSX_gcc42 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42 $(M4)/Makefile.m4 > Makefile_OSX_gcc42 
 
 Makefile_OSX_gcc42_DMALLOC: $(M4)/Makefile.m4
 		-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
-		m4 -P -Dcbf_system=OSX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_OSX_gcc42_DMALLOC
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_OSX_gcc42_DMALLOC
 
 Makefile_AIX: $(M4)/Makefile.m4
 		-cp Makefile_AIX Makefile_AIX_old
-		m4 -P -Dcbf_system=AIX $(M4)/Makefile.m4 > Makefile_AIX 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=AIX $(M4)/Makefile.m4 > Makefile_AIX 
 
 Makefile_MINGW: $(M4)/Makefile.m4
 		-cp Makefile_MINGW Makefile_MINGW_old
-		m4 -P -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW 
 
 Makefile_IRIX_gcc: $(M4)/Makefile.m4
 		-cp Makefile_IRIX_gcc Makefile_IRIX_gcc_old
-		m4 -P -Dcbf_system=IRIX_gcc $(M4)/Makefile.m4 > Makefile_IRIX_gcc
+		m4 -P $(PYCIFREDEF) -Dcbf_system=IRIX_gcc $(M4)/Makefile.m4 > Makefile_IRIX_gcc
 		
 Makefile: $(M4)/Makefile.m4
 		-cp Makefile Makefile_old
-		m4 -P -Dcbf_system=default $(M4)/Makefile.m4 > Makefile 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=default $(M4)/Makefile.m4 > Makefile 
 
 symlinksdone:
 	chmod a+x .symlinks
@@ -811,10 +807,6 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
 		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
-		cp $(SRC)/drel_lex.py $(INSTALLDIR)/bin/drel_lex.py
-		cp $(SRC)/drel_yacc.py $(INSTALLDIR)/bin/drel_yacc.py
-		cp $(SRC)/drelc.py $(INSTALLDIR)/bin/drelc.py
-		cp $(SRC)/drel_prep.py $(INSTALLDIR)/bin/drel_prep.py
 		chmod -R 755 $(INSTALLDIR)/include/cbflib
 		-rm -rf $(INSTALLDIR)/include/cbflib_old
 		-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
@@ -834,25 +826,6 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		chmod 755 $(INSTALLDIR)/bin/testflatpacked
 		chmod 644 $(INSTALLDIR)/include/cbflib/*.h
 		
-
-#
-# PyCifRW
-#
-$(PYCIFRW):
-	$(DOWNLOAD) $(PYCIFRWURL)
-	tar -xvf $(PYCIFRW).tar.gz
-	-rm $(PYCIFRW).tar.gz
-	(cd $(PYCIFRW); python setup.py install )
-
-#
-# PLY
-#
-$(PLY):
-	$(DOWNLOAD) $(PLYURL)
-	tar -xvf $(PLY).tar.gz
-	-rm $(PLY).tar.gz
-	(cd $(PLY); python setup.py install )
-
 
 #
 # REGEX
