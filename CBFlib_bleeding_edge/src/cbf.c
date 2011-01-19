@@ -7081,13 +7081,15 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	     
     int goodmatch;
 
-	int nullvalue;
-	
-	int generated;
-							
-	FILE *fout;
+    int nullvalue;
+    
+    int generated;
+    						
+#ifdef CBF_USE_PYCIFRW
+    FILE *fout;
 
-	char output[255];
+    char output[255];
+#endif
     
     long ltest;
 
@@ -7099,9 +7101,9 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                    
     char * colonpos;
 
-	char * callpos;
-	
-	char functionname[255];
+    char * callpos;
+    
+    char functionname[255];
     
     long symop, xlate;
     
@@ -7452,208 +7454,212 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                cbf_failnez( cbf_get_value(handle->dictionary, &expression))
 
      	                if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
-	
-    	                	if (expression!=NULL) {
-						
-							cbf_failnez(cbf_find_parent (&dbp, handle->node, CBF_DATABLOCK))
-								
-							cbf_drel(handle, handle->dictionary, mainitemname, 	dbp->name, expression);
-							
-							fout = fopen("method_output", "r");
-						
-							fscanf(fout, "%s", output);
-	
-							fclose(fout);
-							
-							sprintf(buffer, "%s value missing - CBFlib generated value: %s", mainitemname, output);
-							
-							cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
-							
-							valuestring = output;
-							
-							tokentype = CBF_VALUE;
-							
-							generated = 1;
-					
-							}
-						
-							break;
-							
-						}
 
-					  }
-				
-					}
+#ifdef CBF_USE_PYCIFRW 
+                if (expression!=NULL) {
+                        
+                    cbf_failnez(cbf_find_parent (&dbp, handle->node, CBF_DATABLOCK))
+                                
+                    cbf_drel(handle, handle->dictionary, mainitemname,     dbp->name, expression);
+                            
+                    fout = fopen("method_output", "r");
+                        
+                    fscanf(fout, "%s", output);
+    
+                    fclose(fout);
+                            
+                    sprintf(buffer, "%s value missing - CBFlib generated value: %s", mainitemname, output);
+                            
+                    cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                            
+                    valuestring = output;
+                            
+                    tokentype = CBF_VALUE;
+                            
+                    generated = 1;
+                    
+                }
+                
+#endif        
+                break;
+                            
+            }
 
-				}
+        }
+                
+    }
 
-     			else {
-						/*
-						
-						We come here to check if there is a given method in the dictionary
-						
-						to validate our given value against it
-						
-						*/
-						int nextrow; 
-				
-						const char *nextitem;
-				
-		 				char mainitemname[81];
-					
-						/* TODO: replace the use of preprocessing script with cbf_set_columname()
-						
-						char columnname[81];	
-						
-						char* columnnametemp;
-						
-						char columnnamelocal[81];
-						
-						*/
-						mainitemname[80] = '\0';
-					  
-				    	cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
-    	     
-    	            	strncpy(mainitemname, itemname, 80);
-					
-						if(!cbf_find_tag(handle->dictionary, "_items.method_expression")) {
-				
-						while ( nextrow >=0 ) {
-    	              
-    	                cbf_failnez( cbf_find_column (handle->dictionary, "name"))
-    	                
-    	                cbf_failnez( cbf_select_row (handle->dictionary, nextrow))
-    	                
-    	                cbf_failnez( cbf_get_value (handle->dictionary, &nextitem))
-    	                
-    	                cbf_failnez( cbf_find_column (handle->dictionary, "method_expression"))
-    	                
-    	                cbf_failnez( cbf_get_value(handle->dictionary, &expression))
+ }
 
-     	                if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
-    	                
-							if (expression!=NULL){
-								/*
-							
-								cbf_falinez(cbf_column_name(handle, &columnnametemp))
-								
-								strcpy(columnnametemp, columnname);
-								
-								fprintf(stderr, "Column Name Temp: %s", columnnametemp);
-								
-								strcpy(columnnamelocal, columnname);
-								
-								strcat(columnnamelocal, "_local");
-								
-								fprintf(stderr, "Column Name Local: %s", columnnamelocal);
-								
-								*/
-						
-								cbf_failnez(cbf_find_parent (&dbp, handle->node, CBF_DATABLOCK))
-	
-								/*
-							
-								cbf_failnez(cbf_set_columnname(handle, columnnamelocal))
-								
-								*/
-						
-							cbf_drel(handle, handle->dictionary, mainitemname, 	dbp->name, expression);
-							
-								/*cbf_falinez(cbf_set_columnname(handle, columnname))*/
-								
-							
-							fout = fopen("method_output", "r");
+                 else {
+                        /*
+                        
+                        We come here to check if there is a given method in the dictionary
+                        
+                        to validate our given value against it
+                        
+                        */
+                        int nextrow; 
+                
+                        const char *nextitem;
+                
+                         char mainitemname[81];
+                    
+                        /* TODO: replace the use of preprocessing script with cbf_set_columname()
+                        
+                        char columnname[81];    
+                        
+                        char* columnnametemp;
+                        
+                        char columnnamelocal[81];
+                        
+                        */
+                        mainitemname[80] = '\0';
+                      
+                        cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
+             
+                        strncpy(mainitemname, itemname, 80);
+                    
+                        if(!cbf_find_tag(handle->dictionary, "_items.method_expression")) {
+                
+                        while ( nextrow >=0 ) {
+                      
+                        cbf_failnez( cbf_find_column (handle->dictionary, "name"))
+                        
+                        cbf_failnez( cbf_select_row (handle->dictionary, nextrow))
+                        
+                        cbf_failnez( cbf_get_value (handle->dictionary, &nextitem))
+                        
+                        cbf_failnez( cbf_find_column (handle->dictionary, "method_expression"))
+                        
+                        cbf_failnez( cbf_get_value(handle->dictionary, &expression))
+
+                        if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
+                        
+#ifdef CBF_USE_PYCIFRW
+                        if (expression!=NULL){
+                            /*
+                            
+                            cbf_falinez(cbf_column_name(handle, &columnnametemp))
+                                
+                            strcpy(columnnametemp, columnname);
+                                
+                            fprintf(stderr, "Column Name Temp: %s", columnnametemp);
+                                
+                            strcpy(columnnamelocal, columnname);
+                                
+                            strcat(columnnamelocal, "_local");
+                                
+                            fprintf(stderr, "Column Name Local: %s", columnnamelocal);
+                                
+                            */
+                        
+                            cbf_failnez(cbf_find_parent (&dbp, handle->node, CBF_DATABLOCK))
+    
+                            /*
+                            
+                            cbf_failnez(cbf_set_columnname(handle, columnnamelocal))
+                                
+                            */
+                        
+                            cbf_drel(handle, handle->dictionary, mainitemname,     dbp->name, expression);
+                            
+                            /*cbf_falinez(cbf_set_columnname(handle, columnname))*/
+                                
+                            
+                            fout = fopen("method_output", "r");
                                 
                             if (fout) {
-						
-							fscanf(fout, "%s", output);
-	
-							fclose(fout);
-							
-							if (cbf_cistrcmp(valuestring,output)) {
-							
-								sprintf(buffer, "%s value provided conflicts with generated value. CBFlib generated value %s: ", mainitemname, output);
-							
-								cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
-						
-							}	
+                        
+                                fscanf(fout, "%s", output);
+    
+                                fclose(fout);
                             
-                            }
-						
-					 	    }
-							break;
-						
-						}
-					  
-					 }
-				
-					}
-				
-				}
-				
-    	        if (!goodmatch)   {
+                                if (cbf_cistrcmp(valuestring,output)) {
+                            
+                                    sprintf(buffer, "%s value provided conflicts with generated value. CBFlib generated value %s: ", mainitemname, output);
+                            
+                                    cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
+              
+                                }    
+                            
+                            }   
+                   
+                       }
+#endif
+                    break;
+                        
+                }
+                      
+             }
+                
+         }
+                
+     }
+                
+                if (!goodmatch)   {
 
-    	          sprintf(buffer," %s type conflicts with dictionary type %s", itemname, dictype );
+                  sprintf(buffer," %s type conflicts with dictionary type %s", itemname, dictype );
 
-    	          cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
-    	       
-    	        } else {
-					
-    	          if (tokentype != CBF_TOKEN_NULL
-    	            && !cbf_find_tag(handle->dictionary,"_items_enumerations.name")) {
-				
-    	            if (!cbf_find_hashedvalue(handle->dictionary,itemname,"name", CBF_CASE_INSENSITIVE)) {
-    	            
-    	              int nextrow, valok, numb;
-    	              
-    	              double doubleval=0.0;
-    	              
-    	              const char *nextitem, *enumvalue, *enumvaluetype;
-    	              
-    	              char * endptr;
-    	              
-    	    		  cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
-    	              
-    	              valok = numb = 0;
-					
-    	              if ( cbf_cistrncmp(dictype,"numb",4)
-    	        	    || cbf_cistrncmp(dictype,"int",3)
-    	        	    || cbf_cistrncmp(dictype,"floa",4)
-						|| cbf_cistrncmp(dictype,"real",4)) {
-    	        	    
-    	        	    numb = 1;
-    	        	    
-    	        	    doubleval = strtod(valuestring, &endptr);
-    	        	  }
+                  cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
+               
+                } else {
+                    
+                  if (tokentype != CBF_TOKEN_NULL
+                    && !cbf_find_tag(handle->dictionary,"_items_enumerations.name")) {
+                
+                    if (!cbf_find_hashedvalue(handle->dictionary,itemname,"name", CBF_CASE_INSENSITIVE)) {
+                    
+                      int nextrow, valok, numb;
+                      
+                      double doubleval=0.0;
+                      
+                      const char *nextitem, *enumvalue, *enumvaluetype;
+                      
+                      char * endptr;
+                      
+                      cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
+                      
+                      valok = numb = 0;
+                    
+                      if ( cbf_cistrncmp(dictype,"numb",4)
+                        || cbf_cistrncmp(dictype,"int",3)
+                        || cbf_cistrncmp(dictype,"floa",4)
+                        || cbf_cistrncmp(dictype,"real",4)) {
+                        
+                        numb = 1;
+                        
+                        doubleval = strtod(valuestring, &endptr);
+                      }
 
-					
-    	              while ( nextrow >=0 ) {
-    	              
-    	                cbf_failnez( cbf_find_column (handle->dictionary, "name"))
-    	                
-    	                cbf_failnez( cbf_select_row (handle->dictionary, nextrow))
-    	                
-    	                cbf_failnez( cbf_get_value (handle->dictionary, &nextitem))
-    	                
-    	                cbf_failnez( cbf_find_column (handle->dictionary, "name(hash_next)"))
-    	                
-    	                cbf_failnez( cbf_get_integervalue(handle->dictionary, &nextrow))
+                    
+                      while ( nextrow >=0 ) {
+                      
+                        cbf_failnez( cbf_find_column (handle->dictionary, "name"))
+                        
+                        cbf_failnez( cbf_select_row (handle->dictionary, nextrow))
+                        
+                        cbf_failnez( cbf_get_value (handle->dictionary, &nextitem))
+                        
+                        cbf_failnez( cbf_find_column (handle->dictionary, "name(hash_next)"))
+                        
+                        cbf_failnez( cbf_get_integervalue(handle->dictionary, &nextrow))
 
-     	                if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
-    	                
-    	                  cbf_failnez( cbf_find_column (handle->dictionary, "value_type"))
-    	                  
-    	                  cbf_failnez( cbf_get_value (handle->dictionary, &enumvaluetype))
-    	                  
-    	                  cbf_failnez( cbf_find_column (handle->dictionary, "value"))
-    	                  
-    	                  cbf_failnez( cbf_get_value (handle->dictionary, &enumvalue))
-    	                  
-    	                  if (!cbf_cistrcmp(enumvaluetype,"value")) {
-    	                  
-    	                    if (!strcmp(enumvalue,valuestring) 
-    	                      || (numb && doubleval == strtod(enumvalue, &endptr))) {
-    	                    
+                         if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
+                        
+                          cbf_failnez( cbf_find_column (handle->dictionary, "value_type"))
+                          
+                          cbf_failnez( cbf_get_value (handle->dictionary, &enumvaluetype))
+                          
+                          cbf_failnez( cbf_find_column (handle->dictionary, "value"))
+                          
+                          cbf_failnez( cbf_get_value (handle->dictionary, &enumvalue))
+                          
+                          if (!cbf_cistrcmp(enumvaluetype,"value")) {
+                          
+                            if (!strcmp(enumvalue,valuestring) 
+                              || (numb && doubleval == strtod(enumvalue, &endptr))) {
+                            
     	                      valok = 1;
     	                      
     	                      break;
@@ -8534,6 +8540,7 @@ int cbf_match(const char *string, char *pattern) {
 	return 0;
 }
 
+#ifdef CBF_USE_PYCIFRW
 /* Interpreter for dREL method expression */
 
 int cbf_drel(cbf_handle handle, cbf_handle dict, const char *mainitemname, const char *datablock, const char *expression) {
@@ -8585,7 +8592,7 @@ int cbf_drel(cbf_handle handle, cbf_handle dict, const char *mainitemname, const
 	return 0;
 
 }
-
+#endif
 
 /* Construct functions dictionary */
 

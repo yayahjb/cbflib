@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.0')m4_dnl
-m4_define(`cbf_date',`21 Feb 2010')m4_dnl
+m4_define(`cbf_date',`19 Jan 2011')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -9,7 +9,7 @@ m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 - 2007 Herbert J. Bernstein                     #
+# (C) Copyright 2006 - 2011 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
@@ -260,13 +260,15 @@ VERSION = 'cbf_version`
 #
 CLEANTESTS = yes
 
-
+'m4_ifelse(cbf_use_pycifrw,`yes',`
 #
 # Definitions to get versions of PyCifRW and PLY
 #
 PYCIFRW = PyCifRW-3.3_6Dec09
 PLY = ply-3.2
-
+PYCIFRWFLAG = -DCBF_USE_PYCIFRW
+')m4_dnl
+`
 #
 # Definition to get a version of tifflib to support tiff2cbf
 #
@@ -664,9 +666,11 @@ DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
 #
 # URLs from which to retrieve needed external package snapshots
 #
+'m4_ifelse(cbf_use_pycifrw,`yes',`
 PYCIFRWURL	= http://downloads.sf.net/cbflib/$(PYCIFRW).tar.gz
 PLYURL		= http://www.dabeaz.com/ply/$(PLY).tar.gz
-REGEXURL	= http://downloads.sf.net/cbflib/regex-20090805.tar.gz
+')m4_dnl
+`REGEXURL	= http://downloads.sf.net/cbflib/regex-20090805.tar.gz
 TIFFURL		= http://downloads.sf.net/cbflib/tiff-3.9.4-rev-27Dec10.tar.gz
 
 
@@ -728,12 +732,14 @@ SOURCE   =  $(SRC)/cbf.c               \
 			$(SRC)/cbf_write_binary.c  \
 			$(SRC)/cbf_ws.c            \
 			$(SRC)/md5c.c
-			
+
+'m4_ifelse(cbf_use_pycifrw,`yes',`			
 PYSOURCE  = $(SRC)/drel_lex.py		   \
 			$(SRC)/drel_yacc.py		   \
 			$(SRC)/drelc.py \
 			$(SRC)/drel_prep.py
-
+')m4_dnl
+`
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 			$(SRC)/fcb_ci_strncmparr.f90 \
 			$(SRC)/fcb_exit_binary.f90   \
@@ -838,7 +844,7 @@ default:
 	@echo ''` ''`
 	@echo ''` The current values are:''`
 	@echo ''` ''`
-	@echo ''`   $(CC) $(CFLAGS)''`
+	@echo ''`   $(CC) $(CFLAGS) $(PYCIFRWFLAG)''`
 	@echo ''` ''`
 	@echo ''` Before installing the CBF library and example programs, check''`
 	@echo ''` that the install directory is correct:''`
@@ -900,7 +906,11 @@ default:
 #
 # Compile the library and examples
 #
-all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(PYCIFRW) $(PLY) symlinksdone $(REGEXDEP) \
+all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
+'m4_ifelse(cbf_use_pycifrw,`yes',`
+		$(PYCIFRW) $(PLY) \
+')m4_dnl
+`		symlinksdone $(REGEXDEP) \
 		$(LIB)/libcbf.a          \
 		$(LIB)/libfcb.a          \
 		$(LIB)/libimg.a          \
@@ -930,6 +940,12 @@ shared:	$(SOLIB)/libcbf.so $(SOLIB)/libfcb.so $(SOLIB)/libimg.so
 
 javawrapper: shared $(JCBF) $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
 
+ifneq ($(CBFLIB_USE_PYCIFRW),)
+PYCIFRWDEF = -Dcbf_use_pycifrw=yes
+else
+PYCIFRWDEF =
+endif
+
 Makefiles: Makefile			 \
 		Makefile_LINUX           \
 		Makefile_LINUX_64        \
@@ -943,53 +959,54 @@ Makefiles: Makefile			 \
 		Makefile_MINGW           \
 		Makefile_IRIX_gcc
 
+
 Makefile_LINUX: $(M4)/Makefile.m4
 		-cp Makefile_LINUX Makefile_LINUX_old
-		m4 -P -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
 
 Makefile_LINUX_DMALLOC: $(M4)/Makefile.m4
 		-cp Makefile_LINUX Makefile_LINUX_old
-		m4 -P -Dcbf_system=LINUX_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_DMALLOC
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_DMALLOC
 
 Makefile_LINUX_64: $(M4)/Makefile.m4
 		-cp Makefile_LINUX_64 Makefile_LINUX_64_old
-		m4 -P -Dcbf_system=LINUX_64 $(M4)/Makefile.m4 > Makefile_LINUX_64
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_64 $(M4)/Makefile.m4 > Makefile_LINUX_64
 
 Makefile_LINUX_gcc42: $(M4)/Makefile.m4
 		-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
-		m4 -P -Dcbf_system=LINUX_gcc42 $(M4)/Makefile.m4 > Makefile_LINUX_gcc42 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42 $(M4)/Makefile.m4 > Makefile_LINUX_gcc42 
 
 Makefile_LINUX_gcc42_DMALLOC: $(M4)/Makefile.m4
 		-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
-		m4 -P -Dcbf_system=LINUX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_gcc42_DMALLOC 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_gcc42_DMALLOC 
 
 Makefile_OSX: $(M4)/Makefile.m4
 		-cp Makefile_OSX Makefile_OSX_old
-		m4 -P -Dcbf_system=OSX $(M4)/Makefile.m4 > Makefile_OSX 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX $(M4)/Makefile.m4 > Makefile_OSX 
 
 Makefile_OSX_gcc42: $(M4)/Makefile.m4
 		-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
-		m4 -P -Dcbf_system=OSX_gcc42 $(M4)/Makefile.m4 > Makefile_OSX_gcc42 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42 $(M4)/Makefile.m4 > Makefile_OSX_gcc42 
 
 Makefile_OSX_gcc42_DMALLOC: $(M4)/Makefile.m4
 		-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
-		m4 -P -Dcbf_system=OSX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_OSX_gcc42_DMALLOC
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_OSX_gcc42_DMALLOC
 
 Makefile_AIX: $(M4)/Makefile.m4
 		-cp Makefile_AIX Makefile_AIX_old
-		m4 -P -Dcbf_system=AIX $(M4)/Makefile.m4 > Makefile_AIX 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=AIX $(M4)/Makefile.m4 > Makefile_AIX 
 
 Makefile_MINGW: $(M4)/Makefile.m4
 		-cp Makefile_MINGW Makefile_MINGW_old
-		m4 -P -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW 
 
 Makefile_IRIX_gcc: $(M4)/Makefile.m4
 		-cp Makefile_IRIX_gcc Makefile_IRIX_gcc_old
-		m4 -P -Dcbf_system=IRIX_gcc $(M4)/Makefile.m4 > Makefile_IRIX_gcc
+		m4 -P $(PYCIFREDEF) -Dcbf_system=IRIX_gcc $(M4)/Makefile.m4 > Makefile_IRIX_gcc
 		
 Makefile: $(M4)/Makefile.m4
 		-cp Makefile Makefile_old
-		m4 -P -Dcbf_system=default $(M4)/Makefile.m4 > Makefile 
+		m4 -P $(PYCIFRWDEF) -Dcbf_system=default $(M4)/Makefile.m4 > Makefile 
 
 symlinksdone:
 	chmod a+x .symlinks
@@ -1036,11 +1053,14 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
 		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
+'m4_ifelse(cbf_system,`OSX',`
+
 		cp $(SRC)/drel_lex.py $(INSTALLDIR)/bin/drel_lex.py
 		cp $(SRC)/drel_yacc.py $(INSTALLDIR)/bin/drel_yacc.py
 		cp $(SRC)/drelc.py $(INSTALLDIR)/bin/drelc.py
 		cp $(SRC)/drel_prep.py $(INSTALLDIR)/bin/drel_prep.py
-		chmod -R 755 $(INSTALLDIR)/include/cbflib
+')m4_dnl
+`		chmod -R 755 $(INSTALLDIR)/include/cbflib
 		-rm -rf $(INSTALLDIR)/include/cbflib_old
 		-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
 		-rm -rf $(INSTALLDIR)/include/cbflib
@@ -1059,7 +1079,7 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		chmod 755 $(INSTALLDIR)/bin/testflatpacked
 		chmod 644 $(INSTALLDIR)/include/cbflib/*.h
 		
-
+'m4_ifelse(cbf_use_pycifrw,`yes',`
 #
 # PyCifRW
 #
@@ -1077,8 +1097,8 @@ $(PLY):
 	tar -xvf $(PLY).tar.gz
 	-rm $(PLY).tar.gz
 	(cd $(PLY); python setup.py install )
-
-
+')m4_dnl
+`
 #
 # REGEX
 #
@@ -1149,7 +1169,7 @@ $(SRC)/cbf_stx.c: $(SRC)/cbf.stx.y
 # CBF library
 #
 $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(LIB)
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	$(CC) $(CFLAGS) $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(AR) cr $@ *.o
 	mv *.o $(LIB)
 ifneq ($(RANLIB),)
@@ -1157,7 +1177,7 @@ ifneq ($(RANLIB),)
 endif
 
 $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	$(CC) $(CFLAGS) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS)
 	rm *.o
 
