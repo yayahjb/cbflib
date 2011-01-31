@@ -379,6 +379,12 @@ ifeq ($(JDKDIR),)
   JDKDIR 	=	/usr/lib/java
 endif
 
+ifneq ($(CBF_DONT_USE_LONG_LONG),)
+NOLLFLAG = -DCBF_DONT_USE_LONG_LONG
+else
+NOLLFLAG =
+endif
+
 
 
 #
@@ -684,6 +690,7 @@ INCLUDES = -I$(INCLUDE) -I$(SRC)
 #  You should not need to make modifications below this line         #
 ######################################################################
 
+
 #
 # Suffixes of files to be used or built
 #
@@ -844,7 +851,7 @@ default:
 	@echo ''` ''`
 	@echo ''` The current values are:''`
 	@echo ''` ''`
-	@echo ''`   $(CC) $(CFLAGS) $(PYCIFRWFLAG)''`
+	@echo ''`   $(CC) $(CFLAGS) $(NOLLFLAG) $(PYCIFRWFLAG)''`
 	@echo ''` ''`
 	@echo ''` Before installing the CBF library and example programs, check''`
 	@echo ''` that the install directory is correct:''`
@@ -1053,7 +1060,7 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
 		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
-'m4_ifelse(cbf_system,`OSX',`
+'m4_ifelse(cbf_use_pycifrw,`yes',`
 
 		cp $(SRC)/drel_lex.py $(INSTALLDIR)/bin/drel_lex.py
 		cp $(SRC)/drel_yacc.py $(INSTALLDIR)/bin/drel_yacc.py
@@ -1169,7 +1176,7 @@ $(SRC)/cbf_stx.c: $(SRC)/cbf.stx.y
 # CBF library
 #
 $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(LIB)
-	$(CC) $(CFLAGS) $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(AR) cr $@ *.o
 	mv *.o $(LIB)
 ifneq ($(RANLIB),)
@@ -1177,7 +1184,7 @@ ifneq ($(RANLIB),)
 endif
 
 $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
-	$(CC) $(CFLAGS) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS)
 	rm *.o
 
@@ -1185,7 +1192,7 @@ $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
 # IMG library
 #
 $(LIB)/libimg.a: $(EXAMPLES)/img.c $(HEADERS) $(COMMONDEP) $(LIB)
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
 	$(AR) cr $@ img.o
 ifneq ($(RANLIB),)
 	$(RANLIB) $@
@@ -1193,7 +1200,7 @@ endif
 	rm img.o
 	
 $(SOLIB)/libimg.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
 	$(CC) -o $@ img.o $(SOLDFLAGS)
 	rm img.o
 
@@ -1272,7 +1279,7 @@ $(JCBF)/cbflib-$(VERSION).jar: $(JCBF) $(JCBF)/jcbf.i
 	$(JAR) cf $@ org
 
 $(SOLIB)/libcbf_wrap.so: $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
-	$(CC) $(CFLAGS) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(JCBF)/jcbf_wrap.c
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(JCBF)/jcbf_wrap.c
 	$(CC) -o $@ jcbf_wrap.o $(SOLDFLAGS) -L$(SOLIB) -lcbf
 	rm jcbf_wrap.o
 
@@ -1303,7 +1310,7 @@ $(EXAMPLES)/test_xds_binary.f90: $(M4)/test_xds_binary.m4 $(M4)/fcblib_defines.m
 #
 $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c \
 					$(GOPTLIB)	$(GOPTINC)
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 #
@@ -1311,7 +1318,7 @@ $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/im
 #
 $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
 					$(GOPTLIB)	$(GOPTINC)
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/convert_minicbf.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
@@ -1319,7 +1326,7 @@ $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
 # makecbf example program
 #
 $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/makecbf.c  -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -limg -o $@
 
@@ -1328,7 +1335,7 @@ $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 # adscimg2cbf example program
 #
 $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c
-	$(CC) $(CFLAGS) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c  -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
@@ -1336,7 +1343,7 @@ $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscim
 # cbf2adscimg example program
 #
 $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c
-	$(CC) $(CFLAGS) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c  -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
@@ -1344,7 +1351,7 @@ $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2ad
 # changtestcompression example program
 #
 $(BIN)/changtestcompression: $(LIB)/libcbf.a $(EXAMPLES)/changtestcompression.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/changtestcompression.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
@@ -1353,7 +1360,7 @@ $(BIN)/changtestcompression: $(LIB)/libcbf.a $(EXAMPLES)/changtestcompression.c
 #
 $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 					$(GOPTLIB) 	$(GOTPINC)
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/img2cif.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -limg -o $@
 
@@ -1362,7 +1369,7 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 #
 $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 					$(GOPTLIB)	$(GOPTINC)
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -limg -o $@
 #
@@ -1371,14 +1378,14 @@ $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 $(BIN)/cbf_template_t: $(DECTRIS_EXAMPLES)/cbf_template_t.c \
 			$(DECTRIS_EXAMPLES)/mx_cbf_t_extras.h \
 			$(DECTRIS_EXAMPLES)/mx_parms.h
-	$(CC) $(CFLAGS) -I $(DECTRIS_EXAMPLES)  $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) -I $(DECTRIS_EXAMPLES)  $(WARNINGS) \
 			$(DECTRIS_EXAMPLES)/cbf_template_t.c -o $@
 
 #
 # testcell example program
 #
 $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
-	$(C++) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(C++) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/testcell.C -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
@@ -1386,7 +1393,7 @@ $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
 # cif2c example program
 #
 $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
-	$(C++) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(C++) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/cif2c.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
@@ -1394,7 +1401,7 @@ $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
 # sauter_test example program
 #
 $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
-	$(C++) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(C++) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/sauter_test.C -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
@@ -1403,7 +1410,7 @@ $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
 #
 $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libimg.a \
 					$(GOPTLIB)	$(GOPTINC)
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -limg -o $@
 
@@ -1412,7 +1419,7 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 #
 $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 					$(GOPTLIB)	$(GOPTINC) $(TIFF)
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  -I$(TIFFPREFIX)/include $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf -L$(TIFFPREFIX)/lib -ltiff $(EXTRALIBS) -limg -o $@
 
@@ -1421,7 +1428,7 @@ $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 #
 $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
 					$(GOPTLIB)	$(GOPTINC)
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/arvai_test.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -limg -o $@
 
@@ -1429,7 +1436,7 @@ $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
 # testreals example program
 #
 $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/testreals.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
@@ -1437,14 +1444,14 @@ $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
 # testflat example program
 #
 $(BIN)/testflat: $(LIB)/libcbf.a $(EXAMPLES)/testflat.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/testflat.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 #
 # testflatpacked example program
 #
 $(BIN)/testflatpacked: $(LIB)/libcbf.a $(EXAMPLES)/testflatpacked.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/testflatpacked.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 
@@ -1468,7 +1475,7 @@ endif
 # testcbf (C)
 #
 $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
-	$(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/testcbf.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) -o $@
 

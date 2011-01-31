@@ -262,6 +262,10 @@ extern "C" {
     
 #define CBF_HDR_FINDDIMS    0x0040  /* On read, find header dims          */
 #define CBF_HDR_NOFINDDIMS  0x0080  /* On read, don't find header dims    */
+#define CBF_CPY_SETINTEGER  0x0001  /* On write, force integer            */
+#define CBF_CPY_SETREAL     0x0002  /* On write, force real               */
+#define CBF_CPY_SETSIGNED   0x0004  /* On write, force signed             */
+#define CBF_CPY_SETUNSIGNED 0x0008  /* On write, force unsigned           */
     
     
     /* cbf_copy_cbf -- copy cbfin to cbfout */
@@ -286,6 +290,22 @@ extern "C" {
                             const char * datablock_name,
                             const int compression,
                             const int dimflag);
+    
+    /* cbf_copy_value -- copy the current value from cbfin to cbfout,
+     specifying the target category, column, rownum, compression, dimension details,
+     element type, size and sign */
+    
+    int cbf_copy_value(cbf_handle cbfout, cbf_handle cbfin, 
+                       const char * category_name,
+                       const char * column_name,
+                       const unsigned int rownum, 
+                       const int compression,
+                       const int dimflag,
+                       const int eltype,
+                       const int elsize,
+                       const int elsign,
+                       const double cliplow,
+                       const double cliphigh);
     
     
 #ifdef __cplusplus
