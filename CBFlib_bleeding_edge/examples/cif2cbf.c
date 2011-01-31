@@ -42,18 +42,23 @@
  *                                                                    *
  *  cif2cbf [-i input_cif] [-o output_cbf] \                          *
  *    [-u update_cif ] \                                              *
+ *    [-b {f[orward]|b[ackwards]}] \                                  *
+ *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
  *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
  *        {v[2packed]}|{f[latpacked]}[n[one]}] \                      *
- *    [-m {h[eaders]|n[oheaders]}] \                                  *
- *    [-m {dim[ensions]|nod[imensions}] \                             *
+ *    [-C highclipvalue ] \                                           *
+ *    [-D ] \                                                         *
  *    [-d {d[igest]|n[odigest]|w[warndigest]} \                       *
- *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
- *    [-S {read|noread}] [-S {write|nowrite}] \                       *
- *    [-T {read|noread}] [-T {write|nowrite}] \                       *
  *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
  *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
- *    [-b {f[orward]|b[ackwards]}] \                                  *
+ *    [-I {0|2|4|8}] \                                                *
+ *    [-L lowclipvalue ] \                                            *
+ *    [-m {h[eaders]|n[oheaders]}] \                                  *
+ *    [-m {dim[ensions]|nod[imensions}] \                             *
  *    [-p {0|1|2|4}] \                                                *
+ *    [-R {0|4|8} \                                                   *
+ *    [-S {read|noread}] [-S {write|nowrite}] \                       *
+ *    [-T {read|noread}] [-T {write|nowrite}] \                       *
  *    [-v dictionary]* [-w] [-D]\                                     *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
@@ -80,9 +85,41 @@
  *  derived from context, except when modified by the -B, -S, -T, -v  *
  *  and -w flags.                                                     *
  *                                                                    *
+ *  -b byte_order (forward or backwards, default forward (1234) on    *
+ *    little-endian machines, backwards (4321) on big-endian machines *
+ *                                                                    *
+ *  -B [no]read or liberal (default noread)                           *
+ *    read to enable reading of DDLm style brackets                   *
+ *    liberal to accept whitespace for commas                         *
+ *                                                                    *
+ *  -B [no]write (default write)                                      *
+ *    write to enable writing of DDLm style brackets                  *
+ *                                                                    *
  *  -c compression_scheme (packed, canonical, byte_offset,            *
  *    v2packed, flatpacked or none,                                   *
  *    default packed)                                                 *
+ *                                                                    *
+ *  -C highclipvalue                                                  *
+ *    specifies a double precision value to which to clip the data    *
+ *                                                                    *
+ *  -d [no]digest or warndigest  (default md5 digest [R. Rivest,      *
+ *    RFC 1321, April 1992 using"RSA Data Security, Inc. MD5          *
+ *    Message-Digest Algorithm"] when MIME headers are selected)      *
+ *                                                                    *
+ *  -D test cbf_construct_detector                                    *
+ *                                                                    *
+ *  -e encoding (base64, k, quoted-printable or none, default base64) *
+ *    specifies one of the standard MIME encodings for an ascii cif   *
+ *    or "none" for a binary cbf                                      *
+ *                                                                    *
+ *  -I 0 or integer element size                                      *
+ *    specifies integer conversion of the data, 0 to use the input    *
+ *    number of bytes, 2, 4 or 8 for short, long or long long         *
+ *    output integers                                                 *
+ *                                                                    *
+ *  -L lowclipvalue                                                   *
+ *    specifies a double precision value to cut off the data from     *
+ *    below                                                           *
  *                                                                    *
  *  -m [no]headers (default headers)                                  *
  *    selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996) *
@@ -92,18 +129,12 @@
  *    selects detailed recovery of dimensions from the input CIF      *
  *    for use in the MIME header of the output CIF                    *
  *                                                                    *
- *  -d [no]digest or warndigest  (default md5 digest [R. Rivest,      *
- *    RFC 1321, April 1992 using"RSA Data Security, Inc. MD5          *
- *    Message-Digest Algorithm"] when MIME headers are selected)      *                    *
+ *  -p K_of_padding (0, 1, 2, 4) for no padding after binary data     *
+ *    1023, 2047 or 4095 bytes of padding after binary data           *
  *                                                                    *
- *  -B [no]read or liberal (default noread)                           *
- *    read to enable reading of DDLm style brackets                   *
- *    liberal to accept whitespace for commas                         *
- *                                                                    *
- *  -B [no]write (default write)                                      *
- *    write to enable writing of DDLm style brackets                  *
- *                                                                    *
- *  -D test cbf_construct_detector                                    *
+ *  -R 0 or integer element size                                      *
+ *    specifies real conversion of the data, 0 to use the input       *
+ *    number of bytes,  4 or 8 for float or double output reals       *                                                 * 
  *                                                                    *
  *  -S [no]read or (default noread)                                   *
  *    read to enable reading of whitespace and comments               *
@@ -117,23 +148,14 @@
  *  -T [no]write (default write)                                      *
  *    write to enable writing of DDLm style triple quotes             *
  *                                                                    *
- *  -e encoding (base64, quoted-printable or none, default base64)    *
- *    specifies one of the standard MIME encodings for an ascii cif   *
- *    or "none" for a binary cbf                                      *
- *                                                                    *
- *  -b byte_order (forward or backwards, default forward (1234) on    *
- *    little-endian machines, backwards (4321) on big-endian machines *
- *                                                                    *
- *  -p K_of_padding (0, 1, 2, 4) for no padding after binary data     *
- *    1023, 2047 or 4095 bytes of padding after binary data           *
- *                                                                    *
  *  -v dictionary specifies a dictionary to be used to validate       *
  *    the input cif and to apply aliases to the output cif.           *
  *    This option may be specified multiple times, with dictionaries  *
  *    layered in the order given.                                     *
  *                                                                    *
  *  -w process wide (2048 character) lines                            *
- *  -W write wide (2048 character) lines                            *
+ *                                                                    *
+ *  -W write wide (2048 character) lines                              *
  *                                                                    *
  *                                                                    *
  **********************************************************************/
@@ -366,6 +388,7 @@
 #include "cbf_simple.h"
 #include "img.h"
 #include "cbf_string.h"
+#include "cbf_copy.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -479,6 +502,8 @@ int main (int argc, char *argv [])
     int kd;
     int wide = 0;
     int Wide = 0;
+    int IorR = 0;
+    int nelsize;
     int testconstruct;
     char buf[C2CBUFSIZ];
     unsigned int blocks, categories, blocknum, catnum, blockitems, itemnum;
@@ -491,7 +516,8 @@ int main (int argc, char *argv [])
     unsigned int colnum, rownum;
     unsigned int columns;
     unsigned int rows;
-    
+    double cliphigh, cliplow;
+
     int mime, digest, encoding, compression, bytedir, cbforcif, term;
     int qrflags, qwflags;
     
@@ -503,19 +529,24 @@ int main (int argc, char *argv [])
     /**********************************************************************
      *  cif2cbf [-i input_cif] [-o output_cbf] \                          *
      *    [-u update_cif] \                                               *
+     *    [-b {b[ackwards]|f[orwards]}] \                                 *
+     *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
      *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
      *        {v[2packed]}|{f[latpacked]}[n[one]}] \                      *
-     *    [-m {h[eaders]|noh[eaders]}] \                                  *
-     *    [-m {d[imensions]|nod[imensions}] \                             *
-     *    [-d {d[igest]|n[odigest]|w[warndigest]} \                       *
-     *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
-     *    [-S {read|noread}] [-S {write|nowrite}] \                       *
-     *    [-T {read|noread}] [-T {write|nowrite}] \                       *
+     *    [-C highclipvalue] \                                            *
+     *    [-d {d[igest]|n[odigest]|w[arndigest]} \                        *
+     *    [-D ] \                                                         *
      *    [-e {b[ase64]|k|q[uoted-printable]| \                           *
      *                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \        *
-     *    [-b {f[orward]|b[ackwards]}] \                                  *
+     *    [-I {0|2|4|8}]  \                                               *
+     *    [-L lowclipvalue ] \                                            *
+     *    [-m {h[eaders]|noh[eaders]}] \                                  *
+     *    [-m {d[imensions]|nod[imensions}] \                             *
+     *    [-R {0|4|8}] \                                                  *
+     *    [-S {read|noread}] [-S {write|nowrite}] \                       *
+     *    [-T {read|noread}] [-T {write|nowrite}] \                       *
      *    [-p {0|1|2|4}] \                                                *
-     *    [-v dictionary]* [-w] [-D]\                                     *
+     *    [-v dictionary]* [-w] [-W] \                                    *
      *    [input_cif] [output_cbf]                                        *
      *                                                                    *
      **********************************************************************/
@@ -529,12 +560,14 @@ int main (int argc, char *argv [])
     padflag = 0;
     qrflags = qwflags = 0;
     dimflag = 0;
+    nelsize = 0;
     
     cifin = NULL;
     cbfout = NULL;
     updatecif = NULL;
     ciftmpused = 0;
     testconstruct = 0;
+    cliphigh = cliplow = 0.;
     
     cbf_failnez(cbf_make_getopt_handle(&opts))
     
@@ -544,12 +577,16 @@ int main (int argc, char *argv [])
                                  "b(byte-direction):" \
                                  "B(parse-brackets):" \
                                  "c(compression):" \
+                                 "C(cliphigh):" \
                                  "D(test-construct-detector)" \
                                  "d(digest):" \
                                  "e(encoding):" \
+                                 "I(integer):"  \
+                                 "L(cliplow):"  \
                                  "m(mime-header):" \
                                  "p(pad):" \
                                  "P(parse-level):" \
+                                 "R(real):" \
                                  "S(white-space):" \
                                  "T(treble-quotes):" \
                                  "v(validation-dictionary):" \
@@ -641,6 +678,10 @@ int main (int argc, char *argv [])
                     }
                     break;
                     
+                case 'C':
+                    cliphigh = atof(optarg);
+                    break;
+                    
                 case 'd':
                     if (digest) errflg++;
                     if (optarg[0] == 'd' || optarg[0] == 'H' ) {
@@ -695,6 +736,17 @@ int main (int argc, char *argv [])
                             }
                         }
                     }
+                    break;
+                    
+                case 'I':
+                    if (IorR) errflg++;
+                    IorR = CBF_CPY_SETINTEGER;
+                    nelsize = atoi(optarg);
+                    if (nelsize != 0 && nelsize != 1 && nelsize !=2 && nelsize !=4 && nelsize != 8) errflg++;
+                    break;
+                    
+                case 'L':
+                    cliplow = atof(optarg);
                     break;
                     
                     
@@ -757,6 +809,13 @@ int main (int argc, char *argv [])
                     } else if (!strcmp(optarg,"cif10write")) {
                         qwflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
                     } else errflg++;
+                    break;
+
+                case 'R':
+                    if (IorR) errflg++;
+                    IorR = CBF_CPY_SETREAL;
+                    nelsize = atoi(optarg);
+                    if (nelsize != 0 && nelsize !=4 && nelsize != 8) errflg++;
                     break;
                     
                 case 'S':  /* Parse whitespace */
@@ -829,9 +888,21 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\\\n");
         fprintf(stderr,
-                "        {v[2packed}|{f[latpacked}[n[one]}] \\\n"); 
+                "        {v[2packed}|{f[latpacked}[n[one]}] \\\n");
         fprintf(stderr,
-                "    [-m {h[eaders]|n[oheaders]}] \\\n");
+                "    [-C highclipvalue] \\\n");
+        fprintf(stderr,
+                "    [-D ] \\\n");
+        fprintf(stderr,
+                "    [-I {0|2|4|8}] \\\n");
+        fprintf(stderr,
+                "    [-R {0|4|8}] \\\n");
+        fprintf(stderr,
+                "    [-L {0|4|8}] \\\n");
+        fprintf(stderr,
+                "    [-m {h[eaders]|noh[eaders]}] \\\n");
+        fprintf(stderr,
+                "    [-m {d[imensions]|nod[imensions}] \\\n");
         fprintf(stderr,
                 "    [-d {d[igest]|n[odigest]|w[arndigest]}] \\\n");
         fprintf(stderr,
@@ -845,11 +916,11 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "                  d[ecimal]|h[examdecimal|o[ctal]|n[one]}] \\\n");
         fprintf(stderr,
-                "                  [-b {f[orward]|b[ackwards]}\\\n");
+                "    [-b {f[orward]|b[ackwards]}\\\n");
         fprintf(stderr,
-                "                  [-p {1|2|4}\\\n");
+                "    [-p {1|2|4}\\\n");
         fprintf(stderr,
-                "    [-v dictionary]* [-w] \\\n");
+                "    [-v dictionary]* [-w] [-W]\\\n");
         fprintf(stderr,
                 "    [input_cif] [output_cbf] \n\n");
         exit(2);
@@ -1142,10 +1213,15 @@ int main (int argc, char *argv [])
                                         if (dimflag == HDR_FINDDIMS && dim1==0) {
                                             cbf_get_arraydimensions(cif,NULL,&dim1,&dim2,&dim3);
                                         }
-                                        cbf_failnez(cbf_set_integerarray_wdims_fs(
+                                        if (IorR == 0 || (IorR == CBF_CPY_SETINTEGER && (nelsize==elsize||nelsize==0))) {
+                                            cbf_failnez(cbf_set_integerarray_wdims_fs(
                                                                                   cbf, compression,
                                                                                   binary_id, array, elsize, elsigned, elements,
                                                                                   "little_endian", dim1, dim2, dim3, 0))
+                                        } else {
+                                            cbf_failnez(cbf_copy_value(cbf,cif,category_name,column_name,rownum,compression,dimflag,IorR,
+                                                           nelsize?nelsize:elsize,0,cliplow,cliphigh))
+                                        }
                                     } else {
                                         cbf_failnez (cbf_get_realarray(
                                                                        cif, &binary_id, array, elsize,
@@ -1153,10 +1229,16 @@ int main (int argc, char *argv [])
                                         if (dimflag == HDR_FINDDIMS && dim1==0) {
                                             cbf_get_arraydimensions(cif,NULL,&dim1,&dim2,&dim3);
                                         }
+                                        if (IorR == 0 || (IorR == CBF_CPY_SETREAL && (nelsize==elsize||nelsize==0))) {
                                         cbf_failnez(cbf_set_realarray_wdims_fs(
                                                                                cbf, compression,
                                                                                binary_id, array, elsize, elements,
-                                                                               "little_endian", dim1, dim2, dim3, 0))                 	
+                                                                               "little_endian", dim1, dim2, dim3, 0))  
+                                        } else {
+                                            cbf_failnez(cbf_copy_value(cbf,cif,category_name,column_name,rownum,compression,dimflag,IorR,
+                                                           nelsize?nelsize:elsize,CBF_CPY_SETSIGNED,cliplow,cliphigh))
+                                        }
+                                        
                                     }
                                     free(array);
                                 } else {
