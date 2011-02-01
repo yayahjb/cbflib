@@ -649,7 +649,7 @@ default:
 	@echo ' The tests assume that several data files are in the directories' 
 	@echo ' $(DATADIRI) and $(DATADIRO)'
 	@echo ' '
-	@echo ' Alternatively tests can be run comaring MD5 signatures only by' 
+	@echo ' Alternatively tests can be run comparing MD5 signatures only by' 
 	@echo ' '
 	@echo '   make tests_sigs_only'
 	@echo ' '
@@ -856,7 +856,7 @@ $(REGEX):
 	$(DOWNLOAD) $(REGEXURL)
 	tar -xvf $(REGEX).tar.gz
 	-rm $(REGEX).tar.gz
-    
+	
 
 #
 # TIFF
@@ -866,7 +866,7 @@ $(TIFF):
 	tar -xvf $(TIFF).tar.gz
 	-rm $(TIFF).tar.gz
 	(cd $(TIFF); ./configure --prefix=$(TIFFPREFIX); make install)
-    
+	
 
 #
 # Directories
@@ -1249,10 +1249,11 @@ DATADIRI_INPUT_BASIC = $(DATADIRI)/example.mar2300$(CEXT)
 
 
 TESTINPUT_EXTRA =  9ins.cif mb_LP_1_001.img insulin_pilatus6m.cbf testrealin.cbf \
-		testflatin.cbf testflatpackedin.cbf
+		testflatin.cbf testflatpackedin.cbf XRD1621.tif
 DATADIRI_INPUT_EXTRA = $(DATADIRI)/9ins.cif$(CEXT) $(DATADIRI)/mb_LP_1_001.img$(CEXT) \
 		$(DATADIRI)/insulin_pilatus6m.cbf$(CEXT) $(DATADIRI)/testrealin.cbf$(CEXT) \
-		$(DATADIRI)/testflatin.cbf$(CEXT) $(DATADIRI)/testflatpackedin.cbf$(CEXT)
+		$(DATADIRI)/testflatin.cbf$(CEXT) $(DATADIRI)/testflatpackedin.cbf$(CEXT) \
+		$(DATADIRI)/XRD1621.tif$(CEXT)
 
 
 # Output Data Files
@@ -1263,14 +1264,16 @@ TESTOUTPUT =  adscconverted_flat_orig.cbf \
 		mb_LP_1_001_orig.cbf testcell_orig.prt \
 		test_xds_bin_testflatout_orig.out \
 		test_xds_bin_testflatpackedout_orig.out test_fcb_read_testflatout_orig.out \
-		test_fcb_read_testflatpackedout_orig.out
+		test_fcb_read_testflatpackedout_orig.out \
+		XRD1621_orig.cbf XRD1621_I4encbC100_orig.cbf
 NEWTESTOUTPUT = adscconverted_flat.cbf \
 		adscconverted.cbf converted_flat.cbf converted.cbf \
 		insulin_pilatus6mconverted.cbf \
 		mb_LP_1_001.cbf testcell.prt \
 		test_xds_bin_testflatout.out \
 		test_xds_bin_testflatpackedout.out test_fcb_read_testflatout.out \
-		test_fcb_read_testflatpackedout.out
+		test_fcb_read_testflatpackedout.out \
+		XRD1621.cbf XRD1621_I4encbC100.cbf
 DATADIRO_OUTPUT =  $(DATADIRO)/adscconverted_flat_orig.cbf$(CEXT) \
 		$(DATADIRO)/adscconverted_orig.cbf$(CEXT) \
 		$(DATADIRO)/converted_flat_orig.cbf$(CEXT) \
@@ -1281,7 +1284,9 @@ DATADIRO_OUTPUT =  $(DATADIRO)/adscconverted_flat_orig.cbf$(CEXT) \
 		$(DATADIRO)/test_xds_bin_testflatout_orig.out$(CEXT) \
 		$(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(CEXT) \
 		$(DATADIRO)/test_fcb_read_testflatout_orig.out$(CEXT) \
-		$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(CEXT)
+		$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(CEXT) \
+		$(DATADIRO)/XRD1621_orig.cbf$(CEXT) \
+		$(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(CEXT)
 DATADIRO_OUTPUT_SIGNATURES =  $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT) \
 		$(DATADIRO)/adscconverted_orig.cbf$(SEXT) \
 		$(DATADIRO)/converted_flat_orig.cbf$(SEXT) \
@@ -1292,7 +1297,9 @@ DATADIRO_OUTPUT_SIGNATURES =  $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT) \
 		$(DATADIRO)/test_xds_bin_testflatout_orig.out$(SEXT) \
 		$(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(SEXT) \
 		$(DATADIRO)/test_fcb_read_testflatout_orig.out$(SEXT) \
-		$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
+		$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(SEXT) \
+		$(DATADIRO)/XRD1621_orig.cbf$(SEXT) \
+		$(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(SEXT)
 
 
 		
@@ -1304,7 +1311,8 @@ TESTOUTPUTSIGS = adscconverted_flat_orig.cbf$(SEXT) \
 		mb_LP_1_001_orig.cbf$(SEXT) testcell_orig.prt$(SEXT) \
 		test_xds_bin_testflatout_orig.out$(SEXT) \
 		test_xds_bin_testflatpackedout_orig.out$(SEXT) test_fcb_read_testflatout_orig.out$(SEXT) \
-		test_fcb_read_testflatpackedout_orig.out$(SEXT)
+		test_fcb_read_testflatpackedout_orig.out$(SEXT) \
+		XRD1621_orig.cbf$(SEXT)
 DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
 		$(DATADIRS)/adscconverted_orig.cbf$(SEXT) \
 		$(DATADIRS)/converted_flat_orig.cbf$(SEXT) \
@@ -1315,7 +1323,9 @@ DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
 		$(DATADIRS)/test_xds_bin_testflatout_orig.out$(SEXT) \
 		$(DATADIRS)/test_xds_bin_testflatpackedout_orig.out$(SEXT) \
 		$(DATADIRS)/test_fcb_read_testflatout_orig.out$(SEXT) \
-		$(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
+		$(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT) \
+		$(DATADIRS)/XRD1621_orig.cbf$(SEXT) \
+		$(DATADIRS)/XRD1621_I4encbC100_orig.cbf$(SEXT)
 
 # Fetch Input Data Files 
 
@@ -1361,6 +1371,8 @@ restore_output:		$(NEWTESTOUTPUT) $(DATADIRO)
 		$(SIGNATURE) < test_xds_bin_testflatpackedout.out > $(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(SEXT)
 		$(SIGNATURE) < test_fcb_read_testflatout.out > $(DATADIRO)/test_fcb_read_testflatout_orig.out$(SEXT)
 		$(SIGNATURE) < test_fcb_read_testflatpackedout.out > $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
+		$(SIGNATURE) < XRD1621.cbf > $(DATADIRO)/XRD1621_orig.cbf$(SEXT)
+		$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(SEXT)
 		$(COMPRESS)  < adscconverted_flat.cbf > $(DATADIRO)/adscconverted_flat_orig.cbf$(CEXT)
 		$(COMPRESS)  < adscconverted.cbf > $(DATADIRO)/adscconverted_orig.cbf$(CEXT)
 		$(COMPRESS)  < converted_flat.cbf > $(DATADIRO)/converted_flat_orig.cbf$(CEXT)
@@ -1372,6 +1384,9 @@ restore_output:		$(NEWTESTOUTPUT) $(DATADIRO)
 		$(COMPRESS)  < test_xds_bin_testflatpackedout.out > $(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(CEXT)
 		$(COMPRESS)  < test_fcb_read_testflatout.out > $(DATADIRO)/test_fcb_read_testflatout_orig.out$(CEXT)
 		$(COMPRESS)  < test_fcb_read_testflatpackedout.out > $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(CEXT)
+		$(COMPRESS)  < XRD1621.cbf > $(DATADIRO)/XRD1621_orig.cbf$(CEXT)
+		$(COMPRESS)  < XRD1621_I4encbC100.cbf > $(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(CEXT)
+
 restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
 		$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT)
 		$(SIGNATURE) < adscconverted.cbf > $(DATADIRS)/adscconverted_orig.cbf$(SEXT)
@@ -1384,6 +1399,8 @@ restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
 		$(SIGNATURE) < test_xds_bin_testflatpackedout.out > $(DATADIRS)/test_xds_bin_testflatpackedout_orig.out$(SEXT)
 		$(SIGNATURE) < test_fcb_read_testflatout.out > $(DATADIRS)/test_fcb_read_testflatout_orig.out$(SEXT)
 		$(SIGNATURE) < test_fcb_read_testflatpackedout.out > $(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
+		$(SIGNATURE) < XRD1621.cbf > $(DATADIRS)/XRD1621_orig.cbf$(SEXT)
+		$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRS)/XRD1621_I4encbC100_orig.cbf$(SEXT)
 restore_signatures:	restore_output restore_sigs_only
 		
 #
@@ -1417,7 +1434,7 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcel
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
 	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image $(BIN)/convert_minicbf \
 	$(BIN)/sauter_test $(BIN)/adscimg2cbf $(BIN)/cbf2adscimg \
-    $(BIN)/changtestcompression \
+	$(BIN)/changtestcompression \
 	basic $(TESTINPUT_EXTRA) $(TESTOUTPUT)
 else
 extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
@@ -1476,7 +1493,10 @@ ifneq ($(F90C),)
 endif
 	$(TIME) $(BIN)/sauter_test
 	$(TIME) $(BIN)/changtestcompression
-
+	$(TIME) $(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf
+	-$(DIFF) XRD1621.cbf XRD1621_orig.cbf
+	$(TIME) $(BIN)/cif2cbf -I 4 -C 100. -L 0. -e n -c b -i XRD1621.cbf -o XRD1621_I4encbC100.cbf
+	-$(DIFF) XRD1621_I4encbC100.cbf XRD1621_I4encbC100_orig.cbf
 
 ifneq ($(F90C),)
 extra_sigs_only:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
@@ -1534,6 +1554,10 @@ ifneq ($(F90C),)
 	$(SIGNATURE) | $(DIFF) - test_fcb_read_testflatpackedout_orig.out$(SEXT)
 endif
 	$(TIME) $(BIN)/sauter_test
+	$(TIME) $(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf
+	$(TIME) $(BIN)/cif2cbf -I 4 -C 100. -L 0. -e n -c b -i XRD1621.cbf -o XRD1621_I4encbC100.cbf
+	-$(SIGNATURE) < XRD1621.cbf | $(DIFF) - XRD1621_orig.cbf$(SEXT); rm XRD1621.cbf
+	-$(SIGNATURE) < XRD1621_I4encbC100.cbf | $(DIFF) - XRD1621_I4encbC100_orig.cbf$(SEXT); rm XRD1621_I4encbC100.cbf
 	@-rm -f adscconverted_flat.cbf
 	@-rm -f $(TESTINPUT_BASIC) $(TESTINPUT_EXTRA) $(TESTOUTPUTSIGS)
 	@-rm -f cif2cbf_packed.cbf    makecbf.cbf \
@@ -1635,6 +1659,10 @@ empty:
 	@-rm -f  mb_LP_1_001.img
 	@-rm -f  9ins.cif
 	@-rm -f  testcell_orig.prt
+	@-rm -f  XRD1621.cbf
+	@-rm -f  XRD1621_orig.cbf
+	@-rm -f  XRD1621_orig.cbf
+	@-rm -f  XRD1621_I4encbC100.cbf
 	@-rm -f  $(SRC)/fcb_exit_binary.f90
 	@-rm -f  $(SRC)/fcb_next_binary.f90
 	@-rm -f  $(SRC)/fcb_open_cifin.f90
