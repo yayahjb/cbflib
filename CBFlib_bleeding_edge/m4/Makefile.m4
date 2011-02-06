@@ -1,5 +1,5 @@
-m4_define(`cbf_version',`0.9.0')m4_dnl
-m4_define(`cbf_date',`19 Jan 2011')m4_dnl
+m4_define(`cbf_version',`0.9.2')m4_dnl
+m4_define(`cbf_date',`06 Feb 2011')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -664,7 +664,7 @@ INSTALLDIR  = $(HOME)
 #
 # URLs from which to retrieve the data directories
 #
-DATAURLBASE	= http://arcib.dowling.edu/software/CBFlib/downloads/version_$(VERSION)
+DATAURLBASE	= http://downloads.sf.net/cbflib/
 DATAURLI	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Input.tar.gz
 DATAURLO	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output.tar.gz
 DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
@@ -1419,7 +1419,7 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 #
 $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 					$(GOPTLIB)	$(GOPTINC) $(TIFF)
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
+	$(TIFF)/libtool --tag=CC --mode=link $(CC) $(CFLAGS) $(NOLLFLAG) -static-libtool-libs $(INCLUDES) $(WARNINGS) \
 			  -I$(TIFFPREFIX)/include $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf -L$(TIFFPREFIX)/lib -ltiff $(EXTRALIBS) -limg -o $@
 
@@ -1698,7 +1698,7 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcel
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
 	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image $(BIN)/convert_minicbf \
 	$(BIN)/sauter_test $(BIN)/adscimg2cbf $(BIN)/cbf2adscimg \
-	$(BIN)/changtestcompression \
+	$(BIN)/changtestcompression $(BIN)/tiff2cbf \
 	basic $(TESTINPUT_EXTRA) $(TESTOUTPUT)
 else
 extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
@@ -1766,7 +1766,7 @@ ifneq ($(F90C),)
 extra_sigs_only:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
 	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image $(BIN)/convert_minicbf \
-	$(BIN)/sauter_test $(BIN)/adscimg2cbf $(BIN)/cbf2adscimg \
+	$(BIN)/sauter_test $(BIN)/adscimg2cbf $(BIN)/cbf2adscimg $(BIN)/tiff2cbf \
 	basic $(TESTINPUT_EXTRA) $(TESTOUTPUTSIGS)
 else
 extra_sigs_only:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
@@ -1876,6 +1876,7 @@ empty:
 	@-rm -rf  $(BIN)/sauter_test*
 	@-rm -rf  $(BIN)/arvai_test*
 	@-rm -rf  $(BIN)/changtestcompression*
+	@-rm -rf  $(BIN)/tiff2cbf*
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
@@ -1944,10 +1945,12 @@ empty:
 	@-rm -f  $(SOLIB)/libimg.so
 	@-rm -f  $(SOLIB)/libfcb.so
 	@-rm -rf $(JCBF)/org
-	@-rm -f $(JCBF)/*.java
-	@-rm -f $(JCBF)/jcbf_wrap.c
+	@-rm -f  $(JCBF)/*.java
+	@-rm -f  $(JCBF)/jcbf_wrap.c
 	@-rm -f  $(SRC)/cbf_wrap.c 
 	@-rm -f  $(BIN)/ctestcbf $(BIN)/testcbf.class testcbfc.txt testcbfj.txt
+	@-rm -rf  $(REGEX)
+	@-rm -rf  $(TIFF)
 	./.undosymlinks
 	
 #
