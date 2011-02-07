@@ -276,7 +276,7 @@ extern "C" {
     typedef unsigned long long CBF_ull_type;
 #endif
    
-#if defined(CBF_DONT_USE_LONG_LONG) || defined(__cplusplus)
+#if defined(CBF_DONT_USE_LONG_LONG) || defined(__cplusplus) || defined(__MINGW32__)
 #undef ULLONG_MAX
 #undef CBF_USE_LONG_LONG
 #endif

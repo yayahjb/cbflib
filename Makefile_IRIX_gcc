@@ -262,7 +262,7 @@ CLEANTESTS = yes
 #
 # Definition to get a version of tifflib to support tiff2cbf
 #
-TIFF = tiff-3.9.4-rev-27Dec10
+TIFF = tiff-3.9.4-rev-6Feb11
 TIFFPREFIX = $(HOME)
 
 
@@ -438,8 +438,8 @@ DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
 #
 # URLs from which to retrieve needed external package snapshots
 #
-REGEXURL	= http://downloads.sf.net/cbflib/regex-20090805.tar.gz
-TIFFURL		= http://downloads.sf.net/cbflib/tiff-3.9.4-rev-27Dec10.tar.gz
+REGEXURL	= http://downloads.sf.net/cbflib/$(REGEX).tar.gz
+TIFFURL		= http://downloads.sf.net/cbflib/$(TIFF).tar.gz
 
 
 #
@@ -1146,12 +1146,12 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 #
 $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 					$(GOPTLIB)	$(GOPTINC) $(TIFF)
-	$(TIFF)/libtool --tag=CC --mode=link $(CC) $(CFLAGS) $(NOLLFLAG) -static-libtool-libs $(INCLUDES) $(WARNINGS) \
+	$(TIFF)/libtool --tag=CC --mode=link $(CC) $(CFLAGS) $(NOLLFLAG) -all-static $(INCLUDES) $(WARNINGS) \
 			  -I$(TIFFPREFIX)/include $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf -L$(TIFFPREFIX)/lib -ltiff $(EXTRALIBS) -limg -o $@
 
 #
-# Andy Arvais buffered read test program
+# Andy Arvai's buffered read test program
 #
 $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
 					$(GOPTLIB)	$(GOPTINC)
@@ -1570,7 +1570,7 @@ javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/libcbf_wrap.so
 	$(DIFF) testcbfc.txt testcbfj.txt
 
 dectristests: $(BIN)/cbf_template_t $(DECTRIS_EXAMPLES)/cbf_test_orig.out
-	(cd $(DECTRIS_EXAMPLES); ../../bin/cbf_template_t; diff -a -u cbf_test_orig.out /tmp/cbf_test.out)
+	(cd $(DECTRIS_EXAMPLES); ../../bin/cbf_template_t; diff -a -u cbf_test_orig.out cbf_template_t.out)
 
 #
 # Remove all non-source files
@@ -1651,6 +1651,7 @@ empty:
 	@-rm -f  mb_LP_1_001.img
 	@-rm -f  9ins.cif
 	@-rm -f  testcell_orig.prt
+	@-rm -f  $(DECTRIS_EXAMPLES)/cbf_template_t.out
 	@-rm -f  XRD1621.cbf
 	@-rm -f  XRD1621_orig.cbf
 	@-rm -f  XRD1621_orig.cbf
