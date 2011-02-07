@@ -3334,17 +3334,21 @@ int cbf_connect_axes (cbf_positioner positioner)
 
         if (found)
         {
-          depends_on = positioner->axis [search].name;
-
-          axis                      = positioner->axis [dest];
-          positioner->axis [dest]   = positioner->axis [search];
-          positioner->axis [search] = axis;
-
-          if (!depends_on && dest > 0)
-
-            return CBF_NOTFOUND;
-
-          break;
+            depends_on = positioner->axis [search].name;
+            
+            if (dest != search) {
+                
+                axis                      = positioner->axis [dest];
+                positioner->axis [dest]   = positioner->axis [search];
+                positioner->axis [search] = axis;
+                
+            }
+            
+            if (!depends_on && dest > 0)
+                
+                return CBF_NOTFOUND;
+            
+            break;
         }
       }
 

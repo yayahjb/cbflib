@@ -479,7 +479,7 @@ while (sub && *sub=='@')
 	while( (p=strstr(q, substr)) )
 		{
 		count++;
-		if ( (*(p-1)!=' ' && *(p-1)!='\n') || 
+		if ( (*(p-1)!=' ' && *(p-1)!='-' &&  *(p-1)!='+' && *(p-1)!='\n') || 
 				(*(p+strlen(substr))!=' ' && *(p+strlen(substr))!='\r'))
 			{
 			q = p+strlen(substr);		/* avoid false substring match */
@@ -795,7 +795,7 @@ if (msg[0])
 print_cbf_header(bufr, sizeof(bufr), "CBF_BYTE_OFFSET");
 
 
-strcpy(line, "/tmp/cbf_test.out");
+strcpy(line, "cbf_template_t.out");
 if (!(ofp = fopen(line, "w+b")))
 	{
 	printf("Could not open %s for writing\n", line);
