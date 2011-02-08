@@ -280,7 +280,7 @@ TIFFPREFIX = $(HOME)
 # Definitions to get a stable version of regex
 #
 REGEX = regex-20090805
-REGEXDIR = /usr
+REGEXDIR = /usr/lib
 REGEXDEP = 
 
 # Program to use to retrieve a URL
@@ -386,7 +386,6 @@ NOLLFLAG =
 endif
 
 
-
 #
 # Set the compiler and flags
 #
@@ -406,6 +405,8 @@ F90LDFLAGS = -bind_at_load
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
+PYCBFEXT = so
+SETUP_PY = setup.py
 DOWNLOAD = /sw/bin/wget',
 cbf_system,`OSX_gcc42',`
 #########################################################
@@ -428,6 +429,8 @@ LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
+PYCBFEXT = so
+SETUP_PY = setup.py
 DOWNLOAD = /sw/bin/wget',
 cbf_system,`OSX_gcc42_DMALLOC',`
 #########################################################
@@ -450,6 +453,8 @@ LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
+PYCBFEXT = so
+SETUP_PY = setup.py
 DOWNLOAD = /sw/bin/wget',
 cbf_system,`LINUX_64',`
 #########################################################
@@ -471,6 +476,8 @@ LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
+PYCBFEXT = so
+SETUP_PY = setup.py
 DOWNLOAD = /sw/bin/wget',
 cbf_system,`LINUX_gcc42',`
 #########################################################
@@ -491,7 +498,9 @@ JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
-TIME = time',
+TIME = time
+PYCBFEXT = so
+SETUP_PY = setup.py',
 cbf_system,`LINUX',`
 #########################################################
 #
@@ -510,7 +519,9 @@ JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
-TIME = time',
+TIME = time
+PYCBFEXT = so
+SETUP_PY = setup.py',
 cbf_system,`LINUX_gcc42_DMALLOC',`
 #########################################################
 #
@@ -530,7 +541,9 @@ JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
-TIME = time',
+TIME = time
+PYCBFEXT = so
+SETUP_PY = setup.py',
 cbf_system,`LINUX_DMALLOC',`
 #########################################################
 #
@@ -549,7 +562,9 @@ JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
-TIME = time',
+TIME = time
+PYCBFEXT = so
+SETUP_PY = setup.py',
 cbf_system,`AIX',`
 #########################################################
 #
@@ -564,7 +579,9 @@ F90FLAGS = -g -qsuffix=f=f90
 F90LDFLAGS = 
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 EXTRALIBS = -lm
-TIME = time',
+TIME = time
+PYCBFEXT = so
+SETUP_PY = setup.py',
 cbf_system,`MINGW',`
 #########################################################
 #
@@ -583,9 +600,11 @@ M4FLAGS = -Dfcb_bytes_in_rec=4096
 SOCFLAGS = -D_JNI_IMPLEMENTATION_
 SOLDFLAGS = -shared -Wl,--kill-at
 JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/win32
-EXTRALIBS = -L/usr/lib -lregex -lm
-REGEXDEP = /usr/lib/libregex.a
+EXTRALIBS = -L$(REGEXDIR) -lregex -lm
+REGEXDEP = $(REGEXDIR)/libregex.a
 TIME =
+PYCBFEXT = pyd
+SETUP_PY = setup_MINGW.py
 JDKDIR = /java
 JSWIG = /swig/swig -java
 PYSWIG = /swig/swig -python
@@ -613,6 +632,8 @@ TIME    =
 SHAR    = shar
 AR      =  ar
 RANLIB  =
+PYCBFEXT = so
+SETUP_PY = setup.py
 DECOMPRESS =  bunzip2',
 
 `
@@ -625,7 +646,7 @@ CC	= gcc
 C++	= g++
 CFLAGS  = -g -O2 -Wall -D_USE_XOPEN_EXTENDED -fno-strict-aliasing
 F90C = gfortran
-F90FLAGS = -g
+F90FLAGS = -g -fno-range-check
 F90LDFLAGS = 
 SOCFLAGS = -fPIC
 SOLDFLAGS = -shared -Wl,-rpath,$(INSTALLDIR)/lib
@@ -633,7 +654,9 @@ JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
-TIME = time')`
+TIME = time
+PYCBFEXT = so
+SETUP_PY = setup.py')`
 
 ifneq ($(NOFORTRAN),)
 F90C =
@@ -1238,7 +1261,8 @@ endif
 #
 # Python bindings
 #
-$(PYCBF)/_pycbf.so: $(PYCBF)  $(LIB)/libcbf.a          \
+$(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  $(LIB)/libcbf.a \
+                              $(PYCBF)/$(SETUP_PY)     \
 			                  $(LIB)/libfcb.a          \
 			                  $(LIB)/libimg.a          \
 			                  $(PYCBF)/pycbf.i         \
@@ -1246,11 +1270,16 @@ $(PYCBF)/_pycbf.so: $(PYCBF)  $(LIB)/libcbf.a          \
 			                  $(PYCBF)/cbfdetectorwrappers.i \
 			                  $(PYCBF)/cbfgenericwrappers.i  \
 			                  $(PYCBF)/cbfgoniometerwrappers.i
-	(cd $(PYCBF); python setup.py build; cp build/lib.*/_pycbf.so .) 
+	(cd $(PYCBF); python $(SETUP_PY) build; cp build/lib.*/_pycbf.$(PYCBFEXT) .) 
 
+$(PYCBF)/setup.py: m4/setup_py.m4
+        (cd $(PYCBF); m4 -P -Dregexlib=NOREGEXLIB -Dregexlibdir=NOREGEXLIBDIR $(M4)/setup_py.m4 > setup.py)
 
-$(LIB)/_pycbf.so: $(PYCBF)/_pycbf.so
-	cp $(PYCBF)/_pycbf.so $(LIB)/_pycbf.so
+$(PYCBF)/setup_MINGW.py: m4/setup_py.m4
+        (cd $(PYCBF); m4 -P -Dregexlib=regex -Dregexlibdir=$(REGEXDIR) $(M4)/setup_py.m4 > setup_MINGW.py.py)
+
+$(LIB)/_pycbf.$(PYCBFEXT): $(PYCBF)/_pycbf.$(PYCBFEXT)
+	cp $(PYCBF)/_pycbf.$(PYCBFEXT) $(LIB)/_pycbf.$(PYCBFEXT)
 	
 $(PYCBF)/pycbf.pdf: $(PYCBF)/pycbf.w
 	(cd $(PYCBF); \
@@ -1419,9 +1448,9 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 #
 $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 					$(GOPTLIB)	$(GOPTINC) $(TIFF)
-	$(TIFF)/libtool --tag=CC --mode=link $(CC) $(CFLAGS) $(NOLLFLAG) -all-static $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) -all-static $(INCLUDES) $(WARNINGS) \
 			  -I$(TIFFPREFIX)/include $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf -L$(TIFFPREFIX)/lib -ltiff $(EXTRALIBS) -limg -o $@
+		  -lcbf $(TIFFPREFIX)/lib/libtiff.a $(EXTRALIBS) -limg -o $@
 
 #
 # Andy Arvai''`s buffered read test program
@@ -1832,7 +1861,7 @@ endif
 
 
 	
-pycbftests:  $(PYCBF)/_pycbf.so 
+pycbftests:  $(PYCBF)/_pycbf.$(PYCBFEXT) 
 	(cd $(PYCBF); python pycbf_test1.py)
 	(cd $(PYCBF); python pycbf_test2.py)
 	(cd $(PYCBF); python pycbf_test3.py)
@@ -1853,9 +1882,9 @@ empty:
 	@-rm -f  $(LIB)/libcbf.a
 	@-rm -f  $(LIB)/libfcb.a
 	@-rm -f  $(LIB)/libimg.a
-	@-rm -f  $(LIB)/_pycbf.so
-	@-rm -f  $(PYCBF)/_pycbf.so
-	@-rm -f  $(PYCBF)/build/*/_pycbf.so
+	@-rm -f  $(LIB)/_pycbf.$(PYCBFEXT)
+	@-rm -f  $(PYCBF)/_pycbf.$(PYCBFEXT)
+	@-rm -f  $(PYCBF)/build/*/_pycbf.$(PYCBFEXT)
 	@-rm -f  $(PYCBF)/build/src/cbf_simple.o
 	@-rm -f  $(PYCBF)/build/*/pycbf_wrap.o
 	@-rm -rf  $(BIN)/adscimg2cbf*
