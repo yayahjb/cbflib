@@ -978,7 +978,7 @@ $(PYCBF)/setup.py: m4/setup_py.m4
         (cd $(PYCBF); m4 -P -Dregexlib=NOREGEXLIB -Dregexlibdir=NOREGEXLIBDIR $(M4)/setup_py.m4 > setup.py)
 
 $(PYCBF)/setup_MINGW.py: m4/setup_py.m4
-        (cd $(PYCBF); m4 -P -Dregexlib=regex -Dregexlibdir=$(REGEXDIR) $(M4)/setup_py.m4 > setup_MINGW.py.py)
+        (cd $(PYCBF); m4 -P -Dregexlib=regex -Dregexlibdir=$(REGEXDIR) $(M4)/setup_py.m4 > setup_MINGW.py)
 
 $(LIB)/_pycbf.$(PYCBFEXT): $(PYCBF)/_pycbf.$(PYCBFEXT)
 	cp $(PYCBF)/_pycbf.$(PYCBFEXT) $(LIB)/_pycbf.$(PYCBFEXT)
