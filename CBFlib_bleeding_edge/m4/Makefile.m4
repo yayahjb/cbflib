@@ -385,6 +385,12 @@ else
 NOLLFLAG =
 endif
 
+#
+# PYCBF definitions
+#
+PYCBFEXT = so
+PYCBFBOPT =
+SETUP_PY = setup.py
 
 #
 # Set the compiler and flags
@@ -405,8 +411,6 @@ F90LDFLAGS = -bind_at_load
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
-PYCBFEXT = so
-SETUP_PY = setup.py
 DOWNLOAD = /sw/bin/wget',
 cbf_system,`OSX_gcc42',`
 #########################################################
@@ -429,8 +433,6 @@ LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
-PYCBFEXT = so
-SETUP_PY = setup.py
 DOWNLOAD = /sw/bin/wget',
 cbf_system,`OSX_gcc42_DMALLOC',`
 #########################################################
@@ -453,8 +455,6 @@ LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
-PYCBFEXT = so
-SETUP_PY = setup.py
 DOWNLOAD = /sw/bin/wget',
 cbf_system,`LINUX_64',`
 #########################################################
@@ -476,8 +476,6 @@ LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
-PYCBFEXT = so
-SETUP_PY = setup.py
 DOWNLOAD = /sw/bin/wget',
 cbf_system,`LINUX_gcc42',`
 #########################################################
@@ -498,9 +496,7 @@ JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
-TIME = time
-PYCBFEXT = so
-SETUP_PY = setup.py',
+TIME = time',
 cbf_system,`LINUX',`
 #########################################################
 #
@@ -519,9 +515,7 @@ JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
-TIME = time
-PYCBFEXT = so
-SETUP_PY = setup.py',
+TIME = time',
 cbf_system,`LINUX_gcc42_DMALLOC',`
 #########################################################
 #
@@ -541,9 +535,7 @@ JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
-TIME = time
-PYCBFEXT = so
-SETUP_PY = setup.py',
+TIME = time',
 cbf_system,`LINUX_DMALLOC',`
 #########################################################
 #
@@ -562,9 +554,7 @@ JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm -L$(HOME)/lib -ldmalloc
 M4FLAGS = -Dfcb_bytes_in_rec=131072
-TIME = time
-PYCBFEXT = so
-SETUP_PY = setup.py',
+TIME = time',
 cbf_system,`AIX',`
 #########################################################
 #
@@ -579,9 +569,7 @@ F90FLAGS = -g -qsuffix=f=f90
 F90LDFLAGS = 
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 EXTRALIBS = -lm
-TIME = time
-PYCBFEXT = so
-SETUP_PY = setup.py',
+TIME = time',
 cbf_system,`MINGW',`
 #########################################################
 #
@@ -604,6 +592,7 @@ EXTRALIBS = -L$(REGEXDIR) -lregex -lm
 REGEXDEP = $(REGEXDIR)/libregex.a
 TIME =
 PYCBFEXT = pyd
+PYCBFBOPT = --compiler=mingw32
 SETUP_PY = setup_MINGW.py
 JDKDIR = /java
 JSWIG = /swig/swig -java
@@ -632,8 +621,6 @@ TIME    =
 SHAR    = shar
 AR      =  ar
 RANLIB  =
-PYCBFEXT = so
-SETUP_PY = setup.py
 DECOMPRESS =  bunzip2',
 
 `
@@ -654,9 +641,7 @@ JAVAINCLUDES = -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
 LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
-TIME = time
-PYCBFEXT = so
-SETUP_PY = setup.py')`
+TIME = time')`
 
 ifneq ($(NOFORTRAN),)
 F90C =
@@ -1270,7 +1255,7 @@ $(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  $(LIB)/libcbf.a \
 			                  $(PYCBF)/cbfdetectorwrappers.i \
 			                  $(PYCBF)/cbfgenericwrappers.i  \
 			                  $(PYCBF)/cbfgoniometerwrappers.i
-	(cd $(PYCBF); python $(SETUP_PY) build; cp build/lib.*/_pycbf.$(PYCBFEXT) .) 
+	(cd $(PYCBF); python $(SETUP_PY) build $(PYCBFBOPT); cp build/lib.*/_pycbf.$(PYCBFEXT) .) 
 
 $(PYCBF)/setup.py: $(M4)/setup_py.m4
 	(m4 -P -Dregexlib=NOREGEXLIB -Dregexlibdir=NOREGEXLIBDIR $(M4)/setup_py.m4 > $@)

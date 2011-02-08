@@ -375,6 +375,12 @@ else
 NOLLFLAG =
 endif
 
+#
+# PYCBF definitions
+#
+PYCBFEXT = so
+PYCBFBOPT =
+SETUP_PY = setup.py
 
 #
 # Set the compiler and flags
@@ -399,8 +405,6 @@ LDPREFIX = LD_LIBRARY_PATH=$(SOLIB)
 EXTRALIBS = -lm
 M4FLAGS = -Dfcb_bytes_in_rec=131072
 TIME = time
-PYCBFEXT = so
-SETUP_PY = setup.py
 DOWNLOAD = /sw/bin/wget
 
 ifneq ($(NOFORTRAN),)
@@ -976,7 +980,7 @@ $(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  $(LIB)/libcbf.a \
 			                  $(PYCBF)/cbfdetectorwrappers.i \
 			                  $(PYCBF)/cbfgenericwrappers.i  \
 			                  $(PYCBF)/cbfgoniometerwrappers.i
-	(cd $(PYCBF); python $(SETUP_PY) build; cp build/lib.*/_pycbf.$(PYCBFEXT) .) 
+	(cd $(PYCBF); python $(SETUP_PY) build $(PYCBFBOPT); cp build/lib.*/_pycbf.$(PYCBFEXT) .) 
 
 $(PYCBF)/setup.py: $(M4)/setup_py.m4
 	(m4 -P -Dregexlib=NOREGEXLIB -Dregexlibdir=NOREGEXLIBDIR $(M4)/setup_py.m4 > $@)
