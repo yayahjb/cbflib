@@ -263,7 +263,7 @@ CLEANTESTS = yes
 # Definition to get a version of tifflib to support tiff2cbf
 #
 TIFF = tiff-3.9.4-rev-6Feb11
-TIFFPREFIX = $(HOME)
+TIFFPREFIX = $(PWD)
 
 
 #
