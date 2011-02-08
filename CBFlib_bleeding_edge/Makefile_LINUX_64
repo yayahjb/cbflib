@@ -978,11 +978,11 @@ $(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  $(LIB)/libcbf.a \
 			                  $(PYCBF)/cbfgoniometerwrappers.i
 	(cd $(PYCBF); python $(SETUP_PY) build; cp build/lib.*/_pycbf.$(PYCBFEXT) .) 
 
-$(PYCBF)/setup.py: m4/setup_py.m4
-        (cd $(PYCBF); m4 -P -Dregexlib=NOREGEXLIB -Dregexlibdir=NOREGEXLIBDIR $(M4)/setup_py.m4 > setup.py)
+$(PYCBF)/setup.py: $(M4)/setup_py.m4
+	(m4 -P -Dregexlib=NOREGEXLIB -Dregexlibdir=NOREGEXLIBDIR $(M4)/setup_py.m4 > $@)
 
 $(PYCBF)/setup_MINGW.py: m4/setup_py.m4
-        (cd $(PYCBF); m4 -P -Dregexlib=regex -Dregexlibdir=$(REGEXDIR) $(M4)/setup_py.m4 > setup_MINGW.py)
+	(m4 -P -Dregexlib=regex -Dregexlibdir=$(REGEXDIR) $(M4)/setup_py.m4 > $@)
 
 $(LIB)/_pycbf.$(PYCBFEXT): $(PYCBF)/_pycbf.$(PYCBFEXT)
 	cp $(PYCBF)/_pycbf.$(PYCBFEXT) $(LIB)/_pycbf.$(PYCBFEXT)
