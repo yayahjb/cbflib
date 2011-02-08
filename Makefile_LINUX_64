@@ -1161,7 +1161,6 @@ $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 		  -I$(TIFFPREFIX)/include $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
 		    -lcbf -L$(TIFFPREFIX)/lib -ltiff $(EXTRALIBS) -limg -o $@
-		  -lcbf $(TIFFPREFIX)/lib/libtiff.a $(EXTRALIBS) -limg -o $@
 
 #
 # Andy Arvai's buffered read test program
