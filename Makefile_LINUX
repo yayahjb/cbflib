@@ -1152,7 +1152,7 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 #
 $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 					$(GOPTLIB)	$(GOPTINC) $(TIFF)
-	$(CC) $(CFLAGS) $(NOLLFLAG) -all-static $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(NOLLFLAG) $(INCLUDES) $(WARNINGS) \
 			  -I$(TIFFPREFIX)/include $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(TIFFPREFIX)/lib/libtiff.a $(EXTRALIBS) -limg -o $@
 
@@ -1714,3 +1714,4 @@ tar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) $(M4FILES)\
 	 README.html README Makefile \
 	 $(JPEGS)
 	 gzip --best CBFlib.tar
+
