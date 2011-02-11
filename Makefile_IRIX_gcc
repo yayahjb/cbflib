@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.2 06 Feb 2011                                          #
+# Version 0.9.2 11 Feb 2011                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -1495,7 +1495,7 @@ ifneq ($(F90C),)
 endif
 	$(TIME) $(BIN)/sauter_test
 	$(TIME) $(BIN)/changtestcompression
-	$(TIME) $(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf
+	$(TIME) (export LD_LIBRARY_PATH=$(LIB);$(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf)
 	-$(DIFF) XRD1621.cbf XRD1621_orig.cbf
 	$(TIME) $(BIN)/cif2cbf -I 4 -C 100. -L 0. -e n -c b -i XRD1621.cbf -o XRD1621_I4encbC100.cbf
 	-$(DIFF) XRD1621_I4encbC100.cbf XRD1621_I4encbC100_orig.cbf

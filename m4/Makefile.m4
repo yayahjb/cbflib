@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.2')m4_dnl
-m4_define(`cbf_date',`06 Feb 2011')m4_dnl
+m4_define(`cbf_date',`11 Feb 2011')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -1771,7 +1771,7 @@ ifneq ($(F90C),)
 endif
 	$(TIME) $(BIN)/sauter_test
 	$(TIME) $(BIN)/changtestcompression
-	$(TIME) $(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf
+	$(TIME) (export LD_LIBRARY_PATH=$(LIB);$(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf)
 	-$(DIFF) XRD1621.cbf XRD1621_orig.cbf
 	$(TIME) $(BIN)/cif2cbf -I 4 -C 100. -L 0. -e n -c b -i XRD1621.cbf -o XRD1621_I4encbC100.cbf
 	-$(DIFF) XRD1621_I4encbC100.cbf XRD1621_I4encbC100_orig.cbf
