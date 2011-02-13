@@ -70,10 +70,16 @@ else
   LN="ln -s"
 fi
 if [ ! -e cif_img.dic ] ; then
-  $LN cif_img_1.5.4_28Jul07.dic cif_img.dic
+  $LN cif_img_1.6.3_26Aug10.dic cif_img.dic
 fi
 if [ ! -e cif_img.html ] ; then
-  $LN cif_img_1.5.4_28Jul07.html cif_img.html
+  $LN cif_img_1.6.3_16Aug10.html cif_img.html
+fi
+if [ ! -e cif_img_1.6.3.html ] ; then
+  $LN cif_img_1.6.3_16Aug10.html cif_img_1.6.3.html
+fi
+if [ ! -e cif_img_1.6.html ] ; then
+  $LN cif_img_1.6.3_16Aug10.html cif_img_1.6.html
 fi
 if [ ! -e cif_img_1_3_2.html ] ; then
   $LN cif_img_1.3.2.html cif_img_1_3_2.html
