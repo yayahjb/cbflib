@@ -2,8 +2,8 @@
 
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
-                                 Version 0.7.9
-                                24 January 2008
+                                 Version 0.9.2
+                                12 February 2011
 
                                        by
                                  Paul J. Ellis
@@ -14,7 +14,7 @@
                                 Bernstein + Sons
                       yaya at bernstein-plus-sons dot com
 
-              (c) Copyright 2006, 2007, 2008 Herbert J. Bernstein
+           (c) Copyright 2006, 2007, 2008, 2011 Herbert J. Bernstein
 
      ----------------------------------------------------------------------
 
@@ -201,6 +201,187 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                                        ADSC jiffie by Chris Nielsen, to clean 
                                        up problems in handling maps for       
                                        RasMol.                                
+     0.8.0     Jul 2008        GT, HJB   Cleanup of 0.7.9.1 to start 0.8      
+                                       series.                                
+     0.8.1     Jul 2009        EZ, CN,    Release with EZ's 2008 DDLm support 
+                             PC, GW,   using JH's PyCifRW, also cbff f95      
+                             JH, HJB   wrapper code, PC's java bindings.      
+     0.9.1     Aug 2010        PC, EE,    Release with EE's Dectris template  
+                             JLM, NS,  software, also with vcif3, new         
+                             EZ, HJB   arvai_test, sequence_match.            
+     0.9.2     Feb 2011        PC, EE,    New default release with updated    
+                             JLM, NS,  pycbf, tiff support, removal of        
+                             EZ, HJB   default use of PyCifRW to avoid Fedora 
+                                       license issue.                         
+
+     ----------------------------------------------------------------------
+
+  Release 0.9.2, Herbert J. Bernstein, 12 February 2011
+
+   Source File                Change                                          
+   Makefile.m4, Makefiles       Changes for libtiff and tiff2cbf. Create a    
+                              separate setup.py for MINGW. Allow              
+                              CBF_DONT_USE_LONG_LONG variable to control      
+                              Makefiles. Disable default use of PyCifRW       
+                              because of Fedora concerns about PyCifRW        
+                              license issues. Force use of long long for      
+                              SWIG. Update Makefiles to run                   
+                              changtestcompression. Update pycbf build.       
+   cbf_template_t.c             Don't use /tmp for dectris template code. Add 
+                              EE's change for DLS signs                       
+   cbf_copy.c                   Fix cbf_copy.c to handle not using long long  
+                              correctly                                       
+   jcbf.i                       Move cbf.i to jcbf directory.                 
+   cbf_byte_offset.h,                                                         
+   cbf_canonical.h,             Implement P. Chang's fast byte-offset         
+   cbf_compress.h,            decompress, but with hooks to run on machines   
+   cbf_packed.h,              without long long support. Fix bad mask, fix    
+   cbf_predictor.h,           sign extension for MINGW and other systems in   
+   cbf_uncompressed.h, cbf.c, which long long is not used. Fix error in       
+   cbf_binary.c,              mpint_shift logic causing erroneous sign Add    
+   cbf_byte_offset.c,         changes in the compression infrastructure by P. 
+   cbf_canonical.c,           Chang to make the compressed size available on  
+   cbf_compress.c,            decompression. Extend cbf_canonical to support  
+   cbf_packed.c,              long long and double. Correct cbf_packed for    
+   cbf_predictor.c,           elsize 8 data.
+   cbf_uncompressed.c, cbff.c 
+   cbfdetectorwrappers.i,       Update pycbf for 0.9 release Add              
+   cbfgenericwrappers.i,      cbf_get_detector_axis_slow,                     
+   cbfgoniometerwrappers.i,   cbf_get_detector_axis_fast,                     
+   cbfhandlewrappers.i,       cbf_get_detector_axes,                          
+   make_pycbf.py, pycbf.py,   cbf_get_detector_axes_fs, cbf_get_detector_sf,  
+   pycbf_test2.py,            and changes for pycbf wrapper                   
+   pycbf_wrap.c, cbf_simple.c 
+   cbf2adscimg_sub.c            Fix buffer overflow                           
+   cif_img_1.6.3_26Aug10.dic, 
+   cif_img_1.6.3_26Aug10.html 
+   Add variant category and   
+   tags and                   
+   diffrn_scan_frame_monitor  
+
+     ----------------------------------------------------------------------
+
+  Release 0.9.1, P. Chang, E. Eikenberry, J. Lewis Muir, N. Sauter, E. Zlateva,
+  Herbert J. Bernstein, 15 August 2010
+
+   Source File        Change                                                  
+   cbf_simple.c         Fix nested axis handling.                             
+   cbf_template_t.c     Add E.E.'s Dectris template software. Change to       
+                      C-style comments.                                       
+   Makefile.m4,         Add DMALLOC hooks.                                    
+   Makefiles          
+   arvai_test.c,                                                              
+   seqmatchsub.c,                                                             
+   seqmatchsub.h,     
+   sequence_match.c,    Add arvai_test and sequence_match examples. Transfer
+   cbf_copy.h,        copy logic from cib2cbf into cbf_copy.c
+   Makefile.m4,       
+   cbf_ascii.c,       
+   cbf_copy.c         
+   cbf.h,                                                                     
+   cbf_ascii.h,                                                               
+   cbf_file.h,          As per request by J. Lewis Muir, direct all warning   
+   cbf_write.h,       messages through cbf_log or new cbf_flog, so such       
+   cbff.h, cbf.c,     messages can all be suppressed by setting the logfile
+   cbf_ascii.c,       to NULL
+   cbf_file.c,        
+   cbf_lex.c,         
+   cbf_write.c        
+   cbf_byte_offset.c,   Fix to byte-offset compression for 16 bit data with a 
+   cbf_file.c         delta that looks like a flag. Fix to setting/getting    
+                      file position when there is no stream. Fix incorrect    
+                      sign extension test as per N. Sauter.                   
+   convert_minicbf.c    Allow for changes in miniheader and report            
+                      unrecognized lines but continue. Also allow S/N instead 
+                      of SN                                                   
+   Makefile.m4,                                                               
+   Makefiles,           As per P. Chang, decouple CBF_UNDEFINED error return  
+   Java.txt,          from CBF_UNDEFINED node type by defining CBF_UNDEFNODE  
+   testcbf.java,      (rather than PC's CBF_UNDEFINEDNODE)
+   cbf.c              
+   drel_prep.py,                                                              
+   drel_yacc.py,      
+   cif2cbf.c, cbf.h,  
+   cbf.c,             
+   cbf_ascii.c,         vcif 3 release.
+   cbf_lex.c,         
+   cbf.stx.y,         
+   cbf_getopt.c,      
+   cbf_stx.c          
+   cbf.h, cbf.c         Add function cbf_set_column_name                      
+
+     ----------------------------------------------------------------------
+
+  Release 0.8.1, E. Zlateva, C. Neilsen, P. Chang, G. Winter, J. Hester, Herbert
+  J. Bernstein, 24 July 2009
+
+   Source File        Change                                                  
+   cbf.h, cbf_stx.h,                                                          
+   cbf_tree.h, cbf.c,                                                         
+   cbf.stx.y,           As per EZ, Add DDLm support, parsing of function      
+   cbf_lex.c,         definitions. Add auto download of J. Hester's PyCifRW
+   cbf_stx.c,         and PLY
+   Makefile.m4,       
+   Makefiles          
+   cbf_getopt.c         Correct a memory leak and ensure correct handling of  
+                      unspecified options when a '-' is given on the option   
+                      string.                                                 
+   CBFlib.html,         As per G. Winter correct documentation of byte-offset 
+   CBFlib.txt         algorithm to refer to hex 80 not hex F0.                
+   cbf_getopt.h,                                                              
+   cbf_getopt.c,                                                              
+   Makefile.m4,       
+   Makefiles,           Introduce cbf_getopt.h, cbf_getopt.c, remove use of
+   cif2cbf.c,         getopt
+   convert_image.c,   
+   convert_minicbf.c, 
+   img2cif.c          
+   Java.txt,                                                                  
+   testcbf.c,           P. Chang's java bindings
+   testcbf.java,      
+   Makefile.m4, cbf.i 
+   libtool directory    Add a libtool build directory for future use of       
+                      shared libraries.                                       
+   cif2cbf.c            Add test for construct_detector to cif2cbf. Fix       
+                      getopt option string.                                   
+   cif_tree.h           Add DDLm bracket types for nodes                      
+   adscimg2cbf.c,       Apply mods to adscimg2cbf by C. Nielsen: Add new      
+   adscimg2cbf_sub.c  command line options: --beam_center_from_header, Figure 
+                      out beam center from ADSC header information (default); 
+                      --beam_center_mosflm, Beam center in ADSC header:       
+                      MOSFLM coordinates; --beam_center_ulhc, Beam center in  
+                      ADSC header: origin: upper left hand corner of          
+                      image.(HKL mm); --beam_center_llhc, Beam center in ADSC 
+                      header: origin: lower left hand corner of image.(adxv   
+                      mm)                                                     
+   cbff.h, cbff.c       Add src/cbff.c and include/cbff.h as start of full    
+                      f95 wrapper for C code                                  
+
+     ----------------------------------------------------------------------
+
+  Release 0.8.0, G. Todorov, Herbert J. Bernstein, 21 July 2008
+
+   Source File        Change                                                  
+   adscimg2cbf_sub.c,   Patch to deal with gcc 4 optimization error in get_bo 
+   adscimg2cbf_sub.c  Replaced with call to cbf_get_local_integer_byte_order. 
+   cbf.c, cbf.h,        Clean up spacing; trim trailing blanks in text        
+   cbf_ascii.c,       fields; validate DDLm types. Add MSG_DIGESTWARN. Update 
+   cbf_file.c,        spacing. Fix includes for regex use. Fixes on achar and 
+   cbf_lex.c,         anchar and element. Added cbf_check_type_contents       
+   cbf_write.c        function that will verify ddlm types based on regular   
+                      expressions. Fix handling for bracketed unquoted words  
+                      and handle more DDLm tags. Fix scan of DDLm bracketed   
+                      constructs with embedded quotes. Pick up item names in  
+                      DDLm save frames. Fix cif2cbf handling of bracketed     
+                      constructs in dictionaries. Updates to bracketed        
+                      construct parse and output logic. Update write logic    
+                      for bracketed constructs with folding.                  
+                      cbf_set_tag_category() code fixed. Change internal      
+                      routine cbf_read_anyfile and add new user routine       
+                      cbf_read_buffered_file to support pre-read of input     
+                      files and memory-only files. Add new routines           
+                      cbf_io_buffersize and cbf_reset_in_bits and change read 
+                      logic to allow buffered reads.                          
 
      ----------------------------------------------------------------------
 
@@ -1373,4 +1554,4 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-   Updated 25 December 2007.  yaya at bernstein-plus-sons dot com
+   Updated 13 February 2011.  yaya at bernstein-plus-sons dot com
