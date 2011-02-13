@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.2')m4_dnl
-m4_define(`cbf_date',`11 Feb 2011')m4_dnl
+m4_define(`cbf_date',`12 Feb 2011')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
