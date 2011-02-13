@@ -1596,16 +1596,22 @@ int cbf_decompress_byte_offset_fast(void         *destination,
             if (delta.el0 == (signed char) 0x80) {
                 delta.el0 = rawdata[i++];
                 delta.el0 |= (signed char) rawdata[i++] << 8;
-                if (delta.el0 < 0) delta.el1 = ~0;
+                if (delta.el0 & 0x8000L) {
+                    delta.el0 |= ~0x7FFFL;
+                    delta.el1 = ~0L;
+                }
                 
-                if ((delta.el0 & 0xffff) ==  0x8000) {
+                if ((delta.el0 & 0xffffL) ==  0x8000) {
                     delta.el0 = rawdata[i++];
                     delta.el0 |= rawdata[i++] << 8;
                     delta.el0 |= rawdata[i++] << 16;
                     delta.el0 |= (signed char) rawdata[i++] << 24;
-                    if (delta.el0 < 0) delta.el1 = ~0;
+                    if (delta.el0 & 0x80000000L) {
+                        delta.el0 |= ~0x7FFFFFFL;
+                        delta.el1 = ~0L;
+                    }
                     
-                    if ((delta.el0 & 0xffffffff) == 0x80000000) {
+                    if ((delta.el0 & 0xffffffffL) == 0x80000000L) {
                         delta.el0 = rawdata[i++];
                         delta.el0 |= rawdata[i++] << 8;
                         delta.el0 |= rawdata[i++] << 16;
@@ -1673,14 +1679,14 @@ int cbf_decompress_byte_offset_fast(void         *destination,
             if (delta.el0 == (signed char) 0x80) {
                 delta.el0 = rawdata[i++];
                 delta.el0 |= (signed char) rawdata[i++] << 8;
-                if (delta.el0 < 0) delta.el1 = delta.el2 = delta.el3 = ~0;
+                if (delta.el0 & 0x8000) delta.el1 = delta.el2 = delta.el3 = ~0;
                 
                 if ((delta.el0 & 0xffff) == 0x8000) {
                     delta.el0 = rawdata[i++];
                     delta.el0 |= rawdata[i++] << 8;
                     delta.el1 = rawdata[i++];
                     delta.el1 |= (signed char) rawdata[i++] << 8;
-                    if (delta.el1 < 0) delta.el2 = delta.el3 = ~0;
+                    if (delta.el1 & 0x8000) delta.el2 = delta.el3 = ~0;
                     
                     if (delta.el0 == 0 && (delta.el1 & 0x8000) == 0x8000) {
                         delta.el0 = rawdata[i++];
@@ -1891,14 +1897,17 @@ int cbf_decompress_byte_offset_fast(void         *destination,
             if (delta.el0 == (signed char) 0x80) {
                 delta.el0 = rawdata[i++];
                 delta.el0 |= (signed char) rawdata[i++] << 8;
-                if (delta.el0 < 0) delta.el1 = ~0;
+                if (delta.el0 & 0x8000L) {
+                    delta.el0 |= ~0x7FFFL;
+                    delta.el1 = ~0L;
+                }
                 
                 if ((delta.el0 & 0xffff) ==  0x8000) {
                     delta.el0 = rawdata[i++];
                     delta.el0 |= rawdata[i++] << 8;
                     delta.el0 |= rawdata[i++] << 16;
                     delta.el0 |= (signed char) rawdata[i++] << 24;
-                    if (delta.el0 < 0) delta.el1 = ~0;
+                    if (delta.el0 & 0x80000000L) delta.el1 = ~0;
                     
                     if ((delta.el0 & 0xffffffff) == 0x80000000) {
                         delta.el0 = rawdata[i++];
@@ -1925,7 +1934,7 @@ int cbf_decompress_byte_offset_fast(void         *destination,
             
             base.el1+= delta.el1;
             
-            base.el1 &= 0xffffffff;
+            base.el1 &= 0xffffffffL;
             
             switch (elsize) {
                     
@@ -1969,14 +1978,14 @@ int cbf_decompress_byte_offset_fast(void         *destination,
             if (delta.el0 == (signed char) 0x80) {
                 delta.el0 = rawdata[i++];
                 delta.el0 |= (signed char) rawdata[i++] << 8;
-                if (delta.el0 < 0) delta.el1 = delta.el2 = delta.el3 = ~0;
+                if (delta.el0 & 0x8000) delta.el1 = delta.el2 = delta.el3 = ~0;
                 
                 if (delta.el0&0xffff == 0x8000) {
                     delta.el0 = rawdata[i++];
                     delta.el0 |= rawdata[i++] << 8;
                     delta.el1 = rawdata[i++];
                     delta.el1 |= (signed char) rawdata[i++] << 8;
-                    if (delta.el1 < 0) delta.el2 = delta.el3 = ~0;
+                    if (delta.el1 & 0x8000) delta.el2 = delta.el3 = ~0;
                     
                     if (delta.el0 == 0 && delta.el1&0x8000 == 0x8000) {
                         delta.el0 = rawdata[i++];
