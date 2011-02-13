@@ -21,7 +21,7 @@ ALT="[CBF/imgCIF]"></A>
 | <A HREF = "CBFlib_NOTICES.html">NOTICE</A>
 | <a href=gpl.txt>GPL</a>
 | <a href=lgpl.txt>LGPL</a>
-| <a href="cif_img_1.5.4.html">imgCIF dictionary</a>
+| <a href="cif_img_1.6.3.html">imgCIF dictionary</a>
 |<br />
 | <a href="http://arcib.dowling.edu/donation.shtml">Click Here to Make a Donation</a>
 |<P>
@@ -32,8 +32,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <b>An API for CBF/imgCIF<br />
 Crystallographic Binary Files with ASCII Support</b><br />
-Version 0.8<br />
-29 February 2008<br />
+Version 0.9.2<BR>
+12 February 2011<BR>
 <p>
 </CENTER>
 </font><font color="#000000">
@@ -58,7 +58,7 @@ Bernstein + Sons<br />
 yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 </noscript>
 <p>
-&#169; Copyright 2006, 2007 Herbert J. Bernstein
+&#169; Copyright 2006, 2007, 2008, 2011 Herbert J. Bernstein
 <P>
 <hr>
 <b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=gpl.txt>GPL</a>.
@@ -93,82 +93,113 @@ information.
 </font><font color="#000000">
 <p>
 <TABLE>
-<TR><TH ALIGN=LEFT>Version
-<TH ALIGN=LEFT>Date<TH ALIGN=LEFT>By<TH ALIGN=LEFT>Description
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;0.1<TD VALIGN=TOP>&nbsp;&nbsp;Apr. 1998<TD VALIGN=TOP>&nbsp;&nbsp;PJE<td valign="top">&nbsp;&nbsp;This was the
+<tr><th align="left">Version
+<th align="left">Date<th align="left">By<th align="left">Description
+<tr>
+<td valign="top">&nbsp;&nbsp;0.1<td valign="top">&nbsp;&nbsp;Apr. 1998
+<td valign="top">&nbsp;&nbsp;PJE
+<td>&nbsp;&nbsp;This was the 
 first CBFlib release.  It
 supported binary CBF files using binary strings.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A href="ChangeLog.html#0.2">0.2</A><TD VALIGN=TOP>&nbsp;&nbsp;Aug. 1998<TD VALIGN=TOP>&nbsp;&nbsp;HJB<td valign="top">&nbsp;&nbsp;This release
-added ascii imgCIF support using MIME-encoded binary sections, added
-the option of MIME headers for the binary strings was well.  MIME code
-adapted from mpack 1.5.  Added hooks needed for DDL1-style names without
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.2">0.2</a>
+<td valign="top">&nbsp;&nbsp;Aug. 1998
+<td valign="top">&nbsp;&nbsp;HJB<td>&nbsp;&nbsp;This release 
+added ascii imgCIF support using MIME-encoded binary sections, added 
+the option of MIME headers for the binary strings was well.  MIME code 
+adapted from mpack 1.5.  Added hooks needed for DDL1-style names without 
 categories.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A href="ChangeLog.html#0.3">0.3</A><TD VALIGN=TOP>&nbsp;&nbsp;Sep. 1998<TD VALIGN=TOP>&nbsp;&nbsp;PJE<td valign="top">&nbsp;&nbsp;This release
-cleaned up the changes made for version 0.2, allowing multi-threaded use of
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.3">0.3</a>
+<td valign="top">&nbsp;&nbsp;Sep. 1998
+<td valign="top">&nbsp;&nbsp;PJE<td>&nbsp;&nbsp;This release 
+cleaned up the changes made for version 0.2, allowing multi-threaded use of 
 the code, and removing dependence on the mpack package.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A href="ChangeLog.html#0.4">0.4</A><TD VALIGN=TOP>&nbsp;&nbsp;Nov. 1998<TD VALIGN=TOP>&nbsp;&nbsp;HJB<td valign="top">&nbsp;&nbsp;This release
-merged much of the message digest code into the general file reading and
-writing to reduce the number of passes.  More consistency checking between the MIME header and the binary header was introduced.  The size in the MIME header was adjusted to agree with the version 0.2 documentation.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A href="ChangeLog.html#0.5">0.5</A><TD VALIGN=TOP>&nbsp;&nbsp;Dec. 1998<TD VALIGN=TOP>&nbsp;&nbsp;PJE<td valign="top">&nbsp;&nbsp;This release
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.4">0.4</a>
+<td valign="top">&nbsp;&nbsp;Nov. 1998
+<td valign="top">&nbsp;&nbsp;HJB
+<td>&nbsp;&nbsp;This release
+merged much of the message digest code into the general file reading and 
+writing to reduce the number of passes.  More consistency checking between 
+the MIME header and the binary header was introduced.  The size in the 
+MIME header was adjusted to agree with the version 0.2 documentation.
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.5">0.5</a>
+<td valign="top">&nbsp;&nbsp;Dec. 1998
+<td valign="top">&nbsp;&nbsp;PJE<td>&nbsp;&nbsp;This release
 greatly increased the speed of processing by allowing for deferred digest
 evaluation.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A href="ChangeLog.html#0.6">0.6</A><TD VALIGN=TOP>&nbsp;&nbsp;Jan. 1999<TD VALIGN=TOP>&nbsp;&nbsp;HJB<td valign="top">&nbsp;&nbsp;This release
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.6">0.6</a>
+<td valign="top">&nbsp;&nbsp;Jan. 1999
+<td valign="top">&nbsp;&nbsp;HJB
+<td>&nbsp;&nbsp;This release
 removed the redundant information (binary id, size, compression id)
 from a binary header when there is a MIME header, removed the unused
 repeat argument, and made the memory allocation for buffering and
 tables with many rows sensitive to the current memory allocation already used.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.6.1">0.6.1</A><TD VALIGN=TOP>&nbsp;&nbsp;Feb. 2001<TD VALIGN=TOP>&nbsp;&nbsp;HP (per HJB)<td valign="top">&nbsp;&nbsp;This release
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.6.1">0.6.1</a>
+<td valign="top">&nbsp;&nbsp;Feb. 2001
+<td valign="top">&nbsp;&nbsp;HP (per HJB)
+<td>&nbsp;&nbsp;This release
 fixed a memory leak due to misallocation by size of cbf_handle instead of cbf_handle_struct
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A href="ChangeLog.html#0.7">0.7</A><TD VALIGN=TOP>&nbsp;&nbsp;Mar. 2001<TD VALIGN=TOP>&nbsp;&nbsp;PJE
-<td valign="top">&nbsp;&nbsp;This release added high-level instructions based on the imgCIF dictionary
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7">0.7</a>
+<td valign="top">&nbsp;&nbsp;Mar. 2001
+<td valign="top">&nbsp;&nbsp;PJE
+<td>&nbsp;&nbsp;This release
+added high-level instructions based on the imgCIF dictionary
 version 1.1.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A href="ChangeLog.html#0.7.1">0.7.1</A><TD VALIGN=TOP>&nbsp;&nbsp;Mar. 2001<TD VALIGN=TOP>&nbsp;&nbsp;PJE
-<td valign="top">&nbsp;&nbsp;The high-level functions were revised to permit future expansion to
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.1">0.7.1</a>
+<td valign="top">&nbsp;&nbsp;Mar. 2001
+<td valign="top">&nbsp;&nbsp;PJE
+<td>&nbsp;&nbsp;The high-level functions were revised to permit future expansion to
 files with multiple images.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.2">0.7.2</A><TD
-VALIGN=TOP>&nbsp;&nbsp;Apr. 2001<TD VALIGN=TOP>&nbsp;&nbsp;HJB<td valign="top">&nbsp;&nbsp;This release
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.2">0.7.2</a>
+<td valign="top">&nbsp;&nbsp;Apr. 2001
+<td valign="top">&nbsp;&nbsp;HJB
+<td>&nbsp;&nbsp;This release
 adjusted cbf_cimple.c to conform to cif_img.dic version 1.1.3
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.2.1">0.7.2.1</A><TD
-VALIGN=TOP>&nbsp;&nbsp;May 2001<TD
-VALIGN=TOP>&nbsp;&nbsp;PJE<td valign="top">&nbsp;&nbsp;This release
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.2.1">0.7.2.1</a>
+<td valign="top">&nbsp;&nbsp;May 2001
+<td valign="top">&nbsp;&nbsp;PJE
+<td>&nbsp;&nbsp;This release
 corrected an if nesting error in the prior mod to cbf_cimple.c.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.3">0.7.3</A><TD
-VALIGN=TOP>&nbsp;&nbsp;Oct 2002<TD
-VALIGN=TOP>&nbsp;&nbsp;PJE<td valign="top">&nbsp;&nbsp;This release
-modified cbf_simple.c to
-reorder image data on read so that the indices are always increasing in
-memory (this behavior was undefined previously).
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.4">0.7.4</A><TD
-VALIGN=TOP>&nbsp;&nbsp;Jan 2004<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB<td valign="top">&nbsp;&nbsp;This release fixes a parse error for
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.3">0.7.3</a>
+<td valign="top">&nbsp;&nbsp;Oct. 2002
+<td valign="top">&nbsp;&nbsp;PJE
+<td>&nbsp;&nbsp;This release
+modified cbf_simple.c to reorder image data on read so that the 
+indices are always increasing in memory (this behavior was 
+undefined previously).
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.4">0.7.4</a>
+<td valign="top">&nbsp;&nbsp;Jan 2004
+<td valign="top">&nbsp;&nbsp;HJB
+<td>&nbsp;&nbsp;This release fixes a parse error for 
 quoted strings, adds code to get and set character string types, and removes compiler warnings
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.5">0.7.5</A><TD
-VALIGN=TOP>&nbsp;&nbsp;Apr 2006<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB<td valign="top">&nbsp;&nbsp;This release cleans up some
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.5">0.7.5</a>
+<td valign="top">&nbsp;&nbsp;Apr 2006
+<td valign="top">&nbsp;&nbsp;HJB
+<td>&nbsp;&nbsp;This release cleans up some
 compiler warnings, corrects a parse error on quoted strings with
 a leading blank as adds the new routines for support of
 aliases, dictionaries and real arrays, higher level routines
 to get and set pixel sizes, do cell computations, and to set beam centers,
 improves support for conversion of images, picking up more data from
 headers.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.6">0.7.6</A><TD
-VALIGN=TOP>&nbsp;&nbsp;Jul 2006<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB<td valign="top">&nbsp;&nbsp;This release reorganizes the kit
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.6">0.7.6</a>
+<td valign="top">&nbsp;&nbsp;Jul 2006
+<td valign="top">&nbsp;&nbsp;HJB
+<td>&nbsp;&nbsp;This release reorganizes the kit
 into two pieces:  CBFlib_0.7.6_Data_Files and CBFlib_0.7.6.  An optional local copy
 of getopt is added.  The 1.4 draft dictionary has been added.  cif2cbf
 updated to support vcif2 validation.  convert_image and cif2cbf updated
@@ -195,10 +226,11 @@ cbf_log,
 cbf_check_category_tags,
 cbf_set_beam_center
 
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7">0.7.7</A><TD
-VALIGN=TOP>&nbsp;&nbsp;February 2007<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB<td valign="top">&nbsp;&nbsp;This release reflects changes
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.7">0.7.7</a>
+<td valign="top">&nbsp;&nbsp;February 2007
+<td valign="top">&nbsp;&nbsp;HJB
+<td>&nbsp;&nbsp;This release reflects changes
 for base 32K support developed by G. Darakev, and changes
 for support of reals, 3d arrays, byte_offset compression and
 J. P. Abrahams packed compression
@@ -206,79 +238,103 @@ made in consultation with (in alphabetic order) E. Eikenberry,
 A. Hammerley, W. Kabsch, M. Kobas, J. Wright and others at PSI
 and ESRF in January 2007, as well accumulated changes fixing
 problems in release 0.7.6.
-
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.1">0.7.7.1</A><TD
-VALIGN=TOP>&nbsp;&nbsp;February 2007<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB<td valign="top">&nbsp;&nbsp;This release is a patch
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.7.1">0.7.7.1</a>
+<td valign="top">&nbsp;&nbsp;February 2007
+<td valign="top">&nbsp;&nbsp;HJB
+<td>&nbsp;&nbsp;This release is a patch
 to 0.7.7 to change the treatment of the byteorder parameter from
 strcpy semantics to return of a pointer to a string constant. 
 Our thanks to E. Eikenberry for pointing out the problem.
-
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.2">0.7.7.2</A><TD
-VALIGN=TOP>&nbsp;&nbsp;February 2007<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB<td valign="top">&nbsp;&nbsp;This release is a patch
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.7.2">0.7.7.2</a>
+<td valign="top">&nbsp;&nbsp;February 2007
+<td valign="top">&nbsp;&nbsp;HJB
+<td>&nbsp;&nbsp;This release is a patch
 to 0.7.7.1 to add testing for JPA packed compression and to respect
 signs declared in the MIME header.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.3">0.7.7.3</A><TD
-VALIGN=TOP>&nbsp;&nbsp;April 2007<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB<td valign="top">&nbsp;&nbsp;This release is a patch
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.7.3">0.7.7.3</a>
+<td valign="top">&nbsp;&nbsp;April 2007
+<td valign="top">&nbsp;&nbsp;HJB
+<td>&nbsp;&nbsp;This release is a patch
 to 0.7.7.3 to add f90 support for reading of CBF byte-offset and
 packed compression, to fix problems with gcc 4.4.1 and to correct
 errors in multidimensional packed compression.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.4">0.7.7.4</A><TD
-VALIGN=TOP>&nbsp;&nbsp;May 2007<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Corrects in handling SLS
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.7.4">0.7.7.4</a>
+<td valign="top">&nbsp;&nbsp;May 2007
+<td valign="top">&nbsp;&nbsp;HJB
+<td>&nbsp;&nbsp;Corrects in handling SLS
 detector mincbfs and reorder dimensions versus arrays for some
 f90 compilers as per H. Powell.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.5">0.7.7.5</A><TD
-VALIGN=TOP>&nbsp;&nbsp;May 2007<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Fix to cbf_get_image for bug
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.7.5">0.7.7.5</a>
+<td valign="top">&nbsp;&nbsp;May 2007
+<td valign="top">&nbsp;&nbsp;HJB
+<td>&nbsp;&nbsp;Fix to cbf_get_image for bug
 reported by F. Remacle, fixes for windows builds as per J. Wright
 and F. Remacle.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.7.6">0.7.7.6</A><TD
-VALIGN=TOP>&nbsp;&nbsp;Jun 2007<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Fix to CBF byte-offset compression
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.7.6">0.7.7.6</a>
+<td valign="top">&nbsp;&nbsp;Jun 2007
+<td valign="top">&nbsp;&nbsp;HJB
+<td>&nbsp;&nbsp;Fix to CBF byte-offset compression
 writes, fix to Makefiles and m4 for f90 test programs to allow adjustable
 record length.
-
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.8">0.7.8</A><TD
-VALIGN=TOP>&nbsp;&nbsp;Jul 2007<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Release for full support of
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.8">0.7.8</a>
+<td valign="top">&nbsp;&nbsp;Jul 2007
+<td valign="top">&nbsp;&nbsp;HJB<td>&nbsp;&nbsp;Release for full support of
 SLS data files with updated convert_minicbf, and support for gfortran
 from gcc 4.2.
-
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.8.1">0.7.8.1</A><TD
-VALIGN=TOP>&nbsp;&nbsp;Jul 2007<TD
-VALIGN=TOP>&nbsp;&nbsp;HJB<TD>&nbsp;&nbsp;Update to 0.7.8 release to fix
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.8.1">0.7.8.1</a><td
+valign="top">&nbsp;&nbsp;Jul 2007<td
+valign="top">&nbsp;&nbsp;HJB<td>&nbsp;&nbsp;Update to 0.7.8 release to fix
 memory leaks reported by N. Sauter and to update validation checks
 for recent changes.
-
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.8.2">0.7.8.2</A><TD
-VALIGN=TOP>&nbsp;&nbsp;Dec 2007<TD
-VALIGN=TOP>&nbsp;&nbsp;CN, HJB<TD>&nbsp;&nbsp;Update to 0.7.8.1 to add
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.8.2">0.7.8.2</a><td
+valign="top">&nbsp;&nbsp;Dec 2007<td
+valign="top">&nbsp;&nbsp;CN, HJB<td>&nbsp;&nbsp;Update to 0.7.8.1 to add
 ADSC jiffie by Chris Nielsen, and to add ..._fs and ..._sf macros.
-<TR>
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.9">0.7.9</A><TD
-VALIGN=TOP>&nbsp;&nbsp;Dec 2007<TD
-VALIGN=TOP>&nbsp;&nbsp;CN, HJB<TD>Identical to 0.7.8.2 except for
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.9">0.7.9</a><td
+valign="top">&nbsp;&nbsp;Dec 2007<td
+valign="top">&nbsp;&nbsp;CN, HJB<td>Identical to 0.7.8.2 except for
 a cleanup of deprecated examples, e.g. diffrn_frame_data
-<TR>
-
-<TD VALIGN=TOP>&nbsp;&nbsp;<A HREF="ChangeLog.html#0.7.9.1">0.7.9.1</A><TD
-VALIGN=TOP>&nbsp;&nbsp;Jan 2008<TD
-VALIGN=TOP>&nbsp;&nbsp;CN, HJB<TD>&nbsp;&nbsp;Update to 0.7.8.2 to add
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.7.9.1">0.7.9.1</a><td
+valign="top">&nbsp;&nbsp;Jan 2008<td
+valign="top">&nbsp;&nbsp;CN, HJB<td>&nbsp;&nbsp;Update to 0.7.8.2 to add
 inverse ADSC jiffie by Chris Nielsen, to clean up problems in
 handling maps for RasMol.
-
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.8.0">0.8.0</a><td
+valign="top">&nbsp;&nbsp;Jul 2008<td
+valign="top">&nbsp;&nbsp;GT, HJB<td>&nbsp;&nbsp;Cleanup of 0.7.9.1 to start
+0.8 series.
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.8.1">0.8.1</a>
+<td valign="top">&nbsp;&nbsp;Jul 2009
+<td valign="top">&nbsp;&nbsp;EZ, CN, PC, GW, JH, HJB
+<td>&nbsp;&nbsp;
+Release with EZ's 2008 DDLm support using JH's PyCifRW, also
+cbff f95 wrapper code, PC's java bindings.
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.9.1">0.9.1</a><td
+valign="top">&nbsp;&nbsp;Aug 2010<td
+valign="top">&nbsp;&nbsp;PC, EE, JLM, NS, EZ, HJB<td>&nbsp;&nbsp;
+Release with EE's Dectris template software,
+also with vcif3, new arvai_test, sequence_match.
+<tr>
+<td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.9.2">0.9.2</a></td>
+<td valign="top">&nbsp;&nbsp;Feb 2011</td>
+<td valign="top">&nbsp;&nbsp;PC, EE, JLM, NS, EZ, HJB<td>&nbsp;&nbsp;
+New default release with updated pycbf, tiff support, removal of
+default use of PyCifRW to avoid Fedora license issue.</td>
+</tr>
 </TABLE>
 
 <HR>
@@ -286,7 +342,20 @@ handling maps for RasMol.
 <h2 ALIGN=CENTER>Known Problems</H2>
 </font><font color="#000000">
 <P>
+The example program tiff2cbf needs the enviroment variable LD_LIBRARY_PATH
+set to the location of the lib directory in CBFlib_0.9.2, unless
+a system install of tiff-3.9.4-rev-6Feb11 has been done.
+<p>
+Due to license issues, PyCifRW is not included with default releases
+of CBFlib.  Users can download PyCifRW separately.
+<p>
+There are some issues with Peter Chang's lastest java wrapper under
+the CBFlib 0.9.2 release.  Until
+they are resolved, the CBFlib 0.8.1 release should be used
+for Java applications.
+<p>
 This version does not have support for predictor compression.
+<p>
 Code is needed to support array sub-sections.
 </font><font color="#0808A0">
 <h2 ALIGN=CENTER>Foreword</H2>
@@ -297,15 +366,15 @@ In order to work with CBFlib, you need:
 <ul>
 <li>the source code, in the form
 of a &quot;gzipped&quot; tar,
-<A HREF="../../CBFlib_0.8.tar.gz">CBFlib_0.8.tar.gz</A>; and
+<A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2.tar.gz">CBFlib_0.9.2.tar.gz</A>; and
 <li>the test data:
 <ul>
-<li><A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Input.tar.gz">CBFlib_0.7.9_Data_Files_Input.tar.gz</a>
-(13 MB) a "gzipped" tar of the input data files needed to test the API;
-<li><A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Output.tar.gz">CBFlib_0.7.9_Data_Files_Output.tar.gz</a>
-(34 MB) a "gzipped" tar of the output data files needed to test the API, or, if space is at a premium;
-<li><A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz">CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz</a>
-(1KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
+<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Input.tar.gz">CBFlib_0.9.2_Data_Files_Input.tar.gz</a>
+(17 MB) a "gzipped" tar of the input data files needed to test the API;
+<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Output.tar.gz">CBFlib_0.9.2_Data_Files_Output.tar.gz</a>
+(36 MB) a "gzipped" tar of the output data files needed to test the API, or, if space is at a premium;
+<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Output_Sigs_Only.tar.gz">CBFlib_0.9.2_Data_Files_Output_Sigs_Only.tar.gz</a>
+(1 KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
 </ul>
 </ul>
 <P>
@@ -318,7 +387,7 @@ instructions below on using only the signatures of the test files.</b>
 Uncompress and unpack :
 <P>
 <ul>
-<li>gunzip &lt; CBFlib_0.7.9.tar.gz | tar xvf -
+<li>gunzip &lt; CBFlib_0.9.2.tar.gz | tar xvf -
 </ul>
 <P>   
 <p>
@@ -331,20 +400,50 @@ insulin_pilatus6m, as sample data.  In addition there are
 is a PDB mmCIF file, 9ins.cif, and 3 special test files
 testflatin.cbf, testflatpackedin.cbf and testrealin.cbf.
  All these files will be
-dowloaded and extracted by the Makefile from CBFlib_0.7.9_Data_Files_Input.  Do
+dowloaded and extracted by the Makefile from CBFlib_0.9.2_Data_Files_Input.  Do
 not download copies into the top level directory.
 <P>
 Thare are various sample Makefiles for common
-configurations.  The Makefile_LINUX and Makefile_OSX
-samples are for systems with gfortran from prior to
+configurations.  The Makefile_OSX
+samples is for systems with gfortran from prior to
 the release of gcc 4.2.  For the most recent gfortran,
-use Makefile_LINUX_gcc42 ot Makfile_OSX_gcc42.  All
-the Makefiles come from m4/Makefile.m4.
+use Makefile_OSX_gcc42.  All
+the Makefiles are generated from m4/Makefile.m4.
 <p>
 <B>The Makefiles use GNU make constructs, such as ifeq
-and ifneq.  If you need to use a diferent version of
+and ifneq.  If you need to use a different version of
 make, you will need to edit out the conditionals</b>
 <p>
+The operation of the Makefiles is sensitive to the
+following environment variables:
+<p>
+<ul>
+<li><b>CBFLIB_USE_PYCIFRW</b> If you define this environment variable,
+you may rebuild the Makefiles to include James Hester's PyCifRW.  The
+process under bash is:<p>
+<pre>
+export CBFLIB_USE_PYCIFRW=yes
+cd CBFlib_0.9.2
+touch m4/Makefile.m4
+make Makefiles
+</pre>
+</li>
+<li><b>CBF_DONT_USE_LONG_LONG</b> If you define this environment variable,
+use of the <tt>long long</tt> data type in CBFlib is replaced by
+use of a struct.  The Makefiles do not need to be rebuilt.  Makefile_MINGW
+does not use the <tt>long long</tt> data type even without defining
+this variable.
+</li>
+
+<li><b>NOFORTRAN</b> If you define this environment variable,
+use of the fortran compiler is suppressed.
+</li>
+
+
+</ul>
+
+<p>
+
 
 If necessary, adjust the definition of CC and C++ and
 other defintions in
@@ -372,14 +471,21 @@ or in the environment
 
 <p>
 We have included examples of
-CBF/imgCIF files produced by CBFlib in the test data <A HREF="http://arcib.dowling.edu/software/CBFlib/downloads/version_0.7.9/CBFlib_0.7.9_Data_Files_Output.tar.gz">CBFlib_0.7.9_Data_Files_Output.tar.gz</a>,
+CBF/imgCIF files produced by CBFlib in the test data 
+<A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Output.tar.gz">CBFlib_0.9.2_Data_Files_Output.tar.gz</a>,
 the current best draft of
 the 
-<A HREF="cif_img_1.5.4.html">CBF Extensions Dictionary</A>, 
+<A HREF="cif_img_1.6.3.html">CBF Extensions Dictionary</A>, 
 and of Andy Hammersley's CBF definition, updated to become a 
 <A HREF="cbf_definition_rev.html">
 DRAFT CBF/ImgCIF DEFINITION</A>.
 <p>
+CBFlib 0.9.2 includes a program, tiff2cbf, to convert from tiff files
+to CBF files, that requires an augmented version of tiff-3.9.4 called 
+tiff-3.9.4-rev-6Feb11, that installs into the CBFlib_0.9.2 directory.
+If a system copy is desired, download and install
+<a href="http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz">
+http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz</a>
 <HR>
 
 
@@ -450,7 +556,7 @@ DRAFT CBF/ImgCIF DEFINITION</A>.
       <LI><A HREF="#2.3.41">2.3.41   cbf_select_row</A>
       <LI><A HREF="#2.3.42">2.3.42   cbf_datablock_name</A>
       <LI><A HREF="#2.3.43">2.3.43   cbf_category_name</A>
-      <LI><A HREF="#2.3.44">2.3.44   cbf_column_name</A>
+      <LI><A HREF="#2.3.44">2.3.44   cbf_column_name, cbf_set_column_name</A>
       <LI><A HREF="#2.3.45">2.3.45   cbf_row_number</A>
       <LI><A HREF="#2.3.46">2.3.46   cbf_get_value, cbf_require_value</A>
       <LI><A HREF="#2.3.47">2.3.47   cbf_set_value</A>
@@ -2450,27 +2556,32 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.30">2.3.30  cbf_find_category, cbf_find_saveframe, cbf_find_blockitem</A><br />
 
 <p><hr><P>
-<h4><A NAME="2.3.44">2.3.44  cbf_column_name</A></h4>
+<h4><A NAME="2.3.44">2.3.44  cbf_column_name, cbf_set_column_name</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
 #include &quot;cbf.h&quot;<p>
 
-int cbf_column_name (cbf_handle <i>handle</i>, const char **<i>columnname</i>);
+int cbf_column_name (cbf_handle <i>handle</i>, const char **<i>columnname</i>);<br />
+int cbf_set_column_name (cbf_handle <i>handle</i>, const char *<i>newcolumnname</i>)
 <p>
 <b>DESCRIPTION</b>
 <p>
-cbf_column_name sets *<i>columnname </i>
+cbf_column_name sets *<i>columnname</i>
 to point to the name of the current column of the current category.
 <p>
 The column name will be valid as long as the column exists.
 <p>
 The name must not be modified by the program in any way.
 <p>
+cbf_set_column_name sets the name of the current column to
+<i>newcolumnname</i>
+<p>
 <b>ARGUMENTS</b><br />
 <TABLE>
 <TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.<br />
 <TR><TD VALIGN=TOP>&nbsp;&nbsp;<i>columnname</i><td valign="top">&nbsp;&nbsp;Pointer to the
 destination column name pointer.<br />
+<TR><TD VALIGN=TOP>&nbsp;&nbsp;<i>newcolumnname</i><td valign="top">&nbsp;&nbsp;New column name pointer.<br />
 </TABLE>
 <p>
 <b>RETURN VALUE</b>
@@ -3546,7 +3657,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.29">2.3.29  cbf_find_datablock</A><br />
 <A HREF="#2.3.30">2.3.30  cbf_find_category, cbf_find_saveframe, cbf_find_blockitem</A><br />
 <A HREF="#2.3.32">2.3.32  cbf_find_row</A><br />
-<A HREF="#2.3.44">2.3.44  cbf_column_name</A><br />
+<A HREF="#2.3.44">2.3.44  cbf_column_name, cbf_set_column_name</A><br />
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 
@@ -6604,7 +6715,7 @@ Returns 0 if the function is successful.
 
 <h4><A NAME="2.5.11">2.5.11 FCB_READ_LINE</a></h4>
 <p><pre><b>      INTERFACE</b>
-      INTEGER FUNCTION FCB_READ_LINE(<i>TAPIN</i>,<i>LAST_CHAR</i>,<i>FCB_BYTES_IN_REC</i>,  &
+      INTEGER FUNCTION FCB_READ_LINE(<i>TAPIN</i>,<i>LAST_CHAR</i>,<i>FCB_BYTES_IN_REC</i>,  &amp;
 			 <i>BYTE_IN_FILE</i>,<i>REC_IN_FILE</i>,<i>BUFFER</i>,<i>LINE</i>,<i>N</i>,<i>LINELEN</i>)
       INTEGER,      INTENT(IN):: <i>TAPIN</i>,<i>FCB_BYTES_IN_REC</i>,<i>N</i>
       INTEGER,   INTENT(INOUT):: <i>BYTE_IN_FILE</i>,<i>REC_IN_FILE</i>
@@ -8081,67 +8192,126 @@ The program img2cif has the following command line interface:
 <p>
 <h4>cif2cbf</h4>
 <p>
-The test program cif2cbf uses the same command line options as img2cif, but
+The test program cif2cbf uses many of the same command line options as img2cif, but
 accepts either a CIF or a CBF as input instead of an image file:
 <P>
 <pre>
   cif2cbf [-i input_cif] [-o output_cbf] \
+    [-u update_cif] \
     [-c {p[acked]|c[annonical]|{b[yte_offset]}|\
-        {v[2packed]}|{f[latpacked]}[n[one]}] \
-    [-m {h[eaders]|n[oheaders]}] [-d {d[igest]|n[odigest]}] \
-    [-e {b[ase64]|k|q[uoted-printable]| \
-                  d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \
-    [-b {f[orward]|b[ackwards]}] \
-    [-p {0|1|2|4}] \
-    [-v dictionary]* [-w] \
-    [input_cif] [output_cbf]
+        {v[2packed}|{f[latpacked}[n[one]}] \
+    [-C highclipvalue] \
+    [-D ] \
+    [-I {0|2|4|8}] \
+    [-R {0|4|8}] \
+    [-L {0|4|8}] \
+    [-m {h[eaders]|noh[eaders]}] \
+    [-m {d[imensions]|nod[imensions}] \
+    [-d {d[igest]|n[odigest]|w[arndigest]}] \
+    [-B {read|liberal|noread}] [-B {write|nowrite}] \
+    [-S {read|noread}] [-S {write|nowrite}] \
+    [-T {read|noread}] [-T {write|nowrite}] \
+    [-e {b[ase64]|q[uoted-printable]|\
+                  d[ecimal]|h[examdecimal|o[ctal]|n[one]}] \
+    [-b {f[orward]|b[ackwards]}\
+    [-p {1|2|4}\
+    [-v dictionary]* [-w] [-W]\
+    [input_cif] [output_cbf] 
 
   the options are:
 
-  -i input_cif (default: stdin)
-    the input  file in CIF or CBF  format.  If input_cif is not
-    specified or is given as "-", it is copied from stdin to a
-    temporary file.
+    -i input_cif (default: stdin)
+      the input  file in CIF or CBF  format.  If input_cif is not
+      specified or is given as "-", it is copied from stdin to a
+      temporary file.
 
-  -o output_cbf (default: stdout)
-    the output cif (if base64 or quoted-printable encoding is used)
-    or cbf (if no encoding is used).  if no output_cif is specified
-    or is given as "-", the output is written to stdout
-    if the output_cbf is /dev/null, no output is written.
+    -o output_cbf (default: stdout)
+      the output cif (if base64 or quoted-printable encoding is used)
+      or cbf (if no encoding is used).  if no output_cif is specified
+      or is given as "-", the output is written to stdout
+      if the output_cbf is /dev/null, no output is written.
 
-  The remaining options specify the characteristics of the
-  output cbf.  The characteristics of the input cif are derived
-  from context.
+    -u update_cif (no default)
+      and optional second input file in CIF or CBF format containing
+      data blocks to be merged with data blocks from the primary
+      input CIF or CBF
 
-  -c compression_scheme (packed, canonical, byte_offset,
-    v2packed, flatpacked or none,
-    default packed)
+    The remaining options specify the characteristics of the
+    output cbf.  Most of the characteristics of the input cif are
+    derived from context, except when modified by the -B, -S, -T, -v
+    and -w flags.
 
-  -m [no]headers (default headers for cifs, noheaders for cbfs)
-    selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996)
-    headers within binary data value text fields.
+    -b byte_order (forward or backwards, default forward (1234) on
+      little-endian machines, backwards (4321) on big-endian machines
 
-  -d [no]digest  (default md5 digest [R. Rivest, RFC 1321, April
-    1992 using"RSA Data Security, Inc. MD5 Message-Digest
-    Algorithm"] when MIME headers are selected)
+    -B [no]read or liberal (default noread)
+      read to enable reading of DDLm style brackets
+      liberal to accept whitespace for commas
 
-  -e encoding (base64, quoted-printable or none, default base64)
-    specifies one of the standard MIME encodings for an ascii cif
-    or "none" for a binary cbf
+    -B [no]write (default write)
+      write to enable writing of DDLm style brackets
 
-  -b byte_order (forward or backwards, default forward (1234) on
-    little-endian machines, backwards (4321) on big-endian machines
+    -c compression_scheme (packed, canonical, byte_offset,
+      v2packed, flatpacked or none,
+      default packed)
 
-  -p K_of_padding (0, 1, 2, 4) for no padding after binary data
-    1023, 2047 or 4095 bytes of padding after binary data
+    -C highclipvalue
+      specifies a double precision value to which to clip the data
 
-  -v dictionary specifies a dictionary to be used to validate
-    the input cif and to apply aliases to the output cif.
-    This option may be specified multiple times, with dictionaries
-    layered in the order given.
+    -d [no]digest or warndigest  (default md5 digest [R. Rivest,
+      RFC 1321, April 1992 using"RSA Data Security, Inc. MD5
+      Message-Digest Algorithm"] when MIME headers are selected)
 
-  -w process wide (2048 character) lines
+    -D test cbf_construct_detector
 
+    -e encoding (base64, k, quoted-printable or none, default base64)
+      specifies one of the standard MIME encodings for an ascii cif
+      or "none" for a binary cbf
+
+    -I 0 or integer element size
+      specifies integer conversion of the data, 0 to use the input
+      number of bytes, 2, 4 or 8 for short, long or long long
+      output integers
+
+    -L lowclipvalue
+      specifies a double precision value to cut off the data from
+      below
+
+    -m [no]headers (default headers)
+      selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996)
+      headers within binary data value text fields.
+
+    -m [nod]imensions (default dimensions)
+      selects detailed recovery of dimensions from the input CIF
+      for use in the MIME header of the output CIF
+
+    -p K_of_padding (0, 1, 2, 4) for no padding after binary data
+      1023, 2047 or 4095 bytes of padding after binary data
+
+    -R 0 or integer element size
+      specifies real conversion of the data, 0 to use the input
+      number of bytes,  4 or 8 for float or double output reals 
+
+    -S [no]read or (default noread)
+      read to enable reading of whitespace and comments
+
+    -S [no]write (default write)
+      write to enable writing of whitespace and comments
+
+    -T [no]read or (default noread)
+      read to enable reading of DDLm style triple quotes
+
+    -T [no]write (default write)
+      write to enable writing of DDLm style triple quotes
+
+    -v dictionary specifies a dictionary to be used to validate
+      the input cif and to apply aliases to the output cif.
+      This option may be specified multiple times, with dictionaries
+      layered in the order given.
+
+    -w process wide (2048 character) lines
+
+    -W write wide (2048 character) lines
 
 </pre>
 <p>
@@ -8397,9 +8567,33 @@ adscimg1cbf or convert_image and produces raw or compressed adsc image files wit
     --bz2   Output a .bz2 file (e.g., filen.img.bz2).
 </pre>
 <p>
+<h4>tiff2cbf</h4>
+<p>
+The test program tiff2cbf converts a tiff data file to a cbf data file.  The program
+converts the tiff data samples directly into a minicbf with the tiff header
+stored at the value of _array_data.header_contents.  This conversion is
+supported for the sample formats SAMPLEFORMAT_UINT (unsigned integer data),
+SAMPLEFORMAT_INT (unsigned integer data), SAMPLEFORMAT_INT (signed integer data),
+SAMPLEFORMAT_IEEEFP (IEEE floating point data),  SAMPLEFORMAT_COMPLEXINT
+(complex signed int) and SAMPLEFORMAT_COMPLEXIEEEFP (complex ieee floating).
+Conversions from these formats to other CBF formats can be handled by cif2cbf.
+If you wish to convert and xxx.tif written with IEEE floating point samples
+into a CBF with integer values compressed by byte-offset compression
+for use by XDS, creating an xxx_view.cbf with values clipped between 0 and 100,
+and an xxx_xds.cbf with unclipped values for processing:
+<p>
+<pre>
+
+  tiff2cbf xxx.tif xxx.cbf
+  cif2cbf -I 4 -C 100. -L 0. -e n -c b -i xxx.cbf -o xxx_view.cbf
+  cif2cbf -I 4 -e n -c b -i xxx.cbf -o xxx_xds.cbf
+  
+</pre>
+<p>
+
 <HR>
 <HR>
-Updated 15 July 2009.
+Updated 13 February 2011.
 Contact:
 <script language="javascript" type="text/javascript">
 <!--
