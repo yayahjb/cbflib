@@ -1,3 +1,4 @@
+
                                      CBFlib
 
                              An API for CBF/imgCIF
@@ -7564,8 +7565,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
       7. If -2147483647 =< delta =< 2147483647, add delta to the base pixel
          value, make that the new base pixel value, place it on the output
          array and return to step 2.
-      8. If delta is 80000000 hex, read the next 4 bytes as a little_endian
-         32-bit number and make that delta, read the next 8 bytes as a
+      8. If delta is 80000000 hex, read the next 8 bytes as a little_endian
+         64-bit number and make that delta, read the next 8 bytes as a
          little_endia 64-bit number and make that delta, add delta to the
          base pixel value, make that the new base pixel value, place it on
          the output array and return to step 2.
@@ -8310,4 +8311,4 @@ src/                      include/             m4/                  Description
 
      ----------------------------------------------------------------------
 
-     Updated 13 February 2011. Contact:  yaya at bernstein-plus-sons dot com
+     Updated 29 March 2011. Contact:  yaya at bernstein-plus-sons dot com
