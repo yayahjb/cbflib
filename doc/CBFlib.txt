@@ -1,4 +1,3 @@
-
                                      CBFlib
 
                              An API for CBF/imgCIF
@@ -7566,10 +7565,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
          value, make that the new base pixel value, place it on the output
          array and return to step 2.
       8. If delta is 80000000 hex, read the next 8 bytes as a little_endian
-         64-bit number and make that delta, read the next 8 bytes as a
-         little_endia 64-bit number and make that delta, add delta to the
-         base pixel value, make that the new base pixel value, place it on
-         the output array and return to step 2.
+         64-bit number and make that delta, add delta to the base pixel
+         value, make that the new base pixel value, place it on the output
+         array and return to step 2.
 
      Let us look at an example, of two 1000 x 1000 flat field images
      presented as a mimimal imgCIF file. The first image uses 32-bit unsigned
