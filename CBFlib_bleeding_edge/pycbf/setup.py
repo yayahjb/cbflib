@@ -15,3 +15,4 @@ e = Extension('_pycbf',
             
 # Build it
 setup(name="_pycbf",ext_modules=[e],)
+setup(name="pycbf", py_modules=['pycbf'])
