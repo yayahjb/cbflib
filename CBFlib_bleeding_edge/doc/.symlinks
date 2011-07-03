@@ -103,7 +103,7 @@ if [ ! -e cif_img_1.6.html ] ; then
   $LN cif_img_1.6.4_2Jul11.html cif_img_1.6.html
 fi
 if [ ! -e cif_img_1.6.4.html ] ; then
-  $LN cif_img_1.5.4_28Jul07.html cif_img_1.5.4.html
+  $LN cif_img_1.6.4_2Jul11.html cif_img_1.6.4.html
 fi
 for file in *
 do
