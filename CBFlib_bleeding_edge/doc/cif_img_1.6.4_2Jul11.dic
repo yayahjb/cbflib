@@ -603,7 +603,7 @@ data_cif_img.dic
 
 
     _dictionary.title           cif_img.dic
-    _dictionary.version         1.6.3
+    _dictionary.version         1.6.4
     _dictionary.datablock_id    cif_img.dic
 
 
