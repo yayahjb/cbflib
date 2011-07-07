@@ -254,7 +254,7 @@ VERSION = 0.9.2
 
 
 #
-# Comment out the next line if scratch test files sould be retain
+# Comment out the next line if scratch test files sould be retained
 #
 CLEANTESTS = yes
 

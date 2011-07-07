@@ -10,8 +10,8 @@
 
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
-                                  Version 0.8
-                                29 February 2008
+                                 Version 0.9.2
+                                12 February 2011
 
                                        by
                                  Paul J. Ellis
@@ -22,7 +22,7 @@
                                 Bernstein + Sons
                       yaya at bernstein-plus-sons dot com
 
-                 (c) Copyright 2006, 2007 Herbert J. Bernstein
+           (c) Copyright 2006, 2007, 2008, 2011 Herbert J. Bernstein
 
      ----------------------------------------------------------------------
 
@@ -104,7 +104,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      0.7.2.1   May 2001        PJE       This release corrected an if nesting 
                                        error in the prior mod to              
                                        cbf_cimple.c.                          
-     0.7.3     Oct 2002        PJE       This release modified cbf_simple.c   
+     0.7.3     Oct. 2002       PJE       This release modified cbf_simple.c   
                                        to reorder image data on read so that  
                                        the indices are always increasing in   
                                        memory (this behavior was undefined    
@@ -209,27 +209,51 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                                        ADSC jiffie by Chris Nielsen, to clean 
                                        up problems in handling maps for       
                                        RasMol.                                
+     0.8.0     Jul 2008        GT, HJB   Cleanup of 0.7.9.1 to start 0.8      
+                                       series.                                
+     0.8.1     Jul 2009        EZ, CN,    Release with EZ's 2008 DDLm support 
+                             PC, GW,   using JH's PyCifRW, also cbff f95      
+                             JH, HJB   wrapper code, PC's java bindings.      
+     0.9.1     Aug 2010        PC, EE,    Release with EE's Dectris template  
+                             JLM, NS,  software, also with vcif3, new         
+                             EZ, HJB   arvai_test, sequence_match.            
+     0.9.2     Feb 2011        PC, EE,    New default release with updated    
+                             JLM, NS,  pycbf, tiff support, removal of        
+                             EZ, HJB   default use of PyCifRW to avoid Fedora 
+                                       license issue.                         
 
      ----------------------------------------------------------------------
 
                                  Known Problems
 
-   This version does not have support for predictor compression. Code is
-   needed to support array sub-sections.
+   The example program tiff2cbf needs the enviroment variable LD_LIBRARY_PATH
+   set to the location of the lib directory in CBFlib_0.9.2, unless a system
+   install of tiff-3.9.4-rev-6Feb11 has been done.
+
+   Due to license issues, PyCifRW is not included with default releases of
+   CBFlib. Users can download PyCifRW separately.
+
+   There are some issues with Peter Chang's lastest java wrapper under the
+   CBFlib 0.9.2 release. Until they are resolved, the CBFlib 0.8.1 release
+   should be used for Java applications.
+
+   This version does not have support for predictor compression.
+
+   Code is needed to support array sub-sections.
 
                                     Foreword
 
    In order to work with CBFlib, you need:
 
-     * the source code, in the form of a "gzipped" tar, CBFlib_0.8.tar.gz;
+     * the source code, in the form of a "gzipped" tar, CBFlib_0.9.2.tar.gz;
        and
      * the test data:
-          * CBFlib_0.7.9_Data_Files_Input.tar.gz (13 MB) a "gzipped" tar of
+          * CBFlib_0.9.2_Data_Files_Input.tar.gz (17 MB) a "gzipped" tar of
             the input data files needed to test the API;
-          * CBFlib_0.7.9_Data_Files_Output.tar.gz (34 MB) a "gzipped" tar of
+          * CBFlib_0.9.2_Data_Files_Output.tar.gz (36 MB) a "gzipped" tar of
             the output data files needed to test the API, or, if space is at
             a premium;
-          * CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz (1KB) is a
+          * CBFlib_0.9.2_Data_Files_Output_Sigs_Only.tar.gz (1 KB) is a
             "gzipped" tar of only the MD5 signatures of the output data files
             needed to test the API.
 
@@ -242,7 +266,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    Uncompress and unpack :
 
-     * gunzip < CBFlib_0.7.9.tar.gz | tar xvf -
+     * gunzip < CBFlib_0.9.2.tar.gz | tar xvf -
 
    To run the test programs, you will also need Paul Ellis's sample MAR345
    image, example.mar2300, Chris Nielsen's sample ADSC Quantum 315 image,
@@ -250,18 +274,36 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    insulin_pilatus6m, as sample data. In addition there are is a PDB mmCIF
    file, 9ins.cif, and 3 special test files testflatin.cbf,
    testflatpackedin.cbf and testrealin.cbf. All these files will be dowloaded
-   and extracted by the Makefile from CBFlib_0.7.9_Data_Files_Input. Do not
+   and extracted by the Makefile from CBFlib_0.9.2_Data_Files_Input. Do not
    download copies into the top level directory.
 
    Thare are various sample Makefiles for common configurations. The
-   Makefile_LINUX and Makefile_OSX samples are for systems with gfortran from
-   prior to the release of gcc 4.2. For the most recent gfortran, use
-   Makefile_LINUX_gcc42 ot Makfile_OSX_gcc42. All the Makefiles come from
-   m4/Makefile.m4.
+   Makefile_OSX samples is for systems with gfortran from prior to the
+   release of gcc 4.2. For the most recent gfortran, use Makefile_OSX_gcc42.
+   All the Makefiles are generated from m4/Makefile.m4.
 
    The Makefiles use GNU make constructs, such as ifeq and ifneq. If you need
-   to use a diferent version of make, you will need to edit out the
+   to use a different version of make, you will need to edit out the
    conditionals
+
+   The operation of the Makefiles is sensitive to the following environment
+   variables:
+
+     * CBFLIB_USE_PYCIFRW If you define this environment variable, you may
+       rebuild the Makefiles to include James Hester's PyCifRW. The process
+       under bash is:
+
+ export CBFLIB_USE_PYCIFRW=yes
+ cd CBFlib_0.9.2
+ touch m4/Makefile.m4
+ make Makefiles
+
+     * CBF_DONT_USE_LONG_LONG If you define this environment variable, use of
+       the long long data type in CBFlib is replaced by use of a struct. The
+       Makefiles do not need to be rebuilt. Makefile_MINGW does not use the
+       long long data type even without defining this variable.
+     * NOFORTRAN If you define this environment variable, use of the fortran
+       compiler is suppressed.
 
    If necessary, adjust the definition of CC and C++ and other defintions in
    Makefile to point to your compilers. Set the definition of CFLAGS to an
@@ -282,9 +324,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    environment
 
    We have included examples of CBF/imgCIF files produced by CBFlib in the
-   test data CBFlib_0.7.9_Data_Files_Output.tar.gz, the current best draft of
+   test data CBFlib_0.9.2_Data_Files_Output.tar.gz, the current best draft of
    the CBF Extensions Dictionary, and of Andy Hammersley's CBF definition,
    updated to become a DRAFT CBF/ImgCIF DEFINITION.
+
+   CBFlib 0.9.2 includes a program, tiff2cbf, to convert from tiff files to
+   CBF files, that requires an augmented version of tiff-3.9.4 called
+   tiff-3.9.4-rev-6Feb11, that installs into the CBFlib_0.9.2 directory. If a
+   system copy is desired, download and install
+   http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz
 
      ----------------------------------------------------------------------
 
@@ -352,7 +400,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 2.3.41 cbf_select_row
                * 2.3.42 cbf_datablock_name
                * 2.3.43 cbf_category_name
-               * 2.3.44 cbf_column_name
+               * 2.3.44 cbf_column_name, cbf_set_column_name
                * 2.3.45 cbf_row_number
                * 2.3.46 cbf_get_value, cbf_require_value
                * 2.3.47 cbf_set_value
@@ -2406,13 +2454,14 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.3.44 cbf_column_name
+    2.3.44 cbf_column_name, cbf_set_column_name
 
    PROTOTYPE
 
    #include "cbf.h"
 
    int cbf_column_name (cbf_handle handle, const char **columnname);
+   int cbf_set_column_name (cbf_handle handle, const char *newcolumnname)
 
    DESCRIPTION
 
@@ -2423,10 +2472,13 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    The name must not be modified by the program in any way.
 
+   cbf_set_column_name sets the name of the current column to newcolumnname
+
    ARGUMENTS
 
-     handle       CBF handle.                                     
-     columnname   Pointer to the destination column name pointer. 
+     handle          CBF handle.                                     
+     columnname      Pointer to the destination column name pointer. 
+     newcolumnname   New column name pointer.                        
 
    RETURN VALUE
 
@@ -3340,7 +3392,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      2.3.29 cbf_find_datablock
      2.3.30 cbf_find_category, cbf_find_saveframe, cbf_find_blockitem
      2.3.32 cbf_find_row
-     2.3.44 cbf_column_name
+     2.3.44 cbf_column_name, cbf_set_column_name
      2.3.59 cbf_require_datablock
      2.3.60 cbf_require_category
 
@@ -7520,11 +7572,10 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
       7. If -2147483647 =< delta =< 2147483647, add delta to the base pixel
          value, make that the new base pixel value, place it on the output
          array and return to step 2.
-      8. If delta is 80000000 hex, read the next 4 bytes as a little_endian
-         32-bit number and make that delta, read the next 8 bytes as a
-         little_endia 64-bit number and make that delta, add delta to the
-         base pixel value, make that the new base pixel value, place it on
-         the output array and return to step 2.
+      8. If delta is 80000000 hex, read the next 8 bytes as a little_endian
+         64-bit number and make that delta, add delta to the base pixel
+         value, make that the new base pixel value, place it on the output
+         array and return to step 2.
 
      Let us look at an example, of two 1000 x 1000 flat field images
      presented as a mimimal imgCIF file. The first image uses 32-bit unsigned
@@ -7883,66 +7934,126 @@ src/                      include/             m4/                  Description
 
     cif2cbf
 
-     The test program cif2cbf uses the same command line options as img2cif,
-     but accepts either a CIF or a CBF as input instead of an image file:
+     The test program cif2cbf uses many of the same command line options as
+     img2cif, but accepts either a CIF or a CBF as input instead of an image
+     file:
 
    cif2cbf [-i input_cif] [-o output_cbf] \
+     [-u update_cif] \
      [-c {p[acked]|c[annonical]|{b[yte_offset]}|\
-         {v[2packed]}|{f[latpacked]}[n[one]}] \
-     [-m {h[eaders]|n[oheaders]}] [-d {d[igest]|n[odigest]}] \
-     [-e {b[ase64]|k|q[uoted-printable]| \
-                   d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \
-     [-b {f[orward]|b[ackwards]}] \
-     [-p {0|1|2|4}] \
-     [-v dictionary]* [-w] \
+         {v[2packed}|{f[latpacked}[n[one]}] \
+     [-C highclipvalue] \
+     [-D ] \
+     [-I {0|2|4|8}] \
+     [-R {0|4|8}] \
+     [-L {0|4|8}] \
+     [-m {h[eaders]|noh[eaders]}] \
+     [-m {d[imensions]|nod[imensions}] \
+     [-d {d[igest]|n[odigest]|w[arndigest]}] \
+     [-B {read|liberal|noread}] [-B {write|nowrite}] \
+     [-S {read|noread}] [-S {write|nowrite}] \
+     [-T {read|noread}] [-T {write|nowrite}] \
+     [-e {b[ase64]|q[uoted-printable]|\
+                   d[ecimal]|h[examdecimal|o[ctal]|n[one]}] \
+     [-b {f[orward]|b[ackwards]}\
+     [-p {1|2|4}\
+     [-v dictionary]* [-w] [-W]\
      [input_cif] [output_cbf]
 
    the options are:
 
-   -i input_cif (default: stdin)
-     the input  file in CIF or CBF  format.  If input_cif is not
-     specified or is given as "-", it is copied from stdin to a
-     temporary file.
+     -i input_cif (default: stdin)
+       the input  file in CIF or CBF  format.  If input_cif is not
+       specified or is given as "-", it is copied from stdin to a
+       temporary file.
 
-   -o output_cbf (default: stdout)
-     the output cif (if base64 or quoted-printable encoding is used)
-     or cbf (if no encoding is used).  if no output_cif is specified
-     or is given as "-", the output is written to stdout
-     if the output_cbf is /dev/null, no output is written.
+     -o output_cbf (default: stdout)
+       the output cif (if base64 or quoted-printable encoding is used)
+       or cbf (if no encoding is used).  if no output_cif is specified
+       or is given as "-", the output is written to stdout
+       if the output_cbf is /dev/null, no output is written.
 
-   The remaining options specify the characteristics of the
-   output cbf.  The characteristics of the input cif are derived
-   from context.
+     -u update_cif (no default)
+       and optional second input file in CIF or CBF format containing
+       data blocks to be merged with data blocks from the primary
+       input CIF or CBF
 
-   -c compression_scheme (packed, canonical, byte_offset,
-     v2packed, flatpacked or none,
-     default packed)
+     The remaining options specify the characteristics of the
+     output cbf.  Most of the characteristics of the input cif are
+     derived from context, except when modified by the -B, -S, -T, -v
+     and -w flags.
 
-   -m [no]headers (default headers for cifs, noheaders for cbfs)
-     selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996)
-     headers within binary data value text fields.
+     -b byte_order (forward or backwards, default forward (1234) on
+       little-endian machines, backwards (4321) on big-endian machines
 
-   -d [no]digest  (default md5 digest [R. Rivest, RFC 1321, April
-     1992 using"RSA Data Security, Inc. MD5 Message-Digest
-     Algorithm"] when MIME headers are selected)
+     -B [no]read or liberal (default noread)
+       read to enable reading of DDLm style brackets
+       liberal to accept whitespace for commas
 
-   -e encoding (base64, quoted-printable or none, default base64)
-     specifies one of the standard MIME encodings for an ascii cif
-     or "none" for a binary cbf
+     -B [no]write (default write)
+       write to enable writing of DDLm style brackets
 
-   -b byte_order (forward or backwards, default forward (1234) on
-     little-endian machines, backwards (4321) on big-endian machines
+     -c compression_scheme (packed, canonical, byte_offset,
+       v2packed, flatpacked or none,
+       default packed)
 
-   -p K_of_padding (0, 1, 2, 4) for no padding after binary data
-     1023, 2047 or 4095 bytes of padding after binary data
+     -C highclipvalue
+       specifies a double precision value to which to clip the data
 
-   -v dictionary specifies a dictionary to be used to validate
-     the input cif and to apply aliases to the output cif.
-     This option may be specified multiple times, with dictionaries
-     layered in the order given.
+     -d [no]digest or warndigest  (default md5 digest [R. Rivest,
+       RFC 1321, April 1992 using"RSA Data Security, Inc. MD5
+       Message-Digest Algorithm"] when MIME headers are selected)
 
-   -w process wide (2048 character) lines
+     -D test cbf_construct_detector
 
+     -e encoding (base64, k, quoted-printable or none, default base64)
+       specifies one of the standard MIME encodings for an ascii cif
+       or "none" for a binary cbf
+
+     -I 0 or integer element size
+       specifies integer conversion of the data, 0 to use the input
+       number of bytes, 2, 4 or 8 for short, long or long long
+       output integers
+
+     -L lowclipvalue
+       specifies a double precision value to cut off the data from
+       below
+
+     -m [no]headers (default headers)
+       selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996)
+       headers within binary data value text fields.
+
+     -m [nod]imensions (default dimensions)
+       selects detailed recovery of dimensions from the input CIF
+       for use in the MIME header of the output CIF
+
+     -p K_of_padding (0, 1, 2, 4) for no padding after binary data
+       1023, 2047 or 4095 bytes of padding after binary data
+
+     -R 0 or integer element size
+       specifies real conversion of the data, 0 to use the input
+       number of bytes,  4 or 8 for float or double output reals
+
+     -S [no]read or (default noread)
+       read to enable reading of whitespace and comments
+
+     -S [no]write (default write)
+       write to enable writing of whitespace and comments
+
+     -T [no]read or (default noread)
+       read to enable reading of DDLm style triple quotes
+
+     -T [no]write (default write)
+       write to enable writing of DDLm style triple quotes
+
+     -v dictionary specifies a dictionary to be used to validate
+       the input cif and to apply aliases to the output cif.
+       This option may be specified multiple times, with dictionaries
+       layered in the order given.
+
+     -w process wide (2048 character) lines
+
+     -W write wide (2048 character) lines
 
 
     convert_image
@@ -8180,8 +8291,30 @@ src/                      include/             m4/                  Description
      --gz    Output a .gz file  (e.g., filen.img.gz).
      --bz2   Output a .bz2 file (e.g., filen.img.bz2).
 
-     ----------------------------------------------------------------------
+    tiff2cbf
+
+     The test program tiff2cbf converts a tiff data file to a cbf data file.
+     The program converts the tiff data samples directly into a minicbf with
+     the tiff header stored at the value of _array_data.header_contents. This
+     conversion is supported for the sample formats SAMPLEFORMAT_UINT
+     (unsigned integer data), SAMPLEFORMAT_INT (unsigned integer data),
+     SAMPLEFORMAT_INT (signed integer data), SAMPLEFORMAT_IEEEFP (IEEE
+     floating point data), SAMPLEFORMAT_COMPLEXINT (complex signed int) and
+     SAMPLEFORMAT_COMPLEXIEEEFP (complex ieee floating). Conversions from
+     these formats to other CBF formats can be handled by cif2cbf. If you
+     wish to convert and xxx.tif written with IEEE floating point samples
+     into a CBF with integer values compressed by byte-offset compression for
+     use by XDS, creating an xxx_view.cbf with values clipped between 0 and
+     100, and an xxx_xds.cbf with unclipped values for processing:
+
+
+   tiff2cbf xxx.tif xxx.cbf
+   cif2cbf -I 4 -C 100. -L 0. -e n -c b -i xxx.cbf -o xxx_view.cbf
+   cif2cbf -I 4 -e n -c b -i xxx.cbf -o xxx_xds.cbf
+  
 
      ----------------------------------------------------------------------
 
-     Updated 15 July 2009. Contact:  yaya at bernstein-plus-sons dot com
+     ----------------------------------------------------------------------
+
+     Updated 29 March 2011. Contact:  yaya at bernstein-plus-sons dot com

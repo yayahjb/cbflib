@@ -3249,9 +3249,12 @@ cbf_column_name sets *columnname to point to the name of the current
 column of the current category.
 The column name will be valid as long as the column exists.
 The name must not be modified by the program in any way.
+cbf_set_column_name sets the name of the current column to 
+newcolumnname
 ARGUMENTS
-handle       CBF handle. columnname   Pointer to the destination 
-column name pointer.
+handle          CBF handle. columnname      Pointer to the 
+destination column name pointer. newcolumnname   New column name 
+pointer.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 SEE ALSO
@@ -3596,7 +3599,7 @@ SEE ALSO
         char * bot;
         cbf_failnez(cbf_get_realarrayparameters_wdims_fs(self, 
          &comp,binary_id, &elsiz, &elem, 
-         &byteorder,&ds,&dm,&ds,&pd ));
+         &byteorder,&df,&dm,&ds,&pd ));
         *bolen = strlen(byteorder);
         if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
         strncpy(bot,byteorder,*bolen);
@@ -4669,7 +4672,7 @@ SEE ALSO
         char * bot;
         cbf_failnez(cbf_get_realarrayparameters_wdims(self, 
          &comp,binary_id, &elsiz, &elem, 
-         &byteorder,&ds,&dm,&ds,&pd ));
+         &byteorder,&df,&dm,&ds,&pd ));
         *bolen = strlen(byteorder);
         if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
         strncpy(bot,byteorder,*bolen);
