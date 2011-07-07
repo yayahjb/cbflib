@@ -256,7 +256,7 @@ VERSION = 'cbf_version`
 
 
 #
-# Comment out the next line if scratch test files sould be retain
+# Comment out the next line if scratch test files sould be retained
 #
 CLEANTESTS = yes
 

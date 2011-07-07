@@ -374,7 +374,7 @@ cbfhandle_specials = {
         char * bot;
         cbf_failnez(cbf_get_realarrayparameters_wdims(self, 
          &comp,binary_id, &elsiz, &elem, 
-         &byteorder,&ds,&dm,&ds,&pd ));
+         &byteorder,&df,&dm,&ds,&pd ));
         *bolen = strlen(byteorder);
         if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
         strncpy(bot,byteorder,*bolen);
@@ -414,7 +414,7 @@ cbfhandle_specials = {
         char * bot;
         cbf_failnez(cbf_get_realarrayparameters_wdims_fs(self, 
          &comp,binary_id, &elsiz, &elem, 
-         &byteorder,&ds,&dm,&ds,&pd ));
+         &byteorder,&df,&dm,&ds,&pd ));
         *bolen = strlen(byteorder);
         if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
         strncpy(bot,byteorder,*bolen);
