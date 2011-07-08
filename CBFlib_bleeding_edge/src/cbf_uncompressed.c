@@ -258,9 +258,11 @@ extern "C" {
 #include <string.h>
 #include <limits.h>
 #include <ctype.h>
+#if !defined(_MSC_VER)
 #define __USE_XOPEN
 #define _XOPEN_SOURCE
 #include <unistd.h>
+#endif
 
 #include "cbf.h"
 #include "cbf_alloc.h"

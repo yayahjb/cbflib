@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf -- cbflib API functions                                        *
  *                                                                    *
- * Version 0.8.0 20 July 2008                                         *
+ * Version 0.9.2.3 7 July 2011                                        *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -263,6 +263,10 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#if !defined(CBF_NO_REGEX)
+#include <regex.h>
+#endif
+        
 #include <regex.h>
 
 int cbf_parse (void *context);
@@ -7360,8 +7364,10 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
   	        	        	        	    
     	        	  }
     	        	  
-					if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break;	}
-    	        	  break;
+#if defined(CBF_NO_REGEX)
+                      if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break;	}
+#endif
+                      break;
     	        	
     	        	case CBF_TOKEN_SQSTRING:
     	        	case CBF_TOKEN_DQSTRING:
@@ -7682,7 +7688,10 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 								
     	                        if (loval[0]!= '\0' 
     	                          && !strcmp(loval,",")
-    	                          && cbf_match(loval, "^-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?")){
+#if !defined(CBF_NO_REGEX)
+    	                          && cbf_match(loval, "^-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?")
+#endif
+                                    ){
 
                                   sprintf(buffer,"illegal lower range value %s", loval);
 
@@ -7691,7 +7700,10 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
                                 }
                                 if (hival[0]!= '\0' 
     	                          && !strcmp(hival,",")
-                                  && cbf_match(hival, "^-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?")){
+#if !defined(CBF_NO_REGEX)
+                                  && cbf_match(hival, "^-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?")
+#endif
+                                    ){
 
                                    sprintf(buffer,"illegal higher range value %s", hival);
 
@@ -8197,7 +8209,7 @@ int cbf_mpint_rightshift_acc(unsigned int * acc, size_t acsize, int shift) {
 
     extrabits = 0;
 
-    if ((int)(acc[acsize-1])<0) extrabits = ~0;
+    if (((int)(acc[acsize-1]))<0) extrabits = ~0;
 
     bigshift = shift/(sizeof(unsigned int)*CHAR_BIT);
 
@@ -8518,6 +8530,16 @@ int cbf_check_type_contents (const char *type, const char *value){
   /* Regex Match function */
   
 int cbf_match(const char *string, char *pattern) { 
+    
+#if defined(CBF_NO_REGEX)
+    
+    fprintf(stderr,
+            "\nCBFlib: error -- regular expression matching suppressed\n"
+              "        rebuild CBFlib without defining CBF_NO_REGEX\n"
+              "        with regex installed\n");
+    exit(1);
+    
+#else
 	
 	int status; 
 	
@@ -8537,6 +8559,8 @@ int cbf_match(const char *string, char *pattern) {
 	
 	    return 1;
 	} 
+    
+#endif
 	return 0;
 }
 
