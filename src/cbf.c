@@ -266,8 +266,6 @@ extern "C" {
 #if !defined(CBF_NO_REGEX)
 #include <regex.h>
 #endif
-        
-#include <regex.h>
 
 int cbf_parse (void *context);
 
