@@ -1,7 +1,7 @@
 /**********************************************************************
  *          cif2c -- convert a cif to a CBFlib function               *
  *                                                                    *
- * Version 0.7.8 12 June 2007                                         *
+ * Version 0.9.1 6 January 2010                                       *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -302,6 +302,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <errno.h>
+#include "cbf_getopt.h"
 #include <unistd.h>
 
 #define C2CBUFSIZ 8192
@@ -332,9 +333,10 @@ int main (int argc, char *argv [])
   clock_t a,b;
   cbf_handle cif;
   cbf_handle cbf;
+  cbf_getopt_handle opts;
   int c;
   int errflg = 0;
-  char *cifin, *codeout, *function_name;
+  const char *cifin, *codeout, *function_name;
   char ciftmp[19];
 #ifdef NOMKSTEMP
   char *xciftmp;
@@ -354,6 +356,7 @@ int main (int argc, char *argv [])
   unsigned int colnum, rownum;
   unsigned int columns;
   unsigned int rows;
+  const char * optarg;
 
 
 
@@ -372,7 +375,18 @@ int main (int argc, char *argv [])
    function_name = NULL;
    ciftmpused = 0;
 
-   while ((c = getopt(argc, argv, "i:o:n:")) != EOF) {
+ 
+   cbf_failnez(cbf_make_getopt_handle(&opts))
+
+
+   cbf_failnez(cbf_getopt_parse(opts, argc, argv, "-i(input):" \
+                                "-o(output):" \
+                                "-n(name_of_function):" \
+                                ))
+
+   if (!cbf_rewind_getopt_option(opts))
+   for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
+     if (!c) break;
      switch (c) {
        case 'i':
          if (cifin) errflg++;
@@ -391,12 +405,12 @@ int main (int argc, char *argv [])
          break;
       }
     }
-   for (; optind < argc; optind++) {
+   for(;!cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
      if (!cifin) {
-        cifin = argv[optind];
+        cifin = optarg;
      } else {
        if (!codeout) {
-         codeout = argv[optind];
+         codeout = optarg;
        } else {
          errflg++;
        }
@@ -405,7 +419,7 @@ int main (int argc, char *argv [])
    if (errflg) {
      fprintf(stderr,"cif2c:  Usage: \n");
      fprintf(stderr,
-       "  cif2cbf [-i input_cif] [-o output_C_function] \\\n");
+       "  cif2c [-i input_cif] [-o output_C_function] \\\n");
      fprintf(stderr,
        "    [-n name_of_function] \\\n");
      fprintf(stderr,

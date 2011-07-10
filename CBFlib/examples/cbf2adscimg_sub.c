@@ -147,7 +147,7 @@ static char * array_id;
 
 void puthd (char* field, char* value, char* header)
 {
-  char   temp[5];
+  char   temp[6];
   int    i, diff;
   char   *hp, *vp, *tp, *fp;
 
@@ -209,7 +209,7 @@ puthd (temp, "    0", header);
 void padhd (char* header, int size)
 {
   int i, diff;
-  char temp[5], *hp, *tp;
+  char temp[6], *hp, *tp;
 
 /*
  * find the } marking the end of the header

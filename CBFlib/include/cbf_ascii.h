@@ -271,7 +271,7 @@ int cbf_foldtextline(const char** string, char* fline,
                                                 char termc );
   /* Write an ascii value */
 
-int cbf_write_ascii (const char *string, cbf_file *file);
+int cbf_write_ascii (cbf_handle handle, const char *string, cbf_file *file);
 
 
 #ifdef __cplusplus

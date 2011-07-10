@@ -304,9 +304,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <errno.h>
-#ifdef GNUGETOPT
-#include "getopt.h"
-#endif
+#include "cbf_getopt.h"
 #include <unistd.h>
 
 
@@ -527,15 +525,19 @@ int main (int argc, char *argv [])
   int errflg = 0;
   char * imgtmp=NULL;
   int imgtmpused = 0;
-  char *imgin, *cbfout, *template, *distancestr;
+  const char *imgin, *cbfout, *template, *distancestr, *alias;
   cbf_detector detector;
-  char *tag, *data, *alias, *root;
+  char *tag, *data, *root;
   char xalias[81];
   int index;
   int transpose;
   int fastlen, slowlen;
   int flat;
   int sequal;
+  const char * optarg;
+  cbf_getopt_handle opts;
+
+
 
     /* Usage */
 
@@ -551,8 +553,13 @@ int main (int argc, char *argv [])
   
   cbf_failnez (cbf_make_handle (&cbf))
 
-  while ((copt = getopt(argc,argv, "FRSi:o:p:d:m:r:z:c:t:")) != EOF) {
-
+  cbf_failnez(cbf_make_getopt_handle(&opts))
+    
+  cbf_failnez(cbf_getopt_parse(opts, argc, argv, "FRSi:o:p:d:m:r:z:c:t:"))
+    
+  if (!cbf_rewind_getopt_option(opts))
+  for(;!cbf_get_getopt_data(opts,&copt,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
+    if (!copt) break;
     switch(copt) {
       case 'i':
          if (imgin) errflg++;
@@ -641,12 +648,12 @@ int main (int argc, char *argv [])
 
   }
 
-  for (; optind < argc; optind++) {
+    for(;!cbf_get_getopt_data(opts,&copt,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
     if (!imgin) {
-      imgin = argv[optind];
+      imgin = optarg;
     } else {
        if (!cbfout) {
-         cbfout = argv[optind];
+         cbfout = optarg;
        } else {
          errflg++;
        }
@@ -1585,7 +1592,11 @@ int main (int argc, char *argv [])
     /* Free the image */
 
   img_free_handle (img);
+    
+    /* Free the getopt_handle */
 
+  cbf_failnez (cbf_free_getopt_handle(opts))
+    
 
     /* Success */
 

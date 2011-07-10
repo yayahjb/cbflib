@@ -263,14 +263,18 @@ extern "C" {
 
 typedef enum
 {
-  CBF_UNDEFINED,        /* Undefined */
+  CBF_UNDEFNODE,        /* Undefined */
   CBF_LINK,             /* Link      */
   CBF_ROOT,             /* Root      */
   CBF_DATABLOCK,        /* Datablock */
   CBF_SAVEFRAME,        /* Saveframe */
   CBF_CATEGORY,         /* Category  */
   CBF_COLUMN,           /* Column    */
-  CBF_VALUE             /* Value     */  /* Not a visible node type */
+  CBF_VALUE,            /* Value     */  /* Not a visible node type */
+  CBF_FUNCTION,         /* Function  */
+  CBF_BKT,              /* Bracket   */
+  CBF_BRC,              /* Brace     */
+  CBF_PRN               /* Paren     */	
 }
 CBF_NODETYPE;
 

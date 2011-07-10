@@ -313,9 +313,20 @@ int cbf_foldtextline(const char** string, char* fline,
 
       /* save the last blank or tab to break on */
  
-      if( c[ipos] == ' ' || c[ipos] == '\t' ) {
+      if(( c[ipos] == ' ' || c[ipos] == '\t' ) && left < fline_size) {
 
         savbpos = ipos; savbleft = left;
+
+      }
+        
+      /* If this is a bracketed construct, break on ',' or
+         the terminating character not at the beginning */
+
+        
+      if ((termc==')' || termc==']' || termc==',') 
+          && ((c[ipos]==termc || c[ipos]==',') &&  left-1 < fline_size)) {
+
+          savbpos = ipos+1; savbleft = left-1;
 
       }
 
@@ -327,10 +338,10 @@ int cbf_foldtextline(const char** string, char* fline,
         
         if (unfoldme) {
         
-           if (c[ipos+1] == '\n') {
+           if (c[ipos+1] == '\n' || c[ipos+1] == '\0') {
            
              ipos++;
-             
+              
              continue;
            	
            }
@@ -428,7 +439,7 @@ int cbf_foldtextline(const char** string, char* fline,
 
   /* Write an ascii value */
 
-int cbf_write_ascii (const char *string, cbf_file *file)
+int cbf_write_ascii (cbf_handle handle, const char *string, cbf_file *file)
 {
   static const char missing [] = { CBF_TOKEN_WORD, '?', '\0' };
 
@@ -592,7 +603,7 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
         sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
 
-        cbf_warning(buffer);
+        cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
       
         if (file->column > 0) {
          
@@ -692,7 +703,7 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
         sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
 
-        cbf_warning(buffer);
+        cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
       
         cbf_failnez (cbf_write_string (file, ";\\\n"))
         
@@ -724,7 +735,8 @@ int cbf_write_ascii (const char *string, cbf_file *file)
       }
       
 
-      if (unfoldme && *(c-1)=='\\') {
+      if (unfoldme && ((c > string+1+unfoldme && *(c-1)=='\\') ||
+          (c > string+2+unfoldme && *(c-1)=='\0' && *(c-2)=='\\'))) {
 
       	cbf_failnez (cbf_write_string (file, "\\\n;\n"))
 
@@ -757,15 +769,27 @@ int cbf_write_ascii (const char *string, cbf_file *file)
      
       switch (*string) {
         case CBF_TOKEN_TSQSTRING: initc = termc = '\'';
-          if (file->write_headers & PARSE_NOTRIPLE_QUOTES) initc = termc = ';'; foldme= 1; break;
+              if (!(file->write_headers & CBF_PARSE_TQ)) {initc = termc = ';'; foldme= 1;} break;
         case CBF_TOKEN_TDQSTRING: initc = termc = '"'; 
-          if (file->write_headers & PARSE_NOTRIPLE_QUOTES) initc = termc = ';'; foldme= 1; break;
+              if (!(file->write_headers & CBF_PARSE_TQ)) {initc = termc = ';'; foldme= 1;} break;
         case CBF_TOKEN_PRNSTRING: initc = '('; termc = ')';
-          if (file->write_headers & PARSE_NOBRACKETS) initc = termc = ';'; foldme= 1; break;
+              if (!(file->write_headers & CBF_PARSE_PRN)) {
+                  if (file->write_headers & CBF_PARSE_BRC){
+                      initc = '{'; termc = '}';
+                  } else {
+                     initc = termc = ';'; foldme= 1;
+                  }
+              } break;
         case CBF_TOKEN_BRCSTRING: initc = '{'; termc = '}'; 
-          if (file->write_headers & PARSE_NOBRACKETS) initc = termc = ';'; foldme= 1; break;
+              if (!(file->write_headers & CBF_PARSE_BRC)) {initc = termc = ';'; foldme= 1;} break;
   	    case CBF_TOKEN_BKTSTRING: initc = '['; termc = ']'; 
-          if (file->write_headers & PARSE_NOBRACKETS) initc = termc = ';'; foldme= 1; break;
+              if (!(file->write_headers & CBF_PARSE_PRN)) {
+                  if (file->write_headers & CBF_PARSE_BRC){
+                      initc = '{'; termc = '}'; 
+                  } else {
+                      initc = termc = ';'; foldme= 1;
+                  }
+              } break;
       }
       
       if (*(string+1)=='\\' && *(string+2)=='\n' ) unfoldme=2;
@@ -810,11 +834,13 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
         sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
 
-        cbf_warning(buffer);
+        cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
       
         if (initc==';') {
+          if (file->column) cbf_failnez (cbf_write_character (file, '\n'))
           cbf_failnez (cbf_write_string (file, ";\\\n"))
         } else {
+          if (file->column) cbf_failnez (cbf_write_character (file, ' '))
           cbf_failnez (cbf_write_character (file, initc))
           cbf_failnez (cbf_write_string (file, "\\\n"))        	
         }
@@ -824,6 +850,8 @@ int cbf_write_ascii (const char *string, cbf_file *file)
         foldme = 1;
       	
       } else {
+
+        if (file->column) cbf_failnez (cbf_write_character (file, ' '))
 
         cbf_failnez (cbf_write_character (file, initc))
         
@@ -864,14 +892,12 @@ int cbf_write_ascii (const char *string, cbf_file *file)
 
       } else {
 
-        if (file->column) {
-
-      	  cbf_failnez (cbf_write_character (file, '\n'))
-
-        }
 
         if (termc == ';') {
-          cbf_failnez (cbf_write_string (file, ";\n"))	
+            if (file->column) {
+                cbf_failnez (cbf_write_character (file, '\n'))
+            }
+            cbf_failnez (cbf_write_string (file, ";\n"))	
         }  else  {
           cbf_failnez (cbf_write_character (file, termc ))        	
           if (*string==CBF_TOKEN_TSQSTRING 

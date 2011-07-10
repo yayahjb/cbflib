@@ -284,6 +284,9 @@ int cbf_make_file (cbf_file **file, FILE *stream)
     /* Initialise */
 
   (*file)->stream          = stream;
+  (*file)->logfile         = stderr;
+  (*file)->errors          = 0;
+  (*file)->warnings        = 0;
   (*file)->connections     = 1;
   (*file)->temporary       = stream?0:1;
   (*file)->bits [0]        = 0;
@@ -664,6 +667,57 @@ int cbf_save_character_trim (cbf_file *file, int c)
 
   file->buffer [file->buffer_used] = '\0';
 
+
+    /* Success */
+
+  return 0;
+}
+
+  /* Add a character to the buffer at a given position */
+
+int cbf_save_character_at (cbf_file *file, int c, size_t position)
+{
+  unsigned int new_size;
+  
+  size_t ii;
+
+    /* Does the file exist? */
+
+  if (!file)
+
+    return CBF_ARGUMENT;
+    
+  if (position >= file->buffer_used) {
+  
+    if (file->buffer_size < position-2 ) {
+    
+        new_size = (position+2)*2;
+
+        if (new_size >= file->buffer_size) {
+        
+          cbf_failnez (cbf_set_buffersize (file, new_size))
+          
+        }
+        
+        file->buffer [position] = (char) c;
+        
+        file->buffer [position+1] = '\0';
+        
+        for (ii = file->buffer_used; ii < position; ii++ )  {
+        	
+        	file->buffer [ii] = ' ';
+        	
+        }
+        
+        file->buffer_used = position+1;
+    	
+    }
+  	
+  } else {
+  
+    file->buffer [position] = (char) c;
+  	
+  }
 
     /* Success */
 
@@ -1774,7 +1828,7 @@ int cbf_read_line (cbf_file *file, const char **line)
       
       sprintf(buffer, "input line %u over size limit",1+file->line);
 
-      cbf_warning(buffer);
+      cbf_flog(file, buffer, CBF_LOGWARNING|CBF_LOGCURRENTLOC);
 
     }
 
@@ -2184,14 +2238,14 @@ int cbf_get_fileposition (cbf_file *file, long int *position)
 
     return CBF_ARGUMENT;
 
-  if (!file->stream)
+  /* if (!file->stream)
 
-    return CBF_ARGUMENT;
+    return CBF_ARGUMENT; */
 
 
     /* Get the position */
     
-  if (file->temporary) {
+  if (file->temporary || !file->stream) {
   
     file_position = (long int)(file->characters - file->characters_base);
   	
@@ -2236,14 +2290,14 @@ int cbf_set_fileposition (cbf_file *file, long int position, int whence)
 
     return CBF_ARGUMENT;
 
-  if (!file->stream)
+ /*  if (!file->stream)
 
-    return CBF_ARGUMENT;
+    return CBF_ARGUMENT; */
 
 
     /* Set the position */
     
- if (file->temporary)  {
+ if (file->temporary || !file->stream)  {
  
    if (whence == SEEK_CUR) position += file->characters-file->characters_base;
    

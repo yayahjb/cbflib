@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_binary -- handle simple binary values                          *
  *                                                                    *
- * Version 0.8.0 20 July 2008                                         *
+ * Version 0.9  04 August 2009                                        *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2006, 2007 Herbert J. Bernstein                      *
+ * (C) Copyright 2006 -- 2009 Herbert J. Bernstein                    *
  *                                                                    *
  **********************************************************************/
 
@@ -272,6 +272,7 @@ static const char * little_endian = "little_endian";
 static const char * unknown = "unknown";
 
 
+
   /* Parse a binary text value */
 
 int cbf_get_bintext (cbf_node  *column, unsigned int row,
@@ -299,9 +300,9 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
 
   int id_text, type_text, checked_digest_text, bits_text, sign_text, realarray_text;
   
-  unsigned long dimover_text, dimfast_text, dimmid_text, dimslow_text;
+  size_t dimover_text, dimfast_text, dimmid_text, dimslow_text;
   
-  unsigned long padding_text;
+  size_t padding_text;
 
   unsigned int compression_text;
 
@@ -403,7 +404,8 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
     else *byteorder = unknown;
   	
   }
-   
+  
+
   if (dimover)
   
      *dimover = dimover_text;
@@ -957,6 +959,7 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
   
   size_t text_dimover;
 
+  size_t size;
 
     /* Check the digest (this will also decode it if necessary) */
 
@@ -984,7 +987,7 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
     /* Parse the value */
 
   cbf_failnez (cbf_get_bintext (column, row, NULL,
-                                id, &file, &start, NULL,
+                                id, &file, &start, &size,
                                  NULL, NULL, &bits, &sign, realarray,
                                  byteorder, &text_dimover, dimfast, dimmid, dimslow, padding,
                                  &compression))
@@ -1010,7 +1013,7 @@ int cbf_get_binary (cbf_node *column, unsigned int row, int *id,
 
 
   return cbf_decompress (value, elsize, elsign, nelem, nelem_read,
-                         compression, bits, sign, file, *realarray,
+                         size, compression, bits, sign, file, *realarray,
                          *byteorder, text_dimover, *dimfast, *dimmid, *dimslow, *padding);
 }
 

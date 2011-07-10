@@ -558,9 +558,10 @@ int main (int argc, char *argv [])
 
     /* Save the binary data */
 
-  cbf_failnez (cbf_set_integerarray (cbf, CBF_PACKED, 1,
+  cbf_failnez (cbf_set_integerarray_wdims_fs (cbf, CBF_PACKED|CBF_FLAT_IMAGE, 1,
                                  img_pixelptr (img, 0, 0), sizeof (int), 1,
-                                 img_rows (img) * img_columns (img)))
+                                 img_rows (img) * img_columns (img),
+                                 "little_endian",img_rows (img),img_columns (img),0,0 ))
   
 
     /* Write the new file */
@@ -574,7 +575,7 @@ int main (int argc, char *argv [])
     exit (1);
   }
 
-  cbf_failnez (cbf_write_file (cbf, out, 1, CBF, MSG_DIGEST | MIME_HEADERS, 0))
+  cbf_failnez (cbf_write_file (cbf, out, 1, CBF, MSG_DIGEST | MIME_HEADERS  , 0))
   
 
     /* Free the cbf */

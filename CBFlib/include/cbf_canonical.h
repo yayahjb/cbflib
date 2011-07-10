@@ -284,7 +284,9 @@ typedef struct
 
   unsigned int bits;             /* Coded bits                     */
   unsigned int maxbits;          /* Maximum saved bits             */
-  unsigned int endcode;          /* End-of-data code               */
+   
+  unsigned int endcode;          /* End-of-data code 
+                                    endcode = 1 << bits == 2^bits  */
 
   size_t       nodes;            /* Number of nodes                */
   size_t       nextnode;         /* Number of nodes used           */
@@ -414,7 +416,7 @@ int cbf_put_code (cbf_compress_data *data, int code, unsigned int overflow,
 
 int cbf_count_values (cbf_compress_data *data,
                       void *source, size_t elsize, int elsign, size_t nelem,
-                      int *minelem, int *maxelem);
+                      int *minelem, int *maxelem, char *border);
 
 
 
@@ -444,6 +446,7 @@ int cbf_decompress_canonical (void         *destination,
                               int           elsign, 
                               size_t        nelem, 
                               size_t       *nelem_read,
+                              size_t        compressedsize,
                               unsigned int  compression,
                               int           bits,
                               int           sign, 
@@ -455,10 +458,10 @@ int cbf_decompress_canonical (void         *destination,
                               size_t        dimmid,
                               size_t        dimslow,
                               size_t        padding);
-#define cbf_decompress_canonical_fs(destination,elsize,elsign,nelem,nelem_read,compression,bits,sign,file,realarray,byteorder,dimover,dimfast,dimmid,dimslow,padding) \
-        cbf_decompress_canonical((destination),(elsize),(elsign),(nelem),(nelem_read),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding)) 
-#define cbf_decompress_canonical_sf(destination,elsize,elsign,nelem,nelem_read,compression,bits,sign,file,realarray,byteorder,dimover,dimslow,dimmid,dimfast,padding) \
-        cbf_decompress_canonical((destination),(elsize),(elsign),(nelem),(nelem_read),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding)) 
+#define cbf_decompress_canonical_fs(destination,elsize,elsign,nelem,nelem_read,compressedsize,compression,bits,sign,file,realarray,byteorder,dimover,dimfast,dimmid,dimslow,padding) \
+        cbf_decompress_canonical((destination),(elsize),(elsign),(nelem),(nelem_read),(compressedsize),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding))
+#define cbf_decompress_canonical_sf(destination,elsize,elsign,nelem,nelem_read,compressedsize,compression,bits,sign,file,realarray,byteorder,dimover,dimslow,dimmid,dimfast,padding) \
+        cbf_decompress_canonical((destination),(elsize),(elsign),(nelem),(nelem_read),(compressedsize),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding))
 
 
 #ifdef __cplusplus

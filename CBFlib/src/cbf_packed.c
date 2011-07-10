@@ -352,7 +352,7 @@ int cbf_add_offsetv2 (cbf_packed_data *data, unsigned int *element,
                                              unsigned int *last_element,
                                                       int  numints)
 {
-  unsigned int offset[4];
+    unsigned int offset[4] = {0, 0, 0, 0};
 
   int i, issmall;
 
@@ -370,11 +370,13 @@ int cbf_add_offsetv2 (cbf_packed_data *data, unsigned int *element,
     cbf_failnez(cbf_mpint_negate_acc(offset,numints))
     
     cbf_failnez(cbf_mpint_add_acc(offset,numints,element,numints))
-  	
+        	
   } else{
   	
     offset[0] = element[0] - last_element[0];
-  
+      
+      if ((int)(offset[0])<0) for(i=1;i<numints;i++) offset[i] = ~0;
+      
   }
   
   for (i = 0; i < numints; i++) data->offset [index][i] = offset[i];
@@ -539,7 +541,7 @@ int cbf_add_offset (cbf_packed_data *data, unsigned int *element,
     
     cbf_failnez(cbf_mpint_add_acc(offset,numints,element,numints))
   	
-  } else{
+  } else {
   	
     offset[0] = element[0] - last_element[0];
   
@@ -641,7 +643,9 @@ int cbf_pack_chunk (cbf_packed_data *data, int size, int chunk,
                                            unsigned long *bitcount,
                                            int v2flag, int clipbits)
 {
-  unsigned int count, index, pbits;
+  unsigned int count, index, pbits, j;
+    
+  size_t numints;
   
   int zero[4] = { 0, 0, 0, 0};
   
@@ -654,6 +658,10 @@ int cbf_pack_chunk (cbf_packed_data *data, int size, int chunk,
   pbits = v2flag?cbf_packedv2_bits[size]:cbf_packed_bits[size];
   
   if (clipbits && pbits==65) pbits = clipbits;
+    
+  numints = (pbits + CHAR_BIT*sizeof (int) -1)/(CHAR_BIT*sizeof (int));
+    
+  if (!clipbits) numints=1;
 
   if (size > 0) {
 
@@ -661,13 +669,20 @@ int cbf_pack_chunk (cbf_packed_data *data, int size, int chunk,
     
     if (pbits == 65) {
 
-      for (count = chunk; count; count--, index++) {
-
-        cbf_failnez (cbf_put_bits (file, (int *)data->offset [index & 127],
-                                       sizeof(int)*CHAR_BIT))
-    	
-        cbf_failnez (cbf_put_bits (file, zero, pbits-sizeof(int)*CHAR_BIT))
-      }
+        for (count = chunk; count; count--, index++) {
+            
+            for (j = 0; j < numints; j++) {
+                
+                cbf_failnez (cbf_put_bits (file, (int *)(j+(data->offset [index & 127])),
+                                           sizeof(int)*CHAR_BIT))
+            }
+            
+            if (pbits > numints*sizeof(int)*CHAR_BIT) {
+                
+                cbf_failnez (cbf_put_bits (file, zero, pbits-numints*sizeof(int)*CHAR_BIT))
+                
+            }
+        }
 
     } else {
 
@@ -1012,65 +1027,68 @@ int cbf_update_jpa_pointers(unsigned char * trail_char_data[8],
       
     if (numints == 1) {
     	
-      for (i = 0; i < 8; i++) {
-      
-        if (trail_char_data[i]) {
+        for (i = 0; i < 8; i++) {
+            
+            if (trail_char_data[i]) {
+                
+                j++;
+                
+                if (elsize == sizeof (int))
+                    
+                    average[0] += *((unsigned int *) (trail_char_data[i]) );
+                
+                else
+                    
+                    if (elsize == sizeof (short))
+                        
+                        average[0] += *((unsigned short *) (trail_char_data[i]));
+                
+                    else
+                        
+                        average[0] += *(trail_char_data[i]);
+                
+            }
+        }
         
-          j++;
+        k = j>> 1;
         
-            if (elsize == sizeof (int))
-
-              average[0] += *((unsigned int *) (trail_char_data[i]) );
-
-            else
-
-              if (elsize == sizeof (short))
-
-                average[0] += *((unsigned short *) (trail_char_data[i]));
-
-              else
-
-                average[0] += *(trail_char_data[i]);
-        	
-          }
-      }
+        if (average[0] & signbit) average[0] |= ~mask;
         
-      k = j>> 1;
-      
-      if (average[0] & signbit) average[0] |= ~mask;
-      
-      else average[0] &= mask;
-
-      if (k > 0) average[0] = (unsigned int) (((int)average[0] + k) >> log2[k-1]);
+        else average[0] &= mask;
+        
+        if (k > 0) average[0] = (unsigned int) (((int)average[0] + k) >> log2[k-1]);
         
     } else {
-
-     for (i = 0; i < 8; i++) {
-     
-       cbf_failnez(cbf_mpint_add_acc(average, numints, (unsigned int *)&(trail_char_data[i]), numints))
-     
-     }
-     
-       if (j > 1) {
-       	
-         k = j >> 1;
-       
-         cbf_failnez(cbf_mpint_add_acc(average,numints, (unsigned int *)&j , 1))
-
-         if (average[numints-1] & signbit) average[numints-1] |= ~mask;
-      
-         else average[numints-1] &= mask;
-         
-         if (k > 0) {
-         	
-           cbf_failnez(cbf_mpint_rightshift_acc(average,numints,log2[k-1]))
-           
-         }
-         
-       }
-    	
+        
+        for (i = 0; i < 8; i++) {
+            
+            if (trail_char_data[i]) {
+                
+                j++;
+                
+                cbf_failnez(cbf_mpint_add_acc(average, numints, (unsigned int *)(trail_char_data[i]), numints))
+                
+            }
+            
+        }
+        
+        k = j >> 1;
+        
+        if (average[numints-1] & signbit) average[numints-1] |= ~mask;
+        
+        else average[numints-1] &= mask;
+                
+        if (k > 0) {
+            
+            cbf_failnez(cbf_mpint_add_acc(average,numints, (unsigned int *)&k , 1))
+            
+            
+            cbf_failnez(cbf_mpint_rightshift_acc(average,numints,log2[k-1]))
+            
+        }
+        
     }
-
+    
     return 0;
 	
 }
@@ -1424,6 +1442,7 @@ int cbf_decompress_packed (void         *destination,
                            int           elsign,
                            size_t        nelem,
                            size_t       *nelem_read,
+                           size_t        compressedsize,
                            unsigned int  compression,
                            int           data_bits,
                            int           data_sign,
@@ -1438,7 +1457,7 @@ int cbf_decompress_packed (void         *destination,
 {
   unsigned int next, pixel=0, pixelcount;
 
-  unsigned int bits, ibits, iint, element[4], sign, unsign, limit, count;
+  unsigned int bits, iint, element[4], sign, unsign, limit, count;
 
   unsigned char *unsigned_char_data;
 
@@ -1609,8 +1628,7 @@ int cbf_decompress_packed (void         *destination,
     else bits = cbf_packed_bits [(next >> 3) & 7];
     
     if (avgflag && bits == 65) bits = clipbits;
-    
-
+      
       /* Read the offsets */
 
     if (pixelcount + count > nelem)
@@ -1626,50 +1644,26 @@ int cbf_decompress_packed (void         *destination,
 
       for (i = 0; i < numints; i++) offset[i] = 0;
       
-      if (bits)
-      {
-      
-        if (bits > sizeof(unsigned int)*CHAR_BIT)  {
-        
-          errorcode = 0;  iint = 0;
+      if (bits) {
           
-          for (ibits = 0; ibits < bits; ibits+=sizeof(unsigned int)*CHAR_BIT) {
-          
-            errorcode |= cbf_get_integer (file, (int *)&(offset[iint]),
-                                    ibits<(bits-sizeof(unsigned int)*CHAR_BIT)?0:1,
-                                    ibits<(bits-sizeof(unsigned int)*CHAR_BIT)?(CHAR_BIT*sizeof (int)):
-                                      bits-(CHAR_BIT*sizeof (unsigned int))*iint);
-
-            iint++;
-          	
-          }
-        	
-        } else  {
-        	
           errorcode = cbf_get_bits (file, (int *) offset, bits);
-
-          for (i = 1; i < numints; i++)  {
-        	
-          offset[i] = ((int)offset[0])<0?(~0):0;  
           
+          if (errorcode) {
+              
+              if (nelem_read)
+                  
+                  *nelem_read = count + pixel;
+              
+              return errorcode;
           }
           
-        }
-
-        if (errorcode) {
-
-            if (nelem_read)
-
-            *nelem_read = count + pixel;
-
-          return errorcode;
-        }
-        
       }
 
       if (numints > 1) {
+          
+        iint = (bits+sizeof(unsigned int)*CHAR_BIT-1)/(sizeof(unsigned int)*CHAR_BIT);
       
-        cbf_failnez(cbf_mpint_add_acc(element,numints,offset,numints))
+        cbf_failnez(cbf_mpint_add_acc(element,numints,offset,iint))
       	
       } else   {
       	
@@ -1714,6 +1708,7 @@ int cbf_decompress_packed (void         *destination,
  
         }
       	
+
       } else {
       	
         if (elsize == sizeof (int))
@@ -1745,18 +1740,12 @@ int cbf_decompress_packed (void         *destination,
         
         last_element[numints-1] &= limit; 
         
-        /* if (count < 1000) fprintf(stderr," count, offset, element, last_element: %d %x %x %x\n",
-           count, offset[0], element[0], last_element[0]);  */       
-       
       } else {
       	
        for (i = 0; i < numints-1; i++ )last_element[i] = element[i];
       
        last_element[numints-1] = element[numints-1]+unsign;
        
-       /* if (count < 1000) fprintf(stderr," count, offset, element, last_element: %d %x %x %x\n",
-           count, offset[0], element[0], last_element[0]);  */          
-
       }
    
     }

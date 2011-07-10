@@ -270,18 +270,61 @@ extern "C" {
 #if UINT_MAX / 65535U < 65535U
 #error cbflib assumes int is at least 32 bits
 #endif
+#else
+    #define CBF_USE_LONG_LONG
+    typedef long long CBF_sll_type;
+    typedef unsigned long long CBF_ull_type;
+#endif
+   
+#if defined(CBF_DONT_USE_LONG_LONG) || defined(__cplusplus) || defined(__MINGW32__)
+#undef ULLONG_MAX
+#undef CBF_USE_LONG_LONG
 #endif
 
+#ifndef SWIG
+#if defined(ULLONG_MAX) && defined(LLONG_MAX)
+  #if ULLONG_MAX >= 18446744073709551615U
+    #define  CBF_USE_LONG_LONG
+    typedef long long CBF_sll_type;
+    typedef unsigned long long CBF_ull_type;
+  #else
+    #if UINT_MAX >= 4294967295U
+      typedef struct { unsigned int el0:32;unsigned int el1:32;} CBF_sll_type;
+      typedef struct { unsigned int el0:32;unsigned int el1:32;} CBF_ull_type;
+      #define CBF_SLL_INTS 2
+      #define CBF_ULL_INTS 2
+    #else
+      typedef struct { unsigned int el0:32;unsigned int el1:32;unsigned int el2:32;unsigned int el3:32;} CBF_sll_type;
+      typedef struct { unsigned int el0:32;unsigned int el1:32;unsigned int el2:32;unsigned int el3:32;} CBF_ull_type;
+      #define CBF_SLL_INTS 4
+      #define CBF_ULL_INTS 4
+    #endif
+  #endif
+#else
+  #if UINT_MAX >= 4294967295U
+    typedef struct { unsigned int el0:32;unsigned int el1:32;} CBF_sll_type;
+    typedef struct { unsigned int el0:32;unsigned int el1:32;} CBF_ull_type;
+    #define CBF_SLL_INTS 2
+    #define CBF_ULL_INTS 2
+  #else
+    typedef struct { unsigned int el0:32;unsigned int el1:32;unsigned int el2:32;unsigned int el3:32;} CBF_sll_type;
+    typedef struct { unsigned int el0:32;unsigned int el1:32;unsigned int el2:32;unsigned int el3:32;} CBF_ull_type;
+    #define CBF_SLL_INTS 4
+    #define CBF_ULL_INTS 4
+  #endif
+#endif
+#endif
 
   /* API version and assumed dictionary version */
   
-#define CBF_API_VERSION     "CBFlib v0.8.0"
-#define CBF_DIC_VERSION     "CBF: VERSION 1.5"
+#define CBF_API_VERSION     "CBFlib v0.9.0"
+#define CBF_DIC_VERSION     "CBF: VERSION 1.6"
 
   /* Maximum line length */
 
 #define CBF_LINELENGTH_10 80
 #define CBF_LINELENGTH_11 2048
+#define CBF_LINELENGTH_20 8192
 
   /* Initial io buffer sizes */
   
@@ -329,6 +372,7 @@ extern "C" {
 #define CBF_TOKEN_TDQSTRING  '\314'     /* Triple Double-Quoted String */
 #define CBF_TOKEN_TSQSTRING  '\315'     /* Triple Single-Quoted String */
 #define CBF_TOKEN_BKTITEM    '\316'     /* Bracketed item              */
+#define CBF_TOKEN_FUNCTION   '\317'     /* Function definition         */
 
 #define cbf_token_term(tokentype) \
   (((tokentype)==CBF_TOKEN_WORD)?' ':                \
@@ -398,16 +442,26 @@ extern "C" {
 
   /* Constants used to control CIF parsing */
   
-#define PARSE_NOBRACKETS        \
-                        0x0100  /* Do not parse DDLm (,..) [,..] {,...}    */
-#define PARSE_BRACKETS  0x0200  /* PARSE DDLm (,..) [,..] {,...}           */ 
-#define PARSE_LIBERAL_BRACKETS  \
-                        0x0400  /* PARSE DDLm (,..) [,..] {,...} liberally */ 
-#define PARSE_TRIPLE_QUOTES     \
-                        0x0800  /* PARSE DDLm """...""" and '''...'''      */
-#define PARSE_NOTRIPLE_QUOTES   \
-                        0x1000  /* Do not PARSE DDLm """...""" and '''...'''*/
-#define PARSE_WIDE      0x2000  /* PARSE wide files                         */
+#define CBF_PARSE_BRC   0x0100  /* PARSE DDLm/CIF2 brace {,...}             */
+#define CBF_PARSE_PRN   0x0200  /* PARSE DDLm parens     (,...)             */
+#define CBF_PARSE_BKT   0x0400  /* PARSE DDLm brackets   [,...]             */
+#define CBF_PARSE_BRACKETS \
+                        0x0700  /* PARSE ALL brackets                       */
+#define CBF_PARSE_TQ    0x0800  /* PARSE treble quotes """...""" and '''...'''       */
+#define CBF_PARSE_CIF2_DELIMS  \
+                        0x1000  /* Do not scan past an unescaped close quote
+                                   do not accept {} , : " ' in non-delimited
+                                   strings'{ */                          
+#define CBF_PARSE_DDLm  0x0700  /* For DDLm parse (), [], {}                */
+#define CBF_PARSE_CIF2  0x1F00  /* For CIF2 parse {}, treble quotes,
+                                   stop on unescaped close quotes           */
+#define CBF_PARSE_DEFINES      \
+                        0x2000  /* Recognize DEFINE_name            */      
+                        
+  
+#define CBF_PARSE_WIDE      0x4000  /* PARSE wide files                         */
+#define CBF_PARSE_WS        0x8000  /* PARSE whitespace                         */
+#define CBF_PARSE_UTF8      0x10000 /* PARSE UTF-8                              */
 
 #define HDR_DEFAULT (MIME_HEADERS | MSG_NODIGEST)
 
@@ -498,7 +552,9 @@ typedef struct _cbf_handle_struct
   struct _cbf_handle_struct *dictionary;
   
   cbf_file * file;                   /* NULL or an active cbf_file for input */
-  
+      
+  cbf_file * commentfile;            /* NULL or file for whitespace and comments */
+
   int  startcolumn, startline;       /* starting location of last token */
   
   FILE * logfile;                    /* NULL or an active stream for error logging */
@@ -843,6 +899,11 @@ int cbf_category_name (cbf_handle handle, const char **categoryname);
 int cbf_column_name (cbf_handle handle, const char **columnname);
 
 
+  /* Set the name of the current column */
+    
+int cbf_set_column_name (cbf_handle handle, const char *columnname);
+
+
   /* Get the number of the current row */
   
 int cbf_row_number (cbf_handle handle, unsigned int *row);
@@ -905,6 +966,18 @@ int cbf_set_integervalue (cbf_handle handle, int number);
 int cbf_set_doublevalue (cbf_handle handle, const char *format, double number);
 
 
+ /* Get the name of the current save frame */
+
+int cbf_saveframe_name (cbf_handle handle, const char **saveframename);
+
+
+  /* Get the ascii value of the current (row, column) entry,
+     setting it to a default value if necessary */
+
+int cbf_require_value (cbf_handle handle, const char **value, 
+                                          const char *defaultvalue);
+
+
   /* Get the (integer) numeric value of the current (row, column) entry, setting it if necessary */
   
 int cbf_require_integervalue (cbf_handle handle, int *number, int defaultvalue);
@@ -950,7 +1023,16 @@ int cbf_get_arrayparameters_wdims (cbf_handle    handle,
 #define cbf_get_arrayparameters_wdims_sf(handle, compression, id, elsize, elsigned, elunsigned, nelem, minelem, maxelem, realarray, byteorder, dimslow, dimmid, dimfast, padding) \
         cbf_get_arrayparameters_wdims((handle),(compression),(id),(elsize),(elsigned),(elunsigned),(nelem),(minelem),(maxelem),(realarray),(byteorder),(dimfast),(dimmid),(dimslow), (padding))
 
-
+    /* Get the dimensions of the current (row, column) array entry
+     from the CBF tags */
+    
+    
+    int cbf_get_arraydimensions(cbf_handle handle,
+                                size_t * dimover,
+                                size_t * dimfast,
+                                size_t * dimmid,
+                                size_t * dimslow);
+        
 
   /* Get the parameters of the current (row, column) integer array entry */
   
@@ -1101,6 +1183,10 @@ void cbf_error (const char *message);
   /* issue a log message for a cbf */
   
 void cbf_log (cbf_handle handle, const char *message, int logflags);
+
+  /* issue a log message for a cbf_file */
+  
+void cbf_flog (cbf_file * file, const char *message, int logflags);
 
 
   /* Find a datablock, creating it if necessary */
@@ -1305,7 +1391,10 @@ int cbf_mpint_rightshift_acc(unsigned int * acc, size_t acsize, int shift);
   /* Shift accumulator left */
 
 int cbf_mpint_leftshift_acc(unsigned int * acc, size_t acsize, int shift);
-
+    
+    /* get accumulator bit length */
+    
+int cbf_mpint_get_acc_bitlength(unsigned int * acc, size_t acsize, size_t * bitlength);
 
   /* Check value of type validity */
   
@@ -1314,6 +1403,17 @@ int cbf_check_type_contents(const char *type, const char *value);
   /* Regex Match function */
 
 int cbf_match(const char *string, char *pattern);
+
+  /* Interpreter for dREL method expression */
+
+int cbf_drel(cbf_handle handle, cbf_handle dict, 
+                               const char *mainitemname, 
+                               const char *datablock, 
+                               const char *expression);
+
+  /* Construct Functions dictionary */
+
+int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablockname, const char *functionname);
 
 #ifdef __cplusplus
 

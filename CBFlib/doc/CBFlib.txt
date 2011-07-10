@@ -2,8 +2,8 @@
 
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
-                                Version 0.7.9.1
-                                24 January 2008
+                                 Version 0.9.2
+                                12 February 2011
 
                                        by
                                  Paul J. Ellis
@@ -14,7 +14,7 @@
                                 Bernstein + Sons
                       yaya at bernstein-plus-sons dot com
 
-                 (c) Copyright 2006, 2007 Herbert J. Bernstein
+           (c) Copyright 2006, 2007, 2008, 2011 Herbert J. Bernstein
 
      ----------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      0.7.2.1   May 2001        PJE       This release corrected an if nesting 
                                        error in the prior mod to              
                                        cbf_cimple.c.                          
-     0.7.3     Oct 2002        PJE       This release modified cbf_simple.c   
+     0.7.3     Oct. 2002       PJE       This release modified cbf_simple.c   
                                        to reorder image data on read so that  
                                        the indices are always increasing in   
                                        memory (this behavior was undefined    
@@ -201,27 +201,51 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                                        ADSC jiffie by Chris Nielsen, to clean 
                                        up problems in handling maps for       
                                        RasMol.                                
+     0.8.0     Jul 2008        GT, HJB   Cleanup of 0.7.9.1 to start 0.8      
+                                       series.                                
+     0.8.1     Jul 2009        EZ, CN,    Release with EZ's 2008 DDLm support 
+                             PC, GW,   using JH's PyCifRW, also cbff f95      
+                             JH, HJB   wrapper code, PC's java bindings.      
+     0.9.1     Aug 2010        PC, EE,    Release with EE's Dectris template  
+                             JLM, NS,  software, also with vcif3, new         
+                             EZ, HJB   arvai_test, sequence_match.            
+     0.9.2     Feb 2011        PC, EE,    New default release with updated    
+                             JLM, NS,  pycbf, tiff support, removal of        
+                             EZ, HJB   default use of PyCifRW to avoid Fedora 
+                                       license issue.                         
 
      ----------------------------------------------------------------------
 
                                  Known Problems
 
-   This version does not have support for predictor compression. Code is
-   needed to support array sub-sections.
+   The example program tiff2cbf needs the enviroment variable LD_LIBRARY_PATH
+   set to the location of the lib directory in CBFlib_0.9.2, unless a system
+   install of tiff-3.9.4-rev-6Feb11 has been done.
+
+   Due to license issues, PyCifRW is not included with default releases of
+   CBFlib. Users can download PyCifRW separately.
+
+   There are some issues with Peter Chang's lastest java wrapper under the
+   CBFlib 0.9.2 release. Until they are resolved, the CBFlib 0.8.1 release
+   should be used for Java applications.
+
+   This version does not have support for predictor compression.
+
+   Code is needed to support array sub-sections.
 
                                     Foreword
 
    In order to work with CBFlib, you need:
 
-     * the source code, in the form of a "gzipped" tar, CBFlib_0.7.9.tar.gz;
+     * the source code, in the form of a "gzipped" tar, CBFlib_0.9.2.tar.gz;
        and
      * the test data:
-          * CBFlib_0.7.9_Data_Files_Input.tar.gz (13 MB) a "gzipped" tar of
+          * CBFlib_0.9.2_Data_Files_Input.tar.gz (17 MB) a "gzipped" tar of
             the input data files needed to test the API;
-          * CBFlib_0.7.9_Data_Files_Output.tar.gz (34 MB) a "gzipped" tar of
+          * CBFlib_0.9.2_Data_Files_Output.tar.gz (36 MB) a "gzipped" tar of
             the output data files needed to test the API, or, if space is at
             a premium;
-          * CBFlib_0.7.9_Data_Files_Output_Sigs_Only.tar.gz (1KB) is a
+          * CBFlib_0.9.2_Data_Files_Output_Sigs_Only.tar.gz (1 KB) is a
             "gzipped" tar of only the MD5 signatures of the output data files
             needed to test the API.
 
@@ -234,7 +258,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    Uncompress and unpack :
 
-     * gunzip < CBFlib_0.7.9.tar.gz | tar xvf -
+     * gunzip < CBFlib_0.9.2.tar.gz | tar xvf -
 
    To run the test programs, you will also need Paul Ellis's sample MAR345
    image, example.mar2300, Chris Nielsen's sample ADSC Quantum 315 image,
@@ -242,18 +266,36 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    insulin_pilatus6m, as sample data. In addition there are is a PDB mmCIF
    file, 9ins.cif, and 3 special test files testflatin.cbf,
    testflatpackedin.cbf and testrealin.cbf. All these files will be dowloaded
-   and extracted by the Makefile from CBFlib_0.7.9_Data_Files_Input. Do not
+   and extracted by the Makefile from CBFlib_0.9.2_Data_Files_Input. Do not
    download copies into the top level directory.
 
    Thare are various sample Makefiles for common configurations. The
-   Makefile_LINUX and Makefile_OSX samples are for systems with gfortran from
-   prior to the release of gcc 4.2. For the most recent gfortran, use
-   Makefile_LINUX_gcc42 ot Makfile_OSX_gcc42. All the Makefiles come from
-   m4/Makefile.m4.
+   Makefile_OSX samples is for systems with gfortran from prior to the
+   release of gcc 4.2. For the most recent gfortran, use Makefile_OSX_gcc42.
+   All the Makefiles are generated from m4/Makefile.m4.
 
    The Makefiles use GNU make constructs, such as ifeq and ifneq. If you need
-   to use a diferent version of make, you will need to edit out the
+   to use a different version of make, you will need to edit out the
    conditionals
+
+   The operation of the Makefiles is sensitive to the following environment
+   variables:
+
+     * CBFLIB_USE_PYCIFRW If you define this environment variable, you may
+       rebuild the Makefiles to include James Hester's PyCifRW. The process
+       under bash is:
+
+ export CBFLIB_USE_PYCIFRW=yes
+ cd CBFlib_0.9.2
+ touch m4/Makefile.m4
+ make Makefiles
+
+     * CBF_DONT_USE_LONG_LONG If you define this environment variable, use of
+       the long long data type in CBFlib is replaced by use of a struct. The
+       Makefiles do not need to be rebuilt. Makefile_MINGW does not use the
+       long long data type even without defining this variable.
+     * NOFORTRAN If you define this environment variable, use of the fortran
+       compiler is suppressed.
 
    If necessary, adjust the definition of CC and C++ and other defintions in
    Makefile to point to your compilers. Set the definition of CFLAGS to an
@@ -274,9 +316,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    environment
 
    We have included examples of CBF/imgCIF files produced by CBFlib in the
-   test data CBFlib_0.7.9_Data_Files_Output.tar.gz, the current best draft of
+   test data CBFlib_0.9.2_Data_Files_Output.tar.gz, the current best draft of
    the CBF Extensions Dictionary, and of Andy Hammersley's CBF definition,
    updated to become a DRAFT CBF/ImgCIF DEFINITION.
+
+   CBFlib 0.9.2 includes a program, tiff2cbf, to convert from tiff files to
+   CBF files, that requires an augmented version of tiff-3.9.4 called
+   tiff-3.9.4-rev-6Feb11, that installs into the CBFlib_0.9.2 directory. If a
+   system copy is desired, download and install
+   http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz
 
      ----------------------------------------------------------------------
 
@@ -344,7 +392,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 2.3.41 cbf_select_row
                * 2.3.42 cbf_datablock_name
                * 2.3.43 cbf_category_name
-               * 2.3.44 cbf_column_name
+               * 2.3.44 cbf_column_name, cbf_set_column_name
                * 2.3.45 cbf_row_number
                * 2.3.46 cbf_get_value, cbf_require_value
                * 2.3.47 cbf_set_value
@@ -452,28 +500,31 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                  cbf_set_reference_beam_center_sf
                * 2.4.39 cbf_get_detector_distance
                * 2.4.40 cbf_get_detector_normal
-               * 2.4.41 cbf_get_pixel_coordinates,
+               * 2.4.41 cbf_get_detector_axis_slow,
+                 cbf_get_detector_axis_fast, cbf_get_detector_axes,
+                 cbf_get_detector_axes_fs, cbf_get_detector_axes_sf
+               * 2.4.42 cbf_get_pixel_coordinates,
                  cbf_get_pixel_coordinates_fs, cbf_get_pixel_coordinates_sf
-               * 2.4.42 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
+               * 2.4.43 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
                  cbf_get_pixel_normal_sf
-               * 2.4.43 cbf_get_pixel_area, cbf_get_pixel_area_fs,
+               * 2.4.44 cbf_get_pixel_area, cbf_get_pixel_area_fs,
                  cbf_get_pixel_area_sf
-               * 2.4.44 cbf_get_pixel_size, cbf_get_pixel_size_fs,
+               * 2.4.45 cbf_get_pixel_size, cbf_get_pixel_size_fs,
                  cbf_get_pixel_size_sf
-               * 2.4.45 cbf_set_pixel_size, cbf_set_pixel_size_fs,
+               * 2.4.46 cbf_set_pixel_size, cbf_set_pixel_size_fs,
                  cbf_set_pixel_size_sf
-               * 2.4.46 cbf_get_inferred_pixel_size,
+               * 2.4.47 cbf_get_inferred_pixel_size,
                  cbf_get_inferred_pixel_size_fs,
                  cbf_get_inferred_pixel_size_sf
-               * 2.4.47 cbf_get_unit_cell
-               * 2.4.48 cbf_set_unit_cell
-               * 2.4.49 cbf_get_reciprocal_cell
-               * 2.4.50 cbf_set_reciprocal_cell
-               * 2.4.51 cbf_compute_cell_volume
-               * 2.4.52 cbf_compute_reciprocal_cell
-               * 2.4.53 cbf_get_orientation_matrix,
+               * 2.4.48 cbf_get_unit_cell
+               * 2.4.49 cbf_set_unit_cell
+               * 2.4.50 cbf_get_reciprocal_cell
+               * 2.4.51 cbf_set_reciprocal_cell
+               * 2.4.52 cbf_compute_cell_volume
+               * 2.4.53 cbf_compute_reciprocal_cell
+               * 2.4.54 cbf_get_orientation_matrix,
                  cbf_set_orientation_matrix
-               * 2.4.54 cbf_get_bin_sizes, cbf_set_bin_sizes
+               * 2.4.55 cbf_get_bin_sizes, cbf_set_bin_sizes
           * 2.5 F90 function interfaces
                * 2.5.1 FCB_ATOL_WCNT
                * 2.5.2 FCB_CI_STRNCMPARR
@@ -665,9 +716,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    There are two major conventions in the ordering of array indices:
      * fs: Fast to slow. The first array index (the one numbered "1") is the
-       one for which the values of that index change "fastest". That is as we
-       move forward in memory, the value of this index changes more rapidly
-       than any other.
+       one for which the values of that index change "fastest". That is, as
+       we move forward in memory, the value of this index changes more
+       rapidly than any other.
      * sf: Slow to fast. The first array index (the one numbered "1") is the
        one for which the values of that index change "slowest". That is as we
        move forward in memory, the value of this index changes more slowly
@@ -679,10 +730,10 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    convention or the other, a form in which the name of the function has an
    "_fs" suffix for the fast to slow convention and a form in which the name
    of the function has a "_sf" suffix for the slow to fast convention.
-   Designers of applications are advised to use one of the two conventions.
-   There is no burden on performance for using one convention or the other.
-   The differences are resolved at compile time by use of preprocessor
-   macros.
+   Designers of applications are advised to use one of the two suffix
+   conventions. There is no burden on performance for using one convention or
+   the other. The differences are resolved at compile time by use of
+   preprocessor macros.
 
      ----------------------------------------------------------------------
 
@@ -745,14 +796,14 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.3.3 cbf_read_file
+    2.3.3 cbf_read_file, cbf_read_widefile
 
    PROTOTYPE
 
    #include "cbf.h"
 
-   int cbf_read_file (cbf_handle handle, FILE *file, int headers);
-   int cbf_read_widefile (cbf_handle handle, FILE *file, int headers);
+   int cbf_read_file (cbf_handle handle, FILE *file, int flags);
+   int cbf_read_widefile (cbf_handle handle, FILE *file, int flags);
 
    DESCRIPTION
 
@@ -768,24 +819,76 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    types, value enumerations, categories and parent-child relationships
    specified in the dictionary.
 
-   headers controls the interprestation of binary section headers of imgCIF
-   files.
+   flags controls the interpretation of binary section headers, the parsing
+   of brackets constructs and the parsing of treble-quoted strings.
 
-     MSG_DIGEST:      Instructs CBFlib to check that the digest of the binary 
-                    section matches any header value. If the digests do not   
-                    match, the call will return CBF_FORMAT. This evaluation   
-                    and comparison is delayed (a "lazy" evaluation) to ensure 
-                    maximal processing efficiency. If an immediately          
-                    evaluation is required, see MSG_DIGESTNOW, below.         
-     MSG_DIGESTNOW:   Instructs CBFlib to check that the digest of the binary 
-                    section matches any header value. If the digests do not   
-                    match, the call will return CBF_FORMAT. This evaluation   
-                    and comparison is performed during initial parsing of the 
-                    section to ensure timely error reporting at the expense   
-                    of processing efficiency. If a more efficient delayed     
-                    ("lazy") evaluation is required, see MSG_DIGESTNOW,       
-                    below.                                                    
-     MSG_NODIGEST:    Do not check the digest (default).                      
+     MSG_DIGEST:               Instructs CBFlib to check that the digest of   
+                             the binary section matches any header digest     
+                             value. If the digests do not match, the call     
+                             will return CBF_FORMAT. This evaluation and      
+                             comparison is delayed (a "lazy" evaluation) to   
+                             ensure maximal processing efficiency. If an      
+                             immediately evaluation is required, see          
+                             MSG_DIGESTNOW, below.                            
+     MSG_DIGESTNOW:            Instructs CBFlib to check that the digest of   
+                             the binary section matches any header digeste    
+                             value. If the digests do not match, the call     
+                             will return CBF_FORMAT. This evaluation and      
+                             comparison is performed during initial parsing   
+                             of the section to ensure timely error reporting  
+                             at the expense of processing efficiency. If a    
+                             more efficient delayed ("lazy") evaluation is    
+                             required, see MSG_DIGEST, above.                 
+     MSG_DIGESTWARN:           Instructs CBFlib to check that the digest of   
+                             the binary section matches any header digeste    
+                             value. If the digests do not match, a warning    
+                             message will be sent to stderr, but processing   
+                             will attempt to continue. This evaluation and    
+                             comparison is first performed during initial     
+                             parsing of the section to ensure timely error    
+                             reporting at the expense of processing           
+                             efficiency. An mismatch of the message digest    
+                             usually indicates a serious error, but it is     
+                             sometimes worth continuing processing to try to  
+                             isolate the cause of the error. Use this option  
+                             with caution.                                    
+     MSG_NODIGEST:             Do not check the digest (default).             
+     PARSE_BRACKETS:           Accept DDLm bracket-delimited                  
+                             [item,item,...item] or {item,item,...item} or    
+                             (item,item,...item) constructs as valid,         
+                             stripping non-quoted embedded whitespace and     
+                             comments. These constructs may span multiple     
+                             lines.                                           
+     PARSE_LIBERAL_BRACKETS:   Accept DDLm bracket-delimited                  
+                             [item,item,...item] or {item,item,...item} or    
+                             (item,item,...item) constructs as valid,         
+                             stripping embedded non-quoted, non-separating    
+                             whitespace and comments. These constructs may    
+                             span multiple lines. In this case, whitespace    
+                             may be used as an alternative to the comma.      
+     PARSE_TRIPLE_QUOTES:      Accept DDLm triple-quoted                      
+                             """item,item,...item""" or                       
+                             '''item,item,...item''' constructs as valid,     
+                             stripping embedded whitespace and comments.      
+                             These constructs may span multiple lines. If     
+                             this flag is set, then ''' will not be           
+                             interpreted as a quoted apoptrophe and """ will  
+                             not be interpreted as a quoted double quote mark 
+                             and                                              
+     PARSE_NOBRACKETS:         Do not accept DDLm bracket-delimited           
+                             [item,item,...item] or {item,item,...item} or    
+                             (item,item,...item) constructs as valid,         
+                             stripping non-quoted embedded whitespace and     
+                             comments. These constructs may span multiple     
+                             lines.                                           
+     PARSE_NOTRIPLE_QUOTES:    No not accept DDLm triple-quoted               
+                             """item,item,...item""" or                       
+                             '''item,item,...item''' constructs as valid,     
+                             stripping embedded whitespace and comments.      
+                             These constructs may span multiple lines. If     
+                             this flag is set, then ''' will be interpreted   
+                             as a quoted apostrophe and """ will be           
+                             interpreted as a quoted double quote mark.       
 
    CBFlib defers reading binary sections as long as possible. In the current
    version of CBFlib, this means that:
@@ -820,9 +923,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    #include "cbf.h"
 
    int cbf_write_file (cbf_handle handle, FILE *file, int readable, int
-   ciforcbf, int headers, int encoding);
+   ciforcbf, int flags, int encoding);
    int cbf_write_widefile (cbf_handle handle, FILE *file, int readable, int
-   ciforcbf, int headers, int encoding);
+   ciforcbf, int flags, int encoding);
 
    DESCRIPTION
 
@@ -850,14 +953,36 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      CIF   Write an imgCIF file.       
      CBF   Write a CBF file (default). 
 
-   headers selects the type of header used in CBF binary sections and selects
-   whether message digests are generated. The value of headers can be a
-   logical OR of any of:
+   flags selects the type of header used in CBF binary sections, selects
+   whether message digests are generated, and controls the style of output.
+   The value of flags can be a logical OR of any of:
 
-     MIME_HEADERS     Use MIME-type headers (default).                     
-     MIME_NOHEADERS   Use a simple ASCII headers.                          
-     MSG_DIGEST       Generate message digests for binary data validation. 
-     MSG_NODIGEST     Do not generate message digests (default).           
+     MIME_HEADERS             Use MIME-type headers (default).                
+     MIME_NOHEADERS           Use a simple ASCII headers.                     
+     MSG_DIGEST               Generate message digests for binary data        
+                            validation.                                       
+     MSG_NODIGEST             Do not generate message digests (default).      
+     PARSE_BRACKETS           Do not convert bracketed strings to text fields 
+                            (default).                                        
+     PARSE_LIBERAL_BRACKETS   Do not convert bracketed strings to text fields 
+                            (default).                                        
+     PARSE_NOBRACKETS         Convert bracketed strings to text fields        
+                            (default).                                        
+     PARSE_TRIPLE_QUOTES      Do not convert triple-quoted strings to text    
+                            fields (default).                                 
+     PARSE_NOTRIPLE_QUOTES    Convert triple-quoted strings to text fields    
+                            (default).                                        
+     PAD_1K                   Pad binary sections with 1023 nulls.            
+     PAD_2K                   Pad binary sections with 2047 nulls.            
+     PAD_4K                   Pad binary sections with 4095 nulls.            
+
+   Note that on output, the types "prns&, "brcs" and "bkts" will be converted
+   to "text" fields if PARSE_NOBRACKETS has been set flags, and that the
+   types "tsqs" and "tdqs" will be converted to "text" fields if the flag
+   PARSE_NOTRIPLE_QUOTES has been set in the flags. It is an error to set
+   PARSE_NOBRACKETS and to set either PARSE_BRACKETS or
+   PARSE_LIBERAL_BRACKETS. It is an error to set both PARSE_NOTRIPLE_QUOTES
+   and PARSE_TRIPLE_QUOTES.
 
    encoding selects the type of encoding used for binary sections and the
    type of line-termination in imgCIF files. The value can be a logical OR of
@@ -1241,7 +1366,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    #include "cbf.h"
 
    int cbf_set_datablockname (cbf_handle handle, const char *datablockname);
-   int cbf_set_saveframename (cbf_handle handle. const char *saveframename);
+   int cbf_set_saveframename (cbf_handle handle, const char *saveframename);
 
    DESCRIPTION
 
@@ -2321,13 +2446,14 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.3.44 cbf_column_name
+    2.3.44 cbf_column_name, cbf_set_column_name
 
    PROTOTYPE
 
    #include "cbf.h"
 
    int cbf_column_name (cbf_handle handle, const char **columnname);
+   int cbf_set_column_name (cbf_handle handle, const char *newcolumnname)
 
    DESCRIPTION
 
@@ -2338,10 +2464,13 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    The name must not be modified by the program in any way.
 
+   cbf_set_column_name sets the name of the current column to newcolumnname
+
    ARGUMENTS
 
-     handle       CBF handle.                                     
-     columnname   Pointer to the destination column name pointer. 
+     handle          CBF handle.                                     
+     columnname      Pointer to the destination column name pointer. 
+     newcolumnname   New column name pointer.                        
 
    RETURN VALUE
 
@@ -2481,11 +2610,25 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    cbf_get_value sets *typeofvalue to point an ASCII descriptor of the value
    of the item at the current column and row. The strings that may be
-   returned are "null" for a null value indicated by a "." or a "?", "bnry"
-   for a binary value, "word" for an unquoted string, "dblq" for a
-   double-quoted string, "sglq" for a single-quoted string, and "text" for a
-   semicolon-quoted text field. A field for which no value has been set sets
-   *typeofvalue to NULL rather than to the string "null".
+   returned are:
+
+     "null" for a null value indicated by a "." or a "?"                   
+     "bnry" for a binary value                                             
+     "word" for an unquoted string                                         
+     "dblq" for a double-quoted string                                     
+     "sglq" for a single-quoted string                                     
+     "text" for a semicolon-quoted string (multiline text field)           
+     "prns" for a parenthesis-bracketed string (multiline text field)      
+     "brcs" for a brace-bracketed string (multiline text field)            
+     "bkts" for a square-bracket-bracketed string (multiline text field)   
+     "tsqs" for a treble-single-quote quoted string (multiline text field) 
+     "tdqs" for a treble-double-quote quoted string (multiline text field) 
+
+   Not all types are valid for all type of CIF files. In partcular the types
+   "prns", "brcs", "bkts" were introduced with DDLm and are not valid in DDL1
+   or DDL2 CIFS. The types "tsqs" and "tdqs" are not formally part of the CIF
+   syntax. A field for which no value has been set sets *typeofvalue to NULL
+   rather than to the string "null".
 
    The typeofvalue must not be modified by the program in any way.
 
@@ -2527,14 +2670,28 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    cbf_set_typeofvalue sets the type of the item at the current column and
    row to the type specified by the ASCII character string given by
-   typeofvalue. The strings that may be used are "null" for a null value
-   indicated by a "." or a "?", "word" for an unquoted string, "dblq" for a
-   double-quoted string, "sglq" for a single-quoted string, and "text" for a
-   semicolon-quoted text field. Not all types may be used for all values. No
-   changes may be made to the type of binary values. You may not set the type
-   of a string that contains a single quote followed by a blank or a tab or
-   which contains multiple lines to "sglq". You may not set the type of a
-   string that contains a double quote followed by a blank or a tab or which
+   typeofvalue. The strings that may be used are:
+
+     "null" for a null value indicated by a "." or a "?"                   
+     "bnry" for a binary value                                             
+     "word" for an unquoted string                                         
+     "dblq" for a double-quoted string                                     
+     "sglq" for a single-quoted string                                     
+     "text" for a semicolon-quoted string (multiline text field)           
+     "prns" for a parenthesis-bracketed string (multiline text field)      
+     "brcs" for a brace-bracketed string (multiline text field)            
+     "bkts" for a square-bracket-bracketed string (multiline text field)   
+     "tsqs" for a treble-single-quote quoted string (multiline text field) 
+     "tdqs" for a treble-double-quote quoted string (multiline text field) 
+
+   Not all types may be used for all values. Not all types are valid for all
+   type of CIF files. In partcular the types "prns", "brcs", "bkts" were
+   introduced with DDLm and are not valid in DDL1 or DDL2 CIFS. The types
+   "tsqs" and "tdqs" are not formally part of the CIF syntax. No changes may
+   be made to the type of binary values. You may not set the type of a string
+   that contains a single quote followed by a blank or a tab or which
+   contains multiple lines to "sglq". You may not set the type of a string
+   that contains a double quote followed by a blank or a tab or which
    contains multiple lines to "dblq".
 
    ARGUMENTS
@@ -3227,7 +3384,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      2.3.29 cbf_find_datablock
      2.3.30 cbf_find_category, cbf_find_saveframe, cbf_find_blockitem
      2.3.32 cbf_find_row
-     2.3.44 cbf_column_name
+     2.3.44 cbf_column_name, cbf_set_column_name
      2.3.59 cbf_require_datablock
      2.3.60 cbf_require_category
 
@@ -4283,7 +4440,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      #include "cbf_simple.h"
 
      int cbf_set_current_timestamp (cbf_handle handle, unsigned int reserved,
-     int timezone)
+     int timezone);
 
      DESCRIPTION
 
@@ -4324,11 +4481,13 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
       
      int cbf_get_3d_image_size (cbf_handle handle, unsigned int reserved,
      unsigned int element_number, size_t *ndimslow, size_t *ndimmid, size_t
-     *ndimfast); int cbf_get_3d_image_size_fs (cbf_handle handle, unsigned
-     int reserved, unsigned int element_number, size_t *ndimfast, size_t
-     *ndimmid, size_t *ndimslow); int cbf_get_3d_image_size_sf (cbf_handle
-     handle, unsigned int reserved, unsigned int element_number, size_t
-     *ndimslow, size_t *ndimmid, size_t *ndimfast);
+     *ndimfast);
+     int cbf_get_3d_image_size_fs (cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, size_t *ndimfast, size_t *ndimmid, size_t
+     *ndimslow);
+     int cbf_get_3d_image_size_sf (cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, size_t *ndimslow, size_t *ndimmid, size_t
+     *ndimfast);
 
      DESCRIPTION
 
@@ -4419,12 +4578,13 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
       
      int cbf_get_real_3d_image (cbf_handle handle, unsigned int reserved,
      unsigned int element_number, void *array, size_t elsize, size_t
-     ndimslow, size_t ndimmid, size_t ndimfast); int cbf_get_real_3d_image_fs
-     (cbf_handle handle, unsigned int reserved, unsigned int element_number,
-     void *array, size_t elsize, size_t ndimfast, size_t ndimmid, size_t
-     ndimslow); int cbf_get_real_3d_image_sf (cbf_handle handle, unsigned int
-     reserved, unsigned int element_number, void *array, size_t elsize,
-     size_t ndimslow, size_t ndimmid, size_t ndimfast);
+     ndimslow, size_t ndimmid, size_t ndimfast);
+     int cbf_get_real_3d_image_fs (cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, void *array, size_t elsize, size_t
+     ndimfast, size_t ndimmid, size_t ndimslow);
+     int cbf_get_real_3d_image_sf (cbf_handle handle, unsigned int reserved,
+     unsigned int element_number, void *array, size_t elsize, size_t
+     ndimslow, size_t ndimmid, size_t ndimfast);
 
      DESCRIPTION
 
@@ -4734,7 +4894,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      #include "cbf_simple.h"
 
      int cbf_get_rotation_axis (cbf_goniometer goniometer, unsigned int
-     reserved, double *vector1, double *vector2, double vector3);
+     reserved, double *vector1, double *vector2, double *vector3);
 
      DESCRIPTION
 
@@ -5101,7 +5261,65 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.41 cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs,
+    2.4.41 cbf_get_detector_axis_slow, cbf_get_detector_axis_slow,
+    cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf
+
+     PROTOTYPE
+
+     #include "cbf_simple.h"
+
+     int cbf_get_detector_axis_slow (cbf_detector detector, double
+     *slowaxis1, double *slowaxis2, double *slowaxis3);
+     int cbf_get_detector_axis_fast (cbf_detector detector, double
+     *fastaxis1, double *fastaxis2, double *fastaxis3);
+     int cbf_get_detector_axes (cbf_detector detector, double *slowaxis1,
+     double *slowaxis2, double *slowaxis3, double *fastaxis1, double
+     *fastaxis2, double *fastaxis3);
+     int cbf_get_detector_axes_fs (cbf_detector detector, double *fastaxis1,
+     double *fastaxis2, double *fastaxis3, double *slowaxis1, double
+     *slowaxis2, double *slowaxis3);
+     int cbf_get_detector_axes_sf (cbf_detector detector, double *slowaxis1,
+     double *slowaxis2, double *slowaxis3, double *fastaxis1, double
+     *fastaxis2, double *fastaxis3);
+
+     DESCRIPTION
+
+     cbf_get_detector_axis_slow sets *slowaxis1, *slowaxis2, and *slowaxis3
+     to the 3 components of the slow axis of the specified detector at the
+     current settings of all axes. cbf_get_detector_axis_slow sets
+     *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 components of the fast
+     axis of the specified detector at the current settings of all axes.
+     cbf_get_detector_axes, cbf_get_detector_axes_fs and int
+     cbf_get_detector_axes_sf set *slowaxis1, *slowaxis2, and *slowaxis3 to
+     the 3 components of the slow axis and *fastaxis1, *fastaxis2, and
+     *fastaxis3 to the 3 components of the fast axis of the specified
+     detector at the current settings of all axes.
+
+     Any of the destination pointers may be NULL.
+
+     ARGUMENTS
+
+       detector    Detector handle.                                           
+       slowaxis1   Pointer to the destination x component of the slow axis    
+                 vector.                                                      
+       slowaxis2   Pointer to the destination y component of the slow axis    
+                 vector.                                                      
+       slowaxis3   Pointer to the destination z component of the slow axis    
+                 vector.                                                      
+       fastaxis1   Pointer to the destination x component of the fast axis    
+                 vector.                                                      
+       fastaxis2   Pointer to the destination y component of the fast axis    
+                 vector.                                                      
+       fastaxis3   Pointer to the destination z component of the fast axis    
+                 vector.                                                      
+
+     RETURN VALUE
+
+     Returns an error code on failure or 0 for success.
+
+     ----------------------------------------------------------------------
+
+    2.4.42 cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs,
     cbf_get_pixel_coordinates_sf
 
      PROTOTYPE
@@ -5143,7 +5361,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.42 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
+    2.4.43 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
     cbf_get_pixel_normal_sf
 
      PROTOTYPE
@@ -5184,7 +5402,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.43 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf
+    2.4.44 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf
 
      PROTOTYPE
 
@@ -5221,7 +5439,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.44 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf
+    2.4.45 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf
 
      PROTOTYPE
 
@@ -5269,7 +5487,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.45 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf
+    2.4.46 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf
 
      PROTOTYPE
 
@@ -5327,7 +5545,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.46 cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_fs,
+    2.4.47 cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_fs,
     cbf_get_inferred_pixel_size_sf
 
      PROTOTYPE
@@ -5368,7 +5586,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.47 cbf_get_unit_cell
+    2.4.48 cbf_get_unit_cell
 
      PROTOTYPE
 
@@ -5413,15 +5631,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.48 cbf_set_unit_cell
-     2.4.49 cbf_get_reciprocal_cell
-     2.4.50 cbf_set_reciprocal_cell
-     2.4.51 cbf_compute_cell_volume
-     2.4.52 cbf_compute_reciprocal_cell
+     2.4.49 cbf_set_unit_cell
+     2.4.50 cbf_get_reciprocal_cell
+     2.4.51 cbf_set_reciprocal_cell
+     2.4.52 cbf_compute_cell_volume
+     2.4.53 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
-    2.4.48 cbf_set_unit_cell
+    2.4.49 cbf_set_unit_cell
 
      PROTOTYPE
 
@@ -5466,17 +5684,17 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.47 cbf_get_unit_cell
-     2.4.49 cbf_get_reciprocal_cell
-     2.4.50 cbf_set_reciprocal_cell
-     2.4.51 cbf_compute_cell_volume
-     2.4.52 cbf_compute_reciprocal_cell
+     2.4.48 cbf_get_unit_cell
+     2.4.50 cbf_get_reciprocal_cell
+     2.4.51 cbf_set_reciprocal_cell
+     2.4.52 cbf_compute_cell_volume
+     2.4.53 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
      SEE ALSO
 
-    2.4.49 cbf_get_reciprocal_cell
+    2.4.50 cbf_get_reciprocal_cell
 
      PROTOTYPE
 
@@ -5524,15 +5742,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.47 cbf_get_unit_cell
-     2.4.48 cbf_set_unit_cell
-     2.4.50 cbf_set_reciprocal_cell
-     2.4.51 cbf_compute_cell_volume
-     2.4.52 cbf_compute_reciprocal_cell
+     2.4.48 cbf_get_unit_cell
+     2.4.49 cbf_set_unit_cell
+     2.4.51 cbf_set_reciprocal_cell
+     2.4.52 cbf_compute_cell_volume
+     2.4.53 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
-    2.4.50 cbf_set_reciprocal_cell
+    2.4.51 cbf_set_reciprocal_cell
 
      PROTOTYPE
 
@@ -5579,15 +5797,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.47 cbf_get_unit_cell
-     2.4.48 cbf_set_unit_cell
+     2.4.48 cbf_get_unit_cell
+     2.4.49 cbf_set_unit_cell
      2.4.50 cbf_get_reciprocal_cell
-     2.4.51 cbf_compute_cell_volume
-     2.4.52 cbf_compute_reciprocal_cell
+     2.4.52 cbf_compute_cell_volume
+     2.4.53 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
-    2.4.51 cbf_compute_cell_volume
+    2.4.52 cbf_compute_cell_volume
 
      PROTOTYPE
 
@@ -5613,15 +5831,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.46 cbf_get_unit_cell
-     2.4.47 cbf_set_unit_cell
+     2.4.48 cbf_get_unit_cell
+     2.4.49 cbf_set_unit_cell
      2.4.50 cbf_get_reciprocal_cell
-     2.4.50 cbf_set_reciprocal_cell
-     2.4.52 cbf_compute_reciprocal_cell
+     2.4.51 cbf_set_reciprocal_cell
+     2.4.53 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
-    2.4.52 cbf_compute_reciprocal_cell
+    2.4.53 cbf_compute_reciprocal_cell
 
      PROTOTYPE
 
@@ -5652,15 +5870,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.46 cbf_get_unit_cell
-     2.4.47 cbf_set_unit_cell
+     2.4.48 cbf_get_unit_cell
+     2.4.49 cbf_set_unit_cell
      2.4.50 cbf_get_reciprocal_cell
-     2.4.50 cbf_set_reciprocal_cell
-     2.4.51 cbf_compute_cell_volume
+     2.4.51 cbf_set_reciprocal_cell
+     2.4.52 cbf_compute_cell_volume
 
      ----------------------------------------------------------------------
 
-    2.4.53 cbf_get_orientation_matrix, cbf_set_orientation_matrix
+    2.4.54 cbf_get_orientation_matrix, cbf_set_orientation_matrix
 
      PROTOTYPE
 
@@ -5694,18 +5912,18 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.54 cbf_get_bin_sizes, cbf_set_bin_sizes
+    2.4.55 cbf_get_bin_sizes, cbf_set_bin_sizes
 
      PROTOTYPE
 
      #include "cbf_simple.h"
 
-     DESCRIPTION
-
      int cbf_get_bin_sizes(cbf_handle handle, unsigned int element_number,
      double * slowbinsize, double * fastbinsize);
      int cbf_set_bin_sizes(cbf_handle handle, unsigned int element_number,
      double slowbinsize_in,double fastbinsize_in);
+
+     DESCRIPTION
 
      cbf_get_bin_sizes sets slowbinsize to point to the value of the number
      of pixels composing one array element in the dimension that changes at
@@ -7316,16 +7534,16 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
          base pixel value.
       3. If -127 =< delta =< 127, output delta as one byte, make the current
          pixel value the base pixel value and return to step 2.
-      4. Otherwise output -128 (F0 hex).
+      4. Otherwise output -128 (80 hex).
       5. We still have to output delta. If -32767 =< delta =< 32767, output
          delta as a little_endian 16-bit quantity, make the current pixel
          value the base pixel value and return to step 2.
-      6. Otherwise output -32768 (F000 hex, little_endian, i.e. 00 then F0)
+      6. Otherwise output -32768 (8000 hex, little_endian, i.e. 00 then 80)
       7. We still have to output delta. If -2147483647 =< delta =<
          2147483647, output delta as a little_endian 32 bit quantity, make
          the current pixel value the base pixel value and return to step 2.
-      8. Otherwise output -2147483648 (F0000000 hex, little_endian, i.e. 00,
-         then 00, then 00, then F0) and then output the pixel value as a
+      8. Otherwise output -2147483648 (80000000 hex, little_endian, i.e. 00,
+         then 00, then 00, then 80) and then output the pixel value as a
          little-endian 64 bit quantity, make the current pixel value the base
          pixel value and return to step 2.
 
@@ -7336,21 +7554,20 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
       3. If -127 =< delta =< 127, add delta to the base pixel value, make
          that the new base pixel value, place it on the output array and
          return to step 2.
-      4. If delta is F0 hex, read the next two bytes as a little_endian
+      4. If delta is 80 hex, read the next two bytes as a little_endian
          16-bit number and make that delta.
       5. If -32767 =< delta =< 32767, add delta to the base pixel value, make
          that the new base pixel value, place it on the output array and
          return to step 2.
-      6. If delta is F000 hex, read the next 4 bytes as a little_endian
+      6. If delta is 8000 hex, read the next 4 bytes as a little_endian
          32-bit number and make that delta
       7. If -2147483647 =< delta =< 2147483647, add delta to the base pixel
          value, make that the new base pixel value, place it on the output
          array and return to step 2.
-      8. If delta is F0000000 hex, read the next 4 bytes as a little_endian
-         32-bit number and make that delta, read the next 8 bytes as a
-         little_endia 64-bit number and make that delta, add delta to the
-         base pixel value, make that the new base pixel value, place it on
-         the output array and return to step 2.
+      8. If delta is 80000000 hex, read the next 8 bytes as a little_endian
+         64-bit number and make that delta, add delta to the base pixel
+         value, make that the new base pixel value, place it on the output
+         array and return to step 2.
 
      Let us look at an example, of two 1000 x 1000 flat field images
      presented as a mimimal imgCIF file. The first image uses 32-bit unsigned
@@ -7709,66 +7926,126 @@ src/                      include/             m4/                  Description
 
     cif2cbf
 
-     The test program cif2cbf uses the same command line options as img2cif,
-     but accepts either a CIF or a CBF as input instead of an image file:
+     The test program cif2cbf uses many of the same command line options as
+     img2cif, but accepts either a CIF or a CBF as input instead of an image
+     file:
 
    cif2cbf [-i input_cif] [-o output_cbf] \
+     [-u update_cif] \
      [-c {p[acked]|c[annonical]|{b[yte_offset]}|\
-         {v[2packed]}|{f[latpacked]}[n[one]}] \
-     [-m {h[eaders]|n[oheaders]}] [-d {d[igest]|n[odigest]}] \
-     [-e {b[ase64]|k|q[uoted-printable]| \
-                   d[ecimal]|h[exadecimal]|o[ctal]|n[one]}] \
-     [-b {f[orward]|b[ackwards]}] \
-     [-p {0|1|2|4}] \
-     [-v dictionary]* [-w] \
+         {v[2packed}|{f[latpacked}[n[one]}] \
+     [-C highclipvalue] \
+     [-D ] \
+     [-I {0|2|4|8}] \
+     [-R {0|4|8}] \
+     [-L {0|4|8}] \
+     [-m {h[eaders]|noh[eaders]}] \
+     [-m {d[imensions]|nod[imensions}] \
+     [-d {d[igest]|n[odigest]|w[arndigest]}] \
+     [-B {read|liberal|noread}] [-B {write|nowrite}] \
+     [-S {read|noread}] [-S {write|nowrite}] \
+     [-T {read|noread}] [-T {write|nowrite}] \
+     [-e {b[ase64]|q[uoted-printable]|\
+                   d[ecimal]|h[examdecimal|o[ctal]|n[one]}] \
+     [-b {f[orward]|b[ackwards]}\
+     [-p {1|2|4}\
+     [-v dictionary]* [-w] [-W]\
      [input_cif] [output_cbf]
 
    the options are:
 
-   -i input_cif (default: stdin)
-     the input  file in CIF or CBF  format.  If input_cif is not
-     specified or is given as "-", it is copied from stdin to a
-     temporary file.
+     -i input_cif (default: stdin)
+       the input  file in CIF or CBF  format.  If input_cif is not
+       specified or is given as "-", it is copied from stdin to a
+       temporary file.
 
-   -o output_cbf (default: stdout)
-     the output cif (if base64 or quoted-printable encoding is used)
-     or cbf (if no encoding is used).  if no output_cif is specified
-     or is given as "-", the output is written to stdout
-     if the output_cbf is /dev/null, no output is written.
+     -o output_cbf (default: stdout)
+       the output cif (if base64 or quoted-printable encoding is used)
+       or cbf (if no encoding is used).  if no output_cif is specified
+       or is given as "-", the output is written to stdout
+       if the output_cbf is /dev/null, no output is written.
 
-   The remaining options specify the characteristics of the
-   output cbf.  The characteristics of the input cif are derived
-   from context.
+     -u update_cif (no default)
+       and optional second input file in CIF or CBF format containing
+       data blocks to be merged with data blocks from the primary
+       input CIF or CBF
 
-   -c compression_scheme (packed, canonical, byte_offset,
-     v2packed, flatpacked or none,
-     default packed)
+     The remaining options specify the characteristics of the
+     output cbf.  Most of the characteristics of the input cif are
+     derived from context, except when modified by the -B, -S, -T, -v
+     and -w flags.
 
-   -m [no]headers (default headers for cifs, noheaders for cbfs)
-     selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996)
-     headers within binary data value text fields.
+     -b byte_order (forward or backwards, default forward (1234) on
+       little-endian machines, backwards (4321) on big-endian machines
 
-   -d [no]digest  (default md5 digest [R. Rivest, RFC 1321, April
-     1992 using"RSA Data Security, Inc. MD5 Message-Digest
-     Algorithm"] when MIME headers are selected)
+     -B [no]read or liberal (default noread)
+       read to enable reading of DDLm style brackets
+       liberal to accept whitespace for commas
 
-   -e encoding (base64, quoted-printable or none, default base64)
-     specifies one of the standard MIME encodings for an ascii cif
-     or "none" for a binary cbf
+     -B [no]write (default write)
+       write to enable writing of DDLm style brackets
 
-   -b byte_order (forward or backwards, default forward (1234) on
-     little-endian machines, backwards (4321) on big-endian machines
+     -c compression_scheme (packed, canonical, byte_offset,
+       v2packed, flatpacked or none,
+       default packed)
 
-   -p K_of_padding (0, 1, 2, 4) for no padding after binary data
-     1023, 2047 or 4095 bytes of padding after binary data
+     -C highclipvalue
+       specifies a double precision value to which to clip the data
 
-   -v dictionary specifies a dictionary to be used to validate
-     the input cif and to apply aliases to the output cif.
-     This option may be specified multiple times, with dictionaries
-     layered in the order given.
+     -d [no]digest or warndigest  (default md5 digest [R. Rivest,
+       RFC 1321, April 1992 using"RSA Data Security, Inc. MD5
+       Message-Digest Algorithm"] when MIME headers are selected)
 
-   -w process wide (2048 character) lines
+     -D test cbf_construct_detector
 
+     -e encoding (base64, k, quoted-printable or none, default base64)
+       specifies one of the standard MIME encodings for an ascii cif
+       or "none" for a binary cbf
+
+     -I 0 or integer element size
+       specifies integer conversion of the data, 0 to use the input
+       number of bytes, 2, 4 or 8 for short, long or long long
+       output integers
+
+     -L lowclipvalue
+       specifies a double precision value to cut off the data from
+       below
+
+     -m [no]headers (default headers)
+       selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996)
+       headers within binary data value text fields.
+
+     -m [nod]imensions (default dimensions)
+       selects detailed recovery of dimensions from the input CIF
+       for use in the MIME header of the output CIF
+
+     -p K_of_padding (0, 1, 2, 4) for no padding after binary data
+       1023, 2047 or 4095 bytes of padding after binary data
+
+     -R 0 or integer element size
+       specifies real conversion of the data, 0 to use the input
+       number of bytes,  4 or 8 for float or double output reals
+
+     -S [no]read or (default noread)
+       read to enable reading of whitespace and comments
+
+     -S [no]write (default write)
+       write to enable writing of whitespace and comments
+
+     -T [no]read or (default noread)
+       read to enable reading of DDLm style triple quotes
+
+     -T [no]write (default write)
+       write to enable writing of DDLm style triple quotes
+
+     -v dictionary specifies a dictionary to be used to validate
+       the input cif and to apply aliases to the output cif.
+       This option may be specified multiple times, with dictionaries
+       layered in the order given.
+
+     -w process wide (2048 character) lines
+
+     -W write wide (2048 character) lines
 
 
     convert_image
@@ -8006,8 +8283,30 @@ src/                      include/             m4/                  Description
      --gz    Output a .gz file  (e.g., filen.img.gz).
      --bz2   Output a .bz2 file (e.g., filen.img.bz2).
 
-     ----------------------------------------------------------------------
+    tiff2cbf
+
+     The test program tiff2cbf converts a tiff data file to a cbf data file.
+     The program converts the tiff data samples directly into a minicbf with
+     the tiff header stored at the value of _array_data.header_contents. This
+     conversion is supported for the sample formats SAMPLEFORMAT_UINT
+     (unsigned integer data), SAMPLEFORMAT_INT (unsigned integer data),
+     SAMPLEFORMAT_INT (signed integer data), SAMPLEFORMAT_IEEEFP (IEEE
+     floating point data), SAMPLEFORMAT_COMPLEXINT (complex signed int) and
+     SAMPLEFORMAT_COMPLEXIEEEFP (complex ieee floating). Conversions from
+     these formats to other CBF formats can be handled by cif2cbf. If you
+     wish to convert and xxx.tif written with IEEE floating point samples
+     into a CBF with integer values compressed by byte-offset compression for
+     use by XDS, creating an xxx_view.cbf with values clipped between 0 and
+     100, and an xxx_xds.cbf with unclipped values for processing:
+
+
+   tiff2cbf xxx.tif xxx.cbf
+   cif2cbf -I 4 -C 100. -L 0. -e n -c b -i xxx.cbf -o xxx_view.cbf
+   cif2cbf -I 4 -e n -c b -i xxx.cbf -o xxx_xds.cbf
+  
 
      ----------------------------------------------------------------------
 
-     Updated 25 January 2008. Contact:  yaya at bernstein-plus-sons dot com
+     ----------------------------------------------------------------------
+
+     Updated 29 March 2011. Contact:  yaya at bernstein-plus-sons dot com

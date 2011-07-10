@@ -250,9 +250,9 @@
 #ifdef __cplusplus
 
 extern "C" {
-
+    
 #endif
-
+    
 #include "cbf.h"
 #include "cbf_ascii.h"
 #include "cbf_binary.h"
@@ -263,939 +263,967 @@ extern "C" {
 #include "cbf_write_binary.h"
 #include "cbf_read_mime.h"
 #include "cbf_string.h"
-
+#include "cbf_ws.h"
+    
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
-
-int cbf_value_type (char *value);
-
-static char wordtok[5] = "word";
-static char texttok[5] = "text";
-static char dblqtok[5] = "dblq";
-static char sglqtok[5] = "sglq";
-static char nulltok[5] = "null";
-static char tsqstok[5] = "tsqs";
-static char tdqstok[5] = "tdqs";
-static char prnstok[5] = "prns";
-static char brcstok[5] = "brcs";
-static char bktstok[5] = "bkts";
-
-  /* Get the value type of an ascii string */
-
-int cbf_get_value_type(const char *value, const char **value_type)
-{
-
-    /* Prepare an empty return */
-
-  *value_type = NULL;
-
-    /* Is the value missing? */
-
-  if (!value)
-
-    return 0;
-
-    /* Is the value valid? */
-
-  if ((*value & '\200') != '\200')
-
-    return CBF_ARGUMENT;
-
-
-    /* Has the value already been checked? */
-
-  if ((value [0] & '\300') != '\300') {
-
-    cbf_failnez(cbf_value_type((char *)value))
-
-  }
-
-  if (*value == CBF_TOKEN_WORD) {
-
-    *value_type = wordtok;
-
-    return 0;
-
-  }
-
-  if (*value == CBF_TOKEN_SQSTRING) {
-
-    *value_type = sglqtok;
-
-    return 0;
-
-  }
-
-  if (*value == CBF_TOKEN_DQSTRING) {
-
-    *value_type = dblqtok;
-
-    return 0;
-
-  }
-
-  if (*value == CBF_TOKEN_SCSTRING) {
-
-    *value_type = texttok;
-
-    return 0;
-
-  }
-
-  if (*value == CBF_TOKEN_BKTSTRING) {
-
-    *value_type = bktstok;
-
-    return 0;
-
-  }
-  
-  if (*value == CBF_TOKEN_BRCSTRING) {
-
-    *value_type = brcstok;
-
-    return 0;
-
-  }
-  if (*value == CBF_TOKEN_PRNSTRING) {
-
-    *value_type = prnstok;
-
-    return 0;
-
-  }
-  if (*value == CBF_TOKEN_TDQSTRING) {
-
-    *value_type = tdqstok;
-
-    return 0;
-
-  }
-  if (*value == CBF_TOKEN_TSQSTRING) {
-
-    *value_type = tsqstok;
-
-    return 0;
-
-  }
-  if (*value == CBF_TOKEN_NULL) {
-
-    *value_type = nulltok;
-
-    return 0;
-
-  }
-  
-
-  return CBF_ARGUMENT;
-
-}
-  /* Set the value type of an ascii string */
-
-int cbf_set_value_type(char *value, const char *value_type)
-{
-
-  char *cptr;
-  
-    /* Is the value type missing? */
-
-  if (!value)
-
-    return CBF_ARGUMENT;
-
-    /* Is the value valid? */
-
-  if ((*value & '\200') != '\200')
-
-    return CBF_ARGUMENT;
-
-
-    /* Has the value already been checked? */
-
-  if ((value [0] & '\300') != '\300') {
-
-    cbf_failnez(cbf_value_type(value))
-
-  }
-
-  if (strcmp(value_type,wordtok) == 0) {
-
-    if ( strcmp(&value[1],".") == 0 ||
-
-      strcmp(&value[1],"?") == 0 ||
-
-      *value == CBF_TOKEN_WORD ) {
-
-      *value = CBF_TOKEN_WORD;
-
-      return 0;
-    }
-
-    return CBF_ARGUMENT;
-
-  }
-
-  if (strcmp(value_type,nulltok) == 0) {
-
-    if ( strcmp(&value[1],".") == 0 ||
-
-      strcmp(&value[1],"?") == 0) {
-
-      *value = CBF_TOKEN_NULL;
-
-      return 0;
-    }
-
-    return CBF_ARGUMENT;
-
-  }
-
-  if (strcmp(value_type,sglqtok) == 0) {
-
-    if(strstr(&value[1],"' ") ||
-
-      strstr(&value[1],"'\t") ||
-
-      strstr(&value[1],"\n")) {
-
-      return CBF_ARGUMENT;
-
-    }
-
-    *value = CBF_TOKEN_SQSTRING;
-
-    return 0;
-
-  }
-
-  if (strcmp(value_type,dblqtok) == 0 ) {
-
-    if(strstr(&value[1],"\" ") ||
-
-      strstr(&value[1],"\"\t") ||
-
-      strstr(&value[1],"\n")) {
-
-      return CBF_ARGUMENT;
-
-    }
-
-    *value = CBF_TOKEN_DQSTRING;
-
-    return 0;
-
-  }
-
-  if (strcmp(value_type,texttok) == 0 ) {
-  
-    cptr = &value[1];
-
-    while (*cptr && (cptr=strstr(cptr,"\n;")) ) {
     
-      if (isspace(cptr[2])) {
-
-        cbf_warning("text field contains terminator, will be folded on output");
-        
-        break;
-
-      }
-      
-      if (*cptr) cptr++;
-    	
-    }
-
-    *value = CBF_TOKEN_SCSTRING;
-
-    return 0;
-
-  }
-
-
-  if (strcmp(value_type,tsqstok) == 0 ) {
-  
-    cptr = &value[1];
-
-    while (*cptr && (cptr=strstr(cptr,"'''")) ) {
+    int cbf_value_type (char *value);
     
-      if (isspace(cptr[2])) {
-
-        cbf_warning("triple singled-quoted field contains terminator, will be folded on output");
-        
-        break;
-
-      }
-      
-      if (*cptr) cptr++;
-    	
-    }
-
-    *value = CBF_TOKEN_TSQSTRING;
-
-    return 0;
-
-  }
-  
-    if (strcmp(value_type,tdqstok) == 0 ) {
-  
-    cptr = &value[1];
-
-    while (*cptr && (cptr=strstr(cptr,"\"\"\"")) ) {
+    static char wordtok[5] = "word";
+    static char texttok[5] = "text";
+    static char dblqtok[5] = "dblq";
+    static char sglqtok[5] = "sglq";
+    static char nulltok[5] = "null";
+    static char tsqstok[5] = "tsqs";
+    static char tdqstok[5] = "tdqs";
+    static char prnstok[5] = "prns";
+    static char brcstok[5] = "brcs";
+    static char bktstok[5] = "bkts";
     
-      if (isspace(cptr[3])) {
-
-        cbf_warning("triple double-quoted field contains terminator, will be folded on output");
-        
-        break;
-
-      }
-      
-      if (*cptr) cptr++;
-    	
-    }
-
-    *value = CBF_TOKEN_TDQSTRING;
-
-    return 0;
-
-  }
-
-
-  if (strcmp(value_type,prnstok) == 0 ) {
-  
-    *value = CBF_TOKEN_PRNSTRING;
-
-    return 0;
-
-  }
-  
-
-  if (strcmp(value_type,brcstok) == 0 ) {
-  
-    *value = CBF_TOKEN_BRCSTRING;
-
-    return 0;
-
-  }
-
-  if (strcmp(value_type,bktstok) == 0 ) {
-  
-    *value = CBF_TOKEN_BKTSTRING;
-
-    return 0;
-
-  }
-
-
-  return CBF_ARGUMENT;
-
-}
-
-
-  /* Check the value type */
-
-int cbf_value_type (char *value)
-{
-  int test [6], C, count;
-
-
-    /* Is the value missing? */
-
-  if (!value)
-
-    return 0;
-
-
-    /* Is the value valid? */
-
-  if ((*value & '\200') != '\200')
-
-    return CBF_ARGUMENT;
-
-
-    /* Has the value already been checked? */
-
-  if ((value [0] & '\300') == '\300')
-
-    return 0;
-
-
-    /* Properties */
-
-  memset (test, 0, sizeof (test));
-
-  for (count = 1; value [count]; count++)
-  {
-    C = toupper (value [count]);
-
-    test [0] |= isspace (C);
-
-    test [1] |= C == '\n';
-    test [2] |= C == '\'';
-    test [3] |= C == '"';
-
-    if (count <= 5)
+    /* Get the value type of an ascii string */
+    
+    int cbf_get_value_type(const char *value, const char **value_type)
     {
-      test [4] |= C != " DATA_" [count];
-      test [5] |= C != " LOOP_" [count];
-
-      if (count <= 1)
-
-        test [0] |= C == '_' || C == '\'' || C == '"' || C == '#';
-    }
-  }
-
-  if (count <= 5) test[4]=test[5]=1;
-
-  test [0] |= strcmp (&value [1], "?") == 0;
-  test [0] |= strcmp (&value [1], ".") == 0;
-
-
-    /* Simple word? */
-
-  if (!test [0] && test [4] && test [5])
-
-    *value = CBF_TOKEN_WORD;
-
-  else
-
-      /* Single line? */
-
-    if (!test [1] && (!test [2] || !test [3]))
-    {
-      if (!test [2])
-
-        *value = CBF_TOKEN_SQSTRING;
-
-      else
-
-        *value = CBF_TOKEN_DQSTRING;
-    }
-    else
-
-        /* Multiple lines */
-
-      *value = CBF_TOKEN_SCSTRING;
-
-
-    /* Success */
-
-  return 0;
-}
-
-
-  /* Write a datablock name to a file */
-
-int cbf_write_datablockname (const cbf_node *datablock, cbf_file *file)
-{
-    /* Does the node exist? */
-
-  if (!datablock)
-
-    return CBF_ARGUMENT;
-
-
-    /* Write the name */
-
-  if (datablock->name)
-  {
-    cbf_failnez (cbf_write_string (file, "\ndata_"))
-
-    cbf_failnez (cbf_write_string (file, datablock->name))
-
-    cbf_failnez (cbf_write_character (file, '\n'))
-  }
-  else
-
-    if (datablock->children)
-
-      cbf_failnez (cbf_write_string (file, "\ndata_\n"))
-
-
-    /* Success */
-
-  return 0;
-}
-
-
-  /* Write a save frame name to a file */
-
-int cbf_write_saveframename (const cbf_node *saveframe, cbf_file *file)
-{
-    /* Does the node exist? */
-
-  if (!saveframe)
-
-    return CBF_ARGUMENT;
-
-
-    /* Write the name */
-
-  if (saveframe->name)
-  {
-    cbf_failnez (cbf_write_string (file, "\nsave_"))
-
-    cbf_failnez (cbf_write_string (file, saveframe->name))
-
-    cbf_failnez (cbf_write_character (file, '\n'))
-  }
-  else
-
-    if (saveframe->children)
-
-      cbf_failnez (cbf_write_string (file, "\nsave_(none)\n"))
-
-
-    /* Success */
-
-  return 0;
-}
-
-  /* Compose an item name from a category and column */
-  
-int cbf_compose_itemname (cbf_handle handle, const cbf_node *column, char * itemname, size_t limit) 
-{
-
-  cbf_node *category;
-   
-  char column_fill[1] = "\0";
-
-  char * tempcat;
-
-  char * tempcol;
-
-  int ipos;
-  
-  itemname[0] = itemname[limit] = '\0';
-
-    /* Get the category */
-
-  cbf_failnez (cbf_find_parent (&category, column, CBF_CATEGORY))
-
-
-    /* Check that the name is valid */
-
-  if (!category->name && !column->name) {
-  	
-    strncpy (itemname, "_(null)", limit );
-
-    return CBF_ARGUMENT;
-    
-  }
-
-    /* construct the item name */
-
-  if (column->name) {
-  
-    tempcol = (char *)column->name;
-
-  } else {
-
-    tempcol = column_fill;
-  }
-
-  if (!category->name ||
-      !(category->name[0]) ||
-      !cbf_cistrcmp("(none)",category->name) ||
-      tempcol[0]=='_') {
-      
-    strncpy(itemname,tempcol,limit);
-
-    if (strlen(tempcol) > limit) return CBF_ARGUMENT;
-
-
-  } else {
-
-      if(!category->name) return CBF_ARGUMENT;
-
-      itemname[0] = '_';
-
-      cbf_failnez( cbf_require_category_root(handle,category->name,(const char **)&tempcat))
-
-      strncpy(itemname+1,tempcat,limit-1);
-
-      if (strlen(tempcat) > 72 || strlen(tempcat) > limit-1) return CBF_ARGUMENT;
-
-      ipos = strlen(itemname);
-
-      if ( ipos < limit ) itemname[ipos++] = '.';
-
-      if ( limit-ipos > 0) strncpy(itemname+ipos,tempcol,limit-ipos);
-
-      if (strlen(tempcol)+ipos+2 > 75 || strlen(tempcol)+ipos+2 > limit) return CBF_ARGUMENT;
-
-
-  }
-  
-  return 0;
-
-}
-
-
-  /* Write an item name to a file */
-
-int cbf_write_itemname (cbf_handle handle, const cbf_node *column, cbf_file *file)
-{
-  char itemname[81];
-  
-  char buffer[255];
-
-  char * temptag;
-
-    /* Compose the tag and get the root alias */
-  
-  if ( cbf_compose_itemname (handle, column, itemname, (size_t )80)) {
-  
-    strcpy (itemname+77,"...");
-  
-    sprintf (buffer, "output line %u(%u) column name too long or invalid\n         converted to \"%s\"",
-      1+file->line, 1+file->column,
-      itemname);
-      
-    cbf_warning (buffer);
-  
-  }
-
-  cbf_failnez( cbf_require_tag_root(handle,(const char *)itemname,(const char **)&temptag))
-
-
-
-    /* Write the tag name */
-
-
-  cbf_failnez (cbf_write_string (file, temptag))
-
-
-    /* Success */
-
-  return 0;
-}
-
-
-  /* Write a value to a file */
-
-int cbf_write_value (cbf_node *column, unsigned int row,
-                     cbf_file *file, int isbuffer)
-{
-  const char *text;
-
-
-    /* Check the arguments */
-
-  if (!column)
-
-    return CBF_ARGUMENT;
-
-  if (row >= column->children)
-
-    return CBF_NOTFOUND;
-
-
-    /* Get the value */
-
-  cbf_failnez (cbf_get_columnrow (&text, column, row))
-
-
-    /* Missing value? */
-
-  if (!text)
-
-    return cbf_write_ascii (text, file);
-
-
-    /* Plain ASCII? */
-
-  cbf_failnez (cbf_value_type ((char *) text))
-
-  if (*text == CBF_TOKEN_WORD     ||
-      *text == CBF_TOKEN_SQSTRING ||
-      *text == CBF_TOKEN_DQSTRING ||
-      *text == CBF_TOKEN_SCSTRING ||
-      *text == CBF_TOKEN_TSQSTRING ||
-      *text == CBF_TOKEN_TDQSTRING ||
-      *text == CBF_TOKEN_PRNSTRING ||
-      *text == CBF_TOKEN_BKTSTRING ||
-      *text == CBF_TOKEN_BRCSTRING ||
-      *text == CBF_TOKEN_NULL)
-
-    return cbf_write_ascii (text, file);
-
-
-    /* Plain binary? */
-
-  if (*text == CBF_TOKEN_BIN || *text == CBF_TOKEN_TMP_BIN)
-
-    return cbf_write_binary (column, row, file, isbuffer);
-
-
-    /* Undecoded MIME? */
-
-  if (*text == CBF_TOKEN_MIME_BIN)
-  {
-      /* Convert the value to a normal binary section */
-
-    cbf_failnez (cbf_mime_temp (column, row))
-
-    return cbf_write_binary (column, row, file, isbuffer);
-  }
-
-
-    /* Fail */
-
-  return CBF_ARGUMENT;
-}
-
-
-  /* Write a category to a file */
-
-int cbf_write_category (cbf_handle handle, const cbf_node *category, cbf_file *file, int isbuffer)
-{
-  unsigned int count, first, last=0, column, columns, row, maxrows, matrixcount;
-
-  int loop, matrix, len;
-
-  const char * column_name;
-
-
-    /* Check the arguments */
-
-  if (!category)
-
-    return CBF_ARGUMENT;
-
-
-    /* Print out columns of the same length in loops
-       unless the number of rows is 1 */
-
-  maxrows = 0;
-
-  matrix = 0;
-
-  for (first = 0, loop = 1; first < category->children; first = last)
-  {
-    columns = 1;
-
-    if (category->child [first] &&
-      category->child [first]->children > maxrows)
-      maxrows = category->child [first]->children;
-
-    if (category->child [first])
-    {
-      for (last = first + 1; last < category->children; last++)
-
-        if (category->child [last])
-        {
-          if (category->child [last]->children !=
-            category->child [first]->children) {
-
-            if (category->child [last]->children > maxrows)
-              maxrows = category->child [last]->children;
-
-            break;
-          }
-
-          columns++;
+        
+        /* Prepare an empty return */
+        
+        *value_type = NULL;
+        
+        /* Is the value missing? */
+        
+        if (!value)
+            
+            return 0;
+        
+        /* Is the value valid? */
+        
+        if ((*value & '\200') != '\200')
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Has the value already been checked? */
+        
+        if ((value [0] & '\300') != '\300') {
+            
+            cbf_failnez(cbf_value_type((char *)value))
+            
         }
-
-        /* check for a matrix        */
-
-      matrix = 0;
-
-      matrixcount = 0;
-
-      for (count = first ; count < last; count++)
-      {
-
-        column_name = (category->child [count])->name;
-
-        if (column_name) {
-           len = strlen(column_name);
-           if ((len > 0 && column_name[len-1]==']') ||
-               (len > 4 && !cbf_cistrncmp("]_esd",(char *)column_name+len-5,5))) {
-             matrixcount++;
-             if (matrixcount > ((last-first+1)>>1)+1) {
-               matrix = 1;
-               break;
-             }
-           }
+        
+        if (*value == CBF_TOKEN_WORD) {
+            
+            *value_type = wordtok;
+            
+            return 0;
+            
         }
-      }
-
-        /* Make a loop? */
-
-      if ( matrix || (maxrows > 1 &&
-        (columns > 1 || category->child [first]->children > 1)))
-      {
-        cbf_failnez (cbf_write_string (file, "\nloop_\n"))
-
-        loop = 1;
-      }
-      else
-      {
-
-        cbf_failnez (cbf_write_character (file, '\n'))
-
-        loop = 0;
-      }
-
-        /* Write the items for a loop */
-
-      if (loop)
-      for (count = first; count < last; count++)
-      {
-        cbf_failnez (cbf_write_itemname (handle, category->child [count], file))
-
-        cbf_failnez (cbf_write_character (file, '\n'))
-      }
-
-
-        /* Write the values */
-
-      for (row = 0; row < category->child [first]->children; row++)
-      { unsigned int xcol;
-      
-        for (column = first; column < last; column++) {
-
-          if (!loop) {
-
-            cbf_failnez (cbf_write_itemname (handle, category->child [column], file))
-
-          }
-
-          if (matrix) {
-
-            column_name = (category->child [column])->name;
-
-            if (column_name) {
-
-              len = strlen(column_name);
-
-               if ((len > 2 && !cbf_cistrncmp("[1]",(char *)column_name+len-3,3)) ||
-
-                (len > 6 && !cbf_cistrncmp("[1]_esd",(char *)column_name+len-7,7))) {
-
-                cbf_failnez (cbf_write_character (file, '\n'))
-
-               }
-
+        
+        if (*value == CBF_TOKEN_SQSTRING) {
+            
+            *value_type = sglqtok;
+            
+            return 0;
+            
+        }
+        
+        if (*value == CBF_TOKEN_DQSTRING) {
+            
+            *value_type = dblqtok;
+            
+            return 0;
+            
+        }
+        
+        if (*value == CBF_TOKEN_SCSTRING) {
+            
+            *value_type = texttok;
+            
+            return 0;
+            
+        }
+        
+        if (*value == CBF_TOKEN_BKTSTRING) {
+            
+            *value_type = bktstok;
+            
+            return 0;
+            
+        }
+        
+        if (*value == CBF_TOKEN_BRCSTRING) {
+            
+            *value_type = brcstok;
+            
+            return 0;
+            
+        }
+        if (*value == CBF_TOKEN_PRNSTRING) {
+            
+            *value_type = prnstok;
+            
+            return 0;
+            
+        }
+        if (*value == CBF_TOKEN_TDQSTRING) {
+            
+            *value_type = tdqstok;
+            
+            return 0;
+            
+        }
+        if (*value == CBF_TOKEN_TSQSTRING) {
+            
+            *value_type = tsqstok;
+            
+            return 0;
+            
+        }
+        if (*value == CBF_TOKEN_NULL) {
+            
+            *value_type = nulltok;
+            
+            return 0;
+            
+        }
+        
+        
+        return CBF_ARGUMENT;
+        
+    }
+    /* Set the value type of an ascii string */
+    
+    int cbf_set_value_type(cbf_handle handle,char *value, const char *value_type)
+    {
+        
+        char *cptr;
+        
+        /* Is the value type missing? */
+        
+        if (!value)
+            
+            return CBF_ARGUMENT;
+        
+        /* Is the value valid? */
+        
+        if ((*value & '\200') != '\200')
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Has the value already been checked? */
+        
+        if ((value [0] & '\300') != '\300') {
+            
+            cbf_failnez(cbf_value_type(value))
+            
+        }
+        
+        if (strcmp(value_type,wordtok) == 0) {
+            
+            if ( strcmp(&value[1],".") == 0 ||
+                
+                strcmp(&value[1],"?") == 0 ||
+                
+                *value == CBF_TOKEN_WORD ) {
+                
+                *value = CBF_TOKEN_WORD;
+                
+                return 0;
             }
-
-          }
-
-          cbf_failnez (cbf_write_value (category->child [column], row,
-                                                       file, isbuffer))
-          if (!loop) {
-
-            cbf_failnez (cbf_write_character (file, '\n'))
-
-          }
+            
+            return CBF_ARGUMENT;
+            
         }
-
-        cbf_failnez (cbf_get_filecoordinates (file, NULL, &xcol))
-
-        if (xcol)
-
-          cbf_failnez (cbf_write_character (file, '\n'))
-      }
+        
+        if (strcmp(value_type,nulltok) == 0) {
+            
+            if ( strcmp(&value[1],".") == 0 ||
+                
+                strcmp(&value[1],"?") == 0) {
+                
+                *value = CBF_TOKEN_NULL;
+                
+                return 0;
+            }
+            
+            return CBF_ARGUMENT;
+            
+        }
+        
+        if (strcmp(value_type,sglqtok) == 0) {
+            
+            if(strstr(&value[1],"' ") ||
+               
+               strstr(&value[1],"'\t") ||
+               
+               strstr(&value[1],"\n")) {
+                
+                return CBF_ARGUMENT;
+                
+            }
+            
+            *value = CBF_TOKEN_SQSTRING;
+            
+            return 0;
+            
+        }
+        
+        if (strcmp(value_type,dblqtok) == 0 ) {
+            
+            if(strstr(&value[1],"\" ") ||
+               
+               strstr(&value[1],"\"\t") ||
+               
+               strstr(&value[1],"\n")) {
+                
+                return CBF_ARGUMENT;
+                
+            }
+            
+            *value = CBF_TOKEN_DQSTRING;
+            
+            return 0;
+            
+        }
+        
+        if (strcmp(value_type,texttok) == 0 ) {
+            
+            cptr = &value[1];
+            
+            while (*cptr && (cptr=strstr(cptr,"\n;")) ) {
+                
+                if (isspace(cptr[2])) {
+                    
+		    cbf_log(handle,"text field contains terminator, will be folded on output",CBF_LOGWARNING);
+                    
+                    break;
+                    
+                }
+                
+                if (*cptr) cptr++;
+                
+            }
+            
+            *value = CBF_TOKEN_SCSTRING;
+            
+            return 0;
+            
+        }
+        
+        
+        if (strcmp(value_type,tsqstok) == 0 ) {
+            
+            cptr = &value[1];
+            
+            while (*cptr && (cptr=strstr(cptr,"'''")) ) {
+                
+                if (isspace(cptr[2])) {
+                    
+                    cbf_log(handle,
+		      "triple singled-quoted field contains terminator, will be folded on output",CBF_LOGWARNING);
+                    
+                    break;
+                    
+                }
+                
+                if (*cptr) cptr++;
+                
+            }
+            
+            *value = CBF_TOKEN_TSQSTRING;
+            
+            return 0;
+            
+        }
+        
+        if (strcmp(value_type,tdqstok) == 0 ) {
+            
+            cptr = &value[1];
+            
+            while (*cptr && (cptr=strstr(cptr,"\"\"\"")) ) {
+                
+                if (isspace(cptr[3])) {
+                    
+                    cbf_log(handle,
+			"triple double-quoted field contains terminator, will be folded on output",CBF_LOGWARNING);
+                    
+                    break;
+                    
+                }
+                
+                if (*cptr) cptr++;
+                
+            }
+            
+            *value = CBF_TOKEN_TDQSTRING;
+            
+            return 0;
+            
+        }
+        
+        
+        if (strcmp(value_type,prnstok) == 0 ) {
+            
+            *value = CBF_TOKEN_PRNSTRING;
+            
+            return 0;
+            
+        }
+        
+        
+        if (strcmp(value_type,brcstok) == 0 ) {
+            
+            *value = CBF_TOKEN_BRCSTRING;
+            
+            return 0;
+            
+        }
+        
+        if (strcmp(value_type,bktstok) == 0 ) {
+            
+            *value = CBF_TOKEN_BKTSTRING;
+            
+            return 0;
+            
+        }
+        
+        
+        return CBF_ARGUMENT;
+        
     }
-  }
-
-
-    /* Success */
-
-  return 0;
-}
-
-
-  /* Write a node to a file */
-
-int cbf_write_node (cbf_handle handle, const cbf_node *node, cbf_file *file, int isbuffer)
-{
-  unsigned int count;
-
-
-    /* Follow any links */
-
-  node = cbf_get_link (node);
-
-
-    /* Does the node exist? */
-
-  if (!node)
-
-    return CBF_ARGUMENT;
-
-
-    /* Node type */
-
-  switch (node->type)
-  {
-
-
-    case CBF_ROOT:
-
-      cbf_failnez (cbf_write_string (file, "###" CBF_DIC_VERSION "\n"))
-
-      if (file->write_encoding & ENC_NONE)
-
-        cbf_failnez (cbf_write_string (file,
-                             "# CBF file written by " CBF_API_VERSION "\n"))
-      else
-
-        cbf_failnez (cbf_write_string (file,
-                             "# CIF file written by " CBF_API_VERSION "\n"))
-
-      break;
-
-    case CBF_DATABLOCK:
-
-      cbf_failnez (cbf_write_datablockname (node, file))
-
-      break;
-
-    case CBF_CATEGORY:
-
-      cbf_failnez (cbf_write_category (handle, node, file, isbuffer))
-
-      break;
-
-    case CBF_SAVEFRAME:
-
-      cbf_failnez (cbf_write_saveframename (node, file))
-
-      break;
-
-
-    default:
-
-      return CBF_ARGUMENT;
-  }
-
-
-    /* Write the children */
-
-  if (node->type == CBF_ROOT || node->type == CBF_DATABLOCK || node->type == CBF_SAVEFRAME)
-
-    for (count = 0; count < node->children; count++)
-
-      cbf_failnez (cbf_write_node (handle, node->child [count], file, isbuffer))
-
-  if (node->type == CBF_SAVEFRAME )
-
-      cbf_failnez (cbf_write_string (file, "\nsave_\n"))
-
-    /* Flush the buffers */
-
-  return cbf_flush_characters (file);
-
-
-
-}
-
-
+    
+    
+    /* Check the value type */
+    
+    int cbf_value_type (char *value)
+    {
+        int test [6], C, count;
+        
+        
+        /* Is the value missing? */
+        
+        if (!value)
+            
+            return 0;
+        
+        
+        /* Is the value valid? */
+        
+        if ((*value & '\200') != '\200')
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Has the value already been checked? */
+        
+        if ((value [0] & '\300') == '\300')
+            
+            return 0;
+        
+        
+        /* Properties */
+        
+        memset (test, 0, sizeof (test));
+        
+        for (count = 1; value [count]; count++)
+        {
+            C = toupper (value [count]);
+            
+            test [0] |= isspace (C);
+            
+            test [1] |= C == '\n';
+            test [2] |= C == '\'';
+            test [3] |= C == '"';
+            
+            if (count <= 5)
+            {
+                test [4] |= C != " DATA_" [count];
+                test [5] |= C != " LOOP_" [count];
+                
+                if (count <= 1)
+                    
+                    test [0] |= C == '_' || C == '\'' || C == '"' || C == '#';
+            }
+        }
+        
+        if (count <= 5) test[4]=test[5]=1;
+        
+        test [0] |= strcmp (&value [1], "?") == 0;
+        test [0] |= strcmp (&value [1], ".") == 0;
+        
+        
+        /* Simple word? */
+        
+        if (!test [0] && test [4] && test [5])
+            
+            *value = CBF_TOKEN_WORD;
+        
+        else
+            
+        /* Single line? */
+            
+            if (!test [1] && (!test [2] || !test [3]))
+            {
+                if (!test [2])
+                    
+                    *value = CBF_TOKEN_SQSTRING;
+                
+                else
+                    
+                    *value = CBF_TOKEN_DQSTRING;
+            }
+            else
+                
+            /* Multiple lines */
+                
+                *value = CBF_TOKEN_SCSTRING;
+        
+        
+        /* Success */
+        
+        return 0;
+    }
+    
+    
+    /* Write a datablock name to a file */
+    
+    int cbf_write_datablockname (const cbf_node *datablock, cbf_file *file)
+    {
+        /* Does the node exist? */
+        
+        if (!datablock)
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Write the name */
+        
+        if (datablock->name)
+        {
+            cbf_failnez (cbf_write_string (file, "\ndata_"))
+            
+            cbf_failnez (cbf_write_string (file, datablock->name))
+            
+            cbf_failnez (cbf_write_character (file, '\n'))
+        }
+        else
+            
+            if (datablock->children)
+                
+                cbf_failnez (cbf_write_string (file, "\ndata_\n"))
+                
+                
+            /* Success */
+                
+                return 0;
+    }
+    
+    
+    /* Write a save frame name to a file */
+    
+    int cbf_write_saveframename (const cbf_node *saveframe, cbf_file *file)
+    {
+        /* Does the node exist? */
+        
+        if (!saveframe)
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Write the name */
+        
+        if (saveframe->name)
+        {
+            cbf_failnez (cbf_write_string (file, "\nsave_"))
+            
+            cbf_failnez (cbf_write_string (file, saveframe->name))
+            
+            cbf_failnez (cbf_write_character (file, '\n'))
+        }
+        else
+            
+            if (saveframe->children)
+                
+                cbf_failnez (cbf_write_string (file, "\nsave_(none)\n"))
+                
+                
+            /* Success */
+                
+                return 0;
+    }
+    
+    /* Compose an item name from a category and column */
+    
+    int cbf_compose_itemname (cbf_handle handle, const cbf_node *column, char * itemname, size_t limit) 
+    {
+        
+        cbf_node *category;
+        
+        char column_fill[1] = "\0";
+        
+        char * tempcat;
+        
+        char * tempcol;
+        
+        int ipos;
+        
+        itemname[0] = itemname[limit] = '\0';
+        
+        /* Get the category */
+        
+        cbf_failnez (cbf_find_parent (&category, column, CBF_CATEGORY))
+        
+        
+        /* Check that the name is valid */
+        
+        if (!category->name && !column->name) {
+            
+            strncpy (itemname, "_(null)", limit );
+            
+            return CBF_ARGUMENT;
+            
+        }
+        
+        /* construct the item name */
+        
+        if (column->name) {
+            
+            tempcol = (char *)column->name;
+            
+        } else {
+            
+            tempcol = column_fill;
+        }
+        
+        if (!category->name ||
+            !(category->name[0]) ||
+            !cbf_cistrcmp("(none)",category->name) ||
+            tempcol[0]=='_') {
+            
+            strncpy(itemname,tempcol,limit);
+            
+            if (strlen(tempcol) > limit) return CBF_ARGUMENT;
+            
+            
+        } else {
+            
+            if(!category->name) return CBF_ARGUMENT;
+            
+            itemname[0] = '_';
+            
+            cbf_failnez( cbf_require_category_root(handle,category->name,(const char **)&tempcat))
+            
+            strncpy(itemname+1,tempcat,limit-1);
+            
+            if (strlen(tempcat) > 72 || strlen(tempcat) > limit-1) return CBF_ARGUMENT;
+            
+            ipos = strlen(itemname);
+            
+            if ( ipos < limit ) itemname[ipos++] = '.';
+            
+            if ( limit-ipos > 0) strncpy(itemname+ipos,tempcol,limit-ipos);
+            
+            if (strlen(tempcol)+ipos+2 > 75 || strlen(tempcol)+ipos+2 > limit) return CBF_ARGUMENT;
+            
+            
+        }
+        
+        return 0;
+        
+    }
+    
+    
+    /* Write an item name to a file */
+    
+    int cbf_write_itemname (cbf_handle handle, const cbf_node *column, cbf_file *file)
+    {
+        char itemname[81];
+        
+        char buffer[255];
+        
+        char * temptag;
+        
+        /* Compose the tag and get the root alias */
+        
+        if ( cbf_compose_itemname (handle, column, itemname, (size_t )80)) {
+            
+            strcpy (itemname+77,"...");
+            
+            sprintf (buffer, "output line %u(%u) column name too long or invalid\n         converted to \"%s\"",
+                     1+file->line, 1+file->column,
+                     itemname);
+            
+            cbf_log(handle,buffer,CBF_LOGWARNING|CBF_LOGCURRENTLOC);
+            
+        }
+        
+        cbf_failnez( cbf_require_tag_root(handle,(const char *)itemname,(const char **)&temptag))
+        
+        
+        
+        /* Write the tag name */
+        
+        
+        cbf_failnez (cbf_write_string (file, temptag))
+        
+        
+        /* Success */
+        
+        return 0;
+    }
+    
+    
+    /* Write a value to a file */
+    
+    int cbf_write_value (cbf_handle handle, cbf_node *column, unsigned int row,
+                         cbf_file *file, int isbuffer)
+    {
+        const char *text;
+        
+        
+        /* Check the arguments */
+        
+        if (!column)
+            
+            return CBF_ARGUMENT;
+        
+        if (row >= column->children)
+            
+            return CBF_NOTFOUND;
+        
+        
+        /* Get the value */
+        
+        cbf_failnez (cbf_get_columnrow (&text, column, row))
+        
+        
+        /* Missing value? */
+        
+        if (!text)
+            
+            return cbf_write_ascii (handle, text, file);
+        
+        
+        /* Plain ASCII? */
+        
+        cbf_failnez (cbf_value_type ((char *) text))
+        
+        if (*text == CBF_TOKEN_WORD     ||
+            *text == CBF_TOKEN_SQSTRING ||
+            *text == CBF_TOKEN_DQSTRING ||
+            *text == CBF_TOKEN_SCSTRING ||
+            *text == CBF_TOKEN_TSQSTRING ||
+            *text == CBF_TOKEN_TDQSTRING ||
+            *text == CBF_TOKEN_PRNSTRING ||
+            *text == CBF_TOKEN_BKTSTRING ||
+            *text == CBF_TOKEN_BRCSTRING ||
+            *text == CBF_TOKEN_NULL)
+            
+            return cbf_write_ascii (handle, text, file);
+        
+        
+        /* Plain binary? */
+        
+        if (*text == CBF_TOKEN_BIN || *text == CBF_TOKEN_TMP_BIN)
+            
+            return cbf_write_binary (column, row, file, isbuffer);
+        
+        
+        /* Undecoded MIME? */
+        
+        if (*text == CBF_TOKEN_MIME_BIN)
+        {
+            /* Convert the value to a normal binary section */
+            
+            cbf_failnez (cbf_mime_temp (column, row))
+            
+            return cbf_write_binary (column, row, file, isbuffer);
+        }
+        
+        
+        /* Fail */
+        
+        return CBF_ARGUMENT;
+    }
+    
+    
+    /* Write a category to a file */
+    
+    int cbf_write_category (cbf_handle handle, const cbf_node *category, cbf_file *file, int isbuffer)
+    {
+        unsigned int count, first, last=0, column, columns, row, maxrows, matrixcount;
+        
+        int loop, matrix, len;
+        
+        const char * column_name;
+        
+        
+        /* Check the arguments */
+        
+        if (!category)
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Print out columns of the same length in loops
+         unless the number of rows is 1 */
+        
+        maxrows = 0;
+        
+        matrix = 0;
+        
+        for (first = 0, loop = 1; first < category->children; first = last)
+        {
+            columns = 1;
+            
+            if (category->child [first] &&
+                category->child [first]->children > maxrows)
+                maxrows = category->child [first]->children;
+            
+            if (category->child [first])
+            {
+                for (last = first + 1; last < category->children; last++)
+                    
+                    if (category->child [last])
+                    {
+                        if (category->child [last]->children !=
+                            category->child [first]->children) {
+                            
+                            if (category->child [last]->children > maxrows)
+                                maxrows = category->child [last]->children;
+                            
+                            break;
+                        }
+                        
+                        columns++;
+                    }
+                
+                /* check for a matrix        */
+                
+                matrix = 0;
+                
+                matrixcount = 0;
+                
+                for (count = first ; count < last; count++)
+                {
+                    
+                    column_name = (category->child [count])->name;
+                    
+                    if (column_name) {
+                        len = strlen(column_name);
+                        if ((len > 0 && column_name[len-1]==']') ||
+                            (len > 4 && !cbf_cistrncmp("]_esd",(char *)column_name+len-5,5))) {
+                            matrixcount++;
+                            if (matrixcount > ((last-first+1)>>1)+1) {
+                                matrix = 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                /* Make a loop? */
+                
+                if ( matrix || (maxrows > 1 &&
+                                (columns > 1 || category->child [first]->children > 1)))
+                {
+                    cbf_failnez (cbf_write_string (file, "\nloop_\n"))
+                    
+                    loop = 1;
+                }
+                else
+                {
+                    
+                    cbf_failnez (cbf_write_character (file, '\n'))
+                    
+                    loop = 0;
+                }
+                
+                /* Write the items for a loop */
+                
+                if (loop)
+                    for (count = first; count < last; count++)
+                    {
+                        cbf_failnez (cbf_write_itemname (handle, category->child [count], file))
+                        
+                        cbf_failnez (cbf_write_character (file, '\n'))
+                    }
+                
+                
+                /* Write the values */
+                
+                for (row = 0; row < category->child [first]->children; row++)
+                { unsigned int xcol;
+                    
+                    for (column = first; column < last; column++) {
+                        
+                        if (!loop) {
+                            
+                            cbf_failnez (cbf_write_itemname (handle, category->child [column], file))
+                            
+                        }
+                        
+                        if (matrix) {
+                            
+                            column_name = (category->child [column])->name;
+                            
+                            if (column_name) {
+                                
+                                len = strlen(column_name);
+                                
+                                if ((len > 2 && !cbf_cistrncmp("[1]",(char *)column_name+len-3,3)) ||
+                                    
+                                    (len > 6 && !cbf_cistrncmp("[1]_esd",(char *)column_name+len-7,7))) {
+                                    
+                                    cbf_failnez (cbf_write_character (file, '\n'))
+                                    
+                                }
+                                
+                            }
+                            
+                        }
+                        
+                        cbf_failnez (cbf_write_value (handle, category->child [column], row,
+                                                      file, isbuffer))
+                        if (!loop) {
+                            
+                            cbf_failnez (cbf_write_character (file, '\n'))
+                            
+                        }
+                    }
+                    
+                    cbf_failnez (cbf_get_filecoordinates (file, NULL, &xcol))
+                    
+                    if (xcol)
+                        
+                        cbf_failnez (cbf_write_character (file, '\n'))
+                        }
+            }
+        }
+        
+        
+        /* Success */
+        
+        return 0;
+    }
+    
+    
+    /* Write a node to a file */
+    
+    int cbf_write_node (cbf_handle handle, const cbf_node *node, cbf_file *file, int isbuffer)
+    {
+        unsigned int count;
+        
+        
+        /* Follow any links */
+        
+        node = cbf_get_link (node);
+        
+        
+        /* Does the node exist? */
+        
+        if (!node)
+            
+            return CBF_ARGUMENT;
+        
+        /* Write any appropriate white space prologue */
+        
+        cbf_failnez(cbf_write_ws_prologue(node, file, isbuffer))
+        
+        /* Node type */
+        
+        switch (node->type)
+        {
+                
+            
+            /* For the root, suppress automatic comments if whitespace handling
+               has been specified */
+            
+            case CBF_ROOT: 
+                
+                if ( (file->write_headers & CBF_PARSE_WS) == 0 ) {
+                    
+                    cbf_failnez (cbf_write_string (file, "###" CBF_DIC_VERSION "\n"))
+                    
+                    if (file->write_encoding & ENC_NONE) {
+                        
+                        cbf_failnez (cbf_write_string (file,
+                                                       "# CBF file written by " CBF_API_VERSION "\n"))
+                        
+                    } else {
+                        
+                        cbf_failnez (cbf_write_string (file,
+                                                       "# CIF file written by " CBF_API_VERSION "\n"))
+                    }
+                    
+                }
+                
+                break;
+                
+                
+            case CBF_DATABLOCK:
+                
+                cbf_failnez (cbf_write_datablockname (node, file))
+                
+                break;
+                
+            case CBF_CATEGORY:
+                
+                cbf_failnez (cbf_write_category (handle, node, file, isbuffer))
+                
+                break;
+                
+            case CBF_SAVEFRAME:
+                
+                cbf_failnez (cbf_write_saveframename (node, file))
+                
+                break;
+                
+                
+            default:
+                
+                return CBF_ARGUMENT;
+        }
+        
+        /* Write any appropriate white space emlogue */
+        
+        cbf_failnez(cbf_write_ws_emlogue(node, file, isbuffer))
+        
+        /* Write the children */
+        
+        if (node->type == CBF_ROOT || node->type == CBF_DATABLOCK || node->type == CBF_SAVEFRAME)
+            
+            for (count = 0; count < node->children; count++)
+                
+                cbf_failnez (cbf_write_node (handle, node->child [count], file, isbuffer))
+                
+                if (node->type == CBF_SAVEFRAME )
+                    
+                    cbf_failnez (cbf_write_string (file, "\nsave_\n"))
+                    
+                /* Write any appropriate white space epilogue */
+                    
+                    if ( (file->write_headers & CBF_PARSE_WS) != 0 )  {
+                        
+                        cbf_failnez(cbf_write_ws_epilogue(node, file, isbuffer))
+                        
+                    }
+        
+        
+        
+        /* Flush the buffers */
+        
+        return cbf_flush_characters (file);
+        
+        
+    }
+    
+    
 #ifdef __cplusplus
-
+    
 }
 
 #endif

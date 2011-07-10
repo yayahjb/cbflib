@@ -311,9 +311,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <errno.h>
-#ifdef GNUGETOPT
-#include "getopt.h"
-#endif
+#include "cbf_getopt.h"
 #include <unistd.h>
 
 #define CVTBUFSIZ 8192
@@ -632,7 +630,7 @@ int cbf_parse_sls_header(cbf_handle cbf, const char * buffer,
     
     ptr = slsstr;
     
-    while (*ptr && (cbf_cistrncmp(ptr," SN",3))) ptr++;
+    while (*ptr && (cbf_cistrncmp(ptr," SN",3))&&(cbf_cistrncmp(ptr," S/N",4))) ptr++;
     
     if (*ptr) *ptr++ = 0;
     
@@ -1503,7 +1501,8 @@ int cbf_parse_sls_header(cbf_handle cbf, const char * buffer,
        
      } else {
      
-       cbf_failnez(CBF_FORMAT);
+       /* cbf_failnez(CBF_FORMAT); */
+       fprintf(stderr," convert_minicbf:  warning did not recognize miniheader string %s\n",slsstr);
      
      }
    
@@ -1740,9 +1739,9 @@ int main (int argc, char *argv [])
  #endif
   int cbfintmpused = 0;
   char buf[CVTBUFSIZ];
-  char *cbfin, *cbfout, *template, *distancestr;
-  char *convention;
-  char *alias, *root;
+  const char *cbfin, *cbfout, *template, *distancestr, *alias;
+  const char *convention;
+  char *root;
   char xalias[81];
   int transpose;
   int fastlen, slowlen;
@@ -1764,6 +1763,9 @@ int main (int argc, char *argv [])
   size_t padding;
   unsigned char *image;
   size_t nbytes;
+  const char * optarg;
+  cbf_getopt_handle opts;
+
 
     /* Usage */
 
@@ -1781,8 +1783,13 @@ int main (int argc, char *argv [])
   
   cbf_failnez (cbf_make_handle (&cbf))
 
-  while ((copt = getopt(argc,argv, "FRQqui:o:p:C:d:m:r:z:c:t:")) != EOF) {
-
+  cbf_failnez(cbf_make_getopt_handle(&opts))
+    
+  cbf_failnez(cbf_getopt_parse(opts, argc, argv, "FRQqui:o:p:C:d:m:r:z:c:t:"))
+    
+  if (!cbf_rewind_getopt_option(opts))
+  for(;!cbf_get_getopt_data(opts,&copt,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
+    if (!copt) break;
     switch(copt) {
       case 'i':
          if (cbfin) errflg++;
@@ -1884,12 +1891,12 @@ int main (int argc, char *argv [])
 
   }
 
-  for (; optind < argc; optind++) {
+  for(;!cbf_get_getopt_data(opts,&copt,NULL,NULL,&optarg);cbf_next_getopt_option(opts)) {
     if (!cbfin) {
-      cbfin = argv[optind];
+      cbfin = optarg;
     } else {
        if (!cbfout) {
-         cbfout = argv[optind];
+           cbfout = optarg;
        } else {
          errflg++;
        }
@@ -3046,7 +3053,10 @@ int main (int argc, char *argv [])
 
   cbf_failnez (cbf_free_handle (minicbf))
 
-
+    /* Free the getopt_handle */
+    
+    cbf_failnez (cbf_free_getopt_handle(opts))
+    
     /* Success */
 
   if (cbfintmpused) {

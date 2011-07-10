@@ -264,6 +264,9 @@ extern "C" {
 size_t memory_allocated;
 #endif
 
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
   /* Reallocate a block of memory (never lose the old block on failure) */
 

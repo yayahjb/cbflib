@@ -1,0 +1,3 @@
+      With v  as  cell_vector                                                                                                
+                                                                                                                             
+      _cell.volume =  v.a * ( v.b ^ v.c )    
