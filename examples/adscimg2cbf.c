@@ -109,12 +109,13 @@ int	main(int argc, char *argv[])
 	char		*hptr;
 	unsigned short	*uptr;
 	char		header_bytes[6];
-	int		file_size, header_size_char;
+	int		file_size, header_size_char, actread;
 	int		cbf_status;
 	int		i, j, k=0;
 	int		size1, size2;
 	int		file_type;
 	int		pack_flags;
+    int     pad_flag;
 	int		status_pclose;
 	int		beam_center_convention;
 	static char	*endings[] = {
@@ -125,18 +126,27 @@ int	main(int argc, char *argv[])
 					NULL
 				     };
 	static char	*flags[] = {
-					"--cbf_byte_offset",
-					"--cbf_packed_v2",
-					"--cbf_packed",
-					"--no_compression",
-					"--beam_center_from_header",
-					"--beam_center_mosflm",
-					"--beam_center_ulhc",
-					"--beam_center_llhc",
+					"--cbf_byte_offset",            /* 0 */
+					"--cbf_packed_v2",              /* 1 */
+					"--cbf_packed",                 /* 2 */
+					"--no_compression",             /* 3 */
+					"--beam_center_from_header",    /* 4 */
+					"--beam_center_mosflm",         /* 5 */
+					"--beam_center_ulhc",           /* 6 */
+					"--beam_center_llhc",           /* 7 */
+                    "--pad_1K",                     /* 8 */
+                    "--pad_2K",                     /* 9 */
+                    "--pad_4K",                     /*10 */
+                    "--no_pad",                     /*11 */
 					NULL
 				   };
 
-	int		adscimg2cbf_sub(char *header, unsigned short *data, char *cbf_filename, int pack_flags, int beam_center_convention);
+	int		adscimg2cbf_sub(char *header, 
+                            unsigned short *data, 
+                            char *cbf_filename, 
+                            int pack_flags, 
+                            int beam_center_convention,
+                            int pad_flag );
 
 	if(argc < 2)
 	{
@@ -146,6 +156,7 @@ int	main(int argc, char *argv[])
 
 	pack_flags = CBF_BYTE_OFFSET;
 	beam_center_convention = BEAM_CENTER_FROM_HEADER;
+    pad_flag = PAD_4K;
 
 	while(argc > 1 && argv[1][0] == '-' && argv[1][1] == '-')
 	{
@@ -160,30 +171,43 @@ int	main(int argc, char *argv[])
 		}
 		switch(j)
 		{
-		  case 0:
-			pack_flags = CBF_BYTE_OFFSET;
-			break;
-		  case 1:
-			pack_flags = CBF_PACKED_V2;
-			break;
-		  case 2:
-			pack_flags = CBF_PACKED;
-			break;
-		  case 3:
-			pack_flags = CBF_NONE;
-			break;
-		  case 4:
-			beam_center_convention = BEAM_CENTER_FROM_HEADER;
-			break;
-		  case 5:
-			beam_center_convention = BEAM_CENTER_MOSFLM;
-			break;
-		  case 6:
-			beam_center_convention = BEAM_CENTER_ULHC;
-			break;
-		  case 7:
-			beam_center_convention = BEAM_CENTER_LLHC;
-			break;
+            case 0:
+                pack_flags = CBF_BYTE_OFFSET;
+                break;
+            case 1:
+                pack_flags = CBF_PACKED_V2;
+                break;
+            case 2:
+                pack_flags = CBF_PACKED;
+                break;
+            case 3:
+                pack_flags = CBF_NONE;
+                break;
+            case 4:
+                beam_center_convention = BEAM_CENTER_FROM_HEADER;
+                break;
+            case 5:
+                beam_center_convention = BEAM_CENTER_MOSFLM;
+                break;
+            case 6:
+                beam_center_convention = BEAM_CENTER_ULHC;
+                break;
+            case 7:
+                beam_center_convention = BEAM_CENTER_LLHC;
+                break;
+            case 8:
+                pad_flag = PAD_1K;
+                break;
+            case 9:
+                pad_flag = PAD_2K;
+                break;
+            case 10:
+                pad_flag = PAD_4K;
+                break;
+            case 11:
+                pad_flag = 0;
+                break;
+                
 		}
 		if(j < 3)
 		{
@@ -222,7 +246,7 @@ int	main(int argc, char *argv[])
 
 		if(0 == file_type)
 		{
-			if(NULL == (fp = fopen(in_filename, "r")))
+			if(NULL == (fp = fopen(in_filename, "rb")))
 			{
 				fprintf(stderr, "adscimg2cbf: Cannot open %s as input .img file\n", in_filename);
 				exit(0);
@@ -234,7 +258,7 @@ int	main(int argc, char *argv[])
 				sprintf(popen_command, "bzcat %s", in_filename);
 			else
 				sprintf(popen_command, "zcat %s", in_filename);
-			if(NULL == (fp = popen(popen_command, "r")))
+			if(NULL == (fp = popen(popen_command, "rb")))
 			{
 				fprintf(stderr, "adscimg2cbf: Cannot exec %s command to uncompress input file\n", popen_command);
 				exit(0);
@@ -250,9 +274,10 @@ int	main(int argc, char *argv[])
 			fprintf(stderr,"adscimg2cbf: cannot allocate memory for first 512 bytes of header of input file %s\n", in_filename);
 			exit(0);
 		}
-		if(512 != fread(hptr, sizeof (char), 512, fp))
+		if(512 != (actread=fread(hptr, sizeof (char), 512, fp)))
 		{
-			fprintf(stderr, "adscimg2cbf: Cannot read first header block of file %s.\n", in_filename);
+			fprintf(stderr, "adscimg2cbf: Cannot read first header block of file %s, actual read %d.\n", 
+                          in_filename,actread);
 			if(0 == file_type)
 				fclose(fp);
 			else
@@ -284,10 +309,12 @@ int	main(int argc, char *argv[])
 
 		if(header_size_char > 512)
 		{
-			if((header_size_char - 512) != fread(hptr + 512, sizeof (char), (header_size_char - 512), fp))
+			if((header_size_char - 512) != (actread=fread(hptr + 512, sizeof (char), 
+                                                        (header_size_char - 512), fp)))
 			{
-				fprintf(stderr, "adscimg2cbf: Cannot read next %d bytes of header of file %s.\n", 
-						header_size_char - 512, in_filename);
+				fprintf(stderr, "adscimg2cbf: Cannot read next %d bytes of header of file %s,"
+                                                " actual read %d.\n", 
+						header_size_char - 512, in_filename, actread);
 				if(0 == file_type)
 					fclose(fp);
 				else
@@ -331,10 +358,12 @@ int	main(int argc, char *argv[])
 						file_size, in_filename);
 			exit(0);
 		}
-		if((file_size - header_size_char) != fread(hptr + header_size_char, sizeof (char), (file_size - header_size_char), fp))
+		if((file_size - header_size_char) != (actread=fread(hptr + header_size_char, sizeof (char), 
+                                                      (file_size - header_size_char), fp)))
 		{
-			fprintf(stderr, "adscimg2cbf: Cannot read data (size %d bytes) from input file %s.\n", 
-					file_size - header_size_char, in_filename);
+			fprintf(stderr, "adscimg2cbf: Cannot read data (size %d bytes) from input file %s."
+                                        " actual read %d\n", 
+					file_size - header_size_char, in_filename, actread);
 			if(0 == file_type)
 				fclose(fp);
 			else
@@ -368,7 +397,7 @@ int	main(int argc, char *argv[])
 
 		uptr = ((unsigned short *) (hptr + header_size_char));
 
-		cbf_status = adscimg2cbf_sub(hptr, uptr, out_filename, pack_flags, beam_center_convention);
+		cbf_status = adscimg2cbf_sub(hptr, uptr, out_filename, pack_flags, beam_center_convention, pad_flag);
 		free(hptr);
 
 		argv++;

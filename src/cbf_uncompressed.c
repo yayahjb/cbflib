@@ -258,9 +258,11 @@ extern "C" {
 #include <string.h>
 #include <limits.h>
 #include <ctype.h>
+#if !defined(_MSC_VER)
 #define __USE_XOPEN
 #define _XOPEN_SOURCE
 #include <unistd.h>
+#endif
 
 #include "cbf.h"
 #include "cbf_alloc.h"
@@ -591,6 +593,7 @@ int cbf_decompress_none (void         *destination,
                          int           elsign,
                          size_t        nelem,
                          size_t       *nelem_read,
+                         size_t        compressedsize,
                          unsigned int  compression,
                          int           data_bits,
                          int           data_sign,

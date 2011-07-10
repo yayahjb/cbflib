@@ -3334,17 +3334,21 @@ int cbf_connect_axes (cbf_positioner positioner)
 
         if (found)
         {
-          depends_on = positioner->axis [search].name;
-
-          axis                      = positioner->axis [dest];
-          positioner->axis [dest]   = positioner->axis [search];
-          positioner->axis [search] = axis;
-
-          if (!depends_on && dest > 0)
-
-            return CBF_NOTFOUND;
-
-          break;
+            depends_on = positioner->axis [search].name;
+            
+            if (dest != search) {
+                
+                axis                      = positioner->axis [dest];
+                positioner->axis [dest]   = positioner->axis [search];
+                positioner->axis [search] = axis;
+                
+            }
+            
+            if (!depends_on && dest > 0)
+                
+                return CBF_NOTFOUND;
+            
+            break;
         }
       }
 
@@ -5327,6 +5331,127 @@ int cbf_get_pixel_coordinates (cbf_detector detector, double index1,
   return 0;
 }
 
+    
+    /* Calcluate the slow axis of a detector */
+    
+int cbf_get_detector_axis_slow (cbf_detector detector,
+                                   double *slowaxis1,
+                                   double *slowaxis2,
+                                   double *slowaxis3)
+    {
+        double pixel00[3], pixel10[3], length;
+
+        cbf_failnez (cbf_get_pixel_coordinates (detector, - 0.5,
+                                                 - 0.5,
+                                                &pixel00 [0],
+                                                &pixel00 [1],
+                                                &pixel00 [2]))
+
+        cbf_failnez (cbf_get_pixel_coordinates (detector, 0.5,
+                                                - 0.5,
+                                                &pixel10 [0],
+                                                &pixel10 [1],
+                                                &pixel10 [2]))
+        
+        pixel10 [0] -= pixel00 [0];
+        pixel10 [1] -= pixel00 [1];
+        pixel10 [2] -= pixel00 [2];
+        
+        length =  pixel10 [0]* pixel10 [0] +
+                  pixel10 [1]* pixel10 [1] +
+                  pixel10 [2]* pixel10 [2];
+        
+        if (length <= 0.0)
+            
+            return CBF_UNDEFINED;
+        
+        length = sqrt (length);
+        
+        if (slowaxis1)
+            
+            *slowaxis1 = pixel10 [0] / length;
+        
+        if (slowaxis2)
+            
+            *slowaxis2 = pixel10 [1] / length;
+        
+        if (slowaxis3)
+            
+            *slowaxis3 = pixel10 [2] / length;
+        
+        
+        return 0;
+    }
+
+    /* Calcluate the fast axis of a detector */
+    
+int cbf_get_detector_axis_fast (cbf_detector detector,
+                                    double *fastaxis1,
+                                    double *fastaxis2,
+                                    double *fastaxis3)
+    {
+        double pixel00[3], pixel01[3], length;
+        
+        cbf_failnez (cbf_get_pixel_coordinates (detector, -0.5,
+                                                -0.5,
+                                                &pixel00 [0],
+                                                &pixel00 [1],
+                                                &pixel00 [2]))
+        
+        cbf_failnez (cbf_get_pixel_coordinates (detector, -0.5,
+                                                0.5,
+                                                &pixel01 [0],
+                                                &pixel01 [1],
+                                                &pixel01 [2]))
+        
+        pixel01 [0] -= pixel00 [0];
+        pixel01 [1] -= pixel00 [1];
+        pixel01 [2] -= pixel00 [2];
+        
+        length =  pixel01 [0]* pixel01 [0] +
+        pixel01 [1]* pixel01 [1] +
+        pixel01 [2]* pixel01 [2];
+        
+        if (length <= 0.0)
+            
+            return CBF_UNDEFINED;
+        
+        length = sqrt (length);
+        
+        if (fastaxis1)
+            
+            *fastaxis1 = pixel01 [0] / length;
+        
+        if (fastaxis2)
+            
+            *fastaxis2 = pixel01 [1] / length;
+        
+        if (fastaxis3)
+            
+            *fastaxis3 = pixel01 [2] / length;
+        
+        
+        return 0;
+    }
+
+    /* Calcluate the axes of a detector */
+    
+int cbf_get_detector_axes (cbf_detector detector,
+                               double *slowaxis1,
+                               double *slowaxis2,
+                               double *slowaxis3,
+                               double *fastaxis1,
+                               double *fastaxis2,
+                               double *fastaxis3)
+    {
+        
+        cbf_failnez (cbf_get_detector_axis_slow (detector, slowaxis1, slowaxis2, slowaxis3) )
+        
+        cbf_failnez (cbf_get_detector_axis_fast (detector, fastaxis1, fastaxis2, fastaxis3) )
+        
+        return 0;
+    }
+    
 
   /* Get the pixel normal */
 
@@ -5550,16 +5675,17 @@ int cbf_set_unit_cell (cbf_handle handle, double cell[6], double cell_esd[6])
     const char * diffrn_id;
     const char * entry_id;
 
-    cbf_failnez(cbf_get_diffrn_id    (handle, &diffrn_id))
+    
+    if (!(cbf_get_diffrn_id    (handle, &diffrn_id))) diffrn_id = NULL;
 
     cbf_failnez(cbf_require_category (handle, "cell"))
     cbf_failnez(cbf_rewind_row       (handle))
 
     cbf_failnez(cbf_require_column   (handle, "entry_id"))
 
-    entry_id = 0;
-    if (cbf_get_value(handle, &entry_id) ||
-        !entry_id || *entry_id == '\0') {
+    entry_id = NULL;
+    if (diffrn_id && (cbf_get_value(handle, &entry_id) ||
+        !entry_id || *entry_id == '\0')) {
       cbf_failnez(cbf_set_value      (handle, diffrn_id))
     }
 
@@ -5654,19 +5780,19 @@ int cbf_set_reciprocal_cell (cbf_handle handle, double cell[6], double cell_esd[
     const char * diffrn_id;
     const char * entry_id;
 
-    cbf_failnez(cbf_get_diffrn_id    (handle, &diffrn_id))
+    if (!(cbf_get_diffrn_id    (handle, &diffrn_id))) diffrn_id = NULL;
 
     cbf_failnez(cbf_require_category (handle, "cell"))
     cbf_failnez(cbf_rewind_row       (handle))
 
     cbf_failnez(cbf_require_column   (handle, "entry_id"))
 
-    entry_id = 0;
-    if (cbf_get_value(handle, &entry_id) ||
-        !entry_id || *entry_id == '\0') {
-      cbf_failnez(cbf_set_value      (handle, diffrn_id))
+    entry_id = NULL;
+    if (diffrn_id && (cbf_get_value(handle, &entry_id) ||
+                      !entry_id || *entry_id == '\0')) {
+        cbf_failnez(cbf_set_value      (handle, diffrn_id))
     }
-
+    
     if (cell) {
 
     cbf_failnez (cbf_require_column  (handle, "reciprocal_length_a"))

@@ -571,9 +571,9 @@ int cbf_get_real_image (cbf_handle    handle,
                    size_t        ndimslow,
                    size_t        ndimfast);
 #define cbf_get_real_image_fs(handle, reserved, element_number, array, elsize, ndimfast, ndimslow)\
-        cbf_get_real_image ((handle),(reserved),(element_number),(array),(elsize),(ndimslow),(ndimfast)
+        cbf_get_real_image ((handle),(reserved),(element_number),(array),(elsize),(ndimslow),(ndimfast))
 #define cbf_get_real_image_sf(handle, reserved, element_number, array, elsize, ndimslow, ndimfast)\
-        cbf_get_real_image ((handle),(reserved),(element_number),(array),(elsize),(ndimslow),(ndimfast)
+        cbf_get_real_image ((handle),(reserved),(element_number),(array),(elsize),(ndimslow),(ndimfast))
 
   /* Get the 3D image size. ndimslow is the slowest dimension, 
                             ndimmid is the next faster dimension,
@@ -644,7 +644,7 @@ int cbf_set_image (cbf_handle    handle,
 #define cbf_set_image_fs(handle, reserved, element_number, compression, array, elsize, elsign, ndimfast, ndimslow) \
         cbf_set_image ((handle),(reserved),(element_number),(compression),(array),(elsize),(elsign),(ndimslow),(ndimfast) )
 #define cbf_set_image_sf(handle, reserved, element_number, compression, array, elsize, elsign, ndimslow, ndimfast) \
-        cbf_set_image ((handle),(reserved),(element_number),(compression),(array),(elsize),(elsign)(ndimslow),(ndimfast) )
+        cbf_set_image ((handle),(reserved),(element_number),(compression),(array),(elsize),(elsign),(ndimslow),(ndimfast) )
 
 
   /* Save a real image.  ndimslow is the slow dimension, ndimfast is fast. */
@@ -1152,11 +1152,11 @@ int cbf_get_pixel_coordinates (cbf_detector detector, double  indexslow,
 #define cbf_get_pixel_coordinates_sf(detector, indexslow, indexfast,  \
                                 coordinate1, coordinate2, coordinate3) \
         cbf_get_pixel_coordinates ((detector),(indexslow),(indexfast), \
-                              (coordinate1), (coordinate2), (coordinate3)
+                              (coordinate1), (coordinate2), (coordinate3))
 #define cbf_get_pixel_coordinates_fs(detector, indexfast, indexslow,  \
                                 coordinate1, coordinate2, coordinate3) \
         cbf_get_pixel_coordinates ((detector),(indexslow),(indexfast), \
-                              (coordinate1), (coordinate2), (coordinate3)
+                              (coordinate1), (coordinate2), (coordinate3))
 
 
   /* Get the pixel normal */
@@ -1169,13 +1169,39 @@ int cbf_get_pixel_normal (cbf_detector detector, double  indexslow,
 #define cbf_get_pixel_normal_sf(detector, indexslow, indexfast,  \
                                 normal1, normal2, normal3) \
         cbf_get_pixel_normal ((detector),(indexslow),(indexfast), \
-                              (normal1), (normal2), (normal3)
+                              (normal1), (normal2), (normal3) )
 #define cbf_get_pixel_normal_fs(detector, indexfast, indexslow,  \
                                 normal1, normal2, normal3) \
         cbf_get_pixel_normal ((detector),(indexslow),(indexfast), \
-                              (normal1), (normal2), (coordinate3)
+                              (normal1), (normal2), (normal3) )
 
+    /* Calcluate the slow axis of a detector */
+    
+int cbf_get_detector_axis_slow (cbf_detector detector, double *slowaxis1,
+                                                       double *slowaxis2,
+                                                       double *slowaxis3);
+    /* Calcluate the fast axis of a detector */
+    
+int cbf_get_detector_axis_fast (cbf_detector detector, double *fastaxis1,
+                                                       double *fastaxis2,
+                                                       double *fastaxis3);
+    
+    /* Calcluate the axes of a detector */
+    
+int cbf_get_detector_axes (cbf_detector detector, double *slowaxis1,
+                                                  double *slowaxis2,
+                                                  double *slowaxis3,
+                                                  double *fastaxis1,
+                                                  double *fastaxis2,
+                           double *fastaxis3);
 
+#define cbf_get_detector_axes_sf(detector, slowaxis1, slowaxis2, slowaxis3, fastaxis1, fastaxis2, fastaxis3) \
+        cbf_get_detector_axes ((detector), (slowaxis1), (slowaxis2), (slowaxis3), (fastaxis1), (fastaxis2), (fastaxis3))
+#define cbf_get_detector_axes_fs(detector, fastaxis1, fastaxis2, fastaxis3, slowaxis1, slowaxis2, slowaxis3) \
+        cbf_get_detector_axes ((detector), (slowaxis1), (slowaxis2), (slowaxis3), (fastaxis1), (fastaxis2), (fastaxis3))
+    
+    
+    
   /* Calcluate the area of a pixel */
 
 int cbf_get_pixel_area (cbf_detector detector, double  indexslow,

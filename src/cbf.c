@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf -- cbflib API functions                                        *
  *                                                                    *
- * Version 0.8.0 20 July 2008                                         *
+ * Version 0.9.2.3 7 July 2011                                        *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -263,7 +263,9 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#if !defined(CBF_NO_REGEX)
 #include <regex.h>
+#endif
 
 int cbf_parse (void *context);
 
@@ -279,6 +281,7 @@ int cbf_make_handle (cbf_handle *handle)
 
   errorcode = cbf_make_node (&(*handle)->node, CBF_ROOT, NULL, NULL);
 
+
   if (errorcode)
 
     return errorcode | cbf_free ((void **) handle, NULL);
@@ -292,6 +295,8 @@ int cbf_make_handle (cbf_handle *handle)
   (*handle)->dictionary = NULL;
   
   (*handle)->file = NULL;
+  
+  (*handle)->commentfile = NULL;
   
   (*handle)->logfile = stderr;
   
@@ -309,6 +314,8 @@ int cbf_make_handle (cbf_handle *handle)
 int cbf_set_cbf_logfile (cbf_handle handle, FILE * logfile) 
 {
 	handle ->logfile = logfile;
+
+        if (handle->file) handle->file->logfile = logfile;
 	
 	return 0;
 }
@@ -338,6 +345,8 @@ int cbf_free_handle (cbf_handle handle)
 
     }
     
+    if( handle->commentfile) errorcode |= cbf_free_file (&(handle->commentfile));
+      
     errorcode |= cbf_find_parent (&node, handle->node, CBF_ROOT);
 
     if (!errorcode) errorcode |= cbf_free_node (node);
@@ -387,22 +396,14 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, const c
     	
   }
   
-  if (((flags & PARSE_NOBRACKETS) && (flags & (PARSE_BRACKETS|PARSE_LIBERAL_BRACKETS)))
-    ||((flags & PARSE_TRIPLE_QUOTES) && (flags & PARSE_NOTRIPLE_QUOTES)) ) {
-
-    if (stream)
-      fclose (stream);
-    
-    return CBF_ARGUMENT;
-    	
-  }
-  
   if (!stream && (!buffer || !buffer_size))
   
     return CBF_ARGUMENT;
 
 
     /* Delete the old datablocks */
+    
+  if( handle->commentfile) cbf_onfailnez (cbf_free_file (&(handle->commentfile)), fclose(stream));
 
   cbf_onfailnez (cbf_find_parent (&node, handle->node, CBF_ROOT), fclose(stream))
 
@@ -415,13 +416,17 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, const c
 
     /* Create the input file */
 
-  if (flags&PARSE_WIDE) {
+  if (flags&CBF_PARSE_WIDE) {
   	
     cbf_onfailnez (cbf_make_widefile (&file, stream), if (stream) fclose(stream))
+
+    file->logfile = handle->logfile;
   
   } else {
 
     cbf_onfailnez (cbf_make_file (&file, stream), if (stream) fclose(stream))
+
+    file->logfile = handle->logfile;
   	
   }
   
@@ -455,7 +460,6 @@ static int cbf_read_anyfile (cbf_handle handle, FILE *stream, int flags, const c
   if (flags & (MSG_DIGESTNOW | MSG_DIGESTWARN) )
 
     flags |= MSG_DIGEST;
-
 
     /* Copy the flags */
 
@@ -534,7 +538,7 @@ int cbf_read_file (cbf_handle handle, FILE *stream, int flags)
 
 int cbf_read_widefile (cbf_handle handle, FILE *stream, int flags) 
 {
-	return cbf_read_anyfile (handle, stream, flags|PARSE_WIDE, NULL, 0);
+	return cbf_read_anyfile (handle, stream, flags|CBF_PARSE_WIDE, NULL, 0);
 }
 
   /* Read a pre-read buffered file */
@@ -562,11 +566,13 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     /* CIF or CBF? */
 
-  if (ciforcbf == CIF)
+  if (ciforcbf == CIF) {
 
     encoding = encoding & ~ENC_NONE;
 
-  else
+    if ((encoding &(ENC_CRTERM | ENC_LFTERM)) ==0 ) encoding |= ENC_LFTERM;
+
+  } else {
 
     encoding = (encoding & ~(ENC_BASE8   |
                              ENC_BASE10  |
@@ -575,8 +581,12 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
                              ENC_BASE32K |
                              ENC_QP      |
                              ENC_FORWARD |
-                             ENC_BACKWARD)) | ENC_NONE | ENC_CRTERM
-                                                       | ENC_LFTERM;
+                             ENC_BACKWARD)) | ENC_NONE;
+                             
+   if ((encoding &(ENC_CRTERM | ENC_LFTERM)) ==0 ) encoding |= ENC_CRTERM|ENC_LFTERM;
+
+  	
+  }
 
 
     /* Check the arguments */
@@ -593,6 +603,7 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
       ((encoding & ENC_FORWARD)   && (encoding & ENC_BACKWARD)))
 
     return CBF_ARGUMENT;
+
 
   if (((encoding & ENC_NONE)    > 0) +
       ((encoding & ENC_BASE8)   > 0) +
@@ -613,6 +624,8 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
     /* Create the file */
 
   cbf_failnez (cbf_make_file (&file, stream))
+
+  file->logfile = handle->logfile;
 
 
     /* Defaults */
@@ -640,6 +653,7 @@ int cbf_write_file (cbf_handle handle, FILE *stream, int isbuffer,
   if (flags & MSG_DIGESTNOW)
 
     flags |= MSG_DIGEST;
+
 
   if ((encoding & (ENC_NONE    |
                    ENC_BASE8   |
@@ -710,11 +724,13 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     /* CIF or CBF? */
 
-  if (ciforcbf == CIF)
+  if (ciforcbf == CIF) {
 
     encoding = encoding & ~ENC_NONE;
 
-  else
+      if ((encoding &(ENC_CRTERM | ENC_LFTERM))==0 ) encoding |= ENC_LFTERM;
+
+  } else {
 
     encoding = (encoding & ~(ENC_BASE8   |
                              ENC_BASE10  |
@@ -723,8 +739,12 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
                              ENC_BASE32K |
                              ENC_QP      |
                              ENC_FORWARD |
-                             ENC_BACKWARD)) | ENC_NONE | ENC_CRTERM
-                                                       | ENC_LFTERM;
+                             ENC_BACKWARD)) | ENC_NONE;
+                             
+   if ((encoding &(ENC_CRTERM | ENC_LFTERM)) ==0 ) encoding |= ENC_CRTERM|ENC_LFTERM;
+
+  	
+  }
 
 
     /* Check the arguments */
@@ -742,21 +762,34 @@ int cbf_write_local_file (cbf_handle handle, FILE *stream, int isbuffer,
 
     return CBF_ARGUMENT;
 
+
+  if (((flags  & MIME_HEADERS)  && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGEST)    && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGEST)    && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & PLAIN_HEADERS)) ||
+      ((encoding & ENC_FORWARD)   && (encoding & ENC_BACKWARD)))
+  
+    return CBF_ARGUMENT;
+
+
   if (((encoding & ENC_NONE)    > 0) +
       ((encoding & ENC_BASE8)   > 0) +
       ((encoding & ENC_BASE10)  > 0) +
       ((encoding & ENC_BASE16)  > 0) +
       ((encoding & ENC_BASE64)  > 0) +
       ((encoding & ENC_BASE32K) > 0) +
-      ((encoding & ENC_QP)     > 0) > 1)
+      ((encoding & ENC_QP)      > 0) > 1)
 
     return CBF_ARGUMENT;
+
 
 
     /* Create the file */
 
   cbf_failnez (cbf_make_file (&file, stream))
 
+  file->logfile = handle->logfile;
 
     /* Defaults */
 
@@ -851,11 +884,13 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
 
     /* CIF or CBF? */
 
-  if (ciforcbf == CIF)
+  if (ciforcbf == CIF) {
 
     encoding = encoding & ~ENC_NONE;
 
-  else
+    if ((encoding &(ENC_CRTERM | ENC_LFTERM)) ==0 ) encoding |= ENC_LFTERM;
+
+  } else {
 
     encoding = (encoding & ~(ENC_BASE8   |
                              ENC_BASE10  |
@@ -864,9 +899,12 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
                              ENC_BASE32K |
                              ENC_QP      |
                              ENC_FORWARD |
-                             ENC_BACKWARD)) | ENC_NONE | ENC_CRTERM
-                                                       | ENC_LFTERM;
+                             ENC_BACKWARD)) | ENC_NONE;
+                             
+   if ((encoding &(ENC_CRTERM | ENC_LFTERM)) ==0 ) encoding |= ENC_CRTERM|ENC_LFTERM;
 
+  	
+  }
 
     /* Check the arguments */
 
@@ -883,13 +921,24 @@ int cbf_write_widefile (cbf_handle handle, FILE *stream, int isbuffer,
 
     return CBF_ARGUMENT;
 
+
+  if (((flags  & MIME_HEADERS)  && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGEST)    && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGEST)    && (flags  & PLAIN_HEADERS)) ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & MSG_NODIGEST))  ||
+      ((flags  & MSG_DIGESTNOW) && (flags  & PLAIN_HEADERS)) ||
+      ((encoding & ENC_FORWARD)   && (encoding & ENC_BACKWARD)))
+
+    return CBF_ARGUMENT;
+    
+
   if (((encoding & ENC_NONE)    > 0) +
       ((encoding & ENC_BASE8)   > 0) +
       ((encoding & ENC_BASE10)  > 0) +
       ((encoding & ENC_BASE16)  > 0) +
       ((encoding & ENC_BASE64)  > 0) +
       ((encoding & ENC_BASE32K) > 0) +
-      ((encoding & ENC_QP)     > 0) > 1)
+      ((encoding & ENC_QP)      > 0) > 1)
 
     return CBF_ARGUMENT;
 
@@ -3107,6 +3156,57 @@ int cbf_column_name (cbf_handle handle, const char **columnname)
   return cbf_get_name (columnname, node);
 }
 
+    
+    /* Change the name of the current column */
+    
+int cbf_set_column_name (cbf_handle handle, const char *columnname)
+{
+    cbf_node *node;
+    
+    int errorcode;
+    
+    if (!handle)
+        
+        return CBF_ARGUMENT;
+    
+    
+    /* Find the column node */
+    
+    cbf_failnez (cbf_find_parent (&node, handle->node, CBF_COLUMN))
+    
+    
+    /* Copy the name */
+    
+    if (columnname)
+    {
+        columnname = cbf_copy_string (NULL, columnname, 0);
+        
+        if (!columnname)
+            
+            return CBF_ALLOC;
+    }
+    
+    
+    /* Change the name */
+    
+    errorcode = cbf_name_node (node, columnname);
+    
+    if (errorcode)
+    {
+        cbf_free_string (NULL, columnname);
+        
+        return errorcode;
+    }
+    
+    
+    /* Success */
+    
+    handle->node = node;
+    
+    return 0;
+}
+    
+
 
   /* Get the number of the current row */
 
@@ -3323,7 +3423,7 @@ int cbf_set_typeofvalue (cbf_handle handle, const char *typeofvalue)
 
   cbf_failnez (cbf_get_columnrow ((const char **)(&text), handle->node, handle->row))
 
-  cbf_failnez (cbf_set_value_type(text, typeofvalue))
+  cbf_failnez (cbf_set_value_type(handle, text, typeofvalue))
 
     /* Success */
 
@@ -3625,6 +3725,199 @@ int cbf_get_arrayparameters_wdims (cbf_handle    handle,
 }
 
 
+    /* Get the dimensions of the current (row, column) array entry
+     from the CBF tags */
+    
+    
+    int cbf_get_arraydimensions(cbf_handle handle, 
+                                size_t * dimover,
+                                size_t * dimfast,
+                                size_t * dimmid,
+                                size_t * dimslow) {
+        cbf_node *column;
+        
+        unsigned int row;
+        
+        cbf_node *category;
+        
+        cbf_node *asl_category;
+        
+        cbf_node *asl_array_id_col;
+        
+        cbf_node *asl_precedence_col;
+        
+        cbf_node *asl_dimension_col;
+        
+        cbf_node *datablock;
+        
+        cbf_node *array_id_column;
+        
+        const char * array_id;
+        
+        const char * asl_array_id;
+        
+        const char * asl_dimension;
+        
+        const char * asl_precedence;
+        
+        long precedence;
+        
+        unsigned int asl_row, asl_rows;
+        
+        size_t asl_dims[3];
+        
+        asl_dims[0] = asl_dims[1] = asl_dims[2] = 0;
+        
+        
+        /* Check the arguments */
+        
+        if (!handle)
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Is the value binary? */
+        
+        if (!cbf_is_binary (handle->node, handle->row))
+            
+            return CBF_ASCII;
+        
+        column = handle->node;
+        
+        row = handle->row;
+        
+        /* Follow any links */
+        
+        column = cbf_get_link (column);
+        
+        
+        /* Check the arguments */
+        
+        if (!column)
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Check the node type */
+        
+        if (column->type != CBF_COLUMN)
+            
+            return CBF_ARGUMENT;
+        
+        
+        if (!column)
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Check the node type */
+        
+        if (column->type != CBF_COLUMN)
+            
+            return CBF_ARGUMENT;
+        
+        
+        /* Find the parent category */
+        
+        cbf_failnez(cbf_find_parent(&category,column,CBF_CATEGORY))
+        
+        if (!(category->name) || cbf_cistrncmp(category->name,"array_data",11) ) return CBF_ARGUMENT;
+        
+        /* Find the array id */
+        
+        cbf_failnez (cbf_find_child (&array_id_column, category, "array_id"))
+        
+        if (cbf_is_binary(array_id_column,row)) return CBF_FORMAT;
+        
+        cbf_failnez(cbf_get_columnrow(&array_id, array_id_column,row ))
+        
+        if (!array_id) return CBF_FORMAT;
+        
+        array_id++;
+        
+        
+        /* Find the parent save frame or data block node */
+        
+        if (cbf_find_parent (&datablock, category, CBF_SAVEFRAME)) {
+            
+            cbf_failnez (cbf_find_parent (&datablock, category, CBF_DATABLOCK))
+            
+        }
+        
+        /* Find the array_structure_list category and extract the dimensions with their precedence
+         for the given array_id */
+        
+        cbf_failnez(cbf_find_typed_child (&asl_category, datablock, "array_structure_list", CBF_CATEGORY))
+        
+        cbf_failnez(cbf_find_typed_child (&asl_array_id_col,   asl_category, "array_id", CBF_COLUMN))
+        
+        cbf_failnez(cbf_find_typed_child (&asl_precedence_col, asl_category, "precedence", CBF_COLUMN))
+        
+        cbf_failnez(cbf_find_typed_child (&asl_dimension_col,  asl_category, "dimension", CBF_COLUMN))
+        
+        cbf_failnez (cbf_count_children (&asl_rows, asl_array_id_col))
+        
+        for (asl_row = 0; asl_row < asl_rows; asl_row++) {
+            
+            /* Is the value ascii? */
+            
+            if (cbf_is_binary (asl_array_id_col, asl_row) ||
+                cbf_is_binary (asl_precedence_col, asl_row) ||
+                cbf_is_binary (asl_dimension_col, asl_row))
+                
+                continue;
+
+
+            /* Get the value of the current row */
+            
+            cbf_failnez (cbf_get_columnrow (&asl_array_id, asl_array_id_col, asl_row))
+            
+            /* Compare the values 
+             If the array_id matches, then store the dimension according to the precedence
+             */
+            
+            if (asl_array_id && !strcmp(asl_array_id+1,array_id)) {
+                
+                cbf_failnez(cbf_get_columnrow (&asl_precedence, asl_precedence_col, asl_row))
+                
+                cbf_failnez(cbf_get_columnrow (&asl_dimension, asl_dimension_col, asl_row))
+                
+                if (asl_precedence && asl_dimension) {
+                    
+                    precedence = atol(asl_precedence+1);
+                    
+                    if (precedence > 0 && precedence < 4) asl_dims[precedence-1] = atol(asl_dimension+1);
+                    
+                }
+                
+            }
+            
+        }
+        
+        if (dimover) *dimover = 1;
+        
+        for (precedence = 0; precedence < 3; precedence++) {
+            
+            if (asl_dims[precedence] > 0) {
+                
+                if (dimover) *dimover *= asl_dims[precedence];
+                
+                switch (precedence) {
+                        
+                    case 0:  if (dimfast) *dimfast = asl_dims[precedence]; break;
+                    case 1:  if (dimmid)  *dimmid  = asl_dims[precedence]; break;
+                    case 2:  if (dimslow) *dimslow = asl_dims[precedence]; break;
+                        
+                }
+                
+            }
+        }
+        
+        return 0;
+        
+    }
+    
+    
 
 
   /* Get the parameters of the current (row, column) integer array entry */
@@ -3948,9 +4241,17 @@ void cbf_log (cbf_handle handle, const char *message,
   int line=0, column=0;
   
   if (cbf_alloc(&memblock, NULL, 1, strlen(message)+80) ) {
-  	  
-    fprintf (handle->logfile, "CBFlib: memory allocation error\n");
-    
+
+    if (handle->logfile) {
+
+      fprintf (handle->logfile, "CBFlib: memory allocation error\n");
+
+    } else {
+
+      exit(CBF_ALLOC);
+
+    }  
+  
     return;
 
   }
@@ -3985,7 +4286,7 @@ void cbf_log (cbf_handle handle, const char *message,
 
   if ( !handle->logfile ) return;
 
-  if (handle->file) {
+  if ( handle->file) {
   
     if (logflags&CBF_LOGWOLINE)
 
@@ -4010,10 +4311,94 @@ void cbf_log (cbf_handle handle, const char *message,
         line+1, column,
         message);  
 
-    fprintf (handle->logfile, "%s", buffer);
-    
+  } else {
+
+       sprintf (buffer, "CBFlib: %s -- %s\n",
+         (logflags&CBF_LOGERROR)?"error":
+         ((logflags&CBF_LOGWARNING)?("warning"):""),
+         message);
   }
   
+  fprintf (handle->logfile, "%s", buffer);
+
+  cbf_free(&memblock, NULL );
+ 
+  return;
+}
+  /* Issue a log message for a cbf_file */
+
+void cbf_flog (cbf_file *file, const char *message, 
+                                 int logflags)
+
+{
+  char * buffer;
+  
+  void * memblock;
+  
+  int line=0, column=0;
+  
+  if (cbf_alloc(&memblock, NULL, 1, strlen(message)+80) ) {
+  	  
+    if (file->logfile) {
+
+      fprintf (file->logfile, "CBFlib: memory allocation error\n");
+    
+    } else {
+
+      exit(CBF_ALLOC);
+
+    }
+    return;
+
+  }
+  
+  buffer = (char *)memblock;
+  
+  if (logflags & CBF_LOGCURRENTLOC) {
+
+    line = (file->line);
+
+    column = (file->column);
+
+    logflags &= (~CBF_LOGWOLINE);
+
+  } else {
+
+  	logflags |= CBF_LOGWOLINE;
+
+  }
+  
+  if (logflags&CBF_LOGERROR)  file->errors++;
+  
+  else if (logflags&CBF_LOGWARNING) file->warnings++;
+
+  if ( !file->logfile ) return;
+
+  if (logflags&CBF_LOGWOLINE)
+
+      sprintf (buffer, "CBFlib: %s -- %s\n",
+        (logflags&CBF_LOGERROR)?"error":
+        ((logflags&CBF_LOGWARNING)?("warning"):""), 
+        message);
+        
+  else if (logflags&CBF_LOGWOCOLUMN || column==0)  
+
+      sprintf (buffer, "CBFlib: %s input line %d -- %s\n",
+        (logflags&CBF_LOGERROR)?"error":
+        ((logflags&CBF_LOGWARNING)?("warning"):""), 
+        line+1, 
+        message);  
+    
+  else
+
+      sprintf (buffer, "CBFlib: %s input line %d (%d) -- %s\n",
+        (logflags&CBF_LOGERROR)?"error":
+        ((logflags&CBF_LOGWARNING)?("warning"):""), 
+        line+1, column,
+        message);  
+
+  fprintf (file->logfile, "%s", buffer);
+
   cbf_free(&memblock, NULL );
  
   return;
@@ -4263,7 +4648,26 @@ int cbf_require_dictionary (cbf_handle handle, cbf_handle * dictionary)
 
 }
 
-  /* Put the value into the named column, updating the hash table links */
+  /* Put the value into the named column, updating the hash table links 
+  
+     If valuerow >= 0, the value is to be stored into the row of that
+     number.
+     
+     If valuerow < 0, the value is to be stored into a newly created row.
+     
+     For a given category of name <catname>, the hash table is
+     held in a category of name <catname>(hash_table), e.g.
+     if the category is "atom", the hastable is "atom(hash_table)".
+     For each column of name <colname> the hashtable links,
+     as integer row numbers are held in columns of name
+     <colname>(hash_index), e.g. if the column name is "label",
+     the hash index column name is "label(hash_index)".   The
+     same column name is used in both the hash table category
+     and the original category. 
+  
+  
+  
+  */
 
 int cbf_set_hashedvalue(cbf_handle handle, const char * value, 
                                            const char * columnname, 
@@ -4293,7 +4697,6 @@ int cbf_set_hashedvalue(cbf_handle handle, const char * value,
   
   if ( (catnamelen = strlen(category)) > 80 ) return CBF_ARGUMENT;
   
-  
   strcpy (categoryhashtable,category);
   
   strcpy (categoryhashtable + catnamelen, "(hash_table)");
@@ -4318,7 +4721,7 @@ int cbf_set_hashedvalue(cbf_handle handle, const char * value,
       && !cbf_find_column(handle, colhashnext)
       && !cbf_get_integervalue(handle, &ohashnext)) {
   
-      cbf_failnez( cbf_compute_hashcode(value, &ohashcode))
+      cbf_failnez( cbf_compute_hashcode(ovalue, &ohashcode))
       
       if (hashcode != ohashcode)   {
 
@@ -4432,6 +4835,20 @@ int cbf_set_hashedvalue(cbf_handle handle, const char * value,
     return 0;
   
   }
+    
+  /* nrownum is the row number of the value
+     rownum is the row number of pointed to the by the hash table 
+   
+     If the hash table points higher up, reset the hashtable to
+     point to the new row.
+   
+     We will still have to relink the chain by having this row point
+     to rownum
+   
+     If the hash table point higher up, the hash table remains as
+     is, and the new link is inserted only in the main category
+   
+   */
   
   if (nrownum < rownum) {
   
@@ -4634,11 +5051,14 @@ int cbf_find_hashedvalue(cbf_handle handle, const char * value,
 int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dictionary,
                                                                 const char * name)
 {
+
     const char *category_id;
 
     const char *mandatory_code;
 
     const char *itemname;
+	
+	const char *expression;
 
     const char *columnname;
     
@@ -4659,6 +5079,8 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
     const char *key, *oldkey;
     
     const char *value, *value2, *value_type;
+    
+    const char *keytype;
     
     char buffer[255];
 
@@ -4802,7 +5224,8 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
         dictionary->node = base_node;
         	
         if (!cbf_find_local_tag(dictionary,"_enumeration_default") ||
-          !cbf_find_local_tag(dictionary,"_item_default.value") )  {
+          !cbf_find_local_tag(dictionary,"_item_default.value") ||
+		  !cbf_find_local_tag(dictionary,"_enumeration.default"))  {
 
           if (!cbf_get_value(dictionary, &default_value)) {
 
@@ -4814,6 +5237,19 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
 
         }
 
+       dictionary->node = base_node;
+        	
+        if (!cbf_find_local_tag(dictionary,"_method.expression"))  {
+
+          if (!cbf_get_value(dictionary, &expression)) {
+		
+           cbf_failnez( cbf_require_column(cbfdictionary, "method_expression"));
+
+            cbf_failnez( cbf_set_value(cbfdictionary, expression))
+
+          }
+
+        }	
 
         dictionary->node = base_node;
         	
@@ -4848,7 +5284,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
     dictionary->node = base_node;
     
     value_type = "value";
-        	
+
     if (!cbf_find_local_tag(dictionary, "_item_enumeration.value") ||
       !cbf_find_local_tag(dictionary, "_enumeration"))  {
       
@@ -4893,7 +5329,8 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
     dictionary->node = base_node;
         	
     if (!cbf_find_local_tag(dictionary, "_item_range.minimum") ||
-      !cbf_find_local_tag(dictionary, "_enumeration_range"))  {
+      !cbf_find_local_tag(dictionary, "_enumeration_range") ||
+      !cbf_find_local_tag(dictionary, "_enumeration.range"))  {
       
       cbf_failnez( cbf_column_number(dictionary, (unsigned int *)&colno))
       
@@ -4944,7 +5381,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
             
             sprintf(buffer,"dictionary:  invalid range of values for %s",itemname);
             
-            cbf_warning(buffer);
+            cbf_log(dictionary,buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
           	
           }
         	
@@ -5068,9 +5505,13 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
         dictionary->node = base_node;
 
         if (!cbf_find_local_tag(dictionary,"_list_reference") ||
-          !cbf_find_local_tag(dictionary,"_category_key.name") ) {
+          !cbf_find_local_tag(dictionary,"_category_key.name") ||
+          !cbf_find_local_tag(dictionary,"_category_key.primitive") ||
+          !cbf_find_local_tag(dictionary,"_category_key.generic")) {
 
           if (!cbf_get_value(dictionary, &key) && key) {
+
+            cbf_failnez( cbf_get_typeofvalue(dictionary,&keytype))
 
             cbf_failnez( cbf_require_column(cbfdictionary, "key"))
             
@@ -5099,6 +5540,12 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
             }
             
             cbf_failnez(cbf_set_value(cbfdictionary,key))
+            
+            if ( keytype != NULL )  {
+            	
+              cbf_failnez(cbf_set_typeofvalue(cbfdictionary,keytype))
+            
+            }
 
             cbf_failnez(cbf_require_column(cbfdictionary,"mandatory_code"))
             
@@ -5173,7 +5620,7 @@ int cbf_convert_dictionary_definition(cbf_handle cbfdictionary, cbf_handle dicti
 
     }
 
-    return 0;
+return 0;
 }
 
   /* Increment a column */
@@ -5238,7 +5685,7 @@ int cbf_reset_refcounts( cbf_handle dictionary ) {
 int cbf_convert_dictionary (cbf_handle handle, cbf_handle dictionary )
 {
     cbf_handle dict;
-
+		
     unsigned int blocks, frames, blockitems;
 
     int blocknum, itemnum;
@@ -5341,7 +5788,9 @@ int cbf_convert_dictionary (cbf_handle handle, cbf_handle dictionary )
 
       cbf_failnez( cbf_require_column   (dict, "parent"))
       
+	  cbf_failnez( cbf_require_column	(dict, "method_expression"))
  
+
     cbf_failnez( cbf_require_category   (dict, "items_enumerations(hash_table)"))
 
       cbf_failnez( cbf_require_column   (dict, "name(hash_next)"))
@@ -5356,7 +5805,7 @@ int cbf_convert_dictionary (cbf_handle handle, cbf_handle dictionary )
       cbf_failnez( cbf_require_column   (dict, "value"))
 
       cbf_failnez( cbf_require_column   (dict, "value_type"))
-           
+
 
       cbf_failnez (cbf_rewind_datablock (dictionary))
 
@@ -5453,7 +5902,7 @@ int cbf_convert_dictionary (cbf_handle handle, cbf_handle dictionary )
     }
 
     if (getenv("CBFLIB_DEBUG") ) cbf_failnez(cbf_write_file(dict,stderr,0,0,0,0))
-
+	
     return 0;
 
 }
@@ -6018,23 +6467,29 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
   cbf_node * colnode;
   
   cbf_node * ttnode;
+
+  cbf_handle functions_dict;
   
   const char * dictype;
   
-  const char * catname, * catroot;
+  const char * catname, * catroot, * functionname;
   
   const char * diccat, * diccatroot;
   
   const char * loopname;
 
+  const char * expression;
+
   unsigned int children, columns, rows;
   
   cbf_file * file;
   
-  char buffer[255];
+  char buffer[512];
   
   char itemname[82];
-    
+
+  cbf_node *dbp;
+
   int lcolumn=0, litemname=0;
   
   int count;
@@ -6098,7 +6553,6 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
                     
     */
 
-
     /* First validate the last category before the termination */
     
       cbf_failnez(cbf_validate(handle, node, CBF_CATEGORY, NULL))
@@ -6112,7 +6566,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
       if ( children == 0 ) {
       
         if (file != (cbf_file *)NULL) {
-        
+
           if ((tnode->name) != (char *)NULL)  {
 
             sprintf(buffer,
@@ -6290,6 +6744,56 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
       }
     }
 
+} else if (type == CBF_FUNCTION) {
+	
+	/* We come here at the start of a function declaration
+	   We need to 
+			check if there is a function definition
+			place declaration in functions dictionary
+	*/
+	
+	 if (!cbf_find_parent (&tnode, node, CBF_DATABLOCK)) {
+   
+   catname = tnode->name;
+
+   if (!cbf_count_children (&columns, tnode)) {
+   
+     if (columns == 0) cbf_log(handle,"function definition is missing",CBF_LOGWARNING|CBF_LOGSTARTLOC);
+     
+     else {
+        char location[255];
+
+		cbf_find_child (&node, node, catname);
+
+		functionname = node->name;
+
+		cbf_failnez(cbf_require_dictionary(handle, &functions_dict))
+
+		cbf_failnez(cbf_require_datablock(functions_dict, "cbf_functions"))
+
+	    cbf_failnez( cbf_require_category (functions_dict, "function_definitions"))
+
+	    cbf_failnez( cbf_require_column (functions_dict, "function_location"))
+
+	    cbf_failnez( cbf_require_column (functions_dict, "function_expression"))
+		
+		strcpy(location, catname);
+		
+		strcat(location, ".");
+		
+		strcat(location, functionname);
+
+		if (!cbf_find_local_tag(functions_dict,"function_location"))  {
+
+	            cbf_failnez( cbf_set_value(functions_dict, (const char *)location))
+
+	          }
+
+			/*cbf_construct_functions_dictionary(functions_dict, catname, functionname);*/
+			}
+	   }
+	}
+
   } else if (type == CBF_CATEGORY ) {
   
     /* We come here at the start of a new datablock element
@@ -6448,7 +6952,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
             cbf_log(handle, buffer, CBF_LOGWARNING|CBF_LOGSTARTLOC);
         	
           } else {
-                      
+        
             if (auxnode->name && auxnode->name[0]) {
             
               loopname = auxnode->name;
@@ -6578,6 +7082,16 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     char * flptr;
     	     
     int goodmatch;
+
+    int nullvalue;
+    
+    int generated;
+    						
+#ifdef CBF_USE_PYCIFRW
+    FILE *fout;
+
+    char output[255];
+#endif
     
     long ltest;
 
@@ -6588,6 +7102,10 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     char loval[255], hival[255];
     	                    
     char * colonpos;
+
+    char * callpos;
+    
+    char functionname[255];
     
     long symop, xlate;
     
@@ -6597,7 +7115,9 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     
     tokentype = (((char *)node)[0]);
 
+	nullvalue = 0;
 
+	generated = 0;
 
     if (handle->dictionary && (tnode = cbf_get_link(auxnode)) && (tnode->name) ){
     
@@ -6611,9 +7131,8 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	
     	      if (!cbf_find_column(handle->dictionary, "type_code") &&
     	        !cbf_get_value(handle->dictionary, &dictype)) {
-     	        
-    	        
-    	        goodmatch = 0;
+    	        	
+					goodmatch = 0;
     	       	                      
     	               
     	        if (tokentype==CBF_TOKEN_SCSTRING) {
@@ -6674,15 +7193,17 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        
     	        	case 0:
 
-    	        	case CBF_TOKEN_NULL:
+    	        	case CBF_TOKEN_NULL:			
+				      
+						nullvalue = 1;
+    	        	  	
+						goodmatch = 1;
 
-    	        	  goodmatch = 1;
-
-    	        	  break;
+    	        	  	break;
     	        	  
     	        	case CBF_TOKEN_WORD:
     	        	
-    	        	  if ( !cbf_cistrncmp(dictype,"implied",8) ) {
+    	        	    if ( !cbf_cistrncmp(dictype,"implied",8) ) {
     	        	  
     	        	    goodmatch = 1;
     	        	    
@@ -6790,10 +7311,24 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    goodmatch = 1; break;
     	        	  	
     	        	  }
-    	        	  
+					  /*Check if valuestring is a function call*/
+    	        	  if (!cbf_cistrncmp(valuestring,"::",2)) {
+	
+						callpos = strchr(valuestring,':');
+						
+						strcpy(functionname, callpos+2);
+						
+						 cbf_failnez(cbf_find_parent (&dbp, handle->node, CBF_DATABLOCK))
+						
+						
+						sprintf(buffer, "this is a function call to %s.%s", dbp->name,functionname);
+						
+						cbf_log(handle,buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
+					}
+
     	        	  if ( cbf_cistrncmp(dictype,"numb",4)
     	        	    || cbf_cistrncmp(dictype,"int",3)
-    	        	    || cbf_cistrncmp(dictype,"floa",4) ) {
+    	        	    || cbf_cistrncmp(dictype,"floa",4)) {
     	        	        	        	    
     	        	    ltest = strtol(valuestring, &endptr, 10);
 
@@ -6809,7 +7344,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    }
     	        	    
     	        	    if ( !cbf_cistrncmp(dictype,"numb",4)
-    	        	      || !cbf_cistrncmp(dictype,"floa",4) ) {
+    	        	      || !cbf_cistrncmp(dictype,"floa",4)) {
     	        	      
     	        	      dtest = strtod(valuestring, &endptr);
     	        	      
@@ -6821,20 +7356,21 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	      
     	        	        if (*endptr==')') { goodmatch = 1; break; }
     	        	        
-      	        	      }
-    	        	    	
+      	        	      }       	    	
     	        	    
     	        	    }
   	        	        	        	    
     	        	  }
     	        	  
-    	        	  if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break; }
-    	        	  break;
+#if defined(CBF_NO_REGEX)
+                      if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break;	}
+#endif
+                      break;
     	        	
     	        	case CBF_TOKEN_SQSTRING:
     	        	case CBF_TOKEN_DQSTRING:
     	        	
-    	        	  if ( !cbf_cistrncmp(dictype,"implied",8) ) {
+    	        if ( !cbf_cistrncmp(dictype,"implied",8) ) {
     	        	  
     	        	    goodmatch = 1;
     	        	    
@@ -6851,27 +7387,26 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    || !cbf_cistrncmp(dictype,"alia",4)
     	        	    || !cbf_cistrncmp(dictype,"atco",4)
     	        	    || !cbf_cistrncmp(dictype,"char",4)
-    	        	    || !cbf_cistrncmp(dictype,"ucha",4) ) { goodmatch = 1; break;   }
+    	        	    || !cbf_cistrncmp(dictype,"ucha",4)) { goodmatch = 1; break;   }
     	        	    
     	        	  if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break; }
     	        	  break;
 
     	        	
     	        	case CBF_TOKEN_SCSTRING:
-    	        	
-    	        	  if ( !cbf_cistrncmp(dictype,"implied",8) ) {
+
+					if ( !cbf_cistrncmp(dictype,"implied",8) ) {
     	        	  
     	        	    goodmatch = 1;
     	        	    
     	        	    break;
     	        	  	
     	        	  }
-
     	        	
     	        	  if(!cbf_cistrncmp(dictype,"text",4) 
     	        	    || !cbf_cistrncmp(dictype,"any",3)
     	        	    || !cbf_cistrncmp(dictype,"char",4)
-    	                || !cbf_cistrncmp(dictype,"ucha",4) ) { goodmatch = 1; break;   }
+    	                || !cbf_cistrncmp(dictype,"ucha",4)) { goodmatch = 1; break;   }
     	        	   
     	        	  if (!cbf_check_type_contents(dictype,valuestring)) { goodmatch = 1; break; }
     	        	  break;
@@ -6887,44 +7422,30 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	              || (((char *)node)[0]) == CBF_TOKEN_BIN 
     	              || (((char *)node)[0]) == CBF_TOKEN_MIME_BIN )  goodmatch = 1;
     	        	
-    	        } 
-    	                      
-    	        if (!goodmatch)   {
-    	          
-    	          sprintf(buffer," %s type conflicts with dictionary type %s", itemname, dictype );
-
-    	          cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
-    	          
-    	        } else {
-    	        
-    	          if (tokentype != CBF_TOKEN_NULL
-    	            && !cbf_find_tag(handle->dictionary,"_items_enumerations.name")) {
-    	          
-    	            if (!cbf_find_hashedvalue(handle->dictionary,itemname,"name", CBF_CASE_INSENSITIVE)) {
-    	            
-    	              int nextrow, valok, numb;
-    	              
-    	              double doubleval=0.0;
-    	              
-    	              const char *nextitem, *enumvalue, *enumvaluetype;
-    	              
-    	              char * endptr;
-    	              
-    	              cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
-    	              
-    	              valok = numb = 0;
-    	              
-    	              if ( cbf_cistrncmp(dictype,"numb",4)
-    	        	    || cbf_cistrncmp(dictype,"int",3)
-    	        	    || cbf_cistrncmp(dictype,"floa",4) ) {
-    	        	    
-    	        	    numb = 1;
-    	        	    
-    	        	    doubleval = strtod(valuestring, &endptr);
-    	        	  }
-
-    	              
-    	              while ( nextrow >=0 ) {
+    	        }       
+				if (nullvalue) {
+				/*
+				We come here if we come upon a missing value
+				
+				We need to generate a value if there is a given method in the dictionary
+				
+				*/
+				
+					int nextrow; 
+				
+					const char *nextitem;
+				
+					char mainitemname[81];
+					
+					mainitemname[80] = '\0';
+					
+					cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
+					
+					strncpy(mainitemname, itemname, 80);
+				
+					if(!cbf_find_tag(handle->dictionary, "_items.method_expression")) {
+						
+						while ( nextrow >=0 ) {
     	              
     	                cbf_failnez( cbf_find_column (handle->dictionary, "name"))
     	                
@@ -6932,25 +7453,217 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                
     	                cbf_failnez( cbf_get_value (handle->dictionary, &nextitem))
     	                
-    	                cbf_failnez( cbf_find_column (handle->dictionary, "name(hash_next)"))
+    	                cbf_failnez( cbf_find_column (handle->dictionary, "method_expression"))
     	                
-    	                cbf_failnez( cbf_get_integervalue(handle->dictionary, &nextrow))
+    	                cbf_failnez( cbf_get_value(handle->dictionary, &expression))
 
      	                if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
-    	                
-    	                  cbf_failnez( cbf_find_column (handle->dictionary, "value_type"))
-    	                  
-    	                  cbf_failnez( cbf_get_value (handle->dictionary, &enumvaluetype))
-    	                  
-    	                  cbf_failnez( cbf_find_column (handle->dictionary, "value"))
-    	                  
-    	                  cbf_failnez( cbf_get_value (handle->dictionary, &enumvalue))
-    	                  
-    	                  if (!cbf_cistrcmp(enumvaluetype,"value")) {
-    	                  
-    	                    if (!strcmp(enumvalue,valuestring) 
-    	                      || (numb && doubleval == strtod(enumvalue, &endptr))) {
-    	                    
+
+#ifdef CBF_USE_PYCIFRW 
+                if (expression!=NULL) {
+                        
+                    cbf_failnez(cbf_find_parent (&dbp, handle->node, CBF_DATABLOCK))
+                                
+                    cbf_drel(handle, handle->dictionary, mainitemname,     dbp->name, expression);
+                            
+                    fout = fopen("method_output", "r");
+                        
+                    fscanf(fout, "%s", output);
+    
+                    fclose(fout);
+                            
+                    sprintf(buffer, "%s value missing - CBFlib generated value: %s", mainitemname, output);
+                            
+                    cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
+                            
+                    valuestring = output;
+                            
+                    tokentype = CBF_VALUE;
+                            
+                    generated = 1;
+                    
+                }
+                
+#endif        
+                break;
+                            
+            }
+
+        }
+                
+    }
+
+ }
+
+                 else {
+                        /*
+                        
+                        We come here to check if there is a given method in the dictionary
+                        
+                        to validate our given value against it
+                        
+                        */
+                        int nextrow; 
+                
+                        const char *nextitem;
+                
+                         char mainitemname[81];
+                    
+                        /* TODO: replace the use of preprocessing script with cbf_set_columname()
+                        
+                        char columnname[81];    
+                        
+                        char* columnnametemp;
+                        
+                        char columnnamelocal[81];
+                        
+                        */
+                        mainitemname[80] = '\0';
+                      
+                        cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
+             
+                        strncpy(mainitemname, itemname, 80);
+                    
+                        if(!cbf_find_tag(handle->dictionary, "_items.method_expression")) {
+                
+                        while ( nextrow >=0 ) {
+                      
+                        cbf_failnez( cbf_find_column (handle->dictionary, "name"))
+                        
+                        cbf_failnez( cbf_select_row (handle->dictionary, nextrow))
+                        
+                        cbf_failnez( cbf_get_value (handle->dictionary, &nextitem))
+                        
+                        cbf_failnez( cbf_find_column (handle->dictionary, "method_expression"))
+                        
+                        cbf_failnez( cbf_get_value(handle->dictionary, &expression))
+
+                        if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
+                        
+#ifdef CBF_USE_PYCIFRW
+                        if (expression!=NULL){
+                            /*
+                            
+                            cbf_falinez(cbf_column_name(handle, &columnnametemp))
+                                
+                            strcpy(columnnametemp, columnname);
+                                
+                            fprintf(stderr, "Column Name Temp: %s", columnnametemp);
+                                
+                            strcpy(columnnamelocal, columnname);
+                                
+                            strcat(columnnamelocal, "_local");
+                                
+                            fprintf(stderr, "Column Name Local: %s", columnnamelocal);
+                                
+                            */
+                        
+                            cbf_failnez(cbf_find_parent (&dbp, handle->node, CBF_DATABLOCK))
+    
+                            /*
+                            
+                            cbf_failnez(cbf_set_columnname(handle, columnnamelocal))
+                                
+                            */
+                        
+                            cbf_drel(handle, handle->dictionary, mainitemname,     dbp->name, expression);
+                            
+                            /*cbf_falinez(cbf_set_columnname(handle, columnname))*/
+                                
+                            
+                            fout = fopen("method_output", "r");
+                                
+                            if (fout) {
+                        
+                                fscanf(fout, "%s", output);
+    
+                                fclose(fout);
+                            
+                                if (cbf_cistrcmp(valuestring,output)) {
+                            
+                                    sprintf(buffer, "%s value provided conflicts with generated value. CBFlib generated value %s: ", mainitemname, output);
+                            
+                                    cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
+              
+                                }    
+                            
+                            }   
+                   
+                       }
+#endif
+                    break;
+                        
+                }
+                      
+             }
+                
+         }
+                
+     }
+                
+                if (!goodmatch)   {
+
+                  sprintf(buffer," %s type conflicts with dictionary type %s", itemname, dictype );
+
+                  cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
+               
+                } else {
+                    
+                  if (tokentype != CBF_TOKEN_NULL
+                    && !cbf_find_tag(handle->dictionary,"_items_enumerations.name")) {
+                
+                    if (!cbf_find_hashedvalue(handle->dictionary,itemname,"name", CBF_CASE_INSENSITIVE)) {
+                    
+                      int nextrow, valok, numb;
+                      
+                      double doubleval=0.0;
+                      
+                      const char *nextitem, *enumvalue, *enumvaluetype;
+                      
+                      char * endptr;
+                      
+                      cbf_failnez(cbf_row_number(handle->dictionary, (unsigned int *) &nextrow))
+                      
+                      valok = numb = 0;
+                    
+                      if ( cbf_cistrncmp(dictype,"numb",4)
+                        || cbf_cistrncmp(dictype,"int",3)
+                        || cbf_cistrncmp(dictype,"floa",4)
+                        || cbf_cistrncmp(dictype,"real",4)) {
+                        
+                        numb = 1;
+                        
+                        doubleval = strtod(valuestring, &endptr);
+                      }
+
+                    
+                      while ( nextrow >=0 ) {
+                      
+                        cbf_failnez( cbf_find_column (handle->dictionary, "name"))
+                        
+                        cbf_failnez( cbf_select_row (handle->dictionary, nextrow))
+                        
+                        cbf_failnez( cbf_get_value (handle->dictionary, &nextitem))
+                        
+                        cbf_failnez( cbf_find_column (handle->dictionary, "name(hash_next)"))
+                        
+                        cbf_failnez( cbf_get_integervalue(handle->dictionary, &nextrow))
+
+                         if (nextitem && !cbf_cistrcmp(nextitem, itemname)) {
+                        
+                          cbf_failnez( cbf_find_column (handle->dictionary, "value_type"))
+                          
+                          cbf_failnez( cbf_get_value (handle->dictionary, &enumvaluetype))
+                          
+                          cbf_failnez( cbf_find_column (handle->dictionary, "value"))
+                          
+                          cbf_failnez( cbf_get_value (handle->dictionary, &enumvalue))
+                          
+                          if (!cbf_cistrcmp(enumvaluetype,"value")) {
+                          
+                            if (!strcmp(enumvalue,valuestring) 
+                              || (numb && doubleval == strtod(enumvalue, &endptr))) {
+                            
     	                      valok = 1;
     	                      
     	                      break;
@@ -6970,10 +7683,13 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	                      strcpy(hival, colonpos+1);
     	                      
     	                      if (numb) {
-    	                      
+								
     	                        if (loval[0]!= '\0' 
     	                          && !strcmp(loval,",")
-    	                          && cbf_match(loval, "^-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?")){
+#if !defined(CBF_NO_REGEX)
+    	                          && cbf_match(loval, "^-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?")
+#endif
+                                    ){
 
                                   sprintf(buffer,"illegal lower range value %s", loval);
 
@@ -6982,7 +7698,10 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
                                 }
                                 if (hival[0]!= '\0' 
     	                          && !strcmp(hival,",")
-                                  && cbf_match(hival, "^-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?")){
+#if !defined(CBF_NO_REGEX)
+                                  && cbf_match(hival, "^-?(([0-9]+)|([0-9]*[.][0-9]+))([(][0-9]+[)])?([eE][+-]?[0-9]+)?")
+#endif
+                                    ){
 
                                    sprintf(buffer,"illegal higher range value %s", hival);
 
@@ -7071,11 +7790,17 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	              } /* while ( nextrow >=0 ) */
     	              
     	              if (!valok) {
-    	              
-    	                 sprintf(buffer," %s value out of dictionary range", itemname);
+   						 if (!generated) {
+    	                 sprintf(buffer,"%s value out of dictionary range", itemname);
     	              	
     	                 cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
 
+						}
+						else {
+						 sprintf(buffer,"%s generated value is out of dictionary range", itemname);
+    	              	
+    	                 cbf_log(handle, buffer,CBF_LOGWARNING|CBF_LOGSTARTLOC);
+						}
     	              }
     	            	
     	            }
@@ -7482,7 +8207,7 @@ int cbf_mpint_rightshift_acc(unsigned int * acc, size_t acsize, int shift) {
 
     extrabits = 0;
 
-    if (acc[acsize-1]<0) extrabits = ~0;
+    if (((int)(acc[acsize-1]))<0) extrabits = ~0;
 
     bigshift = shift/(sizeof(unsigned int)*CHAR_BIT);
 
@@ -7507,7 +8232,7 @@ int cbf_mpint_rightshift_acc(unsigned int * acc, size_t acsize, int shift) {
   
   extrabits = 0;
 
-  if (acc[acsize]&sign) extrabits = (~0)<<(sizeof(unsigned int)*CHAR_BIT-shift);
+  if (acc[acsize-1]&sign) extrabits = (~0)<<(sizeof(unsigned int)*CHAR_BIT-shift);
 
   mask = ~((~0)<<(sizeof(unsigned int)*CHAR_BIT-shift));
 
@@ -7585,6 +8310,82 @@ int cbf_mpint_leftshift_acc(unsigned int * acc, size_t acsize, int shift) {
   return 0;
 
 }
+    
+    /* get accumulator bit length */
+    
+int cbf_mpint_get_acc_bitlength(unsigned int * acc, size_t acsize, size_t * bitlength) {
+    
+    /*  Get the bitlength that would be required to hold the bits
+        of the accumulator as a sign-extended integer */
+        
+    unsigned int sign;
+    
+    unsigned int tbit;
+    
+    size_t bcount, word, boffset;
+    
+    unsigned int testword;
+    
+    sign = 1 << (sizeof(unsigned int)*CHAR_BIT-1);
+    
+    word = acsize - 1;
+    
+    testword = acc[word];
+    
+    if ( word == 0 && testword == 0) {
+        
+        *bitlength = 1;
+        
+        return 0;
+        
+    }    
+    
+    sign &= testword; /* sign bit of acc */
+    
+    tbit = 0;
+    
+    if (sign) tbit = 1;
+    
+    bcount = acsize * sizeof (int) * CHAR_BIT-2;
+    
+    boffset = bcount - (acsize - 1) * sizeof (int) * CHAR_BIT;
+    
+    while ( bcount) {
+        
+        if ( ( (testword >> boffset) & 1) ^ tbit ) break;
+        
+        if (boffset == 0) {
+                        
+            word --;
+            
+            testword = acc[word];
+            
+            if ( word == 0 && testword == 0) {
+                
+                *bitlength = 1;
+                
+                return 0;
+                
+            }
+            
+            
+            boffset = sizeof (int) * CHAR_BIT;
+        }
+        
+        bcount --;
+        
+        boffset --;
+            
+    }
+        
+    *bitlength = bcount + 2;
+    
+    if (bcount > acsize * sizeof (int) * CHAR_BIT -2) *bitlength = acsize * sizeof (int) * CHAR_BIT;
+
+    return 0;
+    
+}
+    
 
   /* Check value of type validity */
   
@@ -7632,7 +8433,7 @@ int cbf_check_type_contents (const char *type, const char *value){
 	}else if (!cbf_cistrcmp(type,"Range")) {
 		
 		/*Integer ? : Integer ?*/
-		return cbf_match(value,"[+-]?[0-9]+:[+-]?[0-9]+");
+		return cbf_match(value,"([+-]?[0-9]+)?:([+-]?[0-9]+)?");
 		
 	}else if (!cbf_cistrcmp(type,"Digit")) {
 		
@@ -7727,6 +8528,16 @@ int cbf_check_type_contents (const char *type, const char *value){
   /* Regex Match function */
   
 int cbf_match(const char *string, char *pattern) { 
+    
+#if defined(CBF_NO_REGEX)
+    
+    fprintf(stderr,
+            "\nCBFlib: error -- regular expression matching suppressed\n"
+              "        rebuild CBFlib without defining CBF_NO_REGEX\n"
+              "        with regex installed\n");
+    exit(1);
+    
+#else
 	
 	int status; 
 	
@@ -7746,9 +8557,100 @@ int cbf_match(const char *string, char *pattern) {
 	
 	    return 1;
 	} 
+    
+#endif
 	return 0;
 }
 
+#ifdef CBF_USE_PYCIFRW
+/* Interpreter for dREL method expression */
+
+int cbf_drel(cbf_handle handle, cbf_handle dict, const char *mainitemname, const char *datablock, const char *expression) {
+							
+	/* TODO: replace system calls with pipes */
+
+	FILE *f, *fdic, *fdata; 
+	
+	char preprocess[512] = "python ~/bin/drel_prep.py ";
+
+	char evaluate[512] = "python ~/bin/drelc.py ";
+
+	f = fopen("method_expression", "w");
+						
+	fprintf(f, "%s", expression);			
+	
+	fclose(f);
+	
+	fdic = fopen("cbf_dictionary_debug", "w");
+	
+	if (fdic) {
+			
+	  cbf_failnez(cbf_write_widefile(dict,fdic,0,0,0,0))
+	  
+    }
+    
+    fdata = fopen("cbf_data_debug", "w");
+	
+	if (fdata) {
+		
+	  cbf_failnez(cbf_write_widefile(handle,fdata,0,0,0,0))
+	  
+	}
+	
+	strcat(preprocess, mainitemname);
+	
+	system(preprocess);
+	
+	strcat(evaluate, mainitemname);
+	
+	strcat(evaluate, " ");
+	
+	strcat(evaluate, datablock);
+
+	system(evaluate);
+	
+	rename("method_expression", "method_expression.old");
+						
+	return 0;
+
+}
+#endif
+
+/* Construct functions dictionary */
+
+int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablockname, const char *functionname) {
+	
+	char location[2049];
+	
+	FILE * ffuncs;
+  
+   	cbf_failnez( cbf_require_datablock (dict, "cbf_functions"))
+    
+
+    cbf_failnez( cbf_require_category (dict, "function_definitions"))
+    
+    cbf_failnez( cbf_require_column (dict, "function_location"))
+
+    cbf_failnez( cbf_require_column (dict, "function_expression"))
+
+	strcpy(location, datablockname);
+
+	strcat(location, ".");
+
+	strcat(location, functionname);
+	
+	if (!cbf_find_local_tag(dict,"function_location"))  {
+
+            cbf_failnez( cbf_set_value(dict, location))
+
+          }
+          
+	ffuncs = fopen("cbf_functions_debug","w");
+
+	cbf_failnez(cbf_write_widefile(dict,ffuncs,0,0,0,0))
+	
+	return 0;
+}
 #ifdef __cplusplus
 
 }

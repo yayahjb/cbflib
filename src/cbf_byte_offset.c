@@ -441,6 +441,7 @@ int cbf_compress_byte_offset (void         *source,
         
         /* Write the elements */
         
+#ifndef CBF_NOFAST_BYTE_OFFSET
         /* First try a fast memory-memory transfer */  
         
         switch (elsize) {
@@ -449,28 +450,49 @@ int cbf_compress_byte_offset (void         *source,
              not make much sense, but we can at
              least do it quickly */
                 
-                if (!cbf_set_output_buffersize(file,nelem))  {
-                    
-                    unsigned char pc;
+                if (!cbf_set_output_buffersize(file,nelem*2))  {
                     
                     unsigned_char_dest = 
                     (unsigned char *)(file->characters+file->characters_used);
                     
-                    pc = 0x00;
-                    
-                    for (count = 0; count < nelem; count+= 8) {
-                        
-                        *unsigned_char_dest++ = *unsigned_char_data - pc;
-                        
+                    if (elsign) {
+                      char pc = 0;
+                      int delta;
+                      for (count = 0; count < nelem; count++) {
+                        delta = *unsigned_char_data - pc;
+                        if (delta < -127 || delta > 127) {
+                          *unsigned_char_dest++ = 0x80;
+                          *unsigned_char_dest++ = delta & 0xff;
+                          *unsigned_char_dest++ = (delta >> 8) & 0xff;
+                          csize += 3;
+                        } else {
+                          *unsigned_char_dest++ = delta;
+                          csize++;
+                        }
                         pc = *unsigned_char_data++;
-                        
+                      }
+                    } else {
+                      unsigned char pc = 0;
+                      int delta;
+                      for (count = 0; count < nelem; count++) {
+                        delta = *unsigned_char_data - pc;
+                        if (delta < -127 || delta > 127) {
+                          *unsigned_char_dest++ = 0x80;
+                          *unsigned_char_dest++ = delta & 0xff;
+                          *unsigned_char_dest++ = (delta >> 8) & 0xff;
+                          csize += 3;
+                        } else {
+                          *unsigned_char_dest++ = delta;
+                          csize++;
+                        }
+                        pc = *unsigned_char_data++;
+                      }
                     }
-                    
-                    file->characters_used+=nelem;
+                    file->characters_used+=csize;
                     
                     if (compressedsize)
                         
-                        *compressedsize = nelem;
+                        *compressedsize = csize;
                     
                     return 0;
                     
@@ -828,6 +850,7 @@ int cbf_compress_byte_offset (void         *source,
             default:
                 break;
         }
+#endif
         
         /* If we got here, we will do it the slow, painful way */
         
@@ -901,6 +924,8 @@ int cbf_compress_byte_offset (void         *source,
                 
                 cbf_failnez(cbf_mpint_add_acc((unsigned int *)delta, numints, element, numints))
                 
+                if (delta[numints-1] & sign) delta[numints-1] |= (~limit);
+                
             } else  {
                 
                 delta[0] = element[0] - prevelement[0];
@@ -968,7 +993,7 @@ int cbf_compress_byte_offset (void         *source,
                     
                     cbf_failnez(cbf_put_bits(file,&bflag,24))
                     
-                    for (iint = 0; iint < numints; iint++) {
+                    for (iint = 0; iint < kint+1; iint++) {
                         
                         cbf_failnez (cbf_put_integer (file, delta[iint],
                                                       iint==numints-1?1:0,
@@ -984,7 +1009,7 @@ int cbf_compress_byte_offset (void         *source,
                     
                     cbf_failnez(cbf_put_bits(file,&bbflag,32))
                     
-                    for (iint = 0; iint < numints; iint++) {
+                    for (iint = 0; iint < kint+1; iint++) {
                         
                         cbf_failnez (cbf_put_integer (file, delta[iint],
                                                       iint==numints-1?1:0,
@@ -1015,11 +1040,12 @@ int cbf_compress_byte_offset (void         *source,
 
   /* Decompress an array with the byte-offset algorithm */
 
-int cbf_decompress_byte_offset (void         *destination,
+int cbf_decompress_byte_offset_slow (void         *destination,
                                 size_t        elsize,
                                 int           elsign,
                                 size_t        nelem,
                                 size_t       *nelem_read,
+                                size_t        compressedsize,
                                 unsigned int  compression,
                                 int           data_bits,
                                 int           data_sign,
@@ -1267,6 +1293,13 @@ int cbf_decompress_byte_offset (void         *destination,
 
     element[numints-1] -= unsign;
 
+#if DEBUGPRINT == 1
+    fprintf(stderr, "i: %d, 1", numread);
+    fprintf(stderr, " = %d", element[0]);
+    for (iint = 1; iint < numints; iint++)
+      fprintf(stderr, ", %d", element[iint]);
+    fprintf(stderr, "\n");
+#endif
 
       /* Save the element */
 
@@ -1327,6 +1360,772 @@ int cbf_decompress_byte_offset (void         *destination,
   return overflow;
 }
 
+
+/*
+ * this fast version assumes chars are 8 bits
+ * and signed integers are represented in two's complement format
+ */
+int cbf_decompress_byte_offset_fast(void         *destination,
+                                size_t        elsize,
+                                int           elsign,
+                                size_t        nelem,
+                                size_t       *nelem_read,
+                                size_t        compressedsize,
+                                unsigned int  compression,
+                                int           data_bits,
+                                int           data_sign,
+                                cbf_file     *file,
+                                int           realarray,
+                                const char   *byteorder,
+                                size_t        dimover,
+                                size_t        dimfast,
+                                size_t        dimmid,
+                                size_t        dimslow,
+                                size_t        padding)
+{
+    unsigned char *unsigned_char_data;
+    
+    char * border;
+    
+    char * rformat;
+    
+    size_t numread;
+    
+    CBF_sll_type delta;
+    
+    int i = 0;
+    
+    unsigned char *rawdata = NULL;
+    
+    
+    /* Is the element size valid? */
+    
+    if (elsize != sizeof (int) &&
+        elsize != 2* sizeof (int) &&
+        elsize != 4* sizeof (int) &&
+        elsize != sizeof (short) &&
+        elsize != sizeof (char)) {
+        
+        return CBF_ARGUMENT;
+    }
+    
+    if (elsize != 1 && elsize != 2 && elsize != 4 && elsize !=8 ) {
+        
+        return CBF_ARGUMENT;
+    }
+    
+    /* check for compatible real format */
+    
+    if ( realarray ) {
+        
+        cbf_failnez (cbf_get_local_real_format(&rformat) )
+        
+        if ( strncmp(rformat,"ieee",4) ) return CBF_ARGUMENT;
+        
+    }
+    
+    /* Check the stored element size */
+    
+    if (data_bits < 1 || data_bits > 64)
+        
+        return CBF_ARGUMENT;
+    
+    
+    /* Initialise the pointer */
+    
+    unsigned_char_data = (unsigned char *) destination;
+    
+    
+    /* Get the local byte order */
+    
+    if (realarray) {
+        
+        cbf_get_local_real_byte_order(&border);
+        
+    } else {
+        
+        cbf_get_local_integer_byte_order(&border);
+        
+    }
+    
+    /* get all compressed data */
+    if (file->characters_used >= compressedsize) {
+        rawdata = (unsigned char *) file->characters;
+        file->characters += compressedsize;
+        file->characters_size -= compressedsize;
+        file->characters_used -= compressedsize;
+    } else {
+        if (file->temporary == 0) {
+            rawdata = malloc(compressedsize);
+            if (rawdata == NULL) {
+                fprintf(stderr, "Out of memory\n");
+                return CBF_OVERFLOW;
+            }
+            if (file->stream == NULL) {
+                fprintf(stderr, "No file stream associated with handle\n");
+                return CBF_NOTFOUND;
+            }
+            if (fread(rawdata, 1, compressedsize, file->stream) != compressedsize) {
+                rawdata = NULL;
+            }
+        }
+    }
+    
+    if (rawdata == NULL)
+        return CBF_FILEREAD; /* cannot find data */
+    
+    numread = 0;
+    
+    if (elsign) {
+#ifdef CBF_USE_LONG_LONG
+        
+        long long base = 0;
+        
+        unsigned char *baseaddr;
+        
+        
+        if (border[0] == 'b') {
+            
+            baseaddr = (unsigned char *) &base + sizeof(CBF_sll_type) - elsize;
+            
+        } else {
+            
+            baseaddr = (unsigned char *) &base;
+            
+        }
+        
+#else
+        unsigned int sign, precarry;
+        
+        size_t el0, el1;
+        
+#if CBF_SLL_INTS == 2
+        CBF_sll_type base = {0,0};
+        
+#else
+        CBF_sll_type base = {0,0,0,0};
+        
+        size_t el2, el3, fl0, fl1;
+        
+#endif
+        sign = 1 << (sizeof(unsigned int)*CHAR_BIT-1);
+        
+        if (border[0] == 'b') {
+            
+#if CBF_SLL_INTS > 2
+            el0 = 3;
+            
+            el1 = 2;
+            
+            el2 = 1;
+            
+            el3 = 0;
+            
+            fl0 = 1;
+            
+            fl1 = 0;
+            
+#else
+            el0 = 1;
+            
+            el1 = 0;
+            
+#endif
+            
+        } else {
+            
+            el0 = 0;
+            
+            el1 = 1;
+            
+#if CBF_SLL_INTS > 2
+            el2 = 2;
+            
+            el3 = 3;
+            
+            fl0 = 0;
+            
+            fl1 = 1;
+            
+#endif
+            
+        }
+        
+        
+#endif
+        
+#ifdef CBF_USE_LONG_LONG
+        while (i < compressedsize) {
+            int j;
+            
+            delta = (signed char) rawdata[i++];
+            if (delta == (signed char) 0x80) {
+                delta = rawdata[i++];
+                delta |= (signed char) rawdata[i++] << 8;
+                
+                if (delta == (short) 0x8000) {
+                    delta = rawdata[i++];
+                    delta |= rawdata[i++] << 8;
+                    delta |= rawdata[i++] << 16;
+                    delta |= (signed char) rawdata[i++] << 24;
+                    
+                    if ((long) (delta & 0xffffffff) == (long) 0x80000000) {
+                        delta = rawdata[i++];
+                        delta |= rawdata[i++] << 8;
+                        delta |= rawdata[i++] << 16;
+                        delta |= (unsigned long long) rawdata[i++] << 24;
+                        delta |= (unsigned long long) rawdata[i++] << 32;
+                        delta |= (unsigned long long) rawdata[i++] << 40;
+                        delta |= (unsigned long long) rawdata[i++] << 48;
+                        delta |= (signed long long) rawdata[i++] << 56;
+                    }
+                }
+            }
+            
+            base += delta;
+            
+            for (j = 0; j < elsize; j++)
+                *unsigned_char_data++ = baseaddr[j];
+            numread++;
+        }
+#else
+#if CBF_SLL_INTS==2
+        while (i < compressedsize) {
+            delta.el1 = 0;
+            delta.el0 = (signed char) rawdata[i++];
+            if (delta.el0 == (signed char) 0x80) {
+                delta.el0 = rawdata[i++];
+                delta.el0 |= (signed char) rawdata[i++] << 8;
+                if (delta.el0 & 0x8000L) {
+                    delta.el0 |= ~0x7FFFL;
+                    delta.el1 = ~0L;
+                }
+                
+                if ((delta.el0 & 0xffffL) ==  0x8000) {
+                    delta.el1 = 0;
+                    delta.el0 = rawdata[i++];
+                    delta.el0 |= rawdata[i++] << 8;
+                    delta.el0 |= rawdata[i++] << 16;
+                    delta.el0 |= (signed char) rawdata[i++] << 24;
+                    if (delta.el0 & 0x80000000L) {
+                        delta.el0 |= ~0x7FFFFFFFL;
+                        delta.el1 = ~0L;
+                    }
+                    
+                    if ((delta.el0 & 0xffffffffL) == 0x80000000L) {
+                        delta.el0 = 0;
+                        delta.el0 = rawdata[i++];
+                        delta.el0 |= rawdata[i++] << 8;
+                        delta.el0 |= rawdata[i++] << 16;
+                        delta.el0 |= rawdata[i++] << 24;
+                        delta.el1 = rawdata[i++];
+                        delta.el1 |= rawdata[i++] << 8;
+                        delta.el1 |= rawdata[i++] << 16;
+                        delta.el1 |= (signed char) rawdata[i++] << 24;
+                    }
+                }
+            }
+            
+            precarry = 0;
+            
+            if (base.el0 & sign) precarry++;
+            
+            if (delta.el0 & sign) precarry++;
+            
+            base.el0 += delta.el0;
+            
+            if (precarry == 2 || (precarry == 1 && !(base.el0&sign) ) ) base.el1++;
+            
+            base.el1+= delta.el1;
+            
+            
+            switch (elsize) {
+                    
+                case (sizeof(unsigned int) *2):
+                    
+                    ((unsigned int *)unsigned_char_data)[el0] = base.el0;
+                    
+                    ((unsigned int *)unsigned_char_data)[el1] = base.el1;
+
+                    break;
+                    
+                case (sizeof(unsigned int) ):
+                    
+                    ((unsigned int *)unsigned_char_data)[0] = base.el0;
+                    
+                    break;
+                    
+                case (sizeof(unsigned short) ):
+                    
+                    ((unsigned short *)unsigned_char_data)[0] = (unsigned short)base.el0;
+                    
+                    break;
+                    
+                case (sizeof(unsigned char) ):
+                    
+                    ((unsigned char *)unsigned_char_data)[0] = (unsigned char)base.el0;
+
+                    break;
+                    
+            }
+                                
+            
+            unsigned_char_data+= elsize;
+            
+            numread++;
+        }
+#else
+        while (i < compressedsize) {
+            delta.el1 = delta.el2 = delta.el3 = 0;
+            delta.el0 = (signed char) rawdata[i++];
+            if (delta.el0 == (signed char) 0x80) {
+                delta.el0 = rawdata[i++];
+                delta.el0 |= (signed char) rawdata[i++] << 8;
+                if (delta.el0 & 0x8000) delta.el1 = delta.el2 = delta.el3 = ~0;
+                
+                if ((delta.el0 & 0xffff) == 0x8000) {
+                    delta.el2 = delta.el3 = 0;
+                    delta.el0 = rawdata[i++];
+                    delta.el0 |= rawdata[i++] << 8;
+                    delta.el1 = rawdata[i++];
+                    delta.el1 |= (signed char) rawdata[i++] << 8;
+                    if (delta.el1 & 0x8000) delta.el2 = delta.el3 = ~0;
+                    
+                    if (delta.el0 == 0 && (delta.el1 & 0x8000) == 0x8000) {
+                        delta.el0 = rawdata[i++];
+                        delta.el0 |= rawdata[i++] << 8;
+                        delta.el1 = rawdata[i++];
+                        delta.el1 |= rawdata[i++] << 8;
+                        delta.el2 = rawdata[i++];
+                        delta.el2 |= rawdata[i++] << 8;
+                        delta.el3 = rawdata[i++];
+                        delta.el3 |= (signed char)rawdata[i++] << 8;
+                    }
+                }
+            }
+            
+            precarry = 0;
+            
+            if (base.el0 & sign) precarry++;
+            
+            if (delta.el0 & sign) precarry++;
+            
+            base.el0 += delta.el0;
+            
+            if (precarry == 2 || (precarry == 1 && !(base.el0&sign) ) ) base.el1++;
+            
+            precarry = 0;
+            
+            if (base.el1 & sign) precarry++;
+            
+            if (delta.el1 & sign) precarry++;
+            
+            base.el1+= delta.el1;
+            
+            if (precarry == 2 || (precarry == 1 && !(base.el1&sign) ) ) base.el2++;
+            
+            precarry = 0;
+            
+            if (base.el2 & sign) precarry++;
+            
+            if (delta.el2 & sign) precarry++;
+            
+            base.el2+= delta.el2;
+            
+            if (precarry == 2 || (precarry == 1 && !(base.el1&sign) ) ) base.el3++;
+            
+            base.el1+= delta.el1;
+            
+            switch (elsize) {
+                    
+                case (sizeof(unsigned int) *4):
+                    
+                    ((unsigned int *)unsigned_char_data)[el0] = base.el0;
+                    
+                    ((unsigned int *)unsigned_char_data)[el1] = base.el1;
+                    
+                    ((unsigned int *)unsigned_char_data)[el2] = base.el2;
+                    
+                    ((unsigned int *)unsigned_char_data)[el3] = base.el3;
+
+                    break;
+                    
+                case (sizeof(unsigned int) *2 ):
+                    
+                    ((unsigned int *)unsigned_char_data)[fl0] = base.el0;
+                    
+                    ((unsigned int *)unsigned_char_data)[fl1] = base.el1;
+                    
+                    break;
+                                        
+                case (sizeof(unsigned char) ):
+                    
+                    ((unsigned char *)unsigned_char_data)[0] = base.el0;
+                    
+                    break;
+                    
+            }
+                        
+            unsigned_char_data+= elsize;
+            
+            numread++;
+            
+        }
+        
+#endif
+#endif
+    } else {
+#ifdef CBF_USE_LONG_LONG
+        unsigned long long base = 0;
+        
+        unsigned long long basemask = 0;
+        
+        unsigned char *baseaddr;
+        
+        int j;
+        
+        for (j = 0; j < elsize*8; j++) {
+            basemask <<= 1;
+            basemask |= 1;
+        }
+        
+        
+        if (border[0] == 'b') {
+            
+            baseaddr = (unsigned char *) &base + sizeof(CBF_ull_type) - elsize;
+            
+        } else {
+            
+            baseaddr = (unsigned char *) &base;
+            
+        }
+        
+#else
+        unsigned int sign, precarry;
+        
+        size_t el0, el1;
+        
+        
+#if CBF_ULL_INTS == 2
+        CBF_ull_type base = {0,0};
+        
+#else
+        CBF_ull_type base = {0,0,0,0};
+        
+        size_t el2, el3, fl0, fl1;
+        
+#endif
+        sign = 1 << (sizeof(unsigned int)*CHAR_BIT-1);
+        
+        if (border[0] == 'b') {
+            
+#if CBF_ULL_INTS > 2
+            el0 = 3;
+            
+            el1 = 2;
+            
+            el2 = 1;
+            
+            el3 = 0;
+            
+            fl0 = 1;
+            
+            fl1 = 2;
+#else
+            el0 = 1;
+            
+            el1 = 0;
+#endif
+            
+        } else {
+            
+            el0 = 0;
+            
+            el1 = 1;
+            
+#if CBF_SLL_INTS > 2
+            el2 = 2;
+            
+            el3 = 3;
+            
+            fl0 = 0;
+            
+            fl1 = 1;
+            
+#endif
+            
+        }
+        
+        
+#endif
+        
+#ifdef CBF_USE_LONG_LONG
+        while (i < compressedsize) {
+            delta = (signed char) rawdata[i++];
+            if (delta == (signed char) 0x80) {
+                delta = rawdata[i++];
+                delta |= (signed char) rawdata[i++] << 8;
+                
+                if (delta == (short) 0x8000) {
+                    delta = rawdata[i++];
+                    delta |= rawdata[i++] << 8;
+                    delta |= rawdata[i++] << 16;
+                    delta |= (signed char) rawdata[i++] << 24;
+                    
+                    if ((long) (delta & 0xffffffff) == (long) 0x80000000) {
+                        delta = rawdata[i++];
+                        delta |= rawdata[i++] << 8;
+                        delta |= rawdata[i++] << 16;
+                        delta |= (unsigned long long) rawdata[i++] << 24;
+                        delta |= (unsigned long long) rawdata[i++] << 32;
+                        delta |= (unsigned long long) rawdata[i++] << 40;
+                        delta |= (unsigned long long) rawdata[i++] << 48;
+                        delta |= (signed long long) rawdata[i++] << 56;
+                    }
+                }
+            }
+            
+            base += delta;
+            base &= basemask;
+            
+            for (j = 0; j < elsize; j++)
+                *unsigned_char_data++ = baseaddr[j];
+            numread++;
+        }
+#else
+#if CBF_SLL_INTS==2
+        while (i < compressedsize) {
+            delta.el1 = 0;
+            delta.el0 = (signed char) rawdata[i++];
+            if (delta.el0 == (signed char) 0x80) {
+                delta.el0 = rawdata[i++];
+                delta.el0 |= (signed char) rawdata[i++] << 8;
+                if (delta.el0 & 0x8000L) {
+                    delta.el0 |= ~0x7FFFL;
+                    delta.el1 = ~0L;
+                }
+                
+                if ((delta.el0 & 0xffff) ==  0x8000) {
+                    delta.el1 = 0;
+                    delta.el0 = rawdata[i++];
+                    delta.el0 |= rawdata[i++] << 8;
+                    delta.el0 |= rawdata[i++] << 16;
+                    delta.el0 |= (signed char) rawdata[i++] << 24;
+                    if (delta.el0 & 0x80000000L) delta.el1 = ~0;
+                    
+                    if ((delta.el0 & 0xffffffff) == 0x80000000) {
+                        delta.el0 = rawdata[i++];
+                        delta.el0 |= rawdata[i++] << 8;
+                        delta.el0 |= rawdata[i++] << 16;
+                        delta.el0 |= rawdata[i++] << 24;
+                        delta.el1 = rawdata[i++];
+                        delta.el1 |= rawdata[i++] << 8;
+                        delta.el1 |= rawdata[i++] << 16;
+                        delta.el1 |= (signed char) rawdata[i++] << 24;
+                    }
+                }
+            }
+            
+            precarry = 0;
+            
+            if (base.el0 & sign) precarry++;
+            
+            if (delta.el0 & sign) precarry++;
+            
+            base.el0 += delta.el0;
+            
+            if (precarry == 2 || (precarry == 1 && !(base.el0&sign) ) ) base.el1++;
+            
+            base.el1+= delta.el1;
+            
+            base.el1 &= 0xffffffffL;
+            
+            switch (elsize) {
+                    
+                case (sizeof(unsigned int) *2):
+                    
+                    ((unsigned int *)unsigned_char_data)[el0] = base.el0;
+                    
+                    ((int *)unsigned_char_data)[el1] = (int)base.el1;
+                    
+                    break;
+                    
+                case (sizeof(int) ):
+                    
+                    ((int *)unsigned_char_data)[0] = (int)base.el0;
+                    
+                    break;
+                    
+                case (sizeof(short) ):
+                    
+                    ((short *)unsigned_char_data)[0] = (short)base.el0;
+                    
+                    break;
+                    
+                case (sizeof(char) ):
+                    
+                    ((char *)unsigned_char_data)[0] = (char)base.el0;
+                    
+                    break;
+                    
+            }
+            
+            
+            unsigned_char_data+= elsize;
+            
+            numread++;
+        }
+#else
+        while (i < compressedsize) {
+            delta.el1 = delta.el2 = delta.el3 = 0;
+            delta.el0 = (signed char) rawdata[i++];
+            if (delta.el0 == (signed char) 0x80) {
+                delta.el0 = rawdata[i++];
+                delta.el0 |= (signed char) rawdata[i++] << 8;
+                if (delta.el0 & 0x8000) delta.el1 = delta.el2 = delta.el3 = ~0;
+                
+                if (delta.el0&0xffff == 0x8000) {
+                    delta.el2 = delta.el3 = 0;
+                    delta.el0 = rawdata[i++];
+                    delta.el0 |= rawdata[i++] << 8;
+                    delta.el1 = rawdata[i++];
+                    delta.el1 |= (signed char) rawdata[i++] << 8;
+                    if (delta.el1 & 0x8000) delta.el2 = delta.el3 = ~0;
+                    
+                    if (delta.el0 == 0 && delta.el1&0x8000 == 0x8000) {
+                        delta.el0 = rawdata[i++];
+                        delta.el0 |= rawdata[i++] << 8;
+                        delta.el1 = rawdata[i++];
+                        delta.el1 |= rawdata[i++] << 8;
+                        delta.el2 = rawdata[i++];
+                        delta.el2 |= rawdata[i++] << 8;
+                        delta.el3 = rawdata[i++];
+                        delta.el3 |= (signed char)rawdata[i++] << 8;
+                    }
+                }
+            }
+            
+            precarry = 0;
+            
+            if (base.el0 & sign) precarry++;
+            
+            if (delta.el0 & sign) precarry++;
+            
+            base.el0 += delta.el0;
+            
+            if (precarry == 2 || (precarry == 1 && !(base.el0&sign) ) ) base.el1++;
+            
+            precarry = 0;
+            
+            if (base.el1 & sign) precarry++;
+            
+            if (delta.el1 & sign) precarry++;
+            
+            base.el1+= delta.el1;
+            
+            if (precarry == 2 || (precarry == 1 && !(base.el1&sign) ) ) base.el2++;
+            
+            precarry = 0;
+            
+            if (base.el2 & sign) precarry++;
+            
+            if (delta.el2 & sign) precarry++;
+            
+            base.el2+= delta.el2;
+            
+            if (precarry == 2 || (precarry == 1 && !(base.el1&sign) ) ) base.el3++;
+            
+            base.el3+= delta.el3;         
+            
+            base.el3 &= 0xffff;
+
+            switch (elsize) {
+                    
+                case (sizeof(unsigned int) *4):
+                    
+                    ((unsigned int *)unsigned_char_data)[el0] = base.el0;
+                    
+                    ((unsigned int *)unsigned_char_data)[el1] = base.el1;
+                    
+                    ((unsigned int *)unsigned_char_data)[el2] = base.el2;
+                    
+                    ((int *)unsigned_char_data)[el3] = base.el3;
+                    
+                    break;
+                    
+                case (sizeof(unsigned int) *2 ):
+                    
+                    ((unsigned int *)unsigned_char_data)[fl0] = base.el0;
+                    
+                    ((int *)unsigned_char_data)[fl1] = base.el1;
+                    
+                    break;
+                    
+                case (sizeof( char) ):
+                    
+                    (( char *)unsigned_char_data)[0] = (char)base.el0;
+                    
+                    break:
+                    
+            }
+            
+            unsigned_char_data+= elsize;
+            
+            numread++;
+            
+        }
+        
+#endif
+#endif      
+    }
+    
+    if (file->temporary == 0)
+        free(rawdata);
+    
+    
+    /* Number read */
+    
+    if (nelem_read)
+        
+        *nelem_read = numread;
+    
+    
+    /* Success */
+    
+    return 0;
+}
+
+int cbf_decompress_byte_offset(void         *destination,
+                                size_t        elsize,
+                                int           elsign,
+                                size_t        nelem,
+                                size_t       *nelem_read,
+                                size_t        compressedsize,
+                                unsigned int  compression,
+                                int           data_bits,
+                                int           data_sign,
+                                cbf_file     *file,
+                                int           realarray,
+                                const char   *byteorder,
+                                size_t        dimover,
+                                size_t        dimfast,
+                                size_t        dimmid,
+                                size_t        dimslow,
+                                size_t        padding)
+{
+  /* test for bits left in buffer, element size, chars are 8-bit, and signed
+     integers are represented in two's complement */
+  if (file->bits[0] != 0 || elsize > sizeof(CBF_ull_type) || CHAR_BIT != 8 ||
+      ~0 != -1 || (elsize != 1 && elsize != 2 && elsize != 4 && elsize !=8 ) ) {
+    return cbf_decompress_byte_offset_slow(destination, elsize, elsign,
+        nelem, nelem_read, compressedsize, compression, data_bits, data_sign,
+        file, realarray, byteorder, dimover, dimfast, dimmid, dimslow, padding);
+  }
+
+  return cbf_decompress_byte_offset_fast(destination, elsize, elsign,
+      nelem, nelem_read, compressedsize, compression, data_bits, data_sign,
+      file, realarray, byteorder, dimover, dimfast, dimmid, dimslow, padding);
+}
 
 #ifdef __cplusplus
 

@@ -307,6 +307,13 @@ int cbf_close_temporary (cbf_context *context, cbf_file **temporary);
 const char *cbf_copy_string (cbf_context *context, const char *string, 
                                                          char type);
 
+  /* Copy a two strings */
+    
+const char *cbf_copy_strings (cbf_context *context, 
+                             const char *string1,
+                             const char *string2,
+                                   char  type);
+    
 
   /* Free a string */
 

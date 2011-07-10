@@ -266,6 +266,9 @@ extern "C" {
 typedef struct
 {
   FILE        *stream;            /* File pointer                           */
+  FILE        *logfile;           /* NULL or an active stream for error logging */
+  int          errors;            /* logged error messages                  */
+  int          warnings;          /* logged warnings                        */
   unsigned int connections;       /* Number of pointers to this structure   */
   int          temporary;         /* Flag for temporary file (memres)       */
   int          bits [2];          /* Buffer for bitwise reads and writes    */
@@ -342,6 +345,10 @@ int cbf_save_character (cbf_file *file, int c);
 
 int cbf_save_character_trim (cbf_file *file, int c);
 
+    /* Add a character to the buffer at a given position */
+    
+int cbf_save_character_at (cbf_file *file, int c, size_t position);
+    
 
   /* Retrieve the buffer */
 
