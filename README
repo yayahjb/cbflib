@@ -5,6 +5,7 @@
             Information for CBFlib 0.9.2 release of 12 February 2011
              revised as the CBFlib 0.9.2.1 release of 20 June 2011
               revised as the CBFlib 0.9.2.2 release of 2 July 2011
+              revised as the CBFlib 0.9.2.3 release of 9 July 2011
 
                                        by
                                  Paul J. Ellis
@@ -42,6 +43,11 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    NIH, NIGMS, NCRR or IUCr.
 
      ----------------------------------------------------------------------
+
+   CBFlib 0.9.2.3 is a minor revision to the CBFlib 0.9.2.2 release to allow
+   use of NO_CBF_REGEX to suppress use of regex for convenience in doing
+   visual studio builds for cctbx as requested by Ralf Ralf Grosse-Kunstleve
+   for cctbx builds.
 
    CBFlib 0.9.2.2 is a minor revision to the CBFlib 0.9.2.1 release in July
    2011 to update doc/cif_img.dic to the 1.6.4 revision.
@@ -95,7 +101,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    A gizpped tarball of this release is available on sourceforge at
 
-   http://downloads.sf.net/cbflib/CBFlib-0.9.2.2.tar.gz
+   http://downloads.sf.net/cbflib/CBFlib-0.9.2.3.tar.gz
 
    In addition,
    http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Input.tar.gz (13
@@ -105,18 +111,18 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    and, if space is at a premium,
    http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Output_Sigs_Only.tar.gz
    (1KB) is a "gzipped" tar of only the MD5 signatures of the output data
-   files needed to test the API. Place the CBFlib_0.9.2.2.tar.gz file in the
+   files needed to test the API. Place the CBFlib_0.9.2.3.tar.gz file in the
    directory that is intended to contain up to 4 new directories, named
-   CBFlib_0.9.2.2 (the "top-level" directory), CBFlib_0.9.2_Data_Files_Input
+   CBFlib_0.9.2.3 (the "top-level" directory), CBFlib_0.9.2_Data_Files_Input
    and either CBFlib_0.9.2_Data_Files_Output or
    CBFlib_0.9.2_Data_Files_Output_Sigs_Only. If you have wget on your
    machine, you only need to download the source tarball. If you do not have
    wget, you will need to download all the tarballs into the same directory
 
-   Uncompress CBFlib_0.9.2.tar.gz with gunzip and unpack it with tar:
+   Uncompress CBFlib_0.9.2.3.tar.gz with gunzip and unpack it with tar:
 
-      gunzip CBFlib_0.9.2.tar.gz
-      tar xvf CBFLIB_0.9.2.tar
+      gunzip CBFlib_0.9.2.3.tar.gz
+      tar xvf CBFLIB_0.9.2.3.tar
 
    To run the test programs, you will also need Paul Ellis's sample MAR345
    image, example.mar2300, Chris Nielsen's sample ADSC Quantum 315 image,
@@ -171,4 +177,4 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-   Updated 2 July 2011. yaya at bernstein-plus-sons dot com
+   Updated 9 July 2011. yaya at bernstein-plus-sons dot com
