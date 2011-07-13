@@ -589,6 +589,71 @@ class cbf_detector_struct(_object):
         except: self.this = this
     __swig_destroy__ = _pycbf.delete_cbf_detector_struct
     __del__ = lambda self : None;
+    def set_beam_center_fs(self, *args):
+        """
+        Returns : 
+        *args   : double indexfast,double indexslow,double centerfast,double centerslow
+
+        C prototype: int cbf_set_beam_center_fs (cbf_detector detector,
+                         double *indexfast,      double *indexslow, double *centerfast,
+                         double *centerslow);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_beam_center sets *centerfast and *centerslow to the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector and *indexfast and 
+        *indexslow to the corresponding indices. cbf_set_beam_center sets the 
+        offsets in the axis category for the detector element axis with 
+        precedence 1 to place the beam center at the position given in mm by 
+        *centerfast and *centerslow as the displacements in mm along the 
+        detector axes from pixel (0, 0) to the point at which the beam 
+        intersects the detector at the indices given *indexfast and 
+        *indexslow. cbf_set_reference_beam_center sets the displacments in 
+        the array_structure_list_axis category to place the beam center at 
+        the position given in mm by *centerfast and *centerslow as the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector at the indices given 
+        by *indexfast and *indexslow. In order to achieve consistent results, 
+        a reference detector should be used for detector to have all axes at 
+        their reference settings.
+        Note that the precedence 1 axis is the fastest axis, so that 
+        *centerfast and *indexfast are the fast axis components of the center 
+        and *centerslow and *indexslow are the slow axis components of the 
+        center.
+        The _fs calls give the displacments in a fast-to-slow order. The 
+        calls with no suffix and the calls _sf calls give the displacements 
+        in slow-to-fast order
+        Any of the destination pointers may be NULL for getting the beam 
+        center. For setting the beam axis, either the indices of the center 
+        must not be NULL.
+        The indices are non-negative for beam centers within the detector 
+        surface, but the center for an axis with a negative increment will be 
+        negative for a beam center within the detector surface.
+        For cbf_set_beam_center if the diffrn_data_frame category exists with 
+        a row for the corresponding element id, the values will be set for 
+        _diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
+        millimetres and the value of _diffrn_data_frame.center_units will be 
+        set to 'mm'.
+        For cbf_set_reference_beam_center if the diffrn_detector_element 
+        category exists with a row for the corresponding element id, the 
+        values will be set for _diffrn_detector_element.reference_center_fast 
+        and _diffrn_detector_element.reference_center_slow in millimetres and 
+        the value of _diffrn_detector_element.reference_units will be set to 
+        'mm'.
+        ARGUMENTS
+        detector     Detector handle. indexfast    Pointer to the destination 
+        fast index. indexslow    Pointer to the destination slow index. 
+        centerfast   Pointer to the destination displacement along the fast 
+        axis. centerslow   Pointer to the destination displacement along the 
+        slow axis.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_detector_struct_set_beam_center_fs(self, *args)
+
     def set_reference_beam_center_fs(self, *args):
         """
         Returns : 
@@ -682,71 +747,6 @@ class cbf_detector_struct(_object):
 
         """
         return _pycbf.cbf_detector_struct_get_pixel_coordinates_fs(self, *args)
-
-    def set_beam_center_fs(self, *args):
-        """
-        Returns : 
-        *args   : double indexfast,double indexslow,double centerfast,double centerslow
-
-        C prototype: int cbf_set_beam_center_fs (cbf_detector detector,
-                         double *indexfast,      double *indexslow, double *centerfast,
-                         double *centerslow);
-
-        CBFLib documentation:
-        DESCRIPTION
-        cbf_get_beam_center sets *centerfast and *centerslow to the 
-        displacements in mm along the detector axes from pixel (0, 0) to the 
-        point at which the beam intersects the detector and *indexfast and 
-        *indexslow to the corresponding indices. cbf_set_beam_center sets the 
-        offsets in the axis category for the detector element axis with 
-        precedence 1 to place the beam center at the position given in mm by 
-        *centerfast and *centerslow as the displacements in mm along the 
-        detector axes from pixel (0, 0) to the point at which the beam 
-        intersects the detector at the indices given *indexfast and 
-        *indexslow. cbf_set_reference_beam_center sets the displacments in 
-        the array_structure_list_axis category to place the beam center at 
-        the position given in mm by *centerfast and *centerslow as the 
-        displacements in mm along the detector axes from pixel (0, 0) to the 
-        point at which the beam intersects the detector at the indices given 
-        by *indexfast and *indexslow. In order to achieve consistent results, 
-        a reference detector should be used for detector to have all axes at 
-        their reference settings.
-        Note that the precedence 1 axis is the fastest axis, so that 
-        *centerfast and *indexfast are the fast axis components of the center 
-        and *centerslow and *indexslow are the slow axis components of the 
-        center.
-        The _fs calls give the displacments in a fast-to-slow order. The 
-        calls with no suffix and the calls _sf calls give the displacements 
-        in slow-to-fast order
-        Any of the destination pointers may be NULL for getting the beam 
-        center. For setting the beam axis, either the indices of the center 
-        must not be NULL.
-        The indices are non-negative for beam centers within the detector 
-        surface, but the center for an axis with a negative increment will be 
-        negative for a beam center within the detector surface.
-        For cbf_set_beam_center if the diffrn_data_frame category exists with 
-        a row for the corresponding element id, the values will be set for 
-        _diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
-        millimetres and the value of _diffrn_data_frame.center_units will be 
-        set to 'mm'.
-        For cbf_set_reference_beam_center if the diffrn_detector_element 
-        category exists with a row for the corresponding element id, the 
-        values will be set for _diffrn_detector_element.reference_center_fast 
-        and _diffrn_detector_element.reference_center_slow in millimetres and 
-        the value of _diffrn_detector_element.reference_units will be set to 
-        'mm'.
-        ARGUMENTS
-        detector     Detector handle. indexfast    Pointer to the destination 
-        fast index. indexslow    Pointer to the destination slow index. 
-        centerfast   Pointer to the destination displacement along the fast 
-        axis. centerslow   Pointer to the destination displacement along the 
-        slow axis.
-        RETURN VALUE
-        Returns an error code on failure or 0 for success.
-        ----------------------------------------------------------------------
-
-        """
-        return _pycbf.cbf_detector_struct_set_beam_center_fs(self, *args)
 
     def get_inferred_pixel_size(self, *args):
         """
@@ -2364,6 +2364,34 @@ class cbf_handle_struct(_object):
 
         """
         return _pycbf.cbf_handle_struct_rewind_column(self, *args)
+
+    def construct_reference_positioner(self, *args):
+        """
+        Returns : pycbf positioner object
+        *args   : String axis_id
+
+        C prototype: int cbf_construct_reference_positioner (cbf_handle handle,
+                              cbf_positioner *positioner, const char *axis_id);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_construct_positioner constructs a positioner object for the axis 
+        given by axis_id using the description in the CBF object handle and 
+        initialises the positioner handle *positioner.
+        cbf_construct_reference positioner constructs a positioner object for 
+        the axis given by axis_id using the description in the CBF object 
+        handle and initialises the detector handle *detector using the 
+        reference settings of the axes.
+        ARGUMENTS
+        handle     CBF handle. detector   Pointer to the destination detector 
+        handle. axis_id    The identifier of the axis in the  "axis " 
+        category.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_handle_struct_construct_reference_positioner(self, *args)
 
     def require_column_doublevalue(self, *args):
         """
@@ -6941,6 +6969,34 @@ class cbf_handle_struct(_object):
 
         """
         return _pycbf.cbf_handle_struct_get_image_sf_as_string(self, *args)
+
+    def construct_positioner(self, *args):
+        """
+        Returns : pycbf positioner object
+        *args   : String axis_id
+
+        C prototype: int cbf_construct_positioner (cbf_handle handle,
+                         cbf_positioner      *positioner, const char *axis_id);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_construct_positioner constructs a positioner object for the axis 
+        given by axis_id using the description in the CBF object handle and 
+        initialises the positioner handle *positioner.
+        cbf_construct_reference positioner constructs a positioner object for 
+        the axis given by axis_id using the description in the CBF object 
+        handle and initialises the detector handle *detector using the 
+        reference settings of the axes.
+        ARGUMENTS
+        handle     CBF handle. detector   Pointer to the destination detector 
+        handle. axis_id    The identifier of the axis in the  "axis " 
+        category.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_handle_struct_construct_positioner(self, *args)
 
     def get_3d_image_size_fs(self, *args):
         """get_3d_image_size_fs(self, unsigned int element_number)"""

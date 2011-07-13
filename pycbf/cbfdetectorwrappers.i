@@ -33,6 +33,73 @@ typedef cbf_detector_struct *cbf_detector;
 Returns : 
 *args   : double indexfast,double indexslow,double centerfast,double centerslow
 
+C prototype: int cbf_set_beam_center_fs (cbf_detector detector,
+                 double *indexfast,      double *indexslow, double *centerfast,
+                 double *centerslow);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_get_beam_center sets *centerfast and *centerslow to the 
+displacements in mm along the detector axes from pixel (0, 0) to the 
+point at which the beam intersects the detector and *indexfast and 
+*indexslow to the corresponding indices. cbf_set_beam_center sets the 
+offsets in the axis category for the detector element axis with 
+precedence 1 to place the beam center at the position given in mm by 
+*centerfast and *centerslow as the displacements in mm along the 
+detector axes from pixel (0, 0) to the point at which the beam 
+intersects the detector at the indices given *indexfast and 
+*indexslow. cbf_set_reference_beam_center sets the displacments in 
+the array_structure_list_axis category to place the beam center at 
+the position given in mm by *centerfast and *centerslow as the 
+displacements in mm along the detector axes from pixel (0, 0) to the 
+point at which the beam intersects the detector at the indices given 
+by *indexfast and *indexslow. In order to achieve consistent results, 
+a reference detector should be used for detector to have all axes at 
+their reference settings.
+Note that the precedence 1 axis is the fastest axis, so that 
+*centerfast and *indexfast are the fast axis components of the center 
+and *centerslow and *indexslow are the slow axis components of the 
+center.
+The _fs calls give the displacments in a fast-to-slow order. The 
+calls with no suffix and the calls _sf calls give the displacements 
+in slow-to-fast order
+Any of the destination pointers may be NULL for getting the beam 
+center. For setting the beam axis, either the indices of the center 
+must not be NULL.
+The indices are non-negative for beam centers within the detector 
+surface, but the center for an axis with a negative increment will be 
+negative for a beam center within the detector surface.
+For cbf_set_beam_center if the diffrn_data_frame category exists with 
+a row for the corresponding element id, the values will be set for 
+_diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
+millimetres and the value of _diffrn_data_frame.center_units will be 
+set to 'mm'.
+For cbf_set_reference_beam_center if the diffrn_detector_element 
+category exists with a row for the corresponding element id, the 
+values will be set for _diffrn_detector_element.reference_center_fast 
+and _diffrn_detector_element.reference_center_slow in millimetres and 
+the value of _diffrn_detector_element.reference_units will be set to 
+'mm'.
+ARGUMENTS
+detector     Detector handle. indexfast    Pointer to the destination 
+fast index. indexslow    Pointer to the destination slow index. 
+centerfast   Pointer to the destination displacement along the fast 
+axis. centerslow   Pointer to the destination displacement along the 
+slow axis.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")set_beam_center_fs;
+
+    void set_beam_center_fs(double *indexfast, double *indexslow, 
+                         double *centerfast,double *centerslow){
+        cbf_failnez(cbf_set_beam_center_fs(self, indexfast, indexslow, 
+                                       centerfast, centerslow));
+        }
+%feature("autodoc", "
+Returns : 
+*args   : double indexfast,double indexslow,double centerfast,double centerslow
+
 C prototype: int cbf_set_reference_beam_center_fs (cbf_detector detector,
                  double      *indexfast, double *indexslow, double *centerfast,
                  double *centerslow);
@@ -130,73 +197,6 @@ Returns an error code on failure or 0 for success.
              double *coordinate3){
       cbf_failnez(cbf_get_pixel_coordinates_fs(self, indexfast, indexslow, coordinate1, coordinate2, coordinate3));
    }
-%feature("autodoc", "
-Returns : 
-*args   : double indexfast,double indexslow,double centerfast,double centerslow
-
-C prototype: int cbf_set_beam_center_fs (cbf_detector detector,
-                 double *indexfast,      double *indexslow, double *centerfast,
-                 double *centerslow);
-
-CBFLib documentation:
-DESCRIPTION
-cbf_get_beam_center sets *centerfast and *centerslow to the 
-displacements in mm along the detector axes from pixel (0, 0) to the 
-point at which the beam intersects the detector and *indexfast and 
-*indexslow to the corresponding indices. cbf_set_beam_center sets the 
-offsets in the axis category for the detector element axis with 
-precedence 1 to place the beam center at the position given in mm by 
-*centerfast and *centerslow as the displacements in mm along the 
-detector axes from pixel (0, 0) to the point at which the beam 
-intersects the detector at the indices given *indexfast and 
-*indexslow. cbf_set_reference_beam_center sets the displacments in 
-the array_structure_list_axis category to place the beam center at 
-the position given in mm by *centerfast and *centerslow as the 
-displacements in mm along the detector axes from pixel (0, 0) to the 
-point at which the beam intersects the detector at the indices given 
-by *indexfast and *indexslow. In order to achieve consistent results, 
-a reference detector should be used for detector to have all axes at 
-their reference settings.
-Note that the precedence 1 axis is the fastest axis, so that 
-*centerfast and *indexfast are the fast axis components of the center 
-and *centerslow and *indexslow are the slow axis components of the 
-center.
-The _fs calls give the displacments in a fast-to-slow order. The 
-calls with no suffix and the calls _sf calls give the displacements 
-in slow-to-fast order
-Any of the destination pointers may be NULL for getting the beam 
-center. For setting the beam axis, either the indices of the center 
-must not be NULL.
-The indices are non-negative for beam centers within the detector 
-surface, but the center for an axis with a negative increment will be 
-negative for a beam center within the detector surface.
-For cbf_set_beam_center if the diffrn_data_frame category exists with 
-a row for the corresponding element id, the values will be set for 
-_diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
-millimetres and the value of _diffrn_data_frame.center_units will be 
-set to 'mm'.
-For cbf_set_reference_beam_center if the diffrn_detector_element 
-category exists with a row for the corresponding element id, the 
-values will be set for _diffrn_detector_element.reference_center_fast 
-and _diffrn_detector_element.reference_center_slow in millimetres and 
-the value of _diffrn_detector_element.reference_units will be set to 
-'mm'.
-ARGUMENTS
-detector     Detector handle. indexfast    Pointer to the destination 
-fast index. indexslow    Pointer to the destination slow index. 
-centerfast   Pointer to the destination displacement along the fast 
-axis. centerslow   Pointer to the destination displacement along the 
-slow axis.
-RETURN VALUE
-Returns an error code on failure or 0 for success.
-----------------------------------------------------------------------
-")set_beam_center_fs;
-
-    void set_beam_center_fs(double *indexfast, double *indexslow, 
-                         double *centerfast,double *centerslow){
-        cbf_failnez(cbf_set_beam_center_fs(self, indexfast, indexslow, 
-                                       centerfast, centerslow));
-        }
 %feature("autodoc", "
 Returns : Float pixel size
 *args   : Int axis_number

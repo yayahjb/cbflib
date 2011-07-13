@@ -1076,6 +1076,19 @@ int cbf_require_reference_detector (cbf_handle    handle, cbf_detector      *det
 int cbf_free_detector (cbf_detector detector);
 
 
+  /* Construct a  positioner */
+    
+int cbf_construct_positioner  (cbf_handle handle, cbf_positioner *positioner,
+                                           const char *   axis_id);
+  /* Construct a reference positioner */
+    
+int cbf_construct_reference_positioner  (cbf_handle handle, cbf_positioner *positioner,
+                                                const char *   axis_id);
+    
+  /* Free a psitioner */
+    
+int cbf_free_positioner (cbf_positioner positioner);
+    
   /* Get the beam center */
 
 int cbf_get_beam_center (cbf_detector detector, double *indexslow,

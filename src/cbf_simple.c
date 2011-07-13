@@ -3150,7 +3150,8 @@ int cbf_add_positioner_axis (cbf_positioner positioner,
     /* Check the arguments */
 
   if (!name || !positioner || (type != CBF_TRANSLATION_AXIS &&
-                               type != CBF_ROTATION_AXIS))
+                               type != CBF_ROTATION_AXIS &&
+                               type != CBF_GENERAL_AXIS ))
 
     return CBF_ARGUMENT;
 
@@ -3256,6 +3257,8 @@ int cbf_read_positioner_axis (cbf_handle      handle,
   double vector1, vector2, vector3, offset1, offset2, offset3;
 
   double start, increment;
+    
+  int errorcode;
 
   cbf_failnez (cbf_find_category    (handle, "axis"))
   cbf_failnez (cbf_find_column      (handle, "id"))
@@ -3274,18 +3277,33 @@ int cbf_read_positioner_axis (cbf_handle      handle,
                                              &offset3))
 
   start = increment = 0;
+    
+  errorcode = 0;
+    
+  /* fprintf(stderr," cbf_read_positioner_axis , axis = %s, read_setting = %d\n",axis_id, read_setting);*/
 
   if (read_setting) 
   {
   	
-    cbf_failnez (cbf_get_axis_setting (handle, reserved, axis_id,
+    errorcode = cbf_get_axis_setting (handle, reserved, axis_id,
                                           &start,
-                                          &increment))
+                                          &increment);
   
     if (read_setting < 0) {
-    	cbf_failnez (cbf_get_axis_reference_setting (handle, reserved, axis_id,
-                                          &start))
+    	errorcode = cbf_get_axis_reference_setting (handle, reserved, axis_id,
+                                                    &start);
     }
+      
+    if ( (read_setting == -2 || read_setting == 2) 
+        && (errorcode == CBF_NOTFOUND || errorcode == CBF_FORMAT) ) {
+        
+        start = increment = 0;
+        
+        errorcode = 0;
+        
+    }
+      
+    cbf_failnez(errorcode);
 
   }
 
@@ -3362,8 +3380,126 @@ int cbf_connect_axes (cbf_positioner positioner)
 
   return 0;
 }
+    
+   /* construct a positioner for a given final axis */
 
-
+int cbf_construct_positioner (cbf_handle handle,
+                                  cbf_positioner *positioner, const char *axis_id)
+    {
+        
+        int errorcode;
+        
+        const char * target_axis;
+                
+        if (!positioner || !axis_id)
+            
+            return CBF_ARGUMENT;
+        
+        /* fprintf(stderr," cbf_construct_positioner, axis %s\n",axis_id); */
+        
+        errorcode = 0;        
+            
+        
+        /* Construct the positioner */
+        
+        cbf_failnez (cbf_make_positioner (positioner))
+        
+        target_axis = axis_id;
+        
+         
+        while (target_axis && cbf_cistrcmp (target_axis,".") !=0 ) {
+            
+            errorcode = cbf_read_positioner_axis (handle,
+                                                  0, /* reserved */
+                                                  *positioner,
+                                                  target_axis, 2);
+            
+            if (!errorcode) {
+            
+            target_axis = (*positioner)->axis[(*positioner)->axes -1].depends_on;
+                
+            } else {
+                
+                /*fprintf(stderr," cbf_construct_positioner failed, axis %s\n",target_axis); */
+                
+                break;
+            
+            }
+            
+        }
+        
+        if (!errorcode)
+            
+            errorcode = cbf_connect_axes (*positioner);
+        
+        if (errorcode)
+        {
+            errorcode |= cbf_free_positioner (*positioner);
+            
+            *positioner = NULL;
+        }
+        
+        return errorcode;
+    }
+    
+    /* construct a reference positioner for a given final axis */
+    
+    int cbf_construct_reference_positioner (cbf_handle handle,
+                                  cbf_positioner *positioner, const char *axis_id)
+    {
+        
+        int errorcode;
+        
+        const char * target_axis;
+        
+        if (!positioner || !axis_id)
+            
+            return CBF_ARGUMENT;
+        
+        errorcode = 0;
+        
+        
+        /* Construct the positioner */
+        
+        cbf_failnez (cbf_make_positioner (positioner))
+        
+        target_axis = axis_id;
+        
+        while (target_axis && cbf_cistrcmp (target_axis,".") !=0 ) {
+            
+            errorcode = cbf_read_positioner_axis (handle,
+                                                  0, /* reserved */
+                                                  *positioner,
+                                                  target_axis, -2);
+            
+            if (!errorcode) {
+                
+                target_axis = (*positioner)->axis[(*positioner)->axes -1].depends_on;
+                
+            } else {
+                
+                break;
+                
+            }
+            
+        }
+        
+        if (!errorcode)
+            
+            errorcode = cbf_connect_axes (*positioner);
+        
+        if (errorcode)
+        {
+            errorcode |= cbf_free_positioner (*positioner);
+            
+            *positioner = NULL;
+        }
+        
+        return errorcode;
+    }
+    
+    
+    
   /* Calculate a position given initial coordinates */
 
 int cbf_calculate_position (cbf_positioner positioner,

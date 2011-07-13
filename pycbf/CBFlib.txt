@@ -10,8 +10,8 @@
 
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
-                                 Version 0.9.2
-                                12 February 2011
+                                 Version 0.9.3
+                                  11 July 2011
 
                                        by
                                  Paul J. Ellis
@@ -344,7 +344,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 2.1.1 CBF handles
                * 2.1.2 CBF goniometer handles
                * 2.1.3 CBF detector handles
-               * 2.1.4 Return values
+               * 2.1.4 CBF positioner handles
+               * 2.1.5 Return values
           * 2.2 Reading and writing files containing binary sections
                * 2.2.1 Reading binary sections
                * 2.2.2 Writing binary sections
@@ -499,40 +500,43 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                  cbf_construct_reference_detector,
                  cbf_require_reference_detector
                * 2.4.37 cbf_free_detector
-               * 2.4.38 cbf_get_beam_center, cbf_get_beam_center_fs,
+               * 2.4.38 cbf_construct_positioner,
+                 cbf_construct_reference_positioner
+               * 2.4.39 cbf_free_positioner
+               * 2.4.40 cbf_get_beam_center, cbf_get_beam_center_fs,
                  cbf_get_beam_center_sf,
                        cbf_set_beam_center, cbf_set_beam_center_fs,
                  cbf_set_beam_center_sf,
                        cbf_set_reference_beam_center,
                  cbf_set_reference_beam_center_fs,
                  cbf_set_reference_beam_center_sf
-               * 2.4.39 cbf_get_detector_distance
-               * 2.4.40 cbf_get_detector_normal
-               * 2.4.41 cbf_get_detector_axis_slow,
+               * 2.4.41 cbf_get_detector_distance
+               * 2.4.42 cbf_get_detector_normal
+               * 2.4.43 cbf_get_detector_axis_slow,
                  cbf_get_detector_axis_fast, cbf_get_detector_axes,
                  cbf_get_detector_axes_fs, cbf_get_detector_axes_sf
-               * 2.4.42 cbf_get_pixel_coordinates,
+               * 2.4.44 cbf_get_pixel_coordinates,
                  cbf_get_pixel_coordinates_fs, cbf_get_pixel_coordinates_sf
-               * 2.4.43 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
+               * 2.4.45 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
                  cbf_get_pixel_normal_sf
-               * 2.4.44 cbf_get_pixel_area, cbf_get_pixel_area_fs,
+               * 2.4.46 cbf_get_pixel_area, cbf_get_pixel_area_fs,
                  cbf_get_pixel_area_sf
-               * 2.4.45 cbf_get_pixel_size, cbf_get_pixel_size_fs,
+               * 2.4.47 cbf_get_pixel_size, cbf_get_pixel_size_fs,
                  cbf_get_pixel_size_sf
-               * 2.4.46 cbf_set_pixel_size, cbf_set_pixel_size_fs,
+               * 2.4.48 cbf_set_pixel_size, cbf_set_pixel_size_fs,
                  cbf_set_pixel_size_sf
-               * 2.4.47 cbf_get_inferred_pixel_size,
+               * 2.4.49 cbf_get_inferred_pixel_size,
                  cbf_get_inferred_pixel_size_fs,
                  cbf_get_inferred_pixel_size_sf
-               * 2.4.48 cbf_get_unit_cell
-               * 2.4.49 cbf_set_unit_cell
-               * 2.4.50 cbf_get_reciprocal_cell
-               * 2.4.51 cbf_set_reciprocal_cell
-               * 2.4.52 cbf_compute_cell_volume
-               * 2.4.53 cbf_compute_reciprocal_cell
-               * 2.4.54 cbf_get_orientation_matrix,
+               * 2.4.50 cbf_get_unit_cell
+               * 2.4.51 cbf_set_unit_cell
+               * 2.4.52 cbf_get_reciprocal_cell
+               * 2.4.53 cbf_set_reciprocal_cell
+               * 2.4.54 cbf_compute_cell_volume
+               * 2.4.55 cbf_compute_reciprocal_cell
+               * 2.4.56 cbf_get_orientation_matrix,
                  cbf_set_orientation_matrix
-               * 2.4.55 cbf_get_bin_sizes, cbf_set_bin_sizes
+               * 2.4.57 cbf_get_bin_sizes, cbf_set_bin_sizes
           * 2.5 F90 function interfaces
                * 2.5.1 FCB_ATOL_WCNT
                * 2.5.2 FCB_CI_STRNCMPARR
@@ -626,7 +630,19 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    The function cbf_free_detector destroys a detector handle and frees all
    memory associated with the corresponding object.
 
-    2.1.4 Return values
+    2.1.4 CBF positioner handles
+
+   To represent an arbitrary positioning system designated by the terminal
+   axis, CBFlib uses a value of type cbf_positioner.
+
+   A positioner object is created and initialized from a CBF object using one
+   of the functions cbf_construct_positioner,
+   cbf_construct_reference_positioner or cbf_require_reference_positioner.
+
+   The function cbf_free_positioner destroys a positioner handle and frees
+   all memory associated with the corresponding object.
+
+    2.1.5 Return values
 
    All of the CBFlib functions return 0 on success and an error code on
    failure. The error codes are:
@@ -5118,7 +5134,65 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.38 cbf_get_beam_center, cbf_get_beam_center_fs, cbf_get_beam_center_sf,
+    2.4.38 cbf_construct_positioner, cbf_construct_reference_positioner,
+
+     PROTOTYPE
+
+     #include "cbf_simple.h"
+
+     int cbf_construct_positioner (cbf_handle handle, cbf_positioner
+     *positioner, const char *axis_id);
+
+     int cbf_construct_reference_positioner (cbf_handle handle,
+     cbf_positioner *positioner, const char *axis_id);
+
+     DESCRIPTION
+
+     cbf_construct_positioner constructs a positioner object for the axis
+     given by axis_id using the description in the CBF object handle and
+     initialises the positioner handle *positioner.
+
+     cbf_construct_reference positioner constructs a positioner object for
+     the axis given by axis_id using the description in the CBF object handle
+     and initialises the detector handle *detector using the reference
+     settings of the axes.
+
+     ARGUMENTS
+
+       handle     CBF handle.                                        
+       detector   Pointer to the destination detector handle.        
+       axis_id    The identifier of the axis in the "axis" category. 
+
+     RETURN VALUE
+
+     Returns an error code on failure or 0 for success.
+
+     ----------------------------------------------------------------------
+
+    2.4.39 cbf_free_positioner
+
+     PROTOTYPE
+
+     #include "cbf_simple.h"
+
+     int cbf_free_positioner (cbf_positioner positioner);
+
+     DESCRIPTION
+
+     cbf_free_positioner destroys the positioner object specified by
+     positioner and frees all associated memory.
+
+     ARGUMENTS
+
+       positioner   Positioner handle to free. 
+
+     RETURN VALUE
+
+     Returns an error code on failure or 0 for success.
+
+     ----------------------------------------------------------------------
+
+    2.4.40 cbf_get_beam_center, cbf_get_beam_center_fs, cbf_get_beam_center_sf,
           cbf_set_beam_center, cbf_set_beam_center_fs, cbf_set_beam_center_sf,
           set_reference_beam_center, set_reference_beam_center_fs,
     set_reference_beam_center_fs
@@ -5212,7 +5286,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.39 cbf_get_detector_distance
+    2.4.41 cbf_get_detector_distance
 
      PROTOTYPE
 
@@ -5236,7 +5310,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.40 cbf_get_detector_normal
+    2.4.42 cbf_get_detector_normal
 
      PROTOTYPE
 
@@ -5269,7 +5343,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.41 cbf_get_detector_axis_slow, cbf_get_detector_axis_slow,
+    2.4.43 cbf_get_detector_axis_slow, cbf_get_detector_axis_slow,
     cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf
 
      PROTOTYPE
@@ -5327,7 +5401,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.42 cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs,
+    2.4.44 cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs,
     cbf_get_pixel_coordinates_sf
 
      PROTOTYPE
@@ -5369,7 +5443,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.43 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
+    2.4.45 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
     cbf_get_pixel_normal_sf
 
      PROTOTYPE
@@ -5410,7 +5484,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.44 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf
+    2.4.46 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf
 
      PROTOTYPE
 
@@ -5447,7 +5521,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.45 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf
+    2.4.47 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf
 
      PROTOTYPE
 
@@ -5495,7 +5569,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.46 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf
+    2.4.48 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf
 
      PROTOTYPE
 
@@ -5553,7 +5627,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.47 cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_fs,
+    2.4.49 cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_fs,
     cbf_get_inferred_pixel_size_sf
 
      PROTOTYPE
@@ -5594,7 +5668,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.48 cbf_get_unit_cell
+    2.4.50 cbf_get_unit_cell
 
      PROTOTYPE
 
@@ -5639,15 +5713,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.49 cbf_set_unit_cell
-     2.4.50 cbf_get_reciprocal_cell
-     2.4.51 cbf_set_reciprocal_cell
-     2.4.52 cbf_compute_cell_volume
-     2.4.53 cbf_compute_reciprocal_cell
+     2.4.51 cbf_set_unit_cell
+     2.4.52 cbf_get_reciprocal_cell
+     2.4.53 cbf_set_reciprocal_cell
+     2.4.54 cbf_compute_cell_volume
+     2.4.55 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
-    2.4.49 cbf_set_unit_cell
+    2.4.51 cbf_set_unit_cell
 
      PROTOTYPE
 
@@ -5692,17 +5766,17 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.48 cbf_get_unit_cell
-     2.4.50 cbf_get_reciprocal_cell
-     2.4.51 cbf_set_reciprocal_cell
-     2.4.52 cbf_compute_cell_volume
-     2.4.53 cbf_compute_reciprocal_cell
+     2.4.50 cbf_get_unit_cell
+     2.4.52 cbf_get_reciprocal_cell
+     2.4.53 cbf_set_reciprocal_cell
+     2.4.54 cbf_compute_cell_volume
+     2.4.55 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
      SEE ALSO
 
-    2.4.50 cbf_get_reciprocal_cell
+    2.4.52 cbf_get_reciprocal_cell
 
      PROTOTYPE
 
@@ -5750,15 +5824,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.48 cbf_get_unit_cell
-     2.4.49 cbf_set_unit_cell
-     2.4.51 cbf_set_reciprocal_cell
-     2.4.52 cbf_compute_cell_volume
-     2.4.53 cbf_compute_reciprocal_cell
+     2.4.50 cbf_get_unit_cell
+     2.4.51 cbf_set_unit_cell
+     2.4.53 cbf_set_reciprocal_cell
+     2.4.54 cbf_compute_cell_volume
+     2.4.55 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
-    2.4.51 cbf_set_reciprocal_cell
+    2.4.53 cbf_set_reciprocal_cell
 
      PROTOTYPE
 
@@ -5805,15 +5879,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.48 cbf_get_unit_cell
-     2.4.49 cbf_set_unit_cell
-     2.4.50 cbf_get_reciprocal_cell
-     2.4.52 cbf_compute_cell_volume
-     2.4.53 cbf_compute_reciprocal_cell
+     2.4.50 cbf_get_unit_cell
+     2.4.51 cbf_set_unit_cell
+     2.4.52 cbf_get_reciprocal_cell
+     2.4.54 cbf_compute_cell_volume
+     2.4.55 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
-    2.4.52 cbf_compute_cell_volume
+    2.4.54 cbf_compute_cell_volume
 
      PROTOTYPE
 
@@ -5839,15 +5913,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.48 cbf_get_unit_cell
-     2.4.49 cbf_set_unit_cell
-     2.4.50 cbf_get_reciprocal_cell
-     2.4.51 cbf_set_reciprocal_cell
-     2.4.53 cbf_compute_reciprocal_cell
+     2.4.50 cbf_get_unit_cell
+     2.4.51 cbf_set_unit_cell
+     2.4.52 cbf_get_reciprocal_cell
+     2.4.53 cbf_set_reciprocal_cell
+     2.4.55 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
-    2.4.53 cbf_compute_reciprocal_cell
+    2.4.55 cbf_compute_reciprocal_cell
 
      PROTOTYPE
 
@@ -5878,15 +5952,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.48 cbf_get_unit_cell
-     2.4.49 cbf_set_unit_cell
-     2.4.50 cbf_get_reciprocal_cell
-     2.4.51 cbf_set_reciprocal_cell
-     2.4.52 cbf_compute_cell_volume
+     2.4.50 cbf_get_unit_cell
+     2.4.51 cbf_set_unit_cell
+     2.4.52 cbf_get_reciprocal_cell
+     2.4.53 cbf_set_reciprocal_cell
+     2.4.54 cbf_compute_cell_volume
 
      ----------------------------------------------------------------------
 
-    2.4.54 cbf_get_orientation_matrix, cbf_set_orientation_matrix
+    2.4.56 cbf_get_orientation_matrix, cbf_set_orientation_matrix
 
      PROTOTYPE
 
@@ -5920,7 +5994,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.55 cbf_get_bin_sizes, cbf_set_bin_sizes
+    2.4.57 cbf_get_bin_sizes, cbf_set_bin_sizes
 
      PROTOTYPE
 
