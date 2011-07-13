@@ -2250,8 +2250,6 @@ void convert_dictionary(cbf_handle other){
 ""","require_reference_detector",["Integer element_number"],["pycbf detector object"]],
 
 
-# Prelude to the next section of the nuweb doc
-
 "cbf_construct_goniometer":["""
  cbf_goniometer construct_goniometer(){
     cbf_goniometer goniometer;
@@ -2260,7 +2258,27 @@ void convert_dictionary(cbf_handle other){
     }
 ""","construct_goniometer",[],["pycbf goniometer object"]],
 
+"cbf_construct_positioner":["""
+ cbf_positioner construct_positioner(const char* axis_id){
+    cbf_positioner positioner;
+    cbf_failnez(cbf_construct_positioner(self,&positioner,axis_id));
+    return positioner;
+    }
+""","construct_positioner",["String axis_id"],["pycbf positioner object"]],
+
+"cbf_construct_reference_positioner":["""
+ cbf_positioner construct_reference_positioner(const char* axis_id){
+    cbf_positioner positioner;
+    cbf_failnez(cbf_construct_reference_positioner(self,&positioner,axis_id));
+    return positioner;
+    }
+""","construct_reference_positioner",["String axis_id"],["pycbf positioner object"]],
+
 }
+
+cbfpositioner_specials = {}
+
+# Prelude to the next section of the nuweb doc
 
 
 class cbfhandlewrapper:
@@ -2516,6 +2534,7 @@ typedef struct
 }
 cbf_positioner_struct;
 
+typedef cbf_positioner_struct *cbf_positioner;
 typedef cbf_positioner_struct *cbf_goniometer;
 
 
@@ -2530,7 +2549,7 @@ typedef cbf_positioner_struct *cbf_goniometer;
        } 
 
     ~cbf_positioner_struct(){ // Destructor
-       cbf_failnez(cbf_free_goniometer(self));
+       cbf_failnez(cbf_free_positioner(self));
        }
 """
       self.tail = """
@@ -2921,6 +2940,60 @@ typedef cbf_detector_struct *cbf_detector;
 cbf_detector_wrapper = cbfdetectorwrapper()
 
 
+class cbfpositionerwrapper:
+   def __init__(self):
+      self.code = """
+// Tell SWIG not to make constructor for these objects
+%nodefault cbf_positioner_struct;
+%nodefault cbf_positioner;
+
+// Tell SWIG what the object is, so we can build the class
+typedef struct
+{
+  double matrix [3][4];
+
+  cbf_axis_struct *axis;
+
+  size_t axes;
+
+  int matrix_is_valid, axes_are_connected;
+}
+cbf_positioner_struct;
+
+typedef cbf_positioner_struct *cbf_positioner;
+
+%feature("autodoc","1");
+
+%extend cbf_positioner_struct{// Tell SWIG to attach functions to the structure
+
+    cbf_positioner_struct(){  // Constructor
+       // DO NOT CONSTRUCT WITHOUT A CBFHANDLE
+       cbf_failnez(CBF_ARGUMENT);
+       return NULL; /* Should never be executed */
+       } 
+
+    ~cbf_positioner_struct(){ // Destructor
+       cbf_failnez(cbf_free_positioner(self));
+       }
+"""
+      self.tail = """
+}; // End of cbf_positioner
+"""
+   def wrap(self,cfunc,prototype,args,docstring):
+     if cfunc.find("cbf_free_positioner")>-1:
+        return 
+     try:
+        code, pyname, input, output = cbf_positioner_specials[cfunc]
+        self.code +=  docstringwrite(pyname,input,output,
+                                     prototype,docstring)+ code
+     except KeyError:
+        print "TODO: Positioner:",prototype
+   def get_code(self):
+     return self.code+self.tail
+     
+cbf_positioner_wrapper = cbfpositionerwrapper()
+
+
 cbfgeneric_specials = {
 "cbf_get_local_integer_byte_order":["""
 %cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
@@ -3098,12 +3171,16 @@ def generate_wrappers(name_dict):
       if args[0].find("cbf_detector")>=0: # This is for the cbfdetector
          cbf_detector_wrapper.wrap(cname,prototype,args,docstring)
          continue
+      if args[0].find("cbf_positioner")>=0: # This is for the cbfpositioner
+         cbf_positioner_wrapper.wrap(cname,prototype,args,docstring)
+         continue
       generic_wrapper.wrap(cname,prototype,args,docstring)
 
 
 generate_wrappers(name_dict)
 open("cbfgoniometerwrappers.i","w").write(cbf_goniometer_wrapper.get_code())
 open("cbfdetectorwrappers.i","w").write(cbf_detector_wrapper.get_code())
+open("cbfpostionerwrappers.i","w").write(cbf_positioner_wrapper.get_code())
 open("cbfhandlewrappers.i","w").write(cbf_handle_wrapper.get_code())
 open("cbfgenericwrappers.i","w").write(generic_wrapper.get_code())
 

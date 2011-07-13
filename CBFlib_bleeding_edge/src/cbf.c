@@ -266,7 +266,7 @@ extern "C" {
 #if !defined(CBF_NO_REGEX)
 #include <regex.h>
 #endif
-
+        
 int cbf_parse (void *context);
 
 
@@ -3482,10 +3482,23 @@ int cbf_get_integervalue (cbf_handle handle, int *number)
 {
   const char *value;
 
+  const char *typeofvalue;
+
 
     /* Get the value */
 
   cbf_failnez (cbf_get_value (handle, &value))
+    
+  cbf_failnez (cbf_get_typeofvalue (handle, &typeofvalue))
+    
+  if (!typeofvalue || cbf_cistrcmp(typeofvalue,"null") == 0 ) {
+        
+    if (number) *number = 0;
+        
+    return 0;
+        
+  }
+    
 
 
     /* Convert it into an integer */
@@ -3510,6 +3523,8 @@ int cbf_get_integervalue (cbf_handle handle, int *number)
 int cbf_get_doublevalue (cbf_handle handle, double *number)
 {
   const char *value;
+    
+  const char *typeofvalue;
   
   char buffer[80];
   
@@ -3519,6 +3534,16 @@ int cbf_get_doublevalue (cbf_handle handle, double *number)
     /* Get the value */
 
   cbf_failnez (cbf_get_value (handle, &value))
+    
+  cbf_failnez (cbf_get_typeofvalue (handle, &typeofvalue))
+
+  if (!typeofvalue || cbf_cistrcmp(typeofvalue,"null") == 0 ) {
+      
+      if (number) *number = 0.;
+    
+      return 0;
+      
+  }
 
 
     /* Convert it into a double */
@@ -3537,7 +3562,7 @@ int cbf_get_doublevalue (cbf_handle handle, double *number)
     
     buffer[79] = '\0';
     
-    if (*endptr == '.') *(buffer+(endptr-value)) = ',';
+    if (*endptr == '.' && (endptr-value) < 80) *(buffer+(endptr-value)) = ',';
     
     if (!cbf_cistrncmp(buffer,",",80) || !cbf_cistrncmp(buffer,"?",80)) {
     

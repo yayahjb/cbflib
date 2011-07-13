@@ -754,6 +754,36 @@ SEE ALSO
     void rewind_column(void){
       cbf_failnez(cbf_rewind_column(self));}
 %feature("autodoc", "
+Returns : pycbf positioner object
+*args   : String axis_id
+
+C prototype: int cbf_construct_reference_positioner (cbf_handle handle,
+                      cbf_positioner *positioner, const char *axis_id);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_construct_positioner constructs a positioner object for the axis 
+given by axis_id using the description in the CBF object handle and 
+initialises the positioner handle *positioner.
+cbf_construct_reference positioner constructs a positioner object for 
+the axis given by axis_id using the description in the CBF object 
+handle and initialises the detector handle *detector using the 
+reference settings of the axes.
+ARGUMENTS
+handle     CBF handle. detector   Pointer to the destination detector 
+handle. axis_id    The identifier of the axis in the  \"axis \" 
+category.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")construct_reference_positioner;
+
+ cbf_positioner construct_reference_positioner(const char* axis_id){
+    cbf_positioner positioner;
+    cbf_failnez(cbf_construct_reference_positioner(self,&positioner,axis_id));
+    return positioner;
+    }
+%feature("autodoc", "
 Returns : Float defaultvalue
 *args   : String columnname,Float Value
 
@@ -6523,6 +6553,36 @@ ndimslow and ndimmid should be the
         *slen = elsize*ndimfast*ndimslow;
         *s = (char *) array;
       }
+%feature("autodoc", "
+Returns : pycbf positioner object
+*args   : String axis_id
+
+C prototype: int cbf_construct_positioner (cbf_handle handle,
+                 cbf_positioner      *positioner, const char *axis_id);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_construct_positioner constructs a positioner object for the axis 
+given by axis_id using the description in the CBF object handle and 
+initialises the positioner handle *positioner.
+cbf_construct_reference positioner constructs a positioner object for 
+the axis given by axis_id using the description in the CBF object 
+handle and initialises the detector handle *detector using the 
+reference settings of the axes.
+ARGUMENTS
+handle     CBF handle. detector   Pointer to the destination detector 
+handle. axis_id    The identifier of the axis in the  \"axis \" 
+category.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")construct_positioner;
+
+ cbf_positioner construct_positioner(const char* axis_id){
+    cbf_positioner positioner;
+    cbf_failnez(cbf_construct_positioner(self,&positioner,axis_id));
+    return positioner;
+    }
 %feature("autodoc", "
 Returns : size_t ndimfast,size_t ndimmid,size_t ndimslow
 *args   : Integer element_number

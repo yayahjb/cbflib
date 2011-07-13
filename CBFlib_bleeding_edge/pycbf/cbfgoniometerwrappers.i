@@ -17,6 +17,7 @@ typedef struct
 }
 cbf_positioner_struct;
 
+typedef cbf_positioner_struct *cbf_positioner;
 typedef cbf_positioner_struct *cbf_goniometer;
 
 
@@ -31,7 +32,7 @@ typedef cbf_positioner_struct *cbf_goniometer;
        } 
 
     ~cbf_positioner_struct(){ // Destructor
-       cbf_failnez(cbf_free_goniometer(self));
+       cbf_failnez(cbf_free_positioner(self));
        }
 %feature("autodoc", "
 Returns : Float start,Float increment

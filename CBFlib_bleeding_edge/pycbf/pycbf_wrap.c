@@ -2666,22 +2666,21 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
 #define SWIGTYPE_p_cbf_detector_struct swig_types[4]
 #define SWIGTYPE_p_cbf_handle_struct swig_types[5]
 #define SWIGTYPE_p_cbf_node swig_types[6]
-#define SWIGTYPE_p_cbf_positioner swig_types[7]
-#define SWIGTYPE_p_cbf_positioner_struct swig_types[8]
-#define SWIGTYPE_p_char swig_types[9]
-#define SWIGTYPE_p_double swig_types[10]
-#define SWIGTYPE_p_doubleArray swig_types[11]
-#define SWIGTYPE_p_int swig_types[12]
-#define SWIGTYPE_p_intArray swig_types[13]
-#define SWIGTYPE_p_long swig_types[14]
-#define SWIGTYPE_p_longArray swig_types[15]
-#define SWIGTYPE_p_p_char swig_types[16]
-#define SWIGTYPE_p_short swig_types[17]
-#define SWIGTYPE_p_shortArray swig_types[18]
-#define SWIGTYPE_p_size_t swig_types[19]
-#define SWIGTYPE_p_void swig_types[20]
-static swig_type_info *swig_types[22];
-static swig_module_info swig_module = {swig_types, 21, 0, 0, 0, 0};
+#define SWIGTYPE_p_cbf_positioner_struct swig_types[7]
+#define SWIGTYPE_p_char swig_types[8]
+#define SWIGTYPE_p_double swig_types[9]
+#define SWIGTYPE_p_doubleArray swig_types[10]
+#define SWIGTYPE_p_int swig_types[11]
+#define SWIGTYPE_p_intArray swig_types[12]
+#define SWIGTYPE_p_long swig_types[13]
+#define SWIGTYPE_p_longArray swig_types[14]
+#define SWIGTYPE_p_p_char swig_types[15]
+#define SWIGTYPE_p_short swig_types[16]
+#define SWIGTYPE_p_shortArray swig_types[17]
+#define SWIGTYPE_p_size_t swig_types[18]
+#define SWIGTYPE_p_void swig_types[19]
+static swig_type_info *swig_types[21];
+static swig_module_info swig_module = {swig_types, 20, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -3269,7 +3268,7 @@ SWIGINTERN cbf_positioner_struct *new_cbf_positioner_struct(){  // Constructor
        return NULL; /* Should never be executed */
        }
 SWIGINTERN void delete_cbf_positioner_struct(cbf_positioner_struct *self){ // Destructor
-       {(error_status = cbf_free_goniometer(self));};
+       {(error_status = cbf_free_positioner(self));};
        }
 SWIGINTERN void cbf_positioner_struct_get_rotation_range(cbf_positioner_struct *self,double *start,double *increment){
        unsigned int reserved;
@@ -3307,6 +3306,11 @@ SWIGINTERN cbf_detector_struct *new_cbf_detector_struct(){  // Constructor
 SWIGINTERN void delete_cbf_detector_struct(cbf_detector_struct *self){ // Destructor
        {(error_status = cbf_free_detector(self));};
        }
+SWIGINTERN void cbf_detector_struct_set_beam_center_fs(cbf_detector_struct *self,double *indexfast,double *indexslow,double *centerfast,double *centerslow){
+        {(error_status = cbf_set_beam_center_fs(self, indexfast, indexslow, 
+                                       centerfast, centerslow));}
+;
+        }
 SWIGINTERN void cbf_detector_struct_set_reference_beam_center_fs(cbf_detector_struct *self,double *indexfast,double *indexslow,double *centerfast,double *centerslow){
         {(error_status = cbf_set_reference_beam_center_fs(self, indexfast, indexslow, 
                                        centerfast, centerslow));}
@@ -3315,11 +3319,6 @@ SWIGINTERN void cbf_detector_struct_set_reference_beam_center_fs(cbf_detector_st
 SWIGINTERN void cbf_detector_struct_get_pixel_coordinates_fs(cbf_detector_struct *self,double indexfast,double indexslow,double *coordinate1,double *coordinate2,double *coordinate3){
       {(error_status = cbf_get_pixel_coordinates_fs(self, indexfast, indexslow, coordinate1, coordinate2, coordinate3));};
    }
-SWIGINTERN void cbf_detector_struct_set_beam_center_fs(cbf_detector_struct *self,double *indexfast,double *indexslow,double *centerfast,double *centerslow){
-        {(error_status = cbf_set_beam_center_fs(self, indexfast, indexslow, 
-                                       centerfast, centerslow));}
-;
-        }
 
 SWIGINTERN int
 SWIG_AsVal_unsigned_SS_int (PyObject * obj, unsigned int *val)
@@ -3650,6 +3649,11 @@ SWIGINTERN cbf_detector cbf_handle_struct_construct_detector(cbf_handle_struct *
     }
 SWIGINTERN void cbf_handle_struct_rewind_column(cbf_handle_struct *self){
       {(error_status = cbf_rewind_column(self));};}
+SWIGINTERN cbf_positioner cbf_handle_struct_construct_reference_positioner(cbf_handle_struct *self,char const *axis_id){
+    cbf_positioner positioner;
+    {(error_status = cbf_construct_reference_positioner(self,&positioner,axis_id));};
+    return positioner;
+    }
 SWIGINTERN void cbf_handle_struct_require_column_doublevalue(cbf_handle_struct *self,char const *columnname,double *number,double const defaultvalue){
     {(error_status = cbf_require_column_doublevalue(self,
                   columnname,number,defaultvalue));}
@@ -4766,6 +4770,11 @@ SWIGINTERN void cbf_handle_struct_get_image_sf_as_string(cbf_handle_struct *self
         *slen = elsize*ndimfast*ndimslow;
         *s = (char *) array;
       }
+SWIGINTERN cbf_positioner cbf_handle_struct_construct_positioner(cbf_handle_struct *self,char const *axis_id){
+    cbf_positioner positioner;
+    {(error_status = cbf_construct_positioner(self,&positioner,axis_id));};
+    return positioner;
+    }
 SWIGINTERN void cbf_handle_struct_get_3d_image_size_fs(cbf_handle_struct *self,unsigned int element_number,int *ndimfast,int *ndimmid,int *ndimslow){
         unsigned int reserved;
         size_t inslow, inmid, infast;
@@ -6436,10 +6445,10 @@ SWIGINTERN PyObject *cbf_positioner_struct_swigregister(PyObject *SWIGUNUSEDPARM
 SWIGINTERN PyObject *_wrap_cbf_detector_struct_positioner_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
-  cbf_positioner arg2 ;
+  cbf_positioner arg2 = (cbf_positioner) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
+  void *argp2 = 0 ;
   int res2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
@@ -6450,17 +6459,11 @@ SWIGINTERN PyObject *_wrap_cbf_detector_struct_positioner_set(PyObject *SWIGUNUS
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_positioner_set" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
   }
   arg1 = (cbf_detector_struct *)(argp1);
-  {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_cbf_positioner,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_detector_struct_positioner_set" "', argument " "2"" of type '" "cbf_positioner""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "cbf_detector_struct_positioner_set" "', argument " "2"" of type '" "cbf_positioner""'");
-    } else {
-      arg2 = *((cbf_positioner *)(argp2));
-    }
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_cbf_positioner_struct, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_detector_struct_positioner_set" "', argument " "2"" of type '" "cbf_positioner""'"); 
   }
+  arg2 = (cbf_positioner)(argp2);
   if (arg1) (arg1)->positioner = arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -6483,8 +6486,8 @@ SWIGINTERN PyObject *_wrap_cbf_detector_struct_positioner_get(PyObject *SWIGUNUS
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_positioner_get" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
   }
   arg1 = (cbf_detector_struct *)(argp1);
-  result =  ((arg1)->positioner);
-  resultobj = SWIG_NewPointerObj((cbf_positioner *)memcpy((cbf_positioner *)malloc(sizeof(cbf_positioner)),&result,sizeof(cbf_positioner)), SWIGTYPE_p_cbf_positioner, SWIG_POINTER_OWN |  0 );
+  result = (cbf_positioner) ((arg1)->positioner);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_cbf_positioner_struct, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -6774,6 +6777,71 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_cbf_detector_struct_set_beam_center_fs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
+  double *arg2 = (double *) 0 ;
+  double *arg3 = (double *) 0 ;
+  double *arg4 = (double *) 0 ;
+  double *arg5 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  void *argp3 = 0 ;
+  int res3 = 0 ;
+  void *argp4 = 0 ;
+  int res4 = 0 ;
+  void *argp5 = 0 ;
+  int res5 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:cbf_detector_struct_set_beam_center_fs",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_detector_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_set_beam_center_fs" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
+  }
+  arg1 = (cbf_detector_struct *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_detector_struct_set_beam_center_fs" "', argument " "2"" of type '" "double *""'"); 
+  }
+  arg2 = (double *)(argp2);
+  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "cbf_detector_struct_set_beam_center_fs" "', argument " "3"" of type '" "double *""'"); 
+  }
+  arg3 = (double *)(argp3);
+  res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "cbf_detector_struct_set_beam_center_fs" "', argument " "4"" of type '" "double *""'"); 
+  }
+  arg4 = (double *)(argp4);
+  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res5)) {
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "cbf_detector_struct_set_beam_center_fs" "', argument " "5"" of type '" "double *""'"); 
+  }
+  arg5 = (double *)(argp5);
+  {
+    error_status=0;
+    cbf_detector_struct_set_beam_center_fs(arg1,arg2,arg3,arg4,arg5);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_cbf_detector_struct_set_reference_beam_center_fs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
@@ -6910,71 +6978,6 @@ SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_pixel_coordinates_fs(PyObject
     int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_double, new_flags));
   }
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_cbf_detector_struct_set_beam_center_fs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
-  double *arg2 = (double *) 0 ;
-  double *arg3 = (double *) 0 ;
-  double *arg4 = (double *) 0 ;
-  double *arg5 = (double *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
-  PyObject * obj4 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:cbf_detector_struct_set_beam_center_fs",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_detector_struct, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_set_beam_center_fs" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
-  }
-  arg1 = (cbf_detector_struct *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_detector_struct_set_beam_center_fs" "', argument " "2"" of type '" "double *""'"); 
-  }
-  arg2 = (double *)(argp2);
-  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "cbf_detector_struct_set_beam_center_fs" "', argument " "3"" of type '" "double *""'"); 
-  }
-  arg3 = (double *)(argp3);
-  res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "cbf_detector_struct_set_beam_center_fs" "', argument " "4"" of type '" "double *""'"); 
-  }
-  arg4 = (double *)(argp4);
-  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "cbf_detector_struct_set_beam_center_fs" "', argument " "5"" of type '" "double *""'"); 
-  }
-  arg5 = (double *)(argp5);
-  {
-    error_status=0;
-    cbf_detector_struct_set_beam_center_fs(arg1,arg2,arg3,arg4,arg5);
-    if (error_status){
-      get_error_message();
-      PyErr_SetString(PyExc_Exception,error_message);
-      return NULL;
-    }
-  }
-  resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
   return NULL;
@@ -9723,6 +9726,48 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_rewind_column(PyObject *SWIGUNUSEDP
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_construct_reference_positioner(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  cbf_positioner result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_handle_struct_construct_reference_positioner",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_construct_reference_positioner" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+  }
+  arg1 = (cbf_handle_struct *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_handle_struct_construct_reference_positioner" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    error_status=0;
+    result = (cbf_positioner)cbf_handle_struct_construct_reference_positioner(arg1,(char const *)arg2);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_cbf_positioner_struct, 0 |  0 );
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return NULL;
 }
 
@@ -17810,6 +17855,48 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_construct_positioner(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  cbf_positioner result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_handle_struct_construct_positioner",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_construct_positioner" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+  }
+  arg1 = (cbf_handle_struct *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_handle_struct_construct_positioner" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    error_status=0;
+    result = (cbf_positioner)cbf_handle_struct_construct_positioner(arg1,(char const *)arg2);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_cbf_positioner_struct, 0 |  0 );
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_3d_image_size_fs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
@@ -19383,6 +19470,68 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"cbf_detector_struct_index_get", _wrap_cbf_detector_struct_index_get, METH_VARARGS, (char *)"cbf_detector_struct_index_get(cbf_detector_struct self) -> size_t"},
 	 { (char *)"new_cbf_detector_struct", _wrap_new_cbf_detector_struct, METH_VARARGS, (char *)"new_cbf_detector_struct() -> cbf_detector_struct"},
 	 { (char *)"delete_cbf_detector_struct", _wrap_delete_cbf_detector_struct, METH_VARARGS, (char *)"delete_cbf_detector_struct(cbf_detector_struct self)"},
+	 { (char *)"cbf_detector_struct_set_beam_center_fs", _wrap_cbf_detector_struct_set_beam_center_fs, METH_VARARGS, (char *)"\n"
+		"Returns : \n"
+		"*args   : double indexfast,double indexslow,double centerfast,double centerslow\n"
+		"\n"
+		"C prototype: int cbf_set_beam_center_fs (cbf_detector detector,\n"
+		"                 double *indexfast,      double *indexslow, double *centerfast,\n"
+		"                 double *centerslow);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_beam_center sets *centerfast and *centerslow to the \n"
+		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
+		"point at which the beam intersects the detector and *indexfast and \n"
+		"*indexslow to the corresponding indices. cbf_set_beam_center sets the \n"
+		"offsets in the axis category for the detector element axis with \n"
+		"precedence 1 to place the beam center at the position given in mm by \n"
+		"*centerfast and *centerslow as the displacements in mm along the \n"
+		"detector axes from pixel (0, 0) to the point at which the beam \n"
+		"intersects the detector at the indices given *indexfast and \n"
+		"*indexslow. cbf_set_reference_beam_center sets the displacments in \n"
+		"the array_structure_list_axis category to place the beam center at \n"
+		"the position given in mm by *centerfast and *centerslow as the \n"
+		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
+		"point at which the beam intersects the detector at the indices given \n"
+		"by *indexfast and *indexslow. In order to achieve consistent results, \n"
+		"a reference detector should be used for detector to have all axes at \n"
+		"their reference settings.\n"
+		"Note that the precedence 1 axis is the fastest axis, so that \n"
+		"*centerfast and *indexfast are the fast axis components of the center \n"
+		"and *centerslow and *indexslow are the slow axis components of the \n"
+		"center.\n"
+		"The _fs calls give the displacments in a fast-to-slow order. The \n"
+		"calls with no suffix and the calls _sf calls give the displacements \n"
+		"in slow-to-fast order\n"
+		"Any of the destination pointers may be NULL for getting the beam \n"
+		"center. For setting the beam axis, either the indices of the center \n"
+		"must not be NULL.\n"
+		"The indices are non-negative for beam centers within the detector \n"
+		"surface, but the center for an axis with a negative increment will be \n"
+		"negative for a beam center within the detector surface.\n"
+		"For cbf_set_beam_center if the diffrn_data_frame category exists with \n"
+		"a row for the corresponding element id, the values will be set for \n"
+		"_diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in \n"
+		"millimetres and the value of _diffrn_data_frame.center_units will be \n"
+		"set to 'mm'.\n"
+		"For cbf_set_reference_beam_center if the diffrn_detector_element \n"
+		"category exists with a row for the corresponding element id, the \n"
+		"values will be set for _diffrn_detector_element.reference_center_fast \n"
+		"and _diffrn_detector_element.reference_center_slow in millimetres and \n"
+		"the value of _diffrn_detector_element.reference_units will be set to \n"
+		"'mm'.\n"
+		"ARGUMENTS\n"
+		"detector     Detector handle. indexfast    Pointer to the destination \n"
+		"fast index. indexslow    Pointer to the destination slow index. \n"
+		"centerfast   Pointer to the destination displacement along the fast \n"
+		"axis. centerslow   Pointer to the destination displacement along the \n"
+		"slow axis.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
 	 { (char *)"cbf_detector_struct_set_reference_beam_center_fs", _wrap_cbf_detector_struct_set_reference_beam_center_fs, METH_VARARGS, (char *)"\n"
 		"Returns : \n"
 		"*args   : double indexfast,double indexslow,double centerfast,double centerslow\n"
@@ -19466,68 +19615,6 @@ static PyMethodDef SwigMethods[] = {
 		" Fast index. coordinate1   Pointer to the destination x component. \n"
 		"coordinate2   Pointer to the destination y component. coordinate3   \n"
 		"Pointer to the destination z component.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"----------------------------------------------------------------------\n"
-		"\n"
-		""},
-	 { (char *)"cbf_detector_struct_set_beam_center_fs", _wrap_cbf_detector_struct_set_beam_center_fs, METH_VARARGS, (char *)"\n"
-		"Returns : \n"
-		"*args   : double indexfast,double indexslow,double centerfast,double centerslow\n"
-		"\n"
-		"C prototype: int cbf_set_beam_center_fs (cbf_detector detector,\n"
-		"                 double *indexfast,      double *indexslow, double *centerfast,\n"
-		"                 double *centerslow);\n"
-		"\n"
-		"CBFLib documentation:\n"
-		"DESCRIPTION\n"
-		"cbf_get_beam_center sets *centerfast and *centerslow to the \n"
-		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
-		"point at which the beam intersects the detector and *indexfast and \n"
-		"*indexslow to the corresponding indices. cbf_set_beam_center sets the \n"
-		"offsets in the axis category for the detector element axis with \n"
-		"precedence 1 to place the beam center at the position given in mm by \n"
-		"*centerfast and *centerslow as the displacements in mm along the \n"
-		"detector axes from pixel (0, 0) to the point at which the beam \n"
-		"intersects the detector at the indices given *indexfast and \n"
-		"*indexslow. cbf_set_reference_beam_center sets the displacments in \n"
-		"the array_structure_list_axis category to place the beam center at \n"
-		"the position given in mm by *centerfast and *centerslow as the \n"
-		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
-		"point at which the beam intersects the detector at the indices given \n"
-		"by *indexfast and *indexslow. In order to achieve consistent results, \n"
-		"a reference detector should be used for detector to have all axes at \n"
-		"their reference settings.\n"
-		"Note that the precedence 1 axis is the fastest axis, so that \n"
-		"*centerfast and *indexfast are the fast axis components of the center \n"
-		"and *centerslow and *indexslow are the slow axis components of the \n"
-		"center.\n"
-		"The _fs calls give the displacments in a fast-to-slow order. The \n"
-		"calls with no suffix and the calls _sf calls give the displacements \n"
-		"in slow-to-fast order\n"
-		"Any of the destination pointers may be NULL for getting the beam \n"
-		"center. For setting the beam axis, either the indices of the center \n"
-		"must not be NULL.\n"
-		"The indices are non-negative for beam centers within the detector \n"
-		"surface, but the center for an axis with a negative increment will be \n"
-		"negative for a beam center within the detector surface.\n"
-		"For cbf_set_beam_center if the diffrn_data_frame category exists with \n"
-		"a row for the corresponding element id, the values will be set for \n"
-		"_diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in \n"
-		"millimetres and the value of _diffrn_data_frame.center_units will be \n"
-		"set to 'mm'.\n"
-		"For cbf_set_reference_beam_center if the diffrn_detector_element \n"
-		"category exists with a row for the corresponding element id, the \n"
-		"values will be set for _diffrn_detector_element.reference_center_fast \n"
-		"and _diffrn_detector_element.reference_center_slow in millimetres and \n"
-		"the value of _diffrn_detector_element.reference_units will be set to \n"
-		"'mm'.\n"
-		"ARGUMENTS\n"
-		"detector     Detector handle. indexfast    Pointer to the destination \n"
-		"fast index. indexslow    Pointer to the destination slow index. \n"
-		"centerfast   Pointer to the destination displacement along the fast \n"
-		"axis. centerslow   Pointer to the destination displacement along the \n"
-		"slow axis.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"----------------------------------------------------------------------\n"
@@ -20992,6 +21079,31 @@ static PyMethodDef SwigMethods[] = {
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"SEE ALSO\n"
+		"\n"
+		""},
+	 { (char *)"cbf_handle_struct_construct_reference_positioner", _wrap_cbf_handle_struct_construct_reference_positioner, METH_VARARGS, (char *)"\n"
+		"Returns : pycbf positioner object\n"
+		"*args   : String axis_id\n"
+		"\n"
+		"C prototype: int cbf_construct_reference_positioner (cbf_handle handle,\n"
+		"                      cbf_positioner *positioner, const char *axis_id);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_construct_positioner constructs a positioner object for the axis \n"
+		"given by axis_id using the description in the CBF object handle and \n"
+		"initialises the positioner handle *positioner.\n"
+		"cbf_construct_reference positioner constructs a positioner object for \n"
+		"the axis given by axis_id using the description in the CBF object \n"
+		"handle and initialises the detector handle *detector using the \n"
+		"reference settings of the axes.\n"
+		"ARGUMENTS\n"
+		"handle     CBF handle. detector   Pointer to the destination detector \n"
+		"handle. axis_id    The identifier of the axis in the  \"axis \" \n"
+		"category.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_require_column_doublevalue", _wrap_cbf_handle_struct_require_column_doublevalue, METH_VARARGS, (char *)"\n"
@@ -25166,6 +25278,31 @@ static PyMethodDef SwigMethods[] = {
 		"ndimslow and ndimmid should be the\n"
 		"\n"
 		""},
+	 { (char *)"cbf_handle_struct_construct_positioner", _wrap_cbf_handle_struct_construct_positioner, METH_VARARGS, (char *)"\n"
+		"Returns : pycbf positioner object\n"
+		"*args   : String axis_id\n"
+		"\n"
+		"C prototype: int cbf_construct_positioner (cbf_handle handle,\n"
+		"                 cbf_positioner      *positioner, const char *axis_id);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_construct_positioner constructs a positioner object for the axis \n"
+		"given by axis_id using the description in the CBF object handle and \n"
+		"initialises the positioner handle *positioner.\n"
+		"cbf_construct_reference positioner constructs a positioner object for \n"
+		"the axis given by axis_id using the description in the CBF object \n"
+		"handle and initialises the detector handle *detector using the \n"
+		"reference settings of the axes.\n"
+		"ARGUMENTS\n"
+		"handle     CBF handle. detector   Pointer to the destination detector \n"
+		"handle. axis_id    The identifier of the axis in the  \"axis \" \n"
+		"category.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_get_3d_image_size_fs", _wrap_cbf_handle_struct_get_3d_image_size_fs, METH_VARARGS, (char *)"cbf_handle_struct_get_3d_image_size_fs(cbf_handle_struct self, unsigned int element_number)"},
 	 { (char *)"cbf_handle_struct_set_value", _wrap_cbf_handle_struct_set_value, METH_VARARGS, (char *)"\n"
 		"Returns : string\n"
@@ -25864,8 +26001,7 @@ static swig_type_info _swigt__p_cbf_axis_struct = {"_p_cbf_axis_struct", "cbf_ax
 static swig_type_info _swigt__p_cbf_detector_struct = {"_p_cbf_detector_struct", "cbf_detector|cbf_detector_struct *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_cbf_handle_struct = {"_p_cbf_handle_struct", "cbf_handle|cbf_handle_struct *|handle *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_cbf_node = {"_p_cbf_node", "cbf_node *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_cbf_positioner = {"_p_cbf_positioner", "cbf_positioner *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_cbf_positioner_struct = {"_p_cbf_positioner_struct", "cbf_goniometer|cbf_positioner_struct *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_cbf_positioner_struct = {"_p_cbf_positioner_struct", "cbf_positioner|cbf_goniometer|cbf_positioner_struct *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_doubleArray = {"_p_doubleArray", "struct doubleArray *|doubleArray *", 0, 0, (void*)0, 0};
@@ -25887,7 +26023,6 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_cbf_detector_struct,
   &_swigt__p_cbf_handle_struct,
   &_swigt__p_cbf_node,
-  &_swigt__p_cbf_positioner,
   &_swigt__p_cbf_positioner_struct,
   &_swigt__p_char,
   &_swigt__p_double,
@@ -25910,7 +26045,6 @@ static swig_cast_info _swigc__p_cbf_axis_struct[] = {  {&_swigt__p_cbf_axis_stru
 static swig_cast_info _swigc__p_cbf_detector_struct[] = {  {&_swigt__p_cbf_detector_struct, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_cbf_handle_struct[] = {  {&_swigt__p_cbf_handle_struct, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_cbf_node[] = {  {&_swigt__p_cbf_node, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_cbf_positioner[] = {  {&_swigt__p_cbf_positioner, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_cbf_positioner_struct[] = {  {&_swigt__p_cbf_positioner_struct, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_double[] = {  {&_swigt__p_doubleArray, _p_doubleArrayTo_p_double, 0, 0},  {&_swigt__p_double, 0, 0, 0},{0, 0, 0, 0}};
@@ -25933,7 +26067,6 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_cbf_detector_struct,
   _swigc__p_cbf_handle_struct,
   _swigc__p_cbf_node,
-  _swigc__p_cbf_positioner,
   _swigc__p_cbf_positioner_struct,
   _swigc__p_char,
   _swigc__p_double,
