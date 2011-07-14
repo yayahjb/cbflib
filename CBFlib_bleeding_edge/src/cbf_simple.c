@@ -2761,7 +2761,7 @@ int cbf_get_axis_setting (cbf_handle handle, unsigned int  reserved,
 {
   cbf_axis_type type;
 
-  if (reserved != 0)
+  if (reserved != 0 || !start || !increment )
 
     return CBF_ARGUMENT;
 
@@ -2770,15 +2770,25 @@ int cbf_get_axis_setting (cbf_handle handle, unsigned int  reserved,
 
   cbf_failnez (cbf_get_axis_type (handle, axis_id, &type))
 
-  if (type != CBF_TRANSLATION_AXIS && type != CBF_ROTATION_AXIS)
+  if (type != CBF_TRANSLATION_AXIS && type != CBF_ROTATION_AXIS && type != CBF_GENERAL_AXIS )
 
     return CBF_FORMAT;
+    
+    /* For a general axis, the settings are always 0 */
+    
+  if (type == CBF_GENERAL_AXIS ) {
+      
+    *start = 0.;
+      
+    *increment = 0.;
+      
+  }
 
 
     /* Read from the diffrn_scan_axis and
                      diffrn_scan_frame_axis categories */
 
-  if (type == CBF_TRANSLATION_AXIS)
+  else if (type == CBF_TRANSLATION_AXIS)
   {
     cbf_failnez (cbf_find_category   (handle, "diffrn_scan_frame_axis"))
     cbf_failnez (cbf_find_column     (handle, "axis_id"))
@@ -3282,7 +3292,7 @@ int cbf_read_positioner_axis (cbf_handle      handle,
     
   /* fprintf(stderr," cbf_read_positioner_axis , axis = %s, read_setting = %d\n",axis_id, read_setting);*/
 
-  if (read_setting) 
+  if (read_setting && axis_type != CBF_GENERAL_AXIS) 
   {
   	
     errorcode = cbf_get_axis_setting (handle, reserved, axis_id,
