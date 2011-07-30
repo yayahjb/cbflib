@@ -1622,15 +1622,15 @@ cbfhandle_specials = {
                     int encoding){
        FILE *stream;
        int readable;
-       /* Make the file non-0 to make CBFlib close the file */
-       readable = 1;
+       /* Make readable false so we can close the file immediately */
+       readable = 0;
        if ( ! ( stream = fopen (filename, "w+b")) ){
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
         cbf_failnez(cbf_write_file(self, stream, readable, 
                     ciforcbf, headers, encoding));
-
+        fclose(stream);
         }
        }
 ""","write_file",["String filename","Integer ciforcbf","Integer Headers", 
@@ -1642,14 +1642,15 @@ cbfhandle_specials = {
                     int encoding){
        FILE *stream;
        int readable;
-       /* Make the file non-0 to make CBFlib close the file */
-       readable = 1;
+       /* Make readable false so we can close the file immediately */
+       readable = 0;
        if ( ! ( stream = fopen (filename, "w+b")) ){
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
         cbf_failnez(cbf_write_widefile(self, stream, readable, 
                     ciforcbf, headers, encoding));
+        fclose(stream);
 
         }
        }

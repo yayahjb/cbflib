@@ -3909,8 +3909,8 @@ SWIGINTERN void cbf_handle_struct_set_real_3d_image_sf(cbf_handle_struct *self,u
 SWIGINTERN void cbf_handle_struct_write_file(cbf_handle_struct *self,char const *filename,int ciforcbf,int headers,int encoding){
        FILE *stream;
        int readable;
-       /* Make the file non-0 to make CBFlib close the file */
-       readable = 1;
+       /* Make readable false so we can close the file immediately */
+       readable = 0;
        if ( ! ( stream = fopen (filename, "w+b")) ){
          {(error_status = CBF_FILEOPEN);};
         }
@@ -3918,7 +3918,7 @@ SWIGINTERN void cbf_handle_struct_write_file(cbf_handle_struct *self,char const 
         {(error_status = cbf_write_file(self, stream, readable, 
                     ciforcbf, headers, encoding));}
 ;
-
+        fclose(stream);
         }
        }
 SWIGINTERN void cbf_handle_struct_set_divergence(cbf_handle_struct *self,double div_x_source,double div_y_source,double div_x_y_source){
@@ -4647,8 +4647,8 @@ SWIGINTERN void cbf_handle_struct_set_tag_root(cbf_handle_struct *self,char cons
 SWIGINTERN void cbf_handle_struct_write_widefile(cbf_handle_struct *self,char const *filename,int ciforcbf,int headers,int encoding){
        FILE *stream;
        int readable;
-       /* Make the file non-0 to make CBFlib close the file */
-       readable = 1;
+       /* Make readable false so we can close the file immediately */
+       readable = 0;
        if ( ! ( stream = fopen (filename, "w+b")) ){
          {(error_status = CBF_FILEOPEN);};
         }
@@ -4656,6 +4656,7 @@ SWIGINTERN void cbf_handle_struct_write_widefile(cbf_handle_struct *self,char co
         {(error_status = cbf_write_widefile(self, stream, readable, 
                     ciforcbf, headers, encoding));}
 ;
+        fclose(stream);
 
         }
        }
