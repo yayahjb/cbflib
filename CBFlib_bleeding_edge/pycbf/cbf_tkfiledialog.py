@@ -117,7 +117,7 @@ def save_cbf(cbf = None, file_extensions=None, x=100, y=100, title="Save CBF", m
 
         
     """
-
+    ## print "DEBUG: call to save_cbf cbf=", cbf, "file_extensions=", file_extensions
     if cbf == None:
         raise ValueError("To save a cbf, the cbf must be created first.")
     if maxfiles < 5: maxfiles = 5
@@ -156,7 +156,8 @@ def save_cbf(cbf = None, file_extensions=None, x=100, y=100, title="Save CBF", m
                     ("Crystallographic Information Files","*.cif"),\
                     ("Crystallographic Information File Dictionaries","*.dic"),\
                     ("Text files","*.txt"), \
-                    ("All files","*.*")])
+                    ("All files","*.*")], \
+            parent = parent)
     if root == None:
         parent.destroy()
     if filename == '':
@@ -180,9 +181,9 @@ def save_cbf(cbf = None, file_extensions=None, x=100, y=100, title="Save CBF", m
         ciforcbf = pycbf.CIF
     try:
         if mode.lower() == "wide":
-            cbf.write_widefile(0,ciforcbf,flags,encoding)
+            cbf.write_widefile(filename,ciforcbf,flags,encoding)
         else:
-            cbf.write_file(0,ciforcbf,flags,encoding)
+            cbf.write_file(filename,ciforcbf,flags,encoding)
         menus.visible = 0
         del menus
         currentdisplay.select()
