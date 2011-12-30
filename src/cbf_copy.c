@@ -609,6 +609,11 @@ extern "C" {
         double vallow, valhigh;
         
 #endif
+        /* to avoid duplicate values, we maintain
+         a list of the sizes of char, short int, int, 
+         long int, long long int, float and double
+         and then clobber the duplicates */
+        
         
         cbf_get_local_integer_byte_order(&border);
 
@@ -628,6 +633,7 @@ extern "C" {
 #else
             elsize != 2* sizeof (long int) &&
 #endif
+            elsize != sizeof (int) &&
             elsize != sizeof (short int) &&
             elsize != sizeof (char))
             return CBF_ARGUMENT;
@@ -777,6 +783,7 @@ extern "C" {
 #else
                 oelsize != 2* sizeof (long int) &&
 #endif
+                oelsize != sizeof (int) &&
                 oelsize != sizeof (short int) &&
                 oelsize != sizeof (char))
                 return CBF_ARGUMENT;
@@ -867,46 +874,48 @@ extern "C" {
                                 
                                 for (icount = 0; icount < elements; icount++) {
                                     
-                                    switch (oelsize) {
-                                            
-                                        case (sizeof(char)):
+                                    if (oelsize == sizeof(char)){
                                             if (elsigned) doval = (double)((signed char *)array)[icount];
                                             else doval = (double)((unsigned char *)array)[icount];
                                             if (doval < cliplow) doval = cliplow;
                                             if (doval > cliphigh) doval = cliphigh;
                                             if (elsigned) ((signed char *)array)[icount] = (signed char)doval;
                                             else ((unsigned char *)array)[icount] = (unsigned char)doval;
-                                            break;
                                             
-                                        case (sizeof(short int)):
+                                    } else if (oelsize == sizeof(short int)){
                                             if (elsigned) doval = (double)((signed short int *)array)[icount];
                                             else doval = (double)((unsigned short int *)array)[icount];
                                             if (doval < cliplow) doval = cliplow;
                                             if (doval > cliphigh) doval = cliphigh;
                                             if (elsigned) ((signed char *)array)[icount] = (signed short int)doval;
                                             else ((unsigned char *)array)[icount] = (unsigned short int)doval;
-                                            break;
                                             
-                                        case (sizeof(long int)):
+                                    } else if (oelsize == sizeof(int)){
+                                        if (elsigned) doval = (double)((signed int *)array)[icount];
+                                        else doval = (double)((unsigned int *)array)[icount];
+                                        if (doval < cliplow) doval = cliplow;
+                                        if (doval > cliphigh) doval = cliphigh;
+                                        if (elsigned) ((signed char *)array)[icount] = (signed int)doval;
+                                        else ((unsigned char *)array)[icount] = (unsigned int)doval;
+                                        
+                                    } else if (oelsize == sizeof(long int)){
                                             if (elsigned) doval = (double)((signed long int *)array)[icount];
                                             else doval = (double)((unsigned long int *)array)[icount];
                                             if (doval < cliplow) doval = cliplow;
                                             if (doval > cliphigh) doval = cliphigh;
                                             if (elsigned) ((signed char *)array)[icount] = (signed long int)doval;
                                             else ((unsigned char *)array)[icount] = (unsigned long int)doval;
-                                            break;
                                             
 #ifdef CBF_USE_LONG_LONG                                                        
-                                        case (sizeof(long long int)):
+                                    } else if (oelsize == sizeof(long long int)){
                                             if (elsigned) doval = (double)((signed long long int *)array)[icount];
                                             else doval = (double)((unsigned long long int *)array)[icount];
                                             if (doval < cliplow) doval = cliplow;
                                             if (doval > cliphigh) doval = cliphigh;
                                             if (elsigned) ((signed char *)array)[icount] = (signed long long int)doval;
                                             else ((unsigned char *)array)[icount] = (unsigned long long int)doval;
-                                            break;
 #endif
-                                        default:
+                                    } else {
                                             free(narray); free(array); return CBF_ARGUMENT;
                                             
                                     }
@@ -986,9 +995,7 @@ extern "C" {
                                 
                                 double xvalue;
                                 
-                                switch (oelsize) {
-                                        
-                                    case sizeof(char):
+                                if (oelsize==sizeof(char)){
                                         
                                         if (elsigned) {
                                             
@@ -1018,9 +1025,7 @@ extern "C" {
                                             
                                         }
                                         
-                                        break;
-                                        
-                                    case sizeof(short int):
+                                } else if (oelsize==sizeof(short int)){
                                         
                                         if (elsigned) {
                                             
@@ -1050,9 +1055,37 @@ extern "C" {
                                             
                                         }
                                         
-                                        break;
+                                } else if (oelsize==sizeof(int)){
+                                    
+                                    if (elsigned) {
                                         
-                                    case sizeof(long int):
+                                        for (icount = 0; icount < elements; icount++) {
+                                            
+                                            xvalue = ((signed int *)array)[icount];
+                                            
+                                            if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
+                                            
+                                            else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
+                                            
+                                            else { free(narray); free(array); return CBF_ARGUMENT;}
+                                        }
+                                        
+                                    } else {
+                                        
+                                        for (icount = 0; icount < elements; icount++) {
+                                            
+                                            xvalue = ((unsigned int *)array)[icount];
+                                            
+                                            if (elsize == sizeof(double)) ((double *)narray)[icount] = xvalue;
+                                            
+                                            else if (elsize == sizeof(float)) ((float *)narray)[icount] = xvalue;
+                                        
+                                            else  { free(narray); free(array); return CBF_ARGUMENT;}
+                                        }
+                                        
+                                    }
+                                    
+                                } else if (oelsize==sizeof(long int)){
                                         
                                         if (elsigned) {
                                             
@@ -1083,9 +1116,8 @@ extern "C" {
                                         }
                                         
                                         
-                                        break;
 #ifdef CBF_USE_LONG_LONG
-                                    case sizeof(long long int):
+                                } else if (oelsize==sizeof(long long int)){
                                         
                                         if (elsigned) {
                                             
@@ -1116,10 +1148,8 @@ extern "C" {
                                         }
                                         
                                         
-                                        break;
-                                        
 #else
-                                    case 2* sizeof(long int):
+                                } else if (oelsize== 2* sizeof(long int)) {
                                         
                                         if (elsigned) {
                                             
@@ -1170,26 +1200,24 @@ extern "C" {
                                         }
                                         
                                         
-                                        break;
-                                        
-                                        
 #endif
                                         
-                                    default:  free(narray); free(array); return CBF_ARGUMENT;
+                                } else {
+                                    
+                                    free(narray); free(array); return CBF_ARGUMENT;
                                         
                                 }
                                 
                                 cbf_onfailnez(cbf_set_realarray_wdims_fs(
                                                                          cbfout, compression,
                                                                          binary_id, narray, elsize, elements,
-                                                                         "little_endian", dim1, dim2, dim3, 0),
+                                                                         "little_endian", dim1, dim2, dim3, 0    ),
                                               
                                               { free(narray); free(array);})
                                 
                                 free(narray);
                                 
                                 free(array);
-                                
                             }
                             
                         } else {
@@ -1235,23 +1263,19 @@ extern "C" {
                                 
                                 for (icount = 0; icount < elements; icount++) {
                                     
-                                    switch (oelsize) {
-                                            
-                                        case (sizeof(float)):
+                                    if (oelsize==sizeof(float)){
                                             doval = (double)((float *)array)[icount];
                                             if (doval < cliplow) doval = cliplow;
                                             if (doval > cliphigh) doval = cliphigh;
                                             ((float *)array)[icount] = (float)doval;
-                                            break;
                                             
-                                        case (sizeof(double)):
+                                    } else if (oelsize==sizeof(double)){
                                             doval = ((double *)array)[icount];
                                             if (doval < cliplow) doval = cliplow;
                                             if (doval > cliphigh) doval = cliphigh;
                                             ((double *)array)[icount] = doval;
-                                            break;
                                             
-                                        default:
+                                    } else {
                                             free(narray); free(array); return CBF_ARGUMENT;
                                             
                                     }
@@ -1310,9 +1334,7 @@ extern "C" {
                                 } else {free(array); free(narray); return CBF_ARGUMENT;}
                                 
                                 
-                                switch( nelsize ) {
-                                        
-                                    case (sizeof(char)):
+                                if (nelsize==sizeof(char)){
                                         
                                         if (oelsize == sizeof(float)) {
                                             
@@ -1380,9 +1402,8 @@ extern "C" {
                                             
                                         } else { free(narray); free(array); return CBF_ARGUMENT;}
                                         
-                                        break;
                                         
-                                    case (sizeof(short int)):
+                                } else if (nelsize==sizeof(short int)){
                                         
                                         if (oelsize == sizeof(float)) {
                                             
@@ -1450,9 +1471,76 @@ extern "C" {
                                             
                                         } else { free(narray); free(array); return CBF_ARGUMENT;}
                                         
-                                        break;
+                                } else if (nelsize==sizeof(int)){
+                                    
+                                    if (oelsize == sizeof(float)) {
                                         
-                                    case (sizeof(long int)):
+                                        if (nelsigned) {
+                                            
+                                            for (icount = 0; icount < elements; icount++) {
+                                        
+                                                valtemp = ((float *)array)[icount];
+                                                
+                                                if (valtemp < minval || valtemp > maxval) {
+                                                    
+                                                    free(array); free(narray); return CBF_OVERFLOW;
+                                                }
+                                                
+                                                ((signed int *)narray)[icount] = (signed int)valtemp;
+                                            }
+                                            
+                                        } else {
+                                            
+                                            for (icount = 0; icount < elements; icount++) {
+                                                
+                                                valtemp = ((float *)array)[icount];
+                                                
+                                                if (valtemp < minval || valtemp > maxval) {
+                                                    
+                                                    free(array); free(narray); return CBF_OVERFLOW;
+                                                }
+                                                
+                                                ((unsigned int *)narray)[icount] = (unsigned int)valtemp;
+                                            }
+                                            
+                                        }
+                                        
+                                    } else if (oelsize == sizeof(double)) {
+                                        
+                                        if (nelsigned) {
+                                            
+                                            for (icount = 0; icount < elements; icount++) {
+                                                
+                                                valtemp = ((double *)array)[icount];
+                                                
+                                                if (valtemp < minval || valtemp > maxval) {
+                                                    
+                                                    free(array); free(narray); return CBF_OVERFLOW;
+                                                }
+                                                
+                                                ((signed int *)narray)[icount] = (signed int)valtemp;
+                                            }
+                                            
+                                        } else {
+                                            
+                                            for (icount = 0; icount < elements; icount++) {
+                                                
+                                                valtemp = ((double *)array)[icount];
+                                                
+                                                if (valtemp < minval || valtemp > maxval) {
+                                                    
+                                                    free(array); free(narray); return CBF_OVERFLOW;
+                                                }
+                                                
+                                                ((unsigned int *)narray)[icount] = (unsigned int)valtemp;
+                                            }
+                                            
+                                        }
+                                        
+                                    } else { free(narray); free(array); return CBF_ARGUMENT;}
+                                    
+                                    
+                                } else if (nelsize==sizeof(long int)){
                                         
                                         if (oelsize == sizeof(float)) {
                                             
@@ -1520,10 +1608,9 @@ extern "C" {
                                             
                                         } else { free(narray); free(array); return CBF_ARGUMENT;}
                                         
-                                        break;
                                         
 #ifdef CBF_USE_LONG_LONG
-                                    case (sizeof(long long int)):
+                                } else if (nelsize==sizeof(long long int)){
                                         
                                         if (oelsize == sizeof(float)) {
                                             
@@ -1591,9 +1678,8 @@ extern "C" {
                                             
                                         } else { free(narray); free(array); return CBF_ARGUMENT;}
                                         
-                                        break;
 #else
-                                    case (2* sizeof(long int)):
+                                } else if (nelsize==2* sizeof(long int)){
                                         
                                         if (toupper(border[0])=='L') {
                                             
@@ -1703,11 +1789,10 @@ extern "C" {
                                             
                                         } else { free(narray); free(array); return CBF_ARGUMENT;}
                                         
-                                        break;
                                         
 #endif
                                         
-                                    default:
+                                } else {
                                         
                                         free(array);
                                         
@@ -1732,9 +1817,7 @@ extern "C" {
                                 
                                 /* real to real conversion */
                                 
-                                switch (oelsize) {
-                                        
-                                    case sizeof(float):
+                                if (oelsize==sizeof(float)){
                                         if (nelsize == sizeof(float)) {
                                             for (icount = 0; icount < elements; icount++) {
                                                 ((float *)narray)[icount] = ((float *)array)[icount];
@@ -1744,8 +1827,7 @@ extern "C" {
                                                 ((double *)narray)[icount] = ((float *)array)[icount];
                                             }
                                         } else {free(array); free(narray); return CBF_ARGUMENT;}
-                                        break;
-                                    case sizeof(double):
+                                } else if (oelsize==sizeof(double)){
                                         if (nelsize == sizeof(float)) {
                                             for (icount = 0; icount < elements; icount++) {
                                                 ((float *)narray)[icount] = ((double *)array)[icount];
@@ -1755,8 +1837,7 @@ extern "C" {
                                                 ((double *)narray)[icount] = ((double *)array)[icount];
                                             }
                                         } else {free(array); free(narray); return CBF_ARGUMENT;}
-                                        break;
-                                    default: free(array); free(narray); return CBF_ARGUMENT;
+                                } else { free(array); free(narray); return CBF_ARGUMENT;
                                 }
                                 
                                 cbf_failnez(cbf_set_realarray_wdims_fs(
