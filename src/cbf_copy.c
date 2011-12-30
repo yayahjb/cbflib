@@ -609,11 +609,6 @@ extern "C" {
         double vallow, valhigh;
         
 #endif
-        /* to avoid duplicate values, we maintain
-         a list of the sizes of char, short int, int, 
-         long int, long long int, float and double
-         and then clobber the duplicates */
-        
         
         cbf_get_local_integer_byte_order(&border);
 
@@ -818,7 +813,7 @@ extern "C" {
                 if (!realarray)  {
                     
                     cbf_onfailnez (cbf_get_integerarray(
-                                                        cbfin, &binary_id, array, elsize, elsigned,
+                                                        cbfin, &binary_id, array, oelsize, elsigned,
                                                         elements, &elements_read), {free(array);})
                     
                     if (dimflag == CBF_HDR_FINDDIMS && dim1==0) {
@@ -887,24 +882,24 @@ extern "C" {
                                             else doval = (double)((unsigned short int *)array)[icount];
                                             if (doval < cliplow) doval = cliplow;
                                             if (doval > cliphigh) doval = cliphigh;
-                                            if (elsigned) ((signed char *)array)[icount] = (signed short int)doval;
-                                            else ((unsigned char *)array)[icount] = (unsigned short int)doval;
+                                        if (elsigned) ((signed short int *)array)[icount] = (signed short int)doval;
+                                        else ((unsigned short int *)array)[icount] = (unsigned short int)doval;
                                             
                                     } else if (oelsize == sizeof(int)){
                                         if (elsigned) doval = (double)((signed int *)array)[icount];
                                         else doval = (double)((unsigned int *)array)[icount];
                                         if (doval < cliplow) doval = cliplow;
                                         if (doval > cliphigh) doval = cliphigh;
-                                        if (elsigned) ((signed char *)array)[icount] = (signed int)doval;
-                                        else ((unsigned char *)array)[icount] = (unsigned int)doval;
+                                        if (elsigned) ((signed int *)array)[icount] = (signed int)doval;
+                                        else ((unsigned int *)array)[icount] = (unsigned int)doval;
                                         
                                     } else if (oelsize == sizeof(long int)){
                                             if (elsigned) doval = (double)((signed long int *)array)[icount];
                                             else doval = (double)((unsigned long int *)array)[icount];
                                             if (doval < cliplow) doval = cliplow;
                                             if (doval > cliphigh) doval = cliphigh;
-                                            if (elsigned) ((signed char *)array)[icount] = (signed long int)doval;
-                                            else ((unsigned char *)array)[icount] = (unsigned long int)doval;
+                                        if (elsigned) ((signed long int *)array)[icount] = (signed long int)doval;
+                                        else ((unsigned long int *)array)[icount] = (unsigned long int)doval;
                                             
 #ifdef CBF_USE_LONG_LONG                                                        
                                     } else if (oelsize == sizeof(long long int)){
@@ -912,8 +907,8 @@ extern "C" {
                                             else doval = (double)((unsigned long long int *)array)[icount];
                                             if (doval < cliplow) doval = cliplow;
                                             if (doval > cliphigh) doval = cliphigh;
-                                            if (elsigned) ((signed char *)array)[icount] = (signed long long int)doval;
-                                            else ((unsigned char *)array)[icount] = (unsigned long long int)doval;
+                                        if (elsigned) ((signed long long int *)array)[icount] = (signed long long int)doval;
+                                        else ((unsigned long long int *)array)[icount] = (unsigned long long int)doval;
 #endif
                                     } else {
                                             free(narray); free(array); return CBF_ARGUMENT;

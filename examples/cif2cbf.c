@@ -1205,6 +1205,7 @@ int main (int argc, char *argv [])
                                                                              &elements, &minelement, &maxelement, &realarray,
                                                                              &byteorder, &dim1, &dim2, &dim3, &padding))
                                 if ((array=malloc(elsize*elements))) {
+                                    int arrayfreed = 0;
                                     cbf_failnez (cbf_select_column(cbf,colnum))
                                     if (!realarray)  {
                                         cbf_failnez (cbf_get_integerarray(
@@ -1219,6 +1220,7 @@ int main (int argc, char *argv [])
                                                                                   binary_id, array, elsize, elsigned, elements,
                                                                                   "little_endian", dim1, dim2, dim3, 0))
                                         } else {
+                                            free(array); arrayfreed=1;
                                             cbf_failnez(cbf_copy_value(cbf,cif,category_name,column_name,rownum,compression,dimflag,IorR,
                                                            nelsize?nelsize:elsize,0,cliplow,cliphigh))
                                         }
@@ -1235,12 +1237,13 @@ int main (int argc, char *argv [])
                                                                                binary_id, array, elsize, elements,
                                                                                "little_endian", dim1, dim2, dim3, 0))  
                                         } else {
+                                            free(array); arrayfreed=1;
                                             cbf_failnez(cbf_copy_value(cbf,cif,category_name,column_name,rownum,compression,dimflag,IorR,
                                                            nelsize?nelsize:elsize,CBF_CPY_SETSIGNED,cliplow,cliphigh))
                                         }
                                         
                                     }
-                                    free(array);
+                                    if (!arrayfreed) {free(array);arrayfreed=1;}
                                 } else {
                                     fprintf(stderr,
                                             "\nFailed to allocate memory %ld bytes",
