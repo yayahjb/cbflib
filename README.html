@@ -48,6 +48,7 @@ Information for CBFlib 0.9.2 release of 12 February 2011<BR>
 revised as the CBFlib 0.9.2.1 release of 20 June 2011<br />
 revised as the CBFlib 0.9.2.2 release of 2 July 2011<br />
 revised as the CBFlib 0.9.2.3 release of 9 July 2011<br />
+revised as the CBFlib 0.9.2.4 release of 1 January 2012<br />
 </H3>
 </font><font color="#000000">
 <CENTER>
@@ -70,7 +71,7 @@ Bernstein + Sons<BR>
 yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 </noscript>
 <p>
-&#169; Copyright 2006, 2007, 2008, 2010, 2011 Herbert J. Bernstein
+&#169; Copyright 2006 -- 2012 Herbert J. Bernstein
 <P>
 <hr>
 <b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=doc/gpl.txt>GPL</a>.
@@ -98,6 +99,11 @@ the authors and does not necessarily represent the official views of
 DOE, NSF, NIH, NIGMS, NCRR or IUCr.
 <P>
 <HR>
+<p>
+CBFlib 0.9.2.4 is a minor revision to the CBFlib 0.9.2.3 release
+to support tiff2cbf for short in tiffs and to fix problems with
+64 bit long integers uncovered on Mac OSX 10.6 and 10.7 for 64
+compilers.
 <p>
 CBFlib 0.9.2.3 is a minor revision to the CBFlib 0.9.2.2 release
 to allow use of NO_CBF_REGEX to suppress use of regex for convenience
@@ -161,7 +167,7 @@ instructions below carefully, if space is a problem.</b>
 A gizpped tarball of this release is available on sourceforge at
 <p>
 <a 
-href="http://downloads.sf.net/cbflib/CBFlib-0.9.2.3.tar.gz">http://downloads.sf.net/cbflib/CBFlib-0.9.2.3.tar.gz</a>
+href="http://downloads.sf.net/cbflib/CBFlib-0.9.2.4.tar.gz">http://downloads.sf.net/cbflib/CBFlib-0.9.2.4.tar.gz</a>
 
 <P>
 In addition,
@@ -172,19 +178,19 @@ In addition,
 <A href="http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Output_Sigs_Only.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Output_Sigs_Only.tar.gz</a>
 (1KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
 
-Place the CBFlib_0.9.2.3.tar.gz file in the directory
+Place the CBFlib_0.9.2.4.tar.gz file in the directory
 that is intended to contain up to 4 new directories, named 
-CBFlib_0.9.2.3 (the &quot;top-level&quot; directory),
+CBFlib_0.9.2.4 (the &quot;top-level&quot; directory),
 CBFlib_0.9.2_Data_Files_Input and either CBFlib_0.9.2_Data_Files_Output or 
 CBFlib_0.9.2_Data_Files_Output_Sigs_Only.
 If you have wget on your machine, you only need to download the source tarball.  If you do not have wget,
 you will need to download all the tarballs into the same directory
 <p>
-Uncompress CBFlib_0.9.2.3.tar.gz with gunzip and unpack it with tar:
+Uncompress CBFlib_0.9.2.4.tar.gz with gunzip and unpack it with tar:
 <p>
 <PRE>
-     gunzip CBFlib_0.9.2.3.tar.gz
-     tar xvf CBFLIB_0.9.2.3.tar
+     gunzip CBFlib_0.9.2.4.tar.gz
+     tar xvf CBFLIB_0.9.2.4.tar
 </PRE>
 <p>
 To run the test programs, you will also need 
@@ -252,7 +258,7 @@ or, if space is at a premium, with
 Please refer to the manual <a HREF="doc/CBFlib.html">doc/CBFlib.html</a>
 for more detailed information.<HR>
 <HR>
-Updated 9 July 2011.  
+Updated 1 January 2012.  
 <script language="javascript" type="text/javascript">
 <!-- 
       var name = "yaya";
