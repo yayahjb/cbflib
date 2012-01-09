@@ -954,7 +954,8 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
 		$(BIN)/cif2c             \
 		$(BIN)/testreals         \
 		$(BIN)/testflat          \
-		$(BIN)/testflatpacked
+		$(BIN)/testflatpacked    \
+                $(BIN)/tiff2cbf
 
 
 ifneq ($(F90C),)
@@ -1079,6 +1080,8 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
 		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
+		-cp $(INSTALLDIR)/bin/tiff2cbf $(INSTALLDIR)/bin/tiff2cbf_old
+		cp $(BIN)/tiff2cbf $(INSTALLDIR)/bin/tiff2cbf
 'm4_ifelse(cbf_use_pycifrw,`yes',`
 
 		cp $(SRC)/drel_lex.py $(INSTALLDIR)/bin/drel_lex.py
@@ -1103,6 +1106,7 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		chmod 755 $(INSTALLDIR)/bin/testreals
 		chmod 755 $(INSTALLDIR)/bin/testflat
 		chmod 755 $(INSTALLDIR)/bin/testflatpacked
+		chmod 755 $(INSTALLDIR)/bin/tiff2cbf
 		chmod 644 $(INSTALLDIR)/include/cbflib/*.h
 		
 'm4_ifelse(cbf_use_pycifrw,`yes',`
