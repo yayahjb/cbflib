@@ -310,7 +310,7 @@ RANLIB  = /usr/bin/ranlib
 #
 # Program to use to decompress a data file
 #
-DECOMPRESS = /usr/bin/bunzip2
+DECOMPRESS = bunzip2
 
 
 #
