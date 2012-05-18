@@ -300,9 +300,9 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
 
   int id_text, type_text, checked_digest_text, bits_text, sign_text, realarray_text;
   
-  size_t dimover_text, dimfast_text, dimmid_text, dimslow_text;
+  unsigned long dimover_text, dimfast_text, dimmid_text, dimslow_text;
   
-  size_t padding_text;
+  unsigned long padding_text;
 
   unsigned int compression_text;
 
@@ -408,23 +408,23 @@ int cbf_get_bintext (cbf_node  *column, unsigned int row,
 
   if (dimover)
   
-     *dimover = dimover_text;
+     *dimover = (size_t)dimover_text;
 
   if (dimfast)
   
-     *dimfast = dimfast_text;
+     *dimfast = (size_t)dimfast_text;
    
   if (dimmid)
   
-     *dimmid = dimmid_text;
+     *dimmid = (size_t)dimmid_text;
    
   if (dimslow)
   
-     *dimslow = dimslow_text;
+     *dimslow = (size_t)dimslow_text;
    
   if (padding)
   
-     *padding = padding_text;
+     *padding = (size_t)padding_text;
 
   if (compression)
 
