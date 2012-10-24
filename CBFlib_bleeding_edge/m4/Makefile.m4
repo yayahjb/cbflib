@@ -682,7 +682,7 @@ INSTALLDIR  = $(HOME)
 #
 # URLs from which to retrieve the data directories
 #
-DATAURLBASE	= http://downloads.sf.net/cbflib/
+DATAURLBASE	= http://downloads.sf.net/cbflib
 DATAURLI	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Input.tar.gz
 DATAURLO	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output.tar.gz
 DATAURLS	= $(DATAURLBASE)/CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz
