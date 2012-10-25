@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.2')m4_dnl
-m4_define(`cbf_date',`12 Feb 2011')m4_dnl
+m4_define(`cbf_date',`24 Oct 2012')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -955,7 +955,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
 		$(BIN)/testreals         \
 		$(BIN)/testflat          \
 		$(BIN)/testflatpacked    \
-                $(BIN)/tiff2cbf
+		        $(BIN)/tiff2cbf
 
 
 ifneq ($(F90C),)
@@ -1263,7 +1263,7 @@ endif
 # Python bindings
 #
 $(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  $(LIB)/libcbf.a \
-                              $(PYCBF)/$(SETUP_PY)     \
+		                      $(PYCBF)/$(SETUP_PY)     \
 			                  $(LIB)/libfcb.a          \
 			                  $(LIB)/libimg.a          \
 			                  $(PYCBF)/pycbf.i         \
@@ -1555,6 +1555,7 @@ DATADIRI_INPUT_EXTRA = $(DATADIRI)/9ins.cif$(CEXT) $(DATADIRI)/mb_LP_1_001.img$(
 TESTOUTPUT =  adscconverted_flat_orig.cbf \
 		adscconverted_orig.cbf converted_flat_orig.cbf converted_orig.cbf \
 		insulin_pilatus6mconverted_orig.cbf \
+		insulin_pilatus6mconverted_v2_orig.cbf \
 		mb_LP_1_001_orig.cbf testcell_orig.prt \
 		test_xds_bin_testflatout_orig.out \
 		test_xds_bin_testflatpackedout_orig.out test_fcb_read_testflatout_orig.out \
@@ -1563,6 +1564,7 @@ TESTOUTPUT =  adscconverted_flat_orig.cbf \
 NEWTESTOUTPUT = adscconverted_flat.cbf \
 		adscconverted.cbf converted_flat.cbf converted.cbf \
 		insulin_pilatus6mconverted.cbf \
+		insulin_pilatus6mconverted_v2.cbf \
 		mb_LP_1_001.cbf testcell.prt \
 		test_xds_bin_testflatout.out \
 		test_xds_bin_testflatpackedout.out test_fcb_read_testflatout.out \
@@ -1573,6 +1575,7 @@ DATADIRO_OUTPUT =  $(DATADIRO)/adscconverted_flat_orig.cbf$(CEXT) \
 		$(DATADIRO)/converted_flat_orig.cbf$(CEXT) \
 		$(DATADIRO)/converted_orig.cbf$(CEXT) \
 		$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf$(CEXT) \
+		$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(CEXT) \
 		$(DATADIRO)/mb_LP_1_001_orig.cbf$(CEXT) \
 		$(DATADIRO)/testcell_orig.prt$(CEXT) \
 		$(DATADIRO)/test_xds_bin_testflatout_orig.out$(CEXT) \
@@ -1586,6 +1589,7 @@ DATADIRO_OUTPUT_SIGNATURES =  $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT) \
 		$(DATADIRO)/converted_flat_orig.cbf$(SEXT) \
 		$(DATADIRO)/converted_orig.cbf$(SEXT) \
 		$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf$(SEXT) \
+		$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
 		$(DATADIRO)/mb_LP_1_001_orig.cbf$(SEXT) \
 		$(DATADIRO)/testcell_orig.prt$(SEXT) \
 		$(DATADIRO)/test_xds_bin_testflatout_orig.out$(SEXT) \
@@ -1602,6 +1606,7 @@ DATADIRO_OUTPUT_SIGNATURES =  $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT) \
 TESTOUTPUTSIGS = adscconverted_flat_orig.cbf$(SEXT) \
 		adscconverted_orig.cbf$(SEXT) converted_flat_orig.cbf$(SEXT) converted_orig.cbf$(SEXT) \
 		insulin_pilatus6mconverted_orig.cbf$(SEXT) \
+		insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
 		mb_LP_1_001_orig.cbf$(SEXT) testcell_orig.prt$(SEXT) \
 		test_xds_bin_testflatout_orig.out$(SEXT) \
 		test_xds_bin_testflatpackedout_orig.out$(SEXT) test_fcb_read_testflatout_orig.out$(SEXT) \
@@ -1612,6 +1617,7 @@ DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
 		$(DATADIRS)/converted_flat_orig.cbf$(SEXT) \
 		$(DATADIRS)/converted_orig.cbf$(SEXT) \
 		$(DATADIRS)/insulin_pilatus6mconverted_orig.cbf$(SEXT) \
+		$(DATADIRS)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
 		$(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT) \
 		$(DATADIRS)/testcell_orig.prt$(SEXT) \
 		$(DATADIRS)/test_xds_bin_testflatout_orig.out$(SEXT) \
@@ -1659,6 +1665,7 @@ restore_output:		$(NEWTESTOUTPUT) $(DATADIRO)
 		$(SIGNATURE) < converted_flat.cbf > $(DATADIRO)/converted_flat_orig.cbf$(SEXT)
 		$(SIGNATURE) < converted.cbf > $(DATADIRO)/converted_orig.cbf$(SEXT)
 		$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf$(SEXT)
+		$(SIGNATURE) < insulin_pilatus6mconverted_v2.cbf > $(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT)
 		$(SIGNATURE) < mb_LP_1_001.cbf$ > $(DATADIRO)/mb_LP_1_001_orig.cbf$(SEXT)
 		$(SIGNATURE) < testcell.prt > $(DATADIRO)/testcell_orig.prt$(SEXT)
 		$(SIGNATURE) < test_xds_bin_testflatout.out > $(DATADIRO)/test_xds_bin_testflatout_orig.out$(SEXT)
@@ -1672,6 +1679,7 @@ restore_output:		$(NEWTESTOUTPUT) $(DATADIRO)
 		$(COMPRESS)  < converted_flat.cbf > $(DATADIRO)/converted_flat_orig.cbf$(CEXT)
 		$(COMPRESS)  < converted.cbf > $(DATADIRO)/converted_orig.cbf$(CEXT)
 		$(COMPRESS)  < insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf$(CEXT)
+		$(COMPRESS)  < insulin_pilatus6mconverted_v2.cbf > $(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(CEXT)
 		$(COMPRESS)  < mb_LP_1_001.cbf$ > $(DATADIRO)/mb_LP_1_001_orig.cbf$(CEXT)
 		$(COMPRESS)  < testcell.prt > $(DATADIRO)/testcell_orig.prt$(CEXT)
 		$(COMPRESS)  < test_xds_bin_testflatout.out > $(DATADIRO)/test_xds_bin_testflatout_orig.out$(CEXT)
@@ -1687,6 +1695,7 @@ restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
 		$(SIGNATURE) < converted_flat.cbf > $(DATADIRS)/converted_flat_orig.cbf$(SEXT)
 		$(SIGNATURE) < converted.cbf > $(DATADIRS)/converted_orig.cbf$(SEXT)
 		$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRS)/insulin_pilatus6mconverted_orig.cbf$(SEXT)
+		$(SIGNATURE) < insulin_pilatus6mconverted_v2.cbf > $(DATADIRS)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT)
 		$(SIGNATURE) < mb_LP_1_001.cbf$ > $(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT)
 		$(SIGNATURE) < testcell.prt > $(DATADIRS)/testcell_orig.prt$(SEXT)
 		$(SIGNATURE) < test_xds_bin_testflatout.out > $(DATADIRS)/test_xds_bin_testflatout_orig.out$(SEXT)
@@ -1767,8 +1776,10 @@ endif
 ifneq ($(CLEANTESTS),)
 	rm nmb_LP_1_001.img
 endif
-	$(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
+	$(TIME) $(BIN)/convert_minicbf -d pilatus6m -v 1 insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
 	-cmp insulin_pilatus6mconverted.cbf insulin_pilatus6mconverted_orig.cbf
+	$(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted_v2.cbf
+	-cmp insulin_pilatus6mconverted_v2.cbf insulin_pilatus6mconverted_v2_orig.cbf
 	$(TIME) $(BIN)/testreals
 	-cmp testrealin.cbf testrealout.cbf
 	$(TIME) $(BIN)/testflat
@@ -1829,8 +1840,10 @@ endif
 	-cmp nmb_LP_1_001.img mb_LP_1_001.img
 	rm nmb_LP_1_001.cbf
 	rm nmb_LP_1_001.img
-	$(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
+	$(TIME) $(BIN)/convert_minicbf -d pilatus6m -v 1 insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
 	-$(SIGNATURE) < insulin_pilatus6mconverted.cbf | $(DIFF) - insulin_pilatus6mconverted_orig.cbf$(SEXT); rm insulin_pilatus6mconverted.cbf
+	$(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted_v2.cbf
+	-$(SIGNATURE) < insulin_pilatus6mconverted_v2.cbf | $(DIFF) - insulin_pilatus6mconverted_v2_orig.cbf$(SEXT); rm insulin_pilatus6mconverted_v2.cbf
 	$(TIME) $(BIN)/testreals
 	-cmp testrealin.cbf testrealout.cbf
 	$(TIME) $(BIN)/testflat
@@ -1934,7 +1947,9 @@ empty:
 	@-rm -f  adscconverted_flat_rev_orig.cbf
 	@-rm -f  mb_LP_1_001_orig.cbf
 	@-rm -f  insulin_pilatus6mconverted_orig.cbf
+	@-rm -f  insulin_pilatus6mconverted_v2_orig.cbf
 	@-rm -f  insulin_pilatus6mconverted.cbf
+	@-rm -f  insulin_pilatus6mconverted_v2.cbf
 	@-rm -f  insulin_pilatus6m.cbf
 	@-rm -f  testrealin.cbf
 	@-rm -f  testrealout.cbf
