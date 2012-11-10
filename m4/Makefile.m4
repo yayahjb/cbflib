@@ -1,5 +1,5 @@
 m4_define(`cbf_version',`0.9.2')m4_dnl
-m4_define(`cbf_date',`24 Oct 2012')m4_dnl
+m4_define(`cbf_date',`10 Nov 2012')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
 #  Makefile - command file for make to create CBFlib                 #
@@ -955,7 +955,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) \
 		$(BIN)/testreals         \
 		$(BIN)/testflat          \
 		$(BIN)/testflatpacked    \
-		        $(BIN)/tiff2cbf
+		$(BIN)/tiff2cbf
 
 
 ifneq ($(F90C),)
@@ -1149,9 +1149,10 @@ endif
 #
 # TIFF
 #
-$(TIFF):
+$(TIFF):	$(M4)/Makefile.m4
 	$(DOWNLOAD) $(TIFFURL)
 	tar -xvf $(TIFF).tar.gz
+	touch $(TIFF)
 	-rm $(TIFF).tar.gz
 	(cd $(TIFF); ./configure --prefix=$(TIFFPREFIX); make install)
 	
@@ -1520,19 +1521,22 @@ $(BIN)/testcbf.class: $(EXAMPLES)/testcbf.java $(JCBF)/cbflib-$(VERSION).jar $(S
 # Data files for tests
 #
 
-$(DATADIRI):
+$(DATADIRI):	$(M4)/Makefile.m4
 		(cd ..; $(DOWNLOAD) $(DATAURLI))
 		(cd ..; tar -zxvf CBFlib_$(VERSION)_Data_Files_Input.tar.gz)
+		touch $(DATADIRI)
 		-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Input.tar.gz)
 
-$(DATADIRO):
+$(DATADIRO):	$(M4)/Makefile.m4
 		(cd ..; $(DOWNLOAD) $(DATAURLO))
 		(cd ..; tar -zxvf CBFlib_$(VERSION)_Data_Files_Output.tar.gz)
+		touch $(DATADIRO)
 		-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Output.tar.gz)
 
-$(DATADIRS):
+$(DATADIRS):	$(M4)/Makefile.m4
 		(cd ..; $(DOWNLOAD) $(DATAURLS))
 		(cd ..; tar -zxvf CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz)
+		touch $(DATADIRS)
 		-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz)
 
 
@@ -1879,6 +1883,7 @@ pycbftests:  $(PYCBF)/_pycbf.$(PYCBFEXT)
 	(cd $(PYCBF); python pycbf_test1.py)
 	(cd $(PYCBF); python pycbf_test2.py)
 	(cd $(PYCBF); python pycbf_test3.py)
+	(cd $(PYCBF); python pycbf_test4.py)
 
 javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/libcbf_wrap.so
 	$(BIN)/ctestcbf > testcbfc.txt
@@ -1901,6 +1906,7 @@ empty:
 	@-rm -f  $(PYCBF)/build/*/_pycbf.$(PYCBFEXT)
 	@-rm -f  $(PYCBF)/build/src/cbf_simple.o
 	@-rm -f  $(PYCBF)/build/*/pycbf_wrap.o
+	@-rm -f  $(PYCBF)/newtest1.cbf
 	@-rm -rf  $(BIN)/adscimg2cbf*
 	@-rm -rf  $(BIN)/cbf2adscimg*
 	@-rm -rf  $(BIN)/makecbf*
