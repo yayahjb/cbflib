@@ -1623,7 +1623,7 @@ SEE ALSO
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_realarray_wdims (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
@@ -3319,8 +3319,8 @@ SEE ALSO
 %feature("autodoc", "
 Returns : 
 *args   : int compression,int binary_id,(binary) String data,int elsize,
-          int elements,String byteorder,int dimslow,int dimmid,int dimfast,
-          int padding
+          int elsigned,int elements,String byteorder,int dimslow,int dimmid,
+          int dimfast,int padding
 
 C prototype: int cbf_set_integerarray_wdims_sf (cbf_handle handle,
                  unsigned int    compression, int binary_id, void *array,
@@ -3393,7 +3393,7 @@ SEE ALSO
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_integerarray_wdims_sf (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimslow, (size_t)dimmid, (size_t)dimfast, (size_t)padding)); 
@@ -4199,8 +4199,8 @@ SEE ALSO
 %feature("autodoc", "
 Returns : 
 *args   : int compression,int binary_id,(binary) String data,int elsize,
-          int elements,String byteorder,int dimfast,int dimmid,int dimslow,
-          int padding
+          int elsigned,int elements,String byteorder,int dimfast,int dimmid,
+          int dimslow,int padding
 
 C prototype: int cbf_set_integerarray_wdims (cbf_handle handle,
                  unsigned int    compression, int binary_id, void *array,
@@ -4273,7 +4273,7 @@ SEE ALSO
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_integerarray_wdims (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
@@ -5376,7 +5376,7 @@ SEE ALSO
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_realarray_wdims_sf (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t) dimslow, (size_t) dimmid, (size_t) dimfast, (size_t)padding)); 
@@ -7189,7 +7189,7 @@ SEE ALSO
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_realarray_wdims_fs (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t) dimfast, (size_t) dimmid, (size_t) dimslow, (size_t)padding)); 
@@ -7231,8 +7231,8 @@ const char*  find_category_root(const char* categoryname){
 %feature("autodoc", "
 Returns : 
 *args   : int compression,int binary_id,(binary) String data,int elsize,
-          int elements,String byteorder,int dimfast,int dimmid,int dimslow,
-          int padding
+          int elsigned,int elements,String byteorder,int dimfast,int dimmid,
+          int dimslow,int padding
 
 C prototype: int cbf_set_integerarray_wdims_fs (cbf_handle handle,
                  unsigned int    compression, int binary_id, void *array,
@@ -7305,7 +7305,7 @@ SEE ALSO
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_integerarray_wdims_fs (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 

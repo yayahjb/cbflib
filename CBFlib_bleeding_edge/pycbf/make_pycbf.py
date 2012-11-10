@@ -192,6 +192,8 @@ def docstringwrite(pyfunc,input,output,prototype,cbflibdoc):
 
 cbfhandle_specials = {
 
+
+
 "cbf_get_integerarrayparameters":["""
 %apply int *OUTPUT {int *compression,int *binary_id, 
                     int *elsize, int *elsigned, int *elunsigned, 
@@ -922,7 +924,7 @@ cbfhandle_specials = {
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_integerarray_wdims (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
@@ -932,7 +934,7 @@ cbfhandle_specials = {
     }
 ""","set_integerarray_wdims",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+ "int elsize", "int elsigned", "int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
 
 
 "cbf_set_integerarray_wdims_sf":["""
@@ -955,7 +957,7 @@ cbfhandle_specials = {
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_integerarray_wdims_sf (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimslow, (size_t)dimmid, (size_t)dimfast, (size_t)padding)); 
@@ -965,7 +967,7 @@ cbfhandle_specials = {
     }
 ""","set_integerarray_wdims_sf",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],
+ "int elsize","int elsigned","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],
 
 "cbf_set_integerarray_wdims_fs":["""
     /* CBFlib must NOT modify the data string nor the byteorder string
@@ -987,7 +989,7 @@ cbfhandle_specials = {
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_integerarray_wdims_fs (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
@@ -997,7 +999,7 @@ cbfhandle_specials = {
     }
 ""","set_integerarray_wdims_fs",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+ "int elsize","int elsigned","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
 
 
 "cbf_set_realarray":["""
@@ -1046,7 +1048,7 @@ cbfhandle_specials = {
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_realarray_wdims (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
@@ -1079,7 +1081,7 @@ cbfhandle_specials = {
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_realarray_wdims_sf (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t) dimslow, (size_t) dimmid, (size_t) dimfast, (size_t)padding)); 
@@ -1112,7 +1114,7 @@ cbfhandle_specials = {
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_realarray_wdims_fs (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t) dimfast, (size_t) dimmid, (size_t) dimslow, (size_t)padding)); 
