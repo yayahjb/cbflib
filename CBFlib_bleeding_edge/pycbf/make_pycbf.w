@@ -258,6 +258,8 @@ def docstringwrite(pyfunc,input,output,prototype,cbflibdoc):
 
 cbfhandle_specials = {
 
+
+
 "cbf_get_integerarrayparameters":["""
 %apply int *OUTPUT {int *compression,int *binary_id, 
                     int *elsize, int *elsigned, int *elunsigned, 
@@ -440,7 +442,7 @@ cbfhandle_specials = {
         char * bot;
         cbf_failnez(cbf_get_realarrayparameters_wdims(self, 
          &comp,binary_id, &elsiz, &elem, 
-         &byteorder,&ds,&dm,&ds,&pd ));
+         &byteorder,&df,&dm,&ds,&pd ));
         *bolen = strlen(byteorder);
         if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
         strncpy(bot,byteorder,*bolen);
@@ -480,7 +482,7 @@ cbfhandle_specials = {
         char * bot;
         cbf_failnez(cbf_get_realarrayparameters_wdims_fs(self, 
          &comp,binary_id, &elsiz, &elem, 
-         &byteorder,&ds,&dm,&ds,&pd ));
+         &byteorder,&df,&dm,&ds,&pd ));
         *bolen = strlen(byteorder);
         if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}
         strncpy(bot,byteorder,*bolen);
@@ -988,7 +990,7 @@ cbfhandle_specials = {
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_integerarray_wdims (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
@@ -998,7 +1000,7 @@ cbfhandle_specials = {
     }
 ""","set_integerarray_wdims",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+ "int elsize", "int elsigned", "int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
 
 
 "cbf_set_integerarray_wdims_sf":["""
@@ -1021,7 +1023,7 @@ cbfhandle_specials = {
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_integerarray_wdims_sf (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimslow, (size_t)dimmid, (size_t)dimfast, (size_t)padding)); 
@@ -1031,7 +1033,7 @@ cbfhandle_specials = {
     }
 ""","set_integerarray_wdims_sf",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],
+ "int elsize","int elsigned","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],
 
 "cbf_set_integerarray_wdims_fs":["""
     /* CBFlib must NOT modify the data string nor the byteorder string
@@ -1053,7 +1055,7 @@ cbfhandle_specials = {
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_integerarray_wdims_fs (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
@@ -1063,7 +1065,7 @@ cbfhandle_specials = {
     }
 ""","set_integerarray_wdims_fs",
 [ "int compression", "int binary_id","(binary) String data", 
- "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
+ "int elsize","int elsigned","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],
 
 
 "cbf_set_realarray":["""
@@ -1112,7 +1114,7 @@ cbfhandle_specials = {
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_realarray_wdims (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
@@ -1145,7 +1147,7 @@ cbfhandle_specials = {
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_realarray_wdims_sf (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t) dimslow, (size_t) dimmid, (size_t) dimfast, (size_t)padding)); 
@@ -1178,7 +1180,7 @@ cbfhandle_specials = {
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_realarray_wdims_fs (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t) dimfast, (size_t) dimmid, (size_t) dimslow, (size_t)padding)); 
@@ -1688,15 +1690,15 @@ cbfhandle_specials = {
                     int encoding){
        FILE *stream;
        int readable;
-       /* Make the file non-0 to make CBFlib close the file */
-       readable = 1;
+       /* Make readable false so we can close the file immediately */
+       readable = 0;
        if ( ! ( stream = fopen (filename, "w+b")) ){
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
         cbf_failnez(cbf_write_file(self, stream, readable, 
                     ciforcbf, headers, encoding));
-
+        fclose(stream);
         }
        }
 ""","write_file",["String filename","Integer ciforcbf","Integer Headers", 
@@ -1708,14 +1710,15 @@ cbfhandle_specials = {
                     int encoding){
        FILE *stream;
        int readable;
-       /* Make the file non-0 to make CBFlib close the file */
-       readable = 1;
+       /* Make readable false so we can close the file immediately */
+       readable = 0;
        if ( ! ( stream = fopen (filename, "w+b")) ){
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
         cbf_failnez(cbf_write_widefile(self, stream, readable, 
                     ciforcbf, headers, encoding));
+        fclose(stream);
 
         }
        }
@@ -2316,8 +2319,6 @@ void convert_dictionary(cbf_handle other){
 ""","require_reference_detector",["Integer element_number"],["pycbf detector object"]],
 
 
-# Prelude to the next section of the nuweb doc
-
 "cbf_construct_goniometer":["""
  cbf_goniometer construct_goniometer(){
     cbf_goniometer goniometer;
@@ -2326,7 +2327,27 @@ void convert_dictionary(cbf_handle other){
     }
 ""","construct_goniometer",[],["pycbf goniometer object"]],
 
+"cbf_construct_positioner":["""
+ cbf_positioner construct_positioner(const char* axis_id){
+    cbf_positioner positioner;
+    cbf_failnez(cbf_construct_positioner(self,&positioner,axis_id));
+    return positioner;
+    }
+""","construct_positioner",["String axis_id"],["pycbf positioner object"]],
+
+"cbf_construct_reference_positioner":["""
+ cbf_positioner construct_reference_positioner(const char* axis_id){
+    cbf_positioner positioner;
+    cbf_failnez(cbf_construct_reference_positioner(self,&positioner,axis_id));
+    return positioner;
+    }
+""","construct_reference_positioner",["String axis_id"],["pycbf positioner object"]],
+
 }
+
+cbfpositioner_specials = {}
+
+# Prelude to the next section of the nuweb doc
 
 
 class cbfhandlewrapper:
@@ -2513,7 +2534,7 @@ cbf_goniometer_specials = {
 
 %apply double *OUTPUT {double *final1, double *final2, double *final3};
 
-    void rotate_vector (double ratio, double initial1,double initial2, 
+    void rotate_vector (double ratio, double initial1, double initial2, 
          double initial3, double *final1, double *final2, double *final3){
        unsigned int reserved;
        reserved = 0;
@@ -2527,12 +2548,12 @@ cbf_goniometer_specials = {
 
 
 "cbf_get_reciprocal":["""
-%apply double *OUTPUT {double *reciprocal1,double *reciprocal2, 
+%apply double *OUTPUT {double *reciprocal1, double *reciprocal2, 
               double *reciprocal3};
 
     void get_reciprocal (double ratio,double wavelength, 
                          double real1, double real2, double real3, 
-                         double *reciprocal1,double *reciprocal2, 
+                         double *reciprocal1, double *reciprocal2, 
                          double *reciprocal3){
         unsigned int reserved;
         reserved = 0;
@@ -2546,7 +2567,7 @@ cbf_goniometer_specials = {
     ["double reciprocal1","double reciprocal2", "double reciprocal3" ]],
 
 "cbf_get_rotation_axis":["""
-%apply double *OUTPUT {double *vector1,double *vector2, double *vector3};
+%apply double *OUTPUT {double *vector1, double *vector2, double *vector3};
 
 void get_rotation_axis (double *vector1, double *vector2, double *vector3){
      unsigned int reserved;
@@ -2582,6 +2603,7 @@ typedef struct
 }
 cbf_positioner_struct;
 
+typedef cbf_positioner_struct *cbf_positioner;
 typedef cbf_positioner_struct *cbf_goniometer;
 
 
@@ -2596,7 +2618,7 @@ typedef cbf_positioner_struct *cbf_goniometer;
        } 
 
     ~cbf_positioner_struct(){ // Destructor
-       cbf_failnez(cbf_free_goniometer(self));
+       cbf_failnez(cbf_free_positioner(self));
        }
 """
       self.tail = """
@@ -2621,9 +2643,9 @@ cbf_goniometer_wrapper = cbfgoniometerwrapper()
 
 cbf_detector_specials = {
 "cbf_get_pixel_normal":["""
-%apply double *OUTPUT {double *normal1,double *normal2, double *normal3};
+%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};
    void get_pixel_normal ( double index1, double index2, 
-                          double *normal1,double *normal2, double *normal3){
+                          double *normal1, double *normal2, double *normal3){
        cbf_failnez(cbf_get_pixel_normal(self,
                                     index1,index2,normal1,normal2,normal3));
    }
@@ -2632,9 +2654,9 @@ cbf_detector_specials = {
  ["double normal1","double normal2", "double normal3" ] ],
 
 "cbf_get_pixel_normal_fs":["""
-%apply double *OUTPUT {double *normalfast,double *normalslow, double *normal3};
+%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};
    void get_pixel_normal_fs ( double indexfast, double indexslow, 
-                          double *normal1,double *normal2, double *normal3){
+                          double *normal1, double *normal2, double *normal3){
        cbf_failnez(cbf_get_pixel_normal_fs(self,
                                     indexfast,indexslow,normal1,normal2,normal3));
    }
@@ -2644,15 +2666,78 @@ cbf_detector_specials = {
 
 
 "cbf_get_pixel_normal_sf":["""
-%apply double *OUTPUT {double *normalslow,double *normalfast, double *normal3};
+%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};
    void get_pixel_normal_sf ( double indexslow, double indexfast, 
-                          double *normal1,double *normal2, double *normal3){
+                          double *normal1, double *normal2, double *normal3){
        cbf_failnez(cbf_get_pixel_normal_sf(self,
                                     indexslow,indexfast,normal1,normal2,normal3));
    }
 
 ""","get_pixel_normal_sf",["double indexslow","double indexfast"] ,
  ["double normal1","double normal2", "double normal3" ] ],
+
+
+"cbf_get_detector_axis_slow":["""
+%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3};
+   void get_detector_axis_slow ( double *slowaxis1, double *slowaxis2, double *slowaxis3){
+       cbf_failnez(cbf_get_detector_axis_slow(self,
+                                    slowaxis1,slowaxis2,slowaxis3));
+   }
+
+""","get_detector_axis_slow", [ ],
+ ["double slowaxis1","double slowaxis2", "double slowaxis3" ] ],
+
+"cbf_get_detector_axis_fast":["""
+%apply double *OUTPUT {double *fastaxis1, double *fastaxis2, double *fastaxis3};
+   void get_detector_axis_fast ( double *fastaxis1, double *fastaxis2, double *fastaxis3){
+       cbf_failnez(cbf_get_detector_axis_fast(self,
+                                    fastaxis1,fastaxis2,fastaxis3));
+   }
+
+""","get_detector_axis_fast", [ ],
+ ["double fastaxis1","double fastaxis2", "double fastaxis3" ] ],
+
+"cbf_get_detector_axes":["""
+%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3,
+                       double *fastaxis1, double *fastaxis2, double *fastaxis3};
+   void get_detector_axes ( double *slowaxis1, double *slowaxis2, double *slowaxis3,
+                            double *fastaxis1, double *fastaxis2, double *fastaxis3){
+       cbf_failnez(cbf_get_detector_axes(self,
+                                    slowaxis1,slowaxis2,slowaxis3,
+                                    fastaxis1,fastaxis2,fastaxis3));
+   }
+
+""","get_detector_axes", [ ],
+ ["double slowaxis1","double slowaxis2", "double slowaxis3",
+ "double fastaxis1","double fastaxis2", "double fastaxis3" ] ],
+
+"cbf_get_detector_axes_fs":["""
+%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3,
+                       double *fastaxis1, double *fastaxis2, double *fastaxis3};
+   void get_detector_axes_fs ( double *fastaxis1, double *fastaxis2, double *fastaxis3,
+                               double *slowaxis1, double *slowaxis2, double *slowaxis3){
+       cbf_failnez(cbf_get_detector_axes(self,
+                                    slowaxis1,slowaxis2,slowaxis3,
+                                    fastaxis1,fastaxis2,fastaxis3));
+   }
+
+""","get_detector_axes", [ ],
+ ["double fastaxis1","double fastaxis2", "double fastaxis3",
+  "double slowaxis1","double slowaxis2", "double slowaxis3"] ],
+
+"cbf_get_detector_axes_sf":["""
+%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3,
+                       double *fastaxis1, double *fastaxis2, double *fastaxis3};
+   void get_detector_axes_sf ( double *slowaxis1, double *slowaxis2, double *slowaxis3,
+                            double *fastaxis1, double *fastaxis2, double *fastaxis3){
+       cbf_failnez(cbf_get_detector_axes(self,
+                                    slowaxis1,slowaxis2,slowaxis3,
+                                    fastaxis1,fastaxis2,fastaxis3));
+   }
+
+""","get_detector_axes_sf", [ ],
+ ["double slowaxis1","double slowaxis2", "double slowaxis3",
+ "double fastaxis1","double fastaxis2", "double fastaxis3" ] ],
 
 
 "cbf_get_pixel_area":["""
@@ -2924,6 +3009,60 @@ typedef cbf_detector_struct *cbf_detector;
 cbf_detector_wrapper = cbfdetectorwrapper()
 
 
+class cbfpositionerwrapper:
+   def __init__(self):
+      self.code = """
+// Tell SWIG not to make constructor for these objects
+%nodefault cbf_positioner_struct;
+%nodefault cbf_positioner;
+
+// Tell SWIG what the object is, so we can build the class
+typedef struct
+{
+  double matrix [3][4];
+
+  cbf_axis_struct *axis;
+
+  size_t axes;
+
+  int matrix_is_valid, axes_are_connected;
+}
+cbf_positioner_struct;
+
+typedef cbf_positioner_struct *cbf_positioner;
+
+%feature("autodoc","1");
+
+%extend cbf_positioner_struct{// Tell SWIG to attach functions to the structure
+
+    cbf_positioner_struct(){  // Constructor
+       // DO NOT CONSTRUCT WITHOUT A CBFHANDLE
+       cbf_failnez(CBF_ARGUMENT);
+       return NULL; /* Should never be executed */
+       } 
+
+    ~cbf_positioner_struct(){ // Destructor
+       cbf_failnez(cbf_free_positioner(self));
+       }
+"""
+      self.tail = """
+}; // End of cbf_positioner
+"""
+   def wrap(self,cfunc,prototype,args,docstring):
+     if cfunc.find("cbf_free_positioner")>-1:
+        return 
+     try:
+        code, pyname, input, output = cbf_positioner_specials[cfunc]
+        self.code +=  docstringwrite(pyname,input,output,
+                                     prototype,docstring)+ code
+     except KeyError:
+        print "TODO: Positioner:",prototype
+   def get_code(self):
+     return self.code+self.tail
+     
+cbf_positioner_wrapper = cbfpositionerwrapper()
+
+
 cbfgeneric_specials = {
 "cbf_get_local_integer_byte_order":["""
 %cstring_output_allocate_size(char **bo, int *bolen, free(*$1));
@@ -3101,12 +3240,16 @@ def generate_wrappers(name_dict):
       if args[0].find("cbf_detector")>=0: # This is for the cbfdetector
          cbf_detector_wrapper.wrap(cname,prototype,args,docstring)
          continue
+      if args[0].find("cbf_positioner")>=0: # This is for the cbfpositioner
+         cbf_positioner_wrapper.wrap(cname,prototype,args,docstring)
+         continue
       generic_wrapper.wrap(cname,prototype,args,docstring)
 
 
 generate_wrappers(name_dict)
 open("cbfgoniometerwrappers.i","w").write(cbf_goniometer_wrapper.get_code())
 open("cbfdetectorwrappers.i","w").write(cbf_detector_wrapper.get_code())
+open("cbfpostionerwrappers.i","w").write(cbf_positioner_wrapper.get_code())
 open("cbfhandlewrappers.i","w").write(cbf_handle_wrapper.get_code())
 open("cbfgenericwrappers.i","w").write(generic_wrapper.get_code())
 

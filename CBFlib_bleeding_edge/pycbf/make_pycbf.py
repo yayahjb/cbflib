@@ -2468,7 +2468,7 @@ cbf_goniometer_specials = {
 
 %apply double *OUTPUT {double *final1, double *final2, double *final3};
 
-    void rotate_vector (double ratio, double initial1,double initial2, 
+    void rotate_vector (double ratio, double initial1, double initial2, 
          double initial3, double *final1, double *final2, double *final3){
        unsigned int reserved;
        reserved = 0;
@@ -2482,12 +2482,12 @@ cbf_goniometer_specials = {
 
 
 "cbf_get_reciprocal":["""
-%apply double *OUTPUT {double *reciprocal1,double *reciprocal2, 
+%apply double *OUTPUT {double *reciprocal1, double *reciprocal2, 
               double *reciprocal3};
 
     void get_reciprocal (double ratio,double wavelength, 
                          double real1, double real2, double real3, 
-                         double *reciprocal1,double *reciprocal2, 
+                         double *reciprocal1, double *reciprocal2, 
                          double *reciprocal3){
         unsigned int reserved;
         reserved = 0;
@@ -2577,9 +2577,9 @@ cbf_goniometer_wrapper = cbfgoniometerwrapper()
 
 cbf_detector_specials = {
 "cbf_get_pixel_normal":["""
-%apply double *OUTPUT {double *normal1,double *normal2, double *normal3};
+%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};
    void get_pixel_normal ( double index1, double index2, 
-                          double *normal1,double *normal2, double *normal3){
+                          double *normal1, double *normal2, double *normal3){
        cbf_failnez(cbf_get_pixel_normal(self,
                                     index1,index2,normal1,normal2,normal3));
    }
@@ -2588,9 +2588,9 @@ cbf_detector_specials = {
  ["double normal1","double normal2", "double normal3" ] ],
 
 "cbf_get_pixel_normal_fs":["""
-%apply double *OUTPUT {double *normal1,double *normal2, double *normal3};
+%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};
    void get_pixel_normal_fs ( double indexfast, double indexslow, 
-                          double *normal1,double *normal2, double *normal3){
+                          double *normal1, double *normal2, double *normal3){
        cbf_failnez(cbf_get_pixel_normal_fs(self,
                                     indexfast,indexslow,normal1,normal2,normal3));
    }
