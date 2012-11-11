@@ -3779,7 +3779,7 @@ SWIGINTERN void cbf_handle_struct_set_realarray_wdims(cbf_handle_struct *self,un
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            {(error_status = cbf_set_realarray_wdims (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding));}
@@ -4117,7 +4117,7 @@ SWIGINTERN void cbf_handle_struct_set_integerarray_wdims_sf(cbf_handle_struct *s
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            {(error_status = cbf_set_integerarray_wdims_sf (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimslow, (size_t)dimmid, (size_t)dimfast, (size_t)padding));}
@@ -4301,7 +4301,7 @@ SWIGINTERN void cbf_handle_struct_set_integerarray_wdims(cbf_handle_struct *self
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            {(error_status = cbf_set_integerarray_wdims (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding));}
@@ -4522,7 +4522,7 @@ SWIGINTERN void cbf_handle_struct_set_realarray_wdims_sf(cbf_handle_struct *self
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            {(error_status = cbf_set_realarray_wdims_sf (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t) dimslow, (size_t) dimmid, (size_t) dimfast, (size_t)padding));}
@@ -4870,7 +4870,7 @@ SWIGINTERN void cbf_handle_struct_set_realarray_wdims_fs(cbf_handle_struct *self
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            {(error_status = cbf_set_realarray_wdims_fs (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t) dimfast, (size_t) dimmid, (size_t) dimslow, (size_t)padding));}
@@ -4895,7 +4895,7 @@ SWIGINTERN void cbf_handle_struct_set_integerarray_wdims_fs(cbf_handle_struct *s
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            {(error_status = cbf_set_integerarray_wdims_fs (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding));}
