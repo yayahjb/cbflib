@@ -1,7 +1,7 @@
 /**********************************************************************
  * convert_minicbf -- convert a minimal cbf to a full cbf file        *
  *                                                                    *
- * Version 0.9.5 13 October 2012                                      *
+ * Version 0.9.6 29 November 2012                                      *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -330,6 +330,8 @@ int local_exit (int status);
 int outerror(int err);
 
 int version_number;
+char slsbuf[2049];  /* The currently active header string */
+int lineno;         /* The current header line number */
 
 
 /* parse a string from an sls comment style header and
@@ -396,6 +398,16 @@ outerror(err);   \
 outusage();      \
 local_exit (-1); \
 } \
+}
+
+
+void cnvminicbf_warn( char * s ) {
+    
+    fprintf(stderr," convert_minicbf: warning (header line %d) %s\n\"%s\"\n",
+            lineno,s,slsbuf);
+    
+    return;
+    
 }
 
 
@@ -507,32 +519,6 @@ int cbf_scale_units(char * actual_units, char * std_units,
     return CBF_FORMAT;
 }
 
-int cbf_parse_sls_header(cbf_handle cbf, const char * buffer,
-                         int commentflg) {
-    
-    double pscalex=1., pscaley=1.;
-    
-    double bcx, bcy, bcscalex, bcscaley, erlow, erhigh;
-    
-    double tempdouble, unitsratio;
-    
-    char * tempendptr;
-    
-    char * slsstr;
-    
-    const char * valstr;
-    
-    char slsbuf[2049];
-    
-    char valbuf[4097];
-    
-    char mxunits[33], myunits[33];
-    
-    static const char *monthname [] =
-    
-    { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-    
 #define cbf_set_value_from_string(cbf,cbfstring,cbfcat,cbfcol)   \
 \
 cbf_failnez(cbf_require_category((cbf),(cbfcat)))            \
@@ -574,33 +560,74 @@ cbf_failnez(cbf_set_value((cbf),(cbfstring)))              \
 
 #define cbf_set_doublevalue_from_string(cbf,cbfstring,cbfcat,cbfcol,unit)   \
 \
-cbf_failnez(cbf_require_category((cbf),(cbfcat)))            \
+  cbf_failnez(cbf_require_category((cbf),(cbfcat)))          \
 \
-while (*(cbfstring) && isspace(*(cbfstring))) (cbfstring)++; \
+  while (*(cbfstring) && isspace(*(cbfstring))) (cbfstring)++;\
 \
-tempdouble = strtod(cbfstring,&tempendptr);                  \
+  tempdouble = strtod(cbfstring,&tempendptr);                \
 \
-cbfstring = tempendptr;                                      \
+  cbfstring = tempendptr;                                    \
 \
-while (*(cbfstring) && isspace(*(cbfstring))) (cbfstring)++; \
+  while (*(cbfstring) && isspace(*(cbfstring))) (cbfstring)++;\
 \
-if (cbfstring && *cbfstring) {                                             \
+  if (cbfstring && *cbfstring) {                             \
 \
-cbf_failnez(cbf_scale_units(cbfstring, unit, &unitsratio))   \
+    if (! cbf_scale_units(cbfstring, unit, &unitsratio)) { \
 \
-tempdouble *= unitsratio;                                    \
+      tempdouble *= unitsratio;                            \
 \
-}                                                            \
+    } else {                                               \
 \
-cbf_failnez(cbf_require_column((cbf),(cbfcol)))              \
+      cnvminicbf_warn("specified units not recognized and not used"); \
 \
-cbf_failnez(cbf_set_doublevalue((cbf),"%-15g",tempdouble))
+    }                                                      \
+\
+  }                                                        \
+\
+  cbf_failnez(cbf_require_column((cbf),(cbfcol)))          \
+\
+  cbf_failnez(cbf_set_doublevalue((cbf),"%-15g",tempdouble))
+
+
+
+int cbf_parse_sls_header(cbf_handle cbf, const char * buffer,
+                         int commentflg) {
+    
+    double pscalex=1., pscaley=1.;
+    
+    double bcx, bcy, bcscalex, bcscaley, erlow, erhigh;
+    
+    double tempdouble, unitsratio;
+    
+    char * tempendptr;
+    
+    char * slsstr;
+    
+    const char * valstr;
+        
+    char valbuf[4097];
+    
+    char mxunits[33], myunits[33];
+    
+    static const char *monthname [] =
+    
+    { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+    
+    
+    lineno = 0;
     
     while(*buffer) {
         
         slsstr = (char *)slsbuf;
         
         while(*buffer && (*buffer!='\r') && (*buffer!='\n') && (slsstr-slsbuf)<2047) *slsstr++=*buffer++;
+        
+        if (*buffer=='\r' && buffer[1] == '\n' ) buffer++;
+        
+        if (*buffer=='\r' || *buffer=='\n') buffer++;
+        
+        lineno++;
         
         while(slsstr != slsbuf && isspace(*(slsstr-1))) slsstr--;
         
@@ -630,8 +657,11 @@ cbf_failnez(cbf_set_doublevalue((cbf),"%-15g",tempdouble))
         if (commentflg) {
             if (strlen(slsstr) < 2
                 || slsstr[0] != '#'
-                || !isspace(slsstr[1])) return CBF_FORMAT;
-            slsstr += 2;
+                || !isspace(slsstr[1])) {
+                cnvminicbf_warn(" line fails to start with \"# \"");
+            }  else {
+              slsstr += 2;
+            }
         }
         
         
@@ -1677,13 +1707,20 @@ cbf_failnez(cbf_set_doublevalue((cbf),"%-15g",tempdouble))
             
         } else {
             
-            /* cbf_failnez(CBF_FORMAT); */
-            fprintf(stderr," convert_minicbf:  warning did not recognize miniheader string %s\n",slsstr);
+            cnvminicbf_warn("did not recognize miniheader string");
             
         }
 
         
-        while (*buffer && ((*buffer=='\r') || (*buffer=='\n'))) buffer++;
+        while (*buffer && ((*buffer=='\r') || (*buffer=='\n'))) {
+            
+            buffer++;
+            
+            if (*buffer=='\r' && buffer[1]=='\n') buffer++;
+            
+            lineno++;
+            
+        }
         
     }
     
@@ -1886,7 +1923,7 @@ int main (int argc, char *argv [])
     
     char detector_type [64], template_name [256], *c;
     
-    const char *detector_name, *detector_opt,
+    const char *detector_name, *detector_opt, *detector_temp,
     *array_id;
     
     const char *datablockname;
@@ -2441,11 +2478,12 @@ int main (int argc, char *argv [])
         
         if (cbf_get_value(minicbf,&detector_name) || !detector_name || !*detector_name) {
             
-            if (detector_opt == NULL) {
+            if (detector_opt == NULL || *detector_opt == '\0') {
                 
-                fprintf (stderr, "\n convert_inage: No detector name provided in minicbf or on the command line!");
-                outusage();
-                exit (3);
+                fprintf (stderr, "\n convert_inage: no detector name provided in minicbf or on the command line!\n");
+                fprintf (stderr, "                  defaulting to \"Pilatus\"\n");
+            
+                detector_opt = "Pilatus";
                 
             }
             
@@ -2455,11 +2493,12 @@ int main (int argc, char *argv [])
         
     } else {
         
-        if (detector_opt == NULL) {
+        if (detector_opt == NULL || *detector_opt == '\0') {
             
-            fprintf (stderr, "\n convert_inage: No detector name provided in minicbf or on the command line!");
-            outusage();
-            exit (3);
+            fprintf (stderr, "\n convert_inage: no detector name provided in minicbf or on the command line!\n");
+            fprintf (stderr, "                  defaulting to \"Pilatus\"\n");
+            
+            detector_opt = "Pilatus";
             
         }
         
@@ -2467,12 +2506,13 @@ int main (int argc, char *argv [])
         
     }
     
+    detector_temp = detector_name;
     
-    for (c = detector_type; *detector_name; detector_name++)
+    for (c = detector_type; *detector_temp; detector_temp++)
         
-        if (!isspace (*detector_name))
+        if (!isspace (*detector_temp))
             
-            *c++ = tolower (*detector_name);
+            *c++ = tolower (*detector_temp);
     
     *c = '\0';
     
@@ -2572,6 +2612,24 @@ int main (int argc, char *argv [])
             cbf_failnez(cbf_set_value(cbf,type))
             
         }
+        
+    } else {
+        
+            cbf_failnez(cbf_require_category(cbf,"diffrn_detector"))
+            
+            cbf_failnez(cbf_require_column(cbf,"type"))
+            
+            cbf_failnez(cbf_rewind_row(cbf))
+        
+            if (*detector_name) {
+            
+                cbf_failnez(cbf_set_value(cbf,detector_name))
+                
+            } else {
+                
+                cbf_failnez(cbf_set_value(cbf,"Pilatus"))
+            }
+       
         
     }
 
