@@ -100,7 +100,7 @@ Returns an error code on failure or 0 for success.
 
 %apply double *OUTPUT {double *final1, double *final2, double *final3};
 
-    void rotate_vector (double ratio, double initial1,double initial2, 
+    void rotate_vector (double ratio, double initial1, double initial2, 
          double initial3, double *final1, double *final2, double *final3){
        unsigned int reserved;
        reserved = 0;
@@ -145,12 +145,12 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")get_reciprocal;
 
-%apply double *OUTPUT {double *reciprocal1,double *reciprocal2, 
+%apply double *OUTPUT {double *reciprocal1, double *reciprocal2, 
               double *reciprocal3};
 
     void get_reciprocal (double ratio,double wavelength, 
                          double real1, double real2, double real3, 
-                         double *reciprocal1,double *reciprocal2, 
+                         double *reciprocal1, double *reciprocal2, 
                          double *reciprocal3){
         unsigned int reserved;
         reserved = 0;

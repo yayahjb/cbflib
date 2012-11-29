@@ -287,9 +287,9 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")get_pixel_normal_fs;
 
-%apply double *OUTPUT {double *normal1,double *normal2, double *normal3};
+%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};
    void get_pixel_normal_fs ( double indexfast, double indexslow, 
-                          double *normal1,double *normal2, double *normal3){
+                          double *normal1, double *normal2, double *normal3){
        cbf_failnez(cbf_get_pixel_normal_fs(self,
                                     indexfast,indexslow,normal1,normal2,normal3));
    }
@@ -1267,9 +1267,9 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")get_pixel_normal;
 
-%apply double *OUTPUT {double *normal1,double *normal2, double *normal3};
+%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};
    void get_pixel_normal ( double index1, double index2, 
-                          double *normal1,double *normal2, double *normal3){
+                          double *normal1, double *normal2, double *normal3){
        cbf_failnez(cbf_get_pixel_normal(self,
                                     index1,index2,normal1,normal2,normal3));
    }
