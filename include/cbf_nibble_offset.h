@@ -1,7 +1,7 @@
 /**********************************************************************
- * cbf_compress -- compression and decompression                      *
+ * cbf_nibble_offset.h                                                *
  *                                                                    *
- * Version 0.8.0 20 July 2008                                         *
+ * Version 0.9.3 20 July 2012                                         *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -58,30 +58,30 @@
  **********************************************************************/
 
 /**********************************************************************
- *                                                                    *
+ *                                                                    * 
  *                    Stanford University Notices                     *
  *  for the CBFlib software package that incorporates SLAC software   *
  *                 on which copyright is disclaimed                   *
- *                                                                    *
+ *                                                                    * 
  * This software                                                      *
  * -------------                                                      *
  * The term ‘this software’, as used in these Notices, refers to      *
  * those portions of the software package CBFlib that were created by *
  * employees of the Stanford Linear Accelerator Center, Stanford      *
  * University.                                                        *
- *                                                                    *
+ *                                                                    * 
  * Stanford disclaimer of copyright                                   *
  * --------------------------------                                   *
  * Stanford University, owner of the copyright, hereby disclaims its  *
  * copyright and all other rights in this software.  Hence, anyone    *
  * may freely use it for any purpose without restriction.             *
- *                                                                    *
+ *                                                                    * 
  * Acknowledgement of sponsorship                                     *
  * ------------------------------                                     *
  * This software was produced by the Stanford Linear Accelerator      *
  * Center, Stanford University, under Contract DE-AC03-76SFO0515 with *
  * the Department of Energy.                                          *
- *                                                                    *
+ *                                                                    * 
  * Government disclaimer of liability                                 *
  * ----------------------------------                                 *
  * Neither the United States nor the United States Department of      *
@@ -90,13 +90,13 @@
  * accuracy, completeness, or usefulness of any data, apparatus,      *
  * product, or process disclosed, or represents that its use would    *
  * not infringe privately owned rights.                               *
- *                                                                    *
+ *                                                                    * 
  * Stanford disclaimer of liability                                   *
  * --------------------------------                                   *
  * Stanford University makes no representations or warranties,        *
  * express or implied, nor assumes any liability for the use of this  *
  * software.                                                          *
- *                                                                    *
+ *                                                                    * 
  * Maintenance of notices                                             *
  * ----------------------                                             *
  * In the interest of clarity regarding the origin and status of this *
@@ -105,7 +105,7 @@
  * made or distributed by the recipient and are to be affixed to any  *
  * copy of software made or distributed by the recipient that         *
  * contains a copy or derivative of this software.                    *
- *                                                                    *
+ *                                                                    * 
  * Based on SLAC Software Notices, Set 4                              *
  * OTT.002a, 2004 FEB 03                                              *
  **********************************************************************/
@@ -156,7 +156,7 @@
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
  **********************************************************************/
-
+ 
 /**********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
@@ -187,7 +187,7 @@
  *                                                                    *
  * Protection of the standards                                        *
  *                                                                    *
- * To protect the STAR File and the CIF as standards for              *
+ * To protect the STAR File and the CIF as standards for              * 
  * interchanging and archiving electronic data, the IUCr, on behalf   *
  * of the scientific community,                                       *
  *                                                                    *
@@ -247,375 +247,65 @@
  * Crystallography                                                    *
  **********************************************************************/
 
+#ifndef CBF_NIBBLE_OFFSET_H
+#define CBF_NIBBLE_OFFSET_H
+
 #ifdef __cplusplus
 
 extern "C" {
 
 #endif
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <limits.h>
 
-#include "cbf.h"
-#include "cbf_alloc.h"
 #include "cbf_file.h"
-#include "cbf_compress.h"
-#include "cbf_canonical.h"
-#include "cbf_packed.h"
-#include "cbf_byte_offset.h"
-#include "cbf_nibble_offset.h"
-#include "cbf_predictor.h"
-#include "cbf_uncompressed.h"
 
 
-  /* Compress an array */
-
-int cbf_compress (void         *source,
-                  size_t        elsize,
-                  int           elsign,
-                  size_t        nelem,
-                  unsigned int  compression,
-                  cbf_file     *file,
-                  size_t       *compressedsize,
-                  int          *bits,
-                  char         *digest,
-                  int           realarray,
-                  const char   *byteorder,
-                  size_t        dimfast,
-                  size_t        dimmid,
-                  size_t        dimslow,
-                  size_t        padding)
-{
-  int errorcode;
-
-  size_t size;
-
-
-    /* Discard any bits in the buffers */
-
-  cbf_failnez (cbf_reset_bits (file))
-
-  if (compressedsize)
-
-    *compressedsize = 0;
-
-
-    /* Start a digest? */
-
-  if (digest)
-
-    cbf_failnez (cbf_start_digest (file))
-
-
-  errorcode = 0;
-
-  size = 0;
-
-  switch (compression&CBF_COMPRESSION_MASK)
-  {
-    case CBF_CANONICAL:
-
-      errorcode = cbf_compress_canonical (source, elsize, elsign, nelem,
-                                          compression, file,
-                                          &size, bits, realarray,
-                                          byteorder, dimfast, dimmid, dimslow, padding);
-      break;
-
-    case CBF_PACKED:
-    case CBF_PACKED_V2:
-    case 0:
-
-      errorcode = cbf_compress_packed (source, elsize, elsign, nelem,
-                                       compression, file,
-                                       &size, bits, realarray,
-                                       byteorder, dimfast, dimmid, dimslow, padding);
-      break;
-
-    case CBF_BYTE_OFFSET:
-
-      errorcode = cbf_compress_byte_offset (source, elsize, elsign, nelem,
-                                            compression, file,
-                                            &size, bits, realarray,
-                                            byteorder, dimfast, dimmid, dimslow, padding);
-      break;
-
-    case CBF_NIBBLE_OFFSET:
-          
-          errorcode = cbf_compress_nibble_offset (source, elsize, elsign, nelem,
-                                                compression, file,
-                                                &size, bits, realarray,
-                                                byteorder, dimfast, dimmid, dimslow, padding);
-          break;
-    case CBF_PREDICTOR:
-
-      errorcode = cbf_compress_predictor (source, elsize, elsign, nelem,
-                                          compression, file,
-                                          &size, bits, realarray,
-                                          byteorder, dimfast, dimmid, dimslow, padding);
-      break;
-
-    case CBF_NONE:
-
-      errorcode = cbf_compress_none (source, elsize, elsign, nelem,
-                                     compression, file,
-                                     &size, bits, realarray,
-                                     byteorder, dimfast, dimmid, dimslow, padding);
-      break;
-
-  default:
-
-      errorcode = CBF_ARGUMENT;
-  }
-
-
-    /* Add the compressed size */
-
-  if (compressedsize)
-
-    *compressedsize += size;
-
-
-    /* Flush the buffers */
-
-  errorcode |= cbf_flush_bits (file);
-
-
-    /* Get the digest? */
-
-  if (digest)
-
-     errorcode |= cbf_end_digest (file, digest);
-
-
-    /* Done */
-
-  return errorcode;
-}
-
-
-  /* Get the parameters of an array (read up to the start of the table) */
-
-int cbf_decompress_parameters (int          *eltype,
-                               size_t       *elsize,
-                               int          *elsigned,
-                               int          *elunsigned,
-                               size_t       *nelem,
-                               int          *minelem,
-                               int          *maxelem,
-                               unsigned int  compression,
-                               cbf_file     *file)
-{
-  unsigned int nelem_file;
-
-  int errorcode, minelement_file, maxelement_file,
-                   elsigned_file, elunsigned_file;
-
-
-    /* Discard any bits in the buffers */
-
-  file->bits [0] = 0;
-  file->bits [1] = 0;
-
-   /* Check compression type */
-
-  if (compression != CBF_CANONICAL   &&
-      (compression&CBF_COMPRESSION_MASK) != CBF_PACKED      &&
-      (compression&CBF_COMPRESSION_MASK) != CBF_PACKED_V2   &&
-      compression != CBF_BYTE_OFFSET &&
-      compression != CBF_NIBBLE_OFFSET &&
-      compression != CBF_PREDICTOR   &&
-      compression != CBF_NONE)
-
-    return CBF_FORMAT;
-
-  if (compression == CBF_NONE || compression == CBF_BYTE_OFFSET || compression == CBF_NIBBLE_OFFSET)
-  {
-    nelem_file = 0;
-
-    minelement_file = maxelement_file = 0;
-  }
-  else
-  {
-      /* Read the number of elements (64 bits) */
-
-    cbf_failnez (cbf_get_integer (file, (int *) &nelem_file, 0, 64))
-
-
-      /* Read the minimum element (64 bits) */
-
-    errorcode = cbf_get_integer (file, &minelement_file, 1, 64);
-
-    if (errorcode && errorcode != CBF_OVERFLOW)
-
-      return errorcode;
-
-
-      /* Read the maximum element (64 bits) */
-
-    errorcode = cbf_get_integer (file, &maxelement_file, 1, 64);
-
-    if (errorcode && errorcode != CBF_OVERFLOW)
-
-      return errorcode;
-  }
-
-
-    /* Update the element sign, type, minimum, maximum and number */
-
-  elsigned_file = !(((unsigned) minelement_file) <=
-                    ((unsigned) maxelement_file) &&
-                    ((signed)   minelement_file) >
-                    ((signed)   maxelement_file));
-
-  elunsigned_file = !(((signed)   minelement_file) <=
-                      ((signed)   maxelement_file) &&
-                      ((unsigned) minelement_file) >
-                      ((unsigned) maxelement_file));
-
-  if (elsigned)
-
-    *elsigned = elsigned_file;
-
-  if (elunsigned)
-
-    *elunsigned = elunsigned_file;
-
-  if (eltype)
-
-    *eltype = CBF_INTEGER;
-
-  if (elsize) {
-
-      /* Calculate the minimum number of bytes needed to hold the elements */
-
-    if (minelement_file == 0 && maxelement_file == 0) {
-
-      *elsize = 0;
-
-    } else {
-
-      if ((!elsigned_file ||
-          ((signed) minelement_file == (signed short) minelement_file &&
-           (signed) maxelement_file == (signed short) maxelement_file)) ||
-          (!elunsigned_file ||
-          ((unsigned) minelement_file == (unsigned short) minelement_file &&
-           (unsigned) maxelement_file == (unsigned short) maxelement_file))) {
-
-        if ((!elsigned_file ||
-            ((signed) minelement_file == (signed char) minelement_file &&
-             (signed) maxelement_file == (signed char) maxelement_file)) ||
-             (!elunsigned_file ||
-            ((unsigned) minelement_file == (unsigned char) minelement_file &&
-             (unsigned) maxelement_file == (unsigned char) maxelement_file))) {
-
-          *elsize = sizeof (char);
-
-        } else {
-
-          *elsize = sizeof (short);
-
-        }
-
-      } else {
-
-        *elsize = sizeof (int);
-
-      }
-    }
-  }
-
-  if (minelem)
-
-    *minelem = minelement_file;
-
-  if (maxelem)
-
-    *maxelem = maxelement_file;
-
-  if (nelem)
-
-    *nelem = nelem_file;
-
-
-    /* Success */
-
-  return 0;
-}
-
-
-  /* Decompress an array (from the start of the table) */
-
-int cbf_decompress (void         *destination,
-                    size_t        elsize,
-                    int           elsign,
-                    size_t        nelem,
-                    size_t       *nelem_read,
-                    size_t        compressedsize,
-                    unsigned int  compression,
-                    int           bits,
-                    int           sign,
-                    cbf_file     *file,
-                    int           realarray,
-                    const char   *byteorder,
-                    size_t        dimover,
-                    size_t        dimfast,
-                    size_t        dimmid,
-                    size_t        dimslow,
-                    size_t        padding)
-{
-  switch (compression&CBF_COMPRESSION_MASK)
-  {
-    case CBF_CANONICAL:
-
-      return cbf_decompress_canonical (destination, elsize, elsign, nelem,
-                                       nelem_read, compressedsize, compression,
-                                       bits, sign, file, realarray, byteorder,
-                                       dimover, dimfast, dimmid, dimslow, padding);
-
-    case CBF_PACKED:
-    case CBF_PACKED_V2:
-    case 0:
-
-      return cbf_decompress_packed (destination, elsize, elsign, nelem,
-                                    nelem_read, compressedsize, compression,
-                                    bits, sign, file, realarray, byteorder,
-                                    dimover, dimfast, dimmid, dimslow, padding);
-
-    case CBF_BYTE_OFFSET:
-
-      return cbf_decompress_byte_offset (destination, elsize, elsign, nelem,
-                                         nelem_read, compressedsize, compression,
-                                         bits, sign, file, realarray, byteorder,
-                                         dimover, dimfast, dimmid, dimslow, padding);
-    case CBF_NIBBLE_OFFSET:
-          
-          return cbf_decompress_nibble_offset (destination, elsize, elsign, nelem,
-                                             nelem_read, compressedsize, compression,
-                                             bits, sign, file, realarray, byteorder,
-                                             dimover, dimfast, dimmid, dimslow, padding);
-
-    case CBF_PREDICTOR:
-
-      return cbf_decompress_predictor (destination, elsize, elsign, nelem,
-                                       nelem_read, compressedsize, compression,
-                                       bits, sign, file, realarray, byteorder,
-                                       dimover, dimfast, dimmid, dimslow, padding);
-
-    case CBF_NONE:
-
-      return cbf_decompress_none (destination, elsize, elsign, nelem,
-                                  nelem_read, compressedsize, compression,
-                                  bits, sign, file, realarray, byteorder,
-                                  dimover, dimfast, dimmid, dimslow, padding);
-  }
-
-
-    /* Fail */
-
-  return CBF_ARGUMENT;
-}
+  /* Compress an array with the nibble-offset algorithm */
+  
+int cbf_compress_nibble_offset (void         *source, 
+                              size_t        elsize, 
+                              int           elsign, 
+                              size_t        nelem, 
+                              unsigned int  compression, 
+                              cbf_file     *file, 
+                              size_t       *compressedsize,
+                              int          *storedbits,
+                              int           realarray,
+                              const char   *byteorder,
+                              size_t        dimfast,
+                              size_t        dimmid,
+                              size_t        dimslow,
+                              size_t        padding);
+#define cbf_compress_nibble_offset_fs(source,elsize,elsign,nelem,compression,file,compressedsize,storedbits,realarray,byteorder,dimfast,dimmid,dimslow,padding) \
+        cbf_compress_nibble_offset((source),(elsize),(elsign),(nelem),(compression),(file),(compressedsize),(storedbits),(realarray),(byteorder),(dimfast),(dimmid),(dimslow),(padding)) 
+#define cbf_compress_nibble_offset_sf(source,elsize,elsign,nelem,compression,file,compressedsize,storedbits,realarray,byteorder,dimslow,dimmid,dimfast,padding) \
+        cbf_compress_nibble_offset((source),(elsize),(elsign),(nelem),(compression),(file),(compressedsize),(storedbits),(realarray),(byteorder),(dimfast),(dimmid),(dimslow),(padding)) 
+  
+
+  /* Decompress an array with the nibble-offset algorithm */
+
+int cbf_decompress_nibble_offset (void         *destination, 
+                                size_t        elsize, 
+                                int           elsign, 
+                                size_t        nelem, 
+                                size_t       *nelem_read,
+                                size_t        compressedsize,
+                                unsigned int  compression,
+                                int           bits,
+                                int           sign, 
+                                cbf_file     *file,
+                                int           realarray,
+                                const char   *byteorder,
+                                size_t        dimover,
+                                size_t        dimfast,
+                                size_t        dimmid,
+                                size_t        dimslow,
+                                size_t        padding);
+#define cbf_decompress_nibble_offset_fs(destination,elsize,elsign,nelem,nelem_read,compressedsize,compression,bits,sign,file,realarray,byteorder,dimover,dimfast,dimmid,dimslow,padding) \
+        cbf_decompress_nibble_offset((destination),(elsize),(elsign),(nelem),(nelem_read),(compressedsize),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding))
+#define cbf_decompress_nibble_offset_sf(destination,elsize,elsign,nelem,nelem_read,compressedsize,compression,bits,sign,file,realarray,byteorder,dimover,dimslow,dimmid,dimfast,padding) \
+        cbf_decompress_nibble_offset((destination),(elsize),(elsign),(nelem),(nelem_read),(compressedsize),(compression),(bits),(sign),(file),(realarray),(byteorder),(dimover),(dimfast),(dimmid),(dimslow),(padding))
 
 
 #ifdef __cplusplus
@@ -623,3 +313,5 @@ int cbf_decompress (void         *destination,
 }
 
 #endif
+
+#endif /* CBF_NIBBLE_OFFSET_H */

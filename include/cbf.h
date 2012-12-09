@@ -401,6 +401,8 @@ extern "C" {
 #define CBF_PACKED      0x0060  /* CCP4 Packed (JPA) compression      */
 #define CBF_PACKED_V2   0x0090  /* CCP4 Packed (JPA) compression V2   */
 #define CBF_BYTE_OFFSET 0x0070  /* Byte Offset Compression            */
+#define CBF_NIBBLE_OFFSET     \
+                        0x00A0  /* Nibble Offset Compression          */
 #define CBF_PREDICTOR   0x0080  /* Predictor_Huffman Compression      */
 #define CBF_NONE        0x0040  /* No compression flag                */
 

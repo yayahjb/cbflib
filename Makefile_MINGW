@@ -515,6 +515,7 @@ SOURCE   =  $(SRC)/cbf.c               \
 			$(SRC)/cbf_file.c          \
 			$(SRC)/cbf_getopt.c        \
 			$(SRC)/cbf_lex.c           \
+            $(SRC)/cbf_nibble_offset.c \
 			$(SRC)/cbf_packed.c        \
 			$(SRC)/cbf_predictor.c     \
 			$(SRC)/cbf_read_binary.c   \
@@ -563,6 +564,7 @@ HEADERS   =  $(INCLUDE)/cbf.h                  \
 			 $(INCLUDE)/cbf_file.h             \
 			 $(INCLUDE)/cbf_getopt.h           \
 			 $(INCLUDE)/cbf_lex.h              \
+             $(INCLUDE)/cbf_nibble_offset.h    \
 			 $(INCLUDE)/cbf_packed.h           \
 			 $(INCLUDE)/cbf_predictor.h        \
 			 $(INCLUDE)/cbf_read_binary.h      \

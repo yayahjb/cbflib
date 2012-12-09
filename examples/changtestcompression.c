@@ -629,7 +629,7 @@ void testall(const char *fn)
   int c, t;
   int comp[] = { CBF_NONE,
       /* CBF_PREDICTOR, not implemented! */
-      CBF_BYTE_OFFSET,
+      CBF_BYTE_OFFSET, CBF_NIBBLE_OFFSET,
       CBF_PACKED_V2,
       CBF_CANONICAL
   };
@@ -637,6 +637,7 @@ void testall(const char *fn)
     char * compstr[] = { "CBF_NONE", 
         /* "CBF_PREDICTOR", */
         "CBF_BYTE_OFFSET",
+        "CBF_NIBBLE_OFFSET",
         "CBF_PACKED_V2",
         "CBF_CANONICAL"
     };
@@ -654,7 +655,7 @@ void testall(const char *fn)
     };
     
 
-  for (c = 0; c < 4; c++) {
+  for (c = 0; c < 5; c++) {
     printf("Testing compression scheme %d, %d %s\n", c, comp[c], compstr[c]);
     for (t = 0; t < DATAF; t++) {
       printf(" with data type %d, %s\n", t, datastr[t]);

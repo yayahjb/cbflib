@@ -2626,6 +2626,10 @@ int cbf_set_3d_array (cbf_handle    handle,
       cbf_failnez (cbf_set_value      (handle,"byte_offsets"))
       cbf_failnez (cbf_set_typeofvalue(handle,"word"))
       break;
+    case (CBF_NIBBLE_OFFSET):
+      cbf_failnez (cbf_set_value      (handle,"nibble_offset"))
+      cbf_failnez (cbf_set_typeofvalue(handle,"word"))
+      break;
     case (CBF_PREDICTOR):
       cbf_failnez (cbf_set_value      (handle,"predictor"))
       cbf_failnez (cbf_set_typeofvalue(handle,"word"))
