@@ -1924,7 +1924,8 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 				 size /= 4;
 				 break;
 
-		         case CBF_BYTE_OFFSET:
+               case CBF_BYTE_OFFSET:
+               case CBF_NIBBLE_OFFSET:
 				 if (bits < 32) size /= 2;
 				 else size /=4;
 				 break;

@@ -45,7 +45,7 @@
  *    [-b {f[orward]|b[ackwards]}] \                                  *
  *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
  *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
- *        {v[2packed]}|{f[latpacked]}[n[one]}] \                      *
+ *        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|n[n[one]}] \  *
  *    [-C highclipvalue ] \                                           *
  *    [-D ] \                                                         *
  *    [-d {d[igest]|n[odigest]|w[warndigest]} \                       *
@@ -95,8 +95,8 @@
  *  -B [no]write (default write)                                      *
  *    write to enable writing of DDLm style brackets                  *
  *                                                                    *
- *  -c compression_scheme (packed, canonical, byte_offset,            *
- *    v2packed, flatpacked or none,                                   *
+ *  -c compression_scheme (Packed, Canonical, Byte_offset,            *
+ *    V2packed, Flatpacked, nIbble or None,                           *
  *    default packed)                                                 *
  *                                                                    *
  *  -C highclipvalue                                                  *
@@ -532,7 +532,7 @@ int main (int argc, char *argv [])
      *    [-b {b[ackwards]|f[orwards]}] \                                 *
      *    [-B {read|liberal|noread}] [-B {write|nowrite}] \               *
      *    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\                    *
-     *        {v[2packed]}|{f[latpacked]}[n[one]}] \                      *
+     *        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|n[n[one]}] \  *
      *    [-C highclipvalue] \                                            *
      *    [-d {d[igest]|n[odigest]|w[arndigest]} \                        *
      *    [-D ] \                                                         *
@@ -668,8 +668,12 @@ int main (int argc, char *argv [])
                                     } else {
                                         if (optarg[0] == 'f' || optarg[0] == 'F') {
                                             compression = CBF_PACKED|CBF_FLAT_IMAGE;
-                                        } else {             
-                                            errflg++;
+                                        } else { 
+                                            if (optarg[0] == 'i' || optarg[0] == 'I' || !cbf_cistrcmp(optarg,"nibble_offset")) {
+                                                compression = CBF_NIBBLE_OFFSET;
+                                            } else {
+                                              errflg++;
+                                            }
                                         }
                                     }
                                 }
@@ -888,7 +892,7 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\\\n");
         fprintf(stderr,
-                "        {v[2packed}|{f[latpacked}[n[one]}] \\\n");
+                "        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|n[n[one]}] \\\n");
         fprintf(stderr,
                 "    [-C highclipvalue] \\\n");
         fprintf(stderr,
@@ -1138,6 +1142,10 @@ int main (int argc, char *argv [])
                                             break;
                                         case (CBF_BYTE_OFFSET):
                                             cbf_failnez (cbf_set_value      (cbf,"byte_offsets"))
+                                            cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                                            break;
+                                        case (CBF_NIBBLE_OFFSET):
+                                            cbf_failnez (cbf_set_value      (cbf,"nibble_offset"))
                                             cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
                                             break;
                                         case (CBF_PREDICTOR):
@@ -1436,6 +1444,10 @@ int main (int argc, char *argv [])
                                                 break;
                                             case (CBF_BYTE_OFFSET):
                                                 cbf_failnez (cbf_set_value      (cbf,"byte_offsets"))
+                                                cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
+                                                break;
+                                            case (CBF_NIBBLE_OFFSET):
+                                                cbf_failnez (cbf_set_value      (cbf,"nibble_offset"))
                                                 cbf_failnez (cbf_set_typeofvalue(cbf,"word"))
                                                 break;
                                             case (CBF_PREDICTOR):
