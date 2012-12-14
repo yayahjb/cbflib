@@ -108,6 +108,72 @@ Returns an error code on failure or 0 for success.
          initial2, initial3, final1, final2, final3));
     }
 %feature("autodoc", "
+Returns : Float vector1,Float vector2,Float vector3,Float offset1,Float offset2,
+          Float offset3,Float angle
+*args   : Float ratio
+
+C prototype: int cbf_get_goniometer_poise(cbf_goniometer goniometer,
+                 double ratio,      double * vector1, double * vector2,
+                 double * vector3, double * offset1,      double * offset2,
+                 double * offset3, double * angle);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_get_axis_poise sets vector1, vector2, vector3 to point to the 
+components of the axis vector for axis axis_id, offset1, offset2, 
+offset3 to point to the components of the axis base offset vector for 
+axis axis_id, and angle to point to the angle of rotation of axis 
+axis_id after application of the axis settings for frame frame_id, 
+using ratio, a value between 0 and 1, indicating how far into the 
+internal motion in the frame to go. If frame_id is the string  \". 
+\", the first frame found is used. If there is more than one frame, 
+which frame will be found is indeterminate. If frame_id is NULL, the 
+overall setting for the scan are used, rather than those for any 
+particular frame. The vector and offset reported are the reference 
+vector and offset of the axis axis_id transformed by application of 
+all motions of the axes on which axis_id depends.
+cbf_get_goniometer_poise vector1, vector2, vector3 to point to the 
+components of the axis vector for the goniometer axis, offset1, 
+offset2, offset3 to point to the components of the axis base offset 
+vector for the goniometer axis, and angle to point to the angle of 
+rotation of the goniometer axis after application of all axis 
+settings in the goniometer deriving the vector, offset and angle from 
+the resulting matrix. Calculation of the vector is indeterminate if 
+the angle is zero.
+cbf_get_axis_reference_poise sets vector1, vector2, vector3 to point 
+to the components of the axis vector for axis axis_id, offset1, 
+offset2, offset3 to point to the components of the axis base offset 
+vector for axis axis_id unmodified by axis rotations. Any of the 
+pointers may be specified as NULL.
+ARGUMENTS
+handle       CBF handle. ratio        A number between 0 and 1 
+indication how far into the frame to go vector1      Pointer to the 
+first component of the axis vector vector2      Pointer to the second 
+component of the axis vector vector3      Pointer to the third 
+component of the axis vector offset1      Pointer to the first 
+component of the axis offset offset2      Pointer to the second 
+component of the axis offset offset3      Pointer to the third 
+component of the axis offset angle        Pointer to the rotation 
+angle axis_id      The specified axis frame_id     The specified 
+frame positioner   CBF goniometer
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_goniometer_poise;
+
+  %apply double *OUTPUT {double * vector1, double * vector2, double * vector3, double * offset1, double * offset2, double * offset3, 
+      double * angle};
+      
+      void get_goniometer_poise(double ratio, 
+        double * vector1, double * vector2, double * vector3, 
+        double * offset1, double * offset2, double * offset3, 
+        double * angle){
+          cbf_failnez(cbf_get_goniometer_poise(self, ratio,
+                vector1, vector2, vector3, 
+                offset1, offset2, offset3,angle));
+        }
+
+%feature("autodoc", "
 Returns : double reciprocal1,double reciprocal2,double reciprocal3
 *args   : double ratio,double wavelength,double real1,double real2,double real3
 

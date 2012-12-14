@@ -665,7 +665,6 @@ int cbf_set_binary (cbf_node *column, unsigned int row,
 
   int bits;
 
-
     /* Remove the old value */
 
   cbf_failnez (cbf_set_columnrow (column, row, NULL, 1))

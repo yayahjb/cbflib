@@ -1,7 +1,7 @@
-This is pdfTeXk, Version 3.1415926-1.40.9 (Web2C 7.5.7) (format=latex 2008.8.22)  24 AUG 2010 21:19
+This is pdfTeXk, Version 3.1415926-1.40.9 (Web2C 7.5.7) (format=latex 2008.8.22)  8 NOV 2012 15:58
 entering extended mode
  %&-line parsing enabled.
-**pycbf
+**pycbf.tex
 (./pycbf.tex
 LaTeX2e <2005/12/01>
 Babel <v3.8l> and hyphenation patterns for english, usenglishmax, dumylang, noh
@@ -1176,6 +1176,6 @@ Here is how much of TeX's memory you used:
  5629 multiletter control sequences out of 10000+50000
  9575 words of font info for 34 fonts, out of 3000000 for 5000
  714 hyphenation exceptions out of 8191
- 25i,11n,43p,220b,365s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 25i,11n,43p,224b,365s stack positions out of 5000i,500n,10000p,200000b,50000s
 
-Output written on pycbf.dvi (76 pages, 214632 bytes).
+Output written on pycbf.dvi (76 pages, 215320 bytes).
