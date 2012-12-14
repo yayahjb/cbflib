@@ -296,7 +296,7 @@ extern "C" {
     00 00 1100 0xC0 --   specify starting address
  
     The reset to zero is followed by a new mode octet
-    A to zero resets the prior value for delta to zero
+    A reset to zero resets the prior value for delta to zero
  
     The up n modes code is followed immediately
     by a dibit specifying 2 less than the number of modes 
@@ -348,14 +348,15 @@ extern "C" {
 
     */
     
-#define CBF_NIBBLE_RUN      4
-#define CBF_NIBBLE_RUN_MASK 3
+#define CBF_NIBBLE_RUN      8
+#define CBF_NIBBLE_RUN_MASK 7
 #define CBF_NIBBLE_UPONE    1
 #define CBF_NIBBLE_UPN      3
 #define CBF_NIBBLE_SET_ADDR 0xC0
  
     static size_t histogram[65];
     static size_t runs[65];
+    static size_t currun[65];
     static size_t prevs[65]={ 0, 1, 2, 2, 2, 2, 4, 4, 6, 6,    /*0 - 9*/
                        6, 6, 8, 8, 8, 8,12,12,12,12,    /*10-19*/
                       12,12,12,12,12,12,12,12,12,12,    /*20-29*/
@@ -448,19 +449,21 @@ extern "C" {
     
     static int testmode(int *delta,int kint) {
         if (kint == 0) {
-          if (delta[0] >= -validrange[2] && delta[0] <=validrange[2] ) return 2;
-          if (delta[0] >= -validrange[4] && delta[0] <=validrange[4] ) return 4;
-          if (delta[0] >= -validrange[6] && delta[0] <=validrange[6] ) return 6;
-          if (delta[0] >= -validrange[8] && delta[0] <=validrange[8] ) return 8;
-          if (delta[0] >= -validrange[12] && delta[0] <=validrange[12] ) return 12;
-          if (delta[0] >= -validrange[16] && delta[0] <=validrange[16] ) return 16;
-          if (sizeof(int) >3 ) {
+            if (delta[0] >= -validrange[8] && delta[0] <=validrange[8] ) {
+                if (delta[0] >= -validrange[2] && delta[0] <=validrange[2] ) return 2;
+                if (delta[0] >= -validrange[4] && delta[0] <=validrange[4] ) return 4;
+                if (delta[0] >= -validrange[6] && delta[0] <=validrange[6] ) return 6;
+                return 8;
+            }
+            if (delta[0] >= -validrange[12] && delta[0] <=validrange[12] ) return 12;
+            if (delta[0] >= -validrange[16] && delta[0] <=validrange[16] ) return 16;
+            if (sizeof(int) >3 ) {
               if (delta[0] >= -validrange[32] &&
                       delta[0] <= validrange[32]) return 32;
               return 64;
-          } else {
+            } else {
               return 32;
-          }
+            }
         } else {
             if ((kint+1)*sizeof(int) < 5) {
                 return 32;
@@ -501,13 +504,13 @@ extern "C" {
     if ( tempmode==CBF_NIBBLE_UPN  && prevmode <= 32) { \
         if (curmode == succs[prevmode]) { \
             succnt = 1; \
-        } else if (curmode == succs[succs[prevmode]]) { \
+        } else if (prevmode <= 16 && curmode == succs[succs[prevmode]]) { \
             succnt = 2; \
-        } else if (prevmode <= 16 && curmode == succs[succs[succs[prevmode]]]) { \
+        } else if (prevmode <= 12 && curmode == succs[succs[succs[prevmode]]]) { \
             succnt = 3; \
-        } else if (prevmode <= 12 && curmode == succs[succs[succs[succs[prevmode]]]]) { \
+        } else if (prevmode <= 8 && curmode == succs[succs[succs[succs[prevmode]]]]) { \
             succnt = 4; \
-        } else if (prevmode <= 8 && curmode == succs[succs[succs[succs[succs[prevmode]]]]]) { \
+        } else if (prevmode <= 6 && curmode == succs[succs[succs[succs[succs[prevmode]]]]]) { \
             succnt = 5; \
         } else { tempmode = curmode;} \
     } \
@@ -631,6 +634,7 @@ int cbf_compress_nibble_offset (void         *source,
         for (iint = 0; iint < 65; iint++) {
             histogram[iint] = 0;
             runs[iint] = 0;
+            currun[iint] = 0;
         }
         
         /* Is the element size valid? */
@@ -808,11 +812,15 @@ int cbf_compress_nibble_offset (void         *source,
                 
                 cbf_failnez(cbf_mpint_add_acc((unsigned int *)delta[inrun], numints, element, numints))
                 
+                delta[inrun][numints-1] &=limit;
+                
                 if (delta[inrun][numints-1] & sign) delta[inrun][numints-1] |= (~limit);
                                 
             } else  {
                 
                 delta[inrun][0] = element[0] - prevelement[0];
+                
+                delta[inrun][0] &=limit;
                 
                 if (delta[inrun][0] & sign) delta[inrun][0] |= (~limit);
                 
@@ -831,6 +839,8 @@ int cbf_compress_nibble_offset (void         *source,
             }
 
             dmode[inrun] = testmode(delta[inrun],kint[inrun]);
+            currun[dmode[inrun]]++;
+            if (count > 0 && dmode[inrun] != dmode[(inrun+CBF_NIBBLE_RUN-1)&CBF_NIBBLE_RUN_MASK]) runs[dmode[(inrun+CBF_NIBBLE_RUN-1)&CBF_NIBBLE_RUN_MASK]]++;
             
             lagby++;
  
@@ -868,7 +878,7 @@ int cbf_compress_nibble_offset (void         *source,
             
             /* we are already in a workable mode,
                stay with it if possible, unless we can drop
-               to a smaller value for at least CBF_NIBBLE_RUN value*/
+               to a smaller value for at least CBF_NIBBLE_RUN values*/
             
             
             maxmode = minmode = nextmaxmode = dmode[inrun];
@@ -998,6 +1008,10 @@ int cbf_compress_nibble_offset (void         *source,
             *compressedsize = csize;
         
         fprintf(stderr," nibble offset compressed size %ld elements %ld\n",(long)csize,(long)nelem);
+        for (ii=1;ii<65;ii++) {
+            if (histogram[ii]) fprintf(stderr,"histogram[%d] %d\n",ii,(int)histogram[ii]);
+            if (runs[ii]) fprintf(stderr,"avgrun[%d] %g\n",ii,((double)currun[ii])/((double)runs[ii]));
+        }
         
         
         /* Success */

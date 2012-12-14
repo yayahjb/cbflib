@@ -290,6 +290,9 @@ typedef struct
   size_t axes;
 
   int matrix_is_valid, axes_are_connected;
+    
+  double matrix_ratio_used;
+    
 }
 cbf_positioner_struct;
 
@@ -1271,6 +1274,85 @@ int cbf_get_orientation_matrix (cbf_handle handle, double ub_matrix[9]);
 int cbf_set_orientation_matrix (cbf_handle handle, double ub_matrix[9]);
 
 
+    /* get the axis upon which an axis depends */
+    
+int cbf_get_parent_axis(cbf_handle handle,
+                            const char * *parent_axis,
+                            const char *axis_id);
+
+    /* get the reference axis vector and offset of a given axis */
+    
+int cbf_get_axis_reference_poise(cbf_handle handle,
+                            double *vector1, double *vector2, double *vector3,
+                            double *offset1, double *offset2, double *offset3,
+                            const char *axis_id);
+    
+    /* get the absolute axis vector and offset of a given axis
+     ratio is how far into a frame we are, 0. at the start
+     of the frame, 1. at the end
+     
+     The three offset values are the absolute position to which
+     the origin has been moved */
+    
+int cbf_get_axis_poise(cbf_handle handle, double ratio,
+                           double *vector1, double *vector2, double *vector3,
+                           double *offset1, double *offset2, double *offset3,
+                           double *angle,
+                           const char *axis_id,
+                           const char *frame_id);
+
+    /* Get the positioner matrix */
+    
+    
+int cbf_get_positioner_matrix (cbf_positioner positioner,
+                               double ratio,
+                               double matrix[3][4]);
+    
+    /* Get goniometer poise -- returns the pre-offset, post-translation and angle */
+    
+int cbf_get_goniometer_poise(cbf_goniometer goniometer, double ratio,
+                             double *vector1, double *vector2, double* vector3,
+                             double *offset1, double *offset2, double* offset3,
+                             double *angle);
+
+    /* Get the setting of an axis specific to a given frame */
+    
+int cbf_get_frame_axis_setting (cbf_handle handle, unsigned int  reserved,
+                                const char   *axis_id,
+                                const char   *frame_id,
+                                double       *start,
+                                double       *increment);
+    /* Add frame-specific data for an axis to a positioner */
+    
+int cbf_read_positioner_frame_axis (cbf_handle      handle,
+                                    unsigned int    reserved,
+                                    cbf_positioner  positioner,
+                                    const char     *axis_id,
+                                    const char     *frame_id,
+                                    int             read_setting);
+
+
+    /* Construct a frame goniometer positioner*/
+                             
+int cbf_construct_frame_goniometer (cbf_handle handle,
+                                    cbf_goniometer *goniometer,
+                                    const char *frame_id);
+
+    /* Construct a frame detector positioner */
+    
+int cbf_construct_frame_detector (cbf_handle    handle,
+                                  cbf_detector *detector,
+                                  unsigned int  element_number,
+                                  const char *frame_id);
+    
+    /* construct a positioner for a given final axis */
+    
+int cbf_construct_frame_positioner (cbf_handle handle,
+                                    cbf_positioner *positioner,
+                                    const char *axis_id,
+                                    const char *frame_id);
+
+    
 #ifdef __cplusplus
 
 }

@@ -663,6 +663,7 @@ http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz</a>
 	  <LI><A HREF="#2.4.55">2.4.55 cbf_compute_reciprocal_cell</a>
       <LI><A HREF="#2.4.56">2.4.56 cbf_get_orientation_matrix, cbf_set_orientation_matrix</a>
       <LI><A HREF="#2.4.57">2.4.57 cbf_get_bin_sizes, cbf_set_bin_sizes</a>
+      <LI><A HREF="#2.4.58">2.4.58 cbf_get_axis_poise, cbf_get_goniometer_poise, cbf_get_axis_reference_poise</a>
     </UL>
     <LI><A HREF="#2.5">2.5   F90 function interfaces</A>
     <UL>
@@ -4933,29 +4934,28 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 
 <p>Returns an error code on failure or 0 for success.
 <p><hr><P>
-<h4><A NAME="2.4.28">2.4.28 cbf_get_axis_setting
-</A></h4>
+<h4><A NAME="2.4.28">2.4.28 cbf_get_axis_setting</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
 int cbf_get_axis_setting (cbf_handle <i>handle</i>, unsigned int <i>reserved</i>, const char *<i>axis_id</i>, double *<i>start</i>,
-double *<i>increment</i>);
+double *<i>increment</i>);<br />
 <p>
 <b>DESCRIPTION</b>
 <p>
 cbf_get_axis_setting sets *<i>start</i> and *<i>increment</i> to the corresponding values of the axis <i>axis_id</i>.
-<p>
-Either of the destination pointers may be NULL.
+    <p>
+Any of the destination pointers may be NULL.
 <p>
 The parameter <i>reserved</i> is presently unused and should be set to 0.
 <p>
 <b>ARGUMENTS</b><br />
 <TABLE>
-<TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.
-<TR><td valign="top">&nbsp;&nbsp;<i>reserved</i><td valign="top">&nbsp;&nbsp;Unused.  Any value other than 0 is invalid.
-<TR><td valign="top">&nbsp;&nbsp;<i>axis_id</i><td valign="top">&nbsp;&nbsp;Axis id.
-<TR><td valign="top">&nbsp;&nbsp;<i>start</i><td valign="top">&nbsp;&nbsp;Pointer to the destination start value.
-<TR><td valign="top">&nbsp;&nbsp;<i>increment</i><td valign="top">&nbsp;&nbsp;Pointer to the destination increment value.
+<TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>reserved</i><td valign="top">&nbsp;&nbsp;Unused.  Any value other than 0 is invalid.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>axis_id</i><td valign="top">&nbsp;&nbsp;Axis id.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>start</i><td valign="top">&nbsp;&nbsp;Pointer to the destination start value.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>increment</i><td valign="top">&nbsp;&nbsp;Pointer to the destination increment value.</TR>
 </TABLE>
 <p>
 <b>RETURN VALUE</b>
@@ -6038,6 +6038,85 @@ the fastest rate.
 <p>
 Returns an error code on failure or 0 for success.
 <p><hr><P>
+    
+<h4><A NAME="2.4.58">2.4.58 cbf_get_axis_poise, cbf_get_goniometer_poise, cbf_get_reference_poise
+    </A></h4>
+    <p><b>PROTOTYPE</b>
+    <p>#include "cbf_simple.h"
+    <p>
+    int cbf_get_axis_poise(cbf_handle <i>handle</i>, double <i>ratio</i>,
+    double * <i>vector1</i>, double * <i>vector2</i>, double * <i>vector3</i>,
+    double * <i>offset1</i>, double * <i>offset2</i>, double * <i>offset3</i>,
+    double * <i>angle</i>,
+    const char * <i>axis_id</i>,
+    const char * <i>frame_id</i>);<br />
+    int cbf_get_goniometer_poise(cbf_goniometer <i>goniometer</i>, double <i>ratio</i>,
+    double * <i>vector1</i>, double * <i>vector2</i>, double * <i>vector3</i>,
+    double * <i>offset1</i>, double * <i>offset2</i>, double * <i>offset3</i>,
+    double * <i>angle</i>);<br />
+    int cbf_get_axis_reference_poise(cbf_handle <i>handle</i>,
+    double * <i>vector1</i>, double * <i>vector2</i>, double * <i>vector3</i>,
+    double * <i>offset1</i>, double * <i>offset2</i>, double * <i>offset3</i>,
+    const char * <i>axis_id</i>);
+
+    <p>
+    <b>DESCRIPTION</b>
+    <p>
+    cbf_get_axis_poise sets <i>vector1</i>, <i>vector2</i>, <i>vector3</i> to
+    point to the components of the axis vector for axis <i>axis_id</i>,
+    <i>offset1</i>, <i>offset2</i>, <i>offset3</i> to point to the
+    components of the axis base offset vector for axis <i>axis_id</i>, and
+    <i>angle</i> to point to the angle of rotation of axis <i>axis_id</i>
+    after application of the axis settings for frame <i>frame_id</i>, using
+    <i>ratio</i>, a value between 0 and 1, indicating how far into the internal
+    motion in the frame to go.  If <i>frame_id</i> is the string
+    &quot;.&quot;, the first frame found is used.  If there is more than one
+    frame, which frame will be found is indeterminate.  If <i>frame_id</i>
+    is NULL, the overall setting for the scan are used, rather than those
+    for any particular frame.  The vector and offset reported are the
+    reference vector and offset of the axis <i>axis_id</i> transformed by
+    application of all motions of the axes on which <i>axis_id</i> depends.
+    <p>
+    cbf_get_goniometer_poise <i>vector1</i>, <i>vector2</i>, <i>vector3</i> to
+    point to the components of the axis vector for the goniometer axis,
+    <i>offset1</i>, <i>offset2</i>, <i>offset3</i> to point to the
+    components of the axis base offset vector for the goniometer axis, and
+    <i>angle</i> to point to the angle of rotation of the goniometer axis
+    after application of <b>all</b> axis settings in the <i>goniometer</i>
+    deriving the vector, offset and angle from the resulting matrix.
+    Calculation of the vector is indeterminate if the angle is zero.
+    <p>
+    cbf_get_axis_reference_poise sets <i>vector1</i>, <i>vector2</i>, <i>vector3</i> to
+    point to the components of the axis vector for axis <i>axis_id</i>,
+    <i>offset1</i>, <i>offset2</i>, <i>offset3</i> to point to the
+    components of the axis base offset vector for axis <i>axis_id</i>
+    unmodified by axis rotations.
+    
+    
+    Any of the pointers may be specified as NULL.
+    
+    <P>
+    <b>ARGUMENTS</b><br />
+    <TABLE>
+        <TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>ratio</i><td valign="top">&nbsp;&nbsp;A number between 0 and 1 indication how far into the frame to go</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>vector1</i><td valign="top">&nbsp;&nbsp;Pointer to the first component of the axis vector</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>vector2</i><td valign="top">&nbsp;&nbsp;Pointer to the second component of the axis vector</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>vector3</i><td valign="top">&nbsp;&nbsp;Pointer to the third component of the axis vector</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>offset1</i><td valign="top">&nbsp;&nbsp;Pointer to the first component of the axis offset</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>offset2</i><td valign="top">&nbsp;&nbsp;Pointer to the second component of the axis offset</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>offset3</i><td valign="top">&nbsp;&nbsp;Pointer to the third component of the axis offset</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>angle</i><td valign="top">&nbsp;&nbsp;Pointer to the rotation angle</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>axis_id</i><td valign="top">&nbsp;&nbsp;The specified axis</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>frame_id</i><td valign="top">&nbsp;&nbsp;The specified frame</TR>
+        <TR><td valign="top">&nbsp;&nbsp;<i>positioner</i><td valign="top">&nbsp;&nbsp;CBF goniometer</TR>
+    </TABLE>
+    <p>
+    <b>RETURN VALUE</b>
+    <p>
+    Returns an error code on failure or 0 for success.
+    <p><hr><P>
+
 
 <h3><A NAME="2.5">2.5   F90 function interfaces</a></h3>
 <P>At the suggestion of W. Kabsch, Fortran 90/95 routines have been added

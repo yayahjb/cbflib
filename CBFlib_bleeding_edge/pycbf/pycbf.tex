@@ -773,6 +773,7 @@ $\langle\,$Exception handling\nobreak\ {\footnotesize \NWtarget{nuweb5a}{5a}}$\,
 \mbox{}\verb@@\\
 \mbox{}\verb@%include "cbfgenericwrappers.i"@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@// cbf_goniometer object@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@%include "cbfgoniometerwrappers.i"@\\
@@ -844,6 +845,7 @@ error prone and involved less typing for the author.
 %     email: wright@esrf.fr
 %
 % Revised for CBFlib 0.9 releases, Herbert J. Bernstein, 23 Aug 2010
+% Revised for CBFlin 0.9.2.8, Herbert J. Bernstein, 12 December 2012
 %
 %######################################################################
 %#                                                                    #
@@ -1096,6 +1098,8 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@cbfhandle_specials = {@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_integerarrayparameters":["""@\\
 \mbox{}\verb@%apply int *OUTPUT {int *compression,int *binary_id, @\\
 \mbox{}\verb@                    int *elsize, int *elsigned, int *elunsigned, @\\
@@ -1278,7 +1282,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        char * bot;@\\
 \mbox{}\verb@        cbf_failnez(cbf_get_realarrayparameters_wdims(self, @\\
 \mbox{}\verb@         &comp,binary_id, &elsiz, &elem, @\\
-\mbox{}\verb@         &byteorder,&ds,&dm,&ds,&pd ));@\\
+\mbox{}\verb@         &byteorder,&df,&dm,&ds,&pd ));@\\
 \mbox{}\verb@        *bolen = strlen(byteorder);@\\
 \mbox{}\verb@        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}@\\
 \mbox{}\verb@        strncpy(bot,byteorder,*bolen);@\\
@@ -1318,7 +1322,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@        char * bot;@\\
 \mbox{}\verb@        cbf_failnez(cbf_get_realarrayparameters_wdims_fs(self, @\\
 \mbox{}\verb@         &comp,binary_id, &elsiz, &elem, @\\
-\mbox{}\verb@         &byteorder,&ds,&dm,&ds,&pd ));@\\
+\mbox{}\verb@         &byteorder,&df,&dm,&ds,&pd ));@\\
 \mbox{}\verb@        *bolen = strlen(byteorder);@\\
 \mbox{}\verb@        if (!(bot = (char *)malloc(*bolen))) {cbf_failnez(CBF_ALLOC)}@\\
 \mbox{}\verb@        strncpy(bot,byteorder,*bolen);@\\
@@ -1836,7 +1840,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_integerarray_wdims",@\\
 \mbox{}\verb@[ "int compression", "int binary_id","(binary) String data", @\\
-\mbox{}\verb@ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],@\\
+\mbox{}\verb@ "int elsize", "int elsigned", "int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_integerarray_wdims_sf":["""@\\
@@ -1869,7 +1873,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_integerarray_wdims_sf",@\\
 \mbox{}\verb@[ "int compression", "int binary_id","(binary) String data", @\\
-\mbox{}\verb@ "int elsize","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],@\\
+\mbox{}\verb@ "int elsize","int elsigned","int elements", "String byteorder", "int dimslow", "int dimmid", "int dimfast", "int padding"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_integerarray_wdims_fs":["""@\\
 \mbox{}\verb@    /* CBFlib must NOT modify the data string nor the byteorder string@\\
@@ -1901,7 +1905,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","set_integerarray_wdims_fs",@\\
 \mbox{}\verb@[ "int compression", "int binary_id","(binary) String data", @\\
-\mbox{}\verb@ "int elsize","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],@\\
+\mbox{}\verb@ "int elsize","int elsigned","int elements", "String byteorder", "int dimfast", "int dimmid", "int dimslow", "int padding"],[]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_set_realarray":["""@\\
@@ -2526,15 +2530,15 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@                    int encoding){@\\
 \mbox{}\verb@       FILE *stream;@\\
 \mbox{}\verb@       int readable;@\\
-\mbox{}\verb@       /* Make the file non-0 to make CBFlib close the file */@\\
-\mbox{}\verb@       readable = 1;@\\
+\mbox{}\verb@       /* Make readable false so we can close the file immediately */@\\
+\mbox{}\verb@       readable = 0;@\\
 \mbox{}\verb@       if ( ! ( stream = fopen (filename, "w+b")) ){@\\
 \mbox{}\verb@         cbf_failnez(CBF_FILEOPEN);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@        else{@\\
 \mbox{}\verb@        cbf_failnez(cbf_write_file(self, stream, readable, @\\
 \mbox{}\verb@                    ciforcbf, headers, encoding));@\\
-\mbox{}\verb@@\\
+\mbox{}\verb@        fclose(stream);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@       }@\\
 \mbox{}\verb@""","write_file",["String filename","Integer ciforcbf","Integer Headers", @\\
@@ -2546,14 +2550,15 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@                    int encoding){@\\
 \mbox{}\verb@       FILE *stream;@\\
 \mbox{}\verb@       int readable;@\\
-\mbox{}\verb@       /* Make the file non-0 to make CBFlib close the file */@\\
-\mbox{}\verb@       readable = 1;@\\
+\mbox{}\verb@       /* Make readable false so we can close the file immediately */@\\
+\mbox{}\verb@       readable = 0;@\\
 \mbox{}\verb@       if ( ! ( stream = fopen (filename, "w+b")) ){@\\
 \mbox{}\verb@         cbf_failnez(CBF_FILEOPEN);@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@        else{@\\
 \mbox{}\verb@        cbf_failnez(cbf_write_widefile(self, stream, readable, @\\
 \mbox{}\verb@                    ciforcbf, headers, encoding));@\\
+\mbox{}\verb@        fclose(stream);@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@        }@\\
 \mbox{}\verb@       }@\\
@@ -3154,8 +3159,6 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@""","require_reference_detector",["Integer element_number"],["pycbf detector object"]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@# Prelude to the next section of the nuweb doc@\\
-\mbox{}\verb@@\\
 \mbox{}\verb@"cbf_construct_goniometer":["""@\\
 \mbox{}\verb@ cbf_goniometer construct_goniometer(){@\\
 \mbox{}\verb@    cbf_goniometer goniometer;@\\
@@ -3164,7 +3167,66 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","construct_goniometer",[],["pycbf goniometer object"]],@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@"cbf_construct_positioner":["""@\\
+\mbox{}\verb@ cbf_positioner construct_positioner(const char* axis_id){@\\
+\mbox{}\verb@    cbf_positioner positioner;@\\
+\mbox{}\verb@    cbf_failnez(cbf_construct_positioner(self,&positioner,axis_id));@\\
+\mbox{}\verb@    return positioner;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@""","construct_positioner",["String axis_id"],["pycbf positioner object"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_construct_reference_positioner":["""@\\
+\mbox{}\verb@ cbf_positioner construct_reference_positioner(const char* axis_id){@\\
+\mbox{}\verb@    cbf_positioner positioner;@\\
+\mbox{}\verb@    cbf_failnez(cbf_construct_reference_positioner(self,&positioner,axis_id));@\\
+\mbox{}\verb@    return positioner;@\\
+\mbox{}\verb@    }@\\
+\mbox{}\verb@""","construct_reference_positioner",["String axis_id"],["pycbf positioner object"]],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_axis_reference_poise":["""@\\
+\mbox{}\verb@  %apply double *OUTPUT {double *vector1, double *vector2, double *vector3, @\\
+\mbox{}\verb@    double *offset1, double *offset2, double *offset3};@\\
+\mbox{}\verb@  @\\
+\mbox{}\verb@  void get_axis_reference_poise(double *vector1, double *vector2, double *vector3,@\\
+\mbox{}\verb@      double *offset1, double *offset2, double *offset3,@\\
+\mbox{}\verb@      const char *axis_id){@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_axis_reference_poise(self,@\\
+\mbox{}\verb@          vector1, vector2, vector3,@\\
+\mbox{}\verb@          offset1, offset2, offset3,@\\
+\mbox{}\verb@          axis_id));@\\
+\mbox{}\verb@      }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","get_axis_reference_poise",["String axis_id"],@\\
+\mbox{}\verb@     ["Float vector1","Float vector2","Float vector3",@\\
+\mbox{}\verb@     "Float offset1","Float offset2","Float offset3"]],@\\
+\mbox{}\verb@     @\\
+\mbox{}\verb@"cbf_get_axis_poise":["""@\\
+\mbox{}\verb@  %apply double *OUTPUT {double *vector1, double *vector2, double *vector3, @\\
+\mbox{}\verb@    double *offset1, double *offset2, double *offset3, double *angle};@\\
+\mbox{}\verb@  @\\
+\mbox{}\verb@  void get_axis_poise(double ratio, @\\
+\mbox{}\verb@      double *vector1, double *vector2, double *vector3,@\\
+\mbox{}\verb@      double *offset1, double *offset2, double *offset3,@\\
+\mbox{}\verb@      double *angle,@\\
+\mbox{}\verb@      const char *axis_id, const char *frame_id){@\\
+\mbox{}\verb@        cbf_failnez(cbf_get_axis_poise(self, ratio,@\\
+\mbox{}\verb@          vector1, vector2, vector3,@\\
+\mbox{}\verb@          offset1, offset2, offset3, angle,@\\
+\mbox{}\verb@          axis_id, frame_id));@\\
+\mbox{}\verb@      }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","get_axis_poise",@\\
+\mbox{}\verb@     ["Float ratio", "String axis_id", "String frame_id"],@\\
+\mbox{}\verb@     ["Float vector1","Float vector2","Float vector3",@\\
+\mbox{}\verb@     "Float offset1","Float offset2","Float offset3","Float angle"]],@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@cbf_positioner_specials = {@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@# Prelude to the next section of the nuweb doc@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@class cbfhandlewrapper:@\\
@@ -3351,7 +3413,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@%apply double *OUTPUT {double *final1, double *final2, double *final3};@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@    void rotate_vector (double ratio, double initial1,double initial2, @\\
+\mbox{}\verb@    void rotate_vector (double ratio, double initial1, double initial2, @\\
 \mbox{}\verb@         double initial3, double *final1, double *final2, double *final3){@\\
 \mbox{}\verb@       unsigned int reserved;@\\
 \mbox{}\verb@       reserved = 0;@\\
@@ -3365,12 +3427,12 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_reciprocal":["""@\\
-\mbox{}\verb@%apply double *OUTPUT {double *reciprocal1,double *reciprocal2, @\\
+\mbox{}\verb@%apply double *OUTPUT {double *reciprocal1, double *reciprocal2, @\\
 \mbox{}\verb@              double *reciprocal3};@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    void get_reciprocal (double ratio,double wavelength, @\\
 \mbox{}\verb@                         double real1, double real2, double real3, @\\
-\mbox{}\verb@                         double *reciprocal1,double *reciprocal2, @\\
+\mbox{}\verb@                         double *reciprocal1, double *reciprocal2, @\\
 \mbox{}\verb@                         double *reciprocal3){@\\
 \mbox{}\verb@        unsigned int reserved;@\\
 \mbox{}\verb@        reserved = 0;@\\
@@ -3384,7 +3446,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@    ["double reciprocal1","double reciprocal2", "double reciprocal3" ]],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_rotation_axis":["""@\\
-\mbox{}\verb@%apply double *OUTPUT {double *vector1,double *vector2, double *vector3};@\\
+\mbox{}\verb@%apply double *OUTPUT {double *vector1, double *vector2, double *vector3};@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@void get_rotation_axis (double *vector1, double *vector2, double *vector3){@\\
 \mbox{}\verb@     unsigned int reserved;@\\
@@ -3394,6 +3456,25 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@    }@\\
 \mbox{}\verb@""","get_rotation_axis", [] , @\\
 \mbox{}\verb@ ["double vector1", "double vector2", "double vector3"] ],@\\
+\mbox{}\verb@ @\\
+\mbox{}\verb@ "cbf_get_goniometer_poise":["""@\\
+\mbox{}\verb@  %apply double *OUTPUT {double * vector1, double * vector2, double * vector3, double * offset1, double * offset2, double * offset3, @\\
+\mbox{}\verb@      double * angle};@\\
+\mbox{}\verb@      @\\
+\mbox{}\verb@      void get_goniometer_poise(double ratio, @\\
+\mbox{}\verb@        double * vector1, double * vector2, double * vector3, @\\
+\mbox{}\verb@        double * offset1, double * offset2, double * offset3, @\\
+\mbox{}\verb@        double * angle){@\\
+\mbox{}\verb@          cbf_failnez(cbf_get_goniometer_poise(self, ratio,@\\
+\mbox{}\verb@                vector1, vector2, vector3, @\\
+\mbox{}\verb@                offset1, offset2, offset3,angle));@\\
+\mbox{}\verb@        }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","get_goniometer_poise",["Float ratio"],@\\
+\mbox{}\verb@    ["Float vector1","Float vector2","Float vector3",@\\
+\mbox{}\verb@     "Float offset1","Float offset2","Float offset3",@\\
+\mbox{}\verb@     "Float angle"]],@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@}@\\
 \mbox{}\verb@@\\
@@ -3420,6 +3501,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@}@\\
 \mbox{}\verb@cbf_positioner_struct;@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@typedef cbf_positioner_struct *cbf_positioner;@\\
 \mbox{}\verb@typedef cbf_positioner_struct *cbf_goniometer;@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
@@ -3434,7 +3516,7 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@       } @\\
 \mbox{}\verb@@\\
 \mbox{}\verb@    ~cbf_positioner_struct(){ // Destructor@\\
-\mbox{}\verb@       cbf_failnez(cbf_free_goniometer(self));@\\
+\mbox{}\verb@       cbf_failnez(cbf_free_positioner(self));@\\
 \mbox{}\verb@       }@\\
 \mbox{}\verb@"""@\\
 \mbox{}\verb@      self.tail = """@\\
@@ -3459,9 +3541,9 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@cbf_detector_specials = {@\\
 \mbox{}\verb@"cbf_get_pixel_normal":["""@\\
-\mbox{}\verb@%apply double *OUTPUT {double *normal1,double *normal2, double *normal3};@\\
+\mbox{}\verb@%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};@\\
 \mbox{}\verb@   void get_pixel_normal ( double index1, double index2, @\\
-\mbox{}\verb@                          double *normal1,double *normal2, double *normal3){@\\
+\mbox{}\verb@                          double *normal1, double *normal2, double *normal3){@\\
 \mbox{}\verb@       cbf_failnez(cbf_get_pixel_normal(self,@\\
 \mbox{}\verb@                                    index1,index2,normal1,normal2,normal3));@\\
 \mbox{}\verb@   }@\\
@@ -3470,9 +3552,9 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@ ["double normal1","double normal2", "double normal3" ] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_pixel_normal_fs":["""@\\
-\mbox{}\verb@%apply double *OUTPUT {double *normalfast,double *normalslow, double *normal3};@\\
+\mbox{}\verb@%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};@\\
 \mbox{}\verb@   void get_pixel_normal_fs ( double indexfast, double indexslow, @\\
-\mbox{}\verb@                          double *normal1,double *normal2, double *normal3){@\\
+\mbox{}\verb@                          double *normal1, double *normal2, double *normal3){@\\
 \mbox{}\verb@       cbf_failnez(cbf_get_pixel_normal_fs(self,@\\
 \mbox{}\verb@                                    indexfast,indexslow,normal1,normal2,normal3));@\\
 \mbox{}\verb@   }@\\
@@ -3482,15 +3564,78 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_pixel_normal_sf":["""@\\
-\mbox{}\verb@%apply double *OUTPUT {double *normalslow,double *normalfast, double *normal3};@\\
+\mbox{}\verb@%apply double *OUTPUT {double *normal1, double *normal2, double *normal3};@\\
 \mbox{}\verb@   void get_pixel_normal_sf ( double indexslow, double indexfast, @\\
-\mbox{}\verb@                          double *normal1,double *normal2, double *normal3){@\\
+\mbox{}\verb@                          double *normal1, double *normal2, double *normal3){@\\
 \mbox{}\verb@       cbf_failnez(cbf_get_pixel_normal_sf(self,@\\
 \mbox{}\verb@                                    indexslow,indexfast,normal1,normal2,normal3));@\\
 \mbox{}\verb@   }@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@""","get_pixel_normal_sf",["double indexslow","double indexfast"] ,@\\
 \mbox{}\verb@ ["double normal1","double normal2", "double normal3" ] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_detector_axis_slow":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3};@\\
+\mbox{}\verb@   void get_detector_axis_slow ( double *slowaxis1, double *slowaxis2, double *slowaxis3){@\\
+\mbox{}\verb@       cbf_failnez(cbf_get_detector_axis_slow(self,@\\
+\mbox{}\verb@                                    slowaxis1,slowaxis2,slowaxis3));@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","get_detector_axis_slow", [ ],@\\
+\mbox{}\verb@ ["double slowaxis1","double slowaxis2", "double slowaxis3" ] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_detector_axis_fast":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *fastaxis1, double *fastaxis2, double *fastaxis3};@\\
+\mbox{}\verb@   void get_detector_axis_fast ( double *fastaxis1, double *fastaxis2, double *fastaxis3){@\\
+\mbox{}\verb@       cbf_failnez(cbf_get_detector_axis_fast(self,@\\
+\mbox{}\verb@                                    fastaxis1,fastaxis2,fastaxis3));@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","get_detector_axis_fast", [ ],@\\
+\mbox{}\verb@ ["double fastaxis1","double fastaxis2", "double fastaxis3" ] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_detector_axes":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3,@\\
+\mbox{}\verb@                       double *fastaxis1, double *fastaxis2, double *fastaxis3};@\\
+\mbox{}\verb@   void get_detector_axes ( double *slowaxis1, double *slowaxis2, double *slowaxis3,@\\
+\mbox{}\verb@                            double *fastaxis1, double *fastaxis2, double *fastaxis3){@\\
+\mbox{}\verb@       cbf_failnez(cbf_get_detector_axes(self,@\\
+\mbox{}\verb@                                    slowaxis1,slowaxis2,slowaxis3,@\\
+\mbox{}\verb@                                    fastaxis1,fastaxis2,fastaxis3));@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","get_detector_axes", [ ],@\\
+\mbox{}\verb@ ["double slowaxis1","double slowaxis2", "double slowaxis3",@\\
+\mbox{}\verb@ "double fastaxis1","double fastaxis2", "double fastaxis3" ] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_detector_axes_fs":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3,@\\
+\mbox{}\verb@                       double *fastaxis1, double *fastaxis2, double *fastaxis3};@\\
+\mbox{}\verb@   void get_detector_axes_fs ( double *fastaxis1, double *fastaxis2, double *fastaxis3,@\\
+\mbox{}\verb@                               double *slowaxis1, double *slowaxis2, double *slowaxis3){@\\
+\mbox{}\verb@       cbf_failnez(cbf_get_detector_axes(self,@\\
+\mbox{}\verb@                                    slowaxis1,slowaxis2,slowaxis3,@\\
+\mbox{}\verb@                                    fastaxis1,fastaxis2,fastaxis3));@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","get_detector_axes", [ ],@\\
+\mbox{}\verb@ ["double fastaxis1","double fastaxis2", "double fastaxis3",@\\
+\mbox{}\verb@  "double slowaxis1","double slowaxis2", "double slowaxis3"] ],@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@"cbf_get_detector_axes_sf":["""@\\
+\mbox{}\verb@%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3,@\\
+\mbox{}\verb@                       double *fastaxis1, double *fastaxis2, double *fastaxis3};@\\
+\mbox{}\verb@   void get_detector_axes_sf ( double *slowaxis1, double *slowaxis2, double *slowaxis3,@\\
+\mbox{}\verb@                            double *fastaxis1, double *fastaxis2, double *fastaxis3){@\\
+\mbox{}\verb@       cbf_failnez(cbf_get_detector_axes(self,@\\
+\mbox{}\verb@                                    slowaxis1,slowaxis2,slowaxis3,@\\
+\mbox{}\verb@                                    fastaxis1,fastaxis2,fastaxis3));@\\
+\mbox{}\verb@   }@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@""","get_detector_axes_sf", [ ],@\\
+\mbox{}\verb@ ["double slowaxis1","double slowaxis2", "double slowaxis3",@\\
+\mbox{}\verb@ "double fastaxis1","double fastaxis2", "double fastaxis3" ] ],@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@"cbf_get_pixel_area":["""@\\
@@ -3762,6 +3907,60 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@cbf_detector_wrapper = cbfdetectorwrapper()@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
+\mbox{}\verb@class cbfpositionerwrapper:@\\
+\mbox{}\verb@   def __init__(self):@\\
+\mbox{}\verb@      self.code = """@\\
+\mbox{}\verb@// Tell SWIG not to make constructor for these objects@\\
+\mbox{}\verb@%nodefault cbf_positioner_struct;@\\
+\mbox{}\verb@%nodefault cbf_positioner;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@// Tell SWIG what the object is, so we can build the class@\\
+\mbox{}\verb@typedef struct@\\
+\mbox{}\verb@{@\\
+\mbox{}\verb@  double matrix [3][4];@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  cbf_axis_struct *axis;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  size_t axes;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@  int matrix_is_valid, axes_are_connected;@\\
+\mbox{}\verb@}@\\
+\mbox{}\verb@cbf_positioner_struct;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@typedef cbf_positioner_struct *cbf_positioner;@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%feature("autodoc","1");@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@%extend cbf_positioner_struct{// Tell SWIG to attach functions to the structure@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    cbf_positioner_struct(){  // Constructor@\\
+\mbox{}\verb@       // DO NOT CONSTRUCT WITHOUT A CBFHANDLE@\\
+\mbox{}\verb@       cbf_failnez(CBF_ARGUMENT);@\\
+\mbox{}\verb@       return NULL; /* Should never be executed */@\\
+\mbox{}\verb@       } @\\
+\mbox{}\verb@@\\
+\mbox{}\verb@    ~cbf_positioner_struct(){ // Destructor@\\
+\mbox{}\verb@       cbf_failnez(cbf_free_positioner(self));@\\
+\mbox{}\verb@       }@\\
+\mbox{}\verb@"""@\\
+\mbox{}\verb@      self.tail = """@\\
+\mbox{}\verb@}; // End of cbf_positioner@\\
+\mbox{}\verb@"""@\\
+\mbox{}\verb@   def wrap(self,cfunc,prototype,args,docstring):@\\
+\mbox{}\verb@     if cfunc.find("cbf_free_positioner")>-1:@\\
+\mbox{}\verb@        return @\\
+\mbox{}\verb@     try:@\\
+\mbox{}\verb@        code, pyname, input, output = cbf_positioner_specials[cfunc]@\\
+\mbox{}\verb@        self.code +=  docstringwrite(pyname,input,output,@\\
+\mbox{}\verb@                                     prototype,docstring)+ code@\\
+\mbox{}\verb@     except KeyError:@\\
+\mbox{}\verb@        print "TODO: Positioner:",prototype@\\
+\mbox{}\verb@   def get_code(self):@\\
+\mbox{}\verb@     return self.code+self.tail@\\
+\mbox{}\verb@     @\\
+\mbox{}\verb@cbf_positioner_wrapper = cbfpositionerwrapper()@\\
+\mbox{}\verb@@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@cbfgeneric_specials = {@\\
 \mbox{}\verb@"cbf_get_local_integer_byte_order":["""@\\
 \mbox{}\verb@%cstring_output_allocate_size(char **bo, int *bolen, free(*$1));@\\
@@ -3939,12 +4138,16 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@      if args[0].find("cbf_detector")>=0: # This is for the cbfdetector@\\
 \mbox{}\verb@         cbf_detector_wrapper.wrap(cname,prototype,args,docstring)@\\
 \mbox{}\verb@         continue@\\
+\mbox{}\verb@      if args[0].find("cbf_positioner")>=0: # This is for the cbfpositioner@\\
+\mbox{}\verb@         cbf_positioner_wrapper.wrap(cname,prototype,args,docstring)@\\
+\mbox{}\verb@         continue@\\
 \mbox{}\verb@      generic_wrapper.wrap(cname,prototype,args,docstring)@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@generate_wrappers(name_dict)@\\
 \mbox{}\verb@open("cbfgoniometerwrappers.i","w").write(cbf_goniometer_wrapper.get_code())@\\
 \mbox{}\verb@open("cbfdetectorwrappers.i","w").write(cbf_detector_wrapper.get_code())@\\
+\mbox{}\verb@open("cbfpositionerwrappers.i","w").write(cbf_positioner_wrapper.get_code())@\\
 \mbox{}\verb@open("cbfhandlewrappers.i","w").write(cbf_handle_wrapper.get_code())@\\
 \mbox{}\verb@open("cbfgenericwrappers.i","w").write(generic_wrapper.get_code())@\\
 \mbox{}\verb@@\\

@@ -2277,9 +2277,48 @@ void convert_dictionary(cbf_handle other){
     }
 ""","construct_reference_positioner",["String axis_id"],["pycbf positioner object"]],
 
+"cbf_get_axis_reference_poise":["""
+  %apply double *OUTPUT {double *vector1, double *vector2, double *vector3, 
+    double *offset1, double *offset2, double *offset3};
+  
+  void get_axis_reference_poise(double *vector1, double *vector2, double *vector3,
+      double *offset1, double *offset2, double *offset3,
+      const char *axis_id){
+        cbf_failnez(cbf_get_axis_reference_poise(self,
+          vector1, vector2, vector3,
+          offset1, offset2, offset3,
+          axis_id));
+      }
+
+""","get_axis_reference_poise",["String axis_id"],
+     ["Float vector1","Float vector2","Float vector3",
+     "Float offset1","Float offset2","Float offset3"]],
+     
+"cbf_get_axis_poise":["""
+  %apply double *OUTPUT {double *vector1, double *vector2, double *vector3, 
+    double *offset1, double *offset2, double *offset3, double *angle};
+  
+  void get_axis_poise(double ratio, 
+      double *vector1, double *vector2, double *vector3,
+      double *offset1, double *offset2, double *offset3,
+      double *angle,
+      const char *axis_id, const char *frame_id){
+        cbf_failnez(cbf_get_axis_poise(self, ratio,
+          vector1, vector2, vector3,
+          offset1, offset2, offset3, angle,
+          axis_id, frame_id));
+      }
+
+""","get_axis_poise",
+     ["Float ratio", "String axis_id", "String frame_id"],
+     ["Float vector1","Float vector2","Float vector3",
+     "Float offset1","Float offset2","Float offset3","Float angle"]],
+
 }
 
-cbfpositioner_specials = {}
+cbf_positioner_specials = {
+
+}
 
 # Prelude to the next section of the nuweb doc
 
@@ -2511,6 +2550,25 @@ void get_rotation_axis (double *vector1, double *vector2, double *vector3){
     }
 ""","get_rotation_axis", [] , 
  ["double vector1", "double vector2", "double vector3"] ],
+ 
+ "cbf_get_goniometer_poise":["""
+  %apply double *OUTPUT {double * vector1, double * vector2, double * vector3, double * offset1, double * offset2, double * offset3, 
+      double * angle};
+      
+      void get_goniometer_poise(double ratio, 
+        double * vector1, double * vector2, double * vector3, 
+        double * offset1, double * offset2, double * offset3, 
+        double * angle){
+          cbf_failnez(cbf_get_goniometer_poise(self, ratio,
+                vector1, vector2, vector3, 
+                offset1, offset2, offset3,angle));
+        }
+
+""","get_goniometer_poise",["Float ratio"],
+    ["Float vector1","Float vector2","Float vector3",
+     "Float offset1","Float offset2","Float offset3",
+     "Float angle"]],
+
 
 }
 
@@ -3183,7 +3241,7 @@ def generate_wrappers(name_dict):
 generate_wrappers(name_dict)
 open("cbfgoniometerwrappers.i","w").write(cbf_goniometer_wrapper.get_code())
 open("cbfdetectorwrappers.i","w").write(cbf_detector_wrapper.get_code())
-open("cbfpostionerwrappers.i","w").write(cbf_positioner_wrapper.get_code())
+open("cbfpositionerwrappers.i","w").write(cbf_positioner_wrapper.get_code())
 open("cbfhandlewrappers.i","w").write(cbf_handle_wrapper.get_code())
 open("cbfgenericwrappers.i","w").write(generic_wrapper.get_code())
 
