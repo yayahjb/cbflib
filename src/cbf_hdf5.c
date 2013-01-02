@@ -271,6 +271,7 @@ extern "C" {
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+#include <stdio.h>
     
 
     
@@ -491,12 +492,15 @@ extern "C" {
         
         
             
-        errorcode |= cbf_apply_h5text_attribute(valid,"type","bnry",errorcode);
         errorcode |= cbf_apply_h5integer_attribute(valid,"compression",compression,errorcode);
-        errorcode |= cbf_apply_h5long_attribute(valid,"size",(long)size,errorcode);
         errorcode |= cbf_apply_h5integer_attribute(valid,"binid",id,errorcode);
-        errorcode |= cbf_apply_h5integer_attribute(valid,"real",realarray,errorcode);
+        errorcode |= cbf_apply_h5integer_attribute(valid,"bits",bits,errorcode);
         errorcode |= cbf_apply_h5integer_attribute(valid,"sign",sign,errorcode);
+        errorcode |= cbf_apply_h5integer_attribute(valid,"bintype",type,errorcode);
+        errorcode |= cbf_apply_h5text_attribute(valid,"type","bnry",errorcode);
+        errorcode |= cbf_apply_h5integer_attribute(valid,"checked_digest",checked_digest,errorcode);
+        errorcode |= cbf_apply_h5long_attribute(valid,"size",(long)size,errorcode);
+        errorcode |= cbf_apply_h5integer_attribute(valid,"real",realarray,errorcode);
         errorcode |= cbf_apply_h5text_attribute(valid,"byteorder",byteorder,errorcode);
         if (cbf_is_base64digest (digest)) {
             errorcode |= cbf_apply_h5text_attribute(valid,"MD5_digest",digest,errorcode);
@@ -973,7 +977,8 @@ extern "C" {
             (*h5handle)->colid   = (hid_t)CBF_H5FAIL;
             (*h5handle)->nxid    = (hid_t)CBF_H5FAIL;
             (*h5handle)->curnxid = (hid_t)CBF_H5FAIL;
-            
+            (*h5handle)->rwmode  = 0;
+        
             return CBF_SUCCESS;
 
     }
@@ -1202,8 +1207,9 @@ extern "C" {
         
     }
     
+    
 
-    /* Create an H5File handle */
+    /* Create an HDF5 File handle */
         
     int cbf_create_h5handle(cbf_h5handle *h5handle,
                               const char * h5filename) {
@@ -1211,14 +1217,12 @@ extern "C" {
         
         hid_t fcreate_prop_list;
         
-        int errorcode;
-        
-        errorcode = cbf_make_h5handle(h5handle);
-        
-        if (errorcode) return errorcode;
+        cbf_failnez(cbf_make_h5handle(h5handle));
         
         cbf_h5onfailneg(fcreate_prop_list = H5Pcreate(H5P_FILE_ACCESS),
                         CBF_ALLOC,cbf_free((void**) h5handle, NULL));
+        
+        (*h5handle)->rwmode = 1;
         
         cbf_h5onfailneg(H5Pset_fclose_degree(fcreate_prop_list,H5F_CLOSE_STRONG),
                         CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
@@ -1263,6 +1267,885 @@ extern "C" {
     }
     
     
+    /* Open an HDF5 File handle */
+    
+    int cbf_open_h5handle(cbf_h5handle *h5handle,
+                          const char * h5filename) {
+        
+        hid_t fcreate_prop_list;
+        
+        /* check that the file name has been specified and
+         is an HDF5 file */
+        
+        if (!h5filename || !H5Fis_hdf5(h5filename)) return CBF_ARGUMENT;
+        
+        cbf_failnez(cbf_make_h5handle(h5handle));
+        
+        cbf_h5onfailneg(fcreate_prop_list = H5Pcreate(H5P_FILE_ACCESS),
+                        CBF_ALLOC,cbf_free((void**) h5handle, NULL));
+        
+        (*h5handle)->rwmode = 0;
+        
+        cbf_h5onfailneg(H5Pset_fclose_degree(fcreate_prop_list,H5F_CLOSE_STRONG),
+                        CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
+        
+        cbf_h5onfailneg((*h5handle)->hfile = H5Fopen(h5filename,
+                                                     H5F_ACC_RDONLY,fcreate_prop_list),
+                        CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
+        
+        cbf_h5onfailneg(H5Pclose(fcreate_prop_list),
+                        CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
+        
+        return CBF_SUCCESS;
+        
+    }
+    
+    /* Convert an HDF5 typeclass to a string 
+       and flag for atomic or not 
+       copies up to n-1 characters of the
+       type string to buffer*/
+    
+    int cbf_h5type_class_string(H5T_class_t type_class,
+                                char * buffer,
+                                int * atomic, size_t n ) {
+    
+        int good_type;
+        
+        good_type = 0;
+        
+        *atomic = 1;
+        
+        buffer[n-1] = '\0';
+    
+        switch(type_class) {
+            case H5T_INTEGER:
+                strncpy(buffer,"H5T_INTEGER",n-1);
+                break;
+            case H5T_FLOAT:
+                strncpy(buffer,"H5T_FLOAT",n-1);
+                break;
+            case H5T_STRING:
+                strncpy(buffer,"H5T_STRING",n-1);
+                break;
+            case H5T_BITFIELD:
+                strncpy(buffer,"H5T_BITFIELD",n-1);
+                break;
+            case H5T_OPAQUE:
+                strncpy(buffer,"H5T_OPAQUE",n-1);
+                break;
+            case H5T_COMPOUND:
+                strncpy(buffer,"H5T_COMPOUND",n-1);
+                *atomic = 0;
+                break;
+            case H5T_REFERENCE:
+                strncpy(buffer,"H5T_REFERENCE",n-1);
+                break;
+            case H5T_ENUM:
+                strncpy(buffer,"H5T_ENUM",n-1);
+                *atomic = 0;
+                break;
+            case H5T_VLEN:
+                strncpy(buffer,"H5T_VLEN",n-1);
+                *atomic = 0;
+                break;
+            case H5T_ARRAY:
+                strncpy(buffer,"H5T_ARRAY",n-1);
+                *atomic = 0;
+                break;
+            case -1:
+                strncpy(buffer,".",n-1);
+                good_type = CBF_ARGUMENT;
+                *atomic = 0;
+                break;
+            default:
+                strncpy(buffer,"UNKNOWN",n-1);
+                good_type = CBF_ARGUMENT;
+                *atomic = 0;
+                break;
+        }
+        
+        return good_type;
+        
+    }
+    
+    /* Store an HDF5 Dataset in CBF handle, using
+       category categoryname, ...*/
+    
+    int cbf_h5ds_store(cbf_handle handle, haddr_t parent,
+                   const char * parent_name,
+                   const int target_row,
+                   const char * categoryname, hid_t obj_id,
+                   hid_t space, hid_t type,
+                   const char * name,
+                   const int readattrib,
+                   char ** value) {
+        
+        char buffer[25];
+        
+        unsigned char* data;
+        
+        char h5t_type_class[14], h5t_base_type_class[14];
+                
+        hid_t base_type;
+        
+        hid_t native_type;
+        
+        int atomic;
+        
+        int ndims, kdims, ii;
+        
+        hsize_t dims[H5S_MAX_RANK];
+
+        hsize_t maxdims[H5S_MAX_RANK];
+        
+        char * byte_order;
+                
+        size_t type_size, total_size;
+        
+        H5T_class_t type_class, base_type_class;
+        
+        H5T_class_t native_type_class;
+        
+        H5T_order_t type_order;
+        
+        cbf_failnez(cbf_require_category(handle,categoryname));
+        
+        /*  Give the name of this dataset as its own id */
+        
+        cbf_failnez(cbf_require_column(handle,"id"));
+
+        if (target_row==-1) {
+              
+            cbf_failnez(cbf_new_row(handle));
+        
+        } else {
+            
+            cbf_failnez(cbf_select_row(handle,target_row));
+        }
+
+        cbf_failnez(cbf_set_value(handle,name));
+
+        /*  Give the parent name and id for this dataset */
+
+        cbf_failnez(cbf_require_column(handle,"parent_name"));
+    
+        cbf_failnez(cbf_set_value(handle,parent_name));
+
+        cbf_failnez(cbf_require_column(handle,"parent_id"));
+        
+        sprintf(buffer,"0x%lx",(unsigned long)parent);
+        
+        cbf_failnez(cbf_set_value(handle,buffer));
+        
+        
+        /* get the class, and, if not atomic
+           try to get the base class for an array
+           give up otherwise */
+        
+        type_class = H5Tget_class(type);
+        
+        base_type = CBF_H5FAIL;
+        
+        cbf_failnez(cbf_require_column(handle,"type"));
+        
+        type_size = 0;
+        
+        if (value) *value = 0;
+        
+        type_order = -1;
+        
+        kdims= ndims = H5Sget_simple_extent_ndims(space);
+        
+        if (ndims <= 0) ndims = 1;
+        
+        H5Sget_simple_extent_dims(space,dims,maxdims);
+        
+        if (!cbf_h5type_class_string(
+                        type_class,
+                        h5t_type_class,&atomic,14)) {
+            
+            cbf_failnez(cbf_set_value(handle, h5t_type_class));
+                                      
+            if (!atomic && type_class==H5T_ARRAY){
+                base_type = H5Tget_super(type);
+                
+                base_type_class = H5Tget_class(base_type);
+                
+                if (!cbf_h5type_class_string(
+                        base_type_class,
+                        h5t_base_type_class,&atomic,14)) {
+                    if (!atomic) {
+                        strncpy (h5t_base_type_class,".",14);
+                        cbf_h5failneg(H5Tclose(base_type),CBF_FORMAT);
+                        base_type = CBF_H5FAIL;
+                    } else {
+                        
+                        type_size = H5Tget_size(base_type);
+                        
+                        type_order = H5Tget_order(base_type);
+                        
+                        cbf_failnez(cbf_require_column(handle,"base_type"));
+
+                        cbf_failnez(cbf_set_value(handle,h5t_base_type_class));
+                    }
+                } else {
+                    strncpy (h5t_base_type_class,".",14);
+                    cbf_h5failneg(H5Tclose(base_type),CBF_FORMAT);
+                    base_type = CBF_H5FAIL;
+                }
+                
+            } else if (atomic) {
+
+                type_size = H5Tget_size(type);
+                
+                type_order = H5Tget_order(type);
+                
+            }
+            
+        }
+        
+        total_size = type_size;
+        
+        for (ii=0; ii < kdims; ii ++) {
+            
+            total_size *= dims[ii];
+        }
+        
+        if (total_size < type_size) total_size = type_size;
+        
+        cbf_failnez(cbf_require_column(handle,"value"));
+
+        native_type = H5Tget_native_type(type,H5T_DIR_ASCEND);
+        
+        native_type_class = H5Tget_class(native_type);
+        
+        if(total_size > 0) {
+        
+            if(readattrib) {
+                
+                cbf_failnez(cbf_alloc(((void **) value),NULL,
+                                      total_size+1,1));
+ 
+                cbf_h5failneg(H5Aread(obj_id,native_type,(void *)*value),
+                              CBF_ARGUMENT);
+                
+                (*value)[total_size]='\0';
+                
+                if (native_type_class==H5T_NATIVE_CHAR
+                    || native_type_class == H5T_STRING) {
+                    
+                    cbf_failnez(cbf_set_value(handle,(const char *)(*value)))
+                }
+              
+            } else {
+ 
+                cbf_failnez(cbf_alloc(((void **) &data),NULL,
+                                      total_size+1,1));
+ 
+                cbf_h5failneg(H5Dread(obj_id,native_type,
+                            H5S_ALL,H5S_ALL,H5P_DEFAULT,data),
+                              CBF_ARGUMENT);
+                
+                data[total_size]='\0';
+
+                if (native_type_class==H5T_NATIVE_CHAR
+                    || native_type_class == H5T_STRING) {
+                    
+                    cbf_failnez(cbf_set_value(handle,(const char *)data))
+                }
+                
+            }
+
+        }
+        switch(type_order) {
+            case H5T_ORDER_LE:
+                byte_order = "H5T_ORDER_LE";
+                break;
+            case H5T_ORDER_BE:
+                byte_order = "H5T_ORDER_BE";
+                break;
+            case H5T_ORDER_VAX:
+                byte_order = "H5T_ORDER_VAX";
+                break;
+            case H5T_ORDER_MIXED:
+                byte_order = "H5T_ORDER_MIXED";
+                break;
+            case H5T_ORDER_NONE:
+                byte_order = "H5T_ORDER_LE";
+                break;
+            case -1:
+                byte_order = ".";
+                break;
+            default: byte_order="UNKNOWN";
+                break;
+        }
+        
+        cbf_failnez(cbf_require_column(handle,"h5_byte_order"));
+        
+        cbf_failnez(cbf_set_value(handle,byte_order));
+
+        if (type_size < 10) {
+            
+            sprintf(buffer,"%ld",(unsigned long)type_size);
+            
+        } else {
+            
+            sprintf(buffer,"0x%lx",(unsigned long)type_size);
+            
+        }
+
+        cbf_failnez(cbf_require_column(handle,"size"));
+        
+        cbf_failnez(cbf_set_value(handle,buffer));
+        
+        if (base_type >=0) H5Tclose(base_type);
+        
+        if (native_type>=0) H5Tclose(native_type);
+        
+        return CBF_SUCCESS;
+    }
+
+
+    /* Callback routine for objects in a group */
+
+
+    herr_t cbf_object_visit(hid_t loc_id, const char *name,
+                            const H5L_info_t *info,
+                            void *op_data){
+        
+        cbf_handle handle;
+        
+        haddr_t parent_addr;
+        
+        hid_t parent_id;
+        
+        unsigned int row;
+        
+        const char* parent_name;
+        
+        hid_t group_id, dataset_id;
+        
+        herr_t retval;
+        
+        hsize_t i;
+        
+        char buffer[25];
+        
+        char digest[25];
+        
+        char *value;
+        
+        H5O_info_t  objinfo;
+        
+        hid_t attrib_id,attrib_ds,attrib_type;
+        
+        hid_t dataset_ds, dataset_type;
+        
+        ssize_t attrib_name_size;
+        
+        int attrib_num;
+        
+        unsigned int compression;
+        
+        int binary_id, bits, sign, type, checked_digest, realarray;
+        
+        const char *byteorder;
+        
+        size_t binsize;
+        
+        size_t dimover, dimfast, dimmid, dimslow;
+        
+        size_t padding;
+        
+        handle = ((cbf_h5Ovisithandle)op_data)->handle;
+        
+        if (!handle) return -1;
+        
+        /* skip the root group itself */
+        
+        if (name[0]== '.') return 0;
+        
+        cbf_h5failneg(H5Oget_info_by_name(loc_id,
+                                          name, &objinfo, H5P_DEFAULT),CBF_FORMAT);
+        parent_id = ((cbf_h5Ovisithandle)op_data)->parent_id;
+        
+        parent_addr = ((cbf_h5Ovisithandle)op_data)->parent_addr;
+        
+        parent_name = ((cbf_h5Ovisithandle)op_data)->parent_name;
+
+        switch (objinfo.type) {
+                
+            case H5O_TYPE_GROUP:
+                
+                /* Skip duplicates */
+                
+                for (i=0; i < ((cbf_h5Ovisithandle)op_data)->path_size; i++) {
+                    
+                    if (objinfo.addr ==
+                        ((cbf_h5Ovisithandle)op_data)->haddr_path[i])
+                        return 0;
+                    
+                }
+                
+                if (((cbf_h5Ovisithandle)op_data)->path_size >=
+                    ((cbf_h5Ovisithandle)op_data)->capacity) {
+                    
+                    size_t newcap;
+                    
+                    newcap = 2*((cbf_h5Ovisithandle)op_data)->capacity;
+                    
+                    cbf_failnez(
+                                cbf_realloc(
+                                            (void **)(&((cbf_h5Ovisithandle)op_data)->hid_path),
+                                            NULL,sizeof(hid_t),newcap));
+                    cbf_failnez(
+                                cbf_realloc(
+                                            (void **)(&((cbf_h5Ovisithandle)op_data)->haddr_path),
+                                            NULL,sizeof(haddr_t),newcap));
+                    
+                    ((cbf_h5Ovisithandle)op_data)->capacity=newcap;
+                    
+                }
+                
+                (((cbf_h5Ovisithandle)op_data)->
+                 haddr_path)[((cbf_h5Ovisithandle)op_data)->path_size] =
+                objinfo.addr;
+                
+                group_id = H5Gopenx(loc_id,name);
+                (((cbf_h5Ovisithandle)op_data)->
+                 haddr_path)[((cbf_h5Ovisithandle)op_data)->path_size] =
+                group_id;
+                (((cbf_h5Ovisithandle)op_data)->path_size)++;
+                
+                /* We have a group
+                 We need to add it to the H5_Groups category
+                 in the current data block.
+                 
+                 If it has attributes, we need to add them to
+                 the H5Attributes category
+                 
+                 If it has datasets, we will catch them when we
+                 iterate again
+                 
+                 */
+                
+                cbf_failnez(cbf_require_category(handle,"H5_Groups"));
+                
+                cbf_failnez(cbf_new_row(handle));
+                
+                cbf_failnez(cbf_row_number(handle,&row));
+                
+                cbf_failnez(cbf_require_column(handle,"name"));
+                
+                cbf_failnez(cbf_set_value(handle,name));
+                
+                cbf_failnez(cbf_require_column(handle,"parent_name"));
+                
+                cbf_failnez(cbf_set_value(handle,parent_name));
+
+                cbf_failnez(cbf_require_column(handle,"parent_id"));
+                
+                if (!parent_addr) {
+                    
+                    cbf_failnez(cbf_set_value(handle,"."));
+                                        
+                    cbf_failnez(cbf_set_typeofvalue(handle,"null"));
+ 
+                } else {
+                    
+                    sprintf(buffer,"0x%lx",(unsigned long)parent_addr);
+                    
+                    cbf_failnez(cbf_set_value(handle,buffer));
+                    
+                }
+
+                cbf_failnez(cbf_require_column(handle,"id"));
+                
+                sprintf(buffer,"0x%lx",(unsigned long)objinfo.addr);
+                
+                cbf_failnez(cbf_set_value(handle,buffer));
+                
+                attrib_num = objinfo.num_attrs;
+                
+                cbf_failnez(cbf_require_column(handle,"no_attributes"));
+                
+                cbf_failnez(cbf_set_integervalue(handle,attrib_num));
+                
+                for (i=0; i < attrib_num; i++) {
+                
+                    char * attrib_name;
+                    attrib_id=H5Aopen_by_idx(group_id,".",
+                                H5_INDEX_NAME,
+                                H5_ITER_INC,
+                                i,H5P_DEFAULT,H5P_DEFAULT);
+                    attrib_ds = H5Aget_space(attrib_id);
+                    attrib_type = H5Aget_type(attrib_id);
+                    attrib_name_size = H5Aget_name(attrib_id,0,NULL);
+                    cbf_failnez(cbf_alloc(((void **) &attrib_name),NULL,
+                                          attrib_name_size+1,1));
+                    
+                    cbf_h5failneg(H5Aget_name(attrib_id,
+                                              attrib_name_size+1,attrib_name),
+                                  CBF_ARGUMENT);
+                    cbf_h5ds_store(handle,objinfo.addr,
+                                   name,-1,
+                                   "H5_Group_attribute",
+                                   attrib_id,
+                                   attrib_ds,
+                                   attrib_type,
+                                   attrib_name,1, &value);
+                    if (!cbf_cistrcmp(attrib_name,"NX_class")&& value) {
+                        
+                        cbf_failnez(cbf_require_category(handle,"H5_Groups"));
+                        
+                        cbf_failnez(cbf_find_column(handle,"id"));
+                        
+                        cbf_failnez(cbf_select_row(handle,row));
+                        
+                        cbf_failnez(cbf_require_column(handle,"NX_class"));
+                        
+                        cbf_failnez(cbf_set_value(handle,value));
+                        
+                    }
+                    
+                    cbf_failnez(cbf_free((void **)&attrib_name,NULL));
+                    if (value) {
+                        cbf_failnez(cbf_free((void **)&value, NULL));
+                    }
+                    H5Tclose(attrib_type);
+                    H5Sclose(attrib_ds);
+                    H5Aclose(attrib_id);
+                }
+                
+                ((cbf_h5Ovisithandle)op_data)->parent_addr = objinfo.addr;
+                
+                ((cbf_h5Ovisithandle)op_data)->parent_id = group_id;
+                
+                cbf_failnez(cbf_alloc(((void **) &(((cbf_h5Ovisithandle)op_data)->parent_name)),NULL,
+                                      strlen(name)+1,1));
+                
+                strcpy((char *)((cbf_h5Ovisithandle)op_data)->parent_name,name);
+                
+                retval = H5Literate_by_name(loc_id, name,H5_INDEX_NAME,
+                                            H5_ITER_INC,
+                                            NULL,
+                                            cbf_object_visit,op_data,H5P_DEFAULT);
+                
+                H5Gclose(group_id);
+                
+                cbf_failnez(cbf_free((void **)(&((cbf_h5Ovisithandle)op_data)->parent_name),NULL));
+                
+                (((cbf_h5Ovisithandle)op_data)->path_size)--;
+
+                ((cbf_h5Ovisithandle)op_data)->parent_id = parent_id;
+                
+                ((cbf_h5Ovisithandle)op_data)->parent_addr = parent_addr;
+                
+                ((cbf_h5Ovisithandle)op_data)->parent_name = parent_name;
+                
+                return retval;
+                break;
+                
+            case H5O_TYPE_DATASET:
+                
+                dataset_id = H5Dopen2(loc_id,name,H5P_DEFAULT);
+
+              /* We have a dataset
+                 We need to add it to the H5_Datasets category
+                 in the current data block.
+                 
+                 If it has attributes, we need to add them to
+                 the H5_Attributes category
+                                  
+                 */
+                
+                cbf_failnez(cbf_require_category(handle,"H5_Datasets"));
+                
+                cbf_failnez(cbf_new_row(handle));
+                
+                cbf_failnez(cbf_row_number(handle,&row));
+                
+                cbf_failnez(cbf_require_column(handle,"name"));
+                
+                cbf_failnez(cbf_set_value(handle,name));
+                
+                cbf_failnez(cbf_require_column(handle,"parent_name"));
+                
+                cbf_failnez(cbf_set_value(handle,parent_name));
+                
+                cbf_failnez(cbf_require_column(handle,"parent_id"));
+                
+                if (!parent_addr) {
+                    
+                    cbf_failnez(cbf_set_value(handle,"."));
+                    
+                    cbf_failnez(cbf_set_typeofvalue(handle,"null"));
+                    
+                } else {
+                    
+                    sprintf(buffer,"0x%lx",(unsigned long)parent_addr);
+                    
+                    cbf_failnez(cbf_set_value(handle,buffer));
+                    
+                }
+                
+                cbf_failnez(cbf_require_column(handle,"id"));
+
+                sprintf(buffer,"0x%lx",(unsigned long)objinfo.addr);
+                
+                cbf_failnez(cbf_set_value(handle,buffer));
+                
+                attrib_num = objinfo.num_attrs;
+ 
+                cbf_failnez(cbf_require_column(handle,"no_attributes"));
+                
+                cbf_failnez(cbf_set_integervalue(handle,attrib_num));
+                
+                dimover = 0;
+               
+                for (i=0; i < attrib_num; i++) {
+                    
+                    char * attrib_name;
+                    attrib_id=H5Aopen_by_idx(dataset_id,".",
+                                             H5_INDEX_NAME,
+                                             H5_ITER_INC,
+                                             i,H5P_DEFAULT,H5P_DEFAULT);
+                    attrib_ds = H5Aget_space(attrib_id);
+                    attrib_type = H5Aget_type(attrib_id);
+                    attrib_name_size = H5Aget_name(attrib_id,0,NULL);
+                    cbf_failnez(cbf_alloc(((void **) &attrib_name),NULL,
+                                          attrib_name_size+1,1));
+                    
+                    cbf_h5failneg(H5Aget_name(attrib_id,
+                                              attrib_name_size+1,attrib_name),
+                                  CBF_ARGUMENT);
+                    cbf_h5ds_store(handle,objinfo.addr,
+                                   name,-1,
+                                   "H5_Dataset_attribute",
+                                   attrib_id,
+                                   attrib_ds,
+                                   attrib_type,
+                                   attrib_name,1,&value);
+                    if (*value) {
+                        
+                        cbf_failnez(cbf_require_category(handle,"H5_Datasets"));
+                        
+                        cbf_failnez(cbf_find_column(handle,"id"));
+
+                        cbf_failnez(cbf_select_row(handle,row));
+                        
+                        cbf_failnez(cbf_require_column(handle,attrib_name));
+                        
+                        cbf_failnez(cbf_set_value(handle,value));
+                        
+                        if (!cbf_cistrcmp(attrib_name,"compression")) {
+                            compression=(int)strtol(value,NULL,0);
+                        } else if (!cbf_cistrcmp(attrib_name,"binid")) {
+                            binary_id=(int)strtol(value,NULL,0);
+                        } else if (!cbf_cistrcmp(attrib_name,"bits")) {
+                            bits=(int)strtol(value,NULL,0);
+                        } else if (!cbf_cistrcmp(attrib_name,"sign")) {
+                            sign = (int)strtol(value,NULL,0);
+                        } else if (!cbf_cistrcmp(attrib_name,"bintype")) {
+                            type=(int)strtol(value,NULL,0);
+                        } else if (!cbf_cistrcmp(attrib_name,"checked_digest")) {
+                            checked_digest=(int)strtol(value,NULL,0);
+                        } else if (!cbf_cistrcmp(attrib_name,"real")) {
+                            realarray = (int)strtol(value,NULL,0);
+                        } else if (!cbf_cistrcmp(attrib_name,"byteorder")) {
+                            byteorder=
+                            (value[0]=='l'||value[0]=='L')?
+                            "little_endian":"big_endian";
+                        } else if (!cbf_cistrcmp(attrib_name,"size")) {
+                            binsize = (size_t)strtol(value,NULL,0);
+                        } else if (!cbf_cistrcmp(attrib_name,"digest")) {
+                            strcpy(digest,value);
+                        } else if (!cbf_cistrcmp(attrib_name,"dimover")) {
+                            dimover = (size_t)strtol(value,NULL,0);
+                        } else if (!cbf_cistrcmp(attrib_name,"dimfast")) {
+                            dimfast = (size_t)strtol(value,NULL,0);
+                        } else if (!cbf_cistrcmp(attrib_name,"dimmid")) {
+                            dimmid = (size_t)strtol(value,NULL,0);
+                        } else if (!cbf_cistrcmp(attrib_name,"dimslow")) {
+                            dimslow = (size_t)strtol(value,NULL,0);
+                        } else if (!cbf_cistrcmp(attrib_name,"padding")) {
+                            padding = (size_t)strtol(value,NULL,0); 
+                        }
+                    }
+                                       
+                    cbf_failnez(cbf_free((void **)&attrib_name,NULL));
+                    if (value) cbf_failnez(cbf_free((void **)&value, NULL));
+                    H5Tclose(attrib_type);
+                    H5Sclose(attrib_ds);
+                    H5Aclose(attrib_id);
+                }
+               
+                dataset_ds = H5Dget_space(dataset_id);
+                dataset_type = H5Dget_type(dataset_id);
+
+                cbf_h5ds_store(handle,objinfo.addr,
+                               parent_name,row,
+                               "H5_Datasets",
+                               dataset_id,
+                               dataset_ds,
+                               dataset_type,
+                               name,0,&value);
+                
+                if (binsize&&value) {
+                    
+                    size_t elsize, nelem;
+                    
+                    cbf_node * column;
+                    
+                    cbf_file *tempfile;
+                    
+                    long start;
+                    
+                    elsize = (bits+CHAR_BIT-1)/CHAR_BIT;
+                    
+                    nelem = (binsize+elsize-1)/elsize;
+                    
+                    if (dimover <=0) dimover = nelem;
+                    
+                    if (nelem > 0 && elsize > 0) {
+                        
+                        cbf_failnez(cbf_require_category(handle,"H5_Datasets"));
+                        
+                        cbf_failnez(cbf_find_column(handle,"id"));
+                        
+                        cbf_failnez(cbf_select_row(handle,row));
+                        
+                        cbf_failnez(cbf_require_column(handle,"value"));
+                        
+                        column = handle->node;
+                        
+                        
+                        /* Remove the old value */
+                        
+                        cbf_failnez (cbf_set_columnrow (column, row, NULL, 1))
+                        
+                        
+                        /* Get the temporary file */
+                        
+                        cbf_failnez (cbf_open_temporary (column->context, &tempfile))
+                        
+                        
+                        /* Move to the end of the temporary file */
+                        
+                        if (cbf_set_fileposition (tempfile, 0, SEEK_END))
+                            
+                            return CBF_FILESEEK | cbf_delete_fileconnection (&tempfile);
+                        
+                        
+                        /* Get the starting location */
+                        
+                        if (cbf_get_fileposition (tempfile, &start))
+                            
+                            return CBF_FILETELL | cbf_delete_fileconnection (&tempfile);
+                        
+                        
+                        /* Discard any bits in the buffers */
+                        
+                        cbf_failnez (cbf_reset_bits (tempfile))
+
+                        
+                        /* Add the binary data to the temporary file */
+                        
+                        if (!cbf_set_output_buffersize(tempfile,nelem))  {
+                            
+                            memmove((void *)(tempfile->characters+tempfile->characters_used),
+                                    (void *)value,binsize);
+                            
+                            tempfile->characters_used+=binsize;
+                            
+                        }
+                        
+                        cbf_onfailnez(cbf_set_bintext(column,row,CBF_TOKEN_TMP_BIN,
+                                                   binary_id,tempfile,start,binsize,
+                                                   1,digest,bits,sign,realarray,byteorder,
+                                                   dimover, dimfast, dimmid, dimslow,
+                                                 padding,compression),
+                                      cbf_delete_fileconnection (&tempfile));
+                        
+                    }
+                }
+                if (value) cbf_failnez(cbf_free((void **)&value, NULL));
+                H5Dclose(dataset_id);
+                H5Sclose(dataset_ds);
+                H5Tclose(dataset_type);
+
+                break;
+                
+            case H5O_TYPE_NAMED_DATATYPE:
+                
+                break;
+                
+            default:
+                
+                return CBF_FORMAT;
+                
+                
+                
+        }
+        return 0;
+    }
+    /* Read an HDF5 file */
+    
+    int cbf_read_h5file(cbf_handle handle, cbf_h5handle h5handle) {
+        
+        cbf_node *node;
+        
+        cbf_h5Ovisit_struct h5Ovisit;
+        
+        if (!handle || !h5handle || !h5handle->hfile ) return CBF_ARGUMENT;
+        
+        /* Delete the old datablocks */
+        
+        if( handle->commentfile) cbf_failnez (cbf_free_file (&(handle->commentfile)));
+        
+        cbf_failnez (cbf_find_parent (&node, handle->node, CBF_ROOT));
+        
+        cbf_failnez (cbf_set_children (node, 0))
+        
+        handle->node = node;
+        
+        cbf_failnez (cbf_reset_refcounts(handle->dictionary));
+        
+        
+        h5Ovisit.handle = handle;
+        
+        h5Ovisit.h5handle = h5handle;
+        
+        h5Ovisit.parent_addr = 0;
+        
+        h5Ovisit.parent_id = h5handle->hfile;
+        
+        h5Ovisit.parent_name = "/";
+
+        cbf_failnez(cbf_alloc ((void **) (&(h5Ovisit.hid_path)), NULL,
+                               sizeof(hid_t), 1));
+
+        cbf_failnez(cbf_alloc ((void **) (&(h5Ovisit.haddr_path)), NULL,
+                               sizeof(haddr_t), 1));
+                    
+        h5Ovisit.capacity = 1;
+        
+        h5Ovisit.path_size = 0;
+        
+        cbf_failnez(cbf_new_datablock(handle,"H5"));
+
+        /* visit the groups in the file, starting with the root group */
+        
+        cbf_h5failneg(H5Literate(h5handle->hfile,
+                               H5_INDEX_NAME,
+                               H5_ITER_INC,
+                               NULL,
+                               cbf_object_visit,(void *)&h5Ovisit),CBF_FORMAT);
+        
+        return CBF_SUCCESS;
+        
+    }
+
 
 
     

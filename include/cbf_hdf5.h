@@ -265,26 +265,16 @@ extern "C" {
 #define cbf_h5reportneg(x,code,cerr) \
   {int err; if (!(cerr)) {err = (x); if (err < 0) {(cerr)|=code;}}}
     
+#ifndef H5_VERS_MAJOR
+#define H5_VERS_MAJOR 0
+#endif
+
+#ifndef H5_VERS_MINOR
+#define H5_VERS_MINOR 0
+#endif
+
     
-#ifndef H5_VERSION_LE
-
-#define H5Acreatex(loc_id,name,type_id,space_id,acpl_id) \
-          H5Acreate(loc_id,name,type_id,space_id,acpl_id)
-#define H5Dcreatex(loc_id,name,type_id,space_id,dcpl_id) \
-          H5Dcreate(loc_id,name,type_id,space_id,dcpl_id)
-#define H5Gcreatex(loc_id,name) H5Gcreate(loc_id,name,0)
-
-#else
-    
-#if H5_VERSION_LE(1,6,10)
-
-#define H5Acreatex(loc_id,name,type_id,space_id,acpl_id) \
-          H5Acreate(loc_id,name,type_id,space_id,acpl_id)
-#define H5Dcreatex(loc_id,name,type_id,space_id,dcpl_id) \
-          H5Dcreate(loc_id,name,type_id,space_id,dcpl_id)
-#define H5Gcreatex(loc_id,name) H5Gcreate(loc_id,name,0)
-
-#else
+#if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=8))
 
 #define H5Acreatex(loc_id,name,type_id,space_id,acpl_id) \
           H5Acreate2(loc_id,name,type_id,space_id,acpl_id,H5P_DEFAULT)
@@ -292,15 +282,20 @@ extern "C" {
           H5Dcreate2(loc_id,name,type_id,space_id,H5P_DEFAULT,dcpl_id,H5P_DEFAULT)
 #define H5Gcreatex(loc_id,name) \
           H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
+#define H5Gopenx(loc_id,name) H5Gopen2(loc_id,name,H5P_DEFAULT)
+
+#else
+
+#error HDF5 Version >= 1.8 Required
 
 #endif
 
-#endif
     
     /* H5File structure */
     
     typedef struct
     {
+        int   rwmode;  /* 0 for read-only, 1 for read-write */
         hid_t hfile;   /* The HDF5 file */
         hid_t rootid;  /* The root CBF database group */
         hid_t dbid;    /* The current datablock in the CBF */
@@ -309,10 +304,27 @@ extern "C" {
         hid_t colid;   /* The current column */
         hid_t nxid;    /* The root NeXus group */
         hid_t curnxid; /* The current NeXus group */
+        
     }
     cbf_h5handle_struct;
     
     typedef cbf_h5handle_struct *cbf_h5handle;
+    
+    typedef struct
+    {
+        cbf_handle handle;
+        cbf_h5handle h5handle;
+        hid_t parent_id;
+        haddr_t parent_addr;
+        const char * parent_name;
+        size_t capacity;
+        size_t path_size;
+        hid_t *hid_path;
+        haddr_t *haddr_path;
+    }
+    cbf_h5Ovisit_struct;
+    
+    typedef cbf_h5Ovisit_struct *cbf_h5Ovisithandle;
     
     
     /* apply a long attribute to a group or dataset */
@@ -414,6 +426,47 @@ extern "C" {
     /*  Write cbf to HDF5 file hfile */
     
     int cbf_write_hdf5_file (cbf_handle handle, cbf_h5handle h5handle);
+    
+    /* Open an HDF5 File handle */
+    
+    int cbf_open_h5handle(cbf_h5handle *h5handle,
+                          const char * h5filename);
+    
+    /* Convert an HDF5 typeclass to a string
+     and flag for atomic or not
+     copies up to n-1 characters of the
+     type string to buffer*/
+    
+    int cbf_h5type_class_string(H5T_class_t type_class,
+                                char * buffer,
+                                int * atomic, size_t n );
+
+    
+    /* Store an HDF5 Dataset in CBF handle, using
+     category categoryname, ...*/
+    
+    int cbf_h5ds_store(cbf_handle handle, haddr_t parent,
+                       const char * parent_name,
+                       const int target_row,
+                       const char * categoryname, hid_t obj_id,
+                       hid_t space, hid_t type,
+                       const char * name,
+                          const int readattrib,
+                            char ** value);
+
+    
+    /* Callback routine for objects in a group */
+    
+    
+    herr_t cbf_object_visit(hid_t loc_id, const char *name,
+                            const H5L_info_t *info,
+                            void *op_data);
+
+    
+    /* Read an HDF5 file */
+    
+    int cbf_read_h5file(cbf_handle handle, cbf_h5handle h5handle);
+
 
 
 
