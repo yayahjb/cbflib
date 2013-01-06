@@ -389,6 +389,8 @@ extern "C" {
         
         unsigned int compression;
         
+        unsigned char * rawdata;
+        
         int id, bits, sign, type, checked_digest, realarray;
         
         const char *byteorder;
@@ -484,14 +486,46 @@ extern "C" {
                                           valprop),
                         CBF_ALLOC,errorcode);
 
-        if (!infile->temporary) {
-
-            errorcode |= cbf_get_block(infile,size);
+        
+        /* get all the data */
+        
+        /* first ensure enough space at infile->characters
+           for size characters, which means we need enough
+           at characters->base for size + the old data,
+           if any */
+        
+        cbf_reportnez(cbf_set_io_buffersize(infile, size),errorcode);
+        
+        /* now we can safely do the read 
+         
+           because of the file positioning done, infile->chatracters
+           is actually the same as infile_characters_base for a
+           file stream based file */
+        
+        rawdata = (unsigned char*) infile->characters;
+        
+        if (infile->characters_used < size) {
             
+            
+            /* We cannot get any more characters from
+               a temporary file of file without a stream */
+            
+            if (infile->temporary || !infile->stream)  {
+                
+                errorcode |= CBF_FILEREAD;
+                
+            }
+            
+            if (!errorcode && fread(rawdata, 1,
+                    size-(infile->characters_used), infile->stream)
+                    != size-infile->characters_used)
+                errorcode |= CBF_FILEREAD;
+            
+            if (!errorcode) infile->characters_used = size;
+
         }
         
-        
-            
+
         errorcode |= cbf_apply_h5integer_attribute(valid,"compression",compression,errorcode);
         errorcode |= cbf_apply_h5integer_attribute(valid,"binid",id,errorcode);
         errorcode |= cbf_apply_h5integer_attribute(valid,"bits",bits,errorcode);
@@ -512,7 +546,7 @@ extern "C" {
         errorcode |= cbf_apply_h5long_attribute(valid,"padding",(long)padding,errorcode);
 
         cbf_h5reportneg(H5Dwrite(valid,valtype,
-                                 H5S_ALL,H5S_ALL,H5P_DEFAULT,infile->characters),
+                                 valspace,H5S_ALL,H5P_DEFAULT,rawdata),
                         CBF_ARGUMENT,errorcode);
         
         
@@ -778,7 +812,7 @@ extern "C" {
         
         
         cbf_failnez(cbf_apply_h5text_attribute(h5handle->catid,
-                                    "NX_class","NXcifcat",0));
+                                    "NX_class","NXcbfcat",0));
         
         
         /* now, for each column, make it into a group and
@@ -794,7 +828,7 @@ extern "C" {
                         CBF_FORMAT);
            
             cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
-                                    "NX_class","NXcifcol",0));
+                                    "NX_class","NXcbfcol",0));
             
             /* For each row, create a dataset */
 
@@ -1023,7 +1057,7 @@ extern "C" {
     
 
     /* Write a saveframe name to an HDF5 file
-     Make a new group of NeXus class NXcifsf in the NXcif current datablock
+     Make a new group of NeXus class NXcbfsf in the NXcbf current datablock
      */
     
     int cbf_write_h5saveframename (const cbf_node *saveframe,
@@ -1053,7 +1087,7 @@ extern "C" {
                     CBF_FORMAT);
         
         cbf_failnez(cbf_apply_h5text_attribute(h5handle->sfid,
-                    "NX_class", "NXcifsf",0));
+                    "NX_class", "NXcbfsf",0));
         
         return CBF_SUCCESS;
     }
@@ -1062,7 +1096,7 @@ extern "C" {
     
     
     /* Write a datablock name to an HDF5 file 
-       Make a new group of NeXus class NXcifdb in the NXcif class root
+       Make a new group of NeXus class NXcbfdb in the NXcbf class root
      */
     
     int cbf_write_h5datablockname (const cbf_node *datablock, cbf_h5handle h5handle)
@@ -1116,7 +1150,7 @@ extern "C" {
                                 CBF_FORMAT);
         
         cbf_failnez(cbf_apply_h5text_attribute(h5handle->dbid,
-                                "NX_class", "NXcifdb",0));
+                                "NX_class", "NXcbfdb",0));
         
         return CBF_SUCCESS;
     }
@@ -1235,7 +1269,11 @@ extern "C" {
                         CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
         
         cbf_onfailnez(cbf_H5Gcreate(*h5handle,"NXcbf",&((*h5handle)->rootid)),
-                                    cbf_free_h5handle(*h5handle)); 
+                                    cbf_free_h5handle(*h5handle));
+
+        cbf_failnez(cbf_apply_h5text_attribute((*h5handle)->rootid,
+                                               "NX_class","NXcbf",0));
+
         
         return CBF_SUCCESS;
         
@@ -1378,9 +1416,11 @@ extern "C" {
                    hid_t space, hid_t type,
                    const char * name,
                    const int readattrib,
-                   char ** value) {
+                   void ** value) {
         
         char buffer[25];
+        
+        int errorcode;
         
         unsigned char* data;
         
@@ -1408,34 +1448,36 @@ extern "C" {
         
         H5T_order_t type_order;
         
-        cbf_failnez(cbf_require_category(handle,categoryname));
+        errorcode = 0;
+        
+        cbf_reportnez(cbf_require_category(handle,categoryname),errorcode);
         
         /*  Give the name of this dataset as its own id */
         
-        cbf_failnez(cbf_require_column(handle,"id"));
+        cbf_reportnez(cbf_require_column(handle,"id"),errorcode);
 
         if (target_row==-1) {
               
-            cbf_failnez(cbf_new_row(handle));
+            cbf_reportnez(cbf_new_row(handle),errorcode);
         
         } else {
             
-            cbf_failnez(cbf_select_row(handle,target_row));
+            cbf_reportnez(cbf_select_row(handle,target_row),errorcode);
         }
 
-        cbf_failnez(cbf_set_value(handle,name));
+        cbf_reportnez(cbf_set_value(handle,name),errorcode);
 
         /*  Give the parent name and id for this dataset */
 
-        cbf_failnez(cbf_require_column(handle,"parent_name"));
+        cbf_reportnez(cbf_require_column(handle,"parent_name"),errorcode);
     
-        cbf_failnez(cbf_set_value(handle,parent_name));
+        cbf_reportnez(cbf_set_value(handle,parent_name),errorcode);
 
-        cbf_failnez(cbf_require_column(handle,"parent_id"));
+        cbf_reportnez(cbf_require_column(handle,"parent_id"),errorcode);
         
         sprintf(buffer,"0x%lx",(unsigned long)parent);
         
-        cbf_failnez(cbf_set_value(handle,buffer));
+        cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
         
         
         /* get the class, and, if not atomic
@@ -1446,7 +1488,7 @@ extern "C" {
         
         base_type = CBF_H5FAIL;
         
-        cbf_failnez(cbf_require_column(handle,"type"));
+        cbf_reportnez(cbf_require_column(handle,"type"),errorcode);
         
         type_size = 0;
         
@@ -1464,7 +1506,7 @@ extern "C" {
                         type_class,
                         h5t_type_class,&atomic,14)) {
             
-            cbf_failnez(cbf_set_value(handle, h5t_type_class));
+            cbf_reportnez(cbf_set_value(handle, h5t_type_class),errorcode);
                                       
             if (!atomic && type_class==H5T_ARRAY){
                 base_type = H5Tget_super(type);
@@ -1484,9 +1526,9 @@ extern "C" {
                         
                         type_order = H5Tget_order(base_type);
                         
-                        cbf_failnez(cbf_require_column(handle,"base_type"));
+                        cbf_reportnez(cbf_require_column(handle,"base_type"),errorcode);
 
-                        cbf_failnez(cbf_set_value(handle,h5t_base_type_class));
+                        cbf_reportnez(cbf_set_value(handle,h5t_base_type_class),errorcode);
                     }
                 } else {
                     strncpy (h5t_base_type_class,".",14);
@@ -1513,7 +1555,7 @@ extern "C" {
         
         if (total_size < type_size) total_size = type_size;
         
-        cbf_failnez(cbf_require_column(handle,"value"));
+        cbf_reportnez(cbf_require_column(handle,"value"),errorcode);
 
         native_type = H5Tget_native_type(type,H5T_DIR_ASCEND);
         
@@ -1523,27 +1565,31 @@ extern "C" {
         
             if(readattrib) {
                 
-                cbf_failnez(cbf_alloc(((void **) value),NULL,
-                                      total_size+1,1));
+                cbf_reportnez(cbf_alloc(((void **) value),NULL,
+                                      total_size+1,1),errorcode);
  
                 cbf_h5failneg(H5Aread(obj_id,native_type,(void *)*value),
                               CBF_ARGUMENT);
                 
-                (*value)[total_size]='\0';
+                (*((char **)value))[total_size]='\0';
                 
                 if (native_type_class==H5T_NATIVE_CHAR
                     || native_type_class == H5T_STRING) {
                     
-                    cbf_failnez(cbf_set_value(handle,(const char *)(*value)))
+                    cbf_reportnez(cbf_set_value(handle,(const char *)(*value)),errorcode)
                 }
               
             } else {
+                
+                hid_t memspace;
  
-                cbf_failnez(cbf_alloc(((void **) &data),NULL,
-                                      total_size+1,1));
+                memspace=H5Screate_simple(kdims,dims,NULL);
+                
+                cbf_reportnez(cbf_alloc(((void **) &data),NULL,
+                                      total_size+1,1),errorcode);
  
                 cbf_h5failneg(H5Dread(obj_id,native_type,
-                            H5S_ALL,H5S_ALL,H5P_DEFAULT,data),
+                            H5S_ALL,memspace,H5P_DEFAULT,data),
                               CBF_ARGUMENT);
                 
                 data[total_size]='\0';
@@ -1551,7 +1597,16 @@ extern "C" {
                 if (native_type_class==H5T_NATIVE_CHAR
                     || native_type_class == H5T_STRING) {
                     
-                    cbf_failnez(cbf_set_value(handle,(const char *)data))
+                    cbf_reportnez(cbf_set_value(handle,(const char *)data),errorcode)
+                }
+                
+                if (value) {
+                      
+                    *value=data;
+                    
+                } else {
+                    
+                    cbf_reportnez(cbf_free((void **)&data,NULL),errorcode);
                 }
                 
             }
@@ -1580,9 +1635,9 @@ extern "C" {
                 break;
         }
         
-        cbf_failnez(cbf_require_column(handle,"h5_byte_order"));
+        cbf_reportnez(cbf_require_column(handle,"h5_byte_order"),errorcode);
         
-        cbf_failnez(cbf_set_value(handle,byte_order));
+        cbf_reportnez(cbf_set_value(handle,byte_order),errorcode);
 
         if (type_size < 10) {
             
@@ -1594,13 +1649,15 @@ extern "C" {
             
         }
 
-        cbf_failnez(cbf_require_column(handle,"size"));
+        cbf_reportnez(cbf_require_column(handle,"size"),errorcode);
         
-        cbf_failnez(cbf_set_value(handle,buffer));
+        cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
         
         if (base_type >=0) H5Tclose(base_type);
         
         if (native_type>=0) H5Tclose(native_type);
+        
+        H5garbage_collect();
         
         return CBF_SUCCESS;
     }
@@ -1613,6 +1670,10 @@ extern "C" {
                             const H5L_info_t *info,
                             void *op_data){
         
+        int cbfrow;
+        
+        int errorcode;
+        
         cbf_handle handle;
         
         haddr_t parent_addr;
@@ -1622,6 +1683,12 @@ extern "C" {
         unsigned int row;
         
         const char* parent_name;
+        
+        const char* grand_parent_name;
+        
+        int innexus;
+        
+        int incbf, incbfdb, incbfcat, incbfcol;
         
         hid_t group_id, dataset_id;
         
@@ -1635,6 +1702,10 @@ extern "C" {
         
         char *value;
         
+        cbf_bookmark bookmark;
+        
+        cbf_bookmark saved_bookmark;
+
         H5O_info_t  objinfo;
         
         hid_t attrib_id,attrib_ds,attrib_type;
@@ -1657,6 +1728,8 @@ extern "C" {
         
         size_t padding;
         
+        errorcode = 0;
+        
         handle = ((cbf_h5Ovisithandle)op_data)->handle;
         
         if (!handle) return -1;
@@ -1673,6 +1746,22 @@ extern "C" {
         
         parent_name = ((cbf_h5Ovisithandle)op_data)->parent_name;
 
+        grand_parent_name = ((cbf_h5Ovisithandle)op_data)->grand_parent_name;
+        
+        innexus = ((cbf_h5Ovisithandle)op_data)->innexus;
+
+        incbf = ((cbf_h5Ovisithandle)op_data)->incbf;
+
+        incbfdb = ((cbf_h5Ovisithandle)op_data)->incbfdb;
+
+        incbfcat = ((cbf_h5Ovisithandle)op_data)->incbfcat;
+
+        incbfcol = ((cbf_h5Ovisithandle)op_data)->incbfcol;
+        
+        memmove(&saved_bookmark,&(((cbf_h5Ovisithandle)op_data)->bookmark),sizeof(cbf_bookmark));
+
+        H5garbage_collect();
+        
         switch (objinfo.type) {
                 
             case H5O_TYPE_GROUP:
@@ -1694,14 +1783,14 @@ extern "C" {
                     
                     newcap = 2*((cbf_h5Ovisithandle)op_data)->capacity;
                     
-                    cbf_failnez(
+                    cbf_reportnez(
                                 cbf_realloc(
                                             (void **)(&((cbf_h5Ovisithandle)op_data)->hid_path),
-                                            NULL,sizeof(hid_t),newcap));
-                    cbf_failnez(
+                                            NULL,sizeof(hid_t),newcap),errorcode);
+                    cbf_reportnez(
                                 cbf_realloc(
                                             (void **)(&((cbf_h5Ovisithandle)op_data)->haddr_path),
-                                            NULL,sizeof(haddr_t),newcap));
+                                            NULL,sizeof(haddr_t),newcap),errorcode);
                     
                     ((cbf_h5Ovisithandle)op_data)->capacity=newcap;
                     
@@ -1729,47 +1818,47 @@ extern "C" {
                  
                  */
                 
-                cbf_failnez(cbf_require_category(handle,"H5_Groups"));
+                cbf_reportnez(cbf_require_category(handle,"H5_Groups"),errorcode);
                 
-                cbf_failnez(cbf_new_row(handle));
+                cbf_reportnez(cbf_new_row(handle),errorcode);
                 
-                cbf_failnez(cbf_row_number(handle,&row));
+                cbf_reportnez(cbf_row_number(handle,&row),errorcode);
                 
-                cbf_failnez(cbf_require_column(handle,"name"));
+                cbf_reportnez(cbf_require_column(handle,"name"),errorcode);
                 
-                cbf_failnez(cbf_set_value(handle,name));
+                cbf_reportnez(cbf_set_value(handle,name),errorcode);
                 
-                cbf_failnez(cbf_require_column(handle,"parent_name"));
+                cbf_reportnez(cbf_require_column(handle,"parent_name"),errorcode);
                 
-                cbf_failnez(cbf_set_value(handle,parent_name));
+                cbf_reportnez(cbf_set_value(handle,parent_name),errorcode);
 
-                cbf_failnez(cbf_require_column(handle,"parent_id"));
+                cbf_reportnez(cbf_require_column(handle,"parent_id"),errorcode);
                 
                 if (!parent_addr) {
                     
-                    cbf_failnez(cbf_set_value(handle,"."));
+                    cbf_reportnez(cbf_set_value(handle,"."),errorcode);
                                         
-                    cbf_failnez(cbf_set_typeofvalue(handle,"null"));
+                    cbf_reportnez(cbf_set_typeofvalue(handle,"null"),errorcode);
  
                 } else {
                     
                     sprintf(buffer,"0x%lx",(unsigned long)parent_addr);
                     
-                    cbf_failnez(cbf_set_value(handle,buffer));
+                    cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
                     
                 }
 
-                cbf_failnez(cbf_require_column(handle,"id"));
+                cbf_reportnez(cbf_require_column(handle,"id"),errorcode);
                 
                 sprintf(buffer,"0x%lx",(unsigned long)objinfo.addr);
                 
-                cbf_failnez(cbf_set_value(handle,buffer));
+                cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
                 
                 attrib_num = objinfo.num_attrs;
                 
-                cbf_failnez(cbf_require_column(handle,"no_attributes"));
+                cbf_reportnez(cbf_require_column(handle,"no_attributes"),errorcode);
                 
-                cbf_failnez(cbf_set_integervalue(handle,attrib_num));
+                cbf_reportnez(cbf_set_integervalue(handle,attrib_num),errorcode);
                 
                 for (i=0; i < attrib_num; i++) {
                 
@@ -1781,8 +1870,8 @@ extern "C" {
                     attrib_ds = H5Aget_space(attrib_id);
                     attrib_type = H5Aget_type(attrib_id);
                     attrib_name_size = H5Aget_name(attrib_id,0,NULL);
-                    cbf_failnez(cbf_alloc(((void **) &attrib_name),NULL,
-                                          attrib_name_size+1,1));
+                    cbf_reportnez(cbf_alloc(((void **) &attrib_name),NULL,
+                                          attrib_name_size+1,1),errorcode);
                     
                     cbf_h5failneg(H5Aget_name(attrib_id,
                                               attrib_name_size+1,attrib_name),
@@ -1793,24 +1882,87 @@ extern "C" {
                                    attrib_id,
                                    attrib_ds,
                                    attrib_type,
-                                   attrib_name,1, &value);
+                                   attrib_name,1, (void **)&value);
                     if (!cbf_cistrcmp(attrib_name,"NX_class")&& value) {
                         
-                        cbf_failnez(cbf_require_category(handle,"H5_Groups"));
+                        cbf_reportnez(cbf_require_category(handle,"H5_Groups"),errorcode);
                         
-                        cbf_failnez(cbf_find_column(handle,"id"));
+                        cbf_reportnez(cbf_find_column(handle,"id"),errorcode);
                         
-                        cbf_failnez(cbf_select_row(handle,row));
+                        cbf_reportnez(cbf_select_row(handle,row),errorcode);
                         
-                        cbf_failnez(cbf_require_column(handle,"NX_class"));
+                        cbf_reportnez(cbf_require_column(handle,"NX_class"),errorcode);
                         
-                        cbf_failnez(cbf_set_value(handle,value));
+                        cbf_reportnez(cbf_set_value(handle,value),errorcode);
                         
+                        if (!cbf_cistrcmp(value,"NXentry")) {
+                            
+                            ((cbf_h5Ovisithandle)op_data)->innexus = 1;
+                            
+                        }
+                        
+                        if (!cbf_cistrcmp(value,"NXcbf")) {
+                            
+                            ((cbf_h5Ovisithandle)op_data)->incbf = 1;
+                            
+                        }
+
+                        if (!cbf_cistrcmp(value,"NXcbfdb")) {
+                            
+                            ((cbf_h5Ovisithandle)op_data)->incbfdb = 1;
+                            
+                            cbf_get_bookmark(handle,&bookmark);
+                                                        
+                            cbf_reportnez(cbf_new_datablock(handle,name),errorcode);
+                            
+                            cbf_get_bookmark(handle,
+                                             &(((cbf_h5Ovisithandle)op_data)->bookmark));
+
+                            cbf_goto_bookmark(handle,bookmark);
+                                                        
+                        }
+
+                        if (!cbf_cistrcmp(value,"NXcbfcat")&& saved_bookmark.datablock) {
+                            
+                            ((cbf_h5Ovisithandle)op_data)->incbfcat = 1;
+                            
+                            cbf_get_bookmark(handle,&bookmark);
+                            
+                            cbf_goto_bookmark(handle,saved_bookmark);
+                            
+                            cbf_reportnez(cbf_require_category(handle,name),errorcode);
+ 
+                            cbf_get_bookmark(handle,
+                                             &(((cbf_h5Ovisithandle)op_data)->bookmark));
+                            
+                            cbf_goto_bookmark(handle,bookmark);
+
+                            
+                        }
+
+                        if (!cbf_cistrcmp(value,"NXcbfcol")&& saved_bookmark.category) {
+                            
+                            ((cbf_h5Ovisithandle)op_data)->incbfcol = 1;
+                            
+                            cbf_get_bookmark(handle,&bookmark);
+                            
+                            cbf_goto_bookmark(handle,saved_bookmark);
+                            
+                            cbf_reportnez(cbf_require_column(handle,name),errorcode);
+
+                            cbf_get_bookmark(handle,
+                                             &(((cbf_h5Ovisithandle)op_data)->bookmark));
+                            
+                            cbf_goto_bookmark(handle,bookmark);
+
+                        }
+
                     }
-                    
-                    cbf_failnez(cbf_free((void **)&attrib_name,NULL));
+
+
+                    cbf_reportnez(cbf_free((void **)&attrib_name,NULL),errorcode);
                     if (value) {
-                        cbf_failnez(cbf_free((void **)&value, NULL));
+                        cbf_reportnez(cbf_free((void **)&value, NULL),errorcode);
                     }
                     H5Tclose(attrib_type);
                     H5Sclose(attrib_ds);
@@ -1821,10 +1973,14 @@ extern "C" {
                 
                 ((cbf_h5Ovisithandle)op_data)->parent_id = group_id;
                 
-                cbf_failnez(cbf_alloc(((void **) &(((cbf_h5Ovisithandle)op_data)->parent_name)),NULL,
-                                      strlen(name)+1,1));
+                cbf_reportnez(cbf_alloc((void **) &(((cbf_h5Ovisithandle)op_data)->parent_name),NULL,
+                                      strlen(name)+1,1),errorcode);
                 
-                strcpy((char *)((cbf_h5Ovisithandle)op_data)->parent_name,name);
+                ((cbf_h5Ovisithandle)op_data)->grand_parent_name = parent_name;
+
+                if (!name) return -1;
+                
+                strcpy(((cbf_h5Ovisithandle)op_data)->parent_name,name);
                 
                 retval = H5Literate_by_name(loc_id, name,H5_INDEX_NAME,
                                             H5_ITER_INC,
@@ -1833,7 +1989,7 @@ extern "C" {
                 
                 H5Gclose(group_id);
                 
-                cbf_failnez(cbf_free((void **)(&((cbf_h5Ovisithandle)op_data)->parent_name),NULL));
+                cbf_reportnez(cbf_free((void **)(&((cbf_h5Ovisithandle)op_data)->parent_name),NULL),errorcode);
                 
                 (((cbf_h5Ovisithandle)op_data)->path_size)--;
 
@@ -1843,6 +1999,18 @@ extern "C" {
                 
                 ((cbf_h5Ovisithandle)op_data)->parent_name = parent_name;
                 
+                ((cbf_h5Ovisithandle)op_data)->grand_parent_name = grand_parent_name;
+
+                ((cbf_h5Ovisithandle)op_data)->innexus = innexus;
+
+                ((cbf_h5Ovisithandle)op_data)->incbf = incbf;
+
+                ((cbf_h5Ovisithandle)op_data)->incbfdb = incbfdb;
+
+                ((cbf_h5Ovisithandle)op_data)->incbfcat = incbfcat;
+
+                ((cbf_h5Ovisithandle)op_data)->incbfcol = incbfcol;
+
                 return retval;
                 break;
                 
@@ -1859,49 +2027,67 @@ extern "C" {
                                   
                  */
                 
-                cbf_failnez(cbf_require_category(handle,"H5_Datasets"));
+                cbf_reportnez(cbf_require_category(handle,"H5_Datasets"),errorcode);
                 
-                cbf_failnez(cbf_new_row(handle));
+                cbf_reportnez(cbf_new_row(handle),errorcode);
                 
-                cbf_failnez(cbf_row_number(handle,&row));
+                cbf_reportnez(cbf_row_number(handle,&row),errorcode);
                 
-                cbf_failnez(cbf_require_column(handle,"name"));
+                cbf_reportnez(cbf_require_column(handle,"name"),errorcode);
                 
-                cbf_failnez(cbf_set_value(handle,name));
+                cbf_reportnez(cbf_set_value(handle,name),errorcode);
                 
-                cbf_failnez(cbf_require_column(handle,"parent_name"));
+                cbf_reportnez(cbf_require_column(handle,"parent_name"),errorcode);
                 
-                cbf_failnez(cbf_set_value(handle,parent_name));
+                cbf_reportnez(cbf_set_value(handle,parent_name),errorcode);
                 
-                cbf_failnez(cbf_require_column(handle,"parent_id"));
+                cbf_reportnez(cbf_require_column(handle,"parent_id"),errorcode);
                 
                 if (!parent_addr) {
                     
-                    cbf_failnez(cbf_set_value(handle,"."));
+                    cbf_reportnez(cbf_set_value(handle,"."),errorcode);
                     
-                    cbf_failnez(cbf_set_typeofvalue(handle,"null"));
+                    cbf_reportnez(cbf_set_typeofvalue(handle,"null"),errorcode);
                     
                 } else {
                     
                     sprintf(buffer,"0x%lx",(unsigned long)parent_addr);
                     
-                    cbf_failnez(cbf_set_value(handle,buffer));
+                    cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
                     
                 }
                 
-                cbf_failnez(cbf_require_column(handle,"id"));
+                cbf_reportnez(cbf_require_column(handle,"id"),errorcode);
 
                 sprintf(buffer,"0x%lx",(unsigned long)objinfo.addr);
                 
-                cbf_failnez(cbf_set_value(handle,buffer));
+                cbf_reportnez(cbf_set_value(handle,buffer),errorcode);
                 
                 attrib_num = objinfo.num_attrs;
  
-                cbf_failnez(cbf_require_column(handle,"no_attributes"));
+                cbf_reportnez(cbf_require_column(handle,"no_attributes"),errorcode);
                 
-                cbf_failnez(cbf_set_integervalue(handle,attrib_num));
+                cbf_reportnez(cbf_set_integervalue(handle,attrib_num),errorcode);
                 
                 dimover = 0;
+                
+                binsize = 0;
+                
+                compression = 0;
+                
+                binary_id = 0;
+                
+                bits = 0;
+                
+                sign = 0;
+                
+                type = 0;
+                
+                byteorder = " ";
+                
+                dimfast=dimslow=dimmid = 0;
+                
+                padding = 0;
                
                 for (i=0; i < attrib_num; i++) {
                     
@@ -1913,8 +2099,8 @@ extern "C" {
                     attrib_ds = H5Aget_space(attrib_id);
                     attrib_type = H5Aget_type(attrib_id);
                     attrib_name_size = H5Aget_name(attrib_id,0,NULL);
-                    cbf_failnez(cbf_alloc(((void **) &attrib_name),NULL,
-                                          attrib_name_size+1,1));
+                    cbf_reportnez(cbf_alloc(((void **) &attrib_name),NULL,
+                                          attrib_name_size+1,1),errorcode);
                     
                     cbf_h5failneg(H5Aget_name(attrib_id,
                                               attrib_name_size+1,attrib_name),
@@ -1925,18 +2111,18 @@ extern "C" {
                                    attrib_id,
                                    attrib_ds,
                                    attrib_type,
-                                   attrib_name,1,&value);
+                                   attrib_name,1,(void **)&value);
                     if (*value) {
                         
-                        cbf_failnez(cbf_require_category(handle,"H5_Datasets"));
+                        cbf_reportnez(cbf_require_category(handle,"H5_Datasets"),errorcode);
                         
-                        cbf_failnez(cbf_find_column(handle,"id"));
+                        cbf_reportnez(cbf_find_column(handle,"id"),errorcode);
 
-                        cbf_failnez(cbf_select_row(handle,row));
+                        cbf_reportnez(cbf_select_row(handle,row),errorcode);
                         
-                        cbf_failnez(cbf_require_column(handle,attrib_name));
+                        cbf_reportnez(cbf_require_column(handle,attrib_name),errorcode);
                         
-                        cbf_failnez(cbf_set_value(handle,value));
+                        cbf_reportnez(cbf_set_value(handle,value),errorcode);
                         
                         if (!cbf_cistrcmp(attrib_name,"compression")) {
                             compression=(int)strtol(value,NULL,0);
@@ -1973,8 +2159,8 @@ extern "C" {
                         }
                     }
                                        
-                    cbf_failnez(cbf_free((void **)&attrib_name,NULL));
-                    if (value) cbf_failnez(cbf_free((void **)&value, NULL));
+                    cbf_reportnez(cbf_free((void **)&attrib_name,NULL),errorcode);
+                    if (value) cbf_reportnez(cbf_free((void **)&value, NULL),errorcode);
                     H5Tclose(attrib_type);
                     H5Sclose(attrib_ds);
                     H5Aclose(attrib_id);
@@ -1989,7 +2175,17 @@ extern "C" {
                                dataset_id,
                                dataset_ds,
                                dataset_type,
-                               name,0,&value);
+                               name,0,(void **)&value);
+                
+                if (incbfcol&&value) {
+                    
+                    cbfrow = (int)strtol(name,NULL,0);
+                    
+                    cbf_get_bookmark(handle,&bookmark);
+                    
+                    cbf_goto_bookmark(handle,saved_bookmark);
+                    
+                }
                 
                 if (binsize&&value) {
                     
@@ -2009,25 +2205,43 @@ extern "C" {
                     
                     if (nelem > 0 && elsize > 0) {
                         
-                        cbf_failnez(cbf_require_category(handle,"H5_Datasets"));
+                        if (incbfcol) {
+                            
+                            unsigned int rows;
+                            
+                            cbf_reportnez(cbf_count_rows(handle,&rows),errorcode);
+                            
+                            if (cbfrow >= rows) {
+                                
+                                cbf_reportnez(cbf_insert_row(handle,cbfrow),errorcode);
+                                
+                            }
+                            
+                            cbf_select_row(handle,cbfrow);
+                            
+                        } else {
                         
-                        cbf_failnez(cbf_find_column(handle,"id"));
+                        cbf_reportnez(cbf_require_category(handle,"H5_Datasets"),errorcode);
                         
-                        cbf_failnez(cbf_select_row(handle,row));
+                        cbf_reportnez(cbf_find_column(handle,"id"),errorcode);
                         
-                        cbf_failnez(cbf_require_column(handle,"value"));
+                        cbf_reportnez(cbf_select_row(handle,row),errorcode);
+                        
+                        cbf_reportnez(cbf_require_column(handle,"value"),errorcode);
+                            
+                        }
                         
                         column = handle->node;
                         
                         
                         /* Remove the old value */
                         
-                        cbf_failnez (cbf_set_columnrow (column, row, NULL, 1))
+                        cbf_reportnez (cbf_set_columnrow (column, row, NULL, 1),errorcode)
                         
                         
                         /* Get the temporary file */
                         
-                        cbf_failnez (cbf_open_temporary (column->context, &tempfile))
+                        cbf_reportnez (cbf_open_temporary (column->context, &tempfile),errorcode)
                         
                         
                         /* Move to the end of the temporary file */
@@ -2046,12 +2260,11 @@ extern "C" {
                         
                         /* Discard any bits in the buffers */
                         
-                        cbf_failnez (cbf_reset_bits (tempfile))
-
+                        cbf_reportnez (cbf_reset_bits (tempfile),errorcode)
                         
                         /* Add the binary data to the temporary file */
                         
-                        if (!cbf_set_output_buffersize(tempfile,nelem))  {
+                        if (!cbf_set_output_buffersize(tempfile,binsize))  {
                             
                             memmove((void *)(tempfile->characters+tempfile->characters_used),
                                     (void *)value,binsize);
@@ -2067,9 +2280,39 @@ extern "C" {
                                                  padding,compression),
                                       cbf_delete_fileconnection (&tempfile));
                         
+                        cbf_onfailnez(cbf_flush_bits(tempfile),
+                                      cbf_delete_fileconnection (&tempfile));
+                        
                     }
+                    
+                } else {
+                    
+                    if (incbfcol && value) {
+                        
+                        unsigned int rows;
+                        
+                        cbf_reportnez(cbf_count_rows(handle,&rows),errorcode);
+                        
+                        if (cbfrow >= rows) {
+                            
+                            cbf_reportnez(cbf_insert_row(handle,cbfrow),errorcode);
+                            
+                        }
+                        
+                        cbf_reportnez(cbf_select_row(handle,cbfrow),errorcode);
+                        
+                        cbf_reportnez(cbf_set_value(handle,value),errorcode);
+                                                
+                    }
+                    
                 }
-                if (value) cbf_failnez(cbf_free((void **)&value, NULL));
+                
+                if (incbfcol&&value) {
+                    
+                    cbf_reportnez(cbf_goto_bookmark(handle,bookmark),errorcode);
+                    
+                }
+                if (value) cbf_reportnez(cbf_free((void **)&value, NULL),errorcode);
                 H5Dclose(dataset_id);
                 H5Sclose(dataset_ds);
                 H5Tclose(dataset_type);
@@ -2087,6 +2330,7 @@ extern "C" {
                 
                 
         }
+        
         return 0;
     }
     /* Read an HDF5 file */
@@ -2121,6 +2365,21 @@ extern "C" {
         h5Ovisit.parent_id = h5handle->hfile;
         
         h5Ovisit.parent_name = "/";
+        
+        h5Ovisit.grand_parent_name = NULL;
+        
+        h5Ovisit.incbf = h5Ovisit.incbfdb = h5Ovisit.incbfcat = h5Ovisit.incbfcol = 0;
+
+        h5Ovisit.innexus = 0;
+        
+        h5Ovisit.bookmark.datablock = NULL;
+        
+        h5Ovisit.bookmark.category = NULL;
+        
+        h5Ovisit.bookmark.column = NULL;
+        
+        h5Ovisit.bookmark.haverow = 0;
+        
 
         cbf_failnez(cbf_alloc ((void **) (&(h5Ovisit.hid_path)), NULL,
                                sizeof(hid_t), 1));
@@ -2146,7 +2405,72 @@ extern "C" {
         
     }
 
+    /* get a bookmark from the current information in a cbf handle */
+    
+    int cbf_get_bookmark(cbf_handle handle, cbf_bookmark * bookmark) {
+        
+        if (cbf_datablock_name(handle,&(bookmark->datablock))) {
+            
+            bookmark->datablock = NULL;
+            
+        }
 
+        if (cbf_category_name(handle,&(bookmark->category))) {
+            
+            bookmark->category = NULL;
+            
+        }
+
+        if (cbf_column_name(handle,&(bookmark->column))) {
+            
+            bookmark->column = NULL;
+            
+        }
+        
+        bookmark->haverow = 1;
+        
+        if (cbf_row_number(handle,&(bookmark->row))) {
+            
+            bookmark->row = 0;
+            
+            bookmark->haverow = 0;
+
+        }
+
+        return CBF_SUCCESS;
+        
+    }
+
+    /* go to a bookmark in the cbf handle */
+    
+    int cbf_goto_bookmark(cbf_handle handle, cbf_bookmark bookmark) {
+        
+        if (bookmark.datablock) {
+            
+            cbf_failnez(cbf_find_datablock(handle,bookmark.datablock));
+            
+            if (bookmark.category) {
+                
+                cbf_failnez(cbf_find_category(handle,bookmark.category));
+                
+                if (bookmark.column) {
+                    
+                    cbf_failnez(cbf_find_column(handle,bookmark.column));
+                    
+                    if (bookmark.haverow) {
+                        
+                        cbf_failnez(cbf_select_row(handle,bookmark.row));
+                    }
+                    
+                }
+
+                
+            }
+            
+        }
+        
+        return CBF_SUCCESS;
+    }
 
     
 #ifdef __cplusplus
