@@ -264,6 +264,8 @@ extern "C" {
 #define cbf_h5onfailneg(x,code,y) {int err; err = (x); if (err < 0) {{y;} return (code);}}
 #define cbf_h5reportneg(x,code,cerr) \
   {int err; if (!(cerr)) {err = (x); if (err < 0) {(cerr)|=code;}}}
+#define cbf_reportnez(x,cerr) \
+  {int err; if (!(cerr)) {err = (x); (cerr)|=err;}}
     
 #ifndef H5_VERS_MAJOR
 #define H5_VERS_MAJOR 0
@@ -310,17 +312,37 @@ extern "C" {
     
     typedef cbf_h5handle_struct *cbf_h5handle;
     
+    typedef struct {
+        const char * datablock;
+        const char * category;
+        const char * column;
+        unsigned int row;
+        int haverow;
+    } cbf_bookmark;
+    
     typedef struct
     {
         cbf_handle handle;
         cbf_h5handle h5handle;
         hid_t parent_id;
         haddr_t parent_addr;
+        const char * grand_parent_name;
         const char * parent_name;
         size_t capacity;
         size_t path_size;
         hid_t *hid_path;
         haddr_t *haddr_path;
+        cbf_bookmark bookmark; /* bookmark in the CBF */
+        int incbf;     /* set to 1 when we have descended
+                          into a NeXus NXcbf    */
+        int incbfdb;   /* set to 1 when we have descended
+                          into a NeXus NXcbfdb  */        
+        int incbfcat;  /* set to 1 when we have descended
+                          into a NeXus NXcbfcat */
+        int incbfcol;  /* set to 1 when we have descended
+                          into a NeXus NXcbfcol */
+        int innexus;   /* set to 1 shen we have descended
+                          into a NeXus NXexntry */
     }
     cbf_h5Ovisit_struct;
     
@@ -452,7 +474,7 @@ extern "C" {
                        hid_t space, hid_t type,
                        const char * name,
                           const int readattrib,
-                            char ** value);
+                            void ** value);
 
     
     /* Callback routine for objects in a group */
@@ -466,6 +488,15 @@ extern "C" {
     /* Read an HDF5 file */
     
     int cbf_read_h5file(cbf_handle handle, cbf_h5handle h5handle);
+
+
+    /* go to a bookmark in the cbf handle */
+    
+    int cbf_goto_bookmark(cbf_handle handle, cbf_bookmark bookmark);
+    
+    /* get a bookmark from the current information in a cbf handle */
+    
+    int cbf_get_bookmark(cbf_handle handle, cbf_bookmark * bookmark);
 
 
 
