@@ -335,6 +335,7 @@ extern "C" {
 
   /* Error codes */
 
+#define CBF_SUCCESS                   0
 #define CBF_FORMAT           0x00000001  /*      1 */
 #define CBF_ALLOC            0x00000002  /*      2 */
 #define CBF_ARGUMENT         0x00000004  /*      4 */

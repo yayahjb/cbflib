@@ -963,7 +963,7 @@ int cbf_compress_byte_offset (void         *source,
                     csize +=3;   
                     
                 } else if ( sizeof(int) > 2 && 
-                           (sizeof(int) < 5 || (delta[0] <= 2147483647L && delta[0] >= -2147483647L ) ) ){
+                           (sizeof(int) < 5 || ((long)delta[0] <= 2147483647L && (long)delta[0] >= -2147483647L ) ) ){
                     
                     cbf_failnez(cbf_put_bits(file,&bflag,24))
                     
@@ -1470,7 +1470,7 @@ int cbf_decompress_byte_offset_fast(void         *destination,
         
     }
     
-    rawdata = file->characters;
+    rawdata = (unsigned char *)file->characters;
                         
     numread = 0;
     
