@@ -306,6 +306,7 @@ extern "C" {
         hid_t colid;   /* The current column */
         hid_t nxid;    /* The root NeXus group */
         hid_t curnxid; /* The current NeXus group */
+        int   flags;   /* Flags for read or write */
         
     }
     cbf_h5handle_struct;
@@ -447,7 +448,7 @@ extern "C" {
     
     /*  Write cbf to HDF5 file hfile */
     
-    int cbf_write_hdf5_file (cbf_handle handle, cbf_h5handle h5handle);
+    int cbf_write_h5file (cbf_handle handle, cbf_h5handle h5handle, int flags);
     
     /* Open an HDF5 File handle */
     
@@ -487,7 +488,7 @@ extern "C" {
     
     /* Read an HDF5 file */
     
-    int cbf_read_h5file(cbf_handle handle, cbf_h5handle h5handle);
+    int cbf_read_h5file(cbf_handle handle, cbf_h5handle h5handle, int flags);
 
 
     /* go to a bookmark in the cbf handle */

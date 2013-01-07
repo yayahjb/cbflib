@@ -60,6 +60,7 @@
  *    [-S {read|noread}] [-S {write|nowrite}] \                       *
  *    [-T {read|noread}] [-T {write|nowrite}] \                       *
  *    [-v dictionary]* [-w] [-D]\                                     *
+ *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
  *  the options are:                                                  *
@@ -134,7 +135,7 @@
  *                                                                    *
  *  -R 0 or integer element size                                      *
  *    specifies real conversion of the data, 0 to use the input       *
- *    number of bytes,  4 or 8 for float or double output reals       *                                                 * 
+ *    number of bytes,  4 or 8 for float or double output reals       * 
  *                                                                    *
  *  -S [no]read or (default noread)                                   *
  *    read to enable reading of whitespace and comments               *
@@ -156,6 +157,11 @@
  *  -w process wide (2048 character) lines                            *
  *                                                                    *
  *  -W write wide (2048 character) lines                              *
+ *                                                                    *
+ *  -5 hdf5mode specifies whether to read and/or write in hdf5 mode   *
+ *     the n parameter will cause the CIF H5 datablock to be deleted  *
+ *     on both read and write, for both CIF, CBF and HDF5 files       *
+ *                                                                    *
  *                                                                    *
  *                                                                    *
  **********************************************************************/
@@ -389,6 +395,7 @@
 #include "img.h"
 #include "cbf_string.h"
 #include "cbf_copy.h"
+#include "cbf_hdf5.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -409,6 +416,11 @@
 
 #define HDR_FINDDIMS    0x0040  /* On read, find header dims          */
 #define HDR_NOFINDDIMS  0x0080  /* On read, don't find header dims    */
+
+#define HDF5_READ_MODE  0x0001  /* Read the input file as HDF5        */
+#define HDF5_WRITE_MODE 0x0002  /* Write the output file as HDF5      */
+#define HDF5_NONE       0x0004  /* Flag for neither                   */
+
 
 
 int local_exit (int status);
@@ -477,6 +489,7 @@ void set_MP_terms(int crterm, int nlterm);
 int main (int argc, char *argv [])
 {
     FILE *in, *out=NULL, *update=NULL, *file, *dict;
+    cbf_h5handle h5in, h5out;
     clock_t a,b;
     cbf_handle cif;
     cbf_handle ucif;
@@ -484,10 +497,13 @@ int main (int argc, char *argv [])
     cbf_handle dic;
     cbf_handle odic;
     cbf_getopt_handle opts;
+    int hdf5mode = 0;
+    int hdf5noH5 = 0;
     int devnull = 0;
     int c;
     int errflg = 0;
     const char *cifin, *cbfout, *updatecif;
+    const char *hdf5out;
     const char *dictionary[NUMDICTS];
     int dqrflags[NUMDICTS];
     char *ciftmp=NULL;
@@ -503,6 +519,7 @@ int main (int argc, char *argv [])
     int wide = 0;
     int Wide = 0;
     int IorR = 0;
+    int i5;
     int nelsize;
     int testconstruct;
     char buf[C2CBUFSIZ];
@@ -541,12 +558,13 @@ int main (int argc, char *argv [])
      *    [-I {0|2|4|8}]  \                                               *
      *    [-L lowclipvalue ] \                                            *
      *    [-m {h[eaders]|noh[eaders]}] \                                  *
-     *    [-m {d[imensions]|nod[imensions}] \                             *
+     *    [-m {d[imensions]|nod[imensions]] \                             *
      *    [-R {0|4|8}] \                                                  *
      *    [-S {read|noread}] [-S {write|nowrite}] \                       *
      *    [-T {read|noread}] [-T {write|nowrite}] \                       *
      *    [-p {0|1|2|4}] \                                                *
      *    [-v dictionary]* [-w] [-W] \                                    *
+     *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
      *    [input_cif] [output_cbf]                                        *
      *                                                                    *
      **********************************************************************/
@@ -561,9 +579,12 @@ int main (int argc, char *argv [])
     qrflags = qwflags = 0;
     dimflag = 0;
     nelsize = 0;
+    hdf5mode = 0;
+    hdf5noH5 = 0;
     
     cifin = NULL;
     cbfout = NULL;
+    hdf5out = NULL;
     updatecif = NULL;
     ciftmpused = 0;
     testconstruct = 0;
@@ -590,6 +611,7 @@ int main (int argc, char *argv [])
                                  "S(white-space):" \
                                  "T(treble-quotes):" \
                                  "v(validation-dictionary):" \
+                                 "5(hdf5):" \
                                  "w(read-wide)" \
                                  "W(write-wide)" \
                                  ))
@@ -605,7 +627,9 @@ int main (int argc, char *argv [])
                     
                 case 'o':     /* output file */
                     if (cbfout) errflg++;
-                    else cbfout = optarg;
+                    else {
+                        cbfout = optarg;
+      		        }
                     break;
                     
                 case 'u':     /* update file */
@@ -668,11 +692,11 @@ int main (int argc, char *argv [])
                                     } else {
                                         if (optarg[0] == 'f' || optarg[0] == 'F') {
                                             compression = CBF_PACKED|CBF_FLAT_IMAGE;
-                                        } else { 
+                                        } else {
                                             if (optarg[0] == 'i' || optarg[0] == 'I' || !cbf_cistrcmp(optarg,"nibble_offset")) {
                                                 compression = CBF_NIBBLE_OFFSET;
                                             } else {
-                                              errflg++;
+                                                errflg++;
                                             }
                                         }
                                     }
@@ -706,6 +730,28 @@ int main (int argc, char *argv [])
                 case 'D':  /* test construct_detector */
                     if (testconstruct) errflg++;
                     else testconstruct = 1;
+                    break;
+                    
+                case '5': /* set hdf5 flags */
+                    if (hdf5mode || hdf5noH5){
+                        errflg++;
+                    } else {
+                        i5 = 0;
+                        if (optarg[i5] == 'r' || optarg[i5] == 'R') {
+                            hdf5mode |= HDF5_READ_MODE;
+                            i5++;
+                        }
+                        if (optarg[i5] == 'w' || optarg[i5] == 'W') {
+                            hdf5mode |= HDF5_WRITE_MODE;
+                            i5++;
+                        }
+                        if (optarg[i5] == 'n' || optarg[i5] == 'N') {
+                            hdf5noH5 = 1;
+                        }
+                        if (!hdf5mode && !hdf5noH5){
+                            errflg++;
+                        }
+                    }
                     break;
                     
                     
@@ -814,7 +860,7 @@ int main (int argc, char *argv [])
                         qwflags &= ~(CBF_PARSE_BRACKETS|CBF_PARSE_TQ|CBF_PARSE_CIF2_DELIMS|CBF_PARSE_WIDE|CBF_PARSE_UTF8);
                     } else errflg++;
                     break;
-
+                    
                 case 'R':
                     if (IorR) errflg++;
                     IorR = CBF_CPY_SETREAL;
@@ -878,6 +924,7 @@ int main (int argc, char *argv [])
         } else {
             if (!cbfout) {
                 cbfout = optarg;
+                hdf5out = "hdf5test.h5";
             } else {
                 errflg++;
             }
@@ -925,6 +972,8 @@ int main (int argc, char *argv [])
                 "    [-p {1|2|4}\\\n");
         fprintf(stderr,
                 "    [-v dictionary]* [-w] [-W]\\\n");
+        fprintf(stderr,
+                "    [-5 {r|w|rw|rn|wn|rwn|n[oH5]}\\\n");
         fprintf(stderr,
                 "    [input_cif] [output_cbf] \n\n");
         exit(2);
@@ -992,7 +1041,7 @@ int main (int argc, char *argv [])
         if ( (file = fopen(ciftmp,"wb+")) == NULL) {
             fprintf(stderr,"Can't open temporary file %s.\n", ciftmp);
             fprintf(stderr,"%s\n",strerror(errno));
-            exit(1);     	
+            exit(1);
         }
 #else
         if ((ciftmpfd = mkstemp(ciftmp)) == -1 ) {
@@ -1016,8 +1065,6 @@ int main (int argc, char *argv [])
         cifin = ciftmp;
         ciftmpused = 1;
     }
-    
-    
     
     
     if ( cbf_make_handle (&cif) ) {
@@ -1058,9 +1105,16 @@ int main (int argc, char *argv [])
     a = clock ();
     
     /* Read the file */
-    if (!(in = fopen (cifin, "rb"))) {
-        fprintf (stderr,"Couldn't open the input CIF file %s\n", cifin);
-        exit (1);
+    if (hdf5mode&HDF5_READ_MODE) {
+        if (cbf_open_h5handle(&h5in,cifin)) {
+            fprintf (stderr,"Couldn't open the input HDF5 file %s\n", cifin);
+            exit (1);
+        }
+    } else {
+        if (!(in = fopen (cifin, "rb"))) {
+            fprintf (stderr,"Couldn't open the input CIF file %s\n", cifin);
+            exit (1);
+        }
     }
     
     if (ciftmpused) {
@@ -1071,10 +1125,24 @@ int main (int argc, char *argv [])
         }
     }
     
-    if (!wide) {
-        cbf_failnez (cbf_read_file (cif, in, MSG_DIGEST|qrflags|(digest&MSG_DIGESTWARN)))
+    if (hdf5mode&HDF5_READ_MODE) {
+        cbf_failnez (cbf_read_h5file(cif, h5in, MSG_DIGEST|qrflags|(digest&MSG_DIGESTWARN)))
     } else {
-        cbf_failnez (cbf_read_widefile (cif, in, MSG_DIGEST|qrflags|(digest&MSG_DIGESTWARN)))
+        if (!wide) {
+            cbf_failnez (cbf_read_file (cif, in, MSG_DIGEST|qrflags|(digest&MSG_DIGESTWARN)))
+        } else {
+            cbf_failnez (cbf_read_widefile (cif, in, MSG_DIGEST|qrflags|(digest&MSG_DIGESTWARN)))
+        }
+    }
+    
+    if (hdf5noH5) {
+        
+        if (!cbf_find_datablock(cif,"H5")) {
+            
+            cbf_failnez(cbf_remove_datablock(cif));
+            
+        }
+
     }
     
     cbf_failnez (cbf_rewind_datablock(cif))
@@ -1189,12 +1257,14 @@ int main (int argc, char *argv [])
                                             cbf_failnez (cbf_set_value      (cbf,"."))
                                             cbf_failnez (cbf_set_typeofvalue(cbf,"null"))
                                         }
-                                    }             	
+                                    }
                                 } else {
                                     cbf_failnez (cbf_get_typeofvalue(cif, &typeofvalue))
                                     cbf_failnez (cbf_select_column(cbf, colnum))
                                     cbf_failnez (cbf_set_value(cbf, value))
-                                    cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
+                                    if (typeofvalue) {
+                                        cbf_failnez (cbf_set_typeofvalue(cbf, typeofvalue))
+                                    }
                                 }
                             } else {
                                 
@@ -1224,13 +1294,13 @@ int main (int argc, char *argv [])
                                         }
                                         if (IorR == 0 || (IorR == CBF_CPY_SETINTEGER && (nelsize==elsize||nelsize==0))) {
                                             cbf_failnez(cbf_set_integerarray_wdims_fs(
-                                                                                  cbf, compression,
-                                                                                  binary_id, array, elsize, elsigned, elements,
-                                                                                  "little_endian", dim1, dim2, dim3, 0))
+                                                                                      cbf, compression,
+                                                                                      binary_id, array, elsize, elsigned, elements,
+                                                                                      "little_endian", dim1, dim2, dim3, 0))
                                         } else {
                                             free(array); arrayfreed=1;
                                             cbf_failnez(cbf_copy_value(cbf,cif,category_name,column_name,rownum,compression,dimflag,IorR,
-                                                           nelsize?nelsize:elsize,0,cliplow,cliphigh))
+                                                                       nelsize?nelsize:elsize,0,cliplow,cliphigh))
                                         }
                                     } else {
                                         cbf_failnez (cbf_get_realarray(
@@ -1240,14 +1310,14 @@ int main (int argc, char *argv [])
                                             cbf_get_arraydimensions(cif,NULL,&dim1,&dim2,&dim3);
                                         }
                                         if (IorR == 0 || (IorR == CBF_CPY_SETREAL && (nelsize==elsize||nelsize==0))) {
-                                        cbf_failnez(cbf_set_realarray_wdims_fs(
-                                                                               cbf, compression,
-                                                                               binary_id, array, elsize, elements,
-                                                                               "little_endian", dim1, dim2, dim3, 0))  
+                                            cbf_failnez(cbf_set_realarray_wdims_fs(
+                                                                                   cbf, compression,
+                                                                                   binary_id, array, elsize, elements,
+                                                                                   "little_endian", dim1, dim2, dim3, 0))
                                         } else {
                                             free(array); arrayfreed=1;
                                             cbf_failnez(cbf_copy_value(cbf,cif,category_name,column_name,rownum,compression,dimflag,IorR,
-                                                           nelsize?nelsize:elsize,CBF_CPY_SETSIGNED,cliplow,cliphigh))
+                                                                       nelsize?nelsize:elsize,CBF_CPY_SETSIGNED,cliplow,cliphigh))
                                         }
                                         
                                     }
@@ -1376,7 +1446,7 @@ int main (int argc, char *argv [])
         
         cbf_failnez (cbf_count_datablocks(ucif, &blocks))
         
-        for (blocknum = 0; blocknum < blocks;  blocknum++ ) { 
+        for (blocknum = 0; blocknum < blocks;  blocknum++ ) {
             /* start of merge loop */
             
             
@@ -1491,7 +1561,7 @@ int main (int argc, char *argv [])
                                                 cbf_failnez (cbf_set_value      (cbf,"."))
                                                 cbf_failnez (cbf_set_typeofvalue(cbf,"null"))
                                             }
-                                        }             	
+                                        }
                                     } else {
                                         cbf_failnez (cbf_get_typeofvalue(ucif, &typeofvalue))
                                         cbf_failnez (cbf_find_column(cbf, column_name))
@@ -1537,7 +1607,7 @@ int main (int argc, char *argv [])
                                             cbf_failnez(cbf_set_realarray_wdims_fs(
                                                                                    cbf, compression,
                                                                                    binary_id, array, elsize, elements,
-                                                                                   "little_endian", dim1, dim2, dim3, 0))                 	
+                                                                                   "little_endian", dim1, dim2, dim3, 0))
                                         }
                                         free(array);
                                     } else {
@@ -1652,21 +1722,31 @@ int main (int argc, char *argv [])
     
     a = clock ();
     
-    out = NULL;
-    if ( ! cbfout || strcmp(cbfout?cbfout:"","-") == 0 ) {
-        out = stdout;
-    } else if ( strcmp(cbfout?cbfout:"","/dev/null") ==0 ){
-        devnull=1;
-    } else {
-        out = fopen (cbfout, "w+b");
-    }
-    if ( ( devnull == 0 ) &&  ! out ) {
-        if (encoding == ENC_NONE) {
-            printf (" Couldn't open the CBF file %s\n", cbfout);
-        } else {
-            printf (" Couldn't open the CIF file %s\n", cbfout);
+    if (hdf5mode&HDF5_WRITE_MODE) {
+        
+        if(cbf_create_h5handle(&h5out,cbfout)) {
+            printf (" Couldn't open the HDF5 file %s\n", cbfout);
         }
-        exit (1);
+        
+    } else {
+        
+        out = NULL;
+        if ( ! cbfout || strcmp(cbfout?cbfout:"","-") == 0 ) {
+            out = stdout;
+        } else if ( strcmp(cbfout?cbfout:"","/dev/null") ==0 ){
+            devnull=1;
+        } else {
+            out = fopen (cbfout, "w+b");
+        }
+        if ( ( devnull == 0 ) &&  ! out ) {
+            if (encoding == ENC_NONE) {
+                printf (" Couldn't open the CBF file %s\n", cbfout);
+            } else {
+                printf (" Couldn't open the CIF file %s\n", cbfout);
+            }
+            exit (1);
+        }
+        
     }
     
     if (testconstruct) {
@@ -1675,16 +1755,36 @@ int main (int argc, char *argv [])
         cbf_free_detector (detector);
     }
     
+    
+    if (hdf5noH5) {
+        
+        if (!cbf_find_datablock(cbf,"H5")) {
+            
+            cbf_failnez(cbf_remove_datablock(cbf));
+            
+        }
+    }
+
+    
     if ( ! devnull ){
-        if (Wide) {
-            cbf_failnez (cbf_write_widefile (cbf, out, 1, cbforcif, 
+        if (hdf5mode&HDF5_WRITE_MODE) {
+                        
+            cbf_failnez(cbf_write_h5file (cbf, h5out,
+                                          mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag | qwflags))
+            
+        } else {
+            
+            if (Wide) {
+                cbf_failnez (cbf_write_widefile (cbf, out, 1, cbforcif,
+                                                 mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag | qwflags,
+                                                 encoding | bytedir | term ))
+            } else {
+                cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif,
                                              mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag | qwflags,
                                              encoding | bytedir | term ))
-        } else {
-            cbf_failnez (cbf_write_file (cbf, out, 1, cbforcif, 
-                                         mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag | qwflags,
-                                         encoding | bytedir | term ))
+            }
         }
+        
     }
     cbf_failnez (cbf_free_handle (cbf))
     b = clock ();
@@ -1702,7 +1802,7 @@ int main (int argc, char *argv [])
     exit(0);
     
 }
-    
+
 int local_exit (int status)
 {
     exit(status);
