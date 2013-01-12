@@ -292,6 +292,16 @@ extern "C" {
 
 #endif
 
+    /* CBF Bookmark */
+    
+    typedef struct {
+        const char * datablock;
+        const char * category;
+        const char * column;
+        unsigned int row;
+        int haverow;
+    } cbf_bookmark;
+    
     
     /* H5File structure */
     
@@ -306,20 +316,15 @@ extern "C" {
         hid_t colid;   /* The current column */
         hid_t nxid;    /* The root NeXus group */
         hid_t curnxid; /* The current NeXus group */
+        hid_t dataid;  /* The NeXus NXdata group */
         int   flags;   /* Flags for read or write */
+        cbf_bookmark
+              bookmark;/* Read bookmark to save names for paths */
         
     }
     cbf_h5handle_struct;
     
     typedef cbf_h5handle_struct *cbf_h5handle;
-    
-    typedef struct {
-        const char * datablock;
-        const char * category;
-        const char * column;
-        unsigned int row;
-        int haverow;
-    } cbf_bookmark;
     
     typedef struct
     {
@@ -349,21 +354,72 @@ extern "C" {
     
     typedef cbf_h5Ovisit_struct *cbf_h5Ovisithandle;
     
+    int cbf_get_axis_vector_and_offset(cbf_handle handle,
+                                       const char *axis_id,
+                                       double vector[3],
+                                       double offset[3]);
     
+    /* Compute the cross-product of 2 3-vectors */
+    
+    int cbf_cross_product(double vecin1[3],
+                          double vecin2[3],
+                          double vecout[3] );
+    
+    /* compute the L2 norm of a 3-vector */
+    
+    double cbf_norm(double vector[3]);
+    
+    /* compute the product of a scalar and a vector */
+    
+    int cbf_scalar_product(double scalar, double vecin[3], double vecout[3]);
+
+    
+    /* Apply a matrix to a vector */
+    
+    int cbf_apply_matrix(double matrix[3][3], double vecin[3], double vecout[3]);
+    
+    /* compute the transform from CBF vectors to NeXus vectors
+     Use the transpose to transfrom from NeXus vectors to CBF*/
+    
+    int cbf_get_NX_axis_transform(cbf_handle handle,
+                                  double matrix [3][3]);
+
+    
+    /* Write the HDF5 version of the NeXus axis definitions, if
+     the original CBF had axis definitions */
+    
+    int cbf_write_h5nxaxes(cbf_handle handle, cbf_h5handle h5handle);
+
+    
+    /* apply a double vector attribute to a group or dataset */
+    
+    int cbf_apply_h5vector_attribute(hid_t hid,
+                                     const char* attribname,
+                                     const double* attribvec,
+                                     const size_t dimension,
+                                     int errorcode);
+
     /* apply a long attribute to a group or dataset */
     
-    int cbf_apply_h5long_attribute(hid_t hid,
+    int cbf_apply_h5longasstr_attribute(hid_t hid,
                                    const char* attribname,
                                    const long attriblong,
                                    int errorcode);
     
     /* apply an integer attribute to a group or dataset */
     
-    int cbf_apply_h5integer_attribute(hid_t hid,
+    int cbf_apply_h5intasstr_attribute(hid_t hid,
                                       const char* attribname,
                                       const int attribint,
                                       int errorcode);
     
+    /* apply a integer attribute to a group or dataset */
+    
+    int cbf_apply_h5integer_attribute(hid_t hid,
+                                      const char* attribname,
+                                      const int attribint,
+                                      int errorcode);
+
     /* apply a text attribute to a group or dataset */
     
     int cbf_apply_h5text_attribute(hid_t hid,
