@@ -2709,6 +2709,33 @@ extern "C" {
         return 0;
     }
     
+    /* Get the axis, if any, on which this axis depends */
+    
+    int cbf_get_axis_depends_on (cbf_handle handle, const char *axis_id,
+                           const char * *depends_on)
+    {
+        
+        /* Check for valid arguments */
+        
+        if (!handle || !axis_id || !depends_on) return CBF_ARGUMENT;
+        
+        /* Get the axis deependency */
+        
+        cbf_failnez (cbf_find_category (handle, "axis"))
+        cbf_failnez (cbf_find_column   (handle, "id"))
+        cbf_failnez (cbf_find_row      (handle, axis_id))
+        if (cbf_find_column   (handle, "depends_on")) {
+            *depends_on = ".";  return CBF_SUCCESS;
+        }
+        if (cbf_get_value     (handle, depends_on)||
+            !((*depends_on)[0])) {
+            *depends_on = ".";  return CBF_SUCCESS;            
+        }
+        return CBF_SUCCESS;
+        
+    }
+    
+
     
     /* Get an axis vector */
     
@@ -2717,17 +2744,20 @@ extern "C" {
                              double *vector2,
                              double *vector3)
     {
+        if (!handle || !axis_id || !vector1 || !vector2 || !vector3)
+            return CBF_ARGUMENT;
+            
         /* Read from the axis category */
         
         cbf_failnez (cbf_find_category   (handle, "axis"))
         cbf_failnez (cbf_find_column     (handle, "id"))
         cbf_failnez (cbf_find_row        (handle, axis_id))
         cbf_failnez (cbf_find_column     (handle, "vector[1]"))
-        cbf_failnez (cbf_get_doublevalue (handle, vector1))
+        if (cbf_get_doublevalue (handle, vector1)) *vector1 = 0.;
         cbf_failnez (cbf_find_column     (handle, "vector[2]"))
-        cbf_failnez (cbf_get_doublevalue (handle, vector2))
+        if (cbf_get_doublevalue (handle, vector2)) *vector2 = 0.;
         cbf_failnez (cbf_find_column     (handle, "vector[3]"))
-        cbf_failnez (cbf_get_doublevalue (handle, vector3))
+        if (cbf_get_doublevalue (handle, vector3)) *vector3 = 0.;
         
         return 0;
     }
@@ -2740,17 +2770,20 @@ extern "C" {
                              double *offset2,
                              double *offset3)
     {
+        if (!handle || !axis_id || !offset1 || !offset2 || !offset3)
+            return CBF_ARGUMENT;
+
         /* Read from the axis category */
         
         cbf_failnez (cbf_find_category   (handle, "axis"))
         cbf_failnez (cbf_find_column     (handle, "id"))
         cbf_failnez (cbf_find_row        (handle, axis_id))
         cbf_failnez (cbf_find_column     (handle, "offset[1]"))
-        cbf_failnez (cbf_get_doublevalue (handle, offset1))
+        if (cbf_get_doublevalue (handle, offset1)) *offset1 = 0.;
         cbf_failnez (cbf_find_column     (handle, "offset[2]"))
-        cbf_failnez (cbf_get_doublevalue (handle, offset2))
+        if (cbf_get_doublevalue (handle, offset2)) *offset2 = 0.;
         cbf_failnez (cbf_find_column     (handle, "offset[3]"))
-        cbf_failnez (cbf_get_doublevalue (handle, offset3))
+        if (cbf_get_doublevalue (handle, offset3)) *offset3 = 0.;
         
         return 0;
     }
@@ -2826,14 +2859,23 @@ extern "C" {
     {
         cbf_axis_type type;
         
-        if (reserved != 0)
+        const char * depends_on;
+        
+        if (reserved != 0 || !refsetting || !axis_id )
             
             return CBF_ARGUMENT;
         
-        
-        /* Get the axis type */
+        /* Get the axis type  and dependency */
         
         cbf_failnez (cbf_get_axis_type (handle, axis_id, &type))
+        
+        cbf_failnez (cbf_get_axis_depends_on (handle, axis_id, &depends_on))
+
+        if (type == CBF_GENERAL_AXIS || !cbf_cistrcmp(axis_id,".")) {
+            
+            *refsetting = 0.;
+            
+        }
         
         if (type != CBF_TRANSLATION_AXIS && type != CBF_ROTATION_AXIS)
             
