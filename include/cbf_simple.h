@@ -963,6 +963,31 @@ int cbf_set_3d_array (cbf_handle    handle,
         cbf_set_3d_array ((handle),(reserved),(array_id),(binary_id),(compression),(array),(eltype),(elsize),(elsign),(ndimslow),(ndimmid),(ndimfast) )
 
 
+    /* Get the type of an axis */
+    
+    int cbf_get_axis_type (cbf_handle handle, const char *axis_id,
+                           cbf_axis_type *axis_type);
+    
+    /* Get the axis, if any, on which this axis depends */
+    
+    int cbf_get_axis_depends_on (cbf_handle handle, const char *axis_id,
+                                 const char * *depends_on);
+    
+    /* Get an axis vector */
+    
+    int cbf_get_axis_vector (cbf_handle handle, const char *axis_id,
+                             double *vector1,
+                             double *vector2,
+                             double *vector3);
+
+    /* Get an axis offset */
+    
+    int cbf_get_axis_offset (cbf_handle handle, const char *axis_id,
+                             double *offset1,
+                             double *offset2,
+                             double *offset3);
+    ;
+
 
   /* Get the setting of an axis */
 

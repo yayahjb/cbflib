@@ -278,6 +278,7 @@ extern "C" {
 #include "cbf_string.h"
 #include "cbf_codes.h"
 #include "cbf_alloc.h"
+#include "cbf_simple.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -522,6 +523,8 @@ extern "C" {
             + matrix[ii][1]*vecin[1]
             + matrix[ii][2]*vecin[2];
             
+            if (fabs(vecout[ii])<=1.e-15) vecout[ii] = 0.;
+            
         }
         
         return CBF_SUCCESS;
@@ -693,7 +696,7 @@ extern "C" {
                 
                 cbf_reportnez(cbf_get_value(handle,&equipment),errorcode);
                 
-                if (!equipment) equipment = "general";
+                if (!equipment)  equipment = "general";
                 
             }
             
@@ -709,7 +712,7 @@ extern "C" {
                 
                 cbf_reportnez(cbf_get_value(handle,&type),errorcode);
                 
-                if (!equipment) type = "general";
+                if (!type) type = "general";
                 
             }
             
@@ -717,13 +720,36 @@ extern "C" {
                 
                 cbf_reportnez(cbf_get_value(handle,&system),errorcode);
                 
-                if (!equipment) type = "laboratory";
+                if (!system||!system[0]) system = "laboratory";
+                
+                if (cbf_cistrcmp(system,".")||cbf_cistrcmp(system,"?"))
+                    system = "laboratory";
                 
             }
+            
+            if (cbf_cistrcmp(system,"laboratory")) {
             
             
             cbf_reportnez(cbf_get_axis_vector_and_offset(handle,axis_id,
                                                          vector, offset),errorcode);
+                
+            } else {
+                
+                double cbfvector[3], cbfoffset[3];
+                
+                cbf_reportnez(cbf_get_axis_poise(handle, 0.,
+                    (double *)cbfvector,(double *)cbfvector+1,(double *)cbfvector+2,
+                    (double *)cbfoffset,(double *)cbfoffset+1,(double *)cbfoffset+2,
+                                                           NULL,axis_id,NULL),errorcode);
+                
+                system = "McStas_absolute";
+                
+                cbf_reportnez(cbf_apply_matrix(matrix,cbfvector,vector),errorcode);
+                
+                cbf_reportnez(cbf_apply_matrix(matrix,cbfoffset,offset),errorcode);
+                
+                
+            }
             
             strcpy(nxequipment,"NX");
             
@@ -842,6 +868,9 @@ extern "C" {
                                                         "transformation_type",
                                                         type,
                                                         errorcode);
+                
+                errorcode |= cbf_apply_h5text_attribute(nxaxisid,
+                                                        "system",system,errorcode);
                 
                 errorcode |= cbf_apply_h5vector_attribute(nxaxisid,
                                 "vector",(double *)vector,3,errorcode);
