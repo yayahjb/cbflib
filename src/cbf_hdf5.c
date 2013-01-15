@@ -2317,13 +2317,15 @@ extern "C" {
         
         char * byte_order;
         
-        size_t type_size, total_size;
+        size_t type_size, total_size, total_dim;
         
         H5T_class_t type_class, base_type_class;
         
         H5T_class_t native_type_class;
         
         H5T_order_t type_order;
+        
+        H5T_sign_t type_sign;
         
         errorcode = 0;
         
@@ -2414,6 +2416,8 @@ extern "C" {
                         
                         type_order = H5Tget_order(base_type);
                         
+                        type_sign = H5Tget_sign(base_type);
+                        
                         cbf_reportnez(cbf_require_column(handle,"base_type"),errorcode);
                         
                         cbf_reportnez(cbf_set_value(handle,h5t_base_type_class),errorcode);
@@ -2430,18 +2434,28 @@ extern "C" {
                 
                 type_order = H5Tget_order(type);
                 
+                type_sign = H5Tget_sign(type);
+                
             }
             
         }
         
         total_size = type_size;
         
+        total_dim = 1;
+        
         for (ii=0; ii < kdims; ii ++) {
             
             total_size *= dims[ii];
+            
+            total_dim *= dims[ii];
+            
         }
         
+        
         if (total_size < type_size) total_size = type_size;
+        
+        if (total_dim < 1 ) total_dim = 1;
         
         cbf_reportnez(cbf_require_column(handle,"value"),errorcode);
         
@@ -2452,6 +2466,8 @@ extern "C" {
         if(total_size > 0) {
             
             if(readattrib) {
+                
+                /* Process an attiribute */
                 
                 cbf_reportnez(cbf_alloc(((void **) value),NULL,
                                         total_size+1,1),errorcode);
@@ -2468,22 +2484,389 @@ extern "C" {
                     
                 } else if (type_class==H5T_INTEGER){
                     
-                    unsigned char * ivalue;
+                    /* Read of a single integer or an integer array of
+                     up to 3 dimensions */
                     
-                    int intvalue;
+                    char * ivalue;
                     
-                    cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
-                                            sizeof(int)*3+1,1),errorcode);
+                    long xdata;
                     
-                    intvalue = **(int **)value;
+                    unsigned long uxdata;
                     
-                    sprintf((char *)ivalue,"%d",intvalue);
+                    int sign;
                     
-                    cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                    sign = (type_sign==H5T_SGN_2)?1:0;
                     
-                    cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
+                    if (total_dim ==1) {
+                        
+                        cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                type_size*3+1,1),errorcode);
+                        
+                        if (native_type_class == H5T_NATIVE_CHAR&&sign) xdata = **((signed char **)value);
+                        if (native_type_class == H5T_NATIVE_CHAR&&!sign) uxdata = **((unsigned char **)value);
+                        if (native_type_class == H5T_NATIVE_SCHAR) xdata = **((signed char **)value);
+                        if (native_type_class == H5T_NATIVE_UCHAR) uxdata = **((unsigned char **)value);
+                        if (native_type_class == H5T_NATIVE_SHORT) xdata = **((unsigned short **)value);
+                        if (native_type_class == H5T_NATIVE_USHORT) uxdata = **((unsigned short **)value);
+                        if (native_type_class == H5T_NATIVE_INT) xdata = **((int **)value);
+                        if (native_type_class == H5T_NATIVE_UINT) uxdata = **((unsigned int **)value);
+                        if (native_type_class == H5T_NATIVE_LONG) xdata = **((long **)value);
+                        if (native_type_class == H5T_NATIVE_ULONG) uxdata = **((unsigned long **)value);
+                        
+                        if (sign) {
+                            
+                            sprintf(ivalue,"%ld",xdata);
+                            
+                        } else {
+                            
+                            sprintf(ivalue,"%lu",uxdata);
+                            
+                        }
+                        
+                        cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                        
+                        cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
+                        
+                        *value = (unsigned char *)ivalue;
+                        
+                    } else {
+                        
+                        
+                        
+                        /* process arrays of up to 100 as
+                         bracketed strings
+                         */
+                        
+                        if (total_dim < 101) {
+                            
+                            size_t indices[H5S_MAX_RANK];
+                            
+                            size_t master_index, ival_index;
+                            
+                            int idim, level;
+                            
+                            char buffer[40];
+                            
+                            cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                    total_dim*((type_size*3)+kdims*2)+1,1),errorcode);
+                            
+                            for (idim = 0; idim < kdims; idim ++) {
+                                
+                                indices[idim] = 0;
+                                
+                                ivalue[idim] = '[';
+                                
+                            }
+                            
+                            level = kdims-1;
+                            
+                            ival_index = kdims;
+                            
+                            master_index = 0;
+                            
+                            while (master_index < total_dim) {
+                                
+                                for (indices[level]=0; indices[level] < dims[level];) {
+                                    
+                                    if (native_type_class == H5T_NATIVE_CHAR&&sign) xdata = ((*(signed char **)value)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_CHAR&&!sign) uxdata = ((*(unsigned char **)value)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_SCHAR) xdata = ((*(signed char **)value)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_UCHAR) uxdata = ((*(unsigned char **)value)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_SHORT) xdata = ((*(unsigned short **)value)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_USHORT) uxdata = ((*(unsigned short **)value)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_INT) xdata = ((*(int **)value)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_UINT) uxdata = ((*(unsigned int **)value)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_LONG) xdata = ((*(long **)value)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_ULONG) uxdata = ((*(unsigned long **)value)[master_index]);
+                                    
+                                    
+                                    if (sign) {
+                                        
+                                        sprintf(buffer,"%ld",xdata);
+                                        
+                                    } else {
+                                        
+                                        sprintf(buffer,"%lu",uxdata);
+                                        
+                                    }
+                                    
+                                    strcat(ivalue+ival_index,buffer);
+                                    
+                                    ival_index+=strlen(buffer);
+                                    
+                                    ivalue[ival_index++]= (indices[level] < dims[level]-1)?',':']';
+                                    
+                                    master_index++;
+                                    
+                                    indices[level]++;
+                                    
+                                    if (indices[level] == dims[level]) {
+                                        
+                                        /* We are at the end of a fast-dimension row
+                                         and therefore need to update higher level indices
+                                         if any.  */
+                                        
+                                        indices[level] = 0;
+                                        
+                                        level --;
+                                        
+                                        while (level >= 0) {
+                                            
+                                            indices[level]++;
+                                            
+                                            if (indices[level] < dims[level]) {
+                                                
+                                                ivalue[ival_index++] = ',';
+                                                
+                                                ivalue[ival_index++] = '[';
+                                                
+                                                level++;
+                                                
+                                                break;
+                                                
+                                            } else {
+                                                
+                                                ivalue[ival_index++] = ']';
+                                                
+                                                indices[level] = 0;
+                                                
+                                                level --;
+                                                
+                                            }
+                                            
+                                        }
+                                        
+                                        if (level < 0) break;
+                                        
+                                        while (level > kdims-1) {
+                                            
+                                            ivalue[ival_index++] = '[';
+                                            
+                                            level++;
+                                            
+                                        }
+                                        
+                                    }
+                                    
+                                }
+                                
+                            }
+                            
+                            ivalue[ival_index++] = '\0';
+                            
+                            cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                            
+                            cbf_reportnez(cbf_set_typeofvalue(handle,"bkts"),errorcode);
+                            
+                            cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
+                            
+                            *value = (unsigned char *)ivalue;
+                            
+                        } else {
+                            
+                            size_t dimfast, dimmid, dimslow;
+                            
+                            dimmid = dimslow = 1;
+                            
+                            dimfast = dims[kdims-1];
+                            
+                            if (kdims > 1) dimmid = dims[kdims-2];
+                            
+                            if (kdims > 2) dimslow = total_dim/(dimfast*dimmid);
+                            
+                            cbf_reportnez(cbf_set_integerarray_wdims_fs(handle,
+                                                                        CBF_NIBBLE_OFFSET,target_row,*value,
+                                                                        type_size,sign,total_dim,"little_endian",
+                                                                        dimfast,dimmid,dimslow,0),errorcode);
+                            
+                        }
+                        
+                        
+                    }
                     
-                    *value = ivalue;
+                    
+                } else if (type_class==H5T_FLOAT){
+                    
+                    /* Read of a single float or double or a float or
+                     double array of up to 3 dimensions */
+                    
+                    char * ivalue;
+                    
+                    double dxdata;
+                    
+                    float xdata;
+                    
+                    if (total_dim ==1) {
+                        
+                        cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                type_size*2+6,1),errorcode);
+                        
+                        if (native_type_class == H5T_NATIVE_FLOAT) {
+                            
+                            xdata = **((float **)value);
+                            
+                            snprintf(ivalue,type_size*2+5,"%.7g",(double) xdata);
+                            
+                        } else {
+                            
+                            dxdata = **((double **)value);
+                            
+                            snprintf(ivalue,type_size*2+5,"%.15g",dxdata);
+                            
+                        }
+                        
+                        cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                        
+                        cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
+                        
+                        *value = (unsigned char *)ivalue;
+                        
+                    } else {
+                        
+                        
+                        
+                        /* process arrays of up to 100 as
+                         bracketed strings
+                         */
+                        
+                        if (total_dim < 101) {
+                            
+                            size_t indices[H5S_MAX_RANK];
+                            
+                            size_t master_index, ival_index;
+                            
+                            int idim, level;
+                            
+                            char buffer[40];
+                            
+                            cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                    total_dim*((type_size*2)+5+kdims*2)+1,1),errorcode);
+                            
+                            for (idim = 0; idim < kdims; idim ++) {
+                                
+                                indices[idim] = 0;
+                                
+                                ivalue[idim] = '[';
+                                
+                            }
+                            
+                            level = kdims-1;
+                            
+                            ival_index = kdims;
+                            
+                            master_index = 0;
+                            
+                            while (master_index < total_dim) {
+                                
+                                for (indices[level]=0; indices[level] < dims[level];) {
+                                    
+                                    if (native_type_class == H5T_NATIVE_FLOAT) {
+                                        
+                                        xdata = ((*(float **)value)[master_index]);
+                                        
+                                        snprintf(buffer,type_size*2+5,"%.7g",(double) xdata);
+                                        
+                                    } else {
+                                        
+                                        dxdata = ((*(double **)value)[master_index]);
+                                        
+                                        snprintf(buffer,type_size*2+5,"%.15g",dxdata);
+                                        
+                                    }
+                                    
+                                    strcat(ivalue+ival_index,buffer);
+                                    
+                                    ival_index+=strlen(buffer);
+                                    
+                                    ivalue[ival_index++]= (indices[level] < dims[level]-1)?',':']';
+                                    
+                                    master_index++;
+                                    
+                                    indices[level]++;
+                                    
+                                    if (indices[level] == dims[level]) {
+                                        
+                                        /* We are at the end of a fast-dimension row
+                                         and therefore need to update higher level indices
+                                         if any.  */
+                                        
+                                        indices[level] = 0;
+                                        
+                                        level --;
+                                        
+                                        while (level >= 0) {
+                                            
+                                            indices[level]++;
+                                            
+                                            if (indices[level] < dims[level]) {
+                                                
+                                                ivalue[ival_index++] = ',';
+                                                
+                                                ivalue[ival_index++] = '[';
+                                                
+                                                level++;
+                                                
+                                                break;
+                                                
+                                            } else {
+                                                
+                                                ivalue[ival_index++] = ']';
+                                                
+                                                indices[level] = 0;
+                                                
+                                                level --;
+                                                
+                                            }
+                                            
+                                        }
+                                        
+                                        if (level < 0) break;
+                                        
+                                        while (level > kdims-1) {
+                                            
+                                            ivalue[ival_index++] = '[';
+                                            
+                                            level++;
+                                            
+                                        }
+                                        
+                                    }
+                                    
+                                }
+                                
+                            }
+                            
+                            ivalue[ival_index++] = '\0';
+                            
+                            cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                            
+                            cbf_reportnez(cbf_set_typeofvalue(handle,"bkts"),errorcode);
+                            
+                            cbf_reportnez(cbf_free((void**)value,NULL),errorcode);
+                            
+                            *value = (unsigned char *)ivalue;
+                            
+                        } else {
+                            
+                            size_t dimfast, dimmid, dimslow;
+                            
+                            dimmid = dimslow = 1;
+                            
+                            dimfast = dims[kdims-1];
+                            
+                            if (kdims > 1) dimmid = dims[kdims-2];
+                            
+                            if (kdims > 2) dimslow = total_dim/(dimfast*dimmid);
+                            
+                            cbf_reportnez(cbf_set_realarray_wdims_fs(handle,
+                                                                     CBF_NIBBLE_OFFSET,target_row,*value,
+                                                                     type_size,total_dim,"little_endian",
+                                                                     dimfast,dimmid,dimslow,0),errorcode);
+                            
+                        }
+                        
+                        
+                    }
                     
                     
                 } else if (type_class != H5T_OPAQUE) {
@@ -2520,6 +2903,8 @@ extern "C" {
                 
             } else {
                 
+                /* process a dataset */
+                
                 hid_t memspace;
                 
                 memspace=H5Screate_simple(kdims,dims,NULL);
@@ -2540,18 +2925,389 @@ extern "C" {
                     
                 } else if (type_class==H5T_INTEGER){
                     
+                    /* Read of a single integer or an integer array of
+                       up to 3 dimensions */
+                    
                     char * ivalue;
                     
-                    cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
-                                            sizeof(int)*3+1,1),errorcode);
+                    long xdata;
                     
-                    sprintf(ivalue,"%d",*((int *)(data)));
+                    unsigned long uxdata;
                     
-                    cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                    int sign;
                     
-                    cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
+                    sign = (type_sign==H5T_SGN_2)?1:0;
                     
-                    data = (unsigned char *)ivalue;
+                    if (total_dim ==1) {
+                        
+                        cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                type_size*3+1,1),errorcode);
+                        
+                        if (native_type_class == H5T_NATIVE_CHAR&&sign) xdata = *((signed char *)data);
+                        if (native_type_class == H5T_NATIVE_CHAR&&!sign) uxdata = *((unsigned char *)data);
+                        if (native_type_class == H5T_NATIVE_SCHAR) xdata = *((signed char *)data);
+                        if (native_type_class == H5T_NATIVE_UCHAR) uxdata = *((unsigned char *)data);
+                        if (native_type_class == H5T_NATIVE_SHORT) xdata = *((unsigned short *)data);
+                        if (native_type_class == H5T_NATIVE_USHORT) uxdata = *((unsigned short *)data);
+                        if (native_type_class == H5T_NATIVE_INT) xdata = *((int *)data);
+                        if (native_type_class == H5T_NATIVE_UINT) uxdata = *((unsigned int *)data);
+                        if (native_type_class == H5T_NATIVE_LONG) xdata = *((long *)data);
+                        if (native_type_class == H5T_NATIVE_ULONG) uxdata = *((unsigned long *)data);
+                        
+                        if (sign) {
+                            
+                            sprintf(ivalue,"%ld",xdata);
+                            
+                        } else {
+                            
+                            sprintf(ivalue,"%lu",uxdata);
+                            
+                        }
+                        
+                        cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                        
+                        cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
+                        
+                        data = (unsigned char *)ivalue;
+                        
+                    } else {
+                        
+                        
+                        
+                      /* process arrays of up to 100 as
+                         bracketed strings
+                       */
+                        
+                        if (total_dim < 101) {
+                            
+                            size_t indices[H5S_MAX_RANK];
+                            
+                            size_t master_index, ival_index;
+                            
+                            int idim, level;
+                            
+                            char buffer[40];
+                                                                
+                            cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                    total_dim*((type_size*3)+kdims*2)+1,1),errorcode);
+                            
+                            for (idim = 0; idim < kdims; idim ++) {
+                                
+                                indices[idim] = 0;
+                                
+                                ivalue[idim] = '[';
+                                
+                            }
+                            
+                            level = kdims-1;
+                            
+                            ival_index = kdims;
+                            
+                            master_index = 0;
+                            
+                            while (master_index < total_dim) {
+                            
+                                for (indices[level]=0; indices[level] < dims[level];) {
+                                    
+                                    if (native_type_class == H5T_NATIVE_CHAR&&sign) xdata = (((signed char *)data)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_CHAR&&!sign) uxdata = (((unsigned char *)data)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_SCHAR) xdata = (((signed char *)data)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_UCHAR) uxdata = (((unsigned char *)data)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_SHORT) xdata = (((unsigned short *)data)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_USHORT) uxdata = (((unsigned short *)data)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_INT) xdata = (((int *)data)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_UINT) uxdata = (((unsigned int *)data)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_LONG) xdata = (((long *)data)[master_index]);
+                                    if (native_type_class == H5T_NATIVE_ULONG) uxdata = (((unsigned long *)data)[master_index]);
+                                    
+                                    
+                                    if (sign) {
+                                        
+                                        sprintf(buffer,"%ld",xdata);
+                                        
+                                    } else {
+                                        
+                                        sprintf(buffer,"%lu",uxdata);
+                                        
+                                    }
+ 
+                                    strcat(ivalue+ival_index,buffer);
+                                    
+                                    ival_index+=strlen(buffer);
+                                    
+                                    ivalue[ival_index++]= (indices[level] < dims[level]-1)?',':']';
+                                    
+                                    master_index++;
+                                    
+                                    indices[level]++;
+                                    
+                                    if (indices[level] == dims[level]) {
+                                        
+                                        /* We are at the end of a fast-dimension row
+                                           and therefore need to update higher level indices
+                                           if any.  */
+                                        
+                                        indices[level] = 0;
+                                        
+                                        level --;
+                                        
+                                        while (level >= 0) {
+                                            
+                                            indices[level]++;
+                                            
+                                            if (indices[level] < dims[level]) {
+                                                
+                                                ivalue[ival_index++] = ',';
+ 
+                                                ivalue[ival_index++] = '[';
+                                                
+                                                level++;
+                                                
+                                                break;
+                                                
+                                            } else {
+                                                
+                                                ivalue[ival_index++] = ']';
+                                                
+                                                indices[level] = 0;
+                                                
+                                                level --;
+                                                
+                                            }
+                                            
+                                        }
+                                        
+                                        if (level < 0) break;
+                                        
+                                        while (level > kdims-1) {
+                                            
+                                            ivalue[ival_index++] = '[';
+                                            
+                                            level++;
+
+                                        }
+                                        
+                                    }
+                                
+                                }
+                                
+                            }
+                            
+                            ivalue[ival_index++] = '\0';
+                            
+                            cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                            
+                            cbf_reportnez(cbf_set_typeofvalue(handle,"bkts"),errorcode);
+                                                        
+                            cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
+                            
+                            data = (unsigned char *)ivalue;
+                           
+                        } else {
+                            
+                            size_t dimfast, dimmid, dimslow;
+                            
+                            dimmid = dimslow = 1;
+                            
+                            dimfast = dims[kdims-1];
+                            
+                            if (kdims > 1) dimmid = dims[kdims-2];
+                            
+                            if (kdims > 2) dimslow = total_dim/(dimfast*dimmid);
+                            
+                            cbf_reportnez(cbf_set_integerarray_wdims_fs(handle,
+                                        CBF_NIBBLE_OFFSET,target_row,data,
+                                        type_size,sign,total_dim,"little_endian",
+                                        dimfast,dimmid,dimslow,0),errorcode);
+                                
+                        }
+                        
+                        
+                    }
+                    
+                    
+                } else if (type_class==H5T_FLOAT){
+                    
+                    /* Read of a single float or double or a float or 
+                       double array of up to 3 dimensions */
+                    
+                    char * ivalue;
+                    
+                    double dxdata;
+                    
+                    float xdata;
+                                        
+                    if (total_dim ==1) {
+                        
+                        cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                type_size*2+6,1),errorcode);
+                        
+                        if (native_type_class == H5T_NATIVE_FLOAT) {
+                            
+                            xdata = *((float *)data);
+                            
+                            snprintf(ivalue,type_size*2+5,"%.7g",(double) xdata);
+                    
+                        } else {
+                            
+                            dxdata = *((double *)data);
+                            
+                            snprintf(ivalue,type_size*2+5,"%.15g",dxdata);
+                            
+                        }
+                        
+                        cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                        
+                        cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
+                        
+                        data = (unsigned char *)ivalue;
+                        
+                    } else {
+                        
+                        
+                        
+                        /* process arrays of up to 100 as
+                         bracketed strings
+                         */
+                        
+                        if (total_dim < 101) {
+                            
+                            size_t indices[H5S_MAX_RANK];
+                            
+                            size_t master_index, ival_index;
+                            
+                            int idim, level;
+                            
+                            char buffer[40];
+                            
+                            cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
+                                                    total_dim*((type_size*2)+5+kdims*2)+1,1),errorcode);
+                            
+                            for (idim = 0; idim < kdims; idim ++) {
+                                
+                                indices[idim] = 0;
+                                
+                                ivalue[idim] = '[';
+                                
+                            }
+                            
+                            level = kdims-1;
+                            
+                            ival_index = kdims;
+                            
+                            master_index = 0;
+                            
+                            while (master_index < total_dim) {
+                                
+                                for (indices[level]=0; indices[level] < dims[level];) {
+                                    
+                                    if (native_type_class == H5T_NATIVE_FLOAT) {
+                                        
+                                        xdata = (((float *)data)[master_index]);
+                                        
+                                        snprintf(buffer,type_size*2+5,"%.7g",(double) xdata);
+                                        
+                                    } else {
+                                        
+                                        dxdata = (((double *)data)[master_index]);
+                                        
+                                        snprintf(buffer,type_size*2+5,"%.15g",dxdata);
+                                        
+                                    }
+
+                                    strcat(ivalue+ival_index,buffer);
+                                    
+                                    ival_index+=strlen(buffer);
+                                    
+                                    ivalue[ival_index++]= (indices[level] < dims[level]-1)?',':']';
+                                    
+                                    master_index++;
+                                    
+                                    indices[level]++;
+                                    
+                                    if (indices[level] == dims[level]) {
+                                        
+                                        /* We are at the end of a fast-dimension row
+                                         and therefore need to update higher level indices
+                                         if any.  */
+                                        
+                                        indices[level] = 0;
+                                        
+                                        level --;
+                                        
+                                        while (level >= 0) {
+                                            
+                                            indices[level]++;
+                                            
+                                            if (indices[level] < dims[level]) {
+                                                
+                                                ivalue[ival_index++] = ',';
+                                                
+                                                ivalue[ival_index++] = '[';
+                                                
+                                                level++;
+                                                
+                                                break;
+                                                
+                                            } else {
+                                                
+                                                ivalue[ival_index++] = ']';
+                                                
+                                                indices[level] = 0;
+                                                
+                                                level --;
+                                                
+                                            }
+                                            
+                                        }
+                                        
+                                        if (level < 0) break;
+                                        
+                                        while (level > kdims-1) {
+                                            
+                                            ivalue[ival_index++] = '[';
+                                            
+                                            level++;
+                                            
+                                        }
+                                        
+                                    }
+                                    
+                                }
+                                
+                            }
+                            
+                            ivalue[ival_index++] = '\0';
+                            
+                            cbf_reportnez(cbf_set_value(handle,(const char *)(ivalue)),errorcode);
+                            
+                            cbf_reportnez(cbf_set_typeofvalue(handle,"bkts"),errorcode);
+                            
+                            cbf_reportnez(cbf_free((void**)&data,NULL),errorcode);
+                            
+                            data = (unsigned char *)ivalue;
+                            
+                        } else {
+                            
+                            size_t dimfast, dimmid, dimslow;
+                            
+                            dimmid = dimslow = 1;
+                            
+                            dimfast = dims[kdims-1];
+                            
+                            if (kdims > 1) dimmid = dims[kdims-2];
+                            
+                            if (kdims > 2) dimslow = total_dim/(dimfast*dimmid);
+                            
+                            cbf_reportnez(cbf_set_realarray_wdims_fs(handle,
+                                                                        CBF_NIBBLE_OFFSET,target_row,data,
+                                                                        type_size,total_dim,"little_endian",
+                                                                        dimfast,dimmid,dimslow,0),errorcode);
+                            
+                        }
+                        
+                        
+                    }
                     
                     
                 } else if (type_class!= H5T_OPAQUE){

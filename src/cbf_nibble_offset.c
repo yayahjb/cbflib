@@ -338,10 +338,6 @@ extern "C" {
      default to sequential starting from 0, but is
      provided to faciliate parallel compression.
  
-     The array prevs is indexed by mode (not mode-1) and
-     returns the next smaller mode, so prevs[4] = 2,
-     prevs[6] = 4, prevs[8] = 6, prevs[12] = 8, etc.
- 
      The array succs is indexed by mode (not mode-1) and
      returns the next larger mode, so succs[2] = 4,
      succs[4] = 6, succs[6] = 8, succs[8] = 12, etc.
@@ -357,13 +353,6 @@ extern "C" {
     static size_t histogram[65];
     static size_t runs[65];
     static size_t currun[65];
-    static size_t prevs[65]={ 0, 1, 2, 2, 2, 2, 4, 4, 6, 6,    /*0 - 9*/
-                       6, 6, 8, 8, 8, 8,12,12,12,12,    /*10-19*/
-                      12,12,12,12,12,12,12,12,12,12,    /*20-29*/
-                      12,12,16,16,16,16,16,16,16,16,    /*30-39*/
-                      16,16,16,16,16,16,16,16,16,16,    /*40-49*/
-                      16,16,16,16,16,16,16,16,16,16,    /*50-59*/
-                      16,16,16,16,32};                  /*60-64*/
     static size_t succs[65]={ 0, 2, 4, 4, 6, 6, 8, 8,12,12,    /*0 - 9*/
                       12,12,16,16,16,16,32,32,32,32,    /*10-19*/
                       32,32,32,32,32,32,32,32,32,32,    /*20-29*/
@@ -595,8 +584,6 @@ int cbf_compress_nibble_offset (void         *source,
         
         char * rformat;
         
-        int prevmode = 0;
-        
         int curmode = 0;
                 
         int zerobyte = 0;
@@ -610,16 +597,10 @@ int cbf_compress_nibble_offset (void         *source,
         int byteflag = 0x80;
         
         int shortflag = 0x8000;
-        
-        int fourflag = 0x80000000;
-                
+                        
         int usedmode;
         
-        long int longflag = 0x8000000000000000L;
-        
         int *termflag[17];
-        
-        int bflag=0x800080;
         
         termflag[2] = &dflag;
         
