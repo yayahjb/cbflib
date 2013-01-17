@@ -474,15 +474,35 @@ int outerror(int err)
 }
 
 #undef cbf_failnez
-#define cbf_failnez(x) \
-{int err; \
-err = (x); \
-if (err) { \
-fprintf(stderr,"CBFlib fatal error %d\n",err); \
-outerror(err); \
-local_exit (-1); \
-} \
-}
+#undef cbf_onfailnez
+
+#ifndef __FILE__
+
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d \n", err); outerror(err); local_exit (-1); }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d \n", err); \
+{ c; } outerror(err); local_exit (-1); }}
+#else
+#ifndef __func__
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d at %s:%d\n", err,__FILE__,__LINE__); outerror(err); local_exit (-1); }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d at %s:%d\n", err,__FILE__,__LINE__); \
+{ c; } outerror(err); local_exit (-1); }}
+#else
+#define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d at %s:%d(%s)\n", err,__FILE__,__LINE__,__func__); outerror(err); local_exit (-1); }}
+
+#define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
+"\nCBFlib error %d at %s:%d(%s)\n", err,__FILE__,__LINE__,__func__); \
+{ c; } outerror(err); local_exit (-1); }}
+
+#endif
+#endif
+
 
 void set_MP_terms(int crterm, int nlterm);
 
