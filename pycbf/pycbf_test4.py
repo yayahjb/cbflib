@@ -81,7 +81,7 @@ for i in range(categories):
                    # Hard wired Unsigned Int32
                    print d.shape
                    print d[0:10],d[d.shape[0]/2],d[-1]
-                   d=Numeric.reshape(d,(dimfast,dimslow))
+                   d=Numeric.reshape(d,(dimfast,dimmid))
 #                   from matplotlib import pylab
 #                   pylab.imshow(d,vmin=0,vmax=1000)
 #                   pylab.show()
