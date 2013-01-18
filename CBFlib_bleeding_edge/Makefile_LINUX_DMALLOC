@@ -463,6 +463,13 @@ HDF5URL		= http://downloads.sf.net/cbflib/$(HDF5).tar.gz
 #
 INCLUDES = -I$(INCLUDE) -I$(SRC)
 
+#
+# runtime library path export commands
+#
+RTLPEXPORTS = export LD_LIBRARY_PATH=$(PWD)/solib;\
+		      export DYLD_LIBRARY_PATH=$(PWD)/solib; \
+		      export LD_RUN_PATH=$(PWD)/solib;
+
 
 ######################################################################
 #  You should not need to make modifications below this line         #
@@ -533,9 +540,7 @@ F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 			$(SRC)/fcb_read_image.f90    \
 			$(SRC)/fcb_read_line.f90     \
 			$(SRC)/fcb_read_xds_i2.f90   \
-			$(SRC)/fcb_skip_whitespace.f90 \
-			$(EXAMPLES)/test_fcb_read_image.f90 \
-			$(EXAMPLES)/test_xds_binary.f90
+			$(SRC)/fcb_skip_whitespace.f90
 			
 		   
 #
@@ -802,13 +807,26 @@ symlinksdone:
 
 install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 			$(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib \
-			$(PYSOURCE)
+			$(PYSOURCE) shared
 		-chmod -R 755 $(INSTALLDIR)/include/cbflib
 		-chmod 755 $(INSTALLDIR)/lib/libcbf.a
 		-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
 		cp $(LIB)/libcbf.a $(INSTALLDIR)/lib/libcbf.a
+		-chmod 755 $(INSTALLDIR)/lib/libimg.a
 		-cp $(INSTALLDIR)/lib/libimg.a $(INSTALLDIR)/lib/libimg_old.a
 		cp $(LIB)/libimg.a $(INSTALLDIR)/lib/libimg.a
+		-chmod 755 $(INSTALLDIR)/lib/libfcb.a
+		-cp $(INSTALLDIR)/lib/libfcb.a $(INSTALLDIR)/lib/libfcb_old.a
+		cp $(LIB)/libfcb.a $(INSTALLDIR)/lib/libfcb.a
+		-chmod 755 $(INSTALLDIR)/lib/libcbf.so
+		-cp $(INSTALLDIR)/lib/libcbf.so $(INSTALLDIR)/lib/libcbf_old.so
+		cp $(LIB)/libcbf.so $(INSTALLDIR)/lib/libcbf.so
+		-chmod 755 $(INSTALLDIR)/lib/libimg.so
+		-cp $(INSTALLDIR)/lib/libimg.so $(INSTALLDIR)/lib/libimg_old.so
+		cp $(LIB)/libimg.so $(INSTALLDIR)/lib/libimg.so
+		-chmod 755 $(INSTALLDIR)/lib/libfcb.so
+		-cp $(INSTALLDIR)/lib/libfcb.so $(INSTALLDIR)/lib/libfcb_old.so
+		cp $(LIB)/libfcb.so $(INSTALLDIR)/lib/libfcb.so
 		-cp $(INSTALLDIR)/bin/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf_old
 		cp $(BIN)/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf
 		-cp $(INSTALLDIR)/bin/cbf2adscimg $(INSTALLDIR)/bin/cbf2adscimg_old
@@ -843,6 +861,11 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		-rm -rf $(INSTALLDIR)/include/cbflib
 		cp -r $(INCLUDE) $(INSTALLDIR)/include/cbflib
 		chmod 644 $(INSTALLDIR)/lib/libcbf.a
+		chmod 644 $(INSTALLDIR)/lib/libimg.a
+		chmod 644 $(INSTALLDIR)/lib/libfcb.a
+		chmod 755 $(INSTALLDIR)/lib/libcbf.so
+		chmod 755 $(INSTALLDIR)/lib/libimg.so
+		chmod 755 $(INSTALLDIR)/lib/libfcb.so
 		chmod 755 $(INSTALLDIR)/bin/convert_image
 		chmod 755 $(INSTALLDIR)/bin/convert_minicbf
 		chmod 755 $(INSTALLDIR)/bin/makecbf
@@ -1002,10 +1025,8 @@ endif
 #
 # Python bindings
 #
-$(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  $(LIB)/libcbf.a \
+$(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  shared \
 		                      $(PYCBF)/$(SETUP_PY)     \
-			                  $(LIB)/libfcb.a          \
-			                  $(LIB)/libimg.a          \
 			                  $(PYCBF)/pycbf.i         \
 			                  $(PYCBF)/cbfhandlewrappers.i   \
 			                  $(PYCBF)/cbfdetectorwrappers.i \
@@ -1362,7 +1383,8 @@ TESTOUTPUTSIGS = adscconverted_flat_orig.cbf$(SEXT) \
 		test_xds_bin_testflatout_orig.out$(SEXT) \
 		test_xds_bin_testflatpackedout_orig.out$(SEXT) test_fcb_read_testflatout_orig.out$(SEXT) \
 		test_fcb_read_testflatpackedout_orig.out$(SEXT) \
-		XRD1621_orig.cbf$(SEXT)
+		XRD1621_orig.cbf$(SEXT) \
+		XRD1621_I4encbC100_orig.cbf$(SEXT)
 DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
 		$(DATADIRS)/adscconverted_orig.cbf$(SEXT) \
 		$(DATADIRS)/converted_flat_orig.cbf$(SEXT) \
@@ -1574,18 +1596,22 @@ ifneq ($(F90C),)
 extra_sigs_only:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
 	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image $(BIN)/convert_minicbf \
-	$(BIN)/sauter_test $(BIN)/adscimg2cbf $(BIN)/cbf2adscimg $(BIN)/tiff2cbf \
+	$(BIN)/sauter_test $(BIN)/adscimg2cbf \
+	$(BIN)/cbf2adscimg \
+	$(BIN)/changtestcompression $(BIN)/tiff2cbf\
 	basic $(TESTINPUT_EXTRA) $(TESTOUTPUTSIGS)
 else
 extra_sigs_only:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BIN)/testcell \
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
 	$(BIN)/convert_minicbf \
 	$(BIN)/sauter_test $(BIN)/adscimg2cbf\
+	$(BIN)/cbf2adscimg \
+	$(BIN)/changtestcompression $(BIN)/tiff2cbf\
 	basic $(TESTINPUT_EXTRA) $(TESTOUTPUTSIGS)
 endif
 	$(TIME) $(BIN)/cif2cbf -e hex -c none \
 		makecbf.cbf cif2cbf_ehcn.cif
-	$(TIME) $(BIN)/cif2cbf -e none -c packed \
+	$(TIME) $(BIN)/cif2cbf -e none -c flatpacked \
 		cif2cbf_ehcn.cif cif2cbf_encp.cbf; rm cif2cbf_ehcn.cif
 	-cmp makecbf.cbf cif2cbf_encp.cbf
 	$(TIME) $(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
@@ -1600,7 +1626,7 @@ endif
 	-$(SIGNATURE) < adscconverted_flat.cbf | $(DIFF) - adscconverted_flat_orig.cbf$(SEXT)
 	$(TIME) $(BIN)/convert_image -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
 	-$(SIGNATURE) < adscconverted.cbf | $(DIFF) - adscconverted_orig.cbf$(SEXT); rm adscconverted.cbf
-	$(TIME) $(BIN)/adscimg2cbf  --cbf_packed,flat mb_LP_1_001.img
+	$(TIME) $(BIN)/adscimg2cbf  --no_pad --cbf_packed,flat mb_LP_1_001.img
 	-$(SIGNATURE) < mb_LP_1_001.cbf | $(DIFF) - mb_LP_1_001_orig.cbf$(SEXT)
 	mv mb_LP_1_001.cbf nmb_LP_1_001.cbf
 	$(TIME) $(BIN)/cbf2adscimg nmb_LP_1_001.cbf
@@ -1628,7 +1654,8 @@ ifneq ($(F90C),)
 	$(SIGNATURE) | $(DIFF) - test_fcb_read_testflatpackedout_orig.out$(SEXT)
 endif
 	$(TIME) $(BIN)/sauter_test
-	$(TIME) $(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf
+	$(TIME) $(BIN)/changtestcompression
+	$(TIME) (export LD_LIBRARY_PATH=$(LIB);$(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf)
 	$(TIME) $(BIN)/cif2cbf -I 4 -C 100. -L 0. -e n -c b -i XRD1621.cbf -o XRD1621_I4encbC100.cbf
 	-$(SIGNATURE) < XRD1621.cbf | $(DIFF) - XRD1621_orig.cbf$(SEXT); rm XRD1621.cbf
 	-$(SIGNATURE) < XRD1621_I4encbC100.cbf | $(DIFF) - XRD1621_I4encbC100_orig.cbf$(SEXT); rm XRD1621_I4encbC100.cbf
@@ -1643,10 +1670,10 @@ endif
 
 	
 pycbftests:  $(PYCBF)/_pycbf.$(PYCBFEXT) 
-	(cd $(PYCBF); python pycbf_test1.py)
-	(cd $(PYCBF); python pycbf_test2.py)
-	(cd $(PYCBF); python pycbf_test3.py)
-	(cd $(PYCBF); python pycbf_test4.py)
+	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_test1.py)
+	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_test2.py)
+	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_test3.py)
+	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_test4.py)
 
 javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/libcbf_wrap.so
 	$(BIN)/ctestcbf > testcbfc.txt
@@ -1666,9 +1693,7 @@ empty:
 	@-rm -f  $(LIB)/libimg.a
 	@-rm -f  $(LIB)/_pycbf.$(PYCBFEXT)
 	@-rm -f  $(PYCBF)/_pycbf.$(PYCBFEXT)
-	@-rm -f  $(PYCBF)/build/*/_pycbf.$(PYCBFEXT)
-	@-rm -f  $(PYCBF)/build/src/cbf_simple.o
-	@-rm -f  $(PYCBF)/build/*/pycbf_wrap.o
+	@-rm -rf  $(PYCBF)/build/*
 	@-rm -f  $(PYCBF)/newtest1.cbf
 	@-rm -rf  $(BIN)/adscimg2cbf*
 	@-rm -rf  $(BIN)/cbf2adscimg*
@@ -1745,7 +1770,7 @@ empty:
 	@-rm -f  $(DECTRIS_EXAMPLES)/cbf_template_t.out
 	@-rm -f  XRD1621.cbf
 	@-rm -f  XRD1621_orig.cbf
-	@-rm -f  XRD1621_orig.cbf
+	@-rm -f  XRD1621_I4encbC100_orig.cbf
 	@-rm -f  XRD1621_I4encbC100.cbf
 	@-rm -f  $(SRC)/fcb_exit_binary.f90
 	@-rm -f  $(SRC)/fcb_next_binary.f90
@@ -1763,6 +1788,7 @@ empty:
 	@-rm -f  $(SOLIB)/libjcbf.so
 	@-rm -f  $(SOLIB)/libimg.so
 	@-rm -f  $(SOLIB)/libfcb.so
+	@-rm -f  $(SOLIB)/libcbf.so
 	@-rm -rf $(JCBF)/org
 	@-rm -f  $(JCBF)/*.java
 	@-rm -f  $(JCBF)/jcbf_wrap.c
