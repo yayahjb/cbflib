@@ -835,6 +835,13 @@ extern "C" {
                 errorcode |= cbf_apply_h5text_attribute(nxaxisid,
                                     "depends_on",nxaxis_offset_name,errorcode);
                 
+                cbf_reportnez(cbf_location_string(datablock,"axis","vector",row,&cbfloc),errorcode);
+                
+                errorcode |= cbf_apply_h5text_attribute(nxaxisoffsetid,
+                                                        "cbf_location",
+                                                        cbfloc,
+                                                        errorcode);
+                
                 cbf_h5reportneg(H5Gclose(nxaxisoffsetid),CBF_FORMAT,errorcode);
                 
                 cbf_reportnez(cbf_free((void **)&nxaxis_offset_name,NULL),errorcode);

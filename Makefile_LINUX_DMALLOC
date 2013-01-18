@@ -962,7 +962,7 @@ $(SRC)/cbf_stx.c: $(SRC)/cbf.stx.y
 #
 # CBF library
 #
-$(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(LIB)
+$(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(LIB) $(HDF5)
 	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(AR) cr $@ *.o
 	mv *.o $(LIB)
@@ -970,7 +970,7 @@ ifneq ($(RANLIB),)
 	$(RANLIB) $@
 endif
 
-$(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
+$(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB) $(HDF5)
 	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS) $(HDF5LIBS)
 	rm *.o
@@ -1000,7 +1000,7 @@ CBF_IMG_LIBS:  $(LIB)/libcbf.a $(LIB)/libimg.a
 #
 # FCB library
 #
-$(LIB)/libfcb.a: $(F90SOURCE) $(COMMONDEP) $(LIB)
+$(LIB)/libfcb.a: $(F90SOURCE) $(COMMONDEP) $(LIB) $(HDF5)
 ifneq ($(F90C),)
 	$(F90C) $(F90FLAGS) -c $(F90SOURCE)
 	$(AR) cr $@ *.o

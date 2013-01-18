@@ -9,10 +9,9 @@ from distutils.core import setup, Extension
 e = Extension('_pycbf',
               sources = ["pycbf_wrap.c","../src/cbf_simple.c"],
          extra_compile_args=["-g"],
-         library_dirs=["../lib/"],
+         library_dirs=["../solib/"],
          libraries=["cbf"],
          include_dirs = ["../include"] )
             
 # Build it
 setup(name="_pycbf",ext_modules=[e],)
-setup(name="pycbf", py_modules=['pycbf'])
