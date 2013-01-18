@@ -23,6 +23,30 @@ These notices must be retained in any copies of any part of this
 documentation and/or software.
  */
 
+#ifndef _MD5_H_
+#define _MD5_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef PROTOTYPES
+#define PROTOTYPES
+#endif
+
+
+/* PROTO_LIST is defined depending on how PROTOTYPES is defined above.
+          If using PROTOTYPES, then PROTO_LIST returns the list, otherwise it
+          returns an empty list. */
+
+#ifdef PROTOTYPES
+#ifndef PROTO_LIST
+#define PROTO_LIST(list) list
+#else
+#define PROTO_LIST(list) ()
+#endif
+#endif
+
 /* MD5 context. */
 typedef struct {
   UINT4 state[4];                                   /* state (ABCD) */
@@ -34,3 +58,9 @@ void MD5Init PROTO_LIST ((MD5_CTX *));
 void MD5Update PROTO_LIST
   ((MD5_CTX *, unsigned char *, unsigned int));
 void MD5Final PROTO_LIST ((unsigned char [16], MD5_CTX *));
+    
+#ifdef __cplusplus
+}
+#endif
+
+#endif
