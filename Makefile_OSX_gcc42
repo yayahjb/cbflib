@@ -271,6 +271,7 @@ TIFFPREFIX = $(PWD)
 HDF5 = hdf5-1.8.10
 HDF5PREFIX = $(PWD)
 HDF5LIBS = ./lib/libhdf5.a -lz
+HDF5SOLIBS = -L./lib -lhdf5 -lz
 
 #
 # Definitions to get a stable version of regex
@@ -318,6 +319,11 @@ COMPRESS = /usr/bin/bzip2
 # Program to use to generate a signature
 #
 SIGNATURE = /usr/bin/openssl dgst -md5
+
+#
+# Pipe command to extract all but the first line of a text file
+#
+ALLBUTONE = tail -n +2
 
 
 #
@@ -975,7 +981,7 @@ endif
 
 $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB) $(HDF5)
 	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
-	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS) $(HDF5LIBS)
+	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS) $(HDF5SOLIBS)
 	rm *.o
 
 #
@@ -1565,8 +1571,8 @@ endif
 	$(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted_v2.cbf
 	-cmp insulin_pilatus6mconverted_v2.cbf insulin_pilatus6mconverted_v2_orig.cbf
 	$(TIME) $(BIN)/cif2cbf -5 w -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5
-	$(BIN)/h5dump insulin_pilatus6mconverted_orig.cbf.h5 | tail +2 > insulin_pilatus6mconverted_orig.cbf.h5.dump
-	$(BIN)/h5dump insulin_pilatus6mconverted.cbf.h5 | tail +2 > insulin_pilatus6mconverted.cbf.h5.dump
+	$(BIN)/h5dump insulin_pilatus6mconverted_orig.cbf.h5 | $(ALLBUTONE) > insulin_pilatus6mconverted_orig.cbf.h5.dump
+	$(BIN)/h5dump insulin_pilatus6mconverted.cbf.h5 | $(ALLBUTONE)  > insulin_pilatus6mconverted.cbf.h5.dump
 	-diff -bu insulin_pilatus6mconverted.cbf.h5.dump insulin_pilatus6mconverted_orig.cbf.h5.dump
 	-rm -f insulin_pilatus6mconverted_orig.cbf.h5.dump
 	-rm -f insulin_pilatus6mconverted.cbf.h5.dump
