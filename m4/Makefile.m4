@@ -717,9 +717,9 @@ INCLUDES = -I$(INCLUDE) -I$(SRC)
 #
 # runtime library path export commands
 #
-RTLPEXPORTS = export LD_LIBRARY_PATH=$(PWD)/solib;\
-		      export DYLD_LIBRARY_PATH=$(PWD)/solib; \
-		      export LD_RUN_PATH=$(PWD)/solib;
+RTLPEXPORTS = export LD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;\
+		      export DYLD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib; \
+		      export LD_RUN_PATH=$(PWD)/solib:$(PWD)/lib;
 
 
 ######################################################################
