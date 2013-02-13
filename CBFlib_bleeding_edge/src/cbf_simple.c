@@ -671,14 +671,23 @@ extern "C" {
     {
         const char *element_id;
         
-        cbf_failnez (cbf_get_element_id (handle, element_number, &element_id))
-        if ( cbf_find_category  (handle, "diffrn_data_frame") ) {
-            cbf_failnez (cbf_find_category  (handle, "diffrn_frame_data"))
+        *array_id = NULL;
+        
+        if (!cbf_get_element_id (handle, element_number, &element_id)&&
+            (!cbf_find_category  (handle, "diffrn_data_frame") ||
+             !cbf_find_category  (handle, "diffrn_frame_data")))
+        {
+            cbf_failnez (cbf_find_column    (handle, "detector_element_id"))
+            cbf_failnez (cbf_find_row       (handle, element_id))
+            cbf_failnez (cbf_find_column    (handle, "array_id"))
+            cbf_failnez (cbf_get_value      (handle, array_id))
+            
+        } else {
+            
+            return CBF_NOTFOUND;
+            
+            
         }
-        cbf_failnez (cbf_find_column    (handle, "detector_element_id"))
-        cbf_failnez (cbf_find_row       (handle, element_id))
-        cbf_failnez (cbf_find_column    (handle, "array_id"))
-        cbf_failnez (cbf_get_value      (handle, array_id))
         
         return 0;
     }
@@ -1373,13 +1382,17 @@ extern "C" {
         
         size_t ndim0;
         
-        cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+        int errorcode;
+        
+        errorcode = cbf_get_array_id (handle, element_number, &array_id);
+        
+        if (!errorcode) array_id = NULL;
         
         cbf_failnez (cbf_get_3d_array_size (handle, reserved, array_id, &ndim0, ndimslow,  ndimfast));
         
         if (ndim0 != 1) return CBF_ARGUMENT;
         
-        return 0;
+        return CBF_SUCCESS;
     }
     
     
@@ -1399,9 +1412,13 @@ extern "C" {
         
         int binary_id;
         
+        int errorcode;
+        
         binary_id = 1;
         
-        cbf_failnez (cbf_get_array_id (handle, element_number, &array_id));
+        errorcode = cbf_get_array_id (handle, element_number, &array_id);
+        
+        if (!errorcode) array_id = NULL;
         
         cbf_failnez (cbf_get_3d_array (handle, reserved, array_id, &binary_id, array,
                                        CBF_INTEGER, elsize, elsign, 1, ndimslow, ndimfast));
@@ -2085,6 +2102,35 @@ extern "C" {
             
             return CBF_ARGUMENT;
         
+        /* If array_is if NULL, try directly from the first entry
+           in _array_data.data */
+        
+        if (!array_id) {
+            
+            size_t nelem;
+            
+            unsigned int compression;
+            
+            cbf_failnez (cbf_find_category (handle, "array_data"))
+            
+            cbf_failnez (cbf_find_column(handle,"data"))
+            
+            cbf_failnez (cbf_rewind_row(handle))
+            
+            cbf_failnez (cbf_get_arrayparameters_wdims(handle,
+                    &compression,NULL,NULL,NULL,NULL,&nelem,NULL,NULL,NULL,NULL,
+                    ndimfast,ndimmid,ndimslow,NULL))
+            
+            if (ndimslow && *ndimslow==0) *ndimslow = 1;
+            
+            if (ndimmid && *ndimmid== 0) *ndimmid = 1;
+            
+            if (ndimfast && *ndimfast== 0) *ndimfast = nelem;
+            
+            return CBF_SUCCESS;
+            
+        }
+        
         /* Get the dimensions from the array_structure_list category */
         
         done [1] = done [2] = done [3] = 0;
@@ -2155,7 +2201,7 @@ extern "C" {
             
             *ndimfast = kdim [3];
         
-        return 0;
+        return CBF_SUCCESS;
     }
     
     /* Read a 3D array.
@@ -2224,6 +2270,10 @@ extern "C" {
         
         direction [1] = direction [2] = direction [3] = 1;
         
+        /* If no array_id, use default directions */
+        
+        if (array_id) {
+        
         cbf_failnez (cbf_find_category (handle, "array_structure_list"))
         cbf_failnez (cbf_find_column   (handle, "array_id"))
         
@@ -2290,13 +2340,20 @@ extern "C" {
             
             dir1 = direction [3];
         }
+            
+        }
         
         
         /* Find the binary data */
         
         cbf_failnez (cbf_find_category (handle, "array_data"))
-        cbf_failnez (cbf_find_column   (handle, "array_id"))
-        cbf_failnez (cbf_find_row      (handle, array_id))
+        
+        if (array_id) {
+            cbf_failnez (cbf_find_column   (handle, "array_id"))
+            cbf_failnez (cbf_find_row      (handle, array_id))
+        } else {
+            cbf_failnez(cbf_rewind_row(handle));
+        }
         
         if ( binary_id ) {
             
