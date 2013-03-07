@@ -310,7 +310,7 @@ int cbf_is_binary (cbf_node *column, unsigned int row);
 
   /* Is this an encoded binary value? */
 
-int cbf_is_mimebinary (cbf_node *column, unsigned int row);
+int cbf_is_mimebinary (const cbf_node *column, unsigned int row);
 
 
   /* Free a value */
