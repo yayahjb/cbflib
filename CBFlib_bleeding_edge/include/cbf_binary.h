@@ -261,7 +261,7 @@ extern "C" {
 
   /* Parse a binary text value */
   
-int cbf_get_bintext (cbf_node  *column, unsigned int row,
+int cbf_get_bintext (const cbf_node  *column, unsigned int row,
                      int       *type,
                      int       *id, 
                      cbf_file **file,
@@ -305,7 +305,7 @@ int cbf_set_bintext (cbf_node *column, unsigned int row,
 
   /* Check for a binary value */
 
-int cbf_is_binary (cbf_node *column, unsigned int row);
+int cbf_is_binary (const cbf_node *column, unsigned int row);
 
 
   /* Is this an encoded binary value? */
@@ -315,7 +315,7 @@ int cbf_is_mimebinary (const cbf_node *column, unsigned int row);
 
   /* Free a value */
 
-int cbf_free_value (cbf_context *context, cbf_node *column, unsigned int row);
+int cbf_free_value (cbf_context *context, const cbf_node *column, unsigned int row);
 
 
   /* Set a binary value */

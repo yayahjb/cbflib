@@ -275,7 +275,7 @@ static const char * unknown = "unknown";
 
   /* Parse a binary text value */
 
-int cbf_get_bintext (cbf_node  *column, unsigned int row,
+int cbf_get_bintext (const cbf_node  *column, unsigned int row,
                      int       *type,
                      int       *id,
                      cbf_file **file,
@@ -531,7 +531,7 @@ int cbf_set_bintext (cbf_node *column, unsigned int row,
 
   /* Is this a binary value? */
 
-int cbf_is_binary (cbf_node *column, unsigned int row)
+int cbf_is_binary (const cbf_node *column, unsigned int row)
 {
   const char *text;
 
@@ -579,48 +579,68 @@ int cbf_is_mimebinary (const cbf_node *column, unsigned int row)
 }
 
 
-  /* Free a value */
+/* set column->child[row] to null, simplified cbf_set_columnrow, 
+    should not be visible outside of this translation unit */
 
-int cbf_free_value (cbf_context *context, cbf_node *column, unsigned int row)
+int cbf_setnull_columnrow (const cbf_node *column, const unsigned int row)
 {
-  cbf_file *file;
 
-  const char *text;
+    /* Follow any links & check the arguments */
 
-  int is_binary, type;
+    column = cbf_get_link(column);
 
+    if (!column) return CBF_ARGUMENT;
+
+    if (CBF_COLUMN != column->type) return CBF_ARGUMENT;
+
+    if (row < 0 || row >= column->children) return CBF_ARGUMENT;
+
+    /* Set the new value */
+
+    column->child[row] = (cbf_node*)NULL;
+
+    return CBF_SUCCESS;
+
+}
+
+/* Free a value */
+
+int cbf_free_value (cbf_context *context, const cbf_node *column, unsigned int row)
+{
 
     /* Check the argument */
 
-  if (!column)
+    if (!column) return CBF_ARGUMENT;
+    {
 
-    return CBF_ARGUMENT;
+        cbf_file *file;
 
+        const char *text;
+
+        int type;
 
     /* Is the value binary? */
 
-  is_binary = cbf_is_binary (column, row);
-
+        const int is_binary = cbf_is_binary (column, row);
 
     /* Parse the (binary) value */
 
-  if (is_binary)
+        if (is_binary) {
 
     cbf_failnez (cbf_get_bintext (column, row, &type, NULL, &file, NULL,
                                            NULL, NULL, NULL, NULL, NULL, 
                                            NULL, NULL, NULL, NULL, NULL,
-                                           NULL, NULL, NULL))
+                                        NULL, NULL, NULL));
 
+        }
 
     /* Get the ASCII value */
 
-  cbf_failnez (cbf_get_columnrow (&text, column, row))
-
+        cbf_failnez(cbf_get_columnrow(&text, column, row));
 
     /* Set the value to null */
 
-  cbf_failnez (cbf_set_columnrow (column, row, NULL, 0))
-
+        cbf_failnez(cbf_setnull_columnrow(column, row));
 
     /* And free it */
 
@@ -630,19 +650,22 @@ int cbf_free_value (cbf_context *context, cbf_node *column, unsigned int row)
 
     if (type == CBF_TOKEN_TMP_BIN) {
 
-      cbf_failnez (cbf_close_temporary (context, &file))
+              cbf_failnez (cbf_close_temporary (context, &file));
 
     } else {
 
-      cbf_failnez (cbf_delete_fileconnection (&file))
+              cbf_failnez (cbf_delete_fileconnection (&file));
+
     }
 
   }
 
+    }
 
     /* Success */
 
-  return 0;
+    return CBF_SUCCESS;
+
 }
 
 
