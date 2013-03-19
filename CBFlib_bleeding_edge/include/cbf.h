@@ -65,7 +65,7 @@
  *                                                                    * 
  * This software                                                      *
  * -------------                                                      *
- * The term ‘this software’, as used in these Notices, refers to      *
+ * The term "this software", as used in these Notices, refers to      *
  * those portions of the software package CBFlib that were created by *
  * employees of the Stanford Linear Accelerator Center, Stanford      *
  * University.                                                        *
@@ -355,6 +355,7 @@ extern "C" {
 #define CBF_UNDEFINED        0x00010000  /*  65536 */
 #define CBF_NOTIMPLEMENTED   0x00020000  /* 131072 */
 #define CBF_NOCOMPRESSION    0x00040000  /* 262144 */
+#define CBF_H5ERROR          0x00080000  /* 524288 */
 
 
   /* Token Type Strings */
@@ -506,6 +507,16 @@ extern "C" {
   #endif
 #endif
 
+#ifndef CBFDEBUGPRINT
+#define CBFDEBUGPRINT 0
+#endif
+
+/* debuggable debug_print definition: always checked by the compiler, so it's correct when needed */
+#define cbf_debug_print(ARG) do{if(CBFDEBUGPRINT) fprintf(stderr,__FILE__":%d: CBFlib debug: %s\n", __LINE__, ARG);}while(0)
+#define cbf_debug_print2(FMT,ARG) do{if(CBFDEBUGPRINT) fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG);}while(0)
+#define cbf_debug_print3(FMT,ARG0,ARG1) do{if(CBFDEBUGPRINT) fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1);}while(0)
+#define cbf_debug_print4(FMT,ARG0,ARG1,ARG2) do{if(CBFDEBUGPRINT) fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1,ARG2);}while(0)
+#define cbf_debug_print5(FMT,ARG0,ARG1,ARG2,ARG3) do{if(CBFDEBUGPRINT) fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1,ARG2,ARG3);}while(0)
 
 
 #ifdef CBFDEBUG

@@ -253,12 +253,12 @@
 #ifdef __cplusplus
 
 extern "C" {
-    
+
 #endif
-    
+
 #include <hdf5.h>
-    
-    
+
+
 #define CBF_H5FAIL ((hid_t)-1)
 #define cbf_h5failneg(x,code) {int err; err = (x); if (err < 0) {return (code);}}
 #define cbf_h5onfailneg(x,code,y) {int err; err = (x); if (err < 0) {{y;} return (code);}}
@@ -266,7 +266,7 @@ extern "C" {
   {int err; if (!(cerr)) {err = (x); if (err < 0) {(cerr)|=code;}}}
 #define cbf_reportnez(x,cerr) \
   {int err; if (!(cerr)) {err = (x); (cerr)|=err;}}
-    
+
 #ifndef H5_VERS_MAJOR
 #define H5_VERS_MAJOR 0
 #endif
@@ -275,7 +275,7 @@ extern "C" {
 #define H5_VERS_MINOR 0
 #endif
 
-    
+
 #if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=8))
 
 #define H5Acreatex(loc_id,name,type_id,space_id,acpl_id) \
@@ -293,7 +293,7 @@ extern "C" {
 #endif
 
     /* CBF Bookmark */
-    
+
     typedef struct {
         const char * datablock;
         const char * category;
@@ -301,10 +301,10 @@ extern "C" {
         unsigned int row;
         int haverow;
     } cbf_bookmark;
-    
-    
+
+
     /* H5File structure */
-    
+
     typedef struct
     {
         int   rwmode;  /* 0 for read-only, 1 for read-write */
@@ -320,12 +320,12 @@ extern "C" {
         int   flags;   /* Flags for read or write */
         cbf_bookmark
               bookmark;/* Read bookmark to save names for paths */
-        
+
     }
     cbf_h5handle_struct;
-    
+
     typedef cbf_h5handle_struct *cbf_h5handle;
-    
+
     typedef struct
     {
         cbf_handle handle;
@@ -342,7 +342,7 @@ extern "C" {
         int incbf;     /* set to 1 when we have descended
                           into a NeXus NXcbf    */
         int incbfdb;   /* set to 1 when we have descended
-                          into a NeXus NXcbfdb  */        
+                          into a NeXus NXcbfdb  */
         int incbfcat;  /* set to 1 when we have descended
                           into a NeXus NXcbfcat */
         int incbfcol;  /* set to 1 when we have descended
@@ -351,48 +351,48 @@ extern "C" {
                           into a NeXus NXexntry */
     }
     cbf_h5Ovisit_struct;
-    
+
     typedef cbf_h5Ovisit_struct *cbf_h5Ovisithandle;
-    
+
     int cbf_get_axis_vector_and_offset(cbf_handle handle,
                                        const char *axis_id,
                                        double vector[3],
                                        double offset[3]);
-    
+
     /* Compute the cross-product of 2 3-vectors */
-    
+
     int cbf_cross_product(double vecin1[3],
                           double vecin2[3],
                           double vecout[3] );
-    
+
     /* compute the L2 norm of a 3-vector */
-    
+
     double cbf_norm(double vector[3]);
-    
+
     /* compute the product of a scalar and a vector */
-    
+
     int cbf_scalar_product(double scalar, double vecin[3], double vecout[3]);
 
-    
+
     /* Apply a matrix to a vector */
-    
+
     int cbf_apply_matrix(double matrix[3][3], double vecin[3], double vecout[3]);
-    
+
     /* compute the transform from CBF vectors to NeXus vectors
      Use the transpose to transfrom from NeXus vectors to CBF*/
-    
+
     int cbf_get_NX_axis_transform(cbf_handle handle,
                                   double matrix [3][3]);
 
-    
+
     /* Write the HDF5 version of the NeXus axis definitions, if
      the original CBF had axis definitions */
-    
+
     int cbf_write_h5nxaxes(cbf_handle handle, cbf_h5handle h5handle);
 
-    
+
     /* apply a double vector attribute to a group or dataset */
-    
+
     int cbf_apply_h5vector_attribute(hid_t hid,
                                      const char* attribname,
                                      const double* attribvec,
@@ -400,130 +400,130 @@ extern "C" {
                                      int errorcode);
 
     /* apply a long attribute to a group or dataset */
-    
+
     int cbf_apply_h5longasstr_attribute(hid_t hid,
                                    const char* attribname,
                                    const long attriblong,
                                    int errorcode);
-    
+
     /* apply an integer attribute to a group or dataset */
-    
+
     int cbf_apply_h5intasstr_attribute(hid_t hid,
                                       const char* attribname,
                                       const int attribint,
                                       int errorcode);
-    
+
     /* apply a integer attribute to a group or dataset */
-    
+
     int cbf_apply_h5integer_attribute(hid_t hid,
                                       const char* attribname,
                                       const int attribint,
                                       int errorcode);
 
     /* apply a text attribute to a group or dataset */
-    
+
     int cbf_apply_h5text_attribute(hid_t hid,
                                    const char* attribname,
                                    const char* attribtext,
                                    int errorcode);
 
     /* Write a binary value to an HDF5 file */
-    
+
     int cbf_write_h5binary (cbf_node *column, unsigned int row,
                             cbf_h5handle h5handle);
 
     /* Write an ascii value to an HDF5 file */
-    
+
     int cbf_write_h5ascii (cbf_handle handle,
                            unsigned int row,
                            const char *string,
                            cbf_h5handle h5handle);
-    
+
     /* Write a value to an HDF5 file */
-    
+
     int cbf_write_h5value (cbf_handle handle, cbf_node *column, unsigned int row,
                            cbf_h5handle h5handle);
-    
+
     /* Write a category to an HDF5 file */
-    
+
     int cbf_write_h5category (cbf_handle handle,
                               const cbf_node *category,
                               cbf_h5handle h5handle);
-    
+
     /*  create top-level NXentry */
-    
+
     int cbf_create_NXentry(cbf_h5handle h5handle);
-    
+
     /*  Create an HDF5 Group below NX entry or below curnxid */
-    
-    int cbf_H5Gcreate(cbf_h5handle h5handle,
+
+    int cbf_H5Gcreate_in_handle(cbf_h5handle h5handle,
                       const char * groupname,
                       hid_t * newgroup);
 
     /*  Create an HDF5 NeXus Group below NX entry or below curnxid */
-    
+
     int cbf_H5NXGcreate(cbf_h5handle h5handle,
                         const char * groupname,
                         const char * nxclass,
                         hid_t * newgroup);
-    
+
     /* Free an H5File handle */
-    
+
     int cbf_free_h5handle(cbf_h5handle h5handle);
-    
+
     /* Make an (empty) H5File handle */
-    
+
     int cbf_make_h5handle(cbf_h5handle *h5handle);
-    
+
     /* Close the current saveframe in an HDF5 file */
-    
+
     int cbf_close_h5saveframe (cbf_h5handle h5handle);
 
     /* Write a saveframe name to an HDF5 file
      Make a new group of NeXus class NXcifsf in the NXcif current datablock
      */
-    
+
     int cbf_write_h5saveframename (const cbf_node *saveframename,
                                    cbf_h5handle h5handle);
-    
+
     /* Write a datablock name to an HDF5 file
      Make a new group of NeXus class NXcifdb in the NXcif class root
      */
-    
+
     int cbf_write_h5datablockname (const cbf_node *datablock, cbf_h5handle h5handle);
-    
+
     /* Write a node to an HDF5 file */
-    
+
     int cbf_write_h5node (cbf_handle handle, const cbf_node *node,
                           const cbf_h5handle h5handle);
-    
+
     /* Create an H5File handle */
-    
+
     int cbf_create_h5handle(cbf_h5handle *h5handle,
                             const char * h5filename);
-    
+
     /*  Write cbf to HDF5 file hfile */
-    
+
     int cbf_write_h5file (cbf_handle handle, cbf_h5handle h5handle, int flags);
-    
+
     /* Open an HDF5 File handle */
-    
+
     int cbf_open_h5handle(cbf_h5handle *h5handle,
                           const char * h5filename);
-    
+
     /* Convert an HDF5 typeclass to a string
      and flag for atomic or not
      copies up to n-1 characters of the
      type string to buffer*/
-    
+
     int cbf_h5type_class_string(H5T_class_t type_class,
                                 char * buffer,
                                 int * atomic, size_t n );
 
-    
+
     /* Store an HDF5 Dataset in CBF handle, using
      category categoryname, ...*/
-    
+
     int cbf_h5ds_store(cbf_handle handle, haddr_t parent,
                        const char * parent_name,
                        const int target_row,
@@ -533,33 +533,70 @@ extern "C" {
                           const int readattrib,
                             void ** value);
 
-    
+
     /* Callback routine for objects in a group */
-    
-    
+
+
     herr_t cbf_object_visit(hid_t loc_id, const char *name,
                             const H5L_info_t *info,
                             void *op_data);
 
-    
+
     /* Read an HDF5 file */
-    
+
     int cbf_read_h5file(cbf_handle handle, cbf_h5handle h5handle, int flags);
 
 
     /* go to a bookmark in the cbf handle */
-    
+
     int cbf_goto_bookmark(cbf_handle handle, cbf_bookmark bookmark);
-    
+
     /* get a bookmark from the current information in a cbf handle */
-    
+
     int cbf_get_bookmark(cbf_handle handle, cbf_bookmark * bookmark);
 
+
+	/* basic check to find out if a group is valid, without remembering what the test actually is */
+	int cbf_is_valid_h5id(const hid_t ID);
+
+	/* find/create/free a HDF5 group if it's valid & possibly set the ID to an invalid identifier
+	can write requireGroup function as {if (!find(group)) create(group); return group;} */
+
+	int cbf_H5Gcreate(hid_t * const group, const char * const name, const hid_t parent);
+
+	int cbf_H5Gfree(const hid_t ID);
+
+	int cbf_H5Gdelete(hid_t * const ID);
+
+	/* Open/close a HDF5 file if it's valid & possibly set the ID to an invalid identifier */
+
+	int cbf_H5Fopen(hid_t * const file, const char * const name);
+
+	int cbf_H5Fclose(const hid_t ID);
+
+	int cbf_H5Fdelete(hid_t * const ID);
+
+	/* get/set(/remove?) a HDF5 variable length string attribute, don't attempt to change any attribute's value */
+
+	/* get the value of an attribute if it exists, else return an error */
+	int cbf_H5Aget_string(const hid_t /*ID*/, const char * const /*name*/, const char * * const /*value*/);
+
+	/* create an attribute with the given name & ASCII value, try to write it to the HDF5 id */
+	int cbf_H5Aset_string(const hid_t ID, const char * const name, const char * value);
+
+	/*  find/create/free hdf5 datasets without directly using hdf5 API */
+
+	int cbf_H5Dcreate_string(const hid_t location, hid_t * const dataset, const char * const name, const char * value);
+
+	/* A dataset object may be returned, so provide CBF-style methods to close it */
+	int cbf_H5Dfree(const hid_t ID);
+
+	int cbf_H5Ddelete(hid_t * const ID);
 
 
 
 #ifdef __cplusplus
-    
+
 }
 
 #endif
