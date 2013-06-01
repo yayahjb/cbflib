@@ -256,44 +256,279 @@ extern "C" {
 
 #endif
 
+
 #include <hdf5.h>
+#include "cbf.h"
+#include "cbf_tree.h"
+#include <string.h>
 
 
-#define CBF_H5FAIL ((hid_t)-1)
+    
+    /****************************************************************
+     The following section of code is extracted from J. Sloan's
+     cbf_hdf5_common.h
+     ****************************************************************/
+    
+#define CBF_H5FAIL ((hid_t)(-1))
+    
+	/* basic check to find out if a group is valid, without remembering what the test actually is */
+	int cbf_is_valid_h5id(const hid_t ID);
+	/* renamed function to check validity - the old name was getting irritating */
+	int cbf_H5Ivalid(const hid_t ID);
+    
+	/* function to close any handle without tracking its type */
+	int cbf_H5Ifree(const hid_t ID);
+    
+	/* find/create/free a HDF5 group if it's valid & possibly set the ID to an invalid identifier
+     can write requireGroup function as {if (!find(group)) create(group); return group;} */
+    
+	int cbf_H5Gcreate(hid_t * const group, const char * const name, const hid_t parent);
+    
+	/** \brief Check if a group with the given parameters exists, or create it if it doesn't. */
+	int cbf_H5Grequire(hid_t * const group, const char * const name, const hid_t parent);
+    
+	int cbf_H5Gfree(const hid_t ID);
+    
+	int cbf_H5Gdestroy(hid_t * const ID);
+    
+	/* Open/close a HDF5 file if it's valid & possibly set the ID to an invalid identifier */
+    
+	int cbf_H5Fopen(hid_t * const file, const char * const name);
+    
+	int cbf_H5Fclose(const hid_t ID);
+    
+	int cbf_H5Fdestroy(hid_t * const ID);
+    
+	/* Attributes */
+    
+	/* create an attribute with the given name & ASCII value, try to write it to the HDF5 id */
+	int cbf_H5Aset_string(const hid_t ID, const char * const name, const char * const value);
+    
+	/* create an attribute with the given name & vector value, try to write it to the HDF5 id */
+	int cbf_H5Aset_vector
+    (const hid_t ID,
+     const char * const name,
+     const hsize_t * const dim,
+     const hid_t type,
+     const void * const value);
+    
+	int cbf_H5Arequire
+    (const hid_t ID,
+     const char * const name,
+     const int rank,
+     const hsize_t * const dim,
+     const hid_t type,
+     const void * const value);
+    
+	int cbf_H5Arequire_string
+    (const hid_t location,
+     const char * const name,
+     const char * const value);
+    
+	/*  find/create/free hdf5 datasets without directly using hdf5 API */
+    
+	/** \brief Creates a new dataset in the given location. */
+	int cbf_H5Dcreate
+    (const hid_t location,
+     hid_t * const dataset,
+     const char * const name,
+     const int rank,
+     const hsize_t * const dim,
+     const hsize_t * const max,
+     const hsize_t * const chunk,
+     const hid_t type);
+    
+	/** \brief Look for a dataset with the given properties. */
+	int cbf_H5Dfind
+    (const hid_t location,
+     hid_t * const dataset,
+     const char * const name,
+     const int rank,
+     const hsize_t * const dim,
+     const hsize_t * const max,
+     const hsize_t * const chunk,
+     const hid_t type);
+    
+	/** \brief Change the extent of a chunked dataset to the values in \c dim */
+	int cbf_H5Dset_extent(const hid_t dataset, const hsize_t * const dim);
+    
+	/** \brief Adds some data to a dataset. */
+	int cbf_H5Dwrite
+    (const hid_t dataset,
+     const hsize_t * const offset,
+     const hsize_t * const stride,
+     const hsize_t * const count,
+     const void * const value);
+    
+	int cbf_H5Dread
+    (const hid_t dataset,
+     const hsize_t * const offset,
+     const hsize_t * const stride,
+     const hsize_t * const count,
+     void * const value);
+    
+	/** \brief Create a scalar dataset & write a value to it, optionally returning the new dataset. */
+	int cbf_H5Dmake_scalar
+    (const hid_t location,
+     hid_t * const dataset,
+     const char * const name,
+     const hid_t type,
+     const void * const value);
+    
+	int cbf_H5Drequire_F64LE
+    (const hid_t location,
+     hid_t * const dataset,
+     const char * const name,
+     const double value);
+    
+	/** \brief Close a given dataset handle without modifying the value passed in, invalidating the handle. */
+	int cbf_H5Dfree(const hid_t ID);
+	/** \brief Close a given dataset and set the handle to an invalid value. */
+	int cbf_H5Ddestroy(hid_t * const ID);
+    
+	/* Custom HDF5 types - to get the correct string type for datasets in a consistent way */
+    
+	/** \brief Get a HDF5 string datatype with a specified length
+	 */
+	int cbf_H5Tcreate_string(hid_t * type, const size_t len);
+    
+	/**
+	 */
+	int cbf_H5Tfree(const hid_t ID);
+    
+	/**
+	 */
+	int cbf_H5Tdestroy(hid_t * const ID);
+    
+	/* HDF5 dataspace functions: I need a uniform method of creating data spaces to ensure correct operation of comparison functions */
+    
+	int cbf_H5Screate
+    (hid_t * const ID,
+     const int rank,
+     const hsize_t * const dim,
+     const hsize_t * const max);
+    
+	int cbf_H5Sfree(const hid_t ID);
+    
+	int cbf_H5Sdestroy(hid_t * const ID);
+    
+
+    /****************************************************************
+     End of section of code extracted from J. Sloan's
+     cbf_hdf5_common.h
+     ****************************************************************/
+    /****************************************************************
+     The following section of code is extracted from J. Sloan's
+     config.h
+     ****************************************************************/
+    
+    struct FILE;
+    
+    /* The one error code which *should* be visble - to test if a function worked */
+    const extern int parseSuccess;
+    
+    /** Convert a parse error to a descriptive string */
+    const char * configParseStrerror(const int error);
+    
+    /** POD to define a basic set of configuration settings for an axis */
+    typedef struct configItem_struct
+    {
+        const char * name;
+        const char * depends_on;
+        double vector[3];
+    } configItem_t;
+    
+    /** Helper function to test for a valid 3-vector */
+    int vec3isnan(double (*const vec)[3]);
+    
+    /** Return an initialised configItem_t object on the stack */
+    configItem_t createConfigItem();
+    
+    /** free any heap memory associated with the given configItem_t object, doesn't free the object itself because it may be on the stack */
+    void destroyConfigItem(const configItem_t item);
+    
+    struct configItemVector_struct;
+    /** Opaque handle for a vector of config items */
+    typedef struct configItemVector_struct * configItemVector_t;
+    
+    /** Return an initialised configItemVector_t object on the heap */
+    configItemVector_t createConfigItemVector();
+    
+    /** free any heap memory associated with the given configItemVector_t object */
+    void destroyConfigItemVector(const configItemVector_t vector);
+    
+    /** Append a config item to the vector */
+    void configItemVector_push(configItemVector_t vector, configItem_t item);
+    
+    /** Access the config item at the given position */
+    configItem_t * configItemVector_at(configItemVector_t vector, const size_t n);
+    
+    /** Get the first valid item, if it exists */
+    configItem_t * configItemVector_begin(const configItemVector_t vector);
+    
+    /** Get the one-past-the-end item, or a pointer equal to configItemVector_begin(vector) if there are no items */
+    const configItem_t * configItemVector_end(const configItemVector_t vector);
+    
+    /** Parse the data from a given stream */
+    int parseConfigStream(FILE * const configFile, FILE * const logFile, configItemVector_t vec);
+    
+    /****************************************************************
+     End of section of code extracted from J. Sloan's
+     config.h
+     ****************************************************************/
+    
 #define cbf_h5failneg(x,code) {int err; err = (x); if (err < 0) {return (code);}}
 #define cbf_h5onfailneg(x,code,y) {int err; err = (x); if (err < 0) {{y;} return (code);}}
 #define cbf_h5reportneg(x,code,cerr) \
-  {int err; if (!(cerr)) {err = (x); if (err < 0) {(cerr)|=code;}}}
+{int err; if (!(cerr)) {err = (x); if (err < 0) {(cerr)|=code;}}}
 #define cbf_reportnez(x,cerr) \
-  {int err; if (!(cerr)) {err = (x); (cerr)|=err;}}
+{int err; if (!(cerr)) {err = (x); (cerr)|=err;}}
 
+#define reportFail(f, errorCode, errorVar) \
+do { \
+if (CBF_SUCCESS == errorVar && !(f)) { \
+errorVar |= (errorCode); \
+fprintf(stderr, "%s:%d: '" #f "' failed.\n", __FILE__, __LINE__); \
+} \
+} while (0)
+    
+#define cbf_reportFail(f, errorVar) \
+do { \
+if (CBF_SUCCESS == errorVar) { \
+const int errorCode = (f); \
+if (CBF_SUCCESS != errorCode) \
+errorVar |= errorCode; \
+} \
+} while (0)
+
+    
 #ifndef H5_VERS_MAJOR
 #define H5_VERS_MAJOR 0
 #endif
-
+    
 #ifndef H5_VERS_MINOR
 #define H5_VERS_MINOR 0
 #endif
-
-
+    
+    
 #if (H5_VERS_MAJOR>1)||((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR>=8))
-
+    
 #define H5Acreatex(loc_id,name,type_id,space_id,acpl_id) \
-          H5Acreate2(loc_id,name,type_id,space_id,acpl_id,H5P_DEFAULT)
+H5Acreate2(loc_id,name,type_id,space_id,acpl_id,H5P_DEFAULT)
 #define H5Dcreatex(loc_id,name,type_id,space_id,dcpl_id) \
-          H5Dcreate2(loc_id,name,type_id,space_id,H5P_DEFAULT,dcpl_id,H5P_DEFAULT)
+H5Dcreate2(loc_id,name,type_id,space_id,H5P_DEFAULT,dcpl_id,H5P_DEFAULT)
 #define H5Gcreatex(loc_id,name) \
-          H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
+H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 #define H5Gopenx(loc_id,name) H5Gopen2(loc_id,name,H5P_DEFAULT)
-
+    
 #else
-
+    
 #error HDF5 Version >= 1.8 Required
-
+    
 #endif
-
+    
     /* CBF Bookmark */
-
+    
     typedef struct {
         const char * datablock;
         const char * category;
@@ -301,31 +536,37 @@ extern "C" {
         unsigned int row;
         int haverow;
     } cbf_bookmark;
-
-
+    
+    
     /* H5File structure */
-
+    
     typedef struct
     {
         int   rwmode;  /* 0 for read-only, 1 for read-write */
-        hid_t hfile;   /* The HDF5 file */
+		unsigned int slice; /* The slice within the HDF5 data arrays where data will be added */
+		hid_t hfile;   /* The HDF5 file */
+		hid_t nxid;    /* /entry@NXentry */
+		hid_t nxdata; /* /entry/data@NXdata */
+		hid_t nxsample; /* /entry/sample@NXsample group */
+		hid_t nxinst;  /* /entry/instrument@NXinstrument */
+		hid_t nxdetector; /* /entry/instrument/detector@NXdetector */
+		hid_t nxmonochromator;  /* /entry/instrument/monochromator@NXmonochromator */
         hid_t rootid;  /* The root CBF database group */
         hid_t dbid;    /* The current datablock in the CBF */
         hid_t sfid;    /* The current saveframe in the current datablock or -1 */
         hid_t catid;   /* The current category */
         hid_t colid;   /* The current column */
-        hid_t nxid;    /* The root NeXus group */
         hid_t curnxid; /* The current NeXus group */
         hid_t dataid;  /* The NeXus NXdata group */
         int   flags;   /* Flags for read or write */
         cbf_bookmark
-              bookmark;/* Read bookmark to save names for paths */
-
+        bookmark;/* Read bookmark to save names for paths */
+        
     }
     cbf_h5handle_struct;
-
+    
     typedef cbf_h5handle_struct *cbf_h5handle;
-
+    
     typedef struct
     {
         cbf_handle handle;
@@ -340,259 +581,242 @@ extern "C" {
         haddr_t *haddr_path;
         cbf_bookmark bookmark; /* bookmark in the CBF */
         int incbf;     /* set to 1 when we have descended
-                          into a NeXus NXcbf    */
+                        into a NeXus NXcbf    */
         int incbfdb;   /* set to 1 when we have descended
-                          into a NeXus NXcbfdb  */
+                        into a NeXus NXcbfdb  */
         int incbfcat;  /* set to 1 when we have descended
-                          into a NeXus NXcbfcat */
+                        into a NeXus NXcbfcat */
         int incbfcol;  /* set to 1 when we have descended
-                          into a NeXus NXcbfcol */
+                        into a NeXus NXcbfcol */
         int innexus;   /* set to 1 shen we have descended
-                          into a NeXus NXexntry */
+                        into a NeXus NXexntry */
     }
     cbf_h5Ovisit_struct;
-
-    typedef cbf_h5Ovisit_struct *cbf_h5Ovisithandle;
-
+    
+	typedef cbf_h5Ovisit_struct *cbf_h5Ovisithandle;
+    
+	/* Ensure I have a file to do stuff with */
+	int cbf_h5handle_require_file(const cbf_h5handle handle, const char * name);
+    
+	/* Ensure I have a top-level NXentry group in the handle */
+	int cbf_h5handle_require_entry(const cbf_h5handle handle, hid_t * group, const char * name);
+    
+	/* Ensure I have an NXsample group in the handle called 'sample' below the entry */
+	int cbf_h5handle_require_sample(const cbf_h5handle handle, hid_t * group);
+    
+	/* Ensure I have an NXinstrument group in the handle called 'instrument' */
+	int cbf_h5handle_require_instrument(const cbf_h5handle handle, hid_t * group);
+    
+	/* Ensure I have a detector with the given name in the hdf5 handle */
+	int cbf_h5handle_require_detector(const cbf_h5handle handle, hid_t * group);
+    
     int cbf_get_axis_vector_and_offset(cbf_handle handle,
                                        const char *axis_id,
                                        double vector[3],
                                        double offset[3]);
-
+    
     /* Compute the cross-product of 2 3-vectors */
-
+    
     int cbf_cross_product(double vecin1[3],
                           double vecin2[3],
                           double vecout[3] );
-
+    
     /* compute the L2 norm of a 3-vector */
-
+    
     double cbf_norm(double vector[3]);
-
+    
     /* compute the product of a scalar and a vector */
-
+    
     int cbf_scalar_product(double scalar, double vecin[3], double vecout[3]);
-
-
+    
+    
     /* Apply a matrix to a vector */
-
+    
     int cbf_apply_matrix(double matrix[3][3], double vecin[3], double vecout[3]);
-
+    
     /* compute the transform from CBF vectors to NeXus vectors
      Use the transpose to transfrom from NeXus vectors to CBF*/
-
+    
     int cbf_get_NX_axis_transform(cbf_handle handle,
                                   double matrix [3][3]);
-
-
+    
+    
     /* Write the HDF5 version of the NeXus axis definitions, if
      the original CBF had axis definitions */
-
+    
     int cbf_write_h5nxaxes(cbf_handle handle, cbf_h5handle h5handle);
-
-
+    
+    
     /* apply a double vector attribute to a group or dataset */
-
+    
     int cbf_apply_h5vector_attribute(hid_t hid,
                                      const char* attribname,
                                      const double* attribvec,
                                      const size_t dimension,
                                      int errorcode);
-
+    
     /* apply a long attribute to a group or dataset */
-
+    
     int cbf_apply_h5longasstr_attribute(hid_t hid,
-                                   const char* attribname,
-                                   const long attriblong,
-                                   int errorcode);
-
+                                        const char* attribname,
+                                        const long attriblong,
+                                        int errorcode);
+    
     /* apply an integer attribute to a group or dataset */
-
+    
     int cbf_apply_h5intasstr_attribute(hid_t hid,
-                                      const char* attribname,
-                                      const int attribint,
-                                      int errorcode);
-
+                                       const char* attribname,
+                                       const int attribint,
+                                       int errorcode);
+    
     /* apply a integer attribute to a group or dataset */
-
+    
     int cbf_apply_h5integer_attribute(hid_t hid,
                                       const char* attribname,
                                       const int attribint,
                                       int errorcode);
-
+    
     /* apply a text attribute to a group or dataset */
-
+    
     int cbf_apply_h5text_attribute(hid_t hid,
                                    const char* attribname,
                                    const char* attribtext,
                                    int errorcode);
-
+    
     /* Write a binary value to an HDF5 file */
-
+    
     int cbf_write_h5binary (cbf_node *column, unsigned int row,
                             cbf_h5handle h5handle);
-
+    
     /* Write an ascii value to an HDF5 file */
-
+    
     int cbf_write_h5ascii (cbf_handle handle,
                            unsigned int row,
                            const char *string,
                            cbf_h5handle h5handle);
-
+    
     /* Write a value to an HDF5 file */
-
+    
     int cbf_write_h5value (cbf_handle handle, cbf_node *column, unsigned int row,
                            cbf_h5handle h5handle);
-
+    
     /* Write a category to an HDF5 file */
-
+    
     int cbf_write_h5category (cbf_handle handle,
                               const cbf_node *category,
                               cbf_h5handle h5handle);
-
+    
     /*  create top-level NXentry */
-
+    
     int cbf_create_NXentry(cbf_h5handle h5handle);
-
+    
     /*  Create an HDF5 Group below NX entry or below curnxid */
-
+    
     int cbf_H5Gcreate_in_handle(cbf_h5handle h5handle,
-                      const char * groupname,
-                      hid_t * newgroup);
-
+                                const char * groupname,
+                                hid_t * newgroup);
+    
     /*  Create an HDF5 NeXus Group below NX entry or below curnxid */
-
+    
     int cbf_H5NXGcreate(cbf_h5handle h5handle,
                         const char * groupname,
                         const char * nxclass,
                         hid_t * newgroup);
-
+    
     /* Free an H5File handle */
-
+    
     int cbf_free_h5handle(cbf_h5handle h5handle);
-
+    
     /* Make an (empty) H5File handle */
-
+    
     int cbf_make_h5handle(cbf_h5handle *h5handle);
-
+    
     /* Close the current saveframe in an HDF5 file */
-
+    
     int cbf_close_h5saveframe (cbf_h5handle h5handle);
-
+    
     /* Write a saveframe name to an HDF5 file
      Make a new group of NeXus class NXcifsf in the NXcif current datablock
      */
-
+    
     int cbf_write_h5saveframename (const cbf_node *saveframename,
                                    cbf_h5handle h5handle);
-
+    
     /* Write a datablock name to an HDF5 file
      Make a new group of NeXus class NXcifdb in the NXcif class root
      */
-
+    
     int cbf_write_h5datablockname (const cbf_node *datablock, cbf_h5handle h5handle);
-
+    
     /* Write a node to an HDF5 file */
-
+    
     int cbf_write_h5node (cbf_handle handle, const cbf_node *node,
                           const cbf_h5handle h5handle);
-
+    
     /* Create an H5File handle */
-
+    
     int cbf_create_h5handle(cbf_h5handle *h5handle,
-                            const char * h5filename);
-
+							const char * h5filename);
+    
+	/* Create an HDF5 File handle without adding an NXcbf group to it */
+	int cbf_create_h5handle2(cbf_h5handle *h5handle,const char * h5filename);
+    
     /*  Write cbf to HDF5 file hfile */
-
-    int cbf_write_h5file (cbf_handle handle, cbf_h5handle h5handle, int flags);
-
+    
+	int cbf_write_h5file (cbf_handle handle, cbf_h5handle h5handle, int flags);
+    
+	/* Write a minicbf to a nexus file */
+	int cbf_write_minicbf_h5file (cbf_handle handle, cbf_h5handle h5handle, configItemVector_t axisConfig, int flags);
+    
     /* Open an HDF5 File handle */
-
+    
     int cbf_open_h5handle(cbf_h5handle *h5handle,
                           const char * h5filename);
-
+    
     /* Convert an HDF5 typeclass to a string
      and flag for atomic or not
      copies up to n-1 characters of the
      type string to buffer*/
-
+    
     int cbf_h5type_class_string(H5T_class_t type_class,
                                 char * buffer,
                                 int * atomic, size_t n );
-
-
+    
+    
     /* Store an HDF5 Dataset in CBF handle, using
      category categoryname, ...*/
-
+    
     int cbf_h5ds_store(cbf_handle handle, haddr_t parent,
                        const char * parent_name,
                        const int target_row,
                        const char * categoryname, hid_t obj_id,
                        hid_t space, hid_t type,
                        const char * name,
-                          const int readattrib,
-                            void ** value);
-
-
+                       const int readattrib,
+                       void ** value);
+    
+    
     /* Callback routine for objects in a group */
-
-
+    
+    
     herr_t cbf_object_visit(hid_t loc_id, const char *name,
                             const H5L_info_t *info,
                             void *op_data);
-
-
+    
+    
     /* Read an HDF5 file */
-
+    
     int cbf_read_h5file(cbf_handle handle, cbf_h5handle h5handle, int flags);
-
-
+    
+    
     /* go to a bookmark in the cbf handle */
-
+    
     int cbf_goto_bookmark(cbf_handle handle, cbf_bookmark bookmark);
-
+    
     /* get a bookmark from the current information in a cbf handle */
-
+    
     int cbf_get_bookmark(cbf_handle handle, cbf_bookmark * bookmark);
-
-
-	/* basic check to find out if a group is valid, without remembering what the test actually is */
-	int cbf_is_valid_h5id(const hid_t ID);
-
-	/* find/create/free a HDF5 group if it's valid & possibly set the ID to an invalid identifier
-	can write requireGroup function as {if (!find(group)) create(group); return group;} */
-
-	int cbf_H5Gcreate(hid_t * const group, const char * const name, const hid_t parent);
-
-	int cbf_H5Gfree(const hid_t ID);
-
-	int cbf_H5Gdelete(hid_t * const ID);
-
-	/* Open/close a HDF5 file if it's valid & possibly set the ID to an invalid identifier */
-
-	int cbf_H5Fopen(hid_t * const file, const char * const name);
-
-	int cbf_H5Fclose(const hid_t ID);
-
-	int cbf_H5Fdelete(hid_t * const ID);
-
-	/* get/set(/remove?) a HDF5 variable length string attribute, don't attempt to change any attribute's value */
-
-	/* get the value of an attribute if it exists, else return an error */
-	int cbf_H5Aget_string(const hid_t /*ID*/, const char * const /*name*/, const char * * const /*value*/);
-
-	/* create an attribute with the given name & ASCII value, try to write it to the HDF5 id */
-	int cbf_H5Aset_string(const hid_t ID, const char * const name, const char * value);
-
-	/*  find/create/free hdf5 datasets without directly using hdf5 API */
-
-	int cbf_H5Dcreate_string(const hid_t location, hid_t * const dataset, const char * const name, const char * value);
-
-	/* A dataset object may be returned, so provide CBF-style methods to close it */
-	int cbf_H5Dfree(const hid_t ID);
-
-	int cbf_H5Ddelete(hid_t * const ID);
-
+    
 
 
 #ifdef __cplusplus

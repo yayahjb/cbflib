@@ -1,0 +1,10 @@
+# some sample config settings for a minicbf file
+
+#map Start_angle -> axis_omega
+#map Phi -> axis_phi
+#map Kappa -> axis_kappa
+
+Sample depends_on Phi
+Phi vector [1 0 0] depends_on Kappa
+Kappa vector [0 1 0]
+

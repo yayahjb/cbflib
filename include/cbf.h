@@ -356,6 +356,17 @@ extern "C" {
 #define CBF_NOTIMPLEMENTED   0x00020000  /* 131072 */
 #define CBF_NOCOMPRESSION    0x00040000  /* 262144 */
 #define CBF_H5ERROR          0x00080000  /* 524288 */
+#define CBF_H5DIFFERENT      0x00100000  /* 1048576 */
+    
+  /* HDF5 CBF Filter number */
+
+#ifndef CBF_H5Z_FILTER_CBF
+#ifndef H5Z_FILTER_CBF
+#define CBF_H5Z_FILTER_CBF    32006
+#else
+#define CBF_H5Z_FILTER_CBF H5Z_FILTER_CBF
+#endif
+#endif
 
 
   /* Token Type Strings */
@@ -507,16 +518,35 @@ extern "C" {
   #endif
 #endif
 
-#ifndef CBFDEBUGPRINT
-#define CBFDEBUGPRINT 0
-#endif
+    
+/* debug print macros, enabled if CBFDEBUG defined */
 
-/* debuggable debug_print definition: always checked by the compiler, so it's correct when needed */
-#define cbf_debug_print(ARG) do{if(CBFDEBUGPRINT) fprintf(stderr,__FILE__":%d: CBFlib debug: %s\n", __LINE__, ARG);}while(0)
-#define cbf_debug_print2(FMT,ARG) do{if(CBFDEBUGPRINT) fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG);}while(0)
-#define cbf_debug_print3(FMT,ARG0,ARG1) do{if(CBFDEBUGPRINT) fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1);}while(0)
-#define cbf_debug_print4(FMT,ARG0,ARG1,ARG2) do{if(CBFDEBUGPRINT) fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1,ARG2);}while(0)
-#define cbf_debug_print5(FMT,ARG0,ARG1,ARG2,ARG3) do{if(CBFDEBUGPRINT) fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1,ARG2,ARG3);}while(0)
+#ifdef CBFDEBUG
+#define cbf_debug_print(ARG) \
+  {fprintf(stderr,__FILE__":%d: CBFlib debug: %s\n", __LINE__, ARG);}
+#define cbf_debug_print2(FMT,ARG) \
+  {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG);}
+#define cbf_debug_print3(FMT,ARG0,ARG1) \
+  {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1);}
+#define cbf_debug_print4(FMT,ARG0,ARG1,ARG2) \
+  {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1,ARG2)}
+#define cbf_debug_print5(FMT,ARG0,ARG1,ARG2,ARG3) \
+  {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1,ARG2,ARG3);}
+#else
+#define cbf_debug_print(ARG)
+#define cbf_debug_print2(FMT,ARG)
+#define cbf_debug_print3(FMT,ARG0,ARG1)
+#define cbf_debug_print4(FMT,ARG0,ARG1,ARG2)
+#define cbf_debug_print5(FMT,ARG0,ARG1,ARG2,ARG3)
+#endif
+    
+#define cbf_printnez(f) \
+{ \
+const int err = (f); \
+if (CBF_SUCCESS != err) \
+  fprintf(stderr, __FILE__":%d: CBFlib error in '" #f "': %s\n", __LINE__, cbf_strerror(err)); \
+}
+
 
 
 #ifdef CBFDEBUG
@@ -556,6 +586,10 @@ extern "C" {
 
 #endif
 
+    
+  /* string for an error */
+    
+const char * cbf_strerror(const int err);
 
   /* cbf handle */
 
@@ -1428,6 +1462,10 @@ int cbf_drel(cbf_handle handle, cbf_handle dict,
   /* Construct Functions dictionary */
 
 int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablockname, const char *functionname);
+    
+    /* return a string for a CBF error */
+    
+    const char * cbf_strerror(const int err);
 
 #ifdef __cplusplus
 

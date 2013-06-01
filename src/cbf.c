@@ -8676,6 +8676,39 @@ int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablocknam
 	
 	return 0;
 }
+    
+    /* return a string for a CBF error */
+
+    
+    const char * cbf_strerror(const int err)
+    {
+#define CBF_STRERROR_CHECK_ERROR(ERR,STR) {if(ERR==(err&ERR)) return STR;}
+        if(CBF_SUCCESS==err) return "None";
+        CBF_STRERROR_CHECK_ERROR(CBF_FORMAT,"Invalid file format");
+        CBF_STRERROR_CHECK_ERROR(CBF_ALLOC,"Memory allocation failure");
+        CBF_STRERROR_CHECK_ERROR(CBF_ARGUMENT,"Invalid argument");
+        CBF_STRERROR_CHECK_ERROR(CBF_ASCII,"ASCII value found, expected binary");
+        CBF_STRERROR_CHECK_ERROR(CBF_BINARY,"Binary value found, expected ASCII");
+        CBF_STRERROR_CHECK_ERROR(CBF_BITCOUNT,"Incorrect number of bits written");
+        CBF_STRERROR_CHECK_ERROR(CBF_ENDOFDATA,"Unexpected end of data");
+        CBF_STRERROR_CHECK_ERROR(CBF_FILECLOSE,"Error closing file");
+        CBF_STRERROR_CHECK_ERROR(CBF_FILEOPEN,"Error opening file");
+        CBF_STRERROR_CHECK_ERROR(CBF_FILEREAD,"Error reading file");
+        CBF_STRERROR_CHECK_ERROR(CBF_FILESEEK,"Error seeking offset in file");
+        CBF_STRERROR_CHECK_ERROR(CBF_FILETELL,"Error finding offset in file");
+        CBF_STRERROR_CHECK_ERROR(CBF_FILEWRITE,"Error writing to file");
+        CBF_STRERROR_CHECK_ERROR(CBF_IDENTICAL,"Duplicate name");
+        CBF_STRERROR_CHECK_ERROR(CBF_NOTFOUND,"Not found");
+        CBF_STRERROR_CHECK_ERROR(CBF_OVERFLOW,"Insufficient precision in destination type");
+        CBF_STRERROR_CHECK_ERROR(CBF_UNDEFINED,"Undefined value");
+        CBF_STRERROR_CHECK_ERROR(CBF_NOTIMPLEMENTED,"Not yet implemented");
+        CBF_STRERROR_CHECK_ERROR(CBF_NOCOMPRESSION,"CBF_NOCOMPRESSION");
+        CBF_STRERROR_CHECK_ERROR(CBF_H5ERROR,"Problem using HDF5 library function(s)");
+        return "Unknown error";
+#undef CBF_STRERROR_CHECK_ERROR
+    }
+
+    
 #ifdef __cplusplus
 
 }
