@@ -422,77 +422,75 @@ extern "C" {
     
     struct FILE;
     
-    /* The one error code which *should* be visble - to test if a function worked */
-    const extern int parseSuccess;
     
-    int parseScan(char * * const buf, size_t * n, size_t * ln, char * const pre, FILE * stream);
+    int cbf_hdf5_parseScan(char * * const buf, size_t * n, size_t * ln, char * const pre, FILE * stream);
 
     /** Convert a parse error to a descriptive string */
-    const char * configParseStrerror(const int error);
+    const char * cbf_hdf5_configParseStrerror(const int error);
     
     /** POD to define a basic set of configuration settings for an axis */
-    typedef struct configItem_struct
+    typedef struct _cbf_hdf5_configItem
     {
         const char * minicbf;
         const char * nexus;
         const char * depends_on;
         double vector[3];
-    } configItem_t;
+    } cbf_hdf5_configItem;
         
-    /** Return an initialised configItem_t object on the stack */
-    configItem_t createConfigItem();
+    /** Return an initialised cbf_hdf5_configItem object on the stack */
+    cbf_hdf5_configItem cbf_hdf5_createConfigItem();
     
-    /** free any heap memory associated with the given configItem_t object, doesn't free the object itself because it may be on the stack */
-    void destroyConfigItem(const configItem_t item);
+    /** free any heap memory associated with the given cbf_hdf5_configItem object, doesn't free the object itself because it may be on the stack */
+    void cbf_hdf5_destroyConfigItem(const cbf_hdf5_configItem item);
     
-    struct configItemVector_struct;
+    struct cbf_hdf5_configItemVector;
     /** Opaque handle for a vector of config items */
-    typedef struct configItemVector_struct * configItemVector_t;
+    typedef struct cbf_hdf5_configItemVector * cbf_hdf5_configItemVectorhandle;
     
-    /** Return an initialised configItemVector_t object on the heap */
-    configItemVector_t createConfigItemVector();
+    /** Return an initialised cbf_hdf5_configItemVectorhandle object on the heap */
+    cbf_hdf5_configItemVectorhandle cbf_hdf5_createConfigItemVector();
     
-    /** free any heap memory associated with the given configItemVector_t object */
-    void destroyConfigItemVector(const configItemVector_t vector);
-    
-    /**
-     */
-    void configItemVector_setSampleDependsOn(configItemVector_t vector, const char * const depends_on);
+    /** free any heap memory associated with the given cbf_hdf5_configItemVectorhandle object */
+    void cbf_hdf5_destroyConfigItemVector(const cbf_hdf5_configItemVectorhandle vector);
     
     /**
      */
-    const char * configItemVector_getSampleDependsOn(configItemVector_t vector);
+    void cbf_hdf5_configItemVector_setSampleDependsOn(cbf_hdf5_configItemVectorhandle vector, const char * const depends_on);
+    
+    /**
+     */
+    const char * cbf_hdf5_configItemVector_getSampleDependsOn(cbf_hdf5_configItemVectorhandle vector);
 
     /** Append a config item to the vector */
-    configItem_t * configItemVector_push(configItemVector_t vector, configItem_t item);
+    cbf_hdf5_configItem * cbf_hdf5_configItemVector_push(cbf_hdf5_configItemVectorhandle vector, cbf_hdf5_configItem item);
     
     /**
      */
-    configItem_t * configItemVector_findMinicbf(const configItemVector_t vector, const char * const name);
+    cbf_hdf5_configItem * cbf_hdf5_configItemVector_findMinicbf(const cbf_hdf5_configItemVectorhandle vector, const char * const name);
     
     /**
      */
-    configItem_t * configItemVector_findNexus(const configItemVector_t vector, const char * const name);
+    cbf_hdf5_configItem * cbf_hdf5_configItemVector_findNexus(const cbf_hdf5_configItemVectorhandle vector, const char * const name);
     
     /** Access the config item at the given position */
-    configItem_t * configItemVector_at(configItemVector_t vector, const size_t n);
+    cbf_hdf5_configItem * cbf_hdf5_configItemVector_at(cbf_hdf5_configItemVectorhandle vector, const size_t n);
     
     /** Get the first valid item, if it exists */
-    configItem_t * configItemVector_begin(const configItemVector_t vector);
+    cbf_hdf5_configItem * cbf_hdf5_configItemVector_begin(const cbf_hdf5_configItemVectorhandle vector);
     
-    /** Get the one-past-the-end item, or a pointer equal to configItemVector_begin(vector) if there are no items */
-    const configItem_t * configItemVector_end(const configItemVector_t vector);
+    /** Get the one-past-the-end item, or a pointer equal to cbf_hdf5_configItemVector_begin(vector) if there are no items */
+    const cbf_hdf5_configItem * cbf_hdf5_configItemVector_end(const cbf_hdf5_configItemVectorhandle vector);
     
-    int parseExtractVector
+    int cbf_hdf5_parseExtractVector
     (FILE * const configFile,
      FILE * const logFile,
-     configItem_t * it,
+     cbf_hdf5_configItem * it,
      char * * const buf,
      size_t * n,
      size_t * ln,
      char * const pre);
     
-    int parseConfig(FILE * const configFile, FILE * const logFile, configItemVector_t vec);
+    int cbf_hdf5_parseConfig(FILE * const configFile, FILE * const logFile, cbf_hdf5_configItemVectorhandle vec);
     
     /****************************************************************
      End of section of code extracted from J. Sloan's
@@ -788,7 +786,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 	int cbf_write_h5file (cbf_handle handle, cbf_h5handle h5handle, int flags);
     
 	/* Write a minicbf to a nexus file */
-	int cbf_write_minicbf_h5file (cbf_handle handle, cbf_h5handle h5handle, configItemVector_t axisConfig, int flags);
+	int cbf_write_minicbf_h5file (cbf_handle handle, cbf_h5handle h5handle, cbf_hdf5_configItemVectorhandle axisConfig, int flags);
     
     /* Open an HDF5 File handle */
     
