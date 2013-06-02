@@ -277,6 +277,7 @@ extern "C" {
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+#include <errno.h>
     
     
 
@@ -300,7 +301,36 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      cbf_hdf5.i
      ****************************************************************/
 
+    /*
+     Some comparison functions
+     
+     Should return 0 on success, non-zero on failure
+     */
     
+    static int cmp_double(const void * a, const void * b, size_t N)
+    {
+        // go through each vector comparing all values
+        while (N && *(const double *)(a)++ == *(const double *)(b)++) --N;
+        // if any are not equal the loop will exit early and N is non-zero
+        return N;
+    }
+    
+    static int cmp_int(const void * a, const void * b, size_t N)
+    {
+        // go through each vector comparing all values
+        while (N && *(const int *)(a)++ == *(const int *)(b)++) --N;
+        // if any are not equal the loop will exit early and N is non-zero
+        return N;
+    }
+    
+    static int cmp_vlstring(const void * a, const void * b, size_t N)
+    {
+        // go through each vector comparing all values
+        while (N && !strcmp(*(const char **)(a)++, *(const char **)(b)++)) --N;
+        // if any are not equal the loop will exit early and N is non-zero
+        return N;
+    }
+
     /**
      Helper function to determine if a given character matches any in the given (null-terminated) string.
      
@@ -435,11 +465,8 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         /* apply it to the hdf5 group */
         if (start != value) {
             const char * str = substrdup(start, value);
-            hid_t type = CBF_H5FAIL;
-            cbf_H5Tcreate_string(&type, strlen(str));
-            if (CBF_SUCCESS!=cbf_H5Arequire(h5location, "units", 0, 0, type, str))
+            if (CBF_SUCCESS!=cbf_H5Arequire_string(h5location, "units", str))
                 fprintf(stderr,__WHERE__": writing '%s' as units attribute failed\n",str);
-            cbf_H5Tfree(type);
             if (units) *units = str;
             else free((void*)str);
         }
@@ -493,63 +520,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         if (number) *number = num;
         return value;
     }
-    
-    /**
-     Extract a value-units pair from a line of a pilatus header and insert them into a hdf5 group under a given name.
-     
-     The starting point must be start of the value string, the reported end point will be one-past-the-end of the unit string.
-     
-     \param value The current location in the (read-only) string of header data.
-     \param h5location The hdf5 group to put the name-value-units triplet into.
-     \param h5name The name of the new entry in the hdf5 group.
-     \param number Returns the number that was read out of the header, not used if set to null.
-     \param units Returns a malloc'd null-terminated string containing the units, not used if set to null.
-     
-     \return the location in the header string after the value-units pair.
-     */
-    static const char * pilatusWriteIntUnits
-    (const char * value,
-     const hid_t h5location,
-     const char * const h5name,
-     long * const number,
-     const char * * const units)
-    {
-        hid_t h5data = CBF_H5FAIL;
-        /*
-         The following intialisation does:
-         hid_t h5type;
-         if (8 == sizeof(num)) h5type = H5T_STD_I64LE;
-         else if (4 == sizeof(num)) h5type = H5T_STD_I32LE;
-         else h5type = CBF_H5FAIL;
-         Without branching.
-         */
-        const hid_t h5type = 8==sizeof(long) ? H5T_STD_I64LE : (4==sizeof(long) ? H5T_STD_I32LE : CBF_H5FAIL);
-        /* 1: value */
-        const long num = strtol(value, (char**)(&value), 10);
-        //cbf_H5Dmake_scalar(h5location,&h5data,h5name,h5type,&num);
-        const int found = cbf_H5Dfind(h5location,&h5data,h5name,0,0,0,0,h5type);
-        if (CBF_SUCCESS==found) {
-            if (!cbf_H5Ivalid(h5data)) {
-                cbf_H5Dcreate(h5location,&h5data,h5name,0,0,0,0,h5type);
-                cbf_H5Dwrite(h5data,0,0,0,&num);
-            } else {
-                long data = 0./0.;
-                cbf_H5Dread(h5data,0,0,0,&data);
-                if (num != data) fprintf(stderr,"Error: data doesn't match (%ld vs %ld) for nexus field '%s'\n",data,num,h5name);
-            }
-            /* 2: units */
-            value = getPilatusNonWhitespaceToken(value);
-            value = pilatusWriteUnits(value, h5data, units);
-            /* cleanup temporary datasets */
-            cbf_H5Dfree(h5data);
-        } else {
-            fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",h5name);
-        }
-        /* done */
-        if (number) *number = num;
-        return value;
-    }
-    
+
     /** Check if a string returns a recognised pilatus axis, return the nexus name of the axis
      
      \return A nexus axis name or NULL if a non-pilatus axis name is given
@@ -585,16 +556,20 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         const hsize_t chunk[] = {1};
         const hsize_t offset[] = {slice};
         const hsize_t count[] = {1};
-        const char * const nxAxisName = pilatus2nexusAxis(axisName);
+        configItem_t * const axisItem = configItemVector_findMinicbf(axisConfig, axisName);
+        if (configItemVector_end(axisConfig) == axisItem) {
+            fprintf(stderr,"Config settings for axis '%s' could not be found: this will eventually be a fatal error\n",axisItem->nexus);
+            return;
+        }
         //cbf_H5Dcreate(location,&h5data,nxAxisName,1,dim,max,chunk,H5T_IEEE_F64LE);
         //cbf_H5Dwrite(h5data,offset,0,count,&num);
-        found = cbf_H5Dfind(location,&h5data,nxAxisName,1,dim,max,chunk,H5T_IEEE_F64LE);
+        found = cbf_H5Dfind(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE);
         if (CBF_SUCCESS!=found) {
-            fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",nxAxisName);
+            fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",axisItem->nexus);
             return;
         }
         if (!cbf_H5Ivalid(h5data)) {
-            cbf_H5Dcreate(location,&h5data,nxAxisName,1,dim,max,chunk,H5T_IEEE_F64LE);
+            cbf_H5Dcreate(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE);
         }
         cbf_H5Dset_extent(h5data, dim2);
         cbf_H5Dwrite(h5data,offset,0,count,&num);
@@ -602,42 +577,14 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
             *value = getPilatusNonWhitespaceToken(*value);
             *value = pilatusWriteUnits(*value, h5data, 0);
         }
-        { /* transformation type */
-            hid_t h5type = CBF_H5FAIL;
-            cbf_H5Tcreate_string(&h5type, strlen("rotation"));
-            //cbf_H5Aset_string(h5data,"transformation_type","rotation");
-            cbf_H5Arequire(h5data,"transformation_type",0,0,h5type,"rotation");
-            cbf_H5Tfree(h5type);
-        }
-        {// search the config settings for something describing this axis
-            const double vec[] = {0./0.,0./0.,0./0.};
+        /* transformation type */
+        cbf_H5Arequire_string(h5data,"transformation_type","rotation");
+        {
             const hsize_t vdims[] = {3};
-            configItem_t * it = configItemVector_begin(axisConfig);
-            while (configItemVector_end(axisConfig) != it) {
-                if (0 == strcmp(it->name,axisName)) break;
-                ++it;
-            }
-            if (configItemVector_end(axisConfig) != it) {
-                /* I found a matching config setting */
-                {
-                    const char * const nxAxisDependsOnName = pilatus2nexusAxis(it->depends_on);
-                    hid_t h5type = CBF_H5FAIL;
-                    cbf_H5Tcreate_string(&h5type, strlen(nxAxisDependsOnName));
-                    cbf_H5Arequire(h5data,"depends_on",0,0,h5type,nxAxisDependsOnName);
-                    cbf_H5Tfree(h5type);
-                }
-                cbf_H5Arequire(h5data,"vector",1,vdims,H5T_IEEE_F64LE,vec3isnan(&it->vector)?vec:it->vector);
-            } else {
-                {
-                    const char * const nxAxisDependsOnName = "";
-                    hid_t h5type = CBF_H5FAIL;
-                    cbf_H5Tcreate_string(&h5type, strlen(nxAxisDependsOnName));
-                    cbf_H5Arequire(h5data,"depends_on",0,0,h5type,nxAxisDependsOnName);
-                    cbf_H5Tfree(h5type);
-                }
-                cbf_printnez(cbf_H5Arequire(h5data,"vector",1,vdims,H5T_IEEE_F64LE,vec));
-                fprintf(stderr,"Config settings for axis '%s' could not be found: this will eventually be a fatal error\n",nxAxisName);
-            }
+            double buf[3] = {0./0.};
+            cbf_H5Arequire_string(h5data,"depends_on",axisItem->depends_on?axisItem->depends_on:"");
+            if (!axisItem->depends_on) fprintf(stderr,"Missing dependancy for nexus axis '%s'\n",axisItem->nexus);
+            cbf_H5Arequire_cmp(h5data,"vector",1,vdims,H5T_IEEE_F64LE,axisItem->vector,buf,cmp_double);
         }
         /* cleanup temporary datasets */
         cbf_H5Dfree(h5data);
@@ -650,15 +597,12 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      cbf_hdf5_common.c
      ****************************************************************/
     
-   	/* basic check to find out if a group is valid, without remembering what the test actually is */
-	/* TODO: remove this */
-	int cbf_is_valid_h5id(const hid_t ID) {return cbf_H5Ivalid(ID);}
     
 	/*
-     Renamed function to check validity - the old name was getting irritating.
+     Function to check validity of a HDF5 identifier.
      HDF5's predefined types are never counted as valid by this function,
-     so it can't be used to test the validity of a type.
-     Types obtained by using H5Tcopy are probably safe to test.
+     so it can't be used to test the validity of a type constant.
+     Types obtained by using H5Tcopy are safe to test.
      */
 	int cbf_H5Ivalid(const hid_t ID)
 	{
@@ -667,7 +611,10 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		return v > 0;
 	}
  
-	/* function to close any handle without tracking its type */
+	/*
+     function to close any handle without tracking its type.
+     don't use this if a more specific function can be used instead, ie if the type is known.
+     */
 	int cbf_H5Ifree(const hid_t ID)
 	{
 		if (cbf_H5Ivalid(ID)) {
@@ -841,23 +788,21 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     
 	/** \brief Check for an attribute with the given space/type/value, or set one if it doesn't exist.
      */
-	int cbf_H5Arequire
+	int cbf_H5Arequire_cmp
     (const hid_t ID,
      const char * const name,
      const int rank,
      const hsize_t * const dim,
      const hid_t type,
-     const void * const value)
+     const void * const value,
+     void * const buf,
+     int (*cmp)(const void * a, const void * b, size_t N))
 	{
 		/* define variables & check args */
 		int error = (!cbf_H5Ivalid(ID) || !name || (!!rank && !dim) || rank<0) ? CBF_ARGUMENT : CBF_SUCCESS;
 		hid_t attrSpace = CBF_H5FAIL;
-		hid_t attrType = CBF_H5FAIL, _attrType = CBF_H5FAIL;
+		hid_t attrType = type;
 		hid_t attr = CBF_H5FAIL;
-		if (H5Tequal(H5T_C_S1,type)) {
-			error |= cbf_H5Tcreate_string(&_attrType, rank ? H5T_VARIABLE : strlen(value));
-			attrType = _attrType;
-		} else attrType = type;
 		cbf_reportFail(cbf_H5Screate(&attrSpace, rank, dim, 0), error);
         
 		/* do some work */
@@ -886,32 +831,15 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 			// check that the data is correct
 			if (CBF_SUCCESS==error) {
 				const size_t N = H5Sget_simple_extent_npoints(currSpace);
-				const size_t size = H5Tget_size(currType);
-				void * const attrData = malloc(N*size);
 				const size_t vlStr = H5Tis_variable_str(currType);
-				H5Aread(attr,attrType,attrData);
-				/* TODO: Improve this comparison to allow type-specific equality tests, as this version may break with IEEE754 NaNs */
-				if (vlStr < 0) error |= CBF_H5ERROR;
-				else if (!vlStr) {
-					if (0 != memcmp(value,attrData,N*size)) {
-						fprintf(stderr,__WHERE__": Incorrect attribute value (%*x vs %*x)\n", 
-                                                  (int)(N*size),*(unsigned char *)value, (int)(N*size),*(unsigned char *)attrData);
-						error |= CBF_H5DIFFERENT;
-					}
-				} else {
-					int i = 0;
-					for (i = 0; i != N; ++i) {
-						char ** p = (char**)(attrData);
-						char ** v = (char**)(value);
-						if (0 != strcmp(v[i],p[i])) {
-							fprintf(stderr,__WHERE__": Incorrect attribute value\n");
+				H5Aread(attr,attrType,buf);
+				if (!!cmp(value,buf,N)) {
+                    fprintf(stderr,__WHERE__": Incorrect attribute value\n");
 							error |= CBF_H5DIFFERENT;
-						}
-					}
-					H5Dvlen_reclaim(currType, currSpace, H5P_DEFAULT, attrData);
-				}
-				free((void*)(attrData));
-			}
+                }
+				if (vlStr < 0) error |= CBF_H5ERROR;
+				if (vlStr > 0) H5Dvlen_reclaim(currType, currSpace, H5P_DEFAULT, buf);
+            }
 			/* check local variables are properly closed */
 			if (cbf_H5Ivalid(currSpace))  H5Sclose(currSpace);
 			if (cbf_H5Ivalid(currType))  H5Tclose(currType);
@@ -922,23 +850,28 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         
 		/* check local variables are properly closed */
 		if (cbf_H5Ivalid(attrSpace))  H5Sclose(attrSpace);
-		if (cbf_H5Ivalid(_attrType))  H5Tclose(_attrType);
 		if (cbf_H5Ivalid(attr))  H5Aclose(attr);
         
 		/* done */
 		return error;
 	}
     
+    static int cmp_string(const void * a, const void * b, size_t N) {return N==1 ? strcmp(a, b) : 1;}
+
 	int cbf_H5Arequire_string
     (const hid_t location,
      const char * const name,
      const char * const value)
 	{
+		int error = CBF_SUCCESS;
 		hid_t h5atype = CBF_H5FAIL;
-		cbf_H5Tcreate_string(&h5atype,strlen(value));
-		cbf_H5Arequire(location,name,0,0,h5atype,value);
+		const size_t len = strlen(value)+1;
+		char * const buf = memset(malloc(len),'\0',len);
+		error |= cbf_H5Tcreate_string(&h5atype,strlen(value));
+		error |= cbf_H5Arequire_cmp(location,name,0,0,h5atype,value,buf,cmp_string);
 		cbf_H5Tfree(h5atype);
-        return 0;
+		free((void*)(buf));
+		return error;
 	}
     
 	/*  find/create/free hdf5 datasets without directly using hdf5 API */
@@ -1224,26 +1157,8 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      
      \return An error code.
      */
-	int cbf_H5Dmake_scalar
-    (const hid_t location,
-     hid_t * const dataset,
-     const char * const name,
-     const hid_t type,
-     const void * const value)
-	{
-		int error = (!name || !value) ? CBF_ARGUMENT : CBF_SUCCESS;
-		hid_t dataset_local = CBF_H5FAIL;
-        
-		cbf_reportFail(cbf_H5Dcreate(location, &dataset_local, name, 0,0,0,0, type), error);
-		cbf_reportFail(cbf_H5Dwrite(dataset_local, 0,0,0, value), error);
-        
-		if (dataset) *dataset = dataset_local;
-		else cbf_H5Dfree(dataset_local);
-        
-		return error;
-	}
     
-	int cbf_H5Drequire_F64LE
+	int cbf_H5Drequire_scalar_F64LE
     (const hid_t location,
      hid_t * const dataset,
      const char * const name,
@@ -1270,6 +1185,42 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		} else {
 			fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",name);
 		}
+		return error;
+	}
+    
+	int cbf_H5Drequire_string
+    (const hid_t location,
+     hid_t * const dataset,
+     const char * const name,
+     const char * const value)
+	{
+		int error = CBF_SUCCESS;
+		hid_t _dataset = CBF_H5FAIL;
+		hid_t dataType = CBF_H5FAIL;
+		error |= cbf_H5Tcreate_string(&dataType, strlen(value));
+		error |= cbf_H5Dfind(location,&_dataset,name,0,0,0,0,dataType);
+		if (CBF_SUCCESS==error) {
+			if (!cbf_H5Ivalid(_dataset)) {
+				error |= cbf_H5Dcreate(location,&_dataset,name,0,0,0,0,dataType);
+				error |= cbf_H5Dwrite(_dataset,0,0,0,value);
+			} else {
+				hid_t currType = H5Dget_type(_dataset);
+				char * const data = malloc(H5Tget_size(currType));
+				H5Tclose(currType);
+				error |= cbf_H5Dread(_dataset,0,0,0,data);
+				if (0 != strcmp(value, data)) {
+					fprintf(stderr,"Error: data doesn't match ('%s' vs '%s') for nexus field '%s'\n",data,value,name);
+					error |= CBF_H5DIFFERENT;
+				}
+				free((void*)data);
+			}
+			/* cleanup temporary dataset? */
+			if (dataset) *dataset = _dataset;
+			else cbf_H5Dfree(_dataset);
+		} else {
+			fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",name);
+		}
+		H5Tclose(dataType);
 		return error;
 	}
     
@@ -1376,213 +1327,15 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 	}
     
     
-    
-    
-	/* basic check to find out if a group is valid, without remembering what the test actually is */
-	int cbf_is_valid_h5id(const hid_t ID);
-	/* renamed function to check validity - the old name was getting irritating */
-	int cbf_H5Ivalid(const hid_t ID);
-    
-	/* function to close any handle without tracking its type */
-	int cbf_H5Ifree(const hid_t ID);
-    
-	/* find/create/free a HDF5 group if it's valid & possibly set the ID to an invalid identifier
-     can write requireGroup function as {if (!find(group)) create(group); return group;} */
-    
-	int cbf_H5Gcreate(hid_t * const group, const char * const name, const hid_t parent);
-    
-	/** \brief Check if a group with the given parameters exists, or create it if it doesn't. */
-	int cbf_H5Grequire(hid_t * const group, const char * const name, const hid_t parent);
-    
-	int cbf_H5Gfree(const hid_t ID);
-    
-	int cbf_H5Gdestroy(hid_t * const ID);
-    
-	/* Open/close a HDF5 file if it's valid & possibly set the ID to an invalid identifier */
-    
-	int cbf_H5Fopen(hid_t * const file, const char * const name);
-    
-	int cbf_H5Fclose(const hid_t ID);
-    
-	int cbf_H5Fdestroy(hid_t * const ID);
-    
-	/* Attributes */
-    
-	/* create an attribute with the given name & ASCII value, try to write it to the HDF5 id */
-	int cbf_H5Aset_string(const hid_t ID, const char * const name, const char * const value);
-    
-	/* create an attribute with the given name & vector value, try to write it to the HDF5 id */
-	int cbf_H5Aset_vector
-    (const hid_t ID,
-     const char * const name,
-     const hsize_t * const dim,
-     const hid_t type,
-     const void * const value);
-    
-	int cbf_H5Arequire
-    (const hid_t ID,
-     const char * const name,
-     const int rank,
-     const hsize_t * const dim,
-     const hid_t type,
-     const void * const value);
-    
-	int cbf_H5Arequire_string
-    (const hid_t location,
-     const char * const name,
-     const char * const value);
-    
-	/*  find/create/free hdf5 datasets without directly using hdf5 API */
-    
-	/** \brief Creates a new dataset in the given location. */
-	int cbf_H5Dcreate
-    (const hid_t location,
-     hid_t * const dataset,
-     const char * const name,
-     const int rank,
-     const hsize_t * const dim,
-     const hsize_t * const max,
-     const hsize_t * const chunk,
-     const hid_t type);
-    
-	/** \brief Look for a dataset with the given properties. */
-	int cbf_H5Dfind
-    (const hid_t location,
-     hid_t * const dataset,
-     const char * const name,
-     const int rank,
-     const hsize_t * const dim,
-     const hsize_t * const max,
-     const hsize_t * const chunk,
-     const hid_t type);
-    
-	/** \brief Change the extent of a chunked dataset to the values in \c dim */
-	int cbf_H5Dset_extent(const hid_t dataset, const hsize_t * const dim);
-    
-	/** \brief Adds some data to a dataset. */
-	int cbf_H5Dwrite
-    (const hid_t dataset,
-     const hsize_t * const offset,
-     const hsize_t * const stride,
-     const hsize_t * const count,
-     const void * const value);
-    
-	int cbf_H5Dread
-    (const hid_t dataset,
-     const hsize_t * const offset,
-     const hsize_t * const stride,
-     const hsize_t * const count,
-     void * const value);
-    
-	/** \brief Create a scalar dataset & write a value to it, optionally returning the new dataset. */
-	int cbf_H5Dmake_scalar
-    (const hid_t location,
-     hid_t * const dataset,
-     const char * const name,
-     const hid_t type,
-     const void * const value);
-    
-	int cbf_H5Drequire_F64LE
-    (const hid_t location,
-     hid_t * const dataset,
-     const char * const name,
-     const double value);
-    
-	/** \brief Close a given dataset handle without modifying the value passed in, invalidating the handle. */
-	int cbf_H5Dfree(const hid_t ID);
-	/** \brief Close a given dataset and set the handle to an invalid value. */
-	int cbf_H5Ddestroy(hid_t * const ID);
-    
-	/* Custom HDF5 types - to get the correct string type for datasets in a consistent way */
-    
-	/** \brief Get a HDF5 string datatype with a specified length
-	 */
-	int cbf_H5Tcreate_string(hid_t * type, const size_t len);
-    
-	/**
-	 */
-	int cbf_H5Tfree(const hid_t ID);
-    
-	/**
-	 */
-	int cbf_H5Tdestroy(hid_t * const ID);
-    
-	/* HDF5 dataspace functions: I need a uniform method of creating data spaces to ensure correct operation of comparison functions */
-    
-	int cbf_H5Screate
-    (hid_t * const ID,
-     const int rank,
-     const hsize_t * const dim,
-     const hsize_t * const max);
-    
-	int cbf_H5Sfree(const hid_t ID);
-    
-	int cbf_H5Sdestroy(hid_t * const ID);
-    
-    
     /****************************************************************
      End of section of code extracted from J. Sloan's
-     config.h and config.c
+     cbf_hdf5_common.c
      ****************************************************************/
         
     /****************************************************************
      The following section of code is extracted from J. Sloan's
      config.c
      ****************************************************************/
-    
-    /** Helper function to return a malloc'd copy of the string spanning [begin,end).
-     
-     \return Null if 'end' is less than 'begin', otherwise a null-terminated copy of the substring that must be free'd by the caller.
-     */
-    char * parseSubstrdup(const char * const begin, const char * const end)
-    {
-        if (!(end < begin)) {
-            const size_t len = end-begin;
-            char * const str = malloc((len+1)*sizeof(char));
-            memcpy((void*)(str), (void*)(begin), len);
-            str[len] = '\0';
-            return str;
-        }
-        return NULL;
-    }
-    
-    /** Helper function to imitate getline
-     
-     Uses ftell, fseek, fgetc, feof, realloc & freed functions for portability.
-     */
-    int parseGetline(char ** const line, size_t *n, FILE *stream)
-    {
-        int c = 0, k = 0; // current character & line length
-        const size_t b = 64;
-        
-        // check that sensible arguments are given
-        assert(NULL != line);
-        assert(NULL != n);
-        assert(NULL != stream);
-        
-        // check that the file is still OK to read
-        if (feof(stream)) return -1;
-        
-        // find the end of the line
-        c = fgetc(stream);
-        while (!feof(stream) && '\n' != c && '\r' != c) {
-            ++k;
-            // get the minimum required buffer size & realloc a block at least that big
-            if (k+1 > *n) {
-                *n = (size_t)((float)(k)/(float)(b))*b+b;
-                *line = realloc(*line, (*n)*sizeof(char));
-            }
-            // pu the last read character into the line buffer
-            (*line)[k-1] = c;
-            // get the next character
-            c = fgetc(stream);
-        }
-        // null-terminate the line
-        (*line)[k] = '\0';
-        
-        // done
-        return k;
-    }
     
     /* Some error codes for use by the parsing functions - definitions should not be visible */
     const int parseSuccess = 0;
@@ -1592,6 +1345,95 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     const int parseErrorOpeningFile = 4;
     const int parseErrorExpectedString = 5;
     const int parseErrorDuplicateField = 6;
+    const int parseErrorUnexpectedEOF = 7;
+    const int parseErrorUndefinedValue = 8;
+
+    void push_buf(const int c, char * * const buf, size_t *n, size_t *k)
+    {
+        assert(buf);
+        assert(n);
+        assert(k);
+        if (*k >= *n) {
+            *n = 2 * *k;
+            *buf = realloc(*buf, *n);
+        }
+        (*buf)[(*k)++] = c;
+    }
+    
+    /**
+     Tokenise an input stream, returning one token at a time into the given buffer.
+     
+     \param buf A pointer to a realloc-able buffer for storing the input, free'd when EOF is reached.
+     \param n The current size of \c buf.
+     \param ln The current line number of the file.
+     \param pre The previous character, needed to test for unexpected EOL state.
+     \param stream The stream to be tokenised.
+     
+     \return An error code.
+     */
+    int parseScan(char * * const buf, size_t * n, size_t * ln, char * const pre, FILE * stream)
+    {
+        int c = 0; // current character
+        size_t k = 0; // current line length
+        
+        // check that sensible arguments are given
+        assert(buf);
+        assert(n);
+        assert(ln);
+        assert(pre);
+        assert(stream);
+        
+        // skip blanks & comments to get to an interesting character
+        do {
+            c = fgetc(stream);
+            if (feof(stream)) break;
+            *pre = c;
+            if ('\n' == c) ++*ln;
+            if ('#' == c) {
+                do {
+                    c = fgetc(stream);
+                    if (feof(stream)) break;
+                    *pre = c;
+                    if ('\n' == c) ++*ln;
+                } while (!isspace(c) || isblank(c));
+            }
+            if (isblank(c)) continue;
+            else break;
+        } while (1);
+        
+        // if I am at the end of the stream, free the buffer & return 0
+        if (feof(stream)) {
+            free((void*)(*buf));
+            *buf = 0;
+            *n = 0;
+            return '\n'==*pre ? parseSuccess : parseErrorUnexpectedEOF;
+        }
+        
+        // I have a token: read it
+        if (isspace(c)) {
+            // it's a newline token
+            push_buf('\n', buf, n, &k);
+        } else {
+            // it's a string : leave the terminating character in the stream as it may be a token itself
+            if ('[' == c || ']' == c) {
+                // it's a vector start or end token : match the structure of a vector at a higher level
+                push_buf(c, buf, n, &k);
+            } else while (1) {
+                push_buf(c, buf, n, &k);
+                c = fgetc(stream);
+                if (feof(stream)) break;
+                *pre = c;
+                if (isspace(c) || '[' == c || ']' == c) {
+                    ungetc(c, stream);
+                    break;
+                }
+            }
+        }
+        // null-terminate the token
+        push_buf('\0', buf, n, &k);
+        
+        return (feof(stream) && '\n'!=*pre) ? parseErrorUnexpectedEOF : parseSuccess;
+    }
     
     /**
      The returned string is "success" for parseSuccess, "unknown error" if the given error code is not recognised or a non-empty string briefly describing the error otherwise.
@@ -1606,44 +1448,29 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         else if (error == parseErrorExpectedNumber) return "expected a number";
         else if (error == parseErrorOpeningFile) return "could not open file";
         else if (error == parseErrorExpectedString) return "expected a string";
-        else if (error == parseErrorDuplicateField) return "duplicate field";
+        else if (error == parseErrorDuplicateField) return "duplicate data";
         else return "unknown error";
     }
-    
-    /**
-     The unusual notation requires a 'pointer-to-array-of-length-3', ie:
-     configItem_t item;
-     vec3isnan(&item.vector);
-     or:
-     double vec3[3] = {0, 1, 2};
-     vec3isnan(&vec3);
-     Failure to pass a properly sized vector results in the warning 'passing argument 1 of ‘vec3isnan’ from incompatible pointer type'. It *should* be an error, and *should* allow a const-qualifier to be added to the type as it is passed to the function.
-     
-     To malloc a vector of the correct type do:
-     double (*vec3)[3] = malloc(sizeof *vec3);
-     then:
-     vec3isnan(vec3);
-     */
-    int vec3isnan(double (*const vec)[3])
-    {return isnan((*vec)[0]) || isnan((*vec)[1]) || isnan((*vec)[2]);}
-    
+        
     /**
      Initialises name & depends_on to null, vector to [nan,nan,nan].
      */
     configItem_t createConfigItem()
     {
         configItem_t item;
-        item.name = 0;
+        item.minicbf = 0;
+        item.nexus = 0;
         item.depends_on = 0;
-        item.vector[0] = 0./0.;
-        item.vector[1] = 0./0.;
-        item.vector[2] = 0./0.;
+        item.vector[0] = 0.;
+        item.vector[1] = 0.;
+        item.vector[2] = 0.;
         return item;
     }
     
     void destroyConfigItem(const configItem_t item)
     {
-        free((void*)(item.name));
+        free((void*)(item.minicbf));
+        free((void*)(item.nexus));
         free((void*)(item.depends_on));
     }
     
@@ -1655,6 +1482,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         configItem_t * item;
         size_t nItems;
         size_t maxItems;
+        const char * sample_depends_on;
     } configItemVector_struct;
     
     /**
@@ -1666,6 +1494,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         vector->item = 0;
         vector->nItems = 0;
         vector->maxItems = 0;
+        vector->sample_depends_on = 0;
         return vector;
     }
     
@@ -1677,13 +1506,32 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         size_t i = 0;
         for (; i < vector->nItems; ++i) destroyConfigItem(vector->item[i]);
         free(vector->item);
+        free((void*)(vector->sample_depends_on));
         free(vector);
+    }
+    
+    /**
+     Releases any previously held dependancy and takes ownership of a new one.
+     The given string will be free'd by the object when it is no longer needed.
+     */
+    void configItemVector_setSampleDependsOn(configItemVector_t vector, const char * const depends_on)
+    {
+        free((void*)(vector->sample_depends_on));
+        vector->sample_depends_on = depends_on;
+    }
+    
+    /**
+     \return The current dependancy setting for the sample group, or zero if not set.
+     */
+    const char * configItemVector_getSampleDependsOn(configItemVector_t vector)
+    {
+        return vector->sample_depends_on;
     }
     
     /**
      The vector will take ownership of the item's contents. This may invalidate any previously obtained pointers to items in the vector.
      */
-    void configItemVector_push(configItemVector_t vector, configItem_t item)
+    configItem_t * configItemVector_push(configItemVector_t vector, configItem_t item)
     {
         if (!(vector->nItems < vector->maxItems)) {
             // increase the maximum number of items
@@ -1696,6 +1544,27 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         
         // add the item to the end of the vector & set the item count to the correct number.
         vector->item[vector->nItems++] = item;
+        return vector->item+vector->nItems-1;
+    }
+    
+    /**
+     \return An iterator to a matching entry, or an iterator to the current end element.
+     */
+    configItem_t * configItemVector_findMinicbf(const configItemVector_t vector, const char * const name)
+    {
+        configItem_t * it = configItemVector_begin(vector);
+        while (configItemVector_end(vector) != it && (!it->minicbf || strcmp(it->minicbf,name))) ++it;
+        return it;
+    }
+    
+    /**
+     \return An iterator to a matching entry, or an iterator to the current end element.
+     */
+    configItem_t * configItemVector_findNexus(const configItemVector_t vector, const char * const name)
+    {
+        configItem_t * it = configItemVector_begin(vector);
+        while (configItemVector_end(vector) != it && (!it->nexus || strcmp(it->nexus,name))) ++it;
+        return it;
     }
     
     /**
@@ -1705,147 +1574,256 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      */
     configItem_t * configItemVector_at(const configItemVector_t vector, const size_t n)
     {
-        if (n < vector->nItems) return vector->item+n;
-        return 0;
+        return (n < vector->nItems) ? vector->item+n : 0;
     }
     
     /**
      \return A pointer to an item in the vector that may be modified but should not be free'd, subsequent vector operations may invalidate this pointer.
      */
-    configItem_t * configItemVector_begin(const configItemVector_t vector) {return vector->item;}
+    configItem_t * configItemVector_begin(const configItemVector_t vector)
+    {
+        return vector->item;
+    }
     
     /**
      \return A pointer to an item in the vector that may be modified but should not be free'd, subsequent vector operations may invalidate this pointer.
      */
-    const configItem_t * configItemVector_end(const configItemVector_t vector) {return vector->item+vector->nItems;}
-    
-    /* Parses a vector of the form " [ a , b , c ]" or " [ a b c]", with optional whitespace around the commas and at the start of the string */
-    int parseVector(const char * line, double vector[3], const char ** const out)
+    const configItem_t * configItemVector_end(const configItemVector_t vector)
     {
-        char * tmp = 0;
-        assert(line);
-        assert(*line);
-        assert(out);
-        assert(*out);
-        while (isspace(*line)) ++line;
-        if (*line++ != '[') return parseErrorExpectedDelimeter;
-        while (isspace(*line)) ++line;
-        vector[0] = strtod(line,&tmp);
-        if (tmp <= line) return parseErrorExpectedNumber;
-        line = tmp;
-        while (isspace(*line)) ++line;
-        if (',' == *line) ++line;
-        while (isspace(*line)) ++line;
-        vector[1] = strtod(line,&tmp);
-        if (tmp <= line) return parseErrorExpectedNumber;
-        line = tmp;
-        while (isspace(*line)) ++line;
-        if (',' == *line) ++line;
-        while (isspace(*line)) ++line;
-        vector[2] = strtod(line,&tmp);
-        if (tmp <= line) return parseErrorExpectedNumber;
-        line = tmp;
-        while (isspace(*line)) ++line;
-        if (*line++ != ']') return parseErrorExpectedDelimeter;
-        *out = line;
+        return vector->item+vector->nItems;
+    }
+
+    int parseExtractVector
+    (FILE * const configFile,
+     FILE * const logFile,
+     configItem_t * it,
+     char * * const buf,
+     size_t * n,
+     size_t * ln,
+     char * const pre)
+    {
+        char * end = 0;
+        
+#define GET_TOKEN() \
+do { \
+  const int e = parseScan(buf, n, ln, pre, configFile); \
+    if (e != parseSuccess) { \
+	fprintf(logFile,"\nError: %s\n",configParseStrerror(e)); \
+		return e; \
+  } \
+} while (0);
+        
+#define REQUIRE_TOKEN(TKN) \
+do { \
+  const char * const _tkn = (TKN); \
+  if (strcmp(_tkn,*buf)) { \
+    fprintf(logFile,"Config parsing error on line %lu: expected " #TKN ", got '%s'\n",*ln,*buf); \
+    return parseErrorUnexpectedInput; \
+  } \
+} while (0);
+        
+#define REQUIRE_NOT_EOL() \
+do{ \
+  if (!strcmp("\n",*buf)) { \
+    fprintf(logFile,"Config parsing error on line %lu: unexpected newline\n",*ln); \
+    return parseErrorUnexpectedInput; \
+  } \
+} while (0);
+        
+        // literal '['.
+        GET_TOKEN();
+        REQUIRE_NOT_EOL();
+        REQUIRE_TOKEN("[");
+        GET_TOKEN();
+        REQUIRE_NOT_EOL();
+        errno = 0;
+        it->vector[0] = strtod(*buf, &end);
+        if (errno != 0 || end == *buf) {
+            fprintf(logFile,"Config parsing error on line %lu: expected a number, got '%s'\n",*ln,*buf);
+            return parseErrorExpectedNumber;
+        }
+        GET_TOKEN();
+        REQUIRE_NOT_EOL();
+        errno = 0;
+        it->vector[1] = strtod(*buf, &end);
+        if (errno != 0 || end == *buf) {
+            fprintf(logFile,"Config parsing error on line %lu: expected a number, got '%s'\n",*ln,*buf);
+            return parseErrorExpectedNumber;
+        }
+        GET_TOKEN();
+        REQUIRE_NOT_EOL();
+        errno = 0;
+        it->vector[2] = strtod(*buf, &end);
+        if (errno != 0 || end == *buf) {
+            fprintf(logFile,"Config parsing error on line %lu: expected a number, got '%s'\n",*ln,*buf);
+            return parseErrorExpectedNumber;
+        }
+        // literal ']'.
+        GET_TOKEN();
+        REQUIRE_NOT_EOL();
+        REQUIRE_TOKEN("]");
+        
+#undef GET_TOKEN
+#undef REQUIRE_TOKEN
+#undef REQUIRE_NOT_EOL
+        
         return parseSuccess;
     }
     
-    /* Parses a string and returns a malloc'd copy of any valid match which must be free'd by the user */
-    int parseString(char * const line, const char * * const string, char * * const out)
+    int parseConfig(FILE * const configFile, FILE * const logFile, configItemVector_t vec)
     {
-        char * c = line;
-        assert(line);
-        assert(string);
-        assert(out);
-        assert(*out);
-        while (isalpha(*c)) ++c;
-        if (line == c) return parseErrorExpectedString;
-        *string = parseSubstrdup(line,c);
-        *out = c;
+        char * tkn = 0;
+        size_t n = 0, ln = 1;
+        char pre = '\0';
+        
+#define GET_TOKEN() \
+do { \
+	const int e = parseScan(&tkn, &n, &ln, &pre, configFile); \
+	if (e != parseSuccess) { \
+		fprintf(logFile,"\nError: %s\n",configParseStrerror(e)); \
+		return e; \
+} \
+} while (0)
+        
+#define REQUIRE_TOKEN(TKN) \
+do { \
+const char * const _tkn = (TKN); \
+if (strcmp(_tkn,tkn)) { \
+fprintf(logFile,"Config parsing error on line %lu: expected " #TKN ", got '%s'\n",ln,tkn); \
+return parseErrorUnexpectedInput; \
+} \
+} while (0)
+        
+#define REQUIRE_EOL() \
+do{ \
+if (strcmp("\n",tkn)) { \
+fprintf(logFile,"Config parsing error on line %lu: expected '\\n', got '%s'\n",ln,tkn); \
+return parseErrorUnexpectedInput; \
+} \
+} while (0)
+        
+#define REQUIRE_NOT_EOL() \
+do{ \
+if (!strcmp("\n",tkn)) { \
+fprintf(logFile,"Config parsing error on line %lu: unexpected newline\n",ln); \
+return parseErrorUnexpectedInput; \
+} \
+} while (0)
+        
+#define REQUIRE_NEXUS_AXIS() \
+do { \
+if (strcmp(".",tkn) && configItemVector_end(vec) == configItemVector_findNexus(vec,tkn)) { \
+fprintf(logFile,"Config parsing error on line %lu: Nexus axis '%s' not defined\n",ln,tkn); \
+return parseErrorUndefinedValue; \
+} \
+} while (0)
+        
+#define REQUIRE_VECTOR() \
+do { \
+const int e = parseExtractVector(configFile, logFile, it, &tkn, &n, &ln, &pre); \
+if (parseSuccess != e) { \
+fprintf(logFile,"Error reading a vector: %s\n",configParseStrerror(e)); \
+return e; \
+} \
+} while (0)
+        
+        // first token of the line
+        GET_TOKEN();
+        while (tkn) {
+            if (!strcmp("map",tkn)) {
+                // storage that I don't need to free within this function
+                configItem_t * it;
+                // minicbf axis name
+                GET_TOKEN();
+                REQUIRE_NOT_EOL();
+                it = configItemVector_findMinicbf(vec,tkn);
+                if (configItemVector_end(vec) != it) {
+                    fprintf(logFile,"Config parsing error on line %lu: Duplicate axis definition for minicbf axis '%s'\n",ln,tkn);
+                    return parseErrorDuplicateField;
+                }
+                it = configItemVector_push(vec,createConfigItem());
+                it->minicbf = strdup(tkn);
+                // literal 'to'.
+                GET_TOKEN();
+                REQUIRE_NOT_EOL();
+                REQUIRE_TOKEN("to");
+                // nexus axis name
+                GET_TOKEN();
+                REQUIRE_NOT_EOL();
+                if (configItemVector_end(vec) != configItemVector_findNexus(vec,tkn)) {
+                    fprintf(logFile,"Config parsing error on line %lu: Duplicate axis definition for Nexus axis '%s'\n",ln,tkn);
+                    return parseErrorDuplicateField;
+                }
+                it->nexus = strdup(tkn);
+                // newline
+                GET_TOKEN();
+                REQUIRE_EOL();
+            } else if (!strcmp("Sample",tkn)) {
+                // literal 'depends-on'.
+                GET_TOKEN();
+                REQUIRE_NOT_EOL();
+                REQUIRE_TOKEN("depends-on");
+                // nexus axis name
+                GET_TOKEN();
+                REQUIRE_NOT_EOL();
+                REQUIRE_NEXUS_AXIS();
+                configItemVector_setSampleDependsOn(vec,strdup(tkn));
+                // newline
+                GET_TOKEN();
+                REQUIRE_EOL();
+            } else if (!strcmp("\n",tkn)) {
+            } else {
+                // find entry by nexus axis name
+                configItem_t * const it = configItemVector_findNexus(vec,tkn);
+                if (configItemVector_end(vec) == it) {
+                    fprintf(logFile,"Config parsing error on line %lu: Nexus axis '%s' not defined\n",ln,tkn);
+                    return parseErrorUndefinedValue;
+                }
+                // match depends-on -> vector OR vector -> depends-on.
+                GET_TOKEN();
+                REQUIRE_NOT_EOL();
+                if (!strcmp("vector",tkn)) {
+                    // try to get a vector
+                    REQUIRE_VECTOR();
+                    GET_TOKEN();
+                    // optional 'depends-on'
+                    if (!strcmp("depends-on",tkn)) {
+                        // nexus axis name
+                        GET_TOKEN();
+                        REQUIRE_NOT_EOL();
+                        REQUIRE_NEXUS_AXIS();
+                        // this is a potential memory leak
+                        it->depends_on = strdup(tkn);
+                        GET_TOKEN();
+                    }
+                    // check for newline
+                    REQUIRE_EOL();
+                } else if (!strcmp("depends-on",tkn)) {
+                    // nexus axis name
+                    GET_TOKEN();
+                    REQUIRE_NOT_EOL();
+                    REQUIRE_NEXUS_AXIS();
+                    // this is a potential memory leak
+                    it->depends_on = strdup(tkn);
+                    GET_TOKEN();
+                    // optional 'vector'
+                    if (!strcmp("vector",tkn)) {
+                        // try to get a vector
+                        REQUIRE_VECTOR();
+                        GET_TOKEN();
+                    }
+                    // check for newline
+                    REQUIRE_EOL();
+                } else return parseErrorUnexpectedInput;
+            }
+            GET_TOKEN();
+        }
         return parseSuccess;
-    }
-    
-    /* Parses a single line of the config file, looking for an axis identifier and any relevent parameters */
-    int parseLine(char * const lp, configItem_t * const item, char * * lpp)
-    {
-        int error = parseSuccess;
-        char * line = lp;
-        assert(lp);
-        if (!lpp) lpp = &line;
-        assert(*lpp);
-        // find first non-space character (loop should never actually run, it's here for correctness).
-        while (isspace(*(*lpp))) ++(*lpp);
-        // extract the item's name
-        error = parseString(*lpp,&(item->name),lpp);
-        // search for some parameters that may be set
-        while (parseSuccess == error && '\0' != *(*lpp)) {
-            while (isspace(*(*lpp))) ++(*lpp);
-            if (0 == strncmp((*lpp),"depends_on",strlen("depends_on"))) {
-                // match "depends_on" data
-                (*lpp) += strlen("depends_on");
-                while (isspace(*(*lpp))) ++(*lpp);
-                error = NULL==item->depends_on ? parseString(*lpp,&(item->depends_on),lpp) : parseErrorDuplicateField;
-            } else if (0 == strncmp((*lpp),"vector",strlen("vector"))) {
-                // match "vector" data
-                (*lpp) += strlen("vector");
-                error = parseVector((*lpp), item->vector, (const char ** const)(&(*lpp)));
-            } else error = parseErrorUnexpectedInput;
-            while (isspace(*(*lpp))) ++(*lpp);
-        }
-        return error;
-    }
-    
-    /**
-     Will fail if it contains a syntax error. An error message will be printed to the logFile stream or stderr on failure.
-     
-     \sa configParse_strerror
-     \return An error code.
-     */
-    int parseConfigStream(FILE * const configFile, FILE * const logFile, configItemVector_t vec)
-    {
-        assert(configFile);
-        char * line = 0;
-        char * lp = 0;
-        size_t n = 0;
-        unsigned int ln = 0;
-        int error = parseSuccess;
-        if (!vec) vec = createConfigItemVector();
-        while (parseSuccess == error && -1 != parseGetline(&line, &n, configFile) && ln != 20) {
-            lp = line;
-            ++ln;
-            { // strip out the comment lines
-                char * c = lp;
-                for (;;) {
-                    if (*c == '#') *c = '\0';
-                    if (*c == '\0') break;
-                    ++c;
-                }
-            }
-            { // find first non-space character, compare to null
-                char * c = lp;
-                while (isspace(*c)) ++c;
-                if ('\0' == *c) continue;
-            }
-            // now I have something interesting
-            {
-                configItem_t item = createConfigItem();
-                if (parseSuccess != (error = parseLine(line, &item, &lp))) {
-                    destroyConfigItem(item);
-                } else {
-                    configItemVector_push(vec, item);
-                }
-            }
-        }
-        if (parseSuccess != error)
-            fprintf(NULL==logFile?stderr:logFile,"config error @ %d:%ld: %s\n",
-                    ln,lp-line,configParseStrerror(error));
-        return error;
     }
     
     /****************************************************************
      End of section of code extracted from J. Sloan's
-     config.h and config.c
+     config.c
      ****************************************************************/
 
     
@@ -4161,51 +4139,22 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 									  fprintf(stderr,__WHERE__": 'header_contents' not found.\n"));
 						/* re-use the 'value' variable, I won't need the old value anymore */
 						cbf_onfailnez(cbf_get_value(handle,&value), fprintf(stderr,__WHERE__": 'header_contents' inaccessible.\n"));
-						{
-							int found = CBF_SUCCESS;
-							hid_t h5location = detector;
-							hid_t h5type = CBF_H5FAIL;
-							hid_t h5data = CBF_H5FAIL;
-							const char h5name[] = "type";
-							const char str[] = "pixel array";
-							cbf_H5Tcreate_string(&h5type, strlen(str));
-							//if (CBF_SUCCESS != cbf_H5Dmake_scalar(detector,0,"type",type,"CCD"))
-							//	fprintf(stderr, __WHERE__": Error writing detector/type\n");
-							found = cbf_H5Dfind(h5location,&h5data,h5name,0,0,0,0,h5type);
-							if (CBF_SUCCESS==found) {
-								if (!cbf_H5Ivalid(h5data)) {
-									cbf_H5Dcreate(h5location,&h5data,h5name,0,0,0,0,h5type);
-									cbf_H5Dwrite(h5data,0,0,0,str);
-								} else {
-									char * const data = malloc(H5Tget_size(h5type));
-									cbf_H5Dread(h5data,0,0,0,data);
-									if (0 != strcmp(str,data))
-										fprintf(stderr,"Error: data doesn't match (%s vs %s) "
-												"for nexus field '%s'\n",data,str,h5name);
-									free((void*)(data));
-								}
-								/* cleanup temporary datasets */
-								cbf_H5Dfree(h5data);
-							} else {
-								fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",h5name);
-							}
-							cbf_H5Tfree(h5type);
-						}
+                        cbf_H5Drequire_string(detector,0,"type","pixel array");
                         
 #define __IF_MATCH(KEY) \
 if (0 == strncmp(value,KEY,strlen(KEY))) { \
-if (0) printf(__WHERE__": '"KEY"' found.\n"); \
-value += strlen(KEY); \
-value = getPilatusNonWhitespaceToken(value);
+  if (0) printf(__WHERE__": '"KEY"' found.\n"); \
+  value += strlen(KEY); \
+  value = getPilatusNonWhitespaceToken(value);
                         
 #define __IF_MATCH_IGNORE(KEY) \
 if (0 == strncmp(value,KEY,strlen(KEY))) { \
-if (0) printf(__WHERE__": '"KEY"' ignored.\n");
+  if (0) printf(__WHERE__": '"KEY"' ignored.\n");
                         
 #define __ENDIF_MATCH } else { \
-const char * start = getPilatusNonWhitespaceToken(value); \
-value = getPilatusEOLToken(start); \
-printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
+  const char * start = getPilatusNonWhitespaceToken(value); \
+  value = getPilatusEOLToken(start); \
+  printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 } do {} while (0)
                         
 #define __ELSEIF_MATCH(KEY) } else __IF_MATCH(KEY)
@@ -4257,7 +4206,7 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 								if (0 == units || strlen(units) != strlen(expected_units) || 0 != strcmp(units,expected_units))
 									fprintf(stderr,__WHERE__": unexpected value for x units of 'Pixel_size'.\n");
 								else x_units = 1;
-								free(units);
+								free((void*)(units));
 								/* skip the 'x' in the middle of the value list */
 								value = getPilatusNonWhitespaceToken(value);
 								value = getPilatusNonTextToken(value);
@@ -4268,36 +4217,10 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 								if (0 == units || strlen(units) != strlen(expected_units) || 0 != strcmp(units,expected_units))
 									fprintf(stderr,__WHERE__": unexpected value for y units of 'Pixel_size'.\n");
 								else y_units = 1;
-								free(units);
+								free((void*)(units));
 								Pixel_size = (x_units && y_units);
 							} __ELSEIF_MATCH("Silicon sensor, thickness") {
-								const char str[] = "Silicon";
-								const char h5name[] = "sensor_material";
-								hid_t h5location = detector;
-								hid_t h5data = CBF_H5FAIL;
-								hid_t h5type = CBF_H5FAIL;
-								int found = CBF_SUCCESS;
-								cbf_H5Tcreate_string(&h5type,strlen(str));
-								/* misc: sensor_material */
-								//cbf_H5Dmake_scalar(detector,0,"sensor_material",H5T_C_S1,"Silicon");
-								found = cbf_H5Dfind(h5location,&h5data,h5name,0,0,0,0,h5type);
-								if (CBF_SUCCESS==found) {
-									if (!cbf_H5Ivalid(h5data)) {
-										cbf_H5Dcreate(h5location,&h5data,h5name,0,0,0,0,h5type);
-										cbf_H5Dwrite(h5data,0,0,0,str);
-									} else {
-										char * const data = malloc(H5Tget_size(h5type));
-										cbf_H5Dread(h5data,0,0,0,data);
-										if (0 != strcmp(str,data))
-											fprintf(stderr,"Error: data doesn't match (%s vs %s) "
-													"for nexus field '%s'\n",data,str,h5name);
-										free((void*)(data));
-									}
-									/* cleanup temporary datasets */
-									cbf_H5Dfree(h5data);
-								} else {
-									fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",h5name);
-								}
+                                cbf_H5Drequire_string(detector,0,"sensor_material","Silicon");
 								/* Get value & units */
 								value = pilatusWriteDoubleUnits(value,detector,"sensor_thickness",0,0);
 							} __ELSEIF_MATCH("Detector_distance") {
@@ -4308,41 +4231,16 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 								if (0 == units || strlen(units) != strlen(expected_units) || 0 != strcmp(units,expected_units))
 									fprintf(stderr,__WHERE__": unexpected value for 'Detector_distance'.\n");
 								else Detector_distance = 1;
-								free(units);
+								free((void*)(units));
 							} __ELSEIF_MATCH("Detector") {
 								const char * const start = value;
-								const hid_t h5location = detector;
 								/* [1,end): detector description */
 								value = getPilatusEOLToken(value);
 								if (start != value) {
 									const char * str = substrdup(start, value);
-									const char h5name[] = "description";
-									hid_t h5data = CBF_H5FAIL;
-									hid_t h5type = CBF_H5FAIL;
-									int found = CBF_SUCCESS;
-									cbf_H5Tcreate_string(&h5type,strlen(str));
-									//cbf_H5Dmake_scalar(detector,0,"description",type,str);
-									found = cbf_H5Dfind(h5location,&h5data,h5name,0,0,0,0,h5type);
-									if (CBF_SUCCESS==found) {
-										if (!cbf_H5Ivalid(h5data)) {
-											cbf_H5Dcreate(h5location,&h5data,h5name,0,0,0,0,h5type);
-											cbf_H5Dwrite(h5data,0,0,0,str);
-										} else {
-											char * const data = malloc(H5Tget_size(h5type));
-											cbf_H5Dread(h5data,0,0,0,data);
-											if (0 != strcmp(str,data))
-												fprintf(stderr,"Error: data doesn't match (%s vs %s) "
-														"for nexus field '%s'\n",data,str,h5name);
-											free((void*)(data));
-										}
-										/* cleanup temporary datasets */
-										cbf_H5Dfree(h5data);
-									} else {
-										fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",h5name);
-									}
-									cbf_H5Tfree(h5type);
+									cbf_H5Drequire_string(detector,0,"description",str);
 									free((void*)(str));
-								}
+                                }
 							} __ELSEIF_MATCH("N_excluded_pixels") {
 								const char * const start = value;
 								/* check for the presence of any interesting data */
@@ -4351,37 +4249,11 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 									int error = CBF_SUCCESS;
 									hid_t h5location = CBF_H5FAIL;
 									/* get the dignostics group */
-                                    // 									if (!cbf_H5Ivalid(pilatusDiagnostics))
-                                    // 										error |= cbf_H5Grequire(&pilatusDiagnostics,"pilatus_diagnostics",detector);
 									error |= cbf_H5Grequire(&h5location,"pilatus_diagnostics",detector);
 									/* write the data */
 									if (CBF_SUCCESS==error) {
 										const char * str = substrdup(start, value);
-										const char h5name[] = "N_excluded_pixels";
-										hid_t h5type = CBF_H5FAIL;
-										hid_t h5data = CBF_H5FAIL;
-										int found = CBF_SUCCESS;
-										cbf_H5Tcreate_string(&h5type, strlen(str));
-										//cbf_H5Dmake_scalar(pilatusDiagnostics,0,"N_excluded_pixels",type,str);
-										found = cbf_H5Dfind(h5location,&h5data,h5name,0,0,0,0,h5type);
-										if (CBF_SUCCESS==found) {
-											if (!cbf_H5Ivalid(h5data)) {
-												cbf_H5Dcreate(h5location,&h5data,h5name,0,0,0,0,h5type);
-												cbf_H5Dwrite(h5data,0,0,0,str);
-											} else {
-												char * const data = malloc(H5Tget_size(h5type));
-												cbf_H5Dread(h5data,0,0,0,data);
-												if (0 != strcmp(str,data))
-													fprintf(stderr,"Error: data doesn't match (%s vs %s) "
-															"for nexus field '%s'\n",data,str,h5name);
-												free((void*)(data));
-											}
-											/* cleanup temporary datasets */
-											cbf_H5Dfree(h5data);
-										} else {
-											fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",h5name);
-										}
-										cbf_H5Tfree(h5type);
+										cbf_H5Drequire_string(h5location,0,"N_excluded_pixels",str);
 										free((void*)str);
 									}
 								}
@@ -4393,39 +4265,11 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 									int error = CBF_SUCCESS;
 									hid_t h5location = CBF_H5FAIL;
 									/* get the dignostics group */
-                                    // 									if (!cbf_H5Ivalid(pilatusDiagnostics))
-                                    // 										error |= cbf_H5Grequire(&pilatusDiagnostics,"pilatus_diagnostics",detector);
 									error |= cbf_H5Grequire(&h5location,"pilatus_diagnostics",detector);
 									/* write the data */
 									if (CBF_SUCCESS==error) {
 										const char * str = substrdup(start, value);
-										const char h5name[] = "Excluded_pixels";
-										hid_t h5type = CBF_H5FAIL;
-										hid_t h5data = CBF_H5FAIL;
-										int found = CBF_SUCCESS;
-										cbf_H5Tcreate_string(&h5type, strlen(str));
-                                        // 										cbf_H5Dmake_scalar(pilatusDiagnostics,0,"Excluded_pixels",type,str);
-										found = cbf_H5Dfind(h5location,&h5data,h5name,0,0,0,0,h5type);
-										if (CBF_SUCCESS==found) {
-											if (!cbf_H5Ivalid(h5data)) {
-												cbf_H5Dcreate(h5location,&h5data,h5name,0,0,0,0,h5type);
-												cbf_H5Dwrite(h5data,0,0,0,str);
-											} else {
-												char * data = malloc(H5Tget_size(h5type));
-												const char * const data2 = data;
-												cbf_H5Dread(h5data,0,0,0,data);
-												if (0 != strcmp(str,data))
-													fprintf(stderr,"Error: data doesn't match (%s vs %s) "
-															"for nexus field '%s'\n",data,str,h5name);
-												if (data2 != data) fprintf(stderr, __WHERE__ ": Memory leak");
-												free((void*)(data));
-											}
-											/* cleanup temporary datasets */
-											cbf_H5Dfree(h5data);
-										} else {
-											fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",h5name);
-										}
-										cbf_H5Tfree(h5type);
+										cbf_H5Drequire_string(h5location,0,"Excluded_pixels",str);
 										free((void*)str);
 									}
 								}
@@ -4437,37 +4281,11 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 									int error = CBF_SUCCESS;
 									hid_t h5location = CBF_H5FAIL;
 									/* get the dignostics group */
-                                    // 									if (!cbf_H5Ivalid(pilatusDiagnostics))
-                                    // 										error |= cbf_H5Gcreate(&pilatusDiagnostics,"pilatus_diagnostics",detector);
 									error |= cbf_H5Grequire(&h5location,"pilatus_diagnostics",detector);
 									/* write the data */
 									if (CBF_SUCCESS==error) {
 										const char * str = substrdup(start, value);
-										const char h5name[] = "Flat_field";
-										hid_t h5type = CBF_H5FAIL;
-										hid_t h5data = CBF_H5FAIL;
-										int found = CBF_SUCCESS;
-										cbf_H5Tcreate_string(&h5type, strlen(str));
-                                        // 										cbf_H5Dmake_scalar(pilatusDiagnostics,0,"Flat_field",type,str);
-										found = cbf_H5Dfind(h5location,&h5data,h5name,0,0,0,0,h5type);
-										if (CBF_SUCCESS==found) {
-											if (!cbf_H5Ivalid(h5data)) {
-												cbf_H5Dcreate(h5location,&h5data,h5name,0,0,0,0,h5type);
-												cbf_H5Dwrite(h5data,0,0,0,str);
-											} else {
-												char * const data = malloc(H5Tget_size(h5type));
-												cbf_H5Dread(h5data,0,0,0,data);
-												if (0 != strcmp(str,data))
-													fprintf(stderr,"Error: data doesn't match (%s vs %s) "
-															"for nexus field '%s'\n",data,str,h5name);
-												free((void*)(data));
-											}
-											/* cleanup temporary datasets */
-											cbf_H5Dfree(h5data);
-										} else {
-											fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",h5name);
-										}
-										cbf_H5Tfree(h5type);
+										cbf_H5Drequire_string(h5location,0,"Flat_field",str);
 										free((void*)str);
 									}
 								}
@@ -4479,37 +4297,11 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 									int error = CBF_SUCCESS;
 									hid_t h5location = CBF_H5FAIL;
 									/* get the dignostics group */
-                                    // 									if (!cbf_H5Ivalid(pilatusDiagnostics))
-                                    // 										error |= cbf_H5Gcreate(&pilatusDiagnostics,"pilatus_diagnostics",detector);
 									error |= cbf_H5Grequire(&h5location,"pilatus_diagnostics",detector);
 									/* write the data */
 									if (CBF_SUCCESS==error) {
 										const char * str = substrdup(start, value);
-										const char h5name[] = "Trim_file";
-										hid_t h5type = CBF_H5FAIL;
-										hid_t h5data = CBF_H5FAIL;
-										int found = CBF_SUCCESS;
-										cbf_H5Tcreate_string(&h5type, strlen(str));
-                                        // 										cbf_H5Dmake_scalar(pilatusDiagnostics,0,"Trim_file",type,str);
-										found = cbf_H5Dfind(h5location,&h5data,h5name,0,0,0,0,h5type);
-										if (CBF_SUCCESS==found) {
-											if (!cbf_H5Ivalid(h5data)) {
-												cbf_H5Dcreate(h5location,&h5data,h5name,0,0,0,0,h5type);
-												cbf_H5Dwrite(h5data,0,0,0,str);
-											} else {
-												char * const data = malloc(H5Tget_size(h5type));
-												cbf_H5Dread(h5data,0,0,0,data);
-												if (0 != strcmp(str,data))
-													fprintf(stderr,"Error: data doesn't match (%s vs %s) "
-															"for nexus field '%s'\n",data,str,h5name);
-												free((void*)(data));
-											}
-											/* cleanup temporary datasets */
-											cbf_H5Dfree(h5data);
-										} else {
-											fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",h5name);
-										}
-										cbf_H5Tfree(h5type);
+										cbf_H5Drequire_string(h5location,0,"Trim_file",str);
 										free((void*)str);
 									}
 								}
@@ -4654,32 +4446,7 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 								value = getPilatusEOLToken(value);
 								if (start != value) {
 									const char * str = substrdup(start, value);
-									int found = CBF_SUCCESS;
-									hid_t h5data = CBF_H5FAIL;
-									hid_t h5location = detector;
-									hid_t h5type = CBF_H5FAIL;
-									const char h5name[] = "gain_setting";
-									cbf_H5Tcreate_string(&h5type, strlen(str));
-									//cbf_H5Dmake_scalar(detector, 0, "gain_setting", type, str);
-									found = cbf_H5Dfind(h5location,&h5data,h5name,0,0,0,0,h5type);
-									if (CBF_SUCCESS==found) {
-										if (!cbf_H5Ivalid(h5data)) {
-											cbf_H5Dcreate(h5location,&h5data,h5name,0,0,0,0,h5type);
-											cbf_H5Dwrite(h5data,0,0,0,str);
-										} else {
-											char * const data = malloc(H5Tget_size(h5type));
-											cbf_H5Dread(h5data,0,0,0,data);
-											if (0 != strcmp(str,data))
-												fprintf(stderr,"Error: data doesn't match (%s vs %s) "
-														"for nexus field '%s'\n",data,str,h5name);
-											free((void*)(data));
-										}
-										/* cleanup temporary datasets */
-										cbf_H5Dfree(h5data);
-									} else {
-										fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",h5name);
-									}
-									cbf_H5Tfree(h5type);
+									cbf_H5Drequire_string(detector,0,"gain_setting",str);
 									free((void*)str);
 								}
 							} __ELSEIF_MATCH("Wavelength") {
@@ -4736,7 +4503,7 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 									if (0 == units || strlen(units) != strlen(expected_units) || 0 != strcmp(units,expected_units))
 										fprintf(stderr,__WHERE__": unexpected value for units of 'Beam_xy'.\n");
 									else Beam_xy = 1;
-									free(units);
+									free((void*)(units));
 								} else {
 									fprintf(stderr,__WHERE__": 'Beam_xy' units not found.\n");
 								}
@@ -4746,11 +4513,9 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 								if (end != value && 0.0 != num) {
 									// I have a valid flux, map it to /entry/sample/beam/flux
 									int error = CBF_SUCCESS;
-									int found = CBF_SUCCESS;
 									hid_t sample = CBF_H5FAIL;
 									hid_t h5data = CBF_H5FAIL;
 									hid_t h5location = CBF_H5FAIL;
-									const char h5name[] = "flux";
 									/* Ensure I have a valid sample group */
 									error |= cbf_h5handle_require_sample(h5handle, &sample);
 									/* Ensure I have a valid beam group */
@@ -4761,7 +4526,7 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 									error |= cbf_H5Grequire(&h5location,"beam",sample);
 									error |= cbf_H5Arequire_string(h5location, "NX_class", "NXbeam");
 									/* Store value & units */
-									error |= cbf_H5Drequire_F64LE(h5location, &h5data, "flux", num);
+									error |= cbf_H5Drequire_scalar_F64LE(h5location, &h5data, "flux", num);
 									error |= cbf_H5Arequire_string(h5data, "units", "s-1");
 									/* cleanup temporary dataset */
 									cbf_H5Dfree(h5data);
@@ -4778,7 +4543,7 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 									error |= cbf_H5Grequire(&h5location,"attenuator",instrument);
 									error |= cbf_H5Arequire_string(h5location, "NX_class", "NXattenuator");
 									/* Get value & units */
-									error |= cbf_H5Drequire_F64LE(h5location, 0, "attenuator_transmission", num);
+									error |= cbf_H5Drequire_scalar_F64LE(h5location, 0, "attenuator_transmission", num);
 									/* cleanup temporary dataset */
 									cbf_H5Gfree(h5location);
 									if (CBF_SUCCESS != error) fprintf(stderr,__WHERE__": CBFlib error: %s\n",cbf_strerror(error));
@@ -4881,40 +4646,11 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 							/*
                              Record the axis that the sample depends on
                              */
-							configItem_t * it = configItemVector_begin(axisConfig);
-							while (configItemVector_end(axisConfig) != it) {
-								if (0 == strcmp(it->name,"Sample")) break;
-								++it;
-							}
-							if (configItemVector_end(axisConfig) != it) {
-								const char * str = pilatus2nexusAxis(it->depends_on);
-								const char h5name[] = "depends_on";
-								hid_t h5location = CBF_H5FAIL;
-								hid_t h5data = CBF_H5FAIL;
-								hid_t h5type = CBF_H5FAIL;
-								int found = CBF_SUCCESS;
-								cbf_H5Tcreate_string(&h5type, strlen(str));
+                            const char * const depends_on = configItemVector_getSampleDependsOn(axisConfig);
+							if (depends_on) {
+                                hid_t h5location = CBF_H5FAIL;
 								cbf_h5handle_require_sample(h5handle, &h5location);
-								//cbf_H5Dmake_scalar(sample,0,"depends_on",type,axisString);
-								found = cbf_H5Dfind(h5location,&h5data,h5name,0,0,0,0,h5type);
-								if (CBF_SUCCESS==found) {
-									if (!cbf_H5Ivalid(h5data)) {
-										cbf_H5Dcreate(h5location,&h5data,h5name,0,0,0,0,h5type);
-										cbf_H5Dwrite(h5data,0,0,0,str);
-									} else {
-										char * const data = malloc(H5Tget_size(h5type));
-										cbf_H5Dread(h5data,0,0,0,data);
-										if (0 != strcmp(str,data))
-											fprintf(stderr,"Error: data doesn't match (%s vs %s) "
-													"for nexus field '%s'\n",data,str,h5name);
-										free((void*)(data));
-									}
-									/* cleanup temporary datasets */
-									cbf_H5Dfree(h5data);
-								} else {
-									fprintf(stderr,"Attempt to determine existence of sample/depends_on failed\n");
-								}
-								cbf_H5Tfree(h5type);
+								cbf_H5Drequire_string(h5location,0,"depends_on",depends_on);
 							} else {
 								fprintf(stderr,"Config settings for 'Sample' could not be found: "
 										"this will eventually be a fatal error\n");
@@ -4936,11 +4672,11 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
                              values to the NeXus beam_center_x & beam_center_y
                              */
 							hid_t h5data = CBF_H5FAIL;
-							if (CBF_SUCCESS==cbf_H5Drequire_F64LE(detector, &h5data, "beam_center_x", beam_center_x))
+							if (CBF_SUCCESS==cbf_H5Drequire_scalar_F64LE(detector, &h5data, "beam_center_x", beam_center_x))
 								cbf_H5Arequire_string(h5data,"units","m");
 							if (0) fprintf(stderr, __WHERE__ ": 'detector/beam_center_x' written\n");
 							cbf_H5Ddestroy(&h5data);
-							if (CBF_SUCCESS==cbf_H5Drequire_F64LE(detector, &h5data, "beam_center_y", beam_center_y))
+							if (CBF_SUCCESS==cbf_H5Drequire_scalar_F64LE(detector, &h5data, "beam_center_y", beam_center_y))
 								cbf_H5Arequire_string(h5data,"units","m");
 							if (0) fprintf(stderr, __WHERE__ ": 'detector/beam_center_y' written\n");
 							cbf_H5Dfree(h5data);
@@ -4956,6 +4692,7 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
                              */
 							/* Common settings */
 							const hsize_t vdims[] = {3};
+                            double vbuf[3] = {0./0.};
 							const hsize_t dim[] = {h5handle->slice};
 							const hsize_t max[] = {H5S_UNLIMITED};
 							const hsize_t chunk[] = {1};
@@ -4983,8 +4720,8 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 									cbf_H5Arequire_string(h5data,"offset_units","m");
 									cbf_H5Arequire_string(h5data,"transformation_type","translation");
 									cbf_H5Arequire_string(h5data,"depends_on",pilatus2nexusAxis(0));
-									cbf_H5Arequire(h5data,"vector",1,vdims,H5T_IEEE_F64LE,vector);
-									cbf_H5Arequire(h5data,"offset",1,vdims,H5T_IEEE_F64LE,offset);
+									cbf_H5Arequire_cmp(h5data,"vector",1,vdims,H5T_IEEE_F64LE,vector,vbuf,cmp_double);
+									cbf_H5Arequire_cmp(h5data,"offset",1,vdims,H5T_IEEE_F64LE,offset,vbuf,cmp_double);
 									/* cleanup temporary datasets */
 									cbf_H5Dfree(h5data);
 								} else {
@@ -5009,7 +4746,7 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 									cbf_H5Arequire_string(h5data,"units","deg.");
 									cbf_H5Arequire_string(h5data,"transformation_type","rotation");
 									cbf_H5Arequire_string(h5data,"depends_on",translation_name);
-									cbf_H5Arequire(h5data,"vector",1,vdims,H5T_IEEE_F64LE,vector);
+									cbf_H5Arequire_cmp(h5data,"vector",1,vdims,H5T_IEEE_F64LE,vector,vbuf,cmp_double);
 									/* cleanup temporary datasets */
 									cbf_H5Dfree(h5data);
 								} else {
@@ -5017,36 +4754,8 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 								}
 								if (0) fprintf(stderr, __WHERE__ ": 'detector/%s' written\n",h5name);
 							}
-							{ /* tie everything to the detector */
-								//cbf_H5Dmake_scalar(detector,0,"depends_on",H5T_C_S1,rotation_name);
-								int found = CBF_SUCCESS;
-								hid_t h5data = CBF_H5FAIL;
-								hid_t h5type = CBF_H5FAIL;
-								hid_t h5location = detector;
-								const char h5name[] = "depends_on";
-								const char * str = rotation_name;
-								cbf_H5Tcreate_string(&h5type, strlen(str));
-								found = cbf_H5Dfind(h5location,&h5data,h5name,0,0,0,0,h5type);
-								if (CBF_SUCCESS==found) {
-									if (!cbf_H5Ivalid(h5data)) {
-										cbf_H5Dcreate(h5location,&h5data,h5name,0,0,0,0,h5type);
-										cbf_H5Dwrite(h5data,0,0,0,str);
-									} else {
-										char * const data = malloc(H5Tget_size(h5type));
-										cbf_H5Dread(h5data,0,0,0,data);
-										if (0 != strcmp(str,data))
-											fprintf(stderr,"Error: data doesn't match (%s vs %s) "
-													"for nexus field '%s'\n",data,str,h5name);
-										free((void*)(data));
-									}
-									/* cleanup temporary datasets */
-									cbf_H5Dfree(h5data);
-								} else {
-									fprintf(stderr,"Attempt to determine existence of sample/depends_on failed\n");
-								}
-								if (0) fprintf(stderr, __WHERE__ ": 'detector/depends_on' written\n");
-								cbf_H5Tfree(h5type);
-							}
+							/* tie everything to the detector */
+							cbf_H5Drequire_string(detector,0,"depends_on",rotation_name);
 						} else fprintf(stderr,__WHERE__": Detector axes could not be written.\n");
 #undef __IF_MATCH
 #undef __IF_MATCH_IGNORE
@@ -5132,17 +4841,12 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 								errorcode |= CBF_H5DIFFERENT;
 							}
 						}
-						{
-							hid_t h5atype = CBF_H5FAIL;
-							const char h5astr[] = "m";
-							cbf_H5Tcreate_string(&h5atype, strlen(h5astr));
-							cbf_H5Arequire(h5axis,"units",0,0,h5atype,h5astr);
-							cbf_H5Tfree(h5atype);
-						}
+                        cbf_H5Arequire_string(h5axis,"units","m");
 						{
 							const double vector[] = {1.0, 0.0, 0.0};
 							const hsize_t vdims[] = {3};
-							cbf_H5Arequire(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,vector);
+							double vbuf[3] = {0./0.};
+							cbf_H5Arequire_cmp(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,vector,vbuf,cmp_double);
 						}
 						cbf_H5Arequire_string(h5axis,"transformation_type","translation");
 						cbf_H5Arequire_string(h5axis,"depends_on","/entry/instrument/detector/axis_rotation");
@@ -5177,17 +4881,12 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 								errorcode |= CBF_H5DIFFERENT;
 							}
 						}
-						{
-							hid_t h5atype = CBF_H5FAIL;
-							const char h5astr[] = "m";
-							cbf_H5Tcreate_string(&h5atype, strlen(h5astr));
-							cbf_H5Arequire(h5axis,"units",0,0,h5atype,h5astr);
-							cbf_H5Tfree(h5atype);
-						}
+                        cbf_H5Arequire_string(h5axis,"units","m");
 						{
 							const double vector[] = {0.0, 1.0, 0.0};
 							const hsize_t vdims[] = {3};
-							cbf_H5Arequire(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,vector);
+							double vbuf[3] = {0./0.};
+							cbf_H5Arequire_cmp(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,vector,vbuf,cmp_double);
 						}
 						cbf_H5Arequire_string(h5axis,"transformation_type","translation");
 						cbf_H5Arequire_string(h5axis,"depends_on","/entry/instrument/detector/axis_rotation");
@@ -5215,15 +4914,14 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 						const hsize_t h5extent[] = {h5dim[0]+1, h5dim[1], h5dim[2]};
 						const hsize_t h5offset[] = {h5dim[0], 0, 0};
 						const hsize_t h5count[] = {1, h5dim[1], h5dim[2]};
+						const int sig[] = {1};
+						int buf[] = {0};
 						if (!cbf_H5Ivalid(dataset))
 							cbf_H5Dcreate(detector,&dataset,"data",rank,h5dim,h5max,h5chunk,h5type);
 						// write the data to the hdf5 dataset
 						cbf_H5Dset_extent(dataset, h5extent);
 						cbf_H5Dwrite(dataset,h5offset,0,h5count,array);
-						{
-							const int sig = 1;
-							cbf_H5Arequire(dataset,"signal",0,0,H5T_STD_I32LE,&sig);
-						}
+						cbf_H5Arequire_cmp(dataset,"signal",0,0,H5T_STD_I32LE,sig,buf,cmp_int);
 					} else {
 						errorcode |= found;
 						fprintf(stderr,__WHERE__": error locating primary dataset: %s\n", cbf_strerror(found));
@@ -5235,55 +4933,7 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 						H5Lcreate_hard(dataset,".",h5handle->nxdata,"data",H5P_DEFAULT,H5P_DEFAULT);
 						H5Lcreate_hard(detector,"slow_pixel_direction",h5handle->nxdata,"x",H5P_DEFAULT,H5P_DEFAULT);
 						H5Lcreate_hard(detector,"fast_pixel_direction",h5handle->nxdata,"y",H5P_DEFAULT,H5P_DEFAULT);
-						if (0) { /* field: x=[...] */
-							double * const axis = malloc(h5dim[1]*sizeof(double));
-							hid_t h5axis = CBF_H5FAIL;
-							const hsize_t offset[] = {0};
-							{hsize_t n = 0; for (n=0; n!=h5dim[1]; ++n) axis[n] = (double)(n)*pixel_x;}
-							cbf_H5Dcreate(h5handle->nxdata,&h5axis,"x",1,h5dim+1,h5dim+1,0,H5T_IEEE_F64LE);
-							cbf_H5Dwrite(h5axis,offset,0,h5dim+1,axis);
-							{
-								hid_t h5atype = CBF_H5FAIL;
-								const char h5astr[] = "m";
-								cbf_H5Tcreate_string(&h5atype, strlen(h5astr));
-								cbf_H5Arequire(h5axis,"units",0,0,h5atype,h5astr);
-								cbf_H5Tfree(h5atype);
-							}
-							{
-								const double vector[] = {1.0, 0.0, 0.0};
-								const hsize_t vdims[] = {3};
-								cbf_H5Arequire(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,vector);
-							}
-							cbf_H5Dfree(h5axis);
-						}
-						if (0) { /* field: y=[...] */
-							double * const axis = malloc(h5dim[2]*sizeof(double));
-							hid_t h5axis = CBF_H5FAIL;
-							const hsize_t offset[] = {0};
-							{hsize_t n = 0; for (n=0; n!=h5dim[2]; ++n) axis[n] = (double)(n)*pixel_y;}
-							cbf_H5Dcreate(h5handle->nxdata,&h5axis,"y",1,h5dim+2,h5dim+2,0,H5T_IEEE_F64LE);
-							cbf_H5Dwrite(h5axis,offset,0,h5dim+2,axis);
-							{
-								hid_t h5atype = CBF_H5FAIL;
-								const char h5astr[] = "m";
-								cbf_H5Tcreate_string(&h5atype, strlen(h5astr));
-								cbf_H5Arequire(h5axis,"units",0,0,h5atype,h5astr);
-								cbf_H5Tfree(h5atype);
-							}
-							{
-								const double vector[] = {0.0, 1.0, 0.0};
-								const hsize_t vdims[] = {3};
-								cbf_H5Arequire(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,vector);
-							}
-							cbf_H5Dfree(h5axis);
-						}
-						{ /* signal="data" */
-							hid_t h5atype = CBF_H5FAIL;
-							const char signal[] = "data";
-							cbf_H5Tcreate_string(&h5atype,strlen(signal));
-							cbf_H5Arequire(h5handle->nxdata,"signal",0,0,h5atype,signal);
-							cbf_H5Tfree(h5atype);
-						}
+                        cbf_H5Arequire_string(h5handle->nxdata,"signal","data");
 						{ /* axes=["","i","j"] */
 							hid_t h5atype = CBF_H5FAIL;
 							const char axis0[] = "";
@@ -5291,17 +4941,20 @@ printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
 							const char axis2[] = "y";
 							const char * axes[] = {axis0,axis1,axis2};
 							const hsize_t dim[] = {3};
+                            char * buf[3] = {0};
 							cbf_H5Tcreate_string(&h5atype,H5T_VARIABLE);
-							cbf_H5Arequire(h5handle->nxdata,"axes",1,dim,h5atype,axes);
+							cbf_H5Arequire_cmp(h5handle->nxdata,"axes",1,dim,h5atype,axes,buf,cmp_vlstring);
 							cbf_H5Tfree(h5atype);
 						}
 						{ /* x_indices=1 */
-							const int idx = 1;
-							cbf_H5Arequire(h5handle->nxdata,"x_indices",0,0,H5T_STD_I32LE,&idx);
+							const int idx[] = {1};
+							int buf[] = {0};
+							cbf_H5Arequire_cmp(h5handle->nxdata,"x_indices",0,0,H5T_STD_I32LE,idx,buf,cmp_int);
 						}
 						{ /* y_indices=2 */
-							const int idx = 2;
-							cbf_H5Arequire(h5handle->nxdata,"y_indices",0,0,H5T_STD_I32LE,&idx);
+							const int idx[] = {2};
+							int buf[] = {0};
+							cbf_H5Arequire_cmp(h5handle->nxdata,"y_indices",0,0,H5T_STD_I32LE,idx,buf,cmp_int);
 						}
 					}
 					// clean up

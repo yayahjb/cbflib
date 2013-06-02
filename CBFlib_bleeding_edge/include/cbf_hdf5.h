@@ -271,9 +271,7 @@ extern "C" {
     
 #define CBF_H5FAIL ((hid_t)(-1))
     
-	/* basic check to find out if a group is valid, without remembering what the test actually is */
-	int cbf_is_valid_h5id(const hid_t ID);
-	/* renamed function to check validity - the old name was getting irritating */
+	/* Function to check validity of a HDF5 identifier. */
 	int cbf_H5Ivalid(const hid_t ID);
     
 	/* function to close any handle without tracking its type */
@@ -312,13 +310,15 @@ extern "C" {
      const hid_t type,
      const void * const value);
     
-	int cbf_H5Arequire
+	int cbf_H5Arequire_cmp
     (const hid_t ID,
      const char * const name,
      const int rank,
      const hsize_t * const dim,
      const hid_t type,
-     const void * const value);
+     const void * const value,
+     void * const buf,
+     int (*cmp)(const void * a, const void * b, size_t N));
     
 	int cbf_H5Arequire_string
     (const hid_t location,
@@ -366,20 +366,18 @@ extern "C" {
      const hsize_t * const stride,
      const hsize_t * const count,
      void * const value);
-    
-	/** \brief Create a scalar dataset & write a value to it, optionally returning the new dataset. */
-	int cbf_H5Dmake_scalar
-    (const hid_t location,
-     hid_t * const dataset,
-     const char * const name,
-     const hid_t type,
-     const void * const value);
-    
-	int cbf_H5Drequire_F64LE
+        
+	int cbf_H5Drequire_scalar_F64LE
     (const hid_t location,
      hid_t * const dataset,
      const char * const name,
      const double value);
+
+    int cbf_H5Drequire_string
+    (const hid_t location,
+     hid_t * const dataset,
+     const char * const name,
+     const char * const value);
     
 	/** \brief Close a given dataset handle without modifying the value passed in, invalidating the handle. */
 	int cbf_H5Dfree(const hid_t ID);
@@ -427,20 +425,20 @@ extern "C" {
     /* The one error code which *should* be visble - to test if a function worked */
     const extern int parseSuccess;
     
+    int parseScan(char * * const buf, size_t * n, size_t * ln, char * const pre, FILE * stream);
+
     /** Convert a parse error to a descriptive string */
     const char * configParseStrerror(const int error);
     
     /** POD to define a basic set of configuration settings for an axis */
     typedef struct configItem_struct
     {
-        const char * name;
+        const char * minicbf;
+        const char * nexus;
         const char * depends_on;
         double vector[3];
     } configItem_t;
-    
-    /** Helper function to test for a valid 3-vector */
-    int vec3isnan(double (*const vec)[3]);
-    
+        
     /** Return an initialised configItem_t object on the stack */
     configItem_t createConfigItem();
     
@@ -457,8 +455,24 @@ extern "C" {
     /** free any heap memory associated with the given configItemVector_t object */
     void destroyConfigItemVector(const configItemVector_t vector);
     
+    /**
+     */
+    void configItemVector_setSampleDependsOn(configItemVector_t vector, const char * const depends_on);
+    
+    /**
+     */
+    const char * configItemVector_getSampleDependsOn(configItemVector_t vector);
+
     /** Append a config item to the vector */
-    void configItemVector_push(configItemVector_t vector, configItem_t item);
+    configItem_t * configItemVector_push(configItemVector_t vector, configItem_t item);
+    
+    /**
+     */
+    configItem_t * configItemVector_findMinicbf(const configItemVector_t vector, const char * const name);
+    
+    /**
+     */
+    configItem_t * configItemVector_findNexus(const configItemVector_t vector, const char * const name);
     
     /** Access the config item at the given position */
     configItem_t * configItemVector_at(configItemVector_t vector, const size_t n);
@@ -469,8 +483,16 @@ extern "C" {
     /** Get the one-past-the-end item, or a pointer equal to configItemVector_begin(vector) if there are no items */
     const configItem_t * configItemVector_end(const configItemVector_t vector);
     
-    /** Parse the data from a given stream */
-    int parseConfigStream(FILE * const configFile, FILE * const logFile, configItemVector_t vec);
+    int parseExtractVector
+    (FILE * const configFile,
+     FILE * const logFile,
+     configItem_t * it,
+     char * * const buf,
+     size_t * n,
+     size_t * ln,
+     char * const pre);
+    
+    int parseConfig(FILE * const configFile, FILE * const logFile, configItemVector_t vec);
     
     /****************************************************************
      End of section of code extracted from J. Sloan's
