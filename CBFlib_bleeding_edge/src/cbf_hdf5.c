@@ -543,7 +543,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     (hid_t location,
      const char * * const value,
      const char * const axisName,
-     const configItemVector_t axisConfig,
+     const cbf_hdf5_configItemVectorhandle axisConfig,
      const int slice)
     {
         hid_t h5data = CBF_H5FAIL;
@@ -556,8 +556,8 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         const hsize_t chunk[] = {1};
         const hsize_t offset[] = {slice};
         const hsize_t count[] = {1};
-        configItem_t * const axisItem = configItemVector_findMinicbf(axisConfig, axisName);
-        if (configItemVector_end(axisConfig) == axisItem) {
+        cbf_hdf5_configItem * const axisItem = cbf_hdf5_configItemVector_findMinicbf(axisConfig, axisName);
+        if (cbf_hdf5_configItemVector_end(axisConfig) == axisItem) {
             fprintf(stderr,"Config settings for axis '%s' could not be found: this will eventually be a fatal error\n",axisItem->nexus);
             return;
         }
@@ -1338,7 +1338,6 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      ****************************************************************/
     
     /* Some error codes for use by the parsing functions - definitions should not be visible */
-    const int parseSuccess = 0;
     const int parseErrorUnexpectedInput = 1;
     const int parseErrorExpectedDelimeter = 2;
     const int parseErrorExpectedNumber = 3;
@@ -1371,7 +1370,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      
      \return An error code.
      */
-    int parseScan(char * * const buf, size_t * n, size_t * ln, char * const pre, FILE * stream)
+    int cbf_hdf5_parseScan(char * * const buf, size_t * n, size_t * ln, char * const pre, FILE * stream)
     {
         int c = 0; // current character
         size_t k = 0; // current line length
@@ -1406,7 +1405,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
             free((void*)(*buf));
             *buf = 0;
             *n = 0;
-            return '\n'==*pre ? parseSuccess : parseErrorUnexpectedEOF;
+            return '\n'==*pre ? CBF_SUCCESS : parseErrorUnexpectedEOF;
         }
         
         // I have a token: read it
@@ -1432,17 +1431,17 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         // null-terminate the token
         push_buf('\0', buf, n, &k);
         
-        return (feof(stream) && '\n'!=*pre) ? parseErrorUnexpectedEOF : parseSuccess;
+        return (feof(stream) && '\n'!=*pre) ? parseErrorUnexpectedEOF : CBF_SUCCESS;
     }
     
     /**
-     The returned string is "success" for parseSuccess, "unknown error" if the given error code is not recognised or a non-empty string briefly describing the error otherwise.
+     The returned string is "success" for CBF_SUCCESS, "unknown error" if the given error code is not recognised or a non-empty string briefly describing the error otherwise.
      
      The returned string must not be free'd.
      */
-    const char * configParseStrerror(const int error)
+    const char * cbf_hdf5_configParseStrerror(const int error)
     {
-        if (error == parseSuccess) return "success";
+        if (error == CBF_SUCCESS) return "success";
         else if (error == parseErrorUnexpectedInput) return "unexpected input";
         else if (error == parseErrorExpectedDelimeter) return "expected a delimiter";
         else if (error == parseErrorExpectedNumber) return "expected a number";
@@ -1455,9 +1454,9 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     /**
      Initialises name & depends_on to null, vector to [nan,nan,nan].
      */
-    configItem_t createConfigItem()
+    cbf_hdf5_configItem cbf_hdf5_createConfigItem()
     {
-        configItem_t item;
+        cbf_hdf5_configItem item;
         item.minicbf = 0;
         item.nexus = 0;
         item.depends_on = 0;
@@ -1467,7 +1466,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         return item;
     }
     
-    void destroyConfigItem(const configItem_t item)
+    void cbf_hdf5_destroyConfigItem(const cbf_hdf5_configItem item)
     {
         free((void*)(item.minicbf));
         free((void*)(item.nexus));
@@ -1477,20 +1476,20 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     /**
      Should not be manipulated directly, takes ownership of the config items which it contains.
      */
-    typedef struct configItemVector_struct
+    typedef struct cbf_hdf5_configItemVector
     {
-        configItem_t * item;
+        cbf_hdf5_configItem * item;
         size_t nItems;
         size_t maxItems;
         const char * sample_depends_on;
-    } configItemVector_struct;
+    } cbf_hdf5_configItemVector;
     
     /**
      Initialises size & capacity to 0, doesn't allocate storage immediately.
      */
-    configItemVector_t createConfigItemVector()
+    cbf_hdf5_configItemVectorhandle cbf_hdf5_createConfigItemVector()
     {
-        configItemVector_t vector = (configItemVector_t)(malloc(sizeof(configItemVector_struct)));
+        cbf_hdf5_configItemVectorhandle vector = (cbf_hdf5_configItemVectorhandle)(malloc(sizeof(cbf_hdf5_configItemVector)));
         vector->item = 0;
         vector->nItems = 0;
         vector->maxItems = 0;
@@ -1501,10 +1500,10 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     /**
      Destroys any children of the object, free's the memory for the array of children and free's the memory for the vector itself.
      */
-    void destroyConfigItemVector(const configItemVector_t vector)
+    void cbf_hdf5_destroyConfigItemVector(const cbf_hdf5_configItemVectorhandle vector)
     {
         size_t i = 0;
-        for (; i < vector->nItems; ++i) destroyConfigItem(vector->item[i]);
+        for (; i < vector->nItems; ++i) cbf_hdf5_destroyConfigItem(vector->item[i]);
         free(vector->item);
         free((void*)(vector->sample_depends_on));
         free(vector);
@@ -1514,7 +1513,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      Releases any previously held dependancy and takes ownership of a new one.
      The given string will be free'd by the object when it is no longer needed.
      */
-    void configItemVector_setSampleDependsOn(configItemVector_t vector, const char * const depends_on)
+    void cbf_hdf5_configItemVector_setSampleDependsOn(cbf_hdf5_configItemVectorhandle vector, const char * const depends_on)
     {
         free((void*)(vector->sample_depends_on));
         vector->sample_depends_on = depends_on;
@@ -1523,7 +1522,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     /**
      \return The current dependancy setting for the sample group, or zero if not set.
      */
-    const char * configItemVector_getSampleDependsOn(configItemVector_t vector)
+    const char * cbf_hdf5_configItemVector_getSampleDependsOn(cbf_hdf5_configItemVectorhandle vector)
     {
         return vector->sample_depends_on;
     }
@@ -1531,13 +1530,13 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     /**
      The vector will take ownership of the item's contents. This may invalidate any previously obtained pointers to items in the vector.
      */
-    configItem_t * configItemVector_push(configItemVector_t vector, configItem_t item)
+    cbf_hdf5_configItem * cbf_hdf5_configItemVector_push(cbf_hdf5_configItemVectorhandle vector, cbf_hdf5_configItem item)
     {
         if (!(vector->nItems < vector->maxItems)) {
             // increase the maximum number of items
             const size_t k = 4;
             vector->maxItems = (size_t)((float)(vector->nItems)/(float)(k))*k + k;
-            vector->item = realloc(vector->item, vector->maxItems*sizeof(configItem_t));
+            vector->item = realloc(vector->item, vector->maxItems*sizeof(cbf_hdf5_configItem));
         }
         // ensure I have enough items
         assert(vector->maxItems > vector->nItems);
@@ -1550,20 +1549,20 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     /**
      \return An iterator to a matching entry, or an iterator to the current end element.
      */
-    configItem_t * configItemVector_findMinicbf(const configItemVector_t vector, const char * const name)
+    cbf_hdf5_configItem * cbf_hdf5_configItemVector_findMinicbf(const cbf_hdf5_configItemVectorhandle vector, const char * const name)
     {
-        configItem_t * it = configItemVector_begin(vector);
-        while (configItemVector_end(vector) != it && (!it->minicbf || strcmp(it->minicbf,name))) ++it;
+        cbf_hdf5_configItem * it = cbf_hdf5_configItemVector_begin(vector);
+        while (cbf_hdf5_configItemVector_end(vector) != it && (!it->minicbf || strcmp(it->minicbf,name))) ++it;
         return it;
     }
     
     /**
      \return An iterator to a matching entry, or an iterator to the current end element.
      */
-    configItem_t * configItemVector_findNexus(const configItemVector_t vector, const char * const name)
+    cbf_hdf5_configItem * cbf_hdf5_configItemVector_findNexus(const cbf_hdf5_configItemVectorhandle vector, const char * const name)
     {
-        configItem_t * it = configItemVector_begin(vector);
-        while (configItemVector_end(vector) != it && (!it->nexus || strcmp(it->nexus,name))) ++it;
+        cbf_hdf5_configItem * it = cbf_hdf5_configItemVector_begin(vector);
+        while (cbf_hdf5_configItemVector_end(vector) != it && (!it->nexus || strcmp(it->nexus,name))) ++it;
         return it;
     }
     
@@ -1572,7 +1571,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      
      \return A pointer to an item in the vector that may be modified but should not be free'd, subsequent vector operations may invalidate this pointer.
      */
-    configItem_t * configItemVector_at(const configItemVector_t vector, const size_t n)
+    cbf_hdf5_configItem * cbf_hdf5_configItemVector_at(const cbf_hdf5_configItemVectorhandle vector, const size_t n)
     {
         return (n < vector->nItems) ? vector->item+n : 0;
     }
@@ -1580,7 +1579,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     /**
      \return A pointer to an item in the vector that may be modified but should not be free'd, subsequent vector operations may invalidate this pointer.
      */
-    configItem_t * configItemVector_begin(const configItemVector_t vector)
+    cbf_hdf5_configItem * cbf_hdf5_configItemVector_begin(const cbf_hdf5_configItemVectorhandle vector)
     {
         return vector->item;
     }
@@ -1588,15 +1587,15 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     /**
      \return A pointer to an item in the vector that may be modified but should not be free'd, subsequent vector operations may invalidate this pointer.
      */
-    const configItem_t * configItemVector_end(const configItemVector_t vector)
+    const cbf_hdf5_configItem * cbf_hdf5_configItemVector_end(const cbf_hdf5_configItemVectorhandle vector)
     {
         return vector->item+vector->nItems;
     }
 
-    int parseExtractVector
+    int cbf_hdf5_parseExtractVector
     (FILE * const configFile,
      FILE * const logFile,
-     configItem_t * it,
+     cbf_hdf5_configItem * it,
      char * * const buf,
      size_t * n,
      size_t * ln,
@@ -1606,9 +1605,9 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         
 #define GET_TOKEN() \
 do { \
-  const int e = parseScan(buf, n, ln, pre, configFile); \
-    if (e != parseSuccess) { \
-	fprintf(logFile,"\nError: %s\n",configParseStrerror(e)); \
+  const int e = cbf_hdf5_parseScan(buf, n, ln, pre, configFile); \
+    if (e != CBF_SUCCESS) { \
+	fprintf(logFile,"\nError: %s\n",cbf_hdf5_configParseStrerror(e)); \
 		return e; \
   } \
 } while (0);
@@ -1667,10 +1666,10 @@ do{ \
 #undef REQUIRE_TOKEN
 #undef REQUIRE_NOT_EOL
         
-        return parseSuccess;
+        return CBF_SUCCESS;
     }
     
-    int parseConfig(FILE * const configFile, FILE * const logFile, configItemVector_t vec)
+    int cbf_hdf5_parseConfig(FILE * const configFile, FILE * const logFile, cbf_hdf5_configItemVectorhandle vec)
     {
         char * tkn = 0;
         size_t n = 0, ln = 1;
@@ -1678,9 +1677,9 @@ do{ \
         
 #define GET_TOKEN() \
 do { \
-	const int e = parseScan(&tkn, &n, &ln, &pre, configFile); \
-	if (e != parseSuccess) { \
-		fprintf(logFile,"\nError: %s\n",configParseStrerror(e)); \
+	const int e = cbf_hdf5_parseScan(&tkn, &n, &ln, &pre, configFile); \
+	if (e != CBF_SUCCESS) { \
+		fprintf(logFile,"\nError: %s\n",cbf_hdf5_configParseStrerror(e)); \
 		return e; \
 } \
 } while (0)
@@ -1712,7 +1711,7 @@ return parseErrorUnexpectedInput; \
         
 #define REQUIRE_NEXUS_AXIS() \
 do { \
-if (strcmp(".",tkn) && configItemVector_end(vec) == configItemVector_findNexus(vec,tkn)) { \
+if (strcmp(".",tkn) && cbf_hdf5_configItemVector_end(vec) == cbf_hdf5_configItemVector_findNexus(vec,tkn)) { \
 fprintf(logFile,"Config parsing error on line %lu: Nexus axis '%s' not defined\n",ln,tkn); \
 return parseErrorUndefinedValue; \
 } \
@@ -1720,9 +1719,9 @@ return parseErrorUndefinedValue; \
         
 #define REQUIRE_VECTOR() \
 do { \
-const int e = parseExtractVector(configFile, logFile, it, &tkn, &n, &ln, &pre); \
-if (parseSuccess != e) { \
-fprintf(logFile,"Error reading a vector: %s\n",configParseStrerror(e)); \
+const int e = cbf_hdf5_parseExtractVector(configFile, logFile, it, &tkn, &n, &ln, &pre); \
+if (CBF_SUCCESS != e) { \
+fprintf(logFile,"Error reading a vector: %s\n",cbf_hdf5_configParseStrerror(e)); \
 return e; \
 } \
 } while (0)
@@ -1732,16 +1731,16 @@ return e; \
         while (tkn) {
             if (!strcmp("map",tkn)) {
                 // storage that I don't need to free within this function
-                configItem_t * it;
+                cbf_hdf5_configItem * it;
                 // minicbf axis name
                 GET_TOKEN();
                 REQUIRE_NOT_EOL();
-                it = configItemVector_findMinicbf(vec,tkn);
-                if (configItemVector_end(vec) != it) {
+                it = cbf_hdf5_configItemVector_findMinicbf(vec,tkn);
+                if (cbf_hdf5_configItemVector_end(vec) != it) {
                     fprintf(logFile,"Config parsing error on line %lu: Duplicate axis definition for minicbf axis '%s'\n",ln,tkn);
                     return parseErrorDuplicateField;
                 }
-                it = configItemVector_push(vec,createConfigItem());
+                it = cbf_hdf5_configItemVector_push(vec,cbf_hdf5_createConfigItem());
                 it->minicbf = strdup(tkn);
                 // literal 'to'.
                 GET_TOKEN();
@@ -1750,7 +1749,7 @@ return e; \
                 // nexus axis name
                 GET_TOKEN();
                 REQUIRE_NOT_EOL();
-                if (configItemVector_end(vec) != configItemVector_findNexus(vec,tkn)) {
+                if (cbf_hdf5_configItemVector_end(vec) != cbf_hdf5_configItemVector_findNexus(vec,tkn)) {
                     fprintf(logFile,"Config parsing error on line %lu: Duplicate axis definition for Nexus axis '%s'\n",ln,tkn);
                     return parseErrorDuplicateField;
                 }
@@ -1767,15 +1766,15 @@ return e; \
                 GET_TOKEN();
                 REQUIRE_NOT_EOL();
                 REQUIRE_NEXUS_AXIS();
-                configItemVector_setSampleDependsOn(vec,strdup(tkn));
+                cbf_hdf5_configItemVector_setSampleDependsOn(vec,strdup(tkn));
                 // newline
                 GET_TOKEN();
                 REQUIRE_EOL();
             } else if (!strcmp("\n",tkn)) {
             } else {
                 // find entry by nexus axis name
-                configItem_t * const it = configItemVector_findNexus(vec,tkn);
-                if (configItemVector_end(vec) == it) {
+                cbf_hdf5_configItem * const it = cbf_hdf5_configItemVector_findNexus(vec,tkn);
+                if (cbf_hdf5_configItemVector_end(vec) == it) {
                     fprintf(logFile,"Config parsing error on line %lu: Nexus axis '%s' not defined\n",ln,tkn);
                     return parseErrorUndefinedValue;
                 }
@@ -1818,7 +1817,7 @@ return e; \
             }
             GET_TOKEN();
         }
-        return parseSuccess;
+        return CBF_SUCCESS;
     }
     
     /****************************************************************
@@ -4079,7 +4078,7 @@ return e; \
      - Support writing multiple minicbf files to a single nexus file directly
      */
     
-	int cbf_write_minicbf_h5file (cbf_handle handle, cbf_h5handle h5handle, configItemVector_t axisConfig, int flags)
+	int cbf_write_minicbf_h5file (cbf_handle handle, cbf_h5handle h5handle, cbf_hdf5_configItemVectorhandle axisConfig, int flags)
 	{
 		cbf_node *node = NULL;
 		int errorcode = CBF_SUCCESS;
@@ -4646,7 +4645,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 							/*
                              Record the axis that the sample depends on
                              */
-                            const char * const depends_on = configItemVector_getSampleDependsOn(axisConfig);
+                            const char * const depends_on = cbf_hdf5_configItemVector_getSampleDependsOn(axisConfig);
 							if (depends_on) {
                                 hid_t h5location = CBF_H5FAIL;
 								cbf_h5handle_require_sample(h5handle, &h5location);
