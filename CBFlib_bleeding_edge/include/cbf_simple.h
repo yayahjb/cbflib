@@ -1377,6 +1377,30 @@ int cbf_construct_frame_positioner (cbf_handle handle,
                                     const char *axis_id,
                                     const char *frame_id);
 
+    /* get the id of the particular equipment associated with
+     the specified axis_id for for specified equipment */
+    
+int cbf_get_axis_equipment_id(cbf_handle handle,
+                                    const char ** equipment_id,
+                                    const char * equipment,
+                                    const char * axis_id);
+    
+    /* get the dimension and units of the available scan points for an axis */
+    
+int cbf_get_axis_parameters(cbf_handle handle,
+                                size_t * scanpoints,
+                                const char ** units,
+                                const char * equipment,
+                                const char * axis_id);
+    
+    /* get the scan points for an axis */
+    
+int cbf_get_axis_scan_points(cbf_handle handle,
+                                 double * scanarray,
+                                 size_t scanpoints,
+                                 size_t *scanpointsfound,
+                                 const char * units,
+                                 const char * axis_id);
     
 #ifdef __cplusplus
 

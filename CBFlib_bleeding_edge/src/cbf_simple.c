@@ -7199,6 +7199,203 @@ extern "C" {
         return errorcode;
     }
     
+    /* get the id of the particular equipment associated with
+       the specified axis_id for for specified equipment */
+    
+    int cbf_get_axis_equipment_id(cbf_handle handle,
+                                    const char ** equipment_id,
+                                    const char * equipment,
+                                    const char * axis_id)
+    {
+        int errorcode;
+        
+        /* check the arguments */
+        
+        if (!handle || !equipment_id || !equipment || !axis_id)
+            
+            return CBF_ARGUMENT;
+        
+        *equipment_id = NULL;
+        
+        errorcode = 0;
+        
+        if (cbf_cistrcmp(equipment,"detector")==0 ) {
+            
+            errorcode |= cbf_find_category(handle, "diffrn_detector_axis");
+            
+            errorcode |= cbf_find_column(handle,"axis_id");
+            
+            errorcode |= cbf_rewind_row(handle);
+            
+            errorcode |= cbf_find_row(handle, axis_id);
+            
+            errorcode |= cbf_find_column(handle,"detector_id");
+            
+            errorcode |= cbf_get_value(handle,equipment_id);
+            
+            if (errorcode) *equipment_id = NULL;
+            
+            return CBF_SUCCESS;
+            
+        } else if (cbf_cistrcmp(equipment,"goniometer")==0 ) {
+            
+            errorcode |= cbf_find_category(handle, "diffrn_measurement_axis");
+            
+            errorcode |= cbf_find_column(handle,"axis_id");
+            
+            errorcode |= cbf_rewind_row(handle);
+            
+            errorcode |= cbf_find_row(handle, axis_id);
+            
+            errorcode |= cbf_find_column(handle,"measurement_id");
+            
+            errorcode |= cbf_get_value(handle,equipment_id);
+            
+            if (errorcode) *equipment_id = NULL;
+            
+            return CBF_SUCCESS;
+            
+        } else {
+            
+            *equipment_id = NULL;
+ 
+        }
+        
+        return CBF_SUCCESS;
+        
+ 
+    }
+    
+    /* get the dimension and units of the available scan points for an axis */
+    
+    int cbf_get_axis_parameters(cbf_handle handle,
+                                  size_t * scanpoints,
+                                  const char ** units,
+                                  const char * equipment,
+                                  const char * axis_id) {
+        /* check the arguments */
+        
+        if (!handle || !scanpoints || !units || !equipment || !axis_id)
+            
+            return CBF_ARGUMENT;
+        
+        *units = NULL;
+        
+        *scanpoints = 0;
+        
+        if (cbf_find_category(handle, "axis")
+            || cbf_find_column(handle,"id")
+            || cbf_rewind_row(handle)) return CBF_SUCCESS;
+        
+        
+        while (!cbf_find_nextrow(handle,axis_id)) {
+            
+            const char * equipmentid;
+            
+            const char * axistype;
+            
+            if (cbf_find_column(handle,"equipment")) return CBF_SUCCESS;
+            
+            if (cbf_get_value(handle,&equipmentid)) return CBF_SUCCESS;
+            
+            if (cbf_find_column(handle,"id")) return CBF_SUCCESS;
+            
+            if (!equipmentid || cbf_cistrcmp(equipmentid,equipment)) continue;
+            
+            if (cbf_find_column(handle,"type")) return CBF_SUCCESS;
+            
+            if (cbf_get_value(handle,&axistype)) return CBF_SUCCESS;
+            
+            if (!axistype || !cbf_cistrcmp(axistype,"general")) return CBF_SUCCESS;
+            
+            if (!cbf_cistrcmp(axistype,"rotation")) {
+                
+                *units = "deg";
+                
+            } else if (!cbf_cistrcmp(axistype,"translation")) {
+                
+                *units = "mm";
+                
+            }
+            
+            break;
+            
+        }
+        
+        if (!units) return CBF_SUCCESS;
+        
+        if (!cbf_find_category(handle,"diffrn_scan")) {
+            
+            const char * framesstr;
+            
+            cbf_failnez(cbf_find_column(handle,"frames"));
+            
+            cbf_failnez(cbf_rewind_row(handle));
+            
+            cbf_failnez(cbf_get_value(handle,&framesstr));
+            
+            sscanf(framesstr,"%zd",scanpoints);
+                        
+            return CBF_SUCCESS;
+            
+        }
+        
+        return CBF_SUCCESS;
+        
+    }
+
+    
+    /* get the scan points for an axis */
+    
+    int cbf_get_axis_scan_points(cbf_handle handle,
+                                double * scanarray,
+                                size_t scanpoints,
+                                size_t *scanpointsfound,
+                                const char * units,
+                                const char * axis_id) {
+        
+        /* check the arguments */
+        
+        if (!handle || !scanarray || scanpoints < 1 || !units || !axis_id)
+            
+            return CBF_ARGUMENT;
+        
+        *scanpointsfound = 0;
+        
+        if (cbf_find_category(handle, "diffrn_scan_frame_axis")
+            || cbf_find_column(handle,"axis_id")
+            || cbf_rewind_row(handle)) return CBF_SUCCESS;
+        
+        while (!cbf_find_nextrow(handle,axis_id)&& *scanpointsfound < scanpoints) {
+            
+            if (!cbf_cistrcmp(units,"deg")) {
+                
+                cbf_failnez(cbf_find_column(handle,"angle"))
+                
+            } else {
+                
+                cbf_failnez(cbf_find_column(handle,"displacement"))
+            
+            }
+            
+            cbf_failnez(cbf_get_doublevalue(handle,&(scanarray[*scanpointsfound])));
+            
+            (*scanpointsfound)++;
+            
+            cbf_failnez(cbf_find_column(handle,"axis_id"));
+            
+        }
+        
+        if (scanpointsfound == 0) {
+            
+            scanarray[0] = 0.;
+            
+        }
+                
+        return CBF_SUCCESS;
+        
+    }
+
     
     
 #ifdef __cplusplus
