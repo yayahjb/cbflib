@@ -2328,11 +2328,17 @@ return e; \
         
         double matrix[3][3];
         
+        hsize_t one=1;
+        
+        double zero[1];
+        
         hid_t instrumentid;
         
         const char* datablock;
         
         errorcode = 0;
+        
+        zero[0] = 0.;
         
         /* If we get a transform, there are axes to convert */
         
@@ -2369,15 +2375,27 @@ return e; \
             
             hid_t nxaxisoffsetid;
             
-            const char* equipment;
+            hid_t dtype, dspace, dprop;
             
-            const char* axis_id;
+            const char * equipment;
             
-            const char* depends_on;
+            const char * equipmentclass;
+            
+            const char * equipmentname;
+            
+            const char * axis_id;
+            
+            const char * depends_on;
             
             const char * type;
             
             const char * system;
+            
+            hsize_t scanpoints;
+            
+            size_t sscanpoints;
+            
+            const char * units;
             
             double vector[3], offset[3];
             
@@ -2388,6 +2406,8 @@ return e; \
             depends_on = ".";
             
             equipment = "general";
+            
+            equipmentclass = "NXcoordinate_system";
             
             type = "general";
             
@@ -2458,41 +2478,129 @@ return e; \
                 
             }
             
-            strcpy(nxequipment,"NX");
+            /*  We have the equipment type in equipment and the axis is in axis_id
+                If the equipment type is detector, we need to map the axis_id
+                to the appropriate detector so we can put this axis in
+                /instrument:NXinstrument
+                  /CBF_diffrn_detector__DETECTORNAME:NXdetector
+                    /CBF_axis__AXISID=[]
+             
+                If the equipment type is goniometer, we need to map the axis_id
+                to the appropriate goniometer, so we can put this axis in
+                /instrument:NXinstrument
+                  /CBF_diffrn_measurement__GONIOMETERNAME:NXsample
+                    /CBF__axis__AXISID=[]
+             
+                For other equipment types, we put this axis in
+                /instrument:NXinstrument
+                  /coordinate_system:NXcoordinate_system 
+                    /CBF__axis__AXISID=[]
+             */
             
-            strncat(nxequipment,equipment,252);
+            cbf_reportnez(cbf_get_axis_equipment_id(handle,&equipmentname,equipment,axis_id),errorcode);
             
-            nxequipment[255] = '\0';
+            if (!equipment) equipment = "";
+            
+            if (cbf_cistrcmp(equipment,"detector")==0) {
+                
+                strcpy(nxequipment,"CBF_diffrn_detector__");
+                
+                if (equipmentname) {
+                    
+                    strncat(nxequipment,equipmentname,2020);
+
+                } else {
+                    
+                    strcpy(nxequipment,"detector");
+                }
+                
+                equipmentclass = "NXdetector";
+
+            } else if (cbf_cistrcmp(equipment,"goniometer")==0) {
+                
+                strcpy(nxequipment,"CBF_diffrn_measurement__");
+                
+                if (equipmentname) {
+                    
+                    strncat(nxequipment,equipmentname,2020);
+                    
+                    nxequipment[2047] = 0;
+                    
+                } else {
+                    
+                    strcpy(nxequipment,"sample");
+                }
+
+                
+                equipmentclass = "NXsample";
+                
+            } else {
+                
+                strcpy(nxequipment,"coordinate_system");
+                
+                equipmentclass = "NXcoordinate_system";
+
+            }
+            
             
             cbf_reportnez(cbf_require_nxgroup(h5handle,
-                                              equipment, nxequipment,
+                                              nxequipment, equipmentclass,
                                               instrumentid, &equipmentid),errorcode);
             
+            cbf_reportnez(cbf_get_axis_parameters(handle,
+                                                  &sscanpoints,
+                                                  &units,
+                                                  equipment,
+                                                  axis_id),errorcode);
+            
+            scanpoints = (hsize_t)sscanpoints;
+            
+            /* At this point we are ready to write the field CBF_axis__AXISID[] */
+            
+            
+            
             if (cbf_norm(offset) > 1.e-20) {
-                
+                                
                 char * nxaxis_offset_name;
-                
+
                 char * nxaxis_name;
                 
                 char * nxdepends_on_name;
-                
-                cbf_reportnez(cbf_strcat("axis_offset.",
+                                
+                hid_t mtype;
+
+                cbf_reportnez(cbf_strcat("CBF_axis_offset__",
                                          axis_id,&nxaxis_offset_name),
                               errorcode);
                 
-                cbf_reportnez(cbf_strcat("axis.",
+                cbf_reportnez(cbf_strcat("CBF_axis__",
                                          axis_id,&nxaxis_name),errorcode);
                 
-                cbf_reportnez(cbf_strcat("axis.",
+                cbf_reportnez(cbf_strcat("CBF_axis__",
                                          depends_on,&nxdepends_on_name),errorcode);
                 
-                cbf_reportnez(cbf_require_nxgroup(h5handle,
-                                                  nxaxis_offset_name,
-                                                  "NXaxis",
-                                                  equipmentid,
-                                                  &nxaxisoffsetid),
-                              errorcode);
+                cbf_h5reportneg(dspace = H5Screate_simple(1,&one,&one),CBF_ALLOC,errorcode);
                 
+                cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
+                
+                cbf_h5reportneg(mtype = H5Tcopy(H5T_NATIVE_DOUBLE),CBF_ALLOC,errorcode);
+                
+                cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
+                
+                cbf_h5reportneg(nxaxisoffsetid = H5Dcreatex(equipmentid,nxaxis_offset_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
+                
+                cbf_h5reportneg(H5Dwrite(nxaxisoffsetid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);
+
+
+                cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
+                
+                cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
+                
+                cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
+
+                cbf_h5reportneg(H5Pclose(dprop),CBF_ALLOC,errorcode);
+
+                                
                 errorcode |= cbf_apply_h5text_attribute(nxaxisoffsetid,
                                                         "transformation_type",
                                                         "translation",
@@ -2524,10 +2632,84 @@ return e; \
                                                         cbfloc,
                                                         errorcode);
                 
-                cbf_h5reportneg(H5Gclose(nxaxisoffsetid),CBF_FORMAT,errorcode);
+                cbf_h5reportneg(H5Dclose(nxaxisoffsetid),CBF_FORMAT,errorcode);
                 
-                cbf_reportnez(cbf_require_nxgroup(h5handle,
-                                                  nxaxis_name, "NXaxis",equipmentid, &nxaxisid),errorcode);
+                
+                if (scanpoints > 0) {
+                                        
+                    hsize_t scanpointsfound;
+                    
+                    hid_t mtype;
+                    
+                    size_t sscanpointsfound;
+                    
+                    double * scanarray;
+                    
+                    cbf_reportnez(cbf_alloc(((void **) &scanarray),NULL,
+                                            scanpoints*sizeof(double),1),errorcode);
+                    
+                    cbf_reportnez(cbf_get_axis_scan_points(handle,
+                                                           scanarray,
+                                                           (size_t)scanpoints,
+                                                           &sscanpointsfound,
+                                                           units,
+                                                           axis_id),errorcode);
+                    
+                    scanpointsfound = (hsize_t)sscanpointsfound;
+                    
+                    if (sscanpointsfound==0) scanpointsfound=1;
+                    
+                    cbf_h5reportneg(dspace = H5Screate_simple(1,&scanpointsfound,&scanpoints),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(mtype = H5Tcopy(H5T_NATIVE_DOUBLE),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
+                                                    
+                    cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)scanarray),CBF_ALLOC,errorcode);;
+                    
+                    cbf_reportnez(cbf_free((void **)(&scanarray),NULL),errorcode);
+                    
+                    cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
+                                    
+                    cbf_h5reportneg(H5Pclose(dprop),CBF_ALLOC,errorcode);
+                    
+                    if (units) {
+                        
+                        errorcode |= cbf_apply_h5text_attribute(nxaxisid,
+                                                            "units",units,errorcode);
+                    }
+                    
+                } else {
+                    
+                    hid_t mtype;
+
+                    cbf_h5reportneg(dspace = H5Screate_simple(1,&one,&one),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);;
+
+                    cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(H5Pclose(dprop),CBF_ALLOC,errorcode);
+                    
+                }
                 
                 errorcode |= cbf_apply_h5text_attribute(nxaxisid,
                                                         "transformation_type",type,errorcode);
@@ -2549,7 +2731,7 @@ return e; \
                                                         cbfloc,
                                                         errorcode);
                 
-                cbf_h5reportneg(H5Gclose(nxaxisoffsetid),CBF_FORMAT,errorcode);
+                cbf_h5reportneg(H5Dclose(nxaxisoffsetid),CBF_ALLOC,errorcode);
                 
                 cbf_reportnez(cbf_free((void **)&nxaxis_offset_name,NULL),errorcode);
                 
@@ -2565,18 +2747,89 @@ return e; \
                 
                 char * nxdepends_on_name;
                 
-                cbf_reportnez(cbf_strcat("axis.",
+                cbf_reportnez(cbf_strcat("CBF_axis__",
                                          axis_id,&nxaxis_name),errorcode);
                 
-                cbf_reportnez(cbf_strcat("axis.",
+                cbf_reportnez(cbf_strcat("CBF_axis__",
                                          depends_on,&nxdepends_on_name),errorcode);
                 
-                cbf_reportnez(cbf_require_nxgroup(h5handle,
-                                                  nxaxis_name,
-                                                  "NXaxis",
-                                                  equipmentid,
-                                                  &nxaxisid),
-                              errorcode);
+                if (scanpoints > 0) {
+                    
+                    hsize_t scanpointsfound;
+                    
+                    hid_t mtype;
+                    
+                    size_t sscanpointsfound;
+                    
+                    double * scanarray;
+                    
+                    cbf_reportnez(cbf_alloc(((void **) &scanarray),NULL,
+                                            scanpoints*sizeof(double),1),errorcode);
+                    
+                    cbf_reportnez(cbf_get_axis_scan_points(handle,
+                                                           scanarray,
+                                                           (size_t)scanpoints,
+                                                           &sscanpointsfound,
+                                                           units,
+                                                           axis_id),errorcode);
+                    
+                    scanpointsfound = (hsize_t)sscanpointsfound;
+                    
+                    if (sscanpointsfound == 0) scanpointsfound=1;
+                    
+                    cbf_h5reportneg(dspace = H5Screate_simple(1,&scanpointsfound,&scanpoints),CBF_ALLOC,errorcode);
+
+                    cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(mtype = H5Tcopy(H5T_NATIVE_DOUBLE),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)scanarray),CBF_ALLOC,errorcode);
+                    
+                    cbf_reportnez(cbf_free((void **)(&scanarray),NULL),errorcode);
+                    
+                    cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
+
+                    cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(H5Pclose(dprop),CBF_ALLOC,errorcode);
+                                        
+                    if (units) {
+                        
+                        errorcode |= cbf_apply_h5text_attribute(nxaxisid,
+                                                                "units",units,errorcode);
+                    }
+                } else {
+                                        
+                    hid_t mtype;
+                    
+                    cbf_h5reportneg(dspace = H5Screate_simple(1,&one,&one),CBF_ALLOC,errorcode);
+
+                    cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(mtype = H5Tcopy(H5T_NATIVE_DOUBLE),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
+
+                    cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);;
+
+                    cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
+
+                    cbf_h5reportneg(H5Pclose(dprop),CBF_ALLOC,errorcode);
+
+                    
+                }
                 
                 errorcode |= cbf_apply_h5text_attribute(nxaxisid,
                                                         "transformation_type",
@@ -2608,7 +2861,7 @@ return e; \
                                                         cbfloc,
                                                         errorcode);
                 
-                cbf_h5reportneg(H5Gclose(nxaxisid),CBF_FORMAT,errorcode);
+                cbf_h5reportneg(H5Dclose(nxaxisid),CBF_FORMAT,errorcode);
                 
                 cbf_reportnez(cbf_free((void **)&nxaxis_name,NULL),errorcode);
                 
@@ -2662,7 +2915,7 @@ return e; \
                                               H5P_DEFAULT),
                         CBF_ALLOC,errorcode);
         
-        cbf_h5reportneg(H5Awrite(attribid,attribtype,
+        cbf_h5reportneg(H5Awrite(attribid,attribmemtype,
                                  attribvec),CBF_ALLOC,errorcode);
         
         if (attribspace >= 0)  H5Sclose(attribspace);
