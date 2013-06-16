@@ -988,11 +988,12 @@ int cbf_compress_nibble_offset (void         *source,
             
             *compressedsize = csize;
         
-        fprintf(stderr," nibble offset compressed size %ld elements %ld\n",(long)csize,(long)nelem);
+/*      fprintf(stderr," nibble offset compressed size %ld elements %ld\n",(long)csize,(long)nelem);
         for (ii=1;ii<65;ii++) {
             if (histogram[ii]) fprintf(stderr,"histogram[%d] %d\n",ii,(int)histogram[ii]);
             if (runs[ii]) fprintf(stderr,"avgrun[%d] %g\n",ii,((double)currun[ii])/((double)runs[ii]));
         }
+*/
         
         
         /* Success */
@@ -1204,7 +1205,7 @@ int cbf_decompress_nibble_offset (void         *destination,
                     curmode = sucmode;
                     break;
                  case(CBF_NIBBLE_SET_ADDR):
-                    fprintf(stderr,"CBFLIB:  cbf-nibble_offset CBF_NIBBLE_SET_ADDR no implemented yet\n");
+                    fprintf(stderr,"CBFLIB:  cbf-nibble_offset CBF_NIBBLE_SET_ADDR not implemented yet\n");
                     cbf_failnez(CBF_FORMAT);
                     break;
 

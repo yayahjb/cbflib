@@ -580,7 +580,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
             const hsize_t vdims[] = {3};
             double buf[3] = {0./0.};
             cbf_H5Arequire_string(h5data,"depends_on",axisItem->depends_on?axisItem->depends_on:"");
-            if (!axisItem->depends_on) fprintf(stderr,"Missing dependancy for nexus axis '%s'\n",axisItem->nexus);
+            if (!axisItem->depends_on) fprintf(stderr,"Missing dependency for nexus axis '%s'\n",axisItem->nexus);
             cbf_H5Arequire_cmp(h5data,"vector",1,vdims,H5T_IEEE_F64LE,axisItem->vector,buf,cmp_double);
         }
         /* cleanup temporary datasets */
@@ -6834,6 +6834,8 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
         
         hid_t dataset_ds, dataset_type;
         
+        H5T_class_t dataset_type_class;
+        
         ssize_t attrib_name_size;
         
         int attrib_num;
@@ -7340,8 +7342,9 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                     H5Aclose(attrib_id);
                 }
                 
-                dataset_ds = H5Dget_space(dataset_id);
-                dataset_type = H5Dget_type(dataset_id);
+                dataset_ds         = H5Dget_space(dataset_id);
+                dataset_type       = H5Dget_type(dataset_id);
+                dataset_type_class = H5Tget_class(dataset_type);
                 
                 cbf_h5ds_store(handle,objinfo.addr,
                                parent_name,row,
@@ -7426,55 +7429,81 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                         
                         column = handle->node;
                         
-                        
-                        /* Remove the old value */
-                        
-                        cbf_reportnez (cbf_set_columnrow (column, localrow, NULL, 1),errorcode)
-                        
-                        
-                        /* Get the temporary file */
-                        
-                        cbf_reportnez (cbf_open_temporary (column->context, &tempfile),errorcode)
-                        
-                        
-                        /* Move to the end of the temporary file */
-                        
-                        if (cbf_set_fileposition (tempfile, 0, SEEK_END))
+                        if (dataset_type_class == H5T_OPAQUE) {
                             
-                            return CBF_FILESEEK | cbf_delete_fileconnection (&tempfile);
-                        
-                        
-                        /* Get the starting location */
-                        
-                        if (cbf_get_fileposition (tempfile, &start))
+                            /* If we have stored as an opqaue dataset, keep it that way */
                             
-                            return CBF_FILETELL | cbf_delete_fileconnection (&tempfile);
-                        
-                        
-                        /* Discard any bits in the buffers */
-                        
-                        cbf_reportnez (cbf_reset_bits (tempfile),errorcode)
-                        
-                        /* Add the binary data to the temporary file */
-                        
-                        if (!cbf_set_output_buffersize(tempfile,binsize))  {
                             
-                            memmove((void *)(tempfile->characters+tempfile->characters_used),
-                                    (void *)value,binsize);
+                            /* Remove the old value */
                             
-                            tempfile->characters_used+=binsize;
+                            cbf_reportnez (cbf_set_columnrow (column, localrow, NULL, 1),errorcode)
                             
+                            
+                            /* Get the temporary file */
+                            
+                            cbf_reportnez (cbf_open_temporary (column->context, &tempfile),errorcode)
+                            
+                            
+                            /* Move to the end of the temporary file */
+                            
+                            if (cbf_set_fileposition (tempfile, 0, SEEK_END))
+                                
+                                return CBF_FILESEEK | cbf_delete_fileconnection (&tempfile);
+                            
+                            
+                            /* Get the starting location */
+                            
+                            if (cbf_get_fileposition (tempfile, &start))
+                                
+                                return CBF_FILETELL | cbf_delete_fileconnection (&tempfile);
+                            
+                            
+                            /* Discard any bits in the buffers */
+                            
+                            cbf_reportnez (cbf_reset_bits (tempfile),errorcode)
+                            
+                            /* Add the binary data to the temporary file */
+                            
+                            if (!cbf_set_output_buffersize(tempfile,binsize))  {
+                                
+                                memmove((void *)(tempfile->characters+tempfile->characters_used),
+                                        (void *)value,binsize);
+                                
+                                tempfile->characters_used+=binsize;
+                                
+                            }
+                            
+                            cbf_onfailnez(cbf_set_bintext(column,localrow,CBF_TOKEN_TMP_BIN,
+                                                          binary_id,tempfile,start,binsize,
+                                                          1,digest,bits,sign,realarray,byteorder,
+                                                          dimover, dimfast, dimmid, dimslow,
+                                                          padding,compression),
+                                          cbf_delete_fileconnection (&tempfile));
+                            
+                            cbf_onfailnez(cbf_flush_bits(tempfile),
+                                          cbf_delete_fileconnection (&tempfile));
+                        } else {
+                            
+                            /* If this is not an opqaue object, then recompress
+                             using the attributes */
+                            
+                            cbf_reportnez(cbf_set_binary(handle->node,
+                                                         handle->row,
+                                                         compression,
+                                                         binary_id,
+                                                         (void *) value,
+                                                         (bits+7)/8,
+                                                         sign,
+                                                         dimover,
+                                                         realarray,
+                                                         "little-endian",
+                                                         dimover,
+                                                         dimfast,
+                                                         dimmid,
+                                                         dimslow,
+                                                         padding ), errorcode);
+                             
                         }
-                        
-                        cbf_onfailnez(cbf_set_bintext(column,localrow,CBF_TOKEN_TMP_BIN,
-                                                      binary_id,tempfile,start,binsize,
-                                                      1,digest,bits,sign,realarray,byteorder,
-                                                      dimover, dimfast, dimmid, dimslow,
-                                                      padding,compression),
-                                      cbf_delete_fileconnection (&tempfile));
-                        
-                        cbf_onfailnez(cbf_flush_bits(tempfile),
-                                      cbf_delete_fileconnection (&tempfile));
                         
                     }
                     

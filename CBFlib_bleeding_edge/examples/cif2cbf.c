@@ -60,6 +60,7 @@
  *    [-S {read|noread}] [-S {write|nowrite}] \                       *
  *    [-T {read|noread}] [-T {write|nowrite}] \                       *
  *    [-v dictionary]* [-w] [-D]\                                     *
+ *    [-O] \                                                          *
  *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
@@ -161,6 +162,9 @@
  *  -5 hdf5mode specifies whether to read and/or write in hdf5 mode   *
  *     the n parameter will cause the CIF H5 datablock to be deleted  *
  *     on both read and write, for both CIF, CBF and HDF5 files       *
+ *                                                                    *
+ *  -O when in -5 w (hdf5 write) mode, -O forces the use of opaque    *
+ *     objects for CBF binaries                                       *
  *                                                                    *
  *                                                                    *
  *                                                                    *
@@ -522,6 +526,7 @@ int main (int argc, char *argv [])
     int devnull = 0;
     int c;
     int errflg = 0;
+    int opaquemode = 0;
     const char *cifin, *cbfout, *updatecif;
     const char *hdf5out;
     const char *dictionary[NUMDICTS];
@@ -585,6 +590,7 @@ int main (int argc, char *argv [])
      *    [-p {0|1|2|4}] \                                                *
      *    [-v dictionary]* [-w] [-W] \                                    *
      *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
+     *    [-O] \                                                          *
      *    [input_cif] [output_cbf]                                        *
      *                                                                    *
      **********************************************************************/
@@ -632,6 +638,7 @@ int main (int argc, char *argv [])
                                  "T(treble-quotes):" \
                                  "v(validation-dictionary):" \
                                  "5(hdf5):" \
+                                 "O(opaque)" \
                                  "w(read-wide)" \
                                  "W(write-wide)" \
                                  ))
@@ -774,6 +781,10 @@ int main (int argc, char *argv [])
                     }
                     break;
                     
+                case 'O': /* set Opaque mode */
+                    if (opaquemode) errflg++;
+                        opaquemode = 1;
+                    break;
                     
                 case 'e':
                     if (encoding) errflg++;
@@ -994,6 +1005,8 @@ int main (int argc, char *argv [])
                 "    [-v dictionary]* [-w] [-W]\\\n");
         fprintf(stderr,
                 "    [-5 {r|w|rw|rn|wn|rwn|n[oH5]}\\\n");
+        fprintf(stderr,
+                "    [-O] \\\n");
         fprintf(stderr,
                 "    [input_cif] [output_cbf] \n\n");
         exit(2);
@@ -1790,7 +1803,7 @@ int main (int argc, char *argv [])
         if (hdf5mode&HDF5_WRITE_MODE) {
                         
             cbf_failnez(cbf_write_h5file (cbf, h5out,
-                                          mime | (digest&(MSG_DIGEST|MSG_DIGESTNOW)) | padflag | qwflags))
+                                          opaquemode?CBF_H5_OPAQUE:0))
             
         } else {
             
