@@ -269,7 +269,8 @@ TIFFPREFIX = $(PWD)
 # Definition to get a version of HDF5
 #
 #HDF5 = hdf5-1.8.10
-HDF5 = hdf5-1.8.11-pre2
+#HDF5 = hdf5-1.8.11-pre2
+HDF5 = hdf5-1.8.11
 HDF5PREFIX = $(PWD)
 HDF5LIBS = ./lib/libhdf5.a -lz -ldl
 HDF5SOLIBS = -L./lib -lhdf5 -lz
@@ -1172,7 +1173,7 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 # cif2cbf example program
 #
 $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
-					$(GOPTLIB)	$(GOPTINC)
+			$(GOPTLIB) $(GOPTINC) shared
 	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
@@ -1599,15 +1600,19 @@ ifneq ($(CLEANTESTS),)
 endif
 	$(TIME) $(BIN)/convert_minicbf -d pilatus6m -v 1 insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
 	-cmp insulin_pilatus6mconverted.cbf insulin_pilatus6mconverted_rev_orig.cbf
-	$(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted_v2.cbf
+	-$(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted_v2.cbf
 	-cmp insulin_pilatus6mconverted_v2.cbf insulin_pilatus6mconverted_v2_orig.cbf
-	$(TIME) $(BIN)/cif2cbf -5 w -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5
-	$(BIN)/h5dump insulin_pilatus6mconverted_orig.cbf.h5 | $(ALLBUTONE) > insulin_pilatus6mconverted_orig.cbf.h5.dump
-	$(BIN)/h5dump insulin_pilatus6mconverted.cbf.h5 | $(ALLBUTONE)  > insulin_pilatus6mconverted.cbf.h5.dump
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+		$(TIME) $(BIN)/cif2cbf -5 w -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5)
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+		$(BIN)/h5dump insulin_pilatus6mconverted_orig.cbf.h5 | $(ALLBUTONE) > insulin_pilatus6mconverted_orig.cbf.h5.dump)
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+		$(BIN)/h5dump insulin_pilatus6mconverted.cbf.h5 | $(ALLBUTONE)  > insulin_pilatus6mconverted.cbf.h5.dump)
 	-$(DIFF) insulin_pilatus6mconverted_orig.cbf.h5.dump insulin_pilatus6mconverted.cbf.h5.dump
 	-rm -f insulin_pilatus6mconverted_orig.cbf.h5.dump
 	-rm -f insulin_pilatus6mconverted.cbf.h5.dump
-	$(TIME) $(BIN)/cif2cbf -5 rn -en -cp -i insulin_pilatus6mconverted.cbf.h5 -o insulin_pilatus6mconverted.cbf.h5.cbf
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+		$(TIME) $(BIN)/cif2cbf -5 rn -en -cp -i insulin_pilatus6mconverted.cbf.h5 -o insulin_pilatus6mconverted.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	cd minicbf_test; $(TIME) ../$(BIN)/minicbf2nexus \
 		-c config ../X4_lots_M1S4_1_*.cbf -o minicbf.h5
@@ -1740,6 +1745,8 @@ empty:
 	@-rm -f  $(LIB)/libfcb.a
 	@-rm -f  $(LIB)/libimg.a
 	@-rm -f  $(LIB)/_pycbf.$(PYCBFEXT)
+	@-rm -f  $(LIB)/*tiff*
+	@-rm -f  $(LIB)/*hdf5*
 	@-rm -f  $(PYCBF)/_pycbf.$(PYCBFEXT)
 	@-rm -rf  $(PYCBF)/build/*
 	@-rm -f  $(PYCBF)/newtest1.cbf
@@ -1762,7 +1769,14 @@ empty:
 	@-rm -rf  $(BIN)/sauter_test*
 	@-rm -rf  $(BIN)/arvai_test*
 	@-rm -rf  $(BIN)/changtestcompression*
-	@-rm -rf  $(BIN)/tiff2cbf*
+	@-rm -rf  $(BIN)/*tiff*
+	@-rm -rf  $(BIN)/fax*
+	@-rm -rf  $(BIN)/pal*
+	@-rm -rf  $(BIN)/h5*
+	@-rm -rf  $(BIN)/rgb*
+	@-rm -rf  $(BIN)/sequence*
+	@-rm -rf  $(BIN)/gif*
+	@-rm -rf  $(BIN)/thumbnail*
 	@-rm -f  makecbf.cbf
 	@-rm -f  img2cif_packed.cif
 	@-rm -f  img2cif_canonical.cif
@@ -1847,6 +1861,10 @@ empty:
 	@-rm -rf $(REGEX)
 	@-rm -rf $(TIFF)
 	@-rm -rf $(HDF5)
+	@-rm -rf $(INCLUDE)/tiff*
+	@-rm -rf $(INCLUDE)/H5*
+	@-rm -rf $(INCLUDE)/hdf5*
+	@-rm -f  *_old
 	./.undosymlinks
 	
 #
