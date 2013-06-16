@@ -354,7 +354,7 @@ extern "C" {
 #define CBF_OVERFLOW         0x00008000  /*  32768 */
 #define CBF_UNDEFINED        0x00010000  /*  65536 */
 #define CBF_NOTIMPLEMENTED   0x00020000  /* 131072 */
-#define CBF_NOCOMPRESSION    0x00040000  /* 262144 */
+#define CBF_NOCOMPRESSION    0x00040000  /* 262144 */    
 #define CBF_H5ERROR          0x00080000  /* 524288 */
 #define CBF_H5DIFFERENT      0x00100000  /* 1048576 */
     
@@ -428,7 +428,8 @@ extern "C" {
                         0x0100  /* Flag for uncorrelated sections     */
 #define CBF_FLAT_IMAGE  0x0200  /* Flag for flat (linear) images      */
 #define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */
-
+#define CBF_H5_OPAQUE   0x0800  /* Flag to write compressed images
+                                     as opaque objects                */
 
 
   /* Flags used for logging */

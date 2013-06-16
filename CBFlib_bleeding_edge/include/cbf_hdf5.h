@@ -705,7 +705,9 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     /* Write a binary value to an HDF5 file */
     
-    int cbf_write_h5binary (cbf_node *column, unsigned int row,
+    int cbf_write_h5binary (cbf_handle handle,
+                            cbf_node *column,
+                            unsigned int row,
                             cbf_h5handle h5handle);
     
     /* Write an ascii value to an HDF5 file */

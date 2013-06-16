@@ -542,6 +542,8 @@ int cbf_set_io_buffersize (cbf_file *file, size_t size)
       if (target_size  < old_size) target_size = old_size*2;
     
       if (cbf_realloc ((void **)fc, &old_size, 1, target_size)) {
+          
+        if (!file->stream) return CBF_ALLOC;
       
         file->temporary = 0;
         
@@ -1410,7 +1412,13 @@ int cbf_flush_characters (cbf_file *file)
       old_size = old_data + file->characters_size;
     
       if (cbf_realloc ((void **)fc, &old_size, 1, old_size*2)) {
-      
+          
+        if (!file->stream) {
+            
+            return 0;
+          
+        }
+          
         file->temporary = 0;
         
         file->characters = file->characters_base;
@@ -2013,6 +2021,8 @@ int cbf_put_block (cbf_file *file, size_t nelem)
       old_size = old_data + file->characters_size;
     
       if (cbf_realloc ((void **)fc, &old_size, 1, old_size+nelem)) {
+          
+        if (!file->stream) return CBF_ALLOC;
       
         file->temporary = 0;
         
@@ -2164,6 +2174,8 @@ int cbf_copy_file (cbf_file *destination, cbf_file *source, size_t nelem)
         old_size = old_data + destination->characters_size;
     
         if (cbf_realloc ((void **)fc, &old_size, 1, old_size+todo)) {
+            
+          if (!destination->stream) return CBF_ALLOC;
       
           destination->temporary = 0;
         

@@ -260,11 +260,10 @@ extern "C" {
 #include "cbf_context.h"
 #include "cbf_compress.h"
 #include "cbf_alloc.h"
+#include "cbf_string.h"
+#include "cbf_read_mime.h"
+#include "cbf_read_binary.h"
 #include <string.h>
-
-    static herr_t cbf_h5z_set_local(hid_t dcpl_id, 
-                                    hid_t type_id, 
-                                    hid_t space_id);
 
     static size_t cbf_h5z_filter(unsigned int flags,
                                  size_t cd_nelmts,
@@ -281,8 +280,7 @@ extern "C" {
         1,                                  /* decoder_present flag (set to true) */
         "HDF5 CBF compression filters",     /* Filter name for debugging    */
         NULL,                               /* The "can apply" callback     */
-        (H5Z_set_local_func_t)
-                    cbf_h5z_set_local,      /* The "set local" callback     */
+        NULL,                               /* The "set local" callback     */
         (H5Z_func_t)cbf_h5z_filter,         /* The actual filter function   */
     }};
 
@@ -290,148 +288,6 @@ extern "C" {
     H5PL_type_t   H5PLget_plugin_type(void) {return H5PL_TYPE_FILTER;}
     const void *H5PLget_plugin_info(void) {return H5Z_CBF;}
 #endif
-
-    static herr_t cbf_h5z_set_local(hid_t dcpl_id, 
-                                    hid_t type_id, 
-                                    hid_t space_id){
-        unsigned filt_flags, flags;
-        size_t filt_cd_nelmts=CBF_H5Z_FILTER_CBF_NELMTS;
-        unsigned filt_cd_values[CBF_H5Z_FILTER_CBF_NELMTS],
-                      cd_values[CBF_H5Z_FILTER_CBF_NELMTS];
-        herr_t errorcode = 0;
-        hid_t base_type, native_type;
-        H5T_class_t type_class, base_type_class;
-        H5T_class_t native_type_class;
-        char h5t_type_class[14], h5t_base_type_class[14];
-        size_t type_size, total_size, total_dim;
-        H5T_order_t type_order;
-        H5T_sign_t type_sign;
-        int atomic;
-        int ndims, kdims, ii;
-        unsigned int filter_config;
-        hsize_t dims[H5S_MAX_RANK];
-        hsize_t maxdims[H5S_MAX_RANK];
-        
-        /* Get the existing filter data */
-        
-        if (H5Pget_filter_by_id2(dcpl_id,
-                                CBF_H5Z_FILTER_CBF,
-                                &filt_flags,
-                                &filt_cd_nelmts,
-                                filt_cd_values,0,NULL,&filter_config) < 0){
-            filt_cd_nelmts = 0;
-            errorcode=CBF_FORMAT;
-        }
-        
-        /* Get the type and space information */
-        
-        type_class = H5Tget_class(type_id);
-        base_type = CBF_H5FAIL;
-        type_order = -1;
-        kdims= ndims = H5Sget_simple_extent_ndims(space_id);
-        if (ndims <= 0) ndims = 1;
-        H5Sget_simple_extent_dims(space_id,dims,maxdims);
-        
-        /* extract the parameters of the type and space */
-        
-        if (!cbf_h5type_class_string(type_class,
-                                     h5t_type_class,&atomic,14)) {
-            if (!atomic && type_class==H5T_ARRAY){
-                base_type = H5Tget_super(type_id);
-                
-                base_type_class = H5Tget_class(base_type);
-                
-                if (!cbf_h5type_class_string(
-                                             base_type_class,
-                                             h5t_base_type_class,&atomic,14)) {
-                    if (!atomic) {
-                        strncpy (h5t_base_type_class,".",14);
-                        cbf_h5failneg(H5Tclose(base_type),CBF_FORMAT);
-                        base_type = CBF_H5FAIL;
-                    } else {
-                        type_size = H5Tget_size(base_type);
-                        type_order = H5Tget_order(base_type);
-                        type_sign = H5Tget_sign(base_type);
-                    }
-                } else {
-                    strncpy (h5t_base_type_class,".",14);
-                    cbf_h5failneg(H5Tclose(base_type),CBF_FORMAT);
-                    base_type = CBF_H5FAIL;
-                }
-            } else if (atomic) {
-                type_size = H5Tget_size(type_id);
-                type_order = H5Tget_order(type_id);
-                type_sign = H5Tget_sign(type_id);
-            }
-        }
-        total_size = type_size;
-        total_dim = 1;
-        for (ii=0; ii < kdims; ii ++) {
-            total_size *= dims[ii];
-            total_dim *= dims[ii];
-        }
-    
-        if (total_size < type_size) total_size = type_size;
-        if (total_dim < 1 ) total_dim = 1;
-        native_type = H5Tget_native_type(type_id,H5T_DIR_ASCEND);
-        native_type_class = H5Tget_class(native_type);
-        cd_values[CBF_H5Z_FILTER_CBF_DIMFAST]
-          =cd_values[CBF_H5Z_FILTER_CBF_DIMMID]
-          =cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]=1;
-        if (type_class==H5T_INTEGER){
-            cd_values[CBF_H5Z_FILTER_CBF_ELSIGN] = (type_sign==H5T_SGN_2)?1:0;
-            cd_values[CBF_H5Z_FILTER_CBF_REAL] = 0;
-            cd_values[CBF_H5Z_FILTER_CBF_ELSIZE] = type_size;
-        } else if (type_class==H5T_FLOAT) {
-            cd_values[CBF_H5Z_FILTER_CBF_ELSIGN] = 1;
-            cd_values[CBF_H5Z_FILTER_CBF_REAL] = 1;
-            cd_values[CBF_H5Z_FILTER_CBF_ELSIZE] = type_size;
-        } else {
-            cd_values[CBF_H5Z_FILTER_CBF_ELSIGN] = 0;
-            cd_values[CBF_H5Z_FILTER_CBF_REAL] = 0;
-            cd_values[CBF_H5Z_FILTER_CBF_ELSIZE] = 1;
-        }
-        if (total_dim > 1) {
-            cd_values[CBF_H5Z_FILTER_CBF_DIMFAST] = dims[kdims-1];
-            if (kdims > 1) cd_values[CBF_H5Z_FILTER_CBF_DIMMID] = dims[kdims-2];
-            if (cd_values[CBF_H5Z_FILTER_CBF_DIMMID] < 1)
-                cd_values[CBF_H5Z_FILTER_CBF_DIMMID]=1;
-            if (kdims > 2) cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW] = total_dim/
-                (cd_values[CBF_H5Z_FILTER_CBF_DIMFAST]
-                 *cd_values[CBF_H5Z_FILTER_CBF_DIMMID]);
-            if (cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW] < 1)
-                cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]=1;
-
-        }
-
-        if (filt_cd_nelmts > CBF_H5Z_FILTER_CBF_COMPRESSION ) {
-            cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION]
-            = filt_cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION];
-        } else {
-            cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION] = CBF_NONE;
-        }
-
-        if (filt_cd_nelmts > CBF_H5Z_FILTER_CBF_MIME_FLAG ) {
-            cd_values[CBF_H5Z_FILTER_CBF_MIME_FLAG]
-            = filt_cd_values[CBF_H5Z_FILTER_CBF_MIME_FLAG];
-        } else {
-            cd_values[CBF_H5Z_FILTER_CBF_MIME_FLAG] = 1;
-        }
-
-        
-        if (filt_cd_nelmts > CBF_H5Z_FILTER_CBF_PADDING
-            && filt_cd_values[CBF_H5Z_FILTER_CBF_PADDING] > 0 ) {
-            cd_values[CBF_H5Z_FILTER_CBF_PADDING] = filt_cd_values[CBF_H5Z_FILTER_CBF_PADDING];
-        } else {
-            cd_values[CBF_H5Z_FILTER_CBF_PADDING] = 0;
-        }
-        
-        /* Modify or set the filter params */
-        cbf_h5reportneg(H5Pmodify_filter(dcpl_id, CBF_H5Z_FILTER_CBF, flags,
-                                         CBF_H5Z_FILTER_CBF_NELMTS, cd_values),CBF_FORMAT,errorcode);
-        if (errorcode) return CBF_H5FAIL;
-        return 0;
-    }
 
 
     static size_t cbf_h5z_filter(unsigned int flags,
@@ -445,7 +301,7 @@ extern "C" {
         int errorcode;
         size_t elsize;
         int elsign;
-        size_t nelem;
+        size_t nelem, nelem_read;
         unsigned int compression;
         size_t size;
         int bits;
@@ -457,11 +313,32 @@ extern "C" {
         size_t dimslow;
         size_t padding;
         char text[100];
-        long int digest_pos;
+        size_t digest_pos;
+        size_t binary_size_pos;
+        long binid;
         void *vcharacters;
         
         if (flags & H5Z_FLAG_REVERSE) {
             /* decompression */
+
+            const char *line;
+            int        textencoding;
+            size_t     textsize;
+            long       textid;
+            char       textdigest[25];
+            unsigned int        textcompression;
+            int        textbits;
+            int        textsign;
+            int        textreal;
+            const char *textbyteorder;
+            size_t     textdimover;
+            size_t     textdimfast;
+            size_t     textdimmid;
+            size_t     textdimslow;
+            size_t     textpadding;
+            void *     destination;
+            char       newdigest[25];
+            
             errorcode = 0;
             tempfile = NULL;
             cbf_reportnez(cbf_make_file(&tempfile,NULL),errorcode);
@@ -470,13 +347,158 @@ extern "C" {
                                    &(tempfile->characters_size));
             tempfile->characters_base = tempfile->characters = *buf;
             tempfile->characters_used = tempfile->characters_size = nbytes;
+            {int ii;
+                for (ii=0; ii<500 && ii < nbytes; ii++)
+                    fprintf(stderr,"%d: %x %c ",ii,(*((char**)buf))[ii],(*((char **)buf))[ii]);
+            }
+
+            if (errorcode) {
+                *buf_size=0;
+                return 0;
+            }
             
+            if (cbf_read_line(tempfile,&line)||
+                !cbf_is_blank(line,";",1)) {
+                fprintf(stderr,"bad line %s \n",line);
+                errorcode |= CBF_FORMAT;
+                *buf_size = 0;
+                return 0;
+            }
+            if (cbf_read_line(tempfile,&line)||
+                cbf_cistrncmp(line,";",1)) {
+                fprintf(stderr,"bad line %s \n",line);
+                errorcode |= CBF_FORMAT;
+                *buf_size = 0;
+                return 0;
+            }
+            if (cbf_read_line(tempfile,&line)||
+                cbf_cistrncmp(line,"--CIF-BINARY-FORMAT-SECTION--",29)) {
+                fprintf(stderr,"bad line %s \n",line);
+                errorcode |= CBF_FORMAT;
+                *buf_size = 0;
+                return 0;
+            }
+            cbf_reportnez(cbf_parse_mimeheader(tempfile,
+                          &textencoding,
+                          &textsize,
+                          &textid,
+                          textdigest,
+                          &textcompression,
+                          &textbits,
+                          &textsign,
+                          &textreal,
+                          &textbyteorder,
+                          &textdimover,
+                          &textdimfast,
+                          &textdimmid,
+                          &textdimslow,
+                          &textpadding),errorcode);
+            if (errorcode) return 0;
+            if (textdimslow < 1) textdimslow = 1;
+            if (textdimmid  < 1) textdimmid  = 1;
+            if (textdimfast < 1) textdimfast = 1;
+            cbf_reportnez(cbf_parse_binaryheader(tempfile,NULL,NULL,NULL,1),errorcode);
+            if ((cd_nelmts <= CBF_H5Z_FILTER_CBF_ELSIZE ||
+                (int)textbits !=  8*cd_values[CBF_H5Z_FILTER_CBF_ELSIZE])
+                || (cd_nelmts <= CBF_H5Z_FILTER_CBF_ELSIGN
+                    ||(int)textsign != cd_values[CBF_H5Z_FILTER_CBF_ELSIGN])
+                || (cd_nelmts > CBF_H5Z_FILTER_CBF_COMPRESSION
+                    &&(int)textcompression != cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION])
+                || (cd_nelmts > CBF_H5Z_FILTER_CBF_REAL
+                    &&textreal != cd_values[CBF_H5Z_FILTER_CBF_REAL])
+                || (cd_nelmts > CBF_H5Z_FILTER_CBF_DIMFAST
+                    && (int)textdimfast != cd_values[CBF_H5Z_FILTER_CBF_DIMFAST])
+                || (cd_nelmts > CBF_H5Z_FILTER_CBF_DIMMID
+                    && (int)textdimmid != cd_values[CBF_H5Z_FILTER_CBF_DIMMID])
+                || (cd_nelmts > CBF_H5Z_FILTER_CBF_DIMSLOW
+                    && (int)textdimslow != cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW])
+                || (cd_nelmts > CBF_H5Z_FILTER_CBF_PADDING
+                    && (int)textpadding != cd_values[CBF_H5Z_FILTER_CBF_PADDING])
+                || (cd_nelmts > CBF_H5Z_FILTER_CBF_BINARY_ID
+                    && (int)textid != cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID]
+                    && 0 != cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID])
+                ) {
+                
+                fprintf(stderr,"mismatch on cd_values versus mime\n");
+                
+                if ((cd_nelmts <= CBF_H5Z_FILTER_CBF_ELSIZE ||
+                     (int)textbits !=  8*cd_values[CBF_H5Z_FILTER_CBF_ELSIZE])){
+                    fprintf(stderr," bits: %d %d\n",(int)textbits, 8*cd_values[CBF_H5Z_FILTER_CBF_ELSIZE]);
+                }
+                if ((cd_nelmts <= CBF_H5Z_FILTER_CBF_ELSIGN
+                     ||(int)textsign != cd_values[CBF_H5Z_FILTER_CBF_ELSIGN])){
+                    fprintf(stderr," sign: %d %d\n",(int)textsign, 8*cd_values[CBF_H5Z_FILTER_CBF_ELSIGN]);
+                }
+                if ((cd_nelmts <= CBF_H5Z_FILTER_CBF_COMPRESSION
+                     ||(int)textcompression != cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION])){
+                    fprintf(stderr," compression: %d %d\n",(int)textcompression, cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION]);
+                }
+                if ((cd_nelmts <= CBF_H5Z_FILTER_CBF_REAL
+                     ||(int)textreal != cd_values[CBF_H5Z_FILTER_CBF_REAL])){
+                    fprintf(stderr," sign: %d %d\n",(int)textreal, cd_values[CBF_H5Z_FILTER_CBF_REAL]);
+                }
+                if ((cd_nelmts <= CBF_H5Z_FILTER_CBF_DIMFAST
+                     ||(int)textdimfast != cd_values[CBF_H5Z_FILTER_CBF_DIMFAST])){
+                    fprintf(stderr," dimfast: %d %d\n",(int)textdimfast, cd_values[CBF_H5Z_FILTER_CBF_DIMFAST]);
+                }
+                if ((cd_nelmts <= CBF_H5Z_FILTER_CBF_DIMMID
+                     ||(int)textdimmid != cd_values[CBF_H5Z_FILTER_CBF_DIMMID])){
+                    fprintf(stderr," dimmid: %d %d\n",(int)textdimmid, cd_values[CBF_H5Z_FILTER_CBF_DIMMID]);
+                }
+                if ((cd_nelmts <= CBF_H5Z_FILTER_CBF_DIMSLOW
+                     ||(int)textdimslow != cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW])){
+                    fprintf(stderr," dimslow: %d %d\n",(int)textdimslow, cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]);
+                }
+                if ((cd_nelmts <= CBF_H5Z_FILTER_CBF_PADDING
+                     ||(int)textpadding != cd_values[CBF_H5Z_FILTER_CBF_PADDING])){
+                    fprintf(stderr," padding: %d %d\n",(int)textpadding, cd_values[CBF_H5Z_FILTER_CBF_PADDING]);
+                }
+                
+                *buf_size = 0;
+                return 0;
+            }
+            elsize = (textbits+7)/8;
+            nelem = textdimover;
+            
+            /* allocate a new buffer */
+            if (cbf_alloc((void **) &destination,NULL,
+                           nelem*elsize,1)) return 0;
+            
+            fprintf(stderr,"compressed size estimates, textsize %ld, tempfile %ld\n",(unsigned long)textsize,
+                    (unsigned long)( nbytes-(tempfile->characters-tempfile->characters_base)));
+            
+            fprintf(stderr,"Start of decompression %ld, compression %x\n",
+                    (long) (tempfile->characters-tempfile->characters_base),
+                            textcompression);
+
+            
+            cbf_reportnez(cbf_decompress (destination,
+                        elsize, textsign, nelem, &nelem_read,
+                        textsize,
+                        textcompression, textbits, textsign, tempfile,
+                        textreal, textbyteorder, textdimover,
+                        textdimfast,textdimmid,textdimslow,textpadding),
+                        errorcode);
+            fprintf(stderr," errorcode %d after decompress\n",errorcode);
+            
+            if (errorcode) cbf_free((void **) (&destination), NULL);
+            
+            *buf_size = nelem_read*elsize;
+            
+            *buf=destination;
+            
+            vcharacters = (void *)(tempfile->characters_base);
+            
+            cbf_free_file(&tempfile);
+            
+            return (*buf_size);
             
         } else {
             /* compression */
             errorcode = 0;
             tempfile = NULL;
             cbf_reportnez(cbf_make_file(&tempfile,NULL),errorcode);
+            tempfile->write_encoding = ENC_LFTERM|ENC_CRTERM;
             /* load compression parameters from cd_values */
             if (cd_nelmts > CBF_H5Z_FILTER_CBF_ELSIZE
                 && cd_values[CBF_H5Z_FILTER_CBF_ELSIZE] > 0
@@ -531,14 +553,20 @@ extern "C" {
             } else {
                 padding = 0;
             }
+            if (cd_nelmts > CBF_H5Z_FILTER_CBF_BINARY_ID
+                && cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID] > 0 ) {
+                binid = cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID];
+            } else {
+                binid = 1;
+            }
             
             if (dimslow < 1) dimslow = 1;
             
-            if (cd_nelmts > cd_values[CBF_H5Z_FILTER_CBF_MIME_FLAG]
-                && cd_values[CBF_H5Z_FILTER_CBF_MIME_FLAG] != 0) {
+            {
+                
                 
                 cbf_reportnez(cbf_write_string (tempfile,
-                                                "--CIF-BINARY-FORMAT-SECTION--\n"),
+                                                "\n;\n--CIF-BINARY-FORMAT-SECTION--\n"),
                               errorcode);
                 
                 if (cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION] == CBF_NONE) {
@@ -625,6 +653,16 @@ extern "C" {
                 
                 cbf_reportnez (cbf_write_string (tempfile,
                                                  "Content-Transfer-Encoding: BINARY\n"), errorcode);
+                cbf_reportnez (cbf_write_string (tempfile,
+                                                 "X-Binary-Size: "), errorcode);
+                binary_size_pos = tempfile->characters+tempfile->characters_used-tempfile->characters_base;
+                cbf_reportnez (cbf_write_string (tempfile,
+                                                 "                         \n"), errorcode);
+                cbf_reportnez (cbf_write_string (tempfile,
+                                                 "X-Binary-ID: "), errorcode);
+                sprintf (text,"%ld\n",(unsigned long)binid);
+                cbf_reportnez (cbf_write_string (tempfile, text), errorcode);
+                
                 if (realarray) {
                     sprintf (text, "X-Binary-Element-Type: \"signed %ld-bit real IEEE\"\n",
                              elsize*CHAR_BIT);
@@ -640,7 +678,7 @@ extern "C" {
                 cbf_reportnez (cbf_write_string (tempfile, text), errorcode);
                 cbf_reportnez (cbf_write_string (tempfile,
                                                  "Content-MD5: "),errorcode);
-                cbf_reportnez (cbf_get_fileposition (tempfile, &digest_pos), errorcode);
+                digest_pos = tempfile->characters+tempfile->characters_used-tempfile->characters_base;
                 cbf_reportnez (cbf_write_string (tempfile,
                                                  "========================\n"), errorcode);
                 if (nelem > 0) {
@@ -659,7 +697,7 @@ extern "C" {
                     cbf_reportnez (cbf_write_string (tempfile, text), errorcode);
                 }
                 
-                if ((long)dimslow > 0) {
+                if ((long)dimslow > 1) {
                     sprintf (text, "X-Binary-Size-Third-Dimension: %ld\n", (unsigned long)dimslow);
                     cbf_reportnez (cbf_write_string (tempfile, text), errorcode);
                     
@@ -689,14 +727,19 @@ extern "C" {
                 
             }
             
+            fprintf(stderr,"Start of compression %ld, compression %x\n",
+                    (long) (tempfile->characters+tempfile->characters_used-tempfile->characters_base),
+                    compression);
+            
             if (!errorcode &&
-                cbf_compress (*buf, elsize, elsign, nelem,
+                (errorcode|=cbf_compress (*buf, elsize, elsign, nelem,
                               compression, tempfile,
                               &size, &bits, digest, realarray,
-                              "little_endian", dimfast, dimmid, dimslow, padding)) {
+                              "little_endian", dimfast, dimmid, dimslow, padding))) {
                     errorcode |= CBF_FORMAT;
                     cbf_delete_fileconnection (&tempfile);
-                }
+            }
+            
             if (!errorcode) {
                 void * oldbuf;
                 oldbuf = *buf;
@@ -706,18 +749,33 @@ extern "C" {
                         cbf_reportnez ((cbf_put_bits(tempfile, (int *)text,CHAR_BIT*(ip+100<padding?100:padding-ip))),errorcode)
                     }
                 }
+                
+                
+                cbf_reportnez (cbf_write_string (tempfile,
+                                                 "\n--CIF-BINARY-FORMAT-SECTION----\n;\n"),errorcode);
+                
+                /* add the digest */
+                
                 for (ip = 0; ip < 24; ip ++) {
-                    (tempfile->characters_base)[digest_pos+ip]= digest[ip];
+                    tempfile->characters_base[digest_pos+ip]= digest[ip];
                 }
                 
-                if (cd_nelmts > cd_values[CBF_H5Z_FILTER_CBF_MIME_FLAG]
-                    && cd_values[CBF_H5Z_FILTER_CBF_MIME_FLAG] != 0) {
-                    cbf_reportnez (cbf_write_string (tempfile,
-                                                     "\n--CIF-BINARY-FORMAT-SECTION----\n;\n"),errorcode);
+                /* insert the compressed size */
+                
+                sprintf(text,"%ld",(unsigned long)size);
+                
+                for (ip = 0; ip < strlen(text) && ip < 24; ip++) {
+                    tempfile->characters_base[binary_size_pos+ip]= text[ip];
                 }
+                
                 cbf_reportnez (cbf_flush_characters (tempfile), errorcode)
                 *buf = tempfile->characters_base;
-                *buf_size = tempfile->characters-tempfile->characters_base;
+                *buf_size = tempfile->characters+tempfile->characters_used-tempfile->characters_base;
+                {int ii;
+                    for (ii=0; ii<500 && ii < *buf_size; ii++)
+                        fprintf(stderr,"%d: %x %c ",ii,(*((char**)buf))[ii],(*((char **)buf))[ii]);
+                }
+                
                 tempfile->characters_base = oldbuf;
                 cbf_free_file(&tempfile);
                 return *buf_size;

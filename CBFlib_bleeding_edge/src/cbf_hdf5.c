@@ -270,6 +270,7 @@ extern "C" {
 #include "cbf_alloc.h"
 #include "cbf_simple.h"
 #include "cbf_tree.h"
+#include "cbf_hdf5_filter.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -302,24 +303,31 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      ****************************************************************/
 
     /*
-     Some comparison functions
-     
+     Some comparison functions for use in checking the content of 
+     HDF5 datasets/attributes
+
      Should return 0 on success, non-zero on failure
      */
     
     static int cmp_double(const void * a, const void * b, size_t N)
-    {
-        // go through each vector comparing all values
+    {        
+        /* go through each vector comparing all values */
+
         while (N && *(const double *)(a)++ == *(const double *)(b)++) --N;
-        // if any are not equal the loop will exit early and N is non-zero
+
+       /* if any are not equal the loop will exit early and N is non-zero */
+
         return N;
     }
     
     static int cmp_int(const void * a, const void * b, size_t N)
     {
-        // go through each vector comparing all values
+        /* go through each vector comparing all values */
+
         while (N && *(const int *)(a)++ == *(const int *)(b)++) --N;
-        // if any are not equal the loop will exit early and N is non-zero
+
+       /* if any are not equal the loop will exit early and N is non-zero */
+
         return N;
     }
     
@@ -475,9 +483,14 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     }
     
     /**
-     Extract a value-units pair from a line of a pilatus header and insert them into a hdf5 group under a given name.
+     Extract a value-units pair from a line of a pilatus header and insert them 
+     into a hdf5 group under a given name.
      
-     The starting point must be start of the value string, the reported end point will be one-past-the-end of the unit string.
+     The starting point must be start of the value string, the reported end 
+     point will be one-past-the-end of the unit string.
+     
+     TODO: Get this to deal with errors properly, by checking return codes and 
+     returning an error code.
      
      \param value The current location in the (read-only) string of header data.
      \param h5location The hdf5 group to put the name-value-units triplet into.
@@ -521,22 +534,6 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         return value;
     }
 
-    /** Check if a string returns a recognised pilatus axis, return the nexus name of the axis
-     
-     \return A nexus axis name or NULL if a non-pilatus axis name is given
-     */
-    static const char * pilatus2nexusAxis(const char * const axisName)
-    {
-        if (!axisName) return ".";
-        if (0 == strcmp(axisName,"Alpha")) return "axis_alpha";
-        if (0 == strcmp(axisName,"Kappa")) return "axis_kappa";
-        if (0 == strcmp(axisName,"Phi")) return "axis_phi";
-        if (0 == strcmp(axisName,"Chi")) return "axis_chi";
-        if (0 == strcmp(axisName,"Omega")) return "axis_omega";
-        if (0 == strcmp(axisName,"Start_angle")) return "axis_start_angle";
-        if (0 == strcmp(axisName,"Detector_2theta")) return "axis_detector_2theta";
-        return "";
-    }
     
     /** Map a pilatus axis to a nexus axis */
     static void pilatusMapAxis
@@ -2330,6 +2327,8 @@ return e; \
         
         hsize_t one=1;
         
+        hsize_t naught=0;
+        
         double zero[1];
         
         hid_t instrumentid;
@@ -2579,7 +2578,7 @@ return e; \
                 cbf_reportnez(cbf_strcat("CBF_axis__",
                                          depends_on,&nxdepends_on_name),errorcode);
                 
-                cbf_h5reportneg(dspace = H5Screate_simple(1,&one,&one),CBF_ALLOC,errorcode);
+                cbf_h5reportneg(dspace = H5Screate_simple(1,&naught,&one),CBF_ALLOC,errorcode);
                 
                 cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
                 
@@ -2587,9 +2586,11 @@ return e; \
                 
                 cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
                 
+                cbf_h5reportneg(H5Pset_chunk(dprop, 1, &one),CBF_ALLOC,errorcode);
+                
                 cbf_h5reportneg(nxaxisoffsetid = H5Dcreatex(equipmentid,nxaxis_offset_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
                 
-                cbf_h5reportneg(H5Dwrite(nxaxisoffsetid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);
+                // cbf_h5reportneg(H5Dwrite(nxaxisoffsetid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);
 
 
                 cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
@@ -2691,15 +2692,17 @@ return e; \
                     
                     hid_t mtype;
 
-                    cbf_h5reportneg(dspace = H5Screate_simple(1,&one,&one),CBF_ALLOC,errorcode);
+                    cbf_h5reportneg(dspace = H5Screate_simple(1,&naught,&one),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
                     
+                    cbf_h5reportneg(H5Pset_chunk(dprop, 1, &one),CBF_ALLOC,errorcode);
+                    
                     cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
                     
-                    cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);;
+                    // cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);;
 
                     cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
                     
@@ -2808,7 +2811,7 @@ return e; \
                                         
                     hid_t mtype;
                     
-                    cbf_h5reportneg(dspace = H5Screate_simple(1,&one,&one),CBF_ALLOC,errorcode);
+                    cbf_h5reportneg(dspace = H5Screate_simple(1,&naught,&one),CBF_ALLOC,errorcode);
 
                     cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
                     
@@ -2816,9 +2819,11 @@ return e; \
                     
                     cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
                     
+                    cbf_h5reportneg(H5Pset_chunk(dprop, 1, &one),CBF_ALLOC,errorcode);
+                    
                     cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
 
-                    cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);;
+                    //cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);;
 
                     cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
                     
@@ -3065,10 +3070,12 @@ return e; \
     
     /* Write a binary value to an HDF5 file */
     
-    int cbf_write_h5binary (cbf_node *column, unsigned int row,
+    int cbf_write_h5binary (cbf_handle handle,
+                            cbf_node *column,
+                            unsigned int row,
                             cbf_h5handle h5handle)
     {
-        hid_t valid, valtype, valprop, valspace;
+        hid_t valid, valtype, memtype, valprop, valspace;
         
         int errorcode;
         
@@ -3082,11 +3089,13 @@ return e; \
         
         size_t size;
         
-        hsize_t hsize[1];
+        hsize_t hsize[3];
         
         unsigned int compression;
         
         unsigned char * rawdata;
+        
+        void * uncompressedarray;
         
         int id, bits, sign, type, checked_digest, realarray;
         
@@ -3096,9 +3105,15 @@ return e; \
         
         size_t padding;
         
+        size_t elsize;
+        
+        size_t nelems_read;
+        
+        unsigned int cd_values[CBF_H5Z_FILTER_CBF_NELMTS];
+        
         /* Check the arguments */
         
-        if (!h5handle || !h5handle->hfile)
+        if (!handle || !h5handle || !h5handle->hfile)
             
             return CBF_ARGUMENT;
         
@@ -3115,6 +3130,12 @@ return e; \
                                       digest, &bits, &sign, &realarray,
                                       &byteorder, &dimover, &dimfast, &dimmid, &dimslow,
                                       &padding, &compression))
+        
+        if (dimslow == 0) dimslow = 1;
+        
+        if (dimmid == 0) dimmid = 1;
+        
+        if (dimfast == 0) dimfast = 1;
         
         /* Position the file at the start of the binary section */
         
@@ -3161,67 +3182,368 @@ return e; \
         
         errorcode = 0;
         
-        /* Create treat the image as an opaque stream of size bytes */
-        
-        hsize[0] = size;
-        
-        cbf_h5reportneg(valspace = H5Screate_simple(1,hsize,NULL),
-                        CBF_ALLOC,errorcode);
-        
-        cbf_h5reportneg(valtype = H5Tcreate(H5T_OPAQUE,1),
-                        CBF_ALLOC,errorcode);
-        
-        cbf_h5reportneg(H5Tset_tag(valtype,"stream of opaque bytes"),
-                        CBF_ALLOC,errorcode);
-        
-        
-        cbf_h5reportneg(valprop = H5Pcreate(H5P_DATASET_CREATE),
-                        CBF_ALLOC,errorcode);
-        
-        cbf_h5reportneg(valid = H5Dcreatex(h5handle->colid,rownum,
-                                           valtype,valspace,
-                                           valprop),
-                        CBF_ALLOC,errorcode);
-        
-        
-        /* get all the data */
-        
-        /* first ensure enough space at infile->characters
-         for size characters, which means we need enough
-         at characters->base for size + the old data,
-         if any */
-        
-        cbf_reportnez(cbf_set_io_buffersize(infile, size),errorcode);
-        
-        /* now we can safely do the read
-         
-         because of the file positioning done, infile->chatracters
-         is actually the same as infile_characters_base for a
-         file stream based file */
-        
-        rawdata = (unsigned char*) infile->characters;
-        
-        if (infile->characters_used < size) {
+        if (h5handle->flags & CBF_H5_OPAQUE) {
+            
+            /* Treat the image as an opaque stream of size bytes */
+            
+            hsize[0] = size;
+            
+            cbf_h5reportneg(valspace = H5Screate_simple(1,hsize,NULL),
+                            CBF_ALLOC,errorcode);
+            
+            cbf_h5reportneg(valtype = H5Tcreate(H5T_OPAQUE,1),
+                            CBF_ALLOC,errorcode);
+            
+            cbf_h5reportneg(H5Tset_tag(valtype,"stream of opaque bytes"),
+                            CBF_ALLOC,errorcode);
             
             
-            /* We cannot get any more characters from
-             a temporary file of file without a stream */
+            cbf_h5reportneg(valprop = H5Pcreate(H5P_DATASET_CREATE),
+                            CBF_ALLOC,errorcode);
             
-            if (infile->temporary || !infile->stream)  {
+            cbf_h5reportneg(valid = H5Dcreatex(h5handle->colid,rownum,
+                                               valtype,valspace,
+                                               valprop),
+                            CBF_ALLOC,errorcode);
+            
+            
+            /* get all the data */
+            
+            /* first ensure enough space at infile->characters
+             for size characters, which means we need enough
+             at characters->base for size + the old data,
+             if any */
+            
+            cbf_reportnez(cbf_set_io_buffersize(infile, size),errorcode);
+            
+            /* now we can safely do the read
+             
+             because of the file positioning done, infile->characters
+             is actually the same as infile_characters_base for a
+             file stream based file */
+            
+            rawdata = (unsigned char*) infile->characters;
+            
+            if (infile->characters_used < size) {
                 
-                errorcode |= CBF_FILEREAD;
+                
+                /* We cannot get any more characters from
+                 a temporary file of file without a stream */
+                
+                if (infile->temporary || !infile->stream)  {
+                    
+                    errorcode |= CBF_FILEREAD;
+                    
+                }
+                
+                if (!errorcode && fread(rawdata, 1,
+                                        size-(infile->characters_used), infile->stream)
+                    != size-infile->characters_used)
+                    errorcode |= CBF_FILEREAD;
+                
+                if (!errorcode) infile->characters_used = size;
                 
             }
             
-            if (!errorcode && fread(rawdata, 1,
-                                    size-(infile->characters_used), infile->stream)
-                != size-infile->characters_used)
-                errorcode |= CBF_FILEREAD;
+            cbf_h5reportneg(H5Dwrite(valid,valtype,
+                                     valspace,H5S_ALL,H5P_DEFAULT,rawdata),
+                            CBF_ARGUMENT,errorcode);
             
-            if (!errorcode) infile->characters_used = size;
+        } else {
+            
+            /* Treat the data as an array to be compressed
+             
+             chunking in planes dimfast x dimmid
+             
+             */
+            
+            
+            hsize_t chunk[3];
+            
+            hsize_t maxdim[3];
+            
+            hsize[0] = dimslow;
+            
+            chunk[0] = 1;
+            
+            maxdim[0] = H5S_UNLIMITED;
+            
+            hsize[1] = chunk[1] = maxdim[1] = dimmid;
+            
+            hsize[2] = chunk[2] = maxdim[2] = dimfast;
+            
+            cbf_h5reportneg(valspace = H5Screate_simple(3,hsize,maxdim),
+                            CBF_ALLOC,errorcode);
+            
+            if (realarray) {
+                
+                if (byteorder[0]=='l' || byteorder[0]=='L') {
+                    
+                    if (bits <= 32) {
+                        
+                        cbf_h5reportneg(valtype = H5Tcopy(H5T_IEEE_F32LE),
+                                        CBF_ALLOC,errorcode);
+                        cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_FLOAT),
+                                        CBF_ALLOC,errorcode)
+                        
+                        
+                    } else {
+                        
+                        cbf_h5reportneg(valtype = H5Tcopy(H5T_IEEE_F64LE),
+                                        CBF_ALLOC,errorcode)
+                        cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_DOUBLE),
+                                        CBF_ALLOC,errorcode)
+                        
+                        
+                    }
+                    
+                    
+                } else {
+                    
+                    if (bits <= 32) {
+                        
+                        cbf_h5reportneg(valtype = H5Tcopy(H5T_IEEE_F32BE),
+                                        CBF_ALLOC,errorcode);
+                        cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_FLOAT),
+                                        CBF_ALLOC,errorcode)
+                        
+                    } else {
+                        
+                        cbf_h5reportneg(valtype = H5Tcopy(H5T_IEEE_F64BE),
+                                        CBF_ALLOC,errorcode)
+                        cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_DOUBLE),
+                                        CBF_ALLOC,errorcode)
+                        
+                    }
+                    
+                }
+                
+                
+            } else {
+                
+                if (byteorder[0]=='l' || byteorder[0]=='L') {
+                    
+                    if (bits <= 8) {
+                        
+                        if (sign) {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_I8LE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_CHAR),
+                                            CBF_ALLOC,errorcode);
+                            
+                        } else {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_U8LE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_UCHAR),
+                                            CBF_ALLOC,errorcode);
+                        }
+                        
+                    } else if (bits <= 16) {
+                        
+                        if (sign) {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_I16LE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_SHORT),
+                                            CBF_ALLOC,errorcode);
+                            
+                        } else {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_U16LE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_USHORT),
+                                            CBF_ALLOC,errorcode);
+                        }
+                        
+                    } else if (bits <= 32) {
+                        
+                        if (sign) {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_I32LE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_INT),
+                                            CBF_ALLOC,errorcode);
+                            
+                        } else {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_U32LE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_UINT),
+                                            CBF_ALLOC,errorcode);
+                        }
+                        
+                    } else {
+                        
+                        if (sign) {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_I64LE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_LLONG),
+                                            CBF_ALLOC,errorcode);
+                            
+                        } else {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_U64LE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_ULLONG),
+                                            CBF_ALLOC,errorcode);
+                        }
+                        
+                    }
+                    
+                    
+                } else {
+                    
+                    if (bits <= 8) {
+                        
+                        if (sign) {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_I8BE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_CHAR),
+                                            CBF_ALLOC,errorcode);
+                            
+                        } else {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_U8BE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_UCHAR),
+                                            CBF_ALLOC,errorcode);
+                        }
+                        
+                    } else if (bits <= 16) {
+                        
+                        if (sign) {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_I16BE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_SHORT),
+                                            CBF_ALLOC,errorcode);
+                            
+                        } else {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_U16BE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_USHORT),
+                                            CBF_ALLOC,errorcode);
+                        }
+                        
+                    } else if (bits <= 32) {
+                        
+                        if (sign) {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_I32BE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_INT),
+                                            CBF_ALLOC,errorcode);
+                            
+                        } else {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_U32BE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_UINT),
+                                            CBF_ALLOC,errorcode);
+                            
+                        }
+                        
+                    } else {
+                        
+                        if (sign) {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_I64BE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_LLONG),
+                                            CBF_ALLOC,errorcode);
+                            
+                        } else {
+                            
+                            cbf_h5reportneg(valtype = H5Tcopy(H5T_STD_U64BE),
+                                            CBF_ALLOC,errorcode);
+                            cbf_h5reportneg(memtype = H5Tcopy(H5T_NATIVE_ULLONG),
+                                            CBF_ALLOC,errorcode);
+                            
+                        }
+                        
+                    }
+                    
+                }
+                
+            }
+            
+            
+            cbf_h5reportneg(valprop = H5Pcreate(H5P_DATASET_CREATE),
+                            CBF_ALLOC,errorcode);
+            
+            cbf_h5reportneg(H5Pset_chunk(valprop,3,chunk),
+                            CBF_ALLOC,errorcode);
+            
+            cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION] = compression;
+            cd_values[CBF_H5Z_FILTER_CBF_RESERVED]    = 0;
+            cd_values[CBF_H5Z_FILTER_CBF_PADDING]     = padding;
+            cd_values[CBF_H5Z_FILTER_CBF_ELSIZE]      = (bits+7)/8;
+            cd_values[CBF_H5Z_FILTER_CBF_ELSIGN]      = sign;
+            cd_values[CBF_H5Z_FILTER_CBF_REAL]        = realarray;
+            cd_values[CBF_H5Z_FILTER_CBF_DIMFAST]     = dimfast;
+            cd_values[CBF_H5Z_FILTER_CBF_DIMMID]      = dimmid;
+            cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = dimslow;
+            
+            cbf_h5reportneg(H5Pset_filter(valprop,CBF_H5Z_FILTER_CBF,
+                                          H5Z_FLAG_OPTIONAL,
+                                          CBF_H5Z_FILTER_CBF_NELMTS,
+                                          cd_values),CBF_ALLOC,errorcode);
+            
+            fprintf(stderr,"errorcode on setting filter CBF_H5Z_FILTER_CBF %d\n",errorcode);
+            
+            valid = H5Dcreatex(h5handle->colid,rownum,
+                                               valtype,valspace,
+                                               valprop);
+            
+            
+            /* get all the data */
+            
+            elsize = (bits+7)/8;
+            
+            cbf_reportnez(cbf_alloc(((void **) &uncompressedarray),NULL,
+                                    dimover*elsize,1),errorcode);
+            
+            nelems_read = 0;
+            
+            if (realarray) {
+                
+                cbf_reportnez(cbf_get_realarray(handle,0,uncompressedarray,
+                                                elsize,dimover,&nelems_read),
+                              errorcode);
+            }  else {
+                
+                cbf_reportnez(cbf_get_integerarray(handle,0,uncompressedarray,
+                                                   elsize,sign,dimover,&nelems_read),
+                              errorcode);
+            }
+            
+            if (nelems_read < dimover) {
+                
+                cbf_failnez(cbf_free(&uncompressedarray,NULL));
+                
+                return errorcode|CBF_ENDOFDATA;
+                
+            }
+            
+            cbf_h5reportneg(H5Dwrite(valid,memtype,H5S_ALL,
+                                     H5S_ALL,H5P_DEFAULT,uncompressedarray),
+                            CBF_ARGUMENT,errorcode);
+            
+            if (memtype >= 0) {
+                
+                cbf_h5failneg(H5Tclose(memtype),CBF_ARGUMENT);
+                
+            }
+            
+            cbf_failnez(cbf_free(&uncompressedarray,NULL));
+            
             
         }
-        
         
         errorcode |= cbf_apply_h5integer_attribute(valid,"signal",row+1,errorcode);
         errorcode |= cbf_apply_h5intasstr_attribute(valid,"compression",compression,errorcode);
@@ -3243,9 +3565,6 @@ return e; \
         errorcode |= cbf_apply_h5longasstr_attribute(valid,"dimslow",(long)dimslow,errorcode);
         errorcode |= cbf_apply_h5longasstr_attribute(valid,"padding",(long)padding,errorcode);
         
-        cbf_h5reportneg(H5Dwrite(valid,valtype,
-                                 valspace,H5S_ALL,H5P_DEFAULT,rawdata),
-                        CBF_ARGUMENT,errorcode);
         
         /* now link the data to entry:NXentry/data:NXdata */
         
@@ -3277,7 +3596,7 @@ return e; \
             
             const char * pstr;
             
-            strcpy(target_path,"/entry/NXcbf/");
+            strcpy(target_path,"/entry/CBF_cbf/");
             
             full_name[0] = '\0';
             
@@ -3532,7 +3851,7 @@ return e; \
         
         if (*text == CBF_TOKEN_BIN || *text == CBF_TOKEN_TMP_BIN)
             
-            return cbf_write_h5binary (column, row, h5handle);
+            return cbf_write_h5binary (handle, column, row, h5handle);
         
         
         /* Undecoded MIME? */
@@ -3543,7 +3862,7 @@ return e; \
             
             cbf_failnez (cbf_mime_temp (column, row))
             
-            return cbf_write_h5binary (column, row, h5handle);
+            return cbf_write_h5binary (handle, column, row, h5handle);
         }
         
         
@@ -3784,7 +4103,7 @@ return e; \
         
         
         cbf_failnez(cbf_apply_h5text_attribute(h5handle->catid,
-                                               "NX_class","NXcbfcat",0));
+                                               "NX_class","CBF_cbfcat",0));
         
         
         /* now, for each column, make it into a group and
@@ -3804,7 +4123,7 @@ return e; \
                           CBF_FORMAT);
             
             cbf_failnez(cbf_apply_h5text_attribute(h5handle->colid,
-                                                   "NX_class","NXcbfcol",0));
+                                                   "NX_class","CBF_cbfcol",0));
             
             /* For each row, create a dataset */
             
@@ -4034,8 +4353,8 @@ return e; \
     
     
     /* Write a saveframe name to an HDF5 file
-     Make a new group of NeXus class NXcbfsf
-     in the NXcbf current datablock
+     Make a new group of NeXus class CBF_cbfsf
+     in the CBF_cbf current datablock
      */
     
     int cbf_write_h5saveframename (const cbf_node *saveframe,
@@ -4065,7 +4384,7 @@ return e; \
                       CBF_FORMAT);
         
         cbf_failnez(cbf_apply_h5text_attribute(h5handle->sfid,
-                                               "NX_class", "NXcbfsf",0));
+                                               "NX_class", "CBF_cbfsf",0));
         
         return CBF_SUCCESS;
     }
@@ -4074,7 +4393,7 @@ return e; \
     
     
     /* Write a datablock name to an HDF5 file
-     Make a new group of NeXus class NXcbfdb in the NXcbf class root
+     Make a new group of NeXus class CBF_cbfdb in the CBF_cbf class root
      */
     
     int cbf_write_h5datablockname (const cbf_node *datablock, cbf_h5handle h5handle)
@@ -4133,7 +4452,7 @@ return e; \
                       CBF_FORMAT);
         
         cbf_failnez(cbf_apply_h5text_attribute(h5handle->dbid,
-                                               "NX_class", "NXcbfdb",0));
+                                               "NX_class", "CBF_cbfdb",0));
         
         return CBF_SUCCESS;
     }
@@ -4242,33 +4561,48 @@ return e; \
         cbf_h5onfailneg(H5Pset_fclose_degree(fcreate_prop_list,H5F_CLOSE_STRONG),
                         CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
         
-        cbf_h5onfailneg((*h5handle)->hfile = H5Fcreate(h5filename,H5F_ACC_TRUNC, H5P_DEFAULT,fcreate_prop_list),
+        cbf_h5onfailneg((*h5handle)->hfile = H5Fcreate(h5filename,H5F_ACC_TRUNC,
+                        H5P_DEFAULT,fcreate_prop_list),
                         CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
         
         cbf_h5onfailneg(H5Pclose(fcreate_prop_list),
                         CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
         
-        cbf_onfailnez(cbf_H5Gcreate_in_handle(*h5handle,"NXcbf",&((*h5handle)->rootid)),
+        cbf_onfailnez(cbf_H5Gcreate_in_handle(*h5handle,"CBF_cbf",
+                      &((*h5handle)->rootid)),
                       cbf_free_h5handle(*h5handle));
         
-        cbf_failnez(cbf_apply_h5text_attribute((*h5handle)->rootid,"NX_class","NXcbf",0));
+        cbf_failnez(cbf_apply_h5text_attribute((*h5handle)->rootid,"NX_class",
+                      "CBF_cbf",0));
         
         
         return CBF_SUCCESS;
         
 	}
     
-	/* Create an HDF5 File handle without adding an NXcbf group to it */
+	/* Create an HDF5 File handle without adding an CBF_cbf group to it */
+    
 	int cbf_create_h5handle2(cbf_h5handle *h5handle,const char * h5filename)
 	{
 		hid_t fcreate_prop_list;
+        
 		cbf_failnez(cbf_make_h5handle(h5handle));
-		cbf_h5onfailneg(fcreate_prop_list = H5Pcreate(H5P_FILE_ACCESS), CBF_ALLOC,cbf_free((void**) h5handle, NULL));
+        
+		cbf_h5onfailneg(fcreate_prop_list = H5Pcreate(H5P_FILE_ACCESS),
+                        CBF_ALLOC,cbf_free((void**) h5handle, NULL));
+        
 		(*h5handle)->rwmode = 1;
-		cbf_h5onfailneg(H5Pset_fclose_degree(fcreate_prop_list,H5F_CLOSE_STRONG), CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
-		cbf_h5onfailneg((*h5handle)->hfile = H5Fcreate(h5filename,H5F_ACC_TRUNC, H5P_DEFAULT,fcreate_prop_list),
+        
+		cbf_h5onfailneg(H5Pset_fclose_degree(fcreate_prop_list,H5F_CLOSE_STRONG),
                         CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
-		cbf_h5onfailneg(H5Pclose(fcreate_prop_list), CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
+        
+		cbf_h5onfailneg((*h5handle)->hfile = H5Fcreate(h5filename,H5F_ACC_TRUNC,
+                                                       H5P_DEFAULT,fcreate_prop_list),
+                        CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
+        
+		cbf_h5onfailneg(H5Pclose(fcreate_prop_list), CBF_ARGUMENT,
+                        cbf_free((void**) h5handle, NULL));
+        
 		return CBF_SUCCESS;
 	}
     
@@ -4304,15 +4638,14 @@ return e; \
         
 		/* Do the mappings from CBF to nexus */
         
-		/* Write the CBF data into the file in a special node to keep it seperate from actual mappings */
+		/* Write the CBF data into the file in a special node to keep 
+         it separate from actual mappings */
         
         errorcode = cbf_write_h5node (handle, node, h5handle);
         
         if (!errorcode) {
             
-            
             cbf_write_h5nxaxes(handle, h5handle);
-            
             
         }
         
@@ -4971,7 +5304,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 									cbf_H5Arequire_string(h5data,"units","m");
 									cbf_H5Arequire_string(h5data,"offset_units","m");
 									cbf_H5Arequire_string(h5data,"transformation_type","translation");
-									cbf_H5Arequire_string(h5data,"depends_on",pilatus2nexusAxis(0));
+									cbf_H5Arequire_string(h5data,"depends_on",".");
 									cbf_H5Arequire_cmp(h5data,"vector",1,vdims,H5T_IEEE_F64LE,vector,vbuf,cmp_double);
 									cbf_H5Arequire_cmp(h5data,"offset",1,vdims,H5T_IEEE_F64LE,offset,vbuf,cmp_double);
 									/* cleanup temporary datasets */
@@ -5086,9 +5419,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 							hsize_t n = 0;
 							int n_eq = 0;
 							cbf_H5Dread(h5axis,offset,0,count,data);
-							for (n=0; n!=*count; ++n) {
-								if (fabs((double)(n)*pixel_x-data[n]) > 1.e-13*(double)(n)*pixel_x+1.e-20) ++n_eq;
-							}
+							for (n=0; n!=*count; ++n) if ((double)((double)(n)*pixel_x) != data[n]) ++n_eq;
 							if (0 != n_eq) {
 								fprintf(stderr,__WHERE__": error: %d values in '%s' have unexpected"
 										" values, pixel size might not match\n", n_eq, h5name);
@@ -5128,9 +5459,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 							hsize_t n = 0;
 							int n_eq = 0;
 							cbf_H5Dread(h5axis,offset,0,count,data);
-							for (n=0; n!=*count; ++n) {
-								if (fabs((double)(n)*pixel_x-data[n]) > 1.e-13*(double)(n)*pixel_x+1.e-20) ++n_eq;
-							}
+							for (n=0; n!=*count; ++n) if ((double)((double)(n)*pixel_y) != data[n]) ++n_eq;
 							if (0 != n_eq) {
 								fprintf(stderr,__WHERE__": error: %d values in '%s' have unexpected"
 										" values, pixel size might not match\n", n_eq, h5name);
@@ -5515,7 +5844,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
             
             if(readattrib) {
                 
-                /* Process an attiribute */
+                /* Process an attribute */
                 
                 cbf_reportnez(cbf_alloc(((void **) value),NULL,
                                         total_size+1,1),errorcode);
@@ -6709,13 +7038,13 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                             
                         }
                         
-                        if (!cbf_cistrcmp(value,"NXcbf")) {
+                        if (!cbf_cistrcmp(value,"CBF_cbf")||!cbf_cistrcmp(value,"NXcbf")) {
                             
                             ((cbf_h5Ovisithandle)op_data)->incbf = 1;
                             
                         }
                         
-                        if (!cbf_cistrcmp(value,"NXcbfdb")) {
+                        if (!cbf_cistrcmp(value,"CBF_cbfdb") || !cbf_cistrcmp(value,"NXcbfdb")) {
                             
                             ((cbf_h5Ovisithandle)op_data)->incbfdb = 1;
                             
@@ -6734,7 +7063,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                             
                         }
                         
-                        if (!cbf_cistrcmp(value,"NXcbfcat")&& saved_bookmark.datablock) {
+                        if ((!cbf_cistrcmp(value,"CBF_cbfcat")||!cbf_cistrcmp(value,"NXcbfcat"))&& saved_bookmark.datablock) {
                             
                             ((cbf_h5Ovisithandle)op_data)->incbfcat = 1;
                             
@@ -6756,7 +7085,9 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                             
                         }
                         
-                        if (!cbf_cistrcmp(value,"NXcbfcol")&& saved_bookmark.category) {
+                        if ((!cbf_cistrcmp(value,"CBF_cbfcol")
+                             ||!cbf_cistrcmp(value,"NXcbfcol"))
+                            && saved_bookmark.category) {
                             
                             ((cbf_h5Ovisithandle)op_data)->incbfcol = 1;
                             
