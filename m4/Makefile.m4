@@ -1,4 +1,4 @@
-m4_define(`cbf_version',`0.9.2')m4_dnl
+m4_define(`cbf_version',`0.9.2.11')m4_dnl
 m4_define(`cbf_date',`31 May 2013')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
@@ -1887,7 +1887,7 @@ endif
 	-$(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted_v2.cbf
 	-cmp insulin_pilatus6mconverted_v2.cbf insulin_pilatus6mconverted_v2_orig.cbf
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-		$(TIME) $(BIN)/cif2cbf -5 w -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5)
+		$(TIME) $(BIN)/cif2cbf -5 w -O -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 		$(BIN)/h5dump insulin_pilatus6mconverted_orig.cbf.h5 | $(ALLBUTONE) > insulin_pilatus6mconverted_orig.cbf.h5.dump)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \

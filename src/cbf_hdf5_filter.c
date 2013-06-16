@@ -347,10 +347,12 @@ extern "C" {
                                    &(tempfile->characters_size));
             tempfile->characters_base = tempfile->characters = *buf;
             tempfile->characters_used = tempfile->characters_size = nbytes;
+#ifdef CBFDEBUG
             {int ii;
                 for (ii=0; ii<500 && ii < nbytes; ii++)
                     fprintf(stderr,"%d: %x %c ",ii,(*((char**)buf))[ii],(*((char **)buf))[ii]);
             }
+#endif
 
             if (errorcode) {
                 *buf_size=0;
@@ -359,21 +361,27 @@ extern "C" {
             
             if (cbf_read_line(tempfile,&line)||
                 !cbf_is_blank(line,";",1)) {
+#ifdef CBFDEBUG
                 fprintf(stderr,"bad line %s \n",line);
+#endif
                 errorcode |= CBF_FORMAT;
                 *buf_size = 0;
                 return 0;
             }
             if (cbf_read_line(tempfile,&line)||
                 cbf_cistrncmp(line,";",1)) {
+#ifdef CBFDEBUG
                 fprintf(stderr,"bad line %s \n",line);
+#endif
                 errorcode |= CBF_FORMAT;
                 *buf_size = 0;
                 return 0;
             }
             if (cbf_read_line(tempfile,&line)||
                 cbf_cistrncmp(line,"--CIF-BINARY-FORMAT-SECTION--",29)) {
+#ifdef CBFDEBUG
                 fprintf(stderr,"bad line %s \n",line);
+#endif
                 errorcode |= CBF_FORMAT;
                 *buf_size = 0;
                 return 0;
@@ -418,7 +426,7 @@ extern "C" {
                     && (int)textid != cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID]
                     && 0 != cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID])
                 ) {
-                
+#ifdef CBFDEBUG                
                 fprintf(stderr,"mismatch on cd_values versus mime\n");
                 
                 if ((cd_nelmts <= CBF_H5Z_FILTER_CBF_ELSIZE ||
@@ -453,7 +461,7 @@ extern "C" {
                      ||(int)textpadding != cd_values[CBF_H5Z_FILTER_CBF_PADDING])){
                     fprintf(stderr," padding: %d %d\n",(int)textpadding, cd_values[CBF_H5Z_FILTER_CBF_PADDING]);
                 }
-                
+#endif                
                 *buf_size = 0;
                 return 0;
             }
@@ -464,13 +472,14 @@ extern "C" {
             if (cbf_alloc((void **) &destination,NULL,
                            nelem*elsize,1)) return 0;
             
+#ifdef CBFDEBUG
             fprintf(stderr,"compressed size estimates, textsize %ld, tempfile %ld\n",(unsigned long)textsize,
                     (unsigned long)( nbytes-(tempfile->characters-tempfile->characters_base)));
             
             fprintf(stderr,"Start of decompression %ld, compression %x\n",
                     (long) (tempfile->characters-tempfile->characters_base),
                             textcompression);
-
+#endif
             
             cbf_reportnez(cbf_decompress (destination,
                         elsize, textsign, nelem, &nelem_read,
@@ -479,7 +488,9 @@ extern "C" {
                         textreal, textbyteorder, textdimover,
                         textdimfast,textdimmid,textdimslow,textpadding),
                         errorcode);
+#ifdef CBFDEBUG
             fprintf(stderr," errorcode %d after decompress\n",errorcode);
+#endif
             
             if (errorcode) cbf_free((void **) (&destination), NULL);
             
@@ -727,10 +738,11 @@ extern "C" {
                 
             }
             
+#ifdef CBFDEBUG
             fprintf(stderr,"Start of compression %ld, compression %x\n",
                     (long) (tempfile->characters+tempfile->characters_used-tempfile->characters_base),
                     compression);
-            
+#endif            
             if (!errorcode &&
                 (errorcode|=cbf_compress (*buf, elsize, elsign, nelem,
                               compression, tempfile,
@@ -791,7 +803,6 @@ extern "C" {
     
     
 #ifdef __cplusplus
-    
 }
 
 #endif
