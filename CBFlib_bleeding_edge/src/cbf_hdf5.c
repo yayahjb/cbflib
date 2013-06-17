@@ -5213,7 +5213,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								int found = CBF_SUCCESS;
 								hid_t h5data = CBF_H5FAIL;
 								hid_t h5location = detector;
-								const hid_t h5type = 8==sizeof(long) ? H5T_STD_I64LE : (4==sizeof(long) ? H5T_STD_I32LE : CBF_H5FAIL);
+								const hid_t h5type = H5T_STD_I32LE;
 								const char h5name[] = "saturation_value";
 								const hsize_t dim[] = {h5handle->slice};
 								const hsize_t max[] = {H5S_UNLIMITED};
