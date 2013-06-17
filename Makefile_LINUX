@@ -1618,14 +1618,14 @@ endif
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 		$(TIME) $(BIN)/cif2cbf -5 rn -en -cp -i insulin_pilatus6mconverted.cbf.h5 -o insulin_pilatus6mconverted.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
-	cd minicbf_test; $(TIME) ../$(BIN)/minicbf2nexus \
+	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/minicbf2nexus -z zlib \
 		-c config ../X4_lots_M1S4_1_*.cbf -o minicbf.h5
-	cd minicbf_test; $(TIME) ../$(BIN)/h5dump ../minicbf_original.h5 | $(ALLBUTONE) > minicbf_original.dump
-	cd minicbf_test; $(TIME) ../$(BIN)/h5dump minicbf.h5 | $(ALLBUTONE) > minicbf.dump
-	-cd minicbf_test; $(DIFF) minicbf_original.dump minicbf.dump
-	cd minicbf_test; rm -f minicbf_original.dump
-	cd minicbf_test; rm -f minicbf.dump
-	cd minicbf_test; rm -f minicbf.h5
+	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/h5dump ../minicbf_original.h5 | $(ALLBUTONE) > minicbf_original.dump
+	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/h5dump minicbf.h5 | $(ALLBUTONE) > minicbf.dump
+	-cd $(MINICBF_TEST); $(DIFF) minicbf_original.dump minicbf.dump
+	cd $(MINICBF_TEST); rm -f minicbf_original.dump
+	cd $(MINICBF_TEST); rm -f minicbf.dump
+	cd $(MINICBF_TEST); rm -f minicbf.h5
 	$(TIME) $(BIN)/testreals
 	-cmp testrealin.cbf testrealout.cbf
 	$(TIME) $(BIN)/testflat
