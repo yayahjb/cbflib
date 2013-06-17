@@ -302,7 +302,10 @@ int main (int argc, char *argv [])
 
 	cbf_onfailnez(cbf_make_getopt_handle(&opts),free(cifin));
 
-	cbf_onfailnez(cbf_getopt_parse(opts, argc, argv, "c(config):" "o(output):" ),free(cifin));
+	cbf_onfailnez(cbf_getopt_parse(opts, argc, argv,
+                                   "c(config):"
+                                   "o(output):"
+                                   "z(compression):"),free(cifin));
 
 	if (!cbf_rewind_getopt_option(opts)) {
         for(; !cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg); cbf_next_getopt_option(opts)) {
@@ -317,10 +320,14 @@ int main (int argc, char *argv [])
 					else config = optarg;
 					break;
 				}
+                case 'z': { // compression
+					if (!strcmp("zlib",optarg?optarg:"")) h5_write_flags |= CBF_H5_ZLIB;
+					else if (!strcmp("none",optarg?optarg:"")) h5_write_flags &= ~CBF_H5_ZLIB;
+					else ++errflg;
+					break;
+				}
 				case 0: { /* input file */
 					if (NULL != optarg) cifin[cifid++] = optarg;
-					//if (cifin) errflg++;
-					//else cifin = optarg;
 					break;
 				}
 				default: {
@@ -331,10 +338,9 @@ int main (int argc, char *argv [])
         }
 	}
 	if (errflg || 0==cifid) {
-		fprintf(stderr,"Usage: %s [-c config_file] [-o output_nexus] input_minicbf ...\n", argv[0]);
+		fprintf(stderr,"Usage: %s [-z|--compression zlib|none] [-c config_file] [-o output_nexus] input_minicbf ...\n", argv[0]);
         exit(2);
     }
-	//printf("%ld input file%s\n", cifid, cifid==1?"":"s");
     
 	// parse the config file
 	{
@@ -350,7 +356,6 @@ int main (int argc, char *argv [])
 	}
     
 	// prepare the output file
-	h5_write_flags = 0;
 	if(cbf_create_h5handle2(&h5out,hdf5out)) printf ("Couldn't open the HDF5 file '%s'.\n", hdf5out);
 	h5out->nxid = H5Gcreate_anon(h5out->hfile,H5P_DEFAULT,H5P_DEFAULT);
 	cbf_H5Arequire_string(h5out->nxid,"NX_class","NXentry");
@@ -430,123 +435,8 @@ int main (int argc, char *argv [])
 		{ // do the work
 			int cbfError = CBF_SUCCESS;
 			h5out->slice = f;
-	#if 1
 				// convert to nexus format
 				cbfError = cbf_write_minicbf_h5file(cif, h5out, vec, h5_write_flags);
-	#else
-	{
-		int i = 0;
-		cbf_h5handle_require_entry(h5out, 0, "entry");
-		for (i = 0; i != 3; ++i) {
-			hsize_t dim_r1[] = {4};
-			hsize_t dim_r2[] = {3,4};
-			hid_t entry = CBF_H5FAIL;
-			fprintf(stderr,"Iteration %d\n",i);
-			cbf_printnez(cbf_h5handle_require_entry(h5out, &entry, 0));
-			{ // int attributes
-				hid_t intGroup = CBF_H5FAIL;
-				const char attrName_r0int[] = "attr_r0_int";
-				const int attrValue_r0int[] = {42};
-				const char attrName_r2int[] = "attr_r2_int";
-				const int attrValue_r2int[][4] = {
-					{0,1,2,3},
-					{4,5,6,7},
-					{8,9,10,11}
-				};
-				const char attrName_r1int[] = "attr_r1_int";
-				const int attrValue_r1int[] = {0,1,2,3};
-				cbf_printnez(cbf_H5Grequire(&intGroup, "int attribute tests", entry));
-				cbf_printnez(cbf_H5Arequire(intGroup,attrName_r0int,0,0,H5T_STD_I32LE,attrValue_r0int));
-				cbf_printnez(cbf_H5Arequire(intGroup,attrName_r1int,1,dim_r1,H5T_STD_I32LE,attrValue_r1int));
-				cbf_printnez(cbf_H5Arequire(intGroup,attrName_r2int,2,dim_r2,H5T_STD_I32LE,attrValue_r2int));
-			}
-			{ // fixed length & variable length string attributes
-				hid_t strGroup = CBF_H5FAIL;
-				const char attrName_r0str[] = "attr_r0_str";
-				const char attrValue_r0str[] = "value";
-				const char attrName_r1str[] = "attr_r1_str";
-				const char attrValue_r1str0[] = "zero";
-				const char attrValue_r1str1[] = "one";
-				const char attrValue_r1str2[] = "two";
-				const char attrValue_r1str3[] = "three";
-				const char * const attrValue_r1str[] = {attrValue_r1str0,attrValue_r1str1,attrValue_r1str2,attrValue_r1str3};
-				const char attrName_r2str[] = "attr_r2_str";
-				const char attrValue_r2str00[] = "zero";
-				const char attrValue_r2str01[] = "one";
-				const char attrValue_r2str02[] = "two";
-				const char attrValue_r2str03[] = "three";
-				const char attrValue_r2str10[] = "four";
-				const char attrValue_r2str11[] = "five";
-				const char attrValue_r2str12[] = "six";
-				const char attrValue_r2str13[] = "seven";
-				const char attrValue_r2str20[] = "eight";
-				const char attrValue_r2str21[] = "nine";
-				const char attrValue_r2str22[] = "ten";
-				const char attrValue_r2str23[] = "eleven";
-				const char * const attrValue_r2str[][4] = {
-					{attrValue_r2str00,attrValue_r2str01,attrValue_r2str02,attrValue_r2str03},
-					{attrValue_r2str10,attrValue_r2str11,attrValue_r2str12,attrValue_r2str13},
-					{attrValue_r2str20,attrValue_r2str21,attrValue_r2str22,attrValue_r2str23}
-				};
-				cbf_printnez(cbf_H5Grequire(&strGroup, "string attribute tests", entry));
-				cbf_printnez(cbf_H5Arequire(strGroup,attrName_r0str,0,0,H5T_C_S1,attrValue_r0str));
-				cbf_printnez(cbf_H5Arequire(strGroup,attrName_r1str,1,dim_r1,H5T_C_S1,attrValue_r1str));
-				cbf_printnez(cbf_H5Arequire(strGroup,attrName_r2str,2,dim_r2,H5T_C_S1,attrValue_r2str));
-			}
-			{ // data field
-				hid_t dataset = CBF_H5FAIL;
-				const char datasetName[] = "dataset";
-				const char str[] = "data";
-				hid_t dataType = CBF_H5FAIL;
-				int found = CBF_SUCCESS;
-				cbf_printnez(cbf_H5Tcreate_string(&dataType,strlen(str)));
-				cbf_printnez(found = cbf_H5Dfind(entry, &dataset, datasetName, 0,0,0,0, dataType));
-				if (CBF_SUCCESS==found) {
-					if (cbf_H5Ivalid(dataset)) {
-						char * const data = malloc(H5Tget_size(dataType));
-						cbf_printnez(cbf_H5Dread(dataset,0,0,0,data));
-						fprintf(stderr,"Data read: '%s'.\n",data);
-						free((void*)(data));
-					} else {
-						cbf_printnez(cbf_H5Dcreate(entry,&dataset,datasetName,0,0,0,0,dataType));
-						cbf_printnez(cbf_H5Dwrite(dataset,0,0,0,str));
-						fprintf(stderr, "Data written: '%s'.\n", (const char * const)(&str));
-					}
-				} else {
-					fprintf(stderr, __FILE__":%d: CBFlib error: %s\n", __LINE__, cbf_strerror(found));
-				}
-			}
-			{ // dataset
-				hid_t dataset = CBF_H5FAIL;
-				const char datasetName[] = "dataset_int";
-				hid_t dataType = H5T_STD_I32LE;
-				const hsize_t dim[] = {i};
-				const hsize_t max[] = {H5S_UNLIMITED};
-				const hsize_t chunk[] = {1};
-				int found = CBF_SUCCESS;
-				cbf_printnez(found = cbf_H5Dfind(entry, &dataset, datasetName, 1,dim,max,chunk, dataType));
-				if (CBF_SUCCESS==found) {
-					if (cbf_H5Ivalid(dataset)) {
-						fprintf(stderr, "Dataset '%s' found.\n", datasetName);
-					} else {
-						cbf_printnez(cbf_H5Dcreate(entry,&dataset,datasetName,1,dim,max,chunk,dataType));
-						fprintf(stderr, "Dataset '%s' created.\n", datasetName);
-					}
-				} else {
-					fprintf(stderr, __FILE__":%d: CBFlib error: %s\n", __LINE__, cbf_strerror(found));
-				}
-				{ // I have the dataset, now append some data
-					const hsize_t newDim[] = {i+1};
-					const hsize_t offset[] = {i};
-					const hsize_t count[] = {1};
-					cbf_printnez(cbf_H5Dset_extent(dataset, newDim));
-					cbf_printnez(cbf_H5Dwrite(dataset,offset,0,count,&i));
-					fprintf(stderr, "Data added to '%s'.\n", datasetName);
-				}
-			}
-		}
-	}
-	#endif
 			cbf_onfailnez(cbfError,{cbf_free_handle(cif);free(cifin);});
 		}
         

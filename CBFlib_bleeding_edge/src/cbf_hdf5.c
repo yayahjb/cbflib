@@ -313,7 +313,8 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     {        
         /* go through each vector comparing all values */
 
-        while (N && *(const double *)(a)++ == *(const double *)(b)++) --N;
+        while (N && fabs(*(const double *)(a)++ - *(const double *)(b)++)<
+               1.e-38) --N;
 
        /* if any are not equal the loop will exit early and N is non-zero */
 
@@ -333,9 +334,9 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     
     static int cmp_vlstring(const void * a, const void * b, size_t N)
     {
-        // go through each vector comparing all values
+        /* go through each vector comparing all values */
         while (N && !strcmp(*(const char **)(a)++, *(const char **)(b)++)) --N;
-        // if any are not equal the loop will exit early and N is non-zero
+        /* if any are not equal the loop will exit early and N is non-zero */
         return N;
     }
 
@@ -510,16 +511,19 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         hid_t h5data = CBF_H5FAIL;
         /* 1: value */
         const double num = strtod(value, (char**)(&value));
-        //cbf_H5Dmake_scalar(h5location,&h5data,h5name,H5T_IEEE_F64LE,&num);
-        const int found = cbf_H5Dfind(h5location,&h5data,h5name,0,0,0,0,H5T_IEEE_F64LE);
-        if (CBF_SUCCESS==found) {
+        /* cbf_H5Dmake_scalar(h5location,&h5data,h5name,H5T_IEEE_F64LE,&num); */
+        int error = cbf_H5Dfind(h5location,&h5data,h5name,0,0,0,0,H5T_IEEE_F64LE);
+        if (CBF_SUCCESS==error) {
             if (!cbf_H5Ivalid(h5data)) {
-                cbf_H5Dcreate(h5location,&h5data,h5name,0,0,0,0,H5T_IEEE_F64LE);
-                cbf_H5Dwrite(h5data,0,0,0,&num);
+                error |= cbf_H5Dcreate(h5location,&h5data,h5name,0,0,0,0,H5T_IEEE_F64LE);
+				error |= cbf_H5Dwrite(h5data,0,0,0,&num);
             } else {
                 double data = 0./0.;
-                cbf_H5Dread(h5data,0,0,0,&data);
-                if (num != data) fprintf(stderr,"Error: data doesn't match (%9.9g vs %9.9g) for nexus field '%s'\n",data,num,h5name);
+				error |= cbf_H5Dread(h5data,0,0,0,&data);
+				if (cmp_double(&num, &data, 1)) {
+					fprintf(stderr,"Error: data doesn't match (%9.9g vs %9.9g) for nexus field '%s'\n",num,data,h5name);
+					error |= CBF_H5DIFFERENT;
+                }
             }
             /* 2: units */
             value = getPilatusNonWhitespaceToken(value);
@@ -558,8 +562,6 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
             fprintf(stderr,"Config settings for axis '%s' could not be found: this will eventually be a fatal error\n",axisItem->nexus);
             return;
         }
-        //cbf_H5Dcreate(location,&h5data,nxAxisName,1,dim,max,chunk,H5T_IEEE_F64LE);
-        //cbf_H5Dwrite(h5data,offset,0,count,&num);
         found = cbf_H5Dfind(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE);
         if (CBF_SUCCESS!=found) {
             fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",axisItem->nexus);
@@ -571,12 +573,19 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         cbf_H5Dset_extent(h5data, dim2);
         cbf_H5Dwrite(h5data,offset,0,count,&num);
         { /* 2: units */
-            *value = getPilatusNonWhitespaceToken(*value);
-            *value = pilatusWriteUnits(*value, h5data, 0);
+			const char * const start = getPilatusNonWhitespaceToken(*value);
+			*value = getPilatusNonTextToken(start);
+			if (0==strncmp(start, "deg.", 4))
+				cbf_H5Arequire_string(h5data,"units","deg");
+			else {
+				const char * str = substrdup(start, *value);
+				cbf_H5Arequire_string(h5data,"units",str);
+				free((void*)str);
+			}
         }
         /* transformation type */
         cbf_H5Arequire_string(h5data,"transformation_type","rotation");
-        {
+        {   /* dependency & vector */
             const hsize_t vdims[] = {3};
             double buf[3] = {0./0.};
             cbf_H5Arequire_string(h5data,"depends_on",axisItem->depends_on?axisItem->depends_on:"");
@@ -595,11 +604,16 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      ****************************************************************/
     
     
-	/*
+	/** \brief Check the validity of an object identifier
+     
      Function to check validity of a HDF5 identifier.
      HDF5's predefined types are never counted as valid by this function,
      so it can't be used to test the validity of a type constant.
      Types obtained by using H5Tcopy are safe to test.
+     
+     \param ID An HDF5 object identifier.
+     
+     \return Non-zero if the type is valid, zero otherwise.
      */
 	int cbf_H5Ivalid(const hid_t ID)
 	{
@@ -608,9 +622,15 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		return v > 0;
 	}
  
-	/*
-     function to close any handle without tracking its type.
-     don't use this if a more specific function can be used instead, ie if the type is known.
+	/** \brief Try to free an object identifier
+     
+     Function to close any handle without tracking its type.
+     Don't use this if a more specific function can be used instead, ie if the
+     type is known, as this function will be less efficient.
+     
+     \param ID An HDF5 object identifier to be closed.
+     
+     \return An error code.
      */
 	int cbf_H5Ifree(const hid_t ID)
 	{
@@ -630,13 +650,35 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 	/* find/create/free a HDF5 group if it's valid & possibly set the ID to an invalid identifier
      can write requireGroup function as {if (!find(group)) create(group); return group;} */
     
+	/** \brief Attempt to create a group
+     
+     Helper function to create a HDF5 group and return a CBFlib error code, to make error handling more consistant.
+     
+     \param group A pointer to a HDF5 ID type where the group will be stored.
+     \param name The name that the group will be given.
+     \param parent The group that will contain the newly created group.
+     
+     \sa cbf_H5Gfree
+     \sa cbf_H5Gdestroy
+     
+     \return An error code.
+     */
 	int cbf_H5Gcreate(hid_t * const group, const char * const name, const hid_t parent)
 	{
 		if (!group || !name || !cbf_H5Ivalid(parent)) return CBF_ARGUMENT;
 		return cbf_H5Ivalid(*group = H5Gcreate2(parent,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)) ? CBF_SUCCESS : CBF_H5ERROR;
 	}
     
-	/**
+	/** \brief Ensure a group exists
+     
+     Checks for the existance of a group with the given name and parent.
+     Will create the group if it cannot be found, or open it if it already exists.
+     It is an error if a matching group cannot be found or created.
+     
+     \param group A pointer to a HDF5 ID type where the group will be stored.
+     \param name The name that the group will be given.
+     \param parent The group that will contain the newly created group.
+     
      \sa cbf_H5Gcreate
      \sa cbf_H5Gfree
      \sa cbf_H5Gdestroy
@@ -645,30 +687,30 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      */
 	int cbf_H5Grequire(hid_t * const group, const char * const name, const hid_t parent)
 	{
-		// check the arguments
+		/* check the arguments */
 		if (!group || !name || !cbf_H5Ivalid(parent)) return CBF_ARGUMENT;
         
-		// check if the link exists
+		/* check if the link exists */
 		const htri_t l = H5Lexists(parent, name, H5P_DEFAULT);
 		if (l < 0) return CBF_H5ERROR;
 		else if (!l) return cbf_H5Gcreate(group, name, parent);
 		else {
-			// check if the group exists
+			/* check if the group exists */
 			const htri_t e = H5Oexists_by_name(parent, name, H5P_DEFAULT);
 			if (e < 0) return CBF_H5ERROR;
 			else if (!e) {
-				// The link exists but the object doesn't - remove the link & create the object
+				/* The link exists but the object doesn't - remove the link & create the object */
 				if (H5Ldelete(parent, name, H5P_DEFAULT) < 0) return CBF_H5ERROR;
 				else return cbf_H5Gcreate(group, name, parent);
 			} else {
-				// my object exists - check its type
+				/* my object exists - check its type */
 				hid_t g = H5Oopen(parent, name, H5P_DEFAULT);
 				if (H5I_GROUP == H5Iget_type(g)) {
-					// it's a group - return it
+					/* it's a group - return it */
 					*group = g;
 					return CBF_SUCCESS;
 				} else {
-					// not a group - close the object & fail
+					/* not a group - close the object & fail */
 					H5Oclose(g);
 					return CBF_H5DIFFERENT;
 				}
@@ -676,12 +718,28 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		}
 	}
     
+    /** \brief Close a HDF5 group
+     
+     Attempt to close a group, but don't modify the identifier that described it.
+     
+     \param ID The HDF5 group to be closed.
+     
+     \return An error code.
+     */
 	int cbf_H5Gfree(const hid_t ID)
 	{
 		if (cbf_H5Ivalid(ID)) return H5Gclose(ID)>=0 ? CBF_SUCCESS : CBF_H5ERROR;
 		return CBF_SUCCESS;
 	}
     
+	/** \brief Close a HDF5 group
+     
+     Attempt to close a group, clobbering the identifier that described it.
+     
+     \param ID A pointer to the HDF5 group to be closed.
+     
+     \return An error code.
+     */
 	int cbf_H5Gdestroy(hid_t * const ID)
 	{
 		const int err = cbf_H5Gfree(*ID);
@@ -692,6 +750,18 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 	/* Open/close a HDF5 file if it's valid & possibly set the ID to an invalid identifier - deliberately avoid find/create/free or
      get/set/clear naming convensions */
     
+	/** \brief Attempt to open an HDF5 file by file name
+     
+     Will try to open a file of the given name with suitable values for some of it's properties to make memory leaks less likely.
+     
+     \param file A pointer to an HDF5 ID where the newly opened file should be stored.
+     \param name The name of the file to attempt to open.
+     
+     \sa cbf_H5Fclose
+     \sa cbf_H5Fdestroy
+     
+     \return An error code.
+     */
 	int cbf_H5Fopen(hid_t * const file, const char * const name)
 	{
 		/* define variables & check args */
@@ -712,14 +782,28 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		return error;
 	}
     
-	/* close a HDF5 file handle */
+	/** \brief Close a HDF5 file
+     
+     Attempt to close a file, but don't modify the identifier that described it.
+     
+     \param ID The HDF5 file to be closed.
+     
+     \return An error code.
+     */
 	int cbf_H5Fclose(const hid_t ID)
 	{
 		if (cbf_H5Ivalid(ID)) return H5Fclose(ID)>=0 ? CBF_SUCCESS : CBF_H5ERROR;
 		return CBF_SUCCESS;
 	}
     
-	/* close a (pointed-to) HDF5 file handle & set the handle to an invalid value */
+	/** \brief Close a HDF5 file
+     
+     Attempt to close a file, clobbering the identifier that described it.
+     
+     \param ID A pointer to the HDF5 file to be closed.
+     
+     \return An error code.
+     */
 	int cbf_H5Fdestroy(hid_t * const ID)
 	{
 		const int err = cbf_H5Fclose(*ID);
@@ -729,61 +813,26 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     
 	/* Attributes */
     
-	/* create an attribute with the given name & ASCII value, try to write it to the HDF5 id */
-	int cbf_H5Aset_string(const hid_t ID, const char * const name, const char * const value)
-	{
-		/* define variables & check args */
-		int error = (!cbf_H5Ivalid(ID) || !name) ? CBF_ARGUMENT : CBF_SUCCESS;
-		const void * const str = value ? value : "";
-		hid_t attrSpace = H5Screate(H5S_SCALAR), attrType = CBF_H5FAIL, attrID = CBF_H5FAIL;
-		cbf_reportFail(cbf_H5Tcreate_string(&attrType,strlen(str)),error);
-        
-		/* check variables are valid */
-		reportFail(cbf_H5Ivalid(attrSpace), CBF_H5ERROR, error);
-		reportFail(cbf_H5Ivalid(attrType), CBF_H5ERROR, error);
-        
-		/* do some work */
-		//cbf_h5reportneg(H5Tset_size(attribtype,strlen(str)+1), CBF_H5ERROR, error);
-		reportFail(cbf_H5Ivalid(attrID = H5Acreate2(ID,name,attrType,attrSpace,H5P_DEFAULT,H5P_DEFAULT)), CBF_H5ERROR, error);
-		reportFail(H5Awrite(attrID,attrType,str)>=0, CBF_H5ERROR, error);
-        
-		/* check local variables are properly closed */
-		if (cbf_H5Ivalid(attrSpace))  H5Sclose(attrSpace);
-		if (cbf_H5Ivalid(attrType))   H5Tclose(attrType);
-		if (cbf_H5Ivalid(attrID))     H5Aclose(attrID);
-        
-		/* done */
-		return error;
-	}
-    
-	/* create an attribute with the given name & vector value, try to write it to the HDF5 id */
-	int cbf_H5Aset_vector
-    (const hid_t ID,
-     const char * const name,
-     const hsize_t * const dim,
-     const hid_t type,
-     const void * const value)
-	{
-		/* define variables & check args */
-		int error = (!cbf_H5Ivalid(ID) || !name || !dim || !value) ? CBF_ARGUMENT : CBF_SUCCESS;
-		hid_t attribspace = H5Screate_simple(1, dim, 0), attribid = CBF_H5FAIL;
-        
-		/* check variables are valid */
-		reportFail(cbf_H5Ivalid(attribspace), CBF_H5ERROR, error);
-        
-		/* do some work */
-		reportFail(cbf_H5Ivalid(attribid = H5Acreate2(ID,name,type,attribspace,H5P_DEFAULT,H5P_DEFAULT)), CBF_H5ERROR, error);
-		reportFail(H5Awrite(attribid,type,value)>=0, CBF_H5ERROR, error);
-        
-		/* check local variables are properly closed */
-		if (cbf_H5Ivalid(attribspace))  H5Sclose(attribspace);
-		if (cbf_H5Ivalid(attribid))     H5Aclose(attribid);
-        
-		/* done */
-		return error;
-	}
-    
 	/** \brief Check for an attribute with the given space/type/value, or set one if it doesn't exist.
+     
+     Checks the existance of an attribute of the given name, creating it if it doesn't exist.
+     
+     Checks the size, type and value of an existing attribute to find out if it is the same as
+     what was requested as determined by a custom comparison function which may use some extra data
+     for more sophisticated tests.
+     
+     \param ID The HDF5 object that the attribute will be applied to.
+     \param name The name of the attribute.
+     \param rank The number of dimensions of the attribute data, 0 for scalar data.
+     \param dim The length of each dimension, not used for scalar data.
+     \param type The HDF5 type of the attribute data.
+     \param value The data to be written to the attribute.
+     \param buf A buffer to be used when reading an existing attribute of the same size.
+     \param cmp A comparison function to test if a previously set value is equal to the value I asked for.
+     
+     \sa cbf_H5Arequire_string
+     
+     \return An error code.
      */
 	int cbf_H5Arequire_cmp
     (const hid_t ID,
@@ -807,25 +856,25 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 			hid_t attr = H5Aopen(ID,name,H5P_DEFAULT);
 			hid_t currSpace = H5Aget_space(attr);
 			hid_t currType = H5Aget_type(attr);
-			// check everything was opened properly
+			/* check everything was opened properly */
 			if (!cbf_H5Ivalid(attr)) error |= CBF_H5ERROR;
 			if (!cbf_H5Ivalid(currSpace)) error |= CBF_H5ERROR;
 			if (!cbf_H5Ivalid(currType)) error |= CBF_H5ERROR;
 			if (CBF_SUCCESS==error) {
-                // check that the dataspace is correct
+                /* check that the dataspace is correct */
 				const htri_t eq = H5Sextent_equal(currSpace,attrSpace);
 				if (eq<0) error |= CBF_H5ERROR;
 				else if (!eq) error |= CBF_H5DIFFERENT;
 				else /* success */;
 			}
 			if (CBF_SUCCESS==error) {
-                // check the datatype is correct
+                /* check the datatype is correct */
 				const htri_t eq = H5Tequal(currType,attrType);
 				if (eq<0) error |= CBF_H5ERROR;
 				else if (!eq) error |= CBF_H5DIFFERENT;
 				else /* success */;
 			}
-			// check that the data is correct
+			/* check that the data is correct */
 			if (CBF_SUCCESS==error) {
 				const size_t N = H5Sget_simple_extent_npoints(currSpace);
 				const size_t vlStr = H5Tis_variable_str(currType);
@@ -855,6 +904,18 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     
     static int cmp_string(const void * a, const void * b, size_t N) {return N==1 ? strcmp(a, b) : 1;}
 
+	/** \brief Check for a scalar string attribute with a given value, or set one if it doesn't exist.
+     
+     Forwarding function that calls \c cbf_H5Arequire_cmp with the appropriate arguments to compare two strings.
+     
+     \param location HDF5 object to which the string attribute should/will belong.
+     \param name The name of the attribute.
+     \param value The value which the attribute should/will have.
+     
+     \sa cbf_H5Arequire_cmp
+     
+     \return An error code.
+     */
 	int cbf_H5Arequire_string
     (const hid_t location,
      const char * const name,
@@ -873,7 +934,8 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     
 	/*  find/create/free hdf5 datasets without directly using hdf5 API */
     
-	/**
+	/** \brief Creates a new dataset in the given location.
+     
      The \c dataset parameter gives a location to store the dataset for use by the caller, for example to add an attribute to it.
      If non-zero the returned handle MUST be free'd by the caller with \c cbf_H5Dfree.
      
@@ -894,13 +956,6 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      \c H5T_IEEE_F32BE, \c H5T_IEEE_F64BE or a value returned by \c cbf_H5Tcreate_string.
      It is not limited to the above values, and can take any defined HDF5 datatype.
      
-     \sa cbf_H5Dset_extent
-     \sa cbf_H5Dwrite
-     \sa cbf_H5Dmake_scalar
-     \sa cbf_H5Tcreate_string
-     \sa cbf_H5Dfree
-     \sa cbf_H5Ddestroy
-     
      \param location The hdf5 group/file in which to put the dataset.
      \param dataset An optional pointer to a location where the dataset handle should be stored for further use.
      \param name The name of the new dataset.
@@ -908,9 +963,20 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      \param dim The dimensions of the data, pointer to an array of length \c rank which should where
      \c dim[i] \> 0 for \c i = [0, \c rank ), unused if \c rank == 0.
      \param max The maximum size of each dimension, pointer or an array of length \c rank where
-     \c dim[i] \<= \c max[i] \<= \c H5S_UNLIMITED for \c i = [0, \c rank ), unused if \c rank == 0.
-     \param chunk The chunk size for the dataset, as a pointer to an array of length \c rank; or \c 0 if chunking should not be enabled.
+     \c dim[i] \<= \c max[i] \<= \c H5S_UNLIMITED for \code i = [0, rank) \endcode, unused if \code rank == 0 \endcode.
+     \param chunk The chunk size for the dataset, as a pointer to an array of length \c rank (or \c 0 if chunking should not be enabled).
      \param type The type of each data element, can take things like \c H5T_STD_I32LE as predefined constants.
+     
+     \sa cbf_H5Dfind
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite
+     \sa cbf_H5Dread
+     \sa cbf_H5Drequire_scalar_F64LE
+     \sa cbf_H5Drequire_string
+     \sa cbf_H5Dfree
+     \sa cbf_H5Ddestroy
+     
+     \sa cbf_H5Tcreate_string
      
      \return An error code.
      */
@@ -953,15 +1019,16 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		return error;
 	}
     
-	/**
+	/** \brief Look for a dataset with the given properties.
+     
      Succeeds without returning a valid dataset ID if no dataset exists and fails if one with different properties exists.
      Finding that the dataset doesn't exist is not a failure - the function worked and returned useful information.
      So, if it returns \c CBF_SUCCESS then the dataset must be free'd at some point, otherwise it doesn't need to be free'd.
      
      Use as:
      \code
-     const int e = cbf_H5Dfind(., &dataset, ...);
-     if (CBF_SUCCESS==e) {
+     int error = cbf_H5Dfind(., &dataset, ...);
+     if (CBF_SUCCESS==error) {
      if (cbf_H5Ivalid(dataset)) {
      use_existing_dataset(dataset);
      } else {
@@ -969,15 +1036,31 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      use_new_datset(dataset);
      }
      } else {
-     handle_error(e);
+     handle_error(error);
      }
      \endcode
      
+     \param location The hdf5 group/file in which to put the dataset.
      \param dataset A pointer to a HDF5 object identifier that is set to the location of a valid object or an invalid value if the function
      succeeds, otherwise is left in an undefined state.
+     \param name The name of the existing/new dataset.
+     \param rank See \c cbf_H5Dcreate
+     \param dim See \c cbf_H5Dcreate
+     \param max See \c cbf_H5Dcreate
+     \param chunk See \c cbf_H5Dcreate
+     \param type See \c cbf_H5Dcreate
+     
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite
+     \sa cbf_H5Dread
+     \sa cbf_H5Drequire_scalar_F64LE
+     \sa cbf_H5Drequire_string
+     \sa cbf_H5Dfree
+     \sa cbf_H5Ddestroy
      
      \return An error code indicating whether the function successfully determined the presence (or otherwise) of an appropriate dataset.
-	 */
+     */
 	int cbf_H5Dfind
     (const hid_t location,
      hid_t * const dataset,
@@ -988,46 +1071,46 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      const hsize_t * const chunk,
      const hid_t type)
 	{
-		// check the arguments
+		/* check the arguments */
 		if (!cbf_H5Ivalid(location) || !dataset || !name || (!!rank && !dim) || rank<0) return CBF_ARGUMENT;
         
-		// check if the link exists
+		/* check if the link exists */
 		const htri_t l = H5Lexists(location, name, H5P_DEFAULT);
 		if (l < 0) return CBF_H5ERROR;
 		else if (!l) {
 			*dataset = CBF_H5FAIL;
 			return CBF_SUCCESS;
 		} else {
-			// check if the group exists
+			/* check if the group exists */
 			const htri_t e = H5Oexists_by_name(location, name, H5P_DEFAULT);
 			if (e < 0) return CBF_H5ERROR;
 			else if (!e) {
-				// The link exists but the object doesn't - try to remove the link & tell the caller that there is no dataset
+				/* The link exists but the object doesn't - try to remove the link & tell the caller that there is no dataset */
 				if (H5Ldelete(location, name, H5P_DEFAULT) < 0) return CBF_H5ERROR;
 				else {
 					*dataset = CBF_H5FAIL;
 					return CBF_SUCCESS;
 				}
 			} else {
-				// my object exists - check its type
+				/* my object exists - check its type */
 				hid_t g = H5Oopen(location, name, H5P_DEFAULT);
 				if (H5I_DATASET == H5Iget_type(g)) {
 					int error = CBF_SUCCESS;
-					// it's a dataset - check its properties
+					/* it's a dataset - check its properties */
 					hid_t currSpace = H5Dget_space(g);
 					hid_t currType = H5Dget_type(g);
 					hid_t dataSpace = CBF_H5FAIL;
 					cbf_reportFail(cbf_H5Screate(&dataSpace, rank, dim, max), error);
 					if (CBF_SUCCESS==error) {
-						// Check space
+						/* Check space */
 						const htri_t eq = H5Sextent_equal(currSpace,dataSpace);
 						if (eq < 0) error |= CBF_H5ERROR;
 						else if (!eq) error |= CBF_H5DIFFERENT;
 						else /* success */;
 					}
-					// TODO: Check chunk?
+					/* TODO: Check chunk? */
 					if (CBF_SUCCESS==error) {
-				 		// check the datatype is correct
+				 		/* check the datatype is correct */
 						const htri_t eq = H5Tequal(currType,type);
 						if (eq<0) error |= CBF_H5ERROR;
 						else if (!eq) error |= CBF_H5DIFFERENT;
@@ -1039,7 +1122,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 					*dataset = CBF_SUCCESS==error ? g : CBF_H5FAIL;
 					return error;
 				} else {
-					// not a dataset - close the object & fail
+					/* not a dataset - close the object & fail */
 					H5Oclose(g);
 					return CBF_H5DIFFERENT;
 				}
@@ -1047,16 +1130,24 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		}
 	}
     
-	/**
+	/** \brief Change the extent of a chunked dataset to the values in \c dim.
+     
+     Forwards to a HDF5 function to change the extent of a dataset.
+     Doesn't check that the number of elements in \c dim matches the rank of the dataset.
+     
      \param dataset A handle for the dataset whose extent is to be changed.
      \param dim The new extent of the dataset, if the function succeeds. Must be the same length as the rank of the dataset.
      
      \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind
      \sa cbf_H5Dwrite
+     \sa cbf_H5Dread
+     \sa cbf_H5Drequire_scalar_F64LE
+     \sa cbf_H5Drequire_string
      \sa cbf_H5Dfree
      \sa cbf_H5Ddestroy
      
-     \return An error code: \c CBF_SUCCESS, \c CBF_ARGUMENT or \c CBF_H5ERROR.
+     \return An error code.
      */
 	int cbf_H5Dset_extent(const hid_t dataset, const hsize_t * const dim)
 	{
@@ -1065,7 +1156,29 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		return error;
 	}
     
-	/** \brief Add some data to the specified position in the dataset, without checking what (if anything) was there before. */
+	/** \brief Add some data to the specified position in the dataset, without checking what (if anything) was there before.
+     
+     Assumes the dataset has the appropriate size to contain all the data and overwrites any existing data that may be there.
+     The \c rank of the dataset is assumed to be known, and the size of the array parameters is not tested.
+     
+     \param dataset The dataset to write the data to.
+     \param offset Where to start writing the data, as an array of \c rank numbers.
+     \param stride The number of elements in the dataset to step for each element to be written, where
+     null is equivalent to a stride of [1, 1, 1, ..., 1], as an array of \c rank numbers.
+     \param count The number of elements in each dimension to be written, as an array of \c rank numbers.
+     \param value The address of the data to be written.
+     
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dread
+     \sa cbf_H5Drequire_scalar_F64LE
+     \sa cbf_H5Drequire_string
+     \sa cbf_H5Dfree
+     \sa cbf_H5Ddestroy
+     
+     \return An error code.
+     */
 	int cbf_H5Dwrite
     (const hid_t dataset,
      const hsize_t * const offset,
@@ -1102,9 +1215,28 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		return error;
 	}
     
-	/*
-     Add a 'cbf_H5Dread' function to read a specified block of a dataset whose type is assumed to be known (ie, via cbf_H5Drequire).
-     This will allow the data to be manually compared against some known data to ensure it is equal - in the case of NeXus fields.
+	/** \brief Extract some existing data from a dataset at a known position.
+     
+     Read some data from a given location in the dataset to an existing location in memory.
+     Does not check the length of the array parameters, which should all have \c rank elements or (in some cases) be null.
+     
+     \param dataset The dataset to read the data from.
+     \param offset Where to start reading the data, as an array of \c rank numbers.
+     \param stride The number of elements in the dataset to step for each element to be read, where
+     null is equivalent to a stride of [1, 1, 1, ..., 1], as an array of \c rank numbers.
+     \param count The number of elements in each dimension to be read, as an array of \c rank numbers.
+     \param value The location where the data is to be stored.
+     
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite
+     \sa cbf_H5Drequire_scalar_F64LE
+     \sa cbf_H5Drequire_string
+     \sa cbf_H5Dfree
+     \sa cbf_H5Ddestroy
+     
+     \return An error code.
      */
 	int cbf_H5Dread
     (const hid_t dataset,
@@ -1142,19 +1274,28 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		return error;
 	}
     
-	/**
-     Convenience function using the HDF5 abstraction layer to avoid the
-     need to consider array-related parameters for a scalar dataset and
-     automatically set the string type to the correct size.
+	/** \brief Write a scalar 64-bit floating point number as a dataset.
+     
+     Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related
+     parameters for a scalar dataset and to automatically set the string type to the correct size.
      
      \param location The group containing the new dataset.
      \param dataset An optional pointer to a place to store the new dataset.
      \param name The name of the new dataset.
      \param value The value of the new dataset.
+     \param cmp A comparison function to test if a previously set value is equal to the value I asked for.
+     
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite
+     \sa cbf_H5Dread
+     \sa cbf_H5Drequire_string
+     \sa cbf_H5Dfree
+     \sa cbf_H5Ddestroy
      
      \return An error code.
      */
-    
 	int cbf_H5Drequire_scalar_F64LE
     (const hid_t location,
      hid_t * const dataset,
@@ -1171,7 +1312,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 			} else {
 				double data = 0./0.;
 				error |= cbf_H5Dread(_dataset,0,0,0,&data);
-				if (value != data) {
+				if (fabs(value - data)> 1.e-38+1.e-20*(fabs(value)+fabs(data))) {
 					fprintf(stderr,"Error: data doesn't match (%g vs %g) for nexus field '%s'\n",data,value,name);
 					error |= CBF_H5DIFFERENT;
 				}
@@ -1185,6 +1326,27 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		return error;
 	}
     
+    /** \brief Write a single string as a dataset.
+     
+     Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related
+     parameters for a scalar dataset and to automatically set the string type to the correct size.
+     
+     \param location The group containing the new dataset.
+     \param dataset An optional pointer to a place to store the new dataset.
+     \param name The name of the new dataset.
+     \param value The value of the new dataset.
+     
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite
+     \sa cbf_H5Dread
+     \sa cbf_H5Drequire_scalar_F64LE
+     \sa cbf_H5Dfree
+     \sa cbf_H5Ddestroy
+     
+     \return An error code.
+     */
 	int cbf_H5Drequire_string
     (const hid_t location,
      hid_t * const dataset,
@@ -1221,12 +1383,17 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		return error;
 	}
     
-	/**
+	/** \brief Close a HDF5 dataset
+     
+     Attempt to close a dataset, but don't modify the identifier that described it.
+     
+     \param ID The HDF5 dataset to be closed.
+     
      \sa cbf_H5Dcreate
      \sa cbf_H5Ddestroy
      \sa cbf_H5Ivalid
      
-     \return An error code: \c CBF_SUCCESS on success, \c CBF_H5ERROR on failure.
+     \return An error code.
      */
 	int cbf_H5Dfree(const hid_t ID)
 	{
@@ -1234,13 +1401,18 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		return CBF_SUCCESS;
 	}
     
-	/**
+	/** \brief Close a HDF5 dataset
+     
+     Attempt to close a dataset, clobbering the identifier that described it.
+     
+     \param ID A pointer to the HDF5 dataset to be closed.
+     
      \sa cbf_H5Dcreate
      \sa cbf_H5Dfree
      \sa cbf_H5Ivalid
      
-     \return An error code: \c CBF_SUCCESS on success, \c CBF_H5ERROR on failure.
-	 */
+     \return An error code.
+     */
 	int cbf_H5Ddestroy(hid_t * const ID)
 	{
 		const int err = cbf_H5Dfree(*ID);
@@ -1250,14 +1422,17 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     
 	/* Custom HDF5 types - to get the correct string type for datasets in a consistent way */
     
-	/**
+	/** \brief Get a HDF5 string datatype with a specified length
+     
+     Convenience function to create a datatype suitable for use when storing a string.
+     
+     \param type A pointer to a the HDF5 handle of the new datatype, which should be free'd with \c cbf_H5Tfree
+     \param len The length of the string datatype - should be \c strlen() or \c H5T_VARIABLE
+     
      \sa cbf_H5Tfree
      \sa cbf_H5Tdestroy
      
-     \param len The length of the string datatype - should be \c strlen() or \c H5T_VARIABLE
-     \param type A pointer to a the HDF5 handle of the new datatype, which should be free'd with \c cbf_H5Tfree
-     
-     \return An error code: \c CBF_SUCCESS on success, \c CBF_H5ERROR on failure.
+     \return An error code.
      */
 	int cbf_H5Tcreate_string(hid_t * type, const size_t len)
 	{
@@ -1265,26 +1440,36 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		return H5Tset_size(*type,H5T_VARIABLE==len?len:len+1) < 0 ? CBF_H5ERROR : CBF_SUCCESS;
 	}
     
-	/**
+	/** \brief Close a HDF5 datatype identifier
+     
+     Attempt to close a datatype identifier, but don't modify the identifier that described it.
+     
+     \param ID The HDF5 datatype to be closed.
+     
      \sa cbf_H5Tcreate_string
      \sa cbf_H5Tdestroy
      \sa cbf_H5Ivalid
      
-     \return An error code: \c CBF_SUCCESS on success, \c CBF_H5ERROR on failure.
-	 */
+     \return An error code.
+     */
 	int cbf_H5Tfree(const hid_t ID)
 	{
 		if (cbf_H5Ivalid(ID)) return H5Tclose(ID)>=0 ? CBF_SUCCESS : CBF_H5ERROR;
 		return CBF_SUCCESS;
 	}
     
-	/**
+	/** \brief Close a HDF5 datatype identifier
+     
+     Attempt to close a datatype, clobbering the identifier that described it.
+     
+     \param ID A pointer to the HDF5 datatype to be closed.
+     
      \sa cbf_H5Tcreate_string
      \sa cbf_H5Tfree
      \sa cbf_H5Ivalid
      
-     \return An error code: \c CBF_SUCCESS on success, \c CBF_H5ERROR on failure.
-	 */
+     \return An error code.
+     */
 	int cbf_H5Tdestroy(hid_t * const ID)
 	{
 		const int err = cbf_H5Tfree(*ID);
@@ -1294,6 +1479,20 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     
 	/* HDF5 dataspace functions: I need a uniform method of creating data spaces to ensure correct operation of comparison functions */
     
+	/** \brief Create a dataspace with some given values
+     
+     Helper function which creates a HDF5 dataspace.
+     
+     Maximum dimensions can be set to infinity by passing \c H5S_UNLIMITED in the appropriate slot of the \c max parameter.
+     If \c max is a null pointer the maximum length is set to the current length as given by \c dim .
+     
+     \param ID A pointer to a HDF5 identifier that will contain the new dataspace.
+     \param rank The number of dimensions of the new dataspace.
+     \param dim The current size of each dimension of the dataspace, should be an array of length \c rank .
+     \param max The maximum size of each dimension, should be an array of length \c rank .
+     
+     \return An error code.
+     */
 	int cbf_H5Screate
     (hid_t * const ID,
      const int rank,
@@ -1310,11 +1509,36 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		}
 	}
     
+	/** \brief Close a HDF5 dataspace identifier
+     
+     Attempt to close a dataspace identifier, but don't modify the identifier that described it.
+     
+     \param ID The HDF5 dataspace to be closed.
+     
+     \sa cbf_H5Screate
+     \sa cbf_H5Sdestroy
+     \sa cbf_H5Ivalid
+     
+     \return An error code.
+     */
 	int cbf_H5Sfree(const hid_t ID)
 	{
 		if (cbf_H5Ivalid(ID)) return H5Sclose(ID)>=0 ? CBF_SUCCESS : CBF_H5ERROR;
 		return CBF_SUCCESS;
 	}
+    
+	/** \brief Close a HDF5 dataspace identifier
+     
+     Attempt to close a dataspace, clobbering the identifier that described it.
+     
+     \param ID A pointer to the HDF5 dataspace to be closed.
+     
+     \sa cbf_H5Screate
+     \sa cbf_H5Sfree
+     \sa cbf_H5Ivalid
+     
+     \return An error code.
+     */
     
 	int cbf_H5Sdestroy(hid_t * const ID)
 	{
@@ -1369,17 +1593,17 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      */
     int cbf_hdf5_parseScan(char * * const buf, size_t * n, size_t * ln, char * const pre, FILE * stream)
     {
-        int c = 0; // current character
-        size_t k = 0; // current line length
+        int c = 0; /* current character */
+        size_t k = 0; /* current line length */
         
-        // check that sensible arguments are given
+        /* check that sensible arguments are given */
         assert(buf);
         assert(n);
         assert(ln);
         assert(pre);
         assert(stream);
         
-        // skip blanks & comments to get to an interesting character
+        /* skip blanks & comments to get to an interesting character */
         do {
             c = fgetc(stream);
             if (feof(stream)) break;
@@ -1397,7 +1621,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
             else break;
         } while (1);
         
-        // if I am at the end of the stream, free the buffer & return 0
+        /* if I am at the end of the stream, free the buffer & return 0 */
         if (feof(stream)) {
             free((void*)(*buf));
             *buf = 0;
@@ -1405,14 +1629,14 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
             return '\n'==*pre ? CBF_SUCCESS : parseErrorUnexpectedEOF;
         }
         
-        // I have a token: read it
+        /* I have a token: read it */
         if (isspace(c)) {
-            // it's a newline token
+            /* it's a newline token */
             push_buf('\n', buf, n, &k);
         } else {
-            // it's a string : leave the terminating character in the stream as it may be a token itself
+            /* it's a string : leave the terminating character in the stream as it may be a token itself */
             if ('[' == c || ']' == c) {
-                // it's a vector start or end token : match the structure of a vector at a higher level
+                /* it's a vector start or end token : match the structure of a vector at a higher level */
                 push_buf(c, buf, n, &k);
             } else while (1) {
                 push_buf(c, buf, n, &k);
@@ -1425,7 +1649,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
                 }
             }
         }
-        // null-terminate the token
+        /* null-terminate the token */
         push_buf('\0', buf, n, &k);
         
         return (feof(stream) && '\n'!=*pre) ? parseErrorUnexpectedEOF : CBF_SUCCESS;
@@ -1530,15 +1754,15 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     cbf_hdf5_configItem * cbf_hdf5_configItemVector_push(cbf_hdf5_configItemVectorhandle vector, cbf_hdf5_configItem item)
     {
         if (!(vector->nItems < vector->maxItems)) {
-            // increase the maximum number of items
+            /* increase the maximum number of items */
             const size_t k = 4;
             vector->maxItems = (size_t)((float)(vector->nItems)/(float)(k))*k + k;
             vector->item = realloc(vector->item, vector->maxItems*sizeof(cbf_hdf5_configItem));
         }
-        // ensure I have enough items
+        /* ensure I have enough items */
         assert(vector->maxItems > vector->nItems);
         
-        // add the item to the end of the vector & set the item count to the correct number.
+        /* add the item to the end of the vector & set the item count to the correct number. */
         vector->item[vector->nItems++] = item;
         return vector->item+vector->nItems-1;
     }
@@ -1626,7 +1850,7 @@ do{ \
   } \
 } while (0);
         
-        // literal '['.
+        /* literal '['. */
         GET_TOKEN();
         REQUIRE_NOT_EOL();
         REQUIRE_TOKEN("[");
@@ -1654,7 +1878,7 @@ do{ \
             fprintf(logFile,"Config parsing error on line %lu: expected a number, got '%s'\n",*ln,*buf);
             return parseErrorExpectedNumber;
         }
-        // literal ']'.
+        /* literal ']'. */
         GET_TOKEN();
         REQUIRE_NOT_EOL();
         REQUIRE_TOKEN("]");
@@ -1723,13 +1947,13 @@ return e; \
 } \
 } while (0)
         
-        // first token of the line
+        /* first token of the line */
         GET_TOKEN();
         while (tkn) {
             if (!strcmp("map",tkn)) {
-                // storage that I don't need to free within this function
+                /* storage that I don't need to free within this function */
                 cbf_hdf5_configItem * it;
-                // minicbf axis name
+                /* minicbf axis name */
                 GET_TOKEN();
                 REQUIRE_NOT_EOL();
                 it = cbf_hdf5_configItemVector_findMinicbf(vec,tkn);
@@ -1739,11 +1963,11 @@ return e; \
                 }
                 it = cbf_hdf5_configItemVector_push(vec,cbf_hdf5_createConfigItem());
                 it->minicbf = strdup(tkn);
-                // literal 'to'.
+                /* literal 'to'. */
                 GET_TOKEN();
                 REQUIRE_NOT_EOL();
                 REQUIRE_TOKEN("to");
-                // nexus axis name
+                /* nexus axis name */
                 GET_TOKEN();
                 REQUIRE_NOT_EOL();
                 if (cbf_hdf5_configItemVector_end(vec) != cbf_hdf5_configItemVector_findNexus(vec,tkn)) {
@@ -1751,64 +1975,64 @@ return e; \
                     return parseErrorDuplicateField;
                 }
                 it->nexus = strdup(tkn);
-                // newline
+                /* newline */
                 GET_TOKEN();
                 REQUIRE_EOL();
             } else if (!strcmp("Sample",tkn)) {
-                // literal 'depends-on'.
+                /* literal 'depends-on'. */
                 GET_TOKEN();
                 REQUIRE_NOT_EOL();
                 REQUIRE_TOKEN("depends-on");
-                // nexus axis name
+                /* nexus axis name */
                 GET_TOKEN();
                 REQUIRE_NOT_EOL();
                 REQUIRE_NEXUS_AXIS();
                 cbf_hdf5_configItemVector_setSampleDependsOn(vec,strdup(tkn));
-                // newline
+                /* newline */
                 GET_TOKEN();
                 REQUIRE_EOL();
             } else if (!strcmp("\n",tkn)) {
             } else {
-                // find entry by nexus axis name
+                /* find entry by nexus axis name */
                 cbf_hdf5_configItem * const it = cbf_hdf5_configItemVector_findNexus(vec,tkn);
                 if (cbf_hdf5_configItemVector_end(vec) == it) {
                     fprintf(logFile,"Config parsing error on line %lu: Nexus axis '%s' not defined\n",ln,tkn);
                     return parseErrorUndefinedValue;
                 }
-                // match depends-on -> vector OR vector -> depends-on.
+                /* match depends-on -> vector OR vector -> depends-on. */
                 GET_TOKEN();
                 REQUIRE_NOT_EOL();
                 if (!strcmp("vector",tkn)) {
-                    // try to get a vector
+                    /* try to get a vector */
                     REQUIRE_VECTOR();
                     GET_TOKEN();
-                    // optional 'depends-on'
+                    /* optional 'depends-on' */
                     if (!strcmp("depends-on",tkn)) {
-                        // nexus axis name
+                        /* nexus axis name */
                         GET_TOKEN();
                         REQUIRE_NOT_EOL();
                         REQUIRE_NEXUS_AXIS();
-                        // this is a potential memory leak
+                        /* this is a potential memory leak */
                         it->depends_on = strdup(tkn);
                         GET_TOKEN();
                     }
-                    // check for newline
+                    /* check for newline */
                     REQUIRE_EOL();
                 } else if (!strcmp("depends-on",tkn)) {
-                    // nexus axis name
+                    /* nexus axis name */
                     GET_TOKEN();
                     REQUIRE_NOT_EOL();
                     REQUIRE_NEXUS_AXIS();
-                    // this is a potential memory leak
+                    /* this is a potential memory leak */
                     it->depends_on = strdup(tkn);
                     GET_TOKEN();
-                    // optional 'vector'
+                    /* optional 'vector' */
                     if (!strcmp("vector",tkn)) {
-                        // try to get a vector
+                        /* try to get a vector */
                         REQUIRE_VECTOR();
                         GET_TOKEN();
                     }
-                    // check for newline
+                    /* check for newline */
                     REQUIRE_EOL();
                 } else return parseErrorUnexpectedInput;
             }
@@ -1822,15 +2046,14 @@ return e; \
      config.c
      ****************************************************************/
 
-    
-	/* Attribute type definition, agrees with CBFlib data convensions */
+    /* Attribute type definition, agrees with CBFlib data convensions */
     
 	typedef struct cbf_name_value_pair_def
 	{
 		const char * name;
 		const void * value;
 	} cbf_name_value_pair;
-    
+
     
 	/* Ensure I have a file to do stuff with.
      There are 4 possible cases:
@@ -1865,18 +2088,18 @@ return e; \
      */
 	int cbf_h5handle_require_entry(const cbf_h5handle handle, hid_t * group, const char * name)
 	{
-		// if the handle isn't valid the function makes no sense
+		/* if the handle isn't valid the function makes no sense */
 		if (!handle) return CBF_ARGUMENT;
         
 		if (!name) {
-			// if no name is given just check that the group is in the handle
+			/* if no name is given just check that the group is in the handle */
 			if (!cbf_H5Ivalid(handle->nxid)) return CBF_ARGUMENT;
 			else {
 				if (group) *group = handle->nxid;
 				return CBF_SUCCESS;
 			}
 		} else {
-			// if a name is given either create the group in a known place or ensure some names match
+			/* if a name is given either create the group in a known place or ensure some names match */
 			if (!cbf_H5Ivalid(handle->nxid)) {
 				/* create/open a group with the given name */
 				int error = CBF_SUCCESS;
@@ -1886,7 +2109,7 @@ return e; \
 					cbf_H5Gcreate(&handle->nxid,name,handle->hfile);
 					if (!cbf_H5Ivalid(handle->nxid)) error |= CBF_H5ERROR;
 				}
-				cbf_reportnez(cbf_H5Aset_string(handle->nxid,"NX_class","NXentry"), error);
+				cbf_reportnez(cbf_H5Arequire_string(handle->nxid,"NX_class","NXentry"), error);
 				if (CBF_SUCCESS == error && group) *group = handle->nxid;
 				return error;
 			} else {
@@ -1917,7 +2140,7 @@ return e; \
 		cbf_reportnez(cbf_h5handle_require_entry(handle,0,0), error);
 		/* TODO: find a suitable require_NXgroup function (which doesn't need to know about the handle) to use here */
 		cbf_reportnez(cbf_H5Gcreate(&(handle->nxsample),"sample",handle->nxid), error);
-		cbf_reportnez(cbf_H5Aset_string(handle->nxsample,"NX_class","NXsample"), error);
+		cbf_reportnez(cbf_H5Arequire_string(handle->nxsample,"NX_class","NXsample"), error);
 		if (group) *group = handle->nxsample;
 		return error;
 	}
@@ -1939,7 +2162,7 @@ return e; \
 		cbf_reportnez(cbf_h5handle_require_entry(handle,0,0), error);
 		/* TODO: find a suitable require_NXgroup function (which doesn't need to know about the handle) to use here */
 		cbf_reportnez(cbf_H5Gcreate(&(handle->nxinst),"instrument",handle->nxid), error);
-		cbf_reportnez(cbf_H5Aset_string(handle->nxinst,"NX_class","NXinstrument"), error);
+		cbf_reportnez(cbf_H5Arequire_string(handle->nxinst,"NX_class","NXinstrument"), error);
 		if (group) *group = handle->nxinst;
 		return error;
 	}
@@ -1962,7 +2185,7 @@ return e; \
 		cbf_reportnez(cbf_h5handle_require_instrument(handle,0), error);
 		/* TODO: find a suitable require_NXgroup function (which doesn't need to know about the handle) to use here */
 		cbf_reportnez(cbf_H5Gcreate(&(handle->nxdetector),"detector",handle->nxinst), error);
-		cbf_reportnez(cbf_H5Aset_string(handle->nxdetector,"NX_class","NXdetector"), error);
+		cbf_reportnez(cbf_H5Arequire_string(handle->nxdetector,"NX_class","NXdetector"), error);
 		if (group) *group = handle->nxdetector;
 		return error;
 	}
@@ -1984,7 +2207,7 @@ return e; \
 			int error = CBF_SUCCESS;
 			cbf_reportnez(cbf_h5handle_require_instrument(handle,0), error);
 			cbf_reportnez(cbf_H5Gcreate(&(handle->nxmonochromator),"monochromator",handle->nxinst), error);
-			cbf_reportnez(cbf_H5Aset_string(handle->nxmonochromator,"NX_class","NXmonochromator"), error);
+			cbf_reportnez(cbf_H5Arequire_string(handle->nxmonochromator,"NX_class","NXmonochromator"), error);
 			if (CBF_SUCCESS == error && 0 != group) *group = handle->nxmonochromator;
 			return error;
 		}
@@ -2590,7 +2813,7 @@ return e; \
                 
                 cbf_h5reportneg(nxaxisoffsetid = H5Dcreatex(equipmentid,nxaxis_offset_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
                 
-                // cbf_h5reportneg(H5Dwrite(nxaxisoffsetid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);
+                /* cbf_h5reportneg(H5Dwrite(nxaxisoffsetid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode); */
 
 
                 cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
@@ -2702,7 +2925,7 @@ return e; \
                     
                     cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
                     
-                    // cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);;
+                    /* cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);*/
 
                     cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
                     
@@ -2823,7 +3046,7 @@ return e; \
                     
                     cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
 
-                    //cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);;
+                    /* cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode); */
 
                     cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
                     
@@ -3897,7 +4120,7 @@ return e; \
 		cbf_reportnez(cbf_H5Dcreate(h5subGroup,&h5dataset,name,0,0,0,0,h5type),error);
 		cbf_reportnez(cbf_H5Dwrite(h5dataset,0,0,0,value),error);
 		for (; attrit < attrv+attrc; ++attrit)
-			cbf_reportnez(cbf_H5Aset_string(h5dataset,attrit->name,attrit->value),error);
+			cbf_reportnez(cbf_H5Arequire_string(h5dataset,attrit->name,attrit->value),error);
         
 		/*  clean up */
 		if (cbf_H5Ivalid(h5type)) cbf_H5Tfree(h5type);
@@ -3907,7 +4130,7 @@ return e; \
 		return error;
 	}
     
-    
+        
     /* Write a category to an HDF5 file */
     
     int cbf_write_h5category (cbf_handle handle,
@@ -4308,6 +4531,7 @@ return e; \
         (*h5handle)->curnxid = (hid_t)CBF_H5FAIL;
         (*h5handle)->dataid  = (hid_t)CBF_H5FAIL;
         (*h5handle)->rwmode  = 0;
+        (*h5handle)->flags = 0;
         
         return CBF_SUCCESS;
         
@@ -4689,19 +4913,19 @@ return e; \
         
 		/* Do the mappings from CBF to nexus */
 		{
-			// get some useful parameters out of the metadata as it's converted
+			/* get some useful parameters out of the metadata as it's converted */
 			double pixel_x = 0./0., pixel_y = 0./0.;
 			int Pixel_size = 0;
             
-			// assume I have only 1 datablock, TODO: fix this
+			/* assume I have only 1 datablock, TODO: fix this */
 			cbf_onfailnez(cbf_select_datablock(handle,0), fprintf(stderr,__WHERE__": CBF error: cannot find datablock 0.\n"));
-			// then search for the 'array_data' category
+			/* then search for the 'array_data' category */
 			cbf_onfailnez(cbf_find_category(handle,"array_data"),
 						  fprintf(stderr,__WHERE__": CBF error: cannot find category 'array_data'.\n"));
             
 			/* First: extract the metadata from the CBF, put it in nexus */
 			cbf_failnez(cbf_find_column(handle,"header_convention"));
-			if (1) {// get the header convention, check it is a value I understand
+			if (1) {/* get the header convention, check it is a value I understand */
 				const char * value = NULL;
 				const char vendor_pilatus[] = "PILATUS";
 				cbf_failnez(cbf_get_value(handle,&value));
@@ -4769,7 +4993,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								const int found = cbf_H5Dfind(h5handle->nxid,&dataset,"start_time",0,0,0,0,type);
 								if (CBF_SUCCESS==found) {
 									if (!cbf_H5Ivalid(dataset)) {
-										// create the dataset & write the data
+										/* create the dataset & write the data */
 										cbf_H5Dcreate(h5handle->nxid,&dataset,"start_time",0,0,0,0,type);
 										cbf_H5Dwrite(dataset,0,0,0,str);
 									} else {
@@ -4905,8 +5129,6 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								/* 1: value */
 								value = getPilatusNonWhitespaceToken(value);
 								num = strtod(value, (char**)(&value));
-								//cbf_H5Dcreate(detector,&h5data,"count_time",1,dim,max,chunk,H5T_IEEE_F64LE);
-								//cbf_H5Dwrite(h5data,offset,0,count,&num);
 								found = cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
 								if (CBF_SUCCESS==found) {
 									const hsize_t dim2[] = {dim[0]+1};
@@ -4938,8 +5160,6 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								/* 1: value */
 								value = getPilatusNonWhitespaceToken(value);
 								num = strtod(value, (char**)(&value));
-								//cbf_H5Dcreate(detector,&h5data,"frame_time",1,dim,max,chunk,H5T_IEEE_F64LE);
-								//cbf_H5Dwrite(h5data,offset,0,count,&num);
 								found = cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
 								if (CBF_SUCCESS==found) {
 									const hsize_t dim2[] = {dim[0]+1};
@@ -4971,8 +5191,6 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								/* 1: value */
 								value = getPilatusNonWhitespaceToken(value);
 								num = strtod(value, (char**)(&value));
-								//cbf_H5Dcreate(detector,&h5data,"dead_time",1,dim,max,chunk,H5T_IEEE_F64LE);
-								//cbf_H5Dwrite(h5data,offset,0,count,&num);
 								found = cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
 								if (CBF_SUCCESS==found) {
 									const hsize_t dim2[] = {dim[0]+1};
@@ -5021,7 +5239,6 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								} else {
 									fprintf(stderr,"Attempt to determine existence of nexus dataset '%s' failed\n",h5name);
 								}
-								//value = pilatusWriteIntUnits(value,detector,"saturation_value",0,0);
 							} __ELSEIF_MATCH("Threshold_setting") {
 								/* Get value & units */
 								value = pilatusWriteDoubleUnits(value,detector,"threshold_energy",0,0);
@@ -5068,7 +5285,6 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								} else {
 									fprintf(stderr,"Attempt to determine existence of nexus dataset '%s' failed\n",h5name);
 								}
-								//value = pilatusWriteDoubleUnits(value,monochromator,"wavelength",0,0);
 							} __ELSEIF_MATCH("Beam_xy") {
 								const char * start;
 								/*
@@ -5096,7 +5312,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								const char * end = value;
 								const double num = strtod(value,(char**)(&end));
 								if (end != value && 0.0 != num) {
-									// I have a valid flux, map it to /entry/sample/beam/flux
+									/* I have a valid flux, map it to /entry/sample/beam/flux */
 									int error = CBF_SUCCESS;
 									hid_t sample = CBF_H5FAIL;
 									hid_t h5data = CBF_H5FAIL;
@@ -5106,7 +5322,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 									/* Ensure I have a valid beam group */
 									if (0 && CBF_H5FAIL==beam && CBF_SUCCESS==error) {
 										if (CBF_SUCCESS==error) error |= cbf_H5Gcreate(&beam,"beam",sample);
-										if (CBF_SUCCESS==error) error |= cbf_H5Aset_string(beam,"NX_class","NXbeam");
+										if (CBF_SUCCESS==error) error |= cbf_H5Arequire_string(beam,"NX_class","NXbeam");
 									}
 									error |= cbf_H5Grequire(&h5location,"beam",sample);
 									error |= cbf_H5Arequire_string(h5location, "NX_class", "NXbeam");
@@ -5155,9 +5371,6 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 									hid_t h5data = CBF_H5FAIL;
 									hid_t h5type = H5T_IEEE_F64LE;
 									const char h5name[] = "incident_polarisation";
-									//cbf_H5Dcreate(beam,&dataset,"incident_polarisation",1,dim,0,0,H5T_IEEE_F64LE);
-									//cbf_H5Dwrite(dataset,offset,0,count,polarisation);
-									//cbf_H5Dfree(dataset);
 									found = cbf_H5Dfind(h5location,&h5data,h5name,1,dim,0,0,h5type);
 									if (CBF_SUCCESS==found) {
 										if (!cbf_H5Ivalid(h5data)) {
@@ -5354,7 +5567,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 			}
 			/* Second: extract the raw data from the CBF, put it in nexus */
 			cbf_onfailnez(cbf_find_column(handle,"data"), fprintf(stderr,__WHERE__": CBF error: cannot find column `data'.\n"));
-			// get the first row, TODO: convert every row
+			/* get the first row, TODO: convert every row */
 			cbf_onfailnez(cbf_select_row(handle,0), fprintf(stderr,__WHERE__": CBF error: cannot find row 0.\n"));
 			if(1) {
 				int real = 0, bits = 0, sign = 0;
@@ -5380,9 +5593,9 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 					h5chunk[0] = 1;
 					h5dim[0] = h5handle->slice;
 				}
-				// I'm only going to deal with multiples of 8 bits
-				elsize = bits/8;
-				// get the correct hdf5 type, or fail
+				/* I'm only going to deal with multiples of 8 bits */
+				elsize = (bits+7)/8;
+				/* get the correct hdf5 type, or fail */
 				if (real) {
 					switch (bits) {
 						case 32: h5type = H5T_IEEE_F32LE; break;
@@ -5400,7 +5613,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 						default: return CBF_FORMAT;
 					}
 				}
-				// ensure I have an axis for each index of the image - mapping pixel indices to spatial coordinates
+				/* ensure I have an axis for each index of the image - mapping pixel indices to spatial coordinates */
 				if (Pixel_size) {
 					hid_t h5axis = CBF_H5FAIL;
 					const char h5name[] = "slow_pixel_direction";
@@ -5481,19 +5694,19 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 						fprintf(stderr,__WHERE__": error locating axis: %s\n", cbf_strerror(found));
 					}
 				}
-				// allocate an array for the raw data
+				/* allocate an array for the raw data */
 				array = malloc(elsize*nelems);
-				// get the raw data, ensuring I get all of it
+				/* get the raw data, ensuring I get all of it */
 				if (real) cbf_get_realarray(handle, 0, array, elsize, nelems, &elems_read);
 				else cbf_get_integerarray(handle, 0, array, elsize, sign, nelems, &elems_read);
 				if (elems_read != nelems) {
 					free(array);
 					return CBF_ENDOFDATA;
 				}
-				// get a hdf5 dataset
+				/* get a hdf5 dataset */
 				{
 					hid_t dataset = CBF_H5FAIL;
-					// get the dataset
+					/* get the dataset */
 					const int found = cbf_H5Dfind(detector,&dataset,"data",rank,h5dim,h5max,h5chunk,h5type);
 					if (CBF_SUCCESS==found) {
 						const hsize_t h5extent[] = {h5dim[0]+1, h5dim[1], h5dim[2]};
@@ -5501,20 +5714,41 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 						const hsize_t h5count[] = {1, h5dim[1], h5dim[2]};
 						const int sig[] = {1};
 						int buf[] = {0};
-						if (!cbf_H5Ivalid(dataset))
-							cbf_H5Dcreate(detector,&dataset,"data",rank,h5dim,h5max,h5chunk,h5type);
-						// write the data to the hdf5 dataset
-						cbf_H5Dset_extent(dataset, h5extent);
+						if (!cbf_H5Ivalid(dataset)) {
+							/* define variables & check args */
+							hid_t dataSpace = CBF_H5FAIL;
+							hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
+                            
+							/* check variables are valid */
+							cbf_H5Screate(&dataSpace, rank, h5dim, h5max);
+                            
+							/* allow dataset to be chunked */
+							H5Pset_chunk(dcpl,rank,h5chunk);
+							/* allow compression */
+							if (h5handle->flags & CBF_H5_ZLIB) {
+								H5Pset_deflate(dcpl, 2);
+							}
+                            
+							/* create the dataset */
+							if (CBF_SUCCESS == errorcode)
+								dataset = H5Dcreate2(detector,"data",h5type,dataSpace,H5P_DEFAULT,dcpl,H5P_DEFAULT);
+                            
+							/* check local variables are properly closed */
+							if (cbf_H5Ivalid(dataSpace)) H5Sclose(dataSpace);
+							if (cbf_H5Ivalid(dcpl)) H5Pclose(dcpl);
+						}
+						/* write the data to the hdf5 dataset */
+                        cbf_H5Dset_extent(dataset, h5extent);
 						cbf_H5Dwrite(dataset,h5offset,0,h5count,array);
 						cbf_H5Arequire_cmp(dataset,"signal",0,0,H5T_STD_I32LE,sig,buf,cmp_int);
 					} else {
 						errorcode |= found;
 						fprintf(stderr,__WHERE__": error locating primary dataset: %s\n", cbf_strerror(found));
 					}
-					// ensure /entry/data@NXdata exists & has a link to the data
+					/* ensure /entry/data@NXdata exists & has a link to the data */
 					if (CBF_SUCCESS==errorcode && !cbf_H5Ivalid(h5handle->nxdata)) {
 						cbf_H5Gcreate(&h5handle->nxdata,"data",entry);
-						cbf_H5Aset_string(h5handle->nxdata,"NX_class","NXdata");
+						cbf_H5Arequire_string(h5handle->nxdata,"NX_class","NXdata");
 						H5Lcreate_hard(dataset,".",h5handle->nxdata,"data",H5P_DEFAULT,H5P_DEFAULT);
 						H5Lcreate_hard(detector,"slow_pixel_direction",h5handle->nxdata,"x",H5P_DEFAULT,H5P_DEFAULT);
 						H5Lcreate_hard(detector,"fast_pixel_direction",h5handle->nxdata,"y",H5P_DEFAULT,H5P_DEFAULT);
@@ -5542,7 +5776,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 							cbf_H5Arequire_cmp(h5handle->nxdata,"y_indices",0,0,H5T_STD_I32LE,idx,buf,cmp_int);
 						}
 					}
-					// clean up
+					/* clean up */
 					cbf_H5Dfree(dataset);
 				}
 				free(array);

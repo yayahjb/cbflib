@@ -430,6 +430,8 @@ extern "C" {
 #define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */
 #define CBF_H5_OPAQUE   0x0800  /* Flag to write compressed images
                                      as opaque objects                */
+#define CBF_H5_ZLIB     0x1000  /* Flag to write compressed images
+                                     with zlib                        */
 
 
   /* Flags used for logging */
