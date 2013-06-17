@@ -1312,7 +1312,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 			} else {
 				double data = 0./0.;
 				error |= cbf_H5Dread(_dataset,0,0,0,&data);
-				if (fabs(value - data)> 1.e-38+1.e-20*(fabs(value)+fabs(data))) {
+				if (fabs(value - data)> 1.e-38+1.e-13*(fabs(value)+fabs(data))) {
 					fprintf(stderr,"Error: data doesn't match (%g vs %g) for nexus field '%s'\n",data,value,name);
 					error |= CBF_H5DIFFERENT;
 				}
@@ -5632,7 +5632,8 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 							hsize_t n = 0;
 							int n_eq = 0;
 							cbf_H5Dread(h5axis,offset,0,count,data);
-							for (n=0; n!=*count; ++n) if ((double)((double)(n)*pixel_x) != data[n]) ++n_eq;
+							for (n=0; n!=*count; ++n) 
+                                                            if (fabs((double)(n)*pixel_x-data[n]) > 1.e-13*(double)(n)*pixel_x+1.e-20) ++n_eq;
 							if (0 != n_eq) {
 								fprintf(stderr,__WHERE__": error: %d values in '%s' have unexpected"
 										" values, pixel size might not match\n", n_eq, h5name);
@@ -5672,7 +5673,8 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 							hsize_t n = 0;
 							int n_eq = 0;
 							cbf_H5Dread(h5axis,offset,0,count,data);
-							for (n=0; n!=*count; ++n) if ((double)((double)(n)*pixel_y) != data[n]) ++n_eq;
+							for (n=0; n!=*count; ++n) 
+                                                            if (fabs((double)(n)*pixel_x-data[n]) > 1.e-13*(double)(n)*pixel_y+1.e-20) ++n_eq;
 							if (0 != n_eq) {
 								fprintf(stderr,__WHERE__": error: %d values in '%s' have unexpected"
 										" values, pixel size might not match\n", n_eq, h5name);
