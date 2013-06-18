@@ -773,7 +773,7 @@ int main (int argc, char *argv [])
                             i5++;
                         }
                         if (optarg[i5] == 'n' || optarg[i5] == 'N') {
-                            hdf5noH5 = 1;
+                            hdf5noH5 = CBF_H5_NOH5;
                         }
                         if (!hdf5mode && !hdf5noH5){
                             errflg++;
@@ -1167,7 +1167,7 @@ int main (int argc, char *argv [])
             cbf_failnez (cbf_read_widefile (cif, in, MSG_DIGEST|qrflags|(digest&MSG_DIGESTWARN)))
         }
     }
-    
+        
     if (hdf5noH5) {
         
         if (!cbf_find_datablock(cif,"H5")) {

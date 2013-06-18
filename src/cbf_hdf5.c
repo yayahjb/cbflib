@@ -4171,7 +4171,7 @@ return e; \
         
         (h5handle->bookmark).category = category->name;
         
-        /* Write the name under the opem save frame or datablock */
+        /* Write the name under the open save frame or datablock */
         
         if (h5handle->sfid <0) {
             
@@ -4187,6 +4187,7 @@ return e; \
             
             
         }
+        
         
 		/* Some basic code to ensure the utility of the low-level HDF5 abstraction functions.
          This will be striped out & refactored when a suitable higher-level framework is implemented. */
@@ -7553,7 +7554,8 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                             "little_endian":"big_endian";
                         } else if (!cbf_cistrcmp(attrib_name,"size")) {
                             binsize = (size_t)strtol(value,NULL,0);
-                        } else if (!cbf_cistrcmp(attrib_name,"digest")) {
+                        } else if (!cbf_cistrcmp(attrib_name,"digest")
+                                   ||!cbf_cistrcmp(attrib_name,"MD5_digest")) {
                             strcpy(digest,value);
                         } else if (!cbf_cistrcmp(attrib_name,"dimover")) {
                             dimover = (size_t)strtol(value,NULL,0);
@@ -7732,7 +7734,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                                                          sign,
                                                          dimover,
                                                          realarray,
-                                                         "little-endian",
+                                                         "little_endian",
                                                          dimover,
                                                          dimfast,
                                                          dimmid,
