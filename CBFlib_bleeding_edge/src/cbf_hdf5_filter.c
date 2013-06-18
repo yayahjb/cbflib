@@ -783,11 +783,12 @@ extern "C" {
                 cbf_reportnez (cbf_flush_characters (tempfile), errorcode)
                 *buf = tempfile->characters_base;
                 *buf_size = tempfile->characters+tempfile->characters_used-tempfile->characters_base;
+#ifdef CBFDEBUG
                 {int ii;
                     for (ii=0; ii<500 && ii < *buf_size; ii++)
                         fprintf(stderr,"%d: %x %c ",ii,(*((char**)buf))[ii],(*((char **)buf))[ii]);
                 }
-                
+#endif
                 tempfile->characters_base = oldbuf;
                 cbf_free_file(&tempfile);
                 return *buf_size;

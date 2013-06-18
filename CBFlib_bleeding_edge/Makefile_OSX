@@ -473,9 +473,9 @@ INCLUDES = -I$(INCLUDE) -I$(SRC)
 #
 # runtime library path export commands
 #
-RTLPEXPORTS = export LD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;\
-		      export DYLD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib; \
-		      export LD_RUN_PATH=$(PWD)/solib:$(PWD)/lib;
+RTLPEXPORTS = LD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export LD_LIBRARY_PATH; \
+		DYLD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export DYLD_LIBRARY_PATH; \
+		LD_RUN_PATH=$(PWD)/solib:$(PWD)/lib;export LD_RUN_PATH;
 
 
 ######################################################################
@@ -1642,7 +1642,7 @@ ifneq ($(F90C),)
 endif
 	$(TIME) $(BIN)/sauter_test
 	$(TIME) $(BIN)/changtestcompression
-	$(TIME) (export LD_LIBRARY_PATH=$(LIB);$(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf)
+	$(TIME) (LD_LIBRARY_PATH=$(LIB);export LD_LIBRARY_PATH;$(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf)
 	-$(DIFF) XRD1621.cbf XRD1621_orig.cbf
 	$(TIME) $(BIN)/cif2cbf -I 4 -C 100. -L 0. -e n -c b -i XRD1621.cbf -o XRD1621_I4encbC100.cbf
 	-$(DIFF) XRD1621_I4encbC100.cbf XRD1621_I4encbC100_orig.cbf
@@ -1710,7 +1710,7 @@ ifneq ($(F90C),)
 endif
 	$(TIME) $(BIN)/sauter_test
 	$(TIME) $(BIN)/changtestcompression
-	$(TIME) (export LD_LIBRARY_PATH=$(LIB);$(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf)
+	$(TIME) (LD_LIBRARY_PATH=$(LIB);export LD_LIBRARY_PATH;$(BIN)/tiff2cbf XRD1621.tif XRD1621.cbf)
 	$(TIME) $(BIN)/cif2cbf -I 4 -C 100. -L 0. -e n -c b -i XRD1621.cbf -o XRD1621_I4encbC100.cbf
 	-$(SIGNATURE) < XRD1621.cbf | $(DIFF) - XRD1621_orig.cbf$(SEXT); rm XRD1621.cbf
 	-$(SIGNATURE) < XRD1621_I4encbC100.cbf | $(DIFF) - XRD1621_I4encbC100_orig.cbf$(SEXT); rm XRD1621_I4encbC100.cbf

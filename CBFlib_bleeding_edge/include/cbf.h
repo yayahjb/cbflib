@@ -428,10 +428,15 @@ extern "C" {
                         0x0100  /* Flag for uncorrelated sections     */
 #define CBF_FLAT_IMAGE  0x0200  /* Flag for flat (linear) images      */
 #define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */
+    
+    
+  /* Flags for HDF5/NeXus management */
+    
 #define CBF_H5_OPAQUE   0x0800  /* Flag to write compressed images
                                      as opaque objects                */
 #define CBF_H5_ZLIB     0x1000  /* Flag to write compressed images
                                      with zlib                        */
+#define CBF_H5_NOH5     0x2000  /* Flag to suppress the H5 group      */
 
 
   /* Flags used for logging */
