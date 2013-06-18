@@ -337,7 +337,6 @@ extern "C" {
             size_t     textdimslow;
             size_t     textpadding;
             void *     destination;
-            char       newdigest[25];
             
             errorcode = 0;
             tempfile = NULL;
@@ -360,7 +359,7 @@ extern "C" {
             }
             
             if (cbf_read_line(tempfile,&line)||
-                !cbf_is_blank(line,";",1)) {
+                !cbf_is_blank(line)) {
 #ifdef CBFDEBUG
                 fprintf(stderr,"bad line %s \n",line);
 #endif
