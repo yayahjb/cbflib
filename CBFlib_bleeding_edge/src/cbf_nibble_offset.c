@@ -1359,11 +1359,11 @@ int cbf_decompress_nibble_offset (void         *destination,
                         }
                         
                     } else {
-                        if (((delta[0]>>32)&0xFFFFFFFFL)==0x80000000L&&((delta[0]&0xFFFFFFFFl)==0L)) {
+                        if ((((long)delta[0]>>32)&0xFFFFFFFFL)==0x80000000L&&(((long)delta[0]&0xFFFFFFFFl)==0L)) {
                             prevmode=curmode;
                             nextmode = 0;
                         } else {
-                            if (((delta[0]>>32)&0x80000000L) == 0x80000000L) {
+                            if ((((long)delta[0]>>32)&0x80000000L) == 0x80000000L) {
                                 delta[0] |= ~(-1L);
                                 for (iint = 1; iint < numints; iint++) {
                                     delta[iint] = ~(0L);
