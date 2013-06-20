@@ -32,8 +32,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <b>An API for CBF/imgCIF<br />
 Crystallographic Binary Files with ASCII Support</b><br />
-Version 0.9.3<BR>
-11 July 2011<BR>
+Version 0.9.2.11<BR>
+19 June 2013<BR>
 <p>
 </CENTER>
 </font><font color="#000000">
@@ -58,7 +58,7 @@ Bernstein + Sons<br />
 yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 </noscript>
 <p>
-&#169; Copyright 2006, 2007, 2008, 2011 Herbert J. Bernstein
+&#169; Copyright 2006, 2007, 2008, 2011, 2013 Herbert J. Bernstein
 <P>
 <hr>
 <b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=gpl.txt>GPL</a>.
@@ -343,14 +343,14 @@ default use of PyCifRW to avoid Fedora license issue.</td>
 </font><font color="#000000">
 <P>
 The example program tiff2cbf needs the enviroment variable LD_LIBRARY_PATH
-set to the location of the lib directory in CBFlib_0.9.2, unless
+set to the location of the lib directory in CBFlib_0.9.2.11, unless
 a system install of tiff-3.9.4-rev-6Feb11 has been done.
 <p>
 Due to license issues, PyCifRW is not included with default releases
 of CBFlib.  Users can download PyCifRW separately.
 <p>
 There are some issues with Peter Chang's lastest java wrapper under
-the CBFlib 0.9.2 release.  Until
+the CBFlib 0.9.2.11 release.  Until
 they are resolved, the CBFlib 0.8.1 release should be used
 for Java applications.
 <p>
@@ -366,14 +366,14 @@ In order to work with CBFlib, you need:
 <ul>
 <li>the source code, in the form
 of a &quot;gzipped&quot; tar,
-<A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2.tar.gz">CBFlib_0.9.2.tar.gz</A>; and
+<A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2.11.tar.gz">CBFlib_0.9.2.11.tar.gz</A>; and
 <li>the test data:
 <ul>
-<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Input.tar.gz">CBFlib_0.9.2_Data_Files_Input.tar.gz</a>
+<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2.11_Data_Files_Input.tar.gz">CBFlib_0.9.2.11_Data_Files_Input.tar.gz</a>
 (17 MB) a "gzipped" tar of the input data files needed to test the API;
-<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Output.tar.gz">CBFlib_0.9.2_Data_Files_Output.tar.gz</a>
+<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2.11_Data_Files_Output.tar.gz">CBFlib_0.9.2.11_Data_Files_Output.tar.gz</a>
 (36 MB) a "gzipped" tar of the output data files needed to test the API, or, if space is at a premium;
-<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Output_Sigs_Only.tar.gz">CBFlib_0.9.2_Data_Files_Output_Sigs_Only.tar.gz</a>
+<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2.11_Data_Files_Output_Sigs_Only.tar.gz">CBFlib_0.9.2.11_Data_Files_Output_Sigs_Only.tar.gz</a>
 (1 KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
 </ul>
 </ul>
@@ -381,13 +381,13 @@ of a &quot;gzipped&quot; tar,
 If your system has the program wget, you only need the source code.  The download of the other tar balls will be
 handled automatically.
 <P>
-<b>Be careful about space.  A full build and test can use 350 MB or more.  If space is tight, be sure to read the
+<b>Be careful about space.  A full build and test can use 450 MB or more.  If space is tight, be sure to read the
 instructions below on using only the signatures of the test files.</b>
 <P>
 Uncompress and unpack :
 <P>
 <ul>
-<li>gunzip &lt; CBFlib_0.9.2.tar.gz | tar xvf -
+<li>gunzip &lt; CBFlib_0.9.2.11.tar.gz | tar xvf -
 </ul>
 <P>   
 <p>
@@ -400,15 +400,19 @@ insulin_pilatus6m, as sample data.  In addition there are
 is a PDB mmCIF file, 9ins.cif, and 3 special test files
 testflatin.cbf, testflatpackedin.cbf and testrealin.cbf.
  All these files will be
-dowloaded and extracted by the Makefile from CBFlib_0.9.2_Data_Files_Input.  Do
+dowloaded and extracted by the Makefile from CBFlib_0.9.2.11_Data_Files_Input.  Do
 not download copies into the top level directory.
 <P>
+In addition, the kit will need tiff and hdf5 libraries.
+<p>
+
 Thare are various sample Makefiles for common
 configurations.  The Makefile_OSX
 samples is for systems with gfortran from prior to
 the release of gcc 4.2.  For the most recent gfortran,
 use Makefile_OSX_gcc42.  All
 the Makefiles are generated from m4/Makefile.m4.
+For newer OS X systems, the default Makefile should work.
 <p>
 <B>The Makefiles use GNU make constructs, such as ifeq
 and ifneq.  If you need to use a different version of
@@ -423,7 +427,7 @@ you may rebuild the Makefiles to include James Hester's PyCifRW.  The
 process under bash is:<p>
 <pre>
 export CBFLIB_USE_PYCIFRW=yes
-cd CBFlib_0.9.2
+cd CBFlib_0.9.2.11
 touch m4/Makefile.m4
 make Makefiles
 </pre>
@@ -472,7 +476,7 @@ or in the environment
 <p>
 We have included examples of
 CBF/imgCIF files produced by CBFlib in the test data 
-<A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Output.tar.gz">CBFlib_0.9.2_Data_Files_Output.tar.gz</a>,
+<A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2.11_Data_Files_Output.tar.gz">CBFlib_0.9.2.11_Data_Files_Output.tar.gz</a>,
 the current best draft of
 the 
 <A HREF="cif_img_1.6.3.html">CBF Extensions Dictionary</A>, 
@@ -480,9 +484,9 @@ and of Andy Hammersley's CBF definition, updated to become a
 <A HREF="cbf_definition_rev.html">
 DRAFT CBF/ImgCIF DEFINITION</A>.
 <p>
-CBFlib 0.9.2 includes a program, tiff2cbf, to convert from tiff files
+CBFlib 0.9.2.11 includes a program, tiff2cbf, to convert from tiff files
 to CBF files, that requires an augmented version of tiff-3.9.4 called 
-tiff-3.9.4-rev-6Feb11, that installs into the CBFlib_0.9.2 directory.
+tiff-3.9.4-rev-6Feb11, that installs into the CBFlib_0.9.2.11 directory.
 If a system copy is desired, download and install
 <a href="http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz">
 http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz</a>
@@ -694,8 +698,11 @@ http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz</a>
   <UL>
     <LI><A HREF="#3.3.1">3.3.1   Canonical-code compression</A>
     <LI><A HREF="#3.3.2">3.3.2   CCP4-style compression</A>
-    <LI><A HREF="#3.3.3">3.3.3   Byte_offset compression</A></H4>
+    <LI><A HREF="#3.3.3">3.3.3   Byte_offset compression</A>
+    <LI><A HREF="#3.3.4">3.3.4   Nibble_offset compression</A>
   </UL>
+  <LI><A HREF="#3.4">3.4   Access to CBFlib compressions from HDF5</A>
+
 </UL>
 <LI><A HREF="#4.">4.   Installation</A>
 <LI><A HREF="#5.">5.   Example programs</A>
@@ -3451,6 +3458,7 @@ by <i>compression</i>.  Currently, the available schemes are:
 <TR><td valign="top">&nbsp;&nbsp;CBF_PACKED<td valign="top">&nbsp;&nbsp;CCP4-style packing   (section 3.3.2)
 <TR><td valign="top">&nbsp;&nbsp;CBF_PACKED_V2<td valign="top">&nbsp;&nbsp;CCP4-style packing, version 2   (section 3.3.2)
 <TR><TD VALIGN=TOP>&nbsp;&nbsp;CBF_BYTE_OFFSET<td valign="top">&nbsp;&nbsp;Simple &quot;byte_offset&quot; compression.
+<TR><TD VALIGN=TOP>&nbsp;&nbsp;CBF_NIBBLE_OFFSET<td valign="top">&nbsp;&nbsp;Simple &quot;nibble_offset&quot; compression.
 <TR><TD VALIGN=TOP>&nbsp;&nbsp;CBF_NONE<td valign="top">&nbsp;&nbsp;No compression.  NOTE:  This scheme is by
 far the slowest of the four and uses much more disk space.  It is
 intended for routine use with small arrays only.  With large arrays
@@ -4903,6 +4911,7 @@ the available schemes are:
 <tr><td valign="top">CBF_PACKED<td valign="top">CCP4-style packing (section 3.3.2)
 <TR><td valign="top">CBF_PACKED_V2<td valign="top">&nbsp;&nbsp;CCP4-style packing, version 2   (section 3.3.2)
 <TR><TD valign="top">CBF_BYTE_OFFSET<td valign="top">&nbsp;&nbsp;Simple &quot;byte_offset&quot; compression.
+<TR><TD valign="top">CBF_NIBBLE_OFFSET<td valign="top">&nbsp;&nbsp;Simple &quot;nibble_offset&quot; compression.
 <tr><td valign="top">CBF_NONE<td valign="top">No compression.
 </table>
 <p>
@@ -7153,8 +7162,10 @@ the &quot;CBF-PACKED&quot; algorithm.
                 'conversions=&quot;<b>X</b>-CBF_CANONICAL&quot;'
               or the parameter 
                 'conversions=&quot;<b>X</b>-CBF_BYTE_OFFSET&quot;'
-<P>                
-              If the parameter 
+              or the parameter
+                'conversions=&quot;<b>X</b>-CBF_NIBBLE_OFFSET&quot;'
+<P>
+              If the parameter
                 'conversions=&quot;<b>X</b>-CBF_PACKED&quot;'
               or 
                 'conversions=&quot;<b>X</b>-CBF_PACKED_V2&quot;'
@@ -7399,7 +7410,9 @@ used for three
                                       <TR><td valign="top">&nbsp;&nbsp;CBF_NONE       <td valign="top">&nbsp;&nbsp;0x0040 (64)
                                       <TR><td valign="top">&nbsp;&nbsp;CBF_CANONICAL  <td valign="top">&nbsp;&nbsp;0x0050 (80)
                                       <TR><td valign="top">&nbsp;&nbsp;CBF_PACKED     <td valign="top">&nbsp;&nbsp;0x0060 (96)
+                                      <TR><td valign="top">&nbsp;&nbsp;CBF_PACKED_V2   <td valign="top">&nbsp;&nbsp;0x0090 (144)
                                       <TR><td valign="top">&nbsp;&nbsp;CBF_BYTE_OFFSET <td valign="top">&nbsp;&nbsp;0x0070 (112)
+                                      <TR><td valign="top">&nbsp;&nbsp;CBF_NIBBLE_OFFSET <td valign="top">&nbsp;&nbsp;0x00A0 (160)
                                       <TR><td valign="top">&nbsp;&nbsp;CBF_PREDICTOR   <td valign="top">&nbsp;&nbsp;0x0080 (128)
                                       <TR><td valign="top">&nbsp;&nbsp;...            <td valign="top">&nbsp;&nbsp;&nbsp;
                                       </TABLE>
@@ -7805,7 +7818,7 @@ and the entries in trail_char_data with their array indices
 <P>
 <PRE><TT>
    
-         - - - - - - - - 0 *
+         - - - - - - - - 0 
          - - - - - - - - - 2 
          - - - - - - - - - -
 </TT>
@@ -8066,15 +8079,194 @@ The only difference is that we have declared this
 array to be 16-bit and have chosen a different
 binary id (2 instead of 1).  Even the checksum is the same.
 
+    
+<P>
+<H4><A NAME="3.3.4">3.3.4   Nibble_offset compression</A></H4>
+<p>
+    
+The nibble offset algorithm is a variant on
+A. P. Hammersley's byte offset algorithm.  The
+major differences are that the compression modes
+are &quot;sticky&quot;, the compression can be reset at
+any point to allow for block parallelism, and
+the basic unit of compression is the nibble,
+but for very clean data, the dibit is also supported.
+<p>
+The data stream starts with and in general uses
+a mode-setting octet presented in one if three
+forms, a single dibit a0, two dibits a0, a1, or
+two dibits and a nibble a0, a1, b:
+
+    <center>
+    <table border=2>
+    <tr><th>a0 a1 b</th>    <th>octet</th>     <th>meaning</th></tr>
+    <tr><td>00 00 0000</td> <td>0x00</td>      <td>reset to zero</td></tr>
+    <tr><td>01</td>         <td>0x01</td>      <td>up 1 mode</td></tr>
+    <tr><td>10</td>         <td>0x02</td>      <td>dibit mode</td></tr>
+    <tr><td>11</td>         <td>0x03</td>      <td>up n modes</td></tr>
+    <tr><td>00 01</td>      <td>0x04</td>      <td>nibble mode</td></tr>
+    <tr><td>00 11</td>      <td>0x0C</td>      <td>6-bit mode</td></tr>
+    <tr><td>00 10</td>      <td>0x08</td>      <td>byte mode</td></tr>
+    <tr><td>00 00 0011</td> <td>0x30</td>      <td>12-bit word mode</td></tr>
+    <tr><td>00 00 0001</td> <td>0x10</td>      <td>16-bit word mode</td></tr>
+    <tr><td>00 00 0010</td> <td>0x20</td>      <td>32-bit word mode</td></tr>
+    <tr><td>00 00 0100</td> <td>0x40</td>      <td>64-bit word mode</td></tr>
+    <tr><td>00 00 1100</td> <td>0xC0</td>      <td>specify starting address</td></tr>
+    </table>
+    </center>
+    <p>
+    The reset to zero is followed by a new mode octet
+    A reset to zero resets the prior value for delta to zero
+    <p>
+    The up n modes code is followed immediately
+    by a dibit specifying 2 less than the number of modes
+    by which to change, and then by a delta in the mode.
+    <p>
+    Note that up n modes has no effect until
+    an actual mode has been set and can be used immediately
+    after a reset to pad to nibble, octet or double-word
+    boundaries.
+    <p>
+    Once a mode is established, it is followed by a stream
+    of deltas of that size (for modes 2 or 4-64) or by one delta
+    of that size and then a stream of deltas of the size that
+    was in effect before an up or down giving little-endian
+    offsets from the currently accumulated value.  If the
+    offset is one of the following in the indicated mode
+    <p>
+    <center>
+    <table border=2>
+    <tr><td>dibit mode</td> <td>0x2</td></tr>
+    <tr><td>nibble mode</td> <td>0x8</td></tr>
+    <tr><td>6-bit mode</td> <td>0x20</td></tr>
+    <tr><td>byte mode</td> <td>0x80</td></tr>
+    <tr><td>12-bit word mode</td> <td>0x800</td></tr>
+    <tr><td>16-bit word mode</td> <td>0x8000</td></tr>
+    <tr><td>32-bit word mode</td> <td>0x8000 0000</td></tr>
+    <tr><td>64-bit word mode</td> <td>0x8000 0000 0000 0000</td></tr>
+    </table>
+    </center>
+    <p>
+    it is followed by the new mode as 1 or 2 dibits or
+    2 dibits and a nibble a1 a1 b.  If a1 is 1 or 2 or 3,
+    that is the new mode.  If a1 is zero and a2 is 1 or 2
+    the new mode is a2*4.  If a2 is 3 the new mode is
+    a2*2.  If both a1 and a2 are zero, the new mode is
+    b*16 unless b is 3.  If b is 3 the new mode is b*4
+<p>
+    The 0xC0 flag is followed by a second mode giving
+    the number of bytes of image starting offset address
+    followed by the image offset address followed by the
+    mode of that data.   0xC0 also acts as a reset.
+    Use of the 0xC0 flag is not required.  Addresses
+    default to sequential starting from 0, but is
+    provided to faciliate parallel compression.
+<p>
+
+
+<h4><A NAME="3.4">3.4  Access to CBFlib compressions from HDF5</A></h4>
+    
+Starting with CBFlib release 0.9.2.11, a plugin module in provided
+to allow access to CBFlib compressions from HDF5 1.8.11 and later.
+For general documentation on HDF5 dynamically loaded filters,
+see
+    <a href="http://www.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf">
+    http://www.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf</a>
+The discussion here will be confined to use of the CBFlib compressions
+plugin.
+<p>The filter has been registered with the HDF5 group as 32006, and
+cbf.h includes the symbolic name for the filter CBF_H5Z_FILTER_CBF.
+<p>
+The source and header of the CBFlib filter plugin are cbf_hdf5_filter.c
+and cbf_hdf5_filter.h.  To use the filter in C applications, you
+will need to include cbf_hdf5_filter.h in the application and have the cbflib.so
+library in the search path used by HDF5 1.8.11.  The HDF group says
+    
+<p>
+<blockquote>
+The default directory for an HDF5 filter plugin library is defined on
+UNIX- like systems as quot;/usr/local/hdf5/lib/plugin&quot;<br />
+and on Windows systems as &quot;%ALLUSERSPROFILE%/hdf5/lib/plugin&quot;.
+The default path can be overwritten by a user with the HDF5_PLUGIN_PATH
+environment variable.  Several directories can be specified for the search
+path using &quot;:&quot; as a path separator for UNIX-like
+systems and &quot;;&quot; for Windows.
+</blockquote>
+<p>
+In the Makefile, tests are done by defining HDF5_PLUGIN_PATH to point
+to the build kit shared library directory:
+<p>
+    HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH;
+<p>
+In most cases that should be sufficient to allow code to read HDF5 files with
+datasets compressed with this filter.
+<p>
+In order to write files that use this filter, several relevant values must
+first be stored into an unsigned int array, cd_values.  The header,
+cbf_hdf5_filter.h, defines the follwing symbolic values for the indices
+of this array:
+    
+    <p>
+    <center>
+    <table border=2>
+    <tr><th> symbol</th><th>value</th><th>meaning</th></tr>
+    <tr><td> CBF_H5Z_FILTER_CBF_NELMTS      </td><td>11</td><td>size of cd_values</td></tr>
+    <tr><td> CBF_H5Z_FILTER_CBF_COMPRESSION </td><td>0</td><td>one of the compressions (see <A HREF="#3.2.2">3.2.2</a>)</td></tr>
+    <tr><td> CBF_H5Z_FILTER_CBF_RESERVED    </td><td>1</td><td>reserved for future use, should be set to zero</td></tr>
+    <tr><td> CBF_H5Z_FILTER_CBF_BINARY_ID   </td><td>2</td><td>binary ID of the array (default 1)</td></tr>
+    <tr><td> CBF_H5Z_FILTER_CBF_ELSIZE      </td><td>3</td><td>element size in octets</td></tr>
+    <tr><td> CBF_H5Z_FILTER_CBF_ELSIGN      </td><td>4</td><td>1 if signed, 0 if unsigned</td></tr>
+    <tr><td> CBF_H5Z_FILTER_CBF_REAL        </td><td>5</td><td>1 if a real array, 0 if an integer array</td></tr>
+    <tr><td> CBF_H5Z_FILTER_CBF_DIMOVER     </td><td>6</td><td>the total number of elements in the array</td></tr>
+    <tr><td> CBF_H5Z_FILTER_CBF_DIMFAST     </td><td>7</td><td>the fast dimension</td></tr>
+    <tr><td> CBF_H5Z_FILTER_CBF_DIMMID      </td><td>8</td><td>the middle dimension</td></tr>
+    <tr><td> CBF_H5Z_FILTER_CBF_DIMSLOW     </td><td>9</td><td>the slow domension</td></tr>
+    <tr><td> CBF_H5Z_FILTER_CBF_PADDING     </td><td>10</td><td>the padding</td></tr>
+    </table>
+    </center>
+    <p>
+
+<p>
+Only chunked data may be written using this filter.  The recommended
+chunk size is a single image.  The filter writes the chunks using
+the imgCIF binary section format described in section <a href="#3.2.1">3.2.1</a>
+including the MIME header.  If each chunk is the size of an image,
+programs such as XDS can use the patterns of the MIME header to
+skip directly to a frame even in a complex HDF5 file.  Typical
+code to write such chunks would first define the cd_values array and an array of chunk
+dimensions and create the properties to be used in creating a dataset, as in
+<pre>
+    unsigned int cd_values[CBF_H5Z_FILTER_CBF_NELMTS];
+    hsize_t chunk[3];
+    hid_t valspace;
+    chunk[0] = 1;
+    chunk[1] = dimmid;
+    chunk[2] = dimfast;
+    cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION] = compression;
+    cd_values[CBF_H5Z_FILTER_CBF_RESERVED]    = 0;
+    cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID]   = id;
+    cd_values[CBF_H5Z_FILTER_CBF_PADDING]     = padding;
+    cd_values[CBF_H5Z_FILTER_CBF_ELSIZE]      = (bits+7)/8;
+    cd_values[CBF_H5Z_FILTER_CBF_ELSIGN]      = sign;
+    cd_values[CBF_H5Z_FILTER_CBF_REAL]        = realarray;
+    cd_values[CBF_H5Z_FILTER_CBF_DIMFAST]     = dimfast;
+    cd_values[CBF_H5Z_FILTER_CBF_DIMMID]      = dimmid;
+    cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = dimslow;
+    valprop = H5Pcreate(H5P_DATASET_CREATE);
+    H5Pset_chunk(valprop,3,chunk);
+    H5Pset_filter(valprop,CBF_H5Z_FILTER_CBF,H5Z_FLAG_OPTIONAL,CBF_H5Z_FILTER_CBF_NELMTS,cd_values);
+</pre>
+
+
 
 
 <H4><A NAME="4.">4.  Installation</A></H4>
 <p>
-CBFlib should be built on a disk with at least 200 megabytes of free space.
-<A HREF="../CBFlib.tar.gz">CBFlib.tar.gz</A> is a "gzipped" tar of
+CBFlib should be built on a disk with at least 400 megabytes of free space.
+<A HREF="../CBFlib-0.9.2.11.tar.gz">CBFlib-0.9.2.11.tar.gz</A> is a "gzipped" tar of
 the code as it now stands.  Place the gzipped tar in the directory
 that is intended to contain a new directory, named 
-CBFlib_0.7.5 (the &quot;top-level&quot; directory)
+CBFlib_0.9.2.11 (the &quot;top-level&quot; directory)
 and  uncompress it with gunzip and unpack it with tar:
 <p>
 <PRE>
@@ -8332,8 +8524,8 @@ The program img2cif has the following command line interface:
 
  -b  direction (forward or backwards, default: backwards)
      specifies the direction of mapping of bytes into words
-     for decimal, hexadecimal or octal output, marked by '>' for
-     forward or '<' for backwards as the second character of each
+     for decimal, hexadecimal or octal output, marked by '&gt;' for
+     forward or '&lt;' for backwards as the second character of each
      line of output, and in '#' comment lines.
 
 </PRE>
@@ -8344,122 +8536,135 @@ The test program cif2cbf uses many of the same command line options as img2cif, 
 accepts either a CIF or a CBF as input instead of an image file:
 <P>
 <pre>
-  cif2cbf [-i input_cif] [-o output_cbf] \
-    [-u update_cif] \
-    [-c {p[acked]|c[annonical]|{b[yte_offset]}|\
-        {v[2packed}|{f[latpacked}[n[one]}] \
-    [-C highclipvalue] \
-    [-D ] \
-    [-I {0|2|4|8}] \
-    [-R {0|4|8}] \
-    [-L {0|4|8}] \
-    [-m {h[eaders]|noh[eaders]}] \
-    [-m {d[imensions]|nod[imensions}] \
-    [-d {d[igest]|n[odigest]|w[arndigest]}] \
-    [-B {read|liberal|noread}] [-B {write|nowrite}] \
-    [-S {read|noread}] [-S {write|nowrite}] \
-    [-T {read|noread}] [-T {write|nowrite}] \
-    [-e {b[ase64]|q[uoted-printable]|\
-                  d[ecimal]|h[examdecimal|o[ctal]|n[one]}] \
-    [-b {f[orward]|b[ackwards]}\
-    [-p {1|2|4}\
-    [-v dictionary]* [-w] [-W]\
-    [input_cif] [output_cbf] 
+    cif2cbf [-i input_cif] [-o output_cbf] \
+      [-u update_cif] \
+      [-c {p[acked]|c[annonical]|{b[yte_offset]}|\
+        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|n[n[one]}] \
+      [-C highclipvalue] \
+      [-D ] \
+      [-I {0|2|4|8}] \
+      [-R {0|4|8}] \
+      [-L {0|4|8}] \
+      [-m {h[eaders]|noh[eaders]}] \
+        [-m {d[imensions]|nod[imensions}] \
+      [-d {d[igest]|n[odigest]|w[arndigest]}] \
+      [-B {read|liberal|noread}] [-B {write|nowrite}] \
+      [-S {read|noread}] [-S {write|nowrite}] \
+      [-T {read|noread}] [-T {write|nowrite}] \
+      [-e {b[ase64]|q[uoted-printable]|\
+        d[ecimal]|h[examdecimal|o[ctal]|n[one]}] \
+      [-b {f[orward]|b[ackwards]}\
+      [-p {1|2|4}\
+      [-v dictionary]* [-w] [-W]\
+      [-5 {r|w|rw|rn|wn|rwn|n[oH5]}\
+      [-O] \
+      [input_cif] [output_cbf]
 
   the options are:
 
-    -i input_cif (default: stdin)
-      the input  file in CIF or CBF  format.  If input_cif is not
-      specified or is given as "-", it is copied from stdin to a
-      temporary file.
-
-    -o output_cbf (default: stdout)
-      the output cif (if base64 or quoted-printable encoding is used)
-      or cbf (if no encoding is used).  if no output_cif is specified
-      or is given as "-", the output is written to stdout
-      if the output_cbf is /dev/null, no output is written.
-
-    -u update_cif (no default)
-      and optional second input file in CIF or CBF format containing
-      data blocks to be merged with data blocks from the primary
-      input CIF or CBF
-
-    The remaining options specify the characteristics of the
-    output cbf.  Most of the characteristics of the input cif are
-    derived from context, except when modified by the -B, -S, -T, -v
-    and -w flags.
-
-    -b byte_order (forward or backwards, default forward (1234) on
-      little-endian machines, backwards (4321) on big-endian machines
-
-    -B [no]read or liberal (default noread)
-      read to enable reading of DDLm style brackets
-      liberal to accept whitespace for commas
-
-    -B [no]write (default write)
-      write to enable writing of DDLm style brackets
-
-    -c compression_scheme (packed, canonical, byte_offset,
-      v2packed, flatpacked or none,
-      default packed)
-
-    -C highclipvalue
-      specifies a double precision value to which to clip the data
-
-    -d [no]digest or warndigest  (default md5 digest [R. Rivest,
-      RFC 1321, April 1992 using"RSA Data Security, Inc. MD5
-      Message-Digest Algorithm"] when MIME headers are selected)
-
-    -D test cbf_construct_detector
-
-    -e encoding (base64, k, quoted-printable or none, default base64)
-      specifies one of the standard MIME encodings for an ascii cif
-      or "none" for a binary cbf
-
-    -I 0 or integer element size
-      specifies integer conversion of the data, 0 to use the input
-      number of bytes, 2, 4 or 8 for short, long or long long
-      output integers
-
-    -L lowclipvalue
-      specifies a double precision value to cut off the data from
-      below
-
-    -m [no]headers (default headers)
-      selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996)
-      headers within binary data value text fields.
-
-    -m [nod]imensions (default dimensions)
-      selects detailed recovery of dimensions from the input CIF
-      for use in the MIME header of the output CIF
-
-    -p K_of_padding (0, 1, 2, 4) for no padding after binary data
-      1023, 2047 or 4095 bytes of padding after binary data
-
-    -R 0 or integer element size
-      specifies real conversion of the data, 0 to use the input
-      number of bytes,  4 or 8 for float or double output reals 
-
-    -S [no]read or (default noread)
-      read to enable reading of whitespace and comments
-
-    -S [no]write (default write)
-      write to enable writing of whitespace and comments
-
-    -T [no]read or (default noread)
-      read to enable reading of DDLm style triple quotes
-
-    -T [no]write (default write)
-      write to enable writing of DDLm style triple quotes
-
-    -v dictionary specifies a dictionary to be used to validate
-      the input cif and to apply aliases to the output cif.
-      This option may be specified multiple times, with dictionaries
-      layered in the order given.
-
-    -w process wide (2048 character) lines
-
-    -W write wide (2048 character) lines
+       the options are:                                                  
+                                                                         
+       -i input_cif (default: stdin)                                     
+         the input  file in CIF or CBF  format.  If input_cif is not     
+         specified or is given as "-", it is copied from stdin to a      
+         temporary file.                                                 
+                                                                         
+       -o output_cbf (default: stdout)                                   
+         the output cif (if base64 or quoted-printable encoding is used) 
+         or cbf (if no encoding is used).  if no output_cif is specified 
+         or is given as "-", the output is written to stdout             
+         if the output_cbf is /dev/null, no output is written.           
+                                                                         
+       -u update_cif (no default)                                        
+         and optional second input file in CIF or CBF format containing  
+         data blocks to be merged with data blocks from the primary      
+         input CIF or CBF                                                
+                                                                         
+       The remaining options specify the characteristics of the          
+       output cbf.  Most of the characteristics of the input cif are     
+       derived from context, except when modified by the -B, -S, -T, -v  
+       and -w flags.                                                     
+                                                                         
+       -b byte_order (forward or backwards, default forward (1234) on    
+         little-endian machines, backwards (4321) on big-endian machines 
+                                                                         
+       -B [no]read or liberal (default noread)                           
+         read to enable reading of DDLm style brackets                   
+         liberal to accept whitespace for commas                         
+                                                                         
+       -B [no]write (default write)                                      
+         write to enable writing of DDLm style brackets                  
+                                                                         
+       -c compression_scheme (Packed, Canonical, Byte_offset,            
+         V2packed, Flatpacked, nIbble or None,                           
+         default packed)                                                 
+                                                                         
+       -C highclipvalue                                                  
+         specifies a double precision value to which to clip the data    
+                                                                         
+       -d [no]digest or warndigest  (default md5 digest [R. Rivest,      
+         RFC 1321, April 1992 using"RSA Data Security, Inc. MD5          
+         Message-Digest Algorithm"] when MIME headers are selected)      
+                                                                         
+       -D test cbf_construct_detector                                    
+                                                                         
+       -e encoding (base64, k, quoted-printable or none, default base64) 
+         specifies one of the standard MIME encodings for an ascii cif   
+         or "none" for a binary cbf                                      
+                                                                         
+       -I 0 or integer element size                                      
+         specifies integer conversion of the data, 0 to use the input    
+         number of bytes, 2, 4 or 8 for short, long or long long         
+         output integers                                                 
+                                                                         
+       -L lowclipvalue                                                   
+         specifies a double precision value to cut off the data from     
+         below                                                           
+                                                                         
+       -m [no]headers (default headers)                                  
+         selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996) 
+         headers within binary data value text fields.                   
+                                                                         
+       -m [nod]imensions (default dimensions)                            
+         selects detailed recovery of dimensions from the input CIF      
+         for use in the MIME header of the output CIF                    
+                                                                         
+       -p K_of_padding (0, 1, 2, 4) for no padding after binary data     
+         1023, 2047 or 4095 bytes of padding after binary data           
+                                                                         
+       -R 0 or integer element size                                      
+         specifies real conversion of the data, 0 to use the input       
+         number of bytes,  4 or 8 for float or double output reals       
+                                                                         
+       -S [no]read or (default noread)                                   
+         read to enable reading of whitespace and comments               
+                                                                         
+       -S [no]write (default write)                                      
+         write to enable writing of whitespace and comments              
+                                                                         
+       -T [no]read or (default noread)                                   
+         read to enable reading of DDLm style triple quotes              
+                                                                         
+       -T [no]write (default write)                                      
+         write to enable writing of DDLm style triple quotes             
+                                                                         
+       -v dictionary specifies a dictionary to be used to validate       
+         the input cif and to apply aliases to the output cif.           
+         This option may be specified multiple times, with dictionaries  
+         layered in the order given.                                     
+                                                                         
+       -w process wide (2048 character) lines                            
+                                                                         
+       -W write wide (2048 character) lines                              
+                                                                         
+       -5 hdf5mode specifies whether to read and/or write in hdf5 mode   
+          the n parameter will cause the CIF H5 datablock to be deleted  
+          on both read and write, for both CIF, CBF and HDF5 files       
+                                                                         
+       -O when in -5 w (hdf5 write) mode, -O forces the use of opaque    
+          objects for CBF binaries                                       
+                                                                         
+                                                                         
 
 </pre>
 <p>
