@@ -11,7 +11,7 @@ BACKGROUND="../html_graphics/cbflibbackground.jpg">
 <A HREF="cbf_definition_rev.html"><IMG SRC="../html_graphics/CBFbutton.jpg"
 ALT="[CBF/imgCIF]"></A>
 <IMG SRC="../html_graphics/cbflibbutton.jpg">
-<hr>
+<hr />
 <CENTER>
 | <a href="http://www.iucr.org/iucr-top/welcome.html">IUCr Home Page</a>
 | <a href="http://www.iucr.org/iucr-top/cif/home.html">CIF Home Page</a>
@@ -33,7 +33,7 @@ ALT="[CBF/imgCIF]"></A>
 <b>An API for CBF/imgCIF<br />
 Crystallographic Binary Files with ASCII Support</b><br />
 Version 0.9.2.11<BR>
-19 June 2013<BR>
+20 June 2013<BR>
 <p>
 </CENTER>
 </font><font color="#000000">
@@ -60,7 +60,7 @@ yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 <p>
 &#169; Copyright 2006, 2007, 2008, 2011, 2013 Herbert J. Bernstein
 <P>
-<hr>
+<hr />
 <b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=gpl.txt>GPL</a>.
 <P>
  ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS
@@ -68,7 +68,7 @@ yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 
 </CENTER>
 <p>
-<HR>
+<hr />
 <H3 ALIGN=CENTER>
 Before using this software, please read the <br />
 <A HREF = "CBFlib_NOTICES.html"> <IMG SRC="../html_graphics/noticeButton.jpg" ALT="NOTICE"></A><br />
@@ -87,7 +87,7 @@ information.
    responsibility of the authors and does not necessarily represent the
    official views of DOE, NSF, NIH, NIGMS, NCRR or IUCr.
 <p>
-<HR>
+<hr />
 </font><font color="#0808A0">
 <h2 ALIGN=CENTER>Version History</H2>
 </font><font color="#000000">
@@ -337,7 +337,7 @@ default use of PyCifRW to avoid Fedora license issue.</td>
 </tr>
 </TABLE>
 
-<HR>
+<hr />
 </font><font color="#0808A0">
 <h2 ALIGN=CENTER>Known Problems</H2>
 </font><font color="#000000">
@@ -490,7 +490,7 @@ tiff-3.9.4-rev-6Feb11, that installs into the CBFlib_0.9.2.11 directory.
 If a system copy is desired, download and install
 <a href="http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz">
 http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz</a>
-<HR>
+<hr />
 
 
 </font><font color="#0808A0">
@@ -685,6 +685,45 @@ http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz</a>
       <LI><A HREF="#2.5.12">2.5.12 FCB_READ_XDS_I2</a>
       <LI><A HREF="#2.5.13">2.5.13 FCB_SKIP_WHITESPACE</a>
     </UL>
+        <li>
+  			<a href="#2.6">2.6 HDF5 abstraction layer and convenience functions</a>
+			<ul>
+				<li><a href="#2.6.1">2.6.1 cbf_H5Arequire_cmp</a></li>
+				<li><a href="#2.6.2">2.6.2 cbf_H5Arequire_string</a></li>
+				<li><a href="#2.6.3">2.6.3 cbf_H5Dcreate</a></li>
+				<li><a href="#2.6.4">2.6.4 cbf_H5Dfind</a></li>
+				<li><a href="#2.6.5">2.6.5 cbf_H5Dset_extent</a></li>
+				<li><a href="#2.6.6">2.6.6 cbf_H5Dwrite</a></li>
+				<li><a href="#2.6.7">2.6.7 cbf_H5Dread</a></li>
+				<li><a href="#2.6.8">2.6.8 cbf_H5Drequire_scalar_F64LE</a></li>
+				<li><a href="#2.6.9">2.6.9 cbf_H5Drequire_string</a></li>
+				<li><a href="#2.6.10">2.6.10 cbf_H5Dfree</a></li>
+				<li><a href="#2.6.11">2.6.11 cbf_H5Ddestroy</a></li>
+				<li><a href="#2.6.12">2.6.12 cbf_H5Fopen</a></li>
+				<li><a href="#2.6.13">2.6.13 cbf_H5Ffree</a></li>
+				<li><a href="#2.6.14">2.6.14 cbf_H5Fdestroy</a></li>
+				<li><a href="#2.6.15">2.6.15 cbf_H5Gcreate</a></li>
+				<li><a href="#2.6.16">2.6.16 cbf_H5Grequire</a></li>
+				<li><a href="#2.6.17">2.6.17 cbf_H5Gfree</a></li>
+				<li><a href="#2.6.18">2.6.18 cbf_H5Gdestroy</a></li>
+				<li><a href="#2.6.19">2.6.19 cbf_H5Ivalid</a></li>
+				<li><a href="#2.6.20">2.6.20 cbf_H5Ifree</a></li>
+				<li><a href="#2.6.21">2.6.21 cbf_H5Screate</a></li>
+				<li><a href="#2.6.22">2.6.22 cbf_H5Sfree</a></li>
+				<li><a href="#2.6.23">2.6.23 cbf_H5Sdestroy</a></li>
+				<li><a href="#2.6.24">2.6.24 cbf_H5Tcreate_string</a></li>
+				<li><a href="#2.6.25">2.6.25 cbf_H5Tfree</a></li>
+				<li><a href="#2.6.26">2.6.26 cbf_H5Tdestroy</a></li>
+			</ul>
+  		</li>
+        <li>
+  			<a href="#2.7">2.7 High-level NeXus-related functions</a>
+			<ul>
+				<li><a href="#2.7.1">2.7.1 cbf_create_h5handle</a></li>
+				<li><a href="#2.7.2">2.7.2 cbf_write_minicbf_h5file</a></li>
+				<li><a href="#2.7.3">2.7.3 cbf_free_h5handle</a></li>
+			</ul>
+  		</li>
 </UL>
 <LI><A HREF="#3.">3.   File format</A>
 <UL>
@@ -912,7 +951,7 @@ function has a &quot;_sf&quot; suffix for the slow to fast convention.  Designer
 are advised to use one of the two suffix conventions.  There is no burden on performance for using
 one convention or the other.  The differences are resolved at compile time by use of
 preprocessor macros.
-<HR><HR>
+<hr /><hr />
 <p>
 <h4><A NAME="2.3">2.3  Low-level function prototypes</A></h4>
 
@@ -942,7 +981,7 @@ Returns an error code on failure or 0 for success.
 <b>SEE ALSO</b>
 <p>
 <A HREF="#2.3.2">2.3.2  cbf_free_handle</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.2">2.3.2  cbf_free_handle</A> </h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -968,7 +1007,7 @@ Returns an error code on failure or 0 for success.
 <b>SEE ALSO</b>
 <p>
 <A HREF="#2.3.1">2.3.1  cbf_make_handle</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.3">2.3.3  cbf_read_file, cbf_read_widefile</A></H4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1090,7 +1129,7 @@ Returns an error code on failure or 0 for success.
 
 
 <A HREF="#2.3.4">2.3.4  cbf_write_file</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.4">2.3.4  cbf_write_file</A> </h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1193,7 +1232,7 @@ Returns an error code on failure or 0 for success.
 <b>SEE ALSO</b>
 <p>
 <A HREF="#2.3.3">2.3.3  cbf_read_file</A><br />
-<p><HR><P>
+<p><hr /><P>
 
 
 <h4><A NAME="2.3.5">2.3.5  cbf_new_datablock, cbf_new_saveframe</A></h4>
@@ -1241,7 +1280,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
 
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.6">2.3.6  cbf_force_new_datablock, cbf_force_new_saveframe</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1286,7 +1325,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
-<p><HR><P>
+<p><hr /><P>
 
 
 <h4><A NAME="2.3.7">2.3.7  cbf_new_category</A></h4>
@@ -1328,7 +1367,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.8">2.3.8  cbf_force_new_category</A> </h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1367,7 +1406,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.9">2.3.9  cbf_new_column</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1405,7 +1444,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
-<p><HR><P>
+<p><hr /><P>
 
 
 <h4><A NAME="2.3.10">2.3.10  cbf_new_row</A></h4>
@@ -1441,7 +1480,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.11">2.3.11  cbf_insert_row</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1484,7 +1523,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
-<p><HR><P>
+<p><hr /><P>
 
 
 <h4><A NAME="2.3.12">2.3.12  cbf_delete_row</A></h4>
@@ -1523,7 +1562,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
-<p><HR><P>
+<p><hr /><P>
 
 
 <h4><A NAME="2.3.13">2.3.13  cbf_set_datablockname, cbf_set_saveframename</A></h4>
@@ -1560,7 +1599,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.15">2.3.15  cbf_reset_datablock, cbf_reset_saveframe</A><br />
 <A HREF="#2.3.17">2.3.17  cbf_remove_datablock, cbf_remove_saveframe</A><br />
 <A HREF="#2.3.42">2.3.42  cbf_datablock_name</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.14">2.3.14  cbf_reset_datablocks</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1587,7 +1626,7 @@ Returns an error code on failure or 0 for success.
 <p>
 <A HREF="#2.3.15">2.3.15  cbf_reset_datablock, cbf_reset_saveframe</A><br />
 <A HREF="#2.3.18">2.3.18  cbf_remove_category</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.15">2.3.15  cbf_reset_datablock, cbf_reset_datablock</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1616,7 +1655,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.14">2.3.14  cbf_reset_datablocks</A><br />
 <A HREF="#2.3.18">2.3.18  cbf_remove_category</A><br />
 
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.16">2.3.16  cbf_reset_category</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1642,7 +1681,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.16">2.3.16  cbf_reset_category</A><br />
 <A HREF="#2.3.19">2.3.19  cbf_remove_column</A><br />
 <A HREF="#2.3.20">2.3.20  cbf_remove_row</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.17">2.3.17  cbf_remove_datablock, cbf_remove_saveframe </A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1677,7 +1716,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.18">2.3.18  cbf_remove_category</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1710,7 +1749,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.19">2.3.19  cbf_remove_column</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1742,7 +1781,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.20">2.3.20  cbf_remove_row</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1777,7 +1816,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
-<p><HR><P>
+<p><hr /><P>
 
 
 <h4><A NAME="2.3.21">2.3.21  cbf_rewind_datablock</A></h4>
@@ -1811,7 +1850,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.24">2.3.24  cbf_rewind_row</A><br />
 <A HREF="#2.3.25">2.3.25  cbf_next_datablock</A><br />
 
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.22">2.3.22  cbf_rewind_category,  cbf_rewind_saveframe,  cbf_rewind_blockitem</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1851,7 +1890,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.24">2.3.24  cbf_rewind_row</A><br />
 <A HREF="#2.3.26">2.3.26  cbf_next_category, cbf_next_saveframe, cbf_next_blockitem</A><br />
 
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.23">2.3.23  cbf_rewind_column</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1885,7 +1924,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.24">2.3.24  cbf_rewind_row</A><br />
 <A HREF="#2.3.27">2.3.27  cbf_next_column</A><br />
 
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.24">2.3.24  cbf_rewind_row</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1917,7 +1956,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.19">2.3.19  cbf_rewind_column</A><br />
 <A HREF="#2.3.28">2.3.28  cbf_next_row</A><br />
 
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.25">2.3.25  cbf_next_datablock</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1949,7 +1988,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.26">2.3.26  cbf_next_category, cbf_next_saveframe, cbf_next_blockitem</A><br />
 <A HREF="#2.3.27">2.3.27  cbf_next_column</A><br />
 <A HREF="#2.3.28">2.3.28  cbf_next_row</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.26">2.3.26  cbf_next_category</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -1981,7 +2020,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.25">2.3.25  cbf_next_datablock</A><br />
 <A HREF="#2.3.27">2.3.27  cbf_next_column</A><br />
 <A HREF="#2.3.28">2.3.27  cbf_next_row</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.27">2.3.27  cbf_next_column</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2013,7 +2052,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.25">2.3.25  cbf_next_datablock</A><br />
 <A HREF="#2.3.26">2.3.26  cbf_next_category, cbf_next_saveframe, cbf_next_blockitem</A><br />
 <A HREF="#2.3.28">2.3.28  cbf_next_row</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.28">2.3.28  cbf_next_row</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2046,7 +2085,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.26">2.3.26  cbf_next_category, cbf_next_saveframe, cbf_next_blockitem</A><br />
 <A HREF="#2.3.27">2.3.27  cbf_next_column</A><br />
 
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.29">2.3.29  cbf_find_datablock</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2086,7 +2125,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.30">2.3.30  cbf_find_category</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2127,7 +2166,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.59">2.3.59  cbf_require_datablock</A><br />
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.31">2.3.31  cbf_find_column</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2168,7 +2207,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.60">2.3.60  cbf_require_category</A><br />
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
 
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.32">2.3.32  cbf_find_row</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2251,7 +2290,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.46">2.3.46  cbf_get_value, cbf_require_value</A><br />
 <A HREF="#2.3.48">2.3.48  cbf_get_typeofvalue</A><br />
 
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.34">2.3.34  cbf_count_datablocks</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2282,7 +2321,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.37">2.3.37  cbf_count_rows</A><br />
 <A HREF="#2.3.38">2.3.38  cbf_select_datablock</A><br />
 
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.35">2.3.35  cbf_count_categories</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2313,7 +2352,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.37">2.3.37  cbf_count_rows</A><br />
 <A HREF="#2.3.39">2.3.39  cbf_select_category, cbf_select_saveframe, cbf_select_blockitem</A><br />
 
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.36">2.3.36  cbf_count_columns</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2344,7 +2383,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.40">2.3.40  cbf_select_column</A><br />
 <p>
 
-<HR><p>
+<hr /><p>
 <h4><A NAME="2.3.37">2.3.37  cbf_count_rows</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2374,7 +2413,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.36">2.3.36  cbf_count_columns</A><br />
 <A HREF="#2.3.41">2.3.41  cbf_select_row</A><br />
 
-<p><HR><P>
+<p><hr /><P>
 <h4><A NAME="2.3.38">2.3.38  cbf_select_datablock</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2408,7 +2447,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.39">2.3.39  cbf_select_category, cbf_select_saveframe, cbf_select_blockitem</A><br />
 <A HREF="#2.3.40">2.3.40  cbf_select_column</A><br />
 <A HREF="#2.3.41">2.3.41  cbf_select_row</A>
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.39">2.3.39  cbf_select_category</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2444,7 +2483,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.38">2.3.38  cbf_select_datablock</A><br />
 <A HREF="#2.3.40">2.3.40  cbf_select_column</A><br />
 <A HREF="#2.3.41">2.3.41  cbf_select_row</A><br />
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.40">2.3.40  cbf_select_column</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2479,7 +2518,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.38">2.3.38  cbf_select_datablock</A><br />
 <A HREF="#2.3.39">2.3.39  cbf_select_category, cbf_select_saveframe, cbf_select_blockitem</A><br />
 <A HREF="#2.3.41">2.3.41  cbf_select_row</A><br />
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.41">2.3.41  cbf_select_row</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2514,7 +2553,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.38">2.3.38  cbf_select_datablock</A><br />
 <A HREF="#2.3.39">2.3.39  cbf_select_category, cbf_select_saveframe, cbf_select_blockitem</A><br />
 <A HREF="#2.3.40">2.3.40  cbf_select_column</A><br />
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.42">2.3.42  cbf_datablock_name</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2548,7 +2587,7 @@ Returns an error code on failure or 0 for success.
 <p>
 <A HREF="#2.3.29">2.3.29  cbf_find_datablock</A><br />
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.43">2.3.43  cbf_category_name</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2581,7 +2620,7 @@ Returns an error code on failure or 0 for success.
 <p>
 <A HREF="#2.3.30">2.3.30  cbf_find_category, cbf_find_saveframe, cbf_find_blockitem</A><br />
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.44">2.3.44  cbf_column_name, cbf_set_column_name</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2618,7 +2657,7 @@ Returns an error code on failure or 0 for success.
 <p>
 <A HREF="#2.3.31">2.3.31  cbf_find_column</A><br />
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.45">2.3.45  cbf_row_number</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2645,7 +2684,7 @@ Returns an error code on failure or 0 for success.
 <p>
 <A HREF="#2.3.41">2.3.41  cbf_select_row</A><br />
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.46">2.3.46  cbf_get_value, cbf_require_value</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2696,7 +2735,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.64">2.3.64  cbf_require_column_doublevalue</A><br />
 
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.47">2.3.47  cbf_set_value</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2731,7 +2770,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.63">2.3.63  cbf_require_column_integervalue</A><br />
 <A HREF="#2.3.64">2.3.64  cbf_require_column_doublevalue</A><br />
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.48">2.3.48  cbf_get_typeofvalue</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2820,7 +2859,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.63">2.3.63  cbf_require_column_integervalue</A><br />
 <A HREF="#2.3.64">2.3.64  cbf_require_column_doublevalue</A><br />
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.49">2.3.49  cbf_set_typeofvalue</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2904,7 +2943,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.62">2.3.62  cbf_require_column_value</A><br />
 <A HREF="#2.3.63">2.3.63  cbf_require_column_integervalue</A><br />
 <A HREF="#2.3.64">2.3.64  cbf_require_column_doublevalue</A><br />
-<p><hr><P>
+<p><hr /><P>
 
 
 
@@ -2951,7 +2990,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.63">2.3.63  cbf_require_column_integervalue</A><br />
 <A HREF="#2.3.64">2.3.64  cbf_require_column_doublevalue</A><br />
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.51">2.3.51  cbf_set_integervalue</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -2989,7 +3028,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.63">2.3.63  cbf_require_column_integervalue</A><br />
 <A HREF="#2.3.64">2.3.64  cbf_require_column_doublevalue</A><br />
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.52">2.3.52  cbf_get_doublevalue, cbf_require_doublevalue</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -3033,7 +3072,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.63">2.3.63  cbf_require_column_integervalue</A><br />
 <A HREF="#2.3.64">2.3.64  cbf_require_column_doublevalue</A><br />
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.53">2.3.53  cbf_set_doublevalue</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -3072,7 +3111,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.62">2.3.62  cbf_require_column_value</A><br />
 <A HREF="#2.3.63">2.3.63  cbf_require_column_integervalue</A><br />
 <A HREF="#2.3.64">2.3.64  cbf_require_column_doublevalue</A><br />
-<p><hr><P>
+<p><hr /><P>
 
 
 <h4><A NAME="2.3.54">2.3.54  cbf_get_integerarrayparameters,<br />
@@ -3263,7 +3302,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.63">2.3.63  cbf_require_column_integervalue</A><br />
 <A HREF="#2.3.64">2.3.64  cbf_require_column_doublevalue</A><br />
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.55">2.3.55  cbf_get_integerarray, cbf_get_realarray </A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -3351,7 +3390,7 @@ SEE ALSO
 <A HREF="#2.3.62">2.3.62  cbf_require_column_value</A><br />
 <A HREF="#2.3.63">2.3.63  cbf_require_column_integervalue</A><br />
 <A HREF="#2.3.64">2.3.64  cbf_require_column_doublevalue</A><br />
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.56">2.3.56  cbf_set_integerarray,<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cbf_set_integerarray_wdims, cbf_set_integerarray_wdims_fs, cbf_set_integerarray_wdims_sf,<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cbf_set_realarray,<br />
@@ -3502,7 +3541,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.63">2.3.63  cbf_require_column_integervalue</A><br />
 <A HREF="#2.3.64">2.3.64  cbf_require_column_doublevalue</A><br />
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.57">2.3.57  cbf_failnez</A></h4>
 <p>
 <b>DEFINITION</b>
@@ -3532,7 +3571,7 @@ form.
 <b>SEE ALSO</b>
 <p>
 <A HREF="#2.3.58">2.3.58  cbf_onfailnez</A><br />
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.58">2.3.58  cbf_onfailnez</A></h4>
 <p><b>DEFINITION</b>
 <p>
@@ -3565,7 +3604,7 @@ form.
 
 
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.59">2.3.59   cbf_require_datablock</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -3607,7 +3646,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
 
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.60">2.3.60   cbf_require_category</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -3648,7 +3687,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.61">2.3.61  cbf_require_column</A><br />
 
 							
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.61">2.3.61   cbf_require_column</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -3690,7 +3729,7 @@ Returns an error code on failure or 0 for success.
 
 
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.62">2.3.62  cbf_require_column_value</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -3738,7 +3777,7 @@ Returns an error code on failure or 0 for success.
 
 
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.63">2.3.63  cbf_require_column_integervalue</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -3785,7 +3824,7 @@ Returns an error code on failure or 0 for success.
 
 
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.64">2.3.64  cbf_require_column_doublevalue</A></h4>
 <p><b>PROTOTYPE</b>
 <p>
@@ -3831,7 +3870,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.3.63">2.3.63  cbf_require_column_integervalue</A><br />
 
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.3.65">2.3.65  cbf_get_local_integer_byte_order,  
 cbf_get_local_real_byte_order, cbf_get_local_real_format </A></h4>
 <p><b>PROTOTYPE</b>
@@ -3867,7 +3906,7 @@ by future versions of the API.
 <p>
 Returns an error code on failure or 0 for success.
 
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.3.66">2.3.66  cbf_get_dictionary, cbf_set_dictionary, cbf_require_dictionary</A></h4>
 <p><b>PROTOTYPE</b>
@@ -3898,7 +3937,7 @@ empty CBF and associates it with <i>handle</i>, returning the new handle in
 <p>
 Returns an error code on failure or 0 for success.
 
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.3.67">2.3.67 cbf_convert_dictionary</A></h4>
 <p><b>PROTOTYPE</b>
@@ -3926,7 +3965,7 @@ the dictionary will be used for validation of the CBF as it is read.
 <p>
 Returns an error code on failure or 0 for success.
 
-<p><hr><P>
+<p><hr /><P>
 
 
 <h4><A NAME="2.3.68">2.3.68 cbf_find_tag, cbf_find_local_tag</A></h4>
@@ -3958,7 +3997,7 @@ starting with the leading underscore, not just a category or column.
 <p>
 Returns an error code on failure or 0 for success.
 
-<p><hr><P>
+<p><hr /><P>
 
 
 
@@ -3999,7 +4038,7 @@ A returned <i>categoryroot</i> string must not be modified in any way.
 <p>
 Returns an error code on failure or 0 for success.
 
-<p><hr><P>
+<p><hr /><P>
 
 
 <h4><A NAME="2.3.70">2.3.70 cbf_find_tag_root, cbf_set_tag_root, cbf_require_tag_root</A></h4>
@@ -4039,7 +4078,7 @@ A returned <i>tagroot</i> string must not be modified in any way.
 <p>
 Returns an error code on failure or 0 for success.
 
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.3.71">2.3.71 cbf_find_tag_category, cbf_set_tag_category</A></h4>
 <p><b>PROTOTYPE</b>
@@ -4071,7 +4110,7 @@ Returns an error code on failure or 0 for success.
 
 <p>
 
-<HR><HR>
+<hr /><hr />
 <p>
 <h4><A NAME="2.4">2.4 High-level function prototypes</A></H4>
 <p>
@@ -4096,7 +4135,7 @@ specified by <I>handle</I> and selects the first datablock as the current databl
 <p>
 Returns an error code on failure or 0 for success.
 
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.2">2.4.2 cbf_get_diffrn_id, cbf_require_diffrn_id</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4127,7 +4166,7 @@ The <I>diffrn_id</I> must not be modified by the program in any way.
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.3">2.4.3 cbf_set_diffrn_id</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4149,7 +4188,7 @@ This function also changes corresponding &quot;diffrn_id&quot; entries in the &q
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.4">2.4.4 cbf_get_crystal_id</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4175,7 +4214,7 @@ The value must not be modified by the program in any way.
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.5">2.4.5 cbf_set_crystal_id</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4195,7 +4234,7 @@ cbf_set_crystal_id sets the &quot;diffrn.crystal_id&quot; entry to the ASCII val
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.6">2.4.6 cbf_get_wavelength</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4215,7 +4254,7 @@ cbf_get_wavelength sets *<i>wavelength</i> to the current wavelength in &Aring;.
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.7">2.4.7 cbf_set_wavelength</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4235,7 +4274,7 @@ cbf_set_wavelength sets the current wavelength in &Aring; to <i>wavelength</i>.
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.8">2.4.8 cbf_get_polarization</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4260,7 +4299,7 @@ Either destination pointer may be NULL.
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.9">2.4.9 cbf_set_polarization
 </A></h4>
 <p><b>PROTOTYPE</b>
@@ -4283,7 +4322,7 @@ cbf_set_polarization sets the source polarization to the values specified by <i>
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.10">2.4.10 cbf_get_divergence</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4308,7 +4347,7 @@ Any of the destination pointers may be NULL.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.11">2.4.11 cbf_ set_divergence</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4331,7 +4370,7 @@ cbf_set_divergence sets the source divergence parameters to the values specified
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.12">2.4.12 cbf_count_elements</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4351,7 +4390,7 @@ cbf_count_elements sets *<i>elements</i>  to the number of detector elements.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.13">2.4.13 cbf_get_element_id</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4378,7 +4417,7 @@ The <i>element_id</i> must not be modified by the program in any way.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 
 
 <h4><A NAME="2.4.14">2.4.14 cbf_get_gain</A></h4>
@@ -4404,7 +4443,7 @@ Either of the destination pointers may be NULL.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.15">2.4.15 cbf_ set_gain</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4426,7 +4465,7 @@ cbf_set_gain sets the gain of element number <i>element_number</i> to the values
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.16">2.4.16 cbf_get_overload</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4447,7 +4486,7 @@ cbf_get_overload sets *<i>overload</i> to the overload value for element number 
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.17">2.4.17 cbf_ set_overload</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4468,7 +4507,7 @@ cbf_set_overload sets the overload value of element number <i>element_number</i>
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.18">2.4.18 cbf_get_integration_time</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4489,7 +4528,7 @@ cbf_get_integration_time sets *<i>time</i> to the integration time in seconds.  
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.19">2.4.19 cbf_set_integration_time</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4511,7 +4550,7 @@ cbf_set_integration_time sets the integration time in seconds to the value speci
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.20">2.4.20 cbf_get_timestamp</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4536,7 +4575,7 @@ Either of the destination pointers may be NULL.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.21">2.4.21 cbf_set_timestamp</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4564,7 +4603,7 @@ The precision of the new timestamp is specified by the value <i>precision</i> in
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.22">2.4.22 cbf_get_datestamp</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4596,7 +4635,7 @@ Any of the destination pointers may be NULL.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.23">2.4.23 cbf_set_datestamp</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4624,7 +4663,7 @@ The precision of the new timestamp is specified by the value <i>precision</i> in
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.24">2.4.24 cbf_set_current_timestamp</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4649,7 +4688,7 @@ The new timestamp will have a precision of 1 second.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.25">2.4.25 cbf_get_image_size, cbf_get_image_size_fs, cbf_get_image_size_sf,<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cbf_get_3d_image_size, cbf_get_3d_image_size_fs, cbf_get_3d_image_size_sf</A></h4>
 <p><b>PROTOTYPE</b>
@@ -4708,7 +4747,7 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.26">2.4.26 cbf_get_image, cbf_get_image_fs, cbf_get_image_sf,<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cbf_get_real_image, cbf_get_real_image_fs, cbf_get_real_image_sf,<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cbf_get_3d_image, cbf_get_3d_image_fs, cbf_get_3d_image_sf,<br />
@@ -4815,7 +4854,7 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.27">2.4.27 cbf_set_image, cbf_set_image_fs, cbf_set_image_sf,</a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cbf_set_real_image, cbf_set_real_image_fs, cbf_set_real_image_sf,<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cbf_set_3d_image, cbf_set_3d_image, cbf_set_3d_image,<br>
@@ -4942,7 +4981,7 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.28">2.4.28 cbf_get_axis_setting</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -4970,7 +5009,7 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.29">2.4.29 cbf_set_axis_setting
 </A></h4>
 <p><b>PROTOTYPE</b>
@@ -4997,7 +5036,7 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.30">2.4.30 cbf_construct_goniometer
 </A></h4>
 <p><b>PROTOTYPE</b>
@@ -5018,7 +5057,7 @@ cbf_construct_goniometer constructs a goniometer object using the description in
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.31">2.4.31 cbf_free_goniometer</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5037,7 +5076,7 @@ cbf_free_goniometer destroys the goniometer object specified by <i>goniometer</i
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.32">2.4.32 cbf_get_rotation_axis
 </A></h4>
 <p><b>PROTOTYPE</b>
@@ -5066,7 +5105,7 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.33">2.4.33 cbf_get_rotation_range
 </A></h4>
 <p><b>PROTOTYPE</b>
@@ -5094,7 +5133,7 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.34">2.4.34 cbf_rotate_vector
 </A></h4>
 <p><b>PROTOTYPE</b>
@@ -5129,7 +5168,7 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.35">2.4.35 cbf_get_reciprocal
 </A></h4>
 <p><b>PROTOTYPE</b>
@@ -5167,7 +5206,7 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.36">2.4.36 cbf_construct_detector, cbf_construct_reference_detector, cbf_require_reference_detector
 </A></h4>
 <p><b>PROTOTYPE</b>
@@ -5200,7 +5239,7 @@ creations of missing intermediate categories needed to construct a detector obje
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.37">2.4.37 cbf_free_detector</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5219,7 +5258,7 @@ cbf_free_detector destroys the detector object specified by <i>detector</i> and 
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.4.38">2.4.38 cbf_construct_positioner, cbf_construct_reference_positioner,
 </A></h4>
@@ -5250,7 +5289,7 @@ reference settings of the axes.
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.39">2.4.39 cbf_free_positioner</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5269,7 +5308,7 @@ cbf_free_positioner destroys the positioner object specified by <i>positioner</i
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 
 
 
@@ -5351,7 +5390,7 @@ in millimetres and the value of _diffrn_detector_element.reference_units will be
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.41">2.4.41 cbf_get_detector_distance</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5371,7 +5410,7 @@ cbf_get_detector_distance sets *<i>distance</i> to the nearest distance from the
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.42">2.4.42 cbf_get_detector_normal</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5396,7 +5435,7 @@ Any of the destination pointers may be NULL.
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.43">2.4.43 cbf_get_detector_axis_slow, cbf_get_detector_axis_slow, cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
@@ -5442,7 +5481,7 @@ Any of the destination pointers may be NULL.
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.44">2.4.44 cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs, cbf_get_pixel_coordinates_sf
 </A></h4>
 <p><b>PROTOTYPE</b>
@@ -5477,7 +5516,7 @@ Any of the destination pointers may be NULL.
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.45">2.4.45 cbf_get_pixel_normal, cbf_get_pixel_normal_fs, cbf_get_pixel_normal_sf
 </A></h4>
 <p><b>PROTOTYPE</b>
@@ -5511,7 +5550,7 @@ Any of the destination pointers may be NULL.
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.46">2.4.46 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf
 </A></h4>
 <p><b>PROTOTYPE</b>
@@ -5545,7 +5584,7 @@ Either of the destination pointers may be NULL.
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.4.47">2.4.47 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf</A></h4>
 <p><b>PROTOTYPE</b>
@@ -5585,7 +5624,7 @@ cbf_get_pixel_size and cbf_get_pixel_size_fs and the slowest for cbf_get_pixel_s
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 
 
 <h4><A NAME="2.4.48">2.4.48 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf</A></h4>
@@ -5632,7 +5671,7 @@ If the pixel size is not given explcitly in the &quot;array_element_size categor
 <b>RETURN VALUE</b>
 
 <p>Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.4.49">2.4.49 cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_fs, cbf_get_inferred_pixel_size_sf
 </A></h4>
@@ -5672,7 +5711,7 @@ and indicates the fast axis in a call to cbf_get_inferred_pixel_size_fs.
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.4.50">2.4.50 cbf_get_unit_cell
 </A></h4>
@@ -5722,7 +5761,7 @@ missing values if the &quot;cell&quot; category exists.
 <A HREF="#2.4.53">2.4.53 cbf_set_reciprocal_cell<br />
 <A HREF="#2.4.54">2.4.54 cbf_compute_cell_volume<br />
 <A HREF="#2.4.55">2.4.55 cbf_compute_reciprocal_cell<br />
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.51">2.4.51 cbf_set_unit_cell
 </A></h4>
 <p><b>PROTOTYPE</b>
@@ -5772,7 +5811,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.4.53">2.4.53 cbf_set_reciprocal_cell<br />
 <A HREF="#2.4.54">2.4.54 cbf_compute_cell_volume<br />
 <A HREF="#2.4.55">2.4.55 cbf_compute_reciprocal_cell<br />
-<p><hr><P>
+<p><hr /><P>
 <b>SEE ALSO</b>
 <h4><A NAME="2.4.52">2.4.52 cbf_get_reciprocal_cell
 </A></h4>
@@ -5824,7 +5863,7 @@ missing values if the &quot;cell&quot; category exists.
 <A HREF="#2.4.53">2.4.53 cbf_set_reciprocal_cell<br />
 <A HREF="#2.4.54">2.4.54 cbf_compute_cell_volume<br />
 <A HREF="#2.4.55">2.4.55 cbf_compute_reciprocal_cell<br />
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.4.53">2.4.53 cbf_set_reciprocal_cell
 </A></h4>
 <p><b>PROTOTYPE</b>
@@ -5880,7 +5919,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.4.52">2.4.52 cbf_get_reciprocal_cell<br />
 <A HREF="#2.4.54">2.4.54 cbf_compute_cell_volume<br />
 <A HREF="#2.4.55">2.4.55 cbf_compute_reciprocal_cell<br />
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.4.54">2.4.54 cbf_compute_cell_volume
 </A></h4>
@@ -5917,7 +5956,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.4.52">2.4.52 cbf_get_reciprocal_cell<br />
 <A HREF="#2.4.53">2.4.53 cbf_set_reciprocal_cell<br />
 <A HREF="#2.4.55">2.4.55 cbf_compute_reciprocal_cell<br />
-<p><hr><P>
+<p><hr /><P>
 
 
 <h4><A NAME="2.4.55">2.4.55 cbf_compute_reciprocal_cell
@@ -5961,7 +6000,7 @@ Returns an error code on failure or 0 for success.
 <A HREF="#2.4.52">2.4.52 cbf_get_reciprocal_cell<br />
 <A HREF="#2.4.53">2.4.53 cbf_set_reciprocal_cell<br />
 <A HREF="#2.4.54">2.4.54 cbf_compute_cell_volume<br />
-<p><hr><P>
+<p><hr /><P>
 
 
 
@@ -5997,7 +6036,7 @@ of 9 doubles giving the orientation matrix parameters.
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
 
 
 
@@ -6046,7 +6085,7 @@ the fastest rate.
 <b>RETURN VALUE</b>
 <p>
 Returns an error code on failure or 0 for success.
-<p><hr><P>
+<p><hr /><P>
     
 <h4><A NAME="2.4.58">2.4.58 cbf_get_axis_poise, cbf_get_goniometer_poise, cbf_get_reference_poise
     </A></h4>
@@ -6124,7 +6163,7 @@ Returns an error code on failure or 0 for success.
     <b>RETURN VALUE</b>
     <p>
     Returns an error code on failure or 0 for success.
-    <p><hr><P>
+    <p><hr /><P>
 
 
 <h3><A NAME="2.5">2.5   F90 function interfaces</a></h3>
@@ -6189,7 +6228,7 @@ part of the integer result.
 <b>RETURN VALUE</b>
 <p>
 Returns the INTEGER(8) value derived from the characters <i>ARRAY</i>(1:<i>CNT</i>) scanned.
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.5.2">2.5.2 FCB_CI_STRNCMPARR</a></h4>
 <p><pre><b>      INTERFACE</b>
@@ -6215,7 +6254,7 @@ dimension <i>N</i> in a case-insensitive manner, returning 0 for a match.
 <b>RETURN VALUE</b>
 <p>
 Returns 0 if the string and array match, a non-zero value otherwise.
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.5.3">2.5.3 FCB_EXIT_BINARY</a></h4>
 <p><pre><b>      INTERFACE</b>
@@ -6263,7 +6302,7 @@ Returns 0 if the function is successful.  Returns whatever non-zero error value 
 <A HREF="#2.5.6">2.5.6  FCB_OPEN_CIFIN</a><br />
 <A HREF="#2.5.9">2.5.9  FCB_READ_BYTE</a><br />
 <A HREF="#2.5.11">2.5.11  FCB_READ_LINE</a>
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.5.4">2.5.4 FCB_NBLEN_ARRAY</a></h4>
 <p><pre><b>      INTERFACE</b>
@@ -6291,7 +6330,7 @@ of the array of bytes to be scanned.
 <b>RETURN VALUE</b>
 <p>
 Returns the trimmed length of the array <i>ARRAY</i>.
-<p><hr><P>
+<p><hr /><P>
 <h4><A NAME="2.5.5">2.5.5 FCB_NEXT_BINARY</a></h4>
 <p><pre><b>      INTERFACE</b>
       INTEGER FUNCTION FCB_NEXT_BINARY(<i>TAPIN</i>,<i>LAST_CHAR</i>,<i>FCB_BYTES_IN_REC</i>,&amp;
@@ -6449,7 +6488,7 @@ Returns 0 if the function is successful.
 <A HREF="#2.5.9">2.5.9  FCB_READ_BYTE</a><br />
 <A HREF="#2.5.11">2.5.11  FCB_READ_LINE</a>
 
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.5.6">2.5.6 FCB_OPEN_CIFIN</a></h4>
 <p><pre><b>      INTERFACE</b>
@@ -6506,7 +6545,7 @@ Returns 0 if the function is successful.
 <A HREF="#2.5.9">2.5.9  FCB_READ_BYTE</a><br />
 <A HREF="#2.5.11">2.5.11  FCB_READ_LINE</a>
 
-<p><hr><P>
+<p><hr /><P>
 
 
 <h4><A NAME="2.5.7">2.5.7 FCB_PACKED: FCB_DECOMPRESS_PACKED_I2, FCB_DECOMPRESS_PACKED_I4, FCB_DECOMPRESS_PACKED_3D_I2, FCB_DECOMPRESS_PACKED_3D_I4</a></h4>
@@ -6622,7 +6661,7 @@ Returns 0 if the function is successful.
 
 
 
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.5.8">2.5.8 FCB_READ_BITS</a></h4>
 <p><pre><b>      INTERFACE</b>
@@ -6685,7 +6724,7 @@ size <i>FCB_BYTES_IN_REC</i> the precise location of the end of file may not be 
 <A HREF="#2.5.11">2.5.11  FCB_READ_LINE</a>
 
 
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.5.9">2.5.9 FCB_READ_BYTE</a></h4>
 <p><pre><b>      INTERFACE</b>
@@ -6739,7 +6778,7 @@ size <i>FCB_BYTES_IN_REC</i> the precise location of the end of file may not be 
 <A HREF="#2.5.8">2.5.9  FCB_READ_BITS</a><br />
 <A HREF="#2.5.11">2.5.11  FCB_READ_LINE</a>
 
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.5.10">2.5.10 FCB_READ_IMAGE_I2, FCB_READ_IMAGE_I4, FCB_READ_IMAGE_3D_I2, FCB_READ_IMAGE_3D_I4</a></h4>
 
@@ -6869,7 +6908,7 @@ Returns 0 if the function is successful.
 <A HREF="#2.5.9">2.5.9  FCB_READ_BYTE</a><br />
 <A HREF="#2.5.11">2.5.11  FCB_READ_LINE</a>
 
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.5.11">2.5.11 FCB_READ_LINE</a></h4>
 <p><pre><b>      INTERFACE</b>
@@ -6990,7 +7029,7 @@ this CBF format (not implemented), -1 if it cannot determine endian architecture
 of this machine, -2: if it cannot open the image file, -3: if it finds the wrong image 
 format and -4 if it cannot read the image.
 <P>
-<p><hr><P>
+<p><hr /><P>
 
 <h4><A NAME="2.5.13">2.5.13 FCB_SKIP_WHITESPACE</a></h4>
 <p><pre><b>      INTERFACE</b>
@@ -7050,7 +7089,875 @@ Returns 0 if the function is successful.
 <A HREF="#2.5.9">2.5.9  FCB_READ_BYTE</a>
 
 
-<p><hr><P>
+<p><hr /><P>
+    
+    
+    
+    <h3 id="2.6">2.6 HDF5 abstraction layer and convenience functions</h3>
+    
+    <p>The HDF5 abstraction layer follows the HDF5 naming convention of <code>H5Xfunction_name</code>, where <code>X</code> is usually a single letter identifying the section of the API that the function resides in. A <code>cbf_</code> prefix is used on all functions to avoid naming conflicts and make it clear that all these functions use the CBFlib error handling method whenever an error may occur.</p>
+    
+	<p>Where a <code>rank</code> is required it must be equal to the length of the <code>dim</code>, <code>max</code> &amp; <code>chunk</code> parameters, if they are given, and should be:</p>
+	<ul>
+    <li><code>0</code>, for scalar data</li>
+    <li><code>1</code>, for vector data</li>
+    <li><code>2</code>, for matrix data</li>
+    <li><code>3</code>, for volume data</li>
+    <li>etc...</li>
+	</ul>
+	<p>The maximum rank is defined by the HDF5 library, a negative rank makes no sense.</p>
+    
+	<p>Any <code>type</code> parameters should usually be one of:</p>
+	<table border=0>
+    <tr>
+    <td class="col0"><code>H5T_STD_I8LE</code></td>
+    <td class="col1"><code>H5T_STD_I16LE</code></td>
+    <td class="col2"><code>H5T_STD_I32LE</code></td>
+    <td class="col3"><code>H5T_STD_I64LE</code></td>
+    </tr>
+    <tr>
+    <td class="col0"><code>H5T_STD_U8LE</code></td>
+    <td class="col1"><code>H5T_STD_U16LE</code></td>
+    <td class="col2"><code>H5T_STD_U32LE</code></td>
+    <td class="col3"><code>H5T_STD_U64LE</code></td>
+    </tr>
+    <tr>
+    <td class="col0"><code>H5T_STD_I8BE</code></td>
+    <td class="col1"><code>H5T_STD_I16BE</code></td>
+    <td class="col2"><code>H5T_STD_I32BE</code></td>
+    <td class="col3"><code>H5T_STD_I64BE</code></td>
+    </tr>
+    <tr>
+    <td class="col0"><code>H5T_STD_U8BE</code></td>
+    <td class="col1"><code>H5T_STD_U16BE</code></td>
+    <td class="col2"><code>H5T_STD_U32BE</code></td>
+    <td class="col3"><code>H5T_STD_U64BE</code></td>
+    </tr>
+    <tr>
+    <td class="col0"><code>H5T_IEEE_F32LE</code></td>
+    <td class="col1"><code>H5T_IEEE_F64LE</code></td>
+    </tr>
+    <tr>
+    <td class="col0"><code>H5T_IEEE_F32BE</code></td>
+    <td class="col1"><code>H5T_IEEE_F64BE</code></td>
+    </tr>
+	</table>
+    
+    
+	<p>or a value returned by <code>cbf_H5Tcreate_string</code>. Functions are rarely (if ever) limited to the above values, and can take any valid HDF5 datatype.</p>
+	
+	<p>This section describes functions available for working with:</p>
+	<ul class="mini-toc">
+    <li><span class="bold">Attributes:</span>
+    <ul>
+    <li><a href="#2.6.1">2.6.1 cbf_H5Arequire_cmp</a></li>
+    <li><a href="#2.6.2">2.6.2 cbf_H5Arequire_string</a></li>
+    </ul>
+    </li>
+    <li><span class="bold">Datasets:</span>
+    <ul>
+    <li><a href="#2.6.3">2.6.3 cbf_H5Dcreate</a></li>
+    <li><a href="#2.6.4">2.6.4 cbf_H5Dfind</a></li>
+    <li><a href="#2.6.5">2.6.5 cbf_H5Dset_extent</a></li>
+    <li><a href="#2.6.6">2.6.6 cbf_H5Dwrite</a></li>
+    <li><a href="#2.6.7">2.6.7 cbf_H5Dread</a></li>
+    <li><a href="#2.6.8">2.6.8 cbf_H5Drequire_scalar_F64LE</a></li>
+    <li><a href="#2.6.9">2.6.9 cbf_H5Drequire_string</a></li>
+    <li><a href="#2.6.10">2.6.10 cbf_H5Dfree</a></li>
+    <li><a href="#2.6.11">2.6.11 cbf_H5Ddestroy</a></li>
+    </ul>
+    </li>
+    <li><span class="bold">Files:</span>
+    <ul>
+    <li><a href="#2.6.12">2.6.12 cbf_H5Fopen</a></li>
+    <li><a href="#2.6.13">2.6.13 cbf_H5Ffree</a></li>
+    <li><a href="#2.6.14">2.6.14 cbf_H5Fdestroy</a></li>
+    </ul>
+    </li>
+    <li><span class="bold">Groups:</span>
+    <ul>
+    <li><a href="#2.6.15">2.6.15 cbf_H5Gcreate</a></li>
+    <li><a href="#2.6.16">2.6.16 cbf_H5Grequire</a></li>
+    <li><a href="#2.6.17">2.6.17 cbf_H5Gfree</a></li>
+    <li><a href="#2.6.18">2.6.18 cbf_H5Gdestroy</a></li>
+    </ul>
+    </li>
+    <li><span class="bold">Object Identifiers:</span>
+    <ul>
+    <li><a href="#2.6.19">2.6.19 cbf_H5Ivalid</a></li>
+    <li><a href="#2.6.20">2.6.20 cbf_H5Ifree</a></li>
+    </ul>
+    </li>
+    <li><span class="bold">Dataspaces:</span>
+    <ul>
+    <li><a href="#2.6.21">2.6.21 cbf_H5Screate</a></li>
+    <li><a href="#2.6.22">2.6.22 cbf_H5Sfree</a></li>
+    <li><a href="#2.6.23">2.6.23 cbf_H5Sdestroy</a></li>
+    </ul>
+    </li>
+    <li><span class="bold">Datatypes:</span>
+    <ul>
+    <li><a href="#2.6.24">2.6.24 cbf_H5Tcreate_string</a></li>
+    <li><a href="#2.6.25">2.6.25 cbf_H5Tfree</a></li>
+    <li><a href="#2.6.26">2.6.26 cbf_H5Tdestroy</a></li>
+    </ul>
+    </li>
+	</ul>
+	
+	<p>Some of these functions require a comparison function and some comparison parameters to be provided. The signature of the comparison functions used here is:</p>
+	<p><code>int compare(const void * expected, const void * existing, size_t length, const void * const params)</code></p>
+	<p>This will be called with:</p>
+    <table class="function-arguments">
+  	<tr><td class="col0">expected</td><td class="col1">A pointer to the array of requested values that was passed to the function.</td></tr>
+  	<tr><td class="col0">existing</td><td class="col1">An array of existing values read from the object.</td></tr>
+  	<tr><td class="col0">length</td><td class="col1">The length of the <code>expected</code> and <code>existing</code> arrays.</td></tr>
+  	<tr><td class="col0">params</td><td class="col1">A pointer to the comparison parameters which were passed to the calling function.</td></tr>
+    </table>
+	<p>The comparison parameters allow more complex comparisons to be performed, such as a check that the numbers are 'close enough' as determined by some variable measure of closeness. It is the caller's responsibility to ensure that the comparison function is appropriate for the type of data expected and that <code>params</code> is of the appropriate type for the comparison function.</p>
+    
+    <hr/>
+    
+    <h4 id="2.6.1">2.6.1 cbf_H5Arequire_cmp</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Arequire_cmp(const hid_t ID, const char * const name, const int rank, const hsize_t * const dim, const hid_t type, const void * const value, void * const buf, int (*cmp)(const void *, const void *, size_t, const void * const), const void * const cmp_params)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+	<p>Checks the existance of an attribute of the given name, creating it if it doesn't exist.</p>
+	<p>Checks the size, type and value of an existing attribute to find out if it is the same as
+	what was requested as determined by a custom comparison function which may use some extra data
+	for more sophisticated tests.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+  	<tr><td class="col0">ID</td><td class="col1">The HDF5 object that the attribute will be applied to.</td></tr>
+  	<tr><td class="col0">name</td><td class="col1">The name of the attribute.</td></tr>
+  	<tr><td class="col0">rank</td><td class="col1">The number of dimensions of the attribute data, 0 for scalar data.</td></tr>
+  	<tr><td class="col0">dim</td><td class="col1">The length of each dimension, not used for scalar data.</td></tr>
+  	<tr><td class="col0">type</td><td class="col1">The HDF5 type of the attribute data.</td></tr>
+  	<tr><td class="col0">value</td><td class="col1">The data to be written to the attribute.</td></tr>
+  	<tr><td class="col0">buf</td><td class="col1">A buffer to be used when reading an existing attribute of the same size.</td></tr>
+  	<tr><td class="col0">cmp</td><td class="col1">A comparison function to test if a previously set value is equal to the value I asked for.</td></tr>
+  	<tr><td class="col0">cmp_params</td><td class="col1">A pointer to a data structure which may be used by the comparison function.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+	<p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+	<p><a href="#2.6.2">2.6.2 cbf_H5Arequire_string</a></p>
+    
+    <hr />
+    
+    <h4 id="2.6.2">2.6.2 cbf_H5Arequire_string</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Arequire_string (const hid_t location, const char * const name, const char * const value)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Check for a scalar string attribute with a given value, or set one if it doesn't exist. This is a forwarding function that calls <a href="#2.6.1">cbf_H5Arequire_cmp</a> with the appropriate arguments to compare two strings.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+  	<tr><td class="col0">location</td><td class="col1">HDF5 object to which the string attribute should/will belong.</td></tr>
+  	<tr><td class="col0">name</td><td class="col1">The name of the attribute.</td></tr>
+  	<tr><td class="col0">value</td><td class="col1">The value which the attribute should/will have.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    
+    <p><span class="bold">SEE ALSO</span></p>
+	<p><a href="#2.6.1">2.6.1 cbf_H5Arequire_cmp</a></p>
+    
+    <hr />
+    
+    <h4 id="2.6.3">2.6.3 cbf_H5Dcreate</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Dcreate(const hid_t location, hid_t * const dataset, const char * const name, const int rank, const hsize_t * const dim, const hsize_t * const max, const hsize_t * const chunk, const hid_t type)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Creates a new dataset in the given location.</p>
+	<p>The <code>dataset</code> parameter gives a location to store the dataset for use by the caller, for example to add an attribute to it. If non-zero the returned handle MUST be free'd by the caller with <code>cbf_H5Dfree</code>.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+  	<tr><td class="col0">location</td><td class="col1">The hdf5 group/file in which to put the dataset.</td></tr>
+  	<tr><td class="col0">dataset</td><td class="col1">An optional pointer to a location where the dataset handle should be stored for further use.</td></tr>
+  	<tr><td class="col0">name</td><td class="col1">The name of the new dataset.</td></tr>
+  	<tr><td class="col0">rank</td><td class="col1">The rank of the data, must be equal to the length of the <code>dim</code> and <code>max</code> arrays, if they are given.</td></tr>
+  	<tr><td class="col0">dim</td><td class="col1">The dimensions of the data, pointer to an array of length <code>rank</code> which should where <code>dim[i] &gt; 0</code> for <code>i = [0, rank)</code>, unused if <code>rank</code> is <code>0</code>.</td></tr>
+  	<tr><td class="col0">max</td><td class="col1">The maximum size of each dimension, pointer or an array of length <code>rank</code> where <code>dim[i] &lt;= max[i] &lt;= H5S_UNLIMITED</code> for <code>i = [0, rank)</code>, unused if <code>rank</code> is <code>0</code>.</td></tr>
+  	<tr><td class="col0">chunk</td><td class="col1">The chunk size for the dataset, as a pointer to an array of length <code>rank</code> (or <code>0</code> if chunking should not be enabled).</td></tr>
+  	<tr><td class="col0">type</td><td class="col1">The type of each data element, can take things like <code>H5T_STD_I32LE</code> as predefined constants.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.4">2.6.4 cbf_H5Dfind</a><br/>
+  	<a href="#2.6.5">2.6.5 cbf_H5Dset_extent</a><br/>
+  	<a href="#2.6.6">2.6.6 cbf_H5Dwrite</a><br/>
+  	<a href="#2.6.7">2.6.7 cbf_H5Dread</a><br/>
+  	<a href="#2.6.8">2.6.8 cbf_H5Drequire_scalar_F64LE</a><br/>
+  	<a href="#2.6.9">2.6.9 cbf_H5Drequire_string</a><br/>
+  	<a href="#2.6.10">2.6.10 cbf_H5Dfree</a><br/>
+  	<a href="#2.6.11">2.6.11 cbf_H5Ddestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.4">2.6.4 cbf_H5Dfind</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Dfind(const hid_t location, hid_t * const dataset, const char * const name, const int rank, const hsize_t * const dim, const hsize_t * const max, const hsize_t * const chunk, const hid_t type)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Look for a dataset with the given properties.</p>
+    
+    <p>Succeeds without returning a valid dataset ID if no dataset exists and fails if one with different properties exists. Finding that the dataset doesn't exist is not a failure - the function worked and returned useful information. This means that if it returns <code>CBF_SUCCESS</code> then the dataset must be <code>cbf_H5Dfree</code>'d at some point, otherwise it doesn't need to be free'd.</p>
+    
+	<p>Use as:</p>
+	<pre><code>int error = cbf_H5Dfind(., &dataset, ...);
+        if (CBF_SUCCESS==error) {
+        if (cbf_H5Ivalid(dataset)) {
+        use_existing_dataset(dataset);
+        } else {
+        cbf_H5Dcreate(...);
+        use_new_datset(dataset);
+        }
+        } else {
+        handle_error(error);
+        }</code></pre>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">location</td><td class="col1">The hdf5 group/file in which to put the dataset.</td></tr>
+        <tr><td class="col0">dataset</td><td class="col1">A pointer to a HDF5 object identifier that is set to the location of a valid object or an invalid value if the function succeeds, otherwise is left in an undefined state.</td></tr>
+        <tr><td class="col0">name</td><td class="col1">The name of the existing/new dataset.</td></tr>
+        <tr><td class="col0">rank</td><td class="col1">See <code>cbf_H5Dcreate</code>.</td></tr>
+        <tr><td class="col0">dim</td><td class="col1">See <code>cbf_H5Dcreate</code>.</td></tr>
+        <tr><td class="col0">max</td><td class="col1">See <code>cbf_H5Dcreate</code>.</td></tr>
+        <tr><td class="col0">chunk</td><td class="col1">See <code>cbf_H5Dcreate</code>.</td></tr>
+        <tr><td class="col0">type</td><td class="col1">See <code>cbf_H5Dcreate</code>.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.3">2.6.3 cbf_H5Dcreate</a><br/>
+  	<a href="#2.6.5">2.6.5 cbf_H5Dset_extent</a><br/>
+  	<a href="#2.6.6">2.6.6 cbf_H5Dwrite</a><br/>
+  	<a href="#2.6.7">2.6.7 cbf_H5Dread</a><br/>
+  	<a href="#2.6.8">2.6.8 cbf_H5Drequire_scalar_F64LE</a><br/>
+  	<a href="#2.6.9">2.6.9 cbf_H5Drequire_string</a><br/>
+  	<a href="#2.6.10">2.6.10 cbf_H5Dfree</a><br/>
+  	<a href="#2.6.11">2.6.11 cbf_H5Ddestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.5">2.6.5 cbf_H5Dset_extent</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Dset_extent(const hid_t dataset, const hsize_t * const dim)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Change the extent of a chunked dataset to the values in c dim.</p>
+    <p>Forwards to a HDF5 function to change the extent of a dataset. Doesn't check that the number of elements in <code>dim</code> matches the rank of the dataset.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">dataset</td><td class="col1">A handle for the dataset whose extent is to be changed.</td></tr>
+        <tr><td class="col0">dim</td><td class="col1">The new extent of the dataset, if the function succeeds. Must be the same length as the rank of the dataset.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.3">2.6.3 cbf_H5Dcreate</a><br/>
+  	<a href="#2.6.4">2.6.4 cbf_H5Dfind</a><br/>
+  	<a href="#2.6.6">2.6.6 cbf_H5Dwrite</a><br/>
+  	<a href="#2.6.7">2.6.7 cbf_H5Dread</a><br/>
+  	<a href="#2.6.8">2.6.8 cbf_H5Drequire_scalar_F64LE</a><br/>
+  	<a href="#2.6.9">2.6.9 cbf_H5Drequire_string</a><br/>
+  	<a href="#2.6.10">2.6.10 cbf_H5Dfree</a><br/>
+  	<a href="#2.6.11">2.6.11 cbf_H5Ddestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.6">2.6.6 cbf_H5Dwrite</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Dwrite(const hid_t dataset, const hsize_t * const offset, const hsize_t * const stride, const hsize_t * const count, const void * const value)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Add some data to the specified position in the dataset, without checking what (if anything) was there before.</p>
+    <p>Assumes the dataset has the appropriate size to contain all the data and overwrites any existing data that may be there. The <code>rank</code> of the dataset is assumed to be known, and the size of the array parameters is not tested.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">dataset</td><td class="col1">The dataset to write the data to.</td></tr>
+        <tr><td class="col0">offset</td><td class="col1">Where to start writing the data, as an array of <code>rank</code> numbers.</td></tr>
+        <tr><td class="col0">stride</td><td class="col1">The number of elements in the dataset to step for each element to be written, where <code>null</code> is equivalent to a stride of <code>[1, 1, 1, ..., 1]</code>, as an array of <code>rank</code> numbers.</td></tr>
+        <tr><td class="col0">count</td><td class="col1">The number of elements in each dimension to be written, as an array of <code>rank</code> numbers.</td></tr>
+        <tr><td class="col0">value</td><td class="col1">The address of the data to be written.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.3">2.6.3 cbf_H5Dcreate</a><br/>
+  	<a href="#2.6.4">2.6.4 cbf_H5Dfind</a><br/>
+  	<a href="#2.6.5">2.6.5 cbf_H5Dset_extent</a><br/>
+  	<a href="#2.6.7">2.6.7 cbf_H5Dread</a><br/>
+  	<a href="#2.6.8">2.6.8 cbf_H5Drequire_scalar_F64LE</a><br/>
+  	<a href="#2.6.9">2.6.9 cbf_H5Drequire_string</a><br/>
+  	<a href="#2.6.10">2.6.10 cbf_H5Dfree</a><br/>
+  	<a href="#2.6.11">2.6.11 cbf_H5Ddestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.7">2.6.7 cbf_H5Dread</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Dread
+        (const hid_t dataset,
+        const hsize_t * const offset,
+        const hsize_t * const stride,
+        const hsize_t * const count,
+        void * const value)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Extract some existing data from a dataset at a known position.</p>
+    <p>Read some data from a given location in the dataset to an existing location in memory. Does not check the length of the array parameters, which should all have <code>rank</code> elements or (in some cases) be <code>null</code>.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">dataset</td><td class="col1">The dataset to read the data from.</td></tr>
+        <tr><td class="col0">offset</td><td class="col1">Where to start reading the data, as an array of <code>rank</code> numbers.</td></tr>
+        <tr><td class="col0">stride</td><td class="col1">The number of elements in the dataset to step for each element to be read, where <code>null</code> is equivalent to a stride of <code>[1, 1, 1, ..., 1]</code>, as an array of <code>rank</code> numbers.</td></tr>
+        <tr><td class="col0">count</td><td class="col1">The number of elements in each dimension to be read, as an array of <code>rank</code> numbers.</td></tr>
+        <tr><td class="col0">value</td><td class="col1">The location where the data is to be stored.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.3">2.6.3 cbf_H5Dcreate</a><br/>
+  	<a href="#2.6.4">2.6.4 cbf_H5Dfind</a><br/>
+  	<a href="#2.6.5">2.6.5 cbf_H5Dset_extent</a><br/>
+  	<a href="#2.6.6">2.6.6 cbf_H5Dwrite</a><br/>
+  	<a href="#2.6.8">2.6.8 cbf_H5Drequire_scalar_F64LE</a><br/>
+  	<a href="#2.6.9">2.6.9 cbf_H5Drequire_string</a><br/>
+  	<a href="#2.6.10">2.6.10 cbf_H5Dfree</a><br/>
+  	<a href="#2.6.11">2.6.11 cbf_H5Ddestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.8">2.6.8 cbf_H5Drequire_scalar_F64LE</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Drequire_scalar_F64LE
+		(const hid_t location,
+		hid_t * const dataset,
+		const char * const name,
+		const double value,
+		int (*cmp)(const void *, const void *, size_t, const void * const),
+		const void * const cmp_params)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Write a scalar 64-bit floating point number as a dataset.</p>
+    <p>Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related parameters for a scalar dataset and to automatically set the string type to the correct size.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">location</td><td class="col1">The group containing the new dataset.</td></tr>
+        <tr><td class="col0">dataset</td><td class="col1">An optional pointer to a place to store the new dataset.</td></tr>
+        <tr><td class="col0">name</td><td class="col1">The name of the new dataset.</td></tr>
+        <tr><td class="col0">value</td><td class="col1">The value of the new dataset.</td></tr>
+        <tr><td class="col0">cmp</td><td class="col1">A comparison function to test if a previously set value is equal to the value I asked for.</td></tr>
+        <tr><td class="col0">cmp_params</td><td class="col1">Some extra data required by the comparison function.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.3">2.6.3 cbf_H5Dcreate</a><br/>
+  	<a href="#2.6.4">2.6.4 cbf_H5Dfind</a><br/>
+  	<a href="#2.6.5">2.6.5 cbf_H5Dset_extent</a><br/>
+  	<a href="#2.6.6">2.6.6 cbf_H5Dwrite</a><br/>
+  	<a href="#2.6.7">2.6.7 cbf_H5Dread</a><br/>
+  	<a href="#2.6.9">2.6.9 cbf_H5Drequire_string</a><br/>
+  	<a href="#2.6.10">2.6.10 cbf_H5Dfree</a><br/>
+  	<a href="#2.6.11">2.6.11 cbf_H5Ddestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.9">2.6.9 cbf_H5Drequire_string</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Drequire_string
+        (const hid_t location,
+        hid_t * const dataset,
+        const char * const name,
+        const char * const value)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Write a single string as a dataset.</p>
+    <p>Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related parameters for a scalar dataset and to automatically set the string type to the correct size.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">location</td><td class="col1">The group containing the new dataset.</td></tr>
+        <tr><td class="col0">dataset</td><td class="col1">An optional pointer to a place to store the new dataset.</td></tr>
+        <tr><td class="col0">name</td><td class="col1">The name of the new dataset.</td></tr>
+        <tr><td class="col0">value</td><td class="col1">The value of the new dataset.</td></tr>
+        <tr><td class="col0">cmp_params</td><td class="col1">Some extra data required by the comparison function.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.3">2.6.3 cbf_H5Dcreate</a><br/>
+  	<a href="#2.6.4">2.6.4 cbf_H5Dfind</a><br/>
+  	<a href="#2.6.5">2.6.5 cbf_H5Dset_extent</a><br/>
+  	<a href="#2.6.6">2.6.6 cbf_H5Dwrite</a><br/>
+  	<a href="#2.6.7">2.6.7 cbf_H5Dread</a><br/>
+  	<a href="#2.6.8">2.6.8 cbf_H5Drequire_scalar_F64LE</a><br/>
+  	<a href="#2.6.10">2.6.10 cbf_H5Dfree</a><br/>
+  	<a href="#2.6.11">2.6.11 cbf_H5Ddestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.10">2.6.10 cbf_H5Dfree</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Dfree(const hid_t ID)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Close a HDF5 dataset.</p>
+    <p>Attempt to close a dataset, but don't modify the identifier that described it.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">ID</td><td class="col1">The HDF5 dataset to be closed.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.3">2.6.3 cbf_H5Dcreate</a><br/>
+  	<a href="#2.6.4">2.6.4 cbf_H5Dfind</a><br/>
+  	<a href="#2.6.5">2.6.5 cbf_H5Dset_extent</a><br/>
+  	<a href="#2.6.6">2.6.6 cbf_H5Dwrite</a><br/>
+  	<a href="#2.6.7">2.6.7 cbf_H5Dread</a><br/>
+  	<a href="#2.6.8">2.6.8 cbf_H5Drequire_scalar_F64LE</a><br/>
+  	<a href="#2.6.9">2.6.9 cbf_H5Drequire_string</a><br/>
+  	<a href="#2.6.11">2.6.11 cbf_H5Ddestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.11">2.6.11 cbf_H5Ddestroy</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Ddestroy(hid_t * const ID)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Close a HDF5 dataset.</p>
+    <p>Attempt to close a dataset, clobbering the identifier that described it.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">ID</td><td class="col1">A pointer to the HDF5 dataset to be closed.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.3">2.6.3 cbf_H5Dcreate</a><br/>
+  	<a href="#2.6.4">2.6.4 cbf_H5Dfind</a><br/>
+  	<a href="#2.6.5">2.6.5 cbf_H5Dset_extent</a><br/>
+  	<a href="#2.6.6">2.6.6 cbf_H5Dwrite</a><br/>
+  	<a href="#2.6.7">2.6.7 cbf_H5Dread</a><br/>
+  	<a href="#2.6.8">2.6.8 cbf_H5Drequire_scalar_F64LE</a><br/>
+  	<a href="#2.6.9">2.6.9 cbf_H5Drequire_string</a><br/>
+  	<a href="#2.6.10">2.6.10 cbf_H5Dfree</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.12">2.6.12 cbf_H5Fopen</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Fopen(hid_t * const file, const char * const name)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Attempt to open an HDF5 file by file name.</p>
+    <p>Will try to open a file of the given name with suitable values for some of it's properties to make memory leaks less likely.</p>
+    <p><em>Warning:</em> this function will destroy any existing data in the file, do not pass the name of any file containing data you want to keep.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">file</td><td class="col1">A pointer to an HDF5 ID where the newly opened file should be stored.</td></tr>
+        <tr><td class="col0">name</td><td class="col1">The name of the file to attempt to open.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.13">2.6.13 cbf_H5Ffree</a><br/>
+  	<a href="#2.6.14">2.6.14 cbf_H5Fdestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.13">2.6.13 cbf_H5Ffree</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Ffree(const hid_t ID)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Close a HDF5 file.</p>
+    <p>Attempt to close a file, but don't modify the identifier that described it.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">ID</td><td class="col1">The HDF5 file to be closed.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.12">2.6.12 cbf_H5Fopen</a><br/>
+  	<a href="#2.6.14">2.6.14 cbf_H5Fdestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.14">2.6.14 cbf_H5Fdestroy</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Fdestroy(hid_t * const ID)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Close a HDF5 file.</p>
+    <p>Attempt to close a file, clobbering the identifier that described it.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">ID</td><td class="col1">A pointer to the HDF5 file to be closed.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.12">2.6.12 cbf_H5Fopen</a><br/>
+  	<a href="#2.6.13">2.6.13 cbf_H5Ffree</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.15">2.6.15 cbf_H5Gcreate</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Gcreate(hid_t * const group, const char * const name, const hid_t parent)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Attempt to create a group</p>
+    <p>Helper function to create a HDF5 group and return a CBFlib error code, to make error handling more consistant.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">group</td><td class="col1">A pointer to a HDF5 ID type where the group will be stored.</td></tr>
+        <tr><td class="col0">name</td><td class="col1">The name that the group will be given.</td></tr>
+        <tr><td class="col0">parent</td><td class="col1">The group that will contain the newly created group.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.16">2.6.16 cbf_H5Grequire</a><br/>
+  	<a href="#2.6.17">2.6.17 cbf_H5Gfree</a><br/>
+  	<a href="#2.6.18">2.6.18 cbf_H5Gdestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.16">2.6.16 cbf_H5Grequire</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Grequire(hid_t * const group, const char * const name, const hid_t parent)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Ensure a group exists</p>
+    <p>Checks for the existance of a group with the given name and parent. Will create the group if it cannot be found, or open it if it already exists. It is an error if a matching group cannot be found or created.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">group</td><td class="col1">A pointer to a HDF5 ID type where the group will be stored.</td></tr>
+        <tr><td class="col0">name</td><td class="col1">The name that the group will be given.</td></tr>
+        <tr><td class="col0">parent</td><td class="col1">The group that will contain the newly created group.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.15">2.6.15 cbf_H5Gcreate</a><br/>
+  	<a href="#2.6.17">2.6.17 cbf_H5Gfree</a><br/>
+  	<a href="#2.6.18">2.6.18 cbf_H5Gdestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.17">2.6.17 cbf_H5Gfree</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Gfree(const hid_t ID)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Close a HDF5 group.</p>
+    <p>Attempt to close a group, but don't modify the identifier that described it.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">ID</td><td class="col1">The HDF5 group to be closed.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.15">2.6.15 cbf_H5Gcreate</a><br/>
+  	<a href="#2.6.16">2.6.16 cbf_H5Grequire</a><br/>
+  	<a href="#2.6.18">2.6.18 cbf_H5Gdestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.18">2.6.18 cbf_H5Gdestroy</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Gdestroy(hid_t * const ID)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Close a HDF5 group.</p>
+    <p>Attempt to close a group, clobbering the identifier that described it.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">ID</td><td class="col1">A pointer to the HDF5 group to be closed.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.15">2.6.15 cbf_H5Gcreate</a><br/>
+  	<a href="#2.6.16">2.6.16 cbf_H5Grequire</a><br/>
+  	<a href="#2.6.17">2.6.17 cbf_H5Gfree</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.19">2.6.19 cbf_H5Ivalid</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Ivalid(const hid_t ID)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Check the validity of an object identifier</p>
+    <p>Function to check validity of a HDF5 identifier. HDF5's predefined types are never counted as valid by this function, so it can't be used to test the validity of a type constant. Types obtained by using <code>H5Tcopy</code> are safe to test.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">ID</td><td class="col1">An HDF5 object identifier.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>Non-zero if the type is valid, zero otherwise.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.20">2.6.20 cbf_H5Ifree</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.20">2.6.20 cbf_H5Ifree</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Ifree(const hid_t ID)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Try to free an object identifier</p>
+    <p>Function to close any valid HDF5 handle without tracking its type. Don't use this if a more specific function can be used instead, ie if the type is known, as this function will be less efficient.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">ID</td><td class="col1">An HDF5 object identifier to be closed.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.19">2.6.19 cbf_H5Ivalid</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.21">2.6.21 cbf_H5Screate</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Screate
+        (hid_t * const ID,
+        const int rank,
+        const hsize_t * const dim,
+        const hsize_t * const max)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Helper function which creates a HDF5 dataspace.</p>
+    <p>Maximum dimensions can be set to infinity by passing <code>H5S_UNLIMITED</code> in the appropriate slot of the <code>max</code> parameter. If <code>max</code> is a null pointer the maximum length is set to the current length as given by <code>dim</code>.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">ID</td><td class="col1">A pointer to a HDF5 identifier that will contain the new dataspace.</td></tr>
+        <tr><td class="col0">rank</td><td class="col1">The number of dimensions of the new dataspace.</td></tr>
+        <tr><td class="col0">dim</td><td class="col1">The current size of each dimension of the dataspace, should be an array of length <code>rank</code>.</td></tr>
+        <tr><td class="col0">max</td><td class="col1">The maximum size of each dimension, should be an array of length <code>rank</code>.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.22">2.6.22 cbf_H5Sfree</a><br/>
+  	<a href="#2.6.23">2.6.23 cbf_H5Sdestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.22">2.6.22 cbf_H5Sfree</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Sfree(const hid_t ID)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Close a HDF5 dataspace.</p>
+    <p>Attempt to close a dataspace, but don't modify the identifier that described it.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">ID</td><td class="col1">The HDF5 dataspace to be closed.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.21">2.6.21 cbf_H5Screate</a><br/>
+  	<a href="#2.6.23">2.6.23 cbf_H5Sdestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.23">2.6.23 cbf_H5Sdestroy</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Sdestroy(hid_t * const ID)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Close a HDF5 dataspace.</p>
+    <p>Attempt to close a dataspace, clobbering the identifier that described it.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">ID</td><td class="col1">A pointer to the HDF5 dataspace to be closed.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.21">2.6.21 cbf_H5Screate</a><br/>
+  	<a href="#2.6.22">2.6.22 cbf_H5Sfree</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.24">2.6.24 cbf_H5Tcreate_string</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Tcreate_string(hid_t * type, const size_t len)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Convenience function to create a string datatype suitable for use when storing a string of length <code>len</code>.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">type</td><td class="col1">A pointer to a the HDF5 handle of the new datatype, which should be free'd with <code>cbf_H5Tfree</code>.</td></tr>
+        <tr><td class="col0">len</td><td class="col1">The length of the string datatype - should be <code>strlen()</code> or <code>H5T_VARIABLE</code>.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.25">2.6.25 cbf_H5Tfree</a><br/>
+  	<a href="#2.6.26">2.6.26 cbf_H5Tdestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.25">2.6.25 cbf_H5Tfree</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Tfree(const hid_t ID)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Close a HDF5 datatype.</p>
+    <p>Attempt to close a datatype, but don't modify the identifier that described it.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">ID</td><td class="col1">The HDF5 datatype to be closed.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.24">2.6.24 cbf_H5Tcreate_string</a><br/>
+  	<a href="#2.6.26">2.6.26 cbf_H5Tdestroy</a>
+    </p>
+    
+    <hr />
+    
+    <h4 id="2.6.26">2.6.26 cbf_H5Tdestroy</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_H5Tdestroy(hid_t * const ID)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Close a HDF5 datatype.</p>
+    <p>Attempt to close a datatype, clobbering the identifier that described it.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">ID</td><td class="col1">A pointer to the HDF5 datatype to be closed.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p>
+  	<a href="#2.6.24">2.6.24 cbf_H5Tcreate_string</a><br/>
+  	<a href="#2.6.25">2.6.25 cbf_H5Tfree</a>
+    </p>
+    
+    <hr />
+    
+    <h3 id="2.7">2.7 High-level NeXus-related functions</h3>
+    
+    <h4 id="2.7.1">2.7.1 cbf_create_h5handle</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_create_h5handle(cbf_h5handle *h5handle,const char * h5filename)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Allocates space for a HDF5 file handle and opens a file with the given name.</p>
+    <p><em>Warning:</em> this function will destroy any existing data in the file, do not pass the name of any file containing data you want to keep.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">h5handle</td><td class="col1">The location to store the new handle.</td></tr>
+        <tr><td class="col0">h5filename</td><td class="col1">The name of a file to open and associate with the handle.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p><a href="#2.7.3">2.7.3 cbf_free_h5handle</a></p>
+    
+    <hr />
+    
+    <h4 id="2.7.2">2.7.2 cbf_write_minicbf_h5file</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_write_minicbf_h5file (cbf_handle handle, cbf_h5handle h5handle, cbf_hdf5_configItemVectorhandle axisConfig)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">handle</td><td class="col1">The minicbf file to add to the NeXus file.</td></tr>
+        <tr><td class="col0">h5handle</td><td class="col1">The NeXus file to add the minicbf file to.</td></tr>
+        <tr><td class="col0">axisConfig</td><td class="col1">Some configuration settings to describe what the minicbf axis settings mean.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p></p>
+    
+    <hr />
+    
+    <h4 id="2.7.3">2.7.3 cbf_free_h5handle</h4>
+    <p><span class="bold">PROTOTYPE</span></p>
+    <p><code>#include "cbf_hdf5.h"</code></p>
+    <p><code>int cbf_free_h5handle(cbf_h5handle h5handle)</code></p>
+    <p><span class="bold">DESCRIPTION</span></p>
+    <p>Closes all the open groups within the handle and then destroys the handle.</p>
+    <p><span class="bold">ARGUMENTS</span></p>
+    <table class="function-arguments">
+        <tr><td class="col0">h5handle</td><td class="col1">The HDF5 handle to be free'd.</td></tr>
+    </table>
+    <p><span class="bold">RETURN VALUE</span></p>
+    <p>An error code.</p>
+    <p><span class="bold">SEE ALSO</span></p>
+    <p><a href="#2.7.1">2.7.1 cbf_create_h5handle</a></p>
+    
+    <hr />
+    
+    
+<p><hr /><P>
+        
+
 
 <h3><A NAME="3.">3.  File format</A></h3>
 
@@ -7818,7 +8725,7 @@ and the entries in trail_char_data with their array indices
 <P>
 <PRE><TT>
    
-         - - - - - - - - 0 
+         - - - - - - - - 0 *
          - - - - - - - - - 2 
          - - - - - - - - - -
 </TT>
@@ -8539,7 +9446,7 @@ accepts either a CIF or a CBF as input instead of an image file:
     cif2cbf [-i input_cif] [-o output_cbf] \
       [-u update_cif] \
       [-c {p[acked]|c[annonical]|{b[yte_offset]}|\
-        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|n[n[one]}] \
+        {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|n[one]}] \
       [-C highclipvalue] \
       [-D ] \
       [-I {0|2|4|8}] \
@@ -8943,10 +9850,61 @@ and an xxx_xds.cbf with unclipped values for processing:
   
 </pre>
 <p>
+        
+        <h4>minicbf2nexus</h4>
+        <p>This program takes some minicbf files and axis configuration settings for them and creates a nexus file containing the same data. As this is an early version of the program it lacks a lot of useful functionality and should not be assumed to be stable.</p>
+        <p>It currently takes several command line arguments:</p>
+        <ul>
+            <li>
+                <p><code>-z</code><br/>
+                <code>--compression</code><br/>
+                These are optional and take a single argument which describes the compression used for the dataset.</p>
+                <p>Curently implemented values are:</p>
+                <ul>
+                    <li><code>zlib</code><br/>Use zlib compression</li>
+                    <li><code>none</code><br/>Don't compress the data</li>
+                </ul>
+                <p>More compression options will be added in later versions, including options for CBFlib compression schemes.</p>
+            </li>
+            <li>
+                <p><code>-c</code><br/>
+                <code>--config</code><br/>
+                This takes a single argument giving the file name of a configuration file which describes how the axes of the minicbf file relate to each other.</p>
+            </li>
+            <li>
+                <p><code>-o</code><br/>
+                <code>--output</code><br/>
+                This takes a single argument which is used as the filename for the new nexus file. Any existing files of the same name are overwritten without warning, so be careful that the name of any existing files that you wish to keep are not passed as an argument here.</p>
+            </li>
+            <li>
+                <p>Other arguments are interpreted as file names describing the minicbf files to be packed into the new nexus file. These must currently be pilatus v1.2 minicbf files, but this restriction will be relaxed in later versions.</p>
+            </li>
+        </ul>
+        <p>The example usage, in the test scripts, is:</p>
+        <code>minicbf2nexus -z zlib -c config X4_lots_M1S4_1_0001.cbf X4_lots_M1S4_1_0002.cbf X4_lots_M1S4_1_0003.cbf X4_lots_M1S4_1_0004.cbf X4_lots_M1S4_1_0005.cbf -o minicbf.h5</code>
+        
+        <p>The config file used in this example is:</p>
+        <pre><code># some sample config settings for a minicbf file
+            
+            map Start_angle to CBF_axis_omega
+            map Phi to CBF_axis_phi
+            map Kappa to CBF_axis_kappa
+            
+            Sample depends-on CBF_axis_phi
+            
+            CBF_axis_phi vector [1 0 0] depends-on CBF_axis_kappa
+            CBF_axis_kappa vector [0 1 0] depends-on .
+            CBF_axis_omega vector [0 0 0]
+        </code></pre>
+        <p>Text from any <code>#</code> character to the end of the line is ignored as a comment.</p>
+        <p>Axes are declared by the <code>map</code> keyword as the name of the axis in the minicbf file, which must match exactly, followed by the keyword <code>to</code> and then the name that will be given to the axis in the resulting nexus file. Each axis is treated as a rotation axis and should have a <code>vector</code> which defines the axis of rotation in the 3D coordinate frame used by nexus, this should be 3 numbers within square brackets separated by spaces and does not need to be normalised. Each axis may also depend on a nother axis by using the keyword <code>depends-on</code> folowed by the name of the nexus axis it depends on, or <code>.</code> if it does not depend on another axis, omitting a dependency as shown on the final line of the example above is not recommended as it will eventually be a fatal error. The <code>vector</code> and <code>depends-on</code> declarations do not need to be on the same line.</p>
+        <p>The <code>Sample</code> keyword is used to define a dependency for the sample being scanned and should be followed by a <code>depends-on</code> declaration which defines the name of the nexus axis that the sample depends on.</p>
+        <p>The final line of the config file should be blank to allow for some simple integrity tests.</p>
+        <p>A continuous chain of dependencies should be formed from the sample to the nexus coordinate system, otherwise there is insufficient information available to properly describe the orientation of the sample. This will be enforced in later versions, with a fatal error if insufficient information is provided.</p>
 
-<HR>
-<HR>
-Updated 29 March 2011.
+<hr />
+<hr />
+Updated 20 June 2013.
 Contact:
 <script language="javascript" type="text/javascript">
 <!--

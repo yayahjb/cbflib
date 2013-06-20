@@ -11,7 +11,7 @@
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
                                 Version 0.9.2.11
-                                  19 June 2013
+                                  20 June 2013
 
                                        by
                                  Paul J. Ellis
@@ -559,6 +559,37 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 2.5.11 FCB_READ_LINE
                * 2.5.12 FCB_READ_XDS_I2
                * 2.5.13 FCB_SKIP_WHITESPACE
+          * 2.6 HDF5 abstraction layer and convenience functions
+               * 2.6.1 cbf_H5Arequire_cmp
+               * 2.6.2 cbf_H5Arequire_string
+               * 2.6.3 cbf_H5Dcreate
+               * 2.6.4 cbf_H5Dfind
+               * 2.6.5 cbf_H5Dset_extent
+               * 2.6.6 cbf_H5Dwrite
+               * 2.6.7 cbf_H5Dread
+               * 2.6.8 cbf_H5Drequire_scalar_F64LE
+               * 2.6.9 cbf_H5Drequire_string
+               * 2.6.10 cbf_H5Dfree
+               * 2.6.11 cbf_H5Ddestroy
+               * 2.6.12 cbf_H5Fopen
+               * 2.6.13 cbf_H5Ffree
+               * 2.6.14 cbf_H5Fdestroy
+               * 2.6.15 cbf_H5Gcreate
+               * 2.6.16 cbf_H5Grequire
+               * 2.6.17 cbf_H5Gfree
+               * 2.6.18 cbf_H5Gdestroy
+               * 2.6.19 cbf_H5Ivalid
+               * 2.6.20 cbf_H5Ifree
+               * 2.6.21 cbf_H5Screate
+               * 2.6.22 cbf_H5Sfree
+               * 2.6.23 cbf_H5Sdestroy
+               * 2.6.24 cbf_H5Tcreate_string
+               * 2.6.25 cbf_H5Tfree
+               * 2.6.26 cbf_H5Tdestroy
+          * 2.7 High-level NeXus-related functions
+               * 2.7.1 cbf_create_h5handle
+               * 2.7.2 cbf_write_minicbf_h5file
+               * 2.7.3 cbf_free_h5handle
      * 3. File format
           * 3.1 General description
           * 3.2 Format of the binary sections
@@ -7022,6 +7053,1149 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
+  2.6 HDF5 abstraction layer and convenience functions
+
+     The HDF5 abstraction layer follows the HDF5 naming convention of
+     H5Xfunction_name, where X is usually a single letter identifying the
+     section of the API that the function resides in. A cbf_ prefix is used
+     on all functions to avoid naming conflicts and make it clear that all
+     these functions use the CBFlib error handling method whenever an error
+     may occur.
+
+     Where a rank is required it must be equal to the length of the dim, max
+     & chunk parameters, if they are given, and should be:
+
+       * 0, for scalar data
+       * 1, for vector data
+       * 2, for matrix data
+       * 3, for volume data
+       * etc...
+
+     The maximum rank is defined by the HDF5 library, a negative rank makes
+     no sense.
+
+     Any type parameters should usually be one of:
+
+     H5T_STD_I8LE   H5T_STD_I16LE  H5T_STD_I32LE H5T_STD_I64LE 
+     H5T_STD_U8LE   H5T_STD_U16LE  H5T_STD_U32LE H5T_STD_U64LE 
+     H5T_STD_I8BE   H5T_STD_I16BE  H5T_STD_I32BE H5T_STD_I64BE 
+     H5T_STD_U8BE   H5T_STD_U16BE  H5T_STD_U32BE H5T_STD_U64BE 
+     H5T_IEEE_F32LE H5T_IEEE_F64LE 
+     H5T_IEEE_F32BE H5T_IEEE_F64BE 
+
+     or a value returned by cbf_H5Tcreate_string. Functions are rarely (if
+     ever) limited to the above values, and can take any valid HDF5 datatype.
+
+     This section describes functions available for working with:
+
+       * Attributes:
+            * 2.6.1 cbf_H5Arequire_cmp
+            * 2.6.2 cbf_H5Arequire_string
+       * Datasets:
+            * 2.6.3 cbf_H5Dcreate
+            * 2.6.4 cbf_H5Dfind
+            * 2.6.5 cbf_H5Dset_extent
+            * 2.6.6 cbf_H5Dwrite
+            * 2.6.7 cbf_H5Dread
+            * 2.6.8 cbf_H5Drequire_scalar_F64LE
+            * 2.6.9 cbf_H5Drequire_string
+            * 2.6.10 cbf_H5Dfree
+            * 2.6.11 cbf_H5Ddestroy
+       * Files:
+            * 2.6.12 cbf_H5Fopen
+            * 2.6.13 cbf_H5Ffree
+            * 2.6.14 cbf_H5Fdestroy
+       * Groups:
+            * 2.6.15 cbf_H5Gcreate
+            * 2.6.16 cbf_H5Grequire
+            * 2.6.17 cbf_H5Gfree
+            * 2.6.18 cbf_H5Gdestroy
+       * Object Identifiers:
+            * 2.6.19 cbf_H5Ivalid
+            * 2.6.20 cbf_H5Ifree
+       * Dataspaces:
+            * 2.6.21 cbf_H5Screate
+            * 2.6.22 cbf_H5Sfree
+            * 2.6.23 cbf_H5Sdestroy
+       * Datatypes:
+            * 2.6.24 cbf_H5Tcreate_string
+            * 2.6.25 cbf_H5Tfree
+            * 2.6.26 cbf_H5Tdestroy
+
+     Some of these functions require a comparison function and some
+     comparison parameters to be provided. The signature of the comparison
+     functions used here is:
+
+     int compare(const void * expected, const void * existing, size_t length,
+     const void * const params)
+
+     This will be called with:
+
+     expected A pointer to the array of requested values that was passed to   
+              the function.                                                   
+     existing An array of existing values read from the object.               
+     length   The length of the expected and existing arrays.                 
+     params   A pointer to the comparison parameters which were passed to the 
+              calling function.                                               
+
+     The comparison parameters allow more complex comparisons to be
+     performed, such as a check that the numbers are 'close enough' as
+     determined by some variable measure of closeness. It is the caller's
+     responsibility to ensure that the comparison function is appropriate for
+     the type of data expected and that params is of the appropriate type for
+     the comparison function.
+
+     ----------------------------------------------------------------------
+
+    2.6.1 cbf_H5Arequire_cmp
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Arequire_cmp(const hid_t ID, const char * const name, const
+     int rank, const hsize_t * const dim, const hid_t type, const void *
+     const value, void * const buf, int (*cmp)(const void *, const void *,
+     size_t, const void * const), const void * const cmp_params)
+
+     DESCRIPTION
+
+     Checks the existance of an attribute of the given name, creating it if
+     it doesn't exist.
+
+     Checks the size, type and value of an existing attribute to find out if
+     it is the same as what was requested as determined by a custom
+     comparison function which may use some extra data for more sophisticated
+     tests.
+
+     ARGUMENTS
+
+     ID         The HDF5 object that the attribute will be applied to.        
+     name       The name of the attribute.                                    
+     rank       The number of dimensions of the attribute data, 0 for scalar  
+                data.                                                         
+     dim        The length of each dimension, not used for scalar data.       
+     type       The HDF5 type of the attribute data.                          
+     value      The data to be written to the attribute.                      
+     buf        A buffer to be used when reading an existing attribute of the 
+                same size.                                                    
+     cmp        A comparison function to test if a previously set value is    
+                equal to the value I asked for.                               
+     cmp_params A pointer to a data structure which may be used by the        
+                comparison function.                                          
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.2 cbf_H5Arequire_string
+
+     ----------------------------------------------------------------------
+
+    2.6.2 cbf_H5Arequire_string
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Arequire_string (const hid_t location, const char * const
+     name, const char * const value)
+
+     DESCRIPTION
+
+     Check for a scalar string attribute with a given value, or set one if it
+     doesn't exist. This is a forwarding function that calls
+     cbf_H5Arequire_cmp with the appropriate arguments to compare two
+     strings.
+
+     ARGUMENTS
+
+     location HDF5 object to which the string attribute should/will belong. 
+     name     The name of the attribute.                                    
+     value    The value which the attribute should/will have.               
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.1 cbf_H5Arequire_cmp
+
+     ----------------------------------------------------------------------
+
+    2.6.3 cbf_H5Dcreate
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Dcreate(const hid_t location, hid_t * const dataset, const
+     char * const name, const int rank, const hsize_t * const dim, const
+     hsize_t * const max, const hsize_t * const chunk, const hid_t type)
+
+     DESCRIPTION
+
+     Creates a new dataset in the given location.
+
+     The dataset parameter gives a location to store the dataset for use by
+     the caller, for example to add an attribute to it. If non-zero the
+     returned handle MUST be free'd by the caller with cbf_H5Dfree.
+
+     ARGUMENTS
+
+     location The hdf5 group/file in which to put the dataset.                
+     dataset  An optional pointer to a location where the dataset handle      
+              should be stored for further use.                               
+     name     The name of the new dataset.                                    
+     rank     The rank of the data, must be equal to the length of the dim    
+              and max arrays, if they are given.                              
+              The dimensions of the data, pointer to an array of length rank  
+     dim      which should where dim[i] > 0 for i = [0, rank), unused if rank 
+              is 0.                                                           
+              The maximum size of each dimension, pointer or an array of      
+     max      length rank where dim[i] <= max[i] <= H5S_UNLIMITED for i = [0, 
+              rank), unused if rank is 0.                                     
+     chunk    The chunk size for the dataset, as a pointer to an array of     
+              length rank (or 0 if chunking should not be enabled).           
+     type     The type of each data element, can take things like             
+              H5T_STD_I32LE as predefined constants.                          
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.4 cbf_H5Dfind
+     2.6.5 cbf_H5Dset_extent
+     2.6.6 cbf_H5Dwrite
+     2.6.7 cbf_H5Dread
+     2.6.8 cbf_H5Drequire_scalar_F64LE
+     2.6.9 cbf_H5Drequire_string
+     2.6.10 cbf_H5Dfree
+     2.6.11 cbf_H5Ddestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.4 cbf_H5Dfind
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Dfind(const hid_t location, hid_t * const dataset, const char
+     * const name, const int rank, const hsize_t * const dim, const hsize_t *
+     const max, const hsize_t * const chunk, const hid_t type)
+
+     DESCRIPTION
+
+     Look for a dataset with the given properties.
+
+     Succeeds without returning a valid dataset ID if no dataset exists and
+     fails if one with different properties exists. Finding that the dataset
+     doesn't exist is not a failure - the function worked and returned useful
+     information. This means that if it returns CBF_SUCCESS then the dataset
+     must be cbf_H5Dfree'd at some point, otherwise it doesn't need to be
+     free'd.
+
+     Use as:
+
+ int error = cbf_H5Dfind(., &dataset, ...);
+         if (CBF_SUCCESS==error) {
+         if (cbf_H5Ivalid(dataset)) {
+         use_existing_dataset(dataset);
+         } else {
+         cbf_H5Dcreate(...);
+         use_new_datset(dataset);
+         }
+         } else {
+         handle_error(error);
+         }
+
+     ARGUMENTS
+
+     location The hdf5 group/file in which to put the dataset.                
+              A pointer to a HDF5 object identifier that is set to the        
+     dataset  location of a valid object or an invalid value if the function  
+              succeeds, otherwise is left in an undefined state.              
+     name     The name of the existing/new dataset.                           
+     rank     See cbf_H5Dcreate.                                              
+     dim      See cbf_H5Dcreate.                                              
+     max      See cbf_H5Dcreate.                                              
+     chunk    See cbf_H5Dcreate.                                              
+     type     See cbf_H5Dcreate.                                              
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.3 cbf_H5Dcreate
+     2.6.5 cbf_H5Dset_extent
+     2.6.6 cbf_H5Dwrite
+     2.6.7 cbf_H5Dread
+     2.6.8 cbf_H5Drequire_scalar_F64LE
+     2.6.9 cbf_H5Drequire_string
+     2.6.10 cbf_H5Dfree
+     2.6.11 cbf_H5Ddestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.5 cbf_H5Dset_extent
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Dset_extent(const hid_t dataset, const hsize_t * const dim)
+
+     DESCRIPTION
+
+     Change the extent of a chunked dataset to the values in c dim.
+
+     Forwards to a HDF5 function to change the extent of a dataset. Doesn't
+     check that the number of elements in dim matches the rank of the
+     dataset.
+
+     ARGUMENTS
+
+     dataset A handle for the dataset whose extent is to be changed.          
+     dim     The new extent of the dataset, if the function succeeds. Must be 
+             the same length as the rank of the dataset.                      
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.3 cbf_H5Dcreate
+     2.6.4 cbf_H5Dfind
+     2.6.6 cbf_H5Dwrite
+     2.6.7 cbf_H5Dread
+     2.6.8 cbf_H5Drequire_scalar_F64LE
+     2.6.9 cbf_H5Drequire_string
+     2.6.10 cbf_H5Dfree
+     2.6.11 cbf_H5Ddestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.6 cbf_H5Dwrite
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Dwrite(const hid_t dataset, const hsize_t * const offset,
+     const hsize_t * const stride, const hsize_t * const count, const void *
+     const value)
+
+     DESCRIPTION
+
+     Add some data to the specified position in the dataset, without checking
+     what (if anything) was there before.
+
+     Assumes the dataset has the appropriate size to contain all the data and
+     overwrites any existing data that may be there. The rank of the dataset
+     is assumed to be known, and the size of the array parameters is not
+     tested.
+
+     ARGUMENTS
+
+     dataset The dataset to write the data to.                                
+     offset  Where to start writing the data, as an array of rank numbers.    
+             The number of elements in the dataset to step for each element   
+     stride  to be written, where null is equivalent to a stride of [1, 1, 1, 
+             ..., 1], as an array of rank numbers.                            
+     count   The number of elements in each dimension to be written, as an    
+             array of rank numbers.                                           
+     value   The address of the data to be written.                           
+
+     RETURN VALUE
+
+     SEE ALSO
+
+     2.6.3 cbf_H5Dcreate
+     2.6.4 cbf_H5Dfind
+     2.6.5 cbf_H5Dset_extent
+     2.6.7 cbf_H5Dread
+     2.6.8 cbf_H5Drequire_scalar_F64LE
+     2.6.9 cbf_H5Drequire_string
+     2.6.10 cbf_H5Dfree
+     2.6.11 cbf_H5Ddestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.7 cbf_H5Dread
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Dread (const hid_t dataset, const hsize_t * const offset,
+     const hsize_t * const stride, const hsize_t * const count, void * const
+     value)
+
+     DESCRIPTION
+
+     Extract some existing data from a dataset at a known position.
+
+     Read some data from a given location in the dataset to an existing
+     location in memory. Does not check the length of the array parameters,
+     which should all have rank elements or (in some cases) be null.
+
+     ARGUMENTS
+
+     dataset The dataset to read the data from.                               
+     offset  Where to start reading the data, as an array of rank numbers.    
+             The number of elements in the dataset to step for each element   
+     stride  to be read, where null is equivalent to a stride of [1, 1, 1,    
+             ..., 1], as an array of rank numbers.                            
+     count   The number of elements in each dimension to be read, as an array 
+             of rank numbers.                                                 
+     value   The location where the data is to be stored.                     
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.3 cbf_H5Dcreate
+     2.6.4 cbf_H5Dfind
+     2.6.5 cbf_H5Dset_extent
+     2.6.6 cbf_H5Dwrite
+     2.6.8 cbf_H5Drequire_scalar_F64LE
+     2.6.9 cbf_H5Drequire_string
+     2.6.10 cbf_H5Dfree
+     2.6.11 cbf_H5Ddestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.8 cbf_H5Drequire_scalar_F64LE
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Drequire_scalar_F64LE (const hid_t location, hid_t * const
+     dataset, const char * const name, const double value, int (*cmp)(const
+     void *, const void *, size_t, const void * const), const void * const
+     cmp_params)
+
+     DESCRIPTION
+
+     Write a scalar 64-bit floating point number as a dataset.
+
+     Convenience function using the HDF5 abstraction layer to avoid the need
+     to consider array-related parameters for a scalar dataset and to
+     automatically set the string type to the correct size.
+
+     ARGUMENTS
+
+     location   The group containing the new dataset.                         
+     dataset    An optional pointer to a place to store the new dataset.      
+     name       The name of the new dataset.                                  
+     value      The value of the new dataset.                                 
+     cmp        A comparison function to test if a previously set value is    
+                equal to the value I asked for.                               
+     cmp_params Some extra data required by the comparison function.          
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.3 cbf_H5Dcreate
+     2.6.4 cbf_H5Dfind
+     2.6.5 cbf_H5Dset_extent
+     2.6.6 cbf_H5Dwrite
+     2.6.7 cbf_H5Dread
+     2.6.9 cbf_H5Drequire_string
+     2.6.10 cbf_H5Dfree
+     2.6.11 cbf_H5Ddestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.9 cbf_H5Drequire_string
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Drequire_string (const hid_t location, hid_t * const dataset,
+     const char * const name, const char * const value)
+
+     DESCRIPTION
+
+     Write a single string as a dataset.
+
+     Convenience function using the HDF5 abstraction layer to avoid the need
+     to consider array-related parameters for a scalar dataset and to
+     automatically set the string type to the correct size.
+
+     ARGUMENTS
+
+     location   The group containing the new dataset.                    
+     dataset    An optional pointer to a place to store the new dataset. 
+     name       The name of the new dataset.                             
+     value      The value of the new dataset.                            
+     cmp_params Some extra data required by the comparison function.     
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.3 cbf_H5Dcreate
+     2.6.4 cbf_H5Dfind
+     2.6.5 cbf_H5Dset_extent
+     2.6.6 cbf_H5Dwrite
+     2.6.7 cbf_H5Dread
+     2.6.8 cbf_H5Drequire_scalar_F64LE
+     2.6.10 cbf_H5Dfree
+     2.6.11 cbf_H5Ddestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.10 cbf_H5Dfree
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Dfree(const hid_t ID)
+
+     DESCRIPTION
+
+     Close a HDF5 dataset.
+
+     Attempt to close a dataset, but don't modify the identifier that
+     described it.
+
+     ARGUMENTS
+
+     ID The HDF5 dataset to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.3 cbf_H5Dcreate
+     2.6.4 cbf_H5Dfind
+     2.6.5 cbf_H5Dset_extent
+     2.6.6 cbf_H5Dwrite
+     2.6.7 cbf_H5Dread
+     2.6.8 cbf_H5Drequire_scalar_F64LE
+     2.6.9 cbf_H5Drequire_string
+     2.6.11 cbf_H5Ddestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.11 cbf_H5Ddestroy
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Ddestroy(hid_t * const ID)
+
+     DESCRIPTION
+
+     Close a HDF5 dataset.
+
+     Attempt to close a dataset, clobbering the identifier that described it.
+
+     ARGUMENTS
+
+     ID A pointer to the HDF5 dataset to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.3 cbf_H5Dcreate
+     2.6.4 cbf_H5Dfind
+     2.6.5 cbf_H5Dset_extent
+     2.6.6 cbf_H5Dwrite
+     2.6.7 cbf_H5Dread
+     2.6.8 cbf_H5Drequire_scalar_F64LE
+     2.6.9 cbf_H5Drequire_string
+     2.6.10 cbf_H5Dfree
+
+     ----------------------------------------------------------------------
+
+    2.6.12 cbf_H5Fopen
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Fopen(hid_t * const file, const char * const name)
+
+     DESCRIPTION
+
+     Attempt to open an HDF5 file by file name.
+
+     Will try to open a file of the given name with suitable values for some
+     of it's properties to make memory leaks less likely.
+
+     Warning: this function will destroy any existing data in the file, do
+     not pass the name of any file containing data you want to keep.
+
+     ARGUMENTS
+
+     file A pointer to an HDF5 ID where the newly opened file should be       
+          stored.                                                             
+     name The name of the file to attempt to open.                            
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.13 cbf_H5Ffree
+     2.6.14 cbf_H5Fdestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.13 cbf_H5Ffree
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Ffree(const hid_t ID)
+
+     DESCRIPTION
+
+     Close a HDF5 file.
+
+     Attempt to close a file, but don't modify the identifier that described
+     it.
+
+     ARGUMENTS
+
+     ID The HDF5 file to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.12 cbf_H5Fopen
+     2.6.14 cbf_H5Fdestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.14 cbf_H5Fdestroy
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Fdestroy(hid_t * const ID)
+
+     DESCRIPTION
+
+     Close a HDF5 file.
+
+     Attempt to close a file, clobbering the identifier that described it.
+
+     ARGUMENTS
+
+     ID A pointer to the HDF5 file to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.12 cbf_H5Fopen
+     2.6.13 cbf_H5Ffree
+
+     ----------------------------------------------------------------------
+
+    2.6.15 cbf_H5Gcreate
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Gcreate(hid_t * const group, const char * const name, const
+     hid_t parent)
+
+     DESCRIPTION
+
+     Attempt to create a group
+
+     Helper function to create a HDF5 group and return a CBFlib error code,
+     to make error handling more consistant.
+
+     ARGUMENTS
+
+     group  A pointer to a HDF5 ID type where the group will be stored. 
+     name   The name that the group will be given.                      
+     parent The group that will contain the newly created group.        
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.16 cbf_H5Grequire
+     2.6.17 cbf_H5Gfree
+     2.6.18 cbf_H5Gdestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.16 cbf_H5Grequire
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Grequire(hid_t * const group, const char * const name, const
+     hid_t parent)
+
+     DESCRIPTION
+
+     Ensure a group exists
+
+     Checks for the existance of a group with the given name and parent. Will
+     create the group if it cannot be found, or open it if it already exists.
+     It is an error if a matching group cannot be found or created.
+
+     ARGUMENTS
+
+     group  A pointer to a HDF5 ID type where the group will be stored. 
+     name   The name that the group will be given.                      
+     parent The group that will contain the newly created group.        
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.15 cbf_H5Gcreate
+     2.6.17 cbf_H5Gfree
+     2.6.18 cbf_H5Gdestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.17 cbf_H5Gfree
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Gfree(const hid_t ID)
+
+     DESCRIPTION
+
+     Close a HDF5 group.
+
+     Attempt to close a group, but don't modify the identifier that described
+     it.
+
+     ARGUMENTS
+
+     ID The HDF5 group to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.15 cbf_H5Gcreate
+     2.6.16 cbf_H5Grequire
+     2.6.18 cbf_H5Gdestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.18 cbf_H5Gdestroy
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Gdestroy(hid_t * const ID)
+
+     DESCRIPTION
+
+     Close a HDF5 group.
+
+     Attempt to close a group, clobbering the identifier that described it.
+
+     ARGUMENTS
+
+     ID A pointer to the HDF5 group to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.15 cbf_H5Gcreate
+     2.6.16 cbf_H5Grequire
+     2.6.17 cbf_H5Gfree
+
+     ----------------------------------------------------------------------
+
+    2.6.19 cbf_H5Ivalid
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Ivalid(const hid_t ID)
+
+     DESCRIPTION
+
+     Check the validity of an object identifier
+
+     Function to check validity of a HDF5 identifier. HDF5's predefined types
+     are never counted as valid by this function, so it can't be used to test
+     the validity of a type constant. Types obtained by using H5Tcopy are
+     safe to test.
+
+     ARGUMENTS
+
+     ID An HDF5 object identifier. 
+
+     RETURN VALUE
+
+     Non-zero if the type is valid, zero otherwise.
+
+     SEE ALSO
+
+     2.6.20 cbf_H5Ifree
+
+     ----------------------------------------------------------------------
+
+    2.6.20 cbf_H5Ifree
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Ifree(const hid_t ID)
+
+     DESCRIPTION
+
+     Try to free an object identifier
+
+     Function to close any valid HDF5 handle without tracking its type. Don't
+     use this if a more specific function can be used instead, ie if the type
+     is known, as this function will be less efficient.
+
+     ARGUMENTS
+
+     ID An HDF5 object identifier to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.19 cbf_H5Ivalid
+
+     ----------------------------------------------------------------------
+
+    2.6.21 cbf_H5Screate
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Screate (hid_t * const ID, const int rank, const hsize_t *
+     const dim, const hsize_t * const max)
+
+     DESCRIPTION
+
+     Helper function which creates a HDF5 dataspace.
+
+     Maximum dimensions can be set to infinity by passing H5S_UNLIMITED in
+     the appropriate slot of the max parameter. If max is a null pointer the
+     maximum length is set to the current length as given by dim.
+
+     ARGUMENTS
+
+     ID   A pointer to a HDF5 identifier that will contain the new dataspace. 
+     rank The number of dimensions of the new dataspace.                      
+     dim  The current size of each dimension of the dataspace, should be an   
+          array of length rank.                                               
+     max  The maximum size of each dimension, should be an array of length    
+          rank.                                                               
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.22 cbf_H5Sfree
+     2.6.23 cbf_H5Sdestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.22 cbf_H5Sfree
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Sfree(const hid_t ID)
+
+     DESCRIPTION
+
+     Close a HDF5 dataspace.
+
+     Attempt to close a dataspace, but don't modify the identifier that
+     described it.
+
+     ARGUMENTS
+
+     ID The HDF5 dataspace to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.21 cbf_H5Screate
+     2.6.23 cbf_H5Sdestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.23 cbf_H5Sdestroy
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Sdestroy(hid_t * const ID)
+
+     DESCRIPTION
+
+     Close a HDF5 dataspace.
+
+     Attempt to close a dataspace, clobbering the identifier that described
+     it.
+
+     ARGUMENTS
+
+     ID A pointer to the HDF5 dataspace to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.21 cbf_H5Screate
+     2.6.22 cbf_H5Sfree
+
+     ----------------------------------------------------------------------
+
+    2.6.24 cbf_H5Tcreate_string
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Tcreate_string(hid_t * type, const size_t len)
+
+     DESCRIPTION
+
+     Convenience function to create a string datatype suitable for use when
+     storing a string of length len.
+
+     ARGUMENTS
+
+     type A pointer to a the HDF5 handle of the new datatype, which should be 
+          free'd with cbf_H5Tfree.                                            
+     len  The length of the string datatype - should be strlen() or           
+          H5T_VARIABLE.                                                       
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.25 cbf_H5Tfree
+     2.6.26 cbf_H5Tdestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.25 cbf_H5Tfree
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Tfree(const hid_t ID)
+
+     DESCRIPTION
+
+     Close a HDF5 datatype.
+
+     Attempt to close a datatype, but don't modify the identifier that
+     described it.
+
+     ARGUMENTS
+
+     ID The HDF5 datatype to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.24 cbf_H5Tcreate_string
+     2.6.26 cbf_H5Tdestroy
+
+     ----------------------------------------------------------------------
+
+    2.6.26 cbf_H5Tdestroy
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Tdestroy(hid_t * const ID)
+
+     DESCRIPTION
+
+     Close a HDF5 datatype.
+
+     Attempt to close a datatype, clobbering the identifier that described
+     it.
+
+     ARGUMENTS
+
+     ID A pointer to the HDF5 datatype to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.6.24 cbf_H5Tcreate_string
+     2.6.25 cbf_H5Tfree
+
+     ----------------------------------------------------------------------
+
+  2.7 High-level NeXus-related functions
+
+    2.7.1 cbf_create_h5handle
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_create_h5handle(cbf_h5handle *h5handle,const char * h5filename)
+
+     DESCRIPTION
+
+     Allocates space for a HDF5 file handle and opens a file with the given
+     name.
+
+     Warning: this function will destroy any existing data in the file, do
+     not pass the name of any file containing data you want to keep.
+
+     ARGUMENTS
+
+     h5handle   The location to store the new handle.                     
+     h5filename The name of a file to open and associate with the handle. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.7.3 cbf_free_h5handle
+
+     ----------------------------------------------------------------------
+
+    2.7.2 cbf_write_minicbf_h5file
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_write_minicbf_h5file (cbf_handle handle, cbf_h5handle h5handle,
+     cbf_hdf5_configItemVectorhandle axisConfig)
+
+     DESCRIPTION
+
+     ARGUMENTS
+
+     handle     The minicbf file to add to the NeXus file.                    
+     h5handle   The NeXus file to add the minicbf file to.                    
+     axisConfig Some configuration settings to describe what the minicbf axis 
+                settings mean.                                                
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     ----------------------------------------------------------------------
+
+    2.7.3 cbf_free_h5handle
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_free_h5handle(cbf_h5handle h5handle)
+
+     DESCRIPTION
+
+     Closes all the open groups within the handle and then destroys the
+     handle.
+
+     ARGUMENTS
+
+     h5handle The HDF5 handle to be free'd. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+     2.7.1 cbf_create_h5handle
+
+     ----------------------------------------------------------------------
+
+     ----------------------------------------------------------------------
+
   3. File format
 
     3.1 General description
@@ -7631,7 +8805,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      current section:
 
    
-          - - - - - - - - 0
+          - - - - - - - - 0 *
           - - - - - - - - - 2
           - - - - - - - - - -
 
@@ -8282,7 +9456,7 @@ src/                      include/             m4/                  Description
      cif2cbf [-i input_cif] [-o output_cbf] \
        [-u update_cif] \
        [-c {p[acked]|c[annonical]|{b[yte_offset]}|\
-         {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|n[n[one]}] \
+         {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|n[one]}] \
        [-C highclipvalue] \
        [-D ] \
        [-I {0|2|4|8}] \
@@ -8667,8 +9841,100 @@ src/                      include/             m4/                  Description
    cif2cbf -I 4 -e n -c b -i xxx.cbf -o xxx_xds.cbf
   
 
-     ----------------------------------------------------------------------
+    minicbf2nexus
+
+     This program takes some minicbf files and axis configuration settings
+     for them and creates a nexus file containing the same data. As this is
+     an early version of the program it lacks a lot of useful functionality
+     and should not be assumed to be stable.
+
+     It currently takes several command line arguments:
+
+       * -z
+         --compression
+         These are optional and take a single argument which describes the
+         compression used for the dataset.
+
+         Curently implemented values are:
+
+            * zlib
+              Use zlib compression
+            * none
+              Don't compress the data
+
+         More compression options will be added in later versions, including
+         options for CBFlib compression schemes.
+
+       * -c
+         --config
+         This takes a single argument giving the file name of a configuration
+         file which describes how the axes of the minicbf file relate to each
+         other.
+
+       * -o
+         --output
+         This takes a single argument which is used as the filename for the
+         new nexus file. Any existing files of the same name are overwritten
+         without warning, so be careful that the name of any existing files
+         that you wish to keep are not passed as an argument here.
+
+       * Other arguments are interpreted as file names describing the minicbf
+         files to be packed into the new nexus file. These must currently be
+         pilatus v1.2 minicbf files, but this restriction will be relaxed in
+         later versions.
+
+     The example usage, in the test scripts, is:
+
+     minicbf2nexus -z zlib -c config X4_lots_M1S4_1_0001.cbf
+     X4_lots_M1S4_1_0002.cbf X4_lots_M1S4_1_0003.cbf X4_lots_M1S4_1_0004.cbf
+     X4_lots_M1S4_1_0005.cbf -o minicbf.h5
+
+     The config file used in this example is:
+
+ # some sample config settings for a minicbf file
+            
+             map Start_angle to CBF_axis_omega
+             map Phi to CBF_axis_phi
+             map Kappa to CBF_axis_kappa
+            
+             Sample depends-on CBF_axis_phi
+            
+             CBF_axis_phi vector [1 0 0] depends-on CBF_axis_kappa
+             CBF_axis_kappa vector [0 1 0] depends-on .
+             CBF_axis_omega vector [0 0 0]
+        
+
+     Text from any # character to the end of the line is ignored as a
+     comment.
+
+     Axes are declared by the map keyword as the name of the axis in the
+     minicbf file, which must match exactly, followed by the keyword to and
+     then the name that will be given to the axis in the resulting nexus
+     file. Each axis is treated as a rotation axis and should have a vector
+     which defines the axis of rotation in the 3D coordinate frame used by
+     nexus, this should be 3 numbers within square brackets separated by
+     spaces and does not need to be normalised. Each axis may also depend on
+     a nother axis by using the keyword depends-on folowed by the name of the
+     nexus axis it depends on, or . if it does not depend on another axis,
+     omitting a dependency as shown on the final line of the example above is
+     not recommended as it will eventually be a fatal error. The vector and
+     depends-on declarations do not need to be on the same line.
+
+     The Sample keyword is used to define a dependency for the sample being
+     scanned and should be followed by a depends-on declaration which defines
+     the name of the nexus axis that the sample depends on.
+
+     The final line of the config file should be blank to allow for some
+     simple integrity tests.
+
+     A continuous chain of dependencies should be formed from the sample to
+     the nexus coordinate system, otherwise there is insufficient information
+     available to properly describe the orientation of the sample. This will
+     be enforced in later versions, with a fatal error if insufficient
+     information is provided.
 
      ----------------------------------------------------------------------
 
-     Updated 29 March 2011. Contact:  yaya at bernstein-plus-sons dot com
+     ----------------------------------------------------------------------
+
+     Updated 20 June 2013. Contact:  yaya at bernstein-plus-sons dot com
