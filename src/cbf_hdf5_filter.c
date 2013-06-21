@@ -464,6 +464,16 @@ extern "C" {
                 *buf_size = 0;
                 return 0;
             }
+            
+            if (textcompression != CBF_NONE &&
+                textcompression != CBF_BYTE_OFFSET &&
+                textcompression != CBF_NIBBLE_OFFSET ) {
+                fprintf(stderr," Only CBF_NONE, CBF_BYTE_OFFSET and CBF_NIBBLE_OFFSET "
+                        "supported at this time\n");
+                *buf_size = 0;
+                return 0;
+            }
+                
             elsize = (textbits+7)/8;
             nelem = textdimover;
             
@@ -489,6 +499,11 @@ extern "C" {
                         errorcode);
 #ifdef CBFDEBUG
             fprintf(stderr," errorcode %d after decompress\n",errorcode);
+            
+            {int ii;
+                for (ii=0; ii<500 && ii < nelem_read*elsize; ii++)
+                    fprintf(stderr,"%d: %x %c ",ii,(((char*)destination))[ii],(((char *)destination))[ii]);
+            }
 #endif
             
             if (errorcode) cbf_free((void **) (&destination), NULL);
@@ -569,6 +584,16 @@ extern "C" {
             } else {
                 binid = 1;
             }
+            
+            if (compression != CBF_NONE &&
+                compression != CBF_BYTE_OFFSET &&
+                compression != CBF_NIBBLE_OFFSET ) {
+                fprintf(stderr," Only CBF_NONE, CBF_BYTE_OFFSET and CBF_NIBBLE_OFFSET "
+                        "supported at this time\n,");
+                *buf_size = 0;
+                return 0;
+            }
+
             
             if (dimslow < 1) dimslow = 1;
             
@@ -738,10 +763,25 @@ extern "C" {
             }
             
 #ifdef CBFDEBUG
-            fprintf(stderr,"Start of compression %ld, compression %x\n",
-                    (long) (tempfile->characters+tempfile->characters_used-tempfile->characters_base),
-                    compression);
-#endif            
+            {   int ii;
+                size_t cbase;
+                
+                cbase = tempfile->characters+tempfile->characters_used-tempfile->characters_base;
+
+                fprintf(stderr,"Start of compression %ld, compression %x RAW DATA\n",
+                    (long) cbase,compression);
+                for (ii=0; ii < *buf_size && ii < 500; ii++){
+                    if (ii%32==0) fprintf(stderr,"\n");
+                    fprintf(stderr,"%d:%x ",ii,(*((char**)buf))[ii]);
+                }
+                            
+                    
+            }
+            fprintf(stderr,"\nelsize %d, elsign %d, nelem %d, realarray %d, dimfast %d,"
+                    "dimmid %d, dimslow %d, padding %d\n",
+                    (int)elsize, (int)elsign, (int)nelem,
+                    (int)realarray,(int)dimfast,(int)(dimmid),(int)dimslow, (int)padding);
+#endif
             if (!errorcode &&
                 (errorcode|=cbf_compress (*buf, elsize, elsign, nelem,
                               compression, tempfile,
@@ -784,8 +824,16 @@ extern "C" {
                 *buf_size = tempfile->characters+tempfile->characters_used-tempfile->characters_base;
 #ifdef CBFDEBUG
                 {int ii;
-                    for (ii=0; ii<500 && ii < *buf_size; ii++)
-                        fprintf(stderr,"%d: %x %c ",ii,(*((char**)buf))[ii],(*((char **)buf))[ii]);
+                    fprintf(stderr,"\nCompressed data as characters\n:");
+                    for (ii=0; ii<500 && ii < *buf_size; ii++){
+                        fprintf(stderr,"%c",(*((char**)buf))[ii]);
+                    }
+                    fprintf(stderr,"\nCompressed data as hex\n:");
+                    for (ii=0; ii<500 && ii < *buf_size; ii++) {
+                        if (ii%32==0)fprintf(stderr,"\n");
+                        fprintf(stderr,"%d: %x ",ii,(*((char **)buf))[ii]);
+                    }
+                    
                 }
 #endif
                 tempfile->characters_base = oldbuf;

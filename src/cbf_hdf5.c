@@ -3479,7 +3479,8 @@ return e; \
              chunking in planes dimfast x dimmid
              
              */
-            
+                        
+            size_t nelem_file;
             
             hsize_t chunk[3];
             
@@ -3704,6 +3705,7 @@ return e; \
             
             cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION] = compression;
             cd_values[CBF_H5Z_FILTER_CBF_RESERVED]    = 0;
+            cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID]   = id;
             cd_values[CBF_H5Z_FILTER_CBF_PADDING]     = padding;
             cd_values[CBF_H5Z_FILTER_CBF_ELSIZE]      = (bits+7)/8;
             cd_values[CBF_H5Z_FILTER_CBF_ELSIGN]      = sign;
@@ -3717,7 +3719,7 @@ return e; \
                                           CBF_H5Z_FILTER_CBF_NELMTS,
                                           cd_values),CBF_ALLOC,errorcode);
             
-            fprintf(stderr,"errorcode on setting filter CBF_H5Z_FILTER_CBF %d\n",errorcode);
+            /* fprintf(stderr,"errorcode on setting filter CBF_H5Z_FILTER_CBF %d\n",errorcode); */
             
             valid = H5Dcreatex(h5handle->colid,rownum,
                                                valtype,valspace,
@@ -3733,16 +3735,29 @@ return e; \
             
             nelems_read = 0;
             
-            if (realarray) {
+            /* Get the data */
+            
+            {
+                int text_realarray, text_id;
                 
-                cbf_reportnez(cbf_get_realarray(handle,0,uncompressedarray,
-                                                elsize,dimover,&nelems_read),
-                              errorcode);
-            }  else {
+                size_t text_dimover, text_dimfast, text_dimmid, text_dimslow, text_padding;
                 
-                cbf_reportnez(cbf_get_integerarray(handle,0,uncompressedarray,
-                                                   elsize,sign,dimover,&nelems_read),
-                              errorcode);
+                const char *text_byteorder;
+                
+                cbf_reportnez (cbf_get_binary (column, row,
+                                               &text_id,
+                                               uncompressedarray,
+                                               elsize,
+                                               sign,
+                                               dimover,
+                                               &nelems_read,
+                                               &text_realarray,
+                                               &text_byteorder,
+                                               &text_dimover,
+                                               &text_dimfast,
+                                               &text_dimmid,
+                                               &text_dimslow,
+                                               &text_padding),errorcode);
             }
             
             if (nelems_read < dimover) {
