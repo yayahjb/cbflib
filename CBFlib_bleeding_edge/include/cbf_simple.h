@@ -986,7 +986,6 @@ int cbf_set_3d_array (cbf_handle    handle,
                              double *offset1,
                              double *offset2,
                              double *offset3);
-    ;
 
 
   /* Get the setting of an axis */
