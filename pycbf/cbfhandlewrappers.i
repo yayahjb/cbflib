@@ -301,10 +301,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -1646,14 +1647,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -2092,10 +2094,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -2318,10 +2321,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -2518,10 +2522,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -3257,10 +3262,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -3416,14 +3422,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -4053,10 +4060,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -4296,14 +4304,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -4567,10 +4576,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -5098,10 +5108,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -5399,14 +5410,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -5586,10 +5598,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -5882,10 +5895,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -6201,14 +6215,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -6549,14 +6564,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -7049,10 +7065,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -7278,14 +7295,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -7394,14 +7412,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -7487,10 +7506,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.

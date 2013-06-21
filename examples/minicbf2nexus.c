@@ -315,12 +315,12 @@ int main (int argc, char *argv [])
                     else hdf5out = optarg;
                     break;
 				}
-				case 'c': { // config file
+				case 'c': { /* config file */
 					if (config) errflg++;
 					else config = optarg;
 					break;
 				}
-                case 'z': { // compression
+                case 'z': { /* compression */
 					if (!strcmp("zlib",optarg?optarg:"")) h5_write_flags |= CBF_H5_ZLIB;
 					else if (!strcmp("none",optarg?optarg:"")) h5_write_flags &= ~CBF_H5_ZLIB;
 					else ++errflg;
@@ -342,7 +342,7 @@ int main (int argc, char *argv [])
         exit(2);
     }
     
-	// parse the config file
+	/* parse the config file */
 	{
 		int parseError = CBF_SUCCESS;
 		FILE * const configFile = fopen(config, "r");
@@ -355,7 +355,7 @@ int main (int argc, char *argv [])
 		}
 	}
     
-	// prepare the output file
+	/* prepare the output file */
 	if(cbf_create_h5handle2(&h5out,hdf5out)) printf ("Couldn't open the HDF5 file '%s'.\n", hdf5out);
 	h5out->nxid = H5Gcreate_anon(h5out->hfile,H5P_DEFAULT,H5P_DEFAULT);
 	cbf_H5Arequire_string(h5out->nxid,"NX_class","NXentry");
@@ -402,47 +402,47 @@ int main (int argc, char *argv [])
 		}
 
 
-		// start timing
+		/* start timing */
 		a = clock ();
-		{ // do the work
-			// prepare the file
+		{ /* do the work */
+			/* prepare the file */
 			FILE * const in = fopen (cifin[f], "rb");
 			if (NULL == in) {
 				fprintf (stderr,"Couldn't open the input CIF file '%s': %s\n", cifin[f], strerror(errno));
 				exit (1);
 			}
-			// ensure temporary file is removed when the program closes
+			/* ensure temporary file is removed when the program closes */
 			if (ciftmpused) {
 				if (unlink(ciftmp)) {
 					fprintf(stderr,"Can't unlink temporary file '%s': %s\n", ciftmp,strerror(errno));
 					exit(1);
 				}
 			}
-			// make the handle
+			/* make the handle */
 			if ( cbf_make_handle (&cif) ) {
 				fprintf(stderr,"Failed to create handle for input_cif\n");
 				exit(1);
 			}
-			// read the file
+			/* read the file */
 			cbf_onfailnez(cbf_read_file(cif, in, MSG_DIGEST|(digest&MSG_DIGESTWARN)),free(cifin));
 		}
-		// stop timing
+		/* stop timing */
 		b = clock ();
 		fprintf(stderr, "Time to read '%s': %.3fs\n", cifin[f], ((float)(b - a))/CLOCKS_PER_SEC);
 
-		// start timing
+		/* start timing */
 		a = clock ();
-		{ // do the work
+		{ /* do the work */
 			int cbfError = CBF_SUCCESS;
 			h5out->slice = f;
-				// convert to nexus format
+				/* convert to nexus format */
 				cbfError = cbf_write_minicbf_h5file(cif, h5out, vec, h5_write_flags);
 			cbf_onfailnez(cbfError,{cbf_free_handle(cif);free(cifin);});
 		}
         
 		cbf_free_handle(cif);
         
-		// stop timing
+		/* stop timing */
 		b = clock ();
 		fprintf(stderr, "Time to convert the data: %.3fs\n", ((float)(b - a))/CLOCKS_PER_SEC);
 
@@ -450,19 +450,19 @@ int main (int argc, char *argv [])
     
 	cbf_hdf5_destroyConfigItemVector(vec);
     
-	{ // write the file
-		// start timing
+	{ /* write the file */
+		/* start timing */
 		a = clock ();
 		H5Olink(h5out->nxid,h5out->hfile,"entry",H5P_DEFAULT,H5P_DEFAULT);
-		// clean up cbf handles
+		/* clean up cbf handles */
 		cbf_free_h5handle(h5out);
-		// stop timing
+		/* stop timing */
 		b = clock ();
 		fprintf(stderr, "Time to write '%s': %.3fs\n", hdf5out, ((float)(b - a))/CLOCKS_PER_SEC);
 	}
 
 
-	// cleanup
+	/* cleanup */
 	free(cifin);
 	cbf_failnez(cbf_free_getopt_handle(opts));
     exit(0);

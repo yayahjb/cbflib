@@ -1626,6 +1626,8 @@ endif
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 		$(TIME) $(BIN)/cif2cbf -5 w -O -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+		$(TIME) $(BIN)/cif2cbf -5 w -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconvertedxx.cbf.h5)
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 		$(BIN)/h5dump insulin_pilatus6mconverted_orig.cbf.h5 | $(ALLBUTONE) > insulin_pilatus6mconverted_orig.cbf.h5.dump)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 		$(BIN)/h5dump insulin_pilatus6mconverted.cbf.h5 | $(ALLBUTONE)  > insulin_pilatus6mconverted.cbf.h5.dump)
@@ -1634,7 +1636,10 @@ endif
 	-rm -f insulin_pilatus6mconverted.cbf.h5.dump
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 		$(TIME) $(BIN)/cif2cbf -5 rn -en -cp -i insulin_pilatus6mconverted.cbf.h5 -o insulin_pilatus6mconverted.cbf.h5.cbf)
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+		$(TIME) $(BIN)/cif2cbf -5 rn -en -cp -i insulin_pilatus6mconvertedxx.cbf.h5 -o insulin_pilatus6mconvertedxx.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	-cmp insulin_pilatus6mconvertedxx.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/minicbf2nexus -z zlib \
 		-c config ../X4_lots_M1S4_1_*.cbf -o minicbf.h5
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/h5dump ../minicbf_original.h5 | $(ALLBUTONE) > minicbf_original.dump
