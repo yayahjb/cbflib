@@ -255,6 +255,7 @@ extern "C" {
     
 #endif
 
+#define CBF_HDF5_FILTER_C
 #include "cbf_hdf5_filter.h"
 #include "cbf_codes.h"
 #include "cbf_context.h"
@@ -273,7 +274,7 @@ extern "C" {
                                  void **buf);
 
     
-    const H5Z_class2_t H5Z_CBF[1] = {{
+    const H5Z_class2_t CBF_H5Z_CBF[1] = {{
         H5Z_CLASS_T_VERS,                   /* H5Z_class_t version */
         (H5Z_filter_t)CBF_H5Z_FILTER_CBF,   /* Filter id number             */
         1,                                  /* encoder_present flag (set to true) */
@@ -286,7 +287,7 @@ extern "C" {
 
 #ifdef CBF_H5_SETUP_FILTER_PLUGIN
     H5PL_type_t   H5PLget_plugin_type(void) {return H5PL_TYPE_FILTER;}
-    const void *H5PLget_plugin_info(void) {return H5Z_CBF;}
+    const void *H5PLget_plugin_info(void) {return CBF_H5Z_CBF;}
 #endif
 
 
