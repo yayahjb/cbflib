@@ -62,6 +62,7 @@
  *    [-v dictionary]* [-w] [-D]\                                     *
  *    [-O] \                                                          *
  *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
+ *    [--register {manual|plugin}] \                                  *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
  *  the options are:                                                  *
@@ -162,6 +163,10 @@
  *  -5 hdf5mode specifies whether to read and/or write in hdf5 mode   *
  *     the n parameter will cause the CIF H5 datablock to be deleted  *
  *     on both read and write, for both CIF, CBF and HDF5 files       *
+ *                                                                    *
+ *  --register manual or plugin (default plugin)                      *
+ *     controls whether to rely on the HDF5 filter plugin mechanism   *
+ *     or to manually register the CBFlib compression for HDF5        *
  *                                                                    *
  *  -O when in -5 w (hdf5 write) mode, -O forces the use of opaque    *
  *     objects for CBF binaries                                       *
@@ -523,6 +528,7 @@ int main (int argc, char *argv [])
     cbf_getopt_handle opts;
     int hdf5mode = 0;
     int hdf5noH5 = 0;
+    int hdf5register = 0;
     int devnull = 0;
     int c;
     int errflg = 0;
@@ -591,6 +597,7 @@ int main (int argc, char *argv [])
      *    [-v dictionary]* [-w] [-W] \                                    *
      *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
      *    [-O] \                                                          *
+     *    [--register {manual|plugin} \                                   *
      *    [input_cif] [output_cbf]                                        *
      *                                                                    *
      **********************************************************************/
@@ -607,6 +614,7 @@ int main (int argc, char *argv [])
     nelsize = 0;
     hdf5mode = 0;
     hdf5noH5 = 0;
+    hdf5register = 0;
     
     cifin = NULL;
     cbfout = NULL;
@@ -638,6 +646,7 @@ int main (int argc, char *argv [])
                                  "T(treble-quotes):" \
                                  "v(validation-dictionary):" \
                                  "5(hdf5):" \
+                                 "Z(register):" \
                                  "O(opaque)" \
                                  "w(read-wide)" \
                                  "W(write-wide)" \
@@ -781,9 +790,19 @@ int main (int argc, char *argv [])
                     }
                     break;
                     
+                case 'Z': /* register compressions */
+                    if (hdf5register) errflg++;
+                    if (cbf_cistrcmp(optarg,"manual")== 0) {
+                        hdf5register = CBF_H5_REGISTER_COMPRESSIONS;
+                    } else if (cbf_cistrcmp(optarg,"plugin") == 0) {
+                        hdf5register = 0;
+                    } else {
+                        errflg++;
+                    }
+                    break;
                 case 'O': /* set Opaque mode */
                     if (opaquemode) errflg++;
-                        opaquemode = 1;
+                    opaquemode = 1;
                     break;
                     
                 case 'e':
@@ -1008,6 +1027,8 @@ int main (int argc, char *argv [])
         fprintf(stderr,
                 "    [-O] \\\n");
         fprintf(stderr,
+                "    [--register {manual|plugin}] \\\n");
+        fprintf(stderr,
                 "    [input_cif] [output_cbf] \n\n");
         exit(2);
     }
@@ -1159,7 +1180,7 @@ int main (int argc, char *argv [])
     }
     
     if (hdf5mode&HDF5_READ_MODE) {
-        cbf_failnez (cbf_read_h5file(cif, h5in, MSG_DIGEST|qrflags|(digest&MSG_DIGESTWARN)))
+        cbf_failnez (cbf_read_h5file(cif, h5in, hdf5register|MSG_DIGEST|qrflags|(digest&MSG_DIGESTWARN)))
     } else {
         if (!wide) {
             cbf_failnez (cbf_read_file (cif, in, MSG_DIGEST|qrflags|(digest&MSG_DIGESTWARN)))
@@ -1802,8 +1823,8 @@ int main (int argc, char *argv [])
     if ( ! devnull ){
         if (hdf5mode&HDF5_WRITE_MODE) {
                         
-            cbf_failnez(cbf_write_h5file (cbf, h5out,
-                                          opaquemode?CBF_H5_OPAQUE:0))
+            cbf_failnez(cbf_write_h5file (cbf, h5out, hdf5register|(
+                                          opaquemode?CBF_H5_OPAQUE:0)))
             
         } else {
             

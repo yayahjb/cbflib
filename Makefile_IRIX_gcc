@@ -274,6 +274,7 @@ HDF5 = hdf5-1.8.11
 HDF5PREFIX = $(PWD)
 HDF5LIBS = ./lib/libhdf5.a -lz -ldl
 HDF5SOLIBS = -L./lib -lhdf5 -lz
+HDF5REGISTER ?= --register plugin
 
 #
 # Definitions to get a stable version of regex
@@ -1608,9 +1609,9 @@ endif
 	-$(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted_v2.cbf
 	-cmp insulin_pilatus6mconverted_v2.cbf insulin_pilatus6mconverted_v2_orig.cbf
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-		$(TIME) $(BIN)/cif2cbf -5 w -O -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5)
+		$(TIME) $(BIN)/cif2cbf -5 w -O $(HDF5REGISTER) -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-		$(TIME) $(BIN)/cif2cbf -5 w -en -cI -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconvertedxx.cbf.h5)
+		$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cI -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconvertedxx.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 		$(BIN)/h5dump insulin_pilatus6mconverted_orig.cbf.h5 | $(ALLBUTONE) > insulin_pilatus6mconverted_orig.cbf.h5.dump)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
@@ -1619,9 +1620,9 @@ endif
 	-rm -f insulin_pilatus6mconverted_orig.cbf.h5.dump
 	-rm -f insulin_pilatus6mconverted.cbf.h5.dump
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-		$(TIME) $(BIN)/cif2cbf -5 rn -en -cp -i insulin_pilatus6mconverted.cbf.h5 -o insulin_pilatus6mconverted.cbf.h5.cbf)
+		$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted.cbf.h5 -o insulin_pilatus6mconverted.cbf.h5.cbf)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-		$(TIME) $(BIN)/cif2cbf -5 rn -en -cp -i insulin_pilatus6mconvertedxx.cbf.h5 -o insulin_pilatus6mconvertedxx.cbf.h5.cbf)
+		$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconvertedxx.cbf.h5 -o insulin_pilatus6mconvertedxx.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	-cmp insulin_pilatus6mconvertedxx.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/minicbf2nexus -z zlib \
@@ -1875,6 +1876,7 @@ empty:
 	@-rm -rf $(INCLUDE)/H5*
 	@-rm -rf $(INCLUDE)/hdf5*
 	@-rm -f  *_old
+	@-rm -f X4_lots_M1S4_1_*.cbf
 	./.undosymlinks
 	
 #

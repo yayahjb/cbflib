@@ -293,6 +293,10 @@ extern "C" {
 #define CBF_H5Z_FILTER_CBF_DIMSLOW     9
 #define CBF_H5Z_FILTER_CBF_PADDING     10
 
+    
+#ifndef CBF_HDF5_FILTER_C
+    extern const H5Z_class2_t CBF_H5Z_CBF[1];
+#endif
 
 
     

@@ -437,6 +437,9 @@ extern "C" {
 #define CBF_H5_ZLIB     0x1000  /* Flag to write compressed images
                                      with zlib                        */
 #define CBF_H5_NOH5     0x2000  /* Flag to suppress the H5 group      */
+#define CBF_H5_REGISTER_COMPRESSIONS \
+                        0x4000  /* Flag to try to register
+                                     CBF compressions                 */
 
 
   /* Flags used for logging */

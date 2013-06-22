@@ -3480,8 +3480,6 @@ return e; \
              
              */
                         
-            size_t nelem_file;
-            
             hsize_t chunk[3];
             
             hsize_t maxdim[3];
@@ -3713,6 +3711,15 @@ return e; \
             cd_values[CBF_H5Z_FILTER_CBF_DIMFAST]     = dimfast;
             cd_values[CBF_H5Z_FILTER_CBF_DIMMID]      = dimmid;
             cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = dimslow;
+            
+            if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
+                
+                if (!H5Zfilter_avail(CBF_H5Z_FILTER_CBF)) {
+                    
+                    cbf_h5reportneg(H5Zregister(CBF_H5Z_CBF),CBF_ALLOC,errorcode);
+                    
+                }
+            }
             
             cbf_h5reportneg(H5Pset_filter(valprop,CBF_H5Z_FILTER_CBF,
                                           H5Z_FLAG_OPTIONAL,
@@ -5950,8 +5957,6 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
         
         H5T_class_t type_class, base_type_class;
         
-        H5T_class_t native_type_class;
-        
         H5T_order_t type_order;
         
         H5T_sign_t type_sign;
@@ -6004,6 +6009,8 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
          give up otherwise */
         
         type_class = H5Tget_class(type);
+        
+        native_type = H5Tget_native_type(type,H5T_DIR_ASCEND);
         
         base_type = CBF_H5FAIL;
         
@@ -6059,7 +6066,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                 
             } else if (atomic) {
                 
-                type_size = H5Tget_size(type);
+                type_size = H5Tget_size(native_type);
                 
                 type_order = H5Tget_order(type);
                 
@@ -6087,11 +6094,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
         if (total_dim < 1 ) total_dim = 1;
         
         cbf_reportnez(cbf_require_column(handle,"value"),errorcode);
-        
-        native_type = H5Tget_native_type(type,H5T_DIR_ASCEND);
-        
-        native_type_class = H5Tget_class(native_type);
-        
+                
         if(total_size > 0) {
             
             if(readattrib) {
@@ -6106,8 +6109,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                 
                 (*((char **)value))[total_size]='\0';
                 
-                if (type_class==H5T_STRING &&(native_type_class==H5T_NATIVE_CHAR
-                                              || native_type_class == H5T_STRING)) {
+                if (type_class==H5T_STRING) {
                     
                     cbf_reportnez(cbf_set_value(handle,(const char *)(*value)),errorcode);
                     
@@ -6131,16 +6133,16 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                         cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
                                                 type_size*3+1,1),errorcode);
                         
-                        if (native_type_class == H5T_NATIVE_CHAR&&sign) xdata = **((signed char **)value);
-                        if (native_type_class == H5T_NATIVE_CHAR&&!sign) uxdata = **((unsigned char **)value);
-                        if (native_type_class == H5T_NATIVE_SCHAR) xdata = **((signed char **)value);
-                        if (native_type_class == H5T_NATIVE_UCHAR) uxdata = **((unsigned char **)value);
-                        if (native_type_class == H5T_NATIVE_SHORT) xdata = **((unsigned short **)value);
-                        if (native_type_class == H5T_NATIVE_USHORT) uxdata = **((unsigned short **)value);
-                        if (native_type_class == H5T_NATIVE_INT) xdata = **((int **)value);
-                        if (native_type_class == H5T_NATIVE_UINT) uxdata = **((unsigned int **)value);
-                        if (native_type_class == H5T_NATIVE_LONG) xdata = **((long **)value);
-                        if (native_type_class == H5T_NATIVE_ULONG) uxdata = **((unsigned long **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_CHAR)&&sign) xdata = **((signed char **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_CHAR)&&!sign) uxdata = **((unsigned char **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_SCHAR)) xdata = **((signed char **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_UCHAR)) uxdata = **((unsigned char **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_SHORT)) xdata = **((unsigned short **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_USHORT)) uxdata = **((unsigned short **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_INT)) xdata = **((int **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_UINT)) uxdata = **((unsigned int **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_LONG)) xdata = **((long **)value);
+                        if (H5Tequal(native_type,H5T_NATIVE_ULONG)) uxdata = **((unsigned long **)value);
                         
                         if (sign) {
                             
@@ -6197,16 +6199,16 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                                 
                                 for (indices[level]=0; indices[level] < dims[level];) {
                                     
-                                    if (native_type_class == H5T_NATIVE_CHAR&&sign) xdata = ((*(signed char **)value)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_CHAR&&!sign) uxdata = ((*(unsigned char **)value)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_SCHAR) xdata = ((*(signed char **)value)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_UCHAR) uxdata = ((*(unsigned char **)value)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_SHORT) xdata = ((*(unsigned short **)value)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_USHORT) uxdata = ((*(unsigned short **)value)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_INT) xdata = ((*(int **)value)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_UINT) uxdata = ((*(unsigned int **)value)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_LONG) xdata = ((*(long **)value)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_ULONG) uxdata = ((*(unsigned long **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_CHAR)&&sign) xdata = ((*(signed char **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_CHAR)&&!sign) uxdata = ((*(unsigned char **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_SCHAR)) xdata = ((*(signed char **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_UCHAR)) uxdata = ((*(unsigned char **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_SHORT)) xdata = ((*(unsigned short **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_USHORT)) uxdata = ((*(unsigned short **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_INT)) xdata = ((*(int **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_UINT)) uxdata = ((*(unsigned int **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_LONG)) xdata = ((*(long **)value)[master_index]);
+                                    if (H5Tequal(native_type,H5T_NATIVE_ULONG)) uxdata = ((*(unsigned long **)value)[master_index]);
                                     
                                     
                                     if (sign) {
@@ -6330,7 +6332,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                         cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
                                                 type_size*2+6,1),errorcode);
                         
-                        if (native_type_class == H5T_NATIVE_FLOAT) {
+                        if (H5Tequal(native_type,H5T_NATIVE_FLOAT)) {
                             
                             xdata = **((float **)value);
                             
@@ -6389,7 +6391,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                                 
                                 for (indices[level]=0; indices[level] < dims[level];) {
                                     
-                                    if (native_type_class == H5T_NATIVE_FLOAT) {
+                                    if (H5Tequal(native_type,H5T_NATIVE_FLOAT)) {
                                         
                                         xdata = ((*(float **)value)[master_index]);
                                         
@@ -6547,8 +6549,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                 
                 data[total_size]='\0';
                 
-                if (type_class==H5T_STRING&& (native_type_class==H5T_NATIVE_CHAR
-                                              || native_type_class == H5T_STRING)) {
+                if (type_class==H5T_STRING) {
                     
                     cbf_reportnez(cbf_set_value(handle,(const char *)data),errorcode)
                     
@@ -6572,16 +6573,16 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                         cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
                                                 type_size*3+1,1),errorcode);
                         
-                        if (native_type_class == H5T_NATIVE_CHAR&&sign) xdata = *((signed char *)data);
-                        if (native_type_class == H5T_NATIVE_CHAR&&!sign) uxdata = *((unsigned char *)data);
-                        if (native_type_class == H5T_NATIVE_SCHAR) xdata = *((signed char *)data);
-                        if (native_type_class == H5T_NATIVE_UCHAR) uxdata = *((unsigned char *)data);
-                        if (native_type_class == H5T_NATIVE_SHORT) xdata = *((unsigned short *)data);
-                        if (native_type_class == H5T_NATIVE_USHORT) uxdata = *((unsigned short *)data);
-                        if (native_type_class == H5T_NATIVE_INT) xdata = *((int *)data);
-                        if (native_type_class == H5T_NATIVE_UINT) uxdata = *((unsigned int *)data);
-                        if (native_type_class == H5T_NATIVE_LONG) xdata = *((long *)data);
-                        if (native_type_class == H5T_NATIVE_ULONG) uxdata = *((unsigned long *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_CHAR)&&sign) xdata = *((signed char *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_CHAR)&&!sign) uxdata = *((unsigned char *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_SCHAR)) xdata = *((signed char *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_UCHAR)) uxdata = *((unsigned char *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_SHORT)) xdata = *((unsigned short *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_USHORT)) uxdata = *((unsigned short *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_INT)) xdata = *((int *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_UINT)) uxdata = *((unsigned int *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_LONG)) xdata = *((long *)data);
+                        if (H5Tequal(native_type, H5T_NATIVE_ULONG)) uxdata = *((unsigned long *)data);
                         
                         if (sign) {
                             
@@ -6638,16 +6639,18 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                                 
                                 for (indices[level]=0; indices[level] < dims[level];) {
                                     
-                                    if (native_type_class == H5T_NATIVE_CHAR&&sign) xdata = (((signed char *)data)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_CHAR&&!sign) uxdata = (((unsigned char *)data)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_SCHAR) xdata = (((signed char *)data)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_UCHAR) uxdata = (((unsigned char *)data)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_SHORT) xdata = (((unsigned short *)data)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_USHORT) uxdata = (((unsigned short *)data)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_INT) xdata = (((int *)data)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_UINT) uxdata = (((unsigned int *)data)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_LONG) xdata = (((long *)data)[master_index]);
-                                    if (native_type_class == H5T_NATIVE_ULONG) uxdata = (((unsigned long *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_CHAR)
+                                        &&sign) xdata = (((signed char *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_CHAR)
+                                        &&!sign) uxdata = (((unsigned char *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_SCHAR)) xdata = (((signed char *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_UCHAR)) uxdata = (((unsigned char *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_SHORT)) xdata = (((unsigned short *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_USHORT)) uxdata = (((unsigned short *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_INT)) xdata = (((int *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_UINT)) uxdata = (((unsigned int *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_LONG)) xdata = (((long *)data)[master_index]);
+                                    if (H5Tequal(native_type, H5T_NATIVE_ULONG)) uxdata = (((unsigned long *)data)[master_index]);
                                     
                                     
                                     if (sign) {
@@ -6771,7 +6774,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                         cbf_reportnez(cbf_alloc(((void **) &ivalue),NULL,
                                                 type_size*2+6,1),errorcode);
                         
-                        if (native_type_class == H5T_NATIVE_FLOAT) {
+                        if (H5Tequal(native_type, H5T_NATIVE_FLOAT)) {
                             
                             xdata = *((float *)data);
                             
@@ -6830,7 +6833,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                                 
                                 for (indices[level]=0; indices[level] < dims[level];) {
                                     
-                                    if (native_type_class == H5T_NATIVE_FLOAT) {
+                                    if (H5Tequal(native_type, H5T_NATIVE_FLOAT)) {
                                         
                                         xdata = (((float *)data)[master_index]);
                                         
@@ -7571,7 +7574,8 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                             binsize = (size_t)strtol(value,NULL,0);
                         } else if (!cbf_cistrcmp(attrib_name,"digest")
                                    ||!cbf_cistrcmp(attrib_name,"MD5_digest")) {
-                            strcpy(digest,value);
+                            strncpy(digest,value,24);
+                            digest[24] = 0;
                         } else if (!cbf_cistrcmp(attrib_name,"dimover")) {
                             dimover = (size_t)strtol(value,NULL,0);
                         } else if (!cbf_cistrcmp(attrib_name,"dimfast")) {
@@ -7841,6 +7845,16 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
         
         cbf_failnez (cbf_reset_refcounts(handle->dictionary));
         
+        /* register the CBF compressions if requested */
+        
+        if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
+            
+            if (!H5Zfilter_avail(CBF_H5Z_FILTER_CBF)) {
+                
+                cbf_h5failneg(H5Zregister(CBF_H5Z_CBF),CBF_ALLOC);
+                
+            }
+        }
         
         h5Ovisit.handle = handle;
         
