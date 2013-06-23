@@ -282,11 +282,6 @@ int cbf_make_compressdata (cbf_compress_data **data, cbf_file *file)
         
         return CBF_ARGUMENT;
     
-    if (!file->stream)
-        
-        return CBF_ARGUMENT;
-    
-    
     /* Allocate memory */
     
     cbf_failnez (cbf_alloc ((void **) data, NULL, sizeof (cbf_compress_data), 1))
@@ -1077,7 +1072,7 @@ int cbf_get_code (cbf_compress_data *data, cbf_compress_node *root,
     {
         if (bits0 == 0) {
             
-            if (data->file->temporary) {
+            if (data->file->temporary || !(data->file->stream) ) {
                 
                 if (data->file->characters_used) {
                     
@@ -1177,7 +1172,7 @@ int cbf_get_mpint_code (cbf_compress_data *data, cbf_compress_node *root,
     {
         if (bits0 == 0) {
             
-            if (data->file->temporary) {
+            if (data->file->temporary || !(data->file->stream)) {
                 
                 if (data->file->characters_used) {
                     

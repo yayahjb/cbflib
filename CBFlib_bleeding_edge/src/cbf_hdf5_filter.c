@@ -338,6 +338,11 @@ extern "C" {
             size_t     textdimslow;
             size_t     textpadding;
             void *     destination;
+
+            int eltype_file, elsigned_file, elunsigned_file,
+            minelem_file, maxelem_file;
+            
+            size_t nelem_file;
             
             errorcode = 0;
             tempfile = NULL;
@@ -465,18 +470,21 @@ extern "C" {
                 *buf_size = 0;
                 return 0;
             }
-            
-            if (textcompression != CBF_NONE &&
-                textcompression != CBF_BYTE_OFFSET &&
-                textcompression != CBF_NIBBLE_OFFSET ) {
-                fprintf(stderr," Only CBF_NONE, CBF_BYTE_OFFSET and CBF_NIBBLE_OFFSET "
-                        "supported at this time\n");
-                *buf_size = 0;
-                return 0;
-            }
-                
+                            
             elsize = (textbits+7)/8;
             nelem = textdimover;
+            
+
+            cbf_reportnez(cbf_decompress_parameters (&eltype_file, NULL,
+                                       &elsigned_file, &elunsigned_file,
+                                       &nelem_file,
+                                       &minelem_file, &maxelem_file,
+                                       textcompression,
+                                       tempfile),errorcode);
+            if (errorcode) {
+                *buf_size = 0;
+                return 0;                
+            }
             
             /* allocate a new buffer */
             if (cbf_alloc((void **) &destination,NULL,
@@ -586,7 +594,7 @@ extern "C" {
                 binid = 1;
             }
             
-            if (compression != CBF_NONE &&
+            /* if (compression != CBF_NONE &&
                 compression != CBF_BYTE_OFFSET &&
                 compression != CBF_NIBBLE_OFFSET ) {
                 fprintf(stderr," Only CBF_NONE, CBF_BYTE_OFFSET and CBF_NIBBLE_OFFSET "
@@ -594,6 +602,7 @@ extern "C" {
                 *buf_size = 0;
                 return 0;
             }
+            */
 
             
             if (dimslow < 1) dimslow = 1;
