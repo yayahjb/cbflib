@@ -321,7 +321,8 @@ COMPRESS = /usr/bin/bzip2
 #
 # Program to use to generate a signature
 #
-SIGNATURE = /usr/bin/openssl dgst -md5
+#SIGNATURE ?= /usr/bin/openssl dgst -md5
+SIGNATURE ?= (/usr/bin/openssl dgst -md5 | sed "s/^.*= //")
 
 #
 # Pipe command to extract all but the first line of a text file
@@ -1608,7 +1609,13 @@ endif
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 		$(TIME) $(BIN)/cif2cbf -5 w -O $(HDF5REGISTER) -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-		$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cI -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconvertedxx.cbf.h5)
+		$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cI -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encI.cbf.h5)
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	        $(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encp.cbf.h5)
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	        $(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cb -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encb.cbf.h5)
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	        $(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cc -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encc.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 		$(BIN)/h5dump insulin_pilatus6mconverted_orig.cbf.h5 | $(ALLBUTONE) > insulin_pilatus6mconverted_orig.cbf.h5.dump)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
@@ -1618,10 +1625,19 @@ endif
 	-rm -f insulin_pilatus6mconverted.cbf.h5.dump
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 		$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted.cbf.h5 -o insulin_pilatus6mconverted.cbf.h5.cbf)
-	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-		$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconvertedxx.cbf.h5 -o insulin_pilatus6mconvertedxx.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
-	-cmp insulin_pilatus6mconvertedxx.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+		$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encp.cbf.h5 -o insulin_pilatus6mconverted_encp.cbf.h5.cbf)
+	-cmp insulin_pilatus6mconverted_encp.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	        $(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encb.cbf.h5 -o insulin_pilatus6mconverted_encb.cbf.h5.cbf)
+	-cmp insulin_pilatus6mconverted_encb.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	        $(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encI.cbf.h5 -o insulin_pilatus6mconverted_encI.cbf.h5.cbf)
+	-cmp insulin_pilatus6mconverted_encI.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
+	        $(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encc.cbf.h5 -o insulin_pilatus6mconverted_encc.cbf.h5.cbf)
+	-cmp insulin_pilatus6mconverted_encc.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/minicbf2nexus -z zlib \
 		-c config ../X4_lots_M1S4_1_*.cbf -o minicbf.h5
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/h5dump ../minicbf_original.h5 | $(ALLBUTONE) > minicbf_original.dump
@@ -1811,14 +1827,8 @@ empty:
 	@-rm -f  adscconverted_flat_orig.cbf
 	@-rm -f  adscconverted_flat_rev_orig.cbf
 	@-rm -f  mb_LP_1_001_orig.cbf
-	@-rm -f  insulin_pilatus6mconverted_rev_orig.cbf
-	@-rm -f  insulin_pilatus6mconverted_orig.cbf.h5
-	@-rm -f  insulin_pilatus6mconverted_orig.cbf.h5.cbf
-	@-rm -f  insulin_pilatus6mconverted.cbf.h5
-	@-rm -f  insulin_pilatus6mconverted.cbf.h5.cbf
-	@-rm -f  insulin_pilatus6mconverted_v2_orig.cbf
-	@-rm -f  insulin_pilatus6mconverted.cbf
-	@-rm -f  insulin_pilatus6mconverted_v2.cbf
+	@-rm -f  insulin_pilatus6mconverted*.cbf
+	@-rm -f  insulin_pilatus6mconverted*.h5
 	@-rm -f  insulin_pilatus6m.cbf
 	@-rm -f  testrealin.cbf
 	@-rm -f  testrealout.cbf
