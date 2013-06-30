@@ -338,6 +338,7 @@ extern "C" {
             size_t     textdimslow;
             size_t     textpadding;
             void *     destination;
+            long int   start;
 
             int eltype_file, elsigned_file, elunsigned_file,
             minelem_file, maxelem_file;
@@ -486,9 +487,39 @@ extern "C" {
                 return 0;                
             }
             
+            cbf_reportnez(cbf_get_fileposition(tempfile,&start),errorcode);
+            
+            if (textcompression != CBF_NONE
+                && textcompression != CBF_BYTE_OFFSET
+                && textcompression != CBF_NIBBLE_OFFSET) {
+                cbf_reportnez(cbf_set_fileposition(tempfile,-24,SEEK_CUR),errorcode);}
+            
+            if (errorcode||(cbf_is_base64digest(textdigest) &&
+                !cbf_md5digest (tempfile, textsize, digest))) {
+                
+                if (errorcode || strcmp(textdigest,digest)) {
+                    
+#ifdef CBFDEBUG
+                    fprintf(stderr," mismatched digests %s %s\n",textdigest,digest);
+#endif
+
+                    *buf_size = 0;
+                    return 0;
+                    
+                }
+                
+            }
+            
+            cbf_reportnez(cbf_set_fileposition(tempfile,start,SEEK_SET),errorcode);
+            
             /* allocate a new buffer */
             if (cbf_alloc((void **) &destination,NULL,
-                           nelem*elsize,1)) return 0;
+                          nelem*elsize,1)) {
+                
+                *buf_size = 0;   
+                return 0;
+                
+            }
             
 #ifdef CBFDEBUG
             fprintf(stderr,"compressed size estimates, textsize %ld, tempfile %ld\n",(unsigned long)textsize,
