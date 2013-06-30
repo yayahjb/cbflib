@@ -311,14 +311,27 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     
     static int cmp_double(const void * a, const void * b, size_t N)
     {        
-        /* go through each vector comparing all values */
+        /* go through each vector comparing all values 
+           The allowed delta is 1.e-38+1.e-13*maxmimum of the
+           summed pairs of absolute values
+         */
 
-        while (N && fabs(*(const double *)(a)++ - *(const double *)(b)++)<
-               1.e-38) --N;
+        double delta = 0.;
+        const double * da = a;
+        const double * db = b;
 
-       /* if any are not equal the loop will exit early and N is non-zero */
+        size_t i;
 
-        return N;
+        for (i=0; i < N; i++) {
+            if (fabs(da[i])+fabs(db[i]) > delta) delta = fabs(da[i])+fabs(db[i]);
+            if (fabs(da[i]-db[i]) > 1.e-38+1.e-13*delta) return 1;
+        }
+ 
+        for (i=0; i < N-1; i++) {
+            if (fabs(da[i]-da[i]) > 1.e-38+1.e-13*delta) return 1;
+        }
+
+        return 0;
     }
     
     static int cmp_int(const void * a, const void * b, size_t N)
@@ -335,7 +348,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     static int cmp_vlstring(const void * a, const void * b, size_t N)
     {
         /* go through each vector comparing all values */
-        while (N && !strcmp(*(const char **)(a)++, *(const char **)(b)++)) --N;
+        while (N && !cbf_cistrcmp(*(const char **)(a)++, *(const char **)(b)++)) --N;
         /* if any are not equal the loop will exit early and N is non-zero */
         return N;
     }
@@ -596,6 +609,195 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         cbf_H5Dfree(h5data);
     }
     
+	/** return the maximum of two numeric values */
+	#define cbf_max(a,b) ((a)>(b)?(a):(b))
+
+	/**
+	Put a character into a buffer at a given position.
+
+	Ensures the buffer is long enough to hold the new character, realloc'ing if needed, and then inserts it.
+
+	\param c The character.
+	\param buf A pointer to the realloc'able buffer.
+	\param n A pointer to the current length of the buffer.
+	\param k The offset to place the character <code>c</code> in.
+
+	\return void
+	 */
+	void cbf_push_buf(const int c, char * * const buf, size_t * const n, size_t *k)
+	{
+		assert(buf);
+		assert(n);
+		assert(k);
+		if (*k >= *n) {
+			*n = 2 * *k;
+			*buf = realloc(*buf, *n);
+		}
+		(*buf)[(*k)++] = c;
+	}
+
+	/**
+	Function to tokenise a pilatus v1.2 minicbf header
+
+	Will split the header into null-terminated strings that are passed around via a given realloc'able buffer.
+
+	Behviour is determined by <code>newline</code>, if <code>newline</code> is non-zero:
+	A token starting with a digit, <code>[0-9]</code>, will cause a string consisting of digits
+	and any number or combination of <code>[T:-.]</code> characters to be matched as a token.
+	Otherwise, the stream will be tokenised according to the default rules.
+
+	The default tokenisation method is to split the stream on groups of characters from the set <code>[#=:,() \t\f\v\r\n]</code>.
+	Any number of adjacent <code>'\r'</code> and <code>'\n'</code> characters are compressed into a single
+	newline (<code>"\n"</code>) token.
+	 */
+    
+    
+	static int _cbf_scan_pilatus_V1_2_miniheader
+			(char * * const buf,
+			 size_t * const n,
+			 int * const newline,
+			 const int getRestOfLine,
+			 const char * * const string)
+	{
+#define cbf_sgetc(str) (**str ? *(*str)++ : 0)
+#define cbf_seof(str) (!**str)
+#define cbf_ungetc(str) (--(*str))
+		int c = 0; /* current character */
+		size_t k = 0; /* current line length */
+		const char spaceChars[] = "#=:,() \t\f\v";
+		const char newlineChars[] = "\n\r";
+
+		/* check that sensible arguments are given */
+		assert(buf);
+		assert(n);
+		assert(newline);
+		assert(string);
+
+		/*
+		Skip space-equivalent characters to find something interesting.
+		This ends with one of two states: a non-space character is found, or EOF.
+		*/
+		do {
+			c = cbf_sgetc(string);
+			if (cbf_seof(string)) break;
+			if (strchr(spaceChars,c)) continue;
+			else break;
+		} while (1);
+
+		/* if I am at the end of the stream, free the buffer & return 0 */
+		if (cbf_seof(string)) {
+			free((void*)(*buf));
+			*buf = 0;
+			*n = 0;
+			return CBF_SUCCESS;
+		}
+
+		/* I have a token, starting with the character c: read it */
+		if (strchr(newlineChars,c)) {
+			/* it's a newline token: consume all consecutive newline-equivalent characters */
+			do {
+				c = cbf_sgetc(string);
+			} while (!cbf_seof(string) && strchr(newlineChars,c));
+			if (!cbf_seof(string)) cbf_ungetc(string);
+			cbf_push_buf('\n', buf, n, &k);
+			*newline = 1;
+		} else {
+			/* It's a string token */
+			if (getRestOfLine || (*newline && isdigit(c))) {
+				/* scan to the end of the current line */
+				do {
+					cbf_push_buf(c, buf, n, &k);
+					c = cbf_sgetc(string);
+				} while (!cbf_seof(string) && !strchr(newlineChars,c));
+				if (!cbf_seof(string)) cbf_ungetc(string);
+			} else {
+				/* scan it as an arbitrary token */
+				do {
+					cbf_push_buf(c, buf, n, &k);
+					c = cbf_sgetc(string);
+				} while (!cbf_seof(string) && !strchr(spaceChars,c) && !strchr(newlineChars,c));
+				if (!cbf_seof(string)) cbf_ungetc(string);
+			}
+			*newline = 0;
+		}
+		/* null-terminate the token */
+		cbf_push_buf('\0', buf, n, &k);
+
+		return CBF_SUCCESS;
+	}
+
+	/**
+	Helper function to check if a string is a valid (pilatus format) null-terminated date.
+
+	Requires string of format:
+	<code>YYYY-MM-DDThh:mm:ss.s+</code>
+	<code>Y</code>: year
+	<code>M</code>: month
+	<code>D</code>: day
+	<code>h</code>: hour
+	<code>m</code>: minute
+	<code>s</code>: second
+	<code>+</code>: second may be fractional, any number of digits are allowed
+	<code>[-T:]</code>: literal characters
+
+	\param str The string to test.
+
+	\return non-zero on success, zero otherwise.
+	 */
+	int cbf_isPilatusDate(const char * str)
+	{
+		if (!str) return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if ('-'==*str) ++str; else return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if ('-'==*str) ++str; else return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if ('T'==*str) ++str; else return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if (':'==*str) ++str; else return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if (':'==*str) ++str; else return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if (isdigit(*str)) ++str; else return 0;
+		if ('.'==*str) ++str; else return 0;
+		while (isdigit(*str)) ++str;
+		return '\0'==*str;
+	}
+
+	/**
+	Helper function to take the data associated with a pilatus axis and write the
+	axis attributes to a nexus axis.
+
+	\return An error code
+	 */
+	static int _cbf_pilatusAxis2nexusAxisAttrs
+		(hid_t h5data,
+		 const char * const units,
+		 const cbf_hdf5_configItem * const axisItem,
+		 int (*cmp)(const void *, const void *, size_t))
+{
+	int error = CBF_SUCCESS;
+	cbf_reportnez(cbf_H5Arequire_string(h5data,"units",cbf_cistrcmp(units, "deg.")?units:"deg"),error);
+	/* transformation type */
+	cbf_reportnez(cbf_H5Arequire_string(h5data,"transformation_type","rotation"),error);
+	/* dependency */
+	cbf_reportnez(cbf_H5Arequire_string(h5data,"depends_on",axisItem->depends_on?axisItem->depends_on:""),error);
+	if (!axisItem->depends_on) fprintf(stderr,"Missing dependancy for nexus axis '%s'\n",axisItem->nexus);
+	{ /* vector */
+		const hsize_t vdims[] = {3};
+		double buf[3] = {0./0.};
+		cbf_reportnez(cbf_H5Arequire_cmp(h5data,"vector",1,vdims,H5T_IEEE_F64LE,
+			axisItem->vector,buf,cmp),error);
+	}
+	return error;
+}
 
     
     /****************************************************************
@@ -1568,18 +1770,6 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     const int parseErrorUnexpectedEOF = 7;
     const int parseErrorUndefinedValue = 8;
 
-    void push_buf(const int c, char * * const buf, size_t *n, size_t *k)
-    {
-        assert(buf);
-        assert(n);
-        assert(k);
-        if (*k >= *n) {
-            *n = 2 * *k;
-            *buf = realloc(*buf, *n);
-        }
-        (*buf)[(*k)++] = c;
-    }
-    
     /**
      Tokenise an input stream, returning one token at a time into the given buffer.
      
@@ -1632,14 +1822,14 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         /* I have a token: read it */
         if (isspace(c)) {
             /* it's a newline token */
-            push_buf('\n', buf, n, &k);
+            cbf_push_buf('\n', buf, n, &k);
         } else {
             /* it's a string : leave the terminating character in the stream as it may be a token itself */
             if ('[' == c || ']' == c) {
                 /* it's a vector start or end token : match the structure of a vector at a higher level */
-                push_buf(c, buf, n, &k);
+                cbf_push_buf(c, buf, n, &k);
             } else while (1) {
-                push_buf(c, buf, n, &k);
+                cbf_push_buf(c, buf, n, &k);
                 c = fgetc(stream);
                 if (feof(stream)) break;
                 *pre = c;
@@ -1650,7 +1840,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
             }
         }
         /* null-terminate the token */
-        push_buf('\0', buf, n, &k);
+        cbf_push_buf('\0', buf, n, &k);
         
         return (feof(stream) && '\n'!=*pre) ? parseErrorUnexpectedEOF : CBF_SUCCESS;
     }
@@ -1950,7 +2140,7 @@ return e; \
         /* first token of the line */
         GET_TOKEN();
         while (tkn) {
-            if (!strcmp("map",tkn)) {
+            if (!cbf_cistrcmp("map",tkn)) {
                 /* storage that I don't need to free within this function */
                 cbf_hdf5_configItem * it;
                 /* minicbf axis name */
@@ -1978,7 +2168,7 @@ return e; \
                 /* newline */
                 GET_TOKEN();
                 REQUIRE_EOL();
-            } else if (!strcmp("Sample",tkn)) {
+            } else if (!cbf_cistrcmp("Sample",tkn)) {
                 /* literal 'depends-on'. */
                 GET_TOKEN();
                 REQUIRE_NOT_EOL();
@@ -2002,12 +2192,12 @@ return e; \
                 /* match depends-on -> vector OR vector -> depends-on. */
                 GET_TOKEN();
                 REQUIRE_NOT_EOL();
-                if (!strcmp("vector",tkn)) {
+                if (!cbf_cistrcmp("vector",tkn)) {
                     /* try to get a vector */
                     REQUIRE_VECTOR();
                     GET_TOKEN();
                     /* optional 'depends-on' */
-                    if (!strcmp("depends-on",tkn)) {
+                    if (!cbf_cistrcmp("depends-on",tkn)) {
                         /* nexus axis name */
                         GET_TOKEN();
                         REQUIRE_NOT_EOL();
@@ -2018,7 +2208,7 @@ return e; \
                     }
                     /* check for newline */
                     REQUIRE_EOL();
-                } else if (!strcmp("depends-on",tkn)) {
+                } else if (!cbf_cistrcmp("depends-on",tkn)) {
                     /* nexus axis name */
                     GET_TOKEN();
                     REQUIRE_NOT_EOL();
@@ -2027,7 +2217,7 @@ return e; \
                     it->depends_on = strdup(tkn);
                     GET_TOKEN();
                     /* optional 'vector' */
-                    if (!strcmp("vector",tkn)) {
+                    if (!cbf_cistrcmp("vector",tkn)) {
                         /* try to get a vector */
                         REQUIRE_VECTOR();
                         GET_TOKEN();
@@ -4214,14 +4404,14 @@ return e; \
 		/* Some basic code to ensure the utility of the low-level HDF5 abstraction functions.
          This will be striped out & refactored when a suitable higher-level framework is implemented. */
 		cbf_debug_print(category->name);
-		if (!strcmp(category->name,"diffrn_detector"))
+		if (!cbf_cistrcmp(category->name,"diffrn_detector"))
 		{
 			for (column= 0; column < category->children; column++)
 			{
 				cbf_node * column_node = category->child[column];
 				cbf_debug_print2("\t%s",column_node->name);
-				if(column_node->children > 1) printf("warning: too many rows in '%s', only writing first row.\n",category->name);
-				if(!strcmp(column_node->name,"type")) {
+				if(column_node->children > 1) fprintf(stderr,"CBFlib: warning: too many rows in '%s', only writing first row.\n",category->name);
+				if(!cbf_cistrcmp(column_node->name,"type")) {
 					const char * text = 0;
 					int error = CBF_SUCCESS;
 					cbf_reportnez(cbf_get_columnrow (&text, column_node, 0),error);
@@ -4230,7 +4420,7 @@ return e; \
                                                   h5handle),error);
 					if (CBF_SUCCESS != error) cbf_debug_print("diffrn_detector.type could not be written to nexus file");
 				}
-				if(!strcmp(column_node->name,"details")) {
+				if(!cbf_cistrcmp(column_node->name,"details")) {
 					const char * text = 0;
 					int error = CBF_SUCCESS;
 					cbf_reportnez(cbf_get_columnrow (&text, column_node, 0),error);
@@ -4239,7 +4429,7 @@ return e; \
                                                   h5handle),error);
 					if (CBF_SUCCESS != error) cbf_debug_print("diffrn_detector.details could not be written to nexus file");
 				}
-				if(!strcmp(column_node->name,"detector")) {
+				if(!cbf_cistrcmp(column_node->name,"detector")) {
 					const char * text = 0;
 					int error = CBF_SUCCESS;
 					cbf_reportnez(cbf_get_columnrow (&text, column_node, 0),error);
@@ -4248,7 +4438,7 @@ return e; \
                                                   h5handle),error);
 					if (CBF_SUCCESS != error) cbf_debug_print("diffrn_detector.detector could not be written to nexus file");
 				}
-				if(!strcmp(column_node->name,"dtime")) {
+				if(!cbf_cistrcmp(column_node->name,"dtime")) {
 					cbf_name_value_pair attr = {"units","us"};
 					const char * text = 0;
 					int error = CBF_SUCCESS;
@@ -4260,14 +4450,14 @@ return e; \
 				}
 			}
 		}
-		if (!strcmp(category->name,"diffrn_detector_element"))
+		if (!cbf_cistrcmp(category->name,"diffrn_detector_element"))
 		{
 			for (column= 0; column < category->children; column++)
 			{
 				cbf_node * column_node = category->child[column];
 				cbf_debug_print2("\t%s",column_node->name);
-				if(column_node->children > 1) printf("warning: too many rows in '%s', only writing first row.\n",category->name);
-				if(!strcmp(column_node->name,"center[1]")){
+				if(column_node->children > 1) fprintf(stderr, "CBFlib: warning: too many rows in '%s', only writing first row.\n",category->name);
+				if(!cbf_cistrcmp(column_node->name,"center[1]")){
 					cbf_name_value_pair attr = {"units","mm"};
 					const char * text = 0;
 					int error = CBF_SUCCESS;
@@ -4278,7 +4468,7 @@ return e; \
                                                   h5handle),error);
 					if (CBF_SUCCESS != error) cbf_debug_print("diffrn_detector_element.center[1] could not be written to nexus file");
 				}
-				if(!strcmp(column_node->name,"center[2]")){
+				if(!cbf_cistrcmp(column_node->name,"center[2]")){
 					cbf_name_value_pair attr = {"units","mm"};
 					const char * text = 0;
 					int error = CBF_SUCCESS;
@@ -4291,14 +4481,14 @@ return e; \
 				}
 			}
 		}
-		if (!strcmp(category->name,"diffrn_radiation"))
+		if (!cbf_cistrcmp(category->name,"diffrn_radiation"))
 		{
 			for (column= 0; column < category->children; column++)
 			{
 				cbf_node * column_node = category->child[column];
 				cbf_debug_print2("\t%s",column_node->name);
-				if(column_node->children > 1) printf("warning: too many rows in '%s', only writing first row.\n",category->name);
-				if(!strcmp(column_node->name,"div_x_source")) {
+				if(column_node->children > 1) fprintf(stderr, "CBFlib: warning: too many rows in '%s', only writing first row.\n",category->name);
+				if(!cbf_cistrcmp(column_node->name,"div_x_source")) {
 					const char * text = 0;
 					int error = CBF_SUCCESS;
 					cbf_reportnez(cbf_get_columnrow (&text, column_node, 0),error);
@@ -4307,7 +4497,7 @@ return e; \
                                                   h5handle),error);
 					if (CBF_SUCCESS != error) cbf_debug_print("diffrn_radiation.div_x_source could not be written to nexus file");
 				}
-				if(!strcmp(column_node->name,"div_y_source")) {
+				if(!cbf_cistrcmp(column_node->name,"div_y_source")) {
 					const char * text = 0;
 					int error = CBF_SUCCESS;
 					cbf_reportnez(cbf_get_columnrow (&text, column_node, 0),error);
@@ -4318,14 +4508,14 @@ return e; \
 				}
 			}
 		}
-		if (!strcmp(category->name,"diffrn_radiation_wavelength"))
+		if (!cbf_cistrcmp(category->name,"diffrn_radiation_wavelength"))
 		{
 			for (column= 0; column < category->children; column++)
 			{
 				cbf_node * column_node = category->child[column];
 				cbf_debug_print2("\t%s",column_node->name);
-				if(column_node->children > 1) printf("warning: too many rows in '%s', only writing first row.\n",category->name);
-				if(!strcmp(column_node->name,"wavelength")){
+				if(column_node->children > 1) fprintf(stderr, "CBFlib:  warning: too many rows in '%s', only writing first row.\n",category->name);
+				if(!cbf_cistrcmp(column_node->name,"wavelength")){
 					cbf_name_value_pair attr = {"units","Angstroms"};
 					const char * text = 0;
 					int error = CBF_SUCCESS;
@@ -4335,7 +4525,7 @@ return e; \
                                                   &attr, h5handle),error);
 					if (CBF_SUCCESS != error) cbf_debug_print("diffrn_radiation_wavelength.wavelength could not be written to nexus file");
 				}
-				if(!strcmp(column_node->name,"wt")) {
+				if(!cbf_cistrcmp(column_node->name,"wt")) {
 					const char * text = 0;
 					int error = CBF_SUCCESS;
 					cbf_reportnez(cbf_get_columnrow (&text, column_node, 0),error);
@@ -4388,6 +4578,100 @@ return e; \
             h5handle->colid = CBF_H5FAIL;
         }
         
+        
+        if (!cbf_cistrcmp(category->name,"diffrn_scan")) {
+            
+            cbf_node * column_node;
+            
+            const char * text = 0;
+            
+            for (column= 0; column < category->children; column++) {
+                
+                column_node = category->child[column];
+                
+                if(!cbf_cistrcmp(column_node->name,"id")){
+                    
+                    if (column_node->children > 1 ) {
+                        
+                        fprintf(stderr,"CBFlib: warning: too many rows in '%s', only writing first row.\n",category->name);
+                    }
+                    
+                    
+                    if(cbf_get_columnrow (&text, column_node, 0)) break;
+                    
+                    if (!text) break;
+                    
+                    if(cbf_apply_h5text_attribute(h5handle->nxid,
+                                                  "CBF_scan_id",text+1,0)) break;
+                    
+                    break;
+                    
+                }
+            }
+        }
+        
+        if (!cbf_cistrcmp(category->name,"entry")) {
+            
+            cbf_node * column_node;
+            
+            const char * text = 0;
+            
+            for (column= 0; column < category->children; column++) {
+                
+                column_node = category->child[column];
+                
+                if(!cbf_cistrcmp(column_node->name,"id")){
+                    
+                    if (column_node->children > 1 ) {
+                        
+                        fprintf(stderr,"CBFlib: warning: too many rows in '%s', only writing first row.\n",category->name);
+                    }
+                    
+                    
+                    if(cbf_get_columnrow (&text, column_node, 0)) break;
+                    
+                    if (!text) break;
+                    
+                    if(cbf_apply_h5text_attribute(h5handle->nxid,
+                                                  "CBF_entry_id",text+1,0)) break;
+                    
+                    break;
+                    
+                }
+            }
+        }
+
+        if (!cbf_cistrcmp(category->name,"diffrn")) {
+            
+            cbf_node * column_node;
+            
+            const char * text = 0;
+            
+            for (column= 0; column < category->children; column++) {
+                
+                column_node = category->child[column];
+                
+                if(!cbf_cistrcmp(column_node->name,"id")){
+                    
+                    if (column_node->children > 1 ) {
+                        
+                        fprintf(stderr,"CBFlib: warning: too many rows in '%s', only writing first row.\n",category->name);
+                    }
+                    
+                    
+                    if(cbf_get_columnrow (&text, column_node, 0)) break;
+                    
+                    if (!text) break;
+                    
+                    if(cbf_apply_h5text_attribute(h5handle->nxid,
+                                                  "CBF_diffrn_id",text+1,0)) break;
+                    
+                    break;
+                    
+                }
+            }
+        }
+
         
         /* Success */
         
@@ -4901,14 +5185,37 @@ return e; \
 	}
     
     
+/*
+Check if \token\ matches a given string, allowing optional expressions
+\t\ & \f\ to be executed if it does or doesn't match, respecitvely.
+\t\, \f\ may be empty or a semicolon, ie:
+CBF_CHECK_TOKEN(str, ,;);
+If \token\ doesn't match \str\ then set \error\ to \CBF_H5DIFFERENT\ and print a message.
+*/
+#define CBF_CHECK_TOKEN(str, t, f) \
+do { \
+	if (cbf_cistrcmp(str,token)) { \
+		error |= CBF_H5DIFFERENT; \
+		fprintf(stderr,"%s: error: unexpected token '%s'\n",__WHERE__,token); \
+{f;} \
+} else {t;} \
+} while (0)
+
+
+    
 	/*
      Assuming I have a minicbf:
      extract the data from it;
      convert the header information to nexus classes;
-     write all in nexus format to given file.
+     write all in nexus format to given entry group.
      
      TODO:
-     - Support writing multiple minicbf files to a single nexus file directly
+	 -	rewrite pilatus header parsing function to return null-terminated string tokens,
+		instead of an index into a very long string.
+	 -	redo conditional metadata extraction to check for NaNs in the data they require,
+		simplifying the control structures, or just write NaNs to the file
+	 -	write a function to put a slice of data into a dataset, possibly creating the dataset,
+	 	to remove a very common pattern from the code.
      */
     
 	int cbf_write_minicbf_h5file (cbf_handle handle, cbf_h5handle h5handle, cbf_hdf5_configItemVectorhandle axisConfig, int flags)
@@ -4916,7 +5223,7 @@ return e; \
 		cbf_node *node = NULL;
 		int errorcode = CBF_SUCCESS;
         
-		hid_t entry = CBF_H5FAIL, detector = CBF_H5FAIL, instrument = CBF_H5FAIL; /* do not free */
+		hid_t detector = CBF_H5FAIL, instrument = CBF_H5FAIL; /* do not free */
         
 		if (!handle || !h5handle) return CBF_ARGUMENT;
         
@@ -4930,7 +5237,6 @@ return e; \
 		cbf_failnez( cbf_reset_refcounts(handle->dictionary) );
         
 		/* ensure the handle contains some basic structure */
-		cbf_reportnez(cbf_h5handle_require_entry(h5handle,&entry,0), errorcode);
 		cbf_reportnez(cbf_h5handle_require_instrument(h5handle,&instrument), errorcode);
 		cbf_reportnez(cbf_h5handle_require_detector(h5handle,&detector), errorcode);
         
@@ -4938,7 +5244,6 @@ return e; \
 		{
 			/* get some useful parameters out of the metadata as it's converted */
 			double pixel_x = 0./0., pixel_y = 0./0.;
-			int Pixel_size = 0;
             
 			/* assume I have only 1 datablock, TODO: fix this */
 			cbf_onfailnez(cbf_select_datablock(handle,0), fprintf(stderr,__WHERE__": CBF error: cannot find datablock 0.\n"));
@@ -4948,7 +5253,7 @@ return e; \
             
 			/* First: extract the metadata from the CBF, put it in nexus */
 			cbf_failnez(cbf_find_column(handle,"header_convention"));
-			if (1) {/* get the header convention, check it is a value I understand */
+			if (1) { /* get the header convention, check it is a value I understand */
 				const char * value = NULL;
 				const char vendor_pilatus[] = "PILATUS";
 				cbf_failnez(cbf_get_value(handle,&value));
@@ -4956,14 +5261,15 @@ return e; \
 					const char version_1_2[] = "1.2";
 					value += strlen(vendor_pilatus) + 1;
 					if (0 == strncmp(value,version_1_2,strlen(version_1_2))) {
+						/* define tokenisation variables, with default buffer sized to almost always be big enough */
+						size_t n = 128;
+						char * token = malloc(n*sizeof(char));
+						int newline = 1;
 						/* Numerical values for use after main parsing loop */
 						double beam_x = 0./0., beam_y = 0./0.;
-						double beam_center_x = 0./0., beam_center_y = 0./0.;
 						double detector_distance = 0./0.;
 						/* Flags to determine what information I actually have */
-						int Beam_xy = 0, Detector_distance = 0, Beam_center_xy = 0;
 						/* Other useful values */
-						hid_t beam = CBF_H5FAIL; /* <- /entry/sample/beam is used multiple times, but is not in the handle (yet?). */
 						hid_t pilatusDiagnostics = CBF_H5FAIL; /* <- non-nexus group to dump some possibly useful information into */
 						/* Get the header data */
 						if (0) fprintf(stderr,__WHERE__": %s_%s header found.\n",vendor_pilatus,version_1_2);
@@ -4973,173 +5279,145 @@ return e; \
 						cbf_onfailnez(cbf_get_value(handle,&value), fprintf(stderr,__WHERE__": 'header_contents' inaccessible.\n"));
                         cbf_H5Drequire_string(detector,0,"type","pixel array");
                         
-#define __IF_MATCH(KEY) \
-if (0 == strncmp(value,KEY,strlen(KEY))) { \
-  if (0) printf(__WHERE__": '"KEY"' found.\n"); \
-  value += strlen(KEY); \
-  value = getPilatusNonWhitespaceToken(value);
-                        
-#define __IF_MATCH_IGNORE(KEY) \
-if (0 == strncmp(value,KEY,strlen(KEY))) { \
-  if (0) printf(__WHERE__": '"KEY"' ignored.\n");
-                        
-#define __ENDIF_MATCH } else { \
-  const char * start = getPilatusNonWhitespaceToken(value); \
-  value = getPilatusEOLToken(start); \
-  printf(__WHERE__": Unknown entry '%.*s' found.\n",(int)(value-start),start); \
-} do {} while (0)
-                        
-#define __ELSEIF_MATCH(KEY) } else __IF_MATCH(KEY)
-                        
-#define __ELSEIF_IGNORE_MATCH(KEY) } else __IF_MATCH_IGNORE(KEY)
+						if (0) {
+							const char * _value = value;
+							do {
+								_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &_value);
+								if (!token) break;
+								newline = !strcmp("\n",token);
+								printf("token: %s\n", token);
+							} while (1);
+						}
+						if (0) fprintf(stderr,"%s: header:\n%s\n",__WHERE__,value);
                         
 						/*
                          Do the mapping, iterating over each line of the header.
                          The entire header can be parsed using a trivial FSA, so don't bother with anything particularly complex.
                          */
 						do {
-							value = getPilatusTextToken(value);
-							if (chrnull(*value)) break;
+							int noMatch = 0;
+							{ /* Get the first token */
+								int error = CBF_SUCCESS;
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								if (!token) break;
+								if (!strcmp("\n",token)) continue;
+							}
+
 							/* check for a time */
-							const int timeStrLength = matchPilatusDate(value);
-							if (0 != timeStrLength) {
-								if (0) printf(__WHERE__": date found.\n");
+							if (cbf_isPilatusDate(token)) {
+								int error = CBF_SUCCESS;
 								/*
                                  Put the time string into the hdf5 file.
                                  TODO: deal with timestamps in a better way,
                                  ie select the earliest to put in the proper nexus field & store all of them in an array
                                  */
-								const char * str = substrdup(value, value+timeStrLength);
 								hid_t type = CBF_H5FAIL;
 								hid_t dataset = CBF_H5FAIL;
-								cbf_H5Tcreate_string(&type,strlen(str));
-								const int found = cbf_H5Dfind(h5handle->nxid,&dataset,"start_time",0,0,0,0,type);
-								if (CBF_SUCCESS==found) {
+                            cbf_reportnez(cbf_H5Tcreate_string(&type,strlen(token)),error);
+                            cbf_reportnez(cbf_H5Dfind(h5handle->nxid,&dataset,"start_time",0,0,0,0,type),error);
+                            if (CBF_SUCCESS==error) {
 									if (!cbf_H5Ivalid(dataset)) {
 										/* create the dataset & write the data */
-										cbf_H5Dcreate(h5handle->nxid,&dataset,"start_time",0,0,0,0,type);
-										cbf_H5Dwrite(dataset,0,0,0,str);
+										cbf_reportnez(cbf_H5Dcreate(h5handle->nxid,&dataset,"start_time",0,0,0,0,type),error);
+										cbf_reportnez(cbf_H5Dwrite(dataset,0,0,0,token),error);
 									} else {
 										/* TODO: comparison with existing data, to extract earliest time */
 									}
-								} else {
-									errorcode |= found;
-									fprintf(stderr,__WHERE__": Problem finding 'start_time': %s\n", cbf_strerror(found));
 								}
 								cbf_H5Dfree(dataset);
-								cbf_H5Tfree(type);
-								free((void*)str);
-							} else __IF_MATCH("Pixel_size") {
-								const char * units = 0;
-								const char expected_units[] = "m";
-								int x_units = 0, y_units = 0;
-								/* get value & units */
-								value = pilatusWriteDoubleUnits(value,detector,"x_pixel_size",&pixel_x,&units);
-								if (0 == units || strlen(units) != strlen(expected_units) || 0 != strcmp(units,expected_units))
-									fprintf(stderr,__WHERE__": unexpected value for x units of 'Pixel_size'.\n");
-								else x_units = 1;
-								free((void*)(units));
-								/* skip the 'x' in the middle of the value list */
-								value = getPilatusNonWhitespaceToken(value);
-								value = getPilatusNonTextToken(value);
-								/* get value & units */
-								value = getPilatusNonWhitespaceToken(value);
-								units = 0;
-								value = pilatusWriteDoubleUnits(value,detector,"y_pixel_size",&pixel_y,&units);
-								if (0 == units || strlen(units) != strlen(expected_units) || 0 != strcmp(units,expected_units))
-									fprintf(stderr,__WHERE__": unexpected value for y units of 'Pixel_size'.\n");
-								else y_units = 1;
-								free((void*)(units));
-								Pixel_size = (x_units && y_units);
-							} __ELSEIF_MATCH("Silicon sensor, thickness") {
-                                cbf_H5Drequire_string(detector,0,"sensor_material","Silicon");
-								/* Get value & units */
-								value = pilatusWriteDoubleUnits(value,detector,"sensor_thickness",0,0);
-							} __ELSEIF_MATCH("Detector_distance") {
-								const char expected_units[] = "m";
-								const char * units = 0;
-								/* Get value & units */
-								value = pilatusWriteDoubleUnits(value,detector,"distance",&detector_distance,&units);
-								if (0 == units || strlen(units) != strlen(expected_units) || 0 != strcmp(units,expected_units))
-									fprintf(stderr,__WHERE__": unexpected value for 'Detector_distance'.\n");
-								else Detector_distance = 1;
-								free((void*)(units));
-							} __ELSEIF_MATCH("Detector") {
-								const char * const start = value;
-								/* [1,end): detector description */
-								value = getPilatusEOLToken(value);
-								if (start != value) {
-									const char * str = substrdup(start, value);
-									cbf_H5Drequire_string(detector,0,"description",str);
-									free((void*)(str));
+                                cbf_H5Tfree(type);
+							} else if (!cbf_cistrcmp("Pixel_size",token)) {
+                                int error = CBF_SUCCESS;
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								{ /* Get x pixel size */
+									hid_t h5data = CBF_H5FAIL;
+									const double num = strtod(token,0);
+									cbf_reportnez(cbf_H5Drequire_scalar_F64LE(detector,&h5data,"x_pixel_size",num),error);
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									CBF_CHECK_TOKEN("m",pixel_x = num,;);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"units",token),error);
+									cbf_H5Dfree(h5data);
                                 }
-							} __ELSEIF_MATCH("N_excluded_pixels") {
-								const char * const start = value;
-								/* check for the presence of any interesting data */
-								value = getPilatusEOLToken(value);
-								if (start != value) {
-									int error = CBF_SUCCESS;
-									hid_t h5location = CBF_H5FAIL;
-									/* get the dignostics group */
-									error |= cbf_H5Grequire(&h5location,"pilatus_diagnostics",detector);
-									/* write the data */
-									if (CBF_SUCCESS==error) {
-										const char * str = substrdup(start, value);
-										cbf_H5Drequire_string(h5location,0,"N_excluded_pixels",str);
-										free((void*)str);
-									}
+								/* Get next useful token, just skip over useless stuff */
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								{ /* Get y pixel size */
+									hid_t h5data = CBF_H5FAIL;
+                                    const double num = strtod(token,0);
+									cbf_reportnez(cbf_H5Drequire_scalar_F64LE(detector,&h5data,"y_pixel_size",num),error);
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									CBF_CHECK_TOKEN("m",pixel_y = num,;);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"units",token),error);
+									cbf_H5Dfree(h5data);
 								}
-							} __ELSEIF_MATCH("Excluded_pixels") {
-								const char * const start = value;
-								/* check for the presence of any interesting data */
-								value = getPilatusEOLToken(value);
-								if (start != value) {
-									int error = CBF_SUCCESS;
-									hid_t h5location = CBF_H5FAIL;
-									/* get the dignostics group */
-									error |= cbf_H5Grequire(&h5location,"pilatus_diagnostics",detector);
-									/* write the data */
-									if (CBF_SUCCESS==error) {
-										const char * str = substrdup(start, value);
-										cbf_H5Drequire_string(h5location,0,"Excluded_pixels",str);
-										free((void*)str);
-									}
-								}
-							} __ELSEIF_MATCH("Flat_field") {
-								const char * const start = value;
-								/* check for the presence of any interesting data */
-								value = getPilatusEOLToken(value);
-								if (start != value) {
-									int error = CBF_SUCCESS;
-									hid_t h5location = CBF_H5FAIL;
-									/* get the dignostics group */
-									error |= cbf_H5Grequire(&h5location,"pilatus_diagnostics",detector);
-									/* write the data */
-									if (CBF_SUCCESS==error) {
-										const char * str = substrdup(start, value);
-										cbf_H5Drequire_string(h5location,0,"Flat_field",str);
-										free((void*)str);
-									}
-								}
-							} __ELSEIF_MATCH("Trim_file") {
-								const char * const start = value;
-								/* check for the presence of any interesting data */
-								value = getPilatusEOLToken(value);
-								if (start != value) {
-									int error = CBF_SUCCESS;
-									hid_t h5location = CBF_H5FAIL;
-									/* get the dignostics group */
-									error |= cbf_H5Grequire(&h5location,"pilatus_diagnostics",detector);
-									/* write the data */
-									if (CBF_SUCCESS==error) {
-										const char * str = substrdup(start, value);
-										cbf_H5Drequire_string(h5location,0,"Trim_file",str);
-										free((void*)str);
-									}
-								}
-							} __ELSEIF_MATCH("Exposure_time") {
+							} else if (!cbf_cistrcmp("Silicon",token)) {
+								int error = CBF_SUCCESS;
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								if (!cbf_cistrcmp("sensor",token)) {
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									if (!cbf_cistrcmp("thickness",token)) {
+										cbf_reportnez(cbf_H5Drequire_string(detector,0,"sensor_material","Silicon"),error);
+										cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+                                        {
+											hid_t h5data = CBF_H5FAIL;
+											double num = strtod(token,0);
+											cbf_reportnez(cbf_H5Drequire_scalar_F64LE(detector,&h5data,"sensor_thickness",
+                                                                                      num),error);
+											cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+											CBF_CHECK_TOKEN("m",;,;);
+											cbf_reportnez(cbf_H5Arequire_string(h5data,"units",token),error);
+											cbf_H5Dfree(h5data);
+								        }
+                                    } else noMatch = 1;
+								} else noMatch = 1;
+							} else if (!cbf_cistrcmp("Detector_distance",token)) {
+								int error = CBF_SUCCESS;
 								double num = 0./0.;
-								int found = CBF_SUCCESS;
+								hid_t h5data = CBF_H5FAIL;
+								/* Get value & units */
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								num = strtod(token,0);
+								cbf_reportnez(cbf_H5Drequire_scalar_F64LE(detector,&h5data,"distance",
+                                                                          num),error);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								CBF_CHECK_TOKEN("m",detector_distance=num,;);
+								cbf_reportnez(cbf_H5Arequire_string(h5data,"units",token),error);
+								cbf_H5Dfree(h5data);
+							} else if (!cbf_cistrcmp("Detector",token)) {
+								int error = CBF_SUCCESS;
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value),error);
+								cbf_reportnez(cbf_H5Drequire_string(detector,0,"description",token),error);
+							} else if (!cbf_cistrcmp("N_excluded_pixels",token)) {
+                                int error = CBF_SUCCESS;
+                                hid_t h5location = CBF_H5FAIL;
+								cbf_reportnez(cbf_H5Grequire(&h5location,"pilatus_diagnostics",detector),error);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value),error);
+								cbf_reportnez(cbf_H5Drequire_string(h5location,0,"N_excluded_pixels",token),error);
+								cbf_H5Gfree(h5location);
+							} else if (!cbf_cistrcmp("Excluded_pixels",token)) {
+                                int error = CBF_SUCCESS;
+                                hid_t h5location = CBF_H5FAIL;
+                                /* get the dignostics group */
+                                cbf_reportnez(cbf_H5Grequire(&h5location,"pilatus_diagnostics",detector),error);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value),error);
+								cbf_reportnez(cbf_H5Drequire_string(h5location,0,"Excluded_pixels",token),error);
+								cbf_H5Gfree(h5location);
+							} else if (!cbf_cistrcmp("Flat_field",token)) {
+								int error = CBF_SUCCESS;
+								hid_t h5location = CBF_H5FAIL;
+								cbf_reportnez(cbf_H5Grequire(&h5location,"pilatus_diagnostics",detector),error);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value),error);
+								cbf_reportnez(cbf_H5Drequire_string(h5location,0,"Flat_field",token),error);
+								cbf_H5Gfree(h5location);
+							} else if (!cbf_cistrcmp("Trim_file",token)) {
+								int error = CBF_SUCCESS;
+								hid_t h5location = CBF_H5FAIL;
+								cbf_reportnez(cbf_H5Grequire(&h5location,"pilatus_diagnostics",detector),error);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value),error);
+								cbf_reportnez(cbf_H5Drequire_string(h5location,0,"Trim_file",token),error);
+								cbf_H5Gfree(h5location);
+							} else if (!cbf_cistrcmp("Exposure_time",token)) {
+								int error = CBF_SUCCESS;
 								hid_t h5data = CBF_H5FAIL;
 								hid_t h5location = detector;
 								const hid_t h5type = H5T_IEEE_F64LE;
@@ -5150,27 +5428,26 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								const hsize_t offset[] = {h5handle->slice};
 								const hsize_t count[] = {1};
 								/* 1: value */
-								value = getPilatusNonWhitespaceToken(value);
-								num = strtod(value, (char**)(&value));
-								found = cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
-								if (CBF_SUCCESS==found) {
-									const hsize_t dim2[] = {dim[0]+1};
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								cbf_reportnez(cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
+								if (CBF_SUCCESS==error) {
+									const double num = strtod(token,0);
+									const hsize_t dim2[] = {cbf_max(dim[0],offset[0]+count[0])};
 									if (!cbf_H5Ivalid(h5data)) {
-										cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
+										cbf_reportnez(cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
 									}
-									cbf_H5Dset_extent(h5data,dim2);
-									cbf_H5Dwrite(h5data,offset,0,count,&num);
+									cbf_reportnez(cbf_H5Dset_extent(h5data,dim2),error);
+									cbf_reportnez(cbf_H5Dwrite(h5data,offset,0,count,&num),error);
 									/* 2: units */
-									value = getPilatusNonWhitespaceToken(value);
-									value = pilatusWriteUnits(value, h5data,0);
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"units",token),error);
 									/* cleanup temporary datasets */
 									cbf_H5Dfree(h5data);
 								} else {
 									fprintf(stderr,"Attempt to determine existence of nexus dataset '%s' failed\n",h5name);
 								}
-							} __ELSEIF_MATCH("Exposure_period") {
-								double num = 0./0.;
-								int found = CBF_SUCCESS;
+							} else if (!cbf_cistrcmp("Exposure_period",token)) {
+								int error = CBF_SUCCESS;
 								hid_t h5data = CBF_H5FAIL;
 								hid_t h5location = detector;
 								const hid_t h5type = H5T_IEEE_F64LE;
@@ -5181,27 +5458,26 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								const hsize_t offset[] = {h5handle->slice};
 								const hsize_t count[] = {1};
 								/* 1: value */
-								value = getPilatusNonWhitespaceToken(value);
-								num = strtod(value, (char**)(&value));
-								found = cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
-								if (CBF_SUCCESS==found) {
-									const hsize_t dim2[] = {dim[0]+1};
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								cbf_reportnez(cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
+								if (CBF_SUCCESS==error) {
+									const double num = strtod(token,0);
+									const hsize_t dim2[] = {cbf_max(dim[0],offset[0]+count[0])};
 									if (!cbf_H5Ivalid(h5data)) {
-										cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
+										cbf_reportnez(cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
 									}
-									cbf_H5Dset_extent(h5data,dim2);
-									cbf_H5Dwrite(h5data,offset,0,count,&num);
+									cbf_reportnez(cbf_H5Dset_extent(h5data,dim2),error);
+									cbf_reportnez(cbf_H5Dwrite(h5data,offset,0,count,&num),error);
 									/* 2: units */
-									value = getPilatusNonWhitespaceToken(value);
-									value = pilatusWriteUnits(value, h5data,0);
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"units",token),error);
 									/* cleanup temporary datasets */
 									cbf_H5Dfree(h5data);
 								} else {
 									fprintf(stderr,"Attempt to determine existence of nexus dataset '%s' failed\n",h5name);
 								}
-							} __ELSEIF_MATCH("Tau") {
-								double num = 0./0.;
-								int found = CBF_SUCCESS;
+							} else if (!cbf_cistrcmp("Tau",token)) {
+								int error = CBF_SUCCESS;
 								hid_t h5data = CBF_H5FAIL;
 								hid_t h5location = detector;
 								const hid_t h5type = H5T_IEEE_F64LE;
@@ -5212,28 +5488,27 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								const hsize_t offset[] = {h5handle->slice};
 								const hsize_t count[] = {1};
 								/* 1: value */
-								value = getPilatusNonWhitespaceToken(value);
-								num = strtod(value, (char**)(&value));
-								found = cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
-								if (CBF_SUCCESS==found) {
-									const hsize_t dim2[] = {dim[0]+1};
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								cbf_reportnez(cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
+								if (CBF_SUCCESS==error) {
+									const double num = strtod(token,0);
+									const hsize_t dim2[] = {cbf_max(dim[0],offset[0]+count[0])};
 									if (!cbf_H5Ivalid(h5data)) {
-										cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
+										cbf_reportnez(cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
 									}
-									cbf_H5Dset_extent(h5data,dim2);
-									cbf_H5Dwrite(h5data,offset,0,count,&num);
+									cbf_reportnez(cbf_H5Dset_extent(h5data,dim2),error);
+									cbf_reportnez(cbf_H5Dwrite(h5data,offset,0,count,&num),error);
 									/* 2: units */
-									value = getPilatusNonWhitespaceToken(value);
-									value = pilatusWriteUnits(value, h5data,0);
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"units",token),error);
 									/* cleanup temporary datasets */
 									cbf_H5Dfree(h5data);
 								} else {
 									fprintf(stderr,"Attempt to determine existence of nexus dataset '%s' failed\n",h5name);
 								}
-							} __ELSEIF_MATCH("Count_cutoff") {
+							} else if (!cbf_cistrcmp("Count_cutoff",token)) {
+								int error = CBF_SUCCESS;
 								/* Get value & units */
-								long num = 0;
-								int found = CBF_SUCCESS;
 								hid_t h5data = CBF_H5FAIL;
 								hid_t h5location = detector;
 								const hid_t h5type = H5T_STD_I32LE;
@@ -5244,44 +5519,46 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								const hsize_t offset[] = {h5handle->slice};
 								const hsize_t count[] = {1};
 								/* 1: value */
-								value = getPilatusNonWhitespaceToken(value);
-								num = strtol(value, (char**)(&value), 10);
-								found = cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
-								if (CBF_SUCCESS==found) {
-									const hsize_t dim2[] = {offset[0]+count[0]};
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								cbf_reportnez(cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
+								if (CBF_SUCCESS==error) {
+									const int num = strtol(token,0,10);
+									const hsize_t dim2[] = {cbf_max(dim[0],offset[0]+count[0])};
 									if (!cbf_H5Ivalid(h5data)) {
-										cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
+										cbf_reportnez(cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
 									}
-									cbf_H5Dset_extent(h5data,dim2);
-									cbf_H5Dwrite(h5data,offset,0,count,&num);
+									cbf_reportnez(cbf_H5Dset_extent(h5data,dim2),error);
+									cbf_reportnez(cbf_H5Dwrite(h5data,offset,0,count,&num),error);
 									/* 2: units */
-									value = getPilatusNonWhitespaceToken(value);
-									value = pilatusWriteUnits(value, h5data,0);
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"units",token),error);
 									/* cleanup temporary datasets */
 									cbf_H5Dfree(h5data);
 								} else {
 									fprintf(stderr,"Attempt to determine existence of nexus dataset '%s' failed\n",h5name);
 								}
-							} __ELSEIF_MATCH("Threshold_setting") {
-								/* Get value & units */
-								value = pilatusWriteDoubleUnits(value,detector,"threshold_energy",0,0);
-							} __ELSEIF_MATCH("Gain_setting") {
-								const char * const start = value;
-								/* [1,end): gain setting string */
-								value = getPilatusEOLToken(value);
-								if (start != value) {
-									const char * str = substrdup(start, value);
-									cbf_H5Drequire_string(detector,0,"gain_setting",str);
-									free((void*)str);
-								}
-							} __ELSEIF_MATCH("Wavelength") {
-								hid_t monochromator;
-								cbf_h5handle_require_monochromator(h5handle, &monochromator);
-								/* Get value & units */
+							} else if (!cbf_cistrcmp("Threshold_setting",token)) {
+								int error = CBF_SUCCESS;
 								double num = 0./0.;
-								int found = CBF_SUCCESS;
 								hid_t h5data = CBF_H5FAIL;
-								hid_t h5location = monochromator;
+								/* Get value & units */
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								num = strtod(token,0);
+								cbf_reportnez(cbf_H5Drequire_scalar_F64LE(detector,&h5data,"threshold_energy",
+                                                                num),error);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								cbf_reportnez(cbf_H5Arequire_string(h5data,"units",token),error);
+								cbf_H5Dfree(h5data);
+							} else if (!cbf_cistrcmp("Gain_setting",token)) {
+								int error = CBF_SUCCESS;
+								/* [1,end): gain setting string */
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value),error);
+								cbf_reportnez(cbf_H5Drequire_string(detector,0,"gain_setting",token),error);
+							} else if (!cbf_cistrcmp("Wavelength",token)) {
+								int error = CBF_SUCCESS;
+								/* Get value & units */
+								hid_t h5data = CBF_H5FAIL;
+								hid_t h5location = CBF_H5FAIL; /* DO NOT FREE THIS! */
 								const hid_t h5type = H5T_IEEE_F64LE;
 								const char h5name[] = "wavelength";
 								const hsize_t dim[] = {h5handle->slice};
@@ -5289,103 +5566,97 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								const hsize_t chunk[] = {1};
 								const hsize_t offset[] = {h5handle->slice};
 								const hsize_t count[] = {1};
+								/* Get an object which is stored in the handle for later use */
+								cbf_h5handle_require_monochromator(h5handle, &h5location);
 								/* 1: value */
-								value = getPilatusNonWhitespaceToken(value);
-								num = strtod(value, (char**)(&value));
-								found = cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
-								if (CBF_SUCCESS==found) {
-									const hsize_t dim2[] = {offset[0]+count[0]};
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								cbf_reportnez(cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
+								if (CBF_SUCCESS==error) {
+									const double num = strtod(token,0);
+									const hsize_t dim2[] = {cbf_max(dim[0],offset[0]+count[0])};
 									if (!cbf_H5Ivalid(h5data)) {
-										cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
+										cbf_reportnez(cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
 									}
-									cbf_H5Dset_extent(h5data,dim2);
-									cbf_H5Dwrite(h5data,offset,0,count,&num);
+									cbf_reportnez(cbf_H5Dset_extent(h5data,dim2),error);
+									cbf_reportnez(cbf_H5Dwrite(h5data,offset,0,count,&num),error);
 									/* 2: units */
-									value = getPilatusNonWhitespaceToken(value);
-									value = pilatusWriteUnits(value, h5data,0);
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"units",token),error);
 									/* cleanup temporary datasets */
 									cbf_H5Dfree(h5data);
 								} else {
 									fprintf(stderr,"Attempt to determine existence of nexus dataset '%s' failed\n",h5name);
 								}
-							} __ELSEIF_MATCH("Beam_xy") {
-								const char * start;
+							} else if (!cbf_cistrcmp("Beam_xy",token)) {
+								int error = CBF_SUCCESS;
+								double num_x = 0./0., num_y = 0./0.;
 								/*
                                  Extract x & y positions from the header, put them into the file later.
                                  I might need to read all the header to know if I can actually convert these values to NeXus data.
                                  */
-								beam_x = strtod(value, (char**)(&value));
-								value = getPilatusNonWhitespaceToken(value);
-								beam_y = strtod(value, (char**)(&value));
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								num_x = strtod(token,0);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								num_y = strtod(token,0);
 								/* Extract the units (should be pixels, but I don't want to lose important information if it isn't) */
-								value = getPilatusNonWhitespaceToken(value);
-								start = value;
-								value = getPilatusNonTextToken(value);
-								if (start != value) {
-									const char * units = strtolower(substrdup(start, value));
-									const char expected_units[] = "pixels";
-									if (0 == units || strlen(units) != strlen(expected_units) || 0 != strcmp(units,expected_units))
-										fprintf(stderr,__WHERE__": unexpected value for units of 'Beam_xy'.\n");
-									else Beam_xy = 1;
-									free((void*)(units));
-								} else {
-									fprintf(stderr,__WHERE__": 'Beam_xy' units not found.\n");
-								}
-							} __ELSEIF_MATCH("Flux") {
-								const char * end = value;
-								const double num = strtod(value,(char**)(&end));
-								if (end != value && 0.0 != num) {
-									/* I have a valid flux, map it to /entry/sample/beam/flux */
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								CBF_CHECK_TOKEN("pixels",{beam_x = num_x; beam_y = num_y;},;);
+							} else if (!cbf_cistrcmp("Flux",token)) {
 									int error = CBF_SUCCESS;
-									hid_t sample = CBF_H5FAIL;
+								/*
+                                 Either a number with some units or a random string, only do anything if it's a number.
+                                 */
+								const char * end = 0;
+								double num = 0./0.;
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								num = strtod(token,(char**)(&end));
+								if (end != token && 0.0 != num) {
+									/* I have a valid & useful flux, map it to /entry/sample/beam/flux */
+									hid_t sample = CBF_H5FAIL; /* DO NOT FREE THIS! */
 									hid_t h5data = CBF_H5FAIL;
 									hid_t h5location = CBF_H5FAIL;
 									/* Ensure I have a valid sample group */
-									error |= cbf_h5handle_require_sample(h5handle, &sample);
+									cbf_reportnez(cbf_h5handle_require_sample(h5handle, &sample),error);
 									/* Ensure I have a valid beam group */
-									if (0 && CBF_H5FAIL==beam && CBF_SUCCESS==error) {
-										if (CBF_SUCCESS==error) error |= cbf_H5Gcreate(&beam,"beam",sample);
-										if (CBF_SUCCESS==error) error |= cbf_H5Arequire_string(beam,"NX_class","NXbeam");
-									}
-									error |= cbf_H5Grequire(&h5location,"beam",sample);
-									error |= cbf_H5Arequire_string(h5location, "NX_class", "NXbeam");
+									cbf_reportnez(cbf_H5Grequire(&h5location,"beam",sample),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5location, "NX_class", "NXbeam"),error);
 									/* Store value & units */
-									error |= cbf_H5Drequire_scalar_F64LE(h5location, &h5data, "flux", num);
-									error |= cbf_H5Arequire_string(h5data, "units", "s-1");
+									cbf_reportnez(cbf_H5Drequire_scalar_F64LE(h5location, &h5data, "flux", num),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5data, "units", "s-1"),error);
 									/* cleanup temporary dataset */
 									cbf_H5Dfree(h5data);
 									cbf_H5Gfree(h5location);
-									if (CBF_SUCCESS != error) fprintf(stderr,__WHERE__": CBFlib error: %s\n",cbf_strerror(error));
 								}
-							} __ELSEIF_MATCH("Filter_transmission") {
-								/* Get value */
-								const double num = strtod(value, (char**)(&value));
+							} else if (!cbf_cistrcmp("Filter_transmission",token)) {
+								int error = CBF_SUCCESS;
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
 								/* write it to the file */
 								if (cbf_H5Ivalid(instrument)) {
-									int error = CBF_SUCCESS;
+									/* Get value */
+									const double num = strtod(token,0);
 									hid_t h5location = CBF_H5FAIL;
-									error |= cbf_H5Grequire(&h5location,"attenuator",instrument);
-									error |= cbf_H5Arequire_string(h5location, "NX_class", "NXattenuator");
+									cbf_reportnez(cbf_H5Grequire(&h5location,"attenuator",instrument),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5location, "NX_class", "NXattenuator"),error);
 									/* Get value & units */
-									error |= cbf_H5Drequire_scalar_F64LE(h5location, 0, "attenuator_transmission", num);
+									cbf_reportnez(cbf_H5Drequire_scalar_F64LE(h5location, 0, "attenuator_transmission",
+                                                                    num),error);
 									/* cleanup temporary dataset */
 									cbf_H5Gfree(h5location);
-									if (CBF_SUCCESS != error) fprintf(stderr,__WHERE__": CBFlib error: %s\n",cbf_strerror(error));
 								}
-							} __ELSEIF_MATCH("Polarization") {
+							} else if (!cbf_cistrcmp("Polarization",token)) {
 								int error = CBF_SUCCESS;
-								hid_t sample = CBF_H5FAIL;
+								hid_t sample = CBF_H5FAIL; /* DO NOT FREE THIS! */
 								hid_t h5location = CBF_H5FAIL;
 								/* Ensure I have a valid sample group */
-								error |= cbf_h5handle_require_sample(h5handle, &sample);
+								cbf_reportnez(cbf_h5handle_require_sample(h5handle, &sample),error);
 								/* Ensure I have a valid beam group */
-								error |= cbf_H5Grequire(&h5location,"beam",sample);
-								error |= cbf_H5Arequire_string(h5location, "NX_class", "NXbeam");
+								cbf_reportnez(cbf_H5Grequire(&h5location,"beam",sample),error);
+								cbf_reportnez(cbf_H5Arequire_string(h5location, "NX_class", "NXbeam"),error);
 								/* Get value & units */
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
 								if (CBF_SUCCESS==error) {
-									int found = CBF_SUCCESS;
 									/* extract value from header */
-									const double p = strtod(value, (char**)(&value));
+									const double p = strtod(token, 0);
 									/* convert to nexus format */
 									const double polarisation[] = {1.0-p, p};
 									const hsize_t dim[] = {2};
@@ -5394,17 +5665,16 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 									hid_t h5data = CBF_H5FAIL;
 									hid_t h5type = H5T_IEEE_F64LE;
 									const char h5name[] = "incident_polarisation";
-									found = cbf_H5Dfind(h5location,&h5data,h5name,1,dim,0,0,h5type);
-									if (CBF_SUCCESS==found) {
+									cbf_reportnez(cbf_H5Dfind(h5location,&h5data,h5name,1,dim,0,0,h5type),error);
+									if (CBF_SUCCESS==error) {
 										if (!cbf_H5Ivalid(h5data)) {
-											error |= cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,0,0,h5type);
-											error |= cbf_H5Dwrite(h5data,offset,0,count,polarisation);
+											cbf_reportnez(cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,0,0,h5type),error);
+											cbf_reportnez(cbf_H5Dwrite(h5data,offset,0,count,polarisation),error);
 										} else {
 											double data[] = {0./0., 0./0.};
-											error |= cbf_H5Dread(h5data,offset,0,count,data);
-											if (polarisation[0] != data[0] || polarisation[1] != data[1])
-												fprintf(stderr,"Error: data doesn't match ([%g, %g] vs [%g, %g]) for nexus field '%s'\n",
-														data[0],data[1],polarisation[0],polarisation[1],h5name);
+											cbf_reportnez(cbf_H5Dread(h5data,offset,0,count,data),error);
+											if (cmp_double(polarisation,data,2))
+												fprintf(stderr,"Error: data doesn't match for nexus field '%s'\n",h5name);
 										}
 										/* cleanup temporary datasets */
 										cbf_H5Dfree(h5data);
@@ -5413,55 +5683,256 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 									}
 								}
 								cbf_H5Gfree(h5location);
-								if (CBF_SUCCESS != error) fprintf(stderr,__WHERE__": CBFlib error: %s\n",cbf_strerror(error));
-							} __ELSEIF_MATCH("Alpha") {
+							} else if (!cbf_cistrcmp("Alpha",token)) {
+								const char axisName[] = "Alpha";
 								int error = CBF_SUCCESS;
-								hid_t sample = CBF_H5FAIL;
-								/* Ensure I have a valid sample group */
-								cbf_h5handle_require_sample(h5handle, &sample);
-								if (CBF_SUCCESS==error) pilatusMapAxis(sample, &value, "Alpha", axisConfig, h5handle->slice);
-							} __ELSEIF_MATCH("Kappa") {
+								/* Find the data for the current axis, or fail */
+								cbf_hdf5_configItem * const axisItem = cbf_hdf5_configItemVector_findMinicbf(axisConfig, axisName);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								if (cbf_hdf5_configItemVector_end(axisConfig) == axisItem) {
+									error |= CBF_NOTFOUND;
+									fprintf(stderr,"Config settings for axis '%s' could not be found: "
+											"this will eventually be a fatal error\n", axisName);
+								} else {
+									hid_t h5data = CBF_H5FAIL;
+									hid_t location = CBF_H5FAIL;
+									const hsize_t dim[] = {h5handle->slice};
+									const hsize_t max[] = {H5S_UNLIMITED};
+									const hsize_t chunk[] = {1};
+									const hsize_t offset[] = {h5handle->slice};
+									const hsize_t count[] = {1};
+									const double num = strtod(token,0);
+									cbf_reportnez(cbf_h5handle_require_sample(h5handle, &location),error);
+									cbf_reportnez(cbf_H5Dfind(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+									if (CBF_SUCCESS==error) {
+										const hsize_t dim2[] = {cbf_max(dim[0],offset[0]+count[0])};
+										if (!cbf_H5Ivalid(h5data)) {
+											cbf_reportnez(cbf_H5Dcreate(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+										}
+										cbf_reportnez(cbf_H5Dset_extent(h5data, dim2),error);
+										cbf_reportnez(cbf_H5Dwrite(h5data,offset,0,count,&num),error);
+									}
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									cbf_reportnez(_cbf_pilatusAxis2nexusAxisAttrs(h5data,token,axisItem,cmp_double),error);
+									/* cleanup temporary datasets */
+									cbf_H5Dfree(h5data);
+								}
+							} else if (!cbf_cistrcmp("Kappa",token)) {
+								const char axisName[] = "Kappa";
 								int error = CBF_SUCCESS;
-								hid_t sample = CBF_H5FAIL;
-								/* Ensure I have a valid sample group */
-								cbf_h5handle_require_sample(h5handle, &sample);
-								if (CBF_SUCCESS==error) pilatusMapAxis(sample, &value, "Kappa", axisConfig, h5handle->slice);
-							} __ELSEIF_MATCH("Phi") {
+								/* Find the data for the current axis, or fail */
+								cbf_hdf5_configItem * const axisItem = cbf_hdf5_configItemVector_findMinicbf(axisConfig, axisName);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								if (cbf_hdf5_configItemVector_end(axisConfig) == axisItem) {
+									error |= CBF_NOTFOUND;
+									fprintf(stderr,"Config settings for axis '%s' could not be found: "
+											"this will eventually be a fatal error\n", axisName);
+								} else {
+									hid_t h5data = CBF_H5FAIL;
+									hid_t location = CBF_H5FAIL;
+									const hsize_t dim[] = {h5handle->slice};
+									const hsize_t max[] = {H5S_UNLIMITED};
+									const hsize_t chunk[] = {1};
+									const hsize_t offset[] = {h5handle->slice};
+									const hsize_t count[] = {1};
+									const double num = strtod(token,0);
+									cbf_reportnez(cbf_h5handle_require_sample(h5handle, &location),error);
+									cbf_reportnez(cbf_H5Dfind(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+									if (CBF_SUCCESS==error) {
+										const hsize_t dim2[] = {cbf_max(dim[0],offset[0]+count[0])};
+										if (!cbf_H5Ivalid(h5data)) {
+											cbf_reportnez(cbf_H5Dcreate(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+										}
+										cbf_reportnez(cbf_H5Dset_extent(h5data, dim2),error);
+										cbf_reportnez(cbf_H5Dwrite(h5data,offset,0,count,&num),error);
+									}
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									cbf_reportnez(_cbf_pilatusAxis2nexusAxisAttrs(h5data,token,axisItem,cmp_double),error);
+									/* cleanup temporary datasets */
+									cbf_H5Dfree(h5data);
+								}
+							} else if (!cbf_cistrcmp("Phi",token)) {
+								const char axisName[] = "Phi";
 								int error = CBF_SUCCESS;
-								hid_t sample = CBF_H5FAIL;
-								/* Ensure I have a valid sample group */
-								cbf_h5handle_require_sample(h5handle, &sample);
-								if (CBF_SUCCESS==error) pilatusMapAxis(sample, &value, "Phi", axisConfig, h5handle->slice);
-							} __ELSEIF_MATCH("Chi") {
+								/* Find the data for the current axis, or fail */
+								cbf_hdf5_configItem * const axisItem = cbf_hdf5_configItemVector_findMinicbf(axisConfig, axisName);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								if (cbf_hdf5_configItemVector_end(axisConfig) == axisItem) {
+									error |= CBF_NOTFOUND;
+									fprintf(stderr,"Config settings for axis '%s' could not be found: "
+											"this will eventually be a fatal error\n", axisName);
+								} else {
+									hid_t h5data = CBF_H5FAIL;
+									hid_t location = CBF_H5FAIL;
+									const hsize_t dim[] = {h5handle->slice};
+									const hsize_t max[] = {H5S_UNLIMITED};
+									const hsize_t chunk[] = {1};
+									const hsize_t offset[] = {h5handle->slice};
+									const hsize_t count[] = {1};
+									const double num = strtod(token,0);
+									cbf_reportnez(cbf_h5handle_require_sample(h5handle, &location),error);
+									cbf_reportnez(cbf_H5Dfind(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+									if (CBF_SUCCESS==error) {
+										const hsize_t dim2[] = {cbf_max(dim[0],offset[0]+count[0])};
+										if (!cbf_H5Ivalid(h5data)) {
+											cbf_reportnez(cbf_H5Dcreate(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+										}
+										cbf_reportnez(cbf_H5Dset_extent(h5data, dim2),error);
+										cbf_reportnez(cbf_H5Dwrite(h5data,offset,0,count,&num),error);
+									}
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									cbf_reportnez(_cbf_pilatusAxis2nexusAxisAttrs(h5data,token,axisItem,cmp_double),error);
+									/* cleanup temporary datasets */
+									cbf_H5Dfree(h5data);
+								}
+							} else if (!cbf_cistrcmp("Chi",token)) {
+								const char axisName[] = "Chi";
 								int error = CBF_SUCCESS;
-								hid_t sample = CBF_H5FAIL;
-								/* Ensure I have a valid sample group */
-								cbf_h5handle_require_sample(h5handle, &sample);
-								if (CBF_SUCCESS==error) pilatusMapAxis(sample, &value, "Chi", axisConfig, h5handle->slice);
-							} __ELSEIF_MATCH("Omega") {
+								/* Find the data for the current axis, or fail */
+								cbf_hdf5_configItem * const axisItem = cbf_hdf5_configItemVector_findMinicbf(axisConfig, axisName);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								if (cbf_hdf5_configItemVector_end(axisConfig) == axisItem) {
+									error |= CBF_NOTFOUND;
+									fprintf(stderr,"Config settings for axis '%s' could not be found: "
+											"this will eventually be a fatal error\n", axisName);
+								} else {
+									hid_t h5data = CBF_H5FAIL;
+									hid_t location = CBF_H5FAIL;
+									const hsize_t dim[] = {h5handle->slice};
+									const hsize_t max[] = {H5S_UNLIMITED};
+									const hsize_t chunk[] = {1};
+									const hsize_t offset[] = {h5handle->slice};
+									const hsize_t count[] = {1};
+									const double num = strtod(token,0);
+									cbf_reportnez(cbf_h5handle_require_sample(h5handle, &location),error);
+									cbf_reportnez(cbf_H5Dfind(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+									if (CBF_SUCCESS==error) {
+										const hsize_t dim2[] = {cbf_max(dim[0],offset[0]+count[0])};
+										if (!cbf_H5Ivalid(h5data)) {
+											cbf_reportnez(cbf_H5Dcreate(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+										}
+										cbf_reportnez(cbf_H5Dset_extent(h5data, dim2),error);
+										cbf_reportnez(cbf_H5Dwrite(h5data,offset,0,count,&num),error);
+									}
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									cbf_reportnez(_cbf_pilatusAxis2nexusAxisAttrs(h5data,token,axisItem,cmp_double),error);
+									/* cleanup temporary datasets */
+									cbf_H5Dfree(h5data);
+								}
+							} else if (!cbf_cistrcmp("Omega",token)) {
+								const char axisName[] = "Omega";
 								int error = CBF_SUCCESS;
-								hid_t sample = CBF_H5FAIL;
-								/* Ensure I have a valid sample group */
-								cbf_h5handle_require_sample(h5handle, &sample);
-								if (CBF_SUCCESS==error) pilatusMapAxis(sample, &value, "Omega", axisConfig, h5handle->slice);
-							} __ELSEIF_MATCH("Start_angle") {
+								/* Find the data for the current axis, or fail */
+								cbf_hdf5_configItem * const axisItem = cbf_hdf5_configItemVector_findMinicbf(axisConfig, axisName);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								if (cbf_hdf5_configItemVector_end(axisConfig) == axisItem) {
+									error |= CBF_NOTFOUND;
+									fprintf(stderr,"Config settings for axis '%s' could not be found: "
+											"this will eventually be a fatal error\n", axisName);
+								} else {
+									hid_t h5data = CBF_H5FAIL;
+									hid_t location = CBF_H5FAIL;
+									const hsize_t dim[] = {h5handle->slice};
+									const hsize_t max[] = {H5S_UNLIMITED};
+									const hsize_t chunk[] = {1};
+									const hsize_t offset[] = {h5handle->slice};
+									const hsize_t count[] = {1};
+									const double num = strtod(token,0);
+									cbf_reportnez(cbf_h5handle_require_sample(h5handle, &location),error);
+									cbf_reportnez(cbf_H5Dfind(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+									if (CBF_SUCCESS==error) {
+										const hsize_t dim2[] = {cbf_max(dim[0],offset[0]+count[0])};
+										if (!cbf_H5Ivalid(h5data)) {
+											cbf_reportnez(cbf_H5Dcreate(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+										}
+										cbf_reportnez(cbf_H5Dset_extent(h5data, dim2),error);
+										cbf_reportnez(cbf_H5Dwrite(h5data,offset,0,count,&num),error);
+									}
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									cbf_reportnez(_cbf_pilatusAxis2nexusAxisAttrs(h5data,token,axisItem,cmp_double),error);
+									/* cleanup temporary datasets */
+									cbf_H5Dfree(h5data);
+								}
+							} else if (!cbf_cistrcmp("Start_angle",token)) {
+								const char axisName[] = "Start_angle";
 								int error = CBF_SUCCESS;
-								hid_t sample = CBF_H5FAIL;
-								/* Ensure I have a valid sample group */
-								cbf_h5handle_require_sample(h5handle, &sample);
-								if (CBF_SUCCESS==error) pilatusMapAxis(sample, &value, "Start_angle", axisConfig, h5handle->slice);
-							} __ELSEIF_MATCH("Detector_2theta") {
+								/* Find the data for the current axis, or fail */
+								cbf_hdf5_configItem * const axisItem = cbf_hdf5_configItemVector_findMinicbf(axisConfig, axisName);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								if (cbf_hdf5_configItemVector_end(axisConfig) == axisItem) {
+									error |= CBF_NOTFOUND;
+									fprintf(stderr,"Config settings for axis '%s' could not be found: "
+											"this will eventually be a fatal error\n", axisName);
+								} else {
+									hid_t h5data = CBF_H5FAIL;
+									hid_t location = CBF_H5FAIL;
+									const hsize_t dim[] = {h5handle->slice};
+									const hsize_t max[] = {H5S_UNLIMITED};
+									const hsize_t chunk[] = {1};
+									const hsize_t offset[] = {h5handle->slice};
+									const hsize_t count[] = {1};
+									const double num = strtod(token,0);
+									cbf_reportnez(cbf_h5handle_require_sample(h5handle, &location),error);
+									cbf_reportnez(cbf_H5Dfind(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+									if (CBF_SUCCESS==error) {
+										const hsize_t dim2[] = {cbf_max(dim[0],offset[0]+count[0])};
+										if (!cbf_H5Ivalid(h5data)) {
+											cbf_reportnez(cbf_H5Dcreate(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+										}
+										cbf_reportnez(cbf_H5Dset_extent(h5data, dim2),error);
+										cbf_reportnez(cbf_H5Dwrite(h5data,offset,0,count,&num),error);
+									}
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									cbf_reportnez(_cbf_pilatusAxis2nexusAxisAttrs(h5data,token,axisItem,cmp_double),error);
+									/* cleanup temporary datasets */
+									cbf_H5Dfree(h5data);
+								}
+							} else if (!cbf_cistrcmp("Detector_2theta",token)) {
+								const char axisName[] = "Detector_2theta";
 								int error = CBF_SUCCESS;
-								hid_t sample = CBF_H5FAIL;
-								/* Ensure I have a valid sample group */
-								cbf_h5handle_require_sample(h5handle, &sample);
-								if (CBF_SUCCESS==error) pilatusMapAxis(sample, &value, "Detector_2theta", axisConfig, h5handle->slice);
-							} __ELSEIF_IGNORE_MATCH("Image_path") {
-							} __ELSEIF_IGNORE_MATCH("Angle_increment") {
-							} __ENDIF_MATCH;
+								/* Find the data for the current axis, or fail */
+								cbf_hdf5_configItem * const axisItem = cbf_hdf5_configItemVector_findMinicbf(axisConfig, axisName);
+								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+								if (cbf_hdf5_configItemVector_end(axisConfig) == axisItem) {
+									error |= CBF_NOTFOUND;
+									fprintf(stderr,"Config settings for axis '%s' could not be found: "
+											"this will eventually be a fatal error\n", axisName);
+								} else {
+									hid_t h5data = CBF_H5FAIL;
+									hid_t location = CBF_H5FAIL;
+									const hsize_t dim[] = {h5handle->slice};
+									const hsize_t max[] = {H5S_UNLIMITED};
+									const hsize_t chunk[] = {1};
+									const hsize_t offset[] = {h5handle->slice};
+									const hsize_t count[] = {1};
+									const double num = strtod(token,0);
+									cbf_reportnez(cbf_H5Dfind(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+									if (CBF_SUCCESS==error) {
+										const hsize_t dim2[] = {cbf_max(dim[0],offset[0]+count[0])};
+										if (!cbf_H5Ivalid(h5data)) {
+											cbf_reportnez(cbf_H5Dcreate(location,&h5data,axisItem->nexus,1,dim,max,chunk,H5T_IEEE_F64LE),error);
+										}
+										cbf_reportnez(cbf_H5Dset_extent(h5data, dim2),error);
+										cbf_reportnez(cbf_H5Dwrite(h5data,offset,0,count,&num),error);
+									}
+									cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
+									cbf_reportnez(_cbf_pilatusAxis2nexusAxisAttrs(h5data,token,axisItem,cmp_double),error);
+									/* cleanup temporary datasets */
+									cbf_H5Dfree(h5data);
+								}
+							} else if (!cbf_cistrcmp("Image_path",token)) {
+							} else if (!cbf_cistrcmp("Angle_increment",token)) {
+							} else noMatch = 1;
+							if (noMatch) {
+								fprintf(stderr,"%s: error: Could not match entry in pilatus header: '%s'\n",__WHERE__,token);
+							}
 							/* Done matching the entry from this line, go on to the next one */
-							value = getPilatusEOLToken(value);
+							while (token && strcmp("\n",token)) {
+								const int error = _cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value);
+								if (CBF_SUCCESS != error) fprintf(stderr,"%s: error: %s\n",__WHERE__,cbf_strerror(error));
+							}
 						} while (1);
+						free(token);
                         
 						{
 							/*
@@ -5469,7 +5940,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
                              */
                             const char * const depends_on = cbf_hdf5_configItemVector_getSampleDependsOn(axisConfig);
 							if (depends_on) {
-                                hid_t h5location = CBF_H5FAIL;
+                                hid_t h5location = CBF_H5FAIL; /* DO NOT FREE THIS */
 								cbf_h5handle_require_sample(h5handle, &h5location);
 								cbf_H5Drequire_string(h5location,0,"depends_on",depends_on);
 							} else {
@@ -5478,31 +5949,24 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 							}
 							if (0) fprintf(stderr, __WHERE__ ": 'sample/depends_on' written\n");
 						}
-						if (Pixel_size && Beam_xy) {
-							/*
-                             I have enough data to convert the pilatus header's Beam_xy
-                             values to the NeXus beam_center_x & beam_center_y
-                             */
-							beam_center_x = beam_x*pixel_x;
-							beam_center_y = beam_y*pixel_y;
-							Beam_center_xy = 1;
-						} else fprintf(stderr,__WHERE__": Not enough information to extract the location of the beam center.\n");
-						if (Beam_center_xy) {
-							/*
-                             I have enough data to convert the pilatus header's Beam_xy
-                             values to the NeXus beam_center_x & beam_center_y
-                             */
+						{ /* write beam_center_x */
+							int error = CBF_SUCCESS;
 							hid_t h5data = CBF_H5FAIL;
-							if (CBF_SUCCESS==cbf_H5Drequire_scalar_F64LE(detector, &h5data, "beam_center_x", beam_center_x))
-								cbf_H5Arequire_string(h5data,"units","m");
-							if (0) fprintf(stderr, __WHERE__ ": 'detector/beam_center_x' written\n");
-							cbf_H5Ddestroy(&h5data);
-							if (CBF_SUCCESS==cbf_H5Drequire_scalar_F64LE(detector, &h5data, "beam_center_y", beam_center_y))
-								cbf_H5Arequire_string(h5data,"units","m");
-							if (0) fprintf(stderr, __WHERE__ ": 'detector/beam_center_y' written\n");
+							cbf_reportnez(cbf_H5Drequire_scalar_F64LE(detector, &h5data, "beam_center_x",
+                                                            beam_x*pixel_x),error);
+							cbf_reportnez(cbf_H5Arequire_string(h5data,"units","m"),error);
 							cbf_H5Dfree(h5data);
-						} else fprintf(stderr,__WHERE__": 'beam_center_x' & 'beam_center_y' could not be written.\n");
-						if (Detector_distance && Beam_center_xy) {
+						}
+						{ /* write beam_center_y */
+							int error = CBF_SUCCESS;
+							hid_t h5data = CBF_H5FAIL;
+							cbf_reportnez(cbf_H5Drequire_scalar_F64LE(detector, &h5data, "beam_center_y",
+                                                            beam_y*pixel_y),error);
+							cbf_reportnez(cbf_H5Arequire_string(h5data,"units","m"),error);
+							cbf_H5Dfree(h5data);
+						}
+						{
+							int error = CBF_SUCCESS;
 							/* Detector axes
                              Requires:
                              * beam_center_x
@@ -5519,30 +5983,29 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 							const hsize_t chunk[] = {1};
 							const hsize_t h5offset[] = {h5handle->slice};
 							const hsize_t h5count[] = {1};
-							const hsize_t dim2[] = {h5offset[0]+h5count[0]};
-							const char translation_name[] = "axis_translation";
-							const char rotation_name[] = "axis_rotation";
+							const hsize_t dim2[] = {cbf_max(dim[0],h5offset[0]+h5count[0])};
+							hid_t h5location = detector;
 							{ /* Translation-specific */
-								int found = CBF_SUCCESS;
 								hid_t h5data = CBF_H5FAIL;
 								hid_t h5type = H5T_IEEE_F64LE;
-								hid_t h5location = detector;
 								const double num = detector_distance;
 								const double vector[] = {0.0, 0.0, 1.0};
-								const double offset[] = {-beam_center_x, -beam_center_y, 0.0};
-								const char * h5name = translation_name;
-								found = cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
-								if (CBF_SUCCESS==found) {
+								const double offset[] = {-beam_x*pixel_x, -beam_y*pixel_y, 0.0};
+								const char * h5name = "axis_translation";
+								cbf_reportnez(cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
+								if (CBF_SUCCESS==error) {
 									if (!cbf_H5Ivalid(h5data))
-										cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
-									cbf_H5Dset_extent(h5data,dim2);
-									cbf_H5Dwrite(h5data,h5offset,0,h5count,&num);
-									cbf_H5Arequire_string(h5data,"units","m");
-									cbf_H5Arequire_string(h5data,"offset_units","m");
-									cbf_H5Arequire_string(h5data,"transformation_type","translation");
-									cbf_H5Arequire_string(h5data,"depends_on",".");
-									cbf_H5Arequire_cmp(h5data,"vector",1,vdims,H5T_IEEE_F64LE,vector,vbuf,cmp_double);
-									cbf_H5Arequire_cmp(h5data,"offset",1,vdims,H5T_IEEE_F64LE,offset,vbuf,cmp_double);
+                                        cbf_reportnez(cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
+                                    cbf_reportnez(cbf_H5Dset_extent(h5data,dim2),error);
+									cbf_reportnez(cbf_H5Dwrite(h5data,h5offset,0,h5count,&num),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"units","m"),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"offset_units","m"),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"transformation_type","translation"),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"depends_on","."),error);
+									cbf_reportnez(cbf_H5Arequire_cmp(h5data,"vector",1,vdims,H5T_IEEE_F64LE,vector,
+                                                                     vbuf,cmp_double),error);
+									cbf_reportnez(cbf_H5Arequire_cmp(h5data,"offset",1,vdims,H5T_IEEE_F64LE,offset,
+                                                                     vbuf,cmp_double),error);                                    
 									/* cleanup temporary datasets */
 									cbf_H5Dfree(h5data);
 								} else {
@@ -5551,23 +6014,22 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								if (0) fprintf(stderr, __WHERE__ ": 'detector/%s' written\n",h5name);
 							}
 							{ /* Rotation-specific */
-								int found = CBF_SUCCESS;
 								hid_t h5data = CBF_H5FAIL;
 								hid_t h5type = H5T_IEEE_F64LE;
-								hid_t h5location = detector;
 								const double num = 180.0;
 								const double vector[] = {0.0, 0.0, 1.0};
-								const char * h5name = rotation_name;
-								found = cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
-								if (CBF_SUCCESS==found) {
+								const char * h5name = "axis_rotation";
+								cbf_reportnez(cbf_H5Dfind(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
+								if (CBF_SUCCESS==error) {
 									if (!cbf_H5Ivalid(h5data))
-										cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type);
-									cbf_H5Dset_extent(h5data,dim2);
-									cbf_H5Dwrite(h5data,h5offset,0,h5count,&num);
-									cbf_H5Arequire_string(h5data,"units","deg.");
-									cbf_H5Arequire_string(h5data,"transformation_type","rotation");
-									cbf_H5Arequire_string(h5data,"depends_on",translation_name);
-									cbf_H5Arequire_cmp(h5data,"vector",1,vdims,H5T_IEEE_F64LE,vector,vbuf,cmp_double);
+										cbf_reportnez(cbf_H5Dcreate(h5location,&h5data,h5name,1,dim,max,chunk,h5type),error);
+									cbf_reportnez(cbf_H5Dset_extent(h5data,dim2),error);
+									cbf_reportnez(cbf_H5Dwrite(h5data,h5offset,0,h5count,&num),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"units","deg"),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"transformation_type","rotation"),error);
+									cbf_reportnez(cbf_H5Arequire_string(h5data,"depends_on","axis_translation"),error);
+									cbf_reportnez(cbf_H5Arequire_cmp(h5data,"vector",1,vdims,H5T_IEEE_F64LE,vector,
+                                                                     vbuf,cmp_double),error);
 									/* cleanup temporary datasets */
 									cbf_H5Dfree(h5data);
 								} else {
@@ -5576,14 +6038,8 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 								if (0) fprintf(stderr, __WHERE__ ": 'detector/%s' written\n",h5name);
 							}
 							/* tie everything to the detector */
-							cbf_H5Drequire_string(detector,0,"depends_on",rotation_name);
-						} else fprintf(stderr,__WHERE__": Detector axes could not be written.\n");
-#undef __IF_MATCH
-#undef __IF_MATCH_IGNORE
-#undef __ENDIF_MATCH
-#undef __ELSEIF_MATCH
-#undef __ELSEIF_IGNORE_MATCH
-						cbf_H5Gfree(beam);
+							cbf_reportnez(cbf_H5Drequire_string(detector,0,"depends_on","axis_rotation"),error);
+						}
 						cbf_H5Gfree(pilatusDiagnostics);
 					}
 				}
@@ -5637,86 +6093,88 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 					}
 				}
 				/* ensure I have an axis for each index of the image - mapping pixel indices to spatial coordinates */
-				if (Pixel_size) {
+				{
+                    int error = CBF_SUCCESS;
 					hid_t h5axis = CBF_H5FAIL;
 					const char h5name[] = "slow_pixel_direction";
-					const int found = cbf_H5Dfind(detector,&h5axis,h5name,1,h5dim+1,h5max+1,0,H5T_IEEE_F64LE);
-					if (CBF_SUCCESS==found) {
+					cbf_reportnez(cbf_H5Dfind(detector,&h5axis,h5name,1,h5dim+1,h5max+1,0,H5T_IEEE_F64LE),error);
+					if (CBF_SUCCESS==error) {
 						const hsize_t offset[] = {0};
 						const hsize_t * count = h5dim+1;
-						double * const data = malloc((*count) * sizeof(double));
-						if (!cbf_H5Ivalid(h5axis)) {
+						double * const expected_data = malloc((*count) * sizeof(double));
+						{
 							hsize_t n = 0;
 							for (n=0; n!=h5dim[1]; ++n)
-								data[n] = (double)(n)*pixel_x;
-							cbf_H5Dcreate(detector,&h5axis,h5name,1,h5dim+1,h5max+1,0,H5T_IEEE_F64LE);
-							cbf_H5Dwrite(h5axis,offset,0,count,data);
+								expected_data[n] = (double)(n)*pixel_x;
+						}
+						if (!cbf_H5Ivalid(h5axis)) {
+							cbf_reportnez(cbf_H5Dcreate(detector,&h5axis,h5name,1,h5dim+1,h5max+1,0,H5T_IEEE_F64LE),error);
+							cbf_reportnez(cbf_H5Dwrite(h5axis,offset,0,count,expected_data),error);
 						} else {
-							hsize_t n = 0;
-							int n_eq = 0;
-							cbf_H5Dread(h5axis,offset,0,count,data);
-							for (n=0; n!=*count; ++n) 
-                                                            if (fabs((double)(n)*pixel_x-data[n]) > 1.e-13*(double)(n)*pixel_x+1.e-20) ++n_eq;
-							if (0 != n_eq) {
-								fprintf(stderr,__WHERE__": error: %d values in '%s' have unexpected"
-										" values, pixel size might not match\n", n_eq, h5name);
+							double * const actual_data = malloc((*count) * sizeof(double));
+							cbf_reportnez(cbf_H5Dread(h5axis,offset,0,count,actual_data),error);
+							if (cmp_double(expected_data, actual_data, *count)) {
+								fprintf(stderr,__WHERE__": error: data doesn't match in %s, x pixel size might not match\n",h5name);
 								errorcode |= CBF_H5DIFFERENT;
 							}
+							free((void*)(actual_data));
 						}
-                        cbf_H5Arequire_string(h5axis,"units","m");
+						free((void*)(expected_data));
+						cbf_reportnez(cbf_H5Arequire_string(h5axis,"units","m"),error);
 						{
 							const double vector[] = {1.0, 0.0, 0.0};
 							const hsize_t vdims[] = {3};
 							double vbuf[3] = {0./0.};
-							cbf_H5Arequire_cmp(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,vector,vbuf,cmp_double);
+							cbf_reportnez(cbf_H5Arequire_cmp(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,vector,vbuf,cmp_double),error);
 						}
-						cbf_H5Arequire_string(h5axis,"transformation_type","translation");
-						cbf_H5Arequire_string(h5axis,"depends_on","/entry/instrument/detector/axis_rotation");
+                        cbf_reportnez(cbf_H5Arequire_string(h5axis,"transformation_type","translation"),error);
+						cbf_reportnez(cbf_H5Arequire_string(h5axis,"depends_on","/entry/instrument/detector/axis_rotation"),error);
 						cbf_H5Dfree(h5axis);
 					} else {
-						errorcode |= found;
-						fprintf(stderr,__WHERE__": error locating axis: %s\n", cbf_strerror(found));
+						errorcode |= error;
+						fprintf(stderr,__WHERE__": error locating axis: %s\n", cbf_strerror(error));
 					}
 				}
-				if (Pixel_size) {
+				{
+                    int error = CBF_SUCCESS;
 					hid_t h5axis = CBF_H5FAIL;
 					const char h5name[] = "fast_pixel_direction";
-					const int found = cbf_H5Dfind(detector,&h5axis,h5name,1,h5dim+2,h5max+2,0,H5T_IEEE_F64LE);
-					if (CBF_SUCCESS==found) {
+					cbf_reportnez(cbf_H5Dfind(detector,&h5axis,h5name,1,h5dim+2,h5max+2,0,H5T_IEEE_F64LE),error);
+					if (CBF_SUCCESS==error) {
 						const hsize_t offset[] = {0};
 						const hsize_t * count = h5dim+2;
-						double * const data = malloc((*count) * sizeof(double));
-						if (!cbf_H5Ivalid(h5axis)) {
+						double * const expected_data = malloc((*count) * sizeof(double));
+						{
 							hsize_t n = 0;
 							for (n=0; n!=h5dim[2]; ++n)
-								data[n] = (double)(n)*pixel_y;
-							cbf_H5Dcreate(detector,&h5axis,h5name,1,h5dim+2,h5max+2,0,H5T_IEEE_F64LE);
-							cbf_H5Dwrite(h5axis,offset,0,count,data);
+								expected_data[n] = (double)(n)*pixel_y;
+						}
+						if (!cbf_H5Ivalid(h5axis)) {
+							cbf_reportnez(cbf_H5Dcreate(detector,&h5axis,h5name,1,h5dim+2,h5max+2,0,H5T_IEEE_F64LE),error);
+							cbf_reportnez(cbf_H5Dwrite(h5axis,offset,0,count,expected_data),error);
 						} else {
-							hsize_t n = 0;
-							int n_eq = 0;
-							cbf_H5Dread(h5axis,offset,0,count,data);
-							for (n=0; n!=*count; ++n) 
-                                                            if (fabs((double)(n)*pixel_x-data[n]) > 1.e-13*(double)(n)*pixel_y+1.e-20) ++n_eq;
-							if (0 != n_eq) {
-								fprintf(stderr,__WHERE__": error: %d values in '%s' have unexpected"
-										" values, pixel size might not match\n", n_eq, h5name);
+							double * const actual_data = malloc((*count) * sizeof(double));
+							cbf_reportnez(cbf_H5Dread(h5axis,offset,0,count,actual_data),error);
+							if (cmp_double(expected_data, actual_data, *count)) {
+								fprintf(stderr,__WHERE__": error: data doesn't match in %s, y pixel size might not match\n",h5name);
 								errorcode |= CBF_H5DIFFERENT;
 							}
+                            free((void*)(actual_data));
 						}
-                        cbf_H5Arequire_string(h5axis,"units","m");
+						free((void*)(expected_data));
+						cbf_reportnez(cbf_H5Arequire_string(h5axis,"units","m"),error);
 						{
 							const double vector[] = {0.0, 1.0, 0.0};
 							const hsize_t vdims[] = {3};
 							double vbuf[3] = {0./0.};
-							cbf_H5Arequire_cmp(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,vector,vbuf,cmp_double);
+							cbf_reportnez(cbf_H5Arequire_cmp(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,vector,vbuf,cmp_double),error);
 						}
-						cbf_H5Arequire_string(h5axis,"transformation_type","translation");
-						cbf_H5Arequire_string(h5axis,"depends_on","/entry/instrument/detector/axis_rotation");
+                        cbf_reportnez(cbf_H5Arequire_string(h5axis,"transformation_type","translation"),error);
+                        cbf_reportnez(cbf_H5Arequire_string(h5axis,"depends_on","/entry/instrument/detector/axis_rotation"),error);
 						cbf_H5Dfree(h5axis);
 					} else {
-						errorcode |= found;
-						fprintf(stderr,__WHERE__": error locating axis: %s\n", cbf_strerror(found));
+                        errorcode |= error;
+                        fprintf(stderr,__WHERE__": error locating axis: %s\n", cbf_strerror(error));
 					}
 				}
 				/* allocate an array for the raw data */
@@ -5730,10 +6188,11 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 				}
 				/* get a hdf5 dataset */
 				{
+					int error = CBF_SUCCESS;
 					hid_t dataset = CBF_H5FAIL;
 					/* get the dataset */
-					const int found = cbf_H5Dfind(detector,&dataset,"data",rank,h5dim,h5max,h5chunk,h5type);
-					if (CBF_SUCCESS==found) {
+                    cbf_reportnez(cbf_H5Dfind(detector,&dataset,"data",rank,h5dim,h5max,h5chunk,h5type),error);
+					if (CBF_SUCCESS==error) {
 						const hsize_t h5extent[] = {h5dim[0]+1, h5dim[1], h5dim[2]};
 						const hsize_t h5offset[] = {h5dim[0], 0, 0};
 						const hsize_t h5count[] = {1, h5dim[1], h5dim[2]};
@@ -5745,7 +6204,7 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 							hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
                             
 							/* check variables are valid */
-							cbf_H5Screate(&dataSpace, rank, h5dim, h5max);
+							cbf_reportnez(cbf_H5Screate(&dataSpace, rank, h5dim, h5max),error);
                             
 							/* allow dataset to be chunked */
 							H5Pset_chunk(dcpl,rank,h5chunk);
@@ -5763,22 +6222,22 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 							if (cbf_H5Ivalid(dcpl)) H5Pclose(dcpl);
 						}
 						/* write the data to the hdf5 dataset */
-                        cbf_H5Dset_extent(dataset, h5extent);
-						cbf_H5Dwrite(dataset,h5offset,0,h5count,array);
-						cbf_H5Arequire_cmp(dataset,"signal",0,0,H5T_STD_I32LE,sig,buf,cmp_int);
+                        cbf_reportnez(cbf_H5Dset_extent(dataset, h5extent),error);
+						cbf_reportnez(cbf_H5Dwrite(dataset,h5offset,0,h5count,array),error);
+						cbf_reportnez(cbf_H5Arequire_cmp(dataset,"signal",0,0,H5T_STD_I32LE,sig,buf,cmp_int),error);
 					} else {
-						errorcode |= found;
-						fprintf(stderr,__WHERE__": error locating primary dataset: %s\n", cbf_strerror(found));
+						errorcode |= error;
+						fprintf(stderr,__WHERE__": error locating primary dataset: %s\n", cbf_strerror(error));
 					}
 					/* ensure /entry/data@NXdata exists & has a link to the data */
 					if (CBF_SUCCESS==errorcode && !cbf_H5Ivalid(h5handle->nxdata)) {
-						cbf_H5Gcreate(&h5handle->nxdata,"data",entry);
-						cbf_H5Arequire_string(h5handle->nxdata,"NX_class","NXdata");
+						cbf_reportnez(cbf_H5Gcreate(&h5handle->nxdata,"data",h5handle->nxid),error);
+						cbf_reportnez(cbf_H5Arequire_string(h5handle->nxdata,"NX_class","NXdata"),error);
 						H5Lcreate_hard(dataset,".",h5handle->nxdata,"data",H5P_DEFAULT,H5P_DEFAULT);
 						H5Lcreate_hard(detector,"slow_pixel_direction",h5handle->nxdata,"x",H5P_DEFAULT,H5P_DEFAULT);
 						H5Lcreate_hard(detector,"fast_pixel_direction",h5handle->nxdata,"y",H5P_DEFAULT,H5P_DEFAULT);
-                        cbf_H5Arequire_string(h5handle->nxdata,"signal","data");
-						{ /* axes=["","i","j"] */
+                        cbf_reportnez(cbf_H5Arequire_string(h5handle->nxdata,"signal","data"),error);
+						{ /* axes=[...] */
 							hid_t h5atype = CBF_H5FAIL;
 							const char axis0[] = "";
 							const char axis1[] = "x";
@@ -5786,19 +6245,19 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
 							const char * axes[] = {axis0,axis1,axis2};
 							const hsize_t dim[] = {3};
                             char * buf[3] = {0};
-							cbf_H5Tcreate_string(&h5atype,H5T_VARIABLE);
-							cbf_H5Arequire_cmp(h5handle->nxdata,"axes",1,dim,h5atype,axes,buf,cmp_vlstring);
+							cbf_reportnez(cbf_H5Tcreate_string(&h5atype,H5T_VARIABLE),error);
+							cbf_reportnez(cbf_H5Arequire_cmp(h5handle->nxdata,"axes",1,dim,h5atype,axes,buf,cmp_vlstring),error);
 							cbf_H5Tfree(h5atype);
 						}
 						{ /* x_indices=1 */
 							const int idx[] = {1};
 							int buf[] = {0};
-							cbf_H5Arequire_cmp(h5handle->nxdata,"x_indices",0,0,H5T_STD_I32LE,idx,buf,cmp_int);
+							cbf_reportnez(cbf_H5Arequire_cmp(h5handle->nxdata,"x_indices",0,0,H5T_STD_I32LE,idx,buf,cmp_int),error);
 						}
 						{ /* y_indices=2 */
 							const int idx[] = {2};
 							int buf[] = {0};
-							cbf_H5Arequire_cmp(h5handle->nxdata,"y_indices",0,0,H5T_STD_I32LE,idx,buf,cmp_int);
+							cbf_reportnez(cbf_H5Arequire_cmp(h5handle->nxdata,"y_indices",0,0,H5T_STD_I32LE,idx,buf,cmp_int),error);
 						}
 					}
 					/* clean up */
@@ -5810,6 +6269,8 @@ if (0 == strncmp(value,KEY,strlen(KEY))) { \
         
 		return errorcode;
 	}
+    
+#undef CBF_CHECK_TOKEN
     
     
     /* Open an HDF5 File handle */
