@@ -253,16 +253,16 @@
 #ifdef __cplusplus
 
 extern "C" {
-
+    
 #endif
-
-
+    
+    
 #include <hdf5.h>
 #include "cbf.h"
 #include "cbf_tree.h"
 #include <string.h>
-
-
+    
+    
     
     /****************************************************************
      The following section of code is extracted from J. Sloan's
@@ -366,13 +366,13 @@ extern "C" {
      const hsize_t * const stride,
      const hsize_t * const count,
      void * const value);
-        
+    
 	int cbf_H5Drequire_scalar_F64LE
     (const hid_t location,
      hid_t * const dataset,
      const char * const name,
      const double value);
-
+    
     int cbf_H5Drequire_string
     (const hid_t location,
      hid_t * const dataset,
@@ -410,7 +410,7 @@ extern "C" {
     
 	int cbf_H5Sdestroy(hid_t * const ID);
     
-
+    
     /****************************************************************
      End of section of code extracted from J. Sloan's
      cbf_hdf5_common.h
@@ -424,7 +424,7 @@ extern "C" {
     
     
     int cbf_hdf5_parseScan(char * * const buf, size_t * n, size_t * ln, char * const pre, FILE * stream);
-
+    
     /** Convert a parse error to a descriptive string */
     const char * cbf_hdf5_configParseStrerror(const int error);
     
@@ -436,7 +436,7 @@ extern "C" {
         const char * depends_on;
         double vector[3];
     } cbf_hdf5_configItem;
-        
+    
     /** Return an initialised cbf_hdf5_configItem object on the stack */
     cbf_hdf5_configItem cbf_hdf5_createConfigItem();
     
@@ -460,7 +460,7 @@ extern "C" {
     /**
      */
     const char * cbf_hdf5_configItemVector_getSampleDependsOn(cbf_hdf5_configItemVectorhandle vector);
-
+    
     /** Append a config item to the vector */
     cbf_hdf5_configItem * cbf_hdf5_configItemVector_push(cbf_hdf5_configItemVectorhandle vector, cbf_hdf5_configItem item);
     
@@ -503,7 +503,7 @@ extern "C" {
 {int err; if (!(cerr)) {err = (x); if (err < 0) {(cerr)|=code;}}}
 #define cbf_reportnez(x,cerr) \
 {int err; if (!(cerr)) {err = (x); (cerr)|=err;}}
-
+    
 #define reportFail(f, errorCode, errorVar) \
 do { \
 if (CBF_SUCCESS == errorVar && !(f)) { \
@@ -520,7 +520,7 @@ if (CBF_SUCCESS != errorCode) \
 errorVar |= errorCode; \
 } \
 } while (0)
-
+    
     
 #ifndef H5_VERS_MAJOR
 #define H5_VERS_MAJOR 0
@@ -839,10 +839,10 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     int cbf_get_bookmark(cbf_handle handle, cbf_bookmark * bookmark);
     
-
-
+    
+    
 #ifdef __cplusplus
-
+    
 }
 
 #endif

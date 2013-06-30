@@ -281,67 +281,67 @@ extern "C" {
 #include <errno.h>
     
     
-
+    
     /* Macros to get the current location in a file in form `file:line' */
     
 #define __STR2(n) #n
 #define __STR(n) __STR2(n)
 #define __WHERE__ __FILE__":"__STR(__LINE__)
-
-    /* Macro to check the given error code & print some 
-       useful output if it is set */
+    
+    /* Macro to check the given error code & print some
+     useful output if it is set */
     
 #define CBF_CHECK_ERROR(cbferror) \
-do { \
+{ \
 const int __error = (cbferror); \
 if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_strerror(__error)); \
-} while(0)
-
+};
+    
     /****************************************************************
      The following section of code is extracted from J. Sloan's
      cbf_hdf5.i
      ****************************************************************/
-
+    
     /*
-     Some comparison functions for use in checking the content of 
+     Some comparison functions for use in checking the content of
      HDF5 datasets/attributes
-
+     
      Should return 0 on success, non-zero on failure
      */
     
     static int cmp_double(const void * a, const void * b, size_t N)
-    {        
-        /* go through each vector comparing all values 
-           The allowed delta is 1.e-38+1.e-13*maxmimum of the
-           summed pairs of absolute values
+    {
+        /* go through each vector comparing all values
+         The allowed delta is 1.e-38+1.e-13*maxmimum of the
+         summed pairs of absolute values
          */
-
+        
         double delta = 0.;
         const double * da = a;
         const double * db = b;
-
+        
         size_t i;
-
+        
         for (i=0; i < N; i++) {
             if (fabs(da[i])+fabs(db[i]) > delta) delta = fabs(da[i])+fabs(db[i]);
             if (fabs(da[i]-db[i]) > 1.e-38+1.e-13*delta) return 1;
         }
- 
+        
         for (i=0; i < N-1; i++) {
             if (fabs(da[i]-da[i]) > 1.e-38+1.e-13*delta) return 1;
         }
-
+        
         return 0;
     }
     
     static int cmp_int(const void * a, const void * b, size_t N)
     {
         /* go through each vector comparing all values */
-
+        
         while (N && *(const int *)(a)++ == *(const int *)(b)++) --N;
-
-       /* if any are not equal the loop will exit early and N is non-zero */
-
+        
+        /* if any are not equal the loop will exit early and N is non-zero */
+        
         return N;
     }
     
@@ -352,21 +352,21 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         /* if any are not equal the loop will exit early and N is non-zero */
         return N;
     }
-
+    
 	/** return the maximum of two numeric values */
-	#define cbf_max(a,b) ((a)>(b)?(a):(b))
-
+#define cbf_max(a,b) ((a)>(b)?(a):(b))
+    
 	/**
-	Put a character into a buffer at a given position.
-
-	Ensures the buffer is long enough to hold the new character, realloc'ing if needed, and then inserts it.
-
-	\param c The character.
-	\param buf A pointer to the realloc'able buffer.
-	\param n A pointer to the current length of the buffer.
-	\param k The offset to place the character <code>c</code> in.
-
-	\return void
+     Put a character into a buffer at a given position.
+     
+     Ensures the buffer is long enough to hold the new character, realloc'ing if needed, and then inserts it.
+     
+     \param c The character.
+     \param buf A pointer to the realloc'able buffer.
+     \param n A pointer to the current length of the buffer.
+     \param k The offset to place the character <code>c</code> in.
+     
+     \return void
 	 */
 	void cbf_push_buf(const int c, char * * const buf, size_t * const n, size_t *k)
 	{
@@ -379,29 +379,29 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		}
 		(*buf)[(*k)++] = c;
 	}
-
+    
 	/**
-	Function to tokenise a pilatus v1.2 minicbf header
-
-	Will split the header into null-terminated strings that are passed around via a given realloc'able buffer.
-
-	Behviour is determined by <code>newline</code>, if <code>newline</code> is non-zero:
-	A token starting with a digit, <code>[0-9]</code>, will cause a string consisting of digits
-	and any number or combination of <code>[T:-.]</code> characters to be matched as a token.
-	Otherwise, the stream will be tokenised according to the default rules.
-
-	The default tokenisation method is to split the stream on groups of characters from the set <code>[#=:,() \t\f\v\r\n]</code>.
-	Any number of adjacent <code>'\r'</code> and <code>'\n'</code> characters are compressed into a single
-	newline (<code>"\n"</code>) token.
+     Function to tokenise a pilatus v1.2 minicbf header
+     
+     Will split the header into null-terminated strings that are passed around via a given realloc'able buffer.
+     
+     Behviour is determined by <code>newline</code>, if <code>newline</code> is non-zero:
+     A token starting with a digit, <code>[0-9]</code>, will cause a string consisting of digits
+     and any number or combination of <code>[T:-.]</code> characters to be matched as a token.
+     Otherwise, the stream will be tokenised according to the default rules.
+     
+     The default tokenisation method is to split the stream on groups of characters from the set <code>[#=:,() \t\f\v\r\n]</code>.
+     Any number of adjacent <code>'\r'</code> and <code>'\n'</code> characters are compressed into a single
+     newline (<code>"\n"</code>) token.
 	 */
     
     
 	static int _cbf_scan_pilatus_V1_2_miniheader
-			(char * * const buf,
-			 size_t * const n,
-			 int * const newline,
-			 const int getRestOfLine,
-			 const char * * const string)
+    (char * * const buf,
+     size_t * const n,
+     int * const newline,
+     const int getRestOfLine,
+     const char * * const string)
 	{
 #define cbf_sgetc(str) (**str ? *(*str)++ : 0)
 #define cbf_seof(str) (!**str)
@@ -410,24 +410,24 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		size_t k = 0; /* current line length */
 		const char spaceChars[] = "#=:,() \t\f\v";
 		const char newlineChars[] = "\n\r";
-
+        
 		/* check that sensible arguments are given */
 		assert(buf);
 		assert(n);
 		assert(newline);
 		assert(string);
-
+        
 		/*
-		Skip space-equivalent characters to find something interesting.
-		This ends with one of two states: a non-space character is found, or EOF.
-		*/
+         Skip space-equivalent characters to find something interesting.
+         This ends with one of two states: a non-space character is found, or EOF.
+         */
 		do {
 			c = cbf_sgetc(string);
 			if (cbf_seof(string)) break;
 			if (strchr(spaceChars,c)) continue;
 			else break;
 		} while (1);
-
+        
 		/* if I am at the end of the stream, free the buffer & return 0 */
 		if (cbf_seof(string)) {
 			free((void*)(*buf));
@@ -435,7 +435,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 			*n = 0;
 			return CBF_SUCCESS;
 		}
-
+        
 		/* I have a token, starting with the character c: read it */
 		if (strchr(newlineChars,c)) {
 			/* it's a newline token: consume all consecutive newline-equivalent characters */
@@ -466,27 +466,27 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		}
 		/* null-terminate the token */
 		cbf_push_buf('\0', buf, n, &k);
-
+        
 		return CBF_SUCCESS;
 	}
-
+    
 	/**
-	Helper function to check if a string is a valid (pilatus format) null-terminated date.
-
-	Requires string of format:
-	<code>YYYY-MM-DDThh:mm:ss.s+</code>
-	<code>Y</code>: year
-	<code>M</code>: month
-	<code>D</code>: day
-	<code>h</code>: hour
-	<code>m</code>: minute
-	<code>s</code>: second
-	<code>+</code>: second may be fractional, any number of digits are allowed
-	<code>[-T:]</code>: literal characters
-
-	\param str The string to test.
-
-	\return non-zero on success, zero otherwise.
+     Helper function to check if a string is a valid (pilatus format) null-terminated date.
+     
+     Requires string of format:
+     <code>YYYY-MM-DDThh:mm:ss.s+</code>
+     <code>Y</code>: year
+     <code>M</code>: month
+     <code>D</code>: day
+     <code>h</code>: hour
+     <code>m</code>: minute
+     <code>s</code>: second
+     <code>+</code>: second may be fractional, any number of digits are allowed
+     <code>[-T:]</code>: literal characters
+     
+     \param str The string to test.
+     
+     \return non-zero on success, zero otherwise.
 	 */
 	int cbf_isPilatusDate(const char * str)
 	{
@@ -514,35 +514,35 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		while (isdigit(*str)) ++str;
 		return '\0'==*str;
 	}
-
+    
 	/**
-	Helper function to take the data associated with a pilatus axis and write the
-	axis attributes to a nexus axis.
-
-	\return An error code
+     Helper function to take the data associated with a pilatus axis and write the
+     axis attributes to a nexus axis.
+     
+     \return An error code
 	 */
 	static int _cbf_pilatusAxis2nexusAxisAttrs
-		(hid_t h5data,
-		 const char * const units,
-		 const cbf_hdf5_configItem * const axisItem,
-		 int (*cmp)(const void *, const void *, size_t))
-{
-	int error = CBF_SUCCESS;
-	cbf_reportnez(cbf_H5Arequire_string(h5data,"units",cbf_cistrcmp(units, "deg.")?units:"deg"),error);
-	/* transformation type */
-	cbf_reportnez(cbf_H5Arequire_string(h5data,"transformation_type","rotation"),error);
-	/* dependency */
-	cbf_reportnez(cbf_H5Arequire_string(h5data,"depends_on",axisItem->depends_on?axisItem->depends_on:""),error);
-	if (!axisItem->depends_on) fprintf(stderr,"Missing dependancy for nexus axis '%s'\n",axisItem->nexus);
-	{ /* vector */
-		const hsize_t vdims[] = {3};
-		double buf[3] = {0./0.};
-		cbf_reportnez(cbf_H5Arequire_cmp(h5data,"vector",1,vdims,H5T_IEEE_F64LE,
-			axisItem->vector,buf,cmp),error);
-	}
-	return error;
-}
-
+    (hid_t h5data,
+     const char * const units,
+     const cbf_hdf5_configItem * const axisItem,
+     int (*cmp)(const void *, const void *, size_t))
+    {
+        int error = CBF_SUCCESS;
+        cbf_reportnez(cbf_H5Arequire_string(h5data,"units",cbf_cistrcmp(units, "deg.")?units:"deg"),error);
+        /* transformation type */
+        cbf_reportnez(cbf_H5Arequire_string(h5data,"transformation_type","rotation"),error);
+        /* dependency */
+        cbf_reportnez(cbf_H5Arequire_string(h5data,"depends_on",axisItem->depends_on?axisItem->depends_on:""),error);
+        if (!axisItem->depends_on) fprintf(stderr,"Missing dependancy for nexus axis '%s'\n",axisItem->nexus);
+        { /* vector */
+            const hsize_t vdims[] = {3};
+            double buf[3] = {0./0.};
+            cbf_reportnez(cbf_H5Arequire_cmp(h5data,"vector",1,vdims,H5T_IEEE_F64LE,
+                                             axisItem->vector,buf,cmp),error);
+        }
+        return error;
+    }
+    
     
     /****************************************************************
      The following section of code is extracted from J. Sloan's
@@ -567,7 +567,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 		if (v < 0) fprintf(stderr, "%s:%d: H5Iis_valid call failed.\n", __FILE__, __LINE__);
 		return v > 0;
 	}
- 
+    
 	/** \brief Try to free an object identifier
      
      Function to close any handle without tracking its type.
@@ -827,7 +827,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 				H5Aread(attr,attrType,buf);
 				if (!!cmp(value,buf,N)) {
                     fprintf(stderr,__WHERE__": Incorrect attribute value\n");
-							error |= CBF_H5DIFFERENT;
+                    error |= CBF_H5DIFFERENT;
                 }
 				if (vlStr < 0) error |= CBF_H5ERROR;
 				if (vlStr > 0) H5Dvlen_reclaim(currType, currSpace, H5P_DEFAULT, buf);
@@ -849,7 +849,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
 	}
     
     static int cmp_string(const void * a, const void * b, size_t N) {return N==1 ? strcmp(a, b) : 1;}
-
+    
 	/** \brief Check for a scalar string attribute with a given value, or set one if it doesn't exist.
      
      Forwarding function that calls \c cbf_H5Arequire_cmp with the appropriate arguments to compare two strings.
@@ -1498,7 +1498,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
      End of section of code extracted from J. Sloan's
      cbf_hdf5_common.c
      ****************************************************************/
-        
+    
     /****************************************************************
      The following section of code is extracted from J. Sloan's
      config.c
@@ -1513,7 +1513,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     const int parseErrorDuplicateField = 6;
     const int parseErrorUnexpectedEOF = 7;
     const int parseErrorUndefinedValue = 8;
-
+    
     /**
      Tokenise an input stream, returning one token at a time into the given buffer.
      
@@ -1605,7 +1605,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         else if (error == parseErrorDuplicateField) return "duplicate data";
         else return "unknown error";
     }
-        
+    
     /**
      Initialises name & depends_on to null, vector to [nan,nan,nan].
      */
@@ -1746,7 +1746,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
     {
         return vector->item+vector->nItems;
     }
-
+    
     int cbf_hdf5_parseExtractVector
     (FILE * const configFile,
      FILE * const logFile,
@@ -1759,30 +1759,30 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         char * end = 0;
         
 #define GET_TOKEN() \
-do { \
-  const int e = cbf_hdf5_parseScan(buf, n, ln, pre, configFile); \
-    if (e != CBF_SUCCESS) { \
-	fprintf(logFile,"\nError: %s\n",cbf_hdf5_configParseStrerror(e)); \
-		return e; \
-  } \
-} while (0);
+{ \
+const int e = cbf_hdf5_parseScan(buf, n, ln, pre, configFile); \
+if (e != CBF_SUCCESS) { \
+fprintf(logFile,"\nError: %s\n",cbf_hdf5_configParseStrerror(e)); \
+return e; \
+} \
+};
         
 #define REQUIRE_TOKEN(TKN) \
-do { \
-  const char * const _tkn = (TKN); \
-  if (strcmp(_tkn,*buf)) { \
-    fprintf(logFile,"Config parsing error on line %lu: expected " #TKN ", got '%s'\n",*ln,*buf); \
-    return parseErrorUnexpectedInput; \
-  } \
-} while (0);
+{ \
+const char * const _tkn = (TKN); \
+if (strcmp(_tkn,*buf)) { \
+fprintf(logFile,"Config parsing error on line %lu: expected " #TKN ", got '%s'\n",*ln,*buf); \
+return parseErrorUnexpectedInput; \
+} \
+};
         
 #define REQUIRE_NOT_EOL() \
-do{ \
-  if (!strcmp("\n",*buf)) { \
-    fprintf(logFile,"Config parsing error on line %lu: unexpected newline\n",*ln); \
-    return parseErrorUnexpectedInput; \
-  } \
-} while (0);
+{ \
+if (!strcmp("\n",*buf)) { \
+fprintf(logFile,"Config parsing error on line %lu: unexpected newline\n",*ln); \
+return parseErrorUnexpectedInput; \
+} \
+};
         
         /* literal '['. */
         GET_TOKEN();
@@ -1831,55 +1831,55 @@ do{ \
         char pre = '\0';
         
 #define GET_TOKEN() \
-do { \
-	const int e = cbf_hdf5_parseScan(&tkn, &n, &ln, &pre, configFile); \
-	if (e != CBF_SUCCESS) { \
-		fprintf(logFile,"\nError: %s\n",cbf_hdf5_configParseStrerror(e)); \
-		return e; \
+{ \
+const int e = cbf_hdf5_parseScan(&tkn, &n, &ln, &pre, configFile); \
+if (e != CBF_SUCCESS) { \
+fprintf(logFile,"\nError: %s\n",cbf_hdf5_configParseStrerror(e)); \
+return e; \
 } \
-} while (0)
+};
         
 #define REQUIRE_TOKEN(TKN) \
-do { \
+{ \
 const char * const _tkn = (TKN); \
 if (strcmp(_tkn,tkn)) { \
 fprintf(logFile,"Config parsing error on line %lu: expected " #TKN ", got '%s'\n",ln,tkn); \
 return parseErrorUnexpectedInput; \
 } \
-} while (0)
+};
         
 #define REQUIRE_EOL() \
-do{ \
+{ \
 if (strcmp("\n",tkn)) { \
 fprintf(logFile,"Config parsing error on line %lu: expected '\\n', got '%s'\n",ln,tkn); \
 return parseErrorUnexpectedInput; \
 } \
-} while (0)
+};
         
 #define REQUIRE_NOT_EOL() \
-do{ \
+{ \
 if (!strcmp("\n",tkn)) { \
 fprintf(logFile,"Config parsing error on line %lu: unexpected newline\n",ln); \
 return parseErrorUnexpectedInput; \
 } \
-} while (0)
+};
         
 #define REQUIRE_NEXUS_AXIS() \
-do { \
+{ \
 if (strcmp(".",tkn) && cbf_hdf5_configItemVector_end(vec) == cbf_hdf5_configItemVector_findNexus(vec,tkn)) { \
 fprintf(logFile,"Config parsing error on line %lu: Nexus axis '%s' not defined\n",ln,tkn); \
 return parseErrorUndefinedValue; \
 } \
-} while (0)
+};
         
 #define REQUIRE_VECTOR() \
-do { \
+{ \
 const int e = cbf_hdf5_parseExtractVector(configFile, logFile, it, &tkn, &n, &ln, &pre); \
 if (CBF_SUCCESS != e) { \
 fprintf(logFile,"Error reading a vector: %s\n",cbf_hdf5_configParseStrerror(e)); \
 return e; \
 } \
-} while (0)
+};
         
         /* first token of the line */
         GET_TOKEN();
@@ -1979,7 +1979,7 @@ return e; \
      End of section of code extracted from J. Sloan's
      config.c
      ****************************************************************/
-
+    
     /* Attribute type definition, agrees with CBFlib data convensions */
     
 	typedef struct cbf_name_value_pair_def
@@ -1987,7 +1987,7 @@ return e; \
 		const char * name;
 		const void * value;
 	} cbf_name_value_pair;
-
+    
     
 	/* Ensure I have a file to do stuff with.
      There are 4 possible cases:
@@ -2635,22 +2635,22 @@ return e; \
             }
             
             /*  We have the equipment type in equipment and the axis is in axis_id
-                If the equipment type is detector, we need to map the axis_id
-                to the appropriate detector so we can put this axis in
-                /instrument:NXinstrument
-                  /CBF_diffrn_detector__DETECTORNAME:NXdetector
-                    /CBF_axis__AXISID=[]
+             If the equipment type is detector, we need to map the axis_id
+             to the appropriate detector so we can put this axis in
+             /instrument:NXinstrument
+             /CBF_diffrn_detector__DETECTORNAME:NXdetector
+             /CBF_axis__AXISID=[]
              
-                If the equipment type is goniometer, we need to map the axis_id
-                to the appropriate goniometer, so we can put this axis in
-                /instrument:NXinstrument
-                  /CBF_diffrn_measurement__GONIOMETERNAME:NXsample
-                    /CBF__axis__AXISID=[]
+             If the equipment type is goniometer, we need to map the axis_id
+             to the appropriate goniometer, so we can put this axis in
+             /instrument:NXinstrument
+             /CBF_diffrn_measurement__GONIOMETERNAME:NXsample
+             /CBF__axis__AXISID=[]
              
-                For other equipment types, we put this axis in
-                /instrument:NXinstrument
-                  /coordinate_system:NXcoordinate_system 
-                    /CBF__axis__AXISID=[]
+             For other equipment types, we put this axis in
+             /instrument:NXinstrument
+             /coordinate_system:NXcoordinate_system
+             /CBF__axis__AXISID=[]
              */
             
             cbf_reportnez(cbf_get_axis_equipment_id(handle,&equipmentname,equipment,axis_id),errorcode);
@@ -2664,14 +2664,14 @@ return e; \
                 if (equipmentname) {
                     
                     strncat(nxequipment,equipmentname,2020);
-
+                    
                 } else {
                     
                     strcpy(nxequipment,"detector");
                 }
                 
                 equipmentclass = "NXdetector";
-
+                
             } else if (cbf_cistrcmp(equipment,"goniometer")==0) {
                 
                 strcpy(nxequipment,"CBF_diffrn_measurement__");
@@ -2686,7 +2686,7 @@ return e; \
                     
                     strcpy(nxequipment,"sample");
                 }
-
+                
                 
                 equipmentclass = "NXsample";
                 
@@ -2695,7 +2695,7 @@ return e; \
                 strcpy(nxequipment,"coordinate_system");
                 
                 equipmentclass = "NXcoordinate_system";
-
+                
             }
             
             
@@ -2716,15 +2716,15 @@ return e; \
             
             
             if (cbf_norm(offset) > 1.e-20) {
-                                
+                
                 char * nxaxis_offset_name;
-
+                
                 char * nxaxis_name;
                 
                 char * nxdepends_on_name;
-                                
+                
                 hid_t mtype;
-
+                
                 cbf_reportnez(cbf_strcat("CBF_axis_offset__",
                                          axis_id,&nxaxis_offset_name),
                               errorcode);
@@ -2748,17 +2748,17 @@ return e; \
                 cbf_h5reportneg(nxaxisoffsetid = H5Dcreatex(equipmentid,nxaxis_offset_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
                 
                 /* cbf_h5reportneg(H5Dwrite(nxaxisoffsetid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode); */
-
-
+                
+                
                 cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
                 
                 cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
                 
                 cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
-
+                
                 cbf_h5reportneg(H5Pclose(dprop),CBF_ALLOC,errorcode);
-
-                                
+                
+                
                 errorcode |= cbf_apply_h5text_attribute(nxaxisoffsetid,
                                                         "transformation_type",
                                                         "translation",
@@ -2794,7 +2794,7 @@ return e; \
                 
                 
                 if (scanpoints > 0) {
-                                        
+                    
                     hsize_t scanpointsfound;
                     
                     hid_t mtype;
@@ -2822,7 +2822,7 @@ return e; \
                     cbf_h5reportneg(mtype = H5Tcopy(H5T_NATIVE_DOUBLE),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
-                                                    
+                    
                     cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
@@ -2836,19 +2836,19 @@ return e; \
                     cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
-                                    
+                    
                     cbf_h5reportneg(H5Pclose(dprop),CBF_ALLOC,errorcode);
                     
                     if (units) {
                         
                         errorcode |= cbf_apply_h5text_attribute(nxaxisid,
-                                                            "units",units,errorcode);
+                                                                "units",units,errorcode);
                     }
                     
                 } else {
                     
                     hid_t mtype;
-
+                    
                     cbf_h5reportneg(dspace = H5Screate_simple(1,&naught,&one),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
@@ -2860,7 +2860,7 @@ return e; \
                     cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
                     
                     /* cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);*/
-
+                    
                     cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
@@ -2938,7 +2938,7 @@ return e; \
                     if (sscanpointsfound == 0) scanpointsfound=1;
                     
                     cbf_h5reportneg(dspace = H5Screate_simple(1,&scanpointsfound,&scanpoints),CBF_ALLOC,errorcode);
-
+                    
                     cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(mtype = H5Tcopy(H5T_NATIVE_DOUBLE),CBF_ALLOC,errorcode);
@@ -2954,22 +2954,22 @@ return e; \
                     cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
-
+                    
                     cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(H5Pclose(dprop),CBF_ALLOC,errorcode);
-                                        
+                    
                     if (units) {
                         
                         errorcode |= cbf_apply_h5text_attribute(nxaxisid,
                                                                 "units",units,errorcode);
                     }
                 } else {
-                                        
+                    
                     hid_t mtype;
                     
                     cbf_h5reportneg(dspace = H5Screate_simple(1,&naught,&one),CBF_ALLOC,errorcode);
-
+                    
                     cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(mtype = H5Tcopy(H5T_NATIVE_DOUBLE),CBF_ALLOC,errorcode);
@@ -2979,17 +2979,17 @@ return e; \
                     cbf_h5reportneg(H5Pset_chunk(dprop, 1, &one),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
-
+                    
                     /* cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode); */
-
+                    
                     cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
-
+                    
                     cbf_h5reportneg(H5Pclose(dprop),CBF_ALLOC,errorcode);
-
+                    
                     
                 }
                 
@@ -3413,7 +3413,7 @@ return e; \
              chunking in planes dimfast x dimmid
              
              */
-                        
+            
             hsize_t chunk[3];
             
             hsize_t maxdim[3];
@@ -3663,8 +3663,8 @@ return e; \
             /* fprintf(stderr,"errorcode on setting filter CBF_H5Z_FILTER_CBF %d\n",errorcode); */
             
             valid = H5Dcreatex(h5handle->colid,rownum,
-                                               valtype,valspace,
-                                               valprop);
+                               valtype,valspace,
+                               valprop);
             
             
             /* get all the data */
@@ -4086,7 +4086,7 @@ return e; \
 		return error;
 	}
     
-        
+    
     /* Write a category to an HDF5 file */
     
     int cbf_write_h5category (cbf_handle handle,
@@ -4384,7 +4384,7 @@ return e; \
                 }
             }
         }
-
+        
         if (!cbf_cistrcmp(category->name,"diffrn")) {
             
             cbf_node * column_node;
@@ -4415,7 +4415,7 @@ return e; \
                 }
             }
         }
-
+        
         
         /* Success */
         
@@ -4837,18 +4837,18 @@ return e; \
                         CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
         
         cbf_h5onfailneg((*h5handle)->hfile = H5Fcreate(h5filename,H5F_ACC_TRUNC,
-                        H5P_DEFAULT,fcreate_prop_list),
+                                                       H5P_DEFAULT,fcreate_prop_list),
                         CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
         
         cbf_h5onfailneg(H5Pclose(fcreate_prop_list),
                         CBF_ARGUMENT,cbf_free((void**) h5handle, NULL));
         
         cbf_onfailnez(cbf_H5Gcreate_in_handle(*h5handle,"CBF_cbf",
-                      &((*h5handle)->rootid)),
+                                              &((*h5handle)->rootid)),
                       cbf_free_h5handle(*h5handle));
         
         cbf_failnez(cbf_apply_h5text_attribute((*h5handle)->rootid,"NX_class",
-                      "CBF_cbf",0));
+                                               "CBF_cbf",0));
         
         
         return CBF_SUCCESS;
@@ -4913,7 +4913,7 @@ return e; \
         
 		/* Do the mappings from CBF to nexus */
         
-		/* Write the CBF data into the file in a special node to keep 
+		/* Write the CBF data into the file in a special node to keep
          it separate from actual mappings */
         
         errorcode = cbf_write_h5node (handle, node, h5handle);
@@ -4929,23 +4929,23 @@ return e; \
 	}
     
     
-/*
-Check if \token\ matches a given string, allowing optional expressions
-\t\ & \f\ to be executed if it does or doesn't match, respecitvely.
-\t\, \f\ may be empty or a semicolon, ie:
-CBF_CHECK_TOKEN(str, ,;);
-If \token\ doesn't match \str\ then set \error\ to \CBF_H5DIFFERENT\ and print a message.
-*/
+    /*
+     Check if \token\ matches a given string, allowing optional expressions
+     \t\ & \f\ to be executed if it does or doesn't match, respecitvely.
+     \t\, \f\ may be empty or a semicolon, ie:
+     CBF_CHECK_TOKEN(str, ,;);
+     If \token\ doesn't match \str\ then set \error\ to \CBF_H5DIFFERENT\ and print a message.
+     */
 #define CBF_CHECK_TOKEN(str, t, f) \
-do { \
-	if (cbf_cistrcmp(str,token)) { \
-		error |= CBF_H5DIFFERENT; \
-		fprintf(stderr,"%s: error: unexpected token '%s'\n",__WHERE__,token); \
+{ \
+if (cbf_cistrcmp(str,token)) { \
+error |= CBF_H5DIFFERENT; \
+fprintf(stderr,"%s: error: unexpected token '%s'\n",__WHERE__,token); \
 {f;} \
 } else {t;} \
-} while (0)
-
-
+};
+    
+    
     
 	/*
      Assuming I have a minicbf:
@@ -4955,11 +4955,11 @@ do { \
      
      TODO:
 	 -	rewrite pilatus header parsing function to return null-terminated string tokens,
-		instead of an index into a very long string.
+     instead of an index into a very long string.
 	 -	redo conditional metadata extraction to check for NaNs in the data they require,
-		simplifying the control structures, or just write NaNs to the file
+     simplifying the control structures, or just write NaNs to the file
 	 -	write a function to put a slice of data into a dataset, possibly creating the dataset,
-	 	to remove a very common pattern from the code.
+     to remove a very common pattern from the code.
      */
     
 	int cbf_write_minicbf_h5file (cbf_handle handle, cbf_h5handle h5handle, cbf_hdf5_configItemVectorhandle axisConfig, int flags)
@@ -5016,23 +5016,12 @@ do { \
 						/* Other useful values */
 						hid_t pilatusDiagnostics = CBF_H5FAIL; /* <- non-nexus group to dump some possibly useful information into */
 						/* Get the header data */
-						if (0) fprintf(stderr,__WHERE__": %s_%s header found.\n",vendor_pilatus,version_1_2);
+						
 						cbf_onfailnez(cbf_find_column(handle,"header_contents"),
 									  fprintf(stderr,__WHERE__": 'header_contents' not found.\n"));
 						/* re-use the 'value' variable, I won't need the old value anymore */
 						cbf_onfailnez(cbf_get_value(handle,&value), fprintf(stderr,__WHERE__": 'header_contents' inaccessible.\n"));
                         cbf_H5Drequire_string(detector,0,"type","pixel array");
-                        
-						if (0) {
-							const char * _value = value;
-							do {
-								_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &_value);
-								if (!token) break;
-								newline = !strcmp("\n",token);
-								printf("token: %s\n", token);
-							} while (1);
-						}
-						if (0) fprintf(stderr,"%s: header:\n%s\n",__WHERE__,value);
                         
 						/*
                          Do the mapping, iterating over each line of the header.
@@ -5046,7 +5035,7 @@ do { \
 								if (!token) break;
 								if (!strcmp("\n",token)) continue;
 							}
-
+                            
 							/* check for a time */
 							if (cbf_isPilatusDate(token)) {
 								int error = CBF_SUCCESS;
@@ -5057,9 +5046,9 @@ do { \
                                  */
 								hid_t type = CBF_H5FAIL;
 								hid_t dataset = CBF_H5FAIL;
-                            cbf_reportnez(cbf_H5Tcreate_string(&type,strlen(token)),error);
-                            cbf_reportnez(cbf_H5Dfind(h5handle->nxid,&dataset,"start_time",0,0,0,0,type),error);
-                            if (CBF_SUCCESS==error) {
+                                cbf_reportnez(cbf_H5Tcreate_string(&type,strlen(token)),error);
+                                cbf_reportnez(cbf_H5Dfind(h5handle->nxid,&dataset,"start_time",0,0,0,0,type),error);
+                                if (CBF_SUCCESS==error) {
 									if (!cbf_H5Ivalid(dataset)) {
 										/* create the dataset & write the data */
 										cbf_reportnez(cbf_H5Dcreate(h5handle->nxid,&dataset,"start_time",0,0,0,0,type),error);
@@ -5289,7 +5278,7 @@ do { \
 								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
 								num = strtod(token,0);
 								cbf_reportnez(cbf_H5Drequire_scalar_F64LE(detector,&h5data,"threshold_energy",
-                                                                num),error);
+                                                                          num),error);
 								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
 								cbf_reportnez(cbf_H5Arequire_string(h5data,"units",token),error);
 								cbf_H5Dfree(h5data);
@@ -5346,7 +5335,7 @@ do { \
 								cbf_reportnez(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value),error);
 								CBF_CHECK_TOKEN("pixels",{beam_x = num_x; beam_y = num_y;},;);
 							} else if (!cbf_cistrcmp("Flux",token)) {
-									int error = CBF_SUCCESS;
+                                int error = CBF_SUCCESS;
 								/*
                                  Either a number with some units or a random string, only do anything if it's a number.
                                  */
@@ -5383,7 +5372,7 @@ do { \
 									cbf_reportnez(cbf_H5Arequire_string(h5location, "NX_class", "NXattenuator"),error);
 									/* Get value & units */
 									cbf_reportnez(cbf_H5Drequire_scalar_F64LE(h5location, 0, "attenuator_transmission",
-                                                                    num),error);
+                                                                              num),error);
 									/* cleanup temporary dataset */
 									cbf_H5Gfree(h5location);
 								}
@@ -5691,13 +5680,12 @@ do { \
 								fprintf(stderr,"Config settings for 'Sample' could not be found: "
 										"this will eventually be a fatal error\n");
 							}
-							if (0) fprintf(stderr, __WHERE__ ": 'sample/depends_on' written\n");
 						}
 						{ /* write beam_center_x */
 							int error = CBF_SUCCESS;
 							hid_t h5data = CBF_H5FAIL;
 							cbf_reportnez(cbf_H5Drequire_scalar_F64LE(detector, &h5data, "beam_center_x",
-                                                            beam_x*pixel_x),error);
+                                                                      beam_x*pixel_x),error);
 							cbf_reportnez(cbf_H5Arequire_string(h5data,"units","m"),error);
 							cbf_H5Dfree(h5data);
 						}
@@ -5705,7 +5693,7 @@ do { \
 							int error = CBF_SUCCESS;
 							hid_t h5data = CBF_H5FAIL;
 							cbf_reportnez(cbf_H5Drequire_scalar_F64LE(detector, &h5data, "beam_center_y",
-                                                            beam_y*pixel_y),error);
+                                                                      beam_y*pixel_y),error);
 							cbf_reportnez(cbf_H5Arequire_string(h5data,"units","m"),error);
 							cbf_H5Dfree(h5data);
 						}
@@ -5749,7 +5737,7 @@ do { \
 									cbf_reportnez(cbf_H5Arequire_cmp(h5data,"vector",1,vdims,H5T_IEEE_F64LE,vector,
                                                                      vbuf,cmp_double),error);
 									cbf_reportnez(cbf_H5Arequire_cmp(h5data,"offset",1,vdims,H5T_IEEE_F64LE,offset,
-                                                                     vbuf,cmp_double),error);                                    
+                                                                     vbuf,cmp_double),error);
 									/* cleanup temporary datasets */
 									cbf_H5Dfree(h5data);
 								} else {
@@ -6299,7 +6287,7 @@ do { \
         if (total_dim < 1 ) total_dim = 1;
         
         cbf_reportnez(cbf_require_column(handle,"value"),errorcode);
-                
+        
         if(total_size > 0) {
             
             if(readattrib) {
@@ -7964,7 +7952,7 @@ do { \
                                                          dimmid,
                                                          dimslow,
                                                          padding ), errorcode);
-                             
+                            
                         }
                         
                     }
