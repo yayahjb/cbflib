@@ -254,7 +254,7 @@
 extern "C" {
     
 #endif
-
+    
 #define CBF_HDF5_FILTER_C
 #include "cbf_hdf5_filter.h"
 #include "cbf_codes.h"
@@ -265,14 +265,14 @@ extern "C" {
 #include "cbf_read_mime.h"
 #include "cbf_read_binary.h"
 #include <string.h>
-
+    
     static size_t cbf_h5z_filter(unsigned int flags,
                                  size_t cd_nelmts,
                                  const unsigned int cd_values[],
                                  size_t nbytes,
                                  size_t *buf_size,
                                  void **buf);
-
+    
     
     const H5Z_class2_t CBF_H5Z_CBF[1] = {{
         H5Z_CLASS_T_VERS,                   /* H5Z_class_t version */
@@ -284,13 +284,13 @@ extern "C" {
         NULL,                               /* The "set local" callback     */
         (H5Z_func_t)cbf_h5z_filter,         /* The actual filter function   */
     }};
-
+    
 #ifdef CBF_H5_SETUP_FILTER_PLUGIN
     H5PL_type_t   H5PLget_plugin_type(void) {return H5PL_TYPE_FILTER;}
     const void *H5PLget_plugin_info(void) {return CBF_H5Z_CBF;}
 #endif
-
-
+    
+    
     static size_t cbf_h5z_filter(unsigned int flags,
                                  size_t cd_nelmts,
                                  const unsigned int cd_values[],
@@ -321,7 +321,7 @@ extern "C" {
         
         if (flags & H5Z_FLAG_REVERSE) {
             /* decompression */
-
+            
             const char *line;
             int        textencoding;
             size_t     textsize;
@@ -339,7 +339,7 @@ extern "C" {
             size_t     textpadding;
             void *     destination;
             long int   start;
-
+            
             int eltype_file, elsigned_file, elunsigned_file,
             minelem_file, maxelem_file;
             
@@ -359,7 +359,7 @@ extern "C" {
                     fprintf(stderr,"%d: %x %c ",ii,(*((char**)buf))[ii],(*((char **)buf))[ii]);
             }
 #endif
-
+            
             if (errorcode) {
                 *buf_size=0;
                 return 0;
@@ -393,27 +393,27 @@ extern "C" {
                 return 0;
             }
             cbf_reportnez(cbf_parse_mimeheader(tempfile,
-                          &textencoding,
-                          &textsize,
-                          &textid,
-                          textdigest,
-                          &textcompression,
-                          &textbits,
-                          &textsign,
-                          &textreal,
-                          &textbyteorder,
-                          &textdimover,
-                          &textdimfast,
-                          &textdimmid,
-                          &textdimslow,
-                          &textpadding),errorcode);
+                                               &textencoding,
+                                               &textsize,
+                                               &textid,
+                                               textdigest,
+                                               &textcompression,
+                                               &textbits,
+                                               &textsign,
+                                               &textreal,
+                                               &textbyteorder,
+                                               &textdimover,
+                                               &textdimfast,
+                                               &textdimmid,
+                                               &textdimslow,
+                                               &textpadding),errorcode);
             if (errorcode) return 0;
             if (textdimslow < 1) textdimslow = 1;
             if (textdimmid  < 1) textdimmid  = 1;
             if (textdimfast < 1) textdimfast = 1;
             cbf_reportnez(cbf_parse_binaryheader(tempfile,NULL,NULL,NULL,1),errorcode);
             if ((cd_nelmts <= CBF_H5Z_FILTER_CBF_ELSIZE ||
-                (int)textbits !=  8*cd_values[CBF_H5Z_FILTER_CBF_ELSIZE])
+                 (int)textbits !=  8*cd_values[CBF_H5Z_FILTER_CBF_ELSIZE])
                 || (cd_nelmts <= CBF_H5Z_FILTER_CBF_ELSIGN
                     ||(int)textsign != cd_values[CBF_H5Z_FILTER_CBF_ELSIGN])
                 || (cd_nelmts > CBF_H5Z_FILTER_CBF_COMPRESSION
@@ -432,7 +432,7 @@ extern "C" {
                     && (int)textid != cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID]
                     && 0 != cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID])
                 ) {
-#ifdef CBFDEBUG                
+#ifdef CBFDEBUG
                 fprintf(stderr,"mismatch on cd_values versus mime\n");
                 
                 if ((cd_nelmts <= CBF_H5Z_FILTER_CBF_ELSIZE ||
@@ -467,24 +467,24 @@ extern "C" {
                      ||(int)textpadding != cd_values[CBF_H5Z_FILTER_CBF_PADDING])){
                     fprintf(stderr," padding: %d %d\n",(int)textpadding, cd_values[CBF_H5Z_FILTER_CBF_PADDING]);
                 }
-#endif                
+#endif
                 *buf_size = 0;
                 return 0;
             }
-                            
+            
             elsize = (textbits+7)/8;
             nelem = textdimover;
             
-
+            
             cbf_reportnez(cbf_decompress_parameters (&eltype_file, NULL,
-                                       &elsigned_file, &elunsigned_file,
-                                       &nelem_file,
-                                       &minelem_file, &maxelem_file,
-                                       textcompression,
-                                       tempfile),errorcode);
+                                                     &elsigned_file, &elunsigned_file,
+                                                     &nelem_file,
+                                                     &minelem_file, &maxelem_file,
+                                                     textcompression,
+                                                     tempfile),errorcode);
             if (errorcode) {
                 *buf_size = 0;
-                return 0;                
+                return 0;
             }
             
             cbf_reportnez(cbf_get_fileposition(tempfile,&start),errorcode);
@@ -495,14 +495,14 @@ extern "C" {
                 cbf_reportnez(cbf_set_fileposition(tempfile,-24,SEEK_CUR),errorcode);}
             
             if (errorcode||(cbf_is_base64digest(textdigest) &&
-                !cbf_md5digest (tempfile, textsize, digest))) {
+                            !cbf_md5digest (tempfile, textsize, digest))) {
                 
                 if (errorcode || strcmp(textdigest,digest)) {
                     
 #ifdef CBFDEBUG
                     fprintf(stderr," mismatched digests %s %s\n",textdigest,digest);
 #endif
-
+                    
                     *buf_size = 0;
                     return 0;
                     
@@ -516,7 +516,7 @@ extern "C" {
             if (cbf_alloc((void **) &destination,NULL,
                           nelem*elsize,1)) {
                 
-                *buf_size = 0;   
+                *buf_size = 0;
                 return 0;
                 
             }
@@ -527,16 +527,16 @@ extern "C" {
             
             fprintf(stderr,"Start of decompression %ld, compression %x\n",
                     (long) (tempfile->characters-tempfile->characters_base),
-                            textcompression);
+                    textcompression);
 #endif
             
             cbf_reportnez(cbf_decompress (destination,
-                        elsize, textsign, nelem, &nelem_read,
-                        textsize,
-                        textcompression, textbits, textsign, tempfile,
-                        textreal, textbyteorder, textdimover,
-                        textdimfast,textdimmid,textdimslow,textpadding),
-                        errorcode);
+                                          elsize, textsign, nelem, &nelem_read,
+                                          textsize,
+                                          textcompression, textbits, textsign, tempfile,
+                                          textreal, textbyteorder, textdimover,
+                                          textdimfast,textdimmid,textdimslow,textpadding),
+                          errorcode);
 #ifdef CBFDEBUG
             fprintf(stderr," errorcode %d after decompress\n",errorcode);
             
@@ -624,17 +624,6 @@ extern "C" {
             } else {
                 binid = 1;
             }
-            
-            /* if (compression != CBF_NONE &&
-                compression != CBF_BYTE_OFFSET &&
-                compression != CBF_NIBBLE_OFFSET ) {
-                fprintf(stderr," Only CBF_NONE, CBF_BYTE_OFFSET and CBF_NIBBLE_OFFSET "
-                        "supported at this time\n,");
-                *buf_size = 0;
-                return 0;
-            }
-            */
-
             
             if (dimslow < 1) dimslow = 1;
             
@@ -808,15 +797,15 @@ extern "C" {
                 size_t cbase;
                 
                 cbase = tempfile->characters+tempfile->characters_used-tempfile->characters_base;
-
+                
                 fprintf(stderr,"Start of compression %ld, compression %x RAW DATA\n",
-                    (long) cbase,compression);
+                        (long) cbase,compression);
                 for (ii=0; ii < *buf_size && ii < 500; ii++){
                     if (ii%32==0) fprintf(stderr,"\n");
                     fprintf(stderr,"%d:%x ",ii,(*((char**)buf))[ii]);
                 }
-                            
-                    
+                
+                
             }
             fprintf(stderr,"\nelsize %d, elsign %d, nelem %d, realarray %d, dimfast %d,"
                     "dimmid %d, dimslow %d, padding %d\n",
@@ -825,11 +814,11 @@ extern "C" {
 #endif
             if (!errorcode &&
                 (errorcode|=cbf_compress (*buf, elsize, elsign, nelem,
-                              compression, tempfile,
-                              &size, &bits, digest, realarray,
-                              "little_endian", dimfast, dimmid, dimslow, padding))) {
-                    errorcode |= CBF_FORMAT;
-                    cbf_delete_fileconnection (&tempfile);
+                                          compression, tempfile,
+                                          &size, &bits, digest, realarray,
+                                          "little_endian", dimfast, dimmid, dimslow, padding))) {
+                errorcode |= CBF_FORMAT;
+                cbf_delete_fileconnection (&tempfile);
             }
             
             if (!errorcode) {
@@ -888,7 +877,7 @@ extern "C" {
         return 0;
         
     }
- 
+    
     
     
 #ifdef __cplusplus
