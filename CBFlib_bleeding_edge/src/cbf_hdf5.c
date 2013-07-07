@@ -353,9 +353,6 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         return N;
     }
     
-	/** return the maximum of two numeric values */
-#define cbf_max(a,b) ((a)>(b)?(a):(b))
-    
 	/**
      Put a character into a buffer at a given position.
      
@@ -1633,17 +1630,7 @@ if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_stre
         free((void*)(item.depends_on));
     }
     
-    /**
-     Should not be manipulated directly, takes ownership of the config items which it contains.
-     */
-    typedef struct cbf_hdf5_configItemVector
-    {
-        cbf_hdf5_configItem * item;
-        size_t nItems;
-        size_t maxItems;
-        const char * sample_depends_on;
-    } cbf_hdf5_configItemVector;
-    
+     
     /**
      Initialises size & capacity to 0, doesn't allocate storage immediately.
      */
@@ -1984,14 +1971,6 @@ return e; \
      End of section of code extracted from J. Sloan's
      config.c
      ****************************************************************/
-    
-    /* Attribute type definition, agrees with CBFlib data convensions */
-    
-	typedef struct cbf_name_value_pair_def
-	{
-		const char * name;
-		const void * value;
-	} cbf_name_value_pair;
     
     
 	/* Ensure I have a file to do stuff with.
@@ -3122,7 +3101,7 @@ return e; \
     }
     
     
-    /* apply an integer attribute to a group or dataset */
+    /* apply an integer attribute to a group or dataset as a string */
     
     int cbf_apply_h5intasstr_attribute(hid_t hid,
                                        const char* attribname,
@@ -3246,7 +3225,7 @@ return e; \
                                       const hsize_t slab,
                                       int errorcode)
     {
-        hid_t datasetspace, datasettype, datasetid, datasetprop;
+        hid_t datasetspace, datasettype, datasetid;
         
         hid_t memspace, memtype;
         
