@@ -2,12 +2,12 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.2.11 31 May 2013                                          #
+# Version 0.9.3 24 Sep 2013                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 - 2011 Herbert J. Bernstein                     #
+# (C) Copyright 2006 - 2013 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
@@ -250,7 +250,7 @@
 
 
 # Version string
-VERSION = 0.9.2.11
+VERSION = 0.9.3
 
 
 #
@@ -282,6 +282,7 @@ HDF5REGISTER ?= --register plugin
 REGEX = regex-20090805
 REGEXDIR = /usr/lib
 REGEXDEP = 
+CBF_REGEXLIB_REGEX ?= regex.h
 
 # Program to use to retrieve a URL
 
@@ -322,7 +323,8 @@ COMPRESS = /usr/bin/bzip2
 # Program to use to generate a signature
 #
 #SIGNATURE ?= /usr/bin/openssl dgst -md5
-SIGNATURE ?= (/usr/bin/openssl dgst -md5 | sed "s/^.*= //")
+#SIGNATURE ?= (/usr/bin/openssl dgst -md5 | sed "s/^.*= //")
+SIGNATURE ?= ( cat > md5tmp; cmake -E md5sum md5tmp| sed "s/ .*//")
 
 #
 # Pipe command to extract all but the first line of a text file
@@ -392,10 +394,18 @@ NOLLFLAG =
 endif
 
 ifneq ($(CBF_NO_REGEX),)
-NOREGEXFLAG = -DCBF_NO_REGEX
+CBF_REGEXFLAG = -DCBF_NO_REGEX
 else
-NOREGEXFLAG =
+CBF_REGEXFLAG = -DCBF_REGEXLIB_REGEX
 endif
+
+ifneq ($(CBF_USE_ULP),)
+ULPFLAG = -DCBF_USE_ULP
+else
+ULPFLAG =
+endif
+
+MISCFLAG = $(NOLLFLAG) $(ULPFLAG)
 
 #
 # PYCBF definitions
@@ -486,6 +496,16 @@ RTLPEXPORTS = LD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export LD_LIBRARY_PATH; \
 #  You should not need to make modifications below this line		 #
 ######################################################################
 
+ifneq ($(CBF_USE_ULP),)
+SRC_CBF_ULP_C     =	$(SRC)/cbf_ulp.c
+INCLUDE_CBF_ULP_H =	$(INCLUDE)/cbf_ulp.h
+BIN_TESTULP       = $(BIN)/testulp
+else
+SRC_CBF_ULP_C =
+INCLUDE_CBF_ULP_H =
+BIN_TESTULP =
+endif
+
 
 #
 # Suffixes of files to be used or built
@@ -509,34 +529,36 @@ COMMONDEP = Makefile
 #
 # Source files
 #
-SOURCE   =  $(SRC)/cbf.c			   \
-			$(SRC)/cbf_alloc.c		 \
-			$(SRC)/cbf_ascii.c		 \
-			$(SRC)/cbf_binary.c		\
+
+SOURCE   =  $(SRC)/cbf.c               \
+			$(SRC)/cbf_alloc.c         \
+			$(SRC)/cbf_ascii.c         \
+			$(SRC)/cbf_binary.c        \
 			$(SRC)/cbf_byte_offset.c   \
 			$(SRC)/cbf_canonical.c     \
-			$(SRC)/cbf_codes.c		 \
+			$(SRC)/cbf_codes.c         \
 			$(SRC)/cbf_compress.c      \
 			$(SRC)/cbf_context.c       \
-			$(SRC)/cbf_copy.c		  \
-			$(SRC)/cbf_file.c		  \
-			$(SRC)/cbf_getopt.c		\
-			$(SRC)/cbf_hdf5.c		  \
+			$(SRC)/cbf_copy.c          \
+			$(SRC)/cbf_file.c          \
+			$(SRC)/cbf_getopt.c        \
+			$(SRC)/cbf_hdf5.c          \
 			$(SRC)/cbf_hdf5_filter.c   \
-			$(SRC)/cbf_lex.c		   \
+			$(SRC)/cbf_lex.c           \
 			$(SRC)/cbf_nibble_offset.c \
-			$(SRC)/cbf_packed.c		\
+			$(SRC)/cbf_packed.c        \
 			$(SRC)/cbf_predictor.c     \
 			$(SRC)/cbf_read_binary.c   \
 			$(SRC)/cbf_read_mime.c     \
-			$(SRC)/cbf_simple.c		\
-			$(SRC)/cbf_string.c		\
-			$(SRC)/cbf_stx.c		   \
-			$(SRC)/cbf_tree.c		  \
+			$(SRC)/cbf_simple.c        \
+			$(SRC)/cbf_string.c        \
+			$(SRC)/cbf_stx.c           \
+			$(SRC)/cbf_tree.c          \
+	        $(SRC_CBF_ULP_C)           \
 			$(SRC)/cbf_uncompressed.c  \
-			$(SRC)/cbf_write.c		 \
+			$(SRC)/cbf_write.c         \
 			$(SRC)/cbf_write_binary.c  \
-			$(SRC)/cbf_ws.c			\
+			$(SRC)/cbf_ws.c            \
 			$(SRC)/md5c.c
 
 
@@ -546,7 +568,7 @@ F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 			$(SRC)/fcb_nblen_array.f90   \
 			$(SRC)/fcb_next_binary.f90   \
 			$(SRC)/fcb_open_cifin.f90    \
-			$(SRC)/fcb_packed.f90		\
+			$(SRC)/fcb_packed.f90        \
 			$(SRC)/fcb_read_bits.f90     \
 			$(SRC)/fcb_read_byte.f90     \
 			$(SRC)/fcb_read_image.f90    \
@@ -558,76 +580,77 @@ F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
 #
 # Header files
 #
-HEADERS   =  $(INCLUDE)/cbf.h			      \
-			 $(INCLUDE)/cbf_alloc.h			\
-			 $(INCLUDE)/cbf_ascii.h			\
-			 $(INCLUDE)/cbf_binary.h		   \
-			 $(INCLUDE)/cbf_byte_offset.h      \
+HEADERS   =  $(INCLUDE)/cbf.h               \
+			 $(INCLUDE)/cbf_alloc.h         \
+			 $(INCLUDE)/cbf_ascii.h         \
+			 $(INCLUDE)/cbf_binary.h        \
+			 $(INCLUDE)/cbf_byte_offset.h   \
 			 $(INCLUDE)/cbf_canonical.h		\
-			 $(INCLUDE)/cbf_codes.h			\
-			 $(INCLUDE)/cbf_compress.h		 \
-			 $(INCLUDE)/cbf_context.h		  \
-			 $(INCLUDE)/cbf_copy.h			 \
-			 $(INCLUDE)/cbf_file.h			 \
-			 $(INCLUDE)/cbf_getopt.h		   \
-			 $(INCLUDE)/cbf_hdf5.h			 \
-			 $(INCLUDE)/cbf_hdf5_filter.h      \
-			 $(INCLUDE)/cbf_lex.h			  \
-			 $(INCLUDE)/cbf_nibble_offset.h    \
-			 $(INCLUDE)/cbf_packed.h		   \
-			 $(INCLUDE)/cbf_predictor.h		\
-			 $(INCLUDE)/cbf_read_binary.h      \
-			 $(INCLUDE)/cbf_read_mime.h		\
-			 $(INCLUDE)/cbf_simple.h		   \
-			 $(INCLUDE)/cbf_string.h		   \
-			 $(INCLUDE)/cbf_stx.h			  \
-			 $(INCLUDE)/cbf_tree.h			 \
-			 $(INCLUDE)/cbf_uncompressed.h     \
-			 $(INCLUDE)/cbf_write.h			\
-			 $(INCLUDE)/cbf_write_binary.h     \
-			 $(INCLUDE)/cbf_ws.h			   \
-			 $(INCLUDE)/global.h			   \
-			 $(INCLUDE)/cbff.h			     \
+			 $(INCLUDE)/cbf_codes.h         \
+			 $(INCLUDE)/cbf_compress.h      \
+			 $(INCLUDE)/cbf_context.h       \
+			 $(INCLUDE)/cbf_copy.h          \
+			 $(INCLUDE)/cbf_file.h          \
+			 $(INCLUDE)/cbf_getopt.h        \
+			 $(INCLUDE)/cbf_hdf5.h          \
+			 $(INCLUDE)/cbf_hdf5_filter.h   \
+			 $(INCLUDE)/cbf_lex.h           \
+			 $(INCLUDE)/cbf_nibble_offset.h \
+			 $(INCLUDE)/cbf_packed.h        \
+			 $(INCLUDE)/cbf_predictor.h     \
+			 $(INCLUDE)/cbf_read_binary.h   \
+			 $(INCLUDE)/cbf_read_mime.h     \
+			 $(INCLUDE)/cbf_simple.h        \
+			 $(INCLUDE)/cbf_string.h        \
+			 $(INCLUDE)/cbf_stx.h           \
+			 $(INCLUDE)/cbf_tree.h          \
+			 $(INCLUDE)/cbf_uncompressed.h  \
+			 $(INCLUDE_CBF_ULP_H)           \
+			 $(INCLUDE)/cbf_write.h		\
+			 $(INCLUDE)/cbf_write_binary.h  \
+			 $(INCLUDE)/cbf_ws.h            \
+			 $(INCLUDE)/global.h            \
+			 $(INCLUDE)/cbff.h              \
 			 $(INCLUDE)/md5.h
 
 #
 # m4 macro files
 #
-M4FILES   = $(M4)/fcblib_defines.m4			\
-			$(M4)/fcb_exit_binary.m4		   \
-			$(M4)/fcb_next_binary.m4		   \
+M4FILES   = $(M4)/fcblib_defines.m4         \
+			$(M4)/fcb_exit_binary.m4        \
+			$(M4)/fcb_next_binary.m4        \
 			$(M4)/fcb_open_cifin.m4			\
-			$(M4)/fcb_packed.m4			    \
-			$(M4)/fcb_read_bits.m4			 \
+			$(M4)/fcb_packed.m4             \
+			$(M4)/fcb_read_bits.m4          \
 			$(M4)/fcb_read_image.m4			\
-			$(M4)/fcb_read_xds_i2.m4		   \
-			$(M4)/test_fcb_read_image.m4       \
+			$(M4)/fcb_read_xds_i2.m4        \
+			$(M4)/test_fcb_read_image.m4    \
 			$(M4)/test_xds_binary.m4
 
 
 #
 # Documentation files
 #
-DOCUMENTS = $(DOC)/CBFlib.html			       \
-			$(DOC)/CBFlib.txt			       \
-			$(DOC)/CBFlib_NOTICES.html		  \
-			$(DOC)/CBFlib_NOTICES.txt		   \
-			$(DOC)/ChangeLog					\
-			$(DOC)/ChangeLog.html			   \
-			$(DOC)/MANIFEST					 \
+DOCUMENTS = $(DOC)/CBFlib.html              \
+			$(DOC)/CBFlib.txt               \
+			$(DOC)/CBFlib_NOTICES.html      \
+			$(DOC)/CBFlib_NOTICES.txt       \
+			$(DOC)/ChangeLog                \
+			$(DOC)/ChangeLog.html           \
+			$(DOC)/MANIFES                  \
 			$(DOC)/gpl.txt $(DOC)/lgpl.txt
 
 #
 # HTML Graphics files
 #
-JPEGS     = $(GRAPHICS)/CBFbackground.jpg      \
-			$(GRAPHICS)/CBFbig.jpg			 \
-			$(GRAPHICS)/CBFbutton.jpg		  \
-			$(GRAPHICS)/cbflibbackground.jpg   \
-			$(GRAPHICS)/cbflibbig.jpg		  \
-			$(GRAPHICS)/cbflibbutton.jpg       \
-			$(GRAPHICS)/cifhome.jpg			\
-			$(GRAPHICS)/iucrhome.jpg		   \
+JPEGS     = $(GRAPHICS)/CBFbackground.jpg   \
+			$(GRAPHICS)/CBFbig.jpg          \
+			$(GRAPHICS)/CBFbutton.jpg       \
+			$(GRAPHICS)/cbflibbackground.jpg\
+			$(GRAPHICS)/cbflibbig.jpg       \
+			$(GRAPHICS)/cbflibbutton.jpg    \
+			$(GRAPHICS)/cifhome.jpg         \
+			$(GRAPHICS)/iucrhome.jpg        \
 			$(GRAPHICS)/noticeButton.jpg
 
 
@@ -645,7 +668,7 @@ default:
 	@echo ' '
 	@echo ' The current values are:'
 	@echo ' '
-	@echo '   $(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(PYCIFRWFLAG)'
+	@echo '   $(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(PYCIFRWFLAG)'
 	@echo ' '
 	@echo ' Before installing the CBF library and example programs, check'
 	@echo ' that the install directory is correct:'
@@ -708,29 +731,31 @@ default:
 # Compile the library and examples
 #
 all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(HDF5)\
-		symlinksdone			 \
-		$(REGEXDEP)			  \
-		$(LIB)/libcbf.a		  \
-		$(LIB)/libfcb.a		  \
-		$(LIB)/libimg.a		  \
-		$(BIN)/adscimg2cbf       \
-		$(BIN)/cbf2adscimg       \
-		$(BIN)/convert_image     \
-		$(BIN)/convert_minicbf   \
-		$(BIN)/sequence_match    \
-		$(BIN)/arvai_test		\
-		$(BIN)/makecbf		   \
-		$(BIN)/img2cif		   \
-		$(BIN)/adscimg2cbf       \
-		$(BIN)/cif2cbf		   \
-		$(BIN)/minicbf2nexus     \
-		$(BIN)/testcell		  \
-		$(BIN)/cif2c			 \
-		$(BIN)/testreals		 \
+		symlinksdone          \
+		$(REGEXDEP)           \
+		$(LIB)/libcbf.a       \
+		$(LIB)/libfcb.a       \
+		$(LIB)/libimg.a       \
+		$(BIN)/adscimg2cbf    \
+	    $(BIN)/arvai_test     \
+		$(BIN)/cbf2adscimg    \
+	    $(BIN)/cbf2nexus      \
+		$(BIN)/cif2c          \
+		$(BIN)/cif2cbf        \
+		$(BIN)/convert_image  \
+		$(BIN)/convert_minicbf\
+		$(BIN)/img2cif        \
+		$(BIN)/makecbf        \
+		$(BIN)/minicbf2nexus  \
+		$(BIN)/sequence_match \
+		$(BIN)/testcell       \
+	    $(BIN)/testalloc      \
+		$(BIN)/testreals      \
 		$(BIN)/testflat		  \
-		$(BIN)/testflatpacked    \
+		$(BIN)/testflatpacked \
+	    $(BIN)/testhdf5       \
+	    $(BIN_TESTULP)        \
 		$(BIN)/tiff2cbf
-
 
 ifneq ($(F90C),)
 all::	$(BIN)/test_xds_binary   \
@@ -814,8 +839,6 @@ symlinksdone:
 	chmod a+x .undosymlinks
 	chmod a+x doc/.symlinks
 	chmod a+x doc/.undosymlinks
-	chmod a+x libtool/.symlinks
-	chmod a+x libtool/.undosymlinks
 	./.symlinks $(SLFLAGS)
 	touch symlinksdone
 
@@ -857,6 +880,8 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		cp $(BIN)/cif2cbf $(INSTALLDIR)/bin/cif2cbf
 		-cp $(INSTALLDIR)/bin/minicbf2nexus $(INSTALLDIR)/bin/minicbf2nexus_old
 		cp $(BIN)/minicbf2nexus $(INSTALLDIR)/bin/minicbf2nexus
+	    -cp $(INSTALLDIR)/bin/cbf2nexus $(INSTALLDIR)/bin/cbf2nexus_old
+	    cp $(BIN)/cbf2nexus $(INSTALLDIR)/bin/cbf2nexus
 		-cp $(INSTALLDIR)/bin/sequence_match $(INSTALLDIR)/bin/sequence_match_old
 		cp $(BIN)/sequence_match $(INSTALLDIR)/bin/sequence_match
 		-cp $(INSTALLDIR)/bin/arvai_test $(INSTALLDIR)/bin/arvai_test_old
@@ -871,6 +896,12 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
 		-cp $(INSTALLDIR)/bin/tiff2cbf $(INSTALLDIR)/bin/tiff2cbf_old
 		cp $(BIN)/tiff2cbf $(INSTALLDIR)/bin/tiff2cbf
+	    -cp $(INSTALLDIR)/bin/testhdf5 $(INSTALLDIR)/bin/testhdf5_old
+	    cp $(BIN)/testhdf5 $(INSTALLDIR)/bin/testhdf5
+ifneq ($(CBF_USE_ULP),)
+	    -cp $(INSTALLDIR)/bin/testulp $(INSTALLDIR)/bin/testulp_old
+	    cp $(BIN)/testulp $(INSTALLDIR)/bin/testulp
+endif
 		chmod -R 755 $(INSTALLDIR)/include/cbflib
 		-rm -rf $(INSTALLDIR)/include/cbflib_old
 		-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
@@ -882,18 +913,24 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 		chmod 755 $(INSTALLDIR)/lib/libcbf.so
 		chmod 755 $(INSTALLDIR)/lib/libimg.so
 		chmod 755 $(INSTALLDIR)/lib/libfcb.so
+	    chmod 755 $(INSTALLDIR)/bin/arvai_test
+	    chmod 755 $(INSTALLDIR)/bin/cbf2nexus
+	    chmod 755 $(INSTALLDIR)/bin/cif2c
+	    chmod 755 $(INSTALLDIR)/bin/cif2cbf
 		chmod 755 $(INSTALLDIR)/bin/convert_image
 		chmod 755 $(INSTALLDIR)/bin/convert_minicbf
-		chmod 755 $(INSTALLDIR)/bin/makecbf
 		chmod 755 $(INSTALLDIR)/bin/img2cif
-		chmod 755 $(INSTALLDIR)/bin/cif2cbf
+		chmod 755 $(INSTALLDIR)/bin/makecbf
 		chmod 755 $(INSTALLDIR)/bin/minicbf2nexus
 		chmod 755 $(INSTALLDIR)/bin/sequence_match
-		chmod 755 $(INSTALLDIR)/bin/arvai_test
-		chmod 755 $(INSTALLDIR)/bin/cif2c
-		chmod 755 $(INSTALLDIR)/bin/testreals
+	    chmod 755 $(INSTALLDIR)/bin/testalloc
 		chmod 755 $(INSTALLDIR)/bin/testflat
 		chmod 755 $(INSTALLDIR)/bin/testflatpacked
+	    chmod 755 $(INSTALLDIR)/bin/testhdf5
+		chmod 755 $(INSTALLDIR)/bin/testreals
+ifneq ($(CBF_USE_ULP),)
+	    chmod 755 $(INSTALLDIR)/bin/testulp
+endif
 		chmod 755 $(INSTALLDIR)/bin/tiff2cbf
 		chmod 644 $(INSTALLDIR)/include/cbflib/*.h
 		
@@ -983,7 +1020,7 @@ $(SRC)/cbf_stx.c: $(SRC)/cbf.stx.y
 # CBF library
 #
 $(LIB)/libcbf.a: $(SOURCE) $(HEADERS) $(COMMONDEP) $(LIB) $(HDF5)
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(PYCIFRWFLAG) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(AR) cr $@ *.o
 	mv *.o $(LIB)
 ifneq ($(RANLIB),)
@@ -991,7 +1028,7 @@ ifneq ($(RANLIB),)
 endif
 
 $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB) $(HDF5)
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(PYCIFRWFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(SOURCE)
 	$(CC) -o $@ *.o $(SOLDFLAGS) $(EXTRALIBS) $(HDF5SOLIBS)
 	rm *.o
 
@@ -999,7 +1036,7 @@ $(SOLIB)/libcbf.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB) $(HDF5)
 # IMG library
 #
 $(LIB)/libimg.a: $(EXAMPLES)/img.c $(HEADERS) $(COMMONDEP) $(LIB)
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
 	$(AR) cr $@ img.o
 ifneq ($(RANLIB),)
 	$(RANLIB) $@
@@ -1007,7 +1044,7 @@ endif
 	rm img.o
 	
 $(SOLIB)/libimg.so: $(SOURCE) $(HEADERS) $(COMMONDEP) $(SOLIB)
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) -c $(EXAMPLES)/img.c
 	$(CC) -o $@ img.o $(SOLDFLAGS)
 	rm img.o
 
@@ -1055,7 +1092,7 @@ $(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  shared \
 	(cd $(PYCBF); python $(SETUP_PY) build $(PYCBFBOPT); cp build/lib.*/_pycbf.$(PYCBFEXT) .) 
 
 $(PYCBF)/setup.py: $(M4)/setup_py.m4
-	(m4 -P -Dregexlib=NOREGEXLIB -Dregexlibdir=NOREGEXLIBDIR $(M4)/setup_py.m4 > $@)
+	(m4 -P -Dregexlib=REGEXLIB -Dregexlibdir=REGEXLIBDIR $(M4)/setup_py.m4 > $@)
 
 $(PYCBF)/setup_MINGW.py: m4/setup_py.m4
 	(m4 -P -Dregexlib=regex -Dregexlibdir=$(REGEXDIR) $(M4)/setup_py.m4 > $@)
@@ -1090,7 +1127,7 @@ $(JCBF)/cbflib-$(VERSION).jar: $(JCBF) $(JCBF)/jcbf.i
 	$(JAR) cf $@ org
 
 $(SOLIB)/libcbf_wrap.so: $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf.so
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOLLFLAG) $(NOREGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(JCBF)/jcbf_wrap.c
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(SOCFLAGS) $(INCLUDES) $(WARNINGS) $(JAVAINCLUDES) -c $(JCBF)/jcbf_wrap.c
 	$(CC) -o $@ jcbf_wrap.o $(SOLDFLAGS) -L$(SOLIB) -lcbf
 	rm jcbf_wrap.o
 
@@ -1121,7 +1158,7 @@ $(EXAMPLES)/test_xds_binary.f90: $(M4)/test_xds_binary.m4 $(M4)/fcblib_defines.m
 #
 $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c \
 					$(GOPTLIB)	$(GOPTINC)
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 #
@@ -1129,7 +1166,7 @@ $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/im
 #
 $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
 					$(GOPTLIB)	$(GOPTINC)
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/convert_minicbf.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1137,7 +1174,7 @@ $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
 # makecbf example program
 #
 $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/makecbf.c  -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
@@ -1146,7 +1183,7 @@ $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 # adscimg2cbf example program
 #
 $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c  -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1154,7 +1191,7 @@ $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscim
 # cbf2adscimg example program
 #
 $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c  -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1162,7 +1199,7 @@ $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2ad
 # changtestcompression example program
 #
 $(BIN)/changtestcompression: $(LIB)/libcbf.a $(EXAMPLES)/changtestcompression.c
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/changtestcompression.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1171,7 +1208,7 @@ $(BIN)/changtestcompression: $(LIB)/libcbf.a $(EXAMPLES)/changtestcompression.c
 #
 $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 					$(GOPTLIB) 	$(GOTPINC)
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/img2cif.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
@@ -1180,8 +1217,17 @@ $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
 #
 $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 			$(GOPTLIB) $(GOPTINC) shared
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
+		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+
+#
+# cbf2nexus example program
+#
+$(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c $(LIB)/libimg.a \
+					$(GOPTLIB)	$(GOPTINC) 
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+			  $(EXAMPLES)/cbf2nexus.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
@@ -1189,7 +1235,7 @@ $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 #
 $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.a \
 					$(GOPTLIB)	$(GOPTINC) 
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/minicbf2nexus.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 #
@@ -1198,14 +1244,14 @@ $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.
 $(BIN)/cbf_template_t: $(DECTRIS_EXAMPLES)/cbf_template_t.c \
 			$(DECTRIS_EXAMPLES)/mx_cbf_t_extras.h \
 			$(DECTRIS_EXAMPLES)/mx_parms.h
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) -I $(DECTRIS_EXAMPLES)  $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -I $(DECTRIS_EXAMPLES)  $(WARNINGS) \
 			$(DECTRIS_EXAMPLES)/cbf_template_t.c -o $@
 
 #
 # testcell example program
 #
 $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
-	$(C++) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(C++) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/testcell.C -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1213,7 +1259,7 @@ $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
 # cif2c example program
 #
 $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
-	$(C++) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(C++) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/cif2c.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1221,7 +1267,7 @@ $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
 # sauter_test example program
 #
 $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
-	$(C++) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(C++) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/sauter_test.C -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1230,7 +1276,7 @@ $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
 #
 $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libimg.a \
 					$(GOPTLIB)	$(GOPTINC)
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
@@ -1239,7 +1285,7 @@ $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libim
 #
 $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 					$(GOPTLIB)	$(GOPTINC) $(TIFF)
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 		  -I$(TIFFPREFIX)/include $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
 		    -lcbf -L$(TIFFPREFIX)/lib -ltiff $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
@@ -1248,7 +1294,7 @@ $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
 #
 $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
 					$(GOPTLIB)	$(GOPTINC)
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/arvai_test.c $(GOPTLIB) -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
@@ -1256,7 +1302,7 @@ $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
 # testreals example program
 #
 $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/testreals.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1264,14 +1310,14 @@ $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
 # testflat example program
 #
 $(BIN)/testflat: $(LIB)/libcbf.a $(EXAMPLES)/testflat.c
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/testflat.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 #
 # testflatpacked example program
 #
 $(BIN)/testflatpacked: $(LIB)/libcbf.a $(EXAMPLES)/testflatpacked.c
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/testflatpacked.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1295,7 +1341,7 @@ endif
 # testcbf (C)
 #
 $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
-	$(CC) $(CFLAGS) $(NOLLFLAG) $(NOREGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 			  $(EXAMPLES)/testcbf.c -L$(LIB) \
 		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
@@ -1304,6 +1350,30 @@ $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
 #
 $(BIN)/testcbf.class: $(EXAMPLES)/testcbf.java $(JCBF)/cbflib-$(VERSION).jar $(SOLIB)/libcbf_wrap.so
 	$(JAVAC) -cp $(JCBF)/cbflib-$(VERSION).jar -d $(BIN) $(EXAMPLES)/testcbf.java
+ 
+ifneq ($(CBF_USE_ULP),)
+#
+# testulp test program
+#
+$(BIN)/testulp: $(LIB)/libcbf.a $(EXAMPLES)/testulp.c $(EXAMPLES)/unittest.h
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testulp.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
+	mv $@.tmp $@
+endif
+
+#
+# testhdf5 test program
+#
+$(BIN)/testhdf5: $(LIB)/libcbf.a $(EXAMPLES)/testhdf5.c $(EXAMPLES)/unittest.h
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testhdf5.c -L$(LIB) $(LIB)/libcbf.a $(HDF5LIBS) $(EXTRALIBS) -o $@.tmp
+	mv $@.tmp $@
+
+#
+# testalloc test program
+#
+$(BIN)/testalloc: $(LIB)/libcbf.a $(EXAMPLES)/testalloc.c $(EXAMPLES)/unittest.h
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) $(EXAMPLES)/testalloc.c -L$(LIB) $(LIB)/libcbf.a $(EXTRALIBS) -o $@.tmp
+	mv $@.tmp $@
+ 
 
 
 #
@@ -1332,7 +1402,7 @@ $(DATADIRS):	$(M4)/Makefile.m4
 # Input Data Files 
 
 TESTINPUT_BASIC =  example.mar2300
-DATADIRI_INPUT_BASIC = $(DATADIRI)/example.mar2300$(CEXT)
+DATADIRI_INPUT_BASIC = $(DATADIRI)/example.mar2300
 
 
 TESTINPUT_EXTRA =  9ins.cif mb_LP_1_001.img insulin_pilatus6m.cbf testrealin.cbf \
@@ -1340,14 +1410,14 @@ TESTINPUT_EXTRA =  9ins.cif mb_LP_1_001.img insulin_pilatus6m.cbf testrealin.cbf
 		X4_lots_M1S4_1_0001.cbf X4_lots_M1S4_1_0002.cbf \
 		X4_lots_M1S4_1_0003.cbf X4_lots_M1S4_1_0004.cbf \
 		X4_lots_M1S4_1_0005.cbf
-DATADIRI_INPUT_EXTRA = $(DATADIRI)/9ins.cif$(CEXT) $(DATADIRI)/mb_LP_1_001.img$(CEXT) \
-		$(DATADIRI)/insulin_pilatus6m.cbf$(CEXT) $(DATADIRI)/testrealin.cbf$(CEXT) \
-		$(DATADIRI)/testflatin.cbf$(CEXT) $(DATADIRI)/testflatpackedin.cbf$(CEXT) \
-		$(DATADIRI)/XRD1621.tif$(CEXT) $(DATADIRI)/X4_lots_M1S4_1_0001.cbf$(CEXT) \
-		$(DATADIRI)/X4_lots_M1S4_1_0002.cbf$(CEXT) \
-		$(DATADIRI)/X4_lots_M1S4_1_0003.cbf$(CEXT) \
-		$(DATADIRI)/X4_lots_M1S4_1_0004.cbf$(CEXT) \
-		$(DATADIRI)/X4_lots_M1S4_1_0005.cbf$(CEXT)
+DATADIRI_INPUT_EXTRA = $(DATADIRI)/9ins.cif $(DATADIRI)/mb_LP_1_001.img \
+		$(DATADIRI)/insulin_pilatus6m.cbf $(DATADIRI)/testrealin.cbf \
+		$(DATADIRI)/testflatin.cbf $(DATADIRI)/testflatpackedin.cbf \
+		$(DATADIRI)/XRD1621.tif $(DATADIRI)/X4_lots_M1S4_1_0001.cbf \
+		$(DATADIRI)/X4_lots_M1S4_1_0002.cbf \
+		$(DATADIRI)/X4_lots_M1S4_1_0003.cbf \
+		$(DATADIRI)/X4_lots_M1S4_1_0004.cbf \
+		$(DATADIRI)/X4_lots_M1S4_1_0005.cbf
 
 
 # Output Data Files
@@ -1374,23 +1444,23 @@ NEWTESTOUTPUT = adscconverted_flat.cbf \
 		test_fcb_read_testflatpackedout.out \
 		XRD1621.cbf XRD1621_I4encbC100.cbf \
 		minicbf.h5
-DATADIRO_OUTPUT =  $(DATADIRO)/adscconverted_flat_orig.cbf$(CEXT) \
-		$(DATADIRO)/adscconverted_orig.cbf$(CEXT) \
-		$(DATADIRO)/converted_flat_orig.cbf$(CEXT) \
-		$(DATADIRO)/converted_orig.cbf$(CEXT) \
-		$(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf$(CEXT) \
-		$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5$(CEXT) \
-		$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(CEXT) \
-		$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(CEXT) \
-		$(DATADIRO)/mb_LP_1_001_orig.cbf$(CEXT) \
-		$(DATADIRO)/testcell_orig.prt$(CEXT) \
-		$(DATADIRO)/test_xds_bin_testflatout_orig.out$(CEXT) \
-		$(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(CEXT) \
-		$(DATADIRO)/test_fcb_read_testflatout_orig.out$(CEXT) \
-		$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(CEXT) \
-		$(DATADIRO)/XRD1621_orig.cbf$(CEXT) \
-		$(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(CEXT) \
-		$(DATADIRO)/minicbf_original.h5$(CEXT)
+DATADIRO_OUTPUT =  $(DATADIRO)/adscconverted_flat_orig.cbf \
+		$(DATADIRO)/adscconverted_orig.cbf \
+		$(DATADIRO)/converted_flat_orig.cbf \
+		$(DATADIRO)/converted_orig.cbf \
+		$(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf \
+		$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5 \
+		$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf \
+		$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf \
+		$(DATADIRO)/mb_LP_1_001_orig.cbf \
+		$(DATADIRO)/testcell_orig.prt \
+		$(DATADIRO)/test_xds_bin_testflatout_orig.out \
+		$(DATADIRO)/test_xds_bin_testflatpackedout_orig.out \
+		$(DATADIRO)/test_fcb_read_testflatout_orig.out \
+		$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out \
+		$(DATADIRO)/XRD1621_orig.cbf \
+		$(DATADIRO)/XRD1621_I4encbC100_orig.cbf \
+		$(DATADIRO)/minicbf_original.h5
 DATADIRO_OUTPUT_SIGNATURES =  $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT) \
 		$(DATADIRO)/adscconverted_orig.cbf$(SEXT) \
 		$(DATADIRO)/converted_flat_orig.cbf$(SEXT) \
@@ -1447,12 +1517,12 @@ DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
 # Fetch Input Data Files 
 
 $(TESTINPUT_BASIC):	$(DATADIRI) $(DATADIRI_INPUT_BASIC)
-		$(DECOMPRESS) < $(DATADIRI)/$@$(CEXT) > $@
+		cp $(DATADIRI)/$@  $@
 		cp $(DATADIRI)/$@$(SEXT)  $@$(SEXT)
 		-$(SIGNATURE) < $@ | $(DIFF) - $@$(SEXT)
 
 $(TESTINPUT_EXTRA):	$(DATADIRI) $(DATADIRI_INPUT_EXTRA)
-		$(DECOMPRESS) < $(DATADIRI)/$@$(CEXT) > $@
+		cp $(DATADIRI)/$@ $@
 		cp $(DATADIRI)/$@$(SEXT)  $@$(SEXT)
 		-$(SIGNATURE) < $@ | $(DIFF) - $@$(SEXT)
 
@@ -1460,7 +1530,7 @@ $(TESTINPUT_EXTRA):	$(DATADIRI) $(DATADIRI_INPUT_EXTRA)
 # Fetch Output Data Files and Signatures
 
 $(TESTOUTPUT):	$(DATADIRO) $(DATADIRO_OUTPUT) $(DATADIRO_OUTPUT_SIGNATURES)
-		$(DECOMPRESS) < $(DATADIRO)/$@$(CEXT) > $@
+		cp $(DATADIRO)/$@  $@
 		cp $(DATADIRO)/$@$(SEXT) $@$(SEXT)
 		-$(SIGNATURE) < $@ | $(DIFF) - $@$(SEXT)
 
@@ -1494,23 +1564,23 @@ restore_output:		$(NEWTESTOUTPUT) $(DATADIRO)
 		$(SIGNATURE) < XRD1621.cbf > $(DATADIRO)/XRD1621_orig.cbf$(SEXT)
 		$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(SEXT)
 		$(SIGNATURE) < minicbf_original.h5 > $(DATADIRO)/minicbf_original.h5$(SEXT)
-		$(COMPRESS)  < adscconverted_flat.cbf > $(DATADIRO)/adscconverted_flat_orig.cbf$(CEXT)
-		$(COMPRESS)  < adscconverted.cbf > $(DATADIRO)/adscconverted_orig.cbf$(CEXT)
-		$(COMPRESS)  < converted_flat.cbf > $(DATADIRO)/converted_flat_orig.cbf$(CEXT)
-		$(COMPRESS)  < converted.cbf > $(DATADIRO)/converted_orig.cbf$(CEXT)
-		$(COMPRESS)  < insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf$(CEXT)
-		$(COMPRESS)  < insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5$(CEXT)
-		$(COMPRESS)  < insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(CEXT)
-		$(COMPRESS)  < insulin_pilatus6mconverted_v2.cbf > $(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(CEXT)
-		$(COMPRESS)  < mb_LP_1_001.cbf$ > $(DATADIRO)/mb_LP_1_001_orig.cbf$(CEXT)
-		$(COMPRESS)  < testcell.prt > $(DATADIRO)/testcell_orig.prt$(CEXT)
-		$(COMPRESS)  < test_xds_bin_testflatout.out > $(DATADIRO)/test_xds_bin_testflatout_orig.out$(CEXT)
-		$(COMPRESS)  < test_xds_bin_testflatpackedout.out > $(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(CEXT)
-		$(COMPRESS)  < test_fcb_read_testflatout.out > $(DATADIRO)/test_fcb_read_testflatout_orig.out$(CEXT)
-		$(COMPRESS)  < test_fcb_read_testflatpackedout.out > $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(CEXT)
-		$(COMPRESS)  < XRD1621.cbf > $(DATADIRO)/XRD1621_orig.cbf$(CEXT)
-		$(COMPRESS)  < XRD1621_I4encbC100.cbf > $(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(CEXT)
-		$(COMPRESS)  < minicbf_original.h5 > $(DATADIRO)/minicbf_original.h5$(CEXT)
+		cp adscconverted_flat.cbf $(DATADIRO)/adscconverted_flat_orig.cbf$
+		cp adscconverted.cbf $(DATADIRO)/adscconverted_orig.cbf
+		cp converted_flat.cbf $(DATADIRO)/converted_flat_orig.cbf
+		cp converted.cbf $(DATADIRO)/converted_orig.cbf
+		cp insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf
+		cp insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5
+		cp insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf
+		cp insulin_pilatus6mconverted_v2.cbf > $(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf
+		cp mb_LP_1_001.cbf$ > $(DATADIRO)/mb_LP_1_001_orig.cbf
+		cp testcell.prt > $(DATADIRO)/testcell_orig.prt
+		cp test_xds_bin_testflatout.out > $(DATADIRO)/test_xds_bin_testflatout_orig.out
+		cp test_xds_bin_testflatpackedout.out > $(DATADIRO)/test_xds_bin_testflatpackedout_orig.out
+		cp test_fcb_read_testflatout.out > $(DATADIRO)/test_fcb_read_testflatout_orig.out
+		cp test_fcb_read_testflatpackedout.out > $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out
+		cp XRD1621.cbf > $(DATADIRO)/XRD1621_orig.cbf
+		cp XRD1621_I4encbC100.cbf > $(DATADIRO)/XRD1621_I4encbC100_orig.cbf
+		cp minicbf_original.h5 > $(DATADIRO)/minicbf_original.h5
 
 restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
 		$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT)
@@ -1565,6 +1635,8 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf \
 	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image $(BIN)/convert_minicbf \
 	$(BIN)/sauter_test $(BIN)/adscimg2cbf $(BIN)/cbf2adscimg \
 	$(BIN)/changtestcompression $(BIN)/tiff2cbf \
+	$(BIN)/testhdf5 $(BIN)/testalloc \
+	$(BIN_TESTULP) \
 	basic $(TESTINPUT_EXTRA) $(TESTOUTPUT)
 else
 extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf \
@@ -1572,6 +1644,8 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf \
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
 	$(BIN)/convert_minicbf \
 	$(BIN)/sauter_test $(BIN)/adscimg2cbf $(BIN)/cbf2adscimg \
+	$(BIN)/testhdf5 $(BIN)/testalloc \
+	$(BIN_TESTULP) \
 	basic $(TESTINPUT_EXTRA) $(TESTOUTPUT)
 endif
 	$(TIME) $(BIN)/cif2cbf -e hex -c none \
@@ -1640,8 +1714,13 @@ endif
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	        $(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encc.cbf.h5 -o insulin_pilatus6mconverted_encc.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted_encc.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
-	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/minicbf2nexus -z zlib \
-		-c config ../X4_lots_M1S4_1_*.cbf -o minicbf.h5
+	$(TIME) $(BIN)/testalloc
+	$(TIME) $(BIN)/testhdf5; rm -f testfile.h5
+ifneq ($(CBF_USE_ULP),)
+	$(TIME) $(BIN)/testulp
+endif
+	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/minicbf2nexus -c zlib \
+		-C config ../X4_lots_M1S4_1_*.cbf -o minicbf.h5
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/h5dump ../minicbf_original.h5 | $(ALLBUTONE) > minicbf_original.dump
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/h5dump minicbf.h5 | $(ALLBUTONE) > minicbf.dump
 	-cd $(MINICBF_TEST); $(DIFF) minicbf_original.dump minicbf.dump
@@ -1781,6 +1860,7 @@ empty:
 	@-rm -rf  $(BIN)/makecbf*
 	@-rm -rf  $(BIN)/img2cif*
 	@-rm -rf  $(BIN)/cif2cbf*
+	@-rm -rf  $(BIN)/cbf2nexus*
 	@-rm -rf  $(BIN)/minicbf2nexus*
 	@-rm -rf  $(BIN)/convert_image*
 	@-rm -rf  $(BIN)/convert_minicbf*
@@ -1788,9 +1868,7 @@ empty:
 	@-rm -rf  $(BIN)/test_xds_binary*
 	@-rm -rf  $(BIN)/testcell*
 	@-rm -rf  $(BIN)/cif2c*
-	@-rm -rf  $(BIN)/testreals*
-	@-rm -rf  $(BIN)/testflat*
-	@-rm -rf  $(BIN)/testflatpacked*
+	@-rm -rf  $(BIN)/test*
 	@-rm -rf  $(BIN)/cbf_template_t*
 	@-rm -rf  $(BIN)/sauter_test*
 	@-rm -rf  $(BIN)/arvai_test*
@@ -1886,6 +1964,7 @@ empty:
 	@-rm -rf $(INCLUDE)/hdf5*
 	@-rm -f  *_old
 	@-rm -f X4_lots_M1S4_1_*.cbf
+	@-rm -f testfile.h5
 	./.undosymlinks
 	
 #

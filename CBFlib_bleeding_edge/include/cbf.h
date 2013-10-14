@@ -256,6 +256,17 @@ extern "C" {
 
 #endif
 
+/* Version numbers */
+#define CBF_VERS_MAJOR   0   /* For major interface/format changes        */
+#define CBF_VERS_MINOR   9   /* For minor interface/format changes        */
+#define CBF_VERS_RELEASE 3   /* For tweaks, bug-fixes, or development     */
+#define CBF_VERS_SUBRELEASE ""   
+                             /* For pre-releases like RC1                 */
+                             /* Empty string for real releases.           */
+#define CBF_APIVERS_CUR  2   /* Number of major interface version         */
+#define CBF_APIVERS_REV  0   /* Interface changes                         */
+#define CBF_APIVERS_AGE  0   /* Number of interfaces added                */
+
 #include "cbf_tree.h"
 
 #include <stdlib.h>
@@ -429,6 +440,10 @@ extern "C" {
 #define CBF_FLAT_IMAGE  0x0200  /* Flag for flat (linear) images      */
 #define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */
     
+	/* TODO: add more HDF5 compression options using custom CBFlib filters */
+#define	CBF_H5COMPRESSION_ZLIB 0x1 /* Flag to turn on zlib compression for the main dataset within a HDF5 file */
+#define	CBF_H5COMPRESSION_CBF  0x2 /* Flag to turn on CBF compression for the main dataset within a HDF5 file */
+
     
   /* Flags for HDF5/NeXus management */
     

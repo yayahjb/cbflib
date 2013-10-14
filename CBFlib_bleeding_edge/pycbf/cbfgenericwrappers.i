@@ -125,6 +125,14 @@ Returns an error code on failure or 0 for success.
   }
   }
 
+/* cfunc cbf_H5Arequire_cmp   pyfunc H5Arequire_cmp  
+   arg const hid_t ID    arg const char * const name    arg const      int rank    arg const hsize_t * const dim    arg const hid_t filetype    arg const void *      const value    arg void * const buf    arg int */
+
+
+/* cfunc cbf_H5Drequire_scalar_F64LE   pyfunc H5Drequire_scalar_F64LE  
+   arg const hid_t location    arg hid_t * const      dataset    arg const char * const name    arg const double value */
+
+
 /* cfunc cbf_get_local_real_byte_order   pyfunc get_local_real_byte_order  
    arg char ** byte_order */
 
@@ -171,6 +179,10 @@ Returns an error code on failure or 0 for success.
   }
   }
 
+/* cfunc cbf_H5Arequire_cmp_ULP   pyfunc H5Arequire_cmp_ULP  
+   arg const hid_t ID    arg const char * const name    arg const int rank    arg const hsize_t * const dim    arg const hid_t fileType    arg const      hid_t memType    arg const void * const value    arg void * const buf    arg int */
+
+
 /* cfunc cbf_compute_reciprocal_cell   pyfunc compute_reciprocal_cell  
    arg double cell[6]    arg double rcell[6] */
 
@@ -216,5 +228,9 @@ SEE ALSO
     *gammastar =  rcell[5];
   }
   }
+
+
+/* cfunc cbf_H5Arequire_cmp2   pyfunc H5Arequire_cmp2  
+   arg const hid_t ID    arg const char * const name    arg const      int rank    arg const hsize_t * const dim    arg const hid_t fileType    arg const hid_t      memType    arg const void * const value    arg void * const buf    arg int */
 
 // End of generic functions

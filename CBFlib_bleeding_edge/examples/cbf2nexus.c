@@ -1,24 +1,21 @@
 /**********************************************************************
- * testreals -- test read and write for reals                         *
+ *     cbf2nexus.c by J. Sloan of Diamond Light Source                *
  *                                                                    *
- * Version 0.7.6.3 21 January 2007                                    *
+ * CBFlib Version 0.9.3 30 May 2013                                   *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2007 Herbert J. Bernstein                            *
+ * (C) Copyright 2013 Herbert J. Bernstein                            *
  *                                                                    *
- **********************************************************************/
-
-/**********************************************************************
+ **********************************************************************
  *                                                                    *
  * YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL *
- * WHILE YOU MAY ALTERNATIVE DISTRIBUTE THE API UNDER THE LGPL        *
- * YOU MAY ***NOT*** DISTRBUTE THIS PROGRAM UNDER THE LGPL            *
- *                                                                    *                                                                    *
- **********************************************************************/
-
-/*************************** GPL NOTICES ******************************
+ *                                                                    *
+ * ALTERNATIVELY YOU MAY REDISTRIBUTE THE CBFLIB API UNDER THE TERMS  *
+ * OF THE LGPL                                                        *
+ *                                                                    *
+ **********************************************************************
  *                                                                    *
  * This program is free software; you can redistribute it and/or      *
  * modify it under the terms of the GNU General Public License as     *
@@ -35,10 +32,24 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA           *
  * 02111-1307  USA                                                    *
  *                                                                    *
- **********************************************************************/
-
-
-/**********************************************************************
+ **********************************************************************
+ *                                                                    *
+ * This library is free software; you can redistribute it and/or      *
+ * modify it under the terms of the GNU Lesser General Public         *
+ * License as published by the Free Software Foundation; either       *
+ * version 2.1 of the License, or (at your option) any later version. *
+ *                                                                    *
+ * This library is distributed in the hope that it will be useful,    *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU  *
+ * Lesser General Public License for more details.                    *
+ *                                                                    *
+ * You should have received a copy of the GNU Lesser General Public   *
+ * License along with this library; if not, write to the Free         *
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,    *
+ * MA  02110-1301  USA                                                *
+ *                                                                    *
+ **********************************************************************
  *                                                                    *
  *                    Stanford University Notices                     *
  *  for the CBFlib software package that incorporates SLAC software   *
@@ -46,7 +57,7 @@
  *                                                                    *
  * This software                                                      *
  * -------------                                                      *
- * The term 'this software', as used in these Notices, refers to      *
+ * The term "this software", as used in these Notices, refers to      *
  * those portions of the software package CBFlib that were created by *
  * employees of the Stanford Linear Accelerator Center, Stanford      *
  * University.                                                        *
@@ -89,11 +100,8 @@
  *                                                                    *
  * Based on SLAC Software Notices, Set 4                              *
  * OTT.002a, 2004 FEB 03                                              *
- **********************************************************************/
-
-
-/**********************************************************************
- *                                 NOTICE                             *
+ **********************************************************************
+ *                               NOTICE                               *
  * Creative endeavors depend on the lively exchange of ideas. There   *
  * are laws and customs which establish rights and responsibilities   *
  * for authors and the users of what authors create.  This notice     *
@@ -135,9 +143,7 @@
  * PROGRAMS OR DOCUMENTS LIES SOLELY WITH THE USERS OF THE PROGRAMS   *
  * OR DOCUMENTS OR FILE OR FILES AND NOT WITH AUTHORS OF THE          *
  * PROGRAMS OR DOCUMENTS.                                             *
- **********************************************************************/
-
-/**********************************************************************
+ **********************************************************************
  *                                                                    *
  *                           The IUCr Policy                          *
  *      for the Protection and the Promotion of the STAR File and     *
@@ -227,244 +233,247 @@
  * Crystallography                                                    *
  **********************************************************************/
 
-/**********************************************************************
- *                            SYNOPSIS                                *
- *                                                                    *
- *  testreals                                                         *
- *                                                                    *
- **********************************************************************/
-
-
-#include "cbf.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <math.h>
+#include <time.h>
 #include <errno.h>
 #include <unistd.h>
+#include <stdint.h>
 
+#include "cbf.h"
+#include "cbf_simple.h"
+#include "img.h"
+#include "cbf_string.h"
+#include "cbf_copy.h"
+#include "cbf_hdf5.h"
+#include "cbf_getopt.h"
 
-int local_exit (int status);
+#ifndef UINT64_MAX
+#define NO_UINT64_TYPE
+#endif
 
-int outerror(int err)
-{
+#define C2CBUFSIZ 8192
 
-  if ((err&CBF_FORMAT)==CBF_FORMAT)
-    fprintf(stderr, " testreals: The file format is invalid.\n");
-  if ((err&CBF_ALLOC)==CBF_ALLOC)
-    fprintf(stderr, " testreals Memory allocation failed.\n");
-  if ((err&CBF_ARGUMENT)==CBF_ARGUMENT)
-    fprintf(stderr, " testreals: Invalid function argument.\n");
-  if ((err&CBF_ASCII)==CBF_ASCII)
-    fprintf(stderr, " testreals: The value is ASCII (not binary).\n");
-  if ((err&CBF_BINARY)==CBF_BINARY)
-    fprintf(stderr, " testreals: The value is binary (not ASCII).\n");
-  if ((err&CBF_BITCOUNT)==CBF_BITCOUNT)
-    fprintf(stderr, " testreals: The expected number of bits does"
-      " not match the actual number written.\n");
-  if ((err&CBF_ENDOFDATA)==CBF_ENDOFDATA)
-    fprintf(stderr, " testreals: The end of the data was reached"
-     " before the end of the array.\n");
-  if ((err&CBF_FILECLOSE)==CBF_FILECLOSE)
-    fprintf(stderr, " testreals: File close error.\n");
-  if ((err&CBF_FILEOPEN)==CBF_FILEOPEN)
-    fprintf(stderr, " testreals: File open error.\n");
-  if ((err&CBF_FILEREAD)==CBF_FILEREAD)
-    fprintf(stderr, " testreals: File read error.\n");
-  if ((err&CBF_FILESEEK)==CBF_FILESEEK)
-    fprintf(stderr, " testreals: File seek error.\n");
-  if ((err&CBF_FILETELL)==CBF_FILETELL)
-    fprintf(stderr, " testreals: File tell error.\n");
-  if ((err&CBF_FILEWRITE)==CBF_FILEWRITE)
-    fprintf(stderr, " testreals: File write error.\n");
-  if ((err&CBF_IDENTICAL)==CBF_IDENTICAL)
-    fprintf(stderr, " testreals: A data block with the new name already exists.\n");
-  if ((err&CBF_NOTFOUND)==CBF_NOTFOUND)
-    fprintf(stderr, " testreals: The data block, category, column or"
-      " row does not exist.\n");
-  if ((err&CBF_OVERFLOW)==CBF_OVERFLOW)
-    fprintf(stderr, " testreals: The number read cannot fit into the"
-      "destination argument.\n        The destination has been set to the nearest value.\n");
-  if ((err& CBF_UNDEFINED)==CBF_UNDEFINED)
-    fprintf(stderr, " testreals: The requested number is not defined (e.g. 0/0).\n");
-  if ((err&CBF_NOTIMPLEMENTED)==CBF_NOTIMPLEMENTED)
-    fprintf(stderr, " testreals: The requested functionality is not yet implemented.\n");
-  return 0;
+#ifdef __MINGW32__
+#define NOMKSTEMP
+#define NOTMPDIR
+#endif
 
-}
-
-
-#undef cbf_failnez
-#define cbf_failnez(x) \
- {int xerr; \
-  xerr = (x); \
-  if (xerr) { \
-    fprintf(stderr," testreals: CBFlib fatal error %d\n",xerr); \
-    outerror(xerr);   \
-    outusage();      \
-    local_exit (-1); \
-  } \
- }
-
-
-
-int outusage ( void ) {
-
- fprintf(stderr," \n Usage:\n");
- fprintf(stderr,"  testreals \\\n");
- fprintf(stderr," Requires testrealin.cbf\n ");
- fprintf(stderr," Creates  testrealout.cbf\n ");
- return -1;
-
-}
 
 int main (int argc, char *argv [])
 {
-  cbf_handle incbf=NULL, cbf=NULL;
+	int error = CBF_SUCCESS;
+    FILE *file = NULL;
+    clock_t a,b;
+    cbf_handle cif;
+    cbf_getopt_handle opts;
+    int c = 0;
+    int errflg = 0;
+	size_t cifid = 0;
+	size_t f = 0;
+	int h5_write_flags = 0;
+	cbf_h5handle h5out = NULL;
+	const char ** const cifin = memset(malloc(argc*sizeof(char*)),0,argc*sizeof(char*));
+	const char *hdf5out = NULL;
+	const char *group = NULL;
+    char *ciftmp=NULL;
+#ifndef NOMKSTEMP
+    int ciftmpfd;
+#endif
+    int ciftmpused = 0;
+    int nbytes;
+    char buf[C2CBUFSIZ];
 
-  FILE *in, *out;
+    int digest = 0;
 
-  double *image;
+    const char * optarg = NULL;
 
-  float *flimage;
+	cbf_onfailnez(cbf_make_getopt_handle(&opts),free(cifin));
 
-  int i;
+	cbf_onfailnez(cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):" ),free(cifin));
 
-  /* Read the input test file */
+	if (!cbf_rewind_getopt_option(opts)) {
+        for(; !cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg); cbf_next_getopt_option(opts)) {
+            switch (c) {
+				case 'c': { /* compression */
+					if (!cbf_cistrcmp("zlib",optarg?optarg:"")) {
+						h5_write_flags |= CBF_H5COMPRESSION_ZLIB;
+						h5_write_flags &= ~CBF_H5COMPRESSION_CBF;
+					} else if (!cbf_cistrcmp("cbf",optarg?optarg:"")) {
+						h5_write_flags &= ~CBF_H5COMPRESSION_ZLIB;
+						h5_write_flags |= CBF_H5COMPRESSION_CBF;
+					}else if (!cbf_cistrcmp("none",optarg?optarg:"")) {
+						/* remove any previously set (system default?) compressions */
+						h5_write_flags &= ~CBF_H5COMPRESSION_ZLIB;
+						h5_write_flags &= ~CBF_H5COMPRESSION_CBF;
+					}
+					else ++errflg;
+					break;
+				}
+				case 'g': { /* group within output file where data should be stored */
+					if (group) errflg++;
+					else group = optarg;
+					break;
+				}
+				case 'o': { /* output file */
+					if (hdf5out) errflg++;
+                    else hdf5out = optarg;
+                    break;
+				}
+				case 'Z': { /* automatic or manual filter registration? */
+					if (cbf_cistrcmp(optarg?optarg:"","manual") == 0) {
+						h5_write_flags |= CBF_H5_REGISTER_COMPRESSIONS;
+					} else if (cbf_cistrcmp(optarg?optarg:"","plugin") == 0) {
+						h5_write_flags &= ~CBF_H5_REGISTER_COMPRESSIONS;
+					} else {
+						errflg++;
+					}
+					break;
+				}
+				case 0: { /* input file */
+					if (NULL != optarg) cifin[cifid++] = optarg;
+					break;
+				}
+				default: {
+                    errflg++;
+                    break;
+				}
+            }
+        }
+	}
+	if (!hdf5out) {
+		fprintf(stderr,"No output file given.\n");
+		++errflg;
+	}
+	if (!cifid) {
+		fprintf(stderr,"No input files given.\n");
+		++errflg;
+	}
+	if (errflg) {
+		fprintf(stderr, "Usage:\n\t%s -o|--output output_nexus input_minicbf_files...\n"
+				"Options:\n"
+						"\t-c|--compression cbf|none|zlib (default: none)\n"
+						"\t-g|--group output_group (default: 'entry')\n"
+						"\t-Z|--register manual|plugin (default: plugin)\n"
+						"These options are NOT case-sensitive.\n",
+				argv[0]);
+        exit(2);
+    }
 
-  if (!(in = fopen ("testrealin.cbf", "rb"))) {
-     fprintf (stderr,"testreals: Couldn't open the input imgCIF file %s\n",
-     "testrealin.cbf");
-     exit (1);
-  }
+	// prepare the output file
+	if(cbf_create_h5handle2(&h5out,hdf5out)) printf ("Couldn't open the HDF5 file '%s'.\n", hdf5out);
+	cbf_h5handle_require_entry(h5out,0,group);
+	h5out->flags = h5_write_flags;
 
-  cbf_failnez (cbf_make_handle (&incbf))
+#ifdef CBF_USE_ULP
+	// set up some parameters for comparing floating point numbers
+	h5out->cmp_double_as_float = 0;
+	h5out->float_ulp = 4;
+#ifndef NO_UINT64_TYPE
+	h5out->double_ulp = 4;
+#endif
+#endif
 
-  cbf_failnez (cbf_read_file (incbf, in, MSG_DIGEST))
+	for (f = 0; CBF_SUCCESS == error && f != cifid; ++f) {
 
-  cbf_failnez (cbf_make_handle (&cbf))
+		/* Read the minicbf */
 
-  cbf_failnez(cbf_find_datablock(incbf,"testreals"))
-
-  cbf_failnez(cbf_find_category(incbf,"array_data"))
-
-  cbf_failnez(cbf_find_column(incbf,"data"))
-
-  cbf_failnez(cbf_rewind_row(incbf))
-
-  cbf_failnez (	(image = (double *)malloc(sizeof(double)*1000000))==NULL?CBF_ALLOC:0);
-
-  cbf_failnez (cbf_get_realarray (incbf, NULL,
-                               image, sizeof (double),
-                               1000000, NULL))
-  for (i = 0; i < 1000000; i++) {
-  	if (image[i] != (double)(i+1)) {
-  		fprintf(stderr,"testreals: Mismatch for index %d, file %g !=  %g\n",
-  		  i, image[i], (double)(i+1));
-  		exit(-1);
-  	}
-  }
-
-  free(image);
-
-  cbf_failnez(cbf_next_row(incbf))
-
-  cbf_failnez (	(flimage = (float *)malloc(sizeof(float)*1000000))==NULL?CBF_ALLOC:0);
-
-  cbf_failnez (cbf_get_realarray (incbf, NULL,
-                               flimage, sizeof (float),
-                               1000000, NULL))
-  for (i = 0; i < 1000000; i++) {
-  	if (flimage[i] != (float)(i+1)) {
-  		fprintf(stderr,"testreals:  Mismatch for index %d, value in file %f !=  %f\n",
-  		  i, flimage[i], (float)(i+1));
-  		exit(-1);
-  	}
-  }
-
-  free(flimage);
-
-
-
-  cbf_failnez(cbf_new_datablock(cbf,"testreals"))
-
-  cbf_failnez(cbf_new_category(cbf,"array_data"))
-
-  cbf_failnez(cbf_new_column(cbf,"data"))
-
-  cbf_failnez(cbf_new_row(cbf))
+		if (!(cifin[f]) || strcmp(cifin[f]?cifin[f]:"","-") == 0) {
+			ciftmp = (char *)malloc(strlen("/tmp/cif2cbfXXXXXX")+1);
+	#ifdef NOTMPDIR
+			strcpy(ciftmp, "cif2cbfXXXXXX");
+	#else
+			strcpy(ciftmp, "/tmp/cif2cbfXXXXXX");
+	#endif
+	#ifdef NOMKSTEMP
+			if ((ciftmp = mktemp(ciftmp)) == NULL ) {
+				fprintf(stderr,"%s: Can't create temporary file name %s.\n%s\n", argv[0], ciftmp,strerror(errno));
+				exit(1);
+			}
+			if ( (file = fopen(ciftmp,"wb+")) == NULL) {
+				fprintf(stderr,"Can't open temporary file %s.\n%s\n", ciftmp,strerror(errno));
+				exit(1);
+			}
+	#else
+			if ((ciftmpfd = mkstemp(ciftmp)) == -1 ) {
+				fprintf(stderr,"%s: Can't create temporary file %s.\n%s\n", argv[0], ciftmp,strerror(errno));
+				exit(1);
+			}
+			if ( (file = fdopen(ciftmpfd, "w+")) == NULL) {
+				fprintf(stderr,"Can't open temporary file %s.\n%s\n", ciftmp,strerror(errno));
+				exit(1);
+			}
+	#endif
+			while ((nbytes = fread(buf, 1, C2CBUFSIZ, stdin))) {
+				if(nbytes != fwrite(buf, 1, nbytes, file)) {
+					fprintf(stderr,"Failed to write %s.\n", ciftmp);
+					exit(1);
+				}
+			}
+			fclose(file);
+			cifin[f] = ciftmp;
+			ciftmpused = 1;
+		}
 
 
+		// start timing
+		a = clock ();
+		{ // do the work
+			// prepare the file
+			FILE * const in = fopen (cifin[f], "rb");
+			if (NULL == in) {
+				fprintf (stderr,"Couldn't open the input CIF file '%s': %s\n", cifin[f], strerror(errno));
+				exit (1);
+			}
+			// ensure temporary file is removed when the program closes
+			if (ciftmpused) {
+				if (unlink(ciftmp)) {
+					fprintf(stderr,"Can't unlink temporary file '%s': %s\n", ciftmp,strerror(errno));
+					exit(1);
+				}
+			}
+			// make the handle
+			if ( cbf_make_handle (&cif) ) {
+				fprintf(stderr,"Failed to create handle for input_cif\n");
+				exit(1);
+			}
+			// read the file
+			cbf_onfailnez(cbf_read_file(cif, in, MSG_DIGEST|(digest&MSG_DIGESTWARN)),free(cifin));
+		}
+		// stop timing
+		b = clock ();
+		printf("Time to read '%s': %.3fs\n", cifin[f], ((float)(b - a))/CLOCKS_PER_SEC);
 
-/*  Create a real array 1000 x 1000 doubles running in sequence */
+		// start timing
+		a = clock ();
+		{ // do the work
+			// convert to nexus format
+			error |= cbf_write_cbf_h5file(cif, h5out);
+		}
 
-  cbf_failnez (	(image = (double *)malloc(sizeof(double)*1000000))==NULL?CBF_ALLOC:0);
+		cbf_free_handle(cif);
 
-  for (i = 0; i < 1000000; i++) {
-  	image[i] = (double)(i+1);
-  }
+		// stop timing
+		b = clock ();
+		printf("Time to convert the data: %.3fs\n", ((float)(b - a))/CLOCKS_PER_SEC);
 
+	}
 
-  cbf_failnez (cbf_set_realarray (cbf, CBF_NONE, 1,
-                               image, sizeof (double),
-                               1000000))
-
-
-  free(image);
-
-  cbf_failnez(cbf_new_row(cbf))
-
-/*  Create a real array 1000 x 1000 floats running in sequence */
-
-  cbf_failnez( (flimage = (float *)malloc(sizeof(float)*1000000))==NULL?CBF_ALLOC:0);
-
-  for (i = 0; i < 1000000; i++) {
-  	flimage[i] = (float)(i+1);
-  }
-
-
-  cbf_failnez (cbf_set_realarray (cbf, CBF_NONE, 2,
-                               flimage, sizeof (float),
-                               1000000))
-
-
-  free(flimage);
-
-    /* Write the new file */
-
-  out = fopen ("testrealout.cbf", "w+b");
-
-  if (!out)
-  {
-    fprintf (stderr, " testreal:  Couldn't open the CBF file %s\n", "testrealout.cbf");
-
-    exit (1);
-  }
-
-  cbf_failnez (cbf_write_file (cbf, out, 1, CBF,
-                               MSG_DIGEST | MIME_HEADERS, 0))
-
-
-    /* Free the cbf */
-
-  if (cbf) {
-      cbf_failnez (cbf_free_handle (cbf));
-  }
-  if (incbf) {
-      cbf_failnez (cbf_free_handle (incbf));
-  }
+	{ // write the file
+		// start timing
+		a = clock ();
+		// clean up cbf handles
+		cbf_free_h5handle(h5out);
+		// stop timing
+		b = clock ();
+		printf("Time to write '%s': %.3fs\n", hdf5out, ((float)(b - a))/CLOCKS_PER_SEC);
+	}
 
 
-    /* Success */
-
-  return 0;
+	// cleanup
+	free(cifin);
+	cbf_failnez(cbf_free_getopt_handle(opts));
+	return CBF_SUCCESS==error ? 0 : 1;
 }
-
-int local_exit (int status)
-{
-  exit(status);
-  return 1; /* avoid warnings */
-}
-

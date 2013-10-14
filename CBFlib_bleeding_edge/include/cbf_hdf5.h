@@ -261,219 +261,65 @@ extern "C" {
 #include "cbf.h"
 #include "cbf_tree.h"
 #include <string.h>
-
+#ifdef CBF_USE_ULP
+#include <stdint.h>
+#ifndef UINT64_MAX
+#define NO_UINT64_TYPE
+#endif
+#endif
+    
+    
+#define CBF_H5_COLUMN_GROUP       0x00
+#define CBF_H5_COLUMN_DATASET     0x01
+#define CBF_H5_COLUMN_ATTRIBUTE   0x02
+#define CBF_H5_COLUMN_MAP_AXES    0x04
+#define CBF_H5_COLUMN_PATH        0x08
+#define CBF_H5_TEXT               0x10
+#define CBF_H5_FLOAT              0x20
+#define CBF_H5_INTEGER            0x40
+#define CBF_H5_PRIMARY           0x100
+#define CBF_H5_TERMINATE        0x1000
+#define CBF_H5_SPECIAL          0x2000
+#define CBF_H5_ARRAY            0x4000
+#define CBF_H5_LINK             0x8000  /* should appear both in the special
+field of the target and the dsorat
+field of the source */
+#define CBF_H5_MORE             0x10000 /* more mappings of same column follow
+field of the target and the dsorat
+field of the source */
+    
+    
+    
     /** return the maximum of two numeric values */
-#define cbf_max(a,b) ((a)>(b)?(a):(b))
-    
-	/**
-     Put a character into a buffer at a given position.
-     
-     Ensures the buffer is long enough to hold the new character, realloc'ing if needed, and then inserts it.
-     
-     \param c The character.
-     \param buf A pointer to the realloc'able buffer.
-     \param n A pointer to the current length of the buffer.
-     \param k The offset to place the character <code>c</code> in.
-     
-     \return void
-	 */
-	void cbf_push_buf(const int c, char * * const buf, size_t * const n, size_t *k);
-
-	/**
-     Function to tokenise a pilatus v1.2 minicbf header
-     
-     Will split the header into null-terminated strings that are passed around via a given realloc'able buffer.
-     
-     Behviour is determined by <code>newline</code>, if <code>newline</code> is non-zero:
-     A token starting with a digit, <code>[0-9]</code>, will cause a string consisting of digits
-     and any number or combination of <code>[T:-.]</code> characters to be matched as a token.
-     Otherwise, the stream will be tokenised according to the default rules.
-     
-     The default tokenisation method is to split the stream on groups of characters from the set <code>[#=:,() \t\f\v\r\n]</code>.
-     Any number of adjacent <code>'\r'</code> and <code>'\n'</code> characters are compressed into a single
-     newline (<code>"\n"</code>) token.
-	 */
-    
-    
-	static int _cbf_scan_pilatus_V1_2_miniheader
-    (char * * const buf,
-     size_t * const n,
-     int * const newline,
-     const int getRestOfLine,
-     const char * * const string);
-    
-    /**
-     Helper function to check if a string is a valid (pilatus format) null-terminated date.
-     
-     Requires string of format:
-     <code>YYYY-MM-DDThh:mm:ss.s+</code>
-     <code>Y</code>: year
-     <code>M</code>: month
-     <code>D</code>: day
-     <code>h</code>: hour
-     <code>m</code>: minute
-     <code>s</code>: second
-     <code>+</code>: second may be fractional, any number of digits are allowed
-     <code>[-T:]</code>: literal characters
-     
-     \param str The string to test.
-     
-     \return non-zero on success, zero otherwise.
-	 */
-	int cbf_isPilatusDate(const char * str);
-
+#define cbf_max(a,b) ((a)>(b)?(a):(b))    
     
     /****************************************************************
      The following section of code is extracted from J. Sloan's
      cbf_hdf5_common.h
      ****************************************************************/
-    
+
 #define CBF_H5FAIL ((hid_t)(-1))
     
-	/** \brief Check the validity of an object identifier
-     
-     Function to check validity of a HDF5 identifier.
-     HDF5's predefined types are never counted as valid by this function,
-     so it can't be used to test the validity of a type constant.
-     Types obtained by using H5Tcopy are safe to test.
-     
-     \param ID An HDF5 object identifier.
-     
-     \return Non-zero if the type is valid, zero otherwise.
-     */
+	/* Function to check validity of a HDF5 identifier. */
 	int cbf_H5Ivalid(const hid_t ID);
-    
-	/** \brief Try to free an object identifier
-     
-     Function to close any handle without tracking its type.
-     Don't use this if a more specific function can be used instead, ie if the
-     type is known, as this function will be less efficient.
-     
-     \param ID An HDF5 object identifier to be closed.
-     
-     \return An error code.
-     */
-	int cbf_H5Ifree(const hid_t ID);
-    
+
 	/* find/create/free a HDF5 group if it's valid & possibly set the ID to an invalid identifier
      can write requireGroup function as {if (!find(group)) create(group); return group;} */
-    
-	/** \brief Attempt to create a group
-     
-     Helper function to create a HDF5 group and return a CBFlib error code, to make error handling more consistant.
-     
-     \param group A pointer to a HDF5 ID type where the group will be stored.
-     \param name The name that the group will be given.
-     \param parent The group that will contain the newly created group.
-     
-     \sa cbf_H5Gfree
-     \sa cbf_H5Gdestroy
-     
-     \return An error code.
-     */
-	int cbf_H5Gcreate(hid_t * const group, const char * const name, const hid_t parent);
-    
-	/** \brief Ensure a group exists
-     
-     Checks for the existance of a group with the given name and parent.
-     Will create the group if it cannot be found, or open it if it already exists.
-     It is an error if a matching group cannot be found or created.
-     
-     \param group A pointer to a HDF5 ID type where the group will be stored.
-     \param name The name that the group will be given.
-     \param parent The group that will contain the newly created group.
-     
-     \sa cbf_H5Gcreate
-     \sa cbf_H5Gfree
-     \sa cbf_H5Gdestroy
-     
-     \return An error code.
-     */
-	int cbf_H5Grequire(hid_t * const group, const char * const name, const hid_t parent);
-    
-    /** \brief Close a HDF5 group
-     
-     Attempt to close a group, but don't modify the identifier that described it.
-     
-     \param ID The HDF5 group to be closed.
-     
-     \return An error code.
-     */
+
+	int cbf_H5Gcreate(const hid_t location, hid_t * const group, const char * const name);
+
+	int cbf_H5Grequire(const hid_t location, hid_t * const group, const char * const name);
+
 	int cbf_H5Gfree(const hid_t ID);
-    
-	/** \brief Close a HDF5 group
-     
-     Attempt to close a group, clobbering the identifier that described it.
-     
-     \param ID A pointer to the HDF5 group to be closed.
-     
-     \return An error code.
-     */
-	int cbf_H5Gdestroy(hid_t * const ID);
-    
-	/* Open/close a HDF5 file if it's valid & possibly set the ID to an invalid identifier - deliberately avoid find/create/free or
-     get/set/clear naming convensions */
-    
-	/** \brief Attempt to open an HDF5 file by file name
-     
-     Will try to open a file of the given name with suitable values for some of it's properties to make memory leaks less likely.
-     
-     \param file A pointer to an HDF5 ID where the newly opened file should be stored.
-     \param name The name of the file to attempt to open.
-     
-     \sa cbf_H5Fclose
-     \sa cbf_H5Fdestroy
-     
-     \return An error code.
-     */
+
+	/* Open/close a HDF5 file if it's valid & possibly set the ID to an invalid identifier */
+
 	int cbf_H5Fopen(hid_t * const file, const char * const name);
-    
-	/** \brief Close a HDF5 file
-     
-     Attempt to close a file, but don't modify the identifier that described it.
-     
-     \param ID The HDF5 file to be closed.
-     
-     \return An error code.
-     */
+
 	int cbf_H5Fclose(const hid_t ID);
-    
-	/** \brief Close a HDF5 file
-     
-     Attempt to close a file, clobbering the identifier that described it.
-     
-     \param ID A pointer to the HDF5 file to be closed.
-     
-     \return An error code.
-     */
-	int cbf_H5Fdestroy(hid_t * const ID);
-    
+
 	/* Attributes */
     
-	/* create an attribute with the given name & ASCII value, try to write it to the HDF5 id */
-	int cbf_H5Aset_string(const hid_t ID, const char * const name, const char * const value);
-        
-	/** \brief Check for an attribute with the given space/type/value, or set one if it doesn't exist.
-     
-     Checks the existance of an attribute of the given name, creating it if it doesn't exist.
-     
-     Checks the size, type and value of an existing attribute to find out if it is the same as
-     what was requested as determined by a custom comparison function which may use some extra data
-     for more sophisticated tests.
-     
-     \param ID The HDF5 object that the attribute will be applied to.
-     \param name The name of the attribute.
-     \param rank The number of dimensions of the attribute data, 0 for scalar data.
-     \param dim The length of each dimension, not used for scalar data.
-     \param type The HDF5 type of the attribute data.
-     \param value The data to be written to the attribute.
-     \param buf A buffer to be used when reading an existing attribute of the same size.
-     \param cmp A comparison function to test if a previously set value is equal to the value I asked for.
-     
-     \sa cbf_H5Arequire_string
-     
-     \return An error code.
-     */
 	int cbf_H5Arequire_cmp
     (const hid_t ID,
      const char * const name,
@@ -482,337 +328,167 @@ extern "C" {
      const hid_t type,
      const void * const value,
      void * const buf,
-     int (*cmp)(const void * a, const void * b, size_t N));
-    
-	/** \brief Check for a scalar string attribute with a given value, or set one if it doesn't exist.
-     
-     Forwarding function that calls \c cbf_H5Arequire_cmp with the appropriate arguments to compare two strings.
-     
-     \param location HDF5 object to which the string attribute should/will belong.
-     \param name The name of the attribute.
-     \param value The value which the attribute should/will have.
-     
-     \sa cbf_H5Arequire_cmp
-     
-     \return An error code.
-     */
-	int cbf_H5Arequire_string
-    (const hid_t location,
-     const char * const name,
-     const char * const value);
-    
-	/*  find/create/free hdf5 datasets without directly using hdf5 API */
-    
-	/** \brief Creates a new dataset in the given location.
-     
-     The \c dataset parameter gives a location to store the dataset for use by the caller, for example to add an attribute to it.
-     If non-zero the returned handle MUST be free'd by the caller with \c cbf_H5Dfree.
-     
-     The \c rank of the data must be equal to the length of the \c dim, \c max & \c chunk parameters, if they are given, and should be:
-     \li 0, for scalar data
-     \li 1, for vector data
-     \li 2, for matrix data
-     \li 3, for volume data
-     etc...
-     The maximum rank is defined by the HDF5 library, a negative rank makes no sense.
-     
-     \c type should usually be one of:
-     \c H5T_STD_I8LE, \c H5T_STD_I16LE, \c H5T_STD_I32LE, \c H5T_STD_I64LE,
-     \c H5T_STD_U8LE, \c H5T_STD_U16LE, \c H5T_STD_U32LE, \c H5T_STD_U64LE,
-     \c H5T_STD_I8BE, \c H5T_STD_I16BE, \c H5T_STD_I32BE, \c H5T_STD_I64BE,
-     \c H5T_STD_U8BE, \c H5T_STD_U16BE, \c H5T_STD_U32BE, \c H5T_STD_U64BE,
-     \c H5T_IEEE_F32LE, \c H5T_IEEE_F64LE,
-     \c H5T_IEEE_F32BE, \c H5T_IEEE_F64BE or a value returned by \c cbf_H5Tcreate_string.
-     It is not limited to the above values, and can take any defined HDF5 datatype.
-     
-     \param location The hdf5 group/file in which to put the dataset.
-     \param dataset An optional pointer to a location where the dataset handle should be stored for further use.
-     \param name The name of the new dataset, or NULL for an anonymous dataset, in which case the dataset point is mandatory
-     \param rank The rank of the data, must be equal to the length of the \c dim and \c max arrays, if they are given.
-     \param dim The dimensions of the data, pointer to an array of length \c rank which should where
-     \c dim[i] \> 0 for \c i = [0, \c rank ), unused if \c rank == 0.
-     \param max The maximum size of each dimension, pointer or an array of length \c rank where
-     \c dim[i] \<= \c max[i] \<= \c H5S_UNLIMITED for \code i = [0, rank) \endcode, unused if \code rank == 0 \endcode.
-     \param chunk The chunk size for the dataset, as a pointer to an array of length \c rank (or \c 0 if chunking should not be enabled).
-     \param type The type of each data element, can take things like \c H5T_STD_I32LE as predefined constants.
-     
-     \sa cbf_H5Dfind
-     \sa cbf_H5Dset_extent
-     \sa cbf_H5Dwrite
-     \sa cbf_H5Dread
-     \sa cbf_H5Drequire_scalar_F64LE
-     \sa cbf_H5Drequire_string
-     \sa cbf_H5Dfree
-     \sa cbf_H5Ddestroy
-     
-     \sa cbf_H5Tcreate_string
-     
-     \return An error code.
-     */
-	int cbf_H5Dcreate
-    (const hid_t location,
-     hid_t * const dataset,
-     const char * const name,
-     const int rank,
-     const hsize_t * const dim,
-     const hsize_t * const max,
-     const hsize_t * const chunk,
-     const hid_t type);
-    
-	/** \brief Look for a dataset with the given properties.
-     
-     Succeeds without returning a valid dataset ID if no dataset exists and fails if one with different properties exists.
-     Finding that the dataset doesn't exist is not a failure - the function worked and returned useful information.
-     So, if it returns \c CBF_SUCCESS then the dataset must be free'd at some point, otherwise it doesn't need to be free'd.
-     
-     Use as:
-     \code
-     int error = cbf_H5Dfind(., &dataset, ...);
-     if (CBF_SUCCESS==error) {
-     if (cbf_H5Ivalid(dataset)) {
-     use_existing_dataset(dataset);
-     } else {
-     cbf_H5Dcreate(...);
-     use_new_datset(dataset);
-     }
-     } else {
-     handle_error(error);
-     }
-     \endcode
-     
-     \param location The hdf5 group/file in which to put the dataset.
-     \param dataset A pointer to a HDF5 object identifier that is set to the location of a valid object or an invalid value if the function
-     succeeds, otherwise is left in an undefined state.
-     \param name The name of the existing/new dataset.
-     \param rank See \c cbf_H5Dcreate
-     \param dim See \c cbf_H5Dcreate
-     \param max See \c cbf_H5Dcreate
-     \param chunk See \c cbf_H5Dcreate
-     \param type See \c cbf_H5Dcreate
-     
-     \sa cbf_H5Dcreate
-     \sa cbf_H5Dset_extent
-     \sa cbf_H5Dwrite
-     \sa cbf_H5Dread
-     \sa cbf_H5Drequire_scalar_F64LE
-     \sa cbf_H5Drequire_string
-     \sa cbf_H5Dfree
-     \sa cbf_H5Ddestroy
-     
-     \return An error code indicating whether the function successfully determined the presence (or otherwise) of an appropriate dataset.
-     */
-	int cbf_H5Dfind
-    (const hid_t location,
-     hid_t * const dataset,
-     const char * const name,
-     const int rank,
-     const hsize_t * const dim,
-     const hsize_t * const max,
-     const hsize_t * const chunk,
-     const hid_t type);
-    
-	/** \brief Change the extent of a chunked dataset to the values in \c dim.
-     
-     Forwards to a HDF5 function to change the extent of a dataset.
-     Doesn't check that the number of elements in \c dim matches the rank of the dataset.
-     
-     \param dataset A handle for the dataset whose extent is to be changed.
-     \param dim The new extent of the dataset, if the function succeeds. Must be the same length as the rank of the dataset.
-     
-     \sa cbf_H5Dcreate
-     \sa cbf_H5Dfind
-     \sa cbf_H5Dwrite
-     \sa cbf_H5Dread
-     \sa cbf_H5Drequire_scalar_F64LE
-     \sa cbf_H5Drequire_string
-     \sa cbf_H5Dfree
-     \sa cbf_H5Ddestroy
-     
-     \return An error code.
-     */
-	int cbf_H5Dset_extent(const hid_t dataset, const hsize_t * const dim);
-    
-	/** \brief Add some data to the specified position in the dataset, without checking what (if anything) was there before.
-     
-     Assumes the dataset has the appropriate size to contain all the data and overwrites any existing data that may be there.
-     The \c rank of the dataset is assumed to be known, and the size of the array parameters is not tested.
-     
-     \param dataset The dataset to write the data to.
-     \param offset Where to start writing the data, as an array of \c rank numbers.
-     \param stride The number of elements in the dataset to step for each element to be written, where
-     null is equivalent to a stride of [1, 1, 1, ..., 1], as an array of \c rank numbers.
-     \param count The number of elements in each dimension to be written, as an array of \c rank numbers.
-     \param value The address of the data to be written.
-     
-     \sa cbf_H5Dcreate
-     \sa cbf_H5Dfind
-     \sa cbf_H5Dset_extent
-     \sa cbf_H5Dread
-     \sa cbf_H5Drequire_scalar_F64LE
-     \sa cbf_H5Drequire_string
-     \sa cbf_H5Dfree
-     \sa cbf_H5Ddestroy
-     
-     \return An error code.
-     */
-	int cbf_H5Dwrite
-    (const hid_t dataset,
-     const hsize_t * const offset,
-     const hsize_t * const stride,
-     const hsize_t * const count,
-     const void * const value);
-    
-	/** \brief Extract some existing data from a dataset at a known position.
-     
-     Read some data from a given location in the dataset to an existing location in memory.
-     Does not check the length of the array parameters, which should all have \c rank elements or (in some cases) be null.
-     
-     \param dataset The dataset to read the data from.
-     \param offset Where to start reading the data, as an array of \c rank numbers.
-     \param stride The number of elements in the dataset to step for each element to be read, where
-     null is equivalent to a stride of [1, 1, 1, ..., 1], as an array of \c rank numbers.
-     \param count The number of elements in each dimension to be read, as an array of \c rank numbers.
-     \param value The location where the data is to be stored.
-     
-     \sa cbf_H5Dcreate
-     \sa cbf_H5Dfind
-     \sa cbf_H5Dset_extent
-     \sa cbf_H5Dwrite
-     \sa cbf_H5Drequire_scalar_F64LE
-     \sa cbf_H5Drequire_string
-     \sa cbf_H5Dfree
-     \sa cbf_H5Ddestroy
-     
-     \return An error code.
-     */
-	int cbf_H5Dread
-    (const hid_t dataset,
-     const hsize_t * const offset,
-     const hsize_t * const stride,
-     const hsize_t * const count,
-     void * const value);
-        
-	/** \brief Write a scalar 64-bit floating point number as a dataset.
-     
-     Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related
-     parameters for a scalar dataset and to automatically set the string type to the correct size.
-     
-     \param location The group containing the new dataset.
-     \param dataset An optional pointer to a place to store the new dataset.
-     \param name The name of the new dataset.
-     \param value The value of the new dataset.
-     \param cmp A comparison function to test if a previously set value is equal to the value I asked for.
-     
-     \sa cbf_H5Dcreate
-     \sa cbf_H5Dfind
-     \sa cbf_H5Dset_extent
-     \sa cbf_H5Dwrite
-     \sa cbf_H5Dread
-     \sa cbf_H5Drequire_string
-     \sa cbf_H5Dfree
-     \sa cbf_H5Ddestroy
-     
-     \return An error code.
-     */
-	int cbf_H5Drequire_scalar_F64LE
-    (const hid_t location,
-     hid_t * const dataset,
-     const char * const name,
-     const double value);
+         int (*cmp)(const void *, const void *, size_t));
 
-    /** \brief Write a single string as a dataset.
+	int cbf_H5Arequire_cmp2
+		(const hid_t ID,
+		const char * const name,
+		const int rank,
+		const hsize_t * const dim,
+		const hid_t fileType,
+		const hid_t memType,
+		const void * const value,
+		void * const buf,
+		int (*cmp)(const void *, const void *, size_t));
+	
+    int cbf_H5Arequire_cmp2_ULP
+        (const hid_t ID,
+         const char * const name,
+         const int rank,
+         const hsize_t * const dim,
+         const hid_t fileType,
+         const hid_t memType,
+         const void * const value,
+         void * const buf,
+         int (*cmp)(const void *, const void *, size_t, const void *),
+         const void * const cmp_params);
+
+	int cbf_H5Arequire_string
+		(const hid_t location,
+		const char * const name,
+		const char * const value);
+
+	/*  find/create/free hdf5 datasets without directly using hdf5 API */
+
+	int cbf_H5Dcreate
+		(const hid_t location,
+		hid_t * const dataset,
+		const char * const name,
+		const int rank,
+		const hsize_t * const dim,
+		const hsize_t * const max,
+		const hsize_t * const chunk,
+		const hid_t type);
+
+    /* Look for a dataset with the given properties. */
      
-     Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related
-     parameters for a scalar dataset and to automatically set the string type to the correct size.
      
-     \param location The group containing the new dataset.
-     \param dataset An optional pointer to a place to store the new dataset.
-     \param name The name of the new dataset.
-     \param value The value of the new dataset.
-     
-     \sa cbf_H5Dcreate
-     \sa cbf_H5Dfind
-     \sa cbf_H5Dset_extent
-     \sa cbf_H5Dwrite
-     \sa cbf_H5Dread
-     \sa cbf_H5Drequire_scalar_F64LE
-     \sa cbf_H5Dfree
-     \sa cbf_H5Ddestroy
-     
-     \return An error code.
-     */
-    int cbf_H5Drequire_string
+	int cbf_H5Dfind
+        (const hid_t location,
+         hid_t * const dataset,
+         const char * const name,
+         const int rank,
+         const hsize_t * const dim,
+         const hsize_t * const max,
+         const hsize_t * const chunk,
+         const hid_t type);
+	
+    int cbf_H5Dfind2
+		(const hid_t location,
+		hid_t * const dataset,
+		const char * const name,
+		const int rank,
+		const hsize_t * const max,
+		hsize_t * const buf,
+		const hid_t type);
+
+	int cbf_H5Drequire
+			(const hid_t location,
+			 hid_t * const dataset,
+			 const char * const name,
+			 const int rank,
+			 const hsize_t * const max,
+			 const hsize_t * const chunk,
+			 hsize_t * const buf,
+			 const hid_t type);
+
+	int cbf_H5Dinsert
+			(const hid_t dataset,
+			 const hsize_t * const offset,
+			 const hsize_t * const stride,
+			 const hsize_t * const count,
+			 hsize_t * const buf,
+			 const void * const value,
+			 const hid_t type);
+
+	int cbf_H5Dset_extent(const hid_t dataset, const hsize_t * const dim);
+
+	int cbf_H5Dwrite
+        (const hid_t dataset,
+        const hsize_t * const offset,
+        const hsize_t * const stride,
+        const hsize_t * const count,
+        const void * const value);
+
+	int cbf_H5Dwrite2
+		(const hid_t dataset,
+		const hsize_t * const offset,
+		const hsize_t * const stride,
+		const hsize_t * const count,
+		const void * const value,
+		const hid_t type);
+
+	int cbf_H5Dread
+		(const hid_t dataset,
+		const hsize_t * const offset,
+		const hsize_t * const stride,
+		const hsize_t * const count,
+        void * const value);
+
+	int cbf_H5Dread2
+		(const hid_t dataset,
+		const hsize_t * const offset,
+		const hsize_t * const stride,
+		const hsize_t * const count,
+		void * const value,
+		const hid_t type);
+
+	int cbf_H5Drequire_scalar_F64LE
+		(const hid_t location,
+		hid_t * const dataset,
+		const char * const name,
+        const double value);
+
+	int cbf_H5Drequire_scalar_F64LE2
+		(const hid_t location,
+		hid_t * const dataset,
+		const char * const name,
+		const double value,
+		int (*cmp)(const void *, const void *, size_t)
+        );
+
+	int cbf_H5Drequire_scalar_F64LE2_ULP
     (const hid_t location,
      hid_t * const dataset,
      const char * const name,
-     const char * const value);
-    
-	/** \brief Close a HDF5 dataset
-     
-     Attempt to close a dataset, but don't modify the identifier that described it.
-     
-     \param ID The HDF5 dataset to be closed.
-     
-     \sa cbf_H5Dcreate
-     \sa cbf_H5Ddestroy
-     \sa cbf_H5Ivalid
-     
-     \return An error code.
-     */
+     const double value,
+     int (*cmp)(const void *, const void *, size_t, const void *),
+     const void * const cmp_params);
+
+    int cbf_H5Drequire_flstring
+		(const hid_t location,
+		hid_t * const dataset,
+		const char * const name,
+		const char * const value);
+
 	int cbf_H5Dfree(const hid_t ID);
-	/** \brief Close a given dataset and set the handle to an invalid value. */
-	int cbf_H5Ddestroy(hid_t * const ID);
-    
+
 	/* Custom HDF5 types - to get the correct string type for datasets in a consistent way */
-    
-	/** \brief Get a HDF5 string datatype with a specified length
-	 */
+
 	int cbf_H5Tcreate_string(hid_t * type, const size_t len);
-    
-	/**
-	 */
+
 	int cbf_H5Tfree(const hid_t ID);
-    
-	/**
-	 */
-	int cbf_H5Tdestroy(hid_t * const ID);
-    
+
 	/* HDF5 dataspace functions: I need a uniform method of creating data spaces to ensure correct operation of comparison functions */
-    
+
 	int cbf_H5Screate
-    (hid_t * const ID,
-     const int rank,
-     const hsize_t * const dim,
-     const hsize_t * const max);
-    
-	/** \brief Close a HDF5 dataset
-     
-     Attempt to close a dataset, but don't modify the identifier that described it.
-     
-     \param ID The HDF5 dataset to be closed.
-     
-     \sa cbf_H5Dcreate
-     \sa cbf_H5Ddestroy
-     \sa cbf_H5Ivalid
-     
-     \return An error code.
-     */
+		(hid_t * const ID,
+		const int rank,
+		const hsize_t * const dim,
+		const hsize_t * const max);
+
 	int cbf_H5Sfree(const hid_t ID);
-    
-	/** \brief Close a HDF5 dataset
-     
-     Attempt to close a dataset, clobbering the identifier that described it.
-     
-     \param ID A pointer to the HDF5 dataset to be closed.
-     
-     \sa cbf_H5Dcreate
-     \sa cbf_H5Dfree
-     \sa cbf_H5Ivalid
-     
-     \return An error code.
-     */
-	int cbf_H5Sdestroy(hid_t * const ID);
-    
+
 
     /****************************************************************
      End of section of code extracted from J. Sloan's
@@ -823,125 +499,31 @@ extern "C" {
      config.h
      ****************************************************************/
     
-    /**
-     Tokenise an input stream, returning one token at a time into the given buffer.
-     
-     \param buf A pointer to a realloc-able buffer for storing the input, free'd when EOF is reached.
-     \param n The current size of \c buf.
-     \param ln The current line number of the file.
-     \param pre The previous character, needed to test for unexpected EOL state.
-     \param stream The stream to be tokenised.
-     
-     \return An error code.
-     */
-    int cbf_hdf5_parseScan(char * * const buf, size_t * n, size_t * ln, char * const pre, FILE * stream);
+    struct FILE;
 
-    /**
-     The returned string is "success" for CBF_SUCCESS, "unknown error" if the given error code is not recognised or a non-empty string briefly describing the error otherwise.
-     
-     The returned string must not be free'd.
-     */
-    const char * cbf_hdf5_configParseStrerror(const int error);
-    
-    /** POD to define a basic set of configuration settings for an axis */
-    typedef struct _cbf_hdf5_configItem
-    {
-        const char * minicbf;
-        const char * nexus;
-        const char * depends_on;
-        double vector[3];
-    } cbf_hdf5_configItem;
-        
-    /**
-     Initialises name & depends_on to null, vector to [nan,nan,nan].
-     */
-    cbf_hdf5_configItem cbf_hdf5_createConfigItem();
-    
-    /** free any heap memory associated with the given cbf_hdf5_configItem object, doesn't free the object itself because it may be on the stack */
-    void cbf_hdf5_destroyConfigItem(const cbf_hdf5_configItem item);
-    
-    /**
-     Should not be manipulated directly, takes ownership of the config items which it contains.
-     */
-    typedef struct cbf_hdf5_configItemVector
-    {
-        cbf_hdf5_configItem * item;
-        size_t nItems;
-        size_t maxItems;
-        const char * sample_depends_on;
-    } cbf_hdf5_configItemVector;
+	extern const int cbf_configError_success;
 
-    /** Opaque handle for a vector of config items */
-    typedef struct cbf_hdf5_configItemVector * cbf_hdf5_configItemVectorhandle;
-    
-    /**
-     Initialises size & capacity to 0, doesn't allocate storage immediately.
-     */
-    cbf_hdf5_configItemVectorhandle cbf_hdf5_createConfigItemVector();
-    
-    /**
-     Destroys any children of the object, free's the memory for the array of children and free's the memory for the vector itself.
-     */
-    void cbf_hdf5_destroyConfigItemVector(const cbf_hdf5_configItemVectorhandle vector);
-    
-    /**
-     Releases any previously held dependancy and takes ownership of a new one.
-     The given string will be free'd by the object when it is no longer needed.
-     */
-    void cbf_hdf5_configItemVector_setSampleDependsOn(cbf_hdf5_configItemVectorhandle vector, const char * const depends_on);
-    
-    /**
-     \return The current dependancy setting for the sample group, or zero if not set.
-     */
-    const char * cbf_hdf5_configItemVector_getSampleDependsOn(cbf_hdf5_configItemVectorhandle vector);
+    /** \brief Convert a parse error to a descriptive string. */
+    const char * cbf_config_strerror(const int error);
 
-    /**
-     The vector will take ownership of the item's contents. This may invalidate any previously obtained pointers to items in the vector.
-     */
-    cbf_hdf5_configItem * cbf_hdf5_configItemVector_push(cbf_hdf5_configItemVectorhandle vector, cbf_hdf5_configItem item);
-    
-    /**
-     \return An iterator to a matching entry, or an iterator to the current end element.
-     */
-    cbf_hdf5_configItem * cbf_hdf5_configItemVector_findMinicbf(const cbf_hdf5_configItemVectorhandle vector, const char * const name);
-    
-    /**
-     \return An iterator to a matching entry, or an iterator to the current end element.
-     */
-    cbf_hdf5_configItem * cbf_hdf5_configItemVector_findNexus(const cbf_hdf5_configItemVectorhandle vector, const char * const name);
-    
-    /**
-     Performs bounds-checking, and returns 0 if the given index is out-of-bounds. The index type is unsigned, so only one comparison is needed to do this.
-     
-     \return A pointer to an item in the vector that may be modified but should not be free'd, subsequent vector operations may invalidate this pointer.
-     */
-    cbf_hdf5_configItem * cbf_hdf5_configItemVector_at(cbf_hdf5_configItemVectorhandle vector, const size_t n);
-    
-    /**
-     \return A pointer to an item in the vector that may be modified but should not be free'd, subsequent vector operations may invalidate this pointer.
-     */
-    cbf_hdf5_configItem * cbf_hdf5_configItemVector_begin(const cbf_hdf5_configItemVectorhandle vector);
-    
-    /**
-     \return A pointer to an item in the vector that may be modified but should not be free'd, subsequent vector operations may invalidate this pointer.
-     */
-    const cbf_hdf5_configItem * cbf_hdf5_configItemVector_end(const cbf_hdf5_configItemVectorhandle vector);
-    
-    int cbf_hdf5_parseExtractVector
-    (FILE * const configFile,
-     FILE * const logFile,
-     cbf_hdf5_configItem * it,
-     char * * const buf,
-     size_t * n,
-     size_t * ln,
-     char * const pre);
-    
-    int cbf_hdf5_parseConfig(FILE * const configFile, FILE * const logFile, cbf_hdf5_configItemVectorhandle vec);
-    
+    /* Opaque type for a collection of configuration items */
+    struct cbf_config_t;
+	typedef struct cbf_config_t cbf_config_t;
+
+	/** \brief Obtain a new handle for some configuration settings. */
+	cbf_config_t * cbf_config_create();
+
+	/** \brief Free any heap memory associated with the given cbf_hdf5_configItemVectorhandle object. */
+	void cbf_config_free(const cbf_config_t * const vector);
+
+	/** \brief Read a minicbf configuration file into the given handle, writing errors to <code>logfile</code>. */
+	int cbf_config_parse(FILE * const configFile, FILE * const logFile, cbf_config_t * const vec);
+
     /****************************************************************
      End of section of code extracted from J. Sloan's
      config.h
      ****************************************************************/
+
 
     /* Attribute type definition, agrees with CBFlib data convensions */
     
@@ -952,6 +534,10 @@ extern "C" {
 	} cbf_name_value_pair;
     
 
+    
+    /* Write a CBF value into a NeXus file
+     Will add a piece of data with a given name to /entry/group@groupNXclass/subGroup@subGroupNXclass/name */
+    
     
 #define cbf_h5failneg(x,code) {int err; err = (x); if (err < 0) {return (code);}}
 #define cbf_h5onfailneg(x,code,y) {int err; err = (x); if (err < 0) {{y;} return (code);}}
@@ -967,7 +553,7 @@ errorVar |= (errorCode); \
 fprintf(stderr, "%s:%d: '" #f "' failed.\n", __FILE__, __LINE__); \
 } \
 } while (0)
-    
+
 #define cbf_reportFail(f, errorVar) \
 do { \
 if (CBF_SUCCESS == errorVar) { \
@@ -1013,6 +599,13 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
         int haverow;
     } cbf_bookmark;
     
+    /* CBF Fast Bookmark */
+    
+    typedef struct {
+        cbf_node *node;
+        int row;
+    } cbf_fast_bookmark;
+    
     
     /* H5File structure */
     
@@ -1027,6 +620,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 		hid_t nxinst;  /* /entry/instrument@NXinstrument */
 		hid_t nxdetector; /* /entry/instrument/detector@NXdetector */
 		hid_t nxmonochromator;  /* /entry/instrument/monochromator@NXmonochromator */
+        hid_t nxgoniometer;  /* /entry/instrument/goniometer@NXgoniometer */
         hid_t rootid;  /* The root CBF database group */
         hid_t dbid;    /* The current datablock in the CBF */
         hid_t sfid;    /* The current saveframe in the current datablock or -1 */
@@ -1034,10 +628,22 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
         hid_t colid;   /* The current column */
         hid_t curnxid; /* The current NeXus group */
         hid_t dataid;  /* The NeXus NXdata group */
-        int   flags;   /* Flags for read or write */
+		/* Names of various groups, used to construct paths to the axes */
+		const char * nxid_name;
+		const char * nxdetector_name;
+		/* Flags for various options */
+        int flags;
+#ifdef CBF_USE_ULP
+		/* Parameters controlling floating point comparisons */
+		int cmp_double_as_float;
+		unsigned int float_ulp;
+#ifndef NO_UINT64_TYPE
+		uint64_t double_ulp;
+#endif
+#endif
         cbf_bookmark
         bookmark;/* Read bookmark to save names for paths */
-        
+
     }
     cbf_h5handle_struct;
     
@@ -1071,52 +677,23 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
 	typedef cbf_h5Ovisit_struct *cbf_h5Ovisithandle;
     
-	/* Ensure I have a file to do stuff with.
-     There are 4 possible cases:
-     1: I dont have a file, no name is supplied -> fail
-     2: I dont have a file, a name is supplied -> open it
-     3: I have a file already, no name supplied -> success
-     4: I have a file already, a name is supplied -> success if they match, else fail
-     */
+    /* Ensure I have a file to do stuff with. */
 	int cbf_h5handle_require_file(const cbf_h5handle handle, const char * name);
     
-	/* Ensure I have a top-level NXentry group in the handle, below the file
-     There are 4 possible cases:
-     1: I dont have an entry, no name is supplied -> fail
-     2: I dont have an entry, a name is supplied -> ensure the file is valid, try to open the group
-     3: I have an entry already, no name supplied -> success
-     4: I have an entry already, a name is supplied -> success if they match, else fail
-     */
+    /* Ensure I have a top-level NXentry group in the handle */
 	int cbf_h5handle_require_entry(const cbf_h5handle handle, hid_t * group, const char * name);
     
-	/* Ensure I have an NXsample group in the handle called 'sample' below the entry
-     There are 4 possible cases:
-     1: I have a sample already -> success
-     2: I dont have a sample -> ensure the entry is valid, try to open the group
-     */
+    /* Ensure I have an NXsample group in the handle called 'sample' below the entry */
 	int cbf_h5handle_require_sample(const cbf_h5handle handle, hid_t * group);
     
-	/* Ensure I have an NXinstrument group in the handle called 'instrument' below the entry
-     There are 4 possible cases:
-     1: I have an instrument already -> success
-     2: I dont have an instrument -> ensure the entry is valid, try to open the group
-     */
+    /* Ensure I have an NXinstrument group in the handle called 'instrument' */
 	int cbf_h5handle_require_instrument(const cbf_h5handle handle, hid_t * group);
     
-	/* Ensure I have a detector with the given name in the hdf5 handle
-     If a detector by the same name exists, success
-     If no detector by that name is found, add it
-     
-     Do not destroy the returned group - the handle owns it.
-     */
-	int cbf_h5handle_require_detector(const cbf_h5handle handle, hid_t * group);
+    /* Ensure I have a detector with the given name in the hdf5 handle */
+    int cbf_h5handle_require_detector(const cbf_h5handle handle, hid_t * group,
+                                      const char * const name);
     
-	/* Ensure I have a monochromator in the hdf5 handle
-     If a monochromator exists, success
-     If no monochromator exists, add it
-     
-     Do not destroy the returned monochromator group - the handle owns it.
-     */
+    /* Ensure I have a monochromator in the hdf5 handle */
 	int cbf_h5handle_require_monochromator(const cbf_h5handle handle, hid_t * group);
     
     /* Create a dotted CBF location string
@@ -1135,7 +712,6 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                    char * * stringout);
     
     /* Either open or create a NeXus group*/
-    
     
     int cbf_require_nxgroup(cbf_h5handle h5handle,
                             const char * nxgroup,
@@ -1243,6 +819,30 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                                  const char* datasettext,
                                  int errorcode);
     
+    /* add a long dataset slab to a group
+     
+     places the specified datasetvalue in the specified slab of the
+     specified datasetname for group hid.  The dataset is created
+     if it does not already exist.
+     
+     The slabs are indexed from 0
+     
+     */
+    
+    int cbf_add_h5long_dataset_slab(hid_t hid,
+                                    const char* datasetname,
+                                    const long datasetvalue,
+                                    const hsize_t slab,
+                                    int errorcode);
+    
+    /* add a long dataset to a group */
+    
+    int cbf_add_h5long_dataset(hid_t hid,
+                               const char* datasetname,
+                               const long datasetvalue,
+                               int errorcode);
+    
+    
     /* Write a binary value to an HDF5 file */
     
     int cbf_write_h5binary (cbf_handle handle,
@@ -1284,6 +884,39 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                         const char * groupname,
                         const char * nxclass,
                         hid_t * newgroup);
+    
+    /* Require a group below NXentry or below curnxid
+     groupname     -- the final path to be used
+     group_id      -- optional pointer to the newly opened group
+     if NULL, no return and the group will be
+     closed
+     oldgroupname  -- an optional existing path name or NULL
+     to be renamed to new_name if old_name exists
+     and if groupname does not yet exist
+     
+     returns 0 for success
+     */
+    int cbf_H5Grequire_in_handle(const cbf_h5handle h5handle,
+                                 const char * groupname,
+                                 hid_t * group_id,
+                                 const char * oldgroupname);
+    
+    /* Require NeXus group below NXentry or below curnxid
+     groupname     -- the final path to be used
+     group_id      -- optional pointer to the newly opened group
+     if NULL, no return and the group will be
+     closed
+     oldgroupname  -- an optional existing path name or NULL
+     to be renamed to new_name if old_name exists
+     and if groupname does not yet exist
+     
+     returns 0 for success
+     */
+    int cbf_H5NXGrequire_in_handle(const cbf_h5handle h5handle,
+                                   const char * groupname,
+                                   const char * nxclass,
+                                   hid_t * group_id,
+                                   const char * oldgroupname);
     
     /* Free an H5File handle */
     
@@ -1327,9 +960,14 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
 	int cbf_write_h5file (cbf_handle handle, cbf_h5handle h5handle, int flags);
     
-	/* Write a minicbf to a nexus file */
-	int cbf_write_minicbf_h5file (cbf_handle handle, cbf_h5handle h5handle, cbf_hdf5_configItemVectorhandle axisConfig, int flags);
-    
+	/* Write a cbf file to a nexus file */
+	int cbf_write_cbf_h5file
+			(cbf_handle handle,
+			 cbf_h5handle h5handle);
+
+	/* Write a minicbf file to a nexus file */
+	int cbf_write_minicbf_h5file (cbf_handle handle, cbf_h5handle h5handle, const cbf_config_t * const axisConfig);
+
     /* Open an HDF5 File handle */
     
     int cbf_open_h5handle(cbf_h5handle *h5handle,
@@ -1368,19 +1006,36 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     /* Read an HDF5 file */
     
-    int cbf_read_h5file(cbf_handle handle, cbf_h5handle h5handle, int flags);
+    int cbf_read_h5file(const cbf_handle handle,
+                        const cbf_h5handle h5handle,
+                        const int flags);
+    
+    /* get a fast bookmark from the current information in a cbf handle */
+    
+    int cbf_get_fast_bookmark(const cbf_handle handle, cbf_fast_bookmark * bookmark);
+    
+    /* go to a fast bookmark in a cbf handle */
+    
+    int cbf_goto_fast_bookmark(const cbf_handle handle, const cbf_fast_bookmark bookmark);
     
     
     /* go to a bookmark in the cbf handle */
     
-    int cbf_goto_bookmark(cbf_handle handle, cbf_bookmark bookmark);
+    int cbf_goto_bookmark(const cbf_handle handle, const cbf_bookmark bookmark);
     
     /* get a bookmark from the current information in a cbf handle */
     
-    int cbf_get_bookmark(cbf_handle handle, cbf_bookmark * bookmark);
+    int cbf_get_bookmark(const cbf_handle handle, cbf_bookmark * bookmark);
     
+    int cbf_map_h5value(
+                        const char * const name, const char * const value,
+                        const char * const group, const char * const groupNXclass,
+                        const char * const subGroup, const char * const subGroupNXclass,
+                        const size_t attrc, const cbf_name_value_pair * const attrv,
+                        cbf_h5handle h5handle);
 
-
+    
+    
 #ifdef __cplusplus
 
 }

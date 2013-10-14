@@ -2573,7 +2573,6 @@ void get_rotation_axis (double *vector1, double *vector2, double *vector3){
 }
 
 
-
 class cbfgoniometerwrapper:
    def __init__(self):
       self.code = """
@@ -2591,7 +2590,12 @@ typedef struct
 
   size_t axes;
 
-  int matrix_is_valid, axes_are_connected;
+  int matrix_is_valid;
+  
+  double matrix_ratio_used;
+    
+  size_t axis_index_limit;
+
 }
 cbf_positioner_struct;
 

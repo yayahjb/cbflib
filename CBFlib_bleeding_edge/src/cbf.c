@@ -65,7 +65,7 @@
  *                                                                    *
  * This software                                                      *
  * -------------                                                      *
- * The term ‘this software’, as used in these Notices, refers to      *
+ * The term 'this software', as used in these Notices, refers to      *
  * those portions of the software package CBFlib that were created by *
  * employees of the Stanford Linear Accelerator Center, Stanford      *
  * University.                                                        *
@@ -259,16 +259,24 @@ extern "C" {
 #include "cbf_write.h"
 #include "cbf_string.h"
 #include "cbf_ascii.h"
-
+#ifdef CBF_USE_ULP
+#include "cbf_ulp.h"
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#if !defined(CBF_NO_REGEX)
-#include <regex.h>
-#endif
-        
-int cbf_parse (void *context);
+    
 
+#if !defined(CBF_NO_REGEX)
+#ifdef CBF_REGEXLIB_REGEX
+#include <regex.h>
+#else
+#include <pcreposix.h>
+#endif
+#endif
+    
+
+    int cbf_parse (void *context);
 
   /* Create a handle */
 
@@ -8704,6 +8712,7 @@ int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablocknam
         CBF_STRERROR_CHECK_ERROR(CBF_NOTIMPLEMENTED,"Not yet implemented");
         CBF_STRERROR_CHECK_ERROR(CBF_NOCOMPRESSION,"CBF_NOCOMPRESSION");
         CBF_STRERROR_CHECK_ERROR(CBF_H5ERROR,"Problem using HDF5 library function(s)");
+        CBF_STRERROR_CHECK_ERROR(CBF_H5DIFFERENT,"Value differs from that in HDF5 file");
         return "Unknown error";
 #undef CBF_STRERROR_CHECK_ERROR
     }
