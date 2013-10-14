@@ -360,7 +360,9 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
 
   unsigned int file_column, compression;
 
-  size_t size, length=0, code_size, dimover, dimfast, dimmid, dimslow, padding, ii;
+  size_t size, length=0, code_size, dimover, dimfast, dimmid, dimslow, padding;
+
+  long ii;
 
   const char *line;
   

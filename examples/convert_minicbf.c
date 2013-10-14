@@ -1930,7 +1930,7 @@ int main (int argc, char *argv [])
     
     char *header_info;
     
-    char *header_info_copy;
+    char *header_info_copy = NULL;
     
     size_t header_info_size;
     
@@ -1977,7 +1977,7 @@ int main (int argc, char *argv [])
     size_t dim2;
     size_t dim3;
     size_t padding;
-    unsigned char *image;
+    unsigned char *image = NULL;
     size_t nbytes;
     const char * optarg;
     cbf_getopt_handle opts;
@@ -3508,6 +3508,9 @@ int main (int argc, char *argv [])
         
     }
     
+	free((void*)image);
+	free((void*)header_info_copy);
+
     return 0;
 }
 

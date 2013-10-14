@@ -260,6 +260,8 @@ extern "C" {
 
 #define CBF_NOTIMEZONE 1440
 
+#define cbf_max(a,b) ((a)>(b)?(a):(b))
+
 
   /* Geometry structures */
 
@@ -273,10 +275,12 @@ cbf_axis_type;
 
 typedef struct
 {
-  char *name, *depends_on;
+    char *name, *depends_on, *rotation_axis;
 
-  double vector [3], offset [3], start, increment, setting;
+    double vector [3], offset [3], start, increment, setting, rotation;
 
+    int depends_on_index, rotation_axis_index, depdepth;
+    
   cbf_axis_type type;
 }
 cbf_axis_struct;
@@ -289,9 +293,11 @@ typedef struct
 
   size_t axes;
 
-  int matrix_is_valid, axes_are_connected;
+    int matrix_is_valid;
     
   double matrix_ratio_used;
+    
+    size_t axis_index_limit;
     
 }
 cbf_positioner_struct;

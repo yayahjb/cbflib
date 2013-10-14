@@ -953,7 +953,8 @@ int main (int argc, char *argv [])
     fprintf (stderr, "img2cif:  Time to write the CIF image: %.3fs\n", ((b - a) * 1.0) / CLOCKS_PER_SEC); 
     }
 
-  cbf_failnez (cbf_free_getopt_handle(opts))
+	cbf_failnez (cbf_free_getopt_handle(opts));
+	cbf_failnez(img_free_handle(img));
 
      /* Success */
 

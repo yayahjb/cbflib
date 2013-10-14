@@ -145,19 +145,19 @@ package in order to give the author easy access to binary cif files.
 \section*{Index of file names}
 
 {\small\begin{list}{}{\setlength{\itemsep}{-\parsep}\setlength{\itemindent}{-\leftmargin}}
-\item \verb@"linux.sh"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb59b}{59b}.}
-\item \verb@"makeflatascii.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb59c}{59c}.}
+\item \verb@"linux.sh"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb63a}{63a}.}
+\item \verb@"makeflatascii.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb63b}{63b}.}
 \item \verb@"make_pycbf.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb10}{10}.}
 \item \verb@"pycbf.i"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb5b}{5b}\NWlink{nuweb9}{, 9}.
 }
-\item \verb@"pycbf_test1.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb61}{61}.}
-\item \verb@"pycbf_test2.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb62a}{62a}.}
-\item \verb@"pycbf_test3.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb62b}{62b}.}
-\item \verb@"setup.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb58}{58}.}
-\item \verb@"win32.bat"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb59a}{59a}.}
-\item \verb@"xmas/readmarheader.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb63}{63}.}
-\item \verb@"xmas/xmasheaders.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb68}{68}.}
-\item \verb@"xmas/xmas_cif_template.cif"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb72}{72}.}
+\item \verb@"pycbf_test1.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb64}{64}.}
+\item \verb@"pycbf_test2.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb65}{65}.}
+\item \verb@"pycbf_test3.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb66a}{66a}.}
+\item \verb@"setup.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb62a}{62a}.}
+\item \verb@"win32.bat"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb62b}{62b}.}
+\item \verb@"xmas/readmarheader.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb66b}{66b}.}
+\item \verb@"xmas/xmasheaders.py"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb72}{72}.}
+\item \verb@"xmas/xmas_cif_template.cif"@ {\footnotesize {\NWtxtDefBy} \NWlink{nuweb76}{76}.}
 \end{list}}
 
 
@@ -3479,7 +3479,6 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@}@\\
 \mbox{}\verb@@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@@\\
 \mbox{}\verb@class cbfgoniometerwrapper:@\\
 \mbox{}\verb@   def __init__(self):@\\
 \mbox{}\verb@      self.code = """@\\
@@ -3497,7 +3496,12 @@ input files is a python script named make\_pycbf.py.
 \mbox{}\verb@@\\
 \mbox{}\verb@  size_t axes;@\\
 \mbox{}\verb@@\\
-\mbox{}\verb@  int matrix_is_valid, axes_are_connected;@\\
+\mbox{}\verb@  int matrix_is_valid;@\\
+\mbox{}\verb@  @\\
+\mbox{}\verb@  double matrix_ratio_used;@\\
+\mbox{}\verb@    @\\
+\mbox{}\verb@  size_t axis_index_limit;@\\
+\mbox{}\verb@@\\
 \mbox{}\verb@}@\\
 \mbox{}\verb@cbf_positioner_struct;@\\
 \mbox{}\verb@@\\
@@ -4166,7 +4170,7 @@ pull in all of the library for now. We use the distutils approach.
 
 
 \begin{flushleft} \small \label{scrap9}
-\verb@"setup.py"@\nobreak\ {\footnotesize \NWtarget{nuweb58}{58} }$\equiv$
+\verb@"setup.py"@\nobreak\ {\footnotesize \NWtarget{nuweb62a}{62a} }$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4196,7 +4200,7 @@ Aim to build and test in one go (so that the source and the binary match!!)
 
 \begin{flushleft} \small
 \begin{minipage}{\linewidth} \label{scrap10}
-\verb@"win32.bat"@\nobreak\ {\footnotesize \NWtarget{nuweb59a}{59a} }$\equiv$
+\verb@"win32.bat"@\nobreak\ {\footnotesize \NWtarget{nuweb62b}{62b} }$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4222,7 +4226,7 @@ Aim to build and test in one go (so that the source and the binary match!!)
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth} \label{scrap11}
-\verb@"linux.sh"@\nobreak\ {\footnotesize \NWtarget{nuweb59b}{59b} }$\equiv$
+\verb@"linux.sh"@\nobreak\ {\footnotesize \NWtarget{nuweb63a}{63a} }$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4250,7 +4254,7 @@ Aim to build and test in one go (so that the source and the binary match!!)
 This still gives bold in the ascii (=sucks)
 
 \begin{flushleft} \small \label{scrap12}
-\verb@"makeflatascii.py"@\nobreak\ {\footnotesize \NWtarget{nuweb59c}{59c} }$\equiv$
+\verb@"makeflatascii.py"@\nobreak\ {\footnotesize \NWtarget{nuweb63b}{63b} }$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4343,7 +4347,7 @@ It appeared to work with the file img2cif\_packed.cif which is built
 when you build CBFlib, hence that file is hardwired in.
 
 \begin{flushleft} \small \label{scrap13}
-\verb@"pycbf_test1.py"@\nobreak\ {\footnotesize \NWtarget{nuweb61}{61} }$\equiv$
+\verb@"pycbf_test1.py"@\nobreak\ {\footnotesize \NWtarget{nuweb64}{64} }$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4426,7 +4430,7 @@ for apparent existence of
 a single member function.
 
 \begin{flushleft} \small \label{scrap14}
-\verb@"pycbf_test2.py"@\nobreak\ {\footnotesize \NWtarget{nuweb62a}{62a} }$\equiv$
+\verb@"pycbf_test2.py"@\nobreak\ {\footnotesize \NWtarget{nuweb65}{65} }$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4447,7 +4451,7 @@ It appears to work - eventually. Surprising
 \subsection{Test cases for the generics}
 
 \begin{flushleft} \small \label{scrap15}
-\verb@"pycbf_test3.py"@\nobreak\ {\footnotesize \NWtarget{nuweb62b}{62b} }$\equiv$
+\verb@"pycbf_test3.py"@\nobreak\ {\footnotesize \NWtarget{nuweb66a}{66a} }$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
@@ -4493,7 +4497,7 @@ the mar ccd header format.
 FIXME : byteswapping and ends???
 
 \begin{flushleft} \small \label{scrap16}
-\verb@"xmas/readmarheader.py"@\nobreak\ {\footnotesize \NWtarget{nuweb63}{63} }$\equiv$
+\verb@"xmas/readmarheader.py"@\nobreak\ {\footnotesize \NWtarget{nuweb66b}{66b} }$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@#!/usr/bin/env python@\\
@@ -4846,7 +4850,7 @@ some more infomation from the user and the create cif files.
 This relies on a "template" cif file to get it started (avoids me programming everything).
 
 \begin{flushleft} \small \label{scrap17}
-\verb@"xmas/xmasheaders.py"@\nobreak\ {\footnotesize \NWtarget{nuweb68}{68} }$\equiv$
+\verb@"xmas/xmasheaders.py"@\nobreak\ {\footnotesize \NWtarget{nuweb72}{72} }$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@#!/usr/bin/env python@\\
@@ -5116,7 +5120,7 @@ This was sort of copied and modified from an example file. It has NOT been check
 Hopefully the four circle geometry at least vaguely matches what is at the beamline.
 
 \begin{flushleft} \small \label{scrap18}
-\verb@"xmas/xmas_cif_template.cif"@\nobreak\ {\footnotesize \NWtarget{nuweb72}{72} }$\equiv$
+\verb@"xmas/xmas_cif_template.cif"@\nobreak\ {\footnotesize \NWtarget{nuweb76}{76} }$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
