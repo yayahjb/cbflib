@@ -73,7 +73,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    used in computing goniometer and detector positions. This code should be
    used with caution.
 
-   Please report all difficulties you may encounter with this release to 
+   Please report all difficulties you may encounter with this release to
    yayahjb at gmail dot com
 
    Our thanks to Jonathan Sloan, Tobias Richter and Graeme Winter of Diamond
@@ -192,6 +192,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    from m4/Makefile.m4. Edit the closest approximation to your system, and
    then copy that variant to Makefile.
 
+   In building this release there is an enviroment variable you may need to
+   set if you are building on an older machine with a broken dlfnc that
+   cannot support the HDF5 filter plugin mechanism:
+
+   HDF5REGISTER
+
+   which should be set to the string "--register manual" to disable the
+   automatic plugin search.
+
    For instructions on compiling and testing the library, go to the top-level
    directory and type:
 
@@ -228,4 +237,4 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-   Updated 14 October 2013.  yayahjb at gmail dot com
+   Updated 14 October 2013. yayahjb at gmail dot com
