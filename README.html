@@ -275,7 +275,15 @@ and the subdirectories:
 and additional Makefiles for other systems.  All the makefiles are created from
 m4/Makefile.m4.   Edit the closest approximation to your system, and then copy that variant to Makefile.
 <p>
-
+In building this release there is an enviroment variable you may need to set if
+you are building on an older machine with a broken dlfnc that cannot support the
+HDF5 filter plugin mechanism:
+<p>
+HDF5REGISTER
+<p>
+which should be set to the string &quot;--register manual&quot; to disable the automatic
+plugin search.
+<p>
 For instructions on compiling and testing the library, go to
 the top-level directory and type:
 <p>
