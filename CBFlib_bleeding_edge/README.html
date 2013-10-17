@@ -32,7 +32,7 @@ ALT="[CBFlib]"></A>
 | <A HREF = "doc/CBFlib_NOTICES.html">NOTICE</A>
 | <a href=doc/gpl.txt>doc/GPL</a>
 | <a href=doc/lgpl.txt>doc/LGPL</a>
-| <a href="doc/cif_img_1.7.2.html">imgCIF dictionary</a>
+| <a href="doc/cif_img_1.7.3.html">imgCIF dictionary</a>
 | <a href = "http://sf.net/projects/cbflib">SourceForge CBFlib site</a>
 |<br />
 | <a href="http://arcib.dowling.edu/donation.shtml">Click Here to Make a Donation</a>
@@ -43,6 +43,7 @@ ALT="[CBFlib]"></A>
 <H2 ALIGN=CENTER>README</H2>
 <H3 ALIGN=CENTER>
 Information for CBFlib 0.9.3 release of 15 October 2013<br />
+    Revised as CBFlib 0.9.3.1 16 October 2013<br />
 </H3>
 </font><font color="#000000">
 <CENTER>
@@ -95,6 +96,9 @@ Recent work on integration among CBF, HDF5 and NeXus supported in part
 by Pandata ODI (EU 7th Framework Programme)
 <P>
 <HR>
+CBFlib 0.9.3.1 has the same code as CBFlib 0.9.3, but with an update to
+the imgCIF dictionary reflecting a major technical cleanup by John Westbrook.
+An explanation of the choices of regex versions has been added to the README.
 <p>
 CBFlib 0.9.3 is the formal base release integrating CBF, HDF5 and NeXus.
 It also includes changes to support the description of FEL detectors.
@@ -210,7 +214,7 @@ instructions below carefully, if space is a problem.</b>
 A gizpped tarball of this release is available on sourceforge at
 <p>
 <a 
-href="http://downloads.sf.net/cbflib/CBFlib-0.9.3.tar.gz">http://downloads.sf.net/cbflib/CBFlib-0.9.3.tar.gz</a>
+href="http://downloads.sf.net/cbflib/CBFlib-0.9.3.1.tar.gz">http://downloads.sf.net/cbflib/CBFlib-0.9.3.1.tar.gz</a>
 
 <P>
 In addition,
@@ -221,19 +225,19 @@ In addition,
 <A href="http://downloads.sf.net/cbflib/CBFlib_0.9.3_Data_Files_Output_Sigs_Only.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.3_Data_Files_Output_Sigs_Only.tar.gz</a>
 (1KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
 
-Place the CBFlib_0.9.3.tar.gz file in the directory
+Place the CBFlib_0.9.3.1.tar.gz file in the directory
 that is intended to contain up to 4 new directories, named 
-CBFlib_0.9.3 (the &quot;top-level&quot; directory),
+CBFlib_0.9.3.1 (the &quot;top-level&quot; directory),
 CBFlib_0.9.3_Data_Files_Input and either CBFlib_0.9.3_Data_Files_Output or
 CBFlib_0.9.3_Data_Files_Output_Sigs_Only.
 If you have wget on your machine, you only need to download the source tarball.  If you do not have wget,
 you will need to download all the tarballs into the same directory
 <p>
-Uncompress CBFlib_0.9.3.tar.gz with gunzip and unpack it with tar:
+Uncompress CBFlib_0.9.3.1.tar.gz with gunzip and unpack it with tar:
 <p>
 <PRE>
-     gunzip CBFlib_0.9.3.tar.gz
-     tar xvf CBFLIB_0.9.3.tar
+     gunzip CBFlib_0.9.3.1.tar.gz
+     tar xvf CBFLIB_0.9.3.1.tar
 </PRE>
 <p>
 To run the test programs, you will also need 
@@ -303,16 +307,35 @@ or, if space is at a premium, with
      make tests_sigs_only
 </PRE>
 
+<h3>regex</h3>
+    
+CBFlib makes can optionally use a system regular expression library
+to assist in validation of CIFS.  The feature is controlled by two compile-time
+defines.  The possible choices are
+    <p>
+    <ul>
+        <li>Not to use regex.  If CBF_NO_REGEX is defined, no regex will be used.
+        <li>To used the tradition unix regex.  If CBF_REGEXLIB_REGEX is
+                defined, regex.h is used.
+        <li>To use the newer and more popular POSIX pcre regex.  If neither
+            CBF_NO_REGEX nor CBF_REGEXLIB_REGEX is defined, pcreposix.h
+            is used.
+    </ul>
+<p>
+The default in the supplied Makefiles is to use regex.h.  The default in the
+CMakeLists.txt is to use pcreposix.h.
+<p>
+
 <h3>Cmake</h3>
     
 A partial preliminary CMakeLists.txt has been included in this kit.  It is not yet complete, but
 on machines for which the Makefiles are not appropriate, it is worth a try.  To use in,
-create a directory named CBFlib-0.9.3-build on the same level as CBFlib-0.9.3, and in the new,
+create a directory named CBFlib-0.9.3.1-build on the same level as CBFlib-0.9.3.1, and in the new,
 empty build directory, try
 <p>
     <div>
     <pre>
-    cmake ../CBFlib-0.9.3
+    cmake ../CBFlib-0.9.3.1
     make all
     make test
     </pre>
@@ -326,7 +349,7 @@ would be appreciated.
 Please refer to the manual <a HREF="doc/CBFlib.html">doc/CBFlib.html</a>
 for more detailed information.<HR>
 <HR>
-Updated 14 October 2013.
+Updated 16 October 2013.
 <script language="javascript" type="text/javascript">
 <!-- 
       var name = "yayahjb@";
