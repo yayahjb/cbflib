@@ -265,6 +265,7 @@ extern "C" {
 #include "cbf_canonical.h"
 #include "cbf_packed.h"
 #include "cbf_byte_offset.h"
+#include "cbf_nibble_offset.h"
 #include "cbf_predictor.h"
 #include "cbf_uncompressed.h"
 
@@ -340,6 +341,13 @@ int cbf_compress (void         *source,
                                             byteorder, dimfast, dimmid, dimslow, padding);
       break;
 
+    case CBF_NIBBLE_OFFSET:
+          
+          errorcode = cbf_compress_nibble_offset (source, elsize, elsign, nelem,
+                                                compression, file,
+                                                &size, bits, realarray,
+                                                byteorder, dimfast, dimmid, dimslow, padding);
+          break;
     case CBF_PREDICTOR:
 
       errorcode = cbf_compress_predictor (source, elsize, elsign, nelem,
@@ -416,12 +424,13 @@ int cbf_decompress_parameters (int          *eltype,
       (compression&CBF_COMPRESSION_MASK) != CBF_PACKED      &&
       (compression&CBF_COMPRESSION_MASK) != CBF_PACKED_V2   &&
       compression != CBF_BYTE_OFFSET &&
+      compression != CBF_NIBBLE_OFFSET &&
       compression != CBF_PREDICTOR   &&
       compression != CBF_NONE)
 
     return CBF_FORMAT;
 
-  if (compression == CBF_NONE || compression == CBF_BYTE_OFFSET )
+  if (compression == CBF_NONE || compression == CBF_BYTE_OFFSET || compression == CBF_NIBBLE_OFFSET)
   {
     nelem_file = 0;
 
@@ -580,6 +589,12 @@ int cbf_decompress (void         *destination,
                                          nelem_read, compressedsize, compression,
                                          bits, sign, file, realarray, byteorder,
                                          dimover, dimfast, dimmid, dimslow, padding);
+    case CBF_NIBBLE_OFFSET:
+          
+          return cbf_decompress_nibble_offset (destination, elsize, elsign, nelem,
+                                             nelem_read, compressedsize, compression,
+                                             bits, sign, file, realarray, byteorder,
+                                             dimover, dimfast, dimmid, dimslow, padding);
 
     case CBF_PREDICTOR:
 

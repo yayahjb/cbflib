@@ -6,7 +6,7 @@
 #  originally a csh script by H. J. Bernstein                        #
 #  converted to sh by J. Wright, 12 Jun 2007                         #
 #                                                                    #
-# Version 0.9.2.2 2 Jul 2011                                         #
+# Version 0.9.3 7 Oct 2013                                           #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -67,22 +67,52 @@
 if [ ${1:-NOARG} = "--use_cp" ] ; then
   LN="cp -p"
 else
-  LN="ln -s"
+  LN="ln -s -f"
 fi
 if [ ! -e cif_img.dic ] ; then
-  $LN cif_img_1.6.4_2Jul11.dic cif_img.dic
+  $LN cif_img_1.7.3.dic cif_img.dic
 fi
 if [ ! -e cif_img.html ] ; then
-  $LN cif_img_1.6.4_2Jul11.html cif_img.html
+  $LN cif_img_1.7.3.html cif_img.html
+fi
+if [ ! -e cif_img_1.7.2.dic ] ; then
+  $LN cif_img_1.7.2_7Oct13.dic cif_img_1.7.2.dic
+fi
+if [ ! -e cif_img_1.7.2.html ] ; then
+  $LN cif_img_1.7.2_7Oct13.html cif_img_1.7.2.html
+fi
+if [ ! -e cif_img_1.7.1.dic ] ; then
+  $LN cif_img_1.7.1_10Aug13.dic cif_img_1.7.1.dic
+fi
+if [ ! -e cif_img_1.7.1.html ] ; then
+  $LN cif_img_1.7.1_10Aug13.html cif_img_1.7.1.html
+fi
+if [ ! -e cif_img_1.7.dic ] ; then
+  $LN cif_img_1.7.3.dic cif_img_1.7.dic
+fi
+if [ ! -e cif_img_1.7.html ] ; then
+  $LN cif_img_1.7.3.html cif_img_1.7.html
+fi
+if [ ! -e cif_img_1.7.0.dic ] ; then
+  $LN cif_img_1.7_18Jun13.dic cif_img_1.7.0.dic
+fi
+if [ ! -e cif_img_1.7.0.html ] ; then
+  $LN cif_img_1.7_18Jun13.html cif_img_1.7.0.html
+fi
+if [ ! -e cif_img_1.6.4.html ] ; then
+  $LN cif_img_1.6.4_2Jul11.html cif_img_1.6.4.html
+fi
+if [ ! -e cif_img_1.6.4.dic ] ; then
+  $LN cif_img_1.6.4_2Jul11.dic cif_img_1.6.4.dic
 fi
 if [ ! -e cif_img_1.6.3.html ] ; then
   $LN cif_img_1.6.3_26Aug10.html cif_img_1.6.3.html
 fi
 if [ ! -e cif_img_1.6.html ] ; then
-  $LN cif_img_1.6.3_26Aug10.html cif_img_1.6.html
+  $LN cif_img_1.6.4_2Jul11.html cif_img_1.6.html
 fi
-if [ ! -e cif_img_1_3_2.html ] ; then
-  $LN cif_img_1.3.2.html cif_img_1_3_2.html
+if [ ! -e cif_img_1.6.dic ] ; then
+  $LN cif_img_1.6.4_2Jul11.dic cif_img_1.6.dic
 fi
 if [ ! -e cif_img_1.5.dic ] ; then
   $LN cif_img_1.5.4_28Jul07.dic cif_img_1.5.dic
@@ -93,17 +123,8 @@ fi
 if [ ! -e cif_img_1.5.4.html ] ; then
   $LN cif_img_1.5.4_28Jul07.html cif_img_1.5.4.html
 fi
-if [ ! -e cif_img_1.6.dic ] ; then
-  $LN cif_img_1.6.4_2Jul11.dic cif_img_1.6.dic
-fi
-if [ ! -e cif_img_1.6.4.dic ] ; then
-  $LN cif_img_1.6.4_2Jul11.dic cif_img_1.6.4.dic
-fi
-if [ ! -e cif_img_1.6.html ] ; then
-  $LN cif_img_1.6.4_2Jul11.html cif_img_1.6.html
-fi
-if [ ! -e cif_img_1.6.4.html ] ; then
-  $LN cif_img_1.6.4_2Jul11.html cif_img_1.6.4.html
+if [ ! -e cif_img_1_3_2.html ] ; then
+  $LN cif_img_1.3.2.html cif_img_1_3_2.html
 fi
 for file in *
 do

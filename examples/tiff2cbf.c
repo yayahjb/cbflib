@@ -314,7 +314,9 @@ int main (int argc, char *argv [])
         dimmid = height;
         dimslow = 1;
         treturn = TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &sampleformat);
-        if (treturn != 1) cbf_failnez(CBF_ARGUMENT);
+        if (treturn != 1) {
+            sampleformat = SAMPLEFORMAT_UINT;
+        }
         treturn = TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samplesperpixel);
         if (treturn != 1) cbf_failnez(CBF_ARGUMENT);
         treturn = TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitspersample);

@@ -248,9 +248,9 @@
 
 int local_exit (int status);
 
-int outerror(int err) 
+int outerror(int err)
 {
-	
+
   if ((err&CBF_FORMAT)==CBF_FORMAT)
     fprintf(stderr, " testflat: The file format is invalid.\n");
   if ((err&CBF_ALLOC)==CBF_ALLOC)
@@ -262,7 +262,7 @@ int outerror(int err)
   if ((err&CBF_BINARY)==CBF_BINARY)
     fprintf(stderr, " testflat: The value is binary (not ASCII).\n");
   if ((err&CBF_BITCOUNT)==CBF_BITCOUNT)
-    fprintf(stderr, " testflat: The expected number of bits does" 
+    fprintf(stderr, " testflat: The expected number of bits does"
       " not match the actual number written.\n");
   if ((err&CBF_ENDOFDATA)==CBF_ENDOFDATA)
     fprintf(stderr, " testflat: The end of the data was reached"
@@ -322,26 +322,26 @@ int outusage ( void ) {
 
 int main (int argc, char *argv [])
 {
-  cbf_handle incbf, cbf;
-  
+  cbf_handle incbf=NULL, cbf=NULL;
+
   FILE *in, *out;
 
   int *image;
-  
+
   size_t numread, nelem, elsize;
-  
+
   unsigned int compression;
-  
+
   int id, elsigned, elunsigned, maxel, minel;
-  
+
   short *shimage;
-  
+
   int i, j, k;
 
   /* Read the input test file */
 
   if (!(in = fopen ("testflatin.cbf", "rb"))) {
-     fprintf (stderr,"testflat: Couldn't open the input imgCIF file %s\n", 
+     fprintf (stderr,"testflat: Couldn't open the input imgCIF file %s\n",
      "testflatin.cbf");
   } else {
 
@@ -354,23 +354,23 @@ int main (int argc, char *argv [])
     cbf_failnez (cbf_read_file (incbf, in, MSG_DIGEST))
 
     cbf_failnez(cbf_find_datablock(incbf,"testflat"))
-  
+
     cbf_failnez(cbf_find_category(incbf,"array_data"))
-  
+
     cbf_failnez(cbf_find_column(incbf,"data"))
-  
+
     cbf_failnez(cbf_rewind_row(incbf))
 
     cbf_failnez (	(image = (int *)malloc(sizeof(int)*1000000))==NULL?CBF_ALLOC:0);
 
-    cbf_failnez (cbf_get_integerarrayparameters_wdims (incbf, &compression, &id, &elsize, &elsigned, 
+    cbf_failnez (cbf_get_integerarrayparameters_wdims (incbf, &compression, &id, &elsize, &elsigned,
                     &elunsigned, &nelem, &maxel, &minel, &byteorder, 	&dim1, &dim2, &dim3, &padding))
- 
+
     fprintf (stderr,"testflat: element size %ld, element signed %d, element unsigned %d\n",
-                    (long)elsize, elsigned, elunsigned );      
+                    (long)elsize, elsigned, elunsigned );
     fprintf (stderr,"testflat: byte order %s, dimensions %ld, %ld, padding %ld\n",
                     byteorder, (long)dim1, (long)dim2, (long)padding);
-                    
+
     if (compression != CBF_BYTE_OFFSET) fprintf(stderr, "testflat: Compression %x instead of CBF_BYTE_OFFSET\n", compression);
 
     if (elsize != sizeof(int)) fprintf(stderr,"testflat: element size %ld instead of %d\n", (long)elsize, (int)sizeof(int));
@@ -378,7 +378,7 @@ int main (int argc, char *argv [])
     cbf_failnez (cbf_get_integerarray (incbf, NULL,
                                image, sizeof (int), 0,
                                nelem, &numread))
-                               
+
     if (numread != 1000000) fprintf(stderr,"testflat: Read %ld instead of 1000000 ints\n", (long)numread);
     for (i = 0; i < 1000000; i++) {
   	if (image[i] != 1000) {
@@ -389,19 +389,19 @@ int main (int argc, char *argv [])
     }
 
     free(image);
-  
+
     cbf_failnez(cbf_next_row(incbf))
 
     cbf_failnez (	(shimage = (short *)malloc(sizeof(short)*1000000))==NULL?CBF_ALLOC:0);
 
-    cbf_failnez (cbf_get_integerarrayparameters_wdims (incbf, &compression, &id, &elsize, &elsigned, 
+    cbf_failnez (cbf_get_integerarrayparameters_wdims (incbf, &compression, &id, &elsize, &elsigned,
                     &elunsigned, &nelem, &maxel, &minel, &byteorder, 	&dim1, &dim2, &dim3, &padding))
-                    
+
     fprintf (stderr,"testflat: element size %ld, element signed %d, element unsigned %d\n",
-                    (long)elsize, elsigned, elunsigned );       
+                    (long)elsize, elsigned, elunsigned );
     fprintf (stderr,"testflat: byte order %s, dimensions %ld, %ld, padding %ld\n",
                     byteorder, (long)dim1, (long)dim2, (long)padding);
-                    
+
     if (compression != CBF_BYTE_OFFSET) fprintf(stderr, "testflat: Compression %x instead of CBF_BYTE_OFFSET\n", compression);
 
     if (elsize != sizeof(short)) fprintf(stderr,"testflat: element size %ld instead of %d\n", (long)elsize, (int)sizeof(short));
@@ -420,19 +420,19 @@ int main (int argc, char *argv [])
     }
 
     free(shimage);
- 
+
     cbf_failnez(cbf_next_row(incbf))
 
     cbf_failnez (	(image = (int *)malloc(sizeof(int)*1000000))==NULL?CBF_ALLOC:0);
 
-    cbf_failnez (cbf_get_integerarrayparameters_wdims (incbf, &compression, &id, &elsize, &elsigned, 
+    cbf_failnez (cbf_get_integerarrayparameters_wdims (incbf, &compression, &id, &elsize, &elsigned,
                     &elunsigned, &nelem, &maxel, &minel, &byteorder, 	&dim1, &dim2, &dim3, &padding))
- 
+
     fprintf (stderr,"testflat: element size %ld, element signed %d, element unsigned %d\n",
-                    (long)elsize, elsigned, elunsigned );      
+                    (long)elsize, elsigned, elunsigned );
     fprintf (stderr,"testflat: byte order %s, dimensions %ld, %ld, padding %ld\n",
                     byteorder, (long)dim1, (long)dim2, (long)padding);
-                    
+
     if (compression != CBF_BYTE_OFFSET) fprintf(stderr, "testflat: Compression %x instead of CBF_BYTE_OFFSET\n", compression);
 
     if (elsize != sizeof(int)) fprintf(stderr,"testflat: element size %ld instead of %d\n", (long)elsize, (int)sizeof(int));
@@ -440,43 +440,43 @@ int main (int argc, char *argv [])
     cbf_failnez (cbf_get_integerarray (incbf, NULL,
                                image, sizeof (int), 1,
                                nelem, &numread))
-                               
+
     if (numread != 1000000) fprintf(stderr,"testflat: Read %ld instead of 1000000 ints\n", (long)numread);
 
 
     for (i = 0; i < 1000; i++) {
-  
+
       for (j = 0; j < 1000; j++) {
-      
+
         int dtarg;
- 
+
         dtarg = 1000;
-        
+
         if (i == j || i == 999-j) dtarg = -3;
 
   	    if (image[i+j*1000] != dtarg)
-  	    	      
+
   	      fprintf(stderr,"testflat:  Mismatch for index %d, int value in file %d !=  %d\n",
   		        i+j*1000, image[i+j*1000], dtarg);
-  	  
+
       }
-  	
+
     }
 
     free(image);
-  
+
     cbf_failnez(cbf_next_row(incbf))
 
     cbf_failnez (	(shimage = (short *)malloc(sizeof(short)*1000000))==NULL?CBF_ALLOC:0);
 
-    cbf_failnez (cbf_get_integerarrayparameters_wdims (incbf, &compression, &id, &elsize, &elsigned, 
+    cbf_failnez (cbf_get_integerarrayparameters_wdims (incbf, &compression, &id, &elsize, &elsigned,
                     &elunsigned, &nelem, &maxel, &minel, &byteorder, 	&dim1, &dim2, &dim3, &padding))
-                    
+
     fprintf (stderr,"testflat: element size %ld, element signed %d, element unsigned %d\n",
-                    (long)elsize, elsigned, elunsigned );       
+                    (long)elsize, elsigned, elunsigned );
     fprintf (stderr,"testflat: byte order %s, dimensions %ld, %ld, padding %ld\n",
                     byteorder, (long)dim1, (long)dim2, (long)padding);
-                    
+
     if (compression != CBF_BYTE_OFFSET) fprintf(stderr, "testflat: Compression %x instead of CBF_BYTE_OFFSET\n", compression);
 
     if (elsize != sizeof(short)) fprintf(stderr,"testflat: element size %ld instead of %d\n", (long)elsize, (int)sizeof(short));
@@ -486,41 +486,41 @@ int main (int argc, char *argv [])
                                shimage, sizeof (short), 1,
                                1000000,&numread))
     if (numread != 1000000) fprintf(stderr,"testflat: Read %ld instead of 1000000 shorts\n", (long)numread);
-  
+
     for (i = 0; i < 1000; i++) {
-  
+
       for (j = 0; j < 1000; j++) {
- 
+
         short dtarg;
-        
+
         dtarg = 1000;
-        
+
         if (i == j || i == 999-j) dtarg = -3;
- 
-  	    if (shimage[i+j*1000] != dtarg) 
-  	      
+
+  	    if (shimage[i+j*1000] != dtarg)
+
   	          fprintf(stderr,"testflat:  Mismatch for index %d, short value in file %d !=  %d\n",
   		        i+j*1000, shimage[i+j*1000], dtarg);
-  	  
-  	  
+
+
       }
-  	
+
     }
 
     free(shimage);
-    
+
         cbf_failnez(cbf_next_row(incbf))
 
     cbf_failnez (	(image = (int *)malloc(sizeof(int)*50*60*70))==NULL?CBF_ALLOC:0);
 
-    cbf_failnez (cbf_get_integerarrayparameters_wdims (incbf, &compression, &id, &elsize, &elsigned, 
+    cbf_failnez (cbf_get_integerarrayparameters_wdims (incbf, &compression, &id, &elsize, &elsigned,
                     &elunsigned, &nelem, &maxel, &minel, &byteorder, 	&dim1, &dim2, &dim3, &padding))
- 
+
     fprintf (stderr,"testflat: element size %ld, element signed %d, element unsigned %d\n",
-                    (long)elsize, elsigned, elunsigned );      
+                    (long)elsize, elsigned, elunsigned );
     fprintf (stderr,"testflat: byte order %s, dimensions %ld, %ld, %ld, padding %ld\n",
                     byteorder, (long)dim1, (long)dim2, (long)dim3, (long)padding);
-                    
+
     if (compression != CBF_BYTE_OFFSET) fprintf(stderr, "testflat: Compression %x instead of CBF_BYTE_OFFSET\n", compression);
 
     if (elsize != sizeof(int)) fprintf(stderr,"testflat: element size %ld instead of %d\n", (long)elsize, (int)sizeof(int));
@@ -528,52 +528,52 @@ int main (int argc, char *argv [])
     cbf_failnez (cbf_get_integerarray (incbf, NULL,
                                image, sizeof (int), 1,
                                nelem, &numread))
-                               
+
     if (numread != 50*60*70) fprintf(stderr,"testflat: Read %ld instead of 50*60*70 ints\n", (long)numread);
 
 
     for (i = 0; i < 50; i++) {
-  
+
       for (j = 0; j < 60; j++) {
-      
+
         for (k = 0; k < 70; k++) {
-      	
+
       	  int dtarg;
-      	  
+
       	  dtarg = 1000;
-      	  
+
       	  if (i == j || j == k ) dtarg = -3;
-  	  
+
   	      if ((i + j*50 + k*50*60)%1000 == 0) dtarg = i+j+k;
 
   	      if (image[i + j*50 + k*50*60] != dtarg)
-  	  
+
   	        fprintf(stderr,"testflat:  Mismatch for index %d, int value in file %d !=  %d\n",
   		      i + j*50 + k*50*60, image[i + j*50 + k*50*60], dtarg );
-  		                 		          
+  		
         }
-  	  
+
       }
-  	
+
     }
 
     free(image);
-  
 
 
 
- 
+
+
   }
 
-    
+
   cbf_failnez (cbf_make_handle (&cbf))
-  
+
   cbf_failnez(cbf_new_datablock(cbf,"testflat"))
-  
+
   cbf_failnez(cbf_new_category(cbf,"array_data"))
-  
+
   cbf_failnez(cbf_new_column(cbf,"data"))
-  
+
   cbf_failnez(cbf_new_row(cbf))
 
 
@@ -595,7 +595,7 @@ int main (int argc, char *argv [])
   free(image);
 
   cbf_failnez(cbf_new_row(cbf))
-  
+
 
   /*  Create an array 1000 x 1000 shorts as a flat field */
 
@@ -614,23 +614,23 @@ int main (int argc, char *argv [])
   free(shimage);
 
   cbf_failnez(cbf_new_row(cbf))
-  
- 
+
+
  /*  Create an  array 1000 x 1000 signed ints in a flat field of 1000, except for
      -3 along the main diagonal and its transpose */
 
   cbf_failnez (	(image = (int *)malloc(sizeof(int)*1000000))==NULL?CBF_ALLOC:0);
 
   for (i = 0; i < 1000; i++) {
-  
+
     for (j = 0; j < 1000; j++) {
- 
+
   	  image[i+j*1000] = 1000;
-  	  
-  	  if (i == j || i == 999-j) image[i+j*1000] = -3; 
-  	  
+
+  	  if (i == j || i == 999-j) image[i+j*1000] = -3;
+
     }
-  	
+
   }
 
 
@@ -642,24 +642,24 @@ int main (int argc, char *argv [])
   free(image);
 
   cbf_failnez(cbf_new_row(cbf))
-  
+
 
   /*  Create an array 1000 x 1000 shorts in a flat field of 1000, except for
      -3 along the main diagonal and its transpose */
 
   cbf_failnez( (shimage = (short *)malloc(sizeof(short)*1000000))==NULL?CBF_ALLOC:0);
 
- 
+
   for (i = 0; i < 1000; i++) {
-  
+
     for (j = 0; j < 1000; j++) {
- 
+
   	  shimage[i+j*1000] = 1000;
-  	  
-  	  if (i == j || i == 999-j) shimage[i+j*1000] = -3; 
-  	  
+
+  	  if (i == j || i == 999-j) shimage[i+j*1000] = -3;
+
     }
-  	
+
   }
 
 
@@ -671,29 +671,29 @@ int main (int argc, char *argv [])
   free(shimage);
 
   cbf_failnez(cbf_new_row(cbf))
-  
- 
+
+
  /*  Create an  array 50 x 60 x 70 signed ints in a flat field of 1000, except for
      -3 along the main diagonal and the values i+j+k every 1000th pixel */
 
   cbf_failnez (	(image = (int *)malloc(sizeof(int)*50*60*70))==NULL?CBF_ALLOC:0);
 
   for (i = 0; i < 50; i++) {
-  
+
     for (j = 0; j < 60; j++) {
-    
+
       for (k = 0; k < 70; k++) {
-      	
+
   	    image[i + j*50 + k*50*60] = 1000;
-  	  
+
   	    if (i == j || j == k ) image[i + j*50 + k*50*60] = -3;
-  	  
+
   	    if ((i + j*50 + k*50*60)%1000 == 0) image[i + j*50 + k*50*60] = i+j+k;
-  	  
+
       }
-  	  
+
     }
-  	
+
   }
 
 
@@ -704,7 +704,7 @@ int main (int argc, char *argv [])
 
   free(image);
 
- 
+
     /* Write the new file */
 
   out = fopen ("testflatout.cbf", "w+b");
@@ -722,8 +722,12 @@ int main (int argc, char *argv [])
 
     /* Free the cbf */
 
-  cbf_failnez (cbf_free_handle (cbf))
-
+  if (cbf) {
+        cbf_failnez (cbf_free_handle (cbf));
+  }
+  if (incbf) {
+        cbf_failnez (cbf_free_handle (incbf));
+  }
 
 
     /* Success */

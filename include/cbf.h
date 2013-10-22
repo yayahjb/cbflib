@@ -65,7 +65,7 @@
  *                                                                    * 
  * This software                                                      *
  * -------------                                                      *
- * The term ‘this software’, as used in these Notices, refers to      *
+ * The term "this software", as used in these Notices, refers to      *
  * those portions of the software package CBFlib that were created by *
  * employees of the Stanford Linear Accelerator Center, Stanford      *
  * University.                                                        *
@@ -256,6 +256,17 @@ extern "C" {
 
 #endif
 
+/* Version numbers */
+#define CBF_VERS_MAJOR   0   /* For major interface/format changes        */
+#define CBF_VERS_MINOR   9   /* For minor interface/format changes        */
+#define CBF_VERS_RELEASE 3   /* For tweaks, bug-fixes, or development     */
+#define CBF_VERS_SUBRELEASE ""   
+                             /* For pre-releases like RC1                 */
+                             /* Empty string for real releases.           */
+#define CBF_APIVERS_CUR  2   /* Number of major interface version         */
+#define CBF_APIVERS_REV  0   /* Interface changes                         */
+#define CBF_APIVERS_AGE  0   /* Number of interfaces added                */
+
 #include "cbf_tree.h"
 
 #include <stdlib.h>
@@ -335,6 +346,7 @@ extern "C" {
 
   /* Error codes */
 
+#define CBF_SUCCESS                   0
 #define CBF_FORMAT           0x00000001  /*      1 */
 #define CBF_ALLOC            0x00000002  /*      2 */
 #define CBF_ARGUMENT         0x00000004  /*      4 */
@@ -353,7 +365,19 @@ extern "C" {
 #define CBF_OVERFLOW         0x00008000  /*  32768 */
 #define CBF_UNDEFINED        0x00010000  /*  65536 */
 #define CBF_NOTIMPLEMENTED   0x00020000  /* 131072 */
-#define CBF_NOCOMPRESSION    0x00040000  /* 262144 */
+#define CBF_NOCOMPRESSION    0x00040000  /* 262144 */    
+#define CBF_H5ERROR          0x00080000  /* 524288 */
+#define CBF_H5DIFFERENT      0x00100000  /* 1048576 */
+    
+  /* HDF5 CBF Filter number */
+
+#ifndef CBF_H5Z_FILTER_CBF
+#ifndef H5Z_FILTER_CBF
+#define CBF_H5Z_FILTER_CBF    32006
+#else
+#define CBF_H5Z_FILTER_CBF H5Z_FILTER_CBF
+#endif
+#endif
 
 
   /* Token Type Strings */
@@ -401,6 +425,8 @@ extern "C" {
 #define CBF_PACKED      0x0060  /* CCP4 Packed (JPA) compression      */
 #define CBF_PACKED_V2   0x0090  /* CCP4 Packed (JPA) compression V2   */
 #define CBF_BYTE_OFFSET 0x0070  /* Byte Offset Compression            */
+#define CBF_NIBBLE_OFFSET     \
+                        0x00A0  /* Nibble Offset Compression          */
 #define CBF_PREDICTOR   0x0080  /* Predictor_Huffman Compression      */
 #define CBF_NONE        0x0040  /* No compression flag                */
 
@@ -413,7 +439,22 @@ extern "C" {
                         0x0100  /* Flag for uncorrelated sections     */
 #define CBF_FLAT_IMAGE  0x0200  /* Flag for flat (linear) images      */
 #define CBF_NO_EXPAND   0x0400  /* Flag to try not to expand          */
+    
+	/* TODO: add more HDF5 compression options using custom CBFlib filters */
+#define	CBF_H5COMPRESSION_ZLIB 0x1 /* Flag to turn on zlib compression for the main dataset within a HDF5 file */
+#define	CBF_H5COMPRESSION_CBF  0x2 /* Flag to turn on CBF compression for the main dataset within a HDF5 file */
 
+    
+  /* Flags for HDF5/NeXus management */
+    
+#define CBF_H5_OPAQUE   0x0800  /* Flag to write compressed images
+                                     as opaque objects                */
+#define CBF_H5_ZLIB     0x1000  /* Flag to write compressed images
+                                     with zlib                        */
+#define CBF_H5_NOH5     0x2000  /* Flag to suppress the H5 group      */
+#define CBF_H5_REGISTER_COMPRESSIONS \
+                        0x4000  /* Flag to try to register
+                                     CBF compressions                 */
 
 
   /* Flags used for logging */
@@ -503,6 +544,35 @@ extern "C" {
   #endif
 #endif
 
+    
+/* debug print macros, enabled if CBFDEBUG defined */
+
+#ifdef CBFDEBUG
+#define cbf_debug_print(ARG) \
+  {fprintf(stderr,__FILE__":%d: CBFlib debug: %s\n", __LINE__, ARG);}
+#define cbf_debug_print2(FMT,ARG) \
+  {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG);}
+#define cbf_debug_print3(FMT,ARG0,ARG1) \
+  {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1);}
+#define cbf_debug_print4(FMT,ARG0,ARG1,ARG2) \
+  {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1,ARG2)}
+#define cbf_debug_print5(FMT,ARG0,ARG1,ARG2,ARG3) \
+  {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1,ARG2,ARG3);}
+#else
+#define cbf_debug_print(ARG)
+#define cbf_debug_print2(FMT,ARG)
+#define cbf_debug_print3(FMT,ARG0,ARG1)
+#define cbf_debug_print4(FMT,ARG0,ARG1,ARG2)
+#define cbf_debug_print5(FMT,ARG0,ARG1,ARG2,ARG3)
+#endif
+    
+#define cbf_printnez(f) \
+{ \
+const int err = (f); \
+if (CBF_SUCCESS != err) \
+  fprintf(stderr, __FILE__":%d: CBFlib error in '" #f "': %s\n", __LINE__, cbf_strerror(err)); \
+}
+
 
 
 #ifdef CBFDEBUG
@@ -542,6 +612,10 @@ extern "C" {
 
 #endif
 
+    
+  /* string for an error */
+    
+const char * cbf_strerror(const int err);
 
   /* cbf handle */
 
@@ -1414,6 +1488,10 @@ int cbf_drel(cbf_handle handle, cbf_handle dict,
   /* Construct Functions dictionary */
 
 int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablockname, const char *functionname);
+    
+    /* return a string for a CBF error */
+    
+    const char * cbf_strerror(const int err);
 
 #ifdef __cplusplus
 

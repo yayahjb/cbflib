@@ -975,6 +975,10 @@ int cbf_parse_mimeheader (cbf_file *file, int        *encoding,
                 if (cbf_cistrncmp (c + quote, "x-cbf_byte_offset", 17) == 0)
 
                   *compression = CBF_BYTE_OFFSET;
+                  
+                if (cbf_cistrncmp (c + quote, "x-cbf_nibble_offset", 19) == 0)
+                      
+                  *compression = CBF_NIBBLE_OFFSET;
 
                 if (cbf_cistrncmp (c + quote, "x-cbf_predictor", 15) == 0)
 

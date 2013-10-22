@@ -468,6 +468,13 @@ int cbf_write_binary (cbf_node *column, unsigned int row,
 
           break;
 
+        case CBF_NIBBLE_OFFSET:
+              
+          cbf_failnez (cbf_write_string (file,
+                                "     conversions=\"x-CBF_NIBBLE_OFFSET\"\n"))
+              
+              break;
+
         case CBF_PREDICTOR:
 
           cbf_failnez (cbf_write_string (file,
