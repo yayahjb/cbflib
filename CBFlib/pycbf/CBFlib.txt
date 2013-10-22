@@ -10,8 +10,8 @@
 
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
-                                 Version 0.9.2
-                                12 February 2011
+                                 Version 0.9.3
+                                13 October 2013
 
                                        by
                                  Paul J. Ellis
@@ -22,7 +22,7 @@
                                 Bernstein + Sons
                       yaya at bernstein-plus-sons dot com
 
-           (c) Copyright 2006, 2007, 2008, 2011 Herbert J. Bernstein
+        (c) Copyright 2006, 2007, 2008, 2011, 2013 Herbert J. Bernstein
 
      ----------------------------------------------------------------------
 
@@ -46,7 +46,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    1R13RR023192 from NCRR and funding from the International Union for
    Crystallographyn (IUCr). The content is solely the responsibility of the
    authors and does not necessarily represent the official views of DOE, NSF,
-   NIH, NIGMS, NCRR or IUCr.
+   NIH, NIGMS, NCRR or IUCr. Recent work on integration among CBF, HDF5 and
+   NeXus supported in part by Pandata ODI (EU 7th Framework Programme)
 
      ----------------------------------------------------------------------
 
@@ -221,20 +222,29 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                              JLM, NS,  pycbf, tiff support, removal of        
                              EZ, HJB   default use of PyCifRW to avoid Fedora 
                                        license issue.                         
+     0.9.3     Oct 2013        JS, HJB   Added low-level 'cbf_H5*' functions  
+                                       for interacting with HDF5, higher      
+                                       level functions for converting CBF or  
+                                       miniCBF files to NeXus format, two     
+                                       utility programs to convert CBF or     
+                                       miniCBF files to NeXus format and some 
+                                       unit tests for the low-level 'cbf_H5*' 
+                                       functions. Add initial FEL detector    
+                                       support.                               
 
      ----------------------------------------------------------------------
 
                                  Known Problems
 
    The example program tiff2cbf needs the enviroment variable LD_LIBRARY_PATH
-   set to the location of the lib directory in CBFlib_0.9.2, unless a system
-   install of tiff-3.9.4-rev-6Feb11 has been done.
+   set to the location of the lib directory in CBFlib_0.9.2.11, unless a
+   system install of tiff-3.9.4-rev-6Feb11 has been done.
 
    Due to license issues, PyCifRW is not included with default releases of
    CBFlib. Users can download PyCifRW separately.
 
    There are some issues with Peter Chang's lastest java wrapper under the
-   CBFlib 0.9.2 release. Until they are resolved, the CBFlib 0.8.1 release
+   CBFlib 0.9.2.11 release. Until they are resolved, the CBFlib 0.8.1 release
    should be used for Java applications.
 
    This version does not have support for predictor compression.
@@ -245,28 +255,28 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    In order to work with CBFlib, you need:
 
-     * the source code, in the form of a "gzipped" tar, CBFlib_0.9.2.tar.gz;
-       and
+     * the source code, in the form of a "gzipped" tar,
+       CBFlib_0.9.2.11.tar.gz; and
      * the test data:
-          * CBFlib_0.9.2_Data_Files_Input.tar.gz (17 MB) a "gzipped" tar of
-            the input data files needed to test the API;
-          * CBFlib_0.9.2_Data_Files_Output.tar.gz (36 MB) a "gzipped" tar of
-            the output data files needed to test the API, or, if space is at
-            a premium;
-          * CBFlib_0.9.2_Data_Files_Output_Sigs_Only.tar.gz (1 KB) is a
+          * CBFlib_0.9.2.11_Data_Files_Input.tar.gz (17 MB) a "gzipped" tar
+            of the input data files needed to test the API;
+          * CBFlib_0.9.2.11_Data_Files_Output.tar.gz (36 MB) a "gzipped" tar
+            of the output data files needed to test the API, or, if space is
+            at a premium;
+          * CBFlib_0.9.2.11_Data_Files_Output_Sigs_Only.tar.gz (1 KB) is a
             "gzipped" tar of only the MD5 signatures of the output data files
             needed to test the API.
 
    If your system has the program wget, you only need the source code. The
    download of the other tar balls will be handled automatically.
 
-   Be careful about space. A full build and test can use 350 MB or more. If
+   Be careful about space. A full build and test can use 450 MB or more. If
    space is tight, be sure to read the instructions below on using only the
    signatures of the test files.
 
    Uncompress and unpack :
 
-     * gunzip < CBFlib_0.9.2.tar.gz | tar xvf -
+     * gunzip < CBFlib_0.9.2.11.tar.gz | tar xvf -
 
    To run the test programs, you will also need Paul Ellis's sample MAR345
    image, example.mar2300, Chris Nielsen's sample ADSC Quantum 315 image,
@@ -274,13 +284,16 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    insulin_pilatus6m, as sample data. In addition there are is a PDB mmCIF
    file, 9ins.cif, and 3 special test files testflatin.cbf,
    testflatpackedin.cbf and testrealin.cbf. All these files will be dowloaded
-   and extracted by the Makefile from CBFlib_0.9.2_Data_Files_Input. Do not
-   download copies into the top level directory.
+   and extracted by the Makefile from CBFlib_0.9.2.11_Data_Files_Input. Do
+   not download copies into the top level directory.
+
+   In addition, the kit will need tiff and hdf5 libraries.
 
    Thare are various sample Makefiles for common configurations. The
    Makefile_OSX samples is for systems with gfortran from prior to the
    release of gcc 4.2. For the most recent gfortran, use Makefile_OSX_gcc42.
-   All the Makefiles are generated from m4/Makefile.m4.
+   All the Makefiles are generated from m4/Makefile.m4. For newer OS X
+   systems, the default Makefile should work.
 
    The Makefiles use GNU make constructs, such as ifeq and ifneq. If you need
    to use a different version of make, you will need to edit out the
@@ -294,7 +307,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        under bash is:
 
  export CBFLIB_USE_PYCIFRW=yes
- cd CBFlib_0.9.2
+ cd CBFlib_0.9.2.11
  touch m4/Makefile.m4
  make Makefiles
 
@@ -324,14 +337,14 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    environment
 
    We have included examples of CBF/imgCIF files produced by CBFlib in the
-   test data CBFlib_0.9.2_Data_Files_Output.tar.gz, the current best draft of
-   the CBF Extensions Dictionary, and of Andy Hammersley's CBF definition,
+   test data CBFlib_0.9.2.11_Data_Files_Output.tar.gz, the current best draft
+   of the CBF Extensions Dictionary, and of Andy Hammersley's CBF definition,
    updated to become a DRAFT CBF/ImgCIF DEFINITION.
 
-   CBFlib 0.9.2 includes a program, tiff2cbf, to convert from tiff files to
-   CBF files, that requires an augmented version of tiff-3.9.4 called
-   tiff-3.9.4-rev-6Feb11, that installs into the CBFlib_0.9.2 directory. If a
-   system copy is desired, download and install
+   CBFlib 0.9.2.11 includes a program, tiff2cbf, to convert from tiff files
+   to CBF files, that requires an augmented version of tiff-3.9.4 called
+   tiff-3.9.4-rev-6Feb11, that installs into the CBFlib_0.9.2.11 directory.
+   If a system copy is desired, download and install
    http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz
 
      ----------------------------------------------------------------------
@@ -344,7 +357,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 2.1.1 CBF handles
                * 2.1.2 CBF goniometer handles
                * 2.1.3 CBF detector handles
-               * 2.1.4 Return values
+               * 2.1.4 CBF positioner handles
+               * 2.1.5 Return values
           * 2.2 Reading and writing files containing binary sections
                * 2.2.1 Reading binary sections
                * 2.2.2 Writing binary sections
@@ -499,40 +513,45 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                  cbf_construct_reference_detector,
                  cbf_require_reference_detector
                * 2.4.37 cbf_free_detector
-               * 2.4.38 cbf_get_beam_center, cbf_get_beam_center_fs,
+               * 2.4.38 cbf_construct_positioner,
+                 cbf_construct_reference_positioner
+               * 2.4.39 cbf_free_positioner
+               * 2.4.40 cbf_get_beam_center, cbf_get_beam_center_fs,
                  cbf_get_beam_center_sf,
                        cbf_set_beam_center, cbf_set_beam_center_fs,
                  cbf_set_beam_center_sf,
                        cbf_set_reference_beam_center,
                  cbf_set_reference_beam_center_fs,
                  cbf_set_reference_beam_center_sf
-               * 2.4.39 cbf_get_detector_distance
-               * 2.4.40 cbf_get_detector_normal
-               * 2.4.41 cbf_get_detector_axis_slow,
+               * 2.4.41 cbf_get_detector_distance
+               * 2.4.42 cbf_get_detector_normal
+               * 2.4.43 cbf_get_detector_axis_slow,
                  cbf_get_detector_axis_fast, cbf_get_detector_axes,
                  cbf_get_detector_axes_fs, cbf_get_detector_axes_sf
-               * 2.4.42 cbf_get_pixel_coordinates,
+               * 2.4.44 cbf_get_pixel_coordinates,
                  cbf_get_pixel_coordinates_fs, cbf_get_pixel_coordinates_sf
-               * 2.4.43 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
+               * 2.4.45 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
                  cbf_get_pixel_normal_sf
-               * 2.4.44 cbf_get_pixel_area, cbf_get_pixel_area_fs,
+               * 2.4.46 cbf_get_pixel_area, cbf_get_pixel_area_fs,
                  cbf_get_pixel_area_sf
-               * 2.4.45 cbf_get_pixel_size, cbf_get_pixel_size_fs,
+               * 2.4.47 cbf_get_pixel_size, cbf_get_pixel_size_fs,
                  cbf_get_pixel_size_sf
-               * 2.4.46 cbf_set_pixel_size, cbf_set_pixel_size_fs,
+               * 2.4.48 cbf_set_pixel_size, cbf_set_pixel_size_fs,
                  cbf_set_pixel_size_sf
-               * 2.4.47 cbf_get_inferred_pixel_size,
+               * 2.4.49 cbf_get_inferred_pixel_size,
                  cbf_get_inferred_pixel_size_fs,
                  cbf_get_inferred_pixel_size_sf
-               * 2.4.48 cbf_get_unit_cell
-               * 2.4.49 cbf_set_unit_cell
-               * 2.4.50 cbf_get_reciprocal_cell
-               * 2.4.51 cbf_set_reciprocal_cell
-               * 2.4.52 cbf_compute_cell_volume
-               * 2.4.53 cbf_compute_reciprocal_cell
-               * 2.4.54 cbf_get_orientation_matrix,
+               * 2.4.50 cbf_get_unit_cell
+               * 2.4.51 cbf_set_unit_cell
+               * 2.4.52 cbf_get_reciprocal_cell
+               * 2.4.53 cbf_set_reciprocal_cell
+               * 2.4.54 cbf_compute_cell_volume
+               * 2.4.55 cbf_compute_reciprocal_cell
+               * 2.4.56 cbf_get_orientation_matrix,
                  cbf_set_orientation_matrix
-               * 2.4.55 cbf_get_bin_sizes, cbf_set_bin_sizes
+               * 2.4.57 cbf_get_bin_sizes, cbf_set_bin_sizes
+               * 2.4.58 cbf_get_axis_poise, cbf_get_goniometer_poise,
+                 cbf_get_axis_reference_poise
           * 2.5 F90 function interfaces
                * 2.5.1 FCB_ATOL_WCNT
                * 2.5.2 FCB_CI_STRNCMPARR
@@ -550,6 +569,48 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 2.5.11 FCB_READ_LINE
                * 2.5.12 FCB_READ_XDS_I2
                * 2.5.13 FCB_SKIP_WHITESPACE
+          * 2.6 HDF5 abstraction layer and convenience functions (new for
+            version 0.9.3)
+               * 2.6.1 cbf_H5Arequire_cmp, cbf_H5Arequire_cmp2,
+                 cbf_H5Arequire_cmp2_ULP
+               * 2.6.2 cbf_H5Arequire_string
+               * 2.6.3 cbf_H5Dcreate
+               * 2.6.4 cbf_H5Dfind, cbf_H5Dfind2
+               * 2.6.5 cbf_H5Drequire
+               * 2.6.6 cbf_H5Dinsert
+               * 2.6.7 cbf_H5Dset_extent
+               * 2.6.8 cbf_H5Dwrite, cbf_H5Dwrite2
+               * 2.6.9 cbf_H5Dread, cbf_H5Dread2
+               * 2.6.10 cbf_H5Drequire_scalar_F64LE,
+                 cbf_H5Drequire_scalar_F64LE2,
+                 cbf_H5Drequire_scalar_F64LE2_ULP
+               * 2.6.11 cbf_H5Drequire_string
+               * 2.6.12 cbf_H5Dfree
+               * 2.6.13 cbf_H5Fopen
+               * 2.6.14 cbf_H5Fclose
+               * 2.6.15 cbf_H5Gcreate
+               * 2.6.16 cbf_H5Grequire
+               * 2.6.17 cbf_H5Gfree
+               * 2.6.18 cbf_H5Ivalid
+               * 2.6.19 cbf_H5Screate
+               * 2.6.20 cbf_H5Sfree
+               * 2.6.21 cbf_H5Tcreate_string
+               * 2.6.22 cbf_H5Tfree
+          * 2.7 High-level NeXus-related functions (new for version 0.9.3)
+               * 2.7.1 cbf_create_h5handle
+               * 2.7.2 cbf_write_minicbf_h5file
+               * 2.7.3 cbf_write_cbf_h5file
+               * 2.7.4 cbf_free_h5handle
+               * 2.7.5 cbf_h5handle_require_file
+               * 2.7.6 cbf_h5handle_require_entry
+               * 2.7.7 cbf_h5handle_require_sample
+               * 2.7.8 cbf_h5handle_require_instrument
+               * 2.7.9 cbf_h5handle_require_detector
+               * 2.7.10 cbf_h5handle_require_monochromator
+               * 2.7.11 cbf_config_create
+               * 2.7.12 cbf_config_free
+               * 2.7.13 cbf_config_parse
+               * 2.7.14 cbf_config_strerror
      * 3. File format
           * 3.1 General description
           * 3.2 Format of the binary sections
@@ -559,6 +620,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 3.3.1 Canonical-code compression
                * 3.3.2 CCP4-style compression
                * 3.3.3 Byte_offset compression
+               * 3.3.4 Nibble_offset compression
+          * 3.4 Access to CBFlib compressions from HDF5
      * 4. Installation
      * 5. Example programs
 
@@ -626,7 +689,19 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    The function cbf_free_detector destroys a detector handle and frees all
    memory associated with the corresponding object.
 
-    2.1.4 Return values
+    2.1.4 CBF positioner handles
+
+   To represent an arbitrary positioning system designated by the terminal
+   axis, CBFlib uses a value of type cbf_positioner.
+
+   A positioner object is created and initialized from a CBF object using one
+   of the functions cbf_construct_positioner,
+   cbf_construct_reference_positioner or cbf_require_reference_positioner.
+
+   The function cbf_free_positioner destroys a positioner handle and frees
+   all memory associated with the corresponding object.
+
+    2.1.5 Return values
 
    All of the CBFlib functions return 0 on success and an error code on
    failure. The error codes are:
@@ -3166,15 +3241,16 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    The array will be compressed using the compression scheme specifed by
    compression. Currently, the available schemes are:
 
-     CBF_CANONICAL     Canonical-code compression (section 3.3.1)             
-     CBF_PACKED        CCP4-style packing (section 3.3.2)                     
-     CBF_PACKED_V2     CCP4-style packing, version 2 (section 3.3.2)          
-     CBF_BYTE_OFFSET   Simple "byte_offset" compression.                      
-     CBF_NONE          No compression. NOTE: This scheme is by far the        
-                     slowest of the four and uses much more disk space. It is 
-                     intended for routine use with small arrays only. With    
-                     large arrays (like images) it should be used only for    
-                     debugging.                                               
+     CBF_CANONICAL       Canonical-code compression (section 3.3.1)           
+     CBF_PACKED          CCP4-style packing (section 3.3.2)                   
+     CBF_PACKED_V2       CCP4-style packing, version 2 (section 3.3.2)        
+     CBF_BYTE_OFFSET     Simple "byte_offset" compression.                    
+     CBF_NIBBLE_OFFSET   Simple "nibble_offset" compression.                  
+     CBF_NONE            No compression. NOTE: This scheme is by far the      
+                       slowest of the four and uses much more disk space. It  
+                       is intended for routine use with small arrays only.    
+                       With large arrays (like images) it should be used only 
+                       for debugging.                                         
 
    The values compressed are limited to 64 bits. If any element in the array
    is larger than 64 bits, the value compressed is the nearest 64-bit value.
@@ -4745,11 +4821,12 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      The array will be compressed using the compression scheme specifed by
      compression. Currently, the available schemes are:
 
-     CBF_CANONICAL   Canonical-code compression (section 3.3.1)      
-     CBF_PACKED      CCP4-style packing (section 3.3.2)              
-     CBF_PACKED_V2     CCP4-style packing, version 2 (section 3.3.2) 
-     CBF_BYTE_OFFSET   Simple "byte_offset" compression.             
-     CBF_NONE        No compression.                                 
+     CBF_CANONICAL     Canonical-code compression (section 3.3.1)      
+     CBF_PACKED        CCP4-style packing (section 3.3.2)              
+     CBF_PACKED_V2       CCP4-style packing, version 2 (section 3.3.2) 
+     CBF_BYTE_OFFSET     Simple "byte_offset" compression.             
+     CBF_NIBBLE_OFFSET   Simple "nibble_offset" compression.           
+     CBF_NONE          No compression.                                 
 
      The values compressed are limited to 64 bits. If any element in the
      array is larger than 64 bits, the value compressed is the nearest 64-bit
@@ -4798,7 +4875,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      cbf_get_axis_setting sets *start and *increment to the corresponding
      values of the axis axis_id.
 
-     Either of the destination pointers may be NULL.
+     Any of the destination pointers may be NULL.
 
      The parameter reserved is presently unused and should be set to 0.
 
@@ -5118,7 +5195,65 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.38 cbf_get_beam_center, cbf_get_beam_center_fs, cbf_get_beam_center_sf,
+    2.4.38 cbf_construct_positioner, cbf_construct_reference_positioner,
+
+     PROTOTYPE
+
+     #include "cbf_simple.h"
+
+     int cbf_construct_positioner (cbf_handle handle, cbf_positioner
+     *positioner, const char *axis_id);
+
+     int cbf_construct_reference_positioner (cbf_handle handle,
+     cbf_positioner *positioner, const char *axis_id);
+
+     DESCRIPTION
+
+     cbf_construct_positioner constructs a positioner object for the axis
+     given by axis_id using the description in the CBF object handle and
+     initialises the positioner handle *positioner.
+
+     cbf_construct_reference positioner constructs a positioner object for
+     the axis given by axis_id using the description in the CBF object handle
+     and initialises the detector handle *detector using the reference
+     settings of the axes.
+
+     ARGUMENTS
+
+       handle     CBF handle.                                        
+       detector   Pointer to the destination detector handle.        
+       axis_id    The identifier of the axis in the "axis" category. 
+
+     RETURN VALUE
+
+     Returns an error code on failure or 0 for success.
+
+     ----------------------------------------------------------------------
+
+    2.4.39 cbf_free_positioner
+
+     PROTOTYPE
+
+     #include "cbf_simple.h"
+
+     int cbf_free_positioner (cbf_positioner positioner);
+
+     DESCRIPTION
+
+     cbf_free_positioner destroys the positioner object specified by
+     positioner and frees all associated memory.
+
+     ARGUMENTS
+
+       positioner   Positioner handle to free. 
+
+     RETURN VALUE
+
+     Returns an error code on failure or 0 for success.
+
+     ----------------------------------------------------------------------
+
+    2.4.40 cbf_get_beam_center, cbf_get_beam_center_fs, cbf_get_beam_center_sf,
           cbf_set_beam_center, cbf_set_beam_center_fs, cbf_set_beam_center_sf,
           set_reference_beam_center, set_reference_beam_center_fs,
     set_reference_beam_center_fs
@@ -5212,7 +5347,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.39 cbf_get_detector_distance
+    2.4.41 cbf_get_detector_distance
 
      PROTOTYPE
 
@@ -5236,7 +5371,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.40 cbf_get_detector_normal
+    2.4.42 cbf_get_detector_normal
 
      PROTOTYPE
 
@@ -5269,7 +5404,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.41 cbf_get_detector_axis_slow, cbf_get_detector_axis_slow,
+    2.4.43 cbf_get_detector_axis_slow, cbf_get_detector_axis_slow,
     cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf
 
      PROTOTYPE
@@ -5327,7 +5462,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.42 cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs,
+    2.4.44 cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs,
     cbf_get_pixel_coordinates_sf
 
      PROTOTYPE
@@ -5369,7 +5504,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.43 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
+    2.4.45 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
     cbf_get_pixel_normal_sf
 
      PROTOTYPE
@@ -5410,7 +5545,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.44 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf
+    2.4.46 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf
 
      PROTOTYPE
 
@@ -5447,7 +5582,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.45 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf
+    2.4.47 cbf_get_pixel_size, cbf_get_pixel_size_fs, cbf_get_pixel_size_sf
 
      PROTOTYPE
 
@@ -5495,7 +5630,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.46 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf
+    2.4.48 cbf_set_pixel_size, cbf_set_pixel_size_fs, cbf_set_pixel_size_sf
 
      PROTOTYPE
 
@@ -5553,7 +5688,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.47 cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_fs,
+    2.4.49 cbf_get_inferred_pixel_size, cbf_get_inferred_pixel_size_fs,
     cbf_get_inferred_pixel_size_sf
 
      PROTOTYPE
@@ -5594,7 +5729,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.48 cbf_get_unit_cell
+    2.4.50 cbf_get_unit_cell
 
      PROTOTYPE
 
@@ -5639,15 +5774,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.49 cbf_set_unit_cell
-     2.4.50 cbf_get_reciprocal_cell
-     2.4.51 cbf_set_reciprocal_cell
-     2.4.52 cbf_compute_cell_volume
-     2.4.53 cbf_compute_reciprocal_cell
+     2.4.51 cbf_set_unit_cell
+     2.4.52 cbf_get_reciprocal_cell
+     2.4.53 cbf_set_reciprocal_cell
+     2.4.54 cbf_compute_cell_volume
+     2.4.55 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
-    2.4.49 cbf_set_unit_cell
+    2.4.51 cbf_set_unit_cell
 
      PROTOTYPE
 
@@ -5692,17 +5827,17 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.48 cbf_get_unit_cell
-     2.4.50 cbf_get_reciprocal_cell
-     2.4.51 cbf_set_reciprocal_cell
-     2.4.52 cbf_compute_cell_volume
-     2.4.53 cbf_compute_reciprocal_cell
+     2.4.50 cbf_get_unit_cell
+     2.4.52 cbf_get_reciprocal_cell
+     2.4.53 cbf_set_reciprocal_cell
+     2.4.54 cbf_compute_cell_volume
+     2.4.55 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
      SEE ALSO
 
-    2.4.50 cbf_get_reciprocal_cell
+    2.4.52 cbf_get_reciprocal_cell
 
      PROTOTYPE
 
@@ -5750,15 +5885,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.48 cbf_get_unit_cell
-     2.4.49 cbf_set_unit_cell
-     2.4.51 cbf_set_reciprocal_cell
-     2.4.52 cbf_compute_cell_volume
-     2.4.53 cbf_compute_reciprocal_cell
+     2.4.50 cbf_get_unit_cell
+     2.4.51 cbf_set_unit_cell
+     2.4.53 cbf_set_reciprocal_cell
+     2.4.54 cbf_compute_cell_volume
+     2.4.55 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
-    2.4.51 cbf_set_reciprocal_cell
+    2.4.53 cbf_set_reciprocal_cell
 
      PROTOTYPE
 
@@ -5805,15 +5940,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.48 cbf_get_unit_cell
-     2.4.49 cbf_set_unit_cell
-     2.4.50 cbf_get_reciprocal_cell
-     2.4.52 cbf_compute_cell_volume
-     2.4.53 cbf_compute_reciprocal_cell
+     2.4.50 cbf_get_unit_cell
+     2.4.51 cbf_set_unit_cell
+     2.4.52 cbf_get_reciprocal_cell
+     2.4.54 cbf_compute_cell_volume
+     2.4.55 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
-    2.4.52 cbf_compute_cell_volume
+    2.4.54 cbf_compute_cell_volume
 
      PROTOTYPE
 
@@ -5839,15 +5974,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.48 cbf_get_unit_cell
-     2.4.49 cbf_set_unit_cell
-     2.4.50 cbf_get_reciprocal_cell
-     2.4.51 cbf_set_reciprocal_cell
-     2.4.53 cbf_compute_reciprocal_cell
+     2.4.50 cbf_get_unit_cell
+     2.4.51 cbf_set_unit_cell
+     2.4.52 cbf_get_reciprocal_cell
+     2.4.53 cbf_set_reciprocal_cell
+     2.4.55 cbf_compute_reciprocal_cell
 
      ----------------------------------------------------------------------
 
-    2.4.53 cbf_compute_reciprocal_cell
+    2.4.55 cbf_compute_reciprocal_cell
 
      PROTOTYPE
 
@@ -5878,15 +6013,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      SEE ALSO
 
-     2.4.48 cbf_get_unit_cell
-     2.4.49 cbf_set_unit_cell
-     2.4.50 cbf_get_reciprocal_cell
-     2.4.51 cbf_set_reciprocal_cell
-     2.4.52 cbf_compute_cell_volume
+     2.4.50 cbf_get_unit_cell
+     2.4.51 cbf_set_unit_cell
+     2.4.52 cbf_get_reciprocal_cell
+     2.4.53 cbf_set_reciprocal_cell
+     2.4.54 cbf_compute_cell_volume
 
      ----------------------------------------------------------------------
 
-    2.4.54 cbf_get_orientation_matrix, cbf_set_orientation_matrix
+    2.4.56 cbf_get_orientation_matrix, cbf_set_orientation_matrix
 
      PROTOTYPE
 
@@ -5920,7 +6055,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.55 cbf_get_bin_sizes, cbf_set_bin_sizes
+    2.4.57 cbf_get_bin_sizes, cbf_set_bin_sizes
 
      PROTOTYPE
 
@@ -5964,6 +6099,75 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                       the dimension that changes at the second-fastest rate.  
        fastbinsize_in   The number of pixels composing one array element in   
                       the dimension that changes at the fastest rate.         
+
+     RETURN VALUE
+
+     Returns an error code on failure or 0 for success.
+
+     ----------------------------------------------------------------------
+
+    2.4.58 cbf_get_axis_poise, cbf_get_goniometer_poise, cbf_get_reference_poise
+
+     PROTOTYPE
+
+     #include "cbf_simple.h"
+
+     int cbf_get_axis_poise(cbf_handle handle, double ratio, double *
+     vector1, double * vector2, double * vector3, double * offset1, double *
+     offset2, double * offset3, double * angle, const char * axis_id, const
+     char * frame_id);
+     int cbf_get_goniometer_poise(cbf_goniometer goniometer, double ratio,
+     double * vector1, double * vector2, double * vector3, double * offset1,
+     double * offset2, double * offset3, double * angle);
+     int cbf_get_axis_reference_poise(cbf_handle handle, double * vector1,
+     double * vector2, double * vector3, double * offset1, double * offset2,
+     double * offset3, const char * axis_id);
+
+     DESCRIPTION
+
+     cbf_get_axis_poise sets vector1, vector2, vector3 to point to the
+     components of the axis vector for axis axis_id, offset1, offset2,
+     offset3 to point to the components of the axis base offset vector for
+     axis axis_id, and angle to point to the angle of rotation of axis
+     axis_id after application of the axis settings for frame frame_id, using
+     ratio, a value between 0 and 1, indicating how far into the internal
+     motion in the frame to go. If frame_id is the string ".", the first
+     frame found is used. If there is more than one frame, which frame will
+     be found is indeterminate. If frame_id is NULL, the overall setting for
+     the scan are used, rather than those for any particular frame. The
+     vector and offset reported are the reference vector and offset of the
+     axis axis_id transformed by application of all motions of the axes on
+     which axis_id depends.
+
+     cbf_get_goniometer_poise vector1, vector2, vector3 to point to the
+     components of the axis vector for the goniometer axis, offset1, offset2,
+     offset3 to point to the components of the axis base offset vector for
+     the goniometer axis, and angle to point to the angle of rotation of the
+     goniometer axis after application of all axis settings in the goniometer
+     deriving the vector, offset and angle from the resulting matrix.
+     Calculation of the vector is indeterminate if the angle is zero.
+
+     cbf_get_axis_reference_poise sets vector1, vector2, vector3 to point to
+     the components of the axis vector for axis axis_id, offset1, offset2,
+     offset3 to point to the components of the axis base offset vector for
+     axis axis_id unmodified by axis rotations. Any of the pointers may be
+     specified as NULL.
+
+     ARGUMENTS
+
+       handle       CBF handle.                                               
+       ratio        A number between 0 and 1 indication how far into the      
+                  frame to go                                                 
+       vector1      Pointer to the first component of the axis vector         
+       vector2      Pointer to the second component of the axis vector        
+       vector3      Pointer to the third component of the axis vector         
+       offset1      Pointer to the first component of the axis offset         
+       offset2      Pointer to the second component of the axis offset        
+       offset3      Pointer to the third component of the axis offset         
+       angle        Pointer to the rotation angle                             
+       axis_id      The specified axis                                        
+       frame_id     The specified frame                                       
+       positioner   CBF goniometer                                            
 
      RETURN VALUE
 
@@ -6870,6 +7074,1671 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
+  2.6 HDF5 abstraction layer and convenience functions
+
+     The HDF5 abstraction layer mostly follows the HDF5 naming convention of
+     H5Xfunction_name, where X is usually a single letter identifying the
+     section of the API that the function resides in. A cbf_ prefix is used
+     on all functions to avoid naming conflicts and make it clear that all
+     these functions use the CBFlib error handling method whenever an error
+     may occur.
+
+     The main purpose of this API is to not to reimplement the HDF5 API, but
+     to make common HDF5-related tasks easier when working with HDF5 files
+     within CBFlib. The API therefore doesn't attempt to cover every possible
+     use of HDF5, but to simplify common tasks. Use of the HDF5 API is not
+     unexpected in library or user code, but functions in this section should
+     be preferred in order to reduce development time and the amount of
+     debugging required. A relatively comprehensive test program is provided,
+     this should be used to verify that the functions in this section of the
+     API are performing as expected and can be used as a source of example
+     code.
+
+     This section describes functions available for working with:
+
+       * Attributes:
+            * 2.6.1 cbf_H5Arequire_cmp, cbf_H5Arequire_cmp2,
+              cbf_H5Arequire_cmp2_ULP
+            * 2.6.2 cbf_H5Arequire_string
+       * Datasets:
+            * 2.6.3 cbf_H5Dcreate
+            * 2.6.4 cbf_H5Dfind, cbf_H5Dfind2
+            * 2.6.5 cbf_H5Drequire
+            * 2.6.6 cbf_H5Dinsert
+            * 2.6.7 cbf_H5Dset_extent
+            * 2.6.8 cbf_H5Dwrite, cbf_H5Dwrite2
+            * 2.6.9 cbf_H5Dread, cbf_H5Dread2
+            * 2.6.10 cbf_H5Drequire_scalar_F64LE,
+              cbf_H5Drequire_scalar_F64LE2, cbf_H5Drequire_scalar_F64LE2_ULP
+            * 2.6.11 cbf_H5Drequire_flstring
+            * 2.6.12 cbf_H5Dfree
+       * Files:
+            * 2.6.13 cbf_H5Fopen
+            * 2.6.14 cbf_H5Fclose
+       * Groups:
+            * 2.6.15 cbf_H5Gcreate
+            * 2.6.16 cbf_H5Grequire
+            * 2.6.17 cbf_H5Gfree
+       * Object Identifiers:
+            * 2.6.18 cbf_H5Ivalid
+       * Dataspaces:
+            * 2.6.19 cbf_H5Screate
+            * 2.6.20 cbf_H5Sfree
+       * Datatypes:
+            * 2.6.21 cbf_H5Tcreate_string
+            * 2.6.22 cbf_H5Tfree
+
+    Rank of a dataset
+
+     Where a rank is required it must be equal to the length of the dim, max
+     & chunk parameters, if they are given, and should be:
+
+       * 0, for scalar data
+       * 1, for vector data
+       * 2, for matrix data
+       * 3, for volume data
+       * etc...
+
+     The maximum rank is defined by the HDF5 library, a negative rank makes
+     no sense and will often be treated as an error.
+
+    HDF5-specific datatypes
+
+     Any type parameters defining types for data stored in a file should
+     usually be a value returned by cbf_H5Tcreate_string or one of the
+     standard or IEEE types:
+
+     Any type parameters defining types for data stored in memory should
+     usually be a value returned by cbf_H5Tcreate_string or one of the native
+     types:
+
+     Functions are rarely (if ever) limited to the above values, and can take
+     any valid HDF5 datatype. The above is not a complete list of all
+     available types, check the HDF5 documentation for such a list if you
+     need one.
+
+    Comparing data
+
+     Some of the functions in this section will require a comparison function
+     and some comparison parameters to be provided. The function should
+     return zero if the data in the two arrays are considered equal and
+     non-zero otherwise, note that this is the same as C's strcmp(). The
+     signature of the comparison functions used here is:
+
+     int compare (const void * expected, const void * existing, size_t
+     length, const void * params)
+
+     This will be called with:
+
+     expected A pointer to the array of requested values that was passed to   
+              the function.                                                   
+     existing An array of existing values read from the object.               
+     length   The length of the expected and existing arrays.                 
+     params   A pointer to the comparison parameters which were passed to the 
+              calling function.                                               
+
+     The comparison parameters allow more complex comparisons to be
+     performed, such as a check that the numbers are 'close enough' as
+     determined by some variable measure of closeness. It is the caller's
+     responsibility to ensure that the comparison function is appropriate for
+     the type of data expected and that params is of the appropriate type for
+     the comparison function. The parameters expected and existing should
+     normally be cast to the appropriate type before being used.
+
+     An example function for comparing ints, taken from the implementation of
+     CBFlib:
+
+ /**
+ Compare two arrays of ints.
+ Most parameters are defined as being 'const' even though
+ the expected signature allows them to be mutable.
+ */
+ int cmp_int
+     (const void * const expected,
+      const void * const existing,
+      size_t length,
+      const void * const params)
+ {
+     /*
+     Cast the array pointers to the appropriate type, preserving the const-ness of the data.
+     I won't be using any parameters for this comparison, so just ignore that argument.
+     */
+     const int * A = expected;
+     const int * B = existing;
+
+     /*
+     Iterate through the arrays comparing each element and decrementing a counter.
+     If any are not equal the loop will exit early with length being non-zero.
+     */
+     while (length && *A++ == *B++) --length;
+
+     /*
+     Return a value indicating whether the arrays are equal.
+     */
+     return length;
+ }
+
+     ----------------------------------------------------------------------
+
+    2.6.1 cbf_H5Arequire_cmp, cbf_H5Arequire_cmp2, cbf_H5Arequire_cmp2_ULP
+
+     Check for an attribute with the given space/type/value, or set one if it
+     doesn't exist.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Arequire_cmp(const hid_t ID, const char * const name, const
+     int rank, const hsize_t * const dim, const hid_t filetype, const void *
+     const value, void * const buf, int (*cmp)(const void *, const void *,
+     size_t, const void *));
+
+     int cbf_H5Arequire_cmp2 (const hid_t ID, const char * const name, const
+     int rank, const hsize_t * const dim, const hid_t fileType, const hid_t
+     memType, const void * const value, void * const buf, int (*cmp)(const
+     void *, const void *, size_t));
+
+     int cbf_H5Arequire_cmp_ULP (const hid_t ID, const char * const name,
+     const int rank, const hsize_t * const dim, const hid_t fileType, const
+     hid_t memType, const void * const value, void * const buf, int
+     (*cmp)(const void *, const void *, size_t, const void *), const void *
+     const cmp_params);
+
+     DESCRIPTION
+
+     Checks the existance of an attribute of the given name, size, type and
+     value. Equal value is determined by a custom comparison function which
+     may use some extra data for more sophisticated tests. A new attribute
+     with the given properties will be created if none currently exist, the
+     function will fail if an incompatible attribute exists. The first
+     signature is the original form, now deprecated. The second signature is
+     the recommended form for full portability. The last, ULP, form is
+     available if the enviroment variable CBF_USE_ULP is defined in the
+     CBFlib build and execution is on a modern system with full IEEE floating
+     point support.
+
+     ARGUMENTS
+
+     ID         The HDF5 object that the attribute will be applied to.        
+     name       The name of the attribute.                                    
+     rank       The number of dimensions of the attribute data, 0 for scalar  
+                data.                                                         
+     dim        The length of each dimension, not used for scalar data.       
+     fileType   The HDF5 type of the attribute data in the file.              
+     memType    The HDF5 type of the attribute data in memory.                
+     value      The data to be written to the attribute.                      
+     buf        A buffer to be used when reading an existing attribute of the 
+                same size.                                                    
+     cmp        A comparison function to test if a previously set value is    
+                equal to the value I asked for.                               
+     cmp_params A pointer to a data structure which may be used by the        
+                comparison function.                                          
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.2 cbf_H5Arequire_string
+
+     ----------------------------------------------------------------------
+
+    2.6.2 cbf_H5Arequire_string
+
+     Check for a scalar string attribute with a given value, or set one if it
+     doesn't exist.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Arequire_string (const hid_t location, const char * const
+     name, const char * const value)
+
+     DESCRIPTION
+
+     Forwarding function that calls cbf_H5Arequire_cmp with the appropriate
+     arguments to compare two strings. The strcmp function is used for string
+     comparison, with a small wrapper to verify array length:
+
+ /** internal implementation of a function to compare two strings for equality */
+ static int cmp_string
+     (const void * const a,
+      const void * const b,
+      const size_t N,
+      const void * const params)
+ {
+     /* first ensure the arrays have one element each */
+     if (1 != N) return 1;
+     /* then forward to 'strcmp' for the actual comparison */
+     else return strcmp(a,b);
+ }
+
+     ARGUMENTS
+
+     location HDF5 object to which the string attribute should/will belong. 
+     name     The name of the attribute.                                    
+     value    The value which the attribute should/will have.               
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.1 cbf_H5Arequire_cmp
+
+     ----------------------------------------------------------------------
+
+    2.6.3 cbf_H5Dcreate
+
+     Creates a new dataset in the given location.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Dcreate(const hid_t location, hid_t * const dataset, const
+     char * const name, const int rank, const hsize_t * const dim, const
+     hsize_t * const max, const hsize_t * const chunk, const hid_t type)
+
+     DESCRIPTION
+
+     The dataset parameter gives a location to store the dataset for use by
+     the caller, for example to add an attribute to it. If non-zero the
+     returned handle MUST be free'd by the caller with cbf_H5Dfree.
+
+     This function will fail if a link with the same name already exists in
+     location.
+
+     ARGUMENTS
+
+     location The hdf5 group/file in which to put the dataset.                
+     dataset  An optional pointer to a location where the dataset handle      
+              should be stored for further use.                               
+     name     The name of the new dataset.                                    
+     rank     The rank of the data, must be equal to the length of the dim    
+              and max arrays, if they are given.                              
+              The dimensions of the data, pointer to an array of length rank  
+     dim      which should where dim[i] > 0 for i = [0, rank), unused if rank 
+              is 0.                                                           
+              The maximum size of each dimension, pointer or an array of      
+     max      length rank where dim[i] <= max[i] <= H5S_UNLIMITED for i = [0, 
+              rank), unused if rank is 0.                                     
+     chunk    The chunk size for the dataset, as a pointer to an array of     
+              length rank (or 0 if chunking should not be enabled).           
+     type     The type of each data element in the file.                      
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.4 cbf_H5Dfind
+       * 2.6.5 cbf_H5Drequire
+       * 2.6.6 cbf_H5Dinsert
+       * 2.6.7 cbf_H5Dset_extent
+       * 2.6.8 cbf_H5Dwrite
+       * 2.6.9 cbf_H5Dread
+       * 2.6.10 cbf_H5Drequire_scalar_F64LE
+       * 2.6.11 cbf_H5Drequire_flstring
+       * 2.6.12 cbf_H5Dfree
+
+     ----------------------------------------------------------------------
+
+    2.6.4 cbf_H5Dfind, cbf_H5Dfind2
+
+     Look for a dataset with the given properties.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Dfind(const hid_t location, hid_t * const dataset, const char
+     * const name, const int rank, const hsize_t * const dim, const hsize_t *
+     const max, const hsize_t * const chunk, const hid_t type)
+
+     int cbf_H5Dfind2 (const hid_t location, hid_t * const dataset, const
+     char * const name, const int rank, const hsize_t * const max, hsize_t *
+     const buf, const hid_t type)
+
+     DESCRIPTION
+
+     Returns CBF_NOTFOUND without modifying dataset if no dataset exists and
+     fails without modifying dataset if one with different properties exists.
+     A dataset will be 'found' if it has the same name and a maximum size
+     which is at least as big as the size requested in max.
+
+     A buffer of rank elements pointed to by buf may be used to store the
+     array of maximum extents for a potentially matching dataset, in order to
+     avoid the use of malloc & free for very small amounts of memory. The
+     first signature is the original form, now deprecated. The second
+     signature is the recommended form.
+
+     ARGUMENTS
+
+     location The hdf5 group/file in which to put the dataset.                
+              A pointer to a HDF5 object identifier that is set to the        
+     dataset  location of a valid object or an invalid value if the function  
+              succeeds, otherwise is left in an undefined state.              
+     name     The name of the existing/new dataset.                           
+     rank     The rank of the data, must be equal to the length of the max    
+              and buf arrays, if they are given.                              
+              The (optional) maximum size of each dimension, pointer or an    
+     max      array of length rank where 0 <= max[i] <= H5S_UNLIMITED for i = 
+              [0, rank), unused if rank == 0.                                 
+     buf      An optional buffer with rank elements which may be used to      
+              store the current maximum dimensions of a potential match.      
+     type     The type of each data element in the file.                      
+
+     EXAMPLE
+
+ /* Get the return code from the function call, */
+ const int found = cbf_H5Dfind(location, &dataset, ...);
+ /* and check what it was: */
+ if (CBF_SUCCESS==found) {
+     /* A dataset already existed and I have a handle for it: */
+         use_existing_dataset(dataset);
+ } else if (CBF_NOTFOUND==found) {
+     /* No matching dataset existed, so I can create one: */
+     cbf_H5Dcreate(location, &dataset, ...);
+         use_new_datset(dataset);
+         } else {
+     /*
+     The function call failed, do something with the error.
+     In this case, store it for later use and print a message.
+     */
+     error |= found;
+     fprintf(stderr,"There was an error - %s.\n",cbf_strerror(error));
+         }
+ /* clean up: */
+ cbf_H5Dfree(dataset);
+
+     RETURN VALUE
+
+     CBF_SUCCESS if a matching dataset was found, CBF_NOTFOUND if nothing
+     with the same name was found, some other error code otherwise.
+
+     SEE ALSO
+
+       * 2.6.3 cbf_H5Dcreate
+       * 2.6.5 cbf_H5Drequire
+       * 2.6.6 cbf_H5Dinsert
+       * 2.6.7 cbf_H5Dset_extent
+       * 2.6.8 cbf_H5Dwrite
+       * 2.6.9 cbf_H5Dread
+       * 2.6.10 cbf_H5Drequire_scalar_F64LE
+       * 2.6.11 cbf_H5Drequire_flstring
+       * 2.6.12 cbf_H5Dfree
+
+     ----------------------------------------------------------------------
+
+    2.6.5 cbf_H5Drequire
+
+     Ensure that a dataset exists, returning a handle to an existing dataset
+     or creating a new dataset if needed.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Drequire (const hid_t location, hid_t * const dataset, const
+     char * const name, const int rank, const hsize_t * const max, const
+     hsize_t * const chunk, hsize_t * const buf, const hid_t type)
+
+     DESCRIPTION
+
+     Ensure a dataset of the given rank exists and can at least as many
+     elements as specified in max. If no dataset exists then one will be
+     created with dimensions of [0, 0, ... 0]. cbf_H5Dfind and cbf_H5Dcreate
+     are used in the implementation of this function.
+
+     ARGUMENTS
+
+     The rank of the data, must be equal to the length of the max and buf
+     arrays, if they are given.
+     location The hdf5 group/file in which to put the dataset.                
+              A pointer to a HDF5 object identifier that is set to the        
+     dataset  location of a valid object or an invalid value if the function  
+              succeeds, otherwise is left in an undefined state.              
+     name     The name of the existing/new dataset.                           
+     rank     
+              The (optional) maximum size of each dimension, pointer or an    
+     max      array of length rank where 0 <= max[i] <= H5S_UNLIMITED for i = 
+              [0, rank), unused if rank == 0.                                 
+     chunk    The chunk size for the dataset, as a pointer to an array of     
+              length rank (or 0 if chunking should not be enabled).           
+              An optional buffer with rank elements which may be used to      
+     buf      store the current maximum dimensions of a potential match       
+              and/or the dimensions of the dataset to be created, to avoid    
+              using the heap for small amounts of memory.                     
+     type     The type of each data element in the file.                      
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.3 cbf_H5Dcreate
+       * 2.6.4 cbf_H5Dfind
+       * 2.6.6 cbf_H5Dinsert
+       * 2.6.7 cbf_H5Dset_extent
+       * 2.6.8 cbf_H5Dwrite
+       * 2.6.9 cbf_H5Dread
+       * 2.6.10 cbf_H5Drequire_scalar_F64LE
+       * 2.6.11 cbf_H5Drequire_flstring
+       * 2.6.12 cbf_H5Dfree
+
+     ----------------------------------------------------------------------
+
+    2.6.6 cbf_H5Dinsert
+
+     Add some data to a datset, expanding the dataset to the appropriate size
+     if needed.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Dinsert (const hid_t dataset, const hsize_t * const offset,
+     const hsize_t * const stride, const hsize_t * const count, hsize_t *
+     const buf, const void * const value, const hid_t type)
+
+     DESCRIPTION
+
+     Insert a slice of data into dataset with the appropriate offset &
+     stride, ensuring that no existing data is lost due to resizing the
+     dataset but not checking that previous data isn't being overwritten.
+
+     ARGUMENTS
+
+     dataset The dataset to write the data to.                                
+     offset  Where to start writing the data, as an array of rank numbers.    
+             The number of elements in the dataset to step for each element   
+     stride  to be written, where null is equivalent to a stride of [1, 1, 1, 
+             ..., 1], as an array of rank numbers.                            
+     count   The number of elements in each dimension to be written, as an    
+             array of rank numbers.                                           
+             An optional buffer with rank elements which may be used to store 
+     buf     the current dimensions of the dataset, to avoid using the heap   
+             for small amounts of memory.                                     
+     value   The address of the data to be written.                           
+     type    The type of data in memory.                                      
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.3 cbf_H5Dcreate
+       * 2.6.4 cbf_H5Dfind
+       * 2.6.5 cbf_H5Drequire
+       * 2.6.7 cbf_H5Dset_extent
+       * 2.6.8 cbf_H5Dwrite
+       * 2.6.9 cbf_H5Dread
+       * 2.6.10 cbf_H5Drequire_scalar_F64LE
+       * 2.6.11 cbf_H5Drequire_flstring
+       * 2.6.12 cbf_H5Dfree
+
+     ----------------------------------------------------------------------
+
+    2.6.7 cbf_H5Dset_extent
+
+     Change the extent of a chunked dataset to the values in dim.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Dset_extent(const hid_t dataset, const hsize_t * const dim)
+
+     DESCRIPTION
+
+     Forwards to a HDF5 function to change the extent of dataset. This can't
+     check that the number of elements in dim matches the rank of the
+     dataset.
+
+     ARGUMENTS
+
+     dataset A handle for the dataset whose extent is to be changed.          
+     dim     The new extent of the dataset, if the function succeeds. Must be 
+             the same length as the rank of the dataset.                      
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.3 cbf_H5Dcreate
+       * 2.6.4 cbf_H5Dfind
+       * 2.6.5 cbf_H5Drequire
+       * 2.6.6 cbf_H5Dinsert
+       * 2.6.8 cbf_H5Dwrite
+       * 2.6.9 cbf_H5Dread
+       * 2.6.10 cbf_H5Drequire_scalar_F64LE
+       * 2.6.11 cbf_H5Drequire_flstring
+       * 2.6.12 cbf_H5Dfree
+
+     ----------------------------------------------------------------------
+
+    2.6.8 cbf_H5Dwrite, cbf_H5Dwrite2
+
+     Add some data to the specified position in the dataset, without checking
+     what (if anything) was there before.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Dwrite(const hid_t dataset, const hsize_t * const offset,
+     const hsize_t * const stride, const hsize_t * const count, const void *
+     const value)
+
+     int cbf_H5Dwrite2 (const hid_t dataset, const hsize_t * const offset,
+     const hsize_t * const stride, const hsize_t * const count, const void *
+     const value, const hid_t type)
+
+     DESCRIPTION
+
+     Assumes the dataset has the appropriate size to contain all the data and
+     overwrites any existing data that may be there. The rank of the dataset
+     is assumed to be known, and the size of the array parameters is not
+     tested. When rank is zero - in the case of scalar datasets - the offset,
+     stride and count parameters are meaningless and should be omitted by
+     setting them to zero. The first signature is the original form, now
+     deprecated. The second signature is the recommended form.
+
+     ARGUMENTS
+
+     dataset The dataset to write the data to.                                
+     offset  Where to start writing the data, as an array of rank numbers.    
+             The number of elements in the dataset to step for each element   
+     stride  to be written, where null is equivalent to a stride of [1, 1, 1, 
+             ..., 1], as an array of rank numbers.                            
+     count   The number of elements in each dimension to be written, as an    
+             array of rank numbers.                                           
+     value   The address of the data to be written.                           
+     type    The type of data in memory.                                      
+
+     RETURN VALUE
+
+     SEE ALSO
+
+       * 2.6.3 cbf_H5Dcreate
+       * 2.6.4 cbf_H5Dfind
+       * 2.6.5 cbf_H5Drequire
+       * 2.6.6 cbf_H5Dinsert
+       * 2.6.7 cbf_H5Dset_extent
+       * 2.6.9 cbf_H5Dread
+       * 2.6.10 cbf_H5Drequire_scalar_F64LE
+       * 2.6.11 cbf_H5Drequire_flstring
+       * 2.6.12 cbf_H5Dfree
+
+     ----------------------------------------------------------------------
+
+    2.6.9 cbf_H5Dread, cbf_H5Dread2
+
+     Extract some existing data from a dataset at a known position.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Dread (const hid_t dataset, const hsize_t * const offset,
+     const hsize_t * const stride, const hsize_t * const count, void * const
+     value)
+
+     int cbf_H5Dread2 (const hid_t dataset, const hsize_t * const offset,
+     const hsize_t * const stride, const hsize_t * const count, void * const
+     value, const hid_t type)
+
+     DESCRIPTION
+
+     Read some data from a given location in the dataset to an existing
+     location in memory. Does not check the length of the array parameters,
+     which should all have rank elements or (in some cases) be null. When
+     rank is zero - in the case of scalar datasets - the offset, stride and
+     count parameters are meaningless and should be omitted by setting them
+     to zero. The first signature is the original form, now deprecated. The
+     second signature is the recommended form.
+
+     ARGUMENTS
+
+     dataset The dataset to read the data from.                               
+     offset  Where to start reading the data, as an array of rank numbers.    
+             The number of elements in the dataset to step for each element   
+     stride  to be read, where null is equivalent to a stride of [1, 1, 1,    
+             ..., 1], as an array of rank numbers.                            
+     count   The number of elements in each dimension to be read, as an array 
+             of rank numbers.                                                 
+     value   The location where the data is to be stored.                     
+     type    The type of data in memory.                                      
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.3 cbf_H5Dcreate
+       * 2.6.4 cbf_H5Dfind
+       * 2.6.5 cbf_H5Drequire
+       * 2.6.6 cbf_H5Dinsert
+       * 2.6.7 cbf_H5Dset_extent
+       * 2.6.8 cbf_H5Dwrite
+       * 2.6.10 cbf_H5Drequire_scalar_F64LE
+       * 2.6.11 cbf_H5Drequire_flstring
+       * 2.6.12 cbf_H5Dfree
+
+     ----------------------------------------------------------------------
+
+    2.6.10 cbf_H5Drequire_scalar_F64LE, cbf_H5Drequire_scalar_F64LE2,
+    cbf_H5Drequire_scalar_F64LE2_ULP
+
+     Write a scalar 64-bit floating point number as a dataset.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Drequire_scalar_F64LE (const hid_t location, hid_t * const
+     dataset, const char * const name, const double value);
+
+     int cbf_H5Drequire_scalar_F64LE2 (const hid_t location, hid_t * const
+     dataset, const char * const name, const double value, int (*cmp)(const
+     void *, const void *, size_t))
+
+     int cbf_H5Drequire_scalar_F64LE2_ULP (const hid_t location, hid_t *
+     const dataset, const char * const name, const double value, int
+     (*cmp)(const void *, const void *, size_t, const void *), const void *
+     const cmp_params)
+
+     DESCRIPTION
+
+     Convenience function using the HDF5 abstraction layer to avoid the need
+     to consider array-related parameters for a scalar dataset. Uses
+     cbf_H5Dfind, cbf_H5Dcreate, cbf_H5Dread & cbf_H5Dwrite to ensure a
+     scalar 64-bit IEEE floating point dataset exists with the appropriate
+     name and (for an existing dataset) the correct value as determined by
+     the comparison function cmp. The first signature is the original form,
+     now deprecated. The second signature is the recommended form for full
+     portability. The last, ULP, form is available if the enviroment variable
+     CBF_USE_ULP is defined in the CBFlib build and execution is on a modern
+     system with full IEEE floating point support.
+
+     ARGUMENTS
+
+     location   The group containing the new dataset.                         
+     dataset    An optional pointer to a place to store the new dataset.      
+     name       The name of the new dataset.                                  
+     value      The value of the new dataset.                                 
+     cmp        A comparison function to test if a previously set value is    
+                equal to the value I asked for.                               
+     cmp_params Some extra data required by the comparison function.          
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.3 cbf_H5Dcreate
+       * 2.6.4 cbf_H5Dfind
+       * 2.6.5 cbf_H5Drequire
+       * 2.6.6 cbf_H5Dinsert
+       * 2.6.7 cbf_H5Dset_extent
+       * 2.6.8 cbf_H5Dwrite
+       * 2.6.9 cbf_H5Dread
+       * 2.6.11 cbf_H5Drequire_flstring
+       * 2.6.12 cbf_H5Dfree
+
+     ----------------------------------------------------------------------
+
+    2.6.11 cbf_H5Drequire_flstring
+
+     Write a single string as a dataset.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Drequire_flstring (const hid_t location, hid_t * const
+     dataset, const char * const name, const char * const value, const int
+     vlen)
+
+     DESCRIPTION
+
+     Convenience function using the HDF5 abstraction layer to avoid the need
+     to consider array-related parameters for a scalar dataset and to
+     automatically set the string type to the correct size.
+
+     ARGUMENTS
+
+     location   The group containing the new dataset.                    
+     dataset    An optional pointer to a place to store the new dataset. 
+     name       The name of the new dataset.                             
+     value      The value of the new dataset.                            
+     vlen     Flag to determine if the string should be stored as a variable  
+              length type.                                                    
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.3 cbf_H5Dcreate
+       * 2.6.4 cbf_H5Dfind
+       * 2.6.5 cbf_H5Drequire
+       * 2.6.6 cbf_H5Dinsert
+       * 2.6.7 cbf_H5Dset_extent
+       * 2.6.8 cbf_H5Dwrite
+       * 2.6.9 cbf_H5Dread
+       * 2.6.10 cbf_H5Drequire_scalar_F64LE
+       * 2.6.12 cbf_H5Dfree
+
+     ----------------------------------------------------------------------
+
+    2.6.12 cbf_H5Dfree
+
+     Close a HDF5 dataset.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Dfree(const hid_t ID)
+
+     DESCRIPTION
+
+     Attempt to close a dataset, but don't modify the identifier that
+     described it.
+
+     ARGUMENTS
+
+     ID The HDF5 dataset to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.3 cbf_H5Dcreate
+       * 2.6.4 cbf_H5Dfind
+       * 2.6.5 cbf_H5Drequire
+       * 2.6.6 cbf_H5Dinsert
+       * 2.6.7 cbf_H5Dset_extent
+       * 2.6.8 cbf_H5Dwrite
+       * 2.6.9 cbf_H5Dread
+       * 2.6.10 cbf_H5Drequire_scalar_F64LE
+       * 2.6.11 cbf_H5Drequire_flstring
+
+     ----------------------------------------------------------------------
+
+    2.6.13 cbf_H5Fopen
+
+     Attempt to open an HDF5 file by file name.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Fopen (hid_t * const file, const char * const name)
+
+     DESCRIPTION
+
+     Will try to open a file of the given name with suitable values for some
+     of it's properties to make memory leaks less likely.
+
+     Warning: this function will destroy any existing data in the file, do
+     not pass the name of any file containing data you want to keep.
+
+     ARGUMENTS
+
+     file A pointer to an HDF5 ID where the newly opened file should be       
+          stored.                                                             
+     name The name of the file to attempt to open.                            
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.14 cbf_H5Fclose
+
+     ----------------------------------------------------------------------
+
+    2.6.14 cbf_H5Fclose
+
+     Close a HDF5 file.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Fclose (const hid_t ID)
+
+     DESCRIPTION
+
+     Attempt to close a file, but don't modify the identifier that described
+     it.
+
+     ARGUMENTS
+
+     ID The HDF5 file to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.13 cbf_H5Fopen
+
+     ----------------------------------------------------------------------
+
+    2.6.15 cbf_H5Gcreate
+
+     Attempt to create a group
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Gcreate (const hid_t location, hid_t * const group, const char
+     * const name)
+
+     DESCRIPTION
+
+     Helper function to attempt to create a HDF5 group identified by name and
+     return an error code, to make error handling more consistant. This will
+     fail if a link with the same name already exists in parent.
+
+     ARGUMENTS
+
+     location The group that will contain the newly created group.        
+     group    A pointer to a HDF5 ID type where the group will be stored. 
+     name     The name that the group will be given.                      
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.16 cbf_H5Grequire
+       * 2.6.17 cbf_H5Gfree
+
+     ----------------------------------------------------------------------
+
+    2.6.16 cbf_H5Grequire
+
+     Ensure a group exists
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Grequire (const hid_t location, hid_t * const group, const
+     char * const name)
+
+     DESCRIPTION
+
+     Checks for the existance of a group with the given name and parent. Will
+     create the group if it cannot be found, or open it if it already exists.
+     It is an error if a matching group cannot be found or created. This uses
+     cbf_H5Gcreate to create any new groups.
+
+     ARGUMENTS
+
+     location The group that will contain the newly created group.        
+     group    A pointer to a HDF5 ID type where the group will be stored. 
+     name     The name that the group will be given.                      
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.15 cbf_H5Gcreate
+       * 2.6.17 cbf_H5Gfree
+
+     ----------------------------------------------------------------------
+
+    2.6.17 cbf_H5Gfree
+
+     Close a HDF5 group.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Gfree (const hid_t ID)
+
+     DESCRIPTION
+
+     Attempt to close a group, but don't modify the identifier that described
+     it.
+
+     ARGUMENTS
+
+     ID The HDF5 group to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.15 cbf_H5Gcreate
+       * 2.6.16 cbf_H5Grequire
+
+     ----------------------------------------------------------------------
+
+    2.6.18 cbf_H5Ivalid
+
+     Check the validity of an object identifier
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Ivalid (const hid_t ID)
+
+     DESCRIPTION
+
+     Function to check validity of a HDF5 identifier. HDF5's predefined types
+     are never counted as valid by this function, so it can't be used to test
+     the validity of a type constant. Types obtained by using H5Tcopy are
+     safe to test.
+
+     ARGUMENTS
+
+     ID An HDF5 object identifier. 
+
+     RETURN VALUE
+
+     Non-zero if the type is valid, zero otherwise.
+
+     SEE ALSO
+
+     ----------------------------------------------------------------------
+
+    2.6.19 cbf_H5Screate
+
+     Helper function which creates a HDF5 dataspace.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Screate (hid_t * const ID, const int rank, const hsize_t *
+     const dim, const hsize_t * const max)
+
+     DESCRIPTION
+
+     Maximum dimensions can be set to infinity by passing H5S_UNLIMITED in
+     the appropriate slot of the max parameter. If rank is zero then neither
+     dim nor max are used and a scalar dataspace is created. Otherwise, if
+     max is a null pointer the maximum length is set to the current length as
+     given by dim, if dim is a null pointer then ID will not be modified and
+     the function will fail.
+
+     ARGUMENTS
+
+     ID   A pointer to a HDF5 identifier that will contain the new dataspace. 
+     rank The number of dimensions of the new dataspace.                      
+     dim  The current size of each dimension of the dataspace, should be an   
+          array of length rank.                                               
+     max  The maximum size of each dimension, should be an array of length    
+          rank.                                                               
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.20 cbf_H5Sfree
+
+     ----------------------------------------------------------------------
+
+    2.6.20 cbf_H5Sfree
+
+     Close a HDF5 dataspace.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Sfree (const hid_t ID)
+
+     DESCRIPTION
+
+     Attempt to close a dataspace, but don't modify the identifier that
+     described it.
+
+     ARGUMENTS
+
+     ID The HDF5 dataspace to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.19 cbf_H5Screate
+
+     ----------------------------------------------------------------------
+
+    2.6.21 cbf_H5Tcreate_string
+
+     Get a HDF5 string datatype with a specified length.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Tcreate_string (hid_t * type, const size_t len)
+
+     DESCRIPTION
+
+     Convenience function to create a string datatype suitable for use when
+     storing a string of length len, returning it in the identifier pointed
+     to by type.
+
+     ARGUMENTS
+
+     type A pointer to a the HDF5 handle of the new datatype, which should be 
+          free'd with cbf_H5Tfree.                                            
+     len  The length of the string datatype - should be strlen() or           
+          H5T_VARIABLE.                                                       
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.22 cbf_H5Tfree
+
+     ----------------------------------------------------------------------
+
+    2.6.22 cbf_H5Tfree
+
+     Close a HDF5 datatype.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_H5Tfree (const hid_t ID)
+
+     DESCRIPTION
+
+     Attempt to close a datatype, but don't modify the identifier that
+     described it.
+
+     ARGUMENTS
+
+     ID The HDF5 datatype to be closed. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.6.21 cbf_H5Tcreate_string
+
+     ----------------------------------------------------------------------
+
+2.7 High-level NeXus-related functions
+
+     These functions priarily allow interaction with a cbf_h5handle without
+     being exposed to its structure or the complexities of using it
+     correctly. Wherever possible these functions should be used instead of
+     directly accessing a cbf_h5handle or cbf_config_t in order make code
+     easier to read, to maintain the integrity of the data structures and to
+     ensure all resources allocated to these object are correctly cleaned up.
+
+     This section describes functions for working with:
+
+       * HDF5 file handles:
+            * 2.7.1 cbf_create_h5handle
+            * 2.7.2 cbf_write_minicbf_h5file
+            * 2.7.3 cbf_write_cbf_h5file
+            * 2.7.4 cbf_free_h5handle
+            * 2.7.5 cbf_h5handle_require_file
+            * 2.7.6 cbf_h5handle_require_entry
+            * 2.7.7 cbf_h5handle_require_sample
+            * 2.7.8 cbf_h5handle_require_instrument
+            * 2.7.9 cbf_h5handle_require_detector
+            * 2.7.10 cbf_h5handle_require_monochromator
+       * miniCBF configuration settings:
+            * 2.7.11 cbf_config_create
+            * 2.7.12 cbf_config_free
+            * 2.7.13 cbf_config_parse
+            * 2.7.14 cbf_config_strerror
+
+    Reading miniCBF configuration settings
+
+     This example demonstrates how a miniCBF configuration file should be
+     parsed, what should be checked before the extracted settings are used
+     and what should be cleaned up by the caller afterwards.
+
+ /* Declare some important variables */
+ int configError = cbf_configError_success;
+ FILE * configFile = fopen("config.txt","r");
+ cbf_config_t * const configSettings = cbf_config_create();
+
+ /*
+ Read and check the configuration settings,
+ writing any error messages to stderr.
+ */
+ configError = cbf_config_parse(configFile,stderr,configSettings);
+ /* I no longer need to keep the file open */
+ fclose(configFile);
+
+ /* Check if I could read the file successfully */
+ if (cbf_configError_success != configError) {
+     fprintf(stderr,"Error parsing configuration file 'config.txt': %s\n",
+             cbf_config_strerror(configError));
+ } else {
+     /* Use the configuration settings here... */
+ }
+
+ /* Clean up the settings to avoid memory leaks */
+ cbf_config_free(configSettings);
+
+     ----------------------------------------------------------------------
+
+    2.7.1 cbf_create_h5handle
+
+     Allocates space for a HDF5 file handle and opens a file with the given
+     name.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_create_h5handle (cbf_h5handle *h5handle, const char *
+     h5filename)
+
+     DESCRIPTION
+
+     Warning: this function will destroy any existing data in the file, do
+     not pass the name of any file containing data you want to keep.
+
+     ARGUMENTS
+
+     h5handle   The location to store the new handle.                     
+     h5filename The name of a file to open and associate with the handle. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.7.4 cbf_free_h5handle
+
+     ----------------------------------------------------------------------
+
+    2.7.2 cbf_write_minicbf_h5file
+
+     Extract the data from a miniCBF file & put it into a NeXus file.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_write_minicbf_h5file (cbf_handle handle, cbf_h5handle h5handle,
+     const cbf_config_t * const axisConfig, int flags)
+
+     DESCRIPTION
+
+     Extracts the miniCBF data directly - by parsing the header - and uses
+     that plus the configuration options from axisConfig to generate a NeXus
+     file in h5handle. This can extract metadata and image data from miniCBF
+     files containing multiple datablocks which each contain a single image
+     and insert it into a given index into the NXentry group specified in
+     h5handle.
+
+     Currently, only Pilatus 1.2 format headers are supported.
+
+     The flags determine
+
+       * Compression algorithm: zlib/CBF/none
+       * Plugin registration method: automatic/manual
+
+     ARGUMENTS
+
+     handle     The minicbf file to add to the NeXus file.                    
+     h5handle   The NeXus file to add the minicbf file to.                    
+     axisConfig Some configuration settings to describe what the minicbf axis 
+                settings mean.                                                
+     flags      Some parameters to determine how the data will be converted.  
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.7.3 cbf_write_cbf_h5file
+       * 2.7.4 cbf_free_h5handle
+
+     ----------------------------------------------------------------------
+
+    2.7.3 cbf_write_cbf_h5file
+
+     Extract the data from a CBF file & put it into a NeXus file.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_write_cbf_h5file (cbf_handle handle, cbf_h5handle h5handle)
+
+     DESCRIPTION
+
+     Extracts data from handle and generates a NeXus file in h5handle. This
+     can extract metadata and image data from a single scan within a single
+     datablock and insert it into a given index into the NXentry group
+     specified in h5handle. Support for multiple-scans-per-datablock and
+     multiple-datablocks-per-file will be added at a later time.
+
+     The flags (within h5handle) determine
+
+       * Compression algorithm: zlib/CBF/none
+       * Plugin registration method: automatic/manual
+
+     ARGUMENTS
+
+     handle   The CBF file.   
+     h5handle The NeXus file. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.7.2 cbf_write_minicbf_h5file
+       * 2.7.4 cbf_free_h5handle
+
+     ----------------------------------------------------------------------
+
+    2.7.4 cbf_free_h5handle
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_free_h5handle (cbf_h5handle h5handle)
+
+     DESCRIPTION
+
+     Closes all the open groups within the handle and then destroys the
+     handle.
+
+     ARGUMENTS
+
+     h5handle The HDF5 handle to be free'd. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.7.1 cbf_create_h5handle
+
+     ----------------------------------------------------------------------
+
+    2.7.5 cbf_h5handle_require_file
+
+     Ensure I have a file in the handle to do stuff with.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_h5handle_require_file (const cbf_h5handle handle, const char *
+     name)
+
+     DESCRIPTION
+
+     Checks for the presence of a file in the handle with the given name. If
+     no file is present it will attempt to open the file identified by name.
+     It will fail if there isn't a file in the handle and no file can be
+     opened, or if a file with a different name is already in the handle.
+
+     ARGUMENTS
+
+     handle The HDF5 handle to use. 
+     name   The file name, or NULL. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.7.6 cbf_h5handle_require_entry
+       * 2.7.7 cbf_h5handle_require_sample
+       * 2.7.8 cbf_h5handle_require_instrument
+       * 2.7.9 cbf_h5handle_require_detector
+       * 2.7.10 cbf_h5handle_require_monochromator
+
+     ----------------------------------------------------------------------
+
+    2.7.6 cbf_h5handle_require_entry
+
+     Ensure I have a valid NXentry group in the file with a given name.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_h5handle_require_entry (const cbf_h5handle handle, hid_t *
+     group, const char * name)
+
+     DESCRIPTION
+
+     Check for an NXentry group in handle, creating a top-level group in the
+     file with the given name and NeXus class NXentry if it doesn't exist.
+     Calls cbf_h5handle_require_file to ensure that the file exists within
+     the handle, if needed.
+
+     ARGUMENTS
+
+     handle The HDF5 handle to use.                                          
+     group  An optional pointer to a place where the group should be stored. 
+     name   The group name.                                                  
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.7.5 cbf_h5handle_require_file
+       * 2.7.7 cbf_h5handle_require_sample
+       * 2.7.8 cbf_h5handle_require_instrument
+       * 2.7.9 cbf_h5handle_require_detector
+       * 2.7.10 cbf_h5handle_require_monochromator
+
+     ----------------------------------------------------------------------
+
+    2.7.7 cbf_h5handle_require_sample
+
+     Ensure I have a valid NXsample group in the file.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_h5handle_require_sample (const cbf_h5handle handle, hid_t *
+     group)
+
+     DESCRIPTION
+
+     Check for an NXsample group in handle, creating it with the name sample
+     and NeXus class NXsample if it doesn't exist. Calls
+     cbf_h5handle_require_entry to ensure that the entry group exists within
+     the handle, if needed.
+
+     ARGUMENTS
+
+     handle The HDF5 handle to use.                                          
+     group  An optional pointer to a place where the group should be stored. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.7.5 cbf_h5handle_require_file
+       * 2.7.6 cbf_h5handle_require_entry
+       * 2.7.8 cbf_h5handle_require_instrument
+       * 2.7.9 cbf_h5handle_require_detector
+       * 2.7.10 cbf_h5handle_require_monochromator
+
+     ----------------------------------------------------------------------
+
+    2.7.8 cbf_h5handle_require_instrument
+
+     Ensure I have a valid NXinstrument group in the file.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_h5handle_require_instrument (const cbf_h5handle handle, hid_t *
+     group)
+
+     DESCRIPTION
+
+     Check for an NXinstrument group in handle, creating it with the name
+     instrument and NeXus class NXinstrument if it doesn't exist. Calls
+     cbf_h5handle_require_entry to ensure that the entry group exists within
+     the handle, if needed.
+
+     ARGUMENTS
+
+     handle The HDF5 handle to use.                                          
+     group  An optional pointer to a place where the group should be stored. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.7.5 cbf_h5handle_require_file
+       * 2.7.6 cbf_h5handle_require_entry
+       * 2.7.7 cbf_h5handle_require_sample
+       * 2.7.9 cbf_h5handle_require_detector
+       * 2.7.10 cbf_h5handle_require_monochromator
+
+     ----------------------------------------------------------------------
+
+    2.7.9 cbf_h5handle_require_detector
+
+     Ensure I have a valid NXdetector group in the file.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_h5handle_require_detector (const cbf_h5handle handle, hid_t *
+     group, const char * const name)
+
+     DESCRIPTION
+
+     Check for an NXdetector group in handle, creating it with the name
+     detector and NeXus class NXdetector if it doesn't exist. Calls
+     cbf_h5handle_require_instrument to ensure that the instrument group
+     exists within the handle, if needed.
+
+     ARGUMENTS
+
+     handle The HDF5 handle to use.                                          
+     group  An optional pointer to a place where the group should be stored. 
+     name   The (optional) group name.                                       
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.7.5 cbf_h5handle_require_file
+       * 2.7.6 cbf_h5handle_require_entry
+       * 2.7.7 cbf_h5handle_require_sample
+       * 2.7.8 cbf_h5handle_require_instrument
+       * 2.7.10 cbf_h5handle_require_monochromator
+
+     ----------------------------------------------------------------------
+
+    2.7.10 cbf_h5handle_require_monochromator
+
+     Ensure I have a valid NXmonochromator group in the file.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_h5handle_require_monochromator (const cbf_h5handle handle, hid_t
+     * group)
+
+     DESCRIPTION
+
+     Check for an NXmonochromator group in handle, creating it with the name
+     monochromator and NeXus class NXmonochromator if it doesn't exist. Calls
+     cbf_h5handle_require_instrument to ensure that the instrument group
+     exists within the handle, if needed.
+
+     ARGUMENTS
+
+     handle The HDF5 handle to use.                                          
+     group  An optional pointer to a place where the group should be stored. 
+
+     RETURN VALUE
+
+     An error code.
+
+     SEE ALSO
+
+       * 2.7.5 cbf_h5handle_require_file
+       * 2.7.6 cbf_h5handle_require_entry
+       * 2.7.7 cbf_h5handle_require_sample
+       * 2.7.8 cbf_h5handle_require_instrument
+       * 2.7.9 cbf_h5handle_require_detector
+
+     ----------------------------------------------------------------------
+
+    2.7.11 cbf_config_create
+
+     Obtain a new handle for some configuration settings.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     cbf_config_t * cbf_config_create ()
+
+     DESCRIPTION
+
+     Allocates a new collection of configuration settings on the heap, and
+     initialises it. The returned pointer should be destroyed by the caller.
+
+     SEE ALSO
+
+       * 2.7.12 cbf_config_free
+
+     ----------------------------------------------------------------------
+
+    2.7.12 cbf_config_free
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     void cbf_config_free (const cbf_config_t * const vector)
+
+     DESCRIPTION
+
+     Destroys an existing collection of configuration settings. The settings
+     should have been obtained by a call to cbf_config_create.
+
+     ARGUMENTS
+
+     vector The handle to be destroyed. 
+
+     SEE ALSO
+
+       * 2.7.11 cbf_config_create
+
+     ----------------------------------------------------------------------
+
+    2.7.13 cbf_config_parse
+
+     Read a minicbf configuration file into the given handle, writing errors
+     to logfile.
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     int cbf_config_parse (FILE * const configFile, FILE * const logFile,
+     cbf_config_t * const vec)
+
+     DESCRIPTION
+
+     Parses a configuration file to extract a collection of configuration
+     settings for a miniCBF file, storing them in the given configuration
+     settings object. The pointer should have been obtained by a call to
+     cbf_config_create. The configuration file format is described in the
+     minicbf2nexus documentation.
+
+     ARGUMENTS
+
+     configFile A stream containing the configuration file.          
+     logFile    A stream to which errors are reported.               
+     vec        The object used to store the configuration settings. 
+
+     RETURN VALUE
+
+     A parser error code.
+
+     SEE ALSO
+
+       * 2.7.11 cbf_config_create
+       * 2.7.12 cbf_config_free
+       * 2.7.14 cbf_config_strerror
+
+     ----------------------------------------------------------------------
+
+    2.7.14 cbf_config_strerror
+
+     PROTOTYPE
+
+     #include "cbf_hdf5.h"
+
+     const char * cbf_config_strerror (const int error)
+
+     DESCRIPTION
+
+     The returned string is "none" for success, "unknown error" if the given
+     error code is not recognised and a non-empty string briefly describing
+     the error otherwise.
+
+     The returned string must not be free'd.
+
+     ARGUMENTS
+
+     error The error code to be converted. 
+
+     SEE ALSO
+
+       * 2.7.13 cbf_config_parse
+
+     ----------------------------------------------------------------------
+
   3. File format
 
     3.1 General description
@@ -6955,7 +8824,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
          'conversions="X-CBF_PACKED"' or the parameter
          'conversions="X-CBF_PACKED_V2"' or the parameter
          'conversions="X-CBF_CANONICAL"' or the parameter
-         'conversions="X-CBF_BYTE_OFFSET"'
+         'conversions="X-CBF_BYTE_OFFSET"' or the parameter
+         'conversions="X-CBF_NIBBLE_OFFSET"'
 
          If the parameter 'conversions="X-CBF_PACKED"' or
          'conversions="X-CBF_PACKED_V2"' is given it may be further modified
@@ -7139,22 +9009,24 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      through 28 are used for three 8-byte words to hold the binary_id, the
      size and the compression type:
 
-        5..12            Binary Section Identifier      
-                       (See _array_data.binary_id)      
-                       64-bit, little endian            
-        13..20           The size (n) of the            
-                       binary section in octets         
-                       (i.e. the offset from octet      
-                       29 to the first byte following   
-                       the data)                        
-        21..28           Compression type:              
-                                                        
-                         CBF_NONE          0x0040 (64)  
-                         CBF_CANONICAL     0x0050 (80)  
-                         CBF_PACKED        0x0060 (96)  
-                         CBF_BYTE_OFFSET   0x0070 (112) 
-                         CBF_PREDICTOR     0x0080 (128) 
-                         ...                            
+        5..12            Binary Section Identifier        
+                       (See _array_data.binary_id)        
+                       64-bit, little endian              
+        13..20           The size (n) of the              
+                       binary section in octets           
+                       (i.e. the offset from octet        
+                       29 to the first byte following     
+                       the data)                          
+        21..28           Compression type:                
+                                                          
+                         CBF_NONE            0x0040 (64)  
+                         CBF_CANONICAL       0x0050 (80)  
+                         CBF_PACKED          0x0060 (96)  
+                         CBF_PACKED_V2       0x0090 (144) 
+                         CBF_BYTE_OFFSET     0x0070 (112) 
+                         CBF_NIBBLE_OFFSET   0x00A0 (160) 
+                         CBF_PREDICTOR       0x0080 (128) 
+                         ...                              
 
      The binary data then follows in bytes 29 through 29+n-1.
 
@@ -7666,13 +9538,201 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      have chosen a different binary id (2 instead of 1). Even the checksum is
      the same.
 
+    3.3.4 Nibble_offset compression
+
+     The nibble offset algorithm is a variant on A. P. Hammersley's byte
+     offset algorithm. The major differences are that the compression modes
+     are "sticky", the compression can be reset at any point to allow for
+     block parallelism, and the basic unit of compression is the nibble, but
+     for very clean data, the dibit is also supported.
+
+     The data stream starts with and in general uses a mode-setting octet
+     presented in one if three forms, a single dibit a0, two dibits a0, a1,
+     or two dibits and a nibble a0, a1, b:
+
+               +-----------------------------------------------+
+               |  a0 a1 b   | octet |         meaning          |
+               |------------+-------+--------------------------|
+               | 00 00 0000 | 0x00  | reset to zero            |
+               |------------+-------+--------------------------|
+               | 01         | 0x01  | up 1 mode                |
+               |------------+-------+--------------------------|
+               | 10         | 0x02  | dibit mode               |
+               |------------+-------+--------------------------|
+               | 11         | 0x03  | up n modes               |
+               |------------+-------+--------------------------|
+               | 00 01      | 0x04  | nibble mode              |
+               |------------+-------+--------------------------|
+               | 00 11      | 0x0C  | 6-bit mode               |
+               |------------+-------+--------------------------|
+               | 00 10      | 0x08  | byte mode                |
+               |------------+-------+--------------------------|
+               | 00 00 0011 | 0x30  | 12-bit word mode         |
+               |------------+-------+--------------------------|
+               | 00 00 0001 | 0x10  | 16-bit word mode         |
+               |------------+-------+--------------------------|
+               | 00 00 0010 | 0x20  | 32-bit word mode         |
+               |------------+-------+--------------------------|
+               | 00 00 0100 | 0x40  | 64-bit word mode         |
+               |------------+-------+--------------------------|
+               | 00 00 1100 | 0xC0  | specify starting address |
+               +-----------------------------------------------+
+
+     The reset to zero is followed by a new mode octet A reset to zero resets
+     the prior value for delta to zero
+
+     The up n modes code is followed immediately by a dibit specifying 2 less
+     than the number of modes by which to change, and then by a delta in the
+     mode.
+
+     Note that up n modes has no effect until an actual mode has been set and
+     can be used immediately after a reset to pad to nibble, octet or
+     double-word boundaries.
+
+     Once a mode is established, it is followed by a stream of deltas of that
+     size (for modes 2 or 4-64) or by one delta of that size and then a
+     stream of deltas of the size that was in effect before an up or down
+     giving little-endian offsets from the currently accumulated value. If
+     the offset is one of the following in the indicated mode
+
+                  +------------------------------------------+
+                  | dibit mode       | 0x2                   |
+                  |------------------+-----------------------|
+                  | nibble mode      | 0x8                   |
+                  |------------------+-----------------------|
+                  | 6-bit mode       | 0x20                  |
+                  |------------------+-----------------------|
+                  | byte mode        | 0x80                  |
+                  |------------------+-----------------------|
+                  | 12-bit word mode | 0x800                 |
+                  |------------------+-----------------------|
+                  | 16-bit word mode | 0x8000                |
+                  |------------------+-----------------------|
+                  | 32-bit word mode | 0x8000 0000           |
+                  |------------------+-----------------------|
+                  | 64-bit word mode | 0x8000 0000 0000 0000 |
+                  +------------------------------------------+
+
+     it is followed by the new mode as 1 or 2 dibits or 2 dibits and a nibble
+     a1 a1 b. If a1 is 1 or 2 or 3, that is the new mode. If a1 is zero and
+     a2 is 1 or 2 the new mode is a2*4. If a2 is 3 the new mode is a2*2. If
+     both a1 and a2 are zero, the new mode is b*16 unless b is 3. If b is 3
+     the new mode is b*4
+
+     The 0xC0 flag is followed by a second mode giving the number of bytes of
+     image starting offset address followed by the image offset address
+     followed by the mode of that data. 0xC0 also acts as a reset. Use of the
+     0xC0 flag is not required. Addresses default to sequential starting from
+     0, but is provided to faciliate parallel compression.
+
+    3.4 Access to CBFlib compressions from HDF5
+
+     Starting with CBFlib release 0.9.2.11, a plugin module in provided to
+     allow access to CBFlib compressions from HDF5 1.8.11 and later. For
+     general documentation on HDF5 dynamically loaded filters, see
+     http://www.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf
+     The discussion here will be confined to use of the CBFlib compressions
+     plugin.
+
+     The filter has been registered with the HDF5 group as 32006, and cbf.h
+     includes the symbolic name for the filter CBF_H5Z_FILTER_CBF.
+
+     The source and header of the CBFlib filter plugin are cbf_hdf5_filter.c
+     and cbf_hdf5_filter.h. To use the filter in C applications, you will
+     need to include cbf_hdf5_filter.h in the application and have the
+     cbflib.so library in the search path used by HDF5 1.8.11. The HDF group
+     says
+
+       The default directory for an HDF5 filter plugin library is defined on
+       UNIX- like systems as quot;/usr/local/hdf5/lib/plugin"
+       and on Windows systems as "%ALLUSERSPROFILE%/hdf5/lib/plugin". The
+       default path can be overwritten by a user with the HDF5_PLUGIN_PATH
+       environment variable. Several directories can be specified for the
+       search path using ":" as a path separator for UNIX-like systems and
+       ";" for Windows.
+
+     In the Makefile, tests are done by defining HDF5_PLUGIN_PATH to point to
+     the build kit shared library directory:
+
+     HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH;
+
+     In most cases that should be sufficient to allow code to read HDF5 files
+     with datasets compressed with this filter.
+
+     In order to write files that use this filter, several relevant values
+     must first be stored into an unsigned int array, cd_values. The header,
+     cbf_hdf5_filter.h, defines the follwing symbolic values for the indices
+     of this array:
+
+     +----------------------------------------------------------------------+
+|             symbol             | value |               meaning               |
+     |--------------------------------+-------+-----------------------------|
+| CBF_H5Z_FILTER_CBF_NELMTS      | 11    | size of cd_values                   |
+     |--------------------------------+-------+-----------------------------|
+     | CBF_H5Z_FILTER_CBF_COMPRESSION | 0     | one of the compressions     |
+     |                                |       | (see 3.2.2)                 |
+     |--------------------------------+-------+-----------------------------|
+     | CBF_H5Z_FILTER_CBF_RESERVED    | 1     | reserved for future use,    |
+     |                                |       | should be set to zero       |
+     |--------------------------------+-------+-----------------------------|
+     | CBF_H5Z_FILTER_CBF_BINARY_ID   | 2     | binary ID of the array      |
+     |                                |       | (default 1)                 |
+     |--------------------------------+-------+-----------------------------|
+| CBF_H5Z_FILTER_CBF_ELSIZE      | 3     | element size in octets              |
+     |--------------------------------+-------+-----------------------------|
+| CBF_H5Z_FILTER_CBF_ELSIGN      | 4     | 1 if signed, 0 if unsigned          |
+     |--------------------------------+-------+-----------------------------|
+     | CBF_H5Z_FILTER_CBF_REAL        | 5     | 1 if a real array, 0 if an  |
+     |                                |       | integer array               |
+     |--------------------------------+-------+-----------------------------|
+     | CBF_H5Z_FILTER_CBF_DIMOVER     | 6     | the total number of         |
+     |                                |       | elements in the array       |
+     |--------------------------------+-------+-----------------------------|
+| CBF_H5Z_FILTER_CBF_DIMFAST     | 7     | the fast dimension                  |
+     |--------------------------------+-------+-----------------------------|
+| CBF_H5Z_FILTER_CBF_DIMMID      | 8     | the middle dimension                |
+     |--------------------------------+-------+-----------------------------|
+| CBF_H5Z_FILTER_CBF_DIMSLOW     | 9     | the slow domension                  |
+     |--------------------------------+-------+-----------------------------|
+| CBF_H5Z_FILTER_CBF_PADDING     | 10    | the padding                         |
+     +----------------------------------------------------------------------+
+
+     Only chunked data may be written using this filter. The recommended
+     chunk size is a single image. The filter writes the chunks using the
+     imgCIF binary section format described in section 3.2.1 including the
+     MIME header. If each chunk is the size of an image, programs such as XDS
+     can use the patterns of the MIME header to skip directly to a frame even
+     in a complex HDF5 file. Typical code to write such chunks would first
+     define the cd_values array and an array of chunk dimensions and create
+     the properties to be used in creating a dataset, as in
+
+     unsigned int cd_values[CBF_H5Z_FILTER_CBF_NELMTS];
+     hsize_t chunk[3];
+     hid_t valspace;
+     chunk[0] = 1;
+     chunk[1] = dimmid;
+     chunk[2] = dimfast;
+     cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION] = compression;
+     cd_values[CBF_H5Z_FILTER_CBF_RESERVED]    = 0;
+     cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID]   = id;
+     cd_values[CBF_H5Z_FILTER_CBF_PADDING]     = padding;
+     cd_values[CBF_H5Z_FILTER_CBF_ELSIZE]      = (bits+7)/8;
+     cd_values[CBF_H5Z_FILTER_CBF_ELSIGN]      = sign;
+     cd_values[CBF_H5Z_FILTER_CBF_REAL]        = realarray;
+     cd_values[CBF_H5Z_FILTER_CBF_DIMFAST]     = dimfast;
+     cd_values[CBF_H5Z_FILTER_CBF_DIMMID]      = dimmid;
+     cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = dimslow;
+     valprop = H5Pcreate(H5P_DATASET_CREATE);
+     H5Pset_chunk(valprop,3,chunk);
+     H5Pset_filter(valprop,CBF_H5Z_FILTER_CBF,H5Z_FLAG_OPTIONAL,CBF_H5Z_FILTER_CBF_NELMTS,cd_values);
+
     4. Installation
 
-     CBFlib should be built on a disk with at least 200 megabytes of free
-     space. CBFlib.tar.gz is a "gzipped" tar of the code as it now stands.
-     Place the gzipped tar in the directory that is intended to contain a new
-     directory, named CBFlib_0.7.5 (the "top-level" directory) and uncompress
-     it with gunzip and unpack it with tar:
+     CBFlib should be built on a disk with at least 400 megabytes of free
+     space. CBFlib-0.9.2.11.tar.gz is a "gzipped" tar of the code as it now
+     stands. Place the gzipped tar in the directory that is intended to
+     contain a new directory, named CBFlib_0.9.2.11 (the "top-level"
+     directory) and uncompress it with gunzip and unpack it with tar:
 
       gunzip CBFlib.tar.gz
       tar xvf CBFLIB.tar
@@ -7938,122 +9998,135 @@ src/                      include/             m4/                  Description
      img2cif, but accepts either a CIF or a CBF as input instead of an image
      file:
 
-   cif2cbf [-i input_cif] [-o output_cbf] \
-     [-u update_cif] \
-     [-c {p[acked]|c[annonical]|{b[yte_offset]}|\
-         {v[2packed}|{f[latpacked}[n[one]}] \
-     [-C highclipvalue] \
-     [-D ] \
-     [-I {0|2|4|8}] \
-     [-R {0|4|8}] \
-     [-L {0|4|8}] \
-     [-m {h[eaders]|noh[eaders]}] \
-     [-m {d[imensions]|nod[imensions}] \
-     [-d {d[igest]|n[odigest]|w[arndigest]}] \
-     [-B {read|liberal|noread}] [-B {write|nowrite}] \
-     [-S {read|noread}] [-S {write|nowrite}] \
-     [-T {read|noread}] [-T {write|nowrite}] \
-     [-e {b[ase64]|q[uoted-printable]|\
-                   d[ecimal]|h[examdecimal|o[ctal]|n[one]}] \
-     [-b {f[orward]|b[ackwards]}\
-     [-p {1|2|4}\
-     [-v dictionary]* [-w] [-W]\
-     [input_cif] [output_cbf]
+     cif2cbf [-i input_cif] [-o output_cbf] \
+       [-u update_cif] \
+       [-c {p[acked]|c[annonical]|{b[yte_offset]}|\
+         {v[2packed]}|{f[latpacked]}|{I|nIbble_offset}|n[one]}] \
+       [-C highclipvalue] \
+       [-D ] \
+       [-I {0|2|4|8}] \
+       [-R {0|4|8}] \
+       [-L {0|4|8}] \
+       [-m {h[eaders]|noh[eaders]}] \
+         [-m {d[imensions]|nod[imensions}] \
+       [-d {d[igest]|n[odigest]|w[arndigest]}] \
+       [-B {read|liberal|noread}] [-B {write|nowrite}] \
+       [-S {read|noread}] [-S {write|nowrite}] \
+       [-T {read|noread}] [-T {write|nowrite}] \
+       [-e {b[ase64]|q[uoted-printable]|\
+         d[ecimal]|h[examdecimal|o[ctal]|n[one]}] \
+       [-b {f[orward]|b[ackwards]}\
+       [-p {1|2|4}\
+       [-v dictionary]* [-w] [-W]\
+       [-5 {r|w|rw|rn|wn|rwn|n[oH5]}\
+       [-O] \
+       [input_cif] [output_cbf]
 
    the options are:
 
-     -i input_cif (default: stdin)
-       the input  file in CIF or CBF  format.  If input_cif is not
-       specified or is given as "-", it is copied from stdin to a
-       temporary file.
-
-     -o output_cbf (default: stdout)
-       the output cif (if base64 or quoted-printable encoding is used)
-       or cbf (if no encoding is used).  if no output_cif is specified
-       or is given as "-", the output is written to stdout
-       if the output_cbf is /dev/null, no output is written.
-
-     -u update_cif (no default)
-       and optional second input file in CIF or CBF format containing
-       data blocks to be merged with data blocks from the primary
-       input CIF or CBF
-
-     The remaining options specify the characteristics of the
-     output cbf.  Most of the characteristics of the input cif are
-     derived from context, except when modified by the -B, -S, -T, -v
-     and -w flags.
-
-     -b byte_order (forward or backwards, default forward (1234) on
-       little-endian machines, backwards (4321) on big-endian machines
-
-     -B [no]read or liberal (default noread)
-       read to enable reading of DDLm style brackets
-       liberal to accept whitespace for commas
-
-     -B [no]write (default write)
-       write to enable writing of DDLm style brackets
-
-     -c compression_scheme (packed, canonical, byte_offset,
-       v2packed, flatpacked or none,
-       default packed)
-
-     -C highclipvalue
-       specifies a double precision value to which to clip the data
-
-     -d [no]digest or warndigest  (default md5 digest [R. Rivest,
-       RFC 1321, April 1992 using"RSA Data Security, Inc. MD5
-       Message-Digest Algorithm"] when MIME headers are selected)
-
-     -D test cbf_construct_detector
-
-     -e encoding (base64, k, quoted-printable or none, default base64)
-       specifies one of the standard MIME encodings for an ascii cif
-       or "none" for a binary cbf
-
-     -I 0 or integer element size
-       specifies integer conversion of the data, 0 to use the input
-       number of bytes, 2, 4 or 8 for short, long or long long
-       output integers
-
-     -L lowclipvalue
-       specifies a double precision value to cut off the data from
-       below
-
-     -m [no]headers (default headers)
-       selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996)
-       headers within binary data value text fields.
-
-     -m [nod]imensions (default dimensions)
-       selects detailed recovery of dimensions from the input CIF
-       for use in the MIME header of the output CIF
-
-     -p K_of_padding (0, 1, 2, 4) for no padding after binary data
-       1023, 2047 or 4095 bytes of padding after binary data
-
-     -R 0 or integer element size
-       specifies real conversion of the data, 0 to use the input
-       number of bytes,  4 or 8 for float or double output reals
-
-     -S [no]read or (default noread)
-       read to enable reading of whitespace and comments
-
-     -S [no]write (default write)
-       write to enable writing of whitespace and comments
-
-     -T [no]read or (default noread)
-       read to enable reading of DDLm style triple quotes
-
-     -T [no]write (default write)
-       write to enable writing of DDLm style triple quotes
-
-     -v dictionary specifies a dictionary to be used to validate
-       the input cif and to apply aliases to the output cif.
-       This option may be specified multiple times, with dictionaries
-       layered in the order given.
-
-     -w process wide (2048 character) lines
-
-     -W write wide (2048 character) lines
+        the options are:                                                 
+                                                                         
+        -i input_cif (default: stdin)                                    
+          the input  file in CIF or CBF  format.  If input_cif is not    
+          specified or is given as "-", it is copied from stdin to a     
+          temporary file.                                                
+                                                                         
+        -o output_cbf (default: stdout)                                  
+          the output cif (if base64 or quoted-printable encoding is used)
+          or cbf (if no encoding is used).  if no output_cif is specified
+          or is given as "-", the output is written to stdout            
+          if the output_cbf is /dev/null, no output is written.          
+                                                                         
+        -u update_cif (no default)                                       
+          and optional second input file in CIF or CBF format containing 
+          data blocks to be merged with data blocks from the primary     
+          input CIF or CBF                                               
+                                                                         
+        The remaining options specify the characteristics of the         
+        output cbf.  Most of the characteristics of the input cif are    
+        derived from context, except when modified by the -B, -S, -T, -v 
+        and -w flags.                                                    
+                                                                         
+        -b byte_order (forward or backwards, default forward (1234) on   
+          little-endian machines, backwards (4321) on big-endian machines
+                                                                         
+        -B [no]read or liberal (default noread)                          
+          read to enable reading of DDLm style brackets                  
+          liberal to accept whitespace for commas                        
+                                                                         
+        -B [no]write (default write)                                     
+          write to enable writing of DDLm style brackets                 
+                                                                         
+        -c compression_scheme (Packed, Canonical, Byte_offset,           
+          V2packed, Flatpacked, nIbble or None,                          
+          default packed)                                                
+                                                                         
+        -C highclipvalue                                                 
+          specifies a double precision value to which to clip the data   
+                                                                         
+        -d [no]digest or warndigest  (default md5 digest [R. Rivest,     
+          RFC 1321, April 1992 using"RSA Data Security, Inc. MD5         
+          Message-Digest Algorithm"] when MIME headers are selected)     
+                                                                         
+        -D test cbf_construct_detector                                   
+                                                                         
+        -e encoding (base64, k, quoted-printable or none, default base64)
+          specifies one of the standard MIME encodings for an ascii cif  
+          or "none" for a binary cbf                                     
+                                                                         
+        -I 0 or integer element size                                     
+          specifies integer conversion of the data, 0 to use the input   
+          number of bytes, 2, 4 or 8 for short, long or long long        
+          output integers                                                
+                                                                         
+        -L lowclipvalue                                                  
+          specifies a double precision value to cut off the data from    
+          below                                                          
+                                                                         
+        -m [no]headers (default headers)                                 
+          selects MIME (N. Freed, N. Borenstein, RFC 2045, November 1996)
+          headers within binary data value text fields.                  
+                                                                         
+        -m [nod]imensions (default dimensions)                           
+          selects detailed recovery of dimensions from the input CIF     
+          for use in the MIME header of the output CIF                   
+                                                                         
+        -p K_of_padding (0, 1, 2, 4) for no padding after binary data    
+          1023, 2047 or 4095 bytes of padding after binary data          
+                                                                         
+        -R 0 or integer element size                                     
+          specifies real conversion of the data, 0 to use the input      
+          number of bytes,  4 or 8 for float or double output reals      
+                                                                         
+        -S [no]read or (default noread)                                  
+          read to enable reading of whitespace and comments              
+                                                                         
+        -S [no]write (default write)                                     
+          write to enable writing of whitespace and comments             
+                                                                         
+        -T [no]read or (default noread)                                  
+          read to enable reading of DDLm style triple quotes             
+                                                                         
+        -T [no]write (default write)                                     
+          write to enable writing of DDLm style triple quotes            
+                                                                         
+        -v dictionary specifies a dictionary to be used to validate      
+          the input cif and to apply aliases to the output cif.          
+          This option may be specified multiple times, with dictionaries 
+          layered in the order given.                                    
+                                                                         
+        -w process wide (2048 character) lines                           
+                                                                         
+        -W write wide (2048 character) lines                             
+                                                                         
+        -5 hdf5mode specifies whether to read and/or write in hdf5 mode  
+           the n parameter will cause the CIF H5 datablock to be deleted 
+           on both read and write, for both CIF, CBF and HDF5 files      
+                                                                         
+        -O when in -5 w (hdf5 write) mode, -O forces the use of opaque   
+           objects for CBF binaries                                      
+                                                                         
+                                                                         
 
 
     convert_image
@@ -8313,8 +10386,213 @@ src/                      include/             m4/                  Description
    cif2cbf -I 4 -e n -c b -i xxx.cbf -o xxx_xds.cbf
   
 
+    minicbf2nexus
+
+     This program takes some minicbf files describing a single scan and axis
+     configuration settings for them and creates a nexus file containing the
+     same data. As this is an early version of the program it lacks a lot of
+     useful functionality and should not be assumed to be stable.
+
+     It currently takes several command line arguments:
+
+       * -c
+         --compression
+         These are optional and take a single case-insensitive argument which
+         describes the compression used for the dataset.
+
+         Currently implemented values are:
+
+            * cbf
+              Use the same CBFlib compression method as the miniCBF data uses
+            * none
+              Don't compress the data
+            * zlib
+              Use zlib compression
+
+         More compression options will be added in later versions, including
+         options for CBFlib compression schemes.
+
+       * -C
+         --config
+         This takes a single argument giving the file name of a configuration
+         file which describes how the axes of the minicbf file relate to each
+         other.
+
+       * -g
+         --group
+         This takes a string defining the name of the group where the data
+         should be inserted. Currently, the file will begin in an empty state
+         and this will cause a group of the given name to be created, but
+         this will eventually allow data to be inserted into an existing
+         user-defined group.
+
+       * -o
+         --output
+         This takes a single argument which is used as the filename for the
+         new nexus file. Any existing files of the same name are overwritten
+         without warning, so be careful that the name of any existing files
+         that you wish to keep are not passed as an argument here.
+
+       * -Z
+         --register
+         Takes a single case-insensitive argument of 'manual' or 'plugin'
+         defining the method of plugin registration used. May be specified
+         multiple times to define a system default (via an alias) and
+         optionally over-ride it later.
+
+       * Other arguments are interpreted as file names identifying the
+         miniCBF files to be packed into the new NeXus file. These must
+         currently be pilatus v1.2 miniCBF files, but this restriction will
+         be relaxed in later versions.
+
+     An example, from the test scripts, is:
+
+     minicbf2nexus -c zlib -C config X4_test_1.cbf X4_test_2&3.cbf
+     X4_test_4.cbf X4_test_5.cbf -o minicbf.h5
+
+     Where test files 1, 4 & 5 are each single-image miniCBF files and test
+     file 2 & 3 is created by 'cat'ing together two single-image miniCBF
+     files
+            
+     The config file used for this example is:
+
+ # some sample config settings for a miniCBF file
+
+             map Start_angle to CBF_axis_omega
+             map Phi to CBF_axis_phi
+             map Kappa to CBF_axis_kappa
+            
+             Sample depends-on CBF_axis_phi
+            
+             CBF_axis_phi vector [1 0 0] depends-on CBF_axis_kappa
+             CBF_axis_kappa vector [0 1 0] depends-on .
+             CBF_axis_omega vector [0 0 0]
+        
+     Text from any # character to the end of the line is ignored as a
+     comment.
+
+     Axes are declared by the map keyword as the name of the axis in the
+     minicbf file, which must match exactly, followed by the keyword to and
+     then the name that will be given to the axis in the resulting nexus
+     file. Each axis is treated as a rotation axis and should have a vector
+     which defines the axis of rotation in the 3D coordinate frame used by
+     nexus, this should be 3 numbers within square brackets separated by
+     spaces and does not need to be normalised. Each axis may also depend on
+     a nother axis by using the keyword depends-on folowed by the name of the
+     nexus axis it depends on, or . if it does not depend on another axis,
+     omitting a dependency as shown on the final line of the example above is
+     not recommended as it will eventually be a fatal error. The vector and
+     depends-on declarations do not need to be on the same line.
+
+     The Sample keyword is used to define a dependency for the sample being
+     scanned and should be followed by a depends-on declaration which defines
+     the name of the nexus axis that the sample depends on.
+
+     The final line of the config file should be blank to allow for some
+     simple integrity tests.
+
+     A continuous chain of dependencies should be formed from the sample to
+     the nexus coordinate system, otherwise there is insufficient information
+     available to properly describe the orientation of the sample. This will
+     be enforced in later versions, with a fatal error if insufficient
+     information is provided.
+
+    cbf2nexus
+
+     This program takes some CBF files describing a single scan and converts
+     them to a single NeXus file containing the same data.
+
+     It currently takes several command line arguments:
+
+       * -c
+         --compression
+         These are optional and take a single case-insensitive argument which
+         describes the compression used for the dataset.
+
+         Currently implemented values are:
+
+            * cbf
+              Use the same CBFlib compression method as the miniCBF data uses
+            * none
+              Don't compress the data
+            * zlib
+              Use zlib compression
+
+         More compression options will be added in later versions, including
+         options for CBFlib compression schemes.
+
+       * -g
+         --group
+         This takes a string defining the name of the group where the data
+         should be inserted. Currently, the file will begin in an empty state
+         and this will cause a group of the given name to be created, but
+         this will eventually allow data to be inserted into an existing
+         user-defined group.
+
+       * -o
+         --output
+         This takes a single argument which is used as the filename for the
+         new nexus file. Any existing files of the same name are overwritten
+         without warning, so be careful that the name of any existing files
+         that you wish to keep are not passed as an argument here.
+
+       * -Z
+         --register
+         Takes a single case-insensitive argument of 'manual' or 'plugin'
+         defining the method of plugin registration used. May be specified
+         multiple times to define a system default (via an alias) and
+         optionally over-ride it later.
+
+       * Other arguments are interpreted as file names identifying the CBF
+         files to be packed into the new NeXus file.
+
+     An example, from the test scripts, is:
+
+     cbf2nexus -c zlib adscconverted.cbf adscconverted.cbf -o cbf.zlib.h5
+
+     This creates a single NeXus file containing two copies of the
+     'adscconverted' CBF file.
+
+    testhdf5
+
+     This program runs a set of unit tests on the HDF5 abstraction layer.
+     These are designed to ensure everything is working correctly, to help
+     locate bugs and prevent regressions. A short summary will be printed
+     detailing the number of tests passed, the number of tests failed and the
+     number of components skipped. If any tests fail or are skipped then some
+     additional output should be produced to help identify the cause of the
+     error so that it is easier to fix.
+
+     The program does not take any command-line arguments, and creates a file
+     called testfile.h5 in its working directory for use in the tests.
+
+    testulp
+
+     This program runs a set of unit tests on the ULP comparison functions.
+     These are designed to ensure everything is working correctly, to help
+     locate bugs and prevent regressions. A short summary will be printed
+     detailing the number of tests passed, the number of tests failed and the
+     number of components skipped. If any tests fail or are skipped then some
+     additional output should be produced to help identify the cause of the
+     error so that it is easier to fix.
+
+     The program does not take any command-line arguments.
+
+     ----------------------------------------------------------------------
+
      ----------------------------------------------------------------------
 
      ----------------------------------------------------------------------
 
-     Updated 29 March 2011. Contact:  yaya at bernstein-plus-sons dot com
+     Updated 20 June 2013. Contact:  yaya at bernstein-plus-sons dot com
+
+H5T_NATIVE_SCHAR H5T_NATIVE_SHORT  H5T_NATIVE_INT     H5T_NATIVE_LONG  H5T_NATIVE_LLONG  
+H5T_NATIVE_UCHAR H5T_NATIVE_USHORT H5T_NATIVE_UINT    H5T_NATIVE_ULONG H5T_NATIVE_ULLONG 
+H5T_NATIVE_FLOAT H5T_NATIVE_DOUBLE H5T_NATIVE_LDOUBLE 
+
+     H5T_STD_I8LE   H5T_STD_I16LE  H5T_STD_I32LE H5T_STD_I64LE 
+     H5T_STD_U8LE   H5T_STD_U16LE  H5T_STD_U32LE H5T_STD_U64LE 
+     H5T_STD_I8BE   H5T_STD_I16BE  H5T_STD_I32BE H5T_STD_I64BE 
+     H5T_STD_U8BE   H5T_STD_U16BE  H5T_STD_U32BE H5T_STD_U64BE 
+     H5T_IEEE_F32LE H5T_IEEE_F64LE 
+     H5T_IEEE_F32BE H5T_IEEE_F64BE 

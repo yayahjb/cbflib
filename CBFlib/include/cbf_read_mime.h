@@ -267,6 +267,10 @@ int cbf_mime_temp (cbf_node *column, unsigned int row);
 
 int cbf_nblen (const char *line, size_t *nblen);
 
+  /* Test a line for being blank */
+
+int cbf_is_blank (const char *line);
+
   /* Convert a MIME-encoded binary section to a normal binary section */
  
 int cbf_read_mime (cbf_file *infile, cbf_file   *outfile,

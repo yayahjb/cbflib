@@ -64,7 +64,12 @@
 
 for file in  cif_img.dic cif_img.html cif_img_1_3_2.html \
   cif_img_1.5.dic cif_img_1.5.html cif_img_1.5.4.html \
-  cif_img_1.6.dic cif_img_1.6.html cif_img_1.6.4.dic cif_img_1.6.4.html
+  cif_img_1.6.dic cif_img_1.6.html cif_img_1.6.4.dic \
+  cif_img_1.6.3.html \
+  cif_img_1.6.4.html cif_img_1.7.html cif_img_1.7.dic \
+  cif_img_1.7.0.html cif_img_1.7.0.dic \
+  cif_img_1.7.1.html cif_img_1.7.1.dic \
+  cif_img_1.7.2.html cif_img_1.7.2.dicc
 do
   rm -rf $file
 done

@@ -588,7 +588,7 @@ int cbf_free_node (cbf_node *node)
 
   /* Set the number of children */
 
-int cbf_set_children (cbf_node *node, unsigned int children)
+int cbf_set_children (cbf_node *node, const unsigned int children)
 {
   unsigned int count, new_size, kblock;
   

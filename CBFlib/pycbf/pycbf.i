@@ -344,6 +344,7 @@ void get_error_message(){
 
 %include "cbfgenericwrappers.i"
 
+
 // cbf_goniometer object
 
 %include "cbfgoniometerwrappers.i"

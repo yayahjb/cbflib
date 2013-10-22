@@ -33,8 +33,8 @@ ALT="[CBF/imgCIF]"></a>
 <CENTER>
 <B>An API for CBF/imgCIF<BR>
 Crystallographic Binary Files with ASCII Support</B><BR>
-Version 0.9.2<BR>
-12 February 2011<BR>
+Version 0.9.3<BR>
+7 October 2013<BR>
 <P>
 </CENTER>
 </font><font color="#000000">
@@ -47,19 +47,19 @@ Stanford Synchrotron Radiation Laboratory<BR>
 and<BR>
 Herbert J. Bernstein<BR>
 Bernstein + Sons<BR>
-<script language="javascript" type="text/javascript">
-<!-- 
-      var name = "yaya";
-      var domain = "bernstein-plus-sons";
-      var domext = "com";
-      document.write ("<a href=\"mailto:" + name + "@" + domain + "." domext + "\">" + name + " <b>at</b> " + domain + " <b>dot</b> "+  domext+"</a>"); 
-// -->
-</script>
-<noscript>
-yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
-</noscript>
+    <script language="javascript" type="text/javascript">
+        <!--
+        var name = "yayahjb@";
+        var domain = "gmail";
+        var domext = ".com";
+        document.write ("(<a href=\"mailto:" + name + domain + domext + "\">" + name + domain + domext+"</a>)");
+        // -->
+        </script>
+    <noscript>
+        yayahjb <b>at</b> gmail <b>dot</b> com
+    </noscript>
 <p>
-&#169; Copyright 2006, 2007, 2008, 2011 Herbert J. Bernstein
+&#169; Copyright 2006, 2007, 2008, 2011, 2013 Herbert J. Bernstein
 <P>
 <hr>
 <b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=gpl.txt>GPL</a>.
@@ -86,7 +86,9 @@ information.
    NIGMS and 1R13RR023192 from NCRR and funding from the International
    Union for Crystallographyn (IUCr). The content is solely the
    responsibility of the authors and does not necessarily represent the
-   official views of DOE, NSF, NIH, NIGMS, NCRR or IUCr. 
+   official views of DOE, NSF, NIH, NIGMS, NCRR or IUCr.
+   Recent work on integration among CBF, HDF5 and NeXus supported in part
+   by Pandata ODI (EU 7th Framework Programme)
 <P>
 <HR>
 </font><font color="#0808A0">
@@ -336,14 +338,114 @@ also with vcif3, new arvai_test, sequence_match.
 New default release with updated pycbf, tiff support, removal of
 default use of PyCifRW to avoid Fedora license issue.</td>
 </tr>
+<tr>
+<td valign="top"><font face="Arial,Helvetica,Times">&nbsp;&nbsp;<a href="ChangeLog.html#0.9.3">0.9.3</a></td>
+<td valign="top"><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Oct 2013</td>
+<td valign="top"><font face="Arial,Helvetica,Times">&nbsp;&nbsp;JS, HJB<td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;
+    New default release integrating CBF, HDF5 and NeXus.
+</td>
+</tr>
 
 </TABLE>
 
+    
 <HR>
-<H3><A NAME="0.9">Release 0.9.2</a>, Herbert J. Bernstein, 12 February 2011</H3>
+<H3><A NAME="0.9.3">Release 0.9.3</a>, John Lewis Muir, Jonathan Sloan, Graeme Winter, Herbert J. Bernstein, 7 October 2013</H3>
+<p>
+These are the cummulative mods from the 0.9.2 release in February 2011 to the 0.9.3 release
+in October 2013.
+<TABLE>
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
+<tr>
+        <td valign="top">CBFlib.html, CBFlib.txt</td>
+        <td valign="top">Correction to description of byte-offset algorithm (JLM, 29 Mar 11)</td>
+</tr>
+
+    <tr>
+        <td valign="top">cif_img_1.6.4_2Jul11.html, cif_img_1.6.4_2Jul11.dic</td>
+        <td valign="top">Corrections to support DLS Dectris header as per (GW, HJB, 2 Jul 11)</td>
+    </tr>
+
+    <tr>
+        <td valign="top">PyCifRW-3.3_6Dec09</td>
+        <td valign="top">PyCifRW-3.3_6Dec09 removed because of license issues for Fedora (HJB, 6 Jul 11)</td>
+    </tr>
+ 
+    <tr>
+        <td valign="top">pycbf_wrap.c, cbf_tkfiledialog.py, cbfhandlewrappers.i, make_pycbf.py </td>
+        <td valign="top">Reverse setting of readable in pycbf write_file and
+write_widefile to ensure closure of the file immediately after a write.
+Fix errors in save_cbf in cbf_tkfiledialog.py  (HJB, 30 Jul 11)</td>
+    </tr>
+    
+    <tr>
+        <td valign="top">convert_minicbf.c, Makefiles</td>
+        <td valign="top">Update convert_minicbf.c and Makefiles to support both old and
+            new test cases  (HJB, 25 Oct 12)</td>
+    </tr>
+
+    <tr>
+        <td valign="top">convert_minicbf.c</td>
+        <td valign="top">Make convert_minicbf more fault tolerant with better warnings.  (HJB, 29 Nov 12)</td>
+    </tr>
+
+    <tr>
+        <td valign="top">cbf_nibble_offset.c, cbf_nibble_offset.h, changtestcompression.c,
+        cbf.h, cbf_read_mime.c, cbf_lex.c, cbf_simple.c, cbf_compress.c,
+        cbf_copy.c, cif2cbf.c</td>
+        <td valign="top">Preliminary changes for cbf_nibble_offset. (HJB, 9 Dec 12)</td>
+            </tr>
+    
+    <tr>
+        <td valign="top">cbf_hdf5.c, cbf_hdf5.h </td>
+        <td valign="top">Partial HDF5 support.  (HJB, 28 Dec 12)
+            Partial code for NeXus axis definitions.  (HJB, 12 Jan 13)</td>
+            </tr>
+
+    <tr>
+        <td valign="top">cbf_hdf5_filter.c, bf_hdf5_filter.h, cbf.c,
+        cbf.h, cbf_hdf5.c, cbf_hdf5.h, Makefiles</td>
+        <td valign="top">Addition of partially refactored code from J. Sloan (see below).
+            Add all CBF compressions to Nexus with cbf_hdf5_filter (JS, HJB, 1 Jun 13)
+            </td>
+            </tr>
+
+    
+<tr>
+<td valign="top">cbf_hdf5.h, cbf_hdf5.c</td>
+<td valign="top">New functions to interact with HDF5 at a realtively low level: cbf_H5Arequire_cmp, cbf_H5Arequire_string, cbf_H5Dcreate, cbf_H5Dfind, cbf_H5Drequire, cbf_H5Dinsert, cbf_H5Dset_extent, cbf_H5Dwrite, cbf_H5Dread, cbf_H5Drequire_scalar_F64LE, cbf_H5Drequire_string, cbf_H5Dfree, cbf_H5Fopen, cbf_H5Fclose, cbf_H5Gcreate, cbf_H5Grequire, cbf_H5Gfree, cbf_H5Ivalid, cbf_H5Screate, cbf_H5Sfree, cbf_H5Tcreate_string, cbf_H5Tfree</td>
+</tr>
+<tr>
+<td valign="top">cbf_hdf5.h, cbf_hdf5.c</td>
+<td valign="top">New functions to manage the lifetime of a 'cbf_h5handle' object, and access some commonly used components of a NeXus file in a safe way: cbf_create_h5handle, cbf_write_minicbf_h5file, cbf_write_cbf_h5file, cbf_free_h5handle, cbf_h5handle_require_file, cbf_h5handle_require_entry, cbf_h5handle_require_sample, cbf_h5handle_require_instrument, cbf_h5handle_require_detector, cbf_h5handle_require_monochromator</td>
+</tr>
+<tr>
+<td valign="top">cbf_hdf5.h, cbf_hdf5.c</td>
+<td valign="top">New functions to get some configration settings for a miniCBF file to allow it to be converted into a NeXus file: cbf_config_create, cbf_config_free, cbf_config_parse, cbf_config_strerror</td>
+</tr>
+<tr>
+<td valign="top">cbf_ulp.h, cbf_ulp.c</td>
+<td valign="top">New functions to compare IEEE-754 floating point numbers accurately: cbf_ULP32, cbf_ULP64</td>
+</tr>
+<tr>
+<td valign="top">minicbf2nexus.c, cbf2nexus.c</td>
+<td valign="top">New utility programs for converting from CBF/miniCBF files to NeXus files.</td>
+</tr>
+<tr>
+<td valign="top">testhdf5.c</td>
+<td valign="top">New unit tests for the low-level 'cbf_H5*' functions.</td>
+</tr>
+<tr>
+<td valign="top">testulp.c</td>
+<td valign="top">New unit tests and checks for applicability of the ulp comparison methods.</td>
+</tr>
+
+</table>
+<HR>
+<H3><A NAME="0.9.2">Release 0.9.2</a>, Herbert J. Bernstein, 12 February 2011</H3>
 <p>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">Makefile.m4, Makefiles
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Changes for libtiff and tiff2cbf. Create a separate
 setup.py for MINGW.  Allow  CBF_DONT_USE_LONG_LONG variable to control 
@@ -401,7 +503,7 @@ Add variant category and tags and diffrn_scan_frame_monitor
 <H3><A NAME="0.9.1">Release 0.9.1</a>, P. Chang, E. Eikenberry, J. Lewis Muir, N. Sauter, E. Zlateva, Herbert J. Bernstein, 15 August 2010</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf_simple.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Fix nested axis handling.
@@ -453,7 +555,7 @@ cbf.stx.y, cbf_getopt.c, cbf_stx.c
 G. Winter, J. Hester, Herbert J. Bernstein, 24 July 2009</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 
 
 
@@ -512,7 +614,7 @@ Fix getopt option string.
 <H3><A NAME="0.8.0">Release 0.8.0</a>, G. Todorov, Herbert J. Bernstein, 21 July 2008</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">adscimg2cbf_sub.c, adscimg2cbf_sub.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Patch to deal with gcc 4 optimization error in get_bo
 Replaced with call to cbf_get_local_integer_byte_order.
@@ -544,7 +646,7 @@ change read logic to allow buffered reads.
 <H3><A NAME="0.7.9.1">Release 0.7.9.1</a>, Chris Nielsen, Herbert J. Bernstein, 24 January 2008</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf2adscimg.c cbf2adscimg_sub.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Last minutes fixes on release:  Put missing byte swap in
 cbf2adscimg.c for when byte orders differ.  Bypass problems with gcc
@@ -585,7 +687,7 @@ locales that use ",".
 <H3><A NAME="0.7.9">Release 0.7.9</a>, Chris Nielsen, Herbert J. Bernstein, 30 December 2007</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">Makefiles and test data
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Change test cases to avoid deprecated features.
 
@@ -596,7 +698,7 @@ locales that use ",".
 <H3><A NAME="0.7.8.2">Release 0.7.8.2</a>, Chris Nielsen, Herbert J. Bernstein, 25 December 2007</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">adscimg2cbf.c adscimg2cbf_sub.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;New jiffie by Chris Nielsen of ADSC to convert
 ADSC detector images to CBF.
@@ -667,7 +769,7 @@ better comments and to list all categories used by SLS.
 <H3><A NAME="0.7.8.1">Release 0.7.8.1</a>, Chris Nielsen, Herbert J. Bernstein, 28 July 2007</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Rework cbf_free_handle to ensure release
 of memory from root, not current position.  Rework
@@ -705,7 +807,7 @@ directory.
 <H3><A NAME="0.7.8">Release 0.7.8</a>, Herbert J. Bernstein, 8 July 2007</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf_simple.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Update handling of both beam center and
 reference beam center to allow for units and new dictionary.
@@ -722,7 +824,7 @@ to handle gfortran 4.2 problems.
 <H3><A NAME="0.7.7.6">Release 0.7.7.6</a>, Herbert J. Bernstein, 30 June 2007</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf_codes.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Fix memory leaks in base32k encoding by G. Darakev.
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf_byte_offset.c
@@ -739,7 +841,7 @@ record length must not be larger than the padding.
 <H3><A NAME="0.7.7.5">Release 0.7.7.5</a>, Herbert J. Bernstein, 9 May 2007</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf_codes.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Change from use of bzero to memset and remove
 include of strings.h
@@ -771,7 +873,7 @@ of /tmp conditional on NOTMPDIR.
 <H3><A NAME="0.7.7.4">Release 0.7.7.4</a>, Herbert J. Bernstein, 6 May 2007</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf_simple.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Fix ordering of dimensions in cbf_set_3d_array.
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf_uncompressed.c
@@ -798,7 +900,7 @@ declarations of arrays.
 <H3><A NAME="0.7.7.3">Release 0.7.7.3</a>, Herbert J. Bernstein, 3 April 2007</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">Makefile
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Add m4 directory to build f90 sources.  Add .f90
 routines to src and examples.  Add libfcb.a to lib.  Add tests
@@ -893,7 +995,7 @@ a test program for the f90 routines.
 <H3><A NAME="0.7.7.2">Release 0.7.7.2</a>, Herbert J. Bernstein, 27 February 2007</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">Makefile
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Add testflatpacked build to extra test dependencies.
 
@@ -927,7 +1029,7 @@ report.
 <H3><A NAME="0.7.7.1">Release 0.7.7.1</a>, Herbert J. Bernstein, 25 February 2007</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">Makefile
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Add testflat build to extra test dependencies.
 
@@ -961,7 +1063,7 @@ in all calls.
 <H3><A NAME="0.7.7">Release 0.7.7</a>, Herbert J. Bernstein, 19 February 2007</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cif2cbf.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Add support for byte offset, packed version 2 
 and flat compression, and binary section padding.  Add support
@@ -1206,7 +1308,7 @@ sections and for flat packed images.
 <H3><A NAME="0.7.6">Release 0.7.6</a>, Herbert J. Bernstein, 15 July 2006</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf.h
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Add include of stdio.h; change CBF_LINELENGTH
 into CBF_LINELENGTH_10 and CBF_LINELENGTH_11; add new symbols
@@ -1345,7 +1447,7 @@ added row major support
 <H3><A NAME="0.7.5">Release 0.7.5</a>, Herbert J. Bernstein, 15 April 2006</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 
 
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf.c
@@ -1657,7 +1759,7 @@ renamed BUFSIZ as I2CBUFSIZ to remove a compiler warning.
 2004</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;added cbf_set_typeofvalue, cbf_get_typeofvalue; added
 braces for nested if-else to remove a compiler warning.
@@ -1726,7 +1828,7 @@ unlinked temporary file; removed unused variables.
 2002</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf_simple.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;modified cbf_get_image to reorder the
 image data on read so that the indices are always 
@@ -1742,7 +1844,7 @@ difference between these versions.
 2001</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf_simple.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;corrected nesting in if statements introduced for 
 the prior mod.
@@ -1751,7 +1853,7 @@ the prior mod.
 <H3><A NAME="0.7.2">Release 0.7.2</a>, Herbert J. Bernstein, 22 April 2001</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf_simple.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;changed _diffrn_measurement_axis.id (now deprecated) to _diffrn_measurement_axis.measurement_id
 and _diffrn_detector_axis.id (now deprecated) to _diffrn_detector_axis.detector_id, but allowed old forms
@@ -1761,7 +1863,7 @@ as aliases.
 <H3><A NAME="0.7.1">Release 0.7.1</a>, Paul J. Ellis, 30 March 2001</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf_simple.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;add reserved argument to various routines;
 in cbf_update_pixel use index2 instead of index1;
@@ -1773,7 +1875,7 @@ in cbf_get_pixel_area, shift by (-0.5,-0.5)<BR>
 <H3><A NAME="0.7.1">Release 0.7.1</a>, Paul J. Ellis, 13 March 2001</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;remove unused declaration of little.
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf.h
@@ -1794,7 +1896,7 @@ in cbf_get_pixel_area, shift by (-0.5,-0.5)<BR>
 <H3><A NAME="0.6.1">Release 0.6.1</a>, H. Powell (per Herbert J. Bernstein), 23 February 2001</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;fix memory leak as corrected by H. Powell<BR>
@@ -1803,7 +1905,7 @@ in cbf_get_pixel_area, shift by (-0.5,-0.5)<BR>
 <H3><A NAME="0.6">Release 0.6</a>, Herbert J. Bernstein, 13 January 1999</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;remove argument repeat from cbf_set_integerarray<BR>
@@ -1879,7 +1981,7 @@ to cbf_parse_binaryheader<BR>
 <H3><A NAME="0.5">Release 0.5</a>, Paul J. Ellis, 5 December 1998</H3>
 <P>
 <TABLE>
-<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left" WIDTH="18%"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 
 
 
@@ -1943,7 +2045,7 @@ to cbf_parse_binaryheader<BR>
 <H3><A NAME="0.4" WIDTH="18%">Release 0.4</a>, Herbert J. Bernstein, 15 November 1998</H3>
 <P>
 <TABLE>
-<tr><th align="left"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf_stx.c
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;rebuilt from cbf.stx with bison 1.25<BR>
@@ -1994,7 +2096,7 @@ argument *compression to cbf_parse_mimeheader<BR>
 <H3><A NAME="0.3" WIDTH="18%">Release 0.3.1.1</a>, Paul J. Ellis, 21 September 1998</H3>
 <P>
 <TABLE>
-<tr><th align="left"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf.h 
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;remove globals, add tolen CBF_TOKEN_MIME_BIN, change
@@ -2119,7 +2221,7 @@ argument *compression to cbf_parse_mimeheader<BR>
 <H3><A NAME="0.2" WIDTH="18%">Release 0.2</a>, Herbert J. Bernstein, 27 August 1998</H3>
 <P>
 <TABLE>
-<tr><th align="left"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change
+<tr><th align="left"><font face="Arial,Helvetica,Times">Source File<th align="left"><font face="Arial,Helvetica,Times">Change</th></tr>
 <tr><td valign="top"><font face="Arial,Helvetica,Times">cbf.h 
 <td><font face="Arial,Helvetica,Times">&nbsp;&nbsp;Define CBF and CIF, add cbf_force_new_datablock,
 	               cbf_force_new_category, remove some uses of const,

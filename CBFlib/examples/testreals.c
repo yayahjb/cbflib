@@ -248,9 +248,9 @@
 
 int local_exit (int status);
 
-int outerror(int err) 
+int outerror(int err)
 {
-	
+
   if ((err&CBF_FORMAT)==CBF_FORMAT)
     fprintf(stderr, " testreals: The file format is invalid.\n");
   if ((err&CBF_ALLOC)==CBF_ALLOC)
@@ -262,7 +262,7 @@ int outerror(int err)
   if ((err&CBF_BINARY)==CBF_BINARY)
     fprintf(stderr, " testreals: The value is binary (not ASCII).\n");
   if ((err&CBF_BITCOUNT)==CBF_BITCOUNT)
-    fprintf(stderr, " testreals: The expected number of bits does" 
+    fprintf(stderr, " testreals: The expected number of bits does"
       " not match the actual number written.\n");
   if ((err&CBF_ENDOFDATA)==CBF_ENDOFDATA)
     fprintf(stderr, " testreals: The end of the data was reached"
@@ -322,20 +322,20 @@ int outusage ( void ) {
 
 int main (int argc, char *argv [])
 {
-  cbf_handle incbf, cbf;
-  
+  cbf_handle incbf=NULL, cbf=NULL;
+
   FILE *in, *out;
 
   double *image;
-  
+
   float *flimage;
-  
+
   int i;
 
   /* Read the input test file */
 
   if (!(in = fopen ("testrealin.cbf", "rb"))) {
-     fprintf (stderr,"testreals: Couldn't open the input imgCIF file %s\n", 
+     fprintf (stderr,"testreals: Couldn't open the input imgCIF file %s\n",
      "testrealin.cbf");
      exit (1);
   }
@@ -343,15 +343,15 @@ int main (int argc, char *argv [])
   cbf_failnez (cbf_make_handle (&incbf))
 
   cbf_failnez (cbf_read_file (incbf, in, MSG_DIGEST))
-    
+
   cbf_failnez (cbf_make_handle (&cbf))
-  
+
   cbf_failnez(cbf_find_datablock(incbf,"testreals"))
-  
+
   cbf_failnez(cbf_find_category(incbf,"array_data"))
-  
+
   cbf_failnez(cbf_find_column(incbf,"data"))
-  
+
   cbf_failnez(cbf_rewind_row(incbf))
 
   cbf_failnez (	(image = (double *)malloc(sizeof(double)*1000000))==NULL?CBF_ALLOC:0);
@@ -368,7 +368,7 @@ int main (int argc, char *argv [])
   }
 
   free(image);
-  
+
   cbf_failnez(cbf_next_row(incbf))
 
   cbf_failnez (	(flimage = (float *)malloc(sizeof(float)*1000000))==NULL?CBF_ALLOC:0);
@@ -385,15 +385,15 @@ int main (int argc, char *argv [])
   }
 
   free(flimage);
-  
- 
+
+
 
   cbf_failnez(cbf_new_datablock(cbf,"testreals"))
-  
+
   cbf_failnez(cbf_new_category(cbf,"array_data"))
-  
+
   cbf_failnez(cbf_new_column(cbf,"data"))
-  
+
   cbf_failnez(cbf_new_row(cbf))
 
 
@@ -415,7 +415,7 @@ int main (int argc, char *argv [])
   free(image);
 
   cbf_failnez(cbf_new_row(cbf))
-  
+
 /*  Create a real array 1000 x 1000 floats running in sequence */
 
   cbf_failnez( (flimage = (float *)malloc(sizeof(float)*1000000))==NULL?CBF_ALLOC:0);
@@ -449,8 +449,12 @@ int main (int argc, char *argv [])
 
     /* Free the cbf */
 
-  cbf_failnez (cbf_free_handle (cbf))
-
+  if (cbf) {
+      cbf_failnez (cbf_free_handle (cbf));
+  }
+  if (incbf) {
+      cbf_failnez (cbf_free_handle (incbf));
+  }
 
 
     /* Success */

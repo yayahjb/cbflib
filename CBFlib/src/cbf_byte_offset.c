@@ -963,7 +963,7 @@ int cbf_compress_byte_offset (void         *source,
                     csize +=3;   
                     
                 } else if ( sizeof(int) > 2 && 
-                           (sizeof(int) < 5 || (delta[0] <= 2147483647L && delta[0] >= -2147483647L ) ) ){
+                           (sizeof(int) < 5 || ((long)delta[0] <= 2147483647L && (long)delta[0] >= -2147483647L ) ) ){
                     
                     cbf_failnez(cbf_put_bits(file,&bflag,24))
                     
@@ -1448,32 +1448,30 @@ int cbf_decompress_byte_offset_fast(void         *destination,
         
     }
     
-    /* get all compressed data */
-    if (file->characters_used >= compressedsize) {
-        rawdata = (unsigned char *) file->characters;
-        file->characters += compressedsize;
-        file->characters_size -= compressedsize;
-        file->characters_used -= compressedsize;
-    } else {
-        if (file->temporary == 0) {
-            rawdata = malloc(compressedsize);
-            if (rawdata == NULL) {
-                fprintf(stderr, "Out of memory\n");
-                return CBF_OVERFLOW;
-            }
-            if (file->stream == NULL) {
-                fprintf(stderr, "No file stream associated with handle\n");
-                return CBF_NOTFOUND;
-            }
-            if (fread(rawdata, 1, compressedsize, file->stream) != compressedsize) {
-                rawdata = NULL;
-            }
+    if (file->characters_used < compressedsize) {
+        
+        if (file->temporary) return CBF_FILEREAD;
+        
+        cbf_failnez(cbf_set_io_buffersize(file,
+            compressedsize-(file->characters_used)));
+                    
+        if (file->stream == NULL) {
+            fprintf(stderr, "No file stream associated with handle\n");
+            return CBF_NOTFOUND;
         }
+
+        if (fread(file->characters_base+file->characters_used,
+                  1,compressedsize-(file->characters_used),
+                  file->stream)
+            != compressedsize-(file->characters_used))
+                    return CBF_FILEREAD;
+                    
+        file->characters_used = compressedsize;
+        
     }
     
-    if (rawdata == NULL)
-        return CBF_FILEREAD; /* cannot find data */
-    
+    rawdata = (unsigned char *)file->characters;
+                        
     numread = 0;
     
     if (elsign) {
@@ -2078,10 +2076,6 @@ int cbf_decompress_byte_offset_fast(void         *destination,
 #endif
 #endif      
     }
-    
-    if (file->temporary == 0)
-        free(rawdata);
-    
     
     /* Number read */
     

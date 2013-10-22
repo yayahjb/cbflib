@@ -260,6 +260,8 @@ extern "C" {
 
 #define CBF_NOTIMEZONE 1440
 
+#define cbf_max(a,b) ((a)>(b)?(a):(b))
+
 
   /* Geometry structures */
 
@@ -273,10 +275,12 @@ cbf_axis_type;
 
 typedef struct
 {
-  char *name, *depends_on;
+    char *name, *depends_on, *rotation_axis;
 
-  double vector [3], offset [3], start, increment, setting;
+    double vector [3], offset [3], start, increment, setting, rotation;
 
+    int depends_on_index, rotation_axis_index, depdepth;
+    
   cbf_axis_type type;
 }
 cbf_axis_struct;
@@ -289,7 +293,12 @@ typedef struct
 
   size_t axes;
 
-  int matrix_is_valid, axes_are_connected;
+    int matrix_is_valid;
+    
+  double matrix_ratio_used;
+    
+    size_t axis_index_limit;
+    
 }
 cbf_positioner_struct;
 
@@ -960,6 +969,30 @@ int cbf_set_3d_array (cbf_handle    handle,
         cbf_set_3d_array ((handle),(reserved),(array_id),(binary_id),(compression),(array),(eltype),(elsize),(elsign),(ndimslow),(ndimmid),(ndimfast) )
 
 
+    /* Get the type of an axis */
+    
+    int cbf_get_axis_type (cbf_handle handle, const char *axis_id,
+                           cbf_axis_type *axis_type);
+    
+    /* Get the axis, if any, on which this axis depends */
+    
+    int cbf_get_axis_depends_on (cbf_handle handle, const char *axis_id,
+                                 const char * *depends_on);
+    
+    /* Get an axis vector */
+    
+    int cbf_get_axis_vector (cbf_handle handle, const char *axis_id,
+                             double *vector1,
+                             double *vector2,
+                             double *vector3);
+
+    /* Get an axis offset */
+    
+    int cbf_get_axis_offset (cbf_handle handle, const char *axis_id,
+                             double *offset1,
+                             double *offset2,
+                             double *offset3);
+
 
   /* Get the setting of an axis */
 
@@ -1076,6 +1109,19 @@ int cbf_require_reference_detector (cbf_handle    handle, cbf_detector      *det
 int cbf_free_detector (cbf_detector detector);
 
 
+  /* Construct a  positioner */
+    
+int cbf_construct_positioner  (cbf_handle handle, cbf_positioner *positioner,
+                                           const char *   axis_id);
+  /* Construct a reference positioner */
+    
+int cbf_construct_reference_positioner  (cbf_handle handle, cbf_positioner *positioner,
+                                                const char *   axis_id);
+    
+  /* Free a psitioner */
+    
+int cbf_free_positioner (cbf_positioner positioner);
+    
   /* Get the beam center */
 
 int cbf_get_beam_center (cbf_detector detector, double *indexslow,
@@ -1258,6 +1304,109 @@ int cbf_get_orientation_matrix (cbf_handle handle, double ub_matrix[9]);
 int cbf_set_orientation_matrix (cbf_handle handle, double ub_matrix[9]);
 
 
+    /* get the axis upon which an axis depends */
+    
+int cbf_get_parent_axis(cbf_handle handle,
+                            const char * *parent_axis,
+                            const char *axis_id);
+
+    /* get the reference axis vector and offset of a given axis */
+    
+int cbf_get_axis_reference_poise(cbf_handle handle,
+                            double *vector1, double *vector2, double *vector3,
+                            double *offset1, double *offset2, double *offset3,
+                            const char *axis_id);
+    
+    /* get the absolute axis vector and offset of a given axis
+     ratio is how far into a frame we are, 0. at the start
+     of the frame, 1. at the end
+     
+     The three offset values are the absolute position to which
+     the origin has been moved */
+    
+int cbf_get_axis_poise(cbf_handle handle, double ratio,
+                           double *vector1, double *vector2, double *vector3,
+                           double *offset1, double *offset2, double *offset3,
+                           double *angle,
+                           const char *axis_id,
+                           const char *frame_id);
+
+    /* Get the positioner matrix */
+    
+    
+int cbf_get_positioner_matrix (cbf_positioner positioner,
+                               double ratio,
+                               double matrix[3][4]);
+    
+    /* Get goniometer poise -- returns the pre-offset, post-translation and angle */
+    
+int cbf_get_goniometer_poise(cbf_goniometer goniometer, double ratio,
+                             double *vector1, double *vector2, double* vector3,
+                             double *offset1, double *offset2, double* offset3,
+                             double *angle);
+
+    /* Get the setting of an axis specific to a given frame */
+    
+int cbf_get_frame_axis_setting (cbf_handle handle, unsigned int  reserved,
+                                const char   *axis_id,
+                                const char   *frame_id,
+                                double       *start,
+                                double       *increment);
+    /* Add frame-specific data for an axis to a positioner */
+    
+int cbf_read_positioner_frame_axis (cbf_handle      handle,
+                                    unsigned int    reserved,
+                                    cbf_positioner  positioner,
+                                    const char     *axis_id,
+                                    const char     *frame_id,
+                                    int             read_setting);
+
+
+    /* Construct a frame goniometer positioner*/
+                             
+int cbf_construct_frame_goniometer (cbf_handle handle,
+                                    cbf_goniometer *goniometer,
+                                    const char *frame_id);
+
+    /* Construct a frame detector positioner */
+    
+int cbf_construct_frame_detector (cbf_handle    handle,
+                                  cbf_detector *detector,
+                                  unsigned int  element_number,
+                                  const char *frame_id);
+    
+    /* construct a positioner for a given final axis */
+    
+int cbf_construct_frame_positioner (cbf_handle handle,
+                                    cbf_positioner *positioner,
+                                    const char *axis_id,
+                                    const char *frame_id);
+
+    /* get the id of the particular equipment associated with
+     the specified axis_id for for specified equipment */
+    
+int cbf_get_axis_equipment_id(cbf_handle handle,
+                                    const char ** equipment_id,
+                                    const char * equipment,
+                                    const char * axis_id);
+    
+    /* get the dimension and units of the available scan points for an axis */
+    
+int cbf_get_axis_parameters(cbf_handle handle,
+                                size_t * scanpoints,
+                                const char ** units,
+                                const char * equipment,
+                                const char * axis_id);
+    
+    /* get the scan points for an axis */
+    
+int cbf_get_axis_scan_points(cbf_handle handle,
+                                 double * scanarray,
+                                 size_t scanpoints,
+                                 size_t *scanpointsfound,
+                                 const char * units,
+                                 const char * axis_id);
+    
 #ifdef __cplusplus
 
 }

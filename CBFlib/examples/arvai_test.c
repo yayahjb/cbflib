@@ -23,7 +23,7 @@ int main (int argc, char ** argv) {
 	char filename[] = "/tmp/mb_LP_1_001_orig.cbf.bz2";
 	FILE *fp;
 	int ierr;
-	cbf_handle cbf;
+	cbf_handle cbf=NULL;
 	
 	cbf_failnez (cbf_make_handle (&cbf))
     
@@ -36,7 +36,7 @@ int main (int argc, char ** argv) {
     if (data_buffer == NULL) {
         fprintf(stderr,"not enough memory.\n");
         fflush(stderr);
-        fclose(fp);
+        pclose(fp);
         return -1;
     }
     while ((read_count = fread (data_buffer + data_buffer_len, 1, 1024*1024, fp)) != 0) {
@@ -46,17 +46,22 @@ int main (int argc, char ** argv) {
         if (temp_buffer == NULL) {
             fprintf(stderr,"not enough memory.\n");
             fflush(stderr);
-            fclose(fp);
+            pclose(fp);
             return -1;
         }
         memmove(temp_buffer,data_buffer,data_buffer_len);
         free(data_buffer);
         data_buffer=temp_buffer;
     }
+	free((void *)data_buffer);
     
     fprintf(stderr,"data_buffer_len=%d\n",data_buffer_len); fflush(stderr);
     ierr = cbf_read_buffered_file (cbf, NULL, MSG_DIGESTNOW, data_buffer, data_buffer_len);
     fprintf(stderr,"ierr=%d \n",ierr); fflush(stderr);
+	pclose(fp);
+    if (cbf) {
+	  cbf_failnez(cbf_free_handle(cbf));
+    }
     exit(0);
 }
 

@@ -1,9 +1,17 @@
+   [IUCr Home Page] [CIF Home Page] [CBF/imgCIF] [IMG]
+
+     ----------------------------------------------------------------------
+
+            | IUCr Home Page | CIF Home Page | CBF/imgCIF | CBFlib |
+                  | NOTICE | GPL | LGPL | imgCIF dictionary |
+                       | Click Here to Make a Donation |
+
                                 CBFlib ChangeLog
 
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
-                                 Version 0.9.2
-                                12 February 2011
+                                 Version 0.9.3
+                                 7 October 2013
 
                                        by
                                  Paul J. Ellis
@@ -14,7 +22,7 @@
                                 Bernstein + Sons
                       yaya at bernstein-plus-sons dot com
 
-           (c) Copyright 2006, 2007, 2008, 2011 Herbert J. Bernstein
+        (c) Copyright 2006, 2007, 2008, 2011, 2013 Herbert J. Bernstein
 
      ----------------------------------------------------------------------
 
@@ -38,7 +46,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    1R13RR023192 from NCRR and funding from the International Union for
    Crystallographyn (IUCr). The content is solely the responsibility of the
    authors and does not necessarily represent the official views of DOE, NSF,
-   NIH, NIGMS, NCRR or IUCr.
+   NIH, NIGMS, NCRR or IUCr. Recent work on integration among CBF, HDF5 and
+   NeXus supported in part by Pandata ODI (EU 7th Framework Programme)
 
      ----------------------------------------------------------------------
 
@@ -213,6 +222,83 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                              JLM, NS,  pycbf, tiff support, removal of        
                              EZ, HJB   default use of PyCifRW to avoid Fedora 
                                        license issue.                         
+     0.9.3     Oct 2013        JS, HJB    New default release integrating     
+                                       CBF, HDF5 and NeXus.                   
+
+     ----------------------------------------------------------------------
+
+  Release 0.9.3, John Lewis Muir, Jonathan Sloan, Graeme Winter, Herbert J.
+  Bernstein, 7 October 2013
+
+   These are the cummulative mods from the 0.9.2 release in February 2011 to
+   the 0.9.3 release in October 2013.
+
+   Source File                Change                                          
+   CBFlib.html, CBFlib.txt    Correction to description of byte-offset        
+                              algorithm (JLM, 29 Mar 11)                      
+   cif_img_1.6.4_2Jul11.html, Corrections to support DLS Dectris header as    
+   cif_img_1.6.4_2Jul11.dic   per (GW, HJB, 2 Jul 11)                         
+   PyCifRW-3.3_6Dec09         PyCifRW-3.3_6Dec09 removed because of license   
+                              issues for Fedora (HJB, 6 Jul 11)               
+   pycbf_wrap.c,              Reverse setting of readable in pycbf write_file 
+   cbf_tkfiledialog.py,       and write_widefile to ensure closure of the     
+   cbfhandlewrappers.i,       file immediately after a write. Fix errors in   
+   make_pycbf.py              save_cbf in cbf_tkfiledialog.py (HJB, 30 Jul    
+                              11)                                             
+   convert_minicbf.c,         Update convert_minicbf.c and Makefiles to       
+   Makefiles                  support both old and new test cases (HJB, 25    
+                              Oct 12)                                         
+   convert_minicbf.c          Make convert_minicbf more fault tolerant with   
+                              better warnings. (HJB, 29 Nov 12)               
+   cbf_nibble_offset.c,       Preliminary changes for cbf_nibble_offset.      
+   cbf_nibble_offset.h,       (HJB, 9 Dec 12)                                 
+   changtestcompression.c,    
+   cbf.h, cbf_read_mime.c,    
+   cbf_lex.c, cbf_simple.c,   
+   cbf_compress.c,            
+   cbf_copy.c, cif2cbf.c      
+   cbf_hdf5.c, cbf_hdf5.h     Partial HDF5 support. (HJB, 28 Dec 12) Partial  
+                              code for NeXus axis definitions. (HJB, 12 Jan   
+                              13)                                             
+   cbf_hdf5_filter.c,         Addition of partially refactored code from J.   
+   bf_hdf5_filter.h, cbf.c,   Sloan (see below). Add all CBF compressions to  
+   cbf.h, cbf_hdf5.c,         Nexus with cbf_hdf5_filter (JS, HJB, 1 Jun 13)  
+   cbf_hdf5.h, Makefiles      
+   cbf_hdf5.h, cbf_hdf5.c     New functions to interact with HDF5 at a        
+                              realtively low level: cbf_H5Arequire_cmp,       
+                              cbf_H5Arequire_string, cbf_H5Dcreate,           
+                              cbf_H5Dfind, cbf_H5Drequire, cbf_H5Dinsert,     
+                              cbf_H5Dset_extent, cbf_H5Dwrite, cbf_H5Dread,   
+                              cbf_H5Drequire_scalar_F64LE,                    
+                              cbf_H5Drequire_string, cbf_H5Dfree,             
+                              cbf_H5Fopen, cbf_H5Fclose, cbf_H5Gcreate,       
+                              cbf_H5Grequire, cbf_H5Gfree, cbf_H5Ivalid,      
+                              cbf_H5Screate, cbf_H5Sfree,                     
+                              cbf_H5Tcreate_string, cbf_H5Tfree               
+   cbf_hdf5.h, cbf_hdf5.c     New functions to manage the lifetime of a       
+                              'cbf_h5handle' object, and access some commonly 
+                              used components of a NeXus file in a safe way:  
+                              cbf_create_h5handle, cbf_write_minicbf_h5file,  
+                              cbf_write_cbf_h5file, cbf_free_h5handle,        
+                              cbf_h5handle_require_file,                      
+                              cbf_h5handle_require_entry,                     
+                              cbf_h5handle_require_sample,                    
+                              cbf_h5handle_require_instrument,                
+                              cbf_h5handle_require_detector,                  
+                              cbf_h5handle_require_monochromator              
+   cbf_hdf5.h, cbf_hdf5.c     New functions to get some configration settings 
+                              for a miniCBF file to allow it to be converted  
+                              into a NeXus file: cbf_config_create,           
+                              cbf_config_free, cbf_config_parse,              
+                              cbf_config_strerror                             
+   cbf_ulp.h, cbf_ulp.c       New functions to compare IEEE-754 floating      
+                              point numbers accurately: cbf_ULP32, cbf_ULP64  
+   minicbf2nexus.c,           New utility programs for converting from        
+   cbf2nexus.c                CBF/miniCBF files to NeXus files.               
+   testhdf5.c                 New unit tests for the low-level 'cbf_H5*'      
+                              functions.                                      
+   testulp.c                  New unit tests and checks for applicability of  
+                              the ulp comparison methods.                     
 
      ----------------------------------------------------------------------
 

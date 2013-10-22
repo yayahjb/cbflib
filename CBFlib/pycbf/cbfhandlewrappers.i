@@ -301,10 +301,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -753,6 +754,36 @@ SEE ALSO
 ")rewind_column;
     void rewind_column(void){
       cbf_failnez(cbf_rewind_column(self));}
+%feature("autodoc", "
+Returns : pycbf positioner object
+*args   : String axis_id
+
+C prototype: int cbf_construct_reference_positioner (cbf_handle handle,
+                      cbf_positioner *positioner, const char *axis_id);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_construct_positioner constructs a positioner object for the axis 
+given by axis_id using the description in the CBF object handle and 
+initialises the positioner handle *positioner.
+cbf_construct_reference positioner constructs a positioner object for 
+the axis given by axis_id using the description in the CBF object 
+handle and initialises the detector handle *detector using the 
+reference settings of the axes.
+ARGUMENTS
+handle     CBF handle. detector   Pointer to the destination detector 
+handle. axis_id    The identifier of the axis in the  \"axis \" 
+category.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")construct_reference_positioner;
+
+ cbf_positioner construct_reference_positioner(const char* axis_id){
+    cbf_positioner positioner;
+    cbf_failnez(cbf_construct_reference_positioner(self,&positioner,axis_id));
+    return positioner;
+    }
 %feature("autodoc", "
 Returns : Float defaultvalue
 *args   : String columnname,Float Value
@@ -1221,6 +1252,75 @@ Returns an error code on failure or 0 for success.
      void set_wavelength(double wavelength){
         cbf_failnez(cbf_set_wavelength(self,wavelength));}
 %feature("autodoc", "
+Returns : Float vector1,Float vector2,Float vector3,Float offset1,Float offset2,
+          Float offset3,Float angle
+*args   : Float ratio,String axis_id,String frame_id
+
+C prototype: int cbf_get_axis_poise(cbf_handle handle, double ratio,
+                 double *      vector1, double * vector2, double * vector3,
+                 double * offset1, double *      offset2, double * offset3,
+                 double * angle, const char * axis_id,
+                 const      char * frame_id);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_get_axis_poise sets vector1, vector2, vector3 to point to the 
+components of the axis vector for axis axis_id, offset1, offset2, 
+offset3 to point to the components of the axis base offset vector for 
+axis axis_id, and angle to point to the angle of rotation of axis 
+axis_id after application of the axis settings for frame frame_id, 
+using ratio, a value between 0 and 1, indicating how far into the 
+internal motion in the frame to go. If frame_id is the string  \". 
+\", the first frame found is used. If there is more than one frame, 
+which frame will be found is indeterminate. If frame_id is NULL, the 
+overall setting for the scan are used, rather than those for any 
+particular frame. The vector and offset reported are the reference 
+vector and offset of the axis axis_id transformed by application of 
+all motions of the axes on which axis_id depends.
+cbf_get_goniometer_poise vector1, vector2, vector3 to point to the 
+components of the axis vector for the goniometer axis, offset1, 
+offset2, offset3 to point to the components of the axis base offset 
+vector for the goniometer axis, and angle to point to the angle of 
+rotation of the goniometer axis after application of all axis 
+settings in the goniometer deriving the vector, offset and angle from 
+the resulting matrix. Calculation of the vector is indeterminate if 
+the angle is zero.
+cbf_get_axis_reference_poise sets vector1, vector2, vector3 to point 
+to the components of the axis vector for axis axis_id, offset1, 
+offset2, offset3 to point to the components of the axis base offset 
+vector for axis axis_id unmodified by axis rotations. Any of the 
+pointers may be specified as NULL.
+ARGUMENTS
+handle       CBF handle. ratio        A number between 0 and 1 
+indication how far into the frame to go vector1      Pointer to the 
+first component of the axis vector vector2      Pointer to the second 
+component of the axis vector vector3      Pointer to the third 
+component of the axis vector offset1      Pointer to the first 
+component of the axis offset offset2      Pointer to the second 
+component of the axis offset offset3      Pointer to the third 
+component of the axis offset angle        Pointer to the rotation 
+angle axis_id      The specified axis frame_id     The specified 
+frame positioner   CBF goniometer
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_axis_poise;
+
+  %apply double *OUTPUT {double *vector1, double *vector2, double *vector3, 
+    double *offset1, double *offset2, double *offset3, double *angle};
+  
+  void get_axis_poise(double ratio, 
+      double *vector1, double *vector2, double *vector3,
+      double *offset1, double *offset2, double *offset3,
+      double *angle,
+      const char *axis_id, const char *frame_id){
+        cbf_failnez(cbf_get_axis_poise(self, ratio,
+          vector1, vector2, vector3,
+          offset1, offset2, offset3, angle,
+          axis_id, frame_id));
+      }
+
+%feature("autodoc", "
 Returns : 
 *args   : Int element_number,Int axis_number,Float pixel size
 
@@ -1547,14 +1647,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -1593,7 +1694,7 @@ SEE ALSO
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_realarray_wdims (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
@@ -1732,7 +1833,7 @@ CBFLib documentation:
 DESCRIPTION
 cbf_get_axis_setting sets *start and *increment to the corresponding 
 values of the axis axis_id.
-Either of the destination pointers may be NULL.
+Any of the destination pointers may be NULL.
 The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
 handle      CBF handle. reserved    Unused. Any value other than 0 is 
@@ -1993,10 +2094,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -2219,10 +2321,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -2297,15 +2400,15 @@ readable, readable must be 0.
                     int encoding){
        FILE *stream;
        int readable;
-       /* Make the file non-0 to make CBFlib close the file */
-       readable = 1;
+       /* Make readable false so we can close the file immediately */
+       readable = 0;
        if ( ! ( stream = fopen (filename, "w+b")) ){
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
         cbf_failnez(cbf_write_file(self, stream, readable, 
                     ciforcbf, headers, encoding));
-
+        fclose(stream);
         }
        }
 %feature("autodoc", "
@@ -2419,10 +2522,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -3158,10 +3262,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -3289,8 +3394,8 @@ SEE ALSO
 %feature("autodoc", "
 Returns : 
 *args   : int compression,int binary_id,(binary) String data,int elsize,
-          int elements,String byteorder,int dimslow,int dimmid,int dimfast,
-          int padding
+          int elsigned,int elements,String byteorder,int dimslow,int dimmid,
+          int dimfast,int padding
 
 C prototype: int cbf_set_integerarray_wdims_sf (cbf_handle handle,
                  unsigned int    compression, int binary_id, void *array,
@@ -3317,14 +3422,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -3363,7 +3469,7 @@ SEE ALSO
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_integerarray_wdims_sf (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimslow, (size_t)dimmid, (size_t)dimfast, (size_t)padding)); 
@@ -3954,10 +4060,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -4169,8 +4276,8 @@ SEE ALSO
 %feature("autodoc", "
 Returns : 
 *args   : int compression,int binary_id,(binary) String data,int elsize,
-          int elements,String byteorder,int dimfast,int dimmid,int dimslow,
-          int padding
+          int elsigned,int elements,String byteorder,int dimfast,int dimmid,
+          int dimslow,int padding
 
 C prototype: int cbf_set_integerarray_wdims (cbf_handle handle,
                  unsigned int    compression, int binary_id, void *array,
@@ -4197,14 +4304,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -4243,7 +4351,7 @@ SEE ALSO
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_integerarray_wdims (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
@@ -4468,10 +4576,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -4999,10 +5108,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -5300,14 +5410,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -5346,7 +5457,7 @@ SEE ALSO
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_realarray_wdims_sf (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t) dimslow, (size_t) dimmid, (size_t) dimfast, (size_t)padding)); 
@@ -5487,10 +5598,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -5600,6 +5712,72 @@ ndimslow and ndimmid should be the
         *slen = elsize*ndimfast*ndimmid*ndimslow;
         *s = (char *) array;
       }
+%feature("autodoc", "
+Returns : Float vector1,Float vector2,Float vector3,Float offset1,Float offset2,
+          Float offset3
+*args   : String axis_id
+
+C prototype: int cbf_get_axis_reference_poise(cbf_handle handle,
+                 double * vector1,      double * vector2, double * vector3,
+                 double * offset1, double * offset2,      double * offset3,
+                 const char * axis_id);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_get_axis_poise sets vector1, vector2, vector3 to point to the 
+components of the axis vector for axis axis_id, offset1, offset2, 
+offset3 to point to the components of the axis base offset vector for 
+axis axis_id, and angle to point to the angle of rotation of axis 
+axis_id after application of the axis settings for frame frame_id, 
+using ratio, a value between 0 and 1, indicating how far into the 
+internal motion in the frame to go. If frame_id is the string  \". 
+\", the first frame found is used. If there is more than one frame, 
+which frame will be found is indeterminate. If frame_id is NULL, the 
+overall setting for the scan are used, rather than those for any 
+particular frame. The vector and offset reported are the reference 
+vector and offset of the axis axis_id transformed by application of 
+all motions of the axes on which axis_id depends.
+cbf_get_goniometer_poise vector1, vector2, vector3 to point to the 
+components of the axis vector for the goniometer axis, offset1, 
+offset2, offset3 to point to the components of the axis base offset 
+vector for the goniometer axis, and angle to point to the angle of 
+rotation of the goniometer axis after application of all axis 
+settings in the goniometer deriving the vector, offset and angle from 
+the resulting matrix. Calculation of the vector is indeterminate if 
+the angle is zero.
+cbf_get_axis_reference_poise sets vector1, vector2, vector3 to point 
+to the components of the axis vector for axis axis_id, offset1, 
+offset2, offset3 to point to the components of the axis base offset 
+vector for axis axis_id unmodified by axis rotations. Any of the 
+pointers may be specified as NULL.
+ARGUMENTS
+handle       CBF handle. ratio        A number between 0 and 1 
+indication how far into the frame to go vector1      Pointer to the 
+first component of the axis vector vector2      Pointer to the second 
+component of the axis vector vector3      Pointer to the third 
+component of the axis vector offset1      Pointer to the first 
+component of the axis offset offset2      Pointer to the second 
+component of the axis offset offset3      Pointer to the third 
+component of the axis offset angle        Pointer to the rotation 
+angle axis_id      The specified axis frame_id     The specified 
+frame positioner   CBF goniometer
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_axis_reference_poise;
+
+  %apply double *OUTPUT {double *vector1, double *vector2, double *vector3, 
+    double *offset1, double *offset2, double *offset3};
+  
+  void get_axis_reference_poise(double *vector1, double *vector2, double *vector3,
+      double *offset1, double *offset2, double *offset3,
+      const char *axis_id){
+        cbf_failnez(cbf_get_axis_reference_poise(self,
+          vector1, vector2, vector3,
+          offset1, offset2, offset3,
+          axis_id));
+      }
+
 
 /* cfunc cbf_remove_row   pyfunc remove_row  
    arg cbf_handle handle */
@@ -5717,10 +5895,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -5946,14 +6125,15 @@ readable, readable must be 0.
                     int encoding){
        FILE *stream;
        int readable;
-       /* Make the file non-0 to make CBFlib close the file */
-       readable = 1;
+       /* Make readable false so we can close the file immediately */
+       readable = 0;
        if ( ! ( stream = fopen (filename, "w+b")) ){
          cbf_failnez(CBF_FILEOPEN);
         }
         else{
         cbf_failnez(cbf_write_widefile(self, stream, readable, 
                     ciforcbf, headers, encoding));
+        fclose(stream);
 
         }
        }
@@ -6035,14 +6215,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -6383,14 +6564,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -6523,6 +6705,36 @@ ndimslow and ndimmid should be the
         *slen = elsize*ndimfast*ndimslow;
         *s = (char *) array;
       }
+%feature("autodoc", "
+Returns : pycbf positioner object
+*args   : String axis_id
+
+C prototype: int cbf_construct_positioner (cbf_handle handle,
+                 cbf_positioner      *positioner, const char *axis_id);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_construct_positioner constructs a positioner object for the axis 
+given by axis_id using the description in the CBF object handle and 
+initialises the positioner handle *positioner.
+cbf_construct_reference positioner constructs a positioner object for 
+the axis given by axis_id using the description in the CBF object 
+handle and initialises the detector handle *detector using the 
+reference settings of the axes.
+ARGUMENTS
+handle     CBF handle. detector   Pointer to the destination detector 
+handle. axis_id    The identifier of the axis in the  \"axis \" 
+category.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")construct_positioner;
+
+ cbf_positioner construct_positioner(const char* axis_id){
+    cbf_positioner positioner;
+    cbf_failnez(cbf_construct_positioner(self,&positioner,axis_id));
+    return positioner;
+    }
 %feature("autodoc", "
 Returns : size_t ndimfast,size_t ndimmid,size_t ndimslow
 *args   : Integer element_number
@@ -6853,10 +7065,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -7082,14 +7295,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -7128,7 +7342,7 @@ SEE ALSO
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_realarray_wdims_fs (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, (size_t) elements, (const char *)byteorder,
            (size_t) dimfast, (size_t) dimmid, (size_t) dimslow, (size_t)padding)); 
@@ -7170,8 +7384,8 @@ const char*  find_category_root(const char* categoryname){
 %feature("autodoc", "
 Returns : 
 *args   : int compression,int binary_id,(binary) String data,int elsize,
-          int elements,String byteorder,int dimfast,int dimmid,int dimslow,
-          int padding
+          int elsigned,int elements,String byteorder,int dimfast,int dimmid,
+          int dimslow,int padding
 
 C prototype: int cbf_set_integerarray_wdims_fs (cbf_handle handle,
                  unsigned int    compression, int binary_id, void *array,
@@ -7198,14 +7412,15 @@ fastest and third fastest array dimensions and the size in byte of
 the post data padding to be used.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
- CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
-Simple  \"byte_offset \" compression. CBF_NONE          No 
-compression. NOTE: This scheme is by far the slowest of the four and 
-uses much more disk space. It is intended for routine use with small 
-arrays only. With large arrays (like images) it should be used only 
-for debugging.
+CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
+ Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE            No compression. 
+NOTE: This scheme is by far the slowest of the four and uses much 
+more disk space. It is intended for routine use with small arrays 
+only. With large arrays (like images) it should be used only for 
+debugging.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.
@@ -7244,7 +7459,7 @@ SEE ALSO
            els = elsize;
            ele = elements;
            strncpy(byteorder,bo,bolen<15?bolen:14);
-           byteorder[bolen<15?14:bolen] = 0;
+           byteorder[bolen<15?bolen:14] = 0;
            cbf_failnez(cbf_set_integerarray_wdims_fs (self, compression, binary_id, 
            (void *) data,  (size_t) elsize, elsigned, (size_t) elements, (const char *)byteorder,
            (size_t)dimfast, (size_t)dimmid, (size_t)dimslow, (size_t)padding)); 
@@ -7291,10 +7506,11 @@ ndimmid should be used for the array dimensions and ndimfast should
 be set to 1.
 The array will be compressed using the compression scheme specifed by 
 compression. Currently, the available schemes are:
-CBF_CANONICAL   Canonical-code compression (section 3.3.1) CBF_PACKED 
-     CCP4-style packing (section 3.3.2) CBF_PACKED_V2     CCP4-style 
-packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   Simple  
-\"byte_offset \" compression. CBF_NONE        No compression.
+CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
+CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
+   CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET     
+Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  
+\"nibble_offset \" compression. CBF_NONE          No compression.
 The values compressed are limited to 64 bits. If any element in the 
 array is larger than 64 bits, the value compressed is the nearest 
 64-bit value.

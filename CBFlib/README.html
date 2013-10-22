@@ -1,12 +1,10 @@
-<!doctype html public "-//IETF//DTD HTML 2.0//EN">
-<HTML>
-
-<HEAD>
-<TITLE>
+<html>
+<head>
+<title>
 CBFlib
-</TITLE> 
-</HEAD> 
-<BODY BACKGROUND="html_graphics/cbflibbackground.jpg">
+</title>
+</head>
+<body background="html_graphics/cbflibbackground.jpg">
 <table border=2>
 <tr>
 <td><a href="http://www.iucr.org/iucr-top/welcome.html">
@@ -15,7 +13,7 @@ CBFlib
 <td><a href="http://www.iucr.org/iucr-top/cif/home.html">
 <img alt="[CIF Home Page]" src="html_graphics/cifhome.jpg"></a>
 </td>
-<td><A HREF="doc/cbf_definition_rev.html"><IMG SRC="html_graphics/CBFbutton.jpg" 
+<td><A HREF="doc/cbf_definition_rev.html"><IMG SRC="html_graphics/CBFbutton.jpg"
 ALT="[CBF/imgCIF]"></A>
 </td>
 <td><A HREF="doc/CBFlib.html"><IMG SRC="html_graphics/cbflibbutton.jpg" 
@@ -34,7 +32,7 @@ ALT="[CBFlib]"></A>
 | <A HREF = "doc/CBFlib_NOTICES.html">NOTICE</A>
 | <a href=doc/gpl.txt>doc/GPL</a>
 | <a href=doc/lgpl.txt>doc/LGPL</a>
-| <a href="doc/cif_img_1.6.4.html">imgCIF dictionary</a>
+| <a href="doc/cif_img_1.7.3.html">imgCIF dictionary</a>
 | <a href = "http://sf.net/projects/cbflib">SourceForge CBFlib site</a>
 |<br />
 | <a href="http://arcib.dowling.edu/donation.shtml">Click Here to Make a Donation</a>
@@ -44,10 +42,8 @@ ALT="[CBFlib]"></A>
 <font color="#0808A0">
 <H2 ALIGN=CENTER>README</H2>
 <H3 ALIGN=CENTER>
-Information for CBFlib 0.9.2 release of 12 February 2011<BR>
-revised as the CBFlib 0.9.2.1 release of 20 June 2011<br />
-revised as the CBFlib 0.9.2.2 release of 2 July 2011<br />
-revised as the CBFlib 0.9.2.3 release of 9 July 2011<br />
+Information for CBFlib 0.9.3 release of 15 October 2013<br />
+    Revised as CBFlib 0.9.3.1 16 October 2013<br />
 </H3>
 </font><font color="#000000">
 <CENTER>
@@ -57,20 +53,20 @@ Stanford Synchrotron Radiation Laboratory<BR>
 <P>
 and<BR>
 Herbert J. Bernstein<BR>
-Bernstein + Sons<BR>
+Bernstein + Sons<br />
 <script language="javascript" type="text/javascript">
 <!-- 
-      var name = "yaya";
-      var domain = "bernstein-plus-sons";
-      var domext = "com";
-      document.write ("<a href=\"mailto:" + name + "@" + domain + "." domext + "\">" + name + " <b>at</b> " + domain + " <b>dot</b> "+  domext+"</a>"); 
+      var name = "yayahjb@";
+      var domain = "gmail";
+      var domext = ".com";
+      document.write ("(<a href=\"mailto:" + name + domain + domext + "\">" + name + domain + domext+"</a>)");
 // -->
 </script>
 <noscript>
 yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 </noscript>
 <p>
-&#169; Copyright 2006, 2007, 2008, 2010, 2011 Herbert J. Bernstein
+&#169; Copyright 2006 -- 2013 Herbert J. Bernstein
 <P>
 <hr>
 <b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=doc/gpl.txt>GPL</a>.
@@ -96,24 +92,22 @@ from NIGMS and 1R13RR023192 from NCRR and funding from the International
 Union for Crystallography (IUCr).  The content is solely the responsibility of 
 the authors and does not necessarily represent the official views of 
 DOE, NSF, NIH, NIGMS, NCRR or IUCr.
+Recent work on integration among CBF, HDF5 and NeXus supported in part
+by Pandata ODI (EU 7th Framework Programme)
 <P>
 <HR>
+CBFlib 0.9.3.1 has the same code as CBFlib 0.9.3, but with an update to
+the imgCIF dictionary reflecting a major technical cleanup by John Westbrook.
+An explanation of the choices of regex versions has been added to the README.
 <p>
-CBFlib 0.9.2.3 is a minor revision to the CBFlib 0.9.2.2 release
-to allow use of NO_CBF_REGEX to suppress use of regex for convenience
-in doing visual studio builds for cctbx as requested by Ralf
-Ralf Grosse-Kunstleve for cctbx builds.
-<p>
-CBFlib 0.9.2.2 is a minor revision to the CBFlib 0.9.2.1 release
-in July 2011 to update doc/cif_img.dic to the 1.6.4 revision.
-<p>
-CBFlib 0.9.2.1 is a minor revision to the CBFlib 0.9.2 release
-in June 2011 to upgrade the setup script for the pycbf Python
-bindings to simplify using pycbf outside the context of
-the CBFlib pycbf directory.
-<p>
-CBFlib 0.9.2 is the recommended release of CBFlib of February 2011.
-The commulative changes in releases 0.9.1 and 0.9.2 since CBFlib 0.9.0
+CBFlib 0.9.3 is the formal base release integrating CBF, HDF5 and NeXus.
+It also includes changes to support the description of FEL detectors.
+More details on the integration and the new dctionary including both
+NeXus information and the new FEL detector tags, _axis.rotation_axis
+and _axis.rotation are avialable at
+<a href="https://sites.google.com/site/nexuscbf/">https://sites.google.com/site/nexuscbf/</a>.
+    
+The commulative changes in releases 0.9.1, 0.9.2 and 0.9.3 since CBFlib 0.9.0
 are:
 <ul>
 <li>Temporary removal of default PyCifRW support for compliance with
@@ -126,7 +120,66 @@ Fedora license requirements.
 <li>System to log errors and warnings added.
 <li>Java wrapper by Peter Chang added.
 <li>Dectris template code by E. Eikenberry added.
-</ul> 
+<li>Addition of nibble offset compression trial code.
+<li>Addition of support for full axis poise calculations.
+<li>Incorporation of hdf5-1.8.11 and the first phase of code
+    in CBFlib to support NeXus, including mincbf2nexus and
+    cbf2nexus by Jonathan Sloan of DLS
+<li>Cleanup and fixes to Makefiles for more reliable builds, and
+    a partial preliminary CMakeLists.txt
+<li>Fixes to support newer DECTRIS minicbf headers in convertminicbf
+<li>The first phase of code to support 
+
+</ul>
+<p>
+The changes for FEL support involve major changes to the positioner logic
+used in computing goniometer and detector positions.  This code should
+be used with caution.
+<p>
+Please report all difficulties you may encounter with this release to
+<script language="javascript" type="text/javascript">
+        <!--
+        var name = "yayahjb@";
+        var domain = "gmail";
+        var domext = ".com";
+        document.write ("(<a href=\"mailto:" + name + domain + domext + "\">" + name + domain + domext+"</a>)");
+        // -->
+</script>
+<noscript>
+        yayahjb <b>at</b> gmail <b>dot</b> com
+</noscript>
+
+ 
+<P>
+Our thanks to Jonathan Sloan, Tobias Richter and Graeme Winter of
+Diamond Light Source and Robert M. Sweet of Brookhaven National
+Laboratory for their major contributions to this release.  Without
+their efforts it would not have happened.
+    
+<p>
+CBFlib 0.9.2.5 in October 2012 through CBFlib 0.9.2.12 in June 2013 were an accumulation of minor revisions to the
+CBFlib 0.0.2.4 release, plus the testbed
+for HDF5/NeXus support and preliminary Eiger support, now released in CBFlib 0.9.3.
+    <p>
+CBFlib 0.9.2.4 was a minor revision to the CBFlib 0.9.2.3 release
+to support tiff2cbf for short in tiffs and to fix problems with
+64 bit long integers uncovered on Mac OSX 10.6 and 10.7 for 64
+compilers.
+<p>
+CBFlib 0.9.2.3 was a minor revision to the CBFlib 0.9.2.2 release
+to allow use of NO_CBF_REGEX to suppress use of regex for convenience
+in doing visual studio builds for cctbx as requested by Ralf
+Ralf Grosse-Kunstleve for cctbx builds.
+<p>
+CBFlib 0.9.2.2 was a minor revision to the CBFlib 0.9.2.1 release
+in July 2011 to update doc/cif_img.dic to the 1.6.4 revision.
+<p>
+CBFlib 0.9.2.1 was a minor revision to the CBFlib 0.9.2 release
+in June 2011 to upgrade the setup script for the pycbf Python
+bindings to simplify using pycbf outside the context of
+the CBFlib pycbf directory.
+<p>
+CBFlib 0.9.2 was the recommended release of CBFlib of February 2011.
 <P>
 CBFlib 0.9.1 included a correction to CBFlib 0.9.0 to make axis
 the cbf_simple routines apply axis rotations correctly for detectors and to
@@ -161,30 +214,30 @@ instructions below carefully, if space is a problem.</b>
 A gizpped tarball of this release is available on sourceforge at
 <p>
 <a 
-href="http://downloads.sf.net/cbflib/CBFlib-0.9.2.3.tar.gz">http://downloads.sf.net/cbflib/CBFlib-0.9.2.3.tar.gz</a>
+href="http://downloads.sf.net/cbflib/CBFlib-0.9.3.1.tar.gz">http://downloads.sf.net/cbflib/CBFlib-0.9.3.1.tar.gz</a>
 
 <P>
 In addition,
-<A href="http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Input.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Input.tar.gz</a>
+<A href="http://downloads.sf.net/cbflib/CBFlib_0.9.3_Data_Files_Input.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.3_Data_Files_Input.tar.gz</a>
 (13 MB) is a "gzipped" tar of the input data files needed to test the API,
-<A href="http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Output.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Output.tar.gz</a>
+<A href="http://downloads.sf.net/cbflib/CBFlib_0.9.3_Data_Files_Output.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.3_Data_Files_Output.tar.gz</a>
 (34 MB) is a "gzipped" tar of the output data files needed to test the API, and, if space is at a premium,
-<A href="http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Output_Sigs_Only.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.2_Data_Files_Output_Sigs_Only.tar.gz</a>
+<A href="http://downloads.sf.net/cbflib/CBFlib_0.9.3_Data_Files_Output_Sigs_Only.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.3_Data_Files_Output_Sigs_Only.tar.gz</a>
 (1KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
 
-Place the CBFlib_0.9.2.3.tar.gz file in the directory
+Place the CBFlib_0.9.3.1.tar.gz file in the directory
 that is intended to contain up to 4 new directories, named 
-CBFlib_0.9.2.3 (the &quot;top-level&quot; directory),
-CBFlib_0.9.2_Data_Files_Input and either CBFlib_0.9.2_Data_Files_Output or 
-CBFlib_0.9.2_Data_Files_Output_Sigs_Only.
+CBFlib_0.9.3.1 (the &quot;top-level&quot; directory),
+CBFlib_0.9.3_Data_Files_Input and either CBFlib_0.9.3_Data_Files_Output or
+CBFlib_0.9.3_Data_Files_Output_Sigs_Only.
 If you have wget on your machine, you only need to download the source tarball.  If you do not have wget,
 you will need to download all the tarballs into the same directory
 <p>
-Uncompress CBFlib_0.9.2.3.tar.gz with gunzip and unpack it with tar:
+Uncompress CBFlib_0.9.3.1.tar.gz with gunzip and unpack it with tar:
 <p>
 <PRE>
-     gunzip CBFlib_0.9.2.3.tar.gz
-     tar xvf CBFLIB_0.9.2.3.tar
+     gunzip CBFlib_0.9.3.1.tar.gz
+     tar xvf CBFLIB_0.9.3.1.tar
 </PRE>
 <p>
 To run the test programs, you will also need 
@@ -196,7 +249,7 @@ insulin_pilatus6m, as sample data.  In addition there are
 is a PDB mmCIF file, 9ins.cif, and 3 special test files
 testflatin.cbf, testflatpackedin.cbf and testrealin.cbf.
  All these files will be
-dowloaded and extracted by the Makefile from CBFlib_0.9.2_Data_Files_Input.  Do
+dowloaded and extracted by the Makefile from CBFlib_0.9.3_Data_Files_Input.  Do
 not download copies into the top level directory.
 <P>
 After unpacking the archives, the top-level directory should contain
@@ -226,7 +279,15 @@ and the subdirectories:
 and additional Makefiles for other systems.  All the makefiles are created from
 m4/Makefile.m4.   Edit the closest approximation to your system, and then copy that variant to Makefile.
 <p>
-
+In building this release there is an enviroment variable you may need to set if
+you are building on an older machine with a broken dlfnc that cannot support the
+HDF5 filter plugin mechanism:
+<p>
+HDF5REGISTER
+<p>
+which should be set to the string &quot;--register manual&quot; to disable the automatic
+plugin search.
+<p>
 For instructions on compiling and testing the library, go to
 the top-level directory and type:
 <p>
@@ -246,23 +307,59 @@ or, if space is at a premium, with
      make tests_sigs_only
 </PRE>
 
+<h3>regex</h3>
+    
+CBFlib makes can optionally use a system regular expression library
+to assist in validation of CIFS.  The feature is controlled by two compile-time
+defines.  The possible choices are
+    <p>
+    <ul>
+        <li>Not to use regex.  If CBF_NO_REGEX is defined, no regex will be used.
+        <li>To used the tradition unix regex.  If CBF_REGEXLIB_REGEX is
+                defined, regex.h is used.
+        <li>To use the newer and more popular POSIX pcre regex.  If neither
+            CBF_NO_REGEX nor CBF_REGEXLIB_REGEX is defined, pcreposix.h
+            is used.
+    </ul>
+<p>
+The default in the supplied Makefiles is to use regex.h.  The default in the
+CMakeLists.txt is to use pcreposix.h.
+<p>
 
+<h3>Cmake</h3>
+    
+A partial preliminary CMakeLists.txt has been included in this kit.  It is not yet complete, but
+on machines for which the Makefiles are not appropriate, it is worth a try.  To use in,
+create a directory named CBFlib-0.9.3.1-build on the same level as CBFlib-0.9.3.1, and in the new,
+empty build directory, try
+<p>
+    <div>
+    <pre>
+    cmake ../CBFlib-0.9.3.1
+    make all
+    make test
+    </pre>
+    </div>
+<p>
+Work on improving cmake support will continue, and comments, corrections and suggestions
+would be appreciated.
+    
   
 <P>
 Please refer to the manual <a HREF="doc/CBFlib.html">doc/CBFlib.html</a>
 for more detailed information.<HR>
 <HR>
-Updated 9 July 2011.  
+Updated 16 October 2013.
 <script language="javascript" type="text/javascript">
 <!-- 
-      var name = "yaya";
-      var domain = "bernstein-plus-sons";
-      var domext = "com";
-      document.write ("<a href=\"mailto:" + name + "@" + domain + "." domext + "\">" + name + " <b>at</b> " + domain + " <b>dot</b> "+  domext+"</a>"); 
+      var name = "yayahjb@";
+      var domain = "gmail";
+      var domext = ".com";
+      document.write ("(<a href=\"mailto:" + name + domain + domext + "\">" + name + domain + domext+"</a>)"); 
 // -->
 </script>
 <noscript>
-yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
+yayahjb <b>at</b> gmail <b>dot</b> com
 </noscript>
 </font>
 </BODY>
