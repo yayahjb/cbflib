@@ -1,6 +1,6 @@
 /**********************************************************************
  *                                                                    *
- * Unit tests for CBF's memory allocation routines, to ensure         *
+ * Unit tests for CBF's node tree manipulation routines, to ensure    *
  * they work as documented and protect against regressions.           *
  *                                                                    *
  * J.Sloan                                                            *
@@ -48,71 +48,23 @@
  *                                                                    *
  *********************************************************************/
 
-#include <stdio.h>
-#include <cbf_alloc.h>
-#include "cbf.h"
-#include "unittest.h"
 
-/*
-cbf_realloc should:
-behave in a similar way to malloc, if given no or zero 'old_nelem';
-behave in a similar way to free, if given 0 for 'elsize' or 'nelem';
-retain the contents of any allocated block up to the minimum of
-'*old_nelem * elsize' (the old size) and 'nelem * elsize' (the new size).
-*/
-testResult_t test_cbf_realloc()
-{
-	testResult_t r = {0,0,0};
-	int error = CBF_SUCCESS;
-	int * block = NULL;
-	size_t nelem = 0;
-    
-	/* test expected failures */
-    
-	TEST_CBF_FAIL(cbf_realloc(0,&nelem,sizeof(int),4));
-	TEST_CBF_FAIL(cbf_realloc((void**)&block,&nelem,0,4));
-    
-	/* check a precondition */
-	TEST(!block);
-    
-	/* allocate */
-    
-	TEST_CBF_PASS(cbf_realloc((void**)&block,&nelem,sizeof(int),4));
-	TEST(block);
-    
-	/* fill with some sample data */
-	block[0] = 0;
-	block[1] = 1;
-	block[2] = 2;
-	block[3] = 3;
-    
-	/* reallocate */
-    
-	TEST_CBF_PASS(cbf_realloc((void**)&block,&nelem,sizeof(int),8));
-	TEST(block);
-    
-	/* check the sample data */
-	TEST(0==block[0]);
-	TEST(1==block[1]);
-	TEST(2==block[2]);
-	TEST(3==block[3]);
-	
-	/* free */
-    
-	TEST_CBF_PASS(cbf_realloc((void**)&block,&nelem,sizeof(int),0));
-    
-	/* Note: this doesn't check that 'block' has been free'd, valgrind is required for that. */
-	TEST(!block);
-    
-	return r;
-}
+#include <stdio.h>
+#include "cbf.h"
+#include "cbf_tree.h"
+#include "unittest.h"
 
 int main()
 {
 	testResult_t r = {0,0,0};
-    
-	TEST_COMPONENT(test_cbf_realloc());
-    
+	int error = CBF_SUCCESS;
+	cbf_node * node = NULL;
+	const char * const name = cbf_copy_string(0,"",0);
+
+	TEST_CBF_FAIL(cbf_make_node(0, CBF_UNDEFNODE, 0, name));
+	TEST_CBF_PASS(cbf_make_node(&node, CBF_UNDEFNODE, 0, name));
+	TEST_CBF_PASS(cbf_free_node(node));
+
 	printf_results(&r);
 	return r.fail ? 1 : 0;
 }

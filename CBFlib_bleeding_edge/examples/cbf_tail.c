@@ -1,7 +1,7 @@
 /**********************************************************************
  *                                                                    *
- * Unit tests for CBF's memory allocation routines, to ensure         *
- * they work as documented and protect against regressions.           *
+ * Cross platform 'tail' program to deal with h5dump writing a        *
+ * filename to the first line of its output.                          *
  *                                                                    *
  * J.Sloan                                                            *
  *                                                                    *
@@ -10,7 +10,7 @@
  * This program is free software; you can redistribute it and/or      *
  * modify it under the terms of the GNU General Public License as     *
  * published by the Free Software Foundation; either version 2 of     *
- * (the License, or (at your option) any later version.               *
+ * the License, or (at your option) any later version.                *
  *                                                                    *
  * This program is distributed in the hope that it will be useful,    *
  * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
@@ -49,71 +49,95 @@
  *********************************************************************/
 
 #include <stdio.h>
-#include <cbf_alloc.h>
-#include "cbf.h"
-#include "unittest.h"
+#include <stdlib.h>
+#include <string.h>
 
 /*
-cbf_realloc should:
-behave in a similar way to malloc, if given no or zero 'old_nelem';
-behave in a similar way to free, if given 0 for 'elsize' or 'nelem';
-retain the contents of any allocated block up to the minimum of
-'*old_nelem * elsize' (the old size) and 'nelem * elsize' (the new size).
-*/
-testResult_t test_cbf_realloc()
-{
-	testResult_t r = {0,0,0};
-	int error = CBF_SUCCESS;
-	int * block = NULL;
-	size_t nelem = 0;
-    
-	/* test expected failures */
-    
-	TEST_CBF_FAIL(cbf_realloc(0,&nelem,sizeof(int),4));
-	TEST_CBF_FAIL(cbf_realloc((void**)&block,&nelem,0,4));
-    
-	/* check a precondition */
-	TEST(!block);
-    
-	/* allocate */
-    
-	TEST_CBF_PASS(cbf_realloc((void**)&block,&nelem,sizeof(int),4));
-	TEST(block);
-    
-	/* fill with some sample data */
-	block[0] = 0;
-	block[1] = 1;
-	block[2] = 2;
-	block[3] = 3;
-    
-	/* reallocate */
-    
-	TEST_CBF_PASS(cbf_realloc((void**)&block,&nelem,sizeof(int),8));
-	TEST(block);
-    
-	/* check the sample data */
-	TEST(0==block[0]);
-	TEST(1==block[1]);
-	TEST(2==block[2]);
-	TEST(3==block[3]);
-	
-	/* free */
-    
-	TEST_CBF_PASS(cbf_realloc((void**)&block,&nelem,sizeof(int),0));
-    
-	/* Note: this doesn't check that 'block' has been free'd, valgrind is required for that. */
-	TEST(!block);
-    
-	return r;
-}
+Filter to remove the first few lines from a file without needing to read the whole thing into memory.
 
-int main()
+This is only present to help get cmake to compare hdf5 files:
+h5diff doesn't work properly with certain attribute differences, forcing h5dump to be used. h5dump always
+puts the filename on the first line. Cmake has no nice cross-platform 'tail' command, so for two dumped
+files to compare equal the first line must be stripped. Cmake's file & string functions would read the
+entire file into memory and be incredibly difficult (or impossible) to use, so this seems to be the least
+painful way of getting rid of the filename printed by h5dump.
+*/
+int main(const int argc, const char * const * const argv)
 {
-	testResult_t r = {0,0,0};
-    
-	TEST_COMPONENT(test_cbf_realloc());
-    
-	printf_results(&r);
-	return r.fail ? 1 : 0;
+	/* variables
+	N - number of lines to remove from the top of stdin: default = 0
+	help - flag to print help message:
+		0 - don't
+		1 - print it
+		2 - print and exit successfully
+	error - error code:
+		0 - success
+		1 - problem
+	arg - the argument currently being examined. Skip the program name if we have any arguments, I don't want to try to parse it.
+	*/
+	unsigned long N = 0;
+	int help = 0;
+	int error = 0;
+	const char * const * arg = argv + (argc ? 1 : 0);
+
+	/* extract command line arguments */
+	for (; arg != argv+argc; ++arg) {
+		if (!strcmp(*arg,"-?") || !strcmp(*arg,"--help")) {
+			help = 2;
+			break;
+		} else if (!strcmp(*arg,"-n")) {
+			/* try to extract a positive integer from argv[2], set N appropriately */
+			if (arg+1 != argv+argc) {
+				const char * end;
+				++arg;
+				N = strtoul(*arg,(char**)(&end),0);
+				if (!('\0' != **arg && '\0' == *end)) {
+					fprintf(stderr,"Invalid argument for '-n': '%s'\n",*arg);
+					error = 1;
+				}
+			} else {
+				fprintf(stderr,"Expected an argument for '-n'\n");
+				error = 1;
+			}
+			break;
+		} else {
+			/* print error message to stderr */
+			fprintf(stderr,"Unrecognised argument: '%s'\n",*arg);
+			error = 1;
+			break;
+		}
+	}
+
+	if (help) {
+		/* print usage message */
+		printf(
+			"Usage:\n\n"
+			"%s\n"
+			"Input to 'stdin' passed straight to 'stdout'.\n\n"
+			"%s -?\n"
+			"%s --help\n"
+			"Print a short usage message, then immediately exit successfully without filtering anything.\n\n"
+			"%s -n N\n"
+			"Remove the first N lines from stdin, delimited by the '\\n' character, passing the rest to stdout.\n",
+			*argv, *argv, *argv, *argv
+		);
+		/* return successfully - even if there were some errors in the arguments - if one of the 'help' arguments was used */
+		if (2 == help) return 0;
+	}
+
+	if (!error) {
+		/* start filtering */
+		while (!feof(stdin)) {
+			const int c = fgetc(stdin);
+			if (N) {
+				if ('\n' == c) --N;
+			} else fputc(c,stdout);
+		}
+	}
+
+	/* no cleanup required */
+
+	/* done */
+	return error;
 }
 
