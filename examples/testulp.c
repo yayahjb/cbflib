@@ -57,10 +57,10 @@
 #include <float.h>
 
 /*
-32-bit quiet NaN:
-0b s111 1111 11xx xxxx xxxx xxxx xxxx xxxx
-sign, s, and payload, x, are not important
-*/
+ 32-bit quiet NaN:
+ 0b s111 1111 11xx xxxx xxxx xxxx xxxx xxxx
+ sign, s, and payload, x, are not important
+ */
 
 float _pqnan_32()
 {
@@ -77,11 +77,11 @@ float _nqnan_32()
 }
 
 /*
-32-bit signalling NaN:
-0b s111 1111 10xx xxxx xxxx xxxx xxxx xxxx
-sign, s, is not important
-payload, x, must be non-zero
-*/
+ 32-bit signalling NaN:
+ 0b s111 1111 10xx xxxx xxxx xxxx xxxx xxxx
+ sign, s, is not important
+ payload, x, must be non-zero
+ */
 
 float _psnan_32()
 {
@@ -98,31 +98,31 @@ float _nsnan_32()
 }
 
 /*
-Tests
-*/
+ Tests
+ */
 
 testResult_t test_isinf32()
 {
 	testResult_t r = {0,0,0};
-
+    
 	/*
-	test +ve infinities
-	*/
-
+     test +ve infinities
+     */
+    
 	unsigned int px = 0x7f800000;
 	unsigned int nx = 0xff800000;
-
+    
 	TEST(isinf32(*(float*)&px));
 	TEST(isinf32(*(float*)&nx));
-
+    
 #define TEST_flipped_n(n) \
 do { \
-	const unsigned int px##n = px^(1<<n); \
-	const unsigned int nx##n = nx^(1<<n); \
-	TEST(!isinf32(*(float*)&px##n)); \
-	TEST(!isinf32(*(float*)&nx##n)); \
+const unsigned int px##n = px^(1<<n); \
+const unsigned int nx##n = nx^(1<<n); \
+TEST(!isinf32(*(float*)&px##n)); \
+TEST(!isinf32(*(float*)&nx##n)); \
 } while (0)
-
+    
 	TEST_flipped_n(0);
 	TEST_flipped_n(1);
 	TEST_flipped_n(2);
@@ -154,34 +154,34 @@ do { \
 	TEST_flipped_n(28);
 	TEST_flipped_n(29);
 	TEST_flipped_n(30);
-
+    
 #undef TEST_flipped_n
-
+    
 	return r;
 }
 
 testResult_t test_isnan32()
 {
 	testResult_t r = {0,0,0};
-
+    
 	/*
-	test NaNs
-	*/
-
+     test NaNs
+     */
+    
 	unsigned int px = 0x7f800000;
 	unsigned int nx = 0xff800000;
-
+    
 	TEST(!isnan32(*(float*)&px));
 	TEST(!isnan32(*(float*)&nx));
-
+    
 #define TEST_flipped_n(n) \
 do { \
-	const unsigned int px##n = px^(1<<n); \
-	const unsigned int nx##n = nx^(1<<n); \
-	TEST(isnan32(*(float*)&px##n)); \
-	TEST(isnan32(*(float*)&nx##n)); \
+const unsigned int px##n = px^(1<<n); \
+const unsigned int nx##n = nx^(1<<n); \
+TEST(isnan32(*(float*)&px##n)); \
+TEST(isnan32(*(float*)&nx##n)); \
 } while (0)
-
+    
 	TEST_flipped_n(0);
 	TEST_flipped_n(1);
 	TEST_flipped_n(2);
@@ -205,17 +205,17 @@ do { \
 	TEST_flipped_n(20);
 	TEST_flipped_n(21);
 	TEST_flipped_n(22);
-
+    
 #undef TEST_flipped_n
-
+    
 #define TEST_flipped_n(n) \
 do { \
-	const unsigned int px##n = px^(1<<n); \
-	const unsigned int nx##n = nx^(1<<n); \
-	TEST(!isnan32(*(float*)&px##n)); \
-	TEST(!isnan32(*(float*)&nx##n)); \
+const unsigned int px##n = px^(1<<n); \
+const unsigned int nx##n = nx^(1<<n); \
+TEST(!isnan32(*(float*)&px##n)); \
+TEST(!isnan32(*(float*)&nx##n)); \
 } while (0)
-
+    
 	TEST_flipped_n(23);
 	TEST_flipped_n(24);
 	TEST_flipped_n(25);
@@ -224,16 +224,16 @@ do { \
 	TEST_flipped_n(28);
 	TEST_flipped_n(29);
 	TEST_flipped_n(30);
-
+    
 #undef TEST_flipped_n
-
+    
 	return r;
 }
 
 testResult_t test_ulp32()
 {
 	testResult_t r = {0,0,0};
-
+    
 	/* define +ve & -ve special values. */
 	const float pzero = 0.0f;
 	const float nzero = -0.0f;
@@ -245,106 +245,106 @@ testResult_t test_ulp32()
 	const float psnan = _psnan_32(); /* +ve signalling nan */
 	const float nsnan = _nsnan_32(); /* -ve signalling nan */
 	const unsigned int u32max = 0xffffffff;
-
+    
 	/* Zeros */
-
+    
 	TEST(*(unsigned int*)&pzero != *(unsigned int*)&nzero);
 	TEST(cbf_ULP32(pzero,pzero) == 0);
 	TEST(cbf_ULP32(pzero,nzero) == 0);
 	TEST(cbf_ULP32(nzero,pzero) == 0);
 	TEST(cbf_ULP32(nzero,nzero) == 0);
-
+    
 	TEST(cbf_ULP32(pzero,1.0) > 0);
 	TEST(cbf_ULP32(nzero,1.0) > 0);
-
+    
 	TEST(cbf_ULP32(pzero,-1.0) > 0);
 	TEST(cbf_ULP32(nzero,-1.0) > 0);
-
+    
 	/* Normal numbers */
-
+    
 	TEST(cbf_ULP32(1.0,1.0) == 0);
 	TEST(cbf_ULP32(-1.0,-1.0) == 0);
-
+    
 	TEST(cbf_ULP32(1.0,1.0+eps) == 1);
 	TEST(cbf_ULP32(1.0+eps,1.0) == 1);
 	TEST(cbf_ULP32(-1.0,-1.0-eps) == 1);
 	TEST(cbf_ULP32(-1.0-eps,-1.0) == 1);
-
+    
 	TEST(cbf_ULP32(1.0,1.0+2*eps) == 2);
 	TEST(cbf_ULP32(1.0+2*eps,1.0) == 2);
 	TEST(cbf_ULP32(-1.0,-1.0-2*eps) == 2);
 	TEST(cbf_ULP32(-1.0-2*eps,-1.0) == 2);
-
+    
 	TEST(cbf_ULP32(1.0,2.0) == cbf_ULP32(-1.0,-2.0));
 	TEST(cbf_ULP32(2.0,4.0) == cbf_ULP32(-2.0,-4.0));
-
+    
 	/* INFs */
-
+    
 	TEST(*(unsigned int*)&pinf != *(unsigned int*)&ninf);
 	TEST(cbf_ULP32(pinf,pinf)==0);
 	TEST(cbf_ULP32(pinf,ninf)==u32max);
 	TEST(cbf_ULP32(ninf,pinf)==u32max);
 	TEST(cbf_ULP32(ninf,ninf)==0);
-
+    
 	TEST(cbf_ULP32(pinf,pzero)==u32max);
 	TEST(cbf_ULP32(pinf,nzero)==u32max);
-
+    
 	TEST(cbf_ULP32(ninf,pzero)==u32max);
 	TEST(cbf_ULP32(ninf,nzero)==u32max);
-
+    
 	TEST(cbf_ULP32(pinf,1.0)==u32max);
 	TEST(cbf_ULP32(ninf,1.0)==u32max);
-
+    
 	TEST(cbf_ULP32(pinf,-1.0)==u32max);
 	TEST(cbf_ULP32(ninf,-1.0)==u32max);
-
+    
 	TEST(pinf == pinf);
 	TEST(pinf != ninf);
 	TEST(ninf != pinf);
 	TEST(ninf == ninf);
-
+    
 	/* NaNs */
-
+    
 	TEST(cbf_ULP32(pqnan,pqnan)==u32max);
 	TEST(cbf_ULP32(pqnan,nqnan)==u32max);
 	TEST(cbf_ULP32(pqnan,psnan)==u32max);
 	TEST(cbf_ULP32(pqnan,nsnan)==u32max);
-
+    
 	TEST(cbf_ULP32(nqnan,pqnan)==u32max);
 	TEST(cbf_ULP32(nqnan,nqnan)==u32max);
 	TEST(cbf_ULP32(nqnan,psnan)==u32max);
 	TEST(cbf_ULP32(nqnan,nsnan)==u32max);
-
+    
 	TEST(cbf_ULP32(psnan,pqnan)==u32max);
 	TEST(cbf_ULP32(psnan,nqnan)==u32max);
 	TEST(cbf_ULP32(psnan,psnan)==u32max);
 	TEST(cbf_ULP32(psnan,nsnan)==u32max);
-
+    
 	TEST(cbf_ULP32(nsnan,pqnan)==u32max);
 	TEST(cbf_ULP32(nsnan,nqnan)==u32max);
 	TEST(cbf_ULP32(nsnan,psnan)==u32max);
 	TEST(cbf_ULP32(nsnan,nsnan)==u32max);
-
+    
 	TEST(cbf_ULP32(pqnan,pzero)==u32max);
 	TEST(cbf_ULP32(nqnan,pzero)==u32max);
 	TEST(cbf_ULP32(psnan,pzero)==u32max);
 	TEST(cbf_ULP32(nsnan,pzero)==u32max);
-
+    
 	TEST(cbf_ULP32(pqnan,nzero)==u32max);
 	TEST(cbf_ULP32(nqnan,nzero)==u32max);
 	TEST(cbf_ULP32(psnan,nzero)==u32max);
 	TEST(cbf_ULP32(nsnan,nzero)==u32max);
-
+    
 	TEST(cbf_ULP32(pqnan,1.0)==u32max);
 	TEST(cbf_ULP32(nqnan,1.0)==u32max);
 	TEST(cbf_ULP32(psnan,1.0)==u32max);
 	TEST(cbf_ULP32(nsnan,1.0)==u32max);
-
+    
 	TEST(cbf_ULP32(pqnan,-1.0)==u32max);
 	TEST(cbf_ULP32(nqnan,-1.0)==u32max);
 	TEST(cbf_ULP32(psnan,-1.0)==u32max);
 	TEST(cbf_ULP32(nsnan,-1.0)==u32max);
-
+    
 	return r;
 }
 
@@ -352,10 +352,10 @@ testResult_t test_ulp32()
 #ifndef NO_UINT64_TYPE
 
 /*
-64-bit quiet NaN:
-0b s111 1111 1111 1xxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx
-sign, s, and payload, x, are not important
-*/
+ 64-bit quiet NaN:
+ 0b s111 1111 1111 1xxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx
+ sign, s, and payload, x, are not important
+ */
 
 double _pqnan_64()
 {
@@ -374,11 +374,11 @@ double _nqnan_64()
 }
 
 /*
-64-bit signalling NaN:
-0b s111 1111 1111 0xxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx
-sign, s, is not important
-payload, x, must be non-zero
-*/
+ 64-bit signalling NaN:
+ 0b s111 1111 1111 0xxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx
+ sign, s, is not important
+ payload, x, must be non-zero
+ */
 
 double _psnan_64()
 {
@@ -399,26 +399,26 @@ double _nsnan_64()
 testResult_t test_isinf64()
 {
 	testResult_t r = {0,0,0};
-
+    
 	/*
-	test +ve infinities
-	*/
-
+     test +ve infinities
+     */
+    
 	uint64_t px = 0x7ff0000000000000l;
 	uint64_t nx = 0xfff0000000000000l;
-
+    
 	TEST(isinf64(*(double*)&px));
 	TEST(isinf64(*(double*)&nx));
-
+    
 #define TEST_flipped_n(n) \
 do { \
-	const uint64_t one = 1; \
-	const uint64_t px##n = px^(one<<n); \
-	const uint64_t nx##n = nx^(one<<n); \
-	TEST(!isinf64(*(double*)&px##n)); \
-	TEST(!isinf64(*(double*)&nx##n)); \
+const uint64_t one = 1; \
+const uint64_t px##n = px^(one<<n); \
+const uint64_t nx##n = nx^(one<<n); \
+TEST(!isinf64(*(double*)&px##n)); \
+TEST(!isinf64(*(double*)&nx##n)); \
 } while (0)
-
+    
 	TEST_flipped_n(0);
 	TEST_flipped_n(1);
 	TEST_flipped_n(2);
@@ -482,35 +482,35 @@ do { \
 	TEST_flipped_n(60);
 	TEST_flipped_n(61);
 	TEST_flipped_n(62);
-
+    
 #undef TEST_flipped_n
-
+    
 	return r;
 }
 
 testResult_t test_isnan64()
 {
 	testResult_t r = {0,0,0};
-
+    
 	/*
-	test NaNs
-	*/
-
+     test NaNs
+     */
+    
 	uint64_t px = 0x7ff0000000000000l;
 	uint64_t nx = 0xfff0000000000000l;
-
+    
 	TEST(!isnan64(*(double*)&px));
 	TEST(!isnan64(*(double*)&nx));
-
+    
 #define TEST_flipped_n(n) \
 do { \
-	const uint64_t one = 1; \
-	const uint64_t px##n = px^(one<<n); \
-	const uint64_t nx##n = nx^(one<<n); \
-	TEST(isnan64(*(double*)&px##n)); \
-	TEST(isnan64(*(double*)&nx##n)); \
+const uint64_t one = 1; \
+const uint64_t px##n = px^(one<<n); \
+const uint64_t nx##n = nx^(one<<n); \
+TEST(isnan64(*(double*)&px##n)); \
+TEST(isnan64(*(double*)&nx##n)); \
 } while (0)
-
+    
 	TEST_flipped_n(0);
 	TEST_flipped_n(1);
 	TEST_flipped_n(2);
@@ -563,17 +563,17 @@ do { \
 	TEST_flipped_n(49);
 	TEST_flipped_n(50);
 	TEST_flipped_n(51);
-
+    
 #undef TEST_flipped_n
-
+    
 #define TEST_flipped_n(n) \
 do { \
-	const uint64_t px##n = px^(1l<<n); \
-	const uint64_t nx##n = nx^(1l<<n); \
-	TEST(!isnan64(*(double*)&px##n)); \
-	TEST(!isnan64(*(double*)&nx##n)); \
+const uint64_t px##n = px^(1l<<n); \
+const uint64_t nx##n = nx^(1l<<n); \
+TEST(!isnan64(*(double*)&px##n)); \
+TEST(!isnan64(*(double*)&nx##n)); \
 } while (0)
-
+    
 	TEST_flipped_n(52);
 	TEST_flipped_n(53);
 	TEST_flipped_n(54);
@@ -585,16 +585,16 @@ do { \
 	TEST_flipped_n(60);
 	TEST_flipped_n(61);
 	TEST_flipped_n(62);
-
+    
 #undef TEST_flipped_n
-
+    
 	return r;
 }
 
 testResult_t test_ulp64()
 {
 	testResult_t r = {0,0,0};
-
+    
 	/* define +ve & -ve special values. */
 	const double pzero = 0.0;
 	const double nzero = -0.0;
@@ -605,106 +605,106 @@ testResult_t test_ulp64()
 	const double nqnan = _nqnan_64(); /* -ve quiet nan */
 	const double psnan = _psnan_64(); /* +ve signalling nan */
 	const double nsnan = _nsnan_64(); /* -ve signalling nan */
-
+    
 	/* Zeros */
-
+    
 	TEST(*(int64_t*)&pzero != *(int64_t*)&nzero);
 	TEST(cbf_ULP64(pzero,pzero) == 0);
 	TEST(cbf_ULP64(pzero,nzero) == 0);
 	TEST(cbf_ULP64(nzero,pzero) == 0);
 	TEST(cbf_ULP64(nzero,nzero) == 0);
-
+    
 	TEST(cbf_ULP64(pzero,1.0) > 0);
 	TEST(cbf_ULP64(nzero,1.0) > 0);
-
+    
 	TEST(cbf_ULP64(pzero,-1.0) > 0);
 	TEST(cbf_ULP64(nzero,-1.0) > 0);
-
+    
 	/* Normal numbers */
-
+    
 	TEST(cbf_ULP64(1.0,1.0) == 0);
 	TEST(cbf_ULP64(-1.0,-1.0) == 0);
-
+    
 	TEST(cbf_ULP64(1.0,1.0+eps) == 1);
 	TEST(cbf_ULP64(1.0+eps,1.0) == 1);
 	TEST(cbf_ULP64(-1.0,-1.0-eps) == 1);
 	TEST(cbf_ULP64(-1.0-eps,-1.0) == 1);
-
+    
 	TEST(cbf_ULP64(1.0,1.0+2*eps) == 2);
 	TEST(cbf_ULP64(1.0+2*eps,1.0) == 2);
 	TEST(cbf_ULP64(-1.0,-1.0-2*eps) == 2);
 	TEST(cbf_ULP64(-1.0-2*eps,-1.0) == 2);
-
+    
 	TEST(cbf_ULP64(1.0,2.0) == cbf_ULP64(-1.0,-2.0));
 	TEST(cbf_ULP64(2.0,4.0) == cbf_ULP64(-2.0,-4.0));
-
+    
 	/* INFs */
-
+    
 	TEST(*(int64_t*)&pinf != *(int64_t*)&ninf);
 	TEST(cbf_ULP64(pinf,pinf)==0);
 	TEST(cbf_ULP64(pinf,ninf)==UINT64_MAX);
 	TEST(cbf_ULP64(ninf,pinf)==UINT64_MAX);
 	TEST(cbf_ULP64(ninf,ninf)==0);
-
+    
 	TEST(cbf_ULP64(pinf,pzero)==UINT64_MAX);
 	TEST(cbf_ULP64(pinf,nzero)==UINT64_MAX);
-
+    
 	TEST(cbf_ULP64(ninf,pzero)==UINT64_MAX);
 	TEST(cbf_ULP64(ninf,nzero)==UINT64_MAX);
-
+    
 	TEST(cbf_ULP64(pinf,1.0)==UINT64_MAX);
 	TEST(cbf_ULP64(ninf,1.0)==UINT64_MAX);
-
+    
 	TEST(cbf_ULP64(pinf,-1.0)==UINT64_MAX);
 	TEST(cbf_ULP64(ninf,-1.0)==UINT64_MAX);
-
+    
 	TEST(pinf == pinf);
 	TEST(pinf != ninf);
 	TEST(ninf != pinf);
 	TEST(ninf == ninf);
-
+    
 	/* NaNs */
-
+    
 	TEST(cbf_ULP64(pqnan,pqnan)==UINT64_MAX);
 	TEST(cbf_ULP64(pqnan,nqnan)==UINT64_MAX);
 	TEST(cbf_ULP64(pqnan,psnan)==UINT64_MAX);
 	TEST(cbf_ULP64(pqnan,nsnan)==UINT64_MAX);
-
+    
 	TEST(cbf_ULP64(nqnan,pqnan)==UINT64_MAX);
 	TEST(cbf_ULP64(nqnan,nqnan)==UINT64_MAX);
 	TEST(cbf_ULP64(nqnan,psnan)==UINT64_MAX);
 	TEST(cbf_ULP64(nqnan,nsnan)==UINT64_MAX);
-
+    
 	TEST(cbf_ULP64(psnan,pqnan)==UINT64_MAX);
 	TEST(cbf_ULP64(psnan,nqnan)==UINT64_MAX);
 	TEST(cbf_ULP64(psnan,psnan)==UINT64_MAX);
 	TEST(cbf_ULP64(psnan,nsnan)==UINT64_MAX);
-
+    
 	TEST(cbf_ULP64(nsnan,pqnan)==UINT64_MAX);
 	TEST(cbf_ULP64(nsnan,nqnan)==UINT64_MAX);
 	TEST(cbf_ULP64(nsnan,psnan)==UINT64_MAX);
 	TEST(cbf_ULP64(nsnan,nsnan)==UINT64_MAX);
-
+    
 	TEST(cbf_ULP64(pqnan,pzero)==UINT64_MAX);
 	TEST(cbf_ULP64(nqnan,pzero)==UINT64_MAX);
 	TEST(cbf_ULP64(psnan,pzero)==UINT64_MAX);
 	TEST(cbf_ULP64(nsnan,pzero)==UINT64_MAX);
-
+    
 	TEST(cbf_ULP64(pqnan,nzero)==UINT64_MAX);
 	TEST(cbf_ULP64(nqnan,nzero)==UINT64_MAX);
 	TEST(cbf_ULP64(psnan,nzero)==UINT64_MAX);
 	TEST(cbf_ULP64(nsnan,nzero)==UINT64_MAX);
-
+    
 	TEST(cbf_ULP64(pqnan,1.0)==UINT64_MAX);
 	TEST(cbf_ULP64(nqnan,1.0)==UINT64_MAX);
 	TEST(cbf_ULP64(psnan,1.0)==UINT64_MAX);
 	TEST(cbf_ULP64(nsnan,1.0)==UINT64_MAX);
-
+    
 	TEST(cbf_ULP64(pqnan,-1.0)==UINT64_MAX);
 	TEST(cbf_ULP64(nqnan,-1.0)==UINT64_MAX);
 	TEST(cbf_ULP64(psnan,-1.0)==UINT64_MAX);
 	TEST(cbf_ULP64(nsnan,-1.0)==UINT64_MAX);
-
+    
 	return r;
 }
 
@@ -714,7 +714,7 @@ testResult_t test_ulp64()
 testResult_t test_monotonic()
 {
 	testResult_t r = {0,0,0};
-
+    
 	/* initialise some variables */
 	const unsigned int end = 0x7FFFFFFFu;
 	unsigned int i = 0x00000000;
@@ -722,13 +722,13 @@ testResult_t test_monotonic()
 	float fp_neg = 0.0;
 	int invalid = 0;
 	/*
-	'k' is the number of blocks to split the tests into,so the progress
-	of the tests can be monitored. Should be a power of 2 to ensure
-	nothing strange happens around the end of the range of tests.
-	'block' is just a counter.
-	*/
+     'k' is the number of blocks to split the tests into,so the progress
+     of the tests can be monitored. Should be a power of 2 to ensure
+     nothing strange happens around the end of the range of tests.
+     'block' is just a counter.
+     */
 	unsigned int k = 256, block = 0;
-
+    
 	/* start testing */
 	fprintf(stdout,"testing 32-bit floating point monotonicity & sign...\n");
 	fflush(stdout);
@@ -786,7 +786,7 @@ testResult_t test_monotonic()
 testResult_t test_basic32()
 {
 	testResult_t r = {0,0,0};
-
+    
 	if (4!=sizeof(float)) {
 		++r.fail;
 		fprintf(stderr,"Fail: unexpected size of float type (%lu, expected 4)\n",sizeof(float));
@@ -823,7 +823,7 @@ testResult_t test_basic32()
 testResult_t test_basic64()
 {
 	testResult_t r = {0,0,0};
-
+    
 	if (8!=sizeof(double)) {
 		++r.fail;
 		fprintf(stderr,"Fail: unexpected size of double type (%lu, expected 8)\n",sizeof(double));
@@ -860,12 +860,12 @@ testResult_t test_basic64()
 int main()
 {
 	testResult_t r = {0,0,0};
-
+    
 	TEST_COMPONENT(test_basic32());
 	TEST_COMPONENT(test_isinf32());
 	TEST_COMPONENT(test_isnan32());
 	TEST_COMPONENT(test_ulp32());
-
+    
 #ifndef NO_UINT64_TYPE
 	if (cbf_has_ULP64()) {
 		TEST_COMPONENT(test_basic64());
@@ -879,11 +879,11 @@ int main()
 		r.skip += 4;
 		printf("64-bit unsigned int not available: skipped 64-bit tests\n");
 	}
-
+    
 	TEST_COMPONENT(test_monotonic());
-
+    
 	/* Done, output the results */
-
-	printf("%d passed\n%d failed\n%d components skipped\n", r.pass, r.fail, r.skip);
+    
+	printf_results(&r);
 	return r.fail ? 1 : 0;
 }
