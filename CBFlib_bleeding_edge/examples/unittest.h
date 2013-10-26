@@ -160,6 +160,7 @@ fprintf(stderr,"%s: failure: '%s' didn't return 'CBF_NOTFOUND'\n",__WHERE__,#exp
  those situations.
  */
 
+/*
 inline void fprint_results(FILE * const stream, const testResult_t * const result)
 {
 	fprintf(stream,"%d passed\n%d failed\n%d skipped\n",result->pass,result->fail,result->skip);
@@ -169,5 +170,9 @@ inline void printf_results(const testResult_t * const result)
 {
 	fprint_results(stdout,result);
 }
+*/
+
+#define fprint_results(stream,result) fprintf(stream,"%d passed\n%d failed\n%d skipped\n",(result)->pass,(result)->fail,(result)->skip);
+#define printf_results(result) fprint_results(stdout,result);
 
 #endif
