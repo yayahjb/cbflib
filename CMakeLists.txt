@@ -428,7 +428,7 @@ CBF_DEBUG_MESSAGE( "MAJOR VERSION: ${CBF_VERS_MAJOR}")
 string (REGEX REPLACE ".*#define[ \t]+CBF_VERS_MINOR[ \t]+([0-9]*).*$"
     "\\1" CBF_VERS_MINOR ${CBFlib_cbf_h_contents})
 CBF_DEBUG_MESSAGE( "MINOR VERSION: ${CBF_VERS_MINOR}")
-string (REGEX REPLACE ".*#define[ \t]+CBF_VERS_RELEASE[ \t]+([0-9]*).*$"
+string (REGEX REPLACE ".*#define[ \t]+CBF_VERS_RELEASE[ \t]+([0-9.]*).*$"
     "\\1" CBF_VERS_RELEASE ${CBFlib_cbf_h_contents})
 CBF_DEBUG_MESSAGE( "RELEASE: ${CBF_VERS_RELEASE}")
 string (REGEX REPLACE ".*#define[ \t]+CBF_VERS_SUBRELEASE[ \t]+\"([0-9A-Za-z.]*)\".*$"
