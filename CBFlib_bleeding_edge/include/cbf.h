@@ -259,7 +259,7 @@ extern "C" {
 /* Version numbers */
 #define CBF_VERS_MAJOR   0   /* For major interface/format changes        */
 #define CBF_VERS_MINOR   9   /* For minor interface/format changes        */
-#define CBF_VERS_RELEASE 3   /* For tweaks, bug-fixes, or development     */
+#define CBF_VERS_RELEASE 3.2   /* For tweaks, bug-fixes, or development     */
 #define CBF_VERS_SUBRELEASE ""   
                              /* For pre-releases like RC1                 */
                              /* Empty string for real releases.           */
