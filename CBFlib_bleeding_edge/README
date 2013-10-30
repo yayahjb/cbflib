@@ -1,9 +1,23 @@
+   +------------------------------------------------------------------------+
+   | [IUCr  | [CIF   |              |          | Get CBFlib at              |
+   | Home   | Home   | [CBF/imgCIF] | [CBFlib] | SourceForge.net. Fast,     |
+   | Page]  | Page]  |              |          | secure and Free Open       |
+   |        |        |              |          | Source software downloads  |
+   +------------------------------------------------------------------------+
+
+     ----------------------------------------------------------------------
+
+            | IUCr Home Page | CIF Home Page | CBF/imgCIF | CBFlib |
+ | NOTICE | doc/GPL | doc/LGPL | imgCIF dictionary | SourceForge CBFlib site |
+                       | Click Here to Make a Donation |
+
                                      CBFlib
 
                                      README
 
             Information for CBFlib 0.9.3 release of 15 October 2013
                    Revised as CBFlib 0.9.3.1 16 October 2013
+                   Revised as CBFlib 0.9.3.2 29 October 2013
 
                                        by
                                  Paul J. Ellis
@@ -43,6 +57,10 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
+   CBFlib 0.9.3.2 has a revision API version, and, otherwise, the same code
+   as CBFlib 0.9.3.1, but with further update to the imgCIF dictionary to
+   avoid issues with the PDB validation software.
+
    CBFlib 0.9.3.1 has the same code as CBFlib 0.9.3, but with an update to
    the imgCIF dictionary reflecting a major technical cleanup by John
    Westbrook. An explanation of the choices of regex versions has been added
@@ -79,7 +97,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    used in computing goniometer and detector positions. This code should be
    used with caution.
 
-   Please report all difficulties you may encounter with this release to
+   Please report all difficulties you may encounter with this release to 
    yayahjb at gmail dot com
 
    Our thanks to Jonathan Sloan, Tobias Richter and Graeme Winter of Diamond
@@ -142,28 +160,28 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    A gizpped tarball of this release is available on sourceforge at
 
-   http://downloads.sf.net/cbflib/CBFlib-0.9.3.1.tar.gz
+   http://downloads.sf.net/cbflib/CBFlib-0.9.3.2.tar.gz
 
    In addition,
    http://downloads.sf.net/cbflib/CBFlib_0.9.3_Data_Files_Input.tar.gz (13
    MB) is a "gzipped" tar of the input data files needed to test the API,
-   http://downloads.sf.net/cbflib/CBFlib_0.9.3_Data_Files_Output.tar.gz (34
+   http://downloads.sf.net/cbflib/CBFlib_0.9.3.2_Data_Files_Output.tar.gz (34
    MB) is a "gzipped" tar of the output data files needed to test the API,
    and, if space is at a premium,
-   http://downloads.sf.net/cbflib/CBFlib_0.9.3_Data_Files_Output_Sigs_Only.tar.gz
+   http://downloads.sf.net/cbflib/CBFlib_0.9.3.2_Data_Files_Output_Sigs_Only.tar.gz
    (1KB) is a "gzipped" tar of only the MD5 signatures of the output data
-   files needed to test the API. Place the CBFlib_0.9.3.1.tar.gz file in the
+   files needed to test the API. Place the CBFlib_0.9.3.2.tar.gz file in the
    directory that is intended to contain up to 4 new directories, named
-   CBFlib_0.9.3.1 (the "top-level" directory), CBFlib_0.9.3_Data_Files_Input
-   and either CBFlib_0.9.3_Data_Files_Output or
-   CBFlib_0.9.3_Data_Files_Output_Sigs_Only. If you have wget on your
+   CBFlib_0.9.3.2 (the "top-level" directory), CBFlib_0.9.3_Data_Files_Input
+   and either CBFlib_0.9.3.2_Data_Files_Output or
+   CBFlib_0.9.3.2_Data_Files_Output_Sigs_Only. If you have wget on your
    machine, you only need to download the source tarball. If you do not have
    wget, you will need to download all the tarballs into the same directory
 
-   Uncompress CBFlib_0.9.3.1.tar.gz with gunzip and unpack it with tar:
+   Uncompress CBFlib_0.9.3.2.tar.gz with gunzip and unpack it with tar:
 
-      gunzip CBFlib_0.9.3.1.tar.gz
-      tar xvf CBFLIB_0.9.3.1.tar
+      gunzip CBFlib_0.9.3.2.tar.gz
+      tar xvf CBFLIB_0.9.3.2.tar
 
    To run the test programs, you will also need Paul Ellis's sample MAR345
    image, example.mar2300, Chris Nielsen's sample ADSC Quantum 315 image,
@@ -258,4 +276,4 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-   Updated 16 October 2013. yayahjb at gmail dot com
+   Updated 16 October 2013.  yayahjb at gmail dot com
