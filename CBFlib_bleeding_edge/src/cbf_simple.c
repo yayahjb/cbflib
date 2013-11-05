@@ -2717,67 +2717,118 @@ extern "C" {
     }
 
 
-
-    /* Get the type of an axis */
-
-    int cbf_get_axis_type (cbf_handle handle, const char *axis_id,
-                           cbf_axis_type *axis_type)
-    {
-        const char *type;
-
-
-        /* Get the axis type */
-
-        cbf_failnez (cbf_find_category (handle, "axis"))
-        cbf_failnez (cbf_find_column   (handle, "id"))
-        cbf_failnez (cbf_find_row      (handle, axis_id))
-        cbf_failnez (cbf_find_column   (handle, "type"))
-        cbf_failnez (cbf_get_value     (handle, &type))
-
-        if (!type)
-
-            return CBF_NOTFOUND;
-
-        if (toupper (*type) != 'T' &&
-            toupper (*type) != 'R' &&
-            toupper (*type) != 'G')
-
-            return CBF_FORMAT;
-
-        if (axis_type) {
-
-            if (toupper (*type) == 'T') {
-
-                *axis_type = CBF_TRANSLATION_AXIS;
-
-            } else {
-
-                if (toupper (*type) == 'R') {
-
-                    *axis_type = CBF_ROTATION_AXIS;
-
-                } else {
-
-                    *axis_type = CBF_GENERAL_AXIS;
-                }
+    /* Count the ancestors of an axis */
+    
+    int cbf_count_axis_ancestors (cbf_handle handle,
+                               const char *axis_id,
+                               unsigned int *ancestors) {
+        
+        const char * cur_axis;
+        const char * depends_on;
+        int curlevel;
+        unsigned int maxlevel;
+        
+        /* Check for valid arguments */
+        
+        if (!handle || !axis_id || !ancestors ) return CBF_ARGUMENT;
+        
+        /* Get the axis dependencies */
+        
+        cbf_failnez (cbf_find_category (handle, "axis"));
+        cbf_failnez (cbf_count_rows(handle,&maxlevel));
+        if (maxlevel < 1) return CBF_FORMAT;
+        maxlevel --;
+        curlevel = maxlevel;
+        cbf_failnez (cbf_find_column   (handle, "id"));
+        cbf_failnez (cbf_find_row      (handle, axis_id));
+        cbf_failnez (cbf_get_value     (handle, &cur_axis));
+        
+        *ancestors = 0;
+        
+        while (curlevel >= 0) {
+            
+            if (curlevel==0 ||
+                cbf_find_column   (handle, "depends_on")
+                || cbf_get_value     (handle, &depends_on)||
+                !((depends_on)[0])) {
+                
+                return CBF_SUCCESS;
+                
             }
+            
+            cur_axis = depends_on;
+            curlevel--;
+            (*ancestors)++;
+            cbf_failnez (cbf_find_column(handle, "id"));
+            cbf_failnez (cbf_find_row   (handle, cur_axis));
+            
         }
-
-        return 0;
+        return CBF_FORMAT;
+        
     }
 
-    /* Get the axis, if any, on which this axis depends */
-
-    int cbf_get_axis_depends_on (cbf_handle handle, const char *axis_id,
-                           const char * *depends_on)
-    {
-
+    
+    /* Get the specified ancestor of an axis */
+    
+    int cbf_get_axis_ancestor (cbf_handle handle,
+                               const char *axis_id,
+                               const unsigned int ancestor_index,
+                               const char * *ancestor) {
+        
+        const char * cur_axis;
+        const char * depends_on;
+        int curlevel;
+        
         /* Check for valid arguments */
+        
+        if (!handle || !axis_id || !ancestor || ancestor_index < 0) return CBF_ARGUMENT;
+        
+        *ancestor = NULL;
+        curlevel = ancestor_index;
+        
+        /* Get the axis dependencies */
+        
+        cbf_failnez (cbf_find_category (handle, "axis"));
+        cbf_failnez (cbf_find_column   (handle, "id"));
+        cbf_failnez (cbf_find_row      (handle, axis_id));
+        cbf_failnez (cbf_get_value     (handle, &cur_axis));
+        
+        while (curlevel >= 0) {
+        
+            if (curlevel==0 ||
+                cbf_find_column   (handle, "depends_on")
+                || cbf_get_value     (handle, &depends_on)||
+                !((depends_on)[0])) {
+            
+                if (curlevel > 0) return CBF_NOTFOUND;
+                *ancestor = cur_axis;
+                return CBF_SUCCESS;
+            
+            }
+        
+            cur_axis = depends_on;
+            curlevel--;
+            cbf_failnez (cbf_find_column(handle, "id"));
+            cbf_failnez (cbf_find_row   (handle, cur_axis));
+ 
+        }
+        return CBF_NOTFOUND;
 
+    }
+    
+    
+    /* Get the axis, if any, on which this axis depends */
+    
+    int cbf_get_axis_depends_on (cbf_handle handle, const char *axis_id,
+                                 const char * *depends_on)
+    {
+        
+        /* Check for valid arguments */
+        
         if (!handle || !axis_id || !depends_on) return CBF_ARGUMENT;
-
-        /* Get the axis deependency */
-
+        
+        /* Get the axis dependency */
+        
         cbf_failnez (cbf_find_category (handle, "axis"))
         cbf_failnez (cbf_find_column   (handle, "id"))
         cbf_failnez (cbf_find_row      (handle, axis_id))
@@ -2789,39 +2840,110 @@ extern "C" {
             *depends_on = ".";  return CBF_SUCCESS;
         }
         return CBF_SUCCESS;
+        
+    }
+    
+    
+
+    /* Get the axis equipment */
+
+    int cbf_get_axis_equipment (cbf_handle handle, const char *axis_id,
+                           const char * *equipment)
+    {
+ 
+        /* Get the axis equipment */
+
+        cbf_failnez (cbf_find_category (handle, "axis"))
+        cbf_failnez (cbf_find_column   (handle, "id"))
+        cbf_failnez (cbf_find_row      (handle, axis_id))
+        if (cbf_find_column   (handle, "equipment")) {
+            *equipment = ".";  return CBF_SUCCESS;
+        }
+        if (cbf_get_value     (handle, equipment)||
+            !((*equipment)[0])) {
+            *equipment = ".";  return CBF_SUCCESS;
+        }
+        return CBF_SUCCESS;
 
     }
 
-
-
-    /* Get an axis vector */
-
-    int cbf_get_axis_vector (cbf_handle handle, const char *axis_id,
-                             double *vector1,
-                             double *vector2,
-                             double *vector3)
+    /* Get the axis equipment_component */
+    
+    int cbf_get_axis_equipment_component (cbf_handle handle,
+                                          const char *axis_id,
+                                const char * *equipment_component)
     {
-        if (!handle || !axis_id || !vector1 || !vector2 || !vector3)
+        
+        /* Get the axis equipment component */
+        
+        cbf_failnez (cbf_find_category (handle, "axis"))
+        cbf_failnez (cbf_find_column   (handle, "id"))
+        cbf_failnez (cbf_find_row      (handle, axis_id))
+        if (cbf_find_column   (handle, "equipment_component")) {
+            *equipment_component = ".";  return CBF_SUCCESS;
+        }
+        if (cbf_get_value     (handle, equipment_component)||
+            !((*equipment_component)[0])) {
+            *equipment_component = ".";  return CBF_SUCCESS;
+        }
+        return CBF_SUCCESS;
+
+    }
+
+    /* Get an axis rotation */
+    
+    int cbf_get_axis_rotation (cbf_handle handle, const char *axis_id,
+                               double *rotation)
+    {
+        if (!handle || !axis_id || !rotation )
             return CBF_ARGUMENT;
-
+        
         /* Read from the axis category */
-
+        
         cbf_failnez (cbf_find_category   (handle, "axis"))
         cbf_failnez (cbf_find_column     (handle, "id"))
         cbf_failnez (cbf_find_row        (handle, axis_id))
-        cbf_failnez (cbf_find_column     (handle, "vector[1]"))
-        if (cbf_get_doublevalue (handle, vector1)) *vector1 = 0.;
-        cbf_failnez (cbf_find_column     (handle, "vector[2]"))
-        if (cbf_get_doublevalue (handle, vector2)) *vector2 = 0.;
-        cbf_failnez (cbf_find_column     (handle, "vector[3]"))
-        if (cbf_get_doublevalue (handle, vector3)) *vector3 = 0.;
-
+        if (cbf_find_column( handle, "rotation")) {
+            
+            *rotation = 0.0;
+            return CBF_SUCCESS;
+            
+        }
+        
+        if (cbf_get_doublevalue (handle, rotation)) *rotation = 0.;
+        
         return 0;
+        
     }
+    
+
+    /* Get the axis rotation_axis */
+    
+    int cbf_get_axis_rotation_axis (cbf_handle handle,
+                                          const char *axis_id,
+                                          const char * *rotation_axis)
+    {
+        
+        /* Get the axis rotation_axis */
+        
+        cbf_failnez (cbf_find_category (handle, "axis"))
+        cbf_failnez (cbf_find_column   (handle, "id"))
+        cbf_failnez (cbf_find_row      (handle, axis_id))
+        if (cbf_find_column   (handle, "rotation_axis")) {
+            *rotation_axis = ".";  return CBF_SUCCESS;
+        }
+        if (cbf_get_value     (handle, rotation_axis)||
+            !((*rotation_axis)[0])) {
+            *rotation_axis = ".";  return CBF_SUCCESS;
+        }
+        return CBF_SUCCESS;
+        
+    }
+    
 
 
     /* Get an axis offset */
-
+    
     int cbf_get_axis_offset (cbf_handle handle, const char *axis_id,
                              double *offset1,
                              double *offset2,
@@ -2829,9 +2951,9 @@ extern "C" {
     {
         if (!handle || !axis_id || !offset1 || !offset2 || !offset3)
             return CBF_ARGUMENT;
-
+        
         /* Read from the axis category */
-
+        
         cbf_failnez (cbf_find_category   (handle, "axis"))
         cbf_failnez (cbf_find_column     (handle, "id"))
         cbf_failnez (cbf_find_row        (handle, axis_id))
@@ -2841,10 +2963,86 @@ extern "C" {
         if (cbf_get_doublevalue (handle, offset2)) *offset2 = 0.;
         cbf_failnez (cbf_find_column     (handle, "offset[3]"))
         if (cbf_get_doublevalue (handle, offset3)) *offset3 = 0.;
-
+        
         return 0;
     }
 
+
+
+
+
+    /* Get the type of an axis */
+    
+    int cbf_get_axis_type (cbf_handle handle, const char *axis_id,
+                           cbf_axis_type *axis_type)
+    {
+        const char *type;
+        
+        
+        /* Get the axis type */
+        
+        cbf_failnez (cbf_find_category (handle, "axis"))
+        cbf_failnez (cbf_find_column   (handle, "id"))
+        cbf_failnez (cbf_find_row      (handle, axis_id))
+        cbf_failnez (cbf_find_column   (handle, "type"))
+        cbf_failnez (cbf_get_value     (handle, &type))
+        
+        if (!type)
+            
+            return CBF_NOTFOUND;
+        
+        if (toupper (*type) != 'T' &&
+            toupper (*type) != 'R' &&
+            toupper (*type) != 'G')
+            
+            return CBF_FORMAT;
+        
+        if (axis_type) {
+            
+            if (toupper (*type) == 'T') {
+                
+                *axis_type = CBF_TRANSLATION_AXIS;
+                
+            } else {
+                
+                if (toupper (*type) == 'R') {
+                    
+                    *axis_type = CBF_ROTATION_AXIS;
+                    
+                } else {
+                    
+                    *axis_type = CBF_GENERAL_AXIS;
+                }
+            }
+        }
+        
+        return 0;
+    }
+
+    /* Get an axis vector */
+    
+    int cbf_get_axis_vector (cbf_handle handle, const char *axis_id,
+                             double *vector1,
+                             double *vector2,
+                             double *vector3)
+    {
+        if (!handle || !axis_id || !vector1 || !vector2 || !vector3)
+            return CBF_ARGUMENT;
+        
+        /* Read from the axis category */
+        
+        cbf_failnez (cbf_find_category   (handle, "axis"))
+        cbf_failnez (cbf_find_column     (handle, "id"))
+        cbf_failnez (cbf_find_row        (handle, axis_id))
+        cbf_failnez (cbf_find_column     (handle, "vector[1]"))
+        if (cbf_get_doublevalue (handle, vector1)) *vector1 = 0.;
+        cbf_failnez (cbf_find_column     (handle, "vector[2]"))
+        if (cbf_get_doublevalue (handle, vector2)) *vector2 = 0.;
+        cbf_failnez (cbf_find_column     (handle, "vector[3]"))
+        if (cbf_get_doublevalue (handle, vector3)) *vector3 = 0.;
+        
+        return 0;
+    }
 
 
     /* Get the setting of an axis */
@@ -6182,7 +6380,7 @@ extern "C" {
     }
 
 
-    /* Calcluate the coordinates of a pixel */
+    /* Calculate the coordinates of a pixel */
 
     int cbf_get_pixel_coordinates (cbf_detector detector, double index1,
                                    double index2,
@@ -6199,6 +6397,51 @@ extern "C" {
                                              coordinate3))
 
         return 0;
+    }
+
+    /* Get the names of the detector surface axes */
+    
+    int cbf_get_detector_surface_axes(cbf_detector detector,
+                                 const char * * axis_id1,
+                                 const char * * axis_id2)
+    {
+        unsigned int row;
+        
+        if ( !detector || !(detector->positioner)) return CBF_ARGUMENT;
+        
+        if (axis_id1) {
+            
+            row = detector->index[0];
+            
+            if (row < detector->axes) {
+            
+                *axis_id1 = (detector->positioner->axis[row]).name;
+            
+            } else {
+                
+                *axis_id1 = ".";
+            }
+            
+        }
+        
+        
+        if (axis_id2) {
+            
+            row = detector->index[0];
+            
+            if (row < detector->axes) {
+                
+                *axis_id2 = (detector->positioner->axis[row]).name;
+                
+            } else {
+                
+                *axis_id2 = ".";
+            }
+
+        }
+        
+        return CBF_SUCCESS;
+        
     }
 
 
