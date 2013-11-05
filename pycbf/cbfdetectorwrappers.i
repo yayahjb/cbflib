@@ -164,6 +164,75 @@ Returns an error code on failure or 0 for success.
                                        centerfast, centerslow));
         }
 %feature("autodoc", "
+Returns : double index1,double index2,double center1,double center2
+*args   : 
+
+C prototype: int cbf_get_beam_center (cbf_detector detector,
+                 double *indexslow,      double *indexfast, double *centerslow,
+                 double *centerfast);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_get_beam_center sets *centerfast and *centerslow to the 
+displacements in mm along the detector axes from pixel (0, 0) to the 
+point at which the beam intersects the detector and *indexfast and 
+*indexslow to the corresponding indices. cbf_set_beam_center sets the 
+offsets in the axis category for the detector element axis with 
+precedence 1 to place the beam center at the position given in mm by 
+*centerfast and *centerslow as the displacements in mm along the 
+detector axes from pixel (0, 0) to the point at which the beam 
+intersects the detector at the indices given *indexfast and 
+*indexslow. cbf_set_reference_beam_center sets the displacments in 
+the array_structure_list_axis category to place the beam center at 
+the position given in mm by *centerfast and *centerslow as the 
+displacements in mm along the detector axes from pixel (0, 0) to the 
+point at which the beam intersects the detector at the indices given 
+by *indexfast and *indexslow. In order to achieve consistent results, 
+a reference detector should be used for detector to have all axes at 
+their reference settings.
+Note that the precedence 1 axis is the fastest axis, so that 
+*centerfast and *indexfast are the fast axis components of the center 
+and *centerslow and *indexslow are the slow axis components of the 
+center.
+The _fs calls give the displacments in a fast-to-slow order. The 
+calls with no suffix and the calls _sf calls give the displacements 
+in slow-to-fast order
+Any of the destination pointers may be NULL for getting the beam 
+center. For setting the beam axis, either the indices of the center 
+must not be NULL.
+The indices are non-negative for beam centers within the detector 
+surface, but the center for an axis with a negative increment will be 
+negative for a beam center within the detector surface.
+For cbf_set_beam_center if the diffrn_data_frame category exists with 
+a row for the corresponding element id, the values will be set for 
+_diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
+millimetres and the value of _diffrn_data_frame.center_units will be 
+set to 'mm'.
+For cbf_set_reference_beam_center if the diffrn_detector_element 
+category exists with a row for the corresponding element id, the 
+values will be set for _diffrn_detector_element.reference_center_fast 
+and _diffrn_detector_element.reference_center_slow in millimetres and 
+the value of _diffrn_detector_element.reference_units will be set to 
+'mm'.
+ARGUMENTS
+detector     Detector handle. indexfast    Pointer to the destination 
+fast index. indexslow    Pointer to the destination slow index. 
+centerfast   Pointer to the destination displacement along the fast 
+axis. centerslow   Pointer to the destination displacement along the 
+slow axis.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_beam_center;
+
+%apply double *OUTPUT {double *index1, double *index2, 
+ double *center1,double *center2};
+    void get_beam_center(double *index1, double *index2, 
+                         double *center1,double *center2){
+        cbf_failnez(cbf_get_beam_center(self, index1, index2, 
+                                       center1, center2));
+        }
+%feature("autodoc", "
 Returns : double coordinate1,double coordinate2,double coordinate3
 *args   : double indexfast,double indexslow
 
@@ -295,6 +364,57 @@ Returns an error code on failure or 0 for success.
    }
 
 %feature("autodoc", "
+Returns : String
+*args   : Integer index
+
+C prototype: int cbf_get_detector_surface_axes(cbf_detector detector,
+                 const char * *      axis_id1, const char * * axis_id2);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_get_detector_axis_slow sets *slowaxis1, *slowaxis2, and 
+*slowaxis3 to the 3 components of the slow axis of the specified 
+detector at the current settings of all axes. 
+cbf_get_detector_axis_slow sets *fastaxis1, *fastaxis2, and 
+*fastaxis3 to the 3 components of the fast axis of the specified 
+detector at the current settings of all axes. cbf_get_detector_axes, 
+cbf_get_detector_axes_fs and int cbf_get_detector_axes_sf set 
+*slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the 
+slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 
+components of the fast axis of the specified detector at the current 
+settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 
+and *axis_id2 to the names of the two surface axes of the detector or 
+ \". \",
+Any of the destination pointers may be NULL.
+ARGUMENTS
+detector    Detector handle. slowaxis1   Pointer to the destination x 
+component of the slow axis vector. slowaxis2   Pointer to the 
+destination y component of the slow axis vector. slowaxis3   Pointer 
+to the destination z component of the slow axis vector. fastaxis1   
+Pointer to the destination x component of the fast axis vector. 
+fastaxis2   Pointer to the destination y component of the fast axis 
+vector. fastaxis3   Pointer to the destination z component of the 
+fast axis vector. axis_id1    Pointer to the destination first 
+surface axis name. axis_id1    Pointer to the destination first 
+surface axis name. axis_id2    Pointer to the destination second 
+surface axis name.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")cbf_get_detector_surface_axes;
+
+    const char * get_surface_axes (int index ){
+    const char axis_id1;
+    const char axis_id2;
+    cbf_failnez(cbf_get_detector_surface_axes(self,
+    &axis_id1, &axis_id2));
+    if (index == 0) return axis_id1;
+    if (index == 1) return axis_id2;
+    return ".";
+    }
+    
+    
+    %feature("autodoc", "
 Returns : double slowaxis1,double slowaxis2,double slowaxis3,double fastaxis1,
           double fastaxis2,double fastaxis3
 *args   : 
@@ -315,7 +435,9 @@ cbf_get_detector_axes_fs and int cbf_get_detector_axes_sf set
 *slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the 
 slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 
 components of the fast axis of the specified detector at the current 
-settings of all axes.
+settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 
+and *axis_id2 to the names of the two surface axes of the detector or 
+ \". \",
 Any of the destination pointers may be NULL.
 ARGUMENTS
 detector    Detector handle. slowaxis1   Pointer to the destination x 
@@ -325,7 +447,10 @@ to the destination z component of the slow axis vector. fastaxis1
 Pointer to the destination x component of the fast axis vector. 
 fastaxis2   Pointer to the destination y component of the fast axis 
 vector. fastaxis3   Pointer to the destination z component of the 
-fast axis vector.
+fast axis vector. axis_id1    Pointer to the destination first 
+surface axis name. axis_id1    Pointer to the destination first 
+surface axis name. axis_id2    Pointer to the destination second 
+surface axis name.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -426,7 +551,9 @@ cbf_get_detector_axes_fs and int cbf_get_detector_axes_sf set
 *slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the 
 slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 
 components of the fast axis of the specified detector at the current 
-settings of all axes.
+settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 
+and *axis_id2 to the names of the two surface axes of the detector or 
+ \". \",
 Any of the destination pointers may be NULL.
 ARGUMENTS
 detector    Detector handle. slowaxis1   Pointer to the destination x 
@@ -436,7 +563,10 @@ to the destination z component of the slow axis vector. fastaxis1
 Pointer to the destination x component of the fast axis vector. 
 fastaxis2   Pointer to the destination y component of the fast axis 
 vector. fastaxis3   Pointer to the destination z component of the 
-fast axis vector.
+fast axis vector. axis_id1    Pointer to the destination first 
+surface axis name. axis_id1    Pointer to the destination first 
+surface axis name. axis_id2    Pointer to the destination second 
+surface axis name.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -553,7 +683,9 @@ cbf_get_detector_axes_fs and int cbf_get_detector_axes_sf set
 *slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the 
 slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 
 components of the fast axis of the specified detector at the current 
-settings of all axes.
+settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 
+and *axis_id2 to the names of the two surface axes of the detector or 
+ \". \",
 Any of the destination pointers may be NULL.
 ARGUMENTS
 detector    Detector handle. slowaxis1   Pointer to the destination x 
@@ -563,7 +695,10 @@ to the destination z component of the slow axis vector. fastaxis1
 Pointer to the destination x component of the fast axis vector. 
 fastaxis2   Pointer to the destination y component of the fast axis 
 vector. fastaxis3   Pointer to the destination z component of the 
-fast axis vector.
+fast axis vector. axis_id1    Pointer to the destination first 
+surface axis name. axis_id1    Pointer to the destination first 
+surface axis name. axis_id2    Pointer to the destination second 
+surface axis name.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -596,7 +731,9 @@ cbf_get_detector_axes_fs and int cbf_get_detector_axes_sf set
 *slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the 
 slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 
 components of the fast axis of the specified detector at the current 
-settings of all axes.
+settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 
+and *axis_id2 to the names of the two surface axes of the detector or 
+ \". \",
 Any of the destination pointers may be NULL.
 ARGUMENTS
 detector    Detector handle. slowaxis1   Pointer to the destination x 
@@ -606,7 +743,10 @@ to the destination z component of the slow axis vector. fastaxis1
 Pointer to the destination x component of the fast axis vector. 
 fastaxis2   Pointer to the destination y component of the fast axis 
 vector. fastaxis3   Pointer to the destination z component of the 
-fast axis vector.
+fast axis vector. axis_id1    Pointer to the destination first 
+surface axis name. axis_id1    Pointer to the destination first 
+surface axis name. axis_id2    Pointer to the destination second 
+surface axis name.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -616,52 +756,6 @@ Returns an error code on failure or 0 for success.
                        double *fastaxis1, double *fastaxis2, double *fastaxis3};
    void get_detector_axes_fs ( double *fastaxis1, double *fastaxis2, double *fastaxis3,
                                double *slowaxis1, double *slowaxis2, double *slowaxis3){
-       cbf_failnez(cbf_get_detector_axes(self,
-                                    slowaxis1,slowaxis2,slowaxis3,
-                                    fastaxis1,fastaxis2,fastaxis3));
-   }
-
-%feature("autodoc", "
-Returns : double slowaxis1,double slowaxis2,double slowaxis3,double fastaxis1,
-          double fastaxis2,double fastaxis3
-*args   : 
-
-C prototype: int cbf_get_detector_axes_sf (cbf_detector detector,
-                 double *slowaxis1,      double *slowaxis2, double *slowaxis3,
-                 double *fastaxis1, double      *fastaxis2, double *fastaxis3);
-
-CBFLib documentation:
-DESCRIPTION
-cbf_get_detector_axis_slow sets *slowaxis1, *slowaxis2, and 
-*slowaxis3 to the 3 components of the slow axis of the specified 
-detector at the current settings of all axes. 
-cbf_get_detector_axis_slow sets *fastaxis1, *fastaxis2, and 
-*fastaxis3 to the 3 components of the fast axis of the specified 
-detector at the current settings of all axes. cbf_get_detector_axes, 
-cbf_get_detector_axes_fs and int cbf_get_detector_axes_sf set 
-*slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the 
-slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 
-components of the fast axis of the specified detector at the current 
-settings of all axes.
-Any of the destination pointers may be NULL.
-ARGUMENTS
-detector    Detector handle. slowaxis1   Pointer to the destination x 
-component of the slow axis vector. slowaxis2   Pointer to the 
-destination y component of the slow axis vector. slowaxis3   Pointer 
-to the destination z component of the slow axis vector. fastaxis1   
-Pointer to the destination x component of the fast axis vector. 
-fastaxis2   Pointer to the destination y component of the fast axis 
-vector. fastaxis3   Pointer to the destination z component of the 
-fast axis vector.
-RETURN VALUE
-Returns an error code on failure or 0 for success.
-----------------------------------------------------------------------
-")get_detector_axes_sf;
-
-%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3,
-                       double *fastaxis1, double *fastaxis2, double *fastaxis3};
-   void get_detector_axes_sf ( double *slowaxis1, double *slowaxis2, double *slowaxis3,
-                            double *fastaxis1, double *fastaxis2, double *fastaxis3){
        cbf_failnez(cbf_get_detector_axes(self,
                                     slowaxis1,slowaxis2,slowaxis3,
                                     fastaxis1,fastaxis2,fastaxis3));
@@ -701,6 +795,57 @@ Returns an error code on failure or 0 for success.
              double *coordinate3){
       cbf_failnez(cbf_get_pixel_coordinates_sf(self, indexslow, indexfast, coordinate1, coordinate2, coordinate3));
    }
+%feature("autodoc", "
+Returns : double slowaxis1,double slowaxis2,double slowaxis3,double fastaxis1,
+          double fastaxis2,double fastaxis3
+*args   : 
+
+C prototype: int cbf_get_detector_axes_sf (cbf_detector detector,
+                 double *slowaxis1,      double *slowaxis2, double *slowaxis3,
+                 double *fastaxis1, double      *fastaxis2, double *fastaxis3);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_get_detector_axis_slow sets *slowaxis1, *slowaxis2, and 
+*slowaxis3 to the 3 components of the slow axis of the specified 
+detector at the current settings of all axes. 
+cbf_get_detector_axis_slow sets *fastaxis1, *fastaxis2, and 
+*fastaxis3 to the 3 components of the fast axis of the specified 
+detector at the current settings of all axes. cbf_get_detector_axes, 
+cbf_get_detector_axes_fs and int cbf_get_detector_axes_sf set 
+*slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the 
+slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 
+components of the fast axis of the specified detector at the current 
+settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 
+and *axis_id2 to the names of the two surface axes of the detector or 
+ \". \",
+Any of the destination pointers may be NULL.
+ARGUMENTS
+detector    Detector handle. slowaxis1   Pointer to the destination x 
+component of the slow axis vector. slowaxis2   Pointer to the 
+destination y component of the slow axis vector. slowaxis3   Pointer 
+to the destination z component of the slow axis vector. fastaxis1   
+Pointer to the destination x component of the fast axis vector. 
+fastaxis2   Pointer to the destination y component of the fast axis 
+vector. fastaxis3   Pointer to the destination z component of the 
+fast axis vector. axis_id1    Pointer to the destination first 
+surface axis name. axis_id1    Pointer to the destination first 
+surface axis name. axis_id2    Pointer to the destination second 
+surface axis name.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_detector_axes_sf;
+
+%apply double *OUTPUT {double *slowaxis1, double *slowaxis2, double *slowaxis3,
+                       double *fastaxis1, double *fastaxis2, double *fastaxis3};
+   void get_detector_axes_sf ( double *slowaxis1, double *slowaxis2, double *slowaxis3,
+                            double *fastaxis1, double *fastaxis2, double *fastaxis3){
+       cbf_failnez(cbf_get_detector_axes(self,
+                                    slowaxis1,slowaxis2,slowaxis3,
+                                    fastaxis1,fastaxis2,fastaxis3));
+   }
+
 %feature("autodoc", "
 Returns : 
 *args   : double indexslow,double indexfast,double centerslow,double centerfast
@@ -1038,75 +1183,6 @@ Returns an error code on failure or 0 for success.
        cbf_failnez(cbf_get_pixel_area_sf (self,
                                        indexslow, indexfast, area,projected_area));
       }
-%feature("autodoc", "
-Returns : double index1,double index2,double center1,double center2
-*args   : 
-
-C prototype: int cbf_get_beam_center (cbf_detector detector,
-                 double *indexslow,      double *indexfast, double *centerslow,
-                 double *centerfast);
-
-CBFLib documentation:
-DESCRIPTION
-cbf_get_beam_center sets *centerfast and *centerslow to the 
-displacements in mm along the detector axes from pixel (0, 0) to the 
-point at which the beam intersects the detector and *indexfast and 
-*indexslow to the corresponding indices. cbf_set_beam_center sets the 
-offsets in the axis category for the detector element axis with 
-precedence 1 to place the beam center at the position given in mm by 
-*centerfast and *centerslow as the displacements in mm along the 
-detector axes from pixel (0, 0) to the point at which the beam 
-intersects the detector at the indices given *indexfast and 
-*indexslow. cbf_set_reference_beam_center sets the displacments in 
-the array_structure_list_axis category to place the beam center at 
-the position given in mm by *centerfast and *centerslow as the 
-displacements in mm along the detector axes from pixel (0, 0) to the 
-point at which the beam intersects the detector at the indices given 
-by *indexfast and *indexslow. In order to achieve consistent results, 
-a reference detector should be used for detector to have all axes at 
-their reference settings.
-Note that the precedence 1 axis is the fastest axis, so that 
-*centerfast and *indexfast are the fast axis components of the center 
-and *centerslow and *indexslow are the slow axis components of the 
-center.
-The _fs calls give the displacments in a fast-to-slow order. The 
-calls with no suffix and the calls _sf calls give the displacements 
-in slow-to-fast order
-Any of the destination pointers may be NULL for getting the beam 
-center. For setting the beam axis, either the indices of the center 
-must not be NULL.
-The indices are non-negative for beam centers within the detector 
-surface, but the center for an axis with a negative increment will be 
-negative for a beam center within the detector surface.
-For cbf_set_beam_center if the diffrn_data_frame category exists with 
-a row for the corresponding element id, the values will be set for 
-_diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
-millimetres and the value of _diffrn_data_frame.center_units will be 
-set to 'mm'.
-For cbf_set_reference_beam_center if the diffrn_detector_element 
-category exists with a row for the corresponding element id, the 
-values will be set for _diffrn_detector_element.reference_center_fast 
-and _diffrn_detector_element.reference_center_slow in millimetres and 
-the value of _diffrn_detector_element.reference_units will be set to 
-'mm'.
-ARGUMENTS
-detector     Detector handle. indexfast    Pointer to the destination 
-fast index. indexslow    Pointer to the destination slow index. 
-centerfast   Pointer to the destination displacement along the fast 
-axis. centerslow   Pointer to the destination displacement along the 
-slow axis.
-RETURN VALUE
-Returns an error code on failure or 0 for success.
-----------------------------------------------------------------------
-")get_beam_center;
-
-%apply double *OUTPUT {double *index1, double *index2, 
- double *center1,double *center2};
-    void get_beam_center(double *index1, double *index2, 
-                         double *center1,double *center2){
-        cbf_failnez(cbf_get_beam_center(self, index1, index2, 
-                                       center1, center2));
-        }
 %feature("autodoc", "
 Returns : 
 *args   : double indexslow,double indexfast,double centerslow,double centerfast

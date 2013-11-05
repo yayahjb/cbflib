@@ -9,7 +9,8 @@
 %     email: wright@@esrf.fr
 %
 % Revised for CBFlib 0.9 releases, Herbert J. Bernstein, 23 Aug 2010
-% Revised for CBFlin 0.9.2.8, Herbert J. Bernstein, 12 December 2012
+% Revised for CBFlib 0.9.2.8, Herbert J. Bernstein, 12 December 2012
+% Revised for CBFlib 0.9.3.2, Herbert J. Bernstein, 4 November 2013
 %
 %######################################################################
 %#                                                                    #
@@ -158,7 +159,7 @@ while i<len(lines)-1:
          prototypes+=lines[i].rstrip()+" " # lose the \n
          # print lines[i].rstrip()
          check+=1
-         if check>20:
+         if check>50:
             raise Exception("Runaway prototype "+prototypes)
       on=1 # Keep reading docstring
       continue
@@ -1923,6 +1924,7 @@ void require_column_integervalue(const char *columnname,
 ""","get_element_id", ["Integer element_number"],["String"]],
 
 
+
 "cbf_set_axis_setting":["""
    void set_axis_setting(const char *axis_id,
                     double start, double increment){
@@ -1934,6 +1936,108 @@ void require_column_integervalue(const char *columnname,
 ""","set_axis_setting",["String axis_id", "Float start", "Float increment"],
  []],
 
+
+
+"cbf_count_axis_ancestors":["""
+%apply int *OUTPUT {int *ancestors} count_axis_ancestors;
+   void count_axis_ancestors(const char *axis_id,
+                    int *ancestors){
+        unsigned int anc;
+        cbf_failnez(cbf_axis_ancestors(self,axis_id,&anc));
+        *ancestors = anc;
+        }
+""","count_axis_ancestors",["String axis_id"],["Integer"],],
+
+
+"cbf_get_axis_ancestor":["""
+   const char *  get_axis_ancestor(const char *axis_id,
+                    int ancestor_index){
+        const char* anc;
+        cbf_failnez(cbf_get_axis_ancestor(self,axis_id,
+           (unsigned int)ancestor_index,&anc));
+        return anc;
+        }
+""","get_axis_ancestor",["String axis_id", "Integer ancestor_index"],["String"],],
+
+"cbf_get_axis_depends_on":["""
+   const char *  get_axis_depends_on(const char *axis_id){
+        const char* dep_on;
+        cbf_failnez(cbf_get_axis_depends_on(self,axis_id,
+           &dep_on));
+        return dep_on;
+        }
+""","get_axis_depends_on",["String axis_id"],["String"],],
+
+"cbf_get_axis_equipment":["""
+   const char *  get_axis_equipment(const char *axis_id){
+        const char* equip;
+        cbf_failnez(cbf_get_axis_equipment(self,axis_id,
+           &equip));
+        return equip;
+        }
+""","get_axis_equipment",["String axis_id"],["String"],],
+
+
+"cbf_get_axis_equipment_component":["""
+   const char *  get_axis_equipment_component(const char *axis_id){
+        const char* equip_comp;
+        cbf_failnez(cbf_get_axis_equipment_component(self,axis_id,
+           &equip_comp));
+        return equip_comp;
+        }
+""","get_axis_equipment_component",["String axis_id"],["String"],],
+
+
+"cbf_get_axis_offset":["""
+%apply double *OUTPUT {double *offset1, double *offset2, double offset3} get_axis_offset;
+   void get_axis_offset(const char *axis_id,
+                    double *offset1, double *offset2, double*offset3){
+        cbf_failnez(cbf_get_axis_offset(self,axis_id,
+                         offset1, offset2,offset3));
+        }
+""","get_axis_offset",["String axis_id"],
+  ["Float offset1", "Float offset2", "Float offset3"],],
+
+"cbf_get_axis_rotation":["""
+%apply double *OUTPUT {double *rotation} get_axis_rotation;
+   void get_axis_rotation(const char *axis_id,
+                    double *rotation){
+        cbf_failnez(cbf_get_axis_rotation(self,axis_id,
+                         rotation));
+        }
+""","get_axis_rotation",["String axis_id"],
+  ["Float"],],
+
+"cbf_get_axis_rotation_axis":["""
+   const char *  get_axis_rotation_axis(const char *axis_id){
+        const char* rot_axis;
+        cbf_failnez(cbf_get_axis_equipment_component(self,axis_id,
+           &rot_axis));
+        return rot_axis;
+        }
+""","get_axis_rotation_axis",["String axis_id"],["String"],],
+
+"cbf_get_axis_type":["""
+   const char *  get_axis_type(const char *axis_id){
+        cbf_axis_type* axis_type;
+        cbf_failnez(cbf_get_axis_equipment(self,axis_id,
+           &axis_type));
+        if (axis_type == CBF_TRANSLATION_AXIS) return "translation";
+        if (axis_type == CBF_ROTATION_AXIS) return "rotation";
+        return "general";
+        }
+""","get_axis_type",["String axis_id"],["String"],],
+
+
+"cbf_get_axis_vector":["""
+%apply double *OUTPUT {double *vector1, double *vector2, double vector3} get_axis_vector;
+   void get_axis_vector(const char *axis_id,
+                    double *vector1, double *vector2, double *vector3){
+        cbf_failnez(cbf_get_axis_vector(self,axis_id,
+                         vector1, vector2,vector3));
+        }
+""","get_axis_vector",["String axis_id"],
+  ["Float vector1", "Float vector2", "Float vector3"],],
 
 "cbf_get_axis_setting":["""
 %apply double *OUTPUT {double *start, double *increment} get_axis_setting;
@@ -2801,6 +2905,22 @@ cbf_detector_specials = {
 ""","get_detector_axes_sf", [ ],
  ["double slowaxis1","double slowaxis2", "double slowaxis3",
  "double fastaxis1","double fastaxis2", "double fastaxis3" ] ],
+
+
+"cbf_get_detector_surface_axes":["""
+   const char * get_surface_axes (int index ){
+       const char axis_id1;
+       const char axis_id2;
+       cbf_failnez(cbf_get_detector_surface_axes(self,
+                                    &axis_id1, &axis_id2));
+       if (index == 0) return axis_id1;
+       if (index == 1) return axis_id2;
+       return ".";
+   }
+
+
+""","cbf_get_detector_surface_axes", ["Integer index" ],
+ ["String" ] ],
 
 
 "cbf_get_pixel_area":["""
