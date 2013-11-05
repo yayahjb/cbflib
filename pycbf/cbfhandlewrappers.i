@@ -759,14 +759,31 @@ is no such rotation_axis.
 cbf_get_axis_setting sets *start and *increment to the corresponding 
 values of the axis axis_id. Any of the destination pointers may be 
 NULL.
-DESCRIPTION
-cbf_set_axis_setting sets the starting and increment values of the 
-axis axis_id to start and increment.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
 The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
-handle      CBF handle. reserved    Unused. Any value other than 0 is 
-invalid. axis_id     Axis id. start       Start value. increment   
-Increment value.
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -1086,11 +1103,8 @@ SEE ALSO
 Returns : String
 *args   : String axis_id
 
-C prototype: int cbf_get_axis_type sets axis_type to the type of axis_id.       cbf_get_axis_vector sets *vector1,
-                 *vector2 and *vector3 to the      components of the vector of axis_id.       The parameter reserved is presently unused and should be set to 0.       ARGUMENTS         handle                CBF handle.        reserved              Unused. Any value other than 0 is invalid.        axis_id               Axis id.        ancestor_index        Integer index of the desired ancestor,
-                 starting                            with 0 for the current axis_id.        ancestor              Pointer to destination ancestor name pointer.        depends_on            Pointer to destination depends_on name pointer.        equipment             Pointer to destination equipment name pointer.        equipment_component   Pointer to destination equipment_component name                            pointer.        offset1               Pointer to destination first offset component                            value.        offset2               Pointer to destination second offset component                            value.        offset3               Pointer to destination third offset component                            value.        rotation              Pointer to destination rotation value.        rotation_axis         Pointer to destination rotation_axisn name                            pointer.        start                 Pointer to the destination start value.        increment             Pointer to the destination increment value.        type                  Pointer to destination axis type of type .        vector1               Pointer to destination first vector component                            value.        vector2               Pointer to destination second vector component                            value.        vector3               Pointer to destination third vector component                            value.       RETURN VALUE       Returns an error code on failure or 0 for success.       ----------------------------------------------------------------------      2.4.29 cbf_set_axis_setting       PROTOTYPE       #include "cbf_simple.h"       int cbf_set_axis_setting (cbf_handle handle,
-                 unsigned int reserved,      const char *axis_id, double start,
-                 double increment);
+C prototype: int cbf_get_axis_type (cbf_handle handle, const char *axis_id,
+                      cbf_axis_type *axis_type);
 
 CBFLib documentation:
 DESCRIPTION
@@ -1114,22 +1128,39 @@ is no such rotation_axis.
 cbf_get_axis_setting sets *start and *increment to the corresponding 
 values of the axis axis_id. Any of the destination pointers may be 
 NULL.
-DESCRIPTION
-cbf_set_axis_setting sets the starting and increment values of the 
-axis axis_id to start and increment.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
 The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
-handle      CBF handle. reserved    Unused. Any value other than 0 is 
-invalid. axis_id     Axis id. start       Start value. increment   
-Increment value.
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")get_axis_type;
 
     const char *  get_axis_type(const char *axis_id){
-    cbf_axis_type* axis_type;
-    cbf_failnez(cbf_get_axis_equipment(self,axis_id,
+    cbf_axis_type axis_type;
+    cbf_failnez(cbf_get_axis_type(self,axis_id,
     &axis_type));
     if (axis_type == CBF_TRANSLATION_AXIS) return "translation";
     if (axis_type == CBF_ROTATION_AXIS) return "rotation";
@@ -1381,14 +1412,31 @@ is no such rotation_axis.
 cbf_get_axis_setting sets *start and *increment to the corresponding 
 values of the axis axis_id. Any of the destination pointers may be 
 NULL.
-DESCRIPTION
-cbf_set_axis_setting sets the starting and increment values of the 
-axis axis_id to start and increment.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
 The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
-handle      CBF handle. reserved    Unused. Any value other than 0 is 
-invalid. axis_id     Axis id. start       Start value. increment   
-Increment value.
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -1489,14 +1537,31 @@ is no such rotation_axis.
 cbf_get_axis_setting sets *start and *increment to the corresponding 
 values of the axis axis_id. Any of the destination pointers may be 
 NULL.
-DESCRIPTION
-cbf_set_axis_setting sets the starting and increment values of the 
-axis axis_id to start and increment.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
 The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
-handle      CBF handle. reserved    Unused. Any value other than 0 is 
-invalid. axis_id     Axis id. start       Start value. increment   
-Increment value.
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -2048,14 +2113,31 @@ is no such rotation_axis.
 cbf_get_axis_setting sets *start and *increment to the corresponding 
 values of the axis axis_id. Any of the destination pointers may be 
 NULL.
-DESCRIPTION
-cbf_set_axis_setting sets the starting and increment values of the 
-axis axis_id to start and increment.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
 The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
-handle      CBF handle. reserved    Unused. Any value other than 0 is 
-invalid. axis_id     Axis id. start       Start value. increment   
-Increment value.
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -2182,14 +2264,31 @@ is no such rotation_axis.
 cbf_get_axis_setting sets *start and *increment to the corresponding 
 values of the axis axis_id. Any of the destination pointers may be 
 NULL.
-DESCRIPTION
-cbf_set_axis_setting sets the starting and increment values of the 
-axis axis_id to start and increment.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
 The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
-handle      CBF handle. reserved    Unused. Any value other than 0 is 
-invalid. axis_id     Axis id. start       Start value. increment   
-Increment value.
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -4159,14 +4258,31 @@ is no such rotation_axis.
 cbf_get_axis_setting sets *start and *increment to the corresponding 
 values of the axis axis_id. Any of the destination pointers may be 
 NULL.
-DESCRIPTION
-cbf_set_axis_setting sets the starting and increment values of the 
-axis axis_id to start and increment.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
 The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
-handle      CBF handle. reserved    Unused. Any value other than 0 is 
-invalid. axis_id     Axis id. start       Start value. increment   
-Increment value.
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -4176,7 +4292,7 @@ Returns an error code on failure or 0 for success.
     void count_axis_ancestors(const char *axis_id,
     int *ancestors){
     unsigned int anc;
-    cbf_failnez(cbf_axis_ancestors(self,axis_id,&anc));
+    cbf_failnez(cbf_count_axis_ancestors(self,axis_id,&anc));
     *ancestors = anc;
     }
     %feature("autodoc", "
@@ -4616,14 +4732,31 @@ is no such rotation_axis.
 cbf_get_axis_setting sets *start and *increment to the corresponding 
 values of the axis axis_id. Any of the destination pointers may be 
 NULL.
-DESCRIPTION
-cbf_set_axis_setting sets the starting and increment values of the 
-axis axis_id to start and increment.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
 The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
-handle      CBF handle. reserved    Unused. Any value other than 0 is 
-invalid. axis_id     Axis id. start       Start value. increment   
-Increment value.
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -4747,6 +4880,35 @@ Returns an error code on failure or 0 for success.
         cbf_failnez(cbf_set_integration_time(self,reserved,time));
         }
 %feature("autodoc", "
+Returns : 
+*args   : String axis_id,Float start,Float increment
+
+C prototype: int cbf_set_axis_setting (cbf_handle handle,
+                 unsigned int reserved,      const char *axis_id, double start,
+                 double increment);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_set_axis_setting sets the starting and increment values of the 
+axis axis_id to start and increment.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle      CBF handle. reserved    Unused. Any value other than 0 is 
+invalid. axis_id     Axis id. start       Start value. increment   
+Increment value.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")set_axis_setting;
+
+   void set_axis_setting(const char *axis_id,
+                    double start, double increment){
+        unsigned int reserved;
+        reserved = 0;
+        cbf_failnez(cbf_set_axis_setting(self,reserved,
+                         axis_id,start,increment));
+        }
+%feature("autodoc", "
 Returns : (Binary)String
 *args   : int element_number,int elsize,int ndimslow,int ndimfast
 
@@ -4837,14 +4999,31 @@ is no such rotation_axis.
 cbf_get_axis_setting sets *start and *increment to the corresponding 
 values of the axis axis_id. Any of the destination pointers may be 
 NULL.
-DESCRIPTION
-cbf_set_axis_setting sets the starting and increment values of the 
-axis axis_id to start and increment.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
 The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
-handle      CBF handle. reserved    Unused. Any value other than 0 is 
-invalid. axis_id     Axis id. start       Start value. increment   
-Increment value.
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -6781,14 +6960,31 @@ is no such rotation_axis.
 cbf_get_axis_setting sets *start and *increment to the corresponding 
 values of the axis axis_id. Any of the destination pointers may be 
 NULL.
-DESCRIPTION
-cbf_set_axis_setting sets the starting and increment values of the 
-axis axis_id to start and increment.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
 The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
-handle      CBF handle. reserved    Unused. Any value other than 0 is 
-invalid. axis_id     Axis id. start       Start value. increment   
-Increment value.
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -8017,14 +8213,31 @@ is no such rotation_axis.
 cbf_get_axis_setting sets *start and *increment to the corresponding 
 values of the axis axis_id. Any of the destination pointers may be 
 NULL.
-DESCRIPTION
-cbf_set_axis_setting sets the starting and increment values of the 
-axis axis_id to start and increment.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
 The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
-handle      CBF handle. reserved    Unused. Any value other than 0 is 
-invalid. axis_id     Axis id. start       Start value. increment   
-Increment value.
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------

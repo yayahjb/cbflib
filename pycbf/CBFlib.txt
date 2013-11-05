@@ -4937,7 +4937,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      cbf_get_axis_setting sets *start and *increment to the corresponding
      values of the axis axis_id. Any of the destination pointers may be NULL.
 
-     int cbf_get_axis_type sets axis_type to the type of axis_id.
+     cbf_get_axis_type sets axis_type to the type of axis_id.
 
      cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the
      components of the vector of axis_id.

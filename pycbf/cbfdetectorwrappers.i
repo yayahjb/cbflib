@@ -403,9 +403,9 @@ Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
 ")cbf_get_detector_surface_axes;
 
-    const char * get_surface_axes (int index ){
-    const char axis_id1;
-    const char axis_id2;
+    const char * get_detector_surface_axes (int index ){
+    const char * axis_id1;
+    const char * axis_id2;
     cbf_failnez(cbf_get_detector_surface_axes(self,
     &axis_id1, &axis_id2));
     if (index == 0) return axis_id1;
@@ -762,40 +762,6 @@ Returns an error code on failure or 0 for success.
    }
 
 %feature("autodoc", "
-Returns : double coordinate1,double coordinate2,double coordinate3
-*args   : double indexslow,double indexfast
-
-C prototype: int cbf_get_pixel_coordinates_sf (cbf_detector detector,
-                 double      indexslow, double indexfast, double *coordinate1,
-                 double *coordinate2,      double *coordinate3);
-
-CBFLib documentation:
-DESCRIPTION
-cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs and 
-cbf_get_pixel_coordinates_sf ses *coordinate1, *coordinate2, and 
-*coordinate3 to the vector position of pixel (indexfast, indexslow) 
-on the detector surface. If indexslow and indexfast are integers then 
-the coordinates correspond to the center of a pixel.
-Any of the destination pointers may be NULL.
-ARGUMENTS
-detector      Detector handle. indexslow     Slow index. indexfast    
- Fast index. coordinate1   Pointer to the destination x component. 
-coordinate2   Pointer to the destination y component. coordinate3   
-Pointer to the destination z component.
-RETURN VALUE
-Returns an error code on failure or 0 for success.
-----------------------------------------------------------------------
-")get_pixel_coordinates_sf;
-
-%apply double *OUTPUT {double *coordinate1,  
-         double *coordinate2, double *coordinate3};
-   void get_pixel_coordinates_sf(double indexslow, double indexfast, 
-             double *coordinate1,   
-             double *coordinate2, 
-             double *coordinate3){
-      cbf_failnez(cbf_get_pixel_coordinates_sf(self, indexslow, indexfast, coordinate1, coordinate2, coordinate3));
-   }
-%feature("autodoc", "
 Returns : double slowaxis1,double slowaxis2,double slowaxis3,double fastaxis1,
           double fastaxis2,double fastaxis3
 *args   : 
@@ -846,6 +812,40 @@ Returns an error code on failure or 0 for success.
                                     fastaxis1,fastaxis2,fastaxis3));
    }
 
+%feature("autodoc", "
+Returns : double coordinate1,double coordinate2,double coordinate3
+*args   : double indexslow,double indexfast
+
+C prototype: int cbf_get_pixel_coordinates_sf (cbf_detector detector,
+                 double      indexslow, double indexfast, double *coordinate1,
+                 double *coordinate2,      double *coordinate3);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs and 
+cbf_get_pixel_coordinates_sf ses *coordinate1, *coordinate2, and 
+*coordinate3 to the vector position of pixel (indexfast, indexslow) 
+on the detector surface. If indexslow and indexfast are integers then 
+the coordinates correspond to the center of a pixel.
+Any of the destination pointers may be NULL.
+ARGUMENTS
+detector      Detector handle. indexslow     Slow index. indexfast    
+ Fast index. coordinate1   Pointer to the destination x component. 
+coordinate2   Pointer to the destination y component. coordinate3   
+Pointer to the destination z component.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_pixel_coordinates_sf;
+
+%apply double *OUTPUT {double *coordinate1,  
+         double *coordinate2, double *coordinate3};
+   void get_pixel_coordinates_sf(double indexslow, double indexfast, 
+             double *coordinate1,   
+             double *coordinate2, 
+             double *coordinate3){
+      cbf_failnez(cbf_get_pixel_coordinates_sf(self, indexslow, indexfast, coordinate1, coordinate2, coordinate3));
+   }
 %feature("autodoc", "
 Returns : 
 *args   : double indexslow,double indexfast,double centerslow,double centerfast
@@ -1011,7 +1011,7 @@ Returns an error code on failure or 0 for success.
  double *centerfast,double *centerslow};
     void get_beam_center_fs(double *indexfast, double *indexslow, 
                          double *centerfast,double *centerslow){
-        cbf_failnez(cbf_get_beam_center_fs(self, indexfast, indexslow, 
+        cbf_failnez(cbf_get_beam_center_fs(self, indexfast, indexslow,
                                        centerfast, centerslow));
         }
 %feature("autodoc", "

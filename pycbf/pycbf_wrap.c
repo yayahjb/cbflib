@@ -382,7 +382,7 @@ SWIG_TypeCmp(const char *nb, const char *tb) {
 SWIGRUNTIME int
 SWIG_TypeEquiv(const char *nb, const char *tb) {
   return SWIG_TypeCmp(nb, tb) == 0 ? 1 : 0;
-    }
+}
 
 /*
   Check the typename
@@ -2453,15 +2453,15 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
 #if PY_VERSION_HEX >= 0x03000000
     inst = PyBaseObject_Type.tp_new((PyTypeObject*) data->newargs, Py_None, Py_None);
     if (inst) {
-    PyObject_SetAttr(inst, SWIG_This(), swig_this);
-    Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+      PyObject_SetAttr(inst, SWIG_This(), swig_this);
+      Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
     }
 #else
     PyObject *dict = PyDict_New();
     if (dict) {
-    PyDict_SetItem(dict, SWIG_This(), swig_this);
-    inst = PyInstance_NewRaw(data->newargs, dict);
-    Py_DECREF(dict);
+      PyDict_SetItem(dict, SWIG_This(), swig_this);
+      inst = PyInstance_NewRaw(data->newargs, dict);
+      Py_DECREF(dict);
     }
 #endif
   }
@@ -2471,9 +2471,9 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
   PyObject *inst = 0;
   PyObject *dict = PyDict_New();
   if (dict) {
-  PyDict_SetItem(dict, SWIG_This(), swig_this);
-  inst = PyInstance_NewRaw(data->newargs, dict);
-  Py_DECREF(dict);
+    PyDict_SetItem(dict, SWIG_This(), swig_this);
+    inst = PyInstance_NewRaw(data->newargs, dict);
+    Py_DECREF(dict);
   }
   return (PyObject *) inst;
 #else
@@ -2583,9 +2583,9 @@ SWIG_Python_NewPointerObj(PyObject *self, void *ptr, swig_type_info *type, int f
   robj = SwigPyObject_New(ptr, type, own);
   if (robj && clientdata && !(flags & SWIG_POINTER_NOSHADOW)) {
     PyObject *inst = SWIG_Python_NewShadowInstance(clientdata, robj);
-      Py_DECREF(robj);
-      robj = inst;
-    }
+    Py_DECREF(robj);
+    robj = inst;
+  }
   return robj;
 }
 
@@ -2865,15 +2865,15 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   descrsetfunc f;
   int res;
 
-#ifdef Py_USING_UNICODE
+# ifdef Py_USING_UNICODE
   if (PyString_Check(name)) {
     name = PyUnicode_Decode(PyString_AsString(name), PyString_Size(name), NULL, NULL);
     if (!name)
       return -1;
   } else if (!PyUnicode_Check(name))
-#else
+# else
   if (!PyString_Check(name))
-#endif
+# endif
   {
     PyErr_Format(PyExc_TypeError, "attribute name must be string, not '%.200s'", name->ob_type->tp_name);
     return -1;
@@ -3088,10 +3088,10 @@ SWIG_AsVal_unsigned_SS_long (PyObject *obj, unsigned long *val)
         if (!PyErr_Occurred()) {
           if (v < 0) {
             return SWIG_OverflowError;
-    }
+          }
         } else {
           PyErr_Clear();
-  }
+        }
       }
 #endif
     }
@@ -3163,9 +3163,9 @@ SWIGINTERN int intArray___getitem__(intArray *self,size_t index){
     return self[index];
   }
 
-SWIGINTERNINLINE PyObject *
-SWIG_From_int  (int value)
-{    
+SWIGINTERNINLINE PyObject*
+  SWIG_From_int  (int value)
+{
   return PyInt_FromLong((long) value);
 }
 
@@ -3604,6 +3604,11 @@ SWIGINTERN void cbf_detector_struct_set_reference_beam_center_fs(cbf_detector_st
                                        centerfast, centerslow));}
 ;
         }
+SWIGINTERN void cbf_detector_struct_get_beam_center(cbf_detector_struct *self,double *index1,double *index2,double *center1,double *center2){
+        {(error_status = cbf_get_beam_center(self, index1, index2, 
+                                       center1, center2));}
+;
+        }
 SWIGINTERN void cbf_detector_struct_get_pixel_coordinates_fs(cbf_detector_struct *self,double indexfast,double indexslow,double *coordinate1,double *coordinate2,double *coordinate3){
       {(error_status = cbf_get_pixel_coordinates_fs(self, indexfast, indexslow, coordinate1, coordinate2, coordinate3));};
    }
@@ -3636,6 +3641,23 @@ SWIGINTERN void cbf_detector_struct_get_pixel_normal_fs(cbf_detector_struct *sel
                                     indexfast,indexslow,normal1,normal2,normal3));}
 ;
    }
+SWIGINTERN char const *cbf_detector_struct_get_detector_surface_axes(cbf_detector_struct *self,int index){
+    const char * axis_id1;
+    const char * axis_id2;
+    {(error_status = cbf_get_detector_surface_axes(self,
+    &axis_id1, &axis_id2));}
+;
+    if (index == 0) return axis_id1;
+    if (index == 1) return axis_id2;
+    return ".";
+    }
+
+SWIGINTERNINLINE PyObject * 
+SWIG_FromCharPtr(const char *cptr)
+{ 
+  return SWIG_FromCharPtrAndSize(cptr, (cptr ? strlen(cptr) : 0));
+}
+
 SWIGINTERN void cbf_detector_struct_get_detector_axes(cbf_detector_struct *self,double *slowaxis1,double *slowaxis2,double *slowaxis3,double *fastaxis1,double *fastaxis2,double *fastaxis3){
        {(error_status = cbf_get_detector_axes(self,
                                     slowaxis1,slowaxis2,slowaxis3,
@@ -3697,7 +3719,7 @@ SWIGINTERN void cbf_detector_struct_get_pixel_area_fs(cbf_detector_struct *self,
 ;
       }
 SWIGINTERN void cbf_detector_struct_get_beam_center_fs(cbf_detector_struct *self,double *indexfast,double *indexslow,double *centerfast,double *centerslow){
-        {(error_status = cbf_get_beam_center_fs(self, indexfast, indexslow, 
+        {(error_status = cbf_get_beam_center_fs(self, indexfast, indexslow,
                                        centerfast, centerslow));}
 ;
         }
@@ -3719,11 +3741,6 @@ SWIGINTERN void cbf_detector_struct_get_pixel_area_sf(cbf_detector_struct *self,
                                        indexslow, indexfast, area,projected_area));}
 ;
       }
-SWIGINTERN void cbf_detector_struct_get_beam_center(cbf_detector_struct *self,double *index1,double *index2,double *center1,double *center2){
-        {(error_status = cbf_get_beam_center(self, index1, index2, 
-                                       center1, center2));}
-;
-        }
 SWIGINTERN void cbf_detector_struct_set_reference_beam_center_sf(cbf_detector_struct *self,double *indexslow,double *indexfast,double *centerslow,double *centerfast){
         {(error_status = cbf_set_reference_beam_center_sf(self, indexslow, indexfast, 
                                        centerslow, centerfast));}
@@ -3858,21 +3875,14 @@ SWIGINTERN char const *cbf_handle_struct_require_tag_root(cbf_handle_struct *sel
  {(error_status = cbf_require_tag_root(self,tagname,&result));};
  return result;
  }
-
-SWIGINTERNINLINE PyObject * 
-SWIG_FromCharPtr(const char *cptr)
-{ 
-  return SWIG_FromCharPtrAndSize(cptr, (cptr ? strlen(cptr) : 0));
-}
-
 SWIGINTERN unsigned int cbf_handle_struct_row_number(cbf_handle_struct *self){
       unsigned int result;
       {(error_status = cbf_row_number(self,&result));};
       return result;}
 
-SWIGINTERNINLINE PyObject *
-SWIG_From_unsigned_SS_int  (unsigned int value)
-{    
+SWIGINTERNINLINE PyObject*
+  SWIG_From_unsigned_SS_int  (unsigned int value)
+{
   return PyInt_FromSize_t((size_t) value);
 }
 
@@ -3935,6 +3945,13 @@ SWIGINTERN cbf_detector cbf_handle_struct_construct_detector(cbf_handle_struct *
     {(error_status = cbf_construct_detector(self,&detector,element_number));};
     return detector;
     }
+SWIGINTERN char const *cbf_handle_struct_get_axis_depends_on(cbf_handle_struct *self,char const *axis_id){
+    const char* dep_on;
+    {(error_status = cbf_get_axis_depends_on(self,axis_id,
+    &dep_on));}
+;
+    return dep_on;
+    }
 SWIGINTERN void cbf_handle_struct_rewind_column(cbf_handle_struct *self){
       {(error_status = cbf_rewind_column(self));};}
 SWIGINTERN cbf_positioner cbf_handle_struct_construct_reference_positioner(cbf_handle_struct *self,char const *axis_id){
@@ -3986,6 +4003,15 @@ SWIGINTERN void cbf_handle_struct_get_unit_cell_esd(cbf_handle_struct *self,doub
      *beta_esd = cell_esd[4];
      *gamma_esd = cell_esd[5];
    }
+SWIGINTERN char const *cbf_handle_struct_get_axis_type(cbf_handle_struct *self,char const *axis_id){
+    cbf_axis_type axis_type;
+    {(error_status = cbf_get_axis_type(self,axis_id,
+    &axis_type));}
+;
+    if (axis_type == CBF_TRANSLATION_AXIS) return "translation";
+    if (axis_type == CBF_ROTATION_AXIS) return "rotation";
+    return "general";
+    }
 SWIGINTERN void cbf_handle_struct_remove_column(cbf_handle_struct *self){
       {(error_status = cbf_remove_column(self));};}
 SWIGINTERN CBF_NODETYPE cbf_handle_struct_rewind_blockitem(cbf_handle_struct *self){
@@ -4013,15 +4039,11 @@ SWIGINTERN void cbf_handle_struct_read_widefile(cbf_handle_struct *self,char *fi
        }
 SWIGINTERN void cbf_handle_struct_set_wavelength(cbf_handle_struct *self,double wavelength){
         {(error_status = cbf_set_wavelength(self,wavelength));};}
-SWIGINTERN void cbf_handle_struct_get_axis_poise(cbf_handle_struct *self,double ratio,double *vector1,double *vector2,double *vector3,double *offset1,double *offset2,double *offset3,double *angle,char const *axis_id,char const *frame_id){
-        {(error_status = cbf_get_axis_poise(self, ratio,
-          vector1, vector2, vector3,
-          offset1, offset2, offset3, angle,
-          axis_id, frame_id));}
-
-
+SWIGINTERN void cbf_handle_struct_get_axis_vector(cbf_handle_struct *self,char const *axis_id,double *vector1,double *vector2,double *vector3){
+    {(error_status = cbf_get_axis_vector(self,axis_id,
+    vector1, vector2,vector3));}
 ;
-      }
+    }
 SWIGINTERN void cbf_handle_struct_set_pixel_size_sf(cbf_handle_struct *self,unsigned int element_number,unsigned int axis_number,double psize){
          {(error_status = cbf_set_pixel_size_sf(self, 
                                         element_number, 
@@ -4035,6 +4057,11 @@ SWIGINTERN char const *cbf_handle_struct_get_diffrn_id(cbf_handle_struct *self){
     const char* result;
     {(error_status = cbf_get_diffrn_id(self, &result));};
     return result;}
+SWIGINTERN void cbf_handle_struct_get_axis_rotation(cbf_handle_struct *self,char const *axis_id,double *rotation){
+    {(error_status = cbf_get_axis_rotation(self,axis_id,
+    rotation));}
+;
+    }
 SWIGINTERN void cbf_handle_struct_find_datablock(cbf_handle_struct *self,char const *arg){
       {(error_status = cbf_find_datablock(self,arg));};}
 SWIGINTERN void cbf_handle_struct_get_polarization(cbf_handle_struct *self,double *in1,double *in2){
@@ -4051,6 +4078,15 @@ SWIGINTERN void cbf_handle_struct_get_pixel_size_fs(cbf_handle_struct *self,unsi
 
 ;
     }
+SWIGINTERN void cbf_handle_struct_get_axis_poise(cbf_handle_struct *self,double ratio,double *vector1,double *vector2,double *vector3,double *offset1,double *offset2,double *offset3,double *angle,char const *axis_id,char const *frame_id){
+        {(error_status = cbf_get_axis_poise(self, ratio,
+          vector1, vector2, vector3,
+          offset1, offset2, offset3, angle,
+          axis_id, frame_id));}
+
+
+;
+      }
 SWIGINTERN void cbf_handle_struct_read_file(cbf_handle_struct *self,char *filename,int headers){
        /* CBFlib needs a stream that will remain open 
           hence DO NOT open from python */
@@ -4127,6 +4163,13 @@ SWIGINTERN void cbf_handle_struct_get_timestamp(cbf_handle_struct *self,double *
         }
 SWIGINTERN void cbf_handle_struct_find_nextrow(cbf_handle_struct *self,char const *arg){
       {(error_status = cbf_find_nextrow(self,arg));};}
+SWIGINTERN char const *cbf_handle_struct_get_axis_equipment_component(cbf_handle_struct *self,char const *axis_id){
+    const char* equip_comp;
+    {(error_status = cbf_get_axis_equipment_component(self,axis_id,
+    &equip_comp));}
+;
+    return equip_comp;
+    }
 SWIGINTERN void cbf_handle_struct_get_realarrayparameters_wdims_sf(cbf_handle_struct *self,int *compression,int *binary_id,int *elsize,int *elements,char **bo,int *bolen,int *dimslow,int *dimmid,int *dimfast,int *padding){
         unsigned int  comp;
         size_t elsiz, elem, df,dm,ds,pd;
@@ -4508,6 +4551,11 @@ SWIGINTERN void cbf_handle_struct_get_bin_sizes(cbf_handle_struct *self,int elem
   }
 SWIGINTERN void cbf_handle_struct_reset_category(cbf_handle_struct *self){
       {(error_status = cbf_reset_category(self));};}
+SWIGINTERN void cbf_handle_struct_count_axis_ancestors(cbf_handle_struct *self,char const *axis_id,int *ancestors){
+    unsigned int anc;
+    {(error_status = cbf_count_axis_ancestors(self,axis_id,&anc));};
+    *ancestors = anc;
+    }
 SWIGINTERN cbf_goniometer cbf_handle_struct_construct_goniometer(cbf_handle_struct *self){
     cbf_goniometer goniometer;
     {(error_status = cbf_construct_goniometer(self,&goniometer));};
@@ -4588,6 +4636,13 @@ SWIGINTERN void cbf_handle_struct_get_real_3d_image_sf_as_string(cbf_handle_stru
       }
 SWIGINTERN void cbf_handle_struct_set_typeofvalue(cbf_handle_struct *self,char const *arg){
       {(error_status = cbf_set_typeofvalue(self,arg));};}
+SWIGINTERN char const *cbf_handle_struct_get_axis_rotation_axis(cbf_handle_struct *self,char const *axis_id){
+    const char* rot_axis;
+    {(error_status = cbf_get_axis_equipment_component(self,axis_id,
+    &rot_axis));}
+;
+    return rot_axis;
+    }
 SWIGINTERN void cbf_handle_struct_set_integerarray_wdims(cbf_handle_struct *self,unsigned int compression,int binary_id,char *data,int len,int elsize,int elsigned,int elements,char *bo,int bolen,int dimfast,int dimmid,int dimslow,int padding){
         /* safety check on args */
         size_t els, ele;
@@ -4638,6 +4693,13 @@ SWIGINTERN void cbf_handle_struct_get_real_image_as_string(cbf_handle_struct *se
         *slen = elsize*ndimfast*ndimslow;
         *s = (char *) array;
       }
+SWIGINTERN char const *cbf_handle_struct_get_axis_ancestor(cbf_handle_struct *self,char const *axis_id,int ancestor_index){
+    const char* anc;
+    {(error_status = cbf_get_axis_ancestor(self,axis_id,
+    (unsigned int)ancestor_index,&anc));}
+;
+    return anc;
+    }
 SWIGINTERN void cbf_handle_struct_get_3d_image_sf_as_string(cbf_handle_struct *self,int element_number,char **s,int *slen,int elsize,int elsign,int ndimfast,int ndimmid,int ndimslow){
         void *array;
         int reserved = 0;
@@ -5001,6 +5063,11 @@ SWIGINTERN void cbf_handle_struct_next_row(cbf_handle_struct *self){
 SWIGINTERN void cbf_handle_struct_set_category_root(cbf_handle_struct *self,char const *categoryname,char const *categoryroot){
    {(error_status = cbf_set_category_root(self,categoryname,categoryroot));};
 }
+SWIGINTERN void cbf_handle_struct_get_axis_offset(cbf_handle_struct *self,char const *axis_id,double *offset1,double *offset2,double *offset3){
+    {(error_status = cbf_get_axis_offset(self,axis_id,
+    offset1, offset2,offset3));}
+;
+    }
 SWIGINTERN void cbf_handle_struct_set_pixel_size_fs(cbf_handle_struct *self,unsigned int element_number,unsigned int axis_number,double psize){
          {(error_status = cbf_set_pixel_size_fs(self, 
                                         element_number, 
@@ -5226,6 +5293,13 @@ SWIGINTERN void cbf_handle_struct_set_image_sf(cbf_handle_struct *self,unsigned 
         }else{
            {(error_status = CBF_ARGUMENT);};
         }
+    }
+SWIGINTERN char const *cbf_handle_struct_get_axis_equipment(cbf_handle_struct *self,char const *axis_id){
+    const char* equip;
+    {(error_status = cbf_get_axis_equipment(self,axis_id,
+    &equip));}
+;
+    return equip;
     }
 SWIGINTERN void cbf_handle_struct_set_unit_cell(cbf_handle_struct *self,double cell[6]){
      {(error_status = cbf_set_unit_cell(self,cell,NULL));};
@@ -7374,6 +7448,75 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_beam_center(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
+  double *arg2 = (double *) 0 ;
+  double *arg3 = (double *) 0 ;
+  double *arg4 = (double *) 0 ;
+  double *arg5 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  double temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  double temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  double temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject * obj0 = 0 ;
+  
+  arg2 = &temp2;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  if (!PyArg_ParseTuple(args,(char *)"O:cbf_detector_struct_get_beam_center",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_detector_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_get_beam_center" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
+  }
+  arg1 = (cbf_detector_struct *)(argp1);
+  {
+    error_status=0;
+    cbf_detector_struct_get_beam_center(arg1,arg2,arg3,arg4,arg5);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_double, new_flags));
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_pixel_coordinates_fs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
@@ -7637,6 +7780,45 @@ SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_pixel_normal_fs(PyObject *SWI
     int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_double, new_flags));
   }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_detector_surface_axes(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_detector_struct_get_detector_surface_axes",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_detector_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_get_detector_surface_axes" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
+  }
+  arg1 = (cbf_detector_struct *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "cbf_detector_struct_get_detector_surface_axes" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  {
+    error_status=0;
+    result = (char *)cbf_detector_struct_get_detector_surface_axes(arg1,arg2);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_FromCharPtr((const char *)result);
   return resultobj;
 fail:
   return NULL;
@@ -8760,75 +8942,6 @@ SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_pixel_area_sf(PyObject *SWIGU
     }
   }
   resultobj = SWIG_Py_Void();
-  if (SWIG_IsTmpObj(res4)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg4)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, new_flags));
-  }
-  if (SWIG_IsTmpObj(res5)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg5)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_double, new_flags));
-  }
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_cbf_detector_struct_get_beam_center(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  cbf_detector_struct *arg1 = (cbf_detector_struct *) 0 ;
-  double *arg2 = (double *) 0 ;
-  double *arg3 = (double *) 0 ;
-  double *arg4 = (double *) 0 ;
-  double *arg5 = (double *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  double temp2 ;
-  int res2 = SWIG_TMPOBJ ;
-  double temp3 ;
-  int res3 = SWIG_TMPOBJ ;
-  double temp4 ;
-  int res4 = SWIG_TMPOBJ ;
-  double temp5 ;
-  int res5 = SWIG_TMPOBJ ;
-  PyObject * obj0 = 0 ;
-  
-  arg2 = &temp2;
-  arg3 = &temp3;
-  arg4 = &temp4;
-  arg5 = &temp5;
-  if (!PyArg_ParseTuple(args,(char *)"O:cbf_detector_struct_get_beam_center",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_detector_struct, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_detector_struct_get_beam_center" "', argument " "1"" of type '" "cbf_detector_struct *""'"); 
-  }
-  arg1 = (cbf_detector_struct *)(argp1);
-  {
-    error_status=0;
-    cbf_detector_struct_get_beam_center(arg1,arg2,arg3,arg4,arg5);
-    if (error_status){
-      get_error_message();
-      PyErr_SetString(PyExc_Exception,error_message);
-      return NULL;
-    }
-  }
-  resultobj = SWIG_Py_Void();
-  if (SWIG_IsTmpObj(res2)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg2)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, new_flags));
-  }
-  if (SWIG_IsTmpObj(res3)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg3)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, new_flags));
-  }
   if (SWIG_IsTmpObj(res4)) {
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg4)));
   } else {
@@ -10168,6 +10281,48 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_axis_depends_on(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_handle_struct_get_axis_depends_on",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_get_axis_depends_on" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+  }
+  arg1 = (cbf_handle_struct *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_handle_struct_get_axis_depends_on" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    error_status=0;
+    result = (char *)cbf_handle_struct_get_axis_depends_on(arg1,(char const *)arg2);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_FromCharPtr((const char *)result);
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_rewind_column(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
@@ -10666,6 +10821,48 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_axis_type(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_handle_struct_get_axis_type",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_get_axis_type" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+  }
+  arg1 = (cbf_handle_struct *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_handle_struct_get_axis_type" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    error_status=0;
+    result = (char *)cbf_handle_struct_get_axis_type(arg1,(char const *)arg2);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_FromCharPtr((const char *)result);
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_remove_column(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
@@ -10873,79 +11070,44 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_axis_poise(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_axis_vector(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
-  double arg2 ;
+  char *arg2 = (char *) 0 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
   double *arg5 = (double *) 0 ;
-  double *arg6 = (double *) 0 ;
-  double *arg7 = (double *) 0 ;
-  double *arg8 = (double *) 0 ;
-  double *arg9 = (double *) 0 ;
-  char *arg10 = (char *) 0 ;
-  char *arg11 = (char *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  double val2 ;
-  int ecode2 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
   double temp3 ;
   int res3 = SWIG_TMPOBJ ;
   double temp4 ;
   int res4 = SWIG_TMPOBJ ;
   double temp5 ;
   int res5 = SWIG_TMPOBJ ;
-  double temp6 ;
-  int res6 = SWIG_TMPOBJ ;
-  double temp7 ;
-  int res7 = SWIG_TMPOBJ ;
-  double temp8 ;
-  int res8 = SWIG_TMPOBJ ;
-  double temp9 ;
-  int res9 = SWIG_TMPOBJ ;
-  int res10 ;
-  char *buf10 = 0 ;
-  int alloc10 = 0 ;
-  int res11 ;
-  char *buf11 = 0 ;
-  int alloc11 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
   
   arg3 = &temp3;
   arg4 = &temp4;
   arg5 = &temp5;
-  arg6 = &temp6;
-  arg7 = &temp7;
-  arg8 = &temp8;
-  arg9 = &temp9;
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:cbf_handle_struct_get_axis_poise",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_handle_struct_get_axis_vector",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_get_axis_poise" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_get_axis_vector" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
   }
   arg1 = (cbf_handle_struct *)(argp1);
-  ecode2 = SWIG_AsVal_double(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "cbf_handle_struct_get_axis_poise" "', argument " "2"" of type '" "double""'");
-  } 
-  arg2 = (double)(val2);
-  res10 = SWIG_AsCharPtrAndSize(obj2, &buf10, NULL, &alloc10);
-  if (!SWIG_IsOK(res10)) {
-    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "cbf_handle_struct_get_axis_poise" "', argument " "10"" of type '" "char const *""'");
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_handle_struct_get_axis_vector" "', argument " "2"" of type '" "char const *""'");
   }
-  arg10 = (char *)(buf10);
-  res11 = SWIG_AsCharPtrAndSize(obj3, &buf11, NULL, &alloc11);
-  if (!SWIG_IsOK(res11)) {
-    SWIG_exception_fail(SWIG_ArgError(res11), "in method '" "cbf_handle_struct_get_axis_poise" "', argument " "11"" of type '" "char const *""'");
-  }
-  arg11 = (char *)(buf11);
+  arg2 = (char *)(buf2);
   {
     error_status=0;
-    cbf_handle_struct_get_axis_poise(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,(char const *)arg10,(char const *)arg11);
+    cbf_handle_struct_get_axis_vector(arg1,(char const *)arg2,arg3,arg4,arg5);
     if (error_status){
       get_error_message();
       PyErr_SetString(PyExc_Exception,error_message);
@@ -10971,36 +11133,10 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_axis_poise(PyObject *SWIGUNUSED
     int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_double, new_flags));
   }
-  if (SWIG_IsTmpObj(res6)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg6)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_double, new_flags));
-  }
-  if (SWIG_IsTmpObj(res7)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg7)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_double, new_flags));
-  }
-  if (SWIG_IsTmpObj(res8)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg8)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_double, new_flags));
-  }
-  if (SWIG_IsTmpObj(res9)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg9)));
-  } else {
-    int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_double, new_flags));
-  }
-  if (alloc10 == SWIG_NEWOBJ) free((char*)buf10);
-  if (alloc11 == SWIG_NEWOBJ) free((char*)buf11);
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
 fail:
-  if (alloc10 == SWIG_NEWOBJ) free((char*)buf10);
-  if (alloc11 == SWIG_NEWOBJ) free((char*)buf11);
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return NULL;
 }
 
@@ -11087,6 +11223,57 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_diffrn_id(PyObject *SWIGUNUSEDP
   resultobj = SWIG_FromCharPtr((const char *)result);
   return resultobj;
 fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_axis_rotation(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  char *arg2 = (char *) 0 ;
+  double *arg3 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  double temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  arg3 = &temp3;
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_handle_struct_get_axis_rotation",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_get_axis_rotation" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+  }
+  arg1 = (cbf_handle_struct *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_handle_struct_get_axis_rotation" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    error_status=0;
+    cbf_handle_struct_get_axis_rotation(arg1,(char const *)arg2,arg3);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, new_flags));
+  }
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return NULL;
 }
 
@@ -11272,6 +11459,138 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_pixel_size_fs(PyObject *SWIGUNU
   }
   return resultobj;
 fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_axis_poise(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  double arg2 ;
+  double *arg3 = (double *) 0 ;
+  double *arg4 = (double *) 0 ;
+  double *arg5 = (double *) 0 ;
+  double *arg6 = (double *) 0 ;
+  double *arg7 = (double *) 0 ;
+  double *arg8 = (double *) 0 ;
+  double *arg9 = (double *) 0 ;
+  char *arg10 = (char *) 0 ;
+  char *arg11 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  double temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  double temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  double temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  double temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  double temp7 ;
+  int res7 = SWIG_TMPOBJ ;
+  double temp8 ;
+  int res8 = SWIG_TMPOBJ ;
+  double temp9 ;
+  int res9 = SWIG_TMPOBJ ;
+  int res10 ;
+  char *buf10 = 0 ;
+  int alloc10 = 0 ;
+  int res11 ;
+  char *buf11 = 0 ;
+  int alloc11 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  arg6 = &temp6;
+  arg7 = &temp7;
+  arg8 = &temp8;
+  arg9 = &temp9;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:cbf_handle_struct_get_axis_poise",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_get_axis_poise" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+  }
+  arg1 = (cbf_handle_struct *)(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "cbf_handle_struct_get_axis_poise" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = (double)(val2);
+  res10 = SWIG_AsCharPtrAndSize(obj2, &buf10, NULL, &alloc10);
+  if (!SWIG_IsOK(res10)) {
+    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "cbf_handle_struct_get_axis_poise" "', argument " "10"" of type '" "char const *""'");
+  }
+  arg10 = (char *)(buf10);
+  res11 = SWIG_AsCharPtrAndSize(obj3, &buf11, NULL, &alloc11);
+  if (!SWIG_IsOK(res11)) {
+    SWIG_exception_fail(SWIG_ArgError(res11), "in method '" "cbf_handle_struct_get_axis_poise" "', argument " "11"" of type '" "char const *""'");
+  }
+  arg11 = (char *)(buf11);
+  {
+    error_status=0;
+    cbf_handle_struct_get_axis_poise(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,(char const *)arg10,(char const *)arg11);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res7)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg7)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res8)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg8)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res9)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg9)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_double, new_flags));
+  }
+  if (alloc10 == SWIG_NEWOBJ) free((char*)buf10);
+  if (alloc11 == SWIG_NEWOBJ) free((char*)buf11);
+  return resultobj;
+fail:
+  if (alloc10 == SWIG_NEWOBJ) free((char*)buf10);
+  if (alloc11 == SWIG_NEWOBJ) free((char*)buf11);
   return NULL;
 }
 
@@ -11822,6 +12141,48 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_find_nextrow(PyObject *SWIGUNUSEDPA
     }
   }
   resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_axis_equipment_component(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_handle_struct_get_axis_equipment_component",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_get_axis_equipment_component" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+  }
+  arg1 = (cbf_handle_struct *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_handle_struct_get_axis_equipment_component" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    error_status=0;
+    result = (char *)cbf_handle_struct_get_axis_equipment_component(arg1,(char const *)arg2);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_FromCharPtr((const char *)result);
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
 fail:
@@ -14552,6 +14913,57 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_count_axis_ancestors(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  char *arg2 = (char *) 0 ;
+  int *arg3 = (int *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  int temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  arg3 = &temp3;
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_handle_struct_count_axis_ancestors",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_count_axis_ancestors" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+  }
+  arg1 = (cbf_handle_struct *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_handle_struct_count_axis_ancestors" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    error_status=0;
+    cbf_handle_struct_count_axis_ancestors(arg1,(char const *)arg2,arg3);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_int, new_flags));
+  }
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_construct_goniometer(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
@@ -15013,6 +15425,48 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_axis_rotation_axis(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_handle_struct_get_axis_rotation_axis",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_get_axis_rotation_axis" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+  }
+  arg1 = (cbf_handle_struct *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_handle_struct_get_axis_rotation_axis" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    error_status=0;
+    result = (char *)cbf_handle_struct_get_axis_rotation_axis(arg1,(char const *)arg2);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_FromCharPtr((const char *)result);
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_integerarray_wdims(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
@@ -15320,6 +15774,57 @@ SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_real_image_as_string(PyObject *
   }
   return resultobj;
 fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_axis_ancestor(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  char *arg2 = (char *) 0 ;
+  int arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:cbf_handle_struct_get_axis_ancestor",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_get_axis_ancestor" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+  }
+  arg1 = (cbf_handle_struct *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_handle_struct_get_axis_ancestor" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = (char *)(buf2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "cbf_handle_struct_get_axis_ancestor" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  {
+    error_status=0;
+    result = (char *)cbf_handle_struct_get_axis_ancestor(arg1,(char const *)arg2,arg3);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_FromCharPtr((const char *)result);
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return NULL;
 }
 
@@ -18096,6 +18601,77 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_axis_offset(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  char *arg2 = (char *) 0 ;
+  double *arg3 = (double *) 0 ;
+  double *arg4 = (double *) 0 ;
+  double *arg5 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  double temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  double temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  double temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_handle_struct_get_axis_offset",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_get_axis_offset" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+  }
+  arg1 = (cbf_handle_struct *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_handle_struct_get_axis_offset" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    error_status=0;
+    cbf_handle_struct_get_axis_offset(arg1,(char const *)arg2,arg3,arg4,arg5);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, new_flags));
+  }
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_double((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_double, new_flags));
+  }
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_pixel_size_fs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
@@ -19772,6 +20348,48 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_cbf_handle_struct_get_axis_equipment(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:cbf_handle_struct_get_axis_equipment",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_cbf_handle_struct, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "cbf_handle_struct_get_axis_equipment" "', argument " "1"" of type '" "cbf_handle_struct *""'"); 
+  }
+  arg1 = (cbf_handle_struct *)(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "cbf_handle_struct_get_axis_equipment" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = (char *)(buf2);
+  {
+    error_status=0;
+    result = (char *)cbf_handle_struct_get_axis_equipment(arg1,(char const *)arg2);
+    if (error_status){
+      get_error_message();
+      PyErr_SetString(PyExc_Exception,error_message);
+      return NULL;
+    }
+  }
+  resultobj = SWIG_FromCharPtr((const char *)result);
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_cbf_handle_struct_set_unit_cell(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   cbf_handle_struct *arg1 = (cbf_handle_struct *) 0 ;
@@ -20350,6 +20968,68 @@ static PyMethodDef SwigMethods[] = {
 		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
+	 { (char *)"cbf_detector_struct_get_beam_center", _wrap_cbf_detector_struct_get_beam_center, METH_VARARGS, (char *)"\n"
+		"Returns : double index1,double index2,double center1,double center2\n"
+		"*args   : \n"
+		"\n"
+		"C prototype: int cbf_get_beam_center (cbf_detector detector,\n"
+		"                 double *indexslow,      double *indexfast, double *centerslow,\n"
+		"                 double *centerfast);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_beam_center sets *centerfast and *centerslow to the \n"
+		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
+		"point at which the beam intersects the detector and *indexfast and \n"
+		"*indexslow to the corresponding indices. cbf_set_beam_center sets the \n"
+		"offsets in the axis category for the detector element axis with \n"
+		"precedence 1 to place the beam center at the position given in mm by \n"
+		"*centerfast and *centerslow as the displacements in mm along the \n"
+		"detector axes from pixel (0, 0) to the point at which the beam \n"
+		"intersects the detector at the indices given *indexfast and \n"
+		"*indexslow. cbf_set_reference_beam_center sets the displacments in \n"
+		"the array_structure_list_axis category to place the beam center at \n"
+		"the position given in mm by *centerfast and *centerslow as the \n"
+		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
+		"point at which the beam intersects the detector at the indices given \n"
+		"by *indexfast and *indexslow. In order to achieve consistent results, \n"
+		"a reference detector should be used for detector to have all axes at \n"
+		"their reference settings.\n"
+		"Note that the precedence 1 axis is the fastest axis, so that \n"
+		"*centerfast and *indexfast are the fast axis components of the center \n"
+		"and *centerslow and *indexslow are the slow axis components of the \n"
+		"center.\n"
+		"The _fs calls give the displacments in a fast-to-slow order. The \n"
+		"calls with no suffix and the calls _sf calls give the displacements \n"
+		"in slow-to-fast order\n"
+		"Any of the destination pointers may be NULL for getting the beam \n"
+		"center. For setting the beam axis, either the indices of the center \n"
+		"must not be NULL.\n"
+		"The indices are non-negative for beam centers within the detector \n"
+		"surface, but the center for an axis with a negative increment will be \n"
+		"negative for a beam center within the detector surface.\n"
+		"For cbf_set_beam_center if the diffrn_data_frame category exists with \n"
+		"a row for the corresponding element id, the values will be set for \n"
+		"_diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in \n"
+		"millimetres and the value of _diffrn_data_frame.center_units will be \n"
+		"set to 'mm'.\n"
+		"For cbf_set_reference_beam_center if the diffrn_detector_element \n"
+		"category exists with a row for the corresponding element id, the \n"
+		"values will be set for _diffrn_detector_element.reference_center_fast \n"
+		"and _diffrn_detector_element.reference_center_slow in millimetres and \n"
+		"the value of _diffrn_detector_element.reference_units will be set to \n"
+		"'mm'.\n"
+		"ARGUMENTS\n"
+		"detector     Detector handle. indexfast    Pointer to the destination \n"
+		"fast index. indexslow    Pointer to the destination slow index. \n"
+		"centerfast   Pointer to the destination displacement along the fast \n"
+		"axis. centerslow   Pointer to the destination displacement along the \n"
+		"slow axis.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
 	 { (char *)"cbf_detector_struct_get_pixel_coordinates_fs", _wrap_cbf_detector_struct_get_pixel_coordinates_fs, METH_VARARGS, (char *)"\n"
 		"Returns : double coordinate1,double coordinate2,double coordinate3\n"
 		"*args   : double indexfast,double indexslow\n"
@@ -20456,6 +21136,7 @@ static PyMethodDef SwigMethods[] = {
 		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
+	 { (char *)"cbf_detector_struct_get_detector_surface_axes", _wrap_cbf_detector_struct_get_detector_surface_axes, METH_VARARGS, (char *)"cbf_detector_struct_get_detector_surface_axes(cbf_detector_struct self, int index) -> char const *"},
 	 { (char *)"cbf_detector_struct_get_detector_axes", _wrap_cbf_detector_struct_get_detector_axes, METH_VARARGS, (char *)"\n"
 		"Returns : double slowaxis1,double slowaxis2,double slowaxis3,double fastaxis1,\n"
 		"          double fastaxis2,double fastaxis3\n"
@@ -20477,7 +21158,9 @@ static PyMethodDef SwigMethods[] = {
 		"*slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the \n"
 		"slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 \n"
 		"components of the fast axis of the specified detector at the current \n"
-		"settings of all axes.\n"
+		"settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 \n"
+		"and *axis_id2 to the names of the two surface axes of the detector or \n"
+		" \". \",\n"
 		"Any of the destination pointers may be NULL.\n"
 		"ARGUMENTS\n"
 		"detector    Detector handle. slowaxis1   Pointer to the destination x \n"
@@ -20487,7 +21170,10 @@ static PyMethodDef SwigMethods[] = {
 		"Pointer to the destination x component of the fast axis vector. \n"
 		"fastaxis2   Pointer to the destination y component of the fast axis \n"
 		"vector. fastaxis3   Pointer to the destination z component of the \n"
-		"fast axis vector.\n"
+		"fast axis vector. axis_id1    Pointer to the destination first \n"
+		"surface axis name. axis_id1    Pointer to the destination first \n"
+		"surface axis name. axis_id2    Pointer to the destination second \n"
+		"surface axis name.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"----------------------------------------------------------------------\n"
@@ -20574,7 +21260,9 @@ static PyMethodDef SwigMethods[] = {
 		"*slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the \n"
 		"slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 \n"
 		"components of the fast axis of the specified detector at the current \n"
-		"settings of all axes.\n"
+		"settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 \n"
+		"and *axis_id2 to the names of the two surface axes of the detector or \n"
+		" \". \",\n"
 		"Any of the destination pointers may be NULL.\n"
 		"ARGUMENTS\n"
 		"detector    Detector handle. slowaxis1   Pointer to the destination x \n"
@@ -20584,7 +21272,10 @@ static PyMethodDef SwigMethods[] = {
 		"Pointer to the destination x component of the fast axis vector. \n"
 		"fastaxis2   Pointer to the destination y component of the fast axis \n"
 		"vector. fastaxis3   Pointer to the destination z component of the \n"
-		"fast axis vector.\n"
+		"fast axis vector. axis_id1    Pointer to the destination first \n"
+		"surface axis name. axis_id1    Pointer to the destination first \n"
+		"surface axis name. axis_id2    Pointer to the destination second \n"
+		"surface axis name.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"----------------------------------------------------------------------\n"
@@ -20680,7 +21371,9 @@ static PyMethodDef SwigMethods[] = {
 		"*slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the \n"
 		"slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 \n"
 		"components of the fast axis of the specified detector at the current \n"
-		"settings of all axes.\n"
+		"settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 \n"
+		"and *axis_id2 to the names of the two surface axes of the detector or \n"
+		" \". \",\n"
 		"Any of the destination pointers may be NULL.\n"
 		"ARGUMENTS\n"
 		"detector    Detector handle. slowaxis1   Pointer to the destination x \n"
@@ -20690,7 +21383,10 @@ static PyMethodDef SwigMethods[] = {
 		"Pointer to the destination x component of the fast axis vector. \n"
 		"fastaxis2   Pointer to the destination y component of the fast axis \n"
 		"vector. fastaxis3   Pointer to the destination z component of the \n"
-		"fast axis vector.\n"
+		"fast axis vector. axis_id1    Pointer to the destination first \n"
+		"surface axis name. axis_id1    Pointer to the destination first \n"
+		"surface axis name. axis_id2    Pointer to the destination second \n"
+		"surface axis name.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"----------------------------------------------------------------------\n"
@@ -20718,7 +21414,9 @@ static PyMethodDef SwigMethods[] = {
 		"*slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the \n"
 		"slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 \n"
 		"components of the fast axis of the specified detector at the current \n"
-		"settings of all axes.\n"
+		"settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 \n"
+		"and *axis_id2 to the names of the two surface axes of the detector or \n"
+		" \". \",\n"
 		"Any of the destination pointers may be NULL.\n"
 		"ARGUMENTS\n"
 		"detector    Detector handle. slowaxis1   Pointer to the destination x \n"
@@ -20728,7 +21426,10 @@ static PyMethodDef SwigMethods[] = {
 		"Pointer to the destination x component of the fast axis vector. \n"
 		"fastaxis2   Pointer to the destination y component of the fast axis \n"
 		"vector. fastaxis3   Pointer to the destination z component of the \n"
-		"fast axis vector.\n"
+		"fast axis vector. axis_id1    Pointer to the destination first \n"
+		"surface axis name. axis_id1    Pointer to the destination first \n"
+		"surface axis name. axis_id2    Pointer to the destination second \n"
+		"surface axis name.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"----------------------------------------------------------------------\n"
@@ -21048,68 +21749,6 @@ static PyMethodDef SwigMethods[] = {
 		"indexslow        Slow index. area             Pointer to the \n"
 		"destination area in mm2. projected_area   Pointer to the destination \n"
 		"apparent area in mm2.\n"
-		"RETURN VALUE\n"
-		"Returns an error code on failure or 0 for success.\n"
-		"----------------------------------------------------------------------\n"
-		"\n"
-		""},
-	 { (char *)"cbf_detector_struct_get_beam_center", _wrap_cbf_detector_struct_get_beam_center, METH_VARARGS, (char *)"\n"
-		"Returns : double index1,double index2,double center1,double center2\n"
-		"*args   : \n"
-		"\n"
-		"C prototype: int cbf_get_beam_center (cbf_detector detector,\n"
-		"                 double *indexslow,      double *indexfast, double *centerslow,\n"
-		"                 double *centerfast);\n"
-		"\n"
-		"CBFLib documentation:\n"
-		"DESCRIPTION\n"
-		"cbf_get_beam_center sets *centerfast and *centerslow to the \n"
-		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
-		"point at which the beam intersects the detector and *indexfast and \n"
-		"*indexslow to the corresponding indices. cbf_set_beam_center sets the \n"
-		"offsets in the axis category for the detector element axis with \n"
-		"precedence 1 to place the beam center at the position given in mm by \n"
-		"*centerfast and *centerslow as the displacements in mm along the \n"
-		"detector axes from pixel (0, 0) to the point at which the beam \n"
-		"intersects the detector at the indices given *indexfast and \n"
-		"*indexslow. cbf_set_reference_beam_center sets the displacments in \n"
-		"the array_structure_list_axis category to place the beam center at \n"
-		"the position given in mm by *centerfast and *centerslow as the \n"
-		"displacements in mm along the detector axes from pixel (0, 0) to the \n"
-		"point at which the beam intersects the detector at the indices given \n"
-		"by *indexfast and *indexslow. In order to achieve consistent results, \n"
-		"a reference detector should be used for detector to have all axes at \n"
-		"their reference settings.\n"
-		"Note that the precedence 1 axis is the fastest axis, so that \n"
-		"*centerfast and *indexfast are the fast axis components of the center \n"
-		"and *centerslow and *indexslow are the slow axis components of the \n"
-		"center.\n"
-		"The _fs calls give the displacments in a fast-to-slow order. The \n"
-		"calls with no suffix and the calls _sf calls give the displacements \n"
-		"in slow-to-fast order\n"
-		"Any of the destination pointers may be NULL for getting the beam \n"
-		"center. For setting the beam axis, either the indices of the center \n"
-		"must not be NULL.\n"
-		"The indices are non-negative for beam centers within the detector \n"
-		"surface, but the center for an axis with a negative increment will be \n"
-		"negative for a beam center within the detector surface.\n"
-		"For cbf_set_beam_center if the diffrn_data_frame category exists with \n"
-		"a row for the corresponding element id, the values will be set for \n"
-		"_diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in \n"
-		"millimetres and the value of _diffrn_data_frame.center_units will be \n"
-		"set to 'mm'.\n"
-		"For cbf_set_reference_beam_center if the diffrn_detector_element \n"
-		"category exists with a row for the corresponding element id, the \n"
-		"values will be set for _diffrn_detector_element.reference_center_fast \n"
-		"and _diffrn_detector_element.reference_center_slow in millimetres and \n"
-		"the value of _diffrn_detector_element.reference_units will be set to \n"
-		"'mm'.\n"
-		"ARGUMENTS\n"
-		"detector     Detector handle. indexfast    Pointer to the destination \n"
-		"fast index. indexslow    Pointer to the destination slow index. \n"
-		"centerfast   Pointer to the destination displacement along the fast \n"
-		"axis. centerslow   Pointer to the destination displacement along the \n"
-		"slow axis.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"----------------------------------------------------------------------\n"
@@ -21819,6 +22458,65 @@ static PyMethodDef SwigMethods[] = {
 		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
+	 { (char *)"cbf_handle_struct_get_axis_depends_on", _wrap_cbf_handle_struct_get_axis_depends_on, METH_VARARGS, (char *)"\n"
+		"Returns : String\n"
+		"*args   : String axis_id\n"
+		"\n"
+		"C prototype: int cbf_get_axis_depends_on (cbf_handle handle,\n"
+		"                 const char *axis_id,      const char * *depends_on);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_count_axis_ancestors sets ancestors to the number of ancestors of \n"
+		"axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor \n"
+		"axis of index ancestor_index of axis axis_id, starting with axis_id \n"
+		"for ancestor_index 0.\n"
+		"cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of \n"
+		"axis_id or to  \". \" if there is no such ancestor. \n"
+		"cbf_get_axis_equipment sets *equipment to the equipment of axis_id or \n"
+		"to  \". \" if there is no such equipment. \n"
+		"cbf_get_axis_equipment_component sets *equipment_component to the \n"
+		"equipment_component of axis_id or to  \". \" if there is no such \n"
+		"equipment_component.\n"
+		"cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the \n"
+		"components of the ofset of axis_id.\n"
+		"cbf_get_axis_rotation sets rotation to the rotation of axis_id or to \n"
+		"0 if there is no such rotation. cbf_get_axis_rotation_axis sets \n"
+		"*rotation_axis to the rotation_axis of axis_id or to  \". \" if there \n"
+		"is no such rotation_axis.\n"
+		"cbf_get_axis_setting sets *start and *increment to the corresponding \n"
+		"values of the axis axis_id. Any of the destination pointers may be \n"
+		"NULL.\n"
+		"cbf_get_axis_type sets axis_type to the type of axis_id.\n"
+		"cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the \n"
+		"components of the vector of axis_id.\n"
+		"The parameter reserved is presently unused and should be set to 0.\n"
+		"ARGUMENTS\n"
+		"handle                CBF handle. reserved              Unused. Any \n"
+		"value other than 0 is invalid. axis_id               Axis id. \n"
+		"ancestor_index        Integer index of the desired ancestor, starting \n"
+		"with 0 for the current axis_id. ancestor              Pointer to \n"
+		"destination ancestor name pointer. depends_on            Pointer to \n"
+		"destination depends_on name pointer. equipment             Pointer to \n"
+		"destination equipment name pointer. equipment_component   Pointer to \n"
+		"destination equipment_component name pointer. offset1               \n"
+		"Pointer to destination first offset component value. offset2          \n"
+		"     Pointer to destination second offset component value. offset3    \n"
+		"           Pointer to destination third offset component value. \n"
+		"rotation              Pointer to destination rotation value. \n"
+		"rotation_axis         Pointer to destination rotation_axisn name \n"
+		"pointer. start                 Pointer to the destination start \n"
+		"value. increment             Pointer to the destination increment \n"
+		"value. type                  Pointer to destination axis type of type \n"
+		". vector1               Pointer to destination first vector component \n"
+		"value. vector2               Pointer to destination second vector \n"
+		"component value. vector3               Pointer to destination third \n"
+		"vector component value.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_rewind_column", _wrap_cbf_handle_struct_rewind_column, METH_VARARGS, (char *)"\n"
 		"Returns : \n"
 		"*args   : \n"
@@ -22019,6 +22717,65 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_unit_cell_esd", _wrap_cbf_handle_struct_get_unit_cell_esd, METH_VARARGS, (char *)"cbf_handle_struct_get_unit_cell_esd(cbf_handle_struct self)"},
+	 { (char *)"cbf_handle_struct_get_axis_type", _wrap_cbf_handle_struct_get_axis_type, METH_VARARGS, (char *)"\n"
+		"Returns : String\n"
+		"*args   : String axis_id\n"
+		"\n"
+		"C prototype: int cbf_get_axis_type (cbf_handle handle, const char *axis_id,\n"
+		"                      cbf_axis_type *axis_type);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_count_axis_ancestors sets ancestors to the number of ancestors of \n"
+		"axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor \n"
+		"axis of index ancestor_index of axis axis_id, starting with axis_id \n"
+		"for ancestor_index 0.\n"
+		"cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of \n"
+		"axis_id or to  \". \" if there is no such ancestor. \n"
+		"cbf_get_axis_equipment sets *equipment to the equipment of axis_id or \n"
+		"to  \". \" if there is no such equipment. \n"
+		"cbf_get_axis_equipment_component sets *equipment_component to the \n"
+		"equipment_component of axis_id or to  \". \" if there is no such \n"
+		"equipment_component.\n"
+		"cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the \n"
+		"components of the ofset of axis_id.\n"
+		"cbf_get_axis_rotation sets rotation to the rotation of axis_id or to \n"
+		"0 if there is no such rotation. cbf_get_axis_rotation_axis sets \n"
+		"*rotation_axis to the rotation_axis of axis_id or to  \". \" if there \n"
+		"is no such rotation_axis.\n"
+		"cbf_get_axis_setting sets *start and *increment to the corresponding \n"
+		"values of the axis axis_id. Any of the destination pointers may be \n"
+		"NULL.\n"
+		"cbf_get_axis_type sets axis_type to the type of axis_id.\n"
+		"cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the \n"
+		"components of the vector of axis_id.\n"
+		"The parameter reserved is presently unused and should be set to 0.\n"
+		"ARGUMENTS\n"
+		"handle                CBF handle. reserved              Unused. Any \n"
+		"value other than 0 is invalid. axis_id               Axis id. \n"
+		"ancestor_index        Integer index of the desired ancestor, starting \n"
+		"with 0 for the current axis_id. ancestor              Pointer to \n"
+		"destination ancestor name pointer. depends_on            Pointer to \n"
+		"destination depends_on name pointer. equipment             Pointer to \n"
+		"destination equipment name pointer. equipment_component   Pointer to \n"
+		"destination equipment_component name pointer. offset1               \n"
+		"Pointer to destination first offset component value. offset2          \n"
+		"     Pointer to destination second offset component value. offset3    \n"
+		"           Pointer to destination third offset component value. \n"
+		"rotation              Pointer to destination rotation value. \n"
+		"rotation_axis         Pointer to destination rotation_axisn name \n"
+		"pointer. start                 Pointer to the destination start \n"
+		"value. increment             Pointer to the destination increment \n"
+		"value. type                  Pointer to destination axis type of type \n"
+		". vector1               Pointer to destination first vector component \n"
+		"value. vector2               Pointer to destination second vector \n"
+		"component value. vector3               Pointer to destination third \n"
+		"vector component value.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_remove_column", _wrap_cbf_handle_struct_remove_column, METH_VARARGS, (char *)"\n"
 		"Returns : \n"
 		"*args   : \n"
@@ -22194,56 +22951,60 @@ static PyMethodDef SwigMethods[] = {
 		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
-	 { (char *)"cbf_handle_struct_get_axis_poise", _wrap_cbf_handle_struct_get_axis_poise, METH_VARARGS, (char *)"\n"
-		"Returns : Float vector1,Float vector2,Float vector3,Float offset1,Float offset2,\n"
-		"          Float offset3,Float angle\n"
-		"*args   : Float ratio,String axis_id,String frame_id\n"
+	 { (char *)"cbf_handle_struct_get_axis_vector", _wrap_cbf_handle_struct_get_axis_vector, METH_VARARGS, (char *)"\n"
+		"Returns : Float vector1,Float vector2,Float vector3\n"
+		"*args   : String axis_id\n"
 		"\n"
-		"C prototype: int cbf_get_axis_poise(cbf_handle handle, double ratio,\n"
-		"                 double *      vector1, double * vector2, double * vector3,\n"
-		"                 double * offset1, double *      offset2, double * offset3,\n"
-		"                 double * angle, const char * axis_id,\n"
-		"                 const      char * frame_id);\n"
+		"C prototype: int cbf_get_axis_vector (cbf_handle handle, const char *axis_id,\n"
+		"                 double      *vector1, double *vector2, double *vector3);\n"
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
-		"cbf_get_axis_poise sets vector1, vector2, vector3 to point to the \n"
-		"components of the axis vector for axis axis_id, offset1, offset2, \n"
-		"offset3 to point to the components of the axis base offset vector for \n"
-		"axis axis_id, and angle to point to the angle of rotation of axis \n"
-		"axis_id after application of the axis settings for frame frame_id, \n"
-		"using ratio, a value between 0 and 1, indicating how far into the \n"
-		"internal motion in the frame to go. If frame_id is the string  \". \n"
-		"\", the first frame found is used. If there is more than one frame, \n"
-		"which frame will be found is indeterminate. If frame_id is NULL, the \n"
-		"overall setting for the scan are used, rather than those for any \n"
-		"particular frame. The vector and offset reported are the reference \n"
-		"vector and offset of the axis axis_id transformed by application of \n"
-		"all motions of the axes on which axis_id depends.\n"
-		"cbf_get_goniometer_poise vector1, vector2, vector3 to point to the \n"
-		"components of the axis vector for the goniometer axis, offset1, \n"
-		"offset2, offset3 to point to the components of the axis base offset \n"
-		"vector for the goniometer axis, and angle to point to the angle of \n"
-		"rotation of the goniometer axis after application of all axis \n"
-		"settings in the goniometer deriving the vector, offset and angle from \n"
-		"the resulting matrix. Calculation of the vector is indeterminate if \n"
-		"the angle is zero.\n"
-		"cbf_get_axis_reference_poise sets vector1, vector2, vector3 to point \n"
-		"to the components of the axis vector for axis axis_id, offset1, \n"
-		"offset2, offset3 to point to the components of the axis base offset \n"
-		"vector for axis axis_id unmodified by axis rotations. Any of the \n"
-		"pointers may be specified as NULL.\n"
+		"cbf_count_axis_ancestors sets ancestors to the number of ancestors of \n"
+		"axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor \n"
+		"axis of index ancestor_index of axis axis_id, starting with axis_id \n"
+		"for ancestor_index 0.\n"
+		"cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of \n"
+		"axis_id or to  \". \" if there is no such ancestor. \n"
+		"cbf_get_axis_equipment sets *equipment to the equipment of axis_id or \n"
+		"to  \". \" if there is no such equipment. \n"
+		"cbf_get_axis_equipment_component sets *equipment_component to the \n"
+		"equipment_component of axis_id or to  \". \" if there is no such \n"
+		"equipment_component.\n"
+		"cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the \n"
+		"components of the ofset of axis_id.\n"
+		"cbf_get_axis_rotation sets rotation to the rotation of axis_id or to \n"
+		"0 if there is no such rotation. cbf_get_axis_rotation_axis sets \n"
+		"*rotation_axis to the rotation_axis of axis_id or to  \". \" if there \n"
+		"is no such rotation_axis.\n"
+		"cbf_get_axis_setting sets *start and *increment to the corresponding \n"
+		"values of the axis axis_id. Any of the destination pointers may be \n"
+		"NULL.\n"
+		"cbf_get_axis_type sets axis_type to the type of axis_id.\n"
+		"cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the \n"
+		"components of the vector of axis_id.\n"
+		"The parameter reserved is presently unused and should be set to 0.\n"
 		"ARGUMENTS\n"
-		"handle       CBF handle. ratio        A number between 0 and 1 \n"
-		"indication how far into the frame to go vector1      Pointer to the \n"
-		"first component of the axis vector vector2      Pointer to the second \n"
-		"component of the axis vector vector3      Pointer to the third \n"
-		"component of the axis vector offset1      Pointer to the first \n"
-		"component of the axis offset offset2      Pointer to the second \n"
-		"component of the axis offset offset3      Pointer to the third \n"
-		"component of the axis offset angle        Pointer to the rotation \n"
-		"angle axis_id      The specified axis frame_id     The specified \n"
-		"frame positioner   CBF goniometer\n"
+		"handle                CBF handle. reserved              Unused. Any \n"
+		"value other than 0 is invalid. axis_id               Axis id. \n"
+		"ancestor_index        Integer index of the desired ancestor, starting \n"
+		"with 0 for the current axis_id. ancestor              Pointer to \n"
+		"destination ancestor name pointer. depends_on            Pointer to \n"
+		"destination depends_on name pointer. equipment             Pointer to \n"
+		"destination equipment name pointer. equipment_component   Pointer to \n"
+		"destination equipment_component name pointer. offset1               \n"
+		"Pointer to destination first offset component value. offset2          \n"
+		"     Pointer to destination second offset component value. offset3    \n"
+		"           Pointer to destination third offset component value. \n"
+		"rotation              Pointer to destination rotation value. \n"
+		"rotation_axis         Pointer to destination rotation_axisn name \n"
+		"pointer. start                 Pointer to the destination start \n"
+		"value. increment             Pointer to the destination increment \n"
+		"value. type                  Pointer to destination axis type of type \n"
+		". vector1               Pointer to destination first vector component \n"
+		"value. vector2               Pointer to destination second vector \n"
+		"component value. vector3               Pointer to destination third \n"
+		"vector component value.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"----------------------------------------------------------------------\n"
@@ -22290,6 +23051,65 @@ static PyMethodDef SwigMethods[] = {
 		"ARGUMENTS\n"
 		"handle       CBF handle. diffrn_id    Pointer to the destination \n"
 		"value pointer. default_id   Character string default value.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
+	 { (char *)"cbf_handle_struct_get_axis_rotation", _wrap_cbf_handle_struct_get_axis_rotation, METH_VARARGS, (char *)"\n"
+		"Returns : Float\n"
+		"*args   : String axis_id\n"
+		"\n"
+		"C prototype: int cbf_get_axis_rotation (cbf_handle handle,\n"
+		"                 const char *axis_id,      double *rotation);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_count_axis_ancestors sets ancestors to the number of ancestors of \n"
+		"axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor \n"
+		"axis of index ancestor_index of axis axis_id, starting with axis_id \n"
+		"for ancestor_index 0.\n"
+		"cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of \n"
+		"axis_id or to  \". \" if there is no such ancestor. \n"
+		"cbf_get_axis_equipment sets *equipment to the equipment of axis_id or \n"
+		"to  \". \" if there is no such equipment. \n"
+		"cbf_get_axis_equipment_component sets *equipment_component to the \n"
+		"equipment_component of axis_id or to  \". \" if there is no such \n"
+		"equipment_component.\n"
+		"cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the \n"
+		"components of the ofset of axis_id.\n"
+		"cbf_get_axis_rotation sets rotation to the rotation of axis_id or to \n"
+		"0 if there is no such rotation. cbf_get_axis_rotation_axis sets \n"
+		"*rotation_axis to the rotation_axis of axis_id or to  \". \" if there \n"
+		"is no such rotation_axis.\n"
+		"cbf_get_axis_setting sets *start and *increment to the corresponding \n"
+		"values of the axis axis_id. Any of the destination pointers may be \n"
+		"NULL.\n"
+		"cbf_get_axis_type sets axis_type to the type of axis_id.\n"
+		"cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the \n"
+		"components of the vector of axis_id.\n"
+		"The parameter reserved is presently unused and should be set to 0.\n"
+		"ARGUMENTS\n"
+		"handle                CBF handle. reserved              Unused. Any \n"
+		"value other than 0 is invalid. axis_id               Axis id. \n"
+		"ancestor_index        Integer index of the desired ancestor, starting \n"
+		"with 0 for the current axis_id. ancestor              Pointer to \n"
+		"destination ancestor name pointer. depends_on            Pointer to \n"
+		"destination depends_on name pointer. equipment             Pointer to \n"
+		"destination equipment name pointer. equipment_component   Pointer to \n"
+		"destination equipment_component name pointer. offset1               \n"
+		"Pointer to destination first offset component value. offset2          \n"
+		"     Pointer to destination second offset component value. offset3    \n"
+		"           Pointer to destination third offset component value. \n"
+		"rotation              Pointer to destination rotation value. \n"
+		"rotation_axis         Pointer to destination rotation_axisn name \n"
+		"pointer. start                 Pointer to the destination start \n"
+		"value. increment             Pointer to the destination increment \n"
+		"value. type                  Pointer to destination axis type of type \n"
+		". vector1               Pointer to destination first vector component \n"
+		"value. vector2               Pointer to destination second vector \n"
+		"component value. vector3               Pointer to destination third \n"
+		"vector component value.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"----------------------------------------------------------------------\n"
@@ -22390,6 +23210,61 @@ static PyMethodDef SwigMethods[] = {
 		"axis, starting from 1 for the fastest for cbf_get_pixel_size and \n"
 		"cbf_get_pixel_size_fs and the slowest for cbf_get_pixel_size_sf. \n"
 		"psize            Pointer to the destination pixel size.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
+	 { (char *)"cbf_handle_struct_get_axis_poise", _wrap_cbf_handle_struct_get_axis_poise, METH_VARARGS, (char *)"\n"
+		"Returns : Float vector1,Float vector2,Float vector3,Float offset1,Float offset2,\n"
+		"          Float offset3,Float angle\n"
+		"*args   : Float ratio,String axis_id,String frame_id\n"
+		"\n"
+		"C prototype: int cbf_get_axis_poise(cbf_handle handle, double ratio,\n"
+		"                 double *      vector1, double * vector2, double * vector3,\n"
+		"                 double * offset1, double *      offset2, double * offset3,\n"
+		"                 double * angle, const char * axis_id,\n"
+		"                 const      char * frame_id);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_get_axis_poise sets vector1, vector2, vector3 to point to the \n"
+		"components of the axis vector for axis axis_id, offset1, offset2, \n"
+		"offset3 to point to the components of the axis base offset vector for \n"
+		"axis axis_id, and angle to point to the angle of rotation of axis \n"
+		"axis_id after application of the axis settings for frame frame_id, \n"
+		"using ratio, a value between 0 and 1, indicating how far into the \n"
+		"internal motion in the frame to go. If frame_id is the string  \". \n"
+		"\", the first frame found is used. If there is more than one frame, \n"
+		"which frame will be found is indeterminate. If frame_id is NULL, the \n"
+		"overall setting for the scan are used, rather than those for any \n"
+		"particular frame. The vector and offset reported are the reference \n"
+		"vector and offset of the axis axis_id transformed by application of \n"
+		"all motions of the axes on which axis_id depends.\n"
+		"cbf_get_goniometer_poise vector1, vector2, vector3 to point to the \n"
+		"components of the axis vector for the goniometer axis, offset1, \n"
+		"offset2, offset3 to point to the components of the axis base offset \n"
+		"vector for the goniometer axis, and angle to point to the angle of \n"
+		"rotation of the goniometer axis after application of all axis \n"
+		"settings in the goniometer deriving the vector, offset and angle from \n"
+		"the resulting matrix. Calculation of the vector is indeterminate if \n"
+		"the angle is zero.\n"
+		"cbf_get_axis_reference_poise sets vector1, vector2, vector3 to point \n"
+		"to the components of the axis vector for axis axis_id, offset1, \n"
+		"offset2, offset3 to point to the components of the axis base offset \n"
+		"vector for axis axis_id unmodified by axis rotations. Any of the \n"
+		"pointers may be specified as NULL.\n"
+		"ARGUMENTS\n"
+		"handle       CBF handle. ratio        A number between 0 and 1 \n"
+		"indication how far into the frame to go vector1      Pointer to the \n"
+		"first component of the axis vector vector2      Pointer to the second \n"
+		"component of the axis vector vector3      Pointer to the third \n"
+		"component of the axis vector offset1      Pointer to the first \n"
+		"component of the axis offset offset2      Pointer to the second \n"
+		"component of the axis offset offset3      Pointer to the third \n"
+		"component of the axis offset angle        Pointer to the rotation \n"
+		"angle axis_id      The specified axis frame_id     The specified \n"
+		"frame positioner   CBF goniometer\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"----------------------------------------------------------------------\n"
@@ -22521,9 +23396,9 @@ static PyMethodDef SwigMethods[] = {
 		"the post data padding to be used.\n"
 		"The array will be compressed using the compression scheme specifed by \n"
 		"compression. Currently, the available schemes are:\n"
-		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
-		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
-		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"CBF_CANONICAL       Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  \n"
+		"     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    \n"
 		" Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  \n"
 		"\"nibble_offset \" compression. CBF_NONE            No compression. \n"
 		"NOTE: This scheme is by far the slowest of the four and uses much \n"
@@ -22645,14 +23520,51 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"CBFLib documentation:\n"
 		"DESCRIPTION\n"
+		"cbf_count_axis_ancestors sets ancestors to the number of ancestors of \n"
+		"axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor \n"
+		"axis of index ancestor_index of axis axis_id, starting with axis_id \n"
+		"for ancestor_index 0.\n"
+		"cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of \n"
+		"axis_id or to  \". \" if there is no such ancestor. \n"
+		"cbf_get_axis_equipment sets *equipment to the equipment of axis_id or \n"
+		"to  \". \" if there is no such equipment. \n"
+		"cbf_get_axis_equipment_component sets *equipment_component to the \n"
+		"equipment_component of axis_id or to  \". \" if there is no such \n"
+		"equipment_component.\n"
+		"cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the \n"
+		"components of the ofset of axis_id.\n"
+		"cbf_get_axis_rotation sets rotation to the rotation of axis_id or to \n"
+		"0 if there is no such rotation. cbf_get_axis_rotation_axis sets \n"
+		"*rotation_axis to the rotation_axis of axis_id or to  \". \" if there \n"
+		"is no such rotation_axis.\n"
 		"cbf_get_axis_setting sets *start and *increment to the corresponding \n"
-		"values of the axis axis_id.\n"
-		"Any of the destination pointers may be NULL.\n"
+		"values of the axis axis_id. Any of the destination pointers may be \n"
+		"NULL.\n"
+		"cbf_get_axis_type sets axis_type to the type of axis_id.\n"
+		"cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the \n"
+		"components of the vector of axis_id.\n"
 		"The parameter reserved is presently unused and should be set to 0.\n"
 		"ARGUMENTS\n"
-		"handle      CBF handle. reserved    Unused. Any value other than 0 is \n"
-		"invalid. axis_id     Axis id. start       Pointer to the destination \n"
-		"start value. increment   Pointer to the destination increment value.\n"
+		"handle                CBF handle. reserved              Unused. Any \n"
+		"value other than 0 is invalid. axis_id               Axis id. \n"
+		"ancestor_index        Integer index of the desired ancestor, starting \n"
+		"with 0 for the current axis_id. ancestor              Pointer to \n"
+		"destination ancestor name pointer. depends_on            Pointer to \n"
+		"destination depends_on name pointer. equipment             Pointer to \n"
+		"destination equipment name pointer. equipment_component   Pointer to \n"
+		"destination equipment_component name pointer. offset1               \n"
+		"Pointer to destination first offset component value. offset2          \n"
+		"     Pointer to destination second offset component value. offset3    \n"
+		"           Pointer to destination third offset component value. \n"
+		"rotation              Pointer to destination rotation value. \n"
+		"rotation_axis         Pointer to destination rotation_axisn name \n"
+		"pointer. start                 Pointer to the destination start \n"
+		"value. increment             Pointer to the destination increment \n"
+		"value. type                  Pointer to destination axis type of type \n"
+		". vector1               Pointer to destination first vector component \n"
+		"value. vector2               Pointer to destination second vector \n"
+		"component value. vector3               Pointer to destination third \n"
+		"vector component value.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"----------------------------------------------------------------------\n"
@@ -22723,6 +23635,65 @@ static PyMethodDef SwigMethods[] = {
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"SEE ALSO\n"
+		"\n"
+		""},
+	 { (char *)"cbf_handle_struct_get_axis_equipment_component", _wrap_cbf_handle_struct_get_axis_equipment_component, METH_VARARGS, (char *)"\n"
+		"Returns : String\n"
+		"*args   : String axis_id\n"
+		"\n"
+		"C prototype: int cbf_get_axis_equipment_component (cbf_handle handle,\n"
+		"                 const char      *axis_id, const char * *equipment_component);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_count_axis_ancestors sets ancestors to the number of ancestors of \n"
+		"axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor \n"
+		"axis of index ancestor_index of axis axis_id, starting with axis_id \n"
+		"for ancestor_index 0.\n"
+		"cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of \n"
+		"axis_id or to  \". \" if there is no such ancestor. \n"
+		"cbf_get_axis_equipment sets *equipment to the equipment of axis_id or \n"
+		"to  \". \" if there is no such equipment. \n"
+		"cbf_get_axis_equipment_component sets *equipment_component to the \n"
+		"equipment_component of axis_id or to  \". \" if there is no such \n"
+		"equipment_component.\n"
+		"cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the \n"
+		"components of the ofset of axis_id.\n"
+		"cbf_get_axis_rotation sets rotation to the rotation of axis_id or to \n"
+		"0 if there is no such rotation. cbf_get_axis_rotation_axis sets \n"
+		"*rotation_axis to the rotation_axis of axis_id or to  \". \" if there \n"
+		"is no such rotation_axis.\n"
+		"cbf_get_axis_setting sets *start and *increment to the corresponding \n"
+		"values of the axis axis_id. Any of the destination pointers may be \n"
+		"NULL.\n"
+		"cbf_get_axis_type sets axis_type to the type of axis_id.\n"
+		"cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the \n"
+		"components of the vector of axis_id.\n"
+		"The parameter reserved is presently unused and should be set to 0.\n"
+		"ARGUMENTS\n"
+		"handle                CBF handle. reserved              Unused. Any \n"
+		"value other than 0 is invalid. axis_id               Axis id. \n"
+		"ancestor_index        Integer index of the desired ancestor, starting \n"
+		"with 0 for the current axis_id. ancestor              Pointer to \n"
+		"destination ancestor name pointer. depends_on            Pointer to \n"
+		"destination depends_on name pointer. equipment             Pointer to \n"
+		"destination equipment name pointer. equipment_component   Pointer to \n"
+		"destination equipment_component name pointer. offset1               \n"
+		"Pointer to destination first offset component value. offset2          \n"
+		"     Pointer to destination second offset component value. offset3    \n"
+		"           Pointer to destination third offset component value. \n"
+		"rotation              Pointer to destination rotation value. \n"
+		"rotation_axis         Pointer to destination rotation_axisn name \n"
+		"pointer. start                 Pointer to the destination start \n"
+		"value. increment             Pointer to the destination increment \n"
+		"value. type                  Pointer to destination axis type of type \n"
+		". vector1               Pointer to destination first vector component \n"
+		"value. vector2               Pointer to destination second vector \n"
+		"component value. vector3               Pointer to destination third \n"
+		"vector component value.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_realarrayparameters_wdims_sf", _wrap_cbf_handle_struct_get_realarrayparameters_wdims_sf, METH_VARARGS, (char *)"\n"
@@ -23825,9 +24796,9 @@ static PyMethodDef SwigMethods[] = {
 		"the post data padding to be used.\n"
 		"The array will be compressed using the compression scheme specifed by \n"
 		"compression. Currently, the available schemes are:\n"
-		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
-		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
-		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"CBF_CANONICAL       Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  \n"
+		"     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    \n"
 		" Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  \n"
 		"\"nibble_offset \" compression. CBF_NONE            No compression. \n"
 		"NOTE: This scheme is by far the slowest of the four and uses much \n"
@@ -24136,6 +25107,65 @@ static PyMethodDef SwigMethods[] = {
 		"SEE ALSO\n"
 		"\n"
 		""},
+	 { (char *)"cbf_handle_struct_count_axis_ancestors", _wrap_cbf_handle_struct_count_axis_ancestors, METH_VARARGS, (char *)"\n"
+		"Returns : Integer\n"
+		"*args   : String axis_id\n"
+		"\n"
+		"C prototype: int cbf_count_axis_ancestors (cbf_handle handle,\n"
+		"                 const char *axis_id,      unsigned int *ancestors);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_count_axis_ancestors sets ancestors to the number of ancestors of \n"
+		"axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor \n"
+		"axis of index ancestor_index of axis axis_id, starting with axis_id \n"
+		"for ancestor_index 0.\n"
+		"cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of \n"
+		"axis_id or to  \". \" if there is no such ancestor. \n"
+		"cbf_get_axis_equipment sets *equipment to the equipment of axis_id or \n"
+		"to  \". \" if there is no such equipment. \n"
+		"cbf_get_axis_equipment_component sets *equipment_component to the \n"
+		"equipment_component of axis_id or to  \". \" if there is no such \n"
+		"equipment_component.\n"
+		"cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the \n"
+		"components of the ofset of axis_id.\n"
+		"cbf_get_axis_rotation sets rotation to the rotation of axis_id or to \n"
+		"0 if there is no such rotation. cbf_get_axis_rotation_axis sets \n"
+		"*rotation_axis to the rotation_axis of axis_id or to  \". \" if there \n"
+		"is no such rotation_axis.\n"
+		"cbf_get_axis_setting sets *start and *increment to the corresponding \n"
+		"values of the axis axis_id. Any of the destination pointers may be \n"
+		"NULL.\n"
+		"cbf_get_axis_type sets axis_type to the type of axis_id.\n"
+		"cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the \n"
+		"components of the vector of axis_id.\n"
+		"The parameter reserved is presently unused and should be set to 0.\n"
+		"ARGUMENTS\n"
+		"handle                CBF handle. reserved              Unused. Any \n"
+		"value other than 0 is invalid. axis_id               Axis id. \n"
+		"ancestor_index        Integer index of the desired ancestor, starting \n"
+		"with 0 for the current axis_id. ancestor              Pointer to \n"
+		"destination ancestor name pointer. depends_on            Pointer to \n"
+		"destination depends_on name pointer. equipment             Pointer to \n"
+		"destination equipment name pointer. equipment_component   Pointer to \n"
+		"destination equipment_component name pointer. offset1               \n"
+		"Pointer to destination first offset component value. offset2          \n"
+		"     Pointer to destination second offset component value. offset3    \n"
+		"           Pointer to destination third offset component value. \n"
+		"rotation              Pointer to destination rotation value. \n"
+		"rotation_axis         Pointer to destination rotation_axisn name \n"
+		"pointer. start                 Pointer to the destination start \n"
+		"value. increment             Pointer to the destination increment \n"
+		"value. type                  Pointer to destination axis type of type \n"
+		". vector1               Pointer to destination first vector component \n"
+		"value. vector2               Pointer to destination second vector \n"
+		"component value. vector3               Pointer to destination third \n"
+		"vector component value.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_construct_goniometer", _wrap_cbf_handle_struct_construct_goniometer, METH_VARARGS, (char *)"\n"
 		"Returns : pycbf goniometer object\n"
 		"*args   : \n"
@@ -24440,6 +25470,65 @@ static PyMethodDef SwigMethods[] = {
 		"SEE ALSO\n"
 		"\n"
 		""},
+	 { (char *)"cbf_handle_struct_get_axis_rotation_axis", _wrap_cbf_handle_struct_get_axis_rotation_axis, METH_VARARGS, (char *)"\n"
+		"Returns : String\n"
+		"*args   : String axis_id\n"
+		"\n"
+		"C prototype: int cbf_get_axis_rotation_axis (cbf_handle handle,\n"
+		"                 const char *axis_id,      const char * *rotation_axis);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_count_axis_ancestors sets ancestors to the number of ancestors of \n"
+		"axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor \n"
+		"axis of index ancestor_index of axis axis_id, starting with axis_id \n"
+		"for ancestor_index 0.\n"
+		"cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of \n"
+		"axis_id or to  \". \" if there is no such ancestor. \n"
+		"cbf_get_axis_equipment sets *equipment to the equipment of axis_id or \n"
+		"to  \". \" if there is no such equipment. \n"
+		"cbf_get_axis_equipment_component sets *equipment_component to the \n"
+		"equipment_component of axis_id or to  \". \" if there is no such \n"
+		"equipment_component.\n"
+		"cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the \n"
+		"components of the ofset of axis_id.\n"
+		"cbf_get_axis_rotation sets rotation to the rotation of axis_id or to \n"
+		"0 if there is no such rotation. cbf_get_axis_rotation_axis sets \n"
+		"*rotation_axis to the rotation_axis of axis_id or to  \". \" if there \n"
+		"is no such rotation_axis.\n"
+		"cbf_get_axis_setting sets *start and *increment to the corresponding \n"
+		"values of the axis axis_id. Any of the destination pointers may be \n"
+		"NULL.\n"
+		"cbf_get_axis_type sets axis_type to the type of axis_id.\n"
+		"cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the \n"
+		"components of the vector of axis_id.\n"
+		"The parameter reserved is presently unused and should be set to 0.\n"
+		"ARGUMENTS\n"
+		"handle                CBF handle. reserved              Unused. Any \n"
+		"value other than 0 is invalid. axis_id               Axis id. \n"
+		"ancestor_index        Integer index of the desired ancestor, starting \n"
+		"with 0 for the current axis_id. ancestor              Pointer to \n"
+		"destination ancestor name pointer. depends_on            Pointer to \n"
+		"destination depends_on name pointer. equipment             Pointer to \n"
+		"destination equipment name pointer. equipment_component   Pointer to \n"
+		"destination equipment_component name pointer. offset1               \n"
+		"Pointer to destination first offset component value. offset2          \n"
+		"     Pointer to destination second offset component value. offset3    \n"
+		"           Pointer to destination third offset component value. \n"
+		"rotation              Pointer to destination rotation value. \n"
+		"rotation_axis         Pointer to destination rotation_axisn name \n"
+		"pointer. start                 Pointer to the destination start \n"
+		"value. increment             Pointer to the destination increment \n"
+		"value. type                  Pointer to destination axis type of type \n"
+		". vector1               Pointer to destination first vector component \n"
+		"value. vector2               Pointer to destination second vector \n"
+		"component value. vector3               Pointer to destination third \n"
+		"vector component value.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
 	 { (char *)"cbf_handle_struct_set_integerarray_wdims", _wrap_cbf_handle_struct_set_integerarray_wdims, METH_VARARGS, (char *)"\n"
 		"Returns : \n"
 		"*args   : int compression,int binary_id,(binary) String data,int elsize,\n"
@@ -24471,9 +25560,9 @@ static PyMethodDef SwigMethods[] = {
 		"the post data padding to be used.\n"
 		"The array will be compressed using the compression scheme specifed by \n"
 		"compression. Currently, the available schemes are:\n"
-		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
-		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
-		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"CBF_CANONICAL       Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  \n"
+		"     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    \n"
 		" Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  \n"
 		"\"nibble_offset \" compression. CBF_NONE            No compression. \n"
 		"NOTE: This scheme is by far the slowest of the four and uses much \n"
@@ -24577,6 +25666,66 @@ static PyMethodDef SwigMethods[] = {
 		"ndimmid, should be set to 1 both in the call and in the imgCIF data \n"
 		"being processed. If the array is 2-dimensional and a 3D call is used, \n"
 		"ndimslow and ndimmid should be the\n"
+		"\n"
+		""},
+	 { (char *)"cbf_handle_struct_get_axis_ancestor", _wrap_cbf_handle_struct_get_axis_ancestor, METH_VARARGS, (char *)"\n"
+		"Returns : String\n"
+		"*args   : String axis_id,Integer ancestor_index\n"
+		"\n"
+		"C prototype: int cbf_get_axis_ancestor (cbf_handle handle,\n"
+		"                 const char *axis_id, const      unsigned int ancestor_index,\n"
+		"                 const char * *ancestor);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_count_axis_ancestors sets ancestors to the number of ancestors of \n"
+		"axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor \n"
+		"axis of index ancestor_index of axis axis_id, starting with axis_id \n"
+		"for ancestor_index 0.\n"
+		"cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of \n"
+		"axis_id or to  \". \" if there is no such ancestor. \n"
+		"cbf_get_axis_equipment sets *equipment to the equipment of axis_id or \n"
+		"to  \". \" if there is no such equipment. \n"
+		"cbf_get_axis_equipment_component sets *equipment_component to the \n"
+		"equipment_component of axis_id or to  \". \" if there is no such \n"
+		"equipment_component.\n"
+		"cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the \n"
+		"components of the ofset of axis_id.\n"
+		"cbf_get_axis_rotation sets rotation to the rotation of axis_id or to \n"
+		"0 if there is no such rotation. cbf_get_axis_rotation_axis sets \n"
+		"*rotation_axis to the rotation_axis of axis_id or to  \". \" if there \n"
+		"is no such rotation_axis.\n"
+		"cbf_get_axis_setting sets *start and *increment to the corresponding \n"
+		"values of the axis axis_id. Any of the destination pointers may be \n"
+		"NULL.\n"
+		"cbf_get_axis_type sets axis_type to the type of axis_id.\n"
+		"cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the \n"
+		"components of the vector of axis_id.\n"
+		"The parameter reserved is presently unused and should be set to 0.\n"
+		"ARGUMENTS\n"
+		"handle                CBF handle. reserved              Unused. Any \n"
+		"value other than 0 is invalid. axis_id               Axis id. \n"
+		"ancestor_index        Integer index of the desired ancestor, starting \n"
+		"with 0 for the current axis_id. ancestor              Pointer to \n"
+		"destination ancestor name pointer. depends_on            Pointer to \n"
+		"destination depends_on name pointer. equipment             Pointer to \n"
+		"destination equipment name pointer. equipment_component   Pointer to \n"
+		"destination equipment_component name pointer. offset1               \n"
+		"Pointer to destination first offset component value. offset2          \n"
+		"     Pointer to destination second offset component value. offset3    \n"
+		"           Pointer to destination third offset component value. \n"
+		"rotation              Pointer to destination rotation value. \n"
+		"rotation_axis         Pointer to destination rotation_axisn name \n"
+		"pointer. start                 Pointer to the destination start \n"
+		"value. increment             Pointer to the destination increment \n"
+		"value. type                  Pointer to destination axis type of type \n"
+		". vector1               Pointer to destination first vector component \n"
+		"value. vector2               Pointer to destination second vector \n"
+		"component value. vector3               Pointer to destination third \n"
+		"vector component value.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
 		"\n"
 		""},
 	 { (char *)"cbf_handle_struct_get_3d_image_sf_as_string", _wrap_cbf_handle_struct_get_3d_image_sf_as_string, METH_VARARGS, (char *)"\n"
@@ -25220,9 +26369,9 @@ static PyMethodDef SwigMethods[] = {
 		"the post data padding to be used.\n"
 		"The array will be compressed using the compression scheme specifed by \n"
 		"compression. Currently, the available schemes are:\n"
-		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
-		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
-		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"CBF_CANONICAL       Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  \n"
+		"     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    \n"
 		" Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  \n"
 		"\"nibble_offset \" compression. CBF_NONE            No compression. \n"
 		"NOTE: This scheme is by far the slowest of the four and uses much \n"
@@ -25806,9 +26955,9 @@ static PyMethodDef SwigMethods[] = {
 		"the post data padding to be used.\n"
 		"The array will be compressed using the compression scheme specifed by \n"
 		"compression. Currently, the available schemes are:\n"
-		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
-		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
-		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"CBF_CANONICAL       Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  \n"
+		"     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    \n"
 		" Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  \n"
 		"\"nibble_offset \" compression. CBF_NONE            No compression. \n"
 		"NOTE: This scheme is by far the slowest of the four and uses much \n"
@@ -25914,6 +27063,65 @@ static PyMethodDef SwigMethods[] = {
 		"handle            CBF handle. categoryname      category name which \n"
 		"may be an alias. categoryroot      pointer to a returned category \n"
 		"root name. categoryroot_in   input category root name.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
+	 { (char *)"cbf_handle_struct_get_axis_offset", _wrap_cbf_handle_struct_get_axis_offset, METH_VARARGS, (char *)"\n"
+		"Returns : Float offset1,Float offset2,Float offset3\n"
+		"*args   : String axis_id\n"
+		"\n"
+		"C prototype: int cbf_get_axis_offset (cbf_handle handle, const char *axis_id,\n"
+		"                 double      *offset1, double *offset2, double *offset3);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_count_axis_ancestors sets ancestors to the number of ancestors of \n"
+		"axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor \n"
+		"axis of index ancestor_index of axis axis_id, starting with axis_id \n"
+		"for ancestor_index 0.\n"
+		"cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of \n"
+		"axis_id or to  \". \" if there is no such ancestor. \n"
+		"cbf_get_axis_equipment sets *equipment to the equipment of axis_id or \n"
+		"to  \". \" if there is no such equipment. \n"
+		"cbf_get_axis_equipment_component sets *equipment_component to the \n"
+		"equipment_component of axis_id or to  \". \" if there is no such \n"
+		"equipment_component.\n"
+		"cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the \n"
+		"components of the ofset of axis_id.\n"
+		"cbf_get_axis_rotation sets rotation to the rotation of axis_id or to \n"
+		"0 if there is no such rotation. cbf_get_axis_rotation_axis sets \n"
+		"*rotation_axis to the rotation_axis of axis_id or to  \". \" if there \n"
+		"is no such rotation_axis.\n"
+		"cbf_get_axis_setting sets *start and *increment to the corresponding \n"
+		"values of the axis axis_id. Any of the destination pointers may be \n"
+		"NULL.\n"
+		"cbf_get_axis_type sets axis_type to the type of axis_id.\n"
+		"cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the \n"
+		"components of the vector of axis_id.\n"
+		"The parameter reserved is presently unused and should be set to 0.\n"
+		"ARGUMENTS\n"
+		"handle                CBF handle. reserved              Unused. Any \n"
+		"value other than 0 is invalid. axis_id               Axis id. \n"
+		"ancestor_index        Integer index of the desired ancestor, starting \n"
+		"with 0 for the current axis_id. ancestor              Pointer to \n"
+		"destination ancestor name pointer. depends_on            Pointer to \n"
+		"destination depends_on name pointer. equipment             Pointer to \n"
+		"destination equipment name pointer. equipment_component   Pointer to \n"
+		"destination equipment_component name pointer. offset1               \n"
+		"Pointer to destination first offset component value. offset2          \n"
+		"     Pointer to destination second offset component value. offset3    \n"
+		"           Pointer to destination third offset component value. \n"
+		"rotation              Pointer to destination rotation value. \n"
+		"rotation_axis         Pointer to destination rotation_axisn name \n"
+		"pointer. start                 Pointer to the destination start \n"
+		"value. increment             Pointer to the destination increment \n"
+		"value. type                  Pointer to destination axis type of type \n"
+		". vector1               Pointer to destination first vector component \n"
+		"value. vector2               Pointer to destination second vector \n"
+		"component value. vector3               Pointer to destination third \n"
+		"vector component value.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"----------------------------------------------------------------------\n"
@@ -26066,9 +27274,9 @@ static PyMethodDef SwigMethods[] = {
 		"the post data padding to be used.\n"
 		"The array will be compressed using the compression scheme specifed by \n"
 		"compression. Currently, the available schemes are:\n"
-		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
-		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
-		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"CBF_CANONICAL       Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  \n"
+		"     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    \n"
 		" Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  \n"
 		"\"nibble_offset \" compression. CBF_NONE            No compression. \n"
 		"NOTE: This scheme is by far the slowest of the four and uses much \n"
@@ -26608,9 +27816,9 @@ static PyMethodDef SwigMethods[] = {
 		"the post data padding to be used.\n"
 		"The array will be compressed using the compression scheme specifed by \n"
 		"compression. Currently, the available schemes are:\n"
-		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
-		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
-		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"CBF_CANONICAL       Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  \n"
+		"     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    \n"
 		" Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  \n"
 		"\"nibble_offset \" compression. CBF_NONE            No compression. \n"
 		"NOTE: This scheme is by far the slowest of the four and uses much \n"
@@ -26693,9 +27901,9 @@ static PyMethodDef SwigMethods[] = {
 		"the post data padding to be used.\n"
 		"The array will be compressed using the compression scheme specifed by \n"
 		"compression. Currently, the available schemes are:\n"
-		"CBF_CANONICAL     Canonical-code compression (section 3.3.1) \n"
-		"CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    \n"
-		" CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   \n"
+		"CBF_CANONICAL       Canonical-code compression (section 3.3.1) \n"
+		"CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  \n"
+		"     CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    \n"
 		" Simple  \"byte_offset \" compression. CBF_NIBBLE_OFFSET   Simple  \n"
 		"\"nibble_offset \" compression. CBF_NONE            No compression. \n"
 		"NOTE: This scheme is by far the slowest of the four and uses much \n"
@@ -26784,6 +27992,65 @@ static PyMethodDef SwigMethods[] = {
 		"the image array elements are signed. ndimslow         Slowest array \n"
 		"dimension. ndimmid          Second slowest array dimension. ndimfast  \n"
 		"       Fastest array dimension.\n"
+		"RETURN VALUE\n"
+		"Returns an error code on failure or 0 for success.\n"
+		"----------------------------------------------------------------------\n"
+		"\n"
+		""},
+	 { (char *)"cbf_handle_struct_get_axis_equipment", _wrap_cbf_handle_struct_get_axis_equipment, METH_VARARGS, (char *)"\n"
+		"Returns : String\n"
+		"*args   : String axis_id\n"
+		"\n"
+		"C prototype: int cbf_get_axis_equipment (cbf_handle handle,\n"
+		"                 const char *axis_id,      const char * *equipment);\n"
+		"\n"
+		"CBFLib documentation:\n"
+		"DESCRIPTION\n"
+		"cbf_count_axis_ancestors sets ancestors to the number of ancestors of \n"
+		"axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor \n"
+		"axis of index ancestor_index of axis axis_id, starting with axis_id \n"
+		"for ancestor_index 0.\n"
+		"cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of \n"
+		"axis_id or to  \". \" if there is no such ancestor. \n"
+		"cbf_get_axis_equipment sets *equipment to the equipment of axis_id or \n"
+		"to  \". \" if there is no such equipment. \n"
+		"cbf_get_axis_equipment_component sets *equipment_component to the \n"
+		"equipment_component of axis_id or to  \". \" if there is no such \n"
+		"equipment_component.\n"
+		"cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the \n"
+		"components of the ofset of axis_id.\n"
+		"cbf_get_axis_rotation sets rotation to the rotation of axis_id or to \n"
+		"0 if there is no such rotation. cbf_get_axis_rotation_axis sets \n"
+		"*rotation_axis to the rotation_axis of axis_id or to  \". \" if there \n"
+		"is no such rotation_axis.\n"
+		"cbf_get_axis_setting sets *start and *increment to the corresponding \n"
+		"values of the axis axis_id. Any of the destination pointers may be \n"
+		"NULL.\n"
+		"cbf_get_axis_type sets axis_type to the type of axis_id.\n"
+		"cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the \n"
+		"components of the vector of axis_id.\n"
+		"The parameter reserved is presently unused and should be set to 0.\n"
+		"ARGUMENTS\n"
+		"handle                CBF handle. reserved              Unused. Any \n"
+		"value other than 0 is invalid. axis_id               Axis id. \n"
+		"ancestor_index        Integer index of the desired ancestor, starting \n"
+		"with 0 for the current axis_id. ancestor              Pointer to \n"
+		"destination ancestor name pointer. depends_on            Pointer to \n"
+		"destination depends_on name pointer. equipment             Pointer to \n"
+		"destination equipment name pointer. equipment_component   Pointer to \n"
+		"destination equipment_component name pointer. offset1               \n"
+		"Pointer to destination first offset component value. offset2          \n"
+		"     Pointer to destination second offset component value. offset3    \n"
+		"           Pointer to destination third offset component value. \n"
+		"rotation              Pointer to destination rotation value. \n"
+		"rotation_axis         Pointer to destination rotation_axisn name \n"
+		"pointer. start                 Pointer to the destination start \n"
+		"value. increment             Pointer to the destination increment \n"
+		"value. type                  Pointer to destination axis type of type \n"
+		". vector1               Pointer to destination first vector component \n"
+		"value. vector2               Pointer to destination second vector \n"
+		"component value. vector3               Pointer to destination third \n"
+		"vector component value.\n"
 		"RETURN VALUE\n"
 		"Returns an error code on failure or 0 for success.\n"
 		"----------------------------------------------------------------------\n"

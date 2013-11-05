@@ -780,6 +780,71 @@ class cbf_detector_struct(_object):
         """
         return _pycbf.cbf_detector_struct_set_reference_beam_center_fs(self, *args)
 
+    def get_beam_center(self):
+        """
+        Returns : double index1,double index2,double center1,double center2
+        *args   : 
+
+        C prototype: int cbf_get_beam_center (cbf_detector detector,
+                         double *indexslow,      double *indexfast, double *centerslow,
+                         double *centerfast);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_beam_center sets *centerfast and *centerslow to the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector and *indexfast and 
+        *indexslow to the corresponding indices. cbf_set_beam_center sets the 
+        offsets in the axis category for the detector element axis with 
+        precedence 1 to place the beam center at the position given in mm by 
+        *centerfast and *centerslow as the displacements in mm along the 
+        detector axes from pixel (0, 0) to the point at which the beam 
+        intersects the detector at the indices given *indexfast and 
+        *indexslow. cbf_set_reference_beam_center sets the displacments in 
+        the array_structure_list_axis category to place the beam center at 
+        the position given in mm by *centerfast and *centerslow as the 
+        displacements in mm along the detector axes from pixel (0, 0) to the 
+        point at which the beam intersects the detector at the indices given 
+        by *indexfast and *indexslow. In order to achieve consistent results, 
+        a reference detector should be used for detector to have all axes at 
+        their reference settings.
+        Note that the precedence 1 axis is the fastest axis, so that 
+        *centerfast and *indexfast are the fast axis components of the center 
+        and *centerslow and *indexslow are the slow axis components of the 
+        center.
+        The _fs calls give the displacments in a fast-to-slow order. The 
+        calls with no suffix and the calls _sf calls give the displacements 
+        in slow-to-fast order
+        Any of the destination pointers may be NULL for getting the beam 
+        center. For setting the beam axis, either the indices of the center 
+        must not be NULL.
+        The indices are non-negative for beam centers within the detector 
+        surface, but the center for an axis with a negative increment will be 
+        negative for a beam center within the detector surface.
+        For cbf_set_beam_center if the diffrn_data_frame category exists with 
+        a row for the corresponding element id, the values will be set for 
+        _diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
+        millimetres and the value of _diffrn_data_frame.center_units will be 
+        set to 'mm'.
+        For cbf_set_reference_beam_center if the diffrn_detector_element 
+        category exists with a row for the corresponding element id, the 
+        values will be set for _diffrn_detector_element.reference_center_fast 
+        and _diffrn_detector_element.reference_center_slow in millimetres and 
+        the value of _diffrn_detector_element.reference_units will be set to 
+        'mm'.
+        ARGUMENTS
+        detector     Detector handle. indexfast    Pointer to the destination 
+        fast index. indexslow    Pointer to the destination slow index. 
+        centerfast   Pointer to the destination displacement along the fast 
+        axis. centerslow   Pointer to the destination displacement along the 
+        slow axis.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_detector_struct_get_beam_center(self)
+
     def get_pixel_coordinates_fs(self, *args):
         """
         Returns : double coordinate1,double coordinate2,double coordinate3
@@ -898,6 +963,10 @@ class cbf_detector_struct(_object):
         """
         return _pycbf.cbf_detector_struct_get_pixel_normal_fs(self, *args)
 
+    def get_detector_surface_axes(self, *args):
+        """get_detector_surface_axes(cbf_detector_struct self, int index) -> char const *"""
+        return _pycbf.cbf_detector_struct_get_detector_surface_axes(self, *args)
+
     def get_detector_axes(self):
         """
         Returns : double slowaxis1,double slowaxis2,double slowaxis3,double fastaxis1,
@@ -920,7 +989,9 @@ class cbf_detector_struct(_object):
         *slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the 
         slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 
         components of the fast axis of the specified detector at the current 
-        settings of all axes.
+        settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 
+        and *axis_id2 to the names of the two surface axes of the detector or 
+         ". ",
         Any of the destination pointers may be NULL.
         ARGUMENTS
         detector    Detector handle. slowaxis1   Pointer to the destination x 
@@ -930,7 +1001,10 @@ class cbf_detector_struct(_object):
         Pointer to the destination x component of the fast axis vector. 
         fastaxis2   Pointer to the destination y component of the fast axis 
         vector. fastaxis3   Pointer to the destination z component of the 
-        fast axis vector.
+        fast axis vector. axis_id1    Pointer to the destination first 
+        surface axis name. axis_id1    Pointer to the destination first 
+        surface axis name. axis_id2    Pointer to the destination second 
+        surface axis name.
         RETURN VALUE
         Returns an error code on failure or 0 for success.
         ----------------------------------------------------------------------
@@ -1023,7 +1097,9 @@ class cbf_detector_struct(_object):
         *slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the 
         slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 
         components of the fast axis of the specified detector at the current 
-        settings of all axes.
+        settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 
+        and *axis_id2 to the names of the two surface axes of the detector or 
+         ". ",
         Any of the destination pointers may be NULL.
         ARGUMENTS
         detector    Detector handle. slowaxis1   Pointer to the destination x 
@@ -1033,7 +1109,10 @@ class cbf_detector_struct(_object):
         Pointer to the destination x component of the fast axis vector. 
         fastaxis2   Pointer to the destination y component of the fast axis 
         vector. fastaxis3   Pointer to the destination z component of the 
-        fast axis vector.
+        fast axis vector. axis_id1    Pointer to the destination first 
+        surface axis name. axis_id1    Pointer to the destination first 
+        surface axis name. axis_id2    Pointer to the destination second 
+        surface axis name.
         RETURN VALUE
         Returns an error code on failure or 0 for success.
         ----------------------------------------------------------------------
@@ -1141,7 +1220,9 @@ class cbf_detector_struct(_object):
         *slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the 
         slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 
         components of the fast axis of the specified detector at the current 
-        settings of all axes.
+        settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 
+        and *axis_id2 to the names of the two surface axes of the detector or 
+         ". ",
         Any of the destination pointers may be NULL.
         ARGUMENTS
         detector    Detector handle. slowaxis1   Pointer to the destination x 
@@ -1151,7 +1232,10 @@ class cbf_detector_struct(_object):
         Pointer to the destination x component of the fast axis vector. 
         fastaxis2   Pointer to the destination y component of the fast axis 
         vector. fastaxis3   Pointer to the destination z component of the 
-        fast axis vector.
+        fast axis vector. axis_id1    Pointer to the destination first 
+        surface axis name. axis_id1    Pointer to the destination first 
+        surface axis name. axis_id2    Pointer to the destination second 
+        surface axis name.
         RETURN VALUE
         Returns an error code on failure or 0 for success.
         ----------------------------------------------------------------------
@@ -1185,7 +1269,9 @@ class cbf_detector_struct(_object):
         *slowaxis1, *slowaxis2, and *slowaxis3 to the 3 components of the 
         slow axis and *fastaxis1, *fastaxis2, and *fastaxis3 to the 3 
         components of the fast axis of the specified detector at the current 
-        settings of all axes.
+        settings of all axes. cbf_get_detector_surface_axes sets *axis_id1 
+        and *axis_id2 to the names of the two surface axes of the detector or 
+         ". ",
         Any of the destination pointers may be NULL.
         ARGUMENTS
         detector    Detector handle. slowaxis1   Pointer to the destination x 
@@ -1195,7 +1281,10 @@ class cbf_detector_struct(_object):
         Pointer to the destination x component of the fast axis vector. 
         fastaxis2   Pointer to the destination y component of the fast axis 
         vector. fastaxis3   Pointer to the destination z component of the 
-        fast axis vector.
+        fast axis vector. axis_id1    Pointer to the destination first 
+        surface axis name. axis_id1    Pointer to the destination first 
+        surface axis name. axis_id2    Pointer to the destination second 
+        surface axis name.
         RETURN VALUE
         Returns an error code on failure or 0 for success.
         ----------------------------------------------------------------------
@@ -1545,71 +1634,6 @@ class cbf_detector_struct(_object):
 
         """
         return _pycbf.cbf_detector_struct_get_pixel_area_sf(self, *args)
-
-    def get_beam_center(self):
-        """
-        Returns : double index1,double index2,double center1,double center2
-        *args   : 
-
-        C prototype: int cbf_get_beam_center (cbf_detector detector,
-                         double *indexslow,      double *indexfast, double *centerslow,
-                         double *centerfast);
-
-        CBFLib documentation:
-        DESCRIPTION
-        cbf_get_beam_center sets *centerfast and *centerslow to the 
-        displacements in mm along the detector axes from pixel (0, 0) to the 
-        point at which the beam intersects the detector and *indexfast and 
-        *indexslow to the corresponding indices. cbf_set_beam_center sets the 
-        offsets in the axis category for the detector element axis with 
-        precedence 1 to place the beam center at the position given in mm by 
-        *centerfast and *centerslow as the displacements in mm along the 
-        detector axes from pixel (0, 0) to the point at which the beam 
-        intersects the detector at the indices given *indexfast and 
-        *indexslow. cbf_set_reference_beam_center sets the displacments in 
-        the array_structure_list_axis category to place the beam center at 
-        the position given in mm by *centerfast and *centerslow as the 
-        displacements in mm along the detector axes from pixel (0, 0) to the 
-        point at which the beam intersects the detector at the indices given 
-        by *indexfast and *indexslow. In order to achieve consistent results, 
-        a reference detector should be used for detector to have all axes at 
-        their reference settings.
-        Note that the precedence 1 axis is the fastest axis, so that 
-        *centerfast and *indexfast are the fast axis components of the center 
-        and *centerslow and *indexslow are the slow axis components of the 
-        center.
-        The _fs calls give the displacments in a fast-to-slow order. The 
-        calls with no suffix and the calls _sf calls give the displacements 
-        in slow-to-fast order
-        Any of the destination pointers may be NULL for getting the beam 
-        center. For setting the beam axis, either the indices of the center 
-        must not be NULL.
-        The indices are non-negative for beam centers within the detector 
-        surface, but the center for an axis with a negative increment will be 
-        negative for a beam center within the detector surface.
-        For cbf_set_beam_center if the diffrn_data_frame category exists with 
-        a row for the corresponding element id, the values will be set for 
-        _diffrn_data_frame.center_fast and _diffrn_data_frame.center_slow in 
-        millimetres and the value of _diffrn_data_frame.center_units will be 
-        set to 'mm'.
-        For cbf_set_reference_beam_center if the diffrn_detector_element 
-        category exists with a row for the corresponding element id, the 
-        values will be set for _diffrn_detector_element.reference_center_fast 
-        and _diffrn_detector_element.reference_center_slow in millimetres and 
-        the value of _diffrn_detector_element.reference_units will be set to 
-        'mm'.
-        ARGUMENTS
-        detector     Detector handle. indexfast    Pointer to the destination 
-        fast index. indexslow    Pointer to the destination slow index. 
-        centerfast   Pointer to the destination displacement along the fast 
-        axis. centerslow   Pointer to the destination displacement along the 
-        slow axis.
-        RETURN VALUE
-        Returns an error code on failure or 0 for success.
-        ----------------------------------------------------------------------
-
-        """
-        return _pycbf.cbf_detector_struct_get_beam_center(self)
 
     def set_reference_beam_center_sf(self):
         """
@@ -2405,6 +2429,68 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_construct_detector(self, *args)
 
+    def get_axis_depends_on(self, *args):
+        """
+        Returns : String
+        *args   : String axis_id
+
+        C prototype: int cbf_get_axis_depends_on (cbf_handle handle,
+                         const char *axis_id,      const char * *depends_on);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+        axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+        axis of index ancestor_index of axis axis_id, starting with axis_id 
+        for ancestor_index 0.
+        cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+        axis_id or to  ". " if there is no such ancestor. 
+        cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+        to  ". " if there is no such equipment. 
+        cbf_get_axis_equipment_component sets *equipment_component to the 
+        equipment_component of axis_id or to  ". " if there is no such 
+        equipment_component.
+        cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+        components of the ofset of axis_id.
+        cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+        0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+        *rotation_axis to the rotation_axis of axis_id or to  ". " if there 
+        is no such rotation_axis.
+        cbf_get_axis_setting sets *start and *increment to the corresponding 
+        values of the axis axis_id. Any of the destination pointers may be 
+        NULL.
+        cbf_get_axis_type sets axis_type to the type of axis_id.
+        cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+        components of the vector of axis_id.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle                CBF handle. reserved              Unused. Any 
+        value other than 0 is invalid. axis_id               Axis id. 
+        ancestor_index        Integer index of the desired ancestor, starting 
+        with 0 for the current axis_id. ancestor              Pointer to 
+        destination ancestor name pointer. depends_on            Pointer to 
+        destination depends_on name pointer. equipment             Pointer to 
+        destination equipment name pointer. equipment_component   Pointer to 
+        destination equipment_component name pointer. offset1               
+        Pointer to destination first offset component value. offset2          
+             Pointer to destination second offset component value. offset3    
+                   Pointer to destination third offset component value. 
+        rotation              Pointer to destination rotation value. 
+        rotation_axis         Pointer to destination rotation_axisn name 
+        pointer. start                 Pointer to the destination start 
+        value. increment             Pointer to the destination increment 
+        value. type                  Pointer to destination axis type of type 
+        . vector1               Pointer to destination first vector component 
+        value. vector2               Pointer to destination second vector 
+        component value. vector3               Pointer to destination third 
+        vector component value.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_handle_struct_get_axis_depends_on(self, *args)
+
     def rewind_column(self, *args):
         """
         Returns : 
@@ -2632,6 +2718,68 @@ class cbf_handle_struct(_object):
         """get_unit_cell_esd(cbf_handle_struct self)"""
         return _pycbf.cbf_handle_struct_get_unit_cell_esd(self)
 
+    def get_axis_type(self, *args):
+        """
+        Returns : String
+        *args   : String axis_id
+
+        C prototype: int cbf_get_axis_type (cbf_handle handle, const char *axis_id,
+                              cbf_axis_type *axis_type);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+        axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+        axis of index ancestor_index of axis axis_id, starting with axis_id 
+        for ancestor_index 0.
+        cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+        axis_id or to  ". " if there is no such ancestor. 
+        cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+        to  ". " if there is no such equipment. 
+        cbf_get_axis_equipment_component sets *equipment_component to the 
+        equipment_component of axis_id or to  ". " if there is no such 
+        equipment_component.
+        cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+        components of the ofset of axis_id.
+        cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+        0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+        *rotation_axis to the rotation_axis of axis_id or to  ". " if there 
+        is no such rotation_axis.
+        cbf_get_axis_setting sets *start and *increment to the corresponding 
+        values of the axis axis_id. Any of the destination pointers may be 
+        NULL.
+        cbf_get_axis_type sets axis_type to the type of axis_id.
+        cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+        components of the vector of axis_id.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle                CBF handle. reserved              Unused. Any 
+        value other than 0 is invalid. axis_id               Axis id. 
+        ancestor_index        Integer index of the desired ancestor, starting 
+        with 0 for the current axis_id. ancestor              Pointer to 
+        destination ancestor name pointer. depends_on            Pointer to 
+        destination depends_on name pointer. equipment             Pointer to 
+        destination equipment name pointer. equipment_component   Pointer to 
+        destination equipment_component name pointer. offset1               
+        Pointer to destination first offset component value. offset2          
+             Pointer to destination second offset component value. offset3    
+                   Pointer to destination third offset component value. 
+        rotation              Pointer to destination rotation value. 
+        rotation_axis         Pointer to destination rotation_axisn name 
+        pointer. start                 Pointer to the destination start 
+        value. increment             Pointer to the destination increment 
+        value. type                  Pointer to destination axis type of type 
+        . vector1               Pointer to destination first vector component 
+        value. vector2               Pointer to destination second vector 
+        component value. vector3               Pointer to destination third 
+        vector component value.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_handle_struct_get_axis_type(self, *args)
+
     def remove_column(self, *args):
         """
         Returns : 
@@ -2825,63 +2973,67 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_set_wavelength(self, *args)
 
-    def get_axis_poise(self, *args):
+    def get_axis_vector(self, *args):
         """
-        Returns : Float vector1,Float vector2,Float vector3,Float offset1,Float offset2,
-                  Float offset3,Float angle
-        *args   : Float ratio,String axis_id,String frame_id
+        Returns : Float vector1,Float vector2,Float vector3
+        *args   : String axis_id
 
-        C prototype: int cbf_get_axis_poise(cbf_handle handle, double ratio,
-                         double *      vector1, double * vector2, double * vector3,
-                         double * offset1, double *      offset2, double * offset3,
-                         double * angle, const char * axis_id,
-                         const      char * frame_id);
+        C prototype: int cbf_get_axis_vector (cbf_handle handle, const char *axis_id,
+                         double      *vector1, double *vector2, double *vector3);
 
         CBFLib documentation:
         DESCRIPTION
-        cbf_get_axis_poise sets vector1, vector2, vector3 to point to the 
-        components of the axis vector for axis axis_id, offset1, offset2, 
-        offset3 to point to the components of the axis base offset vector for 
-        axis axis_id, and angle to point to the angle of rotation of axis 
-        axis_id after application of the axis settings for frame frame_id, 
-        using ratio, a value between 0 and 1, indicating how far into the 
-        internal motion in the frame to go. If frame_id is the string  ". 
-        ", the first frame found is used. If there is more than one frame, 
-        which frame will be found is indeterminate. If frame_id is NULL, the 
-        overall setting for the scan are used, rather than those for any 
-        particular frame. The vector and offset reported are the reference 
-        vector and offset of the axis axis_id transformed by application of 
-        all motions of the axes on which axis_id depends.
-        cbf_get_goniometer_poise vector1, vector2, vector3 to point to the 
-        components of the axis vector for the goniometer axis, offset1, 
-        offset2, offset3 to point to the components of the axis base offset 
-        vector for the goniometer axis, and angle to point to the angle of 
-        rotation of the goniometer axis after application of all axis 
-        settings in the goniometer deriving the vector, offset and angle from 
-        the resulting matrix. Calculation of the vector is indeterminate if 
-        the angle is zero.
-        cbf_get_axis_reference_poise sets vector1, vector2, vector3 to point 
-        to the components of the axis vector for axis axis_id, offset1, 
-        offset2, offset3 to point to the components of the axis base offset 
-        vector for axis axis_id unmodified by axis rotations. Any of the 
-        pointers may be specified as NULL.
+        cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+        axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+        axis of index ancestor_index of axis axis_id, starting with axis_id 
+        for ancestor_index 0.
+        cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+        axis_id or to  ". " if there is no such ancestor. 
+        cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+        to  ". " if there is no such equipment. 
+        cbf_get_axis_equipment_component sets *equipment_component to the 
+        equipment_component of axis_id or to  ". " if there is no such 
+        equipment_component.
+        cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+        components of the ofset of axis_id.
+        cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+        0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+        *rotation_axis to the rotation_axis of axis_id or to  ". " if there 
+        is no such rotation_axis.
+        cbf_get_axis_setting sets *start and *increment to the corresponding 
+        values of the axis axis_id. Any of the destination pointers may be 
+        NULL.
+        cbf_get_axis_type sets axis_type to the type of axis_id.
+        cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+        components of the vector of axis_id.
+        The parameter reserved is presently unused and should be set to 0.
         ARGUMENTS
-        handle       CBF handle. ratio        A number between 0 and 1 
-        indication how far into the frame to go vector1      Pointer to the 
-        first component of the axis vector vector2      Pointer to the second 
-        component of the axis vector vector3      Pointer to the third 
-        component of the axis vector offset1      Pointer to the first 
-        component of the axis offset offset2      Pointer to the second 
-        component of the axis offset offset3      Pointer to the third 
-        component of the axis offset angle        Pointer to the rotation 
-        angle axis_id      The specified axis frame_id     The specified 
-        frame positioner   CBF goniometer
+        handle                CBF handle. reserved              Unused. Any 
+        value other than 0 is invalid. axis_id               Axis id. 
+        ancestor_index        Integer index of the desired ancestor, starting 
+        with 0 for the current axis_id. ancestor              Pointer to 
+        destination ancestor name pointer. depends_on            Pointer to 
+        destination depends_on name pointer. equipment             Pointer to 
+        destination equipment name pointer. equipment_component   Pointer to 
+        destination equipment_component name pointer. offset1               
+        Pointer to destination first offset component value. offset2          
+             Pointer to destination second offset component value. offset3    
+                   Pointer to destination third offset component value. 
+        rotation              Pointer to destination rotation value. 
+        rotation_axis         Pointer to destination rotation_axisn name 
+        pointer. start                 Pointer to the destination start 
+        value. increment             Pointer to the destination increment 
+        value. type                  Pointer to destination axis type of type 
+        . vector1               Pointer to destination first vector component 
+        value. vector2               Pointer to destination second vector 
+        component value. vector3               Pointer to destination third 
+        vector component value.
         RETURN VALUE
         Returns an error code on failure or 0 for success.
         ----------------------------------------------------------------------
 
         """
-        return _pycbf.cbf_handle_struct_get_axis_poise(self, *args)
+        return _pycbf.cbf_handle_struct_get_axis_vector(self, *args)
 
     def set_pixel_size_sf(self, *args):
         """
@@ -2934,6 +3086,68 @@ class cbf_handle_struct(_object):
 
         """
         return _pycbf.cbf_handle_struct_get_diffrn_id(self, *args)
+
+    def get_axis_rotation(self, *args):
+        """
+        Returns : Float
+        *args   : String axis_id
+
+        C prototype: int cbf_get_axis_rotation (cbf_handle handle,
+                         const char *axis_id,      double *rotation);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+        axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+        axis of index ancestor_index of axis axis_id, starting with axis_id 
+        for ancestor_index 0.
+        cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+        axis_id or to  ". " if there is no such ancestor. 
+        cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+        to  ". " if there is no such equipment. 
+        cbf_get_axis_equipment_component sets *equipment_component to the 
+        equipment_component of axis_id or to  ". " if there is no such 
+        equipment_component.
+        cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+        components of the ofset of axis_id.
+        cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+        0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+        *rotation_axis to the rotation_axis of axis_id or to  ". " if there 
+        is no such rotation_axis.
+        cbf_get_axis_setting sets *start and *increment to the corresponding 
+        values of the axis axis_id. Any of the destination pointers may be 
+        NULL.
+        cbf_get_axis_type sets axis_type to the type of axis_id.
+        cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+        components of the vector of axis_id.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle                CBF handle. reserved              Unused. Any 
+        value other than 0 is invalid. axis_id               Axis id. 
+        ancestor_index        Integer index of the desired ancestor, starting 
+        with 0 for the current axis_id. ancestor              Pointer to 
+        destination ancestor name pointer. depends_on            Pointer to 
+        destination depends_on name pointer. equipment             Pointer to 
+        destination equipment name pointer. equipment_component   Pointer to 
+        destination equipment_component name pointer. offset1               
+        Pointer to destination first offset component value. offset2          
+             Pointer to destination second offset component value. offset3    
+                   Pointer to destination third offset component value. 
+        rotation              Pointer to destination rotation value. 
+        rotation_axis         Pointer to destination rotation_axisn name 
+        pointer. start                 Pointer to the destination start 
+        value. increment             Pointer to the destination increment 
+        value. type                  Pointer to destination axis type of type 
+        . vector1               Pointer to destination first vector component 
+        value. vector2               Pointer to destination second vector 
+        component value. vector3               Pointer to destination third 
+        vector component value.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_handle_struct_get_axis_rotation(self, *args)
 
     def find_datablock(self, *args):
         """
@@ -3046,6 +3260,64 @@ class cbf_handle_struct(_object):
 
         """
         return _pycbf.cbf_handle_struct_get_pixel_size_fs(self, *args)
+
+    def get_axis_poise(self, *args):
+        """
+        Returns : Float vector1,Float vector2,Float vector3,Float offset1,Float offset2,
+                  Float offset3,Float angle
+        *args   : Float ratio,String axis_id,String frame_id
+
+        C prototype: int cbf_get_axis_poise(cbf_handle handle, double ratio,
+                         double *      vector1, double * vector2, double * vector3,
+                         double * offset1, double *      offset2, double * offset3,
+                         double * angle, const char * axis_id,
+                         const      char * frame_id);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_get_axis_poise sets vector1, vector2, vector3 to point to the 
+        components of the axis vector for axis axis_id, offset1, offset2, 
+        offset3 to point to the components of the axis base offset vector for 
+        axis axis_id, and angle to point to the angle of rotation of axis 
+        axis_id after application of the axis settings for frame frame_id, 
+        using ratio, a value between 0 and 1, indicating how far into the 
+        internal motion in the frame to go. If frame_id is the string  ". 
+        ", the first frame found is used. If there is more than one frame, 
+        which frame will be found is indeterminate. If frame_id is NULL, the 
+        overall setting for the scan are used, rather than those for any 
+        particular frame. The vector and offset reported are the reference 
+        vector and offset of the axis axis_id transformed by application of 
+        all motions of the axes on which axis_id depends.
+        cbf_get_goniometer_poise vector1, vector2, vector3 to point to the 
+        components of the axis vector for the goniometer axis, offset1, 
+        offset2, offset3 to point to the components of the axis base offset 
+        vector for the goniometer axis, and angle to point to the angle of 
+        rotation of the goniometer axis after application of all axis 
+        settings in the goniometer deriving the vector, offset and angle from 
+        the resulting matrix. Calculation of the vector is indeterminate if 
+        the angle is zero.
+        cbf_get_axis_reference_poise sets vector1, vector2, vector3 to point 
+        to the components of the axis vector for axis axis_id, offset1, 
+        offset2, offset3 to point to the components of the axis base offset 
+        vector for axis axis_id unmodified by axis rotations. Any of the 
+        pointers may be specified as NULL.
+        ARGUMENTS
+        handle       CBF handle. ratio        A number between 0 and 1 
+        indication how far into the frame to go vector1      Pointer to the 
+        first component of the axis vector vector2      Pointer to the second 
+        component of the axis vector vector3      Pointer to the third 
+        component of the axis vector offset1      Pointer to the first 
+        component of the axis offset offset2      Pointer to the second 
+        component of the axis offset offset3      Pointer to the third 
+        component of the axis offset angle        Pointer to the rotation 
+        angle axis_id      The specified axis frame_id     The specified 
+        frame positioner   CBF goniometer
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_handle_struct_get_axis_poise(self, *args)
 
     def read_file(self, *args):
         """
@@ -3180,9 +3452,9 @@ class cbf_handle_struct(_object):
         the post data padding to be used.
         The array will be compressed using the compression scheme specifed by 
         compression. Currently, the available schemes are:
-        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
-         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+        CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+             CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
          Simple  "byte_offset " compression. CBF_NIBBLE_OFFSET   Simple  
         "nibble_offset " compression. CBF_NONE            No compression. 
         NOTE: This scheme is by far the slowest of the four and uses much 
@@ -3316,14 +3588,51 @@ class cbf_handle_struct(_object):
 
         CBFLib documentation:
         DESCRIPTION
+        cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+        axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+        axis of index ancestor_index of axis axis_id, starting with axis_id 
+        for ancestor_index 0.
+        cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+        axis_id or to  ". " if there is no such ancestor. 
+        cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+        to  ". " if there is no such equipment. 
+        cbf_get_axis_equipment_component sets *equipment_component to the 
+        equipment_component of axis_id or to  ". " if there is no such 
+        equipment_component.
+        cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+        components of the ofset of axis_id.
+        cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+        0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+        *rotation_axis to the rotation_axis of axis_id or to  ". " if there 
+        is no such rotation_axis.
         cbf_get_axis_setting sets *start and *increment to the corresponding 
-        values of the axis axis_id.
-        Any of the destination pointers may be NULL.
+        values of the axis axis_id. Any of the destination pointers may be 
+        NULL.
+        cbf_get_axis_type sets axis_type to the type of axis_id.
+        cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+        components of the vector of axis_id.
         The parameter reserved is presently unused and should be set to 0.
         ARGUMENTS
-        handle      CBF handle. reserved    Unused. Any value other than 0 is 
-        invalid. axis_id     Axis id. start       Pointer to the destination 
-        start value. increment   Pointer to the destination increment value.
+        handle                CBF handle. reserved              Unused. Any 
+        value other than 0 is invalid. axis_id               Axis id. 
+        ancestor_index        Integer index of the desired ancestor, starting 
+        with 0 for the current axis_id. ancestor              Pointer to 
+        destination ancestor name pointer. depends_on            Pointer to 
+        destination depends_on name pointer. equipment             Pointer to 
+        destination equipment name pointer. equipment_component   Pointer to 
+        destination equipment_component name pointer. offset1               
+        Pointer to destination first offset component value. offset2          
+             Pointer to destination second offset component value. offset3    
+                   Pointer to destination third offset component value. 
+        rotation              Pointer to destination rotation value. 
+        rotation_axis         Pointer to destination rotation_axisn name 
+        pointer. start                 Pointer to the destination start 
+        value. increment             Pointer to the destination increment 
+        value. type                  Pointer to destination axis type of type 
+        . vector1               Pointer to destination first vector component 
+        value. vector2               Pointer to destination second vector 
+        component value. vector3               Pointer to destination third 
+        vector component value.
         RETURN VALUE
         Returns an error code on failure or 0 for success.
         ----------------------------------------------------------------------
@@ -3406,6 +3715,68 @@ class cbf_handle_struct(_object):
 
         """
         return _pycbf.cbf_handle_struct_find_nextrow(self, *args)
+
+    def get_axis_equipment_component(self, *args):
+        """
+        Returns : String
+        *args   : String axis_id
+
+        C prototype: int cbf_get_axis_equipment_component (cbf_handle handle,
+                         const char      *axis_id, const char * *equipment_component);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+        axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+        axis of index ancestor_index of axis axis_id, starting with axis_id 
+        for ancestor_index 0.
+        cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+        axis_id or to  ". " if there is no such ancestor. 
+        cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+        to  ". " if there is no such equipment. 
+        cbf_get_axis_equipment_component sets *equipment_component to the 
+        equipment_component of axis_id or to  ". " if there is no such 
+        equipment_component.
+        cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+        components of the ofset of axis_id.
+        cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+        0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+        *rotation_axis to the rotation_axis of axis_id or to  ". " if there 
+        is no such rotation_axis.
+        cbf_get_axis_setting sets *start and *increment to the corresponding 
+        values of the axis axis_id. Any of the destination pointers may be 
+        NULL.
+        cbf_get_axis_type sets axis_type to the type of axis_id.
+        cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+        components of the vector of axis_id.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle                CBF handle. reserved              Unused. Any 
+        value other than 0 is invalid. axis_id               Axis id. 
+        ancestor_index        Integer index of the desired ancestor, starting 
+        with 0 for the current axis_id. ancestor              Pointer to 
+        destination ancestor name pointer. depends_on            Pointer to 
+        destination depends_on name pointer. equipment             Pointer to 
+        destination equipment name pointer. equipment_component   Pointer to 
+        destination equipment_component name pointer. offset1               
+        Pointer to destination first offset component value. offset2          
+             Pointer to destination second offset component value. offset3    
+                   Pointer to destination third offset component value. 
+        rotation              Pointer to destination rotation value. 
+        rotation_axis         Pointer to destination rotation_axisn name 
+        pointer. start                 Pointer to the destination start 
+        value. increment             Pointer to the destination increment 
+        value. type                  Pointer to destination axis type of type 
+        . vector1               Pointer to destination first vector component 
+        value. vector2               Pointer to destination second vector 
+        component value. vector3               Pointer to destination third 
+        vector component value.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_handle_struct_get_axis_equipment_component(self, *args)
 
     def get_realarrayparameters_wdims_sf(self):
         """
@@ -4610,9 +4981,9 @@ class cbf_handle_struct(_object):
         the post data padding to be used.
         The array will be compressed using the compression scheme specifed by 
         compression. Currently, the available schemes are:
-        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
-         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+        CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+             CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
          Simple  "byte_offset " compression. CBF_NIBBLE_OFFSET   Simple  
         "nibble_offset " compression. CBF_NONE            No compression. 
         NOTE: This scheme is by far the slowest of the four and uses much 
@@ -4950,6 +5321,68 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_reset_category(self, *args)
 
+    def count_axis_ancestors(self, *args):
+        """
+        Returns : Integer
+        *args   : String axis_id
+
+        C prototype: int cbf_count_axis_ancestors (cbf_handle handle,
+                         const char *axis_id,      unsigned int *ancestors);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+        axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+        axis of index ancestor_index of axis axis_id, starting with axis_id 
+        for ancestor_index 0.
+        cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+        axis_id or to  ". " if there is no such ancestor. 
+        cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+        to  ". " if there is no such equipment. 
+        cbf_get_axis_equipment_component sets *equipment_component to the 
+        equipment_component of axis_id or to  ". " if there is no such 
+        equipment_component.
+        cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+        components of the ofset of axis_id.
+        cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+        0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+        *rotation_axis to the rotation_axis of axis_id or to  ". " if there 
+        is no such rotation_axis.
+        cbf_get_axis_setting sets *start and *increment to the corresponding 
+        values of the axis axis_id. Any of the destination pointers may be 
+        NULL.
+        cbf_get_axis_type sets axis_type to the type of axis_id.
+        cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+        components of the vector of axis_id.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle                CBF handle. reserved              Unused. Any 
+        value other than 0 is invalid. axis_id               Axis id. 
+        ancestor_index        Integer index of the desired ancestor, starting 
+        with 0 for the current axis_id. ancestor              Pointer to 
+        destination ancestor name pointer. depends_on            Pointer to 
+        destination depends_on name pointer. equipment             Pointer to 
+        destination equipment name pointer. equipment_component   Pointer to 
+        destination equipment_component name pointer. offset1               
+        Pointer to destination first offset component value. offset2          
+             Pointer to destination second offset component value. offset3    
+                   Pointer to destination third offset component value. 
+        rotation              Pointer to destination rotation value. 
+        rotation_axis         Pointer to destination rotation_axisn name 
+        pointer. start                 Pointer to the destination start 
+        value. increment             Pointer to the destination increment 
+        value. type                  Pointer to destination axis type of type 
+        . vector1               Pointer to destination first vector component 
+        value. vector2               Pointer to destination second vector 
+        component value. vector3               Pointer to destination third 
+        vector component value.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_handle_struct_count_axis_ancestors(self, *args)
+
     def construct_goniometer(self):
         """
         Returns : pycbf goniometer object
@@ -5281,6 +5714,68 @@ class cbf_handle_struct(_object):
         """
         return _pycbf.cbf_handle_struct_set_typeofvalue(self, *args)
 
+    def get_axis_rotation_axis(self, *args):
+        """
+        Returns : String
+        *args   : String axis_id
+
+        C prototype: int cbf_get_axis_rotation_axis (cbf_handle handle,
+                         const char *axis_id,      const char * *rotation_axis);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+        axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+        axis of index ancestor_index of axis axis_id, starting with axis_id 
+        for ancestor_index 0.
+        cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+        axis_id or to  ". " if there is no such ancestor. 
+        cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+        to  ". " if there is no such equipment. 
+        cbf_get_axis_equipment_component sets *equipment_component to the 
+        equipment_component of axis_id or to  ". " if there is no such 
+        equipment_component.
+        cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+        components of the ofset of axis_id.
+        cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+        0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+        *rotation_axis to the rotation_axis of axis_id or to  ". " if there 
+        is no such rotation_axis.
+        cbf_get_axis_setting sets *start and *increment to the corresponding 
+        values of the axis axis_id. Any of the destination pointers may be 
+        NULL.
+        cbf_get_axis_type sets axis_type to the type of axis_id.
+        cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+        components of the vector of axis_id.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle                CBF handle. reserved              Unused. Any 
+        value other than 0 is invalid. axis_id               Axis id. 
+        ancestor_index        Integer index of the desired ancestor, starting 
+        with 0 for the current axis_id. ancestor              Pointer to 
+        destination ancestor name pointer. depends_on            Pointer to 
+        destination depends_on name pointer. equipment             Pointer to 
+        destination equipment name pointer. equipment_component   Pointer to 
+        destination equipment_component name pointer. offset1               
+        Pointer to destination first offset component value. offset2          
+             Pointer to destination second offset component value. offset3    
+                   Pointer to destination third offset component value. 
+        rotation              Pointer to destination rotation value. 
+        rotation_axis         Pointer to destination rotation_axisn name 
+        pointer. start                 Pointer to the destination start 
+        value. increment             Pointer to the destination increment 
+        value. type                  Pointer to destination axis type of type 
+        . vector1               Pointer to destination first vector component 
+        value. vector2               Pointer to destination second vector 
+        component value. vector3               Pointer to destination third 
+        vector component value.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_handle_struct_get_axis_rotation_axis(self, *args)
+
     def set_integerarray_wdims(self, *args):
         """
         Returns : 
@@ -5313,9 +5808,9 @@ class cbf_handle_struct(_object):
         the post data padding to be used.
         The array will be compressed using the compression scheme specifed by 
         compression. Currently, the available schemes are:
-        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
-         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+        CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+             CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
          Simple  "byte_offset " compression. CBF_NIBBLE_OFFSET   Simple  
         "nibble_offset " compression. CBF_NONE            No compression. 
         NOTE: This scheme is by far the slowest of the four and uses much 
@@ -5431,6 +5926,69 @@ class cbf_handle_struct(_object):
 
         """
         return _pycbf.cbf_handle_struct_get_real_image_as_string(self, *args)
+
+    def get_axis_ancestor(self, *args):
+        """
+        Returns : String
+        *args   : String axis_id,Integer ancestor_index
+
+        C prototype: int cbf_get_axis_ancestor (cbf_handle handle,
+                         const char *axis_id, const      unsigned int ancestor_index,
+                         const char * *ancestor);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+        axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+        axis of index ancestor_index of axis axis_id, starting with axis_id 
+        for ancestor_index 0.
+        cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+        axis_id or to  ". " if there is no such ancestor. 
+        cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+        to  ". " if there is no such equipment. 
+        cbf_get_axis_equipment_component sets *equipment_component to the 
+        equipment_component of axis_id or to  ". " if there is no such 
+        equipment_component.
+        cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+        components of the ofset of axis_id.
+        cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+        0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+        *rotation_axis to the rotation_axis of axis_id or to  ". " if there 
+        is no such rotation_axis.
+        cbf_get_axis_setting sets *start and *increment to the corresponding 
+        values of the axis axis_id. Any of the destination pointers may be 
+        NULL.
+        cbf_get_axis_type sets axis_type to the type of axis_id.
+        cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+        components of the vector of axis_id.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle                CBF handle. reserved              Unused. Any 
+        value other than 0 is invalid. axis_id               Axis id. 
+        ancestor_index        Integer index of the desired ancestor, starting 
+        with 0 for the current axis_id. ancestor              Pointer to 
+        destination ancestor name pointer. depends_on            Pointer to 
+        destination depends_on name pointer. equipment             Pointer to 
+        destination equipment name pointer. equipment_component   Pointer to 
+        destination equipment_component name pointer. offset1               
+        Pointer to destination first offset component value. offset2          
+             Pointer to destination second offset component value. offset3    
+                   Pointer to destination third offset component value. 
+        rotation              Pointer to destination rotation value. 
+        rotation_axis         Pointer to destination rotation_axisn name 
+        pointer. start                 Pointer to the destination start 
+        value. increment             Pointer to the destination increment 
+        value. type                  Pointer to destination axis type of type 
+        . vector1               Pointer to destination first vector component 
+        value. vector2               Pointer to destination second vector 
+        component value. vector3               Pointer to destination third 
+        vector component value.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_handle_struct_get_axis_ancestor(self, *args)
 
     def get_3d_image_sf_as_string(self, *args):
         """
@@ -6134,9 +6692,9 @@ class cbf_handle_struct(_object):
         the post data padding to be used.
         The array will be compressed using the compression scheme specifed by 
         compression. Currently, the available schemes are:
-        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
-         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+        CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+             CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
          Simple  "byte_offset " compression. CBF_NIBBLE_OFFSET   Simple  
         "nibble_offset " compression. CBF_NONE            No compression. 
         NOTE: This scheme is by far the slowest of the four and uses much 
@@ -6771,9 +7329,9 @@ class cbf_handle_struct(_object):
         the post data padding to be used.
         The array will be compressed using the compression scheme specifed by 
         compression. Currently, the available schemes are:
-        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
-         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+        CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+             CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
          Simple  "byte_offset " compression. CBF_NIBBLE_OFFSET   Simple  
         "nibble_offset " compression. CBF_NONE            No compression. 
         NOTE: This scheme is by far the slowest of the four and uses much 
@@ -6897,6 +7455,68 @@ class cbf_handle_struct(_object):
 
         """
         return _pycbf.cbf_handle_struct_set_category_root(self, *args)
+
+    def get_axis_offset(self, *args):
+        """
+        Returns : Float offset1,Float offset2,Float offset3
+        *args   : String axis_id
+
+        C prototype: int cbf_get_axis_offset (cbf_handle handle, const char *axis_id,
+                         double      *offset1, double *offset2, double *offset3);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+        axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+        axis of index ancestor_index of axis axis_id, starting with axis_id 
+        for ancestor_index 0.
+        cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+        axis_id or to  ". " if there is no such ancestor. 
+        cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+        to  ". " if there is no such equipment. 
+        cbf_get_axis_equipment_component sets *equipment_component to the 
+        equipment_component of axis_id or to  ". " if there is no such 
+        equipment_component.
+        cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+        components of the ofset of axis_id.
+        cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+        0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+        *rotation_axis to the rotation_axis of axis_id or to  ". " if there 
+        is no such rotation_axis.
+        cbf_get_axis_setting sets *start and *increment to the corresponding 
+        values of the axis axis_id. Any of the destination pointers may be 
+        NULL.
+        cbf_get_axis_type sets axis_type to the type of axis_id.
+        cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+        components of the vector of axis_id.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle                CBF handle. reserved              Unused. Any 
+        value other than 0 is invalid. axis_id               Axis id. 
+        ancestor_index        Integer index of the desired ancestor, starting 
+        with 0 for the current axis_id. ancestor              Pointer to 
+        destination ancestor name pointer. depends_on            Pointer to 
+        destination depends_on name pointer. equipment             Pointer to 
+        destination equipment name pointer. equipment_component   Pointer to 
+        destination equipment_component name pointer. offset1               
+        Pointer to destination first offset component value. offset2          
+             Pointer to destination second offset component value. offset3    
+                   Pointer to destination third offset component value. 
+        rotation              Pointer to destination rotation value. 
+        rotation_axis         Pointer to destination rotation_axisn name 
+        pointer. start                 Pointer to the destination start 
+        value. increment             Pointer to the destination increment 
+        value. type                  Pointer to destination axis type of type 
+        . vector1               Pointer to destination first vector component 
+        value. vector2               Pointer to destination second vector 
+        component value. vector3               Pointer to destination third 
+        vector component value.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_handle_struct_get_axis_offset(self, *args)
 
     def set_pixel_size_fs(self, *args):
         """
@@ -7061,9 +7681,9 @@ class cbf_handle_struct(_object):
         the post data padding to be used.
         The array will be compressed using the compression scheme specifed by 
         compression. Currently, the available schemes are:
-        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
-         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+        CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+             CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
          Simple  "byte_offset " compression. CBF_NIBBLE_OFFSET   Simple  
         "nibble_offset " compression. CBF_NONE            No compression. 
         NOTE: This scheme is by far the slowest of the four and uses much 
@@ -7657,9 +8277,9 @@ class cbf_handle_struct(_object):
         the post data padding to be used.
         The array will be compressed using the compression scheme specifed by 
         compression. Currently, the available schemes are:
-        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
-         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+        CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+             CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
          Simple  "byte_offset " compression. CBF_NIBBLE_OFFSET   Simple  
         "nibble_offset " compression. CBF_NONE            No compression. 
         NOTE: This scheme is by far the slowest of the four and uses much 
@@ -7748,9 +8368,9 @@ class cbf_handle_struct(_object):
         the post data padding to be used.
         The array will be compressed using the compression scheme specifed by 
         compression. Currently, the available schemes are:
-        CBF_CANONICAL     Canonical-code compression (section 3.3.1) 
-        CBF_PACKED        CCP4-style packing (section 3.3.2) CBF_PACKED_V2    
-         CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET   
+        CBF_CANONICAL       Canonical-code compression (section 3.3.1) 
+        CBF_PACKED          CCP4-style packing (section 3.3.2) CBF_PACKED_V2  
+             CCP4-style packing, version 2 (section 3.3.2) CBF_BYTE_OFFSET    
          Simple  "byte_offset " compression. CBF_NIBBLE_OFFSET   Simple  
         "nibble_offset " compression. CBF_NONE            No compression. 
         NOTE: This scheme is by far the slowest of the four and uses much 
@@ -7848,6 +8468,68 @@ class cbf_handle_struct(_object):
 
         """
         return _pycbf.cbf_handle_struct_set_image_sf(self, *args)
+
+    def get_axis_equipment(self, *args):
+        """
+        Returns : String
+        *args   : String axis_id
+
+        C prototype: int cbf_get_axis_equipment (cbf_handle handle,
+                         const char *axis_id,      const char * *equipment);
+
+        CBFLib documentation:
+        DESCRIPTION
+        cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+        axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+        axis of index ancestor_index of axis axis_id, starting with axis_id 
+        for ancestor_index 0.
+        cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+        axis_id or to  ". " if there is no such ancestor. 
+        cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+        to  ". " if there is no such equipment. 
+        cbf_get_axis_equipment_component sets *equipment_component to the 
+        equipment_component of axis_id or to  ". " if there is no such 
+        equipment_component.
+        cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+        components of the ofset of axis_id.
+        cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+        0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+        *rotation_axis to the rotation_axis of axis_id or to  ". " if there 
+        is no such rotation_axis.
+        cbf_get_axis_setting sets *start and *increment to the corresponding 
+        values of the axis axis_id. Any of the destination pointers may be 
+        NULL.
+        cbf_get_axis_type sets axis_type to the type of axis_id.
+        cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+        components of the vector of axis_id.
+        The parameter reserved is presently unused and should be set to 0.
+        ARGUMENTS
+        handle                CBF handle. reserved              Unused. Any 
+        value other than 0 is invalid. axis_id               Axis id. 
+        ancestor_index        Integer index of the desired ancestor, starting 
+        with 0 for the current axis_id. ancestor              Pointer to 
+        destination ancestor name pointer. depends_on            Pointer to 
+        destination depends_on name pointer. equipment             Pointer to 
+        destination equipment name pointer. equipment_component   Pointer to 
+        destination equipment_component name pointer. offset1               
+        Pointer to destination first offset component value. offset2          
+             Pointer to destination second offset component value. offset3    
+                   Pointer to destination third offset component value. 
+        rotation              Pointer to destination rotation value. 
+        rotation_axis         Pointer to destination rotation_axisn name 
+        pointer. start                 Pointer to the destination start 
+        value. increment             Pointer to the destination increment 
+        value. type                  Pointer to destination axis type of type 
+        . vector1               Pointer to destination first vector component 
+        value. vector2               Pointer to destination second vector 
+        component value. vector3               Pointer to destination third 
+        vector component value.
+        RETURN VALUE
+        Returns an error code on failure or 0 for success.
+        ----------------------------------------------------------------------
+
+        """
+        return _pycbf.cbf_handle_struct_get_axis_equipment(self, *args)
 
     def set_unit_cell(self, *args):
         """
