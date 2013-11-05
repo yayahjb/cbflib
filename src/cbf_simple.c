@@ -2727,7 +2727,7 @@ extern "C" {
         const char * depends_on;
         int curlevel;
         unsigned int maxlevel;
-        
+                
         /* Check for valid arguments */
         
         if (!handle || !axis_id || !ancestors ) return CBF_ARGUMENT;
@@ -2750,8 +2750,9 @@ extern "C" {
             if (curlevel==0 ||
                 cbf_find_column   (handle, "depends_on")
                 || cbf_get_value     (handle, &depends_on)||
-                !((depends_on)[0])) {
-                
+                !((depends_on)[0])
+                || !cbf_cistrcmp(depends_on,".")
+                || !cbf_cistrcmp(depends_on,"?")){
                 return CBF_SUCCESS;
                 
             }
@@ -2798,8 +2799,9 @@ extern "C" {
             if (curlevel==0 ||
                 cbf_find_column   (handle, "depends_on")
                 || cbf_get_value     (handle, &depends_on)||
-                !((depends_on)[0])) {
-            
+                !((depends_on)[0])
+                || !cbf_cistrcmp(depends_on,".")
+                || !cbf_cistrcmp(depends_on,"?")){
                 if (curlevel > 0) return CBF_NOTFOUND;
                 *ancestor = cur_axis;
                 return CBF_SUCCESS;
@@ -6413,7 +6415,7 @@ extern "C" {
             
             row = detector->index[0];
             
-            if (row < detector->axes) {
+            if (row < detector->positioner->axes) {
             
                 *axis_id1 = (detector->positioner->axis[row]).name;
             
@@ -6427,9 +6429,9 @@ extern "C" {
         
         if (axis_id2) {
             
-            row = detector->index[0];
+            row = detector->index[1];
             
-            if (row < detector->axes) {
+            if (row < detector->positioner->axes) {
                 
                 *axis_id2 = (detector->positioner->axis[row]).name;
                 
