@@ -1943,7 +1943,7 @@ void require_column_integervalue(const char *columnname,
    void count_axis_ancestors(const char *axis_id,
                     int *ancestors){
         unsigned int anc;
-        cbf_failnez(cbf_axis_ancestors(self,axis_id,&anc));
+        cbf_failnez(cbf_count_axis_ancestors(self,axis_id,&anc));
         *ancestors = anc;
         }
 ""","count_axis_ancestors",["String axis_id"],["Integer"],],
@@ -2019,8 +2019,8 @@ void require_column_integervalue(const char *columnname,
 
 "cbf_get_axis_type":["""
    const char *  get_axis_type(const char *axis_id){
-        cbf_axis_type* axis_type;
-        cbf_failnez(cbf_get_axis_equipment(self,axis_id,
+        cbf_axis_type axis_type;
+        cbf_failnez(cbf_get_axis_type(self,axis_id,
            &axis_type));
         if (axis_type == CBF_TRANSLATION_AXIS) return "translation";
         if (axis_type == CBF_ROTATION_AXIS) return "rotation";
@@ -2908,9 +2908,9 @@ cbf_detector_specials = {
 
 
 "cbf_get_detector_surface_axes":["""
-   const char * get_surface_axes (int index ){
-       const char axis_id1;
-       const char axis_id2;
+   const char * get_detector_surface_axes (int index ){
+       const char * axis_id1;
+       const char * axis_id2;
        cbf_failnez(cbf_get_detector_surface_axes(self,
                                     &axis_id1, &axis_id2));
        if (index == 0) return axis_id1;
