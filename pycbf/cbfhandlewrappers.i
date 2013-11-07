@@ -4764,7 +4764,7 @@ Returns an error code on failure or 0 for success.
 
     const char *  get_axis_rotation_axis(const char *axis_id){
     const char* rot_axis;
-    cbf_failnez(cbf_get_axis_equipment_component(self,axis_id,
+    cbf_failnez(cbf_get_axis_rotation_axis(self,axis_id,
     &rot_axis));
     return rot_axis;
     }

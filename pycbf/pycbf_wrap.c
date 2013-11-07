@@ -4638,7 +4638,7 @@ SWIGINTERN void cbf_handle_struct_set_typeofvalue(cbf_handle_struct *self,char c
       {(error_status = cbf_set_typeofvalue(self,arg));};}
 SWIGINTERN char const *cbf_handle_struct_get_axis_rotation_axis(cbf_handle_struct *self,char const *axis_id){
     const char* rot_axis;
-    {(error_status = cbf_get_axis_equipment_component(self,axis_id,
+    {(error_status = cbf_get_axis_rotation_axis(self,axis_id,
     &rot_axis));}
 ;
     return rot_axis;
