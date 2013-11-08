@@ -45,6 +45,7 @@ ALT="[CBFlib]"></A>
 Information for CBFlib 0.9.3 release of 15 October 2013<br />
     Revised as CBFlib 0.9.3.1 16 October 2013<br />
     Revised as CBFlib 0.9.3.2 29 October 2013<br />
+    Revised as CBFlib 0.9.3.3 7 November 2013<br />
 </H3>
 </font><font color="#000000">
 <CENTER>
@@ -97,6 +98,13 @@ Recent work on integration among CBF, HDF5 and NeXus supported in part
 by Pandata ODI (EU 7th Framework Programme)
 <P>
 <HR>
+CBFlib 0.9.3.3 adds examples of the description of a multi-module FEL detector,
+thanks to Aaron Brewster of LCLS.  New convenience accessor functions have
+been added to expose the details of axes field by field.  Corrections have
+been made to the handling of _axis.rotation and _axis.rotation_axis.
+This is an interim release.  The API version and dictionary will be updated
+on the next release.
+<p>
 CBFlib 0.9.3.2 has a revised API version, and, otherwise, the same code as CBFlib 
 0.9.3.1, but with further update to the imgCIF dictionary to avoid issues with 
 the PDB validation software.  Because of the revised API version, many of the
@@ -220,7 +228,7 @@ instructions below carefully, if space is a problem.</b>
 A gizpped tarball of this release is available on sourceforge at
 <p>
 <a 
-href="http://downloads.sf.net/cbflib/CBFlib-0.9.3.2.tar.gz">http://downloads.sf.net/cbflib/CBFlib-0.9.3.2.tar.gz</a>
+href="http://downloads.sf.net/cbflib/CBFlib-0.9.3.3.tar.gz">http://downloads.sf.net/cbflib/CBFlib-0.9.3.3.tar.gz</a>
 
 <P>
 In addition,
@@ -239,11 +247,11 @@ CBFlib_0.9.3.2_Data_Files_Output_Sigs_Only.
 If you have wget on your machine, you only need to download the source tarball.  If you do not have wget,
 you will need to download all the tarballs into the same directory
 <p>
-Uncompress CBFlib_0.9.3.2.tar.gz with gunzip and unpack it with tar:
+Uncompress CBFlib_0.9.3.3.tar.gz with gunzip and unpack it with tar:
 <p>
 <PRE>
-     gunzip CBFlib_0.9.3.2.tar.gz
-     tar xvf CBFLIB_0.9.3.2.tar
+     gunzip CBFlib_0.9.3.3.tar.gz
+     tar xvf CBFLIB_0.9.3.3.tar
 </PRE>
 <p>
 To run the test programs, you will also need 

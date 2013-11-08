@@ -489,8 +489,8 @@ INCLUDES = -I$(INCLUDE) -I$(SRC)
 # runtime library path export commands
 #
 RTLPEXPORTS = LD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export LD_LIBRARY_PATH; \
-		DYLD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export DYLD_LIBRARY_PATH; \
-		LD_RUN_PATH=$(PWD)/solib:$(PWD)/lib;export LD_RUN_PATH;
+	DYLD_LIBRARY_PATH=$(PWD)/solib:$(PWD)/lib;export DYLD_LIBRARY_PATH; \
+	LD_RUN_PATH=$(PWD)/solib:$(PWD)/lib;export LD_RUN_PATH;
 
 
 ######################################################################
@@ -514,11 +514,11 @@ endif
 .SUFFIXES:	.c .o .f90 .m4
 
 .m4.f90:
-		m4 -P $(M4FLAGS) $< > $@
+	m4 -P $(M4FLAGS) $< > $@
 
 ifneq ($(F90C),)
 .f90.o:
-		$(F90C) $(F90FLAGS) -c $< -o $@
+	$(F90C) $(F90FLAGS) -c $< -o $@
 endif
 
 
@@ -532,127 +532,127 @@ COMMONDEP = Makefile
 #
 
 SOURCE   =  $(SRC)/cbf.c               \
-			$(SRC)/cbf_alloc.c         \
-			$(SRC)/cbf_ascii.c         \
-			$(SRC)/cbf_binary.c        \
-			$(SRC)/cbf_byte_offset.c   \
-			$(SRC)/cbf_canonical.c     \
-			$(SRC)/cbf_codes.c         \
-			$(SRC)/cbf_compress.c      \
-			$(SRC)/cbf_context.c       \
-			$(SRC)/cbf_copy.c          \
-			$(SRC)/cbf_file.c          \
-			$(SRC)/cbf_getopt.c        \
-			$(SRC)/cbf_hdf5.c          \
-			$(SRC)/cbf_hdf5_filter.c   \
-			$(SRC)/cbf_lex.c           \
-			$(SRC)/cbf_nibble_offset.c \
-			$(SRC)/cbf_packed.c        \
-			$(SRC)/cbf_predictor.c     \
-			$(SRC)/cbf_read_binary.c   \
-			$(SRC)/cbf_read_mime.c     \
-			$(SRC)/cbf_simple.c        \
-			$(SRC)/cbf_string.c        \
-			$(SRC)/cbf_stx.c           \
-			$(SRC)/cbf_tree.c          \
-	        $(SRC_CBF_ULP_C)           \
-			$(SRC)/cbf_uncompressed.c  \
-			$(SRC)/cbf_write.c         \
-			$(SRC)/cbf_write_binary.c  \
-			$(SRC)/cbf_ws.c            \
-			$(SRC)/md5c.c
+	$(SRC)/cbf_alloc.c         \
+	$(SRC)/cbf_ascii.c         \
+	$(SRC)/cbf_binary.c        \
+	$(SRC)/cbf_byte_offset.c   \
+	$(SRC)/cbf_canonical.c     \
+	$(SRC)/cbf_codes.c         \
+	$(SRC)/cbf_compress.c      \
+	$(SRC)/cbf_context.c       \
+	$(SRC)/cbf_copy.c          \
+	$(SRC)/cbf_file.c          \
+	$(SRC)/cbf_getopt.c        \
+	$(SRC)/cbf_hdf5.c          \
+	$(SRC)/cbf_hdf5_filter.c   \
+	$(SRC)/cbf_lex.c           \
+	$(SRC)/cbf_nibble_offset.c \
+	$(SRC)/cbf_packed.c        \
+	$(SRC)/cbf_predictor.c     \
+	$(SRC)/cbf_read_binary.c   \
+	$(SRC)/cbf_read_mime.c     \
+	$(SRC)/cbf_simple.c        \
+	$(SRC)/cbf_string.c        \
+	$(SRC)/cbf_stx.c           \
+	$(SRC)/cbf_tree.c          \
+	$(SRC_CBF_ULP_C)           \
+	$(SRC)/cbf_uncompressed.c  \
+	$(SRC)/cbf_write.c         \
+	$(SRC)/cbf_write_binary.c  \
+	$(SRC)/cbf_ws.c            \
+	$(SRC)/md5c.c
 
 
 F90SOURCE = $(SRC)/fcb_atol_wcnt.f90     \
-			$(SRC)/fcb_ci_strncmparr.f90 \
-			$(SRC)/fcb_exit_binary.f90   \
-			$(SRC)/fcb_nblen_array.f90   \
-			$(SRC)/fcb_next_binary.f90   \
-			$(SRC)/fcb_open_cifin.f90    \
-			$(SRC)/fcb_packed.f90        \
-			$(SRC)/fcb_read_bits.f90     \
-			$(SRC)/fcb_read_byte.f90     \
-			$(SRC)/fcb_read_image.f90    \
-			$(SRC)/fcb_read_line.f90     \
-			$(SRC)/fcb_read_xds_i2.f90   \
-			$(SRC)/fcb_skip_whitespace.f90
-			
-		   
+	$(SRC)/fcb_ci_strncmparr.f90 \
+	$(SRC)/fcb_exit_binary.f90   \
+	$(SRC)/fcb_nblen_array.f90   \
+	$(SRC)/fcb_next_binary.f90   \
+	$(SRC)/fcb_open_cifin.f90    \
+	$(SRC)/fcb_packed.f90        \
+	$(SRC)/fcb_read_bits.f90     \
+	$(SRC)/fcb_read_byte.f90     \
+	$(SRC)/fcb_read_image.f90    \
+	$(SRC)/fcb_read_line.f90     \
+	$(SRC)/fcb_read_xds_i2.f90   \
+	$(SRC)/fcb_skip_whitespace.f90
+	
+	
 #
 # Header files
 #
 HEADERS   =  $(INCLUDE)/cbf.h               \
-			 $(INCLUDE)/cbf_alloc.h         \
-			 $(INCLUDE)/cbf_ascii.h         \
-			 $(INCLUDE)/cbf_binary.h        \
-			 $(INCLUDE)/cbf_byte_offset.h   \
-			 $(INCLUDE)/cbf_canonical.h		\
-			 $(INCLUDE)/cbf_codes.h         \
-			 $(INCLUDE)/cbf_compress.h      \
-			 $(INCLUDE)/cbf_context.h       \
-			 $(INCLUDE)/cbf_copy.h          \
-			 $(INCLUDE)/cbf_file.h          \
-			 $(INCLUDE)/cbf_getopt.h        \
-			 $(INCLUDE)/cbf_hdf5.h          \
-			 $(INCLUDE)/cbf_hdf5_filter.h   \
-			 $(INCLUDE)/cbf_lex.h           \
-			 $(INCLUDE)/cbf_nibble_offset.h \
-			 $(INCLUDE)/cbf_packed.h        \
-			 $(INCLUDE)/cbf_predictor.h     \
-			 $(INCLUDE)/cbf_read_binary.h   \
-			 $(INCLUDE)/cbf_read_mime.h     \
-			 $(INCLUDE)/cbf_simple.h        \
-			 $(INCLUDE)/cbf_string.h        \
-			 $(INCLUDE)/cbf_stx.h           \
-			 $(INCLUDE)/cbf_tree.h          \
-			 $(INCLUDE)/cbf_uncompressed.h  \
-			 $(INCLUDE_CBF_ULP_H)           \
-			 $(INCLUDE)/cbf_write.h		\
-			 $(INCLUDE)/cbf_write_binary.h  \
-			 $(INCLUDE)/cbf_ws.h            \
-			 $(INCLUDE)/global.h            \
-			 $(INCLUDE)/cbff.h              \
-			 $(INCLUDE)/md5.h
+	$(INCLUDE)/cbf_alloc.h         \
+	$(INCLUDE)/cbf_ascii.h         \
+	$(INCLUDE)/cbf_binary.h        \
+	$(INCLUDE)/cbf_byte_offset.h   \
+	$(INCLUDE)/cbf_canonical.h     \
+	$(INCLUDE)/cbf_codes.h         \
+	$(INCLUDE)/cbf_compress.h      \
+	$(INCLUDE)/cbf_context.h       \
+	$(INCLUDE)/cbf_copy.h          \
+	$(INCLUDE)/cbf_file.h          \
+	$(INCLUDE)/cbf_getopt.h        \
+	$(INCLUDE)/cbf_hdf5.h          \
+	$(INCLUDE)/cbf_hdf5_filter.h   \
+	$(INCLUDE)/cbf_lex.h           \
+	$(INCLUDE)/cbf_nibble_offset.h \
+	$(INCLUDE)/cbf_packed.h        \
+	$(INCLUDE)/cbf_predictor.h     \
+	$(INCLUDE)/cbf_read_binary.h   \
+	$(INCLUDE)/cbf_read_mime.h     \
+	$(INCLUDE)/cbf_simple.h        \
+	$(INCLUDE)/cbf_string.h        \
+	$(INCLUDE)/cbf_stx.h           \
+	$(INCLUDE)/cbf_tree.h          \
+	$(INCLUDE)/cbf_uncompressed.h  \
+	$(INCLUDE_CBF_ULP_H)           \
+	$(INCLUDE)/cbf_write.h         \
+	$(INCLUDE)/cbf_write_binary.h  \
+	$(INCLUDE)/cbf_ws.h            \
+	$(INCLUDE)/global.h            \
+	$(INCLUDE)/cbff.h              \
+	$(INCLUDE)/md5.h
 
 #
 # m4 macro files
 #
 M4FILES   = $(M4)/fcblib_defines.m4         \
-			$(M4)/fcb_exit_binary.m4        \
-			$(M4)/fcb_next_binary.m4        \
-			$(M4)/fcb_open_cifin.m4			\
-			$(M4)/fcb_packed.m4             \
-			$(M4)/fcb_read_bits.m4          \
-			$(M4)/fcb_read_image.m4			\
-			$(M4)/fcb_read_xds_i2.m4        \
-			$(M4)/test_fcb_read_image.m4    \
-			$(M4)/test_xds_binary.m4
+	$(M4)/fcb_exit_binary.m4        \
+	$(M4)/fcb_next_binary.m4        \
+	$(M4)/fcb_open_cifin.m4		\
+	$(M4)/fcb_packed.m4             \
+	$(M4)/fcb_read_bits.m4          \
+	$(M4)/fcb_read_image.m4		\
+	$(M4)/fcb_read_xds_i2.m4        \
+	$(M4)/test_fcb_read_image.m4    \
+	$(M4)/test_xds_binary.m4
 
 
 #
 # Documentation files
 #
 DOCUMENTS = $(DOC)/CBFlib.html              \
-			$(DOC)/CBFlib.txt               \
-			$(DOC)/CBFlib_NOTICES.html      \
-			$(DOC)/CBFlib_NOTICES.txt       \
-			$(DOC)/ChangeLog                \
-			$(DOC)/ChangeLog.html           \
-			$(DOC)/MANIFES                  \
-			$(DOC)/gpl.txt $(DOC)/lgpl.txt
+	$(DOC)/CBFlib.txt               \
+	$(DOC)/CBFlib_NOTICES.html      \
+	$(DOC)/CBFlib_NOTICES.txt       \
+	$(DOC)/ChangeLog                \
+	$(DOC)/ChangeLog.html           \
+	$(DOC)/MANIFES                  \
+	$(DOC)/gpl.txt $(DOC)/lgpl.txt
 
 #
 # HTML Graphics files
 #
 JPEGS     = $(GRAPHICS)/CBFbackground.jpg   \
-			$(GRAPHICS)/CBFbig.jpg          \
-			$(GRAPHICS)/CBFbutton.jpg       \
-			$(GRAPHICS)/cbflibbackground.jpg\
-			$(GRAPHICS)/cbflibbig.jpg       \
-			$(GRAPHICS)/cbflibbutton.jpg    \
-			$(GRAPHICS)/cifhome.jpg         \
-			$(GRAPHICS)/iucrhome.jpg        \
-			$(GRAPHICS)/noticeButton.jpg
+	$(GRAPHICS)/CBFbig.jpg          \
+	$(GRAPHICS)/CBFbutton.jpg       \
+	$(GRAPHICS)/cbflibbackground.jpg\
+	$(GRAPHICS)/cbflibbig.jpg       \
+	$(GRAPHICS)/cbflibbutton.jpg    \
+	$(GRAPHICS)/cifhome.jpg         \
+	$(GRAPHICS)/iucrhome.jpg        \
+	$(GRAPHICS)/noticeButton.jpg
 
 
 #
@@ -733,34 +733,34 @@ default:
 #
 all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(HDF5)\
 		symlinksdone          \
-		$(REGEXDEP)           \
-		$(LIB)/libcbf.a       \
-		$(LIB)/libfcb.a       \
-		$(LIB)/libimg.a       \
-		$(BIN)/adscimg2cbf    \
-	    $(BIN)/arvai_test     \
-		$(BIN)/cbf2adscimg    \
-	    $(BIN)/cbf2nexus      \
-		$(BIN)/cif2c          \
-		$(BIN)/cif2cbf        \
-		$(BIN)/convert_image  \
-		$(BIN)/convert_minicbf\
-		$(BIN)/img2cif        \
-		$(BIN)/makecbf        \
-		$(BIN)/minicbf2nexus  \
-		$(BIN)/sequence_match \
-		$(BIN)/testcell       \
-	    $(BIN)/testalloc      \
-		$(BIN)/testreals      \
-		$(BIN)/testflat		  \
-		$(BIN)/testflatpacked \
-	    $(BIN)/testhdf5       \
-	    $(BIN_TESTULP)        \
-		$(BIN)/tiff2cbf
+	$(REGEXDEP)           \
+	$(LIB)/libcbf.a       \
+	$(LIB)/libfcb.a       \
+	$(LIB)/libimg.a       \
+	$(BIN)/adscimg2cbf    \
+	$(BIN)/arvai_test     \
+	$(BIN)/cbf2adscimg    \
+	$(BIN)/cbf2nexus      \
+	$(BIN)/cif2c          \
+	$(BIN)/cif2cbf        \
+	$(BIN)/convert_image  \
+	$(BIN)/convert_minicbf\
+	$(BIN)/img2cif        \
+	$(BIN)/makecbf        \
+	$(BIN)/minicbf2nexus  \
+	$(BIN)/sequence_match \
+	$(BIN)/testcell       \
+	$(BIN)/testalloc      \
+	$(BIN)/testreals      \
+	$(BIN)/testflat       \
+	$(BIN)/testflatpacked \
+	$(BIN)/testhdf5       \
+	$(BIN_TESTULP)        \
+	$(BIN)/tiff2cbf
 
 ifneq ($(F90C),)
 all::	$(BIN)/test_xds_binary   \
-		$(BIN)/test_fcb_read_image
+	$(BIN)/test_fcb_read_image
 endif
 
 shared:	$(SOLIB)/libcbf.so $(SOLIB)/libfcb.so $(SOLIB)/libimg.so
@@ -774,66 +774,66 @@ PYCIFRWDEF =
 endif
 
 Makefiles: Makefile			 \
-		Makefile_LINUX		   \
-		Makefile_LINUX_64		\
-		Makefile_LINUX_gcc42     \
-		Makefile_LINUX_DMALLOC   \
-		Makefile_LINUX_gcc42_DMALLOC \
-		Makefile_OSX			 \
-		Makefile_OSX_gcc42       \
-		Makefile_OSX_gcc42_DMALLOC   \
-		Makefile_AIX			 \
-		Makefile_MINGW		   \
-		Makefile_IRIX_gcc
+	Makefile_LINUX		   \
+	Makefile_LINUX_64		\
+	Makefile_LINUX_gcc42     \
+	Makefile_LINUX_DMALLOC   \
+	Makefile_LINUX_gcc42_DMALLOC \
+	Makefile_OSX			 \
+	Makefile_OSX_gcc42       \
+	Makefile_OSX_gcc42_DMALLOC   \
+	Makefile_AIX			 \
+	Makefile_MINGW		   \
+	Makefile_IRIX_gcc
 
 
 Makefile_LINUX: $(M4)/Makefile.m4
-		-cp Makefile_LINUX Makefile_LINUX_old
-		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
+	-cp Makefile_LINUX Makefile_LINUX_old
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
 
 Makefile_LINUX_DMALLOC: $(M4)/Makefile.m4
-		-cp Makefile_LINUX Makefile_LINUX_old
-		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_DMALLOC
+	-cp Makefile_LINUX Makefile_LINUX_old
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_DMALLOC
 
 Makefile_LINUX_64: $(M4)/Makefile.m4
-		-cp Makefile_LINUX_64 Makefile_LINUX_64_old
-		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_64 $(M4)/Makefile.m4 > Makefile_LINUX_64
+	-cp Makefile_LINUX_64 Makefile_LINUX_64_old
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_64 $(M4)/Makefile.m4 > Makefile_LINUX_64
 
 Makefile_LINUX_gcc42: $(M4)/Makefile.m4
-		-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
-		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42 $(M4)/Makefile.m4 > Makefile_LINUX_gcc42 
+	-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42 $(M4)/Makefile.m4 > Makefile_LINUX_gcc42 
 
 Makefile_LINUX_gcc42_DMALLOC: $(M4)/Makefile.m4
-		-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
-		m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_gcc42_DMALLOC 
+	-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_gcc42_DMALLOC 
 
 Makefile_OSX: $(M4)/Makefile.m4
-		-cp Makefile_OSX Makefile_OSX_old
-		m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX $(M4)/Makefile.m4 > Makefile_OSX 
+	-cp Makefile_OSX Makefile_OSX_old
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX $(M4)/Makefile.m4 > Makefile_OSX 
 
 Makefile_OSX_gcc42: $(M4)/Makefile.m4
-		-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
-		m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42 $(M4)/Makefile.m4 > Makefile_OSX_gcc42 
+	-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42 $(M4)/Makefile.m4 > Makefile_OSX_gcc42 
 
 Makefile_OSX_gcc42_DMALLOC: $(M4)/Makefile.m4
-		-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
-		m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_OSX_gcc42_DMALLOC
+	-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_OSX_gcc42_DMALLOC
 
 Makefile_AIX: $(M4)/Makefile.m4
-		-cp Makefile_AIX Makefile_AIX_old
-		m4 -P $(PYCIFRWDEF) -Dcbf_system=AIX $(M4)/Makefile.m4 > Makefile_AIX 
+	-cp Makefile_AIX Makefile_AIX_old
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=AIX $(M4)/Makefile.m4 > Makefile_AIX 
 
 Makefile_MINGW: $(M4)/Makefile.m4
-		-cp Makefile_MINGW Makefile_MINGW_old
-		m4 -P $(PYCIFRWDEF) -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW 
+	-cp Makefile_MINGW Makefile_MINGW_old
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW 
 
 Makefile_IRIX_gcc: $(M4)/Makefile.m4
-		-cp Makefile_IRIX_gcc Makefile_IRIX_gcc_old
-		m4 -P $(PYCIFREDEF) -Dcbf_system=IRIX_gcc $(M4)/Makefile.m4 > Makefile_IRIX_gcc
-		
+	-cp Makefile_IRIX_gcc Makefile_IRIX_gcc_old
+	m4 -P $(PYCIFREDEF) -Dcbf_system=IRIX_gcc $(M4)/Makefile.m4 > Makefile_IRIX_gcc
+	
 Makefile: $(M4)/Makefile.m4
-		-cp Makefile Makefile_old
-		m4 -P $(PYCIFRWDEF) -Dcbf_system=default $(M4)/Makefile.m4 > Makefile 
+	-cp Makefile Makefile_old
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=default $(M4)/Makefile.m4 > Makefile 
 
 symlinksdone:
 	chmod a+x .symlinks
@@ -844,97 +844,97 @@ symlinksdone:
 	touch symlinksdone
 
 install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
-			$(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib \
-			$(PYSOURCE) shared
-		-chmod -R 755 $(INSTALLDIR)/include/cbflib
-		-chmod 755 $(INSTALLDIR)/lib/libcbf.a
-		-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
-		cp $(LIB)/libcbf.a $(INSTALLDIR)/lib/libcbf.a
-		-chmod 755 $(INSTALLDIR)/lib/libimg.a
-		-cp $(INSTALLDIR)/lib/libimg.a $(INSTALLDIR)/lib/libimg_old.a
-		cp $(LIB)/libimg.a $(INSTALLDIR)/lib/libimg.a
-		-chmod 755 $(INSTALLDIR)/lib/libfcb.a
-		-cp $(INSTALLDIR)/lib/libfcb.a $(INSTALLDIR)/lib/libfcb_old.a
-		cp $(LIB)/libfcb.a $(INSTALLDIR)/lib/libfcb.a
-		-chmod 755 $(INSTALLDIR)/lib/libcbf.so
-		-cp $(INSTALLDIR)/lib/libcbf.so $(INSTALLDIR)/lib/libcbf_old.so
-		cp $(LIB)/libcbf.so $(INSTALLDIR)/lib/libcbf.so
-		-chmod 755 $(INSTALLDIR)/lib/libimg.so
-		-cp $(INSTALLDIR)/lib/libimg.so $(INSTALLDIR)/lib/libimg_old.so
-		cp $(LIB)/libimg.so $(INSTALLDIR)/lib/libimg.so
-		-chmod 755 $(INSTALLDIR)/lib/libfcb.so
-		-cp $(INSTALLDIR)/lib/libfcb.so $(INSTALLDIR)/lib/libfcb_old.so
-		cp $(LIB)/libfcb.so $(INSTALLDIR)/lib/libfcb.so
-		-cp $(INSTALLDIR)/bin/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf_old
-		cp $(BIN)/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf
-		-cp $(INSTALLDIR)/bin/cbf2adscimg $(INSTALLDIR)/bin/cbf2adscimg_old
-		cp $(BIN)/cbf2adscimg $(INSTALLDIR)/bin/cbf2adscimg
-		-cp $(INSTALLDIR)/bin/convert_image $(INSTALLDIR)/bin/convert_image_old
-		cp $(BIN)/convert_image $(INSTALLDIR)/bin/convert_image
-		-cp $(INSTALLDIR)/bin/convert_minicbf $(INSTALLDIR)/bin/convert_minicbf_old
-		cp $(BIN)/convert_minicbf $(INSTALLDIR)/bin/convert_minicbf
-		-cp $(INSTALLDIR)/bin/makecbf $(INSTALLDIR)/bin/makecbf_old
-		cp $(BIN)/makecbf $(INSTALLDIR)/bin/makecbf
-		-cp $(INSTALLDIR)/bin/img2cif $(INSTALLDIR)/bin/img2cif_old
-		cp $(BIN)/img2cif $(INSTALLDIR)/bin/img2cif
-		-cp $(INSTALLDIR)/bin/cif2cbf $(INSTALLDIR)/bin/cif2cbf_old
-		cp $(BIN)/cif2cbf $(INSTALLDIR)/bin/cif2cbf
-		-cp $(INSTALLDIR)/bin/minicbf2nexus $(INSTALLDIR)/bin/minicbf2nexus_old
-		cp $(BIN)/minicbf2nexus $(INSTALLDIR)/bin/minicbf2nexus
-	    -cp $(INSTALLDIR)/bin/cbf2nexus $(INSTALLDIR)/bin/cbf2nexus_old
-	    cp $(BIN)/cbf2nexus $(INSTALLDIR)/bin/cbf2nexus
-		-cp $(INSTALLDIR)/bin/sequence_match $(INSTALLDIR)/bin/sequence_match_old
-		cp $(BIN)/sequence_match $(INSTALLDIR)/bin/sequence_match
-		-cp $(INSTALLDIR)/bin/arvai_test $(INSTALLDIR)/bin/arvai_test_old
-		cp $(BIN)/arvai_test $(INSTALLDIR)/bin/arvai_test
-		-cp $(INSTALLDIR)/bin/cif2c $(INSTALLDIR)/bin/cif2c_old
-		cp $(BIN)/cif2c $(INSTALLDIR)/bin/cif2c
-		-cp $(INSTALLDIR)/bin/testreals $(INSTALLDIR)/bin/testreals_old
-		cp $(BIN)/testreals $(INSTALLDIR)/bin/testreals
-		-cp $(INSTALLDIR)/bin/testflat $(INSTALLDIR)/bin/testflat_old
-		cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
-		-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
-		cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
-		-cp $(INSTALLDIR)/bin/tiff2cbf $(INSTALLDIR)/bin/tiff2cbf_old
-		cp $(BIN)/tiff2cbf $(INSTALLDIR)/bin/tiff2cbf
-	    -cp $(INSTALLDIR)/bin/testhdf5 $(INSTALLDIR)/bin/testhdf5_old
-	    cp $(BIN)/testhdf5 $(INSTALLDIR)/bin/testhdf5
+	$(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib \
+	$(PYSOURCE) shared
+	-chmod -R 755 $(INSTALLDIR)/include/cbflib
+	-chmod 755 $(INSTALLDIR)/lib/libcbf.a
+	-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
+	cp $(LIB)/libcbf.a $(INSTALLDIR)/lib/libcbf.a
+	-chmod 755 $(INSTALLDIR)/lib/libimg.a
+	-cp $(INSTALLDIR)/lib/libimg.a $(INSTALLDIR)/lib/libimg_old.a
+	cp $(LIB)/libimg.a $(INSTALLDIR)/lib/libimg.a
+	-chmod 755 $(INSTALLDIR)/lib/libfcb.a
+	-cp $(INSTALLDIR)/lib/libfcb.a $(INSTALLDIR)/lib/libfcb_old.a
+	cp $(LIB)/libfcb.a $(INSTALLDIR)/lib/libfcb.a
+	-chmod 755 $(INSTALLDIR)/lib/libcbf.so
+	-cp $(INSTALLDIR)/lib/libcbf.so $(INSTALLDIR)/lib/libcbf_old.so
+	cp $(LIB)/libcbf.so $(INSTALLDIR)/lib/libcbf.so
+	-chmod 755 $(INSTALLDIR)/lib/libimg.so
+	-cp $(INSTALLDIR)/lib/libimg.so $(INSTALLDIR)/lib/libimg_old.so
+	cp $(LIB)/libimg.so $(INSTALLDIR)/lib/libimg.so
+	-chmod 755 $(INSTALLDIR)/lib/libfcb.so
+	-cp $(INSTALLDIR)/lib/libfcb.so $(INSTALLDIR)/lib/libfcb_old.so
+	cp $(LIB)/libfcb.so $(INSTALLDIR)/lib/libfcb.so
+	-cp $(INSTALLDIR)/bin/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf_old
+	cp $(BIN)/adscimg2cbf $(INSTALLDIR)/bin/adscimg2cbf
+	-cp $(INSTALLDIR)/bin/cbf2adscimg $(INSTALLDIR)/bin/cbf2adscimg_old
+	cp $(BIN)/cbf2adscimg $(INSTALLDIR)/bin/cbf2adscimg
+	-cp $(INSTALLDIR)/bin/convert_image $(INSTALLDIR)/bin/convert_image_old
+	cp $(BIN)/convert_image $(INSTALLDIR)/bin/convert_image
+	-cp $(INSTALLDIR)/bin/convert_minicbf $(INSTALLDIR)/bin/convert_minicbf_old
+	cp $(BIN)/convert_minicbf $(INSTALLDIR)/bin/convert_minicbf
+	-cp $(INSTALLDIR)/bin/makecbf $(INSTALLDIR)/bin/makecbf_old
+	cp $(BIN)/makecbf $(INSTALLDIR)/bin/makecbf
+	-cp $(INSTALLDIR)/bin/img2cif $(INSTALLDIR)/bin/img2cif_old
+	cp $(BIN)/img2cif $(INSTALLDIR)/bin/img2cif
+	-cp $(INSTALLDIR)/bin/cif2cbf $(INSTALLDIR)/bin/cif2cbf_old
+	cp $(BIN)/cif2cbf $(INSTALLDIR)/bin/cif2cbf
+	-cp $(INSTALLDIR)/bin/minicbf2nexus $(INSTALLDIR)/bin/minicbf2nexus_old
+	cp $(BIN)/minicbf2nexus $(INSTALLDIR)/bin/minicbf2nexus
+	-cp $(INSTALLDIR)/bin/cbf2nexus $(INSTALLDIR)/bin/cbf2nexus_old
+	cp $(BIN)/cbf2nexus $(INSTALLDIR)/bin/cbf2nexus
+	-cp $(INSTALLDIR)/bin/sequence_match $(INSTALLDIR)/bin/sequence_match_old
+	cp $(BIN)/sequence_match $(INSTALLDIR)/bin/sequence_match
+	-cp $(INSTALLDIR)/bin/arvai_test $(INSTALLDIR)/bin/arvai_test_old
+	cp $(BIN)/arvai_test $(INSTALLDIR)/bin/arvai_test
+	-cp $(INSTALLDIR)/bin/cif2c $(INSTALLDIR)/bin/cif2c_old
+	cp $(BIN)/cif2c $(INSTALLDIR)/bin/cif2c
+	-cp $(INSTALLDIR)/bin/testreals $(INSTALLDIR)/bin/testreals_old
+	cp $(BIN)/testreals $(INSTALLDIR)/bin/testreals
+	-cp $(INSTALLDIR)/bin/testflat $(INSTALLDIR)/bin/testflat_old
+	cp $(BIN)/testflat $(INSTALLDIR)/bin/testflat
+	-cp $(INSTALLDIR)/bin/testflatpacked $(INSTALLDIR)/bin/testflatpacked_old
+	cp $(BIN)/testflatpacked $(INSTALLDIR)/bin/testflatpacked
+	-cp $(INSTALLDIR)/bin/tiff2cbf $(INSTALLDIR)/bin/tiff2cbf_old
+	cp $(BIN)/tiff2cbf $(INSTALLDIR)/bin/tiff2cbf
+	-cp $(INSTALLDIR)/bin/testhdf5 $(INSTALLDIR)/bin/testhdf5_old
+	cp $(BIN)/testhdf5 $(INSTALLDIR)/bin/testhdf5
 ifneq ($(CBF_USE_ULP),)
-	    -cp $(INSTALLDIR)/bin/testulp $(INSTALLDIR)/bin/testulp_old
-	    cp $(BIN)/testulp $(INSTALLDIR)/bin/testulp
+	-cp $(INSTALLDIR)/bin/testulp $(INSTALLDIR)/bin/testulp_old
+	cp $(BIN)/testulp $(INSTALLDIR)/bin/testulp
 endif
 		chmod -R 755 $(INSTALLDIR)/include/cbflib
-		-rm -rf $(INSTALLDIR)/include/cbflib_old
-		-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
-		-rm -rf $(INSTALLDIR)/include/cbflib
-		cp -r $(INCLUDE) $(INSTALLDIR)/include/cbflib
-		chmod 644 $(INSTALLDIR)/lib/libcbf.a
-		chmod 644 $(INSTALLDIR)/lib/libimg.a
-		chmod 644 $(INSTALLDIR)/lib/libfcb.a
-		chmod 755 $(INSTALLDIR)/lib/libcbf.so
-		chmod 755 $(INSTALLDIR)/lib/libimg.so
-		chmod 755 $(INSTALLDIR)/lib/libfcb.so
-	    chmod 755 $(INSTALLDIR)/bin/arvai_test
-	    chmod 755 $(INSTALLDIR)/bin/cbf2nexus
-	    chmod 755 $(INSTALLDIR)/bin/cif2c
-	    chmod 755 $(INSTALLDIR)/bin/cif2cbf
-		chmod 755 $(INSTALLDIR)/bin/convert_image
-		chmod 755 $(INSTALLDIR)/bin/convert_minicbf
-		chmod 755 $(INSTALLDIR)/bin/img2cif
-		chmod 755 $(INSTALLDIR)/bin/makecbf
-		chmod 755 $(INSTALLDIR)/bin/minicbf2nexus
-		chmod 755 $(INSTALLDIR)/bin/sequence_match
-	    chmod 755 $(INSTALLDIR)/bin/testalloc
-		chmod 755 $(INSTALLDIR)/bin/testflat
-		chmod 755 $(INSTALLDIR)/bin/testflatpacked
-	    chmod 755 $(INSTALLDIR)/bin/testhdf5
-		chmod 755 $(INSTALLDIR)/bin/testreals
+	-rm -rf $(INSTALLDIR)/include/cbflib_old
+	-cp -r $(INSTALLDIR)/include/cbflib $(INSTALLDIR)/include/cbflib_old
+	-rm -rf $(INSTALLDIR)/include/cbflib
+	cp -r $(INCLUDE) $(INSTALLDIR)/include/cbflib
+	chmod 644 $(INSTALLDIR)/lib/libcbf.a
+	chmod 644 $(INSTALLDIR)/lib/libimg.a
+	chmod 644 $(INSTALLDIR)/lib/libfcb.a
+	chmod 755 $(INSTALLDIR)/lib/libcbf.so
+	chmod 755 $(INSTALLDIR)/lib/libimg.so
+	chmod 755 $(INSTALLDIR)/lib/libfcb.so
+	chmod 755 $(INSTALLDIR)/bin/arvai_test
+	chmod 755 $(INSTALLDIR)/bin/cbf2nexus
+	chmod 755 $(INSTALLDIR)/bin/cif2c
+	chmod 755 $(INSTALLDIR)/bin/cif2cbf
+	chmod 755 $(INSTALLDIR)/bin/convert_image
+	chmod 755 $(INSTALLDIR)/bin/convert_minicbf
+	chmod 755 $(INSTALLDIR)/bin/img2cif
+	chmod 755 $(INSTALLDIR)/bin/makecbf
+	chmod 755 $(INSTALLDIR)/bin/minicbf2nexus
+	chmod 755 $(INSTALLDIR)/bin/sequence_match
+	chmod 755 $(INSTALLDIR)/bin/testalloc
+	chmod 755 $(INSTALLDIR)/bin/testflat
+	chmod 755 $(INSTALLDIR)/bin/testflatpacked
+	chmod 755 $(INSTALLDIR)/bin/testhdf5
+	chmod 755 $(INSTALLDIR)/bin/testreals
 ifneq ($(CBF_USE_ULP),)
-	    chmod 755 $(INSTALLDIR)/bin/testulp
+	chmod 755 $(INSTALLDIR)/bin/testulp
 endif
-		chmod 755 $(INSTALLDIR)/bin/tiff2cbf
-		chmod 644 $(INSTALLDIR)/include/cbflib/*.h
-		
+	chmod 755 $(INSTALLDIR)/bin/tiff2cbf
+	chmod 644 $(INSTALLDIR)/include/cbflib/*.h
+	
 
 #
 # REGEX
@@ -1084,12 +1084,12 @@ endif
 # Python bindings
 #
 $(PYCBF)/_pycbf.$(PYCBFEXT): $(PYCBF)  shared \
-							  $(PYCBF)/$(SETUP_PY)     \
-						      $(PYCBF)/pycbf.i		 \
-						      $(PYCBF)/cbfhandlewrappers.i   \
-						      $(PYCBF)/cbfdetectorwrappers.i \
-						      $(PYCBF)/cbfgenericwrappers.i  \
-						      $(PYCBF)/cbfgoniometerwrappers.i
+	$(PYCBF)/$(SETUP_PY)     \
+	$(PYCBF)/pycbf.i		 \
+	$(PYCBF)/cbfhandlewrappers.i   \
+	$(PYCBF)/cbfdetectorwrappers.i \
+	$(PYCBF)/cbfgenericwrappers.i  \
+	$(PYCBF)/cbfgoniometerwrappers.i
 	(cd $(PYCBF); python $(SETUP_PY) build $(PYCBFBOPT); cp build/lib.*/_pycbf.$(PYCBFEXT) .) 
 
 $(PYCBF)/setup.py: $(M4)/setup_py.m4
@@ -1158,26 +1158,26 @@ $(EXAMPLES)/test_xds_binary.f90: $(M4)/test_xds_binary.m4 $(M4)/fcblib_defines.m
 # convert_image example program
 #
 $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c \
-					$(GOPTLIB)	$(GOPTINC)
+	$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	$(EXAMPLES)/convert_image.c $(EXAMPLES)/img.c $(GOPTLIB) -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 #
 # convert_minicbf example program
 #
 $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
-					$(GOPTLIB)	$(GOPTINC)
+	$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/convert_minicbf.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	$(EXAMPLES)/convert_minicbf.c $(GOPTLIB) -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # makecbf example program
 #
 $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/makecbf.c  -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	$(EXAMPLES)/makecbf.c  -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 
 #
@@ -1185,142 +1185,142 @@ $(BIN)/makecbf: $(LIB)/libcbf.a $(EXAMPLES)/makecbf.c $(LIB)/libimg.a
 #
 $(BIN)/adscimg2cbf: $(LIB)/libcbf.a $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c  -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	$(EXAMPLES)/adscimg2cbf.c $(EXAMPLES)/adscimg2cbf_sub.c  -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # cbf2adscimg example program
 #
 $(BIN)/cbf2adscimg: $(LIB)/libcbf.a $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -D_SVID_SOURCE $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c  -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	$(EXAMPLES)/cbf2adscimg.c $(EXAMPLES)/cbf2adscimg_sub.c  -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # changtestcompression example program
 #
 $(BIN)/changtestcompression: $(LIB)/libcbf.a $(EXAMPLES)/changtestcompression.c
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/changtestcompression.c -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	$(EXAMPLES)/changtestcompression.c -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # img2cif example program
 #
 $(BIN)/img2cif: $(LIB)/libcbf.a $(EXAMPLES)/img2cif.c $(LIB)/libimg.a \
-					$(GOPTLIB) 	$(GOTPINC)
+	$(GOPTLIB) 	$(GOTPINC)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/img2cif.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	$(EXAMPLES)/img2cif.c $(GOPTLIB) -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
 # cif2cbf example program
 #
 $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
-			$(GOPTLIB) $(GOPTINC) shared
+	$(GOPTLIB) $(GOPTINC) shared
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	$(EXAMPLES)/cif2cbf.c $(GOPTLIB) -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
 # cbf2nexus example program
 #
 $(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c $(LIB)/libimg.a \
-					$(GOPTLIB)	$(GOPTINC) 
+	$(GOPTLIB)	$(GOPTINC) 
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/cbf2nexus.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	$(EXAMPLES)/cbf2nexus.c $(GOPTLIB) -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
 # minicbf2nexus example program
 #
 $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.a \
-					$(GOPTLIB)	$(GOPTINC) 
+	$(GOPTLIB)	$(GOPTINC) 
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/minicbf2nexus.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	$(EXAMPLES)/minicbf2nexus.c $(GOPTLIB) -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 #
 # dectris cbf_template_t program
 #
 $(BIN)/cbf_template_t: $(DECTRIS_EXAMPLES)/cbf_template_t.c \
-			$(DECTRIS_EXAMPLES)/mx_cbf_t_extras.h \
-			$(DECTRIS_EXAMPLES)/mx_parms.h
+	$(DECTRIS_EXAMPLES)/mx_cbf_t_extras.h \
+	$(DECTRIS_EXAMPLES)/mx_parms.h
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) -I $(DECTRIS_EXAMPLES)  $(WARNINGS) \
-			$(DECTRIS_EXAMPLES)/cbf_template_t.c -o $@
+	$(DECTRIS_EXAMPLES)/cbf_template_t.c -o $@
 
 #
 # testcell example program
 #
 $(BIN)/testcell: $(LIB)/libcbf.a $(EXAMPLES)/testcell.C
 	$(C++) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/testcell.C -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	$(EXAMPLES)/testcell.C -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # cif2c example program
 #
 $(BIN)/cif2c: $(LIB)/libcbf.a $(EXAMPLES)/cif2c.c
 	$(C++) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/cif2c.c -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	$(EXAMPLES)/cif2c.c -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # sauter_test example program
 #
 $(BIN)/sauter_test: $(LIB)/libcbf.a $(EXAMPLES)/sauter_test.C
 	$(C++) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/sauter_test.C -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	$(EXAMPLES)/sauter_test.C -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # sequence_match example program
 #
 $(BIN)/sequence_match: $(LIB)/libcbf.a $(EXAMPLES)/sequence_match.c $(LIB)/libimg.a \
-					$(GOPTLIB)	$(GOPTINC)
+	$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	$(EXAMPLES)/sequence_match.c $(GOPTLIB) -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
 # tiff2cbf example program
 #
 $(BIN)/tiff2cbf: $(LIB)/libcbf.a $(EXAMPLES)/tiff2cbf.c \
-					$(GOPTLIB)	$(GOPTINC) $(TIFF)
+	$(GOPTLIB)	$(GOPTINC) $(TIFF)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-		  -I$(TIFFPREFIX)/include $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
-		    -lcbf -L$(TIFFPREFIX)/lib -ltiff $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	-I$(TIFFPREFIX)/include $(EXAMPLES)/tiff2cbf.c $(GOPTLIB) -L$(LIB) \
+	-lcbf -L$(TIFFPREFIX)/lib -ltiff $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
 # Andy Arvai's buffered read test program
 #
 $(BIN)/arvai_test: $(LIB)/libcbf.a $(EXAMPLES)/arvai_test.c $(LIB)/libimg.a \
-					$(GOPTLIB)	$(GOPTINC)
+	$(GOPTLIB)	$(GOPTINC)
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/arvai_test.c $(GOPTLIB) -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	$(EXAMPLES)/arvai_test.c $(GOPTLIB) -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
 
 #
 # testreals example program
 #
 $(BIN)/testreals: $(LIB)/libcbf.a $(EXAMPLES)/testreals.c
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/testreals.c -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	$(EXAMPLES)/testreals.c -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # testflat example program
 #
 $(BIN)/testflat: $(LIB)/libcbf.a $(EXAMPLES)/testflat.c
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/testflat.c -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	$(EXAMPLES)/testflat.c -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 #
 # testflatpacked example program
 #
 $(BIN)/testflatpacked: $(LIB)/libcbf.a $(EXAMPLES)/testflatpacked.c
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/testflatpacked.c -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	$(EXAMPLES)/testflatpacked.c -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 ifneq ($(F90C),)
 #
@@ -1328,14 +1328,14 @@ ifneq ($(F90C),)
 #
 $(BIN)/test_xds_binary: $(LIB)/libfcb.a $(EXAMPLES)/test_xds_binary.f90
 	$(F90C) $(F90FLAGS) $(F90LDFLAGS) $(EXAMPLES)/test_xds_binary.f90 \
-		-L$(LIB) -lfcb -o $@
+	-L$(LIB) -lfcb -o $@
 
 #
 # test_fcb_read_image example program
 #
 $(BIN)/test_fcb_read_image: $(LIB)/libfcb.a $(EXAMPLES)/test_fcb_read_image.f90
 	$(F90C) $(F90FLAGS) $(F90LDFLAGS) $(EXAMPLES)/test_fcb_read_image.f90 \
-		-L$(LIB) -lfcb -o $@
+	-L$(LIB) -lfcb -o $@
 endif
 
 #
@@ -1343,8 +1343,8 @@ endif
 #
 $(BIN)/ctestcbf: $(EXAMPLES)/testcbf.c $(LIB)/libcbf.a
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
-			  $(EXAMPLES)/testcbf.c -L$(LIB) \
-		  -lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	$(EXAMPLES)/testcbf.c -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
 
 #
 # testcbf (Java)
@@ -1382,22 +1382,22 @@ $(BIN)/testalloc: $(LIB)/libcbf.a $(EXAMPLES)/testalloc.c $(EXAMPLES)/unittest.h
 #
 
 $(DATADIRI):	$(M4)/Makefile.m4
-		(cd ..; $(DOWNLOAD) $(DATAURLI))
-		(cd ..; tar -zxvf CBFlib_$(VERSION)_Data_Files_Input.tar.gz)
-		touch $(DATADIRI)
-		-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Input.tar.gz)
+	(cd ..; $(DOWNLOAD) $(DATAURLI))
+	(cd ..; tar -zxvf CBFlib_$(VERSION)_Data_Files_Input.tar.gz)
+	touch $(DATADIRI)
+	-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Input.tar.gz)
 
 $(DATADIRO):	$(M4)/Makefile.m4
-		(cd ..; $(DOWNLOAD) $(DATAURLO))
-		(cd ..; tar -zxvf CBFlib_$(VERSION)_Data_Files_Output.tar.gz)
-		touch $(DATADIRO)
-		-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Output.tar.gz)
+	(cd ..; $(DOWNLOAD) $(DATAURLO))
+	(cd ..; tar -zxvf CBFlib_$(VERSION)_Data_Files_Output.tar.gz)
+	touch $(DATADIRO)
+	-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Output.tar.gz)
 
 $(DATADIRS):	$(M4)/Makefile.m4
-		(cd ..; $(DOWNLOAD) $(DATAURLS))
-		(cd ..; tar -zxvf CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz)
-		touch $(DATADIRS)
-		-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz)
+	(cd ..; $(DOWNLOAD) $(DATAURLS))
+	(cd ..; tar -zxvf CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz)
+	touch $(DATADIRS)
+	-(cd ..; rm CBFlib_$(VERSION)_Data_Files_Output_Sigs_Only.tar.gz)
 
 
 # Input Data Files 
@@ -1407,138 +1407,138 @@ DATADIRI_INPUT_BASIC = $(DATADIRI)/example.mar2300
 
 
 TESTINPUT_EXTRA =  9ins.cif mb_LP_1_001.img insulin_pilatus6m.cbf testrealin.cbf \
-		testflatin.cbf testflatpackedin.cbf XRD1621.tif \
-		X4_lots_M1S4_1_0001.cbf X4_lots_M1S4_1_0002.cbf \
-		X4_lots_M1S4_1_0003.cbf X4_lots_M1S4_1_0004.cbf \
-		X4_lots_M1S4_1_0005.cbf
+	testflatin.cbf testflatpackedin.cbf XRD1621.tif \
+	X4_lots_M1S4_1_0001.cbf X4_lots_M1S4_1_0002.cbf \
+	X4_lots_M1S4_1_0003.cbf X4_lots_M1S4_1_0004.cbf \
+	X4_lots_M1S4_1_0005.cbf
 DATADIRI_INPUT_EXTRA = $(DATADIRI)/9ins.cif $(DATADIRI)/mb_LP_1_001.img \
-		$(DATADIRI)/insulin_pilatus6m.cbf $(DATADIRI)/testrealin.cbf \
-		$(DATADIRI)/testflatin.cbf $(DATADIRI)/testflatpackedin.cbf \
-		$(DATADIRI)/XRD1621.tif $(DATADIRI)/X4_lots_M1S4_1_0001.cbf \
-		$(DATADIRI)/X4_lots_M1S4_1_0002.cbf \
-		$(DATADIRI)/X4_lots_M1S4_1_0003.cbf \
-		$(DATADIRI)/X4_lots_M1S4_1_0004.cbf \
-		$(DATADIRI)/X4_lots_M1S4_1_0005.cbf
+	$(DATADIRI)/insulin_pilatus6m.cbf $(DATADIRI)/testrealin.cbf \
+	$(DATADIRI)/testflatin.cbf $(DATADIRI)/testflatpackedin.cbf \
+	$(DATADIRI)/XRD1621.tif $(DATADIRI)/X4_lots_M1S4_1_0001.cbf \
+	$(DATADIRI)/X4_lots_M1S4_1_0002.cbf \
+	$(DATADIRI)/X4_lots_M1S4_1_0003.cbf \
+	$(DATADIRI)/X4_lots_M1S4_1_0004.cbf \
+	$(DATADIRI)/X4_lots_M1S4_1_0005.cbf
 
 
 # Output Data Files
 
 TESTOUTPUT =  adscconverted_flat_orig.cbf \
-		adscconverted_orig.cbf converted_flat_orig.cbf converted_orig.cbf \
-		insulin_pilatus6mconverted_rev_orig.cbf \
-		insulin_pilatus6mconverted_orig.cbf.h5 \
-		insulin_pilatus6mconverted_orig.cbf.h5.cbf \
-		insulin_pilatus6mconverted_v2_orig.cbf \
-		mb_LP_1_001_orig.cbf testcell_orig.prt \
-		test_xds_bin_testflatout_orig.out \
-		test_xds_bin_testflatpackedout_orig.out test_fcb_read_testflatout_orig.out \
-		test_fcb_read_testflatpackedout_orig.out \
-		XRD1621_orig.cbf XRD1621_I4encbC100_orig.cbf \
-		minicbf_original.h5
+	adscconverted_orig.cbf converted_flat_orig.cbf converted_orig.cbf \
+	insulin_pilatus6mconverted_rev_orig.cbf \
+	insulin_pilatus6mconverted_orig.cbf.h5 \
+	insulin_pilatus6mconverted_orig.cbf.h5.cbf \
+	insulin_pilatus6mconverted_v2_orig.cbf \
+	mb_LP_1_001_orig.cbf testcell_orig.prt \
+	test_xds_bin_testflatout_orig.out \
+	test_xds_bin_testflatpackedout_orig.out test_fcb_read_testflatout_orig.out \
+	test_fcb_read_testflatpackedout_orig.out \
+	XRD1621_orig.cbf XRD1621_I4encbC100_orig.cbf \
+	minicbf_original.h5
 NEWTESTOUTPUT = adscconverted_flat.cbf \
-		adscconverted.cbf converted_flat.cbf converted.cbf \
-		insulin_pilatus6mconverted.cbf \
-		insulin_pilatus6mconverted_v2.cbf \
-		mb_LP_1_001.cbf testcell.prt \
-		test_xds_bin_testflatout.out \
-		test_xds_bin_testflatpackedout.out test_fcb_read_testflatout.out \
-		test_fcb_read_testflatpackedout.out \
-		XRD1621.cbf XRD1621_I4encbC100.cbf \
-		minicbf.h5
+	adscconverted.cbf converted_flat.cbf converted.cbf \
+	insulin_pilatus6mconverted.cbf \
+	insulin_pilatus6mconverted_v2.cbf \
+	mb_LP_1_001.cbf testcell.prt \
+	test_xds_bin_testflatout.out \
+	test_xds_bin_testflatpackedout.out test_fcb_read_testflatout.out \
+	test_fcb_read_testflatpackedout.out \
+	XRD1621.cbf XRD1621_I4encbC100.cbf \
+	minicbf.h5
 DATADIRO_OUTPUT =  $(DATADIRO)/adscconverted_flat_orig.cbf \
-		$(DATADIRO)/adscconverted_orig.cbf \
-		$(DATADIRO)/converted_flat_orig.cbf \
-		$(DATADIRO)/converted_orig.cbf \
-		$(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf \
-		$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5 \
-		$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf \
-		$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf \
-		$(DATADIRO)/mb_LP_1_001_orig.cbf \
-		$(DATADIRO)/testcell_orig.prt \
-		$(DATADIRO)/test_xds_bin_testflatout_orig.out \
-		$(DATADIRO)/test_xds_bin_testflatpackedout_orig.out \
-		$(DATADIRO)/test_fcb_read_testflatout_orig.out \
-		$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out \
-		$(DATADIRO)/XRD1621_orig.cbf \
-		$(DATADIRO)/XRD1621_I4encbC100_orig.cbf \
-		$(DATADIRO)/minicbf_original.h5
+	$(DATADIRO)/adscconverted_orig.cbf \
+	$(DATADIRO)/converted_flat_orig.cbf \
+	$(DATADIRO)/converted_orig.cbf \
+	$(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf \
+	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5 \
+	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf \
+	$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf \
+	$(DATADIRO)/mb_LP_1_001_orig.cbf \
+	$(DATADIRO)/testcell_orig.prt \
+	$(DATADIRO)/test_xds_bin_testflatout_orig.out \
+	$(DATADIRO)/test_xds_bin_testflatpackedout_orig.out \
+	$(DATADIRO)/test_fcb_read_testflatout_orig.out \
+	$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out \
+	$(DATADIRO)/XRD1621_orig.cbf \
+	$(DATADIRO)/XRD1621_I4encbC100_orig.cbf \
+	$(DATADIRO)/minicbf_original.h5
 DATADIRO_OUTPUT_SIGNATURES =  $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT) \
-		$(DATADIRO)/adscconverted_orig.cbf$(SEXT) \
-		$(DATADIRO)/converted_flat_orig.cbf$(SEXT) \
-		$(DATADIRO)/converted_orig.cbf$(SEXT) \
-		$(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf$(SEXT) \
-		$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5$(SEXT) \
-		$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
-		$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
-		$(DATADIRO)/mb_LP_1_001_orig.cbf$(SEXT) \
-		$(DATADIRO)/testcell_orig.prt$(SEXT) \
-		$(DATADIRO)/test_xds_bin_testflatout_orig.out$(SEXT) \
-		$(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(SEXT) \
-		$(DATADIRO)/test_fcb_read_testflatout_orig.out$(SEXT) \
-		$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(SEXT) \
-		$(DATADIRO)/XRD1621_orig.cbf$(SEXT) \
-		$(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(SEXT) \
-		$(DATADIRO)/minicbf_original.h5$(SEXT)
+	$(DATADIRO)/adscconverted_orig.cbf$(SEXT) \
+	$(DATADIRO)/converted_flat_orig.cbf$(SEXT) \
+	$(DATADIRO)/converted_orig.cbf$(SEXT) \
+	$(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf$(SEXT) \
+	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5$(SEXT) \
+	$(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
+	$(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
+	$(DATADIRO)/mb_LP_1_001_orig.cbf$(SEXT) \
+	$(DATADIRO)/testcell_orig.prt$(SEXT) \
+	$(DATADIRO)/test_xds_bin_testflatout_orig.out$(SEXT) \
+	$(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(SEXT) \
+	$(DATADIRO)/test_fcb_read_testflatout_orig.out$(SEXT) \
+	$(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(SEXT) \
+	$(DATADIRO)/XRD1621_orig.cbf$(SEXT) \
+	$(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(SEXT) \
+	$(DATADIRO)/minicbf_original.h5$(SEXT)
 
 
-		
+	
 # Output Data File Signatures
 
 TESTOUTPUTSIGS = adscconverted_flat_orig.cbf$(SEXT) \
-		adscconverted_orig.cbf$(SEXT) converted_flat_orig.cbf$(SEXT) converted_orig.cbf$(SEXT) \
-		insulin_pilatus6mconverted_rev_orig.cbf$(SEXT) \
-		insulin_pilatus6mconverted_orig.cbf.h5$(SEXT) \
-		insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
-		insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
-		mb_LP_1_001_orig.cbf$(SEXT) testcell_orig.prt$(SEXT) \
-		test_xds_bin_testflatout_orig.out$(SEXT) \
-		test_xds_bin_testflatpackedout_orig.out$(SEXT) test_fcb_read_testflatout_orig.out$(SEXT) \
-		test_fcb_read_testflatpackedout_orig.out$(SEXT) \
-		XRD1621_orig.cbf$(SEXT) \
-		XRD1621_I4encbC100_orig.cbf$(SEXT) \
-		minicbf_original.h5$(SEXT)
+	adscconverted_orig.cbf$(SEXT) converted_flat_orig.cbf$(SEXT) converted_orig.cbf$(SEXT) \
+	insulin_pilatus6mconverted_rev_orig.cbf$(SEXT) \
+	insulin_pilatus6mconverted_orig.cbf.h5$(SEXT) \
+	insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
+	insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
+	mb_LP_1_001_orig.cbf$(SEXT) testcell_orig.prt$(SEXT) \
+	test_xds_bin_testflatout_orig.out$(SEXT) \
+	test_xds_bin_testflatpackedout_orig.out$(SEXT) test_fcb_read_testflatout_orig.out$(SEXT) \
+	test_fcb_read_testflatpackedout_orig.out$(SEXT) \
+	XRD1621_orig.cbf$(SEXT) \
+	XRD1621_I4encbC100_orig.cbf$(SEXT) \
+	minicbf_original.h5$(SEXT)
 DATADIRS_OUTPUT_SIGNATURES =  $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT) \
-		$(DATADIRS)/adscconverted_orig.cbf$(SEXT) \
-		$(DATADIRS)/converted_flat_orig.cbf$(SEXT) \
-		$(DATADIRS)/converted_orig.cbf$(SEXT) \
-		$(DATADIRS)/insulin_pilatus6mconverted_rev_orig.cbf$(SEXT) \
-		$(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5$(SEXT) \
-		$(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
-		$(DATADIRS)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
-		$(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT) \
-		$(DATADIRS)/testcell_orig.prt$(SEXT) \
-		$(DATADIRS)/test_xds_bin_testflatout_orig.out$(SEXT) \
-		$(DATADIRS)/test_xds_bin_testflatpackedout_orig.out$(SEXT) \
-		$(DATADIRS)/test_fcb_read_testflatout_orig.out$(SEXT) \
-		$(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT) \
-		$(DATADIRS)/XRD1621_orig.cbf$(SEXT) \
-		$(DATADIRS)/XRD1621_I4encbC100_orig.cbf$(SEXT) \
-		$(DATADIRS)/minicbf_original.h5$(SEXT)
+	$(DATADIRS)/adscconverted_orig.cbf$(SEXT) \
+	$(DATADIRS)/converted_flat_orig.cbf$(SEXT) \
+	$(DATADIRS)/converted_orig.cbf$(SEXT) \
+	$(DATADIRS)/insulin_pilatus6mconverted_rev_orig.cbf$(SEXT) \
+	$(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5$(SEXT) \
+	$(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT) \
+	$(DATADIRS)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT) \
+	$(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT) \
+	$(DATADIRS)/testcell_orig.prt$(SEXT) \
+	$(DATADIRS)/test_xds_bin_testflatout_orig.out$(SEXT) \
+	$(DATADIRS)/test_xds_bin_testflatpackedout_orig.out$(SEXT) \
+	$(DATADIRS)/test_fcb_read_testflatout_orig.out$(SEXT) \
+	$(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT) \
+	$(DATADIRS)/XRD1621_orig.cbf$(SEXT) \
+	$(DATADIRS)/XRD1621_I4encbC100_orig.cbf$(SEXT) \
+	$(DATADIRS)/minicbf_original.h5$(SEXT)
 
 # Fetch Input Data Files 
 
 $(TESTINPUT_BASIC):	$(DATADIRI) $(DATADIRI_INPUT_BASIC)
-		cp $(DATADIRI)/$@  $@
-		cp $(DATADIRI)/$@$(SEXT)  $@$(SEXT)
-		-$(SIGNATURE) < $@ | $(DIFF) - $@$(SEXT)
+	cp $(DATADIRI)/$@  $@
+	cp $(DATADIRI)/$@$(SEXT)  $@$(SEXT)
+	-$(SIGNATURE) < $@ | $(DIFF) - $@$(SEXT)
 
 $(TESTINPUT_EXTRA):	$(DATADIRI) $(DATADIRI_INPUT_EXTRA)
-		cp $(DATADIRI)/$@ $@
-		cp $(DATADIRI)/$@$(SEXT)  $@$(SEXT)
-		-$(SIGNATURE) < $@ | $(DIFF) - $@$(SEXT)
+	cp $(DATADIRI)/$@ $@
+	cp $(DATADIRI)/$@$(SEXT)  $@$(SEXT)
+	-$(SIGNATURE) < $@ | $(DIFF) - $@$(SEXT)
 
 
 # Fetch Output Data Files and Signatures
 
 $(TESTOUTPUT):	$(DATADIRO) $(DATADIRO_OUTPUT) $(DATADIRO_OUTPUT_SIGNATURES)
-		cp $(DATADIRO)/$@  $@
-		cp $(DATADIRO)/$@$(SEXT) $@$(SEXT)
-		-$(SIGNATURE) < $@ | $(DIFF) - $@$(SEXT)
+	cp $(DATADIRO)/$@  $@
+	cp $(DATADIRO)/$@$(SEXT) $@$(SEXT)
+	-$(SIGNATURE) < $@ | $(DIFF) - $@$(SEXT)
 
 # Fetch Output Data File Signatures
 
 $(TESTOUTPUTSIGS):	$(DATADIRS) $(DATADIRS_OUTPUT_SIGNATURES)
-		cp $(DATADIRS)/$@ $@
+	cp $(DATADIRS)/$@ $@
 
 
 
@@ -1548,61 +1548,61 @@ $(TESTOUTPUTSIGS):	$(DATADIRS) $(DATADIRS_OUTPUT_SIGNATURES)
 tests:				$(LIB) $(BIN) symlinksdone basic extra dectristests pycbftests
 tests_sigs_only:	$(LIB) $(BIN) symlinksdone basic extra_sigs_only
 restore_output:		$(NEWTESTOUTPUT) $(DATADIRO)
-		$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT)
-		$(SIGNATURE) < adscconverted.cbf > $(DATADIRO)/adscconverted_orig.cbf$(SEXT)
-		$(SIGNATURE) < converted_flat.cbf > $(DATADIRO)/converted_flat_orig.cbf$(SEXT)
-		$(SIGNATURE) < converted.cbf > $(DATADIRO)/converted_orig.cbf$(SEXT)
-		$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf$(SEXT)
-		$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRO)/		insulin_pilatus6mconverted_orig.cbf.h5
-		$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRO)/		insulin_pilatus6mconverted_orig.cbf.h5.cbf
-		$(SIGNATURE) < insulin_pilatus6mconverted_v2.cbf > $(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT)
-		$(SIGNATURE) < mb_LP_1_001.cbf$ > $(DATADIRO)/mb_LP_1_001_orig.cbf$(SEXT)
-		$(SIGNATURE) < testcell.prt > $(DATADIRO)/testcell_orig.prt$(SEXT)
-		$(SIGNATURE) < test_xds_bin_testflatout.out > $(DATADIRO)/test_xds_bin_testflatout_orig.out$(SEXT)
-		$(SIGNATURE) < test_xds_bin_testflatpackedout.out > $(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(SEXT)
-		$(SIGNATURE) < test_fcb_read_testflatout.out > $(DATADIRO)/test_fcb_read_testflatout_orig.out$(SEXT)
-		$(SIGNATURE) < test_fcb_read_testflatpackedout.out > $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
-		$(SIGNATURE) < XRD1621.cbf > $(DATADIRO)/XRD1621_orig.cbf$(SEXT)
-		$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(SEXT)
-		$(SIGNATURE) < minicbf_original.h5 > $(DATADIRO)/minicbf_original.h5$(SEXT)
-		cp adscconverted_flat.cbf $(DATADIRO)/adscconverted_flat_orig.cbf$
-		cp adscconverted.cbf $(DATADIRO)/adscconverted_orig.cbf
-		cp converted_flat.cbf $(DATADIRO)/converted_flat_orig.cbf
-		cp converted.cbf $(DATADIRO)/converted_orig.cbf
-		cp insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf
-		cp insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5
-		cp insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf
-		cp insulin_pilatus6mconverted_v2.cbf > $(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf
-		cp mb_LP_1_001.cbf$ > $(DATADIRO)/mb_LP_1_001_orig.cbf
-		cp testcell.prt > $(DATADIRO)/testcell_orig.prt
-		cp test_xds_bin_testflatout.out > $(DATADIRO)/test_xds_bin_testflatout_orig.out
-		cp test_xds_bin_testflatpackedout.out > $(DATADIRO)/test_xds_bin_testflatpackedout_orig.out
-		cp test_fcb_read_testflatout.out > $(DATADIRO)/test_fcb_read_testflatout_orig.out
-		cp test_fcb_read_testflatpackedout.out > $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out
-		cp XRD1621.cbf > $(DATADIRO)/XRD1621_orig.cbf
-		cp XRD1621_I4encbC100.cbf > $(DATADIRO)/XRD1621_I4encbC100_orig.cbf
-		cp minicbf_original.h5 > $(DATADIRO)/minicbf_original.h5
+	$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRO)/adscconverted_flat_orig.cbf$(SEXT)
+	$(SIGNATURE) < adscconverted.cbf > $(DATADIRO)/adscconverted_orig.cbf$(SEXT)
+	$(SIGNATURE) < converted_flat.cbf > $(DATADIRO)/converted_flat_orig.cbf$(SEXT)
+	$(SIGNATURE) < converted.cbf > $(DATADIRO)/converted_orig.cbf$(SEXT)
+	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf$(SEXT)
+	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRO)/		insulin_pilatus6mconverted_orig.cbf.h5
+	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRO)/		insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	$(SIGNATURE) < insulin_pilatus6mconverted_v2.cbf > $(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT)
+	$(SIGNATURE) < mb_LP_1_001.cbf$ > $(DATADIRO)/mb_LP_1_001_orig.cbf$(SEXT)
+	$(SIGNATURE) < testcell.prt > $(DATADIRO)/testcell_orig.prt$(SEXT)
+	$(SIGNATURE) < test_xds_bin_testflatout.out > $(DATADIRO)/test_xds_bin_testflatout_orig.out$(SEXT)
+	$(SIGNATURE) < test_xds_bin_testflatpackedout.out > $(DATADIRO)/test_xds_bin_testflatpackedout_orig.out$(SEXT)
+	$(SIGNATURE) < test_fcb_read_testflatout.out > $(DATADIRO)/test_fcb_read_testflatout_orig.out$(SEXT)
+	$(SIGNATURE) < test_fcb_read_testflatpackedout.out > $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
+	$(SIGNATURE) < XRD1621.cbf > $(DATADIRO)/XRD1621_orig.cbf$(SEXT)
+	$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRO)/XRD1621_I4encbC100_orig.cbf$(SEXT)
+	$(SIGNATURE) < minicbf_original.h5 > $(DATADIRO)/minicbf_original.h5$(SEXT)
+	cp adscconverted_flat.cbf $(DATADIRO)/adscconverted_flat_orig.cbf$
+	cp adscconverted.cbf $(DATADIRO)/adscconverted_orig.cbf
+	cp converted_flat.cbf $(DATADIRO)/converted_flat_orig.cbf
+	cp converted.cbf $(DATADIRO)/converted_orig.cbf
+	cp insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_rev_orig.cbf
+	cp insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5
+	cp insulin_pilatus6mconverted.cbf > $(DATADIRO)/insulin_pilatus6mconverted_orig.cbf.h5.cbf
+	cp insulin_pilatus6mconverted_v2.cbf > $(DATADIRO)/insulin_pilatus6mconverted_v2_orig.cbf
+	cp mb_LP_1_001.cbf$ > $(DATADIRO)/mb_LP_1_001_orig.cbf
+	cp testcell.prt > $(DATADIRO)/testcell_orig.prt
+	cp test_xds_bin_testflatout.out > $(DATADIRO)/test_xds_bin_testflatout_orig.out
+	cp test_xds_bin_testflatpackedout.out > $(DATADIRO)/test_xds_bin_testflatpackedout_orig.out
+	cp test_fcb_read_testflatout.out > $(DATADIRO)/test_fcb_read_testflatout_orig.out
+	cp test_fcb_read_testflatpackedout.out > $(DATADIRO)/test_fcb_read_testflatpackedout_orig.out
+	cp XRD1621.cbf > $(DATADIRO)/XRD1621_orig.cbf
+	cp XRD1621_I4encbC100.cbf > $(DATADIRO)/XRD1621_I4encbC100_orig.cbf
+	cp minicbf_original.h5 > $(DATADIRO)/minicbf_original.h5
 
 restore_sigs_only:	$(NEWTESTOUTPUT) $(DATADIRS)
-		$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT)
-		$(SIGNATURE) < adscconverted.cbf > $(DATADIRS)/adscconverted_orig.cbf$(SEXT)
-		$(SIGNATURE) < converted_flat.cbf > $(DATADIRS)/converted_flat_orig.cbf$(SEXT)
-		$(SIGNATURE) < converted.cbf > $(DATADIRS)/converted_orig.cbf$(SEXT)
-		$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRS)/insulin_pilatus6mconverted_rev_orig.cbf$(SEXT)
-		$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5$(SEXT)
-		$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT)
-		$(SIGNATURE) < insulin_pilatus6mconverted_v2.cbf > $(DATADIRS)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT)
-		$(SIGNATURE) < mb_LP_1_001.cbf$ > $(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT)
-		$(SIGNATURE) < testcell.prt > $(DATADIRS)/testcell_orig.prt$(SEXT)
-		$(SIGNATURE) < test_xds_bin_testflatout.out > $(DATADIRS)/test_xds_bin_testflatout_orig.out$(SEXT)
-		$(SIGNATURE) < test_xds_bin_testflatpackedout.out > $(DATADIRS)/test_xds_bin_testflatpackedout_orig.out$(SEXT)
-		$(SIGNATURE) < test_fcb_read_testflatout.out > $(DATADIRS)/test_fcb_read_testflatout_orig.out$(SEXT)
-		$(SIGNATURE) < test_fcb_read_testflatpackedout.out > $(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
-		$(SIGNATURE) < XRD1621.cbf > $(DATADIRS)/XRD1621_orig.cbf$(SEXT)
-		$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRS)/XRD1621_I4encbC100_orig.cbf$(SEXT)
-		$(SIGNATURE) < minicbf_original.h5 > $(DATADIRS)/minicbf_original.h5$(SEXT)
+	$(SIGNATURE) < adscconverted_flat.cbf > $(DATADIRS)/adscconverted_flat_orig.cbf$(SEXT)
+	$(SIGNATURE) < adscconverted.cbf > $(DATADIRS)/adscconverted_orig.cbf$(SEXT)
+	$(SIGNATURE) < converted_flat.cbf > $(DATADIRS)/converted_flat_orig.cbf$(SEXT)
+	$(SIGNATURE) < converted.cbf > $(DATADIRS)/converted_orig.cbf$(SEXT)
+	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRS)/insulin_pilatus6mconverted_rev_orig.cbf$(SEXT)
+	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5$(SEXT)
+	$(SIGNATURE) < insulin_pilatus6mconverted.cbf > $(DATADIRS)/insulin_pilatus6mconverted_orig.cbf.h5.cbf$(SEXT)
+	$(SIGNATURE) < insulin_pilatus6mconverted_v2.cbf > $(DATADIRS)/insulin_pilatus6mconverted_v2_orig.cbf$(SEXT)
+	$(SIGNATURE) < mb_LP_1_001.cbf$ > $(DATADIRS)/mb_LP_1_001_orig.cbf$(SEXT)
+	$(SIGNATURE) < testcell.prt > $(DATADIRS)/testcell_orig.prt$(SEXT)
+	$(SIGNATURE) < test_xds_bin_testflatout.out > $(DATADIRS)/test_xds_bin_testflatout_orig.out$(SEXT)
+	$(SIGNATURE) < test_xds_bin_testflatpackedout.out > $(DATADIRS)/test_xds_bin_testflatpackedout_orig.out$(SEXT)
+	$(SIGNATURE) < test_fcb_read_testflatout.out > $(DATADIRS)/test_fcb_read_testflatout_orig.out$(SEXT)
+	$(SIGNATURE) < test_fcb_read_testflatpackedout.out > $(DATADIRS)/test_fcb_read_testflatpackedout_orig.out$(SEXT)
+	$(SIGNATURE) < XRD1621.cbf > $(DATADIRS)/XRD1621_orig.cbf$(SEXT)
+	$(SIGNATURE) < XRD1621_I4encbC100.cbf > $(DATADIRS)/XRD1621_I4encbC100_orig.cbf$(SEXT)
+	$(SIGNATURE) < minicbf_original.h5 > $(DATADIRS)/minicbf_original.h5$(SEXT)
 restore_signatures:	restore_output restore_sigs_only
-		
+	
 #
 # Basic Tests
 #
@@ -1610,17 +1610,17 @@ restore_signatures:	restore_output restore_sigs_only
 basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf $(TESTINPUT_BASIC)
 	$(BIN)/makecbf example.mar2300 makecbf.cbf
 	$(BIN)/img2cif -c flatpacked -m headers -d digest \
-		-e base64  example.mar2300  img2cif_packed.cif
+	-e base64  example.mar2300  img2cif_packed.cif
 	$(BIN)/img2cif -c canonical -m headers -d digest \
-		-e base64  example.mar2300  img2cif_canonical.cif
+	-e base64  example.mar2300  img2cif_canonical.cif
 	$(BIN)/img2cif -c flatpacked -m headers -d digest \
-		-e none  example.mar2300  img2cif_packed.cbf
+	-e none  example.mar2300  img2cif_packed.cbf
 	$(BIN)/img2cif -c canonical -m headers -d digest \
-		-e none  example.mar2300  img2cif_canonical.cbf
+	-e none  example.mar2300  img2cif_canonical.cbf
 	$(BIN)/cif2cbf -e none -c flatpacked \
-		img2cif_canonical.cif cif2cbf_packed.cbf
+	img2cif_canonical.cif cif2cbf_packed.cbf
 	$(BIN)/cif2cbf -e none -c canonical \
-		img2cif_packed.cif cif2cbf_canonical.cbf
+	img2cif_packed.cif cif2cbf_canonical.cbf
 	-cmp cif2cbf_packed.cbf    makecbf.cbf
 	-cmp cif2cbf_packed.cbf    img2cif_packed.cbf
 	-cmp cif2cbf_canonical.cbf img2cif_canonical.cbf
@@ -1650,9 +1650,9 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf \
 	basic $(TESTINPUT_EXTRA) $(TESTOUTPUT)
 endif
 	$(TIME) $(BIN)/cif2cbf -e hex -c none \
-		makecbf.cbf cif2cbf_ehcn.cif
+	makecbf.cbf cif2cbf_ehcn.cif
 	$(TIME) $(BIN)/cif2cbf -e none -c flatpacked \
-		cif2cbf_ehcn.cif cif2cbf_encp.cbf; rm cif2cbf_ehcn.cif
+	cif2cbf_ehcn.cif cif2cbf_encp.cbf; rm cif2cbf_ehcn.cif
 	-cmp makecbf.cbf cif2cbf_encp.cbf
 	$(TIME) $(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
 	-cmp 9ins.cif 9ins.cbf
@@ -1684,36 +1684,36 @@ endif
 	-$(TIME) $(BIN)/convert_minicbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted_v2.cbf
 	-cmp insulin_pilatus6mconverted_v2.cbf insulin_pilatus6mconverted_v2_orig.cbf
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-		$(TIME) $(BIN)/cif2cbf -5 w -O $(HDF5REGISTER) -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5)
+	$(TIME) $(BIN)/cif2cbf -5 w -O $(HDF5REGISTER) -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-		$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cI -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encI.cbf.h5)
+	$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cI -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encI.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	        $(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encp.cbf.h5)
+	$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encp.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	        $(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cb -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encb.cbf.h5)
+	$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cb -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encb.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	        $(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cc -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encc.cbf.h5)
+	$(TIME) $(BIN)/cif2cbf -5 w $(HDF5REGISTER) -en -cc -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted_encc.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-		$(BIN)/h5dump insulin_pilatus6mconverted_orig.cbf.h5 | $(ALLBUTONE) > insulin_pilatus6mconverted_orig.cbf.h5.dump)
+	$(BIN)/h5dump insulin_pilatus6mconverted_orig.cbf.h5 | $(ALLBUTONE) > insulin_pilatus6mconverted_orig.cbf.h5.dump)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-		$(BIN)/h5dump insulin_pilatus6mconverted.cbf.h5 | $(ALLBUTONE)  > insulin_pilatus6mconverted.cbf.h5.dump)
+	$(BIN)/h5dump insulin_pilatus6mconverted.cbf.h5 | $(ALLBUTONE)  > insulin_pilatus6mconverted.cbf.h5.dump)
 	-$(DIFF) insulin_pilatus6mconverted_orig.cbf.h5.dump insulin_pilatus6mconverted.cbf.h5.dump
 	-rm -f insulin_pilatus6mconverted_orig.cbf.h5.dump
 	-rm -f insulin_pilatus6mconverted.cbf.h5.dump
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-		$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted.cbf.h5 -o insulin_pilatus6mconverted.cbf.h5.cbf)
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted.cbf.h5 -o insulin_pilatus6mconverted.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-		$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encp.cbf.h5 -o insulin_pilatus6mconverted_encp.cbf.h5.cbf)
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encp.cbf.h5 -o insulin_pilatus6mconverted_encp.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted_encp.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	        $(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encb.cbf.h5 -o insulin_pilatus6mconverted_encb.cbf.h5.cbf)
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encb.cbf.h5 -o insulin_pilatus6mconverted_encb.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted_encb.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	        $(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encI.cbf.h5 -o insulin_pilatus6mconverted_encI.cbf.h5.cbf)
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encI.cbf.h5 -o insulin_pilatus6mconverted_encI.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted_encI.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
-	        $(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encc.cbf.h5 -o insulin_pilatus6mconverted_encc.cbf.h5.cbf)
+	$(TIME) $(BIN)/cif2cbf -5 rn $(HDF5REGISTER) -en -cp -i insulin_pilatus6mconverted_encc.cbf.h5 -o insulin_pilatus6mconverted_encc.cbf.h5.cbf)
 	-cmp insulin_pilatus6mconverted_encc.cbf.h5.cbf insulin_pilatus6mconverted_orig.cbf.h5.cbf
 	$(TIME) $(BIN)/testalloc
 	$(TIME) $(BIN)/testhdf5; rm -f testfile.h5
@@ -1721,7 +1721,7 @@ ifneq ($(CBF_USE_ULP),)
 	$(TIME) $(BIN)/testulp
 endif
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/minicbf2nexus -c zlib \
-		-C config ../X4_lots_M1S4_1_*.cbf -o minicbf.h5
+	-C config ../X4_lots_M1S4_1_*.cbf -o minicbf.h5
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/h5dump ../minicbf_original.h5 | $(ALLBUTONE) > minicbf_original.dump
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/h5dump minicbf.h5 | $(ALLBUTONE) > minicbf.dump
 	-cd $(MINICBF_TEST); $(DIFF) minicbf_original.dump minicbf.dump
@@ -1769,9 +1769,9 @@ extra_sigs_only:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf $(BI
 	basic $(TESTINPUT_EXTRA) $(TESTOUTPUTSIGS)
 endif
 	$(TIME) $(BIN)/cif2cbf -e hex -c none \
-		makecbf.cbf cif2cbf_ehcn.cif
+	makecbf.cbf cif2cbf_ehcn.cif
 	$(TIME) $(BIN)/cif2cbf -e none -c flatpacked \
-		cif2cbf_ehcn.cif cif2cbf_encp.cbf; rm cif2cbf_ehcn.cif
+	cif2cbf_ehcn.cif cif2cbf_encp.cbf; rm cif2cbf_ehcn.cif
 	-cmp makecbf.cbf cif2cbf_encp.cbf
 	$(TIME) $(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
 	-cmp 9ins.cif 9ins.cbf
@@ -1833,6 +1833,10 @@ pycbftests:  $(PYCBF)/_pycbf.$(PYCBFEXT)
 	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_test2.py)
 	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_test3.py)
 	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_test4.py)
+	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_testfelaxes.py fel_test1.cbf > fel_test1.out)
+	($(RTLPEXPORTS) cd $(PYCBF); python pycbf_testfelaxes.py fel_test2.cbf > fel_test2.out)
+	-$(DIFF) $(PYCBF)/fel_test1.out $(PYCBF)/fel_test1_orig.out
+	-$(DIFF) $(PYCBF)/fel_test2.out $(PYCBF)/fel_test2_orig.out 
 
 javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/libcbf_wrap.so
 	$(BIN)/ctestcbf > testcbfc.txt
@@ -1856,6 +1860,8 @@ empty:
 	@-rm -f  $(PYCBF)/_pycbf.$(PYCBFEXT)
 	@-rm -rf  $(PYCBF)/build/*
 	@-rm -f  $(PYCBF)/newtest1.cbf
+	@-rm -f  $(PYCBF)/fel_test1.out
+	@-rm -f  $(PYCBF)/fel_test2.out
 	@-rm -rf  $(BIN)/adscimg2cbf*
 	@-rm -rf  $(BIN)/cbf2adscimg*
 	@-rm -rf  $(BIN)/makecbf*
@@ -1985,14 +1991,14 @@ distclean:	clean empty
 #
 
 tar:   $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) $(M4FILES)\
-	 $(EXAMPLES) \
-	 README.html README Makefile \
-	 $(JPEGS)
+	$(EXAMPLES) \
+	README.html README Makefile \
+	$(JPEGS)
 	-/bin/rm -f CBFlib.tar*
 	tar cvBf CBFlib.tar \
-	 $(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) $(M4FILES)\
-	 $(EXAMPLES) \
-	 README.html README Makefile \
-	 $(JPEGS)
-	 gzip --best CBFlib.tar
+	$(DOCUMENTS) $(SOURCE) $(SRC)/cbf.stx $(HEADERS) $(M4FILES)\
+	$(EXAMPLES) \
+	README.html README Makefile \
+	$(JPEGS)
+	gzip --best CBFlib.tar
 
