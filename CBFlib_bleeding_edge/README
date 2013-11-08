@@ -1,16 +1,3 @@
-   +------------------------------------------------------------------------+
-   | [IUCr  | [CIF   |              |          | Get CBFlib at              |
-   | Home   | Home   | [CBF/imgCIF] | [CBFlib] | SourceForge.net. Fast,     |
-   | Page]  | Page]  |              |          | secure and Free Open       |
-   |        |        |              |          | Source software downloads  |
-   +------------------------------------------------------------------------+
-
-     ----------------------------------------------------------------------
-
-            | IUCr Home Page | CIF Home Page | CBF/imgCIF | CBFlib |
- | NOTICE | doc/GPL | doc/LGPL | imgCIF dictionary | SourceForge CBFlib site |
-                       | Click Here to Make a Donation |
-
                                      CBFlib
 
                                      README
@@ -18,6 +5,7 @@
             Information for CBFlib 0.9.3 release of 15 October 2013
                    Revised as CBFlib 0.9.3.1 16 October 2013
                    Revised as CBFlib 0.9.3.2 29 October 2013
+                   Revised as CBFlib 0.9.3.3 7 November 2013
 
                                        by
                                  Paul J. Ellis
@@ -56,6 +44,13 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    NeXus supported in part by Pandata ODI (EU 7th Framework Programme)
 
      ----------------------------------------------------------------------
+
+   CBFlib 0.9.3.3 adds examples of the description of a multi-module FEL
+   detector, thanks to Aaron Brewster of LCLS. New convenience accessor
+   functions have been added to expose the details of axes field by field.
+   Corrections have been made to the handling of _axis.rotation and
+   _axis.rotation_axis. This is an interim release. The API version and
+   dictionary will be updated on the next release.
 
    CBFlib 0.9.3.2 has a revised API version, and, otherwise, the same code as
    CBFlib 0.9.3.1, but with further update to the imgCIF dictionary to avoid
@@ -162,7 +157,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    A gizpped tarball of this release is available on sourceforge at
 
-   http://downloads.sf.net/cbflib/CBFlib-0.9.3.2.tar.gz
+   http://downloads.sf.net/cbflib/CBFlib-0.9.3.3.tar.gz
 
    In addition,
    http://downloads.sf.net/cbflib/CBFlib_0.9.3.2_Data_Files_Input.tar.gz (13
@@ -181,10 +176,10 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    machine, you only need to download the source tarball. If you do not have
    wget, you will need to download all the tarballs into the same directory
 
-   Uncompress CBFlib_0.9.3.2.tar.gz with gunzip and unpack it with tar:
+   Uncompress CBFlib_0.9.3.3.tar.gz with gunzip and unpack it with tar:
 
-      gunzip CBFlib_0.9.3.2.tar.gz
-      tar xvf CBFLIB_0.9.3.2.tar
+      gunzip CBFlib_0.9.3.3.tar.gz
+      tar xvf CBFLIB_0.9.3.3.tar
 
    To run the test programs, you will also need Paul Ellis's sample MAR345
    image, example.mar2300, Chris Nielsen's sample ADSC Quantum 315 image,
