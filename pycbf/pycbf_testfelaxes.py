@@ -1,4 +1,5 @@
 import pycbf, sys
+from decimal import Decimal, ROUND_HALF_UP
 
 image_file = sys.argv[1]
 
@@ -13,11 +14,20 @@ for element in range(64):
     v01 = d.get_pixel_coordinates(0, 1)
     v10 = d.get_pixel_coordinates(1, 0)
     v11 = d.get_pixel_coordinates(1, 1)
+    prec = Decimal('1.000000000')
 
-    print (0, 0), "v00", v00
-    print (0, 1), "v11", v01
-    print (1, 0), "v10", v10
-    print (1, 1), "v11", v11
+    print (0, 0), 'v00', '[', Decimal(str(v00[0])).quantize(prec,rounding=ROUND_HALF_UP),\
+                              Decimal(str(v00[1])).quantize(prec,rounding=ROUND_HALF_UP),\
+                              Decimal(str(v00[2])).quantize(prec,rounding=ROUND_HALF_UP),']'
+    print (0, 1), 'v01', '[', Decimal(str(v01[0])).quantize(prec,rounding=ROUND_HALF_UP),\
+                              Decimal(str(v01[1])).quantize(prec,rounding=ROUND_HALF_UP),\
+                              Decimal(str(v01[2])).quantize(prec,rounding=ROUND_HALF_UP),']'
+    print (1, 0), 'v10', '[', Decimal(str(v10[0])).quantize(prec,rounding=ROUND_HALF_UP),\
+                              Decimal(str(v10[1])).quantize(prec,rounding=ROUND_HALF_UP),\
+                              Decimal(str(v10[2])).quantize(prec,rounding=ROUND_HALF_UP),']'
+    print (1, 1), 'v11', '[', Decimal(str(v11[0])).quantize(prec,rounding=ROUND_HALF_UP),\
+                              Decimal(str(v11[1])).quantize(prec,rounding=ROUND_HALF_UP),\
+                              Decimal(str(v11[2])).quantize(prec,rounding=ROUND_HALF_UP),']'
 
     print "surface axes:",  d.get_detector_surface_axes(0), d.get_detector_surface_axes(1)
 
