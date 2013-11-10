@@ -1,17 +1,4 @@
 ######################################################################
-#  CMakeLists.txt - cmake build file for make to create              #
-#                   external_packages in CBFlib                      #
-#                                                                    #
-# Version 0.9.3 28 September 2013                                    #
-#                                                                    #
-#                          Paul Ellis and                            #
-#         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
-#                                                                    #
-# (C) Copyright 2006 - 2013 Herbert J. Bernstein                     #
-#                                                                    #
-######################################################################
-
-######################################################################
 #                                                                    #
 # YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE GPL #
 #                                                                    #
@@ -110,8 +97,6 @@
 # Based on SLAC Software Notices, Set 4                              #
 # OTT.002a, 2004 FEB 03                                              #
 ######################################################################
-
-
 
 ######################################################################
 #                               NOTICE                               #
@@ -248,183 +233,54 @@
 # Crystallography                                                    #
 ######################################################################
 
-######################################################################
-#  CMakeLists.txt for CBFlib                                         #
-#                                                                    #
-#  Assumed directory structure                                       #
-#    CBFlib_SOURCE_DIR        CBFlib kit containing this file        #
-#      doc                    Directory with documentation           #
-#      examples               Directory with example programs        #
-#      external_packages      Directory for external packages        #
-#      include                Directory with header files            #
-#      m4                     Directory with m4 files                #
-#      src                    Directory with source files            #
-#                                                                    #
-#    CBFlib_EXTP_BINARY_DIR        CBFlib build directory                 #
-#                               usually ${CBFlib_SOURCE_DIR}/build   #
-#      external_packages      Directory for HDF5, libtiff, etc.      #
-#        hdf5-1.8.11                                                 #
-#        tiff-3.9.4-rev-6Feb11                                       #
-#        regex-20090805                                              #
-#      data_files             Directory for test files               #
-#      bin                    Directory for executable programs      #
-#      include                Directory with build-created headers   #
-#      src                    Directory with build-created source    #
-#                                                                    #
-######################################################################
+# cmake script to run tests on minicbf2nexus
 
-
-cmake_minimum_required (VERSION 2.8)
-
-project (CBFlib_EXTP C CXX Fortran)
-
-#
-#  User setable parameters
-#
-#  NONE
-
-#
-# Macros
-#
-
-#
-#  CBF_DEBUG_MESSAGE if CBF_CMAKE_DEBUG issue str
-#
-macro(CBF_DEBUG_MESSAGE str)
-  if(CBF_CMAKE_DEBUG)
-    message(STATUS ${str})
-  endif(CBF_CMAKE_DEBUG)
-endmacro (CBF_DEBUG_MESSAGE)
-
-#
-# CBF_REQUIRE_DIRECTORY -- require directory dir
-#
-macro(CBF_REQUIRE_DIRECTORY dir)
-  if (NOT EXISTS "${dir}")
-    file(MAKE_DIRECTORY "${dir}")
-    CBF_DEBUG_MESSAGE("Created directory ${dir}")
-  endif (NOT EXISTS "${dir}")
-endmacro(CBF_REQUIRE_DIRECTORY)
-
-#
-# CBF_LOAD_TARBALL -- load TARBALL into WORK_DIR as UNPACKED_DIRECTORY
-#                     Use an absolute path for UNPACKED_DIRECTORY
-#
-macro(CBF_LOAD_TARBALL WORK_DIR UNPACKED_DIRECTORY TARBALL)
-if (NOT EXISTS ${UNPACKED_DIRECTORY})
+message(STATUS "Running program...")
 execute_process(
-  COMMAND ${WGET_EXECUTABLE} ${TARBALL}
-  WORKING_DIRECTORY ${WORK_DIR}
+	COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/minicbf2nexus
+        	-c zlib
+        	-C ${CBFlib_SOURCE_DIR}/minicbf_test/config
+        	--register manual
+        	-o minicbf.h5
+        	${CBF_DATADIRI}/X4_lots_M1S4_1_0001.cbf
+        	${CBF_DATADIRI}/X4_lots_M1S4_1_0002.cbf
+        	${CBF_DATADIRI}/X4_lots_M1S4_1_0003.cbf
+        	${CBF_DATADIRI}/X4_lots_M1S4_1_0004.cbf
+        	${CBF_DATADIRI}/X4_lots_M1S4_1_0005.cbf
+	RESULT_VARIABLE result
 )
+if (result)
+	message(FATAL_ERROR "failed")
+endif ()
+
+message(STATUS "Dumping expected output...")
 execute_process(
-  COMMAND ${CMAKE_COMMAND} -E tar xzvf ${UNPACKED_DIRECTORY}.tar.gz
-  WORKING_DIRECTORY ${WORK_DIR}
+	COMMAND ${HDF5_BINARY_DIR}/h5dump ${CBF_DATADIRO}/minicbf_original.h5
+	OUTPUT_FILE  minicbf_original.dump
+	RESULT_VARIABLE result
 )
+if (result)
+	message(FATAL_ERROR "failed")
+endif ()
+
+message(STATUS "Dumping actual output...")
 execute_process(
-  COMMAND ${CMAKE_COMMAND} -E remove ${UNPACKED_DIRECTORY}.tar.gz
-  WORKING_DIRECTORY ${WORK_DIR}
+	COMMAND ${HDF5_BINARY_DIR}/h5dump minicbf.h5
+	COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cbf_tail -n 1
+	OUTPUT_FILE  minicbf.dump
+	RESULT_VARIABLE result
 )
-endif (NOT EXISTS ${UNPACKED_DIRECTORY})
-endmacro(CBF_LOAD_TARBALL)
+if (result)
+	message(FATAL_ERROR "failed")
+endif ()
 
-#
-# Directories 
-#
-# Defined in parent CMakeLists.txt
-
-
-#
-#  ZLIB
-#
-find_package(ZLIB)
-
-#
-# CBF_HDF5  
-#
-CBF_LOAD_TARBALL(${CBF__EXT_PKG} ${CBF__EXT_PKG}/${CBF_HDF5} ${CBF_HDF5URL})
-include(ExternalProject)
-ExternalProject_add(HDF5
-    SOURCE_DIR ${CBF__EXT_PKG}/${CBF_HDF5}
-    BINARY_DIR ${CBF__EXT_PKG}/${CBF_HDF5}-build
-    CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE:STRING=RELEASE DEBUG
-      -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=On
-      -DHDF5_BUILD_CPP_LIB:BOOL=Off
-      -DBUILD_SHARED_LIBS:BOOL=On
-      -DHDF5_BUILD_TOOLS:BOOL=On
-      -DCMAKE_INSTALL_PREFIX:PATH=${CBFlib_BINARY_DIR}
-      INSTALL_DIR ${CBFlib_BINARY_DIR}/
+message(STATUS "Comparing...")
+execute_process(
+	COMMAND ${CMAKE_COMMAND} -E compare_files minicbf_original.dump minicbf.dump
+	COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cbf_tail -n 1
+	RESULT_VARIABLE result
 )
-SET (HDF5_INCLUDE_DIR ${CBFlib_BINARY_DIR}/include)
-SET (HDF5_LIBRARY_DIR ${CBFlib_BINARY_DIR}/lib)
-     
-install(DIRECTORY ${CBF__EXT_PKG}/${CBF_HDF5}-build/include/ DESTINATION ${CBFlib_BINARY_DIR}/include FILES_MATCHING PATTERN "*.h")
-install(DIRECTORY ${CBF__EXT_PKG}/${CBF_HDF5}-build/lib/ DESTINATION ${CBFlib_BINARY_DIR}/lib FILES_MATCHING PATTERN "*hdf5*")
-install(DIRECTORY ${CBF__EXT_PKG}/${CBF_HDF5}-build/bin/ DESTINATION ${CBFlib_BINARY_DIR}/bin FILES_MATCHING PATTERN "*hdf5*") 
-
-#
-# CBF_TIFF  
-#
-CBF_LOAD_TARBALL(${CBF__EXT_PKG} ${CBF__EXT_PKG}/${CBF_TIFF} ${CBF_TIFFURL})
-ExternalProject_add(TIFF
-    SOURCE_DIR ${CBF__EXT_PKG}/${CBF_TIFF}
-    BINARY_DIR ${CBF__EXT_PKG}/${CBF_TIFF}-build
-    CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE:STRING=RELEASE DEBUG
-      -DCMAKE_INSTALL_PREFIX:PATH=${CBFlib_BINARY_DIR}
-      INSTALL_DIR ${CBFlib_BINARY_DIR}/
-)
-SET (TIFF_INCLUDE_DIR ${CBFlib_BINARY_DIR}/include)
-SET (TIFF_LIBRARY_DIR ${CBFlib_BINARY_DIR}/lib)
-
-install(DIRECTORY ${CBF__EXT_PKG}/${CBF_TIFF}-build/include/ DESTINATION ${CBFlib_BINARY_DIR}/include FILES_MATCHING PATTERN "*.h")
-install(DIRECTORY ${CBF__EXT_PKG}/${CBF_TIFF}-build/lib/ DESTINATION ${CBFlib_BINARY_DIR}/lib FILES_MATCHING PATTERN "*tif*")
-install(DIRECTORY ${CBF__EXT_PKG}/${CBF_TIFF}-build/bin/ DESTINATION ${CBFlib_BINARY_DIR}/bin FILES_MATCHING PATTERN "*tif*")
-
-
-
-#
-# CBF_REGEX or CBF_PCRE
-#
-# Try for PCRE first
-find_library(CBF_REGEXLIB pcre)
-find_path(CBF_REGEXLIB_INCLUDE_DIR NAMES pcreposix.h)
-message(STATUS "CBF_REGEXLIB_INCLUDE_DIR for pcreposix.h ${CBF_REGEXLIB_INCLUDE_DIR}")
-if (${CBF_REGEXLIB_INCLUDE_DIR} STREQUAL "CBF_REGEXLIB_INCLUDE_DIR-NOTFOUND" 
-    OR ${CBF_REGEXLIB} STREQUAL "CBF_REGEXLIB-NOTFOUND")
-  # PCRE not found, try for REGEX
-  find_library(CBF_REGEXLIB regex)
-  find_path(CBF_REGEXLIB_INCLUDE_DIR NAMES regex.h)
-  message(STATUS "CBF_REGEXLIB_INCLUDE_DIR for regex.h ${CBF_REGEXLIB_INCLUDE_DIR}")
-  if (${CBF_REGEXLIB_INCLUDE_DIR} STREQUAL "CBF_REGEXLIB_INCLUDE_DIR-NOTFOUND" 
-    OR ${CBF_REGEXLIB} STREQUAL "CBF_REGEXLIB-NOTFOUND")
-    # Neither PCRE not REGEX found, load and build PCRE
-    CBF_LOAD_TARBALL(${CBF__EXT_PKG} ${CBF__EXT_PKG}/${CBF_PCRE} ${CBF_PCREURL})
-    ExternalProject_add(PCRE
-    SOURCE_DIR ${CBF__EXT_PKG}/${CBF_PCRE}
-    BINARY_DIR ${CBF__EXT_PKG}/${CBF_PCRE}-build
-    CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE:STRING=RELEASE DEBUG
-      -DCMAKE_INSTALL_PREFIX:PATH=${CBFlib_BINARY_DIR}
-      INSTALL_DIR ${CBFlib_BINARY_DIR}/
-    )
-    SET (CBF_REGEXLIB_INCLUDE_DIR ${CBFlib_BINARY_DIR}/include)
-    SET (CBF_REGEXLIB_LIBRARY_DIR ${CBFlib_BINARY_DIR}/lib)
-    install(DIRECTORY ${CBF__EXT_PKG}/${CBF_PCRE}-build/include/ DESTINATION ${CBFlib_BINARY_DIR}/include FILES_MATCHING PATTERN "*.h")
-    install(DIRECTORY ${CBF__EXT_PKG}/${CBF_PCRE}-build/lib/ DESTINATION ${CBFlib_BINARY_DIR}/lib FILES_MATCHING PATTERN "*pcre*")
-    install(DIRECTORY ${CBF__EXT_PKG}/${CBF_PCRE}-build/bin/ DESTINATION ${CBFlib_BINARY_DIR}/bin FILES_MATCHING PATTERN "*pcre*") 
-    add_definitions(-DCBF_REGEXLIB_PCRE)
- 
-  else (${CBF_REGEXLIB_INCLUDE_DIR} STREQUAL "CBF_REGEXLIB_INCLUDE_DIR-NOTFOUND" 
-    OR ${CBF_REGEXLIB} STREQUAL "CBF_REGEXLIB-NOTFOUND")
-    add_definitions(-DCBF_REGEXLIB_REGEX)
-  endif (${CBF_REGEXLIB_INCLUDE_DIR} STREQUAL "CBF_REGEXLIB_INCLUDE_DIR-NOTFOUND" 
-    OR ${CBF_REGEXLIB} STREQUAL "CBF_REGEXLIB-NOTFOUND")
-else (${CBF_REGEXLIB_INCLUDE_DIR} STREQUAL "CBF_REGEXLIB_INCLUDE_DIR-NOTFOUND" 
-    OR ${CBF_REGEXLIB} STREQUAL "CBF_REGEXLIB-NOTFOUND")
-  add_definitions(-DCBF_REGEXLIB_PCRE)
-endif (${CBF_REGEXLIB_INCLUDE_DIR} STREQUAL "CBF_REGEXLIB_INCLUDE_DIR-NOTFOUND" 
-    OR ${CBF_REGEXLIB} STREQUAL "CBF_REGEXLIB-NOTFOUND")
-CBF_DEBUG_MESSAGE("CBF_REGEXLIB: ${CBF_REGEXLIB}")
-CBF_DEBUG_MESSAGE("CBF_REGEXLIB_INCLUDE_DIR: ${CBF_REGEXLIB_INCLUDE_DIR}")
+if (result)
+	message(FATAL_ERROR "failed")
+endif ()
 

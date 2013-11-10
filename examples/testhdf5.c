@@ -61,22 +61,22 @@
 #endif
 
 /*
-Call a function unconditionally with the expectation that it should work.
-If it fails, print the location & error message, add the error to the pre-defined
-'error' variable and increment the number of failures.
-*/
+ Call a function unconditionally with the expectation that it should work.
+ If it fails, print the location & error message, add the error to the pre-defined
+ 'error' variable and increment the number of failures.
+ */
 #define CBF_CALL(func) \
 do { \
-	const int err = (func); \
-	if (CBF_SUCCESS!=err) { \
-		error |= err; \
-		fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(err)); \
-	} \
+const int err = (func); \
+if (CBF_SUCCESS!=err) { \
+error |= err; \
+fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(err)); \
+} \
 } while (0)
 
 /*
-NOTE: this only works with exactly representable 'sentinel' values, do not use with arbitrary numbers
-*/
+ NOTE: this only works with exactly representable 'sentinel' values, do not use with arbitrary numbers
+ */
 #ifdef CBF_USE_ULP
 int cmp_dbl_exact(const void * expected, const void * existing, size_t length, const void * const params)
 #else
@@ -114,8 +114,8 @@ int cmp_hsize_t_exact(const void * expected, const void * existing, size_t lengt
 }
 
 /*
-compare 2 HDF5 objects, return 0 if they are equal, non-zero otherwise
-*/
+ compare 2 HDF5 objects, return 0 if they are equal, non-zero otherwise
+ */
 int cmp_object(const hid_t obj1, const hid_t obj2)
 {
 	H5O_info_t info1, info2;
@@ -129,35 +129,35 @@ int cmp_object(const hid_t obj1, const hid_t obj2)
 }
 
 testResult_t _test_H5Arequire_cmp
-		(const hid_t obj,
-		const char * const attrName,
-		const int rank,
-		const hsize_t * const dim,
-		const hsize_t * const dim_h,
-		const hsize_t * const dim_l,
-		const hid_t ftype,
-		const hid_t ftype_b,
-		const hid_t mtype,
-		const void * const attrValue,
-		const void * const attrValue_b,
-		void * const buf,
+(const hid_t obj,
+ const char * const attrName,
+ const int rank,
+ const hsize_t * const dim,
+ const hsize_t * const dim_h,
+ const hsize_t * const dim_l,
+ const hid_t ftype,
+ const hid_t ftype_b,
+ const hid_t mtype,
+ const void * const attrValue,
+ const void * const attrValue_b,
+ void * const buf,
 #ifdef CBF_USE_ULP
-		int cmp(const void *, const void *, size_t, const void * const),
-		const void * const cmp_params)
+ int cmp(const void *, const void *, size_t, const void * const),
+ const void * const cmp_params)
 #else
-        int cmp(const void *, const void *, size_t))
+int cmp(const void *, const void *, size_t))
 #endif
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
-
+    
 	if (rank<0) {
 		fprintf(stderr,"%s: Error: test function called incorrectly\n",__WHERE__);
 		++r.fail;
 		return r;
 	}
     
-
+    
 	/* test creation of the attributes */
 #ifdef CBF_USE_ULP
 	TEST_CBF_PASS(cbf_H5Arequire_cmp2_ULP(obj,attrName,rank,dim,ftype,mtype,attrValue,buf,cmp,cmp_params));
@@ -220,9 +220,9 @@ testResult_t test_H5Arequire_cmp(const hid_t obj)
 {
 	testResult_t r = {0,0,0};
 	/*
-	Test the attribute API on hdf5 object 'obj'.
-	*/
-
+     Test the attribute API on hdf5 object 'obj'.
+     */
+    
 	{ /* verify expected failures */
 		const char attrName[] = "fail";
 		int attrValue[] = {0,1,2,3};
@@ -244,10 +244,10 @@ testResult_t test_H5Arequire_cmp(const hid_t obj)
 		TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,attrName,1,dim,CBF_H5FAIL,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact));
 		TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,attrName,1,dim,H5T_STD_I32LE,CBF_H5FAIL,attrValue,buf,cmp_int_exact));
 		TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,attrName,1,dim,H5T_STD_I32LE,H5T_NATIVE_INT,0,buf,cmp_int_exact));
-
+        
 #endif
 	}
-
+    
 	{ /* rank 0 */
 		int attrValue[] = {42};
 		int attrValue_b[] = {43};
@@ -295,7 +295,7 @@ testResult_t test_H5Arequire_cmp(const hid_t obj)
 		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i2_b",2,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact,0));
 #else
 		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i2",2,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,0,cmp_int_exact));
-		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i2_b",2,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact));        
+		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i2_b",2,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact));
 #endif
 	}
 	return r;
@@ -306,20 +306,20 @@ testResult_t test_H5Arequire_string(const hid_t obj)
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
 	/*
-	Test the attribute API on hdf5 object 'obj'.
-	*/
+     Test the attribute API on hdf5 object 'obj'.
+     */
 	const char attrName[] = "attr_r0_str";
 	const char attrValue[] = "value";
 	const char attrValue_b[] = "Value";
-
+    
 	/* verify expected failures */
 	TEST_CBF_FAIL(cbf_H5Arequire_string(CBF_H5FAIL,attrName,attrValue));
 	TEST_CBF_FAIL(cbf_H5Arequire_string(obj,0,attrValue));
 	TEST_CBF_FAIL(cbf_H5Arequire_string(obj,attrName,0));
-
+    
 	/* test creation of the attributes */
 	TEST_CBF_PASS(cbf_H5Arequire_string(obj,attrName,attrValue));
-
+    
 	{/* independently verify existance */
 		hid_t attr = CBF_H5FAIL;
 		TEST(H5Aexists(obj,attrName)>0);
@@ -338,10 +338,10 @@ testResult_t test_H5Arequire_string(const hid_t obj)
 		}
 		H5Aclose(attr);
 	}
-
+    
 	/* test verification of existing attributes */
 	TEST_CBF_PASS(cbf_H5Arequire_string(obj,attrName,attrValue));
-
+    
 	/* test failure to verify differing attribute values */
 	TEST_CBF_FAIL(cbf_H5Arequire_string(obj,attrName,attrValue_b));
 	return r;
@@ -352,8 +352,8 @@ testResult_t testDatasetFind(const hid_t grp, hsize_t * const buf)
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
 	/*
-	Test the dataset find function on hdf5 group 'grp', with or without a buffer being set.
-	*/
+     Test the dataset find function on hdf5 group 'grp', with or without a buffer being set.
+     */
 	const int rank = 2;
 	const hsize_t dim[] = {0,0};
 	const hsize_t max[] = {H5S_UNLIMITED,16};
@@ -365,16 +365,16 @@ testResult_t testDatasetFind(const hid_t grp, hsize_t * const buf)
 	const char * const name1 = 0==buf ? name00 : name01;
 	const char * const name2 = 0==buf ? name10 : name11;
 	hid_t validHandle = CBF_H5FAIL;
-
+    
 	TEST(H5I_GROUP==H5Iget_type(grp));
-
+    
 	/* ensure a suitable test environment exists */
 	if (CBF_SUCCESS==error) {
 		if (0!=H5Lexists(grp,name1,H5P_DEFAULT)) error |= CBF_H5ERROR;
 		CBF_CALL(cbf_H5Dcreate(grp,&validHandle,name1,rank,dim,max,chunk,H5T_NATIVE_INT));
 		if (!cbf_H5Ivalid(validHandle)) error |= CBF_H5ERROR;
 	}
-
+    
 	/* do the tests? */
 	if (CBF_SUCCESS==error && !r.fail) {
 		/* verify expected failures */
@@ -393,7 +393,7 @@ testResult_t testDatasetFind(const hid_t grp, hsize_t * const buf)
 		{ /* check case where match not found (by name), but dataset can be created */
 			hid_t handle = CBF_H5FAIL;
 			const hid_t tmpHandle = handle;
-			TEST(CBF_NOTFOUND==cbf_H5Dfind2(grp,&handle,name2,rank,max,buf,H5T_NATIVE_INT));
+			TEST_CBF_NOTFOUND(cbf_H5Dfind2(grp,&handle,name2,rank,max,buf,H5T_NATIVE_INT));
 			TEST(!cbf_H5Ivalid(handle));
 			TEST(tmpHandle==handle);
 			cbf_H5Dfree(handle);
@@ -410,9 +410,9 @@ testResult_t testDatasetFind(const hid_t grp, hsize_t * const buf)
 			hid_t handle = CBF_H5FAIL;
 			const hid_t tmpHandle = handle;
 			/*
-			NOTE: max & buf lengths are not (and can't be) tested, just assumed to contain 'rank' elements if used.
-			Therefore, don't do this test with a higher rank than the number of elements in either of those arrays.
-			*/
+             NOTE: max & buf lengths are not (and can't be) tested, just assumed to contain 'rank' elements if used.
+             Therefore, don't do this test with a higher rank than the number of elements in either of those arrays.
+             */
 			TEST_CBF_FAIL(cbf_H5Dfind2(grp,&handle,name1,rank-1,max,buf,H5T_NATIVE_INT));
 			TEST(!cbf_H5Ivalid(handle));
 			TEST(tmpHandle==handle);
@@ -439,7 +439,7 @@ testResult_t testDatasetFind(const hid_t grp, hsize_t * const buf)
 		++r.skip;
 	}
 	cbf_H5Dfree(validHandle);
-
+    
 	return r;
 }
 
@@ -447,14 +447,14 @@ testResult_t test_H5Dcreate(const hid_t grp, hid_t * const dset, const char * na
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
-
+    
 	const int rank = 2;
 	const hsize_t dim[] = {0,0};
 	const hsize_t max[] = {H5S_UNLIMITED,16};
 	const hsize_t chunk[] = {1,16};
-
+    
 	TEST(H5I_GROUP==H5Iget_type(grp));
-
+    
 	/* Ensure it fails at the appropriate times */
 	TEST_CBF_FAIL(cbf_H5Dcreate(CBF_H5FAIL,dset,name,rank,dim,max,chunk,H5T_NATIVE_INT));
 	TEST_CBF_FAIL(cbf_H5Dcreate(grp,dset,0,rank,dim,max,chunk,H5T_NATIVE_INT));
@@ -462,7 +462,7 @@ testResult_t test_H5Dcreate(const hid_t grp, hid_t * const dset, const char * na
 	TEST_CBF_FAIL(cbf_H5Dcreate(grp,dset,name,rank,0,max,chunk,H5T_NATIVE_INT));
 	TEST_CBF_FAIL(cbf_H5Dcreate(grp,dset,name,rank,dim,max,0,H5T_NATIVE_INT));
 	TEST_CBF_FAIL(cbf_H5Dcreate(grp,dset,name,rank,dim,max,chunk,CBF_H5FAIL));
-
+    
 	{ /* pre-conditions: no dataset */
 		TEST(!cbf_H5Ivalid(*dset));
 		TEST(0==H5Lexists(grp,name,H5P_DEFAULT));
@@ -493,7 +493,7 @@ testResult_t test_H5Dcreate(const hid_t grp, hid_t * const dset, const char * na
 		TEST(!cmp_object(*dset,dsetObj));
 		H5Oclose(dsetObj);
 	}
-
+    
 	return r;
 }
 
@@ -501,10 +501,10 @@ testResult_t test_H5Dfree(const hid_t grp, const hid_t dset, const char * name)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
-
+    
 	TEST(H5I_GROUP==H5Iget_type(grp));
 	TEST(H5I_DATASET==H5Iget_type(dset));
-
+    
 	{ /* pre-conditions */
 		hid_t dsetObj = CBF_H5FAIL;
 		TEST(cbf_H5Ivalid(dset));
@@ -527,7 +527,7 @@ testResult_t test_H5Dfree(const hid_t grp, const hid_t dset, const char * name)
 	}
 	/* Freeing a previously free'd handle should fail */
 	TEST_CBF_FAIL(cbf_H5Dfree(dset));
-
+    
 	return r;
 }
 
@@ -539,27 +539,27 @@ testResult_t test_H5Drequire_flstring(const hid_t grp)
 	const char value[] = "  value...\n\twith leading/trailing spaces & a newline  ";
 	const char value_b[] = "  Value...\n\twith leading/trailing spaces & a newline  ";
 	hid_t handle = CBF_H5FAIL;
-
+    
 	TEST(H5I_GROUP==H5Iget_type(grp));
-
+    
 	/* verify expected failures */
 	TEST_CBF_FAIL(cbf_H5Drequire_flstring(CBF_H5FAIL,&handle,name,value));
 	TEST_CBF_FAIL(cbf_H5Drequire_flstring(grp,&handle,0,value));
 	TEST_CBF_FAIL(cbf_H5Drequire_flstring(grp,&handle,name,0));
-
+    
 	/* test creation of the dataset */
 	TEST_CBF_PASS(cbf_H5Drequire_flstring(grp,&handle,name,value));
-
+    
 	{/* independently verify existance */
 		hid_t dset = CBF_H5FAIL;
-
+        
 		/* verify existence of link */
 		TEST(H5Lexists(grp,name,H5P_DEFAULT)>0);
 		/* open it and verify object type & data type */
 		TEST(cbf_H5Ivalid(dset = H5Oopen(grp,name,H5P_DEFAULT)));
 		/* check object type */
 		TEST(H5I_DATASET==H5Iget_type(dset));
-
+        
 		{ /* verify dataspace */
 			hid_t expected = H5Screate(H5S_SCALAR);
 			const hid_t existing = H5Dget_space(dset);
@@ -573,18 +573,18 @@ testResult_t test_H5Drequire_flstring(const hid_t grp)
 			TEST(0==H5Tis_variable_str(type));
 			H5Tclose(type);
 		}
-
+        
 		/* close the object */
 		H5Oclose(dset);
 	}
 	cbf_H5Dfree(handle);
-
+    
 	/* test verification of existing datasets */
 	TEST_CBF_PASS(cbf_H5Drequire_flstring(grp,&handle,name,value));
 	/* test failure to verify a different dataset */
 	TEST_CBF_FAIL(cbf_H5Drequire_flstring(grp,&handle,name,value_b));
 	cbf_H5Dfree(handle);
-
+    
 	return r;
 }
 
@@ -597,9 +597,9 @@ testResult_t test_H5Drequire_F64LE(const hid_t grp)
 	/* exactly representable 'sentinel' values, to avoid approximation/rounding errors & allow exact comparisons */
 	const double value = 42.;
 	const double value_b = 1.;
-
+    
 	TEST(H5I_GROUP==H5Iget_type(grp));
-
+    
 	/* verify expected failures */
 #ifdef CBF_USE_ULP
 	TEST_CBF_FAIL(cbf_H5Drequire_scalar_F64LE2_ULP(CBF_H5FAIL,&handle,name,value,cmp_dbl_exact,0));
@@ -608,24 +608,24 @@ testResult_t test_H5Drequire_F64LE(const hid_t grp)
 	TEST_CBF_FAIL(cbf_H5Drequire_scalar_F64LE2(CBF_H5FAIL,&handle,name,value,cmp_dbl_exact));
 	TEST_CBF_FAIL(cbf_H5Drequire_scalar_F64LE2(grp,&handle,0,value,cmp_dbl_exact));
 #endif
-
+    
 	/* test creation of the dataset */
 #ifdef CBF_USE_ULP
 	TEST_CBF_PASS(cbf_H5Drequire_scalar_F64LE2_ULP(grp,&handle,name,value,cmp_dbl_exact,0));
 #else
 	TEST_CBF_PASS(cbf_H5Drequire_scalar_F64LE2(grp,&handle,name,value,cmp_dbl_exact));
 #endif
-
+    
 	{/* independently verify existance */
 		hid_t dset = CBF_H5FAIL;
-
+        
 		/* verify existence of link */
 		TEST(H5Lexists(grp,name,H5P_DEFAULT)>0);
 		/* open it and verify object type & data type */
 		TEST(cbf_H5Ivalid(dset = H5Oopen(grp,name,H5P_DEFAULT)));
 		/* check object type */
 		TEST(H5I_DATASET==H5Iget_type(dset));
-
+        
 		{ /* verify dataspace */
 			hid_t expected = H5Screate(H5S_SCALAR);
 			const hid_t existing = H5Dget_space(dset);
@@ -638,12 +638,12 @@ testResult_t test_H5Drequire_F64LE(const hid_t grp)
 			TEST(H5T_FLOAT == H5Tget_class(type));
 			H5Tclose(type);
 		}
-
+        
 		/* close the object */
 		H5Oclose(dset);
 	}
 	cbf_H5Dfree(handle);
-
+    
 #ifdef CBF_USE_ULP
 	/* test verification of existing datasets */
 	TEST_CBF_PASS(cbf_H5Drequire_scalar_F64LE2_ULP(grp,&handle,name,value,cmp_dbl_exact,0));
@@ -656,7 +656,7 @@ testResult_t test_H5Drequire_F64LE(const hid_t grp)
 	TEST_CBF_FAIL(cbf_H5Drequire_scalar_F64LE2(grp,&handle,name,value_b,cmp_dbl_exact));
 #endif
 	cbf_H5Dfree(handle);
-
+    
 	return r;
 }
 
@@ -664,7 +664,7 @@ testResult_t test_H5Dset_extent(const hid_t grp)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
-
+    
 	const int rank = 2;
 	const hsize_t dim[] = {0,0};
 	const hsize_t dim2[] = {2,16};
@@ -672,19 +672,19 @@ testResult_t test_H5Dset_extent(const hid_t grp)
 	const hsize_t chunk[] = {1,16};
 	const char name[] = "dataset_set_extent";
 	hid_t handle = CBF_H5FAIL;
-
+    
 	TEST(H5I_GROUP==H5Iget_type(grp));
-
+    
 	/* ensure a suitable test environment exists */
 	if (0!=H5Lexists(grp,name,H5P_DEFAULT)) error |= CBF_H5ERROR;
 	CBF_CALL(cbf_H5Dcreate(grp,&handle,name, rank,dim,max, chunk, H5T_NATIVE_INT));
 	if (!cbf_H5Ivalid(handle)) error |= CBF_H5ERROR;
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		/* verify expected failures */
 		TEST_CBF_FAIL(cbf_H5Dset_extent(CBF_H5FAIL,dim2));
 		TEST_CBF_FAIL(cbf_H5Dset_extent(handle,0));
-
+        
 		{ /* check current extent */
 			const hid_t dataspace = H5Dget_space(handle);
 			hsize_t currDims[] = {-1,-1};
@@ -697,10 +697,10 @@ testResult_t test_H5Dset_extent(const hid_t grp)
 			TEST(max[0]==currMax[0]);
 			TEST(max[1]==currMax[1]);
 		}
-
+        
 		/* change the extent */
 		TEST_CBF_PASS(cbf_H5Dset_extent(handle,dim2));
-
+        
 		{ /* verify the new extent */
 			const hid_t dataspace = H5Dget_space(handle);
 			hsize_t currDims[] = {-1,-1};
@@ -719,9 +719,9 @@ testResult_t test_H5Dset_extent(const hid_t grp)
 	}
 	if (CBF_SUCCESS!=error)
 		fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(error));
-
+    
 	cbf_H5Dfree(handle);
-
+    
 	return r;
 }
 
@@ -737,7 +737,7 @@ testResult_t testDataset_read_write(const hid_t grp)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
-
+    
 	const char name0[] = "dataset_read_write_rank0";
 	const char name2[] = "dataset_read_write_rank2";
 	hid_t handle0 = CBF_H5FAIL;
@@ -759,18 +759,18 @@ testResult_t testDataset_read_write(const hid_t grp)
 	const hsize_t max[] = {H5S_UNLIMITED,N2};
 	const hsize_t chunk[] = {1,N2};
 	TEST(H5I_GROUP==H5Iget_type(grp));
-
+    
 	{/* populate the data */
 		int i;
 		for (i = 0; i < N2; ++i) dataWrite2[i] = i*i;
 	}
-
+    
 	/* ensure a suitable test environment exists */
 	CBF_CALL(cbf_H5Dcreate(grp,&handle0,name0, 0,0,0, 0, H5T_NATIVE_INT));
 	if (!cbf_H5Ivalid(handle0)) error |= CBF_H5ERROR;
 	CBF_CALL(cbf_H5Dcreate(grp,&handle2,name2, rank,dim,max, chunk, H5T_NATIVE_INT));
 	if (!cbf_H5Ivalid(handle2)) error |= CBF_H5ERROR;
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		/* verify expected failures */
 		TEST_CBF_FAIL(cbf_H5Dwrite2(CBF_H5FAIL,offset,stride,count,dataWrite2,H5T_NATIVE_INT));
@@ -778,20 +778,20 @@ testResult_t testDataset_read_write(const hid_t grp)
 		TEST_CBF_FAIL(cbf_H5Dwrite2(handle2,offset,stride,0,dataWrite2,H5T_NATIVE_INT));
 		TEST_CBF_FAIL(cbf_H5Dwrite2(handle2,offset,stride,count,0,H5T_NATIVE_INT));
 		TEST_CBF_FAIL(cbf_H5Dwrite2(handle2,offset,stride,count,dataWrite2,CBF_H5FAIL));
-
+        
 		{ /* rank 0 */
 			/* check read/write with null pointers */
 			TEST_CBF_PASS(cbf_H5Dwrite2(handle0,0,0,0,dataWrite0,H5T_NATIVE_INT));
 			TEST_CBF_PASS(cbf_H5Dread2(handle0,0,0,0,dataRead0,H5T_NATIVE_INT));
 			TEST(*dataWrite0 == *dataRead0);
 		}
-
+        
 		/* rank 2: need to check independent changes to offset/stride/count, and allow for null stride */
-
+        
 		{ /* Using default ({1,1,...,1}) strides, 4 permutations of (read,write)^(NULL,{1,1,...,1}) */
 			/* verify writing with {1,1,...,1} stride */
 			TEST_CBF_PASS(cbf_H5Dwrite2(handle2,offset,stride,count,dataWrite2,H5T_NATIVE_INT));
-
+            
 			/* check I can read the data with the default stride */
 			fill_array(dataRead2,N2,-1);
 			TEST_CBF_PASS(cbf_H5Dread2(handle2,offset,stride,count,dataRead2,H5T_NATIVE_INT));
@@ -800,7 +800,7 @@ testResult_t testDataset_read_write(const hid_t grp)
 #else
             TEST(!cmp_int_exact(dataWrite2,dataRead2,N2));
 #endif
-
+            
 			/* check I can read the data with the (equivalent) null stride */
 			fill_array(dataRead2,N2,-1);
 			TEST_CBF_PASS(cbf_H5Dread2(handle2,offset,0,count,dataRead2,H5T_NATIVE_INT));
@@ -809,10 +809,10 @@ testResult_t testDataset_read_write(const hid_t grp)
 #else
             TEST(!cmp_int_exact(dataWrite2,dataRead2,N2));
 #endif
-
+            
 			/* verify writing with null stride */
 			TEST_CBF_PASS(cbf_H5Dwrite2(handle2,offset,0,count,dataWrite2,H5T_NATIVE_INT));
-
+            
 			/* check I can read the data with the (equivalent) default stride */
 			fill_array(dataRead2,N2,-1);
 			TEST_CBF_PASS(cbf_H5Dread2(handle2,offset,stride,count,dataRead2,H5T_NATIVE_INT));
@@ -821,7 +821,7 @@ testResult_t testDataset_read_write(const hid_t grp)
 #else
             TEST(!cmp_int_exact(dataWrite2,dataRead2,N2));
 #endif
-
+            
 			/* check I can read the data with the null stride */
 			fill_array(dataRead2,N2,-1);
 			TEST_CBF_PASS(cbf_H5Dread2(handle2,offset,0,count,dataRead2,H5T_NATIVE_INT));
@@ -831,7 +831,7 @@ testResult_t testDataset_read_write(const hid_t grp)
             TEST(!cmp_int_exact(dataWrite2,dataRead2,N2));
 #endif
 		}
-
+        
 		{ /* verify writing with an offset */
 			TEST_CBF_PASS(cbf_H5Dwrite2(handle2,offset_1,stride,count,dataWrite2,H5T_NATIVE_INT));
 			/* check I can read the data with the default stride */
@@ -851,14 +851,14 @@ testResult_t testDataset_read_write(const hid_t grp)
 			TEST(!cmp_int_exact(dataWrite2,dataRead2,N2));
 #endif
 		}
-
+        
 		{ /* verify writing with a non-trivial stride, which uses but doesn't verify that a different count works */
 			{ /* first set a reasonable 'background' value - later tests will ensure it worked */
 				int background[16];
 				fill_array(background,N2,-1);
 				TEST_CBF_PASS(cbf_H5Dwrite2(handle2,offset,0,count,background,H5T_NATIVE_INT));
 			}
-
+            
 			/* change settings & do the real write */
 			TEST_CBF_PASS(cbf_H5Dwrite2(handle2,offset,stride_2,count_2,dataWrite2,H5T_NATIVE_INT));
 			/* check I can read the data with the same stride */
@@ -882,7 +882,7 @@ testResult_t testDataset_read_write(const hid_t grp)
 #endif
 			}
 		}
-
+        
 		{ /* verify writing with a different count */
 			{ /* first set a reasonable 'background' value - later tests will ensure it worked */
 				int background[16];
@@ -919,30 +919,30 @@ testResult_t testDataset_read_write(const hid_t grp)
 	}
 	if (CBF_SUCCESS!=error)
 		fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(error));
-
+    
 	/* free the handle after using it */
 	cbf_H5Dfree(handle0);
 	cbf_H5Dfree(handle2);
-
+    
 	return r;
 }
 
 /* wrapper for common tests, expected failures checked in calling function */
 testResult_t test_H5Drequire
-		(const hid_t grp,
-		const char * const name,
-		const int rank,
-		const hsize_t * const max,
-		const hsize_t * const cnk,
-		hsize_t * const buf,
-		const hid_t type)
+(const hid_t grp,
+ const char * const name,
+ const int rank,
+ const hsize_t * const max,
+ const hsize_t * const cnk,
+ hsize_t * const buf,
+ const hid_t type)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
 	hid_t dset = CBF_H5FAIL;
-
+    
 	TEST(H5I_GROUP==H5Iget_type(grp));
-
+    
 	{ /* pre-conditions: no dataset */
 		TEST(!cbf_H5Ivalid(dset));
 		TEST(0==H5Lexists(grp,name,H5P_DEFAULT));
@@ -969,36 +969,36 @@ testResult_t test_H5Drequire
 		TEST(!cmp_object(dset,dsetObj));
 		H5Oclose(dsetObj);
 	}
-
+    
 	cbf_H5Dfree(dset);
-
+    
 	return r;
 }
 
 /* wrapper for common tests, expected failures checked in calling function */
 testResult_t test_H5Dinsert
-		(const hid_t dset,
-		const hsize_t * const off,
-		const hsize_t * const std,
-		const hsize_t * const cnt,
-		hsize_t * const buf, /* length = rank */
-		const void * const val,
-		void * const valBuf, /* length = nElems */
-		const hid_t type, /* type of val & valBuf = H5T_NATIVE_SOMETHING */
+(const hid_t dset,
+ const hsize_t * const off,
+ const hsize_t * const std,
+ const hsize_t * const cnt,
+ hsize_t * const buf, /* length = rank */
+ const void * const val,
+ void * const valBuf, /* length = nElems */
+ const hid_t type, /* type of val & valBuf = H5T_NATIVE_SOMETHING */
 #ifdef CBF_USE_ULP
-		int (*cmp)(const void * const, const void * const, size_t, const void * const),
-		const size_t length,
-		const void * const cmp_params)
+ int (*cmp)(const void * const, const void * const, size_t, const void * const),
+ const size_t length,
+ const void * const cmp_params)
 #else
-        int (*cmp)(const void * const, const void * const, size_t),
-        const size_t length)
+int (*cmp)(const void * const, const void * const, size_t),
+const size_t length)
 #endif
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
-
+    
 	TEST(H5I_DATASET==H5Iget_type(dset));
-
+    
 	/* pre-conditions */
 	TEST(cbf_H5Ivalid(dset));
 	/* call the function */
@@ -1011,7 +1011,7 @@ testResult_t test_H5Dinsert
         if (CBF_SUCCESS==error) TEST(!cmp(val,valBuf,length));
 #endif
 	}
-
+    
 	return r;
 }
 
@@ -1020,11 +1020,11 @@ testResult_t testDatasets(const hid_t grp)
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
 	/*
-	Test the dataset API on hdf5 group 'grp'.
-	*/
-
+     Test the dataset API on hdf5 group 'grp'.
+     */
+    
 	TEST(H5I_GROUP==H5Iget_type(grp));
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		/* create & free functions */
 		const char name[] = "dataset_create_free";
@@ -1036,7 +1036,7 @@ testResult_t testDatasets(const hid_t grp)
 		fprintf(stderr,"%s: Skipping dataset/create&free tests\n",__WHERE__);
 		++r.skip;
 	}
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		/* find function */
 		hsize_t buf[] = {0,0};
@@ -1046,35 +1046,35 @@ testResult_t testDatasets(const hid_t grp)
 		fprintf(stderr,"%s: Skipping dataset/find tests\n",__WHERE__);
 		++r.skip;
 	}
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		TEST_COMPONENT(test_H5Drequire_flstring(grp));
 	} else {
 		fprintf(stderr,"%s: Skipping dataset/require_flstring tests\n",__WHERE__);
 		++r.skip;
 	}
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		TEST_COMPONENT(test_H5Drequire_F64LE(grp));
 	} else {
 		fprintf(stderr,"%s: Skipping dataset/require_F64LE tests\n",__WHERE__);
 		++r.skip;
 	}
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		TEST_COMPONENT(test_H5Dset_extent(grp));
 	} else {
 		fprintf(stderr,"Skipping dataset/set_extent tests\n");
 		++r.skip;
 	}
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		TEST_COMPONENT(testDataset_read_write(grp));
 	} else {
 		fprintf(stderr,"Skipping dataset/read&write tests\n");
 		++r.skip;
 	}
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		hid_t dset = CBF_H5FAIL;
 		const hsize_t max[] = {H5S_UNLIMITED,2};
@@ -1098,7 +1098,7 @@ testResult_t testDatasets(const hid_t grp)
 		fprintf(stderr,"Skipping dataset/require tests\n");
 		++r.skip;
 	}
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		hid_t dset = CBF_H5FAIL;
 		const hsize_t dim[] = {0,2};
@@ -1136,7 +1136,7 @@ testResult_t testDatasets(const hid_t grp)
 		fprintf(stderr,"Skipping dataset/insert tests\n");
 		++r.skip;
 	}
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		/* test some of the attribute management API */
 		hid_t handle = CBF_H5FAIL;
@@ -1156,28 +1156,28 @@ testResult_t testDatasets(const hid_t grp)
 		fprintf(stderr,"Skipping dataset/attribute tests\n");
 		++r.skip;
 	}
-
+    
 	return r;
 }
 
 /*
-Test the group API in hdf5 file or group 'obj'.
-*/
+ Test the group API in hdf5 file or group 'obj'.
+ */
 testResult_t testGroups(const hid_t obj)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
 	const char grpname1[] = "group_1";
 	const char grpname2[] = "group_2";
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		/*
-		cbf_H5Gcreate & cbf_H5Gfree:
-		Verify expected failures,
-		create a new group,
-		ensure I can't create a duplicate group,
-		check that freeing groups works correctly.
-		*/
+         cbf_H5Gcreate & cbf_H5Gfree:
+         Verify expected failures,
+         create a new group,
+         ensure I can't create a duplicate group,
+         check that freeing groups works correctly.
+         */
 		hid_t grp = CBF_H5FAIL;
 		TEST_CBF_FAIL(cbf_H5Gcreate(CBF_H5FAIL, &grp, grpname1));
 		TEST_CBF_FAIL(cbf_H5Gcreate(obj, 0, grpname1));
@@ -1216,14 +1216,14 @@ testResult_t testGroups(const hid_t obj)
 		fprintf(stderr,"Skipping group/create-free tests\n");
 		++r.skip;
 	}
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		/*
-		cbf_H5Grequire:
-		Verify expected failures,
-		check I can retrieve an existing group,
-		check I can create a new group.
-		*/
+         cbf_H5Grequire:
+         Verify expected failures,
+         check I can retrieve an existing group,
+         check I can create a new group.
+         */
 		hid_t grp1 = CBF_H5FAIL;
 		hid_t grp2 = CBF_H5FAIL;
 		TEST_CBF_FAIL(cbf_H5Grequire(CBF_H5FAIL, &grp1, grpname1));
@@ -1256,7 +1256,7 @@ testResult_t testGroups(const hid_t obj)
 		fprintf(stderr,"Skipping group/require tests\n");
 		++r.skip;
 	}
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		/* test some of the dataset management API */
 		hid_t grp = CBF_H5FAIL;
@@ -1267,7 +1267,7 @@ testResult_t testGroups(const hid_t obj)
 		++r.skip;
 		fprintf(stderr,"%s: Skipping dataset tests\n",__WHERE__);
 	}
-
+    
 	if (CBF_SUCCESS==error && !r.fail) {
 		/* test some of the attribute management API */
 		hid_t grp = CBF_H5FAIL;
@@ -1279,7 +1279,7 @@ testResult_t testGroups(const hid_t obj)
 		++r.skip;
 		fprintf(stderr,"%s: Skipping attribute tests\n",__WHERE__);
 	}
-
+    
 	return r;
 }
 
@@ -1288,8 +1288,8 @@ testResult_t testDatatypes()
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
 	/*
-	Test the datatype API.
-	*/
+     Test the datatype API.
+     */
 	{ /* test variable length string type creation */
 		hid_t type = CBF_H5FAIL;
 		TEST_CBF_PASS(cbf_H5Tcreate_string(&type, H5T_VARIABLE));
@@ -1327,8 +1327,8 @@ testResult_t testDataspaces()
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
 	/*
-	Test the dataspace API.
-	*/
+     Test the dataspace API.
+     */
 	{ /* rank -1 */
 		hid_t space = CBF_H5FAIL;
 		TEST_CBF_FAIL(cbf_H5Screate(&space,-1,0,0));
@@ -1457,7 +1457,7 @@ int main()
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
-
+    
 	/* test the test functions a bit */
 	TEST(1);
 	TEST_CBF_PASS(CBF_SUCCESS);
@@ -1465,10 +1465,10 @@ int main()
 	TEST_CBF_FAIL(CBF_ARGUMENT);
 	TEST_CBF_FAIL(CBF_H5ERROR);
 	TEST_CBF_FAIL(CBF_H5DIFFERENT);
-
+    
 	/* check that cbf_H5Ivalid can fail: */
 	TEST(!cbf_H5Ivalid(CBF_H5FAIL));
-
+    
 	{ /* Try opening a file */
 		const char filename[] = "testfile.h5";
 		hid_t h5file = CBF_H5FAIL;
@@ -1485,8 +1485,8 @@ int main()
 			TEST(CBF_H5FAIL!=h5file);
 		}
 	}
-
-	printf("%d passed\n%d failed\n%d skipped\n", r.pass, r.fail, r.skip);
+    
+	printf_results(&r);
 	return r.fail ? 1 : 0;
 }
 

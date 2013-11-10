@@ -730,7 +730,72 @@ Returns an error code on failure or 0 for success.
     cbf_failnez(cbf_construct_detector(self,&detector,element_number));
     return detector;
     }
+%feature("autodoc", "
+Returns : String
+*args   : String axis_id
 
+C prototype: int cbf_get_axis_depends_on (cbf_handle handle,
+                 const char *axis_id,      const char * *depends_on);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+axis of index ancestor_index of axis axis_id, starting with axis_id 
+for ancestor_index 0.
+cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+axis_id or to  \". \" if there is no such ancestor. 
+cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+to  \". \" if there is no such equipment. 
+cbf_get_axis_equipment_component sets *equipment_component to the 
+equipment_component of axis_id or to  \". \" if there is no such 
+equipment_component.
+cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+components of the ofset of axis_id.
+cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+*rotation_axis to the rotation_axis of axis_id or to  \". \" if there 
+is no such rotation_axis.
+cbf_get_axis_setting sets *start and *increment to the corresponding 
+values of the axis axis_id. Any of the destination pointers may be 
+NULL.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_axis_depends_on;
+
+    const char *  get_axis_depends_on(const char *axis_id){
+    const char* dep_on;
+    cbf_failnez(cbf_get_axis_depends_on(self,axis_id,
+    &dep_on));
+    return dep_on;
+    }
+    
 /* cfunc cbf_rewind_column   pyfunc rewind_column  
    arg cbf_handle handle */
 
@@ -1034,7 +1099,74 @@ SEE ALSO
      *beta_esd = cell_esd[4];
      *gamma_esd = cell_esd[5];
    }
+%feature("autodoc", "
+Returns : String
+*args   : String axis_id
 
+C prototype: int cbf_get_axis_type (cbf_handle handle, const char *axis_id,
+                      cbf_axis_type *axis_type);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+axis of index ancestor_index of axis axis_id, starting with axis_id 
+for ancestor_index 0.
+cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+axis_id or to  \". \" if there is no such ancestor. 
+cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+to  \". \" if there is no such equipment. 
+cbf_get_axis_equipment_component sets *equipment_component to the 
+equipment_component of axis_id or to  \". \" if there is no such 
+equipment_component.
+cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+components of the ofset of axis_id.
+cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+*rotation_axis to the rotation_axis of axis_id or to  \". \" if there 
+is no such rotation_axis.
+cbf_get_axis_setting sets *start and *increment to the corresponding 
+values of the axis axis_id. Any of the destination pointers may be 
+NULL.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_axis_type;
+
+    const char *  get_axis_type(const char *axis_id){
+    cbf_axis_type axis_type;
+    cbf_failnez(cbf_get_axis_type(self,axis_id,
+    &axis_type));
+    if (axis_type == CBF_TRANSLATION_AXIS) return "translation";
+    if (axis_type == CBF_ROTATION_AXIS) return "rotation";
+    return "general";
+    }
+    
 /* cfunc cbf_remove_column   pyfunc remove_column  
    arg cbf_handle handle */
 
@@ -1252,75 +1384,71 @@ Returns an error code on failure or 0 for success.
      void set_wavelength(double wavelength){
         cbf_failnez(cbf_set_wavelength(self,wavelength));}
 %feature("autodoc", "
-Returns : Float vector1,Float vector2,Float vector3,Float offset1,Float offset2,
-          Float offset3,Float angle
-*args   : Float ratio,String axis_id,String frame_id
+Returns : Float vector1,Float vector2,Float vector3
+*args   : String axis_id
 
-C prototype: int cbf_get_axis_poise(cbf_handle handle, double ratio,
-                 double *      vector1, double * vector2, double * vector3,
-                 double * offset1, double *      offset2, double * offset3,
-                 double * angle, const char * axis_id,
-                 const      char * frame_id);
+C prototype: int cbf_get_axis_vector (cbf_handle handle, const char *axis_id,
+                 double      *vector1, double *vector2, double *vector3);
 
 CBFLib documentation:
 DESCRIPTION
-cbf_get_axis_poise sets vector1, vector2, vector3 to point to the 
-components of the axis vector for axis axis_id, offset1, offset2, 
-offset3 to point to the components of the axis base offset vector for 
-axis axis_id, and angle to point to the angle of rotation of axis 
-axis_id after application of the axis settings for frame frame_id, 
-using ratio, a value between 0 and 1, indicating how far into the 
-internal motion in the frame to go. If frame_id is the string  \". 
-\", the first frame found is used. If there is more than one frame, 
-which frame will be found is indeterminate. If frame_id is NULL, the 
-overall setting for the scan are used, rather than those for any 
-particular frame. The vector and offset reported are the reference 
-vector and offset of the axis axis_id transformed by application of 
-all motions of the axes on which axis_id depends.
-cbf_get_goniometer_poise vector1, vector2, vector3 to point to the 
-components of the axis vector for the goniometer axis, offset1, 
-offset2, offset3 to point to the components of the axis base offset 
-vector for the goniometer axis, and angle to point to the angle of 
-rotation of the goniometer axis after application of all axis 
-settings in the goniometer deriving the vector, offset and angle from 
-the resulting matrix. Calculation of the vector is indeterminate if 
-the angle is zero.
-cbf_get_axis_reference_poise sets vector1, vector2, vector3 to point 
-to the components of the axis vector for axis axis_id, offset1, 
-offset2, offset3 to point to the components of the axis base offset 
-vector for axis axis_id unmodified by axis rotations. Any of the 
-pointers may be specified as NULL.
+cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+axis of index ancestor_index of axis axis_id, starting with axis_id 
+for ancestor_index 0.
+cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+axis_id or to  \". \" if there is no such ancestor. 
+cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+to  \". \" if there is no such equipment. 
+cbf_get_axis_equipment_component sets *equipment_component to the 
+equipment_component of axis_id or to  \". \" if there is no such 
+equipment_component.
+cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+components of the ofset of axis_id.
+cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+*rotation_axis to the rotation_axis of axis_id or to  \". \" if there 
+is no such rotation_axis.
+cbf_get_axis_setting sets *start and *increment to the corresponding 
+values of the axis axis_id. Any of the destination pointers may be 
+NULL.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
+The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
-handle       CBF handle. ratio        A number between 0 and 1 
-indication how far into the frame to go vector1      Pointer to the 
-first component of the axis vector vector2      Pointer to the second 
-component of the axis vector vector3      Pointer to the third 
-component of the axis vector offset1      Pointer to the first 
-component of the axis offset offset2      Pointer to the second 
-component of the axis offset offset3      Pointer to the third 
-component of the axis offset angle        Pointer to the rotation 
-angle axis_id      The specified axis frame_id     The specified 
-frame positioner   CBF goniometer
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
-")get_axis_poise;
+")get_axis_vector;
 
-  %apply double *OUTPUT {double *vector1, double *vector2, double *vector3, 
-    double *offset1, double *offset2, double *offset3, double *angle};
-  
-  void get_axis_poise(double ratio, 
-      double *vector1, double *vector2, double *vector3,
-      double *offset1, double *offset2, double *offset3,
-      double *angle,
-      const char *axis_id, const char *frame_id){
-        cbf_failnez(cbf_get_axis_poise(self, ratio,
-          vector1, vector2, vector3,
-          offset1, offset2, offset3, angle,
-          axis_id, frame_id));
-      }
-
-%feature("autodoc", "
+    %apply double *OUTPUT {double *vector1, double *vector2, double vector3} get_axis_vector;
+    void get_axis_vector(const char *axis_id,
+    double *vector1, double *vector2, double *vector3){
+    cbf_failnez(cbf_get_axis_vector(self,axis_id,
+    vector1, vector2,vector3));
+    }
+    %feature("autodoc", "
 Returns : 
 *args   : Int element_number,Int axis_number,Float pixel size
 
@@ -1380,7 +1508,72 @@ Returns an error code on failure or 0 for success.
     const char* result;
     cbf_failnez(cbf_get_diffrn_id(self, &result));
     return result;}
+%feature("autodoc", "
+Returns : Float
+*args   : String axis_id
 
+C prototype: int cbf_get_axis_rotation (cbf_handle handle,
+                 const char *axis_id,      double *rotation);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+axis of index ancestor_index of axis axis_id, starting with axis_id 
+for ancestor_index 0.
+cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+axis_id or to  \". \" if there is no such ancestor. 
+cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+to  \". \" if there is no such equipment. 
+cbf_get_axis_equipment_component sets *equipment_component to the 
+equipment_component of axis_id or to  \". \" if there is no such 
+equipment_component.
+cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+components of the ofset of axis_id.
+cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+*rotation_axis to the rotation_axis of axis_id or to  \". \" if there 
+is no such rotation_axis.
+cbf_get_axis_setting sets *start and *increment to the corresponding 
+values of the axis axis_id. Any of the destination pointers may be 
+NULL.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_axis_rotation;
+
+    %apply double *OUTPUT {double *rotation} get_axis_rotation;
+    void get_axis_rotation(const char *axis_id,
+    double *rotation){
+    cbf_failnez(cbf_get_axis_rotation(self,axis_id,
+    rotation));
+    }
+    
 /* cfunc cbf_find_datablock   pyfunc find_datablock  
    arg cbf_handle handle    arg const char *datablockname */
 
@@ -1503,6 +1696,75 @@ Returns an error code on failure or 0 for success.
                                        axis_number, 
                                        psize));
     }
+%feature("autodoc", "
+Returns : Float vector1,Float vector2,Float vector3,Float offset1,Float offset2,
+          Float offset3,Float angle
+*args   : Float ratio,String axis_id,String frame_id
+
+C prototype: int cbf_get_axis_poise(cbf_handle handle, double ratio,
+                 double *      vector1, double * vector2, double * vector3,
+                 double * offset1, double *      offset2, double * offset3,
+                 double * angle, const char * axis_id,
+                 const      char * frame_id);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_get_axis_poise sets vector1, vector2, vector3 to point to the 
+components of the axis vector for axis axis_id, offset1, offset2, 
+offset3 to point to the components of the axis base offset vector for 
+axis axis_id, and angle to point to the angle of rotation of axis 
+axis_id after application of the axis settings for frame frame_id, 
+using ratio, a value between 0 and 1, indicating how far into the 
+internal motion in the frame to go. If frame_id is the string  \". 
+\", the first frame found is used. If there is more than one frame, 
+which frame will be found is indeterminate. If frame_id is NULL, the 
+overall setting for the scan are used, rather than those for any 
+particular frame. The vector and offset reported are the reference 
+vector and offset of the axis axis_id transformed by application of 
+all motions of the axes on which axis_id depends.
+cbf_get_goniometer_poise vector1, vector2, vector3 to point to the 
+components of the axis vector for the goniometer axis, offset1, 
+offset2, offset3 to point to the components of the axis base offset 
+vector for the goniometer axis, and angle to point to the angle of 
+rotation of the goniometer axis after application of all axis 
+settings in the goniometer deriving the vector, offset and angle from 
+the resulting matrix. Calculation of the vector is indeterminate if 
+the angle is zero.
+cbf_get_axis_reference_poise sets vector1, vector2, vector3 to point 
+to the components of the axis vector for axis axis_id, offset1, 
+offset2, offset3 to point to the components of the axis base offset 
+vector for axis axis_id unmodified by axis rotations. Any of the 
+pointers may be specified as NULL.
+ARGUMENTS
+handle       CBF handle. ratio        A number between 0 and 1 
+indication how far into the frame to go vector1      Pointer to the 
+first component of the axis vector vector2      Pointer to the second 
+component of the axis vector vector3      Pointer to the third 
+component of the axis vector offset1      Pointer to the first 
+component of the axis offset offset2      Pointer to the second 
+component of the axis offset offset3      Pointer to the third 
+component of the axis offset angle        Pointer to the rotation 
+angle axis_id      The specified axis frame_id     The specified 
+frame positioner   CBF goniometer
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_axis_poise;
+
+  %apply double *OUTPUT {double *vector1, double *vector2, double *vector3, 
+    double *offset1, double *offset2, double *offset3, double *angle};
+  
+  void get_axis_poise(double ratio, 
+      double *vector1, double *vector2, double *vector3,
+      double *offset1, double *offset2, double *offset3,
+      double *angle,
+      const char *axis_id, const char *frame_id){
+        cbf_failnez(cbf_get_axis_poise(self, ratio,
+          vector1, vector2, vector3,
+          offset1, offset2, offset3, angle,
+          axis_id, frame_id));
+      }
+
 %feature("autodoc", "
 Returns : 
 *args   : String filename,Integer headers
@@ -1831,14 +2093,51 @@ C prototype: int cbf_get_axis_setting (cbf_handle handle,
 
 CBFLib documentation:
 DESCRIPTION
+cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+axis of index ancestor_index of axis axis_id, starting with axis_id 
+for ancestor_index 0.
+cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+axis_id or to  \". \" if there is no such ancestor. 
+cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+to  \". \" if there is no such equipment. 
+cbf_get_axis_equipment_component sets *equipment_component to the 
+equipment_component of axis_id or to  \". \" if there is no such 
+equipment_component.
+cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+components of the ofset of axis_id.
+cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+*rotation_axis to the rotation_axis of axis_id or to  \". \" if there 
+is no such rotation_axis.
 cbf_get_axis_setting sets *start and *increment to the corresponding 
-values of the axis axis_id.
-Any of the destination pointers may be NULL.
+values of the axis axis_id. Any of the destination pointers may be 
+NULL.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
 The parameter reserved is presently unused and should be set to 0.
 ARGUMENTS
-handle      CBF handle. reserved    Unused. Any value other than 0 is 
-invalid. axis_id     Axis id. start       Pointer to the destination 
-start value. increment   Pointer to the destination increment value.
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------
@@ -1937,6 +2236,71 @@ SEE ALSO
     void find_nextrow(const char* arg){
       cbf_failnez(cbf_find_nextrow(self,arg));}
 %feature("autodoc", "
+Returns : String
+*args   : String axis_id
+
+C prototype: int cbf_get_axis_equipment_component (cbf_handle handle,
+                 const char      *axis_id, const char * *equipment_component);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+axis of index ancestor_index of axis axis_id, starting with axis_id 
+for ancestor_index 0.
+cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+axis_id or to  \". \" if there is no such ancestor. 
+cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+to  \". \" if there is no such equipment. 
+cbf_get_axis_equipment_component sets *equipment_component to the 
+equipment_component of axis_id or to  \". \" if there is no such 
+equipment_component.
+cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+components of the ofset of axis_id.
+cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+*rotation_axis to the rotation_axis of axis_id or to  \". \" if there 
+is no such rotation_axis.
+cbf_get_axis_setting sets *start and *increment to the corresponding 
+values of the axis axis_id. Any of the destination pointers may be 
+NULL.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_axis_equipment_component;
+
+    const char *  get_axis_equipment_component(const char *axis_id){
+    const char* equip_comp;
+    cbf_failnez(cbf_get_axis_equipment_component(self,axis_id,
+    &equip_comp));
+    return equip_comp;
+    }
+    %feature("autodoc", "
 Returns : int compression,int binary_id,int elsize,int elements,char **bo,
           int *bolen,int dimslow,int dimmid,int dimfast,int padding
 *args   : 
@@ -3866,6 +4230,72 @@ SEE ALSO
     void reset_category(void){
       cbf_failnez(cbf_reset_category(self));}
 %feature("autodoc", "
+Returns : Integer
+*args   : String axis_id
+
+C prototype: int cbf_count_axis_ancestors (cbf_handle handle,
+                 const char *axis_id,      unsigned int *ancestors);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+axis of index ancestor_index of axis axis_id, starting with axis_id 
+for ancestor_index 0.
+cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+axis_id or to  \". \" if there is no such ancestor. 
+cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+to  \". \" if there is no such equipment. 
+cbf_get_axis_equipment_component sets *equipment_component to the 
+equipment_component of axis_id or to  \". \" if there is no such 
+equipment_component.
+cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+components of the ofset of axis_id.
+cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+*rotation_axis to the rotation_axis of axis_id or to  \". \" if there 
+is no such rotation_axis.
+cbf_get_axis_setting sets *start and *increment to the corresponding 
+values of the axis axis_id. Any of the destination pointers may be 
+NULL.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")count_axis_ancestors;
+
+    %apply int *OUTPUT {int *ancestors} count_axis_ancestors;
+    void count_axis_ancestors(const char *axis_id,
+    int *ancestors){
+    unsigned int anc;
+    cbf_failnez(cbf_count_axis_ancestors(self,axis_id,&anc));
+    *ancestors = anc;
+    }
+    %feature("autodoc", "
 Returns : pycbf goniometer object
 *args   : 
 
@@ -4274,6 +4704,71 @@ SEE ALSO
     void set_typeofvalue(const char* arg){
       cbf_failnez(cbf_set_typeofvalue(self,arg));}
 %feature("autodoc", "
+Returns : String
+*args   : String axis_id
+
+C prototype: int cbf_get_axis_rotation_axis (cbf_handle handle,
+                 const char *axis_id,      const char * *rotation_axis);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+axis of index ancestor_index of axis axis_id, starting with axis_id 
+for ancestor_index 0.
+cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+axis_id or to  \". \" if there is no such ancestor. 
+cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+to  \". \" if there is no such equipment. 
+cbf_get_axis_equipment_component sets *equipment_component to the 
+equipment_component of axis_id or to  \". \" if there is no such 
+equipment_component.
+cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+components of the ofset of axis_id.
+cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+*rotation_axis to the rotation_axis of axis_id or to  \". \" if there 
+is no such rotation_axis.
+cbf_get_axis_setting sets *start and *increment to the corresponding 
+values of the axis axis_id. Any of the destination pointers may be 
+NULL.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_axis_rotation_axis;
+
+    const char *  get_axis_rotation_axis(const char *axis_id){
+    const char* rot_axis;
+    cbf_failnez(cbf_get_axis_rotation_axis(self,axis_id,
+    &rot_axis));
+    return rot_axis;
+    }
+    %feature("autodoc", "
 Returns : 
 *args   : int compression,int binary_id,(binary) String data,int elsize,
           int elsigned,int elements,String byteorder,int dimfast,int dimmid,
@@ -4475,6 +4970,73 @@ ndimslow and ndimmid should be the
         *s = (char *) array;
       }
 %feature("autodoc", "
+Returns : String
+*args   : String axis_id,Integer ancestor_index
+
+C prototype: int cbf_get_axis_ancestor (cbf_handle handle,
+                 const char *axis_id, const      unsigned int ancestor_index,
+                 const char * *ancestor);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+axis of index ancestor_index of axis axis_id, starting with axis_id 
+for ancestor_index 0.
+cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+axis_id or to  \". \" if there is no such ancestor. 
+cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+to  \". \" if there is no such equipment. 
+cbf_get_axis_equipment_component sets *equipment_component to the 
+equipment_component of axis_id or to  \". \" if there is no such 
+equipment_component.
+cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+components of the ofset of axis_id.
+cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+*rotation_axis to the rotation_axis of axis_id or to  \". \" if there 
+is no such rotation_axis.
+cbf_get_axis_setting sets *start and *increment to the corresponding 
+values of the axis axis_id. Any of the destination pointers may be 
+NULL.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_axis_ancestor;
+
+    const char *  get_axis_ancestor(const char *axis_id,
+    int ancestor_index){
+    const char* anc;
+    cbf_failnez(cbf_get_axis_ancestor(self,axis_id,
+    (unsigned int)ancestor_index,&anc));
+    return anc;
+    }
+    %feature("autodoc", "
 Returns : (Binary)String
 *args   : int element_number,int elsize,int elsign,int ndimslow,int ndimmid,
           int ndimfast
@@ -6370,6 +6932,71 @@ void  set_category_root(const char* categoryname, const char* categoryroot){
    cbf_failnez(cbf_set_category_root(self,categoryname,categoryroot));
 }
 %feature("autodoc", "
+Returns : Float offset1,Float offset2,Float offset3
+*args   : String axis_id
+
+C prototype: int cbf_get_axis_offset (cbf_handle handle, const char *axis_id,
+                 double      *offset1, double *offset2, double *offset3);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+axis of index ancestor_index of axis axis_id, starting with axis_id 
+for ancestor_index 0.
+cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+axis_id or to  \". \" if there is no such ancestor. 
+cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+to  \". \" if there is no such equipment. 
+cbf_get_axis_equipment_component sets *equipment_component to the 
+equipment_component of axis_id or to  \". \" if there is no such 
+equipment_component.
+cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+components of the ofset of axis_id.
+cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+*rotation_axis to the rotation_axis of axis_id or to  \". \" if there 
+is no such rotation_axis.
+cbf_get_axis_setting sets *start and *increment to the corresponding 
+values of the axis axis_id. Any of the destination pointers may be 
+NULL.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_axis_offset;
+
+    %apply double *OUTPUT {double *offset1, double *offset2, double offset3} get_axis_offset;
+    void get_axis_offset(const char *axis_id,
+    double *offset1, double *offset2, double*offset3){
+    cbf_failnez(cbf_get_axis_offset(self,axis_id,
+    offset1, offset2,offset3));
+    }
+    %feature("autodoc", "
 Returns : 
 *args   : Int element_number,Int axis_number,Float pixel size
 
@@ -7558,6 +8185,71 @@ Returns an error code on failure or 0 for success.
         }
     }
 %feature("autodoc", "
+Returns : String
+*args   : String axis_id
+
+C prototype: int cbf_get_axis_equipment (cbf_handle handle,
+                 const char *axis_id,      const char * *equipment);
+
+CBFLib documentation:
+DESCRIPTION
+cbf_count_axis_ancestors sets ancestors to the number of ancestors of 
+axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor 
+axis of index ancestor_index of axis axis_id, starting with axis_id 
+for ancestor_index 0.
+cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of 
+axis_id or to  \". \" if there is no such ancestor. 
+cbf_get_axis_equipment sets *equipment to the equipment of axis_id or 
+to  \". \" if there is no such equipment. 
+cbf_get_axis_equipment_component sets *equipment_component to the 
+equipment_component of axis_id or to  \". \" if there is no such 
+equipment_component.
+cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the 
+components of the ofset of axis_id.
+cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 
+0 if there is no such rotation. cbf_get_axis_rotation_axis sets 
+*rotation_axis to the rotation_axis of axis_id or to  \". \" if there 
+is no such rotation_axis.
+cbf_get_axis_setting sets *start and *increment to the corresponding 
+values of the axis axis_id. Any of the destination pointers may be 
+NULL.
+cbf_get_axis_type sets axis_type to the type of axis_id.
+cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the 
+components of the vector of axis_id.
+The parameter reserved is presently unused and should be set to 0.
+ARGUMENTS
+handle                CBF handle. reserved              Unused. Any 
+value other than 0 is invalid. axis_id               Axis id. 
+ancestor_index        Integer index of the desired ancestor, starting 
+with 0 for the current axis_id. ancestor              Pointer to 
+destination ancestor name pointer. depends_on            Pointer to 
+destination depends_on name pointer. equipment             Pointer to 
+destination equipment name pointer. equipment_component   Pointer to 
+destination equipment_component name pointer. offset1               
+Pointer to destination first offset component value. offset2          
+     Pointer to destination second offset component value. offset3    
+           Pointer to destination third offset component value. 
+rotation              Pointer to destination rotation value. 
+rotation_axis         Pointer to destination rotation_axisn name 
+pointer. start                 Pointer to the destination start 
+value. increment             Pointer to the destination increment 
+value. type                  Pointer to destination axis type of type 
+. vector1               Pointer to destination first vector component 
+value. vector2               Pointer to destination second vector 
+component value. vector3               Pointer to destination third 
+vector component value.
+RETURN VALUE
+Returns an error code on failure or 0 for success.
+----------------------------------------------------------------------
+")get_axis_equipment;
+
+    const char *  get_axis_equipment(const char *axis_id){
+    const char* equip;
+    cbf_failnez(cbf_get_axis_equipment(self,axis_id,
+    &equip));
+    return equip;
+    }
+    %feature("autodoc", "
 Returns : 
 *args   : double cell[6]
 
