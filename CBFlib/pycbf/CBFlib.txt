@@ -501,7 +501,11 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                        cbf_set_3d_image, cbf_set_3d_image, cbf_set_3d_image,
                        cbf_set_real_3d_image, cbf_set_real_3d_image_fs,
                  cbf_set_real_3d_image_sf
-               * 2.4.28 cbf_get_axis_setting
+               * 2.4.28 cbf_get_axis_ancestor, cbf_get_axis_depends_on,
+                 cbf_get_axis_equipment, cbf_get_axis_equipment_component,
+                 cbf_get_axis_offset, cbf_get_axis_rotation,
+                 cbf_get_axis_rotation_axis, cbf_get_axis_setting,
+                 cbf_get_axis_type, cbf_get_axis_vector
                * 2.4.29 cbf_set_axis_setting
                * 2.4.30 cbf_construct_goniometer
                * 2.4.31 cbf_free_goniometer
@@ -527,7 +531,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 2.4.42 cbf_get_detector_normal
                * 2.4.43 cbf_get_detector_axis_slow,
                  cbf_get_detector_axis_fast, cbf_get_detector_axes,
-                 cbf_get_detector_axes_fs, cbf_get_detector_axes_sf
+                 cbf_get_detector_axes_fs, cbf_get_detector_axes_sf,
+                 cbf_get_detector_surface_axes
                * 2.4.44 cbf_get_pixel_coordinates,
                  cbf_get_pixel_coordinates_fs, cbf_get_pixel_coordinates_sf
                * 2.4.45 cbf_get_pixel_normal, cbf_get_pixel_normal_fs,
@@ -4861,31 +4866,114 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.28 cbf_get_axis_setting
+    2.4.28 cbf_count_axis_ancestors, cbf_get_axis_ancestor,
+    cbf_get_axis_depends_on,
+    cbf_get_axis_equipment, cbf_get_axis_equipment_component,
+    cbf_get_axis_offset,
+    cbf_get_axis_rotation, cbf_get_axis_rotation_axis,
+    cbf_get_axis_setting,
+    cbf_get_axis_type,
+    cbf_get_axis_vector
 
      PROTOTYPE
 
      #include "cbf_simple.h"
 
+     int cbf_count_axis_ancestors (cbf_handle handle, const char *axis_id,
+     unsigned int *ancestors);
+
+     int cbf_get_axis_ancestor (cbf_handle handle, const char *axis_id, const
+     unsigned int ancestor_index, const char * *ancestor);
+
+     int cbf_get_axis_depends_on (cbf_handle handle, const char *axis_id,
+     const char * *depends_on);
+
+     int cbf_get_axis_equipment (cbf_handle handle, const char *axis_id,
+     const char * *equipment);
+
+     int cbf_get_axis_equipment_component (cbf_handle handle, const char
+     *axis_id, const char * *equipment_component);
+
+     int cbf_get_axis_offset (cbf_handle handle, const char *axis_id, double
+     *offset1, double *offset2, double *offset3);
+
+     int cbf_get_axis_rotation (cbf_handle handle, const char *axis_id,
+     double *rotation);
+
+     int cbf_get_axis_rotation_axis (cbf_handle handle, const char *axis_id,
+     const char * *rotation_axis);
+
      int cbf_get_axis_setting (cbf_handle handle, unsigned int reserved,
      const char *axis_id, double *start, double *increment);
 
+     int cbf_get_axis_type (cbf_handle handle, const char *axis_id,
+     cbf_axis_type *axis_type);
+
+     int cbf_get_axis_vector (cbf_handle handle, const char *axis_id, double
+     *vector1, double *vector2, double *vector3);
+
      DESCRIPTION
 
-     cbf_get_axis_setting sets *start and *increment to the corresponding
-     values of the axis axis_id.
+     cbf_count_axis_ancestors sets ancestors to the number of ancestors of
+     axis axis_id. cbf_get_axis_ancestor sets *ancestor to the ancestor axis
+     of index ancestor_index of axis axis_id, starting with axis_id for
+     ancestor_index 0.
 
-     Any of the destination pointers may be NULL.
+     cbf_get_axis_depends_on sets *depends_on to the immediate ancestor of
+     axis_id or to "." if there is no such ancestor. cbf_get_axis_equipment
+     sets *equipment to the equipment of axis_id or to "." if there is no
+     such equipment. cbf_get_axis_equipment_component sets
+     *equipment_component to the equipment_component of axis_id or to "." if
+     there is no such equipment_component.
+
+     cbf_get_axis_offset sets *offset1, *offset2 and *offset3 to the
+     components of the ofset of axis_id.
+
+     cbf_get_axis_rotation sets rotation to the rotation of axis_id or to 0
+     if there is no such rotation. cbf_get_axis_rotation_axis sets
+     *rotation_axis to the rotation_axis of axis_id or to "." if there is no
+     such rotation_axis.
+
+     cbf_get_axis_setting sets *start and *increment to the corresponding
+     values of the axis axis_id. Any of the destination pointers may be NULL.
+
+     cbf_get_axis_type sets axis_type to the type of axis_id.
+
+     cbf_get_axis_vector sets *vector1, *vector2 and *vector3 to the
+     components of the vector of axis_id.
 
      The parameter reserved is presently unused and should be set to 0.
 
      ARGUMENTS
 
-       handle      CBF handle.                                 
-       reserved    Unused. Any value other than 0 is invalid.  
-       axis_id     Axis id.                                    
-       start       Pointer to the destination start value.     
-       increment   Pointer to the destination increment value. 
+       handle                CBF handle.                                      
+       reserved              Unused. Any value other than 0 is invalid.       
+       axis_id               Axis id.                                         
+       ancestor_index        Integer index of the desired ancestor, starting  
+                           with 0 for the current axis_id.                    
+       ancestor              Pointer to destination ancestor name pointer.    
+       depends_on            Pointer to destination depends_on name pointer.  
+       equipment             Pointer to destination equipment name pointer.   
+       equipment_component   Pointer to destination equipment_component name  
+                           pointer.                                           
+       offset1               Pointer to destination first offset component    
+                           value.                                             
+       offset2               Pointer to destination second offset component   
+                           value.                                             
+       offset3               Pointer to destination third offset component    
+                           value.                                             
+       rotation              Pointer to destination rotation value.           
+       rotation_axis         Pointer to destination rotation_axisn name       
+                           pointer.                                           
+       start                 Pointer to the destination start value.          
+       increment             Pointer to the destination increment value.      
+       type                  Pointer to destination axis type of type .       
+       vector1               Pointer to destination first vector component    
+                           value.                                             
+       vector2               Pointer to destination second vector component   
+                           value.                                             
+       vector3               Pointer to destination third vector component    
+                           value.                                             
 
      RETURN VALUE
 
@@ -5405,7 +5493,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      ----------------------------------------------------------------------
 
     2.4.43 cbf_get_detector_axis_slow, cbf_get_detector_axis_slow,
-    cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf
+    cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf,
+    cbf_get_detector_surface_axes
 
      PROTOTYPE
 
@@ -5424,6 +5513,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      int cbf_get_detector_axes_sf (cbf_detector detector, double *slowaxis1,
      double *slowaxis2, double *slowaxis3, double *fastaxis1, double
      *fastaxis2, double *fastaxis3);
+     int cbf_get_detector_surface_axes(cbf_detector detector, const char * *
+     axis_id1, const char * * axis_id2);
 
      DESCRIPTION
 
@@ -5437,6 +5528,8 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      the 3 components of the slow axis and *fastaxis1, *fastaxis2, and
      *fastaxis3 to the 3 components of the fast axis of the specified
      detector at the current settings of all axes.
+     cbf_get_detector_surface_axes sets *axis_id1 and *axis_id2 to the names
+     of the two surface axes of the detector or ".",
 
      Any of the destination pointers may be NULL.
 
@@ -5455,6 +5548,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                  vector.                                                      
        fastaxis3   Pointer to the destination z component of the fast axis    
                  vector.                                                      
+       axis_id1    Pointer to the destination first surface axis name.        
+       axis_id1    Pointer to the destination first surface axis name.        
+       axis_id2    Pointer to the destination second surface axis name.       
 
      RETURN VALUE
 
@@ -7074,7 +7170,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-  2.6 HDF5 abstraction layer and convenience functions
+2.6 HDF5 abstraction layer and convenience functions
 
      The HDF5 abstraction layer mostly follows the HDF5 naming convention of
      H5Xfunction_name, where X is usually a single letter identifying the
@@ -7229,7 +7325,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      #include "cbf_hdf5.h"
 
-     int cbf_H5Arequire_cmp(const hid_t ID, const char * const name, const
+     int cbf_H5Arequire_cmp (const hid_t ID, const char * const name, const
      int rank, const hsize_t * const dim, const hid_t filetype, const void *
      const value, void * const buf, int (*cmp)(const void *, const void *,
      size_t, const void *));
@@ -7340,7 +7436,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      #include "cbf_hdf5.h"
 
-     int cbf_H5Dcreate(const hid_t location, hid_t * const dataset, const
+     int cbf_H5Dcreate (const hid_t location, hid_t * const dataset, const
      char * const name, const int rank, const hsize_t * const dim, const
      hsize_t * const max, const hsize_t * const chunk, const hid_t type)
 
@@ -7397,7 +7493,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      #include "cbf_hdf5.h"
 
-     int cbf_H5Dfind(const hid_t location, hid_t * const dataset, const char
+     int cbf_H5Dfind (const hid_t location, hid_t * const dataset, const char
      * const name, const int rank, const hsize_t * const dim, const hsize_t *
      const max, const hsize_t * const chunk, const hid_t type)
 
@@ -7441,19 +7537,19 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
  /* and check what it was: */
  if (CBF_SUCCESS==found) {
      /* A dataset already existed and I have a handle for it: */
-         use_existing_dataset(dataset);
+     use_existing_dataset(dataset);
  } else if (CBF_NOTFOUND==found) {
      /* No matching dataset existed, so I can create one: */
      cbf_H5Dcreate(location, &dataset, ...);
-         use_new_datset(dataset);
-         } else {
+     use_new_datset(dataset);
+ } else {
      /*
      The function call failed, do something with the error.
      In this case, store it for later use and print a message.
      */
      error |= found;
      fprintf(stderr,"There was an error - %s.\n",cbf_strerror(error));
-         }
+ }
  /* clean up: */
  cbf_H5Dfree(dataset);
 
@@ -7595,7 +7691,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      #include "cbf_hdf5.h"
 
-     int cbf_H5Dset_extent(const hid_t dataset, const hsize_t * const dim)
+     int cbf_H5Dset_extent (const hid_t dataset, const hsize_t * const dim)
 
      DESCRIPTION
 
@@ -7636,7 +7732,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      #include "cbf_hdf5.h"
 
-     int cbf_H5Dwrite(const hid_t dataset, const hsize_t * const offset,
+     int cbf_H5Dwrite (const hid_t dataset, const hsize_t * const offset,
      const hsize_t * const stride, const hsize_t * const count, const void *
      const value)
 
@@ -7820,10 +7916,10 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ARGUMENTS
 
-     location   The group containing the new dataset.                    
-     dataset    An optional pointer to a place to store the new dataset. 
-     name       The name of the new dataset.                             
-     value      The value of the new dataset.                            
+     location The group containing the new dataset.                           
+     dataset  An optional pointer to a place to store the new dataset.        
+     name     The name of the new dataset.                                    
+     value    The value of the new dataset.                                   
      vlen     Flag to determine if the string should be stored as a variable  
               length type.                                                    
 
@@ -7853,7 +7949,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      #include "cbf_hdf5.h"
 
-     int cbf_H5Dfree(const hid_t ID)
+     int cbf_H5Dfree (const hid_t ID)
 
      DESCRIPTION
 
@@ -9550,33 +9646,33 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      presented in one if three forms, a single dibit a0, two dibits a0, a1,
      or two dibits and a nibble a0, a1, b:
 
-               +-----------------------------------------------+
-               |  a0 a1 b   | octet |         meaning          |
-               |------------+-------+--------------------------|
-               | 00 00 0000 | 0x00  | reset to zero            |
-               |------------+-------+--------------------------|
-               | 01         | 0x01  | up 1 mode                |
-               |------------+-------+--------------------------|
-               | 10         | 0x02  | dibit mode               |
-               |------------+-------+--------------------------|
-               | 11         | 0x03  | up n modes               |
-               |------------+-------+--------------------------|
-               | 00 01      | 0x04  | nibble mode              |
-               |------------+-------+--------------------------|
-               | 00 11      | 0x0C  | 6-bit mode               |
-               |------------+-------+--------------------------|
-               | 00 10      | 0x08  | byte mode                |
-               |------------+-------+--------------------------|
-               | 00 00 0011 | 0x30  | 12-bit word mode         |
-               |------------+-------+--------------------------|
-               | 00 00 0001 | 0x10  | 16-bit word mode         |
-               |------------+-------+--------------------------|
-               | 00 00 0010 | 0x20  | 32-bit word mode         |
-               |------------+-------+--------------------------|
-               | 00 00 0100 | 0x40  | 64-bit word mode         |
-               |------------+-------+--------------------------|
-               | 00 00 1100 | 0xC0  | specify starting address |
-               +-----------------------------------------------+
+                +-----------------------------------------------+
+                |  a0 a1 b   | octet |         meaning          |
+                |------------+-------+--------------------------|
+                | 00 00 0000 | 0x00  | reset to zero            |
+                |------------+-------+--------------------------|
+                | 01         | 0x01  | up 1 mode                |
+                |------------+-------+--------------------------|
+                | 10         | 0x02  | dibit mode               |
+                |------------+-------+--------------------------|
+                | 11         | 0x03  | up n modes               |
+                |------------+-------+--------------------------|
+                | 00 01      | 0x04  | nibble mode              |
+                |------------+-------+--------------------------|
+                | 00 11      | 0x0C  | 6-bit mode               |
+                |------------+-------+--------------------------|
+                | 00 10      | 0x08  | byte mode                |
+                |------------+-------+--------------------------|
+                | 00 00 0011 | 0x30  | 12-bit word mode         |
+                |------------+-------+--------------------------|
+                | 00 00 0001 | 0x10  | 16-bit word mode         |
+                |------------+-------+--------------------------|
+                | 00 00 0010 | 0x20  | 32-bit word mode         |
+                |------------+-------+--------------------------|
+                | 00 00 0100 | 0x40  | 64-bit word mode         |
+                |------------+-------+--------------------------|
+                | 00 00 1100 | 0xC0  | specify starting address |
+                +-----------------------------------------------+
 
      The reset to zero is followed by a new mode octet A reset to zero resets
      the prior value for delta to zero
@@ -9595,23 +9691,23 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      giving little-endian offsets from the currently accumulated value. If
      the offset is one of the following in the indicated mode
 
-                  +------------------------------------------+
-                  | dibit mode       | 0x2                   |
-                  |------------------+-----------------------|
-                  | nibble mode      | 0x8                   |
-                  |------------------+-----------------------|
-                  | 6-bit mode       | 0x20                  |
-                  |------------------+-----------------------|
-                  | byte mode        | 0x80                  |
-                  |------------------+-----------------------|
-                  | 12-bit word mode | 0x800                 |
-                  |------------------+-----------------------|
-                  | 16-bit word mode | 0x8000                |
-                  |------------------+-----------------------|
-                  | 32-bit word mode | 0x8000 0000           |
-                  |------------------+-----------------------|
-                  | 64-bit word mode | 0x8000 0000 0000 0000 |
-                  +------------------------------------------+
+                   +------------------------------------------+
+                   | dibit mode       | 0x2                   |
+                   |------------------+-----------------------|
+                   | nibble mode      | 0x8                   |
+                   |------------------+-----------------------|
+                   | 6-bit mode       | 0x20                  |
+                   |------------------+-----------------------|
+                   | byte mode        | 0x80                  |
+                   |------------------+-----------------------|
+                   | 12-bit word mode | 0x800                 |
+                   |------------------+-----------------------|
+                   | 16-bit word mode | 0x8000                |
+                   |------------------+-----------------------|
+                   | 32-bit word mode | 0x8000 0000           |
+                   |------------------+-----------------------|
+                   | 64-bit word mode | 0x8000 0000 0000 0000 |
+                   +------------------------------------------+
 
      it is followed by the new mode as 1 or 2 dibits or 2 dibits and a nibble
      a1 a1 b. If a1 is 1 or 2 or 3, that is the new mode. If a1 is zero and
@@ -9665,9 +9761,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      of this array:
 
      +----------------------------------------------------------------------+
-|             symbol             | value |               meaning               |
+     |             symbol             | value |           meaning           |
      |--------------------------------+-------+-----------------------------|
-| CBF_H5Z_FILTER_CBF_NELMTS      | 11    | size of cd_values                   |
+     | CBF_H5Z_FILTER_CBF_NELMTS      | 11    | size of cd_values           |
      |--------------------------------+-------+-----------------------------|
      | CBF_H5Z_FILTER_CBF_COMPRESSION | 0     | one of the compressions     |
      |                                |       | (see 3.2.2)                 |
@@ -9678,9 +9774,9 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      | CBF_H5Z_FILTER_CBF_BINARY_ID   | 2     | binary ID of the array      |
      |                                |       | (default 1)                 |
      |--------------------------------+-------+-----------------------------|
-| CBF_H5Z_FILTER_CBF_ELSIZE      | 3     | element size in octets              |
+     | CBF_H5Z_FILTER_CBF_ELSIZE      | 3     | element size in octets      |
      |--------------------------------+-------+-----------------------------|
-| CBF_H5Z_FILTER_CBF_ELSIGN      | 4     | 1 if signed, 0 if unsigned          |
+     | CBF_H5Z_FILTER_CBF_ELSIGN      | 4     | 1 if signed, 0 if unsigned  |
      |--------------------------------+-------+-----------------------------|
      | CBF_H5Z_FILTER_CBF_REAL        | 5     | 1 if a real array, 0 if an  |
      |                                |       | integer array               |
@@ -9688,13 +9784,13 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      | CBF_H5Z_FILTER_CBF_DIMOVER     | 6     | the total number of         |
      |                                |       | elements in the array       |
      |--------------------------------+-------+-----------------------------|
-| CBF_H5Z_FILTER_CBF_DIMFAST     | 7     | the fast dimension                  |
+     | CBF_H5Z_FILTER_CBF_DIMFAST     | 7     | the fast dimension          |
      |--------------------------------+-------+-----------------------------|
-| CBF_H5Z_FILTER_CBF_DIMMID      | 8     | the middle dimension                |
+     | CBF_H5Z_FILTER_CBF_DIMMID      | 8     | the middle dimension        |
      |--------------------------------+-------+-----------------------------|
-| CBF_H5Z_FILTER_CBF_DIMSLOW     | 9     | the slow domension                  |
+     | CBF_H5Z_FILTER_CBF_DIMSLOW     | 9     | the slow domension          |
      |--------------------------------+-------+-----------------------------|
-| CBF_H5Z_FILTER_CBF_PADDING     | 10    | the padding                         |
+     | CBF_H5Z_FILTER_CBF_PADDING     | 10    | the padding                 |
      +----------------------------------------------------------------------+
 
      Only chunked data may be written using this filter. The recommended
@@ -10453,21 +10549,21 @@ src/                      include/             m4/                  Description
      Where test files 1, 4 & 5 are each single-image miniCBF files and test
      file 2 & 3 is created by 'cat'ing together two single-image miniCBF
      files
-            
+
      The config file used for this example is:
 
  # some sample config settings for a miniCBF file
 
-             map Start_angle to CBF_axis_omega
-             map Phi to CBF_axis_phi
-             map Kappa to CBF_axis_kappa
-            
-             Sample depends-on CBF_axis_phi
-            
-             CBF_axis_phi vector [1 0 0] depends-on CBF_axis_kappa
-             CBF_axis_kappa vector [0 1 0] depends-on .
-             CBF_axis_omega vector [0 0 0]
-        
+ map Start_angle to CBF_axis_omega
+ map Phi to CBF_axis_phi
+ map Kappa to CBF_axis_kappa
+
+ Sample depends-on CBF_axis_phi
+
+ CBF_axis_phi vector [1 0 0] depends-on CBF_axis_kappa
+ CBF_axis_kappa vector [0 1 0] depends-on .
+ CBF_axis_omega vector [0 0 0]
+
      Text from any # character to the end of the line is ignored as a
      comment.
 

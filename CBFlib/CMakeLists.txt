@@ -279,6 +279,8 @@ project (CBFlib C CXX Fortran)
 enable_testing()
 set (CBF_CMAKE_DEBUG "ON")
 
+set(CMAKE_C_FLAGS "-Wall -fno-strict-aliasing")
+
 #
 #  User setable parameters
 #
@@ -426,7 +428,7 @@ CBF_DEBUG_MESSAGE( "MAJOR VERSION: ${CBF_VERS_MAJOR}")
 string (REGEX REPLACE ".*#define[ \t]+CBF_VERS_MINOR[ \t]+([0-9]*).*$"
     "\\1" CBF_VERS_MINOR ${CBFlib_cbf_h_contents})
 CBF_DEBUG_MESSAGE( "MINOR VERSION: ${CBF_VERS_MINOR}")
-string (REGEX REPLACE ".*#define[ \t]+CBF_VERS_RELEASE[ \t]+([0-9]*).*$"
+string (REGEX REPLACE ".*#define[ \t]+CBF_VERS_RELEASE[ \t]+([0-9.]*).*$"
     "\\1" CBF_VERS_RELEASE ${CBFlib_cbf_h_contents})
 CBF_DEBUG_MESSAGE( "RELEASE: ${CBF_VERS_RELEASE}")
 string (REGEX REPLACE ".*#define[ \t]+CBF_VERS_SUBRELEASE[ \t]+\"([0-9A-Za-z.]*)\".*$"
@@ -491,6 +493,7 @@ set(HDF5_INSTALL_BIN_DIR "${CBF__BIN}")
 set(HDF5_INSTALL_LIB_DIR "${CBF__LIB}")
 set(HDF5_INSTALL_INCLUDE_DIR "${CBF__BIN_INCLUDE}")
 set(HDF5_INSTALL_DATA_DIR "${CBF__SHARE}")
+set(HDF5_BINARY_DIR ${CBF__EXT_PKG}/${CBF_HDF5}-build/bin)
 
 if(CBF_DONT_USE_LONG_LONG)
   set(CBF_NOLLFLAG "-DCBF_DONT_USE_LONG_LONG")
@@ -831,6 +834,7 @@ CBF_ADD_C_EXAMPLE(convert_minicbf "${CBF__EXAMPLES}" "" "")
 CBF_ADD_C_EXAMPLE(makecbf "${CBF__EXAMPLES}" "" "img_static")
 CBF_ADD_C_EXAMPLE(adscimg2cbf "${CBF__EXAMPLES}" "${CBF__EXAMPLES}/adscimg2cbf_sub.c" "")
 CBF_ADD_C_EXAMPLE(cbf2adscimg "${CBF__EXAMPLES}" "${CBF__EXAMPLES}/cbf2adscimg_sub.c" "")
+CBF_ADD_C_EXAMPLE(cbf_tail "${CBF__EXAMPLES}" "" "")
 CBF_ADD_C_EXAMPLE(changtestcompression "${CBF__EXAMPLES}" "" "")
 CBF_ADD_C_EXAMPLE(img2cif "${CBF__EXAMPLES}" "" "img_static")
 CBF_ADD_C_EXAMPLE(cif2cbf "${CBF__EXAMPLES}" "" "")
@@ -843,6 +847,7 @@ CBF_ADD_C_EXAMPLE(sequence_match "${CBF__EXAMPLES}" "" "")
 CBF_ADD_C_EXAMPLE(tiff2cbf "${CBF__EXAMPLES}" "${CBF__EXT_PKG}/${CBF_TIFF}/libtiff/tif_sprint.c" "${CBF_TIFF_LIBRARY_PATH}")
 CBF_ADD_C_EXAMPLE(testulp "${CBF__EXAMPLES}" "" "")
 CBF_ADD_C_EXAMPLE(testhdf5 "${CBF__EXAMPLES}" "" "")
+CBF_ADD_C_EXAMPLE(testtree "${CBF__EXAMPLES}" "" "")
 CBF_ADD_C_EXAMPLE(testalloc "${CBF__EXAMPLES}" "" "")
 
 
@@ -896,6 +901,15 @@ install (DIRECTORY ${CBF__BIN_INCLUDE}/* DESTINATION include/cbflib FILES_MATCHI
 
 message(STATUS "CMAKE_INSTALL_PREFIX/lib ${CMAKE_INSTALL_PREFIX}/lib")
 
+# path to the valgrind executable
+find_program(VALGRIND valgrind)
+if (VALGRIND)
+	CBF_DEBUG_MESSAGE("VALGRIND found at ${VALGRIND}")
+	set(VALGRIND_COMMAND ${VALGRIND} --error-exitcode=3 --leak-check=full)
+else ()
+	CBF_DEBUG_MESSAGE("VALGRIND could not be not found")
+	set(VALGRIND_COMMAND "")
+endif ()
 
 #
 # tests  -- to be extended
@@ -904,9 +918,12 @@ add_test(NAME cbftest_makecbf
   COMMAND ${CMAKE_COMMAND}
     -DCMD1=$<TARGET_FILE:makecbf> -DARG11=${CBF_DATADIRI}/example.mar2300 -DARG12=makecbf.cbf
     -P ${CMAKE_CURRENT_SOURCE_DIR}/runcommands.cmake)
-add_test(cbftest_testalloc ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/testalloc)
+add_test(cbftest_testalloc ${VALGRIND_COMMAND} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/testalloc)
 add_test(cbftest_testhdf5 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/testhdf5)
+add_test(cbftest_testtree ${VALGRIND_COMMAND} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/testtree)
 add_test(cbftest_testulp ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/testulp)
 
+configure_file(${CBF__EXAMPLES}/test-minicbf2nexus.cmake ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test-minicbf2nexus.cmake)
+add_test(cbftest_minicbf2nexus ${CMAKE_COMMAND} -P ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test-minicbf2nexus.cmake)
   
   

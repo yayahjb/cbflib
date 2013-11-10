@@ -2717,6 +2717,261 @@ extern "C" {
     }
 
 
+    /* Count the ancestors of an axis */
+
+    int cbf_count_axis_ancestors (cbf_handle handle,
+                               const char *axis_id,
+                               unsigned int *ancestors) {
+
+        const char * cur_axis;
+        const char * depends_on;
+        int curlevel;
+        unsigned int maxlevel;
+
+        /* Check for valid arguments */
+
+        if (!handle || !axis_id || !ancestors ) return CBF_ARGUMENT;
+
+        /* Get the axis dependencies */
+
+        cbf_failnez (cbf_find_category (handle, "axis"));
+        cbf_failnez (cbf_count_rows(handle,&maxlevel));
+        if (maxlevel < 1) return CBF_FORMAT;
+        maxlevel --;
+        curlevel = maxlevel;
+        cbf_failnez (cbf_find_column   (handle, "id"));
+        cbf_failnez (cbf_find_row      (handle, axis_id));
+        cbf_failnez (cbf_get_value     (handle, &cur_axis));
+
+        *ancestors = 0;
+
+        while (curlevel >= 0) {
+
+            if (curlevel==0 ||
+                cbf_find_column   (handle, "depends_on")
+                || cbf_get_value     (handle, &depends_on)||
+                !((depends_on)[0])
+                || !cbf_cistrcmp(depends_on,".")
+                || !cbf_cistrcmp(depends_on,"?")){
+                return CBF_SUCCESS;
+
+            }
+
+            cur_axis = depends_on;
+            curlevel--;
+            (*ancestors)++;
+            cbf_failnez (cbf_find_column(handle, "id"));
+            cbf_failnez (cbf_find_row   (handle, cur_axis));
+
+        }
+        return CBF_FORMAT;
+
+    }
+
+
+    /* Get the specified ancestor of an axis */
+
+    int cbf_get_axis_ancestor (cbf_handle handle,
+                               const char *axis_id,
+                               const unsigned int ancestor_index,
+                               const char * *ancestor) {
+
+        const char * cur_axis;
+        const char * depends_on;
+        int curlevel;
+
+        /* Check for valid arguments */
+
+        if (!handle || !axis_id || !ancestor || ancestor_index < 0) return CBF_ARGUMENT;
+
+        *ancestor = NULL;
+        curlevel = ancestor_index;
+
+        /* Get the axis dependencies */
+
+        cbf_failnez (cbf_find_category (handle, "axis"));
+        cbf_failnez (cbf_find_column   (handle, "id"));
+        cbf_failnez (cbf_find_row      (handle, axis_id));
+        cbf_failnez (cbf_get_value     (handle, &cur_axis));
+
+        while (curlevel >= 0) {
+
+            if (curlevel==0 ||
+                cbf_find_column   (handle, "depends_on")
+                || cbf_get_value     (handle, &depends_on)||
+                !((depends_on)[0])
+                || !cbf_cistrcmp(depends_on,".")
+                || !cbf_cistrcmp(depends_on,"?")){
+                if (curlevel > 0) return CBF_NOTFOUND;
+                *ancestor = cur_axis;
+                return CBF_SUCCESS;
+
+            }
+
+            cur_axis = depends_on;
+            curlevel--;
+            cbf_failnez (cbf_find_column(handle, "id"));
+            cbf_failnez (cbf_find_row   (handle, cur_axis));
+
+        }
+        return CBF_NOTFOUND;
+
+    }
+
+
+    /* Get the axis, if any, on which this axis depends */
+
+    int cbf_get_axis_depends_on (cbf_handle handle, const char *axis_id,
+                                 const char * *depends_on)
+    {
+
+        /* Check for valid arguments */
+
+        if (!handle || !axis_id || !depends_on) return CBF_ARGUMENT;
+
+        /* Get the axis dependency */
+
+        cbf_failnez (cbf_find_category (handle, "axis"))
+        cbf_failnez (cbf_find_column   (handle, "id"))
+        cbf_failnez (cbf_find_row      (handle, axis_id))
+        if (cbf_find_column   (handle, "depends_on")) {
+            *depends_on = ".";  return CBF_SUCCESS;
+        }
+        if (cbf_get_value     (handle, depends_on)||
+            !((*depends_on)[0])) {
+            *depends_on = ".";  return CBF_SUCCESS;
+        }
+        return CBF_SUCCESS;
+
+    }
+
+
+
+    /* Get the axis equipment */
+
+    int cbf_get_axis_equipment (cbf_handle handle, const char *axis_id,
+                           const char * *equipment)
+    {
+
+        /* Get the axis equipment */
+
+        cbf_failnez (cbf_find_category (handle, "axis"))
+        cbf_failnez (cbf_find_column   (handle, "id"))
+        cbf_failnez (cbf_find_row      (handle, axis_id))
+        if (cbf_find_column   (handle, "equipment")) {
+            *equipment = ".";  return CBF_SUCCESS;
+        }
+        if (cbf_get_value     (handle, equipment)||
+            !((*equipment)[0])) {
+            *equipment = ".";  return CBF_SUCCESS;
+        }
+        return CBF_SUCCESS;
+
+    }
+
+    /* Get the axis equipment_component */
+
+    int cbf_get_axis_equipment_component (cbf_handle handle,
+                                          const char *axis_id,
+                                const char * *equipment_component)
+    {
+
+        /* Get the axis equipment component */
+
+        cbf_failnez (cbf_find_category (handle, "axis"))
+        cbf_failnez (cbf_find_column   (handle, "id"))
+        cbf_failnez (cbf_find_row      (handle, axis_id))
+        if (cbf_find_column   (handle, "equipment_component")) {
+            *equipment_component = ".";  return CBF_SUCCESS;
+        }
+        if (cbf_get_value     (handle, equipment_component)||
+            !((*equipment_component)[0])) {
+            *equipment_component = ".";  return CBF_SUCCESS;
+        }
+        return CBF_SUCCESS;
+
+    }
+
+    /* Get an axis rotation */
+
+    int cbf_get_axis_rotation (cbf_handle handle, const char *axis_id,
+                               double *rotation)
+    {
+        if (!handle || !axis_id || !rotation )
+            return CBF_ARGUMENT;
+
+        /* Read from the axis category */
+
+        cbf_failnez (cbf_find_category   (handle, "axis"))
+        cbf_failnez (cbf_find_column     (handle, "id"))
+        cbf_failnez (cbf_find_row        (handle, axis_id))
+        if (cbf_find_column( handle, "rotation")) {
+
+            *rotation = 0.0;
+            return CBF_SUCCESS;
+
+        }
+
+        if (cbf_get_doublevalue (handle, rotation)) *rotation = 0.;
+
+        return 0;
+
+    }
+
+
+    /* Get the axis rotation_axis */
+
+    int cbf_get_axis_rotation_axis (cbf_handle handle,
+                                          const char *axis_id,
+                                          const char * *rotation_axis)
+    {
+
+        /* Get the axis rotation_axis */
+
+        cbf_failnez (cbf_find_category (handle, "axis"))
+        cbf_failnez (cbf_find_column   (handle, "id"))
+        cbf_failnez (cbf_find_row      (handle, axis_id))
+        if (cbf_find_column   (handle, "rotation_axis")) {
+            *rotation_axis = ".";  return CBF_SUCCESS;
+        }
+        if (cbf_get_value     (handle, rotation_axis)||
+            !((*rotation_axis)[0])) {
+            *rotation_axis = ".";  return CBF_SUCCESS;
+        }
+        return CBF_SUCCESS;
+
+    }
+
+
+
+    /* Get an axis offset */
+
+    int cbf_get_axis_offset (cbf_handle handle, const char *axis_id,
+                             double *offset1,
+                             double *offset2,
+                             double *offset3)
+    {
+        if (!handle || !axis_id || !offset1 || !offset2 || !offset3)
+            return CBF_ARGUMENT;
+
+        /* Read from the axis category */
+
+        cbf_failnez (cbf_find_category   (handle, "axis"))
+        cbf_failnez (cbf_find_column     (handle, "id"))
+        cbf_failnez (cbf_find_row        (handle, axis_id))
+        cbf_failnez (cbf_find_column     (handle, "offset[1]"))
+        if (cbf_get_doublevalue (handle, offset1)) *offset1 = 0.;
+        cbf_failnez (cbf_find_column     (handle, "offset[2]"))
+        if (cbf_get_doublevalue (handle, offset2)) *offset2 = 0.;
+        cbf_failnez (cbf_find_column     (handle, "offset[3]"))
+        if (cbf_get_doublevalue (handle, offset3)) *offset3 = 0.;
+
+        return 0;
+    }
+
+
+
+
 
     /* Get the type of an axis */
 
@@ -2766,34 +3021,6 @@ extern "C" {
         return 0;
     }
 
-    /* Get the axis, if any, on which this axis depends */
-
-    int cbf_get_axis_depends_on (cbf_handle handle, const char *axis_id,
-                           const char * *depends_on)
-    {
-
-        /* Check for valid arguments */
-
-        if (!handle || !axis_id || !depends_on) return CBF_ARGUMENT;
-
-        /* Get the axis deependency */
-
-        cbf_failnez (cbf_find_category (handle, "axis"))
-        cbf_failnez (cbf_find_column   (handle, "id"))
-        cbf_failnez (cbf_find_row      (handle, axis_id))
-        if (cbf_find_column   (handle, "depends_on")) {
-            *depends_on = ".";  return CBF_SUCCESS;
-        }
-        if (cbf_get_value     (handle, depends_on)||
-            !((*depends_on)[0])) {
-            *depends_on = ".";  return CBF_SUCCESS;
-        }
-        return CBF_SUCCESS;
-
-    }
-
-
-
     /* Get an axis vector */
 
     int cbf_get_axis_vector (cbf_handle handle, const char *axis_id,
@@ -2818,33 +3045,6 @@ extern "C" {
 
         return 0;
     }
-
-
-    /* Get an axis offset */
-
-    int cbf_get_axis_offset (cbf_handle handle, const char *axis_id,
-                             double *offset1,
-                             double *offset2,
-                             double *offset3)
-    {
-        if (!handle || !axis_id || !offset1 || !offset2 || !offset3)
-            return CBF_ARGUMENT;
-
-        /* Read from the axis category */
-
-        cbf_failnez (cbf_find_category   (handle, "axis"))
-        cbf_failnez (cbf_find_column     (handle, "id"))
-        cbf_failnez (cbf_find_row        (handle, axis_id))
-        cbf_failnez (cbf_find_column     (handle, "offset[1]"))
-        if (cbf_get_doublevalue (handle, offset1)) *offset1 = 0.;
-        cbf_failnez (cbf_find_column     (handle, "offset[2]"))
-        if (cbf_get_doublevalue (handle, offset2)) *offset2 = 0.;
-        cbf_failnez (cbf_find_column     (handle, "offset[3]"))
-        if (cbf_get_doublevalue (handle, offset3)) *offset3 = 0.;
-
-        return 0;
-    }
-
 
 
     /* Get the setting of an axis */
@@ -3214,13 +3414,13 @@ extern "C" {
                 }
 
                 if (positioner->axis [i].rotation_axis) {
-                    
+
                     arot = (void *)(positioner->axis [i].rotation_axis);
-                    
+
                     errorcode |= cbf_free ((void **) &arot, NULL);
-                    
+
                     positioner->axis [i].rotation_axis = NULL;
-                    
+
             }
 
             }
@@ -3283,8 +3483,8 @@ extern "C" {
         /* Ensure we are not in a loop */
 
         if (positioner->axes >= positioner->axis_index_limit) return CBF_ALLOC;
-                
-        
+
+
         /* Allocate memory and copy the axis names */
 
         axis.name = NULL;
@@ -3294,7 +3494,7 @@ extern "C" {
         axis.depends_on = NULL;
 
         axis.rotation_axis = NULL;
-        
+
         if (depends_on) {
 
             axis.depends_on = (char *)cbf_copy_string(NULL,depends_on,0);
@@ -3326,7 +3526,7 @@ extern "C" {
             void * vdepends_on;
 
             void * vrotation_axis;
-            
+
             vname = (void *)axis.name;
 
             vdepends_on = (void *)axis.depends_on;
@@ -3337,13 +3537,13 @@ extern "C" {
               cbf_free (&vname, NULL) |
               cbf_free (&vdepends_on, NULL) |
               cbf_free (&vrotation_axis, NULL);
-            
+
             axis.name = NULL;
 
             axis.depends_on = NULL;
 
             axis.rotation_axis = NULL;
-            
+
             return nerrorcode;
 
         }
@@ -3387,15 +3587,15 @@ extern "C" {
                                  double         start,
                                  double         increment)
     {
-        
+
         return cbf_add_positioner_axis_wrot (positioner,
                                 name, depends_on, NULL, type,
                                 vector1, vector2, vector3,
                                 offset1, offset2, offset3,
                                 start, increment, 0.0);
-        
+
     }
-    
+
 
     /* Add a goniometer axis from a file */
 
@@ -3422,27 +3622,27 @@ extern "C" {
         cbf_failnez (cbf_find_row         (handle, axis_id));
         cbf_failnez (cbf_find_column      (handle, "depends_on"));
         cbf_failnez (cbf_get_value        (handle, &prev_id));
-        
+
         if (!cbf_find_column (handle, "rotation_axis")) {
-            
+
             cbf_failnez (cbf_get_value    (handle, &rot_id));
-            
+
         } else {
-            
+
             rot_id = NULL;
-            
+
         }
-        
+
         if (!cbf_find_column (handle, "rotation")) {
-            
+
             cbf_failnez (cbf_get_doublevalue (handle, &rot));
-            
+
         } else {
-            
+
             rot = 0.0;
-            
+
         }
-        
+
         cbf_failnez (cbf_get_axis_type    (handle, axis_id,
                                            &axis_type))
         cbf_failnez (cbf_get_axis_vector  (handle, axis_id,
@@ -3454,7 +3654,7 @@ extern "C" {
                                            &offset2,
                                            &offset3))
 
-        start = increment = rot = 0.;
+        start = increment = 0.;
 
         errorcode = 0;
 
@@ -3528,7 +3728,7 @@ extern "C" {
 
         cbf_failnez (cbf_make_positioner (positioner));
 
-        /* Set a limit on the number of axes in the positioner 
+        /* Set a limit on the number of axes in the positioner
 
            As a crude limit to break dependency loops, N*(N-1)/2
 
@@ -3626,17 +3826,17 @@ extern "C" {
         const char * target_axis;
 
         const char * rotation_axis;
-        
+
         size_t axis_index;
-        
+
         unsigned int axis_index_limit;
-        
+
         if (!positioner || !axis_id)
 
             return CBF_ARGUMENT;
 
         /* fprintf(stderr," cbf_construct_positioner, axis %s\n",axis_id); */
-        
+
         errorcode = 0;
 
 
@@ -3649,21 +3849,21 @@ extern "C" {
          As a crude limit to break dependency loops, N*(N-1)/2
 
          will suffice.
-         
+
          */
-        
+
         cbf_failnez(cbf_find_category(handle,"axis"));
-        
+
         cbf_failnez(cbf_count_rows(handle,&axis_index_limit));
-        
+
         axis_index_limit *= (axis_index_limit-1);
-        
+
         axis_index_limit /= 2;
-        
+
         (*positioner)->axis_index_limit = axis_index_limit;
-        
+
         /* read the first axis */
-        
+
             errorcode = cbf_read_positioner_axis (handle,
                                                   0, /* reserved */
                                                   *positioner,
@@ -3679,39 +3879,39 @@ extern "C" {
                 rotation_axis = (*positioner)->axis[axis_index].rotation_axis;
 
                 if (target_axis && cbf_cistrcmp (target_axis,".") !=0 ) {
-                    
+
                     errorcode = cbf_read_positioner_axis (handle,
                                                           0, /* reserved */
                                                           *positioner,
                                                           target_axis, -2);
-                    
+
                     (*positioner)->axis[axis_index].depends_on_index
                     = (*positioner)->axes-1;
-                    
+
                     (*positioner)->axis[(*positioner)->axes-1].depdepth
                     = cbf_max( (*positioner)->axis[(*positioner)->axes-1].depdepth,
                               (*positioner)->axis[axis_index].depdepth+1);
-                    
+
                     if (!errorcode) break;
-                    
+
             }
 
                 if (rotation_axis && cbf_cistrcmp (rotation_axis,".") !=0 ) {
-                    
+
                     errorcode = cbf_read_positioner_axis (handle,
                                                           0, /* reserved */
                                                           *positioner,
                                                           rotation_axis, -2);
-                    
+
                     (*positioner)->axis[axis_index].depends_on_index
                     = (*positioner)->axes-1;
-                    
+
                     (*positioner)->axis[(*positioner)->axes-1].depdepth
                     = cbf_max( (*positioner)->axis[(*positioner)->axes-1].depdepth,
                               (*positioner)->axis[axis_index].depdepth+1);
-                    
+
                     if (!errorcode) break;
-                    
+
         }
 
                 axis_index++;
@@ -3719,7 +3919,7 @@ extern "C" {
             } while (axis_index < (*positioner)->axes);
 
         }
-        
+
         if (errorcode)
         {
             errorcode |= cbf_free_positioner (*positioner);
@@ -3747,7 +3947,7 @@ extern "C" {
         size_t i, istart;
 
         int idep;
-        
+
         int irot;
 
         double setting;
@@ -3775,7 +3975,7 @@ extern "C" {
 
                 positioner->axis [i].setting = setting;
             }
-            
+
             if (positioner->axis [i].depdepth == 0) istart = i;
         }
 
@@ -3804,103 +4004,105 @@ extern "C" {
             irot = -1;
 
             rangle = 0.;
-            
+
             i = istart;
-            
+
             while (1) {
-                
-                    setting = positioner->axis [i].setting;
+
+                setting = positioner->axis [i].setting;
 
                 if (positioner->axis [i].type == CBF_TRANSLATION_AXIS && irot == -1)
-                    {
-                        positioner->matrix [0][3] += setting * positioner->axis [i].vector [0];
-                        positioner->matrix [1][3] += setting * positioner->axis [i].vector [1];
-                        positioner->matrix [2][3] += setting * positioner->axis [i].vector [2];
-                        /* fprintf(stderr," calculate position, axis %d, translate [%g, %g, %g]\n",
-                         i,
-                         setting * positioner->axis [i].vector [0],
-                         setting * positioner->axis [i].vector [1],
-                         setting * positioner->axis [i].vector [2]);
-                         */
+                {
+                    positioner->matrix [0][3] += setting * positioner->axis [i].vector [0];
+                    positioner->matrix [1][3] += setting * positioner->axis [i].vector [1];
+                    positioner->matrix [2][3] += setting * positioner->axis [i].vector [2];
+                    /* fprintf(stderr," calculate position, axis %s, translate [%g, %g, %g]\n",
+                            positioner->axis [i].name,
+                            setting * positioner->axis [i].vector [0],
+                            setting * positioner->axis [i].vector [1],
+                            setting * positioner->axis [i].vector [2]); */
 
-                    }
-                    else
-                    {
-                        double s, x, y, z, w,
-                        xx, yy, zz, xy, xz, xw, yz, yw, zw;
 
-                        double rotation [3][3], product [3][4];
+                }
+                else
+                {
+                    double s, x, y, z, w,
+                    xx, yy, zz, xy, xz, xw, yz, yw, zw;
 
-                        int r1, c1r2, c2;
+                    double rotation [3][3], product [3][4];
+
+                    int r1, c1r2, c2;
 
                     setting += rangle;
-                    
-                        s = sin (setting * 0.00872664625997164788461845384244);
 
-                        x = positioner->axis [i].vector [0] * s;
-                        y = positioner->axis [i].vector [1] * s;
-                        z = positioner->axis [i].vector [2] * s;
+                    s = sin (setting * 0.00872664625997164788461845384244);
 
-                        w = cos (setting * 0.00872664625997164788461845384244);
+                    x = positioner->axis [i].vector [0] * s;
+                    y = positioner->axis [i].vector [1] * s;
+                    z = positioner->axis [i].vector [2] * s;
 
-                        xx = x * x;
-                        yy = y * y;
-                        zz = z * z;
-                        xy = x * y;
-                        xz = x * z;
-                        xw = x * w;
-                        yz = y * z;
-                        yw = y * w;
-                        zw = z * w;
+                    w = cos (setting * 0.00872664625997164788461845384244);
 
-                        rotation [0][0] = 1 - 2 * (yy + zz);
-                        rotation [0][1] =     2 * (xy - zw);
-                        rotation [0][2] =     2 * (xz + yw);
-                        rotation [1][0] =     2 * (xy + zw);
-                        rotation [1][1] = 1 - 2 * (xx + zz);
-                        rotation [1][2] =     2 * (yz - xw);
-                        rotation [2][0] =     2 * (xz - yw);
-                        rotation [2][1] =     2 * (yz + xw);
-                        rotation [2][2] = 1 - 2 * (xx + yy);
+                    xx = x * x;
+                    yy = y * y;
+                    zz = z * z;
+                    xy = x * y;
+                    xz = x * z;
+                    xw = x * w;
+                    yz = y * z;
+                    yw = y * w;
+                    zw = z * w;
 
-                        /* fprintf(stderr," calculate position, axis %d, rotate [%g + i*%g + j*%g + k*%g]\n",
-                         i, w, x, y, z);
-                         */
+                    rotation [0][0] = 1 - 2 * (yy + zz);
+                    rotation [0][1] =     2 * (xy - zw);
+                    rotation [0][2] =     2 * (xz + yw);
+                    rotation [1][0] =     2 * (xy + zw);
+                    rotation [1][1] = 1 - 2 * (xx + zz);
+                    rotation [1][2] =     2 * (yz - xw);
+                    rotation [2][0] =     2 * (xz - yw);
+                    rotation [2][1] =     2 * (yz + xw);
+                    rotation [2][2] = 1 - 2 * (xx + yy);
 
-                        for (r1 = 0; r1 < 3; r1++)
+                    /* fprintf(stderr," calculate position, axis %s, rotate [%g + i*%g + j*%g + k*%g]\n",
+                            positioner->axis [i].name, w, x, y, z); */
 
-                            for (c2 = 0; c2 < 4; c2++)
-                            {
-                                product [r1][c2] = 0;
 
-                                for (c1r2 = 0; c1r2 < 3; c1r2++)
+                    for (r1 = 0; r1 < 3; r1++)
 
-                                    product [r1][c2] += rotation [r1][c1r2] *
-                                    positioner->matrix [c1r2][c2];
-                            }
+                        for (c2 = 0; c2 < 4; c2++)
+                        {
+                            product [r1][c2] = 0;
 
-                        for (r1 = 0; r1 < 3; r1++)
+                            for (c1r2 = 0; c1r2 < 3; c1r2++)
 
-                            for (c2 = 0; c2 < 4; c2++)
+                                product [r1][c2] += rotation [r1][c1r2] *
+                                positioner->matrix [c1r2][c2];
+                        }
 
-                                positioner->matrix [r1][c2] = product [r1][c2];
-                    }
+                    for (r1 = 0; r1 < 3; r1++)
 
-                    positioner->matrix [0][3] += positioner->axis [i].offset [0];
-                    positioner->matrix [1][3] += positioner->axis [i].offset [1];
-                    positioner->matrix [2][3] += positioner->axis [i].offset [2];
-                
+                        for (c2 = 0; c2 < 4; c2++)
+
+                            positioner->matrix [r1][c2] = product [r1][c2];
+                }
+
+                positioner->matrix [0][3] += positioner->axis [i].offset [0];
+                positioner->matrix [1][3] += positioner->axis [i].offset [1];
+                positioner->matrix [2][3] += positioner->axis [i].offset [2];
+
                 if (irot == -1) {
-                    
+
                     irot = positioner->axis[i].rotation_axis_index;
-                    
+
                     rangle = positioner->axis[i].rotation;
-                    
+
                     if (irot >= 0 && fabs(rangle) >= 1.e-38) {
-                        
+
                         if (cbf_cistrcmp(positioner->axis[i].depends_on,
-                                         positioner->axis[irot].depends_on)) {
-                            
+                                         positioner->axis[irot].depends_on)
+                            && cbf_cistrcmp(positioner->axis[i].depends_on,
+                                            positioner->axis[irot].name)) {
+
                             fprintf (stderr," CBFlib: cbf_calculate_position: "
                                      "different rotation axis %s dependency for %s, %s vs. %s "
                                      "not supported\n",
@@ -3908,51 +4110,51 @@ extern "C" {
                                      positioner->axis[i].name,
                                      positioner->axis[i].depends_on,
                                      positioner->axis[irot].depends_on);
-                            
+
                             return CBF_FORMAT;
-                            
-                }
+
+                        }
 
                         i = irot;
-                        
+
                         continue;
                     }
-                    
+
                     irot = -1;
-                    
+
                 }
-                
+
                 idep = positioner->axis[i].depends_on_index;
-                
+
                 if (idep < 0) break;
-                
+
                 i = idep;
-                
+
                 irot = -1;
-                
+
                 rangle = 0.0;
-                
+
             }
 
             positioner->matrix_is_valid = 1;
         }
 
         /* fprintf(stderr," Overall matrix [[%g %g %g]] + %g\n"
-         "                [[%g %g %g]] + %g\n"
-         "                [[%g %g %g]] + %g\n",
-         positioner->matrix [0][0],
-         positioner->matrix [0][1],
-         positioner->matrix [0][2],
-         positioner->matrix [0][3],
-         positioner->matrix [1][0],
-         positioner->matrix [1][1],
-         positioner->matrix [1][2],
-         positioner->matrix [1][3],
-         positioner->matrix [2][0],
-         positioner->matrix [2][1],
-         positioner->matrix [2][2],
-         positioner->matrix [2][3]);
-         */
+                "                [[%g %g %g]] + %g\n"
+                "                [[%g %g %g]] + %g\n",
+                positioner->matrix [0][0],
+                positioner->matrix [0][1],
+                positioner->matrix [0][2],
+                positioner->matrix [0][3],
+                positioner->matrix [1][0],
+                positioner->matrix [1][1],
+                positioner->matrix [1][2],
+                positioner->matrix [1][3],
+                positioner->matrix [2][0],
+                positioner->matrix [2][1],
+                positioner->matrix [2][2],
+                positioner->matrix [2][3]); */
+
 
         if (final1)
 
@@ -4037,9 +4239,9 @@ extern "C" {
         const char *diffrn_id, *id, *this_id, *axis_id;
 
         const char * target_axis;
-        
+
         const char * rotation_axis;
-        
+
         size_t axis_index;
 
         unsigned int row;
@@ -4123,110 +4325,110 @@ extern "C" {
         axis_index = 0;
 
         do {
-            
+
             size_t index;
-            
+
             int found;
-            
+
             target_axis = (*goniometer)->axis[axis_index].depends_on;
-            
+
             rotation_axis = (*goniometer)->axis[axis_index].rotation_axis;
-            
+
             if (target_axis && cbf_cistrcmp (target_axis,".") !=0 ) {
-                
+
                 found = 0;
-                
+
                 for (index = 0; index < (*goniometer)->axes; index++) {
-                    
+
                     if (index != axis_index &&
                         cbf_cistrcmp (target_axis,(*goniometer)->axis[index].name)== 0)
                     {
-                        
+
                         (*goniometer)->axis[axis_index].depends_on_index = index;
-                        
+
                         found = 1;
-                        
+
                         (*goniometer)->axis[index].depdepth
                         = cbf_max( (*goniometer)->axis[index].depdepth,
                                   (*goniometer)->axis[axis_index].depdepth+1);
-                        
-                        
+
+
                         break;
-                        
+
                     }
-                    
+
                 }
-                
+
                 if (!found) {
-                    
+
                     errorcode = cbf_read_positioner_axis (handle,
                                                           0, /* reserved */
                                                           *goniometer,
                                                           target_axis, 2);
-                    
+
                     (*goniometer)->axis[axis_index].depends_on_index
                     = (*goniometer)->axes-1;
-                    
+
                     (*goniometer)->axis[(*goniometer)->axes-1].depdepth
                     = cbf_max( (*goniometer)->axis[(*goniometer)->axes-1].depdepth,
                               (*goniometer)->axis[axis_index].depdepth+1);
-                    
-                    
+
+
                     if (!errorcode) break;
-                    
+
                 }
-                
+
             }
-            
+
             if (rotation_axis && cbf_cistrcmp (rotation_axis,".") !=0 ) {
-                
+
                 found = 0;
-                
+
                 for (index = 0; index < (*goniometer)->axes; index++) {
-                    
+
                     if (index != axis_index &&
                         cbf_cistrcmp (rotation_axis,(*goniometer)->axis[index].name)== 0)
                     {
-                        
+
                         (*goniometer)->axis[axis_index].rotation_axis_index = index;
-                        
+
                         found = 1;
-                        
+
                         (*goniometer)->axis[index].depdepth
                         = cbf_max( (*goniometer)->axis[index].depdepth,
                                   (*goniometer)->axis[axis_index].depdepth+1);
-                        
-                        
+
+
                         break;
-                        
+
                     }
-                    
+
                 }
-                
+
                 if (!found) {
-                    
-                    
+
+
                     errorcode = cbf_read_positioner_axis (handle,
                                                           0, /* reserved */
                                                           *goniometer,
                                                           rotation_axis, 2);
-                    
+
                     (*goniometer)->axis[axis_index].rotation_axis_index
                     = (*goniometer)->axes-1;
-                    
+
                     (*goniometer)->axis[(*goniometer)->axes-1].depdepth
                     = cbf_max( (*goniometer)->axis[(*goniometer)->axes-1].depdepth,
                               (*goniometer)->axis[axis_index].depdepth+1);
-                    
-                    
+
+
                     if (!errorcode) break;
-                    
+
                 }
-                
+
             }
-            
+
             axis_index++;
-            
+
         } while (axis_index < (*goniometer)->axes);
 
         if (errorcode)
@@ -4444,9 +4646,9 @@ extern "C" {
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
 
         const char * target_axis;
-        
+
         const char * rotation_axis;
-        
+
         size_t axis_index;
 
         const char *surface_axis [2];  /* fast, slow */
@@ -4526,7 +4728,9 @@ extern "C" {
 
         /* Construct the positioner */
 
-        cbf_failnez (cbf_make_positioner (&positioner))
+       /* fprintf(stderr," Construct the positioner\n"); */
+
+       cbf_failnez (cbf_make_positioner (&positioner))
 
         errorcode = cbf_alloc ((void **) detector, NULL,
                                sizeof (cbf_detector_struct), 1);
@@ -4603,113 +4807,120 @@ extern "C" {
 
         /* Complete the connectivity of the positioner */
 
+        /* fprintf(stderr," Complete the connectivity of the positioner\n"); */
+
         axis_index = 0;
 
         do {
-            
+
             size_t index;
-            
+
             int found;
 
             target_axis = positioner->axis[axis_index].depends_on;
-            
+
             rotation_axis = positioner->axis[axis_index].rotation_axis;
-            
+
+            /* fprintf(stderr," axis %s depends_on %s rotation_axis %s rotation %g\n",
+                    positioner->axis[axis_index].name,
+                    target_axis, rotation_axis,
+                    positioner->axis[axis_index].rotation); */
+
             if (target_axis && cbf_cistrcmp (target_axis,".") !=0 ) {
-                
+
                 found = 0;
-                
+
                 for (index = 0; index < positioner->axes; index++) {
-                    
+
                     if (index != axis_index &&
                         cbf_cistrcmp (target_axis,positioner->axis[index].name)== 0)
-        {
+                    {
 
                         positioner->axis[axis_index].depends_on_index = index;
-                        
+
                         found = 1;
-                        
+
                         positioner->axis[index].depdepth
                         = cbf_max( positioner->axis[index].depdepth,
                                   positioner->axis[axis_index].depdepth+1);
 
-                        
+
                         break;
 
-        }
+                    }
 
                 }
-                
+
                 if (!found) {
 
                     errorcode = cbf_read_positioner_axis (handle,
-                                                      0, /* reserved */
-                                                      positioner,
-                                                      target_axis, 2);
-                
+                                                          0, /* reserved */
+                                                          positioner,
+                                                          target_axis, 2);
+
                     positioner->axis[axis_index].depends_on_index
-                        = positioner->axes-1;
-                    
+                    = positioner->axes-1;
+
                     positioner->axis[positioner->axes-1].depdepth
                     = cbf_max( positioner->axis[positioner->axes-1].depdepth,
                               positioner->axis[axis_index].depdepth+1);
 
-                
+
                     if (!errorcode) break;
-                    
+
                 }
-                
+
             }
-            
+
             if (rotation_axis && cbf_cistrcmp (rotation_axis,".") !=0 ) {
-                
+
                 found = 0;
-                
+
                 for (index = 0; index < positioner->axes; index++) {
-                    
+
                     if (index != axis_index &&
                         cbf_cistrcmp (rotation_axis,positioner->axis[index].name)== 0)
                     {
-                        
+
                         positioner->axis[axis_index].rotation_axis_index = index;
-                        
+
                         found = 1;
-                        
+
                         positioner->axis[index].depdepth
                         = cbf_max( positioner->axis[index].depdepth,
                                   positioner->axis[axis_index].depdepth+1);
 
-                        
+
                         break;
-                        
+
                     }
-                    
+
                 }
-                
+
                 if (!found) {
-                    
+
 
                     errorcode = cbf_read_positioner_axis (handle,
-                                                      0, /* reserved */
-                                                      positioner,
-                                                      rotation_axis, 2);
-                
+                                                          0, /* reserved */
+                                                          positioner,
+                                                          rotation_axis, 2);
+
                     positioner->axis[axis_index].rotation_axis_index
-                        = positioner->axes-1;
-                    
+                    = positioner->axes-1;
+
                     positioner->axis[positioner->axes-1].depdepth
                     = cbf_max( positioner->axis[positioner->axes-1].depdepth,
                               positioner->axis[axis_index].depdepth+1);
 
-                
+
                     if (!errorcode) break;
-                    
+
                 }
-                
+
             }
-            
+
             axis_index++;
-            
+
         } while (axis_index < positioner->axes);
 
         /* Insert the cbf handle and element into the dectector */
@@ -4767,9 +4978,9 @@ extern "C" {
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
 
         const char * target_axis;
-        
+
         const char * rotation_axis;
-        
+
         size_t axis_index;
 
         const char *surface_axis [2];
@@ -4959,110 +5170,110 @@ extern "C" {
         axis_index = 0;
 
         do {
-            
+
             size_t index;
-            
+
             int found;
-            
+
             target_axis = positioner->axis[axis_index].depends_on;
-            
+
             rotation_axis = positioner->axis[axis_index].rotation_axis;
-            
+
             if (target_axis && cbf_cistrcmp (target_axis,".") !=0 ) {
-                
+
                 found = 0;
-                
+
                 for (index = 0; index < positioner->axes; index++) {
-                    
+
                     if (index != axis_index &&
                         cbf_cistrcmp (target_axis,positioner->axis[index].name)== 0)
         {
 
                         positioner->axis[axis_index].depends_on_index = index;
-                        
+
                         found = 1;
-                        
+
                         positioner->axis[index].depdepth
                         = cbf_max( positioner->axis[index].depdepth,
                                   positioner->axis[axis_index].depdepth+1);
-                        
-                        
+
+
                         break;
-                        
+
         }
 
                 }
-                
+
                 if (!found) {
-                    
+
                     errorcode = cbf_read_positioner_axis (handle,
                                                           0, /* reserved */
                                                           positioner,
                                                           target_axis, 2);
-                    
+
                     positioner->axis[axis_index].depends_on_index
                     = positioner->axes-1;
-                    
+
                     positioner->axis[positioner->axes-1].depdepth
                     = cbf_max( positioner->axis[positioner->axes-1].depdepth,
                               positioner->axis[axis_index].depdepth+1);
-                    
-                    
+
+
                     if (!errorcode) break;
-                    
+
                 }
-                
+
             }
-            
+
             if (rotation_axis && cbf_cistrcmp (rotation_axis,".") !=0 ) {
-                
+
                 found = 0;
-                
+
                 for (index = 0; index < positioner->axes; index++) {
-                    
+
                     if (index != axis_index &&
                         cbf_cistrcmp (rotation_axis,positioner->axis[index].name)== 0)
                     {
-                        
+
                         positioner->axis[axis_index].rotation_axis_index = index;
-                        
+
                         found = 1;
-                        
+
                         positioner->axis[index].depdepth
                         = cbf_max( positioner->axis[index].depdepth,
                                   positioner->axis[axis_index].depdepth+1);
-                        
-                        
+
+
                         break;
-                        
+
                     }
-                    
+
                 }
-                
+
                 if (!found) {
-                    
-                    
+
+
                     errorcode = cbf_read_positioner_axis (handle,
                                                           0, /* reserved */
                                                           positioner,
                                                           rotation_axis, 2);
-                    
+
                     positioner->axis[axis_index].rotation_axis_index
                     = positioner->axes-1;
-                    
+
                     positioner->axis[positioner->axes-1].depdepth
                     = cbf_max( positioner->axis[positioner->axes-1].depdepth,
                               positioner->axis[axis_index].depdepth+1);
-                    
-                    
+
+
                     if (!errorcode) break;
-                    
+
                 }
-                
+
             }
-            
+
             axis_index++;
-            
+
         } while (axis_index < positioner->axes);
 
 
@@ -5123,9 +5334,9 @@ extern "C" {
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
 
         const char * target_axis;
-        
+
         const char * rotation_axis;
-        
+
         size_t axis_index;
 
         const char *surface_axis [2];
@@ -5290,113 +5501,113 @@ extern "C" {
         axis_index = 0;
 
         do {
-            
+
             size_t index;
-            
+
             int found;
-            
+
             target_axis = positioner->axis[axis_index].depends_on;
-            
+
             rotation_axis = positioner->axis[axis_index].rotation_axis;
-            
+
             if (target_axis && cbf_cistrcmp (target_axis,".") !=0 ) {
-                
+
                 found = 0;
-                
+
                 for (index = 0; index < positioner->axes; index++) {
-                    
+
                     if (index != axis_index &&
                         cbf_cistrcmp (target_axis,positioner->axis[index].name)== 0)
         {
 
                         positioner->axis[axis_index].depends_on_index = index;
-                        
+
                         found = 1;
-                        
+
                         positioner->axis[index].depdepth
                         = cbf_max( positioner->axis[index].depdepth,
                                   positioner->axis[axis_index].depdepth+1);
-                        
-                        
+
+
                         break;
-                        
+
         }
 
                 }
-                
+
                 if (!found) {
-                    
+
                     errorcode = cbf_read_positioner_axis (handle,
                                                           0, /* reserved */
                                                           positioner,
                                                           target_axis, 2);
-                    
+
                     positioner->axis[axis_index].depends_on_index
                     = positioner->axes-1;
-                    
+
                     positioner->axis[positioner->axes-1].depdepth
                     = cbf_max( positioner->axis[positioner->axes-1].depdepth,
                               positioner->axis[axis_index].depdepth+1);
-                    
-                    
+
+
                     if (!errorcode) break;
-                    
+
                 }
-                
+
             }
-            
+
             if (rotation_axis && cbf_cistrcmp (rotation_axis,".") !=0 ) {
-                
+
                 found = 0;
-                
+
                 for (index = 0; index < positioner->axes; index++) {
-                    
+
                     if (index != axis_index &&
                         cbf_cistrcmp (rotation_axis,positioner->axis[index].name)== 0)
                     {
-                        
+
                         positioner->axis[axis_index].rotation_axis_index = index;
-                        
+
                         found = 1;
-                        
+
                         positioner->axis[index].depdepth
                         = cbf_max( positioner->axis[index].depdepth,
                                   positioner->axis[axis_index].depdepth+1);
-                        
-                        
+
+
                         break;
-                        
+
                     }
-                    
+
                 }
-                
+
                 if (!found) {
-                    
-                    
+
+
                     errorcode = cbf_read_positioner_axis (handle,
                                                           0, /* reserved */
                                                           positioner,
                                                           rotation_axis, 2);
-                    
+
                     positioner->axis[axis_index].rotation_axis_index
                     = positioner->axes-1;
-                    
+
                     positioner->axis[positioner->axes-1].depdepth
                     = cbf_max( positioner->axis[positioner->axes-1].depdepth,
                               positioner->axis[axis_index].depdepth+1);
-                    
-                    
+
+
                     if (!errorcode) break;
-                    
+
                 }
-                
+
             }
-            
+
             axis_index++;
-            
+
         } while (axis_index < positioner->axes);
-        
-        
+
+
         /* Insert the cbf handle and element into the dectector */
 
         (*detector)->handle = handle;
@@ -6182,7 +6393,7 @@ extern "C" {
     }
 
 
-    /* Calcluate the coordinates of a pixel */
+    /* Calculate the coordinates of a pixel */
 
     int cbf_get_pixel_coordinates (cbf_detector detector, double index1,
                                    double index2,
@@ -6199,6 +6410,51 @@ extern "C" {
                                              coordinate3))
 
         return 0;
+    }
+
+    /* Get the names of the detector surface axes */
+
+    int cbf_get_detector_surface_axes(cbf_detector detector,
+                                 const char * * axis_id1,
+                                 const char * * axis_id2)
+    {
+        unsigned int row;
+
+        if ( !detector || !(detector->positioner)) return CBF_ARGUMENT;
+
+        if (axis_id1) {
+
+            row = detector->index[0];
+
+            if (row < detector->positioner->axes) {
+
+                *axis_id1 = (detector->positioner->axis[row]).name;
+
+            } else {
+
+                *axis_id1 = ".";
+            }
+
+        }
+
+
+        if (axis_id2) {
+
+            row = detector->index[1];
+
+            if (row < detector->positioner->axes) {
+
+                *axis_id2 = (detector->positioner->axis[row]).name;
+
+            } else {
+
+                *axis_id2 = ".";
+            }
+
+        }
+
+        return CBF_SUCCESS;
+
     }
 
 
@@ -6939,7 +7195,7 @@ extern "C" {
                                       refvector1, refvector2, refvector3,
                                       vector1,vector2,vector3))
 
-		return cbf_free_positioner(positioner);
+                return cbf_free_positioner(positioner);
 
 
     }
@@ -7365,7 +7621,7 @@ extern "C" {
         const char *next_id;
 
         const char *rot_id;
-        
+
         cbf_axis_type axis_type;
 
         double vector1, vector2, vector3, offset1, offset2, offset3;
@@ -7379,25 +7635,25 @@ extern "C" {
         cbf_failnez (cbf_find_row         (handle, axis_id))
         cbf_failnez (cbf_find_column      (handle, "depends_on"))
         cbf_failnez (cbf_get_value        (handle, &next_id))
-        
+
         if (!cbf_find_column (handle, "rotation_axis")) {
-            
+
             cbf_failnez (cbf_get_value    (handle, &rot_id));
-            
+
         } else {
-            
+
             rot_id = NULL;
-            
+
         }
-        
+
         if (!cbf_find_column (handle, "rotation")) {
-            
+
             cbf_failnez (cbf_get_doublevalue (handle, &rot));
-            
+
         } else {
-            
+
             rot = 0.0;
-            
+
         }
 
         cbf_failnez (cbf_get_axis_type    (handle, axis_id,
@@ -7411,7 +7667,7 @@ extern "C" {
                                            &offset2,
                                            &offset3))
 
-        start = increment = rot = 0.;
+        start = increment = 0.;
 
         errorcode = 0;
 
@@ -7467,9 +7723,9 @@ extern "C" {
         const char *diffrn_id, *id, *this_id, *axis_id;
 
         const char * target_axis;
-        
+
         const char * rotation_axis;
-        
+
         size_t axis_index;
 
         unsigned int row;
@@ -7554,110 +7810,110 @@ extern "C" {
         axis_index = 0;
 
         do {
-            
+
             size_t index;
-            
+
             int found;
-            
+
             target_axis = (*goniometer)->axis[axis_index].depends_on;
-            
+
             rotation_axis = (*goniometer)->axis[axis_index].rotation_axis;
-            
+
             if (target_axis && cbf_cistrcmp (target_axis,".") !=0 ) {
-                
+
                 found = 0;
-                
+
                 for (index = 0; index < (*goniometer)->axes; index++) {
-                    
+
                     if (index != axis_index &&
                         cbf_cistrcmp (target_axis,(*goniometer)->axis[index].name)== 0)
                     {
-                        
+
                         (*goniometer)->axis[axis_index].depends_on_index = index;
-                        
+
                         found = 1;
-                        
+
                         (*goniometer)->axis[index].depdepth
                         = cbf_max( (*goniometer)->axis[index].depdepth,
                                   (*goniometer)->axis[axis_index].depdepth+1);
-                        
-                        
+
+
                         break;
-                        
+
                     }
-                    
+
                 }
-                
+
                 if (!found) {
-                    
+
                     errorcode = cbf_read_positioner_axis (handle,
                                                           0, /* reserved */
                                                           *goniometer,
                                                           target_axis, 2);
-                    
+
                     (*goniometer)->axis[axis_index].depends_on_index
                     = (*goniometer)->axes-1;
-                    
+
                     (*goniometer)->axis[(*goniometer)->axes-1].depdepth
                     = cbf_max( (*goniometer)->axis[(*goniometer)->axes-1].depdepth,
                               (*goniometer)->axis[axis_index].depdepth+1);
-                    
-                    
+
+
                     if (!errorcode) break;
-                    
+
                 }
-                
+
             }
-            
+
             if (rotation_axis && cbf_cistrcmp (rotation_axis,".") !=0 ) {
-                
+
                 found = 0;
-                
+
                 for (index = 0; index < (*goniometer)->axes; index++) {
-                    
+
                     if (index != axis_index &&
                         cbf_cistrcmp (rotation_axis,(*goniometer)->axis[index].name)== 0)
                     {
-                        
+
                         (*goniometer)->axis[axis_index].rotation_axis_index = index;
-                        
+
                         found = 1;
-                        
+
                         (*goniometer)->axis[index].depdepth
                         = cbf_max( (*goniometer)->axis[index].depdepth,
                                   (*goniometer)->axis[axis_index].depdepth+1);
-                        
-                        
+
+
                         break;
-                        
+
                     }
-                    
+
                 }
-                
+
                 if (!found) {
-                    
-                    
+
+
                     errorcode = cbf_read_positioner_axis (handle,
                                                           0, /* reserved */
                                                           *goniometer,
                                                           rotation_axis, 2);
-                    
+
                     (*goniometer)->axis[axis_index].rotation_axis_index
                     = (*goniometer)->axes-1;
-                    
+
                     (*goniometer)->axis[(*goniometer)->axes-1].depdepth
                     = cbf_max( (*goniometer)->axis[(*goniometer)->axes-1].depdepth,
                               (*goniometer)->axis[axis_index].depdepth+1);
-                    
-                    
+
+
                     if (!errorcode) break;
-                    
+
                 }
-                
+
             }
-            
+
             axis_index++;
-            
+
         } while (axis_index < (*goniometer)->axes);
 
 
@@ -7686,9 +7942,9 @@ extern "C" {
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
 
         const char * target_axis;
-        
+
         const char * rotation_axis;
-        
+
         size_t axis_index;
 
         const char *surface_axis [2];  /* fast, slow */
@@ -7850,110 +8106,110 @@ extern "C" {
         axis_index = 0;
 
         do {
-            
+
             size_t index;
-            
+
             int found;
-            
+
             target_axis = positioner->axis[axis_index].depends_on;
-            
+
             rotation_axis = positioner->axis[axis_index].rotation_axis;
-            
+
             if (target_axis && cbf_cistrcmp (target_axis,".") !=0 ) {
-                
+
                 found = 0;
-                
+
                 for (index = 0; index < positioner->axes; index++) {
-                    
+
                     if (index != axis_index &&
                         cbf_cistrcmp (target_axis,positioner->axis[index].name)== 0)
         {
 
                         positioner->axis[axis_index].depends_on_index = index;
-                        
+
                         found = 1;
-                        
+
                         positioner->axis[index].depdepth
                         = cbf_max( positioner->axis[index].depdepth,
                                   positioner->axis[axis_index].depdepth+1);
-                        
-                        
+
+
                         break;
-                        
+
         }
 
                 }
-                
+
                 if (!found) {
-                    
+
                     errorcode = cbf_read_positioner_axis (handle,
                                                           0, /* reserved */
                                                           positioner,
                                                           target_axis, 2);
-                    
+
                     positioner->axis[axis_index].depends_on_index
                     = positioner->axes-1;
-                    
+
                     positioner->axis[positioner->axes-1].depdepth
                     = cbf_max( positioner->axis[positioner->axes-1].depdepth,
                               positioner->axis[axis_index].depdepth+1);
-                    
-                    
+
+
                     if (!errorcode) break;
-                    
+
                 }
-                
+
             }
-            
+
             if (rotation_axis && cbf_cistrcmp (rotation_axis,".") !=0 ) {
-                
+
                 found = 0;
-                
+
                 for (index = 0; index < positioner->axes; index++) {
-                    
+
                     if (index != axis_index &&
                         cbf_cistrcmp (rotation_axis,positioner->axis[index].name)== 0)
                     {
-                        
+
                         positioner->axis[axis_index].rotation_axis_index = index;
-                        
+
                         found = 1;
-                        
+
                         positioner->axis[index].depdepth
                         = cbf_max( positioner->axis[index].depdepth,
                                   positioner->axis[axis_index].depdepth+1);
-                        
-                        
+
+
                         break;
-                        
+
                     }
-                    
+
                 }
-                
+
                 if (!found) {
-                    
-                    
+
+
                     errorcode = cbf_read_positioner_axis (handle,
                                                           0, /* reserved */
                                                           positioner,
                                                           rotation_axis, 2);
-                    
+
                     positioner->axis[axis_index].rotation_axis_index
                     = positioner->axes-1;
-                    
+
                     positioner->axis[positioner->axes-1].depdepth
                     = cbf_max( positioner->axis[positioner->axes-1].depdepth,
                               positioner->axis[axis_index].depdepth+1);
-                    
-                    
+
+
                     if (!errorcode) break;
-                    
+
                 }
-                
+
             }
-            
+
             axis_index++;
-            
+
         } while (axis_index < positioner->axes);
 
         /* Insert the cbf handle and element into the dectector */
@@ -8011,9 +8267,9 @@ extern "C" {
         const char * target_axis;
 
         const char * rotation_axis;
-        
+
         size_t axis_index;
-        
+
         unsigned int axis_index_limit;
 
         if (!positioner || !axis_id)
@@ -8036,17 +8292,17 @@ extern "C" {
          will suffice.
 
          */
-        
+
         cbf_failnez(cbf_find_category(handle,"axis"));
-        
+
         cbf_failnez(cbf_count_rows(handle,&axis_index_limit));
-        
+
         axis_index_limit *= (axis_index_limit-1);
-        
+
         axis_index_limit /= 2;
-        
+
         (*positioner)->axis_index_limit = axis_index_limit;
-        
+
         /* read the first axis */
 
             errorcode = cbf_read_positioner_frame_axis (handle,
@@ -8056,7 +8312,7 @@ extern "C" {
                                                         frame_id, 2);
 
         axis_index = 0;
-        
+
             if (!errorcode) {
 
             do{
@@ -8072,36 +8328,36 @@ extern "C" {
                                                           *positioner,
                                                           target_axis,
                                                           frame_id, 2);
-                    
+
                     (*positioner)->axis[axis_index].depends_on_index
                     = (*positioner)->axes-1;
-                    
+
                     (*positioner)->axis[(*positioner)->axes-1].depdepth
                     = cbf_max( (*positioner)->axis[(*positioner)->axes-1].depdepth,
                               (*positioner)->axis[axis_index].depdepth+1);
-                    
+
                     if (!errorcode) break;
-                    
+
             }
 
                 if (rotation_axis && cbf_cistrcmp (rotation_axis,".") !=0 ) {
-                    
+
                     errorcode = cbf_read_positioner_frame_axis (handle,
                                                           0, /* reserved */
                                                           *positioner,
                                                           rotation_axis,
                                                           frame_id, 2);
-                    
+
                     (*positioner)->axis[axis_index].rotation_axis_index
                     = (*positioner)->axes-1;
-                    
+
                     (*positioner)->axis[(*positioner)->axes-1].depdepth
                     = cbf_max( (*positioner)->axis[(*positioner)->axes-1].depdepth,
                               (*positioner)->axis[axis_index].depdepth+1);
-                    
-                    
+
+
                     if (!errorcode) break;
-                    
+
         }
 
                 axis_index++;

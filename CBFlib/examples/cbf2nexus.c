@@ -265,36 +265,24 @@
 int main (int argc, char *argv [])
 {
 	int error = CBF_SUCCESS;
-    FILE *file = NULL;
-    clock_t a,b;
-    cbf_handle cif;
-    cbf_getopt_handle opts;
-    int c = 0;
-    int errflg = 0;
+    cbf_getopt_handle opts = NULL;
 	size_t cifid = 0;
-	size_t f = 0;
 	int h5_write_flags = 0;
-	cbf_h5handle h5out = NULL;
 	const char ** const cifin = memset(malloc(argc*sizeof(char*)),0,argc*sizeof(char*));
 	const char *hdf5out = NULL;
 	const char *group = NULL;
-    char *ciftmp=NULL;
-#ifndef NOMKSTEMP
-    int ciftmpfd;
-#endif
-    int ciftmpused = 0;
-    int nbytes;
-    char buf[C2CBUFSIZ];
 
-    int digest = 0;
-
+	/* Attempt to read the arguments */
+	if (CBF_SUCCESS != (error |= cbf_make_getopt_handle(&opts))) {
+		fprintf(stderr,"Could not create a 'cbf_getopt' handle.\n");
+	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):" ))) {
+		fprintf(stderr,"Could not parse arguments.\n");
+	} else {
+    	int errflg = 0;
+		/* successful so far, try to make sense of the options */
+		if (!cbf_rewind_getopt_option(opts)) {
+			int c = 0;
     const char * optarg = NULL;
-
-	cbf_onfailnez(cbf_make_getopt_handle(&opts),free(cifin));
-
-	cbf_onfailnez(cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):" ),free(cifin));
-
-	if (!cbf_rewind_getopt_option(opts)) {
         for(; !cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg); cbf_next_getopt_option(opts)) {
             switch (c) {
 				case 'c': { /* compression */
@@ -343,6 +331,8 @@ int main (int argc, char *argv [])
             }
         }
 	}
+
+		/* check for missing data */
 	if (!hdf5out) {
 		fprintf(stderr,"No output file given.\n");
 		++errflg;
@@ -352,20 +342,29 @@ int main (int argc, char *argv [])
 		++errflg;
 	}
 	if (errflg) {
-		fprintf(stderr, "Usage:\n\t%s -o|--output output_nexus input_minicbf_files...\n"
+			fprintf(stderr, "Usage:\n\t%s [options] -o|--output output_nexus input_minicbf_files...\n"
 				"Options:\n"
 						"\t-c|--compression cbf|none|zlib (default: none)\n"
 						"\t-g|--group output_group (default: 'entry')\n"
 						"\t-Z|--register manual|plugin (default: plugin)\n"
 						"These options are NOT case-sensitive.\n",
 				argv[0]);
-        exit(2);
+			error |= CBF_ARGUMENT;
     }
+	}
 
+	/* If I could read the arguments then attempt to use them */
+	if (CBF_SUCCESS == error) {
+		size_t f = 0;
 	// prepare the output file
-	if(cbf_create_h5handle2(&h5out,hdf5out)) printf ("Couldn't open the HDF5 file '%s'.\n", hdf5out);
-	cbf_h5handle_require_entry(h5out,0,group);
+		cbf_h5handle h5out = NULL;
+		if(CBF_SUCCESS != (error |= cbf_create_h5handle2(&h5out,hdf5out))) {
+			fprintf(stderr,"Couldn't open the HDF5 file '%s'.\n", hdf5out);
+		} else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry(h5out,0,group))) {
+			fprintf(stderr,"Couldn't create an NXentry group in the HDF5 file '%s'.\n", hdf5out);
+		} else {
 	h5out->flags = h5_write_flags;
+		}
 
 #ifdef CBF_USE_ULP
 	// set up some parameters for comparing floating point numbers
@@ -375,105 +374,111 @@ int main (int argc, char *argv [])
 	h5out->double_ulp = 4;
 #endif
 #endif
-
 	for (f = 0; CBF_SUCCESS == error && f != cifid; ++f) {
-
-		/* Read the minicbf */
-
-		if (!(cifin[f]) || strcmp(cifin[f]?cifin[f]:"","-") == 0) {
-			ciftmp = (char *)malloc(strlen("/tmp/cif2cbfXXXXXX")+1);
+			cbf_handle cif = NULL;
 	#ifdef NOTMPDIR
-			strcpy(ciftmp, "cif2cbfXXXXXX");
+			char ciftmp[] = "cif2cbfXXXXXX";
 	#else
-			strcpy(ciftmp, "/tmp/cif2cbfXXXXXX");
+			char ciftmp[] = "/tmp/cif2cbfXXXXXX";
+    		int ciftmpfd;
 	#endif
+			/* Get suitable file - reading from stdin to a temporary file if needed */
+			if (!(cifin[f]) || strcmp(cifin[f]?cifin[f]:"","-") == 0) {
+				FILE *file = NULL;
+				int nbytes;
+				char buf[C2CBUFSIZ];
 	#ifdef NOMKSTEMP
-			if ((ciftmp = mktemp(ciftmp)) == NULL ) {
+				if (mktemp(ciftmp) == NULL ) {
 				fprintf(stderr,"%s: Can't create temporary file name %s.\n%s\n", argv[0], ciftmp,strerror(errno));
-				exit(1);
-			}
-			if ( (file = fopen(ciftmp,"wb+")) == NULL) {
+					error |= CBF_FILEOPEN;
+				} else if ((file = fopen(ciftmp,"wb+")) == NULL) {
 				fprintf(stderr,"Can't open temporary file %s.\n%s\n", ciftmp,strerror(errno));
-				exit(1);
+					error |= CBF_FILEOPEN;
 			}
 	#else
 			if ((ciftmpfd = mkstemp(ciftmp)) == -1 ) {
 				fprintf(stderr,"%s: Can't create temporary file %s.\n%s\n", argv[0], ciftmp,strerror(errno));
-				exit(1);
-			}
-			if ( (file = fdopen(ciftmpfd, "w+")) == NULL) {
+					error |= CBF_FILEOPEN;
+				} else if ((file = fdopen(ciftmpfd, "w+")) == NULL) {
 				fprintf(stderr,"Can't open temporary file %s.\n%s\n", ciftmp,strerror(errno));
-				exit(1);
+					error |= CBF_FILEOPEN;
 			}
 	#endif
 			while ((nbytes = fread(buf, 1, C2CBUFSIZ, stdin))) {
 				if(nbytes != fwrite(buf, 1, nbytes, file)) {
 					fprintf(stderr,"Failed to write %s.\n", ciftmp);
-					exit(1);
+						error |= CBF_FILEWRITE;
+						break;
 				}
 			}
 			fclose(file);
 			cifin[f] = ciftmp;
-			ciftmpused = 1;
 		}
 
-
+			/* Read the file */
+			if (CBF_SUCCESS == error) {
 		// start timing
-		a = clock ();
-		{ // do the work
+				clock_t a = clock(), b;
 			// prepare the file
-			FILE * const in = fopen (cifin[f], "rb");
-			if (NULL == in) {
+				FILE * in = NULL;
+				if (NULL == (in = fopen(cifin[f], "rb"))) {
 				fprintf (stderr,"Couldn't open the input CIF file '%s': %s\n", cifin[f], strerror(errno));
-				exit (1);
+					error |= CBF_FILEREAD;
 			}
 			// ensure temporary file is removed when the program closes
-			if (ciftmpused) {
+				if (ciftmp == cifin[f]) {
 				if (unlink(ciftmp)) {
 					fprintf(stderr,"Can't unlink temporary file '%s': %s\n", ciftmp,strerror(errno));
-					exit(1);
+						error |= CBF_FILECLOSE;
 				}
 			}
+				if (CBF_SUCCESS == error) {
 			// make the handle
-			if ( cbf_make_handle (&cif) ) {
+					if (CBF_SUCCESS != (error |= cbf_make_handle(&cif))) {
 				fprintf(stderr,"Failed to create handle for input_cif\n");
-				exit(1);
+						error |= CBF_ALLOC;
+					} else if (CBF_SUCCESS != (error |= cbf_read_file(cif, in, MSG_DIGEST))) {
+						fprintf(stderr,"Couldn't read the input CIF file '%s': %s\n", cifin[f], cbf_strerror(error));
+						error |= CBF_FILEREAD;
+					} else {
+						// ensure the file can be cleaned up after any errors but is not accidentally closed
+						in = NULL;
 			}
-			// read the file
-			cbf_onfailnez(cbf_read_file(cif, in, MSG_DIGEST|(digest&MSG_DIGESTWARN)),free(cifin));
 		}
+				// clean up local variables
+				if (in) fclose(in);
 		// stop timing
 		b = clock ();
 		printf("Time to read '%s': %.3fs\n", cifin[f], ((float)(b - a))/CLOCKS_PER_SEC);
+			}
 
+			/* Do the conversion */
+			if (CBF_SUCCESS == error) {
 		// start timing
-		a = clock ();
-		{ // do the work
-			// convert to nexus format
+				clock_t a = clock(), b;
 			error |= cbf_write_cbf_h5file(cif, h5out);
-		}
-
-		cbf_free_handle(cif);
-
 		// stop timing
 		b = clock ();
-		printf("Time to convert the data: %.3fs\n", ((float)(b - a))/CLOCKS_PER_SEC);
+				printf("Time to convert '%s': %.3fs\n", cifin[f], ((float)(b - a))/CLOCKS_PER_SEC);
+			}
 
+			/* Clean up */
+			if (cif) cbf_free_handle(cif);
 	}
 
-	{ // write the file
+		{ /* Write the file/close the handle */
 		// start timing
-		a = clock ();
+			clock_t a = clock(), b;
 		// clean up cbf handles
-		cbf_free_h5handle(h5out);
+			error |= cbf_free_h5handle(h5out);
 		// stop timing
 		b = clock ();
 		printf("Time to write '%s': %.3fs\n", hdf5out, ((float)(b - a))/CLOCKS_PER_SEC);
 	}
+	}
 
-
-	// cleanup
+	/* Cleanup */
 	free(cifin);
-	cbf_failnez(cbf_free_getopt_handle(opts));
+	error |= cbf_free_getopt_handle(opts);
 	return CBF_SUCCESS==error ? 0 : 1;
 }

@@ -643,7 +643,16 @@ http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz</a>
 	    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.4.27">cbf_set_real_image, cbf_set_real_image_fs, cbf_set_real_image_sf,</a><br />
 	    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.4.27">cbf_set_3d_image, cbf_set_3d_image, cbf_set_3d_image,</a><br>
 	    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.4.27">cbf_set_real_3d_image, cbf_set_real_3d_image_fs, cbf_set_real_3d_image_sf</a>
-	  <LI><A HREF="#2.4.28">2.4.28 cbf_get_axis_setting</a>
+          <LI><A HREF="#2.4.28">2.4.28 cbf_get_axis_ancestor,
+              cbf_get_axis_depends_on,
+              cbf_get_axis_equipment,
+              cbf_get_axis_equipment_component,
+              cbf_get_axis_offset,
+              cbf_get_axis_rotation,
+              cbf_get_axis_rotation_axis,
+              cbf_get_axis_setting,
+              cbf_get_axis_type,
+              cbf_get_axis_vector</a>
 	  <LI><A HREF="#2.4.29">2.4.29 cbf_set_axis_setting</a>
 	  <LI><A HREF="#2.4.30">2.4.30 cbf_construct_goniometer</a>
 	  <LI><A HREF="#2.4.31">2.4.31 cbf_free_goniometer</a>
@@ -660,7 +669,8 @@ http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz</a>
 	    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#2.4.40">cbf_set_reference_beam_center, cbf_set_reference_beam_center_fs, cbf_set_reference_beam_center_sf</a>
 	  <LI><A HREF="#2.4.41">2.4.41 cbf_get_detector_distance</a>
 	  <LI><A HREF="#2.4.42">2.4.42 cbf_get_detector_normal</a>
-      <LI><A HREF="#2.4.43">2.4.43 cbf_get_detector_axis_slow, cbf_get_detector_axis_fast, cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf
+      <LI><A HREF="#2.4.43">2.4.43 cbf_get_detector_axis_slow, cbf_get_detector_axis_fast, cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf,
+          cbf_get_detector_surface_axes
 	  <LI><A HREF="#2.4.44">2.4.44 cbf_get_pixel_coordinates, cbf_get_pixel_coordinates_fs, cbf_get_pixel_coordinates_sf</a>
 	  <LI><A HREF="#2.4.45">2.4.45 cbf_get_pixel_normal, cbf_get_pixel_normal_fs, cbf_get_pixel_normal_sf</a>
 	  <LI><A HREF="#2.4.46">2.4.46 cbf_get_pixel_area, cbf_get_pixel_area_fs, cbf_get_pixel_area_sf</a>
@@ -4997,18 +5007,96 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 
 <p>Returns an error code on failure or 0 for success.
 <p><hr /><P>
-<h4><A NAME="2.4.28">2.4.28 cbf_get_axis_setting</A></h4>
+    <h4><A NAME="2.4.28">2.4.28 cbf_count_axis_ancestors,
+        cbf_get_axis_ancestor,
+        cbf_get_axis_depends_on,<br />
+        cbf_get_axis_equipment,
+        cbf_get_axis_equipment_component,<br />
+        cbf_get_axis_offset,<br />
+        cbf_get_axis_rotation,
+        cbf_get_axis_rotation_axis,<br />
+        cbf_get_axis_setting,<br />
+        cbf_get_axis_type,<br />
+        cbf_get_axis_vector </A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
+<p>
+int cbf_count_axis_ancestors (cbf_handle <i>handle</i>,
+    const char *<i>axis_id</i>,
+    unsigned int  *<i>ancestors</i>);<br />
+<p>
+int cbf_get_axis_ancestor (cbf_handle <i>handle</i>,
+    const char *<i>axis_id</i>,
+    const unsigned int <i>ancestor_index</i>,
+    const char * *<i>ancestor</i>);<br />
+<p>
+int cbf_get_axis_depends_on (cbf_handle <i>handle</i>, const char *<i>axis_id</i>,
+    const char * *<i>depends_on</i>);<br />
+<p>
+int cbf_get_axis_equipment (cbf_handle <i>handle</i>, const char *<i>axis_id</i>,
+    const char * *<i>equipment</i>);<br />
+<p>
+int cbf_get_axis_equipment_component (cbf_handle <i>handle</i>,
+    const char *<i>axis_id</i>,
+    const char * *<i>equipment_component</i>);<br />
+<p>
+int cbf_get_axis_offset (cbf_handle <i>handle</i>, const char *<i>axis_id</i>,
+    double *<i>offset1</i>,
+    double *<i>offset2</i>,
+    double *<i>offset3</i>);<br />
+<p>
+int cbf_get_axis_rotation (cbf_handle <i>handle</i>, const char *<i>axis_id</i>,
+    double *<i>rotation</i>);<br />
+<p>
+int cbf_get_axis_rotation_axis (cbf_handle <i>handle</i>,
+    const char *<i>axis_id</i>,
+    const char * *<i>rotation_axis</i>);<br />
 <p>
 int cbf_get_axis_setting (cbf_handle <i>handle</i>, unsigned int <i>reserved</i>, const char *<i>axis_id</i>, double *<i>start</i>,
 double *<i>increment</i>);<br />
 <p>
+int cbf_get_axis_type (cbf_handle <i>handle</i>, const char *<i>axis_id</i>,
+    cbf_axis_type *<i>axis_type</i>);<br />
+<p>
+int cbf_get_axis_vector (cbf_handle <i>handle</i>, const char *<i>axis_id</i>,
+    double *<i>vector1</i>,
+    double *<i>vector2</i>,
+    double *<i>vector3</i>);<br />
+<p>
 <b>DESCRIPTION</b>
 <p>
-cbf_get_axis_setting sets *<i>start</i> and *<i>increment</i> to the corresponding values of the axis <i>axis_id</i>.
-    <p>
-Any of the destination pointers may be NULL.
+cbf_count_axis_ancestors sets <i>ancestors</i> to the number of
+ancestors of axis <i>axis_id</i>.
+cbf_get_axis_ancestor sets *<i>ancestor</i> to the ancestor axis
+of index <i>ancestor_index</i> of axis <i>axis_id</i>, starting
+with <i>axis_id</i> for <i>ancestor_index</i> 0.
+<p>
+cbf_get_axis_depends_on sets *<i>depends_on</i> to the immediate
+ancestor of <i>axis_id</i> or to &quot;.&quot; if there is no
+such ancestor.
+cbf_get_axis_equipment sets *<i>equipment</i> to the equipment of
+    <i>axis_id</i> or to &quot;.&quot; if there is no
+    such equipment.
+cbf_get_axis_equipment_component sets *<i>equipment_component</i> to the equipment_component of
+    <i>axis_id</i> or to &quot;.&quot; if there is no
+    such equipment_component.
+<p>
+cbf_get_axis_offset sets *<i>offset1</i>, *<i>offset2</i> and
+    *<i>offset3</i> to the components of the ofset of <i>axis_id</i>.
+<p>
+cbf_get_axis_rotation sets <i>rotation</i> to the rotation of
+    <i>axis_id</i> or to 0 if there is no
+    such rotation.
+cbf_get_axis_rotation_axis sets *<i>rotation_axis</i> to the rotation_axis of
+    <i>axis_id</i> or to &quot;.&quot; if there is no
+    such rotation_axis.
+<p>
+cbf_get_axis_setting sets *<i>start</i> and *<i>increment</i> to the corresponding values of the axis <i>axis_id</i>.  Any of the destination pointers may be NULL.
+<p>
+cbf_get_axis_type sets <i>axis_type</i> to the type of <i>axis_id</i>.
+<p>
+cbf_get_axis_vector sets *<i>vector1</i>, *<i>vector2</i> and
+    *<i>vector3</i> to the components of the vector of <i>axis_id</i>.
 <p>
 The parameter <i>reserved</i> is presently unused and should be set to 0.
 <p>
@@ -5017,8 +5105,23 @@ The parameter <i>reserved</i> is presently unused and should be set to 0.
 <TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.</TR>
 <TR><td valign="top">&nbsp;&nbsp;<i>reserved</i><td valign="top">&nbsp;&nbsp;Unused.  Any value other than 0 is invalid.</TR>
 <TR><td valign="top">&nbsp;&nbsp;<i>axis_id</i><td valign="top">&nbsp;&nbsp;Axis id.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>ancestor_index</i><td valign="top">&nbsp;&nbsp;Integer index of the desired ancestor, starting with 0 for the current <i>axis_id</i>.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>ancestor</i><td valign="top">&nbsp;&nbsp;Pointer to destination ancestor name pointer.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>depends_on</i><td valign="top">&nbsp;&nbsp;Pointer to destination depends_on name pointer.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>equipment</i><td valign="top">&nbsp;&nbsp;Pointer to destination equipment name pointer.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>equipment_component</i><td valign="top">&nbsp;&nbsp;Pointer to destination equipment_component name pointer.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>offset1</i><td valign="top">&nbsp;&nbsp;Pointer to destination first offset component value.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>offset2</i><td valign="top">&nbsp;&nbsp;Pointer to destination second offset component value.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>offset3</i><td valign="top">&nbsp;&nbsp;Pointer to destination third offset component value.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>rotation</i><td valign="top">&nbsp;&nbsp;Pointer to destination rotation value.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>rotation_axis</i><td valign="top">&nbsp;&nbsp;Pointer to destination rotation_axisn name pointer.</TR>
 <TR><td valign="top">&nbsp;&nbsp;<i>start</i><td valign="top">&nbsp;&nbsp;Pointer to the destination start value.</TR>
 <TR><td valign="top">&nbsp;&nbsp;<i>increment</i><td valign="top">&nbsp;&nbsp;Pointer to the destination increment value.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>type</i><td valign="top">&nbsp;&nbsp;Pointer to destination axis type of type .</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>vector1</i><td valign="top">&nbsp;&nbsp;Pointer to destination first vector component value.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>vector2</i><td valign="top">&nbsp;&nbsp;Pointer to destination second vector component value.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>vector3</i><td valign="top">&nbsp;&nbsp;Pointer to destination third vector component value.</TR>
+
 </TABLE>
 <p>
 <b>RETURN VALUE</b>
@@ -5451,7 +5554,8 @@ Any of the destination pointers may be NULL.
 <p>
 Returns an error code on failure or 0 for success.
 <p><hr /><P>
-<h4><A NAME="2.4.43">2.4.43 cbf_get_detector_axis_slow, cbf_get_detector_axis_slow, cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf </A></h4>
+<h4><A NAME="2.4.43">2.4.43 cbf_get_detector_axis_slow, cbf_get_detector_axis_slow, cbf_get_detector_axes, cbf_get_detector_axes_fs, cbf_get_detector_axes_sf,
+    cbf_get_detector_surface_axes</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
@@ -5468,6 +5572,9 @@ double *<i>slowaxis3</i>);<br />
 int cbf_get_detector_axes_sf (cbf_detector <i>detector</i>, double *<i>slowaxis1</i>, double *<i>slowaxis2</i>,
 double *<i>slowaxis3</i>, double *<i>fastaxis1</i>, double *<i>fastaxis2</i>,
 double *<i>fastaxis3</i>);<br />
+int cbf_get_detector_surface_axes(cbf_detector <i>detector</i>,
+    const char * * <i>axis_id1</i>,
+    const char * * <i>axis_id2</i>);<br />
 <p>
 <b>DESCRIPTION</b>
 <p>
@@ -5479,18 +5586,24 @@ cbf_get_detector_axes, cbf_get_detector_axes_fs and int cbf_get_detector_axes_sf
 *<i>slowaxis1</i>, *<i>slowaxis2</i>, and *<i>slowaxis3</i> to the 3 components of
 the slow axis and *<i>fastaxis1</i>, *<i>fastaxis2</i>, and *<i>fastaxis3</i> to the 3 components of
 the fast axis of the specified detector at the current settings of all axes.
+cbf_get_detector_surface_axes sets *<i>axis_id1</i> and *<i>axis_id2</i>
+to the names of the two surface axes of the detector or &quot;.&quot;,
 <p>
 Any of the destination pointers may be NULL.
 <p>
 <b>ARGUMENTS</b><br />
 <TABLE>
-<TR><td valign="top">&nbsp;&nbsp;<i>detector</i><td valign="top">&nbsp;&nbsp;Detector handle.<br />
-<TR><td valign="top">&nbsp;&nbsp;<i>slowaxis1</i><td valign="top">&nbsp;&nbsp;Pointer to the destination x component of the slow axis vector.<br />
-<TR><td valign="top">&nbsp;&nbsp;<i>slowaxis2</i><td valign="top">&nbsp;&nbsp;Pointer to the destination y component of the slow axis vector.<br />
-<TR><td valign="top">&nbsp;&nbsp;<i>slowaxis3</i><td valign="top">&nbsp;&nbsp;Pointer to the destination z component of the slow axis vector.<br />
-<TR><td valign="top">&nbsp;&nbsp;<i>fastaxis1</i><td valign="top">&nbsp;&nbsp;Pointer to the destination x component of the fast axis vector.<br />
-<TR><td valign="top">&nbsp;&nbsp;<i>fastaxis2</i><td valign="top">&nbsp;&nbsp;Pointer to the destination y component of the fast axis vector.<br />
-<TR><td valign="top">&nbsp;&nbsp;<i>fastaxis3</i><td valign="top">&nbsp;&nbsp;Pointer to the destination z component of the fast axis vector.<br />
+<TR><td valign="top">&nbsp;&nbsp;<i>detector</i><td valign="top">&nbsp;&nbsp;Detector handle.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>slowaxis1</i><td valign="top">&nbsp;&nbsp;Pointer to the destination x component of the slow axis vector.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>slowaxis2</i><td valign="top">&nbsp;&nbsp;Pointer to the destination y component of the slow axis vector.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>slowaxis3</i><td valign="top">&nbsp;&nbsp;Pointer to the destination z component of the slow axis vector.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>fastaxis1</i><td valign="top">&nbsp;&nbsp;Pointer to the destination x component of the fast axis vector.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>fastaxis2</i><td valign="top">&nbsp;&nbsp;Pointer to the destination y component of the fast axis vector.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>fastaxis3</i><td valign="top">&nbsp;&nbsp;Pointer to the destination z component of the fast axis vector.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>axis_id1</i><td valign="top">&nbsp;&nbsp;Pointer to the destination first surface axis name.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>axis_id1</i><td valign="top">&nbsp;&nbsp;Pointer to the destination first surface axis name.</TR>
+<TR><td valign="top">&nbsp;&nbsp;<i>axis_id2</i><td valign="top">&nbsp;&nbsp;Pointer to the destination second surface axis name.</TR>
+
 </TABLE>
 <p>
 <b>RETURN VALUE</b>

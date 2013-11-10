@@ -259,7 +259,7 @@ extern "C" {
 /* Version numbers */
 #define CBF_VERS_MAJOR   0   /* For major interface/format changes        */
 #define CBF_VERS_MINOR   9   /* For minor interface/format changes        */
-#define CBF_VERS_RELEASE 3   /* For tweaks, bug-fixes, or development     */
+#define CBF_VERS_RELEASE 3.2   /* For tweaks, bug-fixes, or development     */
 #define CBF_VERS_SUBRELEASE ""   
                              /* For pre-releases like RC1                 */
                              /* Empty string for real releases.           */
@@ -328,8 +328,8 @@ extern "C" {
 
   /* API version and assumed dictionary version */
   
-#define CBF_API_VERSION     "CBFlib v0.9.0"
-#define CBF_DIC_VERSION     "CBF: VERSION 1.6"
+#define CBF_API_VERSION     "CBFlib v0.9.3"
+#define CBF_DIC_VERSION     "CBF: VERSION 1.7.6"
 
   /* Maximum line length */
 

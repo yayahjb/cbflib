@@ -969,29 +969,66 @@ int cbf_set_3d_array (cbf_handle    handle,
         cbf_set_3d_array ((handle),(reserved),(array_id),(binary_id),(compression),(array),(eltype),(elsize),(elsign),(ndimslow),(ndimmid),(ndimfast) )
 
 
-    /* Get the type of an axis */
+    /* Get the specified ancestor of an axis */
     
-    int cbf_get_axis_type (cbf_handle handle, const char *axis_id,
-                           cbf_axis_type *axis_type);
+int cbf_count_axis_ancestors (cbf_handle handle,
+                               const char *axis_id,
+                               unsigned int *ancestors);
+
     
+    /* Get the specified ancestor of an axis */
+    
+int cbf_get_axis_ancestor (cbf_handle handle,
+                               const char *axis_id,
+                               const unsigned int ancestor_index,
+                               const char * *ancestor);
+
     /* Get the axis, if any, on which this axis depends */
     
-    int cbf_get_axis_depends_on (cbf_handle handle, const char *axis_id,
+int cbf_get_axis_depends_on (cbf_handle handle, const char *axis_id,
                                  const char * *depends_on);
     
-    /* Get an axis vector */
+    /* Get the axis equipment */
     
-    int cbf_get_axis_vector (cbf_handle handle, const char *axis_id,
-                             double *vector1,
-                             double *vector2,
-                             double *vector3);
+int cbf_get_axis_equipment (cbf_handle handle, const char *axis_id,
+                                const char * *equipment);
+    
+    /* Get the axis equipment_component */
+    
+int cbf_get_axis_equipment_component (cbf_handle handle,
+                                          const char *axis_id,
+                                          const char * *equipment_component);
 
     /* Get an axis offset */
     
-    int cbf_get_axis_offset (cbf_handle handle, const char *axis_id,
+int cbf_get_axis_offset (cbf_handle handle, const char *axis_id,
                              double *offset1,
                              double *offset2,
                              double *offset3);
+    
+    /* Get an axis rotation */
+    
+int cbf_get_axis_rotation (cbf_handle handle, const char *axis_id,
+                               double *rotation);
+
+    /* Get the axis rotation_axis */
+    
+int cbf_get_axis_rotation_axis (cbf_handle handle,
+                                          const char *axis_id,
+                                          const char * *rotation_axis);
+
+    
+    /* Get the type of an axis */
+    
+int cbf_get_axis_type (cbf_handle handle, const char *axis_id,
+                           cbf_axis_type *axis_type);
+    
+    /* Get an axis vector */
+    
+int cbf_get_axis_vector (cbf_handle handle, const char *axis_id,
+                             double *vector1,
+                             double *vector2,
+                             double *vector3);
 
 
   /* Get the setting of an axis */
@@ -1221,6 +1258,13 @@ int cbf_get_pixel_normal (cbf_detector detector, double  indexslow,
         cbf_get_pixel_normal ((detector),(indexslow),(indexfast), \
                               (normal1), (normal2), (normal3) )
 
+    /* Get the names of the detector surface axes */
+    
+int cbf_get_detector_surface_axes(cbf_detector detector,
+                                  const char * * axis_id1,
+                                  const char * * axis_id2);
+
+    
     /* Calcluate the slow axis of a detector */
     
 int cbf_get_detector_axis_slow (cbf_detector detector, double *slowaxis1,
