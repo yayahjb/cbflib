@@ -762,52 +762,44 @@ extern "C" {
         {CBF_H5_COLUMN_DATASET, 0, "$(time_rstrt_inc$", "frame_restart_time","sec",CBF_H5_FLOAT,0}
     };
 
-    /* Macro to check the given error code & print some
-     useful output if it is set */
-
-#define CBF_CHECK_ERROR(cbferror) \
-{ \
-const int __error = (cbferror); \
-if (CBF_SUCCESS != __error) fprintf(stderr,__WHERE__": CBF error: %s\n",cbf_strerror(__error)); \
-};
-
-
 
     /* Macros to get the current location in a file in form `file:line' */
 
 #define __STR2(n) #n
 #define __STR(n) __STR2(n)
-#define __WHERE__ __FILE__":"__STR(__LINE__)
 
 /*
-Unconditionally call a function, always printing an error message if it fails.
+     Call a function if 'error' is 'CBF_SUCCESS', always printing an error message if it fails.
 Require a terminating semi-colon to make it behave as a statement.
-
-To add debug-only output define a debug constant and use:
-if (debug) {...}
-not:
-#ifdef debug
-...
-#endif
-To ensure debug code is checked by the compiler.
 */
-#define _CBF_CALL(exp) \
-do { \
-	const int err = (exp); \
-	if (CBF_SUCCESS!=err) { \
-		error |= err; \
-		fprintf(stderr,"%s: error: %s\n", __WHERE__, cbf_strerror(err)); \
+#define CBF_CALL(exp) \
+CBFM_PROLOG { \
+if (CBF_SUCCESS==error) { \
+if (CBF_SUCCESS!=(error|=(exp))) { \
+cbf_debug_print(cbf_strerror(error)) \
 	} \
-} while (0)
+} \
+} CBFM_EPILOG
 
+    
 /*
-List all valid scan types for use with the cbf->nexus conversion.
-This is an implementation detail that should not be exposed in any headers.
+     Call an HDF5 function unconditionally, reporting any errors.
+     Only use this if 'exp' should return negative values on failure.
+     This should only be defined within the cbf_H5* functions,
+     as it isn't helpful everywhere.
 */
-const unsigned int CBF_SCANTYPE1 = 0x1;
-const unsigned int CBF_SCANTYPE_ALL = 0x1;
 
 
+#define CBF_H5CALL(exp) \
+CBFM_PROLOG { \
+const int err = (exp); \
+if (err < 0) { \
+error |= CBF_H5ERROR; \
+cbf_debug_print2("%s", "'" #exp "' failed"); \
+} \
+} CBFM_EPILOG
+    
+    
 	/**
 	Concatenate several null-terminated strings into a single string, with each component
 	separated by one 'sep' character. A leading or trailing empty string will cause a
@@ -866,43 +858,19 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
 		}
 	}
 
+	/*
+     The 'strdup' function isn't available when compiling with -ansi on GCC, so provide an alternative.
+     */
+	static char * _cbf_strdup(const char *s)
+	{
+		return s ? strcpy(malloc(sizeof(char)*(1+strlen(s))),s) : 0;
+	}
 
+    
     /****************************************************************
     Store & manuipluate a set of keys identifying a set of data of interest.
     TODO: Fix CBF memory allocation routines to behave correctly, then use them to check for leaks
      ****************************************************************/
-
-	/**
-	Store some indices to a subset of the axes in a single contiguous memory block
-	There may be only one variable length member, and it must appear last
-
-	Use as:
-	cbf_axisIndex_t * index = NULL;
-	_cbf_realloc_axisIndex(&index,3);
-	...
-	unsigned int offset = 0;
-	for (; offset != index->count; ++offset)
-		index->value[offset] = offset;
-     */
-	typedef struct cbf_axisIndex_t {
-		unsigned int c;
-		unsigned int d[1];
-	} cbf_axisIndex_t;
-
-	static int _cbf_realloc_axisIndex(cbf_axisIndex_t * * const obj, const unsigned int count)
-    {
-		/* NOTE: avoid underflow if count==0 */
-		*obj = realloc(*obj,sizeof(cbf_axisIndex_t)-sizeof(unsigned int)+sizeof(unsigned int)*(count));
-		if (!*obj) return CBF_ALLOC;
-		(*obj)->c = count;
-		return CBF_SUCCESS;
-	}
-
-	static int _cbf_free_axisIndex(const cbf_axisIndex_t * const obj)
-	{
-		free((void*)obj);
-		return CBF_SUCCESS;
-	}
 
 	/**
 	Map an axis set ID to a direction, for use in extracting axis data for images.
@@ -910,6 +878,8 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
     typedef struct cbf_arrayAxisSet_t {
 		unsigned int count;
 		const char * * axis_set_id;
+		const char * * path;
+		unsigned int * index;
 		unsigned int * precedence;
 		unsigned int * dimension;
 		const char * * direction;
@@ -920,6 +890,8 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
 		cbf_arrayAxisSet_t obj;
 		obj.count = 0;
 		obj.axis_set_id = NULL;
+		obj.path = NULL;
+		obj.index = NULL;
 		obj.precedence = NULL;
 		obj.dimension = NULL;
 		obj.direction = NULL;
@@ -928,7 +900,12 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
 
 	static void _cbf_free_arrayAxisSet(const cbf_arrayAxisSet_t obj)
 	{
+		const char * const * const path_end = obj.path + obj.count;
+		const char * const * p;
+		for (p = obj.path; path_end != p; ++p) free((void*)(*p));
 		free((void*)obj.axis_set_id);
+		free((void*)obj.path);
+		free((void*)obj.index);
 		free((void*)obj.precedence);
 		free((void*)obj.dimension);
 		free((void*)obj.direction);
@@ -937,6 +914,8 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
 	static int _cbf_insert_arrayAxisSet
 			(cbf_arrayAxisSet_t * const obj,
 			 const char * const axis_set_id,
+     const char * const path,
+     unsigned int index,
 			 unsigned int precedence,
 			 unsigned int dimension,
 			 const char * const direction)
@@ -947,11 +926,15 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
 			const unsigned int idx = obj->count++;
 			int error = CBF_SUCCESS;
 			if (!(obj->axis_set_id = realloc(obj->axis_set_id,obj->count*sizeof(char*)))) error |= CBF_ALLOC;
+			if (!(obj->path = realloc(obj->path,obj->count*sizeof(char*)))) error |= CBF_ALLOC;
+			if (!(obj->index = realloc(obj->index,obj->count*sizeof(unsigned int)))) error |= CBF_ALLOC;
 			if (!(obj->precedence = realloc(obj->precedence,obj->count*sizeof(unsigned int)))) error |= CBF_ALLOC;
 			if (!(obj->dimension = realloc(obj->dimension,obj->count*sizeof(unsigned int)))) error |= CBF_ALLOC;
 			if (!(obj->direction = realloc(obj->direction,obj->count*sizeof(char*)))) error |= CBF_ALLOC;
 			if (CBF_SUCCESS == error) {
 				obj->axis_set_id[idx] = axis_set_id;
+				obj->path[idx] = _cbf_strdup(path);
+				obj->index[idx] = index;
 				obj->precedence[idx] = precedence;
 				obj->dimension[idx] = dimension;
 				obj->direction[idx] = direction;
@@ -974,13 +957,25 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
 	Require axis to appear after anything that depends on it, incremental swapping should be stable for acyclic graphs.
 	*/
 	typedef struct cbf_axis_t {
-		unsigned int count;
+		/* the name of the axis, which can be used to look up axis data from the CBF axis categories */
 		const char * * axis_id;
-		const char * * object; /* ← maps to 'axis.equipment' */
-		const char * * path; /* ← These need free'ing individually! */
-		const char * * depends_on; /* ← match these against 'axis_id' */
-		unsigned int * in_degree; /* ← for use in checking dependancy chains */
-		int * is_leaf; /* ← a 'leaf' axis must have a valid dependency chain */
+        
+		/* axis path within the HDF5 file, these need free'ing individually */
+		const char * * path;
+        
+		/*
+         for use in checking dependancy chains & identifying leves,
+         in_degree of 0 => leaf axis, default should be 0.
+         */
+		unsigned int * in_degree;
+        
+		/*
+         index of the axis that this depends on within this structure,
+         the default should be a very large value like UINT_MAX.
+         */
+		unsigned int * depends_on;
+        
+		unsigned int count;
 	} cbf_axis_t;
 
 	static cbf_axis_t _cbf_make_axis()
@@ -988,33 +983,27 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
 		cbf_axis_t obj;
 		obj.count = 0;
 		obj.axis_id = NULL;
-		obj.object = NULL;
 		obj.path = NULL;
-		obj.depends_on = NULL;
 		obj.in_degree = NULL;
-		obj.is_leaf = NULL;
+		obj.depends_on = NULL;
 		return obj;
     }
 
 	static void _cbf_free_axis(const cbf_axis_t obj)
     {
 		const char * const * const path_end = obj.path + obj.count;
-		const char * const * p = obj.path;
-		for (; path_end != p; ++p) free((void*)(*p));
+		const char * const * p;
+		for (p = obj.path; path_end != p; ++p) free((void*)(*p));
 		free((void*)obj.axis_id);
-		free((void*)obj.object);
 		free((void*)obj.path);
-		free((void*)obj.depends_on);
 		free((void*)obj.in_degree);
-		free((void*)obj.is_leaf);
+		free((void*)obj.depends_on);
 	}
 
 	static int _cbf_insert_axis
 			(cbf_axis_t * const obj,
 			 const char * const axis_id,
-			 const char * const object,
-			 const char * const path,
-			 const char * const depends_on)
+     const char * const path)
 	{
 		if (!obj) {
 			return CBF_ARGUMENT;
@@ -1022,18 +1011,14 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
 			int error = CBF_SUCCESS;
 			const unsigned int idx = obj->count++;
 			if (!(obj->axis_id = realloc(obj->axis_id,obj->count*sizeof(char*)))) error |= CBF_ALLOC;
-			if (!(obj->object = realloc(obj->object,obj->count*sizeof(char*)))) error |= CBF_ALLOC;
 			if (!(obj->path = realloc(obj->path,obj->count*sizeof(char*)))) error |= CBF_ALLOC;
-			if (!(obj->depends_on = realloc(obj->depends_on,obj->count*sizeof(char*)))) error |= CBF_ALLOC;
 			if (!(obj->in_degree = realloc(obj->in_degree,obj->count*sizeof(unsigned int*)))) error |= CBF_ALLOC;
-			if (!(obj->is_leaf = realloc(obj->is_leaf,obj->count*sizeof(int*)))) error |= CBF_ALLOC;
+			if (!(obj->depends_on = realloc(obj->depends_on,obj->count*sizeof(unsigned int*)))) error |= CBF_ALLOC;
 			if (CBF_SUCCESS == error) {
 				obj->axis_id[idx] = axis_id;
-				obj->object[idx] = object;
-				obj->path[idx] = path;
-				obj->depends_on[idx] = depends_on;
+				obj->path[idx] = _cbf_strdup(path);
 				obj->in_degree[idx] = 0;
-				obj->is_leaf[idx] = 0;
+				obj->depends_on[idx] = ~((unsigned int)(0));
 			}
 			return error;
 		}
@@ -1049,29 +1034,36 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
 	Track data describing the current frame/scan that is being converted.
 	May be removed once conversion code is more stable, with parameters passed one-by-one to functions.
 	*/
-	typedef struct cbf_key_t {
+	typedef struct cbf_cbf2nx_key_t {
 		double matrix [3][3];
-		const char * scan; /* TODO: should be optional */
+		cbf_node * * categories;
+		const char * scan;
 		const char * frame;
 		const char * binary;
-		const char * array; /* TODO: should be optional */
+		const char * array;
 		const char * diffrn;
 		const char * diffrn_detector;
 		const char * diffrn_detector_element;
 		const char * diffrn_measurement;
 		const char * wavelength_id;
 		const char * data_overload;
+		const char * data_undefined;
 		const char * detector_dependency;
 		const char * goniometer_dependency;
 		unsigned int nScans;
 		unsigned int nFrames;
+		unsigned int frame_number;
+		int has_start_time;
+		int has_end_time;
+		unsigned int indent;
+		unsigned int nCat;
 		cbf_arrayAxisSet_t arrayAxisSet;
 		cbf_axis_t axis;
-	} cbf_key_t;
+	} cbf_cbf2nx_key_t;
 
-	static cbf_key_t _cbf_make_key()
+	static cbf_cbf2nx_key_t _cbf_make_cbf2nx_key()
 	{
-		cbf_key_t key;
+		cbf_cbf2nx_key_t key;
 		key.matrix[0][0] = 0.;
 		key.matrix[0][1] = 0.;
 		key.matrix[0][2] = 0.;
@@ -1091,19 +1083,24 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
 		key.diffrn_measurement = NULL;
 		key.wavelength_id = NULL;
 		key.data_overload = NULL;
+		key.data_undefined = NULL;
 		key.detector_dependency = NULL;
 		key.goniometer_dependency = NULL;
 		key.nScans = 0;
 		key.nFrames = 0;
+		key.frame_number = 0;
+		key.has_start_time = 0;
+		key.has_end_time = 0;
+		key.indent = 0;
+		key.nCat = 0;
+		key.categories = NULL;
 		key.arrayAxisSet = _cbf_make_arrayAxisSet();
 		key.axis = _cbf_make_axis();
 		return key;
     }
 
-	static void _cbf_reset_key(cbf_key_t * const key)
+	static void _cbf_reset_cbf2nx_key(cbf_cbf2nx_key_t * const key)
 	{
-		/* don't touch the matrix - it's constant over scans */
-		key->scan = NULL;
 		key->frame = NULL;
 		key->binary = NULL;
 		key->array = NULL;
@@ -1113,20 +1110,50 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
 		key->diffrn_measurement = NULL;
 		key->wavelength_id = NULL;
 		key->data_overload = NULL;
+		key->data_undefined = NULL;
 		key->detector_dependency = NULL;
 		key->goniometer_dependency = NULL;
-		key->nScans = 0;
 		key->nFrames = 0;
+		key->frame_number = 0;
+		key->has_start_time = 0;
+		key->has_end_time = 0;
+		key->indent = 0;
 		_cbf_reset_arrayAxisSet(&key->arrayAxisSet);
 		_cbf_reset_axis(&key->axis);
 	}
 
-	static void _cbf_free_key(const cbf_key_t key)
+	static void _cbf_free_cbf2nx_key(const cbf_cbf2nx_key_t key)
 	{
 		_cbf_free_arrayAxisSet(key.arrayAxisSet);
 		_cbf_free_axis(key.axis);
 	}
 
+	static int _cbf2nx_key_remove_category
+    (cbf_cbf2nx_key_t * const key,
+     const char * const categoryName)
+	{
+		int error = CBF_SUCCESS;
+		if (!key || !key->categories || !categoryName) {
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * * it;
+			cbf_node * const * const end = key->nCat+key->categories;
+			for (it = key->categories; end != it; ++it) {
+				if (*it) {
+					*it = strcmp((*it)->name,categoryName) ? *it : NULL;
+				}
+			}
+		}
+		return error;
+	}
+    
+	/*
+     Some simple 'getters' to access read-only primary key values. C's 'offsetof' isn't used in order to
+     allow simpler refactoring if keys should be stored by column & index instead of directly by value.
+     */
+	static const char * cbf2nx_key_get_scan_id(const cbf_cbf2nx_key_t * const key) {if (key) return key->scan; else return NULL;}
+	static const char * cbf2nx_key_get_frame_id(const cbf_cbf2nx_key_t * const key) {if (key) return key->frame; else return NULL;}
+    
     /****************************************************************
      The following section of code is extracted from J. Sloan's
      cbf_hdf5.i
@@ -1138,6 +1165,19 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
 
      Should return 0 on success, non-zero on failure
      */
+/* We provide a macro and 2 versions of each of the calls with _ULP
+     variants. */
+    
+#ifdef CBF_USE_ULP
+#define CBFM_cmp_double(exp,ext,len,prm) cmp_double(exp,ext,len,prm)
+#define CBFM_cmp_int(exp,ext,len,prm) cmp_int(exp,ext,len,prm)
+#define CBFM_cmp_vlstring(exp,ext,len,prm) cmp_vlstring(exp,ext,len,prm)
+#else
+#define CBFM_cmp_double(exp,ext,len,prm) cmp_double(exp,ext,len)
+#define CBFM_cmp_int(exp,ext,len,prm) cmp_int(exp,ext,len)
+#define CBFM_cmp_vlstring(exp,ext,len,prm) cmp_vlstring(exp,ext,len)
+#endif
+
 #ifdef CBF_USE_ULP
 	typedef struct cmp_double_param_t {
 		int cmp_double_as_float; /* do I use the 64 bit version, if available? */
@@ -1197,12 +1237,12 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
 
 #ifdef CBF_USE_ULP
     static int cmp_int(const void * const expected,
-                       const void * existing,
+                       const void * const existing,
                        size_t length,
                        const void * const params)
 #else
     static int cmp_int(const void * const expected,
-                       const void * existing,
+                       const void * const existing,
                        size_t length)
 #endif
     {
@@ -1274,8 +1314,6 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
      Any number of adjacent <code>'\r'</code> and <code>'\n'</code> characters are compressed into a single
      newline (<code>"\n"</code>) token.
 	 */
-
-
 	static int _cbf_scan_pilatus_V1_2_miniheader
     (char * * const buf,
      size_t * const n,
@@ -1402,38 +1440,23 @@ const unsigned int CBF_SCANTYPE_ALL = 0x1;
      cbf_hdf5_common.c
      ****************************************************************/
 
-#define CBF_HDF5_DEBUG 0
 
-	/*
-	Call an HDF5 function unconditionally, reporting any errors.
-	Only use this if 'func' should return -ve values on failure.
-	This should only be defined within the cbf_H5* functions,
-	as it isn't helpful everywhere.
-	*/
-#define CBF_H5CALL(func) \
-do { \
-	const int err = (func); \
-	if (err < 0) { \
-		error |= CBF_H5ERROR; \
-		if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: Error in '%s'\n",__WHERE__,#func); \
-} \
-} while (0)
-
-	/** \brief Check the validity of an object identifier
-
+	/**
      Function to check validity of a HDF5 identifier.
      HDF5's predefined types are never counted as valid by this function,
      so it can't be used to test the validity of a type constant.
      Types obtained by using H5Tcopy are safe to test.
 
      \param ID An HDF5 object identifier.
-
+     \sa cbf_H5Ocmp
      \return Non-zero if the type is valid, zero otherwise.
      */
 	int cbf_H5Ivalid(const hid_t ID)
 	{
 		const htri_t v = H5Iis_valid(ID);
-		if (v < 0) fprintf(stderr, "%s:%d: H5Iis_valid call failed.\n", __FILE__, __LINE__);
+		if (v < 0) {
+            cbf_debug_print("H5Iis_valid call failed.\n");
+        }
 		return v > 0;
 	}
 
@@ -1441,8 +1464,7 @@ do { \
 	find/create/free a HDF5 group if it's valid & possibly set the ID to an invalid identifier.
      */
 
-	/** \brief Attempt to create a group
-
+	/**
 	<p>Helper function to attempt to create a HDF5 group identified by <code>name</code> and return an error
 	code, to make error handling more consistant. This will fail if a link with the same name already exists
 	in <code>parent</code>.</p>
@@ -1450,7 +1472,10 @@ do { \
 	\param location The group that will contain the newly created group.
      \param group A pointer to a HDF5 ID type where the group will be stored.
      \param name The name that the group will be given.
-
+     \sa cbf_H5Gcreate
+     \sa cbf_H5Gfind
+     \sa cbf_H5Grequire
+     \sa cbf_H5Gfree
      \return An error code.
      */
 	int cbf_H5Gcreate(const hid_t location, hid_t * const group, const char * const name)
@@ -1466,13 +1491,61 @@ do { \
 			return cbf_H5Ivalid(*group) ? CBF_SUCCESS : CBF_H5ERROR;
 		} else {
 			/* something exists, hence I can't *create* anything: error */
-			if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: A link of the same name already exists\n",__WHERE__);
+            cbf_debug_print2("A link of the same name, '%s', already exists\n",name)
 			return CBF_H5ERROR;
 		}
 	}
 
-	/** \brief Ensure a group exists
+	/**
+     <p>Checks for the existance of a group with the given <code>name</code> and <code>parent</code>. Will return
+     <code>CBF_NOTFOUND</code> if it cannot be found, or open it if it already exists. An error code will be
+     returned if something other than a group exists at the specified location.</p>
 
+     \param location The group to be searched.
+     \param group A pointer to a HDF5 ID type where the group will be stored.
+     \param name The path (ie, name) of the group to be found.
+     \sa cbf_H5Gcreate
+     \sa cbf_H5Gfind
+     \sa cbf_H5Grequire
+     \sa cbf_H5Gfree
+     \return An error code.
+     */
+	int cbf_H5Gfind(const hid_t location, hid_t * const group, const char * const name)
+	{
+		/* check the arguments */
+		if (!group || !name || !cbf_H5Ivalid(location)) return CBF_ARGUMENT;
+        
+		/* check if the link exists */
+		const htri_t l = H5Lexists(location, name, H5P_DEFAULT);
+		if (l < 0) return CBF_H5ERROR;
+		else if (!l) {
+			/* no group exists */
+			return CBF_NOTFOUND;
+		} else {
+			/* something exists, check what it is */
+			const htri_t e = H5Oexists_by_name(location, name, H5P_DEFAULT);
+			if (e < 0) return CBF_H5ERROR;
+			else if (!e) {
+				/* The link exists but the object doesn't - remove the link & return */
+				if (H5Ldelete(location, name, H5P_DEFAULT) < 0) return CBF_H5ERROR;
+				else return CBF_NOTFOUND;
+			} else {
+				/* my object exists - check its type */
+				hid_t g = H5Oopen(location, name, H5P_DEFAULT);
+				if (H5I_GROUP == H5Iget_type(g)) {
+					/* it's a group - return it */
+					*group = g;
+					return CBF_SUCCESS;
+				} else {
+					/* not a group - close the object & fail */
+					H5Oclose(g);
+					return CBF_H5DIFFERENT;
+				}
+			}
+		}
+	}
+    
+	/**
 	<p>Checks for the existance of a group with the given <code>name</code> and <code>parent</code>. Will create the
 	group if it cannot be found, or open it if it already exists. It is an error if a matching group cannot be found or
 	created. This uses <code>cbf_H5Gcreate</code> to create any new groups.</p>
@@ -1480,7 +1553,10 @@ do { \
 	\param location The group that will contain the newly created group.
      \param group A pointer to a HDF5 ID type where the group will be stored.
      \param name The name that the group will be given.
-
+     \sa cbf_H5Gcreate
+     \sa cbf_H5Gfind
+     \sa cbf_H5Grequire
+     \sa cbf_H5Gfree
      \return An error code.
      */
 	int cbf_H5Grequire(const hid_t location, hid_t * const group, const char * const name)
@@ -1520,12 +1596,14 @@ do { \
 		}
 	}
 
-    /** \brief Close a HDF5 group
-
+    /**
      Attempt to close a group, but don't modify the identifier that described it.
 
      \param ID The HDF5 group to be closed.
-
+     \sa cbf_H5Gcreate
+     \sa cbf_H5Gfind
+     \sa cbf_H5Grequire
+     \sa cbf_H5Gfree
      \return An error code.
      */
 	int cbf_H5Gfree(const hid_t ID)
@@ -1537,8 +1615,7 @@ do { \
 	/* Open/close a HDF5 file if it's valid & possibly set the ID to an invalid identifier - deliberately avoid find/create/free or
      get/set/clear naming convensions */
 
-	/** \brief Attempt to open an HDF5 file by file name
-
+	/**
 	<p>Will try to open a file of the given name with suitable values for some of it's properties to make memory leaks
 	less likely.</p>
 
@@ -1547,43 +1624,44 @@ do { \
 
      \param file A pointer to an HDF5 ID where the newly opened file should be stored.
      \param name The name of the file to attempt to open.
-
+     \sa cbf_H5Fopen
+     \sa cbf_H5Fclose
      \return An error code.
      */
 	int cbf_H5Fopen(hid_t * const file, const char * const name)
 	{
 		/* define variables & check args */
-		int error = (!file || !name) ? CBF_ARGUMENT : CBF_SUCCESS;
+		int error = CBF_SUCCESS;
+		if (!file || !name) {
+			error |= CBF_ARGUMENT;
+		} else {
 		hid_t fapl = H5Pcreate(H5P_FILE_ACCESS);
-
-		/* check variables */
-		reportFail(cbf_H5Ivalid(fapl), CBF_H5ERROR, error);
-
-		/* do some work */
-		reportFail(H5Pset_fclose_degree(fapl,H5F_CLOSE_STRONG)>=0, CBF_H5ERROR, error);
+			if (!cbf_H5Ivalid(fapl)) {
+                cbf_debug_print("error, couldn't create file access property list.\n");
+				error |= CBF_H5ERROR;
+			} else {
+				CBF_H5CALL(H5Pset_fclose_degree(fapl,H5F_CLOSE_STRONG));
 		/*
-		in H5Fcreate
-		 *	H5F_ACC_TRUNC:
+                 in H5Fcreate:
+                 - H5F_ACC_TRUNC:
 			overwrites any previous file, losing any existing data
-		 *	H5F_ACC_EXCL:
+                 - H5F_ACC_EXCL:
 			fail if the file already exists, so data isn't lost
-		fall back to H5Fopen to try to open the existing file safely
+                 can then fall back to H5Fopen to try to open the existing file safely
 		*/
-		reportFail(cbf_H5Ivalid(*file = H5Fcreate(name,H5F_ACC_TRUNC,H5P_DEFAULT,fapl)), CBF_H5ERROR, error);
-
-		/* ensure variables are properly closed */
+				CBF_H5CALL(*file = H5Fcreate(name,H5F_ACC_TRUNC,H5P_DEFAULT,fapl));
+			}
 		if (cbf_H5Ivalid(fapl)) H5Pclose(fapl);
-
-		/* done */
+		}
 		return error;
 	}
 
-	/** \brief Close a HDF5 file
-
+	/**
      Attempt to close a file, but don't modify the identifier that described it.
 
      \param ID The HDF5 file to be closed.
-
+     \sa cbf_H5Fopen
+     \sa cbf_H5Fclose
      \return An error code.
      */
 	int cbf_H5Fclose(const hid_t ID)
@@ -1594,7 +1672,273 @@ do { \
 
 	/* Attributes */
     
-    /** \brief Check for an attribute with the given space/type/value, or set one if it doesn't exist.
+	/**
+     Creates a new attribute of the object <code>location</code> with name given by <code>name</code>,
+     optionally returning it in the <code>attr</code> variable. An error will occur if a similarly
+     named attribute already exists.
+     
+     \param location The hdf5 group/file in which to put the attribute.
+     \param attr A pointer to a HDF5 object identifier that is set to the location of a valid object
+     if the function succeeds, otherwise is left untouched.
+     \param name The name of the existing/new dataset.
+     \param type The type of data to be stored in the attribute.
+     \param space The dataspace of the attribute.
+     \sa cbf_H5Acreate
+     \sa cbf_H5Afind
+     \sa cbf_H5Aread
+     \sa cbf_H5Aread_string
+     \sa cbf_H5Awrite
+     \sa cbf_H5Arequire_cmp2
+     \sa cbf_H5Arequire_cmp2_ULP
+     \sa cbf_H5Arequire_string
+     \sa cbf_H5Afree
+     \return An error code.
+     */
+	int cbf_H5Acreate
+    (const hid_t location,
+     hid_t * const attr,
+     const char * const name,
+     const hid_t type,
+     const hid_t space)
+	{
+		int error = CBF_SUCCESS;
+		if (!cbf_H5Ivalid(location)
+            || !attr
+            || !name
+            || H5I_DATATYPE!=H5Iget_type(type)
+            || !cbf_H5Ivalid(space)
+            ) error |= CBF_ARGUMENT;
+		if (CBF_SUCCESS==error) {
+			const htri_t exists = H5Aexists(location,name);
+			if (exists<0) {
+				error |= CBF_H5ERROR;
+			} else if (!exists) {
+				const hid_t attribute = H5Acreate2(location, name, type, space, H5P_DEFAULT, H5P_DEFAULT);
+				if (attribute>=0) *attr = attribute;
+				else error |= CBF_H5ERROR;
+			} else {
+                cbf_debug_print2("%s: attribute '%s' exists\n",name);
+				error |= CBF_IDENTICAL;
+			}
+		}
+		return error;
+	}
+    
+	/**
+     Checks for the existance of an attribute with the given <code>name</code> at <code>location</code>
+     with a datatype of <code>type</code> and dataspace of <code>space</code>. Will return
+     <code>CBF_NOTFOUND</code> if it cannot be found, or open it if it already exists.
+     
+     If <code>type</code> is not a datatype then no check of the attribute datatype will be done.
+     If <code>space</code> is not a dataspace then no checks of the attribute dataspace wil be done.
+     
+     \param location The hdf5 group/file in which to put the attribute.
+     \param attr A pointer to a HDF5 object identifier that is set to the location of a valid object
+     if the function succeeds, otherwise is left untouched.
+     \param name The name of the existing/new attribute.
+     \param type The type of data stored in the attribute, or an invalid identifier if it should not be checked.
+     \param space The dataspace of the attribute, or an invalid identifier if it should not be checked.
+     \sa cbf_H5Acreate
+     \sa cbf_H5Afind
+     \sa cbf_H5Aread
+     \sa cbf_H5Aread_string
+     \sa cbf_H5Awrite
+     \sa cbf_H5Arequire_cmp2
+     \sa cbf_H5Arequire_cmp2_ULP
+     \sa cbf_H5Arequire_string
+     \sa cbf_H5Afree
+     \return An error code.
+     */
+	int cbf_H5Afind
+    (const hid_t location,
+     hid_t * const attr,
+     const char * const name,
+     const hid_t type,
+     const hid_t space)
+	{
+		int error = CBF_SUCCESS;
+		if (!cbf_H5Ivalid(location) || !attr || !name) {
+			/* type & space should not be checked here, they are optional */
+			error |= CBF_ARGUMENT;
+		} else {
+			const htri_t exists = H5Aexists(location,name);
+			if (exists<0) {
+				error |= CBF_H5ERROR;
+			} else if (!exists) {
+				cbf_debug_print2("%s: attribute '%s' doesn't exist\n",name);
+				error |= CBF_NOTFOUND;
+			} else {
+				hid_t attribute = H5Aopen(location,name,H5P_DEFAULT);
+				if (attribute<0) {
+					cbf_debug_print2("%s: could not open '%s' attribute\n",name);
+					error |= CBF_H5ERROR;
+				} else {
+					/* get the datatype */
+					const hid_t currType = H5Aget_type(attribute);
+					const hid_t currSpace = H5Aget_space(attribute);
+					if (!(cbf_H5Ivalid(currType) && cbf_H5Ivalid(currSpace))) {
+						cbf_debug_print2("%s: could not get type or space of '%s' attribute\n",name);
+						error |= CBF_H5ERROR;
+					} else {
+						if (H5I_DATATYPE==H5Iget_type(type)) {
+							/* check the datatype is correct */
+							const htri_t eq = H5Tequal(currType,type);
+							if (eq<0) error |= CBF_H5ERROR;
+							else if (!eq) error |= CBF_H5DIFFERENT;
+						}
+						if (H5I_DATASPACE==H5Iget_type(space)) {
+							/* check the dataspace is correct */
+							const htri_t eq = H5Sextent_equal(currSpace,space);
+							if (eq<0) error |= CBF_H5ERROR;
+							else if (!eq) error |= CBF_H5DIFFERENT;
+						}
+						if (CBF_SUCCESS==error) {
+							*attr = attribute;
+							attribute = CBF_H5FAIL;
+						}
+					}
+					cbf_H5Tfree(currType);
+					cbf_H5Sfree(currSpace);
+				}
+				cbf_H5Afree(attribute);
+			}
+		}
+		return error;
+	}
+    
+	/**
+     Reads all of the data from <code>attr</code> into <code>buf</code>, which should have been
+     allocated as the native type indicated by <code>mem_type</code>.
+     
+     \param attr A valid hdf5 handle for an attribute.
+     \param type The type of data in memory.
+     \param buf The location where the data is to be stored.
+     \sa cbf_H5Acreate
+     \sa cbf_H5Afind
+     \sa cbf_H5Aread
+     \sa cbf_H5Aread_string
+     \sa cbf_H5Awrite
+     \sa cbf_H5Arequire_cmp2
+     \sa cbf_H5Arequire_cmp2_ULP
+     \sa cbf_H5Arequire_string
+     \sa cbf_H5Afree
+     \return An error code.
+     */
+	int cbf_H5Aread
+    (const hid_t attr,
+     const hid_t type,
+     void * const buf)
+	{
+		int error = CBF_SUCCESS;
+		if (!cbf_H5Ivalid(attr) || H5I_DATATYPE!=H5Iget_type(type) || !buf) {
+			error |= CBF_ARGUMENT;
+		} else {
+			if (H5Aread(attr,type,buf)<0) {
+				cbf_debug_print("couldn't read attribute\n");
+				error |= CBF_H5ERROR;
+			}
+		}
+		return error;
+	}
+    
+	/**
+     Read a string attribute into memory, returning a pointer that must be free'd by the caller
+     in <code>val</code>.
+     
+     \param attr The attribute to read from.
+     \param val A pointer to a place the string may be stored.
+     \sa cbf_H5Acreate
+     \sa cbf_H5Afind
+     \sa cbf_H5Aread
+     \sa cbf_H5Aread_string
+     \sa cbf_H5Awrite
+     \sa cbf_H5Arequire_cmp2
+     \sa cbf_H5Arequire_cmp2_ULP
+     \sa cbf_H5Arequire_string
+     \sa cbf_H5Afree
+     \return An error code.
+     */
+	int cbf_H5Aread_string
+    (const hid_t attr,
+     const char * * const val)
+	{
+		/*
+         TODO: tests
+         */
+		int error = CBF_SUCCESS;
+		hid_t ftype = CBF_H5FAIL;
+		hid_t space = CBF_H5FAIL;
+		hssize_t points = -1;
+		if (!cbf_H5Ivalid(attr) || !val) error |= CBF_ARGUMENT;
+		if ((ftype=H5Aget_type(attr))<0) {
+			cbf_debug_print(" couldn't get type of attribute\n");
+			error |= CBF_H5ERROR;
+		} else if (H5T_STRING!=H5Tget_class(ftype)) {
+			cbf_debug_print("wrong type class for attribute\n");
+			error |= CBF_H5DIFFERENT;
+		} else if ((space=H5Aget_space(attr))<0) {
+			cbf_debug_print("couldn't get space of attribute\n");
+			error |= CBF_H5ERROR;
+		} else if ((points=H5Sget_simple_extent_npoints(space))<0) {
+			cbf_debug_print("couldn't get number of datapoints\n");
+			error |= CBF_H5ERROR;
+		} else if (1!=points) {
+			cbf_debug_print("unexpected number of datapoints\n");
+			error |= CBF_H5DIFFERENT;
+		} else {
+			hid_t mtype = CBF_H5FAIL;
+			char * value = NULL;
+			void * ptr = NULL;
+			if (H5Tis_variable_str(ftype)) {
+				error |= cbf_H5Tcreate_string(&mtype, H5T_VARIABLE);
+				ptr = &value;
+			} else {
+				const size_t size = H5Tget_size(ftype);
+				error |= cbf_H5Tcreate_string(&mtype, size);
+				value = malloc(1+size);
+				ptr = value;
+			}
+			if (CBF_SUCCESS!=error) {
+				cbf_debug_print("couldn't create string datatype\n");
+			} else if (H5Aread(attr, mtype, ptr)<0) {
+				cbf_debug_print("could not read attribute\n");
+				error |= CBF_H5ERROR;
+			} else {
+				*val = value;
+			}
+			cbf_H5Tfree(mtype);
+		}
+		cbf_H5Tfree(ftype);
+		return error;
+	}
+    
+	/**
+     Writes all of the data from <code>buf</code>, which should contain data if the type
+     indicated by <code>mem_type</code>, into <code>attr</code>.
+     
+     \param attr A valid hdf5 handle for an attribute.
+     \param type The type of data in memory.
+     \param buf The address of the data to be written.
+     \sa cbf_H5Acreate
+     \sa cbf_H5Afind
+     \sa cbf_H5Aread
+     \sa cbf_H5Aread_string
+     \sa cbf_H5Awrite
+     \sa cbf_H5Arequire_cmp2
+     \sa cbf_H5Arequire_cmp2_ULP
+     \sa cbf_H5Arequire_string
+     \sa cbf_H5Afree
+     \return An error code.
+     */
+	int cbf_H5Awrite
+    (const hid_t attr,
+     const hid_t type,
+     void * const buf)
+	{
+		return CBF_NOTIMPLEMENTED;
+	}
+    
+    /* \brief Check for an attribute with the given space/type/value, or set one if it doesn't exist.
      
      Checks the existance of an attribute of the given name, creating it if it doesn't exist.
      
@@ -1620,19 +1964,20 @@ do { \
      const char * const name,
      const int rank,
      const hsize_t * const dim,
-     const hid_t type,
+     const hid_t attrType,
      const void * const value,
      void * const buf,
      int (*cmp)(const void * a, const void * b, size_t N))
 	{
 		/* define variables & check args */
-		int error = (!cbf_H5Ivalid(ID) || !name || (!!rank && !dim) || rank<0) ? CBF_ARGUMENT : CBF_SUCCESS;
+		int error = CBF_SUCCESS;
+		if (!cbf_H5Ivalid(ID) || !name || (rank && !dim) || rank<0) {
+			error |= CBF_ARGUMENT;
+		} else {
 		hid_t attrSpace = CBF_H5FAIL;
-		hid_t attrType = type;
-		hid_t attr = CBF_H5FAIL;
-		cbf_reportFail(cbf_H5Screate(&attrSpace, rank, dim, 0), error);
-        
-		/* do some work */
+			if (CBF_SUCCESS != (error|=cbf_H5Screate(&attrSpace, rank, dim, 0))) {
+				cbf_debug_print("error: couldn't create data space");
+			} else {
 		if (H5Aexists(ID,name)) {
 			hid_t attr = H5Aopen(ID,name,H5P_DEFAULT);
 			hid_t currSpace = H5Aget_space(attr);
@@ -1660,8 +2005,8 @@ do { \
 				const size_t N = H5Sget_simple_extent_npoints(currSpace);
 				const size_t vlStr = H5Tis_variable_str(currType);
 				H5Aread(attr,attrType,buf);
-				if (!!cmp(value,buf,N)) {
-                    fprintf(stderr,__WHERE__": Incorrect attribute value\n");
+                        if (cmp(value,buf,N)) {
+                            cbf_debug_print("Incorrect attribute value\n");
                     error |= CBF_H5DIFFERENT;
                 }
 				if (vlStr < 0) error |= CBF_H5ERROR;
@@ -1670,26 +2015,35 @@ do { \
 			/* check local variables are properly closed */
 			if (cbf_H5Ivalid(currSpace))  H5Sclose(currSpace);
 			if (cbf_H5Ivalid(currType))  H5Tclose(currType);
+					if (cbf_H5Ivalid(attr)) H5Aclose(attr);
 		} else {
-			reportFail(cbf_H5Ivalid(attr = H5Acreate2(ID,name,attrType,attrSpace,H5P_DEFAULT,H5P_DEFAULT)), CBF_H5ERROR, error);
-			reportFail(H5Awrite(attr,attrType,value)>=0, CBF_H5ERROR, error);
+					hid_t attr = CBF_H5FAIL;
+					CBF_H5CALL(attr = H5Acreate2(ID,name,attrType,attrSpace,H5P_DEFAULT,H5P_DEFAULT));
+					CBF_H5CALL(H5Awrite(attr,attrType,value));
 		}
-        
-		/* check local variables are properly closed */
-		if (cbf_H5Ivalid(attrSpace))  H5Sclose(attrSpace);
-		if (cbf_H5Ivalid(attr))  H5Aclose(attr);
-        
-		/* done */
+				H5Sclose(attrSpace);
+			}
+		}
 		return error;
 	}
 
 
-	/** \brief Check for an attribute with the given space/type/value, or set one if it doesn't exist.
+    /* We provide a macro and 2 versions of each of the calls with _ULP
+     variants. */
 
-	<p>Checks the existance of an attribute of the given name, size, type and value. Equal value is determined by a
+#ifdef CBF_USE_ULP
+#define CBFM_H5Arequire_cmp2(id,nm,rk,dm,ft,mt,vl,bf,cmp,prm) \
+cbf_H5Arequire_cmp2_ULP(id,nm,rk,dm,ft,mt,vl,bf,cmp,prm)
+#else
+#define CBFM_H5Arequire_cmp2(id,nm,rk,dm,ft,mt,vl,bf,cmp,prm) \
+cbf_H5Arequire_cmp2(id,nm,rk,dm,ft,mt,vl,bf,cmp)
+#endif
+    
+	/**
+     Checks the existance of an attribute of the given name, size, type and value. Equal value is determined by a
 	custom comparison function which may use some extra data for more sophisticated tests. A new attribute with the
 	given properties will be created if none currently exist, the function will fail if an incompatible attribute
-	exists.</p>
+     exists.
 
      \param ID The HDF5 object that the attribute will be applied to.
      \param name The name of the attribute.
@@ -1700,8 +2054,15 @@ do { \
      \param value The data to be written to the attribute.
      \param buf A buffer to be used when reading an existing attribute of the same size.
      \param cmp A comparison function to test if a previously set value is equal to the value I asked for.
-	\param cmp_params A pointer to a data structure which may be used by the comparison function.
-
+     \sa cbf_H5Acreate
+     \sa cbf_H5Afind
+     \sa cbf_H5Aread
+     \sa cbf_H5Aread_string
+     \sa cbf_H5Awrite
+     \sa cbf_H5Arequire_cmp2
+     \sa cbf_H5Arequire_cmp2_ULP
+     \sa cbf_H5Arequire_string
+     \sa cbf_H5Afree
      \return An error code.
      */
 	int cbf_H5Arequire_cmp2
@@ -1758,7 +2119,7 @@ do { \
 					void * const membuf = buf ? buf : _buf;
 					H5Aread(attr,memType,membuf);
 					if (cmp(value,membuf,N)) {
-						if (0) fprintf(stderr,__WHERE__": Incorrect attribute value\n");
+						cbf_debug_print("Incorrect attribute value\n");
                     error |= CBF_H5DIFFERENT;
                 }
 				if (vlStr < 0) error |= CBF_H5ERROR;
@@ -1800,10 +2161,17 @@ do { \
          \param buf A buffer to be used when reading an existing attribute of the same size.
          \param cmp A comparison function to test if a previously set value is equal to the value I asked for.
          \param cmp_params A pointer to a data structure which may be used by the comparison function.
-         
+     \sa cbf_H5Acreate
+     \sa cbf_H5Afind
+     \sa cbf_H5Aread
+     \sa cbf_H5Aread_string
+     \sa cbf_H5Awrite
+     \sa cbf_H5Arequire_cmp2
+     \sa cbf_H5Arequire_cmp2_ULP
+     \sa cbf_H5Arequire_string
+     \sa cbf_H5Afree
          \return An error code.
          */
-
         int cbf_H5Arequire_cmp2_ULP
         (const hid_t ID,
          const char * const name,
@@ -1818,17 +2186,13 @@ do { \
         {
             /* define variables & check args */
             int error = CBF_SUCCESS;
+		if (!cbf_H5Ivalid(ID) || !name || (rank && !dim) || rank<0 || H5I_DATATYPE!=H5Iget_type(fileType) || H5I_DATATYPE!=H5Iget_type(memType) || !value) {
+			error |= CBF_ARGUMENT;
+		} else {
             hid_t attrSpace = CBF_H5FAIL;
-            hid_t attr = CBF_H5FAIL;
-            if (!cbf_H5Ivalid(ID)) error |= CBF_ARGUMENT;
-            if (!name || (rank && !dim) || rank<0) error |= CBF_ARGUMENT;
-            if (H5I_DATATYPE!=H5Iget_type(fileType)) error |= CBF_ARGUMENT;
-            if (H5I_DATATYPE!=H5Iget_type(memType)) error |= CBF_ARGUMENT;
-            if (!value) error |= CBF_ARGUMENT;
-            cbf_reportFail(cbf_H5Screate(&attrSpace, rank, dim, 0), error);
-            
-            /* do some work */
-            if (CBF_SUCCESS==error) {
+			if (CBF_SUCCESS != (error|=cbf_H5Screate(&attrSpace, rank, dim, 0))) {
+				cbf_debug_print("error: couldn't create data space");
+			} else {
                 if (H5Aexists(ID,name)) {
                     hid_t attr = H5Aopen(ID,name,H5P_DEFAULT);
                     hid_t currSpace = H5Aget_space(attr);
@@ -1859,7 +2223,7 @@ do { \
                         void * const membuf = buf ? buf : _buf;
                         H5Aread(attr,memType,membuf);
                         if (cmp(value,membuf,N,cmp_params)) {
-                                if (0) fprintf(stderr,__WHERE__": Incorrect attribute value\n");
+                            cbf_debug_print("Incorrect attribute value\n");
                                 error |= CBF_H5DIFFERENT;
                             }
                             if (vlStr < 0) error |= CBF_H5ERROR;
@@ -1869,17 +2233,16 @@ do { \
                         /* check local variables are properly closed */
                         cbf_H5Sfree(currSpace);
                         cbf_H5Tfree(currType);
+					cbf_H5Afree(attr);
                     } else {
-                        reportFail(cbf_H5Ivalid(attr = H5Acreate2(ID,name,fileType,attrSpace,H5P_DEFAULT,H5P_DEFAULT)), CBF_H5ERROR, error);
-                        reportFail(H5Awrite(attr,memType,value)>=0, CBF_H5ERROR, error);
+					hid_t attr = CBF_H5FAIL;
+					CBF_H5CALL(attr = H5Acreate2(ID,name,fileType,attrSpace,H5P_DEFAULT,H5P_DEFAULT));
+					CBF_H5CALL(H5Awrite(attr,memType,value));
+					cbf_H5Afree(attr);
                     }
+				H5Sclose(attrSpace);
                 }
-                
-                /* check local variables are properly closed */
-                if (cbf_H5Ivalid(attrSpace))  H5Sclose(attrSpace);
-                if (cbf_H5Ivalid(attr))  H5Aclose(attr);
-                
-                /* done */
+		}
                 return error;
             }
 
@@ -1893,29 +2256,36 @@ do { \
 		else return strcmp(a,b);
 	}
 
-	/** \brief Check for a scalar string attribute with a given value, or set one if it doesn't exist.
+	/**
+     Forwarding function that calls <code>cbf_H5Arequire_cmp2_ULP</code> with the appropriate arguments to compare two
+     strings. The <code>strcmp</code> function is used for string comparison, with a small wrapper to verify array
+     length:
 
-	<p>Forwarding function that calls <code>cbf_H5Arequire_cmp</code> with the appropriate arguments to compare two
-	strings. The <code>strcmp</code> function is used for string comparison, with a small wrapper to verify array
-	length:</p>
-	<!-- remember to replace tabs with 4 spaces! -->
-<pre><code><span class="doxygen">/&#42;&#42; internal implementation of a function to compare two strings for equality &#42;/</span>
+     <code><pre>\/\*\* a possible implementation of a function to compare two strings for equality \*\/
 static int cmp_string
 	(const void * const a,
 	const void * const b,
 	const size_t N,
 	const void * const params)
 {
-	<span class="comment">/&#42; first ensure the arrays have one element each &#42;/</span>
+     \/\* first ensure the arrays have one element each \*\/
 	if (1 != N) return 1;
-	<span class="comment">/&#42; then forward to 'strcmp' for the actual comparison &#42;/</span>
+     \/\* then forward to 'strcmp' for the actual comparison \*\/
 	else return strcmp(a,b);
-}</code></pre>
+     }</pre></code>
 
      \param location HDF5 object to which the string attribute should/will belong.
      \param name The name of the attribute.
      \param value The value which the attribute should/will have.
-
+     \sa cbf_H5Acreate
+     \sa cbf_H5Afind
+     \sa cbf_H5Aread
+     \sa cbf_H5Aread_string
+     \sa cbf_H5Awrite
+     \sa cbf_H5Arequire_cmp2
+     \sa cbf_H5Arequire_cmp2_ULP
+     \sa cbf_H5Arequire_string
+     \sa cbf_H5Afree
      \return An error code.
      */
 	/* TODO: allow a buffer to be provided to avoid malloc/free */
@@ -1929,95 +2299,122 @@ static int cmp_string
 		if (CBF_SUCCESS==error) {
 		hid_t h5atype = CBF_H5FAIL;
 		error |= cbf_H5Tcreate_string(&h5atype,strlen(value));
-#ifdef CBF_USE_ULP
-        error |= cbf_H5Arequire_cmp2_ULP(location,name,0,0,h5atype,h5atype,value,0,cmp_string,0);
-#else
-        error |= cbf_H5Arequire_cmp2(location,name,0,0,h5atype,h5atype,value,0,cmp_string);
-#endif
+            error |= CBFM_H5Arequire_cmp2(location,name,0,0,h5atype,h5atype,value,0,cmp_string,0);
 		cbf_H5Tfree(h5atype);
 		}
 		return error;
 	}
 
+	/**
+     Attempt to close an attribute, but don't modify the identifier that described it.
+     
+     \param ID The HDF5 attribute to be closed.
+     \sa cbf_H5Acreate
+     \sa cbf_H5Afind
+     \sa cbf_H5Aread
+     \sa cbf_H5Aread_string
+     \sa cbf_H5Awrite
+     \sa cbf_H5Arequire_cmp2
+     \sa cbf_H5Arequire_cmp2_ULP
+     \sa cbf_H5Arequire_string
+     \sa cbf_H5Afree
+     \return An error code.
+     */
+	int cbf_H5Afree(const hid_t ID)
+	{
+		if (cbf_H5Ivalid(ID)) return H5Aclose(ID)>=0 ? CBF_SUCCESS : CBF_H5ERROR;
+		else return CBF_ARGUMENT;
+	}
+    
 	/*
 	find/create/free hdf5 datasets without directly using hdf5 API.
 	TODO: function to support arbitrary dataspace/dcpl, and forward to it.
 	*/
 
-	/** \brief Creates a new dataset in the given location.
+	/**
+     The <code>dataset</code> parameter gives a location to store the dataset for use by the caller, for example to
+     add an attribute to it. If non-zero the returned handle MUST be free'd by the caller with <code>cbf_H5Dfree</code>.
 
-	<p>The <code>dataset</code> parameter gives a location to store the dataset for use by the caller, for example to
-	add an attribute to it. If non-zero the returned handle MUST be free'd by the caller with
-	<code>cbf_H5Dfree</code>.</p>
+     The dimensions of the dataset to create are given in <code>dim</code>. The maximum extents of the dataset are
+     given in <code>max</code>, which uses the values in <code>dim</code> as defaults if set to a null pointer.
+     Each element of <code>max</code> must be at least as large as the corresponding element of <code>dim</code>.
+     The dataset created will be a fixed-size dataset unless one of the elements of <code>max</code> is set to
+     <code>H5S_UNLIMITED</code>.
 
-	<p>This function will fail if a link with the same name already exists in <code>location</code>.</p>
+     A chunk size must be given in the <code>chunk</code> argument if any element of <code>max</code> is set to
+     <code>H5S_UNLIMITED</code> or is greater than the corresponding element of <code>dim</code>. If the dataset
+     should not be chunked then a null pointer should be given.
 
-     \param location The hdf5 group/file in which to put the dataset.
-     \param dataset An optional pointer to a location where the dataset handle should be stored for further use.
-	\param name The name of the new dataset.
-     \param rank The rank of the data, must be equal to the length of the \c dim and \c max arrays, if they are given.
-     \param dim The dimensions of the data, pointer to an array of length \c rank which should where
-     \c dim[i] \> 0 for \c i = [0, \c rank ), unused if \c rank == 0.
-     \param max The maximum size of each dimension, pointer or an array of length \c rank where
-     \c dim[i] \<= \c max[i] \<= \c H5S_UNLIMITED for \code i = [0, rank) \endcode, unused if \code rank == 0 \endcode.
-     \param chunk The chunk size for the dataset, as a pointer to an array of length \c rank (or \c 0 if chunking should not be enabled).
-	\param type The type of each data element in the file.
+     The <code>dim</code>, <code>max</code> and <code>chunk</code> arrays - if given - must each contain <code>rank</code> elements.
 
+     This function will fail if a link with the same name already exists in <code>location</code>.
+     
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind2
+     \sa cbf_H5Drequire
+     \sa cbf_H5Dinsert
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite2
+     \sa cbf_H5Dread2
+     \sa cbf_H5Drequire_scalar_F64LE2
+     \sa cbf_H5Drequire_scalar_F64LE2_ULP
+     \sa cbf_H5Drequire_flstring
+     \sa cbf_H5Dfree
      \return An error code.
      */
 	int cbf_H5Dcreate
-    (const hid_t location,
-     hid_t * const dataset,
-     const char * const name,
-     const int rank,
-     const hsize_t * const dim,
-     const hsize_t * const max,
-     const hsize_t * const chunk,
-     const hid_t type)
+    (const hid_t location, /**< The hdf5 group/file in which to put the dataset. */
+     hid_t * const dataset, /**< An optional pointer to a location where the dataset handle should be stored. */
+     const char * const name, /**< The name of the new dataset. */
+     const int rank, /**< The rank of the data. */
+     const hsize_t * const dim, /**< The dimensions of the dataset to create. Unused if <code>rank == 0</code>. */
+     const hsize_t * const max, /**< The maximum size of each dimension. Unused if <code>rank == 0</code>. */
+     const hsize_t * const chunk, /**< The chunk size for the dataset. */
+     const hid_t type /**< The type of each data element in the file. */)
 	{
 		/* define variables & check args */
-		int error = (!cbf_H5Ivalid(location) || !name || (rank && !dim) || rank<0 || H5I_DATATYPE!=H5Iget_type(type)) ? CBF_ARGUMENT : CBF_SUCCESS;
+		int error = CBF_SUCCESS;
+		if (!cbf_H5Ivalid(location) || !name || (rank && !dim) || rank<0 || H5I_DATATYPE!=H5Iget_type(type)) {
+			error |= CBF_ARGUMENT;
+		} else {
+			hid_t dataset_local = CBF_H5FAIL;
 		hid_t dataSpace = CBF_H5FAIL;
-		hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
-		hid_t dataset_local = CBF_H5FAIL;
-
-		/* check variables are valid */
-		cbf_reportFail(cbf_H5Screate(&dataSpace, rank, dim, max), error);
-		if (!cbf_H5Ivalid(dcpl)) error |= CBF_H5ERROR;
-		if (rank>0 && max) {
+			hid_t dcpl = CBF_H5FAIL;
+			hid_t * const dsetp = dataset ? dataset : &dataset_local;
+			htri_t exists = H5Lexists(location,name,H5P_DEFAULT);
+			CBF_H5CALL(dcpl = H5Pcreate(H5P_DATASET_CREATE));
+			CBF_CALL(cbf_H5Screate(&dataSpace, rank, dim, max));
+			/* check if some more variables are valid */
+			if (rank && max) {
 			const hsize_t * m;
 			for (m = max; m != max+rank; ++m) {
 				if (H5S_UNLIMITED == *m) {
-					if (!chunk) error |= CBF_H5FAIL;
+						if (!chunk) error |= CBF_ARGUMENT;
 				}
 			}
 		}
-
 		/* allow dataset to be chunked */
-		if (CBF_SUCCESS==error && rank && chunk)
-			if (H5Pset_chunk(dcpl,rank,chunk)<0) error |= CBF_H5ERROR;
-
-		/* create the dataset */
-		if (CBF_SUCCESS==error && 0==H5Lexists(location,name,H5P_DEFAULT)) {
-		    dataset_local = H5Dcreate2(location,name,type,dataSpace,H5P_DEFAULT,dcpl,H5P_DEFAULT);
-			if (!cbf_H5Ivalid(dataset_local)) error |= CBF_H5ERROR;
-		} else error |= CBF_H5ERROR;
-
-		/* if the dataset object is requested then return it, otherwise close it */
-		if (CBF_SUCCESS==error && NULL!=dataset) *dataset = dataset_local;
-		else if (cbf_H5Ivalid(dataset_local)) H5Dclose(dataset_local);
-
-		/* check remaining local variables are properly closed */
+			if (rank && chunk) CBF_H5CALL(H5Pset_chunk(dcpl,rank,chunk));
+			if (exists < 0) {
+				cbf_debug_print("error: couldn't check is dataset exists");
+				error |= CBF_H5ERROR;
+			} else if (exists) {
+				cbf_debug_print("error: dataset already exists");
+				error |= CBF_H5ERROR;
+			} else {
+				CBF_H5CALL(*dsetp = H5Dcreate2(location,name,type,dataSpace,H5P_DEFAULT,dcpl,H5P_DEFAULT));
+			}
 		if (cbf_H5Ivalid(dataSpace)) H5Sclose(dataSpace);
 		if (cbf_H5Ivalid(dcpl)) H5Pclose(dcpl);
-
-		/* done */
+			/* if the dataset object is requested then return it, otherwise close it */
+			cbf_H5Dfree(dataset_local);
+		}
 		return error;
 	}
     
     
     
-	/** \brief Look for a dataset with the given properties.
+	/* \brief Look for a dataset with the given properties.
      
      Succeeds without returning a valid dataset ID if no dataset exists and fails if one with different properties exists.
      Finding that the dataset doesn't exist is not a failure - the function worked and returned useful information.
@@ -2047,16 +2444,16 @@ static int cmp_string
      \param max See \c cbf_H5Dcreate
      \param chunk See \c cbf_H5Dcreate
      \param type See \c cbf_H5Dcreate
-     
      \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind2
+     \sa cbf_H5Drequire
+     \sa cbf_H5Dinsert
      \sa cbf_H5Dset_extent
-     \sa cbf_H5Dwrite
-     \sa cbf_H5Dread
-     \sa cbf_H5Drequire_scalar_F64LE
-     \sa cbf_H5Drequire_string
+     \sa cbf_H5Dwrite2
+     \sa cbf_H5Dread2
+     \sa cbf_H5Drequire_scalar_F64LE2_ULP
+     \sa cbf_H5Drequire_flstring
      \sa cbf_H5Dfree
-     \sa cbf_H5Ddestroy
-     
      \return An error code indicating whether the function successfully determined the presence (or otherwise) of an appropriate dataset.
      */
 	int cbf_H5Dfind
@@ -2129,53 +2526,61 @@ static int cmp_string
 	}
 
 
-	/** \brief Look for a dataset with the given properties.
-
-	<p>Returns <code>CBF_NOTFOUND</code> without modifying <code>dataset</code> if no dataset exists and fails without
+	/**
+     Returns <code>CBF_NOTFOUND</code> without modifying <code>dataset</code> if no dataset exists and fails without
 	modifying <code>dataset</code> if one with different properties exists. A dataset will be 'found' if it has the
-	same name and a maximum size which is at least as big as the size requested in <code>max</code>.</p>
+     same name and a maximum size which is at least as big as the size requested in <code>max</code>.
 
-	<p>A buffer of <code>rank</code> elements pointed to by <code>buf</code> may be used to store the array of
+     A buffer of <code>rank</code> elements pointed to by <code>buf</code> may be used to store the array of
 	maximum extents for a potentially matching dataset, in order to avoid the use of <code>malloc</code> &
-	<code>free</code> for very small amounts of memory.</p>
+     <code>free</code> for very small amounts of memory.
 
-	<p>Use as:</p>
-	<!-- remember to replace tabs with 4 spaces! -->
-<pre><code><span class="comment">/&#42; Get the return code from the function call, &#42;/</span>
+     Use as:
+     
+     <code><pre>\/\* Get the return code from the function call, \*\/
 const int found = cbf_H5Dfind(location, &dataset, ...);
-<span class="comment">/&#42; and check what it was: &#42;/</span>
+     \/\* and check what it was: \*\/
 if (CBF_SUCCESS==found) {
-	<span class="comment">/&#42; A dataset already existed and I have a handle for it: &#42;/</span>
+     \/\* A dataset already existed and I have a handle for it: \*\/
      use_existing_dataset(dataset);
 } else if (CBF_NOTFOUND==found) {
-	<span class="comment">/&#42; No matching dataset existed, so I can create one: &#42;/</span>
+     \/\* No matching dataset existed, so I can create one: \*\/
 	cbf_H5Dcreate(location, &dataset, ...);
      use_new_datset(dataset);
      } else {
-	<span class="comment">/&#42;
+     \/\*
 	The function call failed, do something with the error.
 	In this case, store it for later use and print a message.
-	&#42;/</span>
+     \*\/
 	error |= found;
-	fprintf(stderr,"There was an error - %s.\n",cbf_strerror(error));
+     cbf_debug_print(cbf_strerror(error));
      }
-<span class="comment">/&#42; clean up: &#42;/</span>
-cbf_H5Dfree(dataset);</code></pre>
+     \/\* clean up: \*\/
+     cbf_H5Dfree(dataset);</pre></code>
 
      \param location The hdf5 group/file in which to put the dataset.
-     \param dataset A pointer to a HDF5 object identifier that is set to the location of a valid object or an invalid value if the function
-     succeeds, otherwise is left in an undefined state.
+     \param dataset A pointer to a HDF5 object identifier that is set to the location of
+     a valid object if the function succeeds, otherwise is left in an undefined state.
      \param name The name of the existing/new dataset.
 	\param rank The rank of the data, must be equal to the length of the <code>max</code> and <code>buf</code> arrays, if they are given.
 	\param max The (optional) maximum size of each dimension, pointer or an array of length <code>rank</code> where
 		<code>0 &lt;= max[i] &lt;= H5S_UNLIMITED</code> for <code>i = [0, rank)</code>, unused if <code>rank == 0</code>.
 	\param buf An optional buffer with <code>rank</code> elements which may be used to store the
 		current maximum dimensions of a potential match to avoid a malloc/free call.
-	\param type The type of each data element in the file.
-
-	\return
-	<p><code>CBF_SUCCESS</code> if a matching dataset was found, <code>CBF_NOTFOUND</code> if nothing with the same
-	name was found, some other error code otherwise.</p>
+     \param type The type of each data element in the file. If an invalid type is given a dataset of any type may be returned.
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind2
+     \sa cbf_H5Drequire
+     \sa cbf_H5Dinsert
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite2
+     \sa cbf_H5Dread2
+     \sa cbf_H5Drequire_scalar_F64LE2
+     \sa cbf_H5Drequire_scalar_F64LE2_ULP
+     \sa cbf_H5Drequire_flstring
+     \sa cbf_H5Dfree
+     \return <code>CBF_SUCCESS</code> if a matching dataset was found, <code>CBF_NOTFOUND</code> if nothing with the same
+     name was found, some other error code otherwise.
      */
 	int cbf_H5Dfind2
     (const hid_t location,
@@ -2186,50 +2591,59 @@ cbf_H5Dfree(dataset);</code></pre>
      hsize_t * const buf,
      const hid_t type)
 	{
-		htri_t l = CBF_H5FAIL;
-		/* check the arguments */
-		if (!cbf_H5Ivalid(location) || !dataset || !name || rank<0 || H5I_DATATYPE!=H5Iget_type(type)) return CBF_ARGUMENT;
-
+		int error = CBF_SUCCESS;
+		if (!cbf_H5Ivalid(location) || !dataset || !name || rank<0) {
+			error |= CBF_ARGUMENT;
+		} else {
 		/* check if the link exists */
-		l = H5Lexists(location, name, H5P_DEFAULT);
+			const htri_t l = H5Lexists(location, name, H5P_DEFAULT);
 		if (l < 0) {
-			if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: Could not check if link '%s' exists",__WHERE__,name);
-			return CBF_H5ERROR;
+				cbf_debug_print2("%s: error: Could not check if link '%s' exists\n",name);
+				error |= CBF_H5ERROR;
 		} else if (!l) {
-			return CBF_NOTFOUND;
+				error |= CBF_NOTFOUND;
 		} else {
 			/* check if the linked object exists */
 			const htri_t e = H5Oexists_by_name(location, name, H5P_DEFAULT);
 			if (e < 0) {
-				if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: Could not check if object '%s' exists\n",__WHERE__,name);
-				return CBF_H5ERROR;
+                    cbf_debug_print2("Could not check if object '%s' exists\n",name);
+                    error |= CBF_H5ERROR;
 			} else if (!e) {
 				/* The link exists but the object doesn't - try to remove the link & tell the caller that there is no dataset */
 				if (H5Ldelete(location, name, H5P_DEFAULT) < 0) {
-					if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: Could not remove dead link '%s'\n",__WHERE__,name);
-					return CBF_H5ERROR;
+                        cbf_debug_print2("Could not remove dead link '%s'\n",name);
+                        error |= CBF_H5ERROR;
 				} else {
-					return CBF_NOTFOUND;
+                        error |= CBF_NOTFOUND;
 				}
 			} else {
 				/* my object exists - check its type */
 				hid_t g = H5Oopen(location, name, H5P_DEFAULT);
-				if (H5I_DATASET == H5Iget_type(g)) {
-					int error = CBF_SUCCESS;
+					if (!cbf_H5Ivalid(g)) {
+						error |= CBF_H5ERROR;
+					} else {
+						if (H5I_DATASET != H5Iget_type(g)) {
+							error |= CBF_H5DIFFERENT;
+						} else {
 					/* it's a dataset - check its properties */
 					const hid_t currSpace = H5Dget_space(g);
+ 							if (!cbf_H5Ivalid(currSpace)) {
+								cbf_debug_print("error: couldn't get data space");
+								error |= CBF_H5ERROR;
+							} else {
 					const int currRank = H5Sget_simple_extent_dims(currSpace, 0, 0);
 					if (currRank < 0) {
-						if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: Could not get rank of '%s'\n",__WHERE__,name);
+                                    cbf_debug_print2("Could not get rank of '%s'\n",name);
 						error |= CBF_H5ERROR;
-					}
-					if (currRank != rank) error |= CBF_H5DIFFERENT;
-					if (CBF_SUCCESS==error && 0!=max && 0<rank) {
+                                } else if (currRank != rank) {
+                                    cbf_debug_print3("error: Current rank of '%d' differs from expected rank of '%d'\n",currRank, rank);
+                                    error |= CBF_H5DIFFERENT;
+                                } else if (CBF_SUCCESS==error && max && rank>0) {
 						/* Check dataspace if it makes sense to do so */
 						hsize_t * const _buf = buf ? 0 : malloc(rank*sizeof(hsize_t));
 						hsize_t * const currMax = buf ? buf : _buf;
 						if (H5Sget_simple_extent_dims(currSpace, 0, currMax)<0) {
-							if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: Could not get extent of '%s'\n",__WHERE__,name);
+                                        cbf_debug_print2("Could not get extent of '%s'\n",name);
 							error |= CBF_H5ERROR;
 						}
 						int i = 0;
@@ -2240,119 +2654,156 @@ cbf_H5Dfree(dataset);</code></pre>
 						}
 						free((void*)_buf);
 					}
-					H5Sclose(currSpace);
-					if (CBF_SUCCESS==error) {
+                            }
+                            cbf_H5Sfree(currSpace);
+                            if (CBF_SUCCESS==error && H5I_DATATYPE==H5Iget_type(type)) {
 				 		/* check the datatype is correct */
 						const hid_t currType = H5Dget_type(g);
+                                if (!cbf_H5Ivalid(currType)) {
+                                    cbf_debug_print("error: couldn't get data space");
+                                    error |= CBF_H5ERROR;
+                                } else {
 						const htri_t eq = H5Tequal(currType,type);
 						if (eq<0) {
-							if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: Could not test type of '%s'\n",__WHERE__,name);
+                                        cbf_debug_print2("error: couldn't test type of '%s'\n",name);
 							error |= CBF_H5ERROR;
 						} else if (!eq) error |= CBF_H5DIFFERENT;
-						else /* success */;
-					H5Tclose(currType);
 					}
-					*dataset = CBF_SUCCESS==error ? g : CBF_H5FAIL;
-					return error;
+                                cbf_H5Tfree(currType);
+                            }
+                            /* return the dataset & transfer ownership of it to the caller, or keep it to free it later */
+                            if (CBF_SUCCESS==error) {
+                                *dataset = g;
+                                g = CBF_H5FAIL;
 				} else {
-					/* not a dataset - close the object & fail */
-					H5Oclose(g);
-					return CBF_H5DIFFERENT;
+                                *dataset = CBF_H5FAIL;
 				}
 			}
 		}
+                    if (cbf_H5Ivalid(g)) H5Oclose(g);
 	}
+            }
+        }
+        return error;
+    }
 
-	/** \brief Ensure that a dataset exists, returning a handle to an existing dataset or creating a new dataset if needed.
-	<p>Ensure a dataset of the given <code>rank</code> exists and can at least as many elements as specified in
+	/**
+     Ensure a dataset of the given <code>rank</code> exists and can hold at least as many elements as specified in
 	<code>max</code>. If no dataset exists then one will be created with dimensions of [0, 0, ... 0].
-	<code>cbf_H5Dfind</code> and <code>cbf_H5Dcreate</code> are used in the implementation of this function.</p>
+     <code>cbf_H5Dfind</code> and <code>cbf_H5Dcreate</code> are used in the implementation of this function.
 
-	\param location The hdf5 group/file in which to put the dataset.
-	\param dataset A pointer to a HDF5 object identifier that is set to the location of a valid object or an invalid value if the function
-	succeeds, otherwise is left in an undefined state.
-	\param name The name of the existing/new dataset.
-	\param rank The rank of the data, must be equal to the length of the <code>max</code> and <code>buf</code> arrays, if they are given.
-	\param max The (optional) maximum size of each dimension, pointer or an array of length <code>rank</code> where
-	<code>0 &lt;= max[i] &lt;= H5S_UNLIMITED</code> for <code>i = [0, rank)</code>, unused if <code>rank == 0</code>.
-	\param chunk The chunk size for the dataset, as a pointer to an array of length <code>rank</code>
-	(or <code>0</code> if chunking should not be enabled).
-	\param buf An optional buffer with <code>rank</code> elements which may be used to store the current maximum dimensions of a
-	potential match and/or the dimensions of the dataset to be created, to avoid using the heap for small amounts of memory.
-	\param type The type of each data element in the file.
+     An existing dataset may be found using <code>cbf_H5Dfind2(location, dataset, name, rank, max, buf, type)</code>.
+     If no dataset can be found then a dataset will be created by setting each element of a buffer of length
+     <code>rank</code> to zero and using <code>cbf_H5Dcreate(location, dataset, name, rank, buffer, max, chunk, type)</code>.
+     A buffer of <code>rank</code> elements may be provided to avoid using malloc to allocate memory for a small array
+     whose size may already be known.
 
+     The value pointed to by <code>dataset</code> should be a valid object identifier if the function exits successfully,
+     and will be left in an undefined state otherwise.
+     
+     This is roughly equivalent to:
+     
+     <code><pre>const int error = cbf_H5Dfind2(location, dataset, name, rank, max, buf, type);
+     if (CBF_NOTFOUND==error) {
+     int i;
+     for (i = 0; i != rank; ++i) buf[i] = 0;
+     return cbf_H5Dcreate(location, dataset, name, rank, buf, max, chunk, type);
+     } else {
+     \/\* 'error' may be 'CBF_SUCCESS' or could indicate an error: \*\/
+     return error;
+     }</pre></code>
+     
+     but contains more sophisticated error handling code and allows for some parameters to be omitted.
+     
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind2
+     \sa cbf_H5Drequire
+     \sa cbf_H5Dinsert
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite2
+     \sa cbf_H5Dread2
+     \sa cbf_H5Drequire_scalar_F64LE2
+     \sa cbf_H5Drequire_scalar_F64LE2_ULP
+     \sa cbf_H5Drequire_flstring
+     \sa cbf_H5Dfree
 	\return An error code.
 	*/
 	int cbf_H5Drequire
-    (const hid_t location,
-     hid_t * const dataset,
-     const char * const name,
-     const int rank,
-     const hsize_t * const max,
-     const hsize_t * const chunk,
-     hsize_t * const buf,
-     const hid_t type)
+    (const hid_t location, /**< The hdf5 group/file in which to put the dataset. */
+     hid_t * const dataset, /**< A pointer to a location to store the dataset. */
+     const char * const name, /**< The name of the existing/new dataset. */
+     const int rank, /**< The rank of the data. */
+     const hsize_t * const max, /**< The (optional) maximum size of each dimension. */
+     const hsize_t * const chunk, /**< The chunk size used if creating a new dataset. */
+     hsize_t * const buf, /**< An optional buffer with <code>rank</code> elements. */
+     const hid_t type /**< The type of each data element in the file. */)
 	{
 		int error = CBF_SUCCESS;
+		if (rank < 0) {
+			error |= CBF_ARGUMENT;
+		} else {
 		int found = CBF_SUCCESS;
-		hid_t dset = CBF_H5FAIL;
-		hid_t * dsetp = dataset ? dataset : &dset;
-		if (rank < 0) return CBF_ARGUMENT;
+			hid_t dset = CBF_H5FAIL; /* always free'able */
+			hid_t * dsetp = dataset ? dataset : &dset; /* always usable */
 		found = cbf_H5Dfind2(location,dsetp,name,rank,max,buf,type);
 		if (CBF_SUCCESS == found) {
 			/* cbf_H5Dfind already checked the dimensions & type, so I don't need to do anything here */
 		} else if (CBF_NOTFOUND==found) {
 			/* create a suitable dataset */
-			hsize_t * const _buf = (buf || !rank) ? NULL : malloc(rank*sizeof(hsize_t));
-			hsize_t * const dim = buf ? buf : _buf;
+				hsize_t * const _buf = (buf || !rank) ? NULL : malloc(rank*sizeof(hsize_t)); /* always free'able */
+				hsize_t * const dim = buf ? buf : _buf; /* always usable */
 			hsize_t * it;
 			for (it = dim; it != dim+rank; ++it) *it = 0;
-			error |= cbf_H5Dcreate(location,dsetp,name,rank,dim,max,chunk,type);
+				CBF_CALL(cbf_H5Dcreate(location,dsetp,name,rank,dim,max,chunk,type));
 			free((void*)_buf);
 		} else {
 			error |= found;
 			/* maybe report the failure? */
-			if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(error));
+                cbf_debug_print(cbf_strerror(error));
 		}
 		cbf_H5Dfree(dset);
+		}
 		return error;
 	}
 
-	/** \brief Add some data to a datset, expanding the dataset to the appropriate size if needed.
-	<p>Insert a slice of data into <code>dataset</code> with the appropriate <code>offset</code> &
-	<code>stride</code>, ensuring that no existing data is lost due to resizing the dataset but not checking that
-	previous data isn't being overwritten.</p>
+	/**
+     Insert a slice of data into <code>dataset</code> with the appropriate <code>offset</code> &
+     <code>stride</code>, ensuring that no existing data is lost due to resizing the dataset but not checking
+     that previous data isn't being overwritten.
 
-	\param dataset The dataset to write the data to.
-	\param offset Where to start writing the data, as an array of <code>rank</code> numbers.
-	\param stride The number of elements in the dataset to step for each element to be written, where
-	null is equivalent to a stride of [1, 1, 1, ..., 1], as an array of <code>rank</code> numbers.
-	\param count The number of elements in each dimension to be written, as an array of <code>rank</code> numbers.
-	\param buf An optional buffer with <code>rank</code> elements which may be used to store the current dimensions
-	of the dataset, to avoid using the heap for small amounts of memory.
-	\param value The address of the data to be written.
-	\param type The type of data in memory.
+     The <code>offset</code>, <code>stride</code>, <code>count</code> and <code>buf</code> arrays must each
+     have <code>rank</code> elements. If <code>stride</code> is set to the null pointer then a default of
+     <code>[1, 1, 1, ..., 1]</code> will be used. An optional buffer may be provided in <code>buf</code> to
+     avoid using malloc to allocate a small amount of memory whose size may actually be known at compile time.
 
+     The <code>value</code> array should contain <code>count[0] * count[1] * ... * count[rank-1] === product(count)</code> elements of data.
+     
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind2
+     \sa cbf_H5Drequire
+     \sa cbf_H5Dinsert
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite2
+     \sa cbf_H5Dread2
+     \sa cbf_H5Drequire_scalar_F64LE2
+     \sa cbf_H5Drequire_scalar_F64LE2_ULP
+     \sa cbf_H5Drequire_flstring
+     \sa cbf_H5Dfree
 	\return An error code.
 	*/
 	int cbf_H5Dinsert
-			(const hid_t dataset,
-			 const hsize_t * const offset,
-			 const hsize_t * const stride,
-			 const hsize_t * const count,
-			 hsize_t * const buf,
-			 const void * const value,
-			 const hid_t type)
+    (const hid_t dataset, /**< The dataset to write the data to. */
+     const hsize_t * const offset, /**< Where to start writing the data. */
+     const hsize_t * const stride, /**< The number of elements in the dataset to step for each element to be written. */
+     const hsize_t * const count, /**< The number of elements in each dimension to be written. */
+     hsize_t * const buf, /**< An optional buffer to avoid using the heap for small amounts of memory. */
+     const void * const value, /**< The address of the data to be written. */
+     const hid_t type) /**< The type of data in memory. */
 	{
 		int error = CBF_SUCCESS;
-
-		/* check some arguments */
-		if (!cbf_H5Ivalid(dataset)) return CBF_ARGUMENT;
-		if (H5I_DATASET!=H5Iget_type(dataset)) return CBF_ARGUMENT;
-		if (!offset || !count || !value) return CBF_ARGUMENT;
-		if (H5I_DATATYPE!=H5Iget_type(type)) return CBF_ARGUMENT;
-
-		{
+		if (!cbf_H5Ivalid(dataset) || !offset || !count || !value || H5I_DATATYPE!=H5Iget_type(type)) {
+			error |= CBF_ARGUMENT;
+		} else {
 			/* get the rank and current dimensions of the dataset */
 			const hid_t oldSpace = H5Dget_space(dataset);
 			const int rank = H5Sget_simple_extent_dims(oldSpace,0,0);
@@ -2384,31 +2835,41 @@ cbf_H5Dfree(dataset);</code></pre>
 			if (cbf_H5Ivalid(oldSpace)) H5Sclose(oldSpace);
 			free((void*)_buf);
 		}
-
 		return error;
 	}
 
-	/** \brief Change the extent of a chunked dataset to the values in \c dim.
+	/**
+     Forwards to a HDF5 function to change the extent of <code>dataset</code>. The <code>dim</code> array must have
+     the same number of elements as the rank of the dataset, but this can't be checked within this function.
 
-	<p>Forwards to a HDF5 function to change the extent of <code>dataset</code>. This can't check that the number of
-	elements in <code>dim</code> matches the rank of the dataset.</p>
-
-     \param dataset A handle for the dataset whose extent is to be changed.
-     \param dim The new extent of the dataset, if the function succeeds. Must be the same length as the rank of the dataset.
-
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind2
+     \sa cbf_H5Drequire
+     \sa cbf_H5Dinsert
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite2
+     \sa cbf_H5Dread2
+     \sa cbf_H5Drequire_scalar_F64LE2
+     \sa cbf_H5Drequire_scalar_F64LE2_ULP
+     \sa cbf_H5Drequire_flstring
+     \sa cbf_H5Dfree
      \return An error code.
      */
-	int cbf_H5Dset_extent(const hid_t dataset, const hsize_t * const dim)
+	int cbf_H5Dset_extent
+    (const hid_t dataset, /**< A handle for the dataset whose extent is to be changed. */
+     const hsize_t * const dim /**< The new extent of the dataset, if the function succeeds. */)
 	{
-		if (!dim) return CBF_ARGUMENT;
-		if (!cbf_H5Ivalid(dataset)) return CBF_ARGUMENT;
-		if (H5I_DATASET!=H5Iget_type(dataset)) return CBF_ARGUMENT;
-		if (H5Dset_extent(dataset,dim) < 0) return CBF_H5ERROR;
-		return CBF_SUCCESS;
+		int error = CBF_SUCCESS;
+		if (!dim || !cbf_H5Ivalid(dataset) || H5I_DATASET!=H5Iget_type(dataset)) {
+			error |= CBF_ARGUMENT;
+		} else {
+			CBF_H5CALL(H5Dset_extent(dataset,dim));
+	}
+		return error;
 	}
 
     
-	/** \brief Add some data to the specified position in the dataset, without checking what (if anything) was there before.
+	/* \brief Add some data to the specified position in the dataset, without checking what (if anything) was there before.
      
      Assumes the dataset has the appropriate size to contain all the data and overwrites any existing data that may be there.
      The \c rank of the dataset is assumed to be known, and the size of the array parameters is not tested.
@@ -2452,7 +2913,7 @@ cbf_H5Dfree(dataset);</code></pre>
 		reportFail(cbf_H5Ivalid(datatype), CBF_H5ERROR, error);
         
 		/* select elements & write the dataset */
-		if (!!rank) {
+		if (rank) {
 			reportFail(H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, stride, count, 0)>=0, CBF_H5ERROR, error);
 		} else {
 			reportFail(H5Sselect_all(filespace)>=0, CBF_H5ERROR, error);
@@ -2470,13 +2931,12 @@ cbf_H5Dfree(dataset);</code></pre>
 	}
 
 	
-    /** \brief Add some data to the specified position in the dataset, without checking what (if anything) was there before.
-
-	<p>Assumes the dataset has the appropriate size to contain all the data and overwrites any existing data that may
+    /**
+     Assumes the dataset has the appropriate size to contain all the data and overwrites any existing data that may
 	be there. The <code>rank</code> of the dataset is assumed to be known, and the size of the array parameters is not
 	tested. When <code>rank</code> is zero - in the case of scalar datasets - the <code>offset</code>,
 	<code>stride</code> and <code>count</code> parameters are meaningless and should be omitted by setting them to
-	zero.</p>
+     zero.
 
      \param dataset The dataset to write the data to.
 	\param offset Where to start writing the data, as an array of <code>rank</code> numbers.
@@ -2485,7 +2945,17 @@ cbf_H5Dfree(dataset);</code></pre>
 	\param count The number of elements in each dimension to be written, as an array of <code>rank</code> numbers.
      \param value The address of the data to be written.
 	\param type The type of data in memory.
-
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind2
+     \sa cbf_H5Drequire
+     \sa cbf_H5Dinsert
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite2
+     \sa cbf_H5Dread2
+     \sa cbf_H5Drequire_scalar_F64LE2
+     \sa cbf_H5Drequire_scalar_F64LE2_ULP
+     \sa cbf_H5Drequire_flstring
+     \sa cbf_H5Dfree
      \return An error code.
      */
 	int cbf_H5Dwrite2
@@ -2496,60 +2966,45 @@ cbf_H5Dfree(dataset);</code></pre>
      const void * const value,
 	 const hid_t type)
 	{
-		/* define variables */
 		int error = CBF_SUCCESS;
-		hid_t filespace = CBF_H5FAIL;
-
-		/* check types and some arguments */
-		if (H5I_DATASET!=H5Iget_type(dataset) || !cbf_H5Ivalid(dataset)) return CBF_ARGUMENT;
-		if (!value) return CBF_ARGUMENT;
-		if (H5I_DATATYPE!=H5Iget_type(type)) return CBF_ARGUMENT;
-
-		/* extract the dataspace from the dataset */
-		filespace = H5Dget_space(dataset);
-
-		if (cbf_H5Ivalid(filespace)) {
+		if (H5I_DATASET!=H5Iget_type(dataset) || !cbf_H5Ivalid(dataset) || !value || H5I_DATATYPE!=H5Iget_type(type)) {
+			error |= CBF_ARGUMENT;
+		} else {
+			hid_t filespace = H5Dget_space(dataset);
+			if (!cbf_H5Ivalid(filespace)) {
+				error |= CBF_H5ERROR;
+				cbf_debug_print(cbf_strerror(error));
+            } else {
 			/* get some data from the dataspace */
 		const int rank = H5Sget_simple_extent_ndims(filespace);
-			hid_t memspace = CBF_H5FAIL;
-
-			/* check more arguments are valid */
-			if ((rank && (!offset || !count)) || rank<0) error |= CBF_ARGUMENT;
-
-			if (CBF_SUCCESS == error) {
-				/* create memspace */
-				if (rank) memspace = H5Screate_simple(rank,count,0);
-				else memspace = H5Screate(H5S_SCALAR);
-				/* check it worked */
+                if ((rank && (!offset || !count)) || rank<0) {
+                    error |= CBF_ARGUMENT;
+                } else {
+                    hid_t memspace = rank ? H5Screate_simple(rank,count,0) : H5Screate(H5S_SCALAR);
 				if (!cbf_H5Ivalid(memspace)) {
 					error |= CBF_H5ERROR;
-					if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(error));
-				}
-		}
-
-			if (CBF_SUCCESS == error) {
+                        cbf_debug_print("couldn't create dataspace");
+                    } else {
 				/* select elements */
-				if (rank) CBF_H5CALL(H5Sselect_hyperslab(filespace,H5S_SELECT_SET,offset,stride,count,0));
-				else CBF_H5CALL(H5Sselect_all(filespace));
+                        if (rank) {
+                            CBF_H5CALL(H5Sselect_hyperslab(filespace,H5S_SELECT_SET,offset,stride,count,0));
+                        } else {
+                            CBF_H5CALL(H5Sselect_all(filespace));
 			}
-
 			/* write the dataset */
-			if (CBF_SUCCESS == error) CBF_H5CALL(H5Dwrite(dataset,type,memspace,filespace,H5P_DEFAULT,value));
-
-		/* check local variables are properly closed */
-		if (cbf_H5Ivalid(memspace)) H5Sclose(memspace);
-		} else {
-			error |= CBF_H5ERROR;
-			if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(error));
+                        CBF_H5CALL(H5Dwrite(dataset,type,memspace,filespace,H5P_DEFAULT,value));
 		}
-
-		if (cbf_H5Ivalid(filespace)) H5Sclose(filespace);
+                    cbf_H5Sfree(memspace);
+                }
+            }
+            cbf_H5Sfree(filespace);
+        }
 		return error;
 	}
 
         
         
-        /** \brief Extract some existing data from a dataset at a known position.
+    /* \brief Extract some existing data from a dataset at a known position.
          
          Read some data from a given location in the dataset to an existing location in memory.
          Does not check the length of the array parameters, which should all have \c rank elements or (in some cases) be null.
@@ -2608,13 +3063,12 @@ cbf_H5Dfree(dataset);</code></pre>
             return error;
         }
         
-	/** \brief Extract some existing data from a dataset at a known position with memtype.
-
-	<p>Read some data from a given location in the dataset to an existing location in memory. Does not check the
+    /**
+     Read some data from a given location in the dataset to an existing location in memory. Does not check the
 	length of the array parameters, which should all have <code>rank</code> elements or (in some cases) be
 	<code>null</code>. When <code>rank</code> is zero - in the case of scalar datasets - the <code>offset</code>,
 	<code>stride</code> and <code>count</code> parameters are meaningless and should be omitted by setting them to
-	zero.</p>
+     zero.
 
      \param dataset The dataset to read the data from.
 	\param offset Where to start writing the data, as an array of <code>rank</code> numbers.
@@ -2623,7 +3077,17 @@ cbf_H5Dfree(dataset);</code></pre>
 	\param count The number of elements in each dimension to be written, as an array of <code>rank</code> numbers.
      \param value The location where the data is to be stored.
 	\param type The type of data in memory.
-
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind2
+     \sa cbf_H5Drequire
+     \sa cbf_H5Dinsert
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite2
+     \sa cbf_H5Dread2
+     \sa cbf_H5Drequire_scalar_F64LE2
+     \sa cbf_H5Drequire_scalar_F64LE2_ULP
+     \sa cbf_H5Drequire_flstring
+     \sa cbf_H5Dfree
      \return An error code.
      */
 	int cbf_H5Dread2
@@ -2635,34 +3099,39 @@ cbf_H5Dfree(dataset);</code></pre>
 	 const hid_t type)
 	{
 		/* define variables & check args */
-		int error = (!cbf_H5Ivalid(dataset)) ? CBF_ARGUMENT : CBF_SUCCESS;
+        int error = CBF_SUCCESS;
+        if (!cbf_H5Ivalid(dataset)) {
+            error |= CBF_ARGUMENT;
+        } else {
 		hid_t filespace = H5Dget_space(dataset);
+            if (!cbf_H5Ivalid(filespace)) {
+                error |= CBF_H5ERROR;
+            } else {
+                /* get rank of dataset and dataspace of memory block */
 		const int rank = H5Sget_simple_extent_ndims(filespace);
 		hid_t memspace = !rank ? H5Screate(H5S_SCALAR) : H5Screate_simple(rank,count,0);
-		if ((!!rank && (!offset || !count)) || rank<0) error |= CBF_ARGUMENT;
-
-		/* check variables are valid */
-		reportFail(cbf_H5Ivalid(filespace), CBF_H5ERROR, error);
-		reportFail(cbf_H5Ivalid(memspace), CBF_H5ERROR, error);
-
+                if ((rank && (!offset || !count)) || rank<0) {
+                    error |= CBF_ARGUMENT;
+                } else if (!cbf_H5Ivalid(memspace)) {
+                    error |= CBF_H5ERROR;
+                } else {
 		/* select elements & read the dataset */
 		if (rank) {
-			reportFail(H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, stride, count, 0)>=0, CBF_H5ERROR, error);
+                        CBF_H5CALL(H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, stride, count, 0));
 		} else {
-			reportFail(H5Sselect_all(filespace)>=0, CBF_H5ERROR, error);
+                        CBF_H5CALL(H5Sselect_all(filespace));
 		}
-		reportFail(H5Dread(dataset, type, memspace, filespace, H5P_DEFAULT, value)>=0, CBF_H5ERROR, error);
-
-		/* check local variables are properly closed */
-		if (cbf_H5Ivalid(memspace)) H5Sclose(memspace);
-		if (cbf_H5Ivalid(filespace)) H5Sclose(filespace);
-
-		/* done */
+                    CBF_H5CALL(H5Dread(dataset, type, memspace, filespace, H5P_DEFAULT, value));
+                }
+                cbf_H5Sfree(memspace);
+            }
+            cbf_H5Sfree(filespace);
+        }
 		return error;
 	}
 
         
-        /** \brief Write a scalar 64-bit floating point number as a dataset.
+    /* \brief Write a scalar 64-bit floating point number as a dataset.
          
          Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related
          parameters for a scalar dataset and to automatically set the string type to the correct size.
@@ -2701,7 +3170,7 @@ cbf_H5Dfree(dataset);</code></pre>
                     double data = 0./0.;
                     error |= cbf_H5Dread(_dataset,0,0,0,&data);
                     if (fabs(value - data)> 1.e-38+1.e-13*(fabs(value)+fabs(data))) {
-                        fprintf(stderr,"Error: data doesn't match (%g vs %g) for nexus field '%s'\n",data,value,name);
+                    cbf_debug_print4("Error: data doesn't match (%g vs %g) for nexus field '%s'\n",data,value,name);
                         error |= CBF_H5DIFFERENT;
                     }
                 }
@@ -2709,35 +3178,53 @@ cbf_H5Dfree(dataset);</code></pre>
                 if (dataset) *dataset = _dataset;
                 else cbf_H5Dfree(_dataset);
             } else {
-                fprintf(stderr,"Attempt to determine existence of nexus field '%s' failed\n",name);
+            cbf_debug_print2("Attempt to determine existence of nexus field '%s' failed\n",name);
             }
             return error;
         }
         
 
-	/** \brief Write a scalar 64-bit floating point number as a dataset with comparison.
+    /* We provide a macro and 2 versions of each of the calls with _ULP
+     variants. */
 
-	<p>Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related parameters
-	for a scalar dataset. Uses <code> cbf_H5Dfind2  </code>, <code>cbf_H5Dcreate</code>, <code>cbf_H5Dread</code> &
-	<code>cbf_H5Dwrite</code> to ensure a scalar 64-bit IEEE floating point dataset exists with the appropriate name
-	and (for an existing dataset) the correct value as determined by the comparison function <code>cmp</code>.</p>
+#ifdef CBF_USE_ULP
+#define CBFM_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp,prm) \
+cbf_H5Drequire_scalar_F64LE2_ULP(loc,ds,nm,val,cmp,prm)
+#else
+#define CBFM_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp,prm) \
+cbf_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp)
+#endif
 
+     /**
+     Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related parameters
+     for a scalar dataset.It ensures that a scalar 64-bit IEEE floating point dataset exists with the appropriate
+     name and (for an existing dataset) the correct value as determined by the comparison function <code>cmp</code>.
+     
+     
      \param location The group containing the new dataset.
      \param dataset An optional pointer to a place to store the new dataset.
      \param name The name of the new dataset.
      \param value The value of the new dataset.
      \param cmp A comparison function to test if a previously set value is equal to the value I asked for.
 	\param cmp_params Some extra data required by the comparison function.
-
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind2
+     \sa cbf_H5Drequire
+     \sa cbf_H5Dinsert
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite2
+     \sa cbf_H5Dread2
+     \sa cbf_H5Drequire_scalar_F64LE2
+     \sa cbf_H5Drequire_scalar_F64LE2_ULP
+     \sa cbf_H5Drequire_flstring
+     \sa cbf_H5Dfree
      \return An error code.
      */
-	int cbf_H5Drequire_scalar_F64LE2
-    (const hid_t location,
+    int cbf_H5Drequire_scalar_F64LE2 (const hid_t location,
      hid_t * const dataset,
      const char * const name,
 		const double value,
-     int (*cmp)(const void *, const void *, size_t)
-    )
+                                      int (*cmp)(const void *, const void *, size_t))
 	{
 		int error = CBF_SUCCESS;
 		int found = CBF_SUCCESS;
@@ -2748,8 +3235,7 @@ cbf_H5Dfree(dataset);</code></pre>
 				double data = 0./0.;
 			error |= cbf_H5Dread2(*dset,0,0,0,&data,H5T_NATIVE_DOUBLE);
 			if (cmp(&value, &data, 1)) {
-				if (CBF_HDF5_DEBUG)
-					fprintf(stderr,"%s: data doesn't match (%g vs %g) for nexus field '%s'\n",__WHERE__,data,value,name);
+                cbf_debug_print4("data doesn't match (%g vs %g) for nexus field '%s'\n",data,value,name);
 					error |= CBF_H5DIFFERENT;
 				}
 		} else if (CBF_NOTFOUND==found) {
@@ -2757,27 +3243,43 @@ cbf_H5Dfree(dataset);</code></pre>
 			error |= cbf_H5Dwrite2(*dset,0,0,0,&value,H5T_NATIVE_DOUBLE);
 		} else {
 			error |= found;
-			if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: Attempt to determine existence of nexus field '%s' failed\n",__WHERE__,name);
+            cbf_debug_print2("Attempt to determine existence of nexus field '%s' failed\n",name);
 		}
 		/* cleanup temporary dataset */
 		cbf_H5Dfree(_dataset);
 		return error;
 	}
 
-        /** \brief Write a scalar 64-bit floating point number as a dataset with ULP comparison.
+    /**
+     Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related parameters
+     for a scalar dataset. It ensures that a scalar 64-bit IEEE floating point dataset exists with the appropriate
+     name and (for an existing dataset) the correct value as determined by the user-supplied comparison function
+     <code>cmp</code>.
          
-         <p>Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related parameters
-         for a scalar dataset. Uses <code> cbf_H5Dfind2 </code>, <code>cbf_H5Dcreate</code>, <code>cbf_H5Dread</code> &
-         <code>cbf_H5Dwrite</code> to ensure a scalar 64-bit IEEE floating point dataset exists with the appropriate name
-         and (for an existing dataset) the correct value as determined by the comparison function <code>cmp</code>.</p>
+     It is implemented using some of the other dataset functions:
          
+     - cbf_H5Dfind2
+     - cbf_H5Dcreate
+     - cbf_H5Dread2
+     - cbf_H5Dwrite2
+     
          \param location The group containing the new dataset.
          \param dataset An optional pointer to a place to store the new dataset.
          \param name The name of the new dataset.
          \param value The value of the new dataset.
          \param cmp A comparison function to test if a previously set value is equal to the value I asked for.
-         \param cmp_params Some extra data required by the comparison function.
-         
+     \param cmp_params Some extra data which may be required by the comparison function.
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind2
+     \sa cbf_H5Drequire
+     \sa cbf_H5Dinsert
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite2
+     \sa cbf_H5Dread2
+     \sa cbf_H5Drequire_scalar_F64LE2
+     \sa cbf_H5Drequire_scalar_F64LE2_ULP
+     \sa cbf_H5Drequire_flstring
+     \sa cbf_H5Dfree
          \return An error code.
          */
         int cbf_H5Drequire_scalar_F64LE2_ULP
@@ -2790,23 +3292,22 @@ cbf_H5Dfree(dataset);</code></pre>
         {
             int error = CBF_SUCCESS;
             int found = CBF_SUCCESS;
-            hid_t _dataset = CBF_H5FAIL;
-            hid_t * dset = dataset ? dataset : &_dataset;
+        hid_t _dataset = CBF_H5FAIL; /* always free'able */
+        hid_t * dset = dataset ? dataset : &_dataset; /* always usable */
             found =  cbf_H5Dfind2(location,dset,name,0,0,0,H5T_IEEE_F64LE);
             if (CBF_SUCCESS==found) {
 				double data = 0./0.;
-                error |= cbf_H5Dread2(*dset,0,0,0,&data,H5T_NATIVE_DOUBLE);
+            CBF_CALL(cbf_H5Dread2(*dset,0,0,0,&data,H5T_NATIVE_DOUBLE));
                 if (cmp(&value, &data, 1, cmp_params)) {
-                    if (CBF_HDF5_DEBUG)
-                        fprintf(stderr,"%s: data doesn't match (%g vs %g) for nexus field '%s'\n",__WHERE__,data,value,name);
+                cbf_debug_print4("data doesn't match (%g vs %g) for nexus field '%s'\n",data,value,name);
 					error |= CBF_H5DIFFERENT;
 				}
             } else if (CBF_NOTFOUND==found) {
-                error |= cbf_H5Dcreate(location,dset,name,0,0,0,0,H5T_IEEE_F64LE);
-                error |= cbf_H5Dwrite2(*dset,0,0,0,&value,H5T_NATIVE_DOUBLE);
+            CBF_CALL(cbf_H5Dcreate(location,dset,name,0,0,0,0,H5T_IEEE_F64LE));
+            CBF_CALL(cbf_H5Dwrite2(*dset,0,0,0,&value,H5T_NATIVE_DOUBLE));
             } else {
                 error |= found;
-                if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: Attempt to determine existence of nexus field '%s' failed\n",__WHERE__,name);
+            cbf_debug_print2("Attempt to determine existence of nexus field '%s' failed\n",name);
             }
             /* cleanup temporary dataset */
             cbf_H5Dfree(_dataset);
@@ -2814,20 +3315,27 @@ cbf_H5Dfree(dataset);</code></pre>
         }
 
         
-	/** \brief Write a single fixed-length string as a dataset.
-
-	<p>Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related parameters
-	for a scalar dataset and to automatically set the string type to the correct size.</p>
+    /**
+     Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related parameters
+     for a scalar dataset and to automatically set the string type to the correct size.
 
      \param location The group containing the new dataset.
      \param dataset An optional pointer to a place to store the new dataset.
      \param name The name of the new dataset.
      \param value The value of the new dataset.
-	\param vlen Flag to determine if the string should be stored as a variable length type
-
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind2
+     \sa cbf_H5Drequire
+     \sa cbf_H5Dinsert
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite2
+     \sa cbf_H5Dread2
+     \sa cbf_H5Drequire_scalar_F64LE2
+     \sa cbf_H5Drequire_scalar_F64LE2_ULP
+     \sa cbf_H5Drequire_flstring
+     \sa cbf_H5Dfree
      \return An error code.
      */
-
 	int cbf_H5Drequire_flstring
     (const hid_t location,
      hid_t * const dataset,
@@ -2835,44 +3343,63 @@ cbf_H5Dfree(dataset);</code></pre>
      const char * const value)
 	{
 		int error = CBF_SUCCESS;
+        if (!value) {
+            error |= CBF_ARGUMENT;
+        } else {
+            hid_t dataType = CBF_H5FAIL;
+            CBF_CALL(cbf_H5Tcreate_string(&dataType,strlen(value)));
+            if (CBF_SUCCESS==error) {
 		int found = CBF_SUCCESS;
-		if (!value) return CBF_ARGUMENT;
 		hid_t _dataset = CBF_H5FAIL;
 		hid_t * dset = dataset ? dataset : &_dataset;
-		hid_t dataType = H5Tcopy(H5T_C_S1);
-		CBF_H5CALL(H5Tset_size(dataType,strlen(value)+1));
 		found =  cbf_H5Dfind2(location,dset,name,0,0,0,dataType);
 		if (CBF_SUCCESS==found) {
 			hid_t currType = H5Dget_type(*dset);
+                    if (!cbf_H5Ivalid(currType)) {
+                        error |= CBF_H5ERROR;
+                    } else {
 			char * data = malloc(H5Tget_size(currType));
-				H5Tclose(currType);
-			error |= cbf_H5Dread2(*dset,0,0,0,(void * const)(data),dataType);
-			if (strcmp(value, data)) {
-				if (CBF_HDF5_DEBUG)
-					fprintf(stderr,"%s: data doesn't match ('%s' vs '%s') for nexus field '%s'\n",__WHERE__,data,value,name);
+                        if (!data) {
+                            error |= CBF_ALLOC;
+                        } else if (CBF_SUCCESS!=(error|=cbf_H5Dread2(*dset,0,0,0,(void * const)(data),dataType))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strcmp(value, data)) {
 					error |= CBF_H5DIFFERENT;
+                            cbf_debug_print4("data doesn't match ('%s' vs '%s') for dataset '%s'\n",data,value,name);
 				}
 			/* 'data' is either allocated by me or by the HDF5 library: always free it */
 				free((void*)data);
+                    }
+                    H5Tclose(currType);
 		} else if (CBF_NOTFOUND==found) {
-			error |= cbf_H5Dcreate(location,dset,name,0,0,0,0,dataType);
-			error |= cbf_H5Dwrite2(*dset,0,0,0,(const void * const)(value),dataType);
+                    CBF_CALL(cbf_H5Dcreate(location,dset,name,0,0,0,0,dataType));
+                    CBF_CALL(cbf_H5Dwrite2(*dset,0,0,0,(const void * const)(value),dataType));
 		} else {
 			error |= found;
-			if (CBF_HDF5_DEBUG) fprintf(stderr,"%s: Attempt to determine existence of nexus field '%s' failed\n",__WHERE__,name);
+                    cbf_debug_print2("Attempt to determine existence of nexus field '%s' failed\n",name);
 		}
-		/* cleanup temporary dataset */
 		cbf_H5Dfree(_dataset);
-		H5Tclose(dataType);
+            }
+            cbf_H5Tfree(dataType);
+        }
 		return error;
 	}
 
-	/** \brief Close a HDF5 dataset
-
+    /**
      Attempt to close a dataset, but don't modify the identifier that described it.
 
      \param ID The HDF5 dataset to be closed.
-
+     \sa cbf_H5Dcreate
+     \sa cbf_H5Dfind2
+     \sa cbf_H5Drequire
+     \sa cbf_H5Dinsert
+     \sa cbf_H5Dset_extent
+     \sa cbf_H5Dwrite2
+     \sa cbf_H5Dread2
+     \sa cbf_H5Drequire_scalar_F64LE2
+     \sa cbf_H5Drequire_scalar_F64LE2_ULP
+     \sa cbf_H5Drequire_flstring
+     \sa cbf_H5Dfree
      \return An error code.
      */
 	int cbf_H5Dfree(const hid_t ID)
@@ -2885,18 +3412,21 @@ cbf_H5Dfree(dataset);</code></pre>
 
 	/** \brief Get a HDF5 string datatype with a specified length.
 
-	<p>Convenience function to create a string datatype suitable for use when storing a string of length
-	<code>len</code>, returning it in the identifier pointed to by <code>type</code>.</p>
+     Convenience function to create a string datatype suitable for use when storing a string of length
+     <code>len</code>, returning it in the identifier pointed to by <code>type</code>.
 
      \param type A pointer to a the HDF5 handle of the new datatype, which should be free'd with \c cbf_H5Tfree
      \param len The length of the string datatype - should be \c strlen() or \c H5T_VARIABLE
-
+     \sa cbf_H5Tcreate_string
+     \sa cbf_H5Tfree
      \return An error code.
      */
-	int cbf_H5Tcreate_string(hid_t * type, const size_t len)
+    int cbf_H5Tcreate_string(hid_t * const type, const size_t len)
 	{
-		*type = H5Tcopy(H5T_C_S1);
-		return H5Tset_size(*type,H5T_VARIABLE==len?len:len+1) < 0 ? CBF_H5ERROR : CBF_SUCCESS;
+        int error = CBF_SUCCESS;
+        CBF_H5CALL(*type = H5Tcopy(H5T_C_S1));
+        CBF_H5CALL(H5Tset_size(*type,H5T_VARIABLE==len?len:len+1));
+        return error;
 	}
 
 	/** \brief Close a HDF5 datatype identifier
@@ -2904,7 +3434,8 @@ cbf_H5Dfree(dataset);</code></pre>
      Attempt to close a datatype identifier, but don't modify the identifier that described it.
 
      \param ID The HDF5 datatype to be closed.
-
+     \sa cbf_H5Tcreate_string
+     \sa cbf_H5Tfree
      \return An error code.
      */
 	int cbf_H5Tfree(const hid_t ID)
@@ -2919,17 +3450,18 @@ cbf_H5Dfree(dataset);</code></pre>
 
      Helper function which creates a HDF5 dataspace.
 
-	<p>Maximum dimensions can be set to infinity by passing <code>H5S_UNLIMITED</code> in the appropriate slot of the
+     Maximum dimensions can be set to infinity by passing <code>H5S_UNLIMITED</code> in the appropriate slot of the
 	<code>max</code> parameter. If <code>rank</code> is zero then neither <code>dim</code> nor <code>max</code> are
-	used and a scalar dataspace is created. Otherwise, if <code>max</code> is a null pointer the maximum length is set
-	to the current length as given by <code>dim</code>, if <code>dim</code> is a null pointer then <code>ID</code>
-	will not be modified and the function will fail.</p>
+     used and a scalar dataspace is created. If <code>rank</code> is non-zero and <code>dim</code> is a null pointer
+     then <code>ID</code> will not be modified and the function will fail. If <code>rank</code> is non-zero and
+     <code>max</code> is a null pointer the maximum length is set to the current length as given by <code>dim</code>.
 
      \param ID A pointer to a HDF5 identifier that will contain the new dataspace.
      \param rank The number of dimensions of the new dataspace.
      \param dim The current size of each dimension of the dataspace, should be an array of length \c rank .
      \param max The maximum size of each dimension, should be an array of length \c rank .
-
+     \sa cbf_H5Screate
+     \sa cbf_H5Sfree
      \return An error code.
      */
 	int cbf_H5Screate
@@ -2938,22 +3470,27 @@ cbf_H5Dfree(dataset);</code></pre>
      const hsize_t * const dim,
      const hsize_t * const max)
 	{
-		if (!ID || (rank && !dim) || rank<0) return CBF_ARGUMENT;
-		else {
-			hid_t space = !rank ? H5Screate(H5S_SCALAR) : H5Screate_simple(rank, dim, max);
-			if (cbf_H5Ivalid(space)) {
+        int error = CBF_SUCCESS;
+        if (!ID || (rank && !dim) || rank<0) {
+            error |= CBF_ARGUMENT;
+        } else {
+            hid_t space = rank ? H5Screate_simple(rank, dim, max) : H5Screate(H5S_SCALAR);
+            if (!cbf_H5Ivalid(space)) {
+                error |= CBF_H5ERROR;
+            } else {
 				*ID = space;
-				return CBF_SUCCESS;
-			} else return CBF_H5ERROR;
 		}
 	}
+        return error;
+    }
 
 	/** \brief Close a HDF5 dataspace identifier
 
      Attempt to close a dataspace identifier, but don't modify the identifier that described it.
 
      \param ID The HDF5 dataspace to be closed.
-
+     \sa cbf_H5Screate
+     \sa cbf_H5Sfree
      \return An error code.
      */
 	int cbf_H5Sfree(const hid_t ID)
@@ -2962,9 +3499,44 @@ cbf_H5Dfree(dataset);</code></pre>
 		else return CBF_ARGUMENT;
 	}
 
+    /* HDF5 objects */
 
+    /**
+     Compare two HDF5 object ID's for equality. This follows the standard practice of returning zero if objects
+     should be considered equal, and the HDF5 practice of returning a negative number if there is an error.
 
+     \param id0 An HDF5 identifier.
+     \param id1 An HDF5 identifier.
+     \sa cbf_H5Ivalid
+     \return 0 if equal, a positive value if not equal, or a negative value if there is an error.
+     */
+    htri_t cbf_H5Ocmp
+    (const hid_t id0,
+     const hid_t id1)
+    {
+        htri_t error = 0;
+        herr_t valid0 = H5Iis_valid(id0);
+        herr_t valid1 = H5Iis_valid(id1);
+        if (valid0 < 0 || valid1 < 0) {
+            error = -1;
+        } else if (!valid0 || !valid1) {
+            error = 1;
+        } else {
+            H5O_info_t info0, info1;
+            herr_t err0 = H5Oget_info(id0,&info0);
+            herr_t err1 = H5Oget_info(id1,&info1);
+            if (err0 < 0 || err1 < 0) {
+                error = -1;
+            } else if (info0.fileno != info1.fileno || info0.addr != info1.addr || info0.type != info1.type) {
+                error = 1;
+            } else {
+                error = 0;
+            }
+        }
+        return error;
+    }
 
+    
     /****************************************************************
      End of section of code extracted from J. Sloan's
      cbf_hdf5_common.c
@@ -2990,6 +3562,11 @@ cbf_H5Dfree(dataset);</code></pre>
 	const int cbf_configError_missingDependency = 10;
 	const int cbf_configError_loop = 11;
 
+	static int cbf_isblank (int c)
+	{
+		return (' ' == c || '\t' == c);
+	}
+    
     /*
      Tokenise an input stream, returning one token at a time into the given buffer.
 
@@ -3025,9 +3602,9 @@ cbf_H5Dfree(dataset);</code></pre>
                     if (feof(stream)) break;
                     *pre = c;
                     if ('\n' == c) ++*ln;
-                } while (!isspace(c) || isblank(c));
+				} while (!isspace(c) || cbf_isblank(c));
             }
-            if (isblank(c)) continue;
+			if (cbf_isblank(c)) continue;
             else break;
         } while (1);
 
@@ -3066,9 +3643,14 @@ cbf_H5Dfree(dataset);</code></pre>
     }
 
     /**
-	<p>The returned string is "none" for success, "unknown error" if the given error code is
-	not recognised and a non-empty string briefly describing the error otherwise.</p>
-	<p>The returned string must not be free'd.</p>
+     The returned string is "none" for success, "unknown error" if the given error code is
+     not recognised and a non-empty string briefly describing the error otherwise.
+     
+     The returned string must not be free'd.
+     
+     \param error An error returned by a <code>cbf_config_*</code> function.
+     
+     \return A string describing the error.
      */
     const char * cbf_config_strerror(const int error)
     {
@@ -3116,9 +3698,11 @@ cbf_H5Dfree(dataset);</code></pre>
 
 	static void cbf_configItem_free(const cbf_configItem_t * item)
     {
+		if (item) {
         free((void*)(item->minicbf));
         free((void*)(item->nexus));
         free((void*)(item->depends_on));
+    }
     }
 
     /*
@@ -3133,30 +3717,40 @@ cbf_H5Dfree(dataset);</code></pre>
 	};
 
     /**
-	<p>Allocates a new collection of configuration settings on the heap, and initialises it. The returned
-	pointer should be destroyed by the caller.</p>
+     Allocates a new collection of configuration settings on the heap, and initialises it. The returned
+     pointer should be destroyed by the caller.
+     
+     \return A newly allocated object for miniCBF configuration settings, or <code>NULL</code>.
      */
     cbf_config_t * cbf_config_create()
     {
 		cbf_config_t * const vector = malloc(sizeof(cbf_config_t));
+		if (vector) {
         vector->nItems = 0;
         vector->maxItems = 0;
         vector->sample_depends_on = NULL;
         vector->item = NULL;
+		}
         return vector;
     }
 
     /**
 	<p>Destroys an existing collection of configuration settings. The settings should have been obtained by a call to
 	<code>cbf_config_create</code>.</p>
+     
+     \param vector The configuration data to be free'd.
+     
+     \return Nothing.
      */
 	void cbf_config_free(const cbf_config_t * vector)
     {
+		if (vector) {
         const cbf_configItem_t * it = vector->item;
 		for (; it != vector->item+vector->nItems; ++it) cbf_configItem_free(it);
 		free((void*)vector->item);
         free((void*)vector->sample_depends_on);
 		free((void*)vector);
+    }
     }
 
     /*
@@ -3165,16 +3759,19 @@ cbf_H5Dfree(dataset);</code></pre>
      */
 	static void cbf_config_setSampleDependsOn(cbf_config_t * vector, const char * const depends_on)
     {
+		if (vector) {
         free((void*)(vector->sample_depends_on));
         vector->sample_depends_on = depends_on;
     }
+    }
 
     /*
-     \return The current dependancy setting for the sample group, or zero if not set.
+     \return The current dependancy setting for the sample group, or null if not set.
      */
 	static const char * cbf_config_getSampleDependsOn(const cbf_config_t * const vector)
     {
-        return vector->sample_depends_on;
+		if (vector) return vector->sample_depends_on;
+		else return 0;
     }
 
     /*
@@ -3183,7 +3780,8 @@ cbf_H5Dfree(dataset);</code></pre>
 	 */
 	static cbf_configItem_t * cbf_config_begin(const cbf_config_t * const vector)
 	{
-		return vector->item;
+		if (vector) return vector->item;
+		else return 0;
 	}
 
     /*
@@ -3192,15 +3790,18 @@ cbf_H5Dfree(dataset);</code></pre>
 	 */
 	static const cbf_configItem_t * cbf_config_end(const cbf_config_t * const vector)
 	{
-		return vector->item+vector->nItems;
+		if (vector) return vector->item+vector->nItems;
+		else return 0;
 	}
 
     /*
+     \brief Append an item to the configuration vector.
      The vector will take ownership of the item's contents. This may invalidate any previously obtained pointers to items in the vector.
-	\return An iterator to the new item.
+     \return An iterator to the new item, or NULL on failure.
      */
 	static cbf_configItem_t * cbf_config_push(cbf_config_t * const vector, cbf_configItem_t item)
     {
+		if (vector) {
         if (!(vector->nItems < vector->maxItems)) {
             /* increase the maximum number of items */
             const size_t k = 4;
@@ -3213,25 +3814,30 @@ cbf_H5Dfree(dataset);</code></pre>
         /* add the item to the end of the vector & set the item count to the correct number. */
         vector->item[vector->nItems++] = item;
         return vector->item+vector->nItems-1;
+		} else return 0;
     }
 
     /*
-    \return An iterator to a matching entry, or to the current end element if there is no matching entry.
+     \return An iterator to a matching entry, to the current end element if there is no matching entry, or NULL on failure.
      */
 	static cbf_configItem_t * cbf_config_findMinicbf(const cbf_config_t * const vector, const char * const name)
     {
         cbf_configItem_t * it = cbf_config_begin(vector);
-        while (cbf_config_end(vector) != it && (!it->minicbf || strcmp(it->minicbf,name))) ++it;
+		const cbf_configItem_t * const end = cbf_config_end(vector);
+		if (!vector || !name) return 0;
+        while (end != it && (!it->minicbf || strcmp(it->minicbf,name))) ++it;
         return it;
     }
 
     /*
-	\return An iterator to a matching entry, or to the current end element if there is no matching entry.
+     \return An iterator to a matching entry, to the current end element if there is no matching entry, or NULL on failure.
      */
 	static cbf_configItem_t * cbf_config_findNexus(const cbf_config_t * const vector, const char * const name)
     {
 		cbf_configItem_t * it = cbf_config_begin(vector);
-		while (cbf_config_end(vector) != it && (!it->nexus || strcmp(it->nexus,name))) ++it;
+		const cbf_configItem_t * const end = cbf_config_end(vector);
+		if (!vector || !name) return 0;
+		while (end != it && (!it->nexus || strcmp(it->nexus,name))) ++it;
         return it;
     }
 
@@ -3360,23 +3966,22 @@ fprintf(logFile,"Config parsing error on line %lu: unexpected newline\n",*ln); \
         return CBF_SUCCESS;
     }
 
-	/*
-	The 'strdup' function isn't available when compiling with -ansi on GCC, so provide an alternative.
-	*/
-	static char * _cbf_strdup(const char *s)
-	{
-		return strcpy(malloc(sizeof(char)*(1+strlen(s))),s);
-	}
-
 	/**
-	<p>Parses a configuration file to extract a collection of configuration settings for a miniCBF file, storing them
+     Parses a configuration file to extract a collection of configuration settings for a miniCBF file, storing them
 	in the given configuration settings object. The pointer should have been obtained by a call to
 	<code>cbf_config_create</code>. The configuration file format is described in the
-	<code>minicbf2nexus</code> documentation.</p>
+     <code>minicbf2nexus</code> documentation.
 
-	\return <p>A parser error code.</p>
+     \param configFile The file from which the config settings should be read.
+     \param logFile A stream to be used for logging error messages.
+     \param vec An object describing the configuration settings.
+     
+     \return A parser error code.
 	*/
-    int cbf_config_parse(FILE * const configFile, FILE * const logFile, cbf_config_t * const vec)
+    int cbf_config_parse
+    (FILE * const configFile,
+     FILE * const logFile,
+     cbf_config_t * const vec)
     {
         char * tkn = 0;
         size_t n = 0, ln = 1;
@@ -3533,6 +4138,13 @@ return e; \
 
 	\return An error code
 	*/
+#ifdef CBF_USE_ULP
+#define CBFM_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp,cmp_params) \
+_cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp,cmp_params)
+#else
+#define CBFM_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp,cmp_params) \
+_cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
+#endif
 	static int _cbf_pilatusAxis2nexusAxisAttrs
 			(hid_t h5data,
 			 const char * const units,
@@ -3547,26 +4159,20 @@ return e; \
              )
 	{
 		int error = CBF_SUCCESS;
-		_CBF_CALL(cbf_H5Arequire_string(h5data,"units",strcmp(units, "deg.")?units:"deg"));
+		CBF_CALL(cbf_H5Arequire_string(h5data,"units",strcmp(units, "deg.")?units:"deg"));
 		/* transformation type */
-		_CBF_CALL(cbf_H5Arequire_string(h5data,"transformation_type","rotation"));
+		CBF_CALL(cbf_H5Arequire_string(h5data,"transformation_type","rotation"));
 		/* dependency */
-		_CBF_CALL(cbf_H5Arequire_string(h5data,"depends_on",depends_on));
+		CBF_CALL(cbf_H5Arequire_string(h5data,"depends_on",depends_on));
 		if (!axisItem->depends_on) {
-			fprintf(stderr,"%s: Error: missing dependancy for nexus axis '%s'\n",__WHERE__,axisItem->nexus);
+			cbf_debug_print2("Error: missing dependency for nexus axis '%s'\n",axisItem->nexus);
 			error |= CBF_UNDEFINED;
 		}
 		if (CBF_SUCCESS==error) { /* vector */
 			const hsize_t vdims[] = {3};
 			double buf[3] = {0./0.};
-#ifdef CBF_USE_ULP
-			_CBF_CALL(cbf_H5Arequire_cmp2_ULP(h5data,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
+			CBF_CALL(CBFM_H5Arequire_cmp2(h5data,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
 					  axisItem->vector,buf,cmp,cmp_params));
-#else
-			_CBF_CALL(cbf_H5Arequire_cmp2(h5data,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
-					  axisItem->vector,buf,cmp));
-
-#endif
 		}
 		return error;
 	}
@@ -3595,216 +4201,1177 @@ return e; \
 		return error;
 	}
 
-
-	/** \brief Ensure I have a file in the handle to do stuff with.
-
-	<p>Checks for the presence of a file in the handle with the given <code>name</code>. If no file is present it will
-	attempt to open the file identified by <code>name</code>. It will fail if there isn't a file in the handle and no
-	file can be opened, or if a file with a different name is already in the handle.</p>
-
-	\param handle The HDF5 handle to use.
-	\param name The file name, or <code>NULL</code>.
-
-	\return <p>An error code.</p>
+	/*
+     Extract the NX_class attribute from a HDF5 object, returning it in 'class' as a string that must be free'd.
      */
-	int cbf_h5handle_require_file
-			(const cbf_h5handle handle,
-			 const char * name)
+	static int _cbf_NXclass
+    (const hid_t object,
+     const char * * const class)
 	{
-		if (!handle) return CBF_ARGUMENT;
-		if (!name) {
-			/* No name provided, I either have a file in the handle or I don't. */
-			if (!cbf_H5Ivalid(handle->hfile)) return CBF_ARGUMENT;
-			else return CBF_SUCCESS;
-		} else {
-			if (!cbf_H5Ivalid(handle->hfile)) {
-				/* name but no file: open a file with the given name */
-				return cbf_H5Fopen(&(handle->hfile), name);
+		int error = CBF_SUCCESS;
+		/* check the arguments */
+		if (!cbf_H5Ivalid(object) || !class) error |= CBF_ARGUMENT;
+		if (CBF_SUCCESS==error) {
+			/* check the NX_class attribute */
+			hid_t attr = CBF_H5FAIL;
+			const char attrName[] = "NX_class";
+			const int found = cbf_H5Afind(object,&attr,attrName,CBF_H5FAIL,CBF_H5FAIL);
+			if (CBF_SUCCESS!=found) {
+				cbf_debug_print(cbf_strerror(found));
+				error |= found;
 			} else {
-				/* check the names match eventually - could be awkward */
-				return CBF_NOTIMPLEMENTED;
+				error |= cbf_H5Aread_string(attr, class);
 			}
+			cbf_H5Afree(attr);
 		}
+		return error;
 	}
 
-	/** \brief Ensure I have a valid NXentry group in the file with a given name.
+    /*
+     Get the ascii value of a given row of a node, in the same way as 'cbf_get_value' gets data from a handle.
+     */
+	static int cbf_node_get_value
+    (cbf_node * const node,
+     const unsigned int row,
+     const char * * const value)
+	{
+		int error = CBF_SUCCESS;
+		const char * text = NULL;
+		/* Check the arguments */
+		if (!node || row >= node->children || !value) {
+			error |= CBF_ARGUMENT;
+		} else if (cbf_is_binary(node, row)) {
+			error |= CBF_BINARY;
+		} else if (CBF_SUCCESS!=(error|=cbf_get_columnrow(&text, node, row))) {
+			cbf_debug_print2("error: %s\n", cbf_strerror(error));
+		} else {
+			*value = text ? text+1 : NULL;
+		}
+		return error;
+	}
 
-	<p>Check for an <code>NXentry</code> group in <code>handle</code>, creating a top-level group in the file with the
-	given <code>name</code> and NeXus class <code>NXentry</code> if it doesn't exist. Calls
-	<code>cbf_h5handle_require_file</code> to ensure that the file exists within the handle, if needed.</p>
+    static int cbf_node_get_doublevalue
+    (cbf_node * const node,
+     const unsigned int row,
+     double * const value)
+	{
+		int error = CBF_SUCCESS;
+		const char * text = NULL;
+		if (!node || row >= node->children || !value) {
+			error |= CBF_ARGUMENT;
+		} else if (cbf_is_binary(node, row)) {
+			error |= CBF_BINARY;
+		} else if (CBF_SUCCESS!=(error|=cbf_get_columnrow(&text, node, row))) {
+			cbf_debug_print(cbf_strerror(error));
+		} else {
+			char * end = NULL;
+			const double tmp_val = strtod(text+1, &end);
+			if (end == text+1) {
+				cbf_debug_print2("%s: error: %s\n", cbf_strerror(CBF_FORMAT));
+				error |= CBF_FORMAT;
+			} else {
+				*value = tmp_val;
+			}
+		}
+		return error;
+	}
 
-	\param handle The HDF5 handle to use.
+	/**
+     Check the handle for the presence of a file, optionally returning it.
+     \param nx A handle to query for the presence of the requested information.
+     \param file A place to store the file (if found), or null if the file isn't wanted.
+     \sa cbf_h5handle_get_file
+     \sa cbf_h5handle_set_file
+     \return An error code.
+	 */
+    int cbf_h5handle_get_file
+    (const cbf_h5handle nx,
+     hid_t * const file)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			/* check for a valid group */
+			if (file) {
+				if (cbf_H5Ivalid(nx->hfile)) *file = nx->hfile;
+				else error |= CBF_NOTFOUND;
+			}
+		}
+		return error;
+	}
+
+	/**
+     Sets the file id within the handle to the given value. Doesn't check or modify any attributes in any way.
+     \param nx The handle to add information to.
+     \param file The file to be set as the current file id.
+     \sa cbf_h5handle_get_file
+     \sa cbf_h5handle_set_file
+     \return An error code.
+     */
+    int cbf_h5handle_set_file
+    (const cbf_h5handle nx,
+     const hid_t file)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx || !cbf_H5Ivalid(file)) {
+			error |= CBF_ARGUMENT;
+		} else {
+			hid_t * const nxGroup = &(nx->hfile);
+			const htri_t cmp = cbf_H5Ocmp(*nxGroup,file);
+			if (cmp < 0) {
+				error |= CBF_H5ERROR;
+			} else if (cmp) {
+				/* free the old group, take ownership of the new one */
+				cbf_H5Gfree(*nxGroup);
+				*nxGroup = file;
+			}
+		}
+		return error;
+	}
+    
+	/**
+     Check the handle for the presence of an entry group and its name, optionally returning any combination of them.
+     \param nx A handle to query for the presence of the requested information.
+     \param group A place to store the group (if found), or null if the group isn't wanted.
+     \param name A place to store the name of the group (if found), or null if the name isn't wanted.
+     \sa cbf_h5handle_get_entry
+     \sa cbf_h5handle_set_entry
+     \sa cbf_h5handle_require_entry
+     \return An error code.
+	 */
+    int cbf_h5handle_get_entry
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * * const name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+			} else {
+			hid_t * const nxGroup = &(nx->nxid);
+			const char * * const nxName = &(nx->nxid_name);
+			/* check for a valid group */
+			if (group) {
+				if (cbf_H5Ivalid(*nxGroup)) *group = *nxGroup;
+				else error |= CBF_NOTFOUND;
+			}
+			/* check for a name */
+			if (name) {
+				if (*nxName) *name = *nxName;
+				else error |= CBF_NOTFOUND;
+		}
+	}
+		return error;
+	}
+
+	/**
+     Sets the entry group and name within the handle to the given values.
+     Doesn't check or modify the <code>NX_class</code> attribute in any way.
+     The handle will take ownership of the group id iff this function succeeds.
+     \param nx The handle to add information to.
+     \param group The group to be set as the current entry group
+     \param name The name which the group should be given.
+     \sa cbf_h5handle_get_entry
+     \sa cbf_h5handle_set_entry
+     \sa cbf_h5handle_require_entry
+     \return An error code.
+	 */
+    int cbf_h5handle_set_entry
+    (const cbf_h5handle nx,
+     const hid_t group,
+     const char * const name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx || !cbf_H5Ivalid(group) || !name) {
+			error |= CBF_ARGUMENT;
+		} else {
+			hid_t * const nxGroup = &(nx->nxid);
+			const char * * const nxName = &(nx->nxid_name);
+			const htri_t cmp = cbf_H5Ocmp(*nxGroup,group);
+			if (cmp < 0) {
+				error |= CBF_H5ERROR;
+			} else if (cmp) {
+				/* free the old group, take ownership of the new one */
+				cbf_H5Gfree(*nxGroup);
+				*nxGroup = group;
+				/* set the name */
+				if (*nxName) free((void*)(*nxName));
+				*nxName = _cbf_strdup(name);
+			} else {
+				/* already set - check that the names match, too */
+				if (!*nxName || strcmp(name,*nxName)) error |= CBF_H5DIFFERENT;
+			}
+		}
+		return error;
+	}
+
+	/**
+     This will check if the entry group within the handle matches any existing group of the
+     same name within the current file. If they don't match a new group is opened or created
+     and added to the handle. The <code>NX_class</code> attributes are not checked.
+
+     \param nx The HDF5 handle to use.
 	\param group An optional pointer to a place where the group should be stored.
-	\param name The group name.
-
-	\return <p>An error code.</p>
+     \param name The group name, or null to use the default name of <code>"entry"</code>.
+     \sa cbf_h5handle_get_entry
+     \sa cbf_h5handle_set_entry
+     \sa cbf_h5handle_require_entry
+     \return An error code.
      */
 	int cbf_h5handle_require_entry
-			(const cbf_h5handle handle,
-			 hid_t * group,
+    (const cbf_h5handle nx,
+     hid_t * const group,
 			 const char * name)
 	{
-		if (!handle) return CBF_ARGUMENT;
-
-		if (!cbf_H5Ivalid(handle->nxid)) {
-			int error = CBF_SUCCESS;
-			const char defaultName[] = "entry";
-			const char * groupName = name ? name : defaultName;
-			cbf_reportnez(cbf_h5handle_require_file(handle,0), error);
-			cbf_reportnez(_cbf_NXGrequire(handle->hfile,&handle->nxid,groupName,"NXentry"), error);
-			if (CBF_SUCCESS == error) {
-				free((void*)handle->nxid_name);
-				handle->nxid_name = _cbf_strdup(groupName);
-			}
-			if (CBF_SUCCESS == error && group) *group = handle->nxid;
-			return error;
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
 		} else {
-			if (!name) {
-				if (group) *group = handle->nxid;
-				return CBF_SUCCESS;
-			} else {
-				/*
-				 * Check the names match, eventually.
-				 * Could be awkward as anonymous groups do not have names.
-				 */
-				return CBF_NOTIMPLEMENTED;
+			int match = 0;
+			hid_t curr_group = CBF_H5FAIL;
+			hid_t parent = CBF_H5FAIL;
+			const char * curr_name = NULL;
+			const char default_name[] = "entry";
+			const char * group_name = name ? name : default_name;
+			CBF_CALL(cbf_h5handle_get_file(nx,&parent));
+			/* check if the names of the groups match, and if the parent contains the assumed group */
+			if (CBF_SUCCESS==cbf_h5handle_get_entry(nx,&curr_group,&curr_name)) {
+				if (!strcmp(group_name,curr_name)) {
+					hid_t test_group = CBF_H5FAIL;
+					const int found = cbf_H5Gfind(parent,&test_group,group_name);
+					if (CBF_SUCCESS==found) {
+						if (!cbf_H5Ocmp(test_group,curr_group)) match = 1;
+					} else if (CBF_NOTFOUND!=found) {
+						error |= found;
+					}
+					cbf_H5Gfree(test_group);
+				}
 			}
+			/* if there is no match I need to create/find a suitable group and put it in the handle */
+			if (CBF_SUCCESS==error && !match) {
+				hid_t new_group = CBF_H5FAIL;
+				CBF_CALL(cbf_H5Grequire(parent,&new_group,group_name));
+				CBF_CALL(cbf_H5Arequire_string(new_group,"NX_class","NXentry"));
+				CBF_CALL(cbf_h5handle_set_entry(nx,new_group,group_name));
+				if (CBF_SUCCESS!=error) cbf_H5Gfree(new_group);
+			}
+			/* if there haven't been any major problems, return any requested data */
+			CBF_CALL(cbf_h5handle_get_entry(nx,group,0));
 		}
+		return error;
 	}
 
-	/** \brief Ensure I have a valid NXsample group in the file.
+	/**
+     Check the handle for the presence of an sample group and its name, optionally returning any combination of them.
+     \param nx A handle to query for the presence of the requested information.
+     \param group A place to store the group (if found), or null if the group isn't wanted.
+     \param name A place to store the name of the group (if found), or null if the name isn't wanted.
+     \sa cbf_h5handle_get_sample
+     \sa cbf_h5handle_set_sample
+     \sa cbf_h5handle_require_sample
+     \return An error code.
+	 */
+	int cbf_h5handle_get_sample
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * * const name)
+	{
+			int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			/* check for a valid group */
+			if (group) {
+				if (cbf_H5Ivalid(nx->nxsample)) *group = nx->nxsample;
+				else error |= CBF_NOTFOUND;
+			}
+			/* check for a name */
+			if (name) {
+				if (nx->nxsample_name) *name = nx->nxsample_name;
+				else error |= CBF_NOTFOUND;
+			}
+		}
+			return error;
+	}
+    
+	/**
+     Sets the sample group and name within the handle to the given values.
+     Doesn't check or modify the <code>NX_class</code> attribute in any way.
+     The handle will take ownership of the group id iff this function succeeds.
+     \param nx The handle to add information to.
+     \param group The group to be set as the current sample group
+     \param name The name which the group should be given.
+     \sa cbf_h5handle_get_sample
+     \sa cbf_h5handle_set_sample
+     \sa cbf_h5handle_require_sample
+     \return An error code.
+	 */
+	int cbf_h5handle_set_sample
+    (const cbf_h5handle nx,
+     const hid_t group,
+     const char * const name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx || !cbf_H5Ivalid(group) || !name) {
+			error |= CBF_ARGUMENT;
+		} else {
+			hid_t * const nxGroup = &(nx->nxsample);
+			const char * * const nxName = &(nx->nxsample_name);
+			const htri_t cmp = cbf_H5Ocmp(*nxGroup,group);
+			if (cmp < 0) {
+				error |= CBF_H5ERROR;
+			} else if (cmp) {
+				/* free the old group, take ownership of the new one */
+				cbf_H5Gfree(*nxGroup);
+				*nxGroup = group;
+				/* set the name */
+				if (*nxName) free((void*)(*nxName));
+				*nxName = _cbf_strdup(name);
+			} else {
+				/* already set - check that the names match, too */
+				if (!*nxName || strcmp(name,*nxName)) error |= CBF_H5DIFFERENT;
+			}
+		}
+		return error;
+	}
 
-	<p>Check for an <code>NXsample</code> group in <code>handle</code>, creating it with the name <code>sample</code>
-	and NeXus class <code>NXsample</code> if it doesn't exist. Calls <code>cbf_h5handle_require_entry</code> to ensure
-	that the entry group exists within the handle, if needed.</p>
+	/**
+     This will check if the sample group within the handle matches any existing group of the
+     same name within the current file. If they don't match a new group is opened or created
+     and added to the handle. The <code>NX_class</code> attributes are not checked.
 
-	\param handle The HDF5 handle to use.
+     \param nx The HDF5 handle to use.
 	\param group An optional pointer to a place where the group should be stored.
-
-	\return <p>An error code.</p>
+     \param name The group name, or null to use the default name of <code>"sample"</code>.
+     \sa cbf_h5handle_get_sample
+     \sa cbf_h5handle_set_sample
+     \sa cbf_h5handle_require_sample
+     \return An error code.
      */
 	int cbf_h5handle_require_sample
-			(const cbf_h5handle handle,
-			 hid_t * group)
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * name)
 	{
-		if (!handle) return CBF_ARGUMENT;
-		if (cbf_H5Ivalid(handle->nxsample)) {
-			/* return it */
-			if (group) *group = handle->nxsample;
-			return CBF_SUCCESS;
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
 		} else {
-			/* try to create it */
-			int error = CBF_SUCCESS;
-		cbf_reportnez(cbf_h5handle_require_entry(handle,0,0), error);
-			cbf_reportnez(_cbf_NXGrequire(handle->nxid,&handle->nxsample,"sample","NXsample"), error);
-			if (CBF_SUCCESS == error && group) *group = handle->nxsample;
+			int match = 0;
+			hid_t curr_group = CBF_H5FAIL;
+			hid_t parent = CBF_H5FAIL;
+			const char * curr_name = NULL;
+			const char default_name[] = "sample";
+			const char * group_name = name ? name : default_name;
+			CBF_CALL(cbf_h5handle_get_entry(nx,&parent,0));
+			/* check if the names of the groups match, and if the parent contains the assumed group */
+			if (CBF_SUCCESS==cbf_h5handle_get_sample(nx,&curr_group,&curr_name)) {
+				if (!strcmp(group_name,curr_name)) {
+					hid_t test_group = CBF_H5FAIL;
+					const int found = cbf_H5Gfind(parent,&test_group,group_name);
+					if (CBF_SUCCESS==found) {
+						if (!cbf_H5Ocmp(test_group,curr_group)) match = 1;
+					} else if (CBF_NOTFOUND!=found) {
+						error |= found;
+					}
+					cbf_H5Gfree(test_group);
+				}
+			}
+			/* if there is no match I need to create/find a suitable group and put it in the handle */
+			if (CBF_SUCCESS==error && !match) {
+				hid_t new_group = CBF_H5FAIL;
+				CBF_CALL(cbf_H5Grequire(parent,&new_group,group_name));
+				CBF_CALL(cbf_H5Arequire_string(new_group,"NX_class","NXsample"));
+				CBF_CALL(cbf_h5handle_set_sample(nx,new_group,group_name));
+				if (CBF_SUCCESS!=error) cbf_H5Gfree(new_group);
+			}
+			/* if there haven't been any major problems, return any requested data */
+			CBF_CALL(cbf_h5handle_get_sample(nx,group,0));
+		}
 		return error;
 	}
+    
+	/**
+     Check the handle for the presence of a beam group and its name, optionally returning any combination of them.
+     \param nx A handle to query for the presence of the requested information.
+     \param group A place to store the group (if found), or null if the group isn't wanted.
+     \param name A place to store the name of the group (if found), or null if the name isn't wanted.
+     \sa cbf_h5handle_get_beam
+     \sa cbf_h5handle_set_beam
+     \sa cbf_h5handle_require_beam
+     \return An error code.
+	 */
+	int cbf_h5handle_get_beam
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * * const name)
+	{
+			int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			/* check for a valid group */
+			if (group) {
+				if (cbf_H5Ivalid(nx->nxbeam)) *group = nx->nxbeam;
+				else error |= CBF_NOTFOUND;
+			}
+			/* check for a name */
+			if (name) {
+				if (nx->nxbeam_name) *name = nx->nxbeam_name;
+				else error |= CBF_NOTFOUND;
+			}
+		}
+		return error;
+	}
+    
+	/**
+     Sets the beam group and name within the handle to the given values.
+     Doesn't check or modify the <code>NX_class</code> attribute in any way.
+     The handle will take ownership of the group id iff this function succeeds.
+     \param nx The handle to add information to.
+     \param group The group to be set as the current beam group
+     \param name The name which the group should be given.
+     \sa cbf_h5handle_get_beam
+     \sa cbf_h5handle_set_beam
+     \sa cbf_h5handle_require_beam
+     \return An error code.
+	 */
+	int cbf_h5handle_set_beam
+    (const cbf_h5handle nx,
+     const hid_t group,
+     const char * const name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx || !cbf_H5Ivalid(group) || !name) {
+			error |= CBF_ARGUMENT;
+		} else {
+			hid_t * const nxGroup = &(nx->nxbeam);
+			const char * * const nxName = &(nx->nxbeam_name);
+			const htri_t cmp = cbf_H5Ocmp(*nxGroup,group);
+			if (cmp < 0) {
+				error |= CBF_H5ERROR;
+			} else if (cmp) {
+				/* free the old group, take ownership of the new one */
+				cbf_H5Gfree(*nxGroup);
+				*nxGroup = group;
+				/* set the name */
+				if (*nxName) free((void*)(*nxName));
+				*nxName = _cbf_strdup(name);
+			} else {
+				/* already set - check that the names match, too */
+				if (!*nxName || strcmp(name,*nxName)) error |= CBF_H5DIFFERENT;
+	}
+		}
+		return error;
 	}
 
-	/** \brief Ensure I have a valid NXinstrument group in the file.
+	/**
+     This will check if the beam group within the handle matches any existing group of the
+     same name within the current file. If they don't match a new group is opened or created
+     and added to the handle. The <code>NX_class</code> attributes are not checked.
 
-	<p>Check for an <code>NXinstrument</code> group in <code>handle</code>, creating it with the name
-	<code>instrument</code> and NeXus class <code>NXinstrument</code> if it doesn't exist. Calls
-	<code>cbf_h5handle_require_entry</code> to ensure that the entry group exists within the handle, if needed.</p>
-
-	\param handle The HDF5 handle to use.
+     \param nx The HDF5 handle to use.
 	\param group An optional pointer to a place where the group should be stored.
+     \param name The group name, or null to use the default name of <code>"beam"</code>.
+     \sa cbf_h5handle_get_beam
+     \sa cbf_h5handle_set_beam
+     \sa cbf_h5handle_require_beam
+     \return An error code.
+	 */
+	int cbf_h5handle_require_beam
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			int match = 0;
+			hid_t curr_group = CBF_H5FAIL;
+			hid_t parent = CBF_H5FAIL;
+			const char * curr_name = NULL;
+			const char default_name[] = "beam";
+			const char * group_name = name ? name : default_name;
+			CBF_CALL(cbf_h5handle_get_sample(nx,&parent,0));
+			/* check if the names of the groups match, and if the parent contains the assumed group */
+			if (CBF_SUCCESS==cbf_h5handle_get_beam(nx,&curr_group,&curr_name)) {
+				if (!strcmp(group_name,curr_name)) {
+					hid_t test_group = CBF_H5FAIL;
+					const int found = cbf_H5Gfind(parent,&test_group,group_name);
+					if (CBF_SUCCESS==found) {
+						if (!cbf_H5Ocmp(test_group,curr_group)) match = 1;
+					} else if (CBF_NOTFOUND!=found) {
+						error |= found;
+					}
+					cbf_H5Gfree(test_group);
+				}
+			}
+			/* if there is no match I need to create/find a suitable group and put it in the handle */
+			if (CBF_SUCCESS==error && !match) {
+				hid_t new_group = CBF_H5FAIL;
+				CBF_CALL(cbf_H5Grequire(parent,&new_group,group_name));
+				CBF_CALL(cbf_H5Arequire_string(new_group,"NX_class","NXbeam"));
+				CBF_CALL(cbf_h5handle_set_beam(nx,new_group,group_name));
+				if (CBF_SUCCESS!=error) cbf_H5Gfree(new_group);
+			}
+			/* if there haven't been any major problems, return any requested data */
+			CBF_CALL(cbf_h5handle_get_beam(nx,group,0));
+		}
+		return error;
+	}
 
-	\return <p>An error code.</p>
+	/**
+     Check the handle for the presence of an instrument group and its name, optionally returning any combination of them.
+     \param nx A handle to query for the presence of the requested information.
+     \param group A place to store the group (if found), or null if the group isn't wanted.
+     \param name A place to store the name of the group (if found), or null if the name isn't wanted.
+     \sa cbf_h5handle_get_instrument
+     \sa cbf_h5handle_set_instrument
+     \sa cbf_h5handle_require_instrument
+     \return An error code.
      */
+	int cbf_h5handle_get_instrument
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * * const name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			/* check for a valid group */
+			if (group) {
+				if (cbf_H5Ivalid(nx->nxinst)) *group = nx->nxinst;
+				else error |= CBF_NOTFOUND;
+			}
+			/* check for a name */
+			if (name) {
+				if (nx->nxinstrument_name) *name = nx->nxinstrument_name;
+				else error |= CBF_NOTFOUND;
+			}
+		}
+		return error;
+	}
+    
+	/**
+     Sets the instrument group and name within the handle to the given values.
+     Doesn't check or modify the <code>NX_class</code> attribute in any way.
+     The handle will take ownership of the group id iff this function succeeds.
+     \param nx The handle to add information to.
+     \param group The group to be set as the current instrument group
+     \param name The name which the group should be given.
+     \sa cbf_h5handle_get_instrument
+     \sa cbf_h5handle_set_instrument
+     \sa cbf_h5handle_require_instrument
+     \return An error code.
+	 */
+	int cbf_h5handle_set_instrument
+    (const cbf_h5handle nx,
+     const hid_t group,
+     const char * const name)
+	{
+			int error = CBF_SUCCESS;
+		if (!nx || !cbf_H5Ivalid(group) || !name) {
+			error |= CBF_ARGUMENT;
+		} else {
+			hid_t * const nxGroup = &(nx->nxinst);
+			const char * * const nxName = &(nx->nxinstrument_name);
+			const htri_t cmp = cbf_H5Ocmp(*nxGroup,group);
+			if (cmp < 0) {
+				error |= CBF_H5ERROR;
+			} else if (cmp) {
+				/* free the old group, take ownership of the new one */
+				cbf_H5Gfree(*nxGroup);
+				*nxGroup = group;
+				/* set the name */
+				if (*nxName) free((void*)(*nxName));
+				*nxName = _cbf_strdup(name);
+			} else {
+				/* already set - check that the names match, too */
+				if (!*nxName || strcmp(name,*nxName)) error |= CBF_H5DIFFERENT;
+			}
+		}
+		return error;
+	}
+
+	/* TODO: add a 'find NXgroup' function, instead of relying on pre-set group names here */
+
+	/**
+     This will check if the instrument group within the handle matches any existing group of the
+     same name within the current file. If they don't match a new group is opened or created
+     and added to the handle. The <code>NX_class</code> attributes are not checked.
+
+     \param nx The HDF5 handle to use.
+	\param group An optional pointer to a place where the group should be stored.
+     \param name The group name, or null to use the default name of <code>"instrument"</code>.
+     \sa cbf_h5handle_get_instrument
+     \sa cbf_h5handle_set_instrument
+     \sa cbf_h5handle_require_instrument
+     \return An error code.
+	 */
 	int cbf_h5handle_require_instrument
-			(const cbf_h5handle handle,
-			 hid_t * group)
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * name)
 	{
-		if (!handle) return CBF_ARGUMENT;
-		if (cbf_H5Ivalid(handle->nxinst)) {
-			/* return it */
-			if (group) *group = handle->nxinst;
-			return CBF_SUCCESS;
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
 		} else {
-			/* try to create it */
-			int error = CBF_SUCCESS;
-		cbf_reportnez(cbf_h5handle_require_entry(handle,0,0), error);
-			cbf_reportnez(_cbf_NXGrequire(handle->nxid,&handle->nxinst,"instrument","NXinstrument"), error);
-			if (CBF_SUCCESS == error && group) *group = handle->nxinst;
+			int match = 0;
+			hid_t curr_group = CBF_H5FAIL;
+			hid_t parent = CBF_H5FAIL;
+			const char * curr_name = NULL;
+			const char default_name[] = "instrument";
+			const char * group_name = name ? name : default_name;
+			CBF_CALL(cbf_h5handle_get_entry(nx,&parent,0));
+			/* check if the names of the groups match, and if the parent contains the assumed group */
+			if (CBF_SUCCESS==cbf_h5handle_get_instrument(nx,&curr_group,&curr_name)) {
+				if (!strcmp(group_name,curr_name)) {
+					hid_t test_group = CBF_H5FAIL;
+					const int found = cbf_H5Gfind(parent,&test_group,group_name);
+					if (CBF_SUCCESS==found) {
+						if (!cbf_H5Ocmp(test_group,curr_group)) match = 1;
+					} else if (CBF_NOTFOUND!=found) {
+						error |= found;
+					}
+					cbf_H5Gfree(test_group);
+				}
+			}
+			/* if there is no match I need to create/find a suitable group and put it in the handle */
+			if (CBF_SUCCESS==error && !match) {
+				hid_t new_group = CBF_H5FAIL;
+				CBF_CALL(cbf_H5Grequire(parent,&new_group,group_name));
+				CBF_CALL(cbf_H5Arequire_string(new_group,"NX_class","NXinstrument"));
+				CBF_CALL(cbf_h5handle_set_instrument(nx,new_group,group_name));
+				if (CBF_SUCCESS!=error) cbf_H5Gfree(new_group);
+			}
+			/* if there haven't been any major problems, return any requested data */
+			CBF_CALL(cbf_h5handle_get_instrument(nx,group,0));
+		}
 		return error;
 	}
-	}
 
-	/** \brief Ensure I have a valid NXdetector group in the file.
-
-	<p>Check for an <code>NXdetector</code> group in <code>handle</code>, creating it with the name
-	<code>detector</code> and NeXus class <code>NXdetector</code> if it doesn't exist. Calls
-	<code>cbf_h5handle_require_instrument</code> to ensure that the instrument group exists within the handle, if
-	needed.</p>
-
-	\param handle The HDF5 handle to use.
-	\param group An optional pointer to a place where the group should be stored.
-	\param name The (optional) group name.
-
-	\return <p>An error code.</p>
+	/**
+     Check the handle for the presence of an detector group and its name, optionally returning any combination of them.
+     \param nx A handle to query for the presence of the requested information.
+     \param group A place to store the group (if found), or null if the group isn't wanted.
+     \param name A place to store the name of the group (if found), or null if the name isn't wanted.
+     \sa cbf_h5handle_get_detector
+     \sa cbf_h5handle_set_detector
+     \sa cbf_h5handle_require_detector
+     \return An error code.
      */
-	int cbf_h5handle_require_detector
-			(const cbf_h5handle handle,
-			 hid_t * group,
+	int cbf_h5handle_get_detector
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * * const name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			/* check for a valid group */
+			if (group) {
+				if (cbf_H5Ivalid(nx->nxdetector)) *group = nx->nxdetector;
+				else error |= CBF_NOTFOUND;
+			}
+			/* check for a name */
+			if (name) {
+				if (nx->nxdetector_name) *name = nx->nxdetector_name;
+				else error |= CBF_NOTFOUND;
+			}
+		}
+		return error;
+	}
+    
+	/**
+     Sets the detector group and name within the handle to the given values.
+     Doesn't check or modify the <code>NX_class</code> attribute in any way.
+     The handle will take ownership of the group id iff this function succeeds.
+     \param nx The handle to add information to.
+     \param group The group to be set as the current detector group
+     \param name The name which the group should be given.
+     \sa cbf_h5handle_get_detector
+     \sa cbf_h5handle_set_detector
+     \sa cbf_h5handle_require_detector
+     \return An error code.
+	 */
+	int cbf_h5handle_set_detector
+    (const cbf_h5handle nx,
+     const hid_t group,
 			 const char * const name)
 	{
-		if (!handle) return CBF_ARGUMENT;
-		if (cbf_H5Ivalid(handle->nxdetector)) {
-			/* check its name, or return it */
-			if (name) {
-				return CBF_NOTIMPLEMENTED;
+		int error = CBF_SUCCESS;
+		if (!nx || !cbf_H5Ivalid(group) || !name) {
+			error |= CBF_ARGUMENT;
 			} else {
-			if (group) *group = handle->nxdetector;
-			return CBF_SUCCESS;
+			hid_t * const nxGroup = &(nx->nxdetector);
+			const char * * const nxName = &(nx->nxdetector_name);
+			const htri_t cmp = cbf_H5Ocmp(*nxGroup,group);
+			if (cmp < 0) {
+				error |= CBF_H5ERROR;
+			} else if (cmp) {
+				/* free the old group, take ownership of the new one */
+				cbf_H5Gfree(*nxGroup);
+				*nxGroup = group;
+				/* set the name */
+				if (*nxName) free((void*)(*nxName));
+				*nxName = _cbf_strdup(name);
+			} else {
+				/* already set - check that the names match, too */
+				if (!*nxName || strcmp(name,*nxName)) error |= CBF_H5DIFFERENT;
 		}
-		} else {
-			/* try to create it */
-			int error = CBF_SUCCESS;
-			const char default_name[] = "detector";
-			const char * const _name = name ? name : default_name;
-		cbf_reportnez(cbf_h5handle_require_instrument(handle,0), error);
-			cbf_reportnez(_cbf_NXGrequire(handle->nxinst,&handle->nxdetector,_name,"NXdetector"), error);
-			if (CBF_SUCCESS == error) {
-				free((void*)handle->nxdetector_name);
-				handle->nxdetector_name = _cbf_strdup(_name);
-			}
-			if (CBF_SUCCESS == error && group) *group = handle->nxdetector;
+		}
 		return error;
 	}
+    
+	/**
+     This will check if the detector group within the handle matches any existing group of the
+     same name within the current file. If they don't match a new group is opened or created
+     and added to the handle. The <code>NX_class</code> attributes are not checked.
+     
+     \param nx The HDF5 handle to use.
+     \param group An optional pointer to a place where the group should be stored.
+     \param name The group name, or null to use the default name of <code>"detector"</code>.
+     \sa cbf_h5handle_get_detector
+     \sa cbf_h5handle_set_detector
+     \sa cbf_h5handle_require_detector
+     \return An error code.
+	 */
+	int cbf_h5handle_require_detector
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			int match = 0;
+			hid_t curr_group = CBF_H5FAIL;
+			hid_t parent = CBF_H5FAIL;
+			const char * curr_name = NULL;
+			const char default_name[] = "detector";
+			const char * group_name = name ? name : default_name;
+			CBF_CALL(cbf_h5handle_get_instrument(nx,&parent,0));
+			/* check if the names of the groups match, and if the parent contains the assumed group */
+			if (CBF_SUCCESS==cbf_h5handle_get_detector(nx,&curr_group,&curr_name)) {
+				if (!strcmp(group_name,curr_name)) {
+					hid_t test_group = CBF_H5FAIL;
+					const int found = cbf_H5Gfind(parent,&test_group,group_name);
+					if (CBF_SUCCESS==found) {
+						if (!cbf_H5Ocmp(test_group,curr_group)) match = 1;
+					} else if (CBF_NOTFOUND!=found) {
+						error |= found;
+			}
+					cbf_H5Gfree(test_group);
+				}
+			}
+			/* if there is no match I need to create/find a suitable group and put it in the handle */
+			if (CBF_SUCCESS==error && !match) {
+				hid_t new_group = CBF_H5FAIL;
+				CBF_CALL(cbf_H5Grequire(parent,&new_group,group_name));
+				CBF_CALL(cbf_H5Arequire_string(new_group,"NX_class","NXdetector"));
+				CBF_CALL(cbf_h5handle_set_detector(nx,new_group,group_name));
+				if (CBF_SUCCESS!=error) cbf_H5Gfree(new_group);
+			}
+			/* if there haven't been any major problems, return any requested data */
+			CBF_CALL(cbf_h5handle_get_detector(nx,group,0));
+		}
+		return error;
+	}
+    
+	/**
+     Check the handle for the presence of an goniometer group and its name, optionally returning any combination of them.
+     \param nx A handle to query for the presence of the requested information.
+     \param group A place to store the group (if found), or null if the group isn't wanted.
+     \param name A place to store the name of the group (if found), or null if the name isn't wanted.
+     \sa cbf_h5handle_get_goniometer
+     \sa cbf_h5handle_set_goniometer
+     \sa cbf_h5handle_require_goniometer
+     \return An error code.
+	 */
+	int cbf_h5handle_get_goniometer
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * * const name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			/* check for a valid group */
+			if (group) {
+				if (cbf_H5Ivalid(nx->nxgoniometer)) *group = nx->nxgoniometer;
+				else error |= CBF_NOTFOUND;
+	}
+			/* check for a name */
+			if (name) {
+				if (nx->nxgoniometer_name) *name = nx->nxgoniometer_name;
+				else error |= CBF_NOTFOUND;
+			}
+		}
+		return error;
 	}
 
-	/** \brief Ensure I have a valid NXmonochromator group in the file.
-
-	<p>Check for an <code>NXmonochromator</code> group in <code>handle</code>, creating it with the name
-	<code>monochromator</code> and NeXus class <code>NXmonochromator</code> if it doesn't exist. Calls
-	<code>cbf_h5handle_require_instrument</code> to ensure that the instrument group exists within the handle, if
-	needed.</p>
-
-	\param handle The HDF5 handle to use.
-	\param group An optional pointer to a place where the group should be stored.
-
-	\return <p>An error code.</p>
-     */
-	int cbf_h5handle_require_monochromator
-			(const cbf_h5handle handle,
-			 hid_t * group)
+	/**
+     Sets the goniometer group and name within the handle to the given values.
+     Doesn't check or modify the <code>NX_class</code> attribute in any way.
+     The handle will take ownership of the group id iff this function succeeds.
+     \param nx The handle to add information to.
+     \param group The group to be set as the current goniometer group
+     \param name The name which the group should be given.
+     \sa cbf_h5handle_get_goniometer
+     \sa cbf_h5handle_set_goniometer
+     \sa cbf_h5handle_require_goniometer
+     \return An error code.
+	 */
+	int cbf_h5handle_set_goniometer
+    (const cbf_h5handle nx,
+     const hid_t group,
+     const char * const name)
 	{
-		if (!handle) return CBF_ARGUMENT;
-
-		if (cbf_H5Ivalid(handle->nxmonochromator)) {
-			/* return it */
-			if (group) *group = handle->nxmonochromator;
-			return CBF_SUCCESS;
+		int error = CBF_SUCCESS;
+		if (!nx || !cbf_H5Ivalid(group) || !name) {
+			error |= CBF_ARGUMENT;
 		} else {
-			/* try to create it */
+			hid_t * const nxGroup = &(nx->nxgoniometer);
+			const char * * const nxName = &(nx->nxgoniometer_name);
+			const htri_t cmp = cbf_H5Ocmp(*nxGroup,group);
+			if (cmp < 0) {
+				error |= CBF_H5ERROR;
+			} else if (cmp) {
+				/* free the old group, take ownership of the new one */
+				cbf_H5Gfree(*nxGroup);
+				*nxGroup = group;
+				/* set the name */
+				if (*nxName) free((void*)(*nxName));
+				*nxName = _cbf_strdup(name);
+			} else {
+				/* already set - check that the names match, too */
+				if (!*nxName || strcmp(name,*nxName)) error |= CBF_H5DIFFERENT;
+			}
+		}
+		return error;
+	}
+
+	/**
+     This will check if the goniometer group within the handle matches any existing group of the
+     same name within the current file. If they don't match a new group is opened or created
+     and added to the handle. The <code>NX_class</code> attributes are not checked.
+
+     \param nx The HDF5 handle to use.
+	\param group An optional pointer to a place where the group should be stored.
+     \param name The group name, or null to use the default name of <code>"goniometer"</code>.
+     \sa cbf_h5handle_get_goniometer
+     \sa cbf_h5handle_set_goniometer
+     \sa cbf_h5handle_require_goniometer
+     \return An error code.
+	 */
+	int cbf_h5handle_require_goniometer
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			int match = 0;
+			hid_t curr_group = CBF_H5FAIL;
+			hid_t parent = CBF_H5FAIL;
+			const char * curr_name = NULL;
+			const char default_name[] = "goniometer";
+			const char * group_name = name ? name : default_name;
+			CBF_CALL(cbf_h5handle_get_instrument(nx,&parent,0));
+			/* check if the names of the groups match, and if the parent contains the assumed group */
+			if (CBF_SUCCESS==cbf_h5handle_get_goniometer(nx,&curr_group,&curr_name)) {
+				if (!strcmp(group_name,curr_name)) {
+					hid_t test_group = CBF_H5FAIL;
+					const int found = cbf_H5Gfind(parent,&test_group,group_name);
+					if (CBF_SUCCESS==found) {
+						if (!cbf_H5Ocmp(test_group,curr_group)) match = 1;
+					} else if (CBF_NOTFOUND!=found) {
+						error |= found;
+					}
+					cbf_H5Gfree(test_group);
+				}
+			}
+			/* if there is no match I need to create/find a suitable group and put it in the handle */
+			if (CBF_SUCCESS==error && !match) {
+				hid_t new_group = CBF_H5FAIL;
+				CBF_CALL(cbf_H5Grequire(parent,&new_group,group_name));
+				CBF_CALL(cbf_H5Arequire_string(new_group,"NX_class","NXgoniometer"));
+				CBF_CALL(cbf_h5handle_set_goniometer(nx,new_group,group_name));
+				if (CBF_SUCCESS!=error) cbf_H5Gfree(new_group);
+			}
+			/* if there haven't been any major problems, return any requested data */
+			CBF_CALL(cbf_h5handle_get_goniometer(nx,group,0));
+		}
+		return error;
+	}
+
+	/**
+     Check the handle for the presence of an monochromator group and its name, optionally returning any combination of them.
+     \param nx A handle to query for the presence of the requested information.
+     \param group A place to store the group (if found), or null if the group isn't wanted.
+     \param name A place to store the name of the group (if found), or null if the name isn't wanted.
+     \sa cbf_h5handle_get_monochromator
+     \sa cbf_h5handle_set_monochromator
+     \sa cbf_h5handle_require_monochromator
+     \return An error code.
+     */
+	int cbf_h5handle_get_monochromator
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * * const name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			/* check for a valid group */
+			if (group) {
+				if (cbf_H5Ivalid(nx->nxmonochromator)) *group = nx->nxmonochromator;
+				else error |= CBF_NOTFOUND;
+			}
+			/* check for a name */
+			if (name) {
+				if (nx->nxmonochromator_name) *name = nx->nxmonochromator_name;
+				else error |= CBF_NOTFOUND;
+			}
+		}
+		return error;
+	}
+    
+	/**
+     Sets the monochromator group and name within the handle to the given values.
+     Doesn't check or modify the <code>NX_class</code> attribute in any way.
+     The handle will take ownership of the group id iff this function succeeds.
+     \param nx The handle to add information to.
+     \param group The group to be set as the current monochromator group
+     \param name The name which the group should be given.
+     \sa cbf_h5handle_get_monochromator
+     \sa cbf_h5handle_set_monochromator
+     \sa cbf_h5handle_require_monochromator
+     \return An error code.
+	 */
+	int cbf_h5handle_set_monochromator
+    (const cbf_h5handle nx,
+     const hid_t group,
+     const char * const name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx || !cbf_H5Ivalid(group) || !name) {
+			error |= CBF_ARGUMENT;
+		} else {
+			hid_t * const nxGroup = &(nx->nxmonochromator);
+			const char * * const nxName = &(nx->nxmonochromator_name);
+			const htri_t cmp = cbf_H5Ocmp(*nxGroup,group);
+			if (cmp < 0) {
+				error |= CBF_H5ERROR;
+			} else if (cmp) {
+				/* free the old group, take ownership of the new one */
+				cbf_H5Gfree(*nxGroup);
+				*nxGroup = group;
+				/* set the name */
+				if (*nxName) free((void*)(*nxName));
+				*nxName = _cbf_strdup(name);
+			} else {
+				/* already set - check that the names match, too */
+				if (!*nxName || strcmp(name,*nxName)) error |= CBF_H5DIFFERENT;
+			}
+		}
+		return error;
+	}
+    
+	/**
+     This will check if the monochromator group within the handle matches any existing group of the
+     same name within the current file. If they don't match a new group is opened or created
+     and added to the handle. The <code>NX_class</code> attributes are not checked.
+     
+     \param nx The HDF5 handle to use.
+     \param group An optional pointer to a place where the group should be stored.
+     \param name The group name, or null to use the default name of <code>"monochromator"</code>.
+     \sa cbf_h5handle_get_monochromator
+     \sa cbf_h5handle_set_monochromator
+     \sa cbf_h5handle_require_monochromator
+     \return An error code.
+	 */
+	int cbf_h5handle_require_monochromator
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			int match = 0;
+			hid_t curr_group = CBF_H5FAIL;
+			hid_t parent = CBF_H5FAIL;
+			const char * curr_name = NULL;
+			const char default_name[] = "monochromator";
+			const char * group_name = name ? name : default_name;
+			CBF_CALL(cbf_h5handle_get_instrument(nx,&parent,0));
+			/* check if the names of the groups match, and if the parent contains the assumed group */
+			if (CBF_SUCCESS==cbf_h5handle_get_monochromator(nx,&curr_group,&curr_name)) {
+				if (!strcmp(group_name,curr_name)) {
+					hid_t test_group = CBF_H5FAIL;
+					const int found = cbf_H5Gfind(parent,&test_group,group_name);
+					if (CBF_SUCCESS==found) {
+						if (!cbf_H5Ocmp(test_group,curr_group)) match = 1;
+					} else if (CBF_NOTFOUND!=found) {
+						error |= found;
+					}
+					cbf_H5Gfree(test_group);
+				}
+			}
+			/* if there is no match I need to create/find a suitable group and put it in the handle */
+			if (CBF_SUCCESS==error && !match) {
+				hid_t new_group = CBF_H5FAIL;
+				CBF_CALL(cbf_H5Grequire(parent,&new_group,group_name));
+				CBF_CALL(cbf_H5Arequire_string(new_group,"NX_class","NXmonochromator"));
+				CBF_CALL(cbf_h5handle_set_monochromator(nx,new_group,group_name));
+				if (CBF_SUCCESS!=error) cbf_H5Gfree(new_group);
+			}
+			/* if there haven't been any major problems, return any requested data */
+			CBF_CALL(cbf_h5handle_get_monochromator(nx,group,0));
+		}
+		return error;
+	}
+
+	/**
+     Check the handle for the presence of an source group and its name, optionally returning any combination of them.
+     \param nx A handle to query for the presence of the requested information.
+     \param group A place to store the group (if found), or null if the group isn't wanted.
+     \param name A place to store the name of the group (if found), or null if the name isn't wanted.
+     \sa cbf_h5handle_get_source
+     \sa cbf_h5handle_set_source
+     \sa cbf_h5handle_require_source
+     \return An error code.
+	 */
+	int cbf_h5handle_get_source
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * * const name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			/* check for a valid group */
+			if (group) {
+				if (cbf_H5Ivalid(nx->nxsource)) *group = nx->nxsource;
+				else error |= CBF_NOTFOUND;
+			}
+			/* check for a name */
+			if (name) {
+				if (nx->nxsource_name) *name = nx->nxsource_name;
+				else error |= CBF_NOTFOUND;
+			}
+		}
+		return error;
+	}
+    
+	/**
+     Sets the source group and name within the handle to the given values.
+     Doesn't check or modify the <code>NX_class</code> attribute in any way.
+     The handle will take ownership of the group id iff this function succeeds.
+     \param nx The handle to add information to.
+     \param group The group to be set as the current source group
+     \param name The name which the group should be given.
+     \sa cbf_h5handle_get_source
+     \sa cbf_h5handle_set_source
+     \sa cbf_h5handle_require_source
+     \return An error code.
+	 */
+	int cbf_h5handle_set_source
+    (const cbf_h5handle nx,
+     const hid_t group,
+     const char * const name)
+	{
 			int error = CBF_SUCCESS;
-			cbf_reportnez(cbf_h5handle_require_instrument(handle,0), error);
-			cbf_reportnez(_cbf_NXGrequire(handle->nxinst,&handle->nxmonochromator,"monochromator","NXmonochromator"), error);
-			if (CBF_SUCCESS == error && group) *group = handle->nxmonochromator;
+		if (!nx || !cbf_H5Ivalid(group) || !name) {
+			error |= CBF_ARGUMENT;
+		} else {
+			hid_t * const nxGroup = &(nx->nxsource);
+			const char * * const nxName = &(nx->nxsource_name);
+			const htri_t cmp = cbf_H5Ocmp(*nxGroup,group);
+			if (cmp < 0) {
+				error |= CBF_H5ERROR;
+			} else if (cmp) {
+				/* free the old group, take ownership of the new one */
+				cbf_H5Gfree(*nxGroup);
+				*nxGroup = group;
+				/* set the name */
+				if (*nxName) free((void*)(*nxName));
+				*nxName = _cbf_strdup(name);
+			} else {
+				/* already set - check that the names match, too */
+				if (!*nxName || strcmp(name,*nxName)) error |= CBF_H5DIFFERENT;
+			}
+		}
 			return error;
 		}
+    
+	/**
+     This will check if the source group within the handle matches any existing group of the
+     same name within the current file. If they don't match a new group is opened or created
+     and added to the handle. The <code>NX_class</code> attributes are not checked.
+     
+     \param nx The HDF5 handle to use.
+     \param group An optional pointer to a place where the group should be stored.
+     \param name The group name, or null to use the default name of <code>"source"</code>.
+     \sa cbf_h5handle_get_source
+     \sa cbf_h5handle_set_source
+     \sa cbf_h5handle_require_source
+     \return An error code.
+	 */
+	int cbf_h5handle_require_source
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * name)
+	{
+		int error = CBF_SUCCESS;
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			int match = 0;
+			hid_t curr_group = CBF_H5FAIL;
+			hid_t parent = CBF_H5FAIL;
+			const char * curr_name = NULL;
+			const char default_name[] = "source";
+			const char * group_name = name ? name : default_name;
+			CBF_CALL(cbf_h5handle_get_instrument(nx,&parent,0));
+			/* check if the names of the groups match, and if the parent contains the assumed group */
+			if (CBF_SUCCESS==cbf_h5handle_get_source(nx,&curr_group,&curr_name)) {
+				if (!strcmp(group_name,curr_name)) {
+					hid_t test_group = CBF_H5FAIL;
+					const int found = cbf_H5Gfind(parent,&test_group,group_name);
+					if (CBF_SUCCESS==found) {
+						if (!cbf_H5Ocmp(test_group,curr_group)) match = 1;
+					} else if (CBF_NOTFOUND!=found) {
+						error |= found;
+	}
+					cbf_H5Gfree(test_group);
+				}
+			}
+			/* if there is no match I need to create/find a suitable group and put it in the handle */
+			if (CBF_SUCCESS==error && !match) {
+				hid_t new_group = CBF_H5FAIL;
+				CBF_CALL(cbf_H5Grequire(parent,&new_group,group_name));
+				CBF_CALL(cbf_H5Arequire_string(new_group,"NX_class","NXsource"));
+				CBF_CALL(cbf_h5handle_set_source(nx,new_group,group_name));
+				if (CBF_SUCCESS!=error) cbf_H5Gfree(new_group);
+			}
+			/* if there haven't been any major problems, return any requested data */
+			CBF_CALL(cbf_h5handle_get_source(nx,group,0));
+		}
+		return error;
 	}
     
     /* Create a dotted CBF location string
@@ -4246,13 +5813,13 @@ return e; \
 
             char nxequipment[2048];
 
-            hid_t equipmentid;
+			hid_t equipmentid = CBF_H5FAIL;
 
-            hid_t nxaxisid;
+            hid_t nxaxisid = CBF_H5FAIL;
 
-            hid_t nxaxisoffsetid;
+			hid_t nxaxisoffsetid = CBF_H5FAIL;
 
-            hid_t dtype, dspace, dprop;
+			hid_t dtype = CBF_H5FAIL, dspace = CBF_H5FAIL, dprop = CBF_H5FAIL;
 
             const char * equipment;
 
@@ -4558,7 +6125,7 @@ return e; \
 
                     hsize_t scanpointsfound;
 
-                    hid_t mtype;
+					hid_t mtype = CBF_H5FAIL;
 
                     size_t sscanpointsfound;
 
@@ -4608,7 +6175,7 @@ return e; \
 
                 } else {
 
-                    hid_t mtype;
+					hid_t mtype = CBF_H5FAIL;
 
                     cbf_h5reportneg(dspace = H5Screate_simple(1,&naught,&one),CBF_ALLOC,errorcode);
 
@@ -4686,7 +6253,7 @@ return e; \
 
                     hsize_t scanpointsfound;
 
-                    hid_t mtype;
+					hid_t mtype = CBF_H5FAIL;
 
                     size_t sscanpointsfound;
 
@@ -4989,9 +6556,9 @@ return e; \
 
         if (attribexists >=0 && attribexists) {
 
-            hsize_t attribsize;
+            hsize_t attribsize = 0;
 
-            hsize_t memtype;
+            hsize_t memtype = 0;
 
             char * attribtextbuffer;
 
@@ -5298,11 +6865,9 @@ return e; \
                                  int errorcode)
     {
 
-        hid_t datasetspace, datasettype, datasetid, datasetprop;
+		hid_t datasetspace = CBF_H5FAIL, datasettype = CBF_H5FAIL, datasetid = CBF_H5FAIL, datasetprop = CBF_H5FAIL;
 
         htri_t dsexists;
-
-        datasetspace = datasettype = datasetid = CBF_H5FAIL;
 
         /* ensure arguments all given */
 
@@ -5315,9 +6880,9 @@ return e; \
 
             hsize_t dssize;
 
-            hid_t memtype;
+			hid_t memtype = CBF_H5FAIL;
 
-            int datasetrank;
+            int datasetrank = -1;
 
             char * datasettextbuffer = NULL;
 
@@ -5622,13 +7187,11 @@ return e; \
                                int errorcode)
     {
 
-        hid_t datasetspace, datasettype, datasetid, datasetprop;
+		hid_t datasetspace = CBF_H5FAIL, datasettype = CBF_H5FAIL, datasetid = CBF_H5FAIL, datasetprop = CBF_H5FAIL;
 
         htri_t dsexists;
 
         double dsvalue;
-
-        datasetspace = datasettype = datasetid = CBF_H5FAIL;
 
         /* ensure arguments all given */
 
@@ -5639,9 +7202,9 @@ return e; \
 
         if ( dsexists >=0 && dsexists ) {
 
-            hid_t memtype;
+			hid_t memtype = CBF_H5FAIL;
 
-            int datasetrank;
+            int datasetrank = -1;
 
             /* The dataset exists, and will be replaced with an array
              of strings, unless it is already an array, in which case
@@ -5893,13 +7456,11 @@ return e; \
                                  int errorcode)
     {
 
-        hid_t datasetspace, datasettype, datasetid, datasetprop;
+		hid_t datasetspace = CBF_H5FAIL, datasettype = CBF_H5FAIL, datasetid = CBF_H5FAIL, datasetprop = CBF_H5FAIL;
 
         htri_t dsexists;
 
         long dsvalue;
-
-        datasetspace = datasettype = datasetid = CBF_H5FAIL;
 
         /* ensure arguments all given */
 
@@ -5910,9 +7471,9 @@ return e; \
 
         if ( dsexists >=0 && dsexists ) {
 
-            hid_t memtype;
+			hid_t memtype = CBF_H5FAIL;
 
-            int datasetrank;
+            int datasetrank = -1;
 
             /* The dataset exists, and will be replaced with an array
              of strings, unless it is already an array, in which case
@@ -6021,7 +7582,7 @@ return e; \
                             unsigned int row,
                             cbf_h5handle h5handle)
     {
-        hid_t valid, valtype, memtype, valprop, valspace;
+		hid_t valid = CBF_H5FAIL, valtype = CBF_H5FAIL, memtype = CBF_H5FAIL, valprop = CBF_H5FAIL, valspace = CBF_H5FAIL;
 
         int errorcode;
 
@@ -6449,7 +8010,7 @@ return e; \
                                           CBF_H5Z_FILTER_CBF_NELMTS,
                                           cd_values),CBF_ALLOC,errorcode);
 
-            /* fprintf(stderr,"errorcode on setting filter CBF_H5Z_FILTER_CBF %d\n",errorcode); */
+            /* cbf_debug_pring2("errorcode on setting filter CBF_H5Z_FILTER_CBF %d\n",errorcode); */
 
             valid = H5Dcreatex(h5handle->colid,rownum,
                                valtype,valspace,
@@ -6874,7 +8435,6 @@ return e; \
 		if (cbf_H5Ivalid(h5group)) cbf_H5Gfree(h5group);
 		return error;
 	}
-
 
     /* Write a category to an HDF5 file */
 
@@ -7419,8 +8979,6 @@ return e; \
 		{
             unsigned int maxrows;
             unsigned int row;
-            const char * dname;
-            char * fullname;
             const char * value;
             double doublevalue;
             hid_t monochromid;
@@ -7453,10 +9011,6 @@ return e; \
             for (row = 0; row < maxrows; row++) {
 
                 int multi_element;
-
-                unsigned int sow;
-
-                const char * ename;
 
                 multi_element = 0;
 
@@ -7643,7 +9197,7 @@ return e; \
 			{
 				cbf_node * column_node = category->child[column];
 				cbf_debug_print2("\t%s",column_node->name);
-				if(column_node->children > 1) fprintf(stderr, "CBFlib: warning: too many rows in '%s', only writing first row.\n",category->name);
+				if(column_node->children > 1) cbf_debug_print2("warning: too many rows in '%s', only writing first row.\n",category->name);
 				if(!cbf_cistrcmp(column_node->name,"div_x_source")) {
 					const char * text = 0;
 					int error = CBF_SUCCESS;
@@ -7670,7 +9224,7 @@ return e; \
 			{
 				cbf_node * column_node = category->child[column];
 				cbf_debug_print2("\t%s",column_node->name);
-				if(column_node->children > 1) fprintf(stderr, "CBFlib:  warning: too many rows in '%s', only writing first row.\n",category->name);
+				if(column_node->children > 1) cbf_debug_print2( "warning: too many rows in '%s', only writing first row.\n",category->name);
 				if(!cbf_cistrcmp(column_node->name,"wavelength")){
 					cbf_name_value_pair attr = {"units","Angstroms"};
 					const char * text = 0;
@@ -7886,7 +9440,6 @@ return e; \
     }
 
 
-
     /*  create top-level NXentry */
 
     int cbf_create_NXentry(cbf_h5handle h5handle)
@@ -7896,13 +9449,7 @@ return e; \
             h5handle->nxid >= 0 ||
             h5handle->hfile < 0) return CBF_ARGUMENT;
 
-        cbf_h5failneg(h5handle->nxid=H5Gcreatex(h5handle->hfile,
-                                                (const char *)"entry"),
-                      CBF_ARGUMENT);
-
-
-        cbf_failnez(cbf_apply_h5text_attribute(h5handle->nxid,
-                                               "NX_class","NXentry",0));
+		cbf_failnez(cbf_h5handle_require_entry(h5handle,0,0));
 
         h5handle->curnxid=CBF_H5FAIL;
 
@@ -8141,10 +9688,18 @@ return e; \
     }
 
 
-    /* Free an H5File handle */
+    /**
+     Checks if the handle appears to be valid, the free's the handle and any data that the handle owns.
+     \param h5handle The handle to be free'd.
+     \sa cbf_create_h5handle3
+     \return An error code
+     */
     int cbf_free_h5handle(cbf_h5handle h5handle)
 	{
 		int error = CBF_SUCCESS;
+		if (!h5handle) {
+			error |= CBF_ARGUMENT;
+		} else {
         void * memblock = (void *) h5handle;
 
 		if (cbf_H5Ivalid(h5handle->colid)) {
@@ -8191,22 +9746,43 @@ return e; \
 			CBF_H5CALL(H5Gclose(h5handle->nxsample));
 		}
 
+			if (cbf_H5Ivalid(h5handle->nxbeam)) {
+				CBF_H5CALL(H5Gclose(h5handle->nxbeam));
+			}
+            
 		if (cbf_H5Ivalid(h5handle->nxdetector)) {
 			CBF_H5CALL(H5Gclose(h5handle->nxdetector));
 		}
 
+			if (cbf_H5Ivalid(h5handle->nxgoniometer)) {
+				CBF_H5CALL(H5Gclose(h5handle->nxgoniometer));
+			}
+            
 		if (cbf_H5Ivalid(h5handle->nxmonochromator)) {
 			CBF_H5CALL(H5Gclose(h5handle->nxmonochromator));
 		}
 
+			if (cbf_H5Ivalid(h5handle->nxsource)) {
+				CBF_H5CALL(H5Gclose(h5handle->nxsource));
+			}
+            
 		if (cbf_H5Ivalid(h5handle->hfile)) {
 			CBF_H5CALL(H5Fclose(h5handle->hfile));
         }
 
+			free((void*)h5handle->scan_id);
+			free((void*)h5handle->sample_id);
 		free((void*)h5handle->nxid_name);
 		free((void*)h5handle->nxdetector_name);
-
-        return error | cbf_free(&memblock,NULL);
+			free((void*)h5handle->nxsample_name);
+			free((void*)h5handle->nxbeam_name);
+			free((void*)h5handle->nxinstrument_name);
+			free((void*)h5handle->nxgoniometer_name);
+			free((void*)h5handle->nxmonochromator_name);
+			free((void*)h5handle->nxsource_name);
+			error |= cbf_free(&memblock,NULL);
+    }
+        return error;
     }
 
     /* Make an (empty) H5File handle */
@@ -8226,12 +9802,21 @@ return e; \
 		(*h5handle)->nxdata  = (hid_t)CBF_H5FAIL;
 		(*h5handle)->nxinst  = (hid_t)CBF_H5FAIL;
 		(*h5handle)->nxsample  = (hid_t)CBF_H5FAIL;
+		(*h5handle)->nxbeam  = (hid_t)CBF_H5FAIL;
 		(*h5handle)->nxdetector  = (hid_t)CBF_H5FAIL;
+		(*h5handle)->nxgoniometer = (hid_t)CBF_H5FAIL;
 		(*h5handle)->nxmonochromator = (hid_t)CBF_H5FAIL;
+		(*h5handle)->nxsource = (hid_t)CBF_H5FAIL;
         (*h5handle)->curnxid = (hid_t)CBF_H5FAIL;
         (*h5handle)->dataid  = (hid_t)CBF_H5FAIL;
 		(*h5handle)->nxid_name = NULL;
 		(*h5handle)->nxdetector_name = NULL;
+		(*h5handle)->nxsample_name = NULL;
+		(*h5handle)->nxbeam_name = NULL;
+		(*h5handle)->nxinstrument_name = NULL;
+		(*h5handle)->nxgoniometer_name = NULL;
+		(*h5handle)->nxmonochromator_name = NULL;
+		(*h5handle)->nxsource_name = NULL;
         (*h5handle)->rwmode  = 0;
         (*h5handle)->flags = 0;
 #ifdef CBF_USE_ULP
@@ -8241,6 +9826,8 @@ return e; \
 		(*h5handle)->double_ulp = 0;
 #endif
 #endif
+        (*h5handle)->scan_id = NULL;
+        (*h5handle)->sample_id = NULL;
         return CBF_SUCCESS;
 
     }
@@ -8538,7 +10125,31 @@ return e; \
 		return CBF_SUCCESS;
 	}
 
+	/**
+     This function expects the user to create or open a hdf5 file with the appropriate parameters for what they are
+     trying to do, replacing older functions which would create a file with the <code>H5F_ACC_TRUNC</code> flag and
+     <code>H5F_CLOSE_STRONG</code> property.
 
+     \param handle A pointer to a handle which is to be allocated.
+     \param file A HDF5 file to store within the newly created handle.
+     \sa cbf_free_h5handle
+     \return An error code
+     */
+	int cbf_create_h5handle3
+    (cbf_h5handle * handle,
+     hid_t file)
+	{
+		int error = CBF_SUCCESS;
+		if (!handle) {
+			error |= CBF_ARGUMENT;
+		} else {
+			CBF_CALL(cbf_make_h5handle(handle));
+			CBF_CALL(cbf_h5handle_set_file(*handle,file));
+		}
+		return error;
+	}
+    
+    
     /*  Write cbf to HDF5 file hfile 
 
 	Should check the type of CBF file we have (miniCBF [+header convention, eventually...] vs full CBF) and call the appropriate function.
@@ -8567,8 +10178,8 @@ return e; \
 
 		/* ensure the handle contains some basic structure */
 
-		cbf_reportnez(cbf_h5handle_require_entry(h5handle,0,"entry"), errorcode);
-		cbf_reportnez(cbf_h5handle_require_instrument(h5handle,0), errorcode);
+		cbf_reportnez(cbf_h5handle_require_entry(h5handle,0,0), errorcode);
+		cbf_reportnez(cbf_h5handle_require_instrument(h5handle,0,0), errorcode);
 
 		/* Do the mappings from CBF to nexus */
 
@@ -8588,1153 +10199,6168 @@ return e; \
 	}
 
 	/*
-	The following set of functions - 'cbf_write_cbf_h5file__XYZ' - convert a CBF category 'XYZ' into NeXus format,
-	packing the resulting data into a location given by the 'h5handle' argument.
+     cbf_write_nx2cbf__<NXclass>
+     Write the nexus class, recursively, from the given handle into a cbf handle
+     
+     Need to record which tables have been created already, and provide methods to create
+     any new tables I need. If a table has been created it will have a node in the CBF
+     tree, I can store either this node or NULL to find out if it exists. I always know
+     which table I want to create, so can call the appropriate function without needing
+     a run-time lookup from a list of creation functions.
+     
+     I need a list of table nodes and a list of shared keys to make this work. Like the
+     'cbf_nx2cbf_key_t' this can be removed and replaced with function-specific parameters once
+     they are known.
      */
 
-	static int cbf_write_cbf_h5file__diffrn_detector_element
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
+	typedef enum cbf_axisEquipment_e
+	{
+		/* actual physical equipment */
+		axisEquipment_detector,
+		axisEquipment_image,
+		axisEquipment_goniometer,
+		/* special values */
+		axisEquipment_gravity,
+		axisEquipment_source,
+		/* other/undefined */
+		axisEquipment_general
+	} cbf_axisEquipment_e;
+    
+	typedef struct cbf_axisData_t
+	{
+		const char * name;
+		hid_t axis;
+		cbf_axisEquipment_e equipment;
+		struct cbf_axisData_t * depends_on;
+	} cbf_axisData_t;
+    
+	/*
+     Allocate and initialise a new 'cbf_axisData_t' object.
+     */
+	static int _cbf_create_axisData_t
+    (cbf_axisData_t *  * const axisData)
 	{
 		int error = CBF_SUCCESS;
-		hid_t detector = CBF_H5FAIL;
-#ifdef CBF_USE_ULP
-		cmp_double_param_t cmp_params;
-
-		/* set up the comparison parameters */
-		cmp_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
-		cmp_params.ulp32 = h5handle->float_ulp;
-#ifndef NO_UINT64_TYPE
-		cmp_params.ulp64 = h5handle->double_ulp;
-#endif
-#endif
-
-		if (0) fprintf(stderr,"diffrn_detector_element\n");
-
-		/* check arguments */
-		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+		if (!axisData) {
+			error |= CBF_ARGUMENT;
+		} else if (!(*axisData=malloc(sizeof(cbf_axisData_t)))) {
+			error |= CBF_ALLOC;
+		} else {
+			cbf_axisData_t * const data = *axisData;
+			data->name = NULL;
+			data->axis = CBF_H5FAIL;
+			data->equipment = axisEquipment_general;
+			data->depends_on = NULL;
 		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!key || !key->diffrn_detector_element) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-
-		/* select the category & row to work with, can then switch columns at will */
-		_CBF_CALL(cbf_find_category(handle, "diffrn_detector_element"));
-		_CBF_CALL(cbf_find_column(handle, "id"));
-		_CBF_CALL(cbf_find_row(handle, key->diffrn_detector_element));
-		_CBF_CALL(cbf_find_column(handle, "detector_id"));
-		_CBF_CALL(cbf_get_value(handle, &key->diffrn_detector));
-
-		/* Ensure some basic structure is present */
-		{
-			unsigned int nRows = 0;
-			_CBF_CALL(cbf_count_rows(handle,&nRows));
-			if (1 != nRows) fprintf(stderr,"%s: Multiple element support not yet implemented\n",__WHERE__);
-		}
-		_CBF_CALL(cbf_h5handle_require_detector(h5handle,&detector,0));
-
-		/* Convert beam_center_x: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "center[1]")) {
-			hid_t dset = CBF_H5FAIL;
-			const char * value;
-			double num = 0./0.;
-			const hsize_t max[] = {H5S_UNLIMITED};
-			const hsize_t cnk[] = {1};
-			const hsize_t off[] = {h5handle->slice};
-			const hsize_t cnt[] = {1};
-			hsize_t buf[] = {0};
-			_CBF_CALL(cbf_get_value(handle, &value));
-			num = strtod(value,0);
-			_CBF_CALL(cbf_H5Drequire(detector,&dset,"beam_center_x",1,max,cnk,buf,H5T_IEEE_F64LE));
-			_CBF_CALL(cbf_H5Dinsert(dset,off,0,cnt,buf,&num,H5T_NATIVE_DOUBLE));
-			_CBF_CALL(cbf_H5Arequire_string(dset,"units","mm"));
-			cbf_H5Dfree(dset);
-		}
-
-		/* Convert beam_center_y: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "center[2]")) {
-			hid_t dset = CBF_H5FAIL;
-			const char * value;
-			double num = 0./0.;
-			const hsize_t max[] = {H5S_UNLIMITED};
-			const hsize_t cnk[] = {1};
-			const hsize_t off[] = {h5handle->slice};
-			const hsize_t cnt[] = {1};
-			hsize_t buf[] = {0};
-			_CBF_CALL(cbf_get_value(handle, &value));
-			num = strtod(value,0);
-			_CBF_CALL(cbf_H5Drequire(detector,&dset,"beam_center_x",1,max,cnk,buf,H5T_IEEE_F64LE));
-			_CBF_CALL(cbf_H5Dinsert(dset,off,0,cnt,buf,&num,H5T_NATIVE_DOUBLE));
-			_CBF_CALL(cbf_H5Arequire_string(dset,"units","mm"));
-			cbf_H5Dfree(dset);
-		}
-
-		return error;
-	}
-
-	static int cbf_write_cbf_h5file__diffrn_detector
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
-	{
-		int error = CBF_SUCCESS;
-		hid_t detector = CBF_H5FAIL;
-#ifdef CBF_USE_ULP
-		cmp_double_param_t cmp_params;
-
-		/* set up the comparison parameters */
-		cmp_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
-		cmp_params.ulp32 = h5handle->float_ulp;
-#ifndef NO_UINT64_TYPE
-		cmp_params.ulp64 = h5handle->double_ulp;
-#endif
-#endif
-
-		if (0) fprintf(stderr,"diffrn_detector\n");
-
-		/* check arguments */
-		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!key || !key->diffrn_detector) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-
-		/* select the category & row to work with, can then switch columns at will */
-		_CBF_CALL(cbf_find_category(handle, "diffrn_detector"));
-		_CBF_CALL(cbf_find_column(handle, "id"));
-		_CBF_CALL(cbf_find_row(handle, key->diffrn_detector));
-		_CBF_CALL(cbf_find_column(handle, "diffrn_id"));
-		_CBF_CALL(cbf_get_value(handle, &key->diffrn));
-
-		/* Ensure some basic structure is present */
-		_CBF_CALL(cbf_h5handle_require_detector(h5handle,&detector,0));
-
-
-		/* Convert the type: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "type")) {
-			const char * value;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			_CBF_CALL(cbf_H5Drequire_flstring(detector,0,"description",value));
-		}
-
-		/* Convert details: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "details")) {
-			const char * value;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			_CBF_CALL(cbf_H5Drequire_flstring(detector,0,"details",value));
-		}
-
-		/* Convert detector: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "detector")) {
-			const char * value;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			_CBF_CALL(cbf_H5Drequire_flstring(detector,0,"type",value));
-		}
-
-		/* Convert dtime: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "dtime")) {
-			const char * value;
-			double num = 0./0.;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			num = strtod(value,0);
-#ifdef CBF_USE_ULP
-			_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(detector,0,"dead_time",num,cmp_double,&cmp_params));
-#else
-            _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(detector,0,"dead_time",num,cmp_double));
-#endif
-		}
-
-		return error;
-	}
-
-	static int cbf_write_cbf_h5file__diffrn_measurement
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
-	{
-		int error = CBF_SUCCESS;
-
-		if (0) fprintf(stderr,"diffrn_measurement\n");
-
-		/* check arguments */
-		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!key || !key->diffrn) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-
-		/* select the category & row to work with, can then switch columns at will */
-		_CBF_CALL(cbf_find_category(handle, "diffrn_measurement"));
-		_CBF_CALL(cbf_find_column(handle, "diffrn_id"));
-		_CBF_CALL(cbf_find_row(handle, key->diffrn));
-
-		/*
-		NOTE: Don't convert keys: diffrn_id, id
-		*/
-		_CBF_CALL(cbf_find_column(handle, "id"));
-		_CBF_CALL(cbf_get_value(handle, &key->diffrn_measurement));
-
-		/* Convert the details: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "details")) {
-			const char * value;
-			hid_t goniometer = CBF_H5FAIL;
-			_CBF_CALL(cbf_H5Grequire(h5handle->nxinst,&goniometer,"goniometer"));
-			_CBF_CALL(cbf_H5Arequire_string(goniometer,"NX_class","NXgoniometer"));
-			_CBF_CALL(cbf_get_value(handle, &value));
-			_CBF_CALL(cbf_H5Drequire_flstring(goniometer,0,"details",value));
-			cbf_H5Gfree(goniometer);
-		}
-
-		/* Convert the device_type: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "device_type")) {
-			const char * value;
-			hid_t goniometer = CBF_H5FAIL;
-			_CBF_CALL(cbf_H5Grequire(h5handle->nxinst,&goniometer,"goniometer"));
-			_CBF_CALL(cbf_H5Arequire_string(goniometer,"NX_class","NXgoniometer"));
-			_CBF_CALL(cbf_get_value(handle, &value));
-			_CBF_CALL(cbf_H5Drequire_flstring(goniometer,0,"type",value));
-			cbf_H5Gfree(goniometer);
-		}
-
-		/* Convert the device_details: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "device_details")) {
-			const char * value;
-			hid_t goniometer = CBF_H5FAIL;
-			_CBF_CALL(cbf_H5Grequire(h5handle->nxinst,&goniometer,"goniometer"));
-			_CBF_CALL(cbf_H5Arequire_string(goniometer,"NX_class","NXgoniometer"));
-			_CBF_CALL(cbf_get_value(handle, &value));
-			_CBF_CALL(cbf_H5Drequire_flstring(goniometer,0,"description",value));
-			cbf_H5Gfree(goniometer);
-		}
-
-		/* Convert the device: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "device")) {
-			const char * value;
-			hid_t goniometer = CBF_H5FAIL;
-			_CBF_CALL(cbf_H5Grequire(h5handle->nxinst,&goniometer,"goniometer"));
-			_CBF_CALL(cbf_H5Arequire_string(goniometer,"NX_class","NXgoniometer"));
-			_CBF_CALL(cbf_get_value(handle, &value));
-			_CBF_CALL(cbf_H5Drequire_flstring(goniometer,0,"local_name",value));
-			cbf_H5Gfree(goniometer);
-		}
-
-		/* Convert the sample_detector_distance: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "sample_detector_distance")) {
-			hid_t dset = CBF_H5FAIL;
-			const char * value;
-			double num = 0./0.;
-			const hsize_t max[] = {H5S_UNLIMITED};
-			const hsize_t cnk[] = {1};
-			const hsize_t offset[] = {h5handle->slice};
-			const hsize_t count[] = {1};
-			hsize_t buf[] = {0};
-			_CBF_CALL(cbf_get_value(handle, &value));
-			num = strtod(value,0);
-			_CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dset,"distance",1,max,cnk,buf,H5T_IEEE_F64LE));
-			_CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
-			_CBF_CALL(cbf_H5Arequire_string(dset,"units","mm"));
-			cbf_H5Dfree(dset);
-		}
-
-		return error;
-	}
-
-	static int cbf_write_cbf_h5file__diffrn_radiation_wavelength
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
-	{
-		int error = CBF_SUCCESS;
-		hid_t monochromator = CBF_H5FAIL;
-#ifdef CBF_USE_ULP
-		cmp_double_param_t cmp_params;
-
-		/* set up the comparison parameters */
-		cmp_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
-		cmp_params.ulp32 = h5handle->float_ulp;
-#ifndef NO_UINT64_TYPE
-		cmp_params.ulp64 = h5handle->double_ulp;
-#endif
-#endif
-		if (0) fprintf(stderr,"diffrn_radiation_wavelength\n");
-
-		/* check arguments */
-		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!key || !key->wavelength_id) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-
-		/* select the category & row to work with, can then switch columns at will */
-		_CBF_CALL(cbf_find_category(handle, "diffrn_radiation_wavelength"));
-		_CBF_CALL(cbf_find_column(handle, "id"));
-		_CBF_CALL(cbf_find_row(handle, key->wavelength_id));
-
-		_CBF_CALL(cbf_H5Grequire(h5handle->nxinst,&monochromator,"monochromator"));
-		_CBF_CALL(cbf_H5Arequire_string(monochromator,"NX_class","NXmonochromator"));
-
-		/* convert the wavelength */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "wavelength")) {
-			hid_t dset = CBF_H5FAIL;
-			const char * value;
-			double num = 0./0.;
-			const hsize_t max[] = {H5S_UNLIMITED};
-			const hsize_t cnk[] = {1};
-			const hsize_t offset[] = {h5handle->slice};
-			const hsize_t count[] = {1};
-			hsize_t buf[] = {0};
-			_CBF_CALL(cbf_get_value(handle, &value));
-			num = strtod(value,0);
-			_CBF_CALL(cbf_H5Drequire(monochromator,&dset,"wavelength",1,max,cnk,buf,H5T_IEEE_F64LE));
-			_CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
-			_CBF_CALL(cbf_H5Arequire_string(dset,"units","A"));
-			cbf_H5Dfree(dset);
-		}
-
-		/* Convert the weight */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "wt")) {
-			hid_t dset = CBF_H5FAIL;
-			const char * value;
-			double num = 0./0.;
-			const hsize_t max[] = {H5S_UNLIMITED};
-			const hsize_t cnk[] = {1};
-			const hsize_t offset[] = {h5handle->slice};
-			const hsize_t count[] = {1};
-			hsize_t buf[] = {0};
-			_CBF_CALL(cbf_get_value(handle, &value));
-			num = strtod(value,0);
-			_CBF_CALL(cbf_H5Drequire(monochromator,&dset,"weight",1,max,cnk,buf,H5T_IEEE_F64LE));
-			_CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
-			cbf_H5Dfree(dset);
-		}
-
-		cbf_H5Gfree(monochromator);
-		return error;
-	}
-
-	static int cbf_write_cbf_h5file__diffrn_source
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
-	{
-		int error = CBF_SUCCESS;
-		hid_t source = CBF_H5FAIL;
-#ifdef CBF_USE_ULP
-		cmp_double_param_t cmp_params;
-
-		/* set up the comparison parameters */
-		cmp_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
-		cmp_params.ulp32 = h5handle->float_ulp;
-#ifndef NO_UINT64_TYPE
-		cmp_params.ulp64 = h5handle->double_ulp;
-#endif
-#endif
-		if (0) fprintf(stderr,"diffrn_source\n");
-
-		/* check arguments */
-		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!key || !key->diffrn) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-
-		/* select the category & row to work with, can then switch columns at will */
-		_CBF_CALL(cbf_find_category(handle, "diffrn_source"));
-		_CBF_CALL(cbf_find_column(handle, "diffrn_id"));
-		_CBF_CALL(cbf_find_row(handle, key->diffrn));
-
-		_CBF_CALL(cbf_H5Grequire(h5handle->nxinst,&source,"source"));
-		_CBF_CALL(cbf_H5Arequire_string(source,"NX_class","NXsource"));
-
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "current")) {
-			hid_t dset = CBF_H5FAIL;
-			const char * value;
-			double num = 0./0.;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			num = strtod(value,0);
-#ifdef CBF_USE_ULP
-			_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(source,&dset,"current",num,cmp_double,&cmp_params));
-#else
-            _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(source,&dset,"current",num,cmp_double));
-#endif
-			_CBF_CALL(cbf_H5Arequire_string(dset,"units","mA"));
-			cbf_H5Dfree(dset);
-		}
-
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "power")) {
-			hid_t dset = CBF_H5FAIL;
-			const char * value;
-			double num = 0./0.;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			num = strtod(value,0);
-#ifdef CBF_USE_ULP
-			_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(source,&dset,"power",num,cmp_double,&cmp_params));
-#else
-            _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(source,&dset,"power",num,cmp_double));
-#endif
-			_CBF_CALL(cbf_H5Arequire_string(dset,"units","kW"));
-			cbf_H5Dfree(dset);
-		}
-
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "source")) {
-			const char * value;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			_CBF_CALL(cbf_H5Drequire_flstring(source,0,"type",value));
-		}
-
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "target")) {
-			const char * value;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			_CBF_CALL(cbf_H5Drequire_flstring(source,0,"target_material",value));
-		}
-
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "type")) {
-			const char * value;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			_CBF_CALL(cbf_H5Drequire_flstring(source,0,"name",value));
-		}
-
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "voltage")) {
-			hid_t dset = CBF_H5FAIL;
-			const char * value;
-			double num = 0./0.;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			num = strtod(value,0);
-#ifdef CBF_USE_ULP
-			_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(source,&dset,"voltage",num,cmp_double,&cmp_params));
-#else
-            _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(source,&dset,"voltage",num,cmp_double));
-#endif
-			_CBF_CALL(cbf_H5Arequire_string(dset,"units","kV"));
-			cbf_H5Dfree(dset);
-		}
-
-		cbf_H5Gfree(source);
-		return error;
-	}
-
-	static int cbf_write_cbf_h5file__diffrn_radiation
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
-	{
-		int error = CBF_SUCCESS;
-		hid_t collimator = CBF_H5FAIL;
-		hid_t monochromator = CBF_H5FAIL;
-		hid_t source = CBF_H5FAIL;
-#ifdef CBF_USE_ULP
-		cmp_double_param_t cmp_params;
-
-		/* set up the comparison parameters */
-		cmp_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
-		cmp_params.ulp32 = h5handle->float_ulp;
-#ifndef NO_UINT64_TYPE
-		cmp_params.ulp64 = h5handle->double_ulp;
-#endif
-#endif
-
-		if (0) fprintf(stderr,"diffrn_radiation\n");
-
-		/* check arguments */
-		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!key || !key->diffrn) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-
-		/* select the category & row to work with, can then switch columns at will */
-		_CBF_CALL(cbf_find_category(handle, "diffrn_radiation"));
-		_CBF_CALL(cbf_find_column(handle, "diffrn_id"));
-		_CBF_CALL(cbf_find_row(handle, key->diffrn));
-
-		/* Ensure some basic structure is present */
-		_CBF_CALL(cbf_H5Grequire(h5handle->nxinst,&collimator,"collimator"));
-		_CBF_CALL(cbf_H5Arequire_string(collimator,"NX_class","NXcollimator"));
-		_CBF_CALL(cbf_H5Grequire(h5handle->nxinst,&source,"source"));
-		_CBF_CALL(cbf_H5Arequire_string(source,"NX_class","NXsource"));
-		_CBF_CALL(cbf_H5Grequire(h5handle->nxinst,&monochromator,"monochromator"));
-		_CBF_CALL(cbf_H5Arequire_string(monochromator,"NX_class","NXmonochromator"));
-
-		/* Convert the collimation: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "collimation")) {
-			const char * value;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			_CBF_CALL(cbf_H5Drequire_flstring(collimator,0,"description",value));
-		}
-
-		/* Convert the divergence: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "div_x_source")) {
-			hid_t dset = CBF_H5FAIL;
-			const char * value;
-			double num = 0./0.;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			num = strtod(value,0);
-#ifdef CBF_USE_ULP
-			_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(collimator,&dset,"divergence_x",num,cmp_double,&cmp_params));
-#else
-            _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(collimator,&dset,"divergence_x",num,cmp_double));
-#endif
-			_CBF_CALL(cbf_H5Arequire_string(dset,"units","degrees"));
-			cbf_H5Dfree(dset);
-		}
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "div_y_source")) {
-			hid_t dset = CBF_H5FAIL;
-			const char * value;
-			double num = 0./0.;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			num = strtod(value,0);
-#ifdef CBF_USE_ULP
-			_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(collimator,&dset,"divergence_y",num,cmp_double,&cmp_params));
-#else
-            _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(collimator,&dset,"divergence_y",num,cmp_double));
-#endif
-			_CBF_CALL(cbf_H5Arequire_string(dset,"units","degrees"));
-			cbf_H5Dfree(dset);
-		}
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "div_x_y_source")) {
-			hid_t dset = CBF_H5FAIL;
-			const char * value;
-			double num = 0./0.;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			num = strtod(value,0);
-#ifdef CBF_USE_ULP
-			_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(collimator,&dset,"divergence_xy",num,cmp_double,&cmp_params));
-#else
-            _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(collimator,&dset,"divergence_xy",num,cmp_double));
-#endif
-			_CBF_CALL(cbf_H5Arequire_string(dset,"units","degrees-2"));
-			cbf_H5Dfree(dset);
-		}
-
-		/* Convert the imhomgeneity: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "inhomogeneity")) {
-			hid_t dset = CBF_H5FAIL;
-			const char * value;
-			double num = 0./0.;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			num = 2.0*strtod(value,0);
-#ifdef CBF_USE_ULP            
-			_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(source,&dset,"sigma_x",num,cmp_double,&cmp_params));
-#else
-			_CBF_CALL(cbf_H5Drequire_scalar_F64LE2(source,&dset,"sigma_x",num,cmp_double));
-#endif
-			_CBF_CALL(cbf_H5Arequire_string(dset,"units","mm"));
-			cbf_H5Dfree(dset);
-#ifdef CBF_USE_ULP
-			_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(source,&dset,"sigma_y",num,cmp_double,&cmp_params));
-#else
-            _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(source,&dset,"sigma_y",num,cmp_double));
-#endif
-			_CBF_CALL(cbf_H5Arequire_string(dset,"units","mm"));
-			cbf_H5Dfree(dset);
-		}
-
-		/* Convert the probe: */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "probe")) {
-			const char * value;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			_CBF_CALL(cbf_H5Drequire_flstring(source,0,"probe",value));
-		}
-
-		/* convert the monochromator */
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "monochromator")) {
-			const char * value;
-			_CBF_CALL(cbf_get_value(handle, &value));
-			_CBF_CALL(cbf_H5Drequire_flstring(monochromator,0,"description",value));
-		}
-
-		/* convert the polarisn_source{_norm,_ratio}
-		NOTE: don't define PI, use acos(-1.0) to get it to machine accuracy for every machine - including
-		double-extended machines & hypothetical future quad-precision machines - without risking typos.
-		*/
-		if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "polarizn_source_norm")) {
-			const char * norm;
-			double two_theta = 0./0.;
-			_CBF_CALL(cbf_get_value(handle, &norm));
-			two_theta = strtod(norm,0);
-			two_theta *= acos(-1.0)/90.0;
-			if (CBF_SUCCESS == error && CBF_SUCCESS == cbf_find_column(handle, "polarizn_source_ratio")) {
-				const char * ratio;
-				double rho = 0./0.;
-				const hsize_t max[] = {H5S_UNLIMITED,4};
-				const hsize_t chunk[] = {1,4};
-				hsize_t buf[] = {0,0};
-				hid_t sample = CBF_H5FAIL;
-				hid_t beam = CBF_H5FAIL;
-				_CBF_CALL(cbf_get_value(handle, &ratio));
-				rho = strtod(ratio,0);
-				_CBF_CALL(cbf_h5handle_require_sample(h5handle,&sample));
-				_CBF_CALL(cbf_H5Grequire(sample,&beam,"beam"));
-				_CBF_CALL(cbf_H5Arequire_string(beam,"NX_class","NXbeam"));
-				if (CBF_SUCCESS == error) {
-				hid_t dset = CBF_H5FAIL;
-					const hsize_t offset[] = {h5handle->slice,0};
-					const hsize_t count[] = {1,4};
-					const double value[] = {1.0,rho*cos(two_theta),rho*sin(two_theta),0.0};
-					_CBF_CALL(cbf_H5Drequire(beam,&dset,"incident_polarization_stokes",2,max,chunk,buf,H5T_IEEE_F64LE));
-					_CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,value,H5T_NATIVE_DOUBLE));
-					cbf_H5Dfree(dset);
-				}
-				cbf_H5Gfree(beam);
-			}
-		}
-
-		_CBF_CALL(cbf_find_column(handle, "wavelength_id"));
-		_CBF_CALL(cbf_get_value(handle, &key->wavelength_id));
-
-		cbf_H5Gfree(collimator);
-		cbf_H5Gfree(monochromator);
-		cbf_H5Gfree(source);
 		return error;
 	}
 
 	/*
-	Function to convert a CBF axis to a NeXus axis, writing to a specified HDF5 group & returning the resulting HDF5 dataset.
-	*/
-	static int cbf_write_cbfaxis_h5file
-			(cbf_handle handle,
-			const char * const axis_id,
-			const char * * const axis_type,
-			double matrix[3][3],
-			hid_t dset,
-#ifdef CBF_USE_ULP
-			int (*cmp)(const void *, const void *, size_t, const void * const)
-            , const void * const cmp_params
-#else
-            int (*cmp)(const void *, const void *, size_t)
-#endif
-             )
+     Free 'cbf_axisData_t' object and all associated memory.
+     */
+	static int _cbf_free_axisData_t
+    (cbf_axisData_t * const axisData)
 	{
 		int error = CBF_SUCCESS;
-
-		if (0) fprintf(stderr,"write_cbfaxis_h5file\n");
-
-		/* check arguments */
-		if (!handle || !axis_id || !cbf_H5Ivalid(dset)) return CBF_ARGUMENT;
-
-		/* find the axis in the cbf file */
-		_CBF_CALL(cbf_find_category(handle, "axis"));
-		_CBF_CALL(cbf_find_column(handle, "id"));
-		_CBF_CALL(cbf_find_row(handle, axis_id));
-
-		/* check if I got the axis before trying to use it */
-		if (CBF_SUCCESS == error) {
-			{ /* verify the 'type' of axis */
-				const char * type = 0;
-				_CBF_CALL(cbf_find_column(handle, "type"));
-				_CBF_CALL(cbf_get_value(handle, &type));
-				if (!cbf_cistrcmp(type,"rotation")) {
-					_CBF_CALL(cbf_H5Arequire_string(dset,"transformation_type","rotation"));
-					_CBF_CALL(cbf_H5Arequire_string(dset,"units","degrees"));
-				} else if (!cbf_cistrcmp(type,"translation")) {
-					_CBF_CALL(cbf_H5Arequire_string(dset,"transformation_type","translation"));
-					_CBF_CALL(cbf_H5Arequire_string(dset,"units","mm"));
-				} else {
-					_CBF_CALL(cbf_H5Arequire_string(dset,"transformation_type","general"));
-				}
-				if (axis_type) *axis_type = type;
-			}
-			{ /* get the coordinate system and transform the vector & offset */
-				const char * system = "laboratory";
-				if (!cbf_find_column(handle,"system")) {
-					_CBF_CALL(cbf_get_value(handle,&system));
-					if (!system||!system[0]) system = "laboratory";
-					if (cbf_cistrcmp(system,".")||cbf_cistrcmp(system,"?")) system = "laboratory";
-				}
-				if (cbf_cistrcmp(system,"laboratory")) {
-					fprintf(stderr,"%s: Error: unsupported coordinate system '%s' for axis '%s'\n",__WHERE__,system,axis_id);
-					error |= CBF_FORMAT;
-				} else {
-					double cbfvector[3], cbfoffset[3];
-					double vector[3], offset[3];
-					const hsize_t vdims[] = {3};
-					double buf[3] = {0./0.};
-					_CBF_CALL(cbf_get_axis_poise(handle, 0.,
-						(double *)cbfvector,(double *)cbfvector+1,(double *)cbfvector+2,
-						(double *)cbfoffset,(double *)cbfoffset+1,(double *)cbfoffset+2,
-						NULL,axis_id,NULL));
-					_CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
-					_CBF_CALL(cbf_apply_matrix(matrix,cbfoffset,offset));
-					/* Write the vector & offset */
-#ifdef CBF_USE_ULP
-					_CBF_CALL(cbf_H5Arequire_cmp2_ULP(dset,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,vector,buf,cmp,&cmp_params));
-					_CBF_CALL(cbf_H5Arequire_cmp2_ULP(dset,"offset",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,offset,buf,cmp,&cmp_params));
-#else
-					_CBF_CALL(cbf_H5Arequire_cmp2(dset,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,vector,buf,cmp));
-					_CBF_CALL(cbf_H5Arequire_cmp2(dset,"offset",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,offset,buf,cmp));
-#endif
-				}
-			}
+		if (!axisData) {
+			error |= CBF_ARGUMENT;
+		} else {
+			free((void*)axisData->name);
+			cbf_H5Dfree(axisData->axis);
+			free((void*)axisData);
 		}
-
 		return error;
 	}
 
-	static int cbf_write_cbf_h5file__diffrn_scan_axis
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-			 hid_t dset,
-			 double * const data,
-			 const char * const axis,
-			 const char * axis_type,
-			 cbf_key_t * const key)
+	typedef struct cbf_nx2cbf_key_t
+	{
+		/*
+         keys - should not be modified once created.
+         */
+		const char * array_id;
+		int binary_id;
+		const char * datablock_id;
+		const char * diffrn_id;
+		const char * diffrn_detector_id;
+		const char * diffrn_detector_element_id;
+		const char * diffrn_measurement_id;
+		const char * frame_id;
+		const char * scan_id;
+		const char * wavelength_id;
+		/*
+         tables - should be modified as data is added and
+         will be modified when the table is first created.
+         */
+		cbf_node * array_data;
+		cbf_node * array_element_size;
+		cbf_node * array_intensities;
+		cbf_node * diffrn;
+		cbf_node * diffrn_data_frame;
+		cbf_node * diffrn_detector;
+		cbf_node * diffrn_detector_element;
+		cbf_node * diffrn_measurement;
+		cbf_node * diffrn_radiation;
+		cbf_node * diffrn_radiation_wavelength;
+		cbf_node * diffrn_scan;
+		cbf_node * diffrn_scan_frame;
+		cbf_node * diffrn_source;
+		/*
+         number of frames of data in the file - many array
+         data items must be scalar, have 1 element or be
+         this length.
+         */
+		hsize_t frames;
+		hsize_t xdim;
+		hsize_t ydim;
+		/* axes */
+		cbf_axisData_t * * axisData;
+		size_t nAxes;
+		/* other data */
+		int has_scaling_factor;
+		int has_offset;
+		unsigned int indent;
+	} cbf_nx2cbf_key_t;
+
+	static int _cbf_create_nx2cbf_key
+    (cbf_nx2cbf_key_t * const key)
 	{
 		int error = CBF_SUCCESS;
-		unsigned int data_row = 0;
-
-		if (0) fprintf(stderr,"diffrn_scan_axis\n");
-
-		/* check arguments */
-		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!data) {
-			fprintf(stderr,"%s: No data pointer given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!axis) {
-			fprintf(stderr,"%s: No axis given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!axis_type) {
-			fprintf(stderr,"%s: No axis type given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!cbf_H5Ivalid(dset)) {
-			fprintf(stderr,"%s: Invalid dataset handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!key || !key->scan) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-
-		_CBF_CALL(cbf_find_category(handle, "diffrn_scan_axis"));
-		_CBF_CALL(cbf_rewind_column(handle));
-		data_row = 0;
-		while (CBF_SUCCESS == error) {
-			const char * dsa_axis = 0;
-			const char * dsa_scan = 0;
-			if (CBF_SUCCESS == error) {
-				const int match_error = cbf_select_row(handle,data_row);
-				if (CBF_NOTFOUND == match_error) {
-					fprintf(stderr,"%s: Row could not be found\n",__WHERE__);
-					break;
-				}
-				error |= match_error;
-				if (CBF_SUCCESS != match_error) {
-					fprintf(stderr,"%s: Error selecting a row: %s\n",__WHERE__,cbf_strerror(match_error));
-					break;
-				}
-			}
-			_CBF_CALL(cbf_find_column(handle, "axis_id"));
-			_CBF_CALL(cbf_get_value(handle, &dsa_axis));
-			_CBF_CALL(cbf_find_column(handle, "scan_id"));
-			_CBF_CALL(cbf_get_value(handle, &dsa_scan));
-			if (CBF_SUCCESS == error && !cbf_cistrcmp(dsa_axis,axis) && !cbf_cistrcmp(dsa_scan,key->scan)) {
-				if (0 == h5handle->slice) {
-					/*
-					I am at the start of a scan, so can read the data from CBF's 'xyz_start'. If it
-					doesn't exist then assume it starts at 0.0, report any other error as actual problems.
-					*/
-					int err = CBF_SUCCESS;
-					/* select the appropriate data to read */
-					if (!cbf_cistrcmp(axis_type, "translation")) {
-						err = cbf_find_column(handle, "displacement_start");
-					} else if (!cbf_cistrcmp(axis_type, "rotation")) {
-						err = cbf_find_column(handle, "angle_start");
-					} else {
-						fprintf(stderr,"%s: Error: Unexpected axis type\n",__WHERE__);
-						err = CBF_FORMAT;
-					}
-					/* I have a suitable source of data selected in the handle */
-					if (CBF_SUCCESS == err) {
-						const char * num = 0;
-						_CBF_CALL(cbf_get_value(handle, &num));
-						*data = strtod(num,0);
-					} else if (CBF_NOTFOUND == err) {
-						/* assume a start value of 0.0 if no data given */
-						*data = 0.;
-					} else {
-						error |= err;
-					}
-				} else {
-					/*
-					Look for some approprite data for the axis type. Get the value in the previous
-					NeXus frame (by index) for extrapolation, or NaN. Increment it by a value
-					obtained from the CBF file. Both the 'xyz_increment' and 'xyz_rstrt_incr' need
-					to be found and added to the previous data item.
-					*/
-					double prev = 0./0., inc = 0.;
-					hsize_t offset[] = {h5handle->slice-1};
-					hsize_t count[] = {1};
-					/* extract the previous datapoint */
-					_CBF_CALL(cbf_H5Dread2(dset,offset,0,count,&prev,H5T_NATIVE_DOUBLE));
-					/* find how much it should be incremented */
-					if (!cbf_cistrcmp(axis_type, "translation")) {
-						int err = CBF_SUCCESS;
-						err = cbf_find_column(handle, "displacement_increment");
-						if (CBF_SUCCESS == err) {
-							const char * num = 0;
-							_CBF_CALL(cbf_get_value(handle, &num));
-							inc += strtod(num,0);
-						} else if (CBF_NOTFOUND != err) {
-							error |= err;
-						}
-						err = cbf_find_column(handle, "displacement_rstrt_incr");
-						if (CBF_SUCCESS == err) {
-							const char * num = 0;
-							_CBF_CALL(cbf_get_value(handle, &num));
-							inc += strtod(num,0);
-						} else if (CBF_NOTFOUND != err) {
-							error |= err;
-						}
-					} else if (!cbf_cistrcmp(axis_type, "rotation")) {
-						int err = CBF_SUCCESS;
-						err = cbf_find_column(handle, "angle_increment");
-						if (CBF_SUCCESS == err) {
-							const char * num = 0;
-							_CBF_CALL(cbf_get_value(handle, &num));
-							inc += strtod(num,0);
-						} else if (CBF_NOTFOUND != err) {
-							error |= err;
-						}
-						err = cbf_find_column(handle, "angle_rstrt_incr");
-						if (CBF_SUCCESS == err) {
-							const char * num = 0;
-							_CBF_CALL(cbf_get_value(handle, &num));
-							inc += strtod(num,0);
-						} else if (CBF_NOTFOUND != err) {
-							error |= err;
-						}
-					} else {
-						fprintf(stderr,"%s: Error: Unexpected axis type\n",__WHERE__);
-						error |= CBF_FORMAT;
-					}
-					/* get the extrapolated datapoint */
-					*data = prev+inc;
-				}
-				break;
-			}
-			++data_row;
-		}
-
-		return error;
-	}
-
-	static int cbf_write_cbf_h5file__diffrn_scan_frame_axis
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-			 hid_t dset,
-			 const char * const axis,
-			 const char * axis_type,
-			 cbf_key_t * const key)
-	{
-		int error = CBF_SUCCESS;
-
-		if (0) fprintf(stderr,"diffrn_scan_frame_axis\n");
-
-		/* check arguments */
-		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!axis) {
-			fprintf(stderr,"%s: No axis given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!axis_type) {
-			fprintf(stderr,"%s: No axis type given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!cbf_H5Ivalid(dset)) {
-			fprintf(stderr,"%s: Invalid dataset handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!key || !key->frame) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-
-		{
-			int match_error = CBF_SUCCESS;
-			/* the data to be written to the file */
-			double data = 0./0.;
-			unsigned int data_row = 0;
-			/* check for absolute settings in the CBF file, use them if available */
-			_CBF_CALL(cbf_find_category(handle, "diffrn_scan_frame_axis"));
-			_CBF_CALL(cbf_rewind_column(handle));
-			while (CBF_SUCCESS == error) {
-				const char * dsfa_axis = 0;
-				const char * dsfa_frame = 0;
-				if (CBF_SUCCESS == error) {
-					match_error = cbf_select_row(handle,data_row);
-					if (CBF_NOTFOUND == match_error) {
-						fprintf(stderr,"%s: Row could not be found\n",__WHERE__);
-						break;
-					}
-					error |= match_error;
-					if (CBF_SUCCESS != match_error) {
-						fprintf(stderr,"%s: Error selecting a row: %s\n",__WHERE__,cbf_strerror(match_error));
-						break;
-					}
-				}
-				_CBF_CALL(cbf_find_column(handle, "axis_id"));
-				_CBF_CALL(cbf_get_value(handle, &dsfa_axis));
-				_CBF_CALL(cbf_find_column(handle, "frame_id"));
-				_CBF_CALL(cbf_get_value(handle, &dsfa_frame));
-				if (CBF_SUCCESS == error && !cbf_cistrcmp(dsfa_axis,axis) && !cbf_cistrcmp(dsfa_frame,key->frame)) {
-					/* I have found some valid data, extract it or complain that it doesn't exist */
-					if (!cbf_cistrcmp(axis_type, "translation")) {
-						const char * num = 0;
-						_CBF_CALL(cbf_find_column(handle, "displacement"));
-						_CBF_CALL(cbf_get_value(handle, &num));
-						data = strtod(num,0);
-					} else if (!cbf_cistrcmp(axis_type, "rotation")) {
-						const char * num = 0;
-						_CBF_CALL(cbf_find_column(handle, "angle"));
-						_CBF_CALL(cbf_get_value(handle, &num));
-						data = strtod(num,0);
-					} else {
-						fprintf(stderr,"%s: Error: Unexpected axis type\n",__WHERE__);
-						error |= CBF_FORMAT;
-					}
-					break;
-				}
-				++data_row;
-			}
-			/* otherwise, extrapolate a value from the preceeding frame and other CBF data */
-			if (CBF_NOTFOUND == match_error) {
-				_CBF_CALL(cbf_write_cbf_h5file__diffrn_scan_axis(handle, h5handle, dset, &data, axis, axis_type, key));
-			}
-			/* write the data, if I have any */
-			if (CBF_SUCCESS == error) {
-				/* size parameters defining the data size & location */
-				const hsize_t offset[] = {h5handle->slice};
-				const hsize_t count[] = {1};
-				hsize_t buf[] = {0};
-				_CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,&data,H5T_NATIVE_DOUBLE));
-			} else {
-				/* if I can't do anything, complain: it's a big problem */
-				fprintf(stderr,"%s: Error: Could not write axis data\n",__WHERE__);
-				error |= CBF_FORMAT;
-			}
-		}
-
-		return error;
-	}
-
-	/* check the dependency chain */
-	static int cbf_check_axis_dependency_chain
-			(const cbf_axisIndex_t * const axisIndex,
-			 const char * * const object_dependency,
-			 const cbf_key_t * const key)
-	{
-		int error = CBF_SUCCESS;
-		const unsigned int * it;
-		const unsigned int * const end = axisIndex->d+axisIndex->c;
-		const unsigned int * in_zero = end;
-
-		if (!axisIndex) {
-			fprintf(stderr,"%s: Error: Bad axis index given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
 		if (!key) {
-			fprintf(stderr,"%s: Error: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
+			error |= CBF_ARGUMENT;
+		} else {
+			/* keys */
+			key->array_id = NULL;
+			key->binary_id = 0;
+			key->datablock_id = NULL;
+			key->diffrn_id = NULL;
+			key->diffrn_detector_id = NULL;
+			key->diffrn_detector_element_id = NULL;
+			key->diffrn_measurement_id = NULL;
+			key->frame_id = NULL;
+			key->scan_id = NULL;
+			key->wavelength_id = NULL;
+			/* tables */
+			key->array_data = NULL;
+			key->array_element_size = NULL;
+			key->array_intensities = NULL;
+			key->diffrn = NULL;
+			key->diffrn_data_frame = NULL;
+			key->diffrn_detector = NULL;
+			key->diffrn_detector_element = NULL;
+			key->diffrn_measurement = NULL;
+			key->diffrn_radiation = NULL;
+			key->diffrn_radiation_wavelength = NULL;
+			key->diffrn_scan = NULL;
+			key->diffrn_scan_frame = NULL;
+			key->diffrn_source = NULL;
+			/* other */
+			key->frames = 0;
+			key->xdim = 0;
+			key->ydim = 0;
+			key->axisData = NULL;
+			key->nAxes = 0;
+			key->has_scaling_factor = 0;
+			key->has_offset = 0;
+			key->indent = 0;
 		}
-
-		/* set in_degree to zero for all axes in this subset */
-		for (it = axisIndex->d; it != end; ++it) {
-			if (0) {
-				fprintf(stderr,"%d: ('%s','%s','%s')\n",*it,
-						key->axis.axis_id[*it],
-						key->axis.depends_on[*it],
-						key->axis.path[*it]);
+		return error;
+	}
+    
+	static int _cbf_free_nx2cbf_key
+    (cbf_nx2cbf_key_t * const key)
+	{
+		int error = CBF_SUCCESS;
+		if (!key) {
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_axisData_t * const * it = key->axisData;
+			cbf_axisData_t * const * const end = key->axisData+key->nAxes;
+			for (; end != it; ++it) {
+				error |= _cbf_free_axisData_t(*it);
 			}
-			key->axis.in_degree[*it] = 0;
+			free((void*)key->axisData);
 		}
-
-		/* calculate the in_degree for axes in this subset */
-		for (it = axisIndex->d; it != end; ++it) {
-			const char * const depends_on = key->axis.depends_on[*it];
-			const unsigned int * it2;
-			for (it2 = axisIndex->d; it2 != end; ++it2) {
-				if (!cbf_cistrcmp(depends_on,key->axis.axis_id[*it2])) {
-					++key->axis.in_degree[*it2];
-					break;
-				}
+		return error;
+	}
+    
+	static int _cbf_nx2cbf_key_require_axis
+    (cbf_nx2cbf_key_t * const key, /* key object to add the axis too */
+     cbf_axisData_t * * const newAxisData, /* place to store a pointer to the new or existing axis data */
+     const hid_t axis, /* the HDF5 dataset where the axis is stored */
+     const char * const name, /* a name for the axis */
+     cbf_axisEquipment_e equipment /* CBF's 'axis.equipment' data item */)
+	{
+		int error = CBF_SUCCESS;
+		if (!key || !cbf_H5Ivalid(axis) || !name) {
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_axisData_t * const * it = key->axisData;
+			cbf_axisData_t * const * const end = key->axisData+key->nAxes;
+			/* search the list of axes for the dataset */
+			for (; end != it; ++it) {
+				const htri_t cmp = cbf_H5Ocmp((*it)->axis,axis);
+				if (cmp < 0) error |= CBF_H5ERROR;
+				else if (!cmp) break;
 			}
-		}
-
-		/* ensure there is only one axis in the subset with in_degree == 0, and find it */
-		for (it = axisIndex->d; it != end; ++it) {
-			if (key->axis.in_degree[*it] == 0) {
-				if (in_zero == end) {
-					in_zero = it;
+			/* if not found, add it */
+			if (end==it) {
+				const size_t nAxes = key->nAxes;
+				cbf_axisData_t * * const axisData = realloc(key->axisData,sizeof(cbf_axisData_t*)*(1+key->nAxes));
+				if (!axisData) {
+					error |= CBF_ALLOC;
 				} else {
-					fprintf(stderr,"%s: Error: Axis branching detected.\n",__WHERE__);
-					error |= CBF_UNDEFINED;
+					++key->nAxes;
+					key->axisData = axisData;
+					if (CBF_SUCCESS!=(error|=_cbf_create_axisData_t(axisData+nAxes))) {
+                        cbf_debug_print(cbf_strerror(error));
+ 					} else {
+						cbf_axisData_t * const data = axisData[nAxes];
+						*newAxisData = data;
+						data->axis = axis;
+						data->name = _cbf_strdup(name);
+						data->equipment = equipment;
+					}
 				}
-			} else if (key->axis.in_degree[*it] > 1) {
-				fprintf(stderr,"%s: Error: Axis branching detected.\n",__WHERE__);
-				error |= CBF_UNDEFINED;
+			} else {
+				*newAxisData = *it;
 			}
 		}
-
-		/* check the dependency chain has 'axisIndex->count' items, to ensure it's free of cycles */
-		if (CBF_SUCCESS == error) {
-			unsigned int count = 0;
-			it = in_zero;
-			/* whilst I have a valid iterator: */
-			while (it != end) {
-				/* increment the number of visited indices, and cache the current 'depends_on' value */
-				++count;
-				const char * depends_on = key->axis.depends_on[*it];
-				/*
-				Search for a matching axis in this subset, finishing in a state
-				where 'it' will be valid on the next iteration iff I have a match.
-				*/
-				for (it = axisIndex->d; it != end; ++it) {
-					if (!cbf_cistrcmp(depends_on,key->axis.axis_id[*it])) break;
-				}
-			}
-			/* I have no cycles iff every axis in the subset was visited */
-			if (count != axisIndex->c) {
-				fprintf(stderr,"%s: Error: One or more dependency cycles have been detected.\n",__WHERE__);
-				error |= CBF_UNDEFINED;
-			}
+		return error;
+	}
+    
+	/*
+     Declare a bunch of table manipulation functions, because they call each other to ensure everything is defined.
+     TODO: Update these to return successfully if a row with the given keys already exists,
+     to prevent problems where duplicate rows could be created.
+     */
+	static int _cbf_nx2cbf_table__array_data
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table);
+	static int _cbf_nx2cbf_table__array_intensities
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table);
+	static int _cbf_nx2cbf_table__diffrn
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table);
+	static int _cbf_nx2cbf_table__diffrn_data_frame
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table);
+	static int _cbf_nx2cbf_table__diffrn_detector
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table);
+	static int _cbf_nx2cbf_table__diffrn_detector_element
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table);
+	static int _cbf_nx2cbf_table__diffrn_measurement
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table);
+	static int _cbf_nx2cbf_table__diffrn_radiation
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table);
+	static int _cbf_nx2cbf_table__diffrn_radiation_wavelength
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table);
+	static int _cbf_nx2cbf_table__diffrn_scan
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table);
+	static int _cbf_nx2cbf_table__diffrn_scan_frame
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table);
+	static int _cbf_nx2cbf_table__diffrn_source
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table);
+    
+	static int _cbf_nx2cbf_table__array_data
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table)
+	{
+		int error = CBF_SUCCESS;
+        
+		/* check arguments */
+		if (!cbf) {
+			cbf_debug_print("invalid CBF handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!table || !table->datablock_id || !table->array_id || !table->binary_id) {
+			cbf_debug_print("invalid table list given");
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * * const node = &table->array_data;
+			if (!*node) {
+				/* create the table & store the node */
+				CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+				CBF_CALL(cbf_require_category(cbf,"array_data"));
+				*node = cbf->node;
+                
+				/* populate the table with all the required keys */
+				CBF_CALL(cbf_require_column(cbf,"array_id"));
+				CBF_CALL(cbf_new_row(cbf));
+				CBF_CALL(cbf_set_value(cbf,table->array_id));
+				CBF_CALL(cbf_require_column(cbf,"binary_id"));
+				CBF_CALL(cbf_set_integervalue(cbf,table->binary_id));
+                
+				/* ensure foreign keys are well-defined */
+		}
+			/* set the handle to a sensible state */
+			cbf->node = *node;
+		}
+        
+		return error;
 		}
 
-		/* if all went well record the dependency for the object */
-		if (CBF_SUCCESS == error) {
-			if (0) fprintf(stderr,"Can write dependencies!\n");
-			*object_dependency = key->axis.axis_id[*in_zero];
-			key->axis.is_leaf[*in_zero] = 1;
+	static int _cbf_nx2cbf_table__array_intensities
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table)
+	{
+		int error = CBF_SUCCESS;
+
+		/* check arguments */
+		if (!cbf) {
+			cbf_debug_print("invalid CBF handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!table || !table->datablock_id || !table->array_id || !table->binary_id) {
+			cbf_debug_print("invalid table list given");
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * * const node = &table->array_intensities;
+			if (!*node) {
+				/* create the table & store the node */
+				CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+				CBF_CALL(cbf_require_category(cbf,"array_intensities"));
+				*node = cbf->node;
+                
+				/* populate the table with all the required keys */
+				CBF_CALL(cbf_require_column(cbf,"array_id"));
+				CBF_CALL(cbf_new_row(cbf));
+				CBF_CALL(cbf_set_value(cbf,table->array_id));
+				CBF_CALL(cbf_require_column(cbf,"binary_id"));
+				CBF_CALL(cbf_set_integervalue(cbf,table->binary_id));
+                
+				/* ensure foreign keys are well-defined */
+			}
+			/* set the handle to a sensible state */
+			cbf->node = *node;
+		}
+        
+		return error;
+	}
+    
+	static int _cbf_nx2cbf_table__diffrn
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table)
+		{
+		int error = CBF_SUCCESS;
+        
+		/* check arguments */
+		if (!cbf) {
+			cbf_debug_print("invalid CBF handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!table || !table->datablock_id || !table->diffrn_id) {
+			cbf_debug_print("invalid table list given");
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * * const node = &table->diffrn;
+			if (!*node) {
+				/* create the table & store the node */
+				CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+				CBF_CALL(cbf_require_category(cbf,"diffrn"));
+				*node = cbf->node;
+                
+				/* populate the table with all the required keys */
+				CBF_CALL(cbf_require_column(cbf,"id"));
+				CBF_CALL(cbf_new_row(cbf));
+				CBF_CALL(cbf_set_value(cbf,table->diffrn_id));
+                
+				/* ensure foreign keys are well-defined */
+		}
+			/* set the handle to a sensible state */
+			cbf->node = *node;
+		}
+
+		return error;
+		}
+
+	static int _cbf_nx2cbf_table__diffrn_data_frame
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table)
+	{
+		int error = CBF_SUCCESS;
+        
+		/* check arguments */
+		if (!cbf) {
+			cbf_debug_print("invalid CBF handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!table || !table->datablock_id || !table->diffrn_id) {
+			cbf_debug_print("invalid table list given");
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * * const node = &table->diffrn_data_frame;
+			if (!*node) {
+				/* create the table & store the node */
+				CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+				CBF_CALL(cbf_require_category(cbf,"diffrn_data_frame"));
+				*node = cbf->node;
+                
+				/* populate the table with all the required keys */
+				CBF_CALL(cbf_require_column(cbf,"id"));
+				CBF_CALL(cbf_new_row(cbf));
+				CBF_CALL(cbf_set_value(cbf,table->frame_id));
+				CBF_CALL(cbf_require_column(cbf,"array_id"));
+				CBF_CALL(cbf_set_value(cbf,table->array_id));
+				CBF_CALL(cbf_require_column(cbf,"binary_id"));
+				CBF_CALL(cbf_set_integervalue(cbf,table->binary_id));
+				CBF_CALL(cbf_require_column(cbf,"detector_element_id"));
+				CBF_CALL(cbf_set_value(cbf,table->diffrn_detector_element_id));
+                
+				/* ensure foreign keys are well-defined */
+				CBF_CALL(_cbf_nx2cbf_table__diffrn_detector_element(cbf,nx,table));
+		}
+			/* set the handle to a sensible state */
+			cbf->node = *node;
 		}
 
 		return error;
 	}
 
-	static int cbf_write_cbf_h5file__diffrn_detector_axis
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
+	static int _cbf_nx2cbf_table__diffrn_detector
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table)
 	{
 		int error = CBF_SUCCESS;
-		unsigned int axis_row = 0;
-		cbf_axisIndex_t * axisIndex = NULL;
+
+		/* check arguments */
+		if (!cbf) {
+			cbf_debug_print("invalid CBF handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!table || !table->datablock_id || !table->diffrn_id || !table->diffrn_detector_id) {
+			cbf_debug_print("invalid table list given");
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * * const node = &table->diffrn_detector;
+			if (!*node) {
+				/* create the table & store the node */
+				CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+				CBF_CALL(cbf_require_category(cbf,"diffrn_detector"));
+				*node = cbf->node;
+
+				/* populate the table with all the required keys */
+				CBF_CALL(cbf_require_column(cbf,"diffrn_id"));
+				CBF_CALL(cbf_new_row(cbf));
+				CBF_CALL(cbf_set_value(cbf,table->diffrn_id));
+				CBF_CALL(cbf_require_column(cbf,"id"));
+				CBF_CALL(cbf_set_value(cbf,table->diffrn_detector_id));
+
+				/* ensure foreign keys are well-defined */
+				CBF_CALL(_cbf_nx2cbf_table__diffrn(cbf,nx,table));
+			}
+			/* set the handle to a sensible state */
+			cbf->node = *node;
+		}
+        
+		return error;
+	}
+    
+	static int _cbf_nx2cbf_table__diffrn_detector_element
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table)
+	{
+		int error = CBF_SUCCESS;
+        
+		/* check arguments */
+		if (!cbf) {
+			cbf_debug_print("invalid CBF handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!table || !table->datablock_id || !table->diffrn_detector_id || !table->diffrn_detector_element_id) {
+			cbf_debug_print("invalid table list given");
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * * const node = &table->diffrn_detector_element;
+			if (!*node) {
+				/* create the table & store the node */
+				CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+				CBF_CALL(cbf_require_category(cbf,"diffrn_detector_element"));
+				*node = cbf->node;
+                
+				/* populate the table with all the required keys */
+				CBF_CALL(cbf_require_column(cbf,"id"));
+				CBF_CALL(cbf_new_row(cbf));
+				CBF_CALL(cbf_set_value(cbf,table->diffrn_detector_element_id));
+				CBF_CALL(cbf_require_column(cbf,"detector_id"));
+				CBF_CALL(cbf_set_value(cbf,table->diffrn_detector_id));
+                
+				/* ensure foreign keys are well-defined */
+				CBF_CALL(_cbf_nx2cbf_table__diffrn_detector(cbf,nx,table));
+		}
+			/* set the handle to a sensible state */
+			cbf->node = *node;
+		}
+        
+		return error;
+		}
+
+	static int _cbf_nx2cbf_table__diffrn_measurement
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table)
+	{
+		int error = CBF_SUCCESS;
+
+		/* check arguments */
+		if (!cbf) {
+			cbf_debug_print("invalid CBF handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!table || !table->datablock_id || !table->diffrn_id || !table->diffrn_measurement_id) {
+			cbf_debug_print("invalid table list given");
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * * const node = &table->diffrn_measurement;
+			if (!*node) {
+				/* create the table & store the node */
+				CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+				CBF_CALL(cbf_require_category(cbf,"diffrn_measurement"));
+				*node = cbf->node;
+
+				/* populate the table with all the required keys */
+				CBF_CALL(cbf_require_column(cbf,"diffrn_id"));
+				CBF_CALL(cbf_new_row(cbf));
+				CBF_CALL(cbf_set_value(cbf,table->diffrn_id));
+				CBF_CALL(cbf_require_column(cbf,"id"));
+				CBF_CALL(cbf_set_value(cbf,table->diffrn_measurement_id));
+
+				/* ensure foreign keys are well-defined */
+				CBF_CALL(_cbf_nx2cbf_table__diffrn(cbf,nx,table));
+		}
+			/* set the handle to a sensible state */
+			cbf->node = *node;
+		}
+
+		return error;
+		}
+
+	static int _cbf_nx2cbf_table__diffrn_radiation
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table)
+	{
+		int error = CBF_SUCCESS;
+        
+		/* check arguments */
+		if (!cbf) {
+			cbf_debug_print("invalid CBF handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!table || !table->diffrn_id) {
+			cbf_debug_print("invalid table list given");
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * * const node = &table->diffrn_radiation;
+			if (!*node) {
+				/* create the table & store the node */
+				CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+				CBF_CALL(cbf_require_category(cbf,"diffrn_radiation"));
+				*node = cbf->node;
+                
+				/* populate the table with all the required keys */
+				CBF_CALL(cbf_require_column(cbf,"diffrn_id"));
+				CBF_CALL(cbf_new_row(cbf));
+				CBF_CALL(cbf_set_value(cbf,table->diffrn_id));
+                
+				/* ensure foreign keys are well-defined */
+				CBF_CALL(_cbf_nx2cbf_table__diffrn(cbf,nx,table));
+		}
+			/* set the handle to a sensible state */
+			cbf->node = *node;
+		}
+
+		return error;
+		}
+
+	static int _cbf_nx2cbf_table__diffrn_radiation_wavelength
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table)
+	{
+		int error = CBF_SUCCESS;
+        
+		/* check arguments */
+		if (!cbf) {
+			cbf_debug_print("invalid CBF handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!table || !table->diffrn_id) {
+			cbf_debug_print("invalid table list given");
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * * const node = &table->diffrn_radiation_wavelength;
+			if (!*node) {
+				/* create the table & store the node */
+				CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+				CBF_CALL(cbf_require_category(cbf,"diffrn_radiation_wavelength"));
+				*node = cbf->node;
+                
+				/* populate the table with all the required keys */
+				CBF_CALL(cbf_require_column(cbf,"id"));
+				CBF_CALL(cbf_new_row(cbf));
+				CBF_CALL(cbf_set_value(cbf,table->wavelength_id));
+                
+				/* ensure foreign keys are well-defined */
+				CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
+				CBF_CALL(cbf_require_column(cbf,"wavelength_id"));
+				CBF_CALL(cbf_set_value(cbf,table->wavelength_id));
+			}
+			/* set the handle to a sensible state */
+			cbf->node = *node;
+		}
+        
+		return error;
+	}
+
+	static int _cbf_nx2cbf_table__diffrn_scan
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table)
+	{
+		int error = CBF_SUCCESS;
+
+		/* check arguments */
+		if (!cbf) {
+			cbf_debug_print("invalid CBF handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!table || !table->datablock_id || !table->scan_id) {
+			cbf_debug_print("invalid table list given");
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * * const node = &table->diffrn_scan;
+			if (!*node) {
+				/* create the table & store the node */
+				CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+				CBF_CALL(cbf_require_category(cbf,"diffrn_scan"));
+				*node = cbf->node;
+
+				/* populate the table with all the required keys */
+				CBF_CALL(cbf_require_column(cbf,"id"));
+				CBF_CALL(cbf_new_row(cbf));
+				CBF_CALL(cbf_set_value(cbf,table->scan_id));
+                
+				/* ensure foreign keys are well-defined */
+			}
+			/* set the handle to a sensible state */
+			cbf->node = *node;
+		}
+        
+		return error;
+	}
+    
+	static int _cbf_nx2cbf_table__diffrn_scan_frame
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table)
+	{
+		int error = CBF_SUCCESS;
+        
+		/* check arguments */
+		if (!cbf) {
+			cbf_debug_print("invalid CBF handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!nx) {
+			cbf_debug_print("invalid NeXus handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!table || !table->datablock_id || !table->frame_id || !table->scan_id) {
+			cbf_debug_print("invalid table list given");
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * * const node = &table->diffrn_scan_frame;
+			if (!*node) {
+				/* create the table & store the node */
+				CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+				CBF_CALL(cbf_require_category(cbf,"diffrn_scan_frame"));
+				*node = cbf->node;
+                
+				/* populate the table with all the required keys */
+				CBF_CALL(cbf_require_column(cbf,"frame_id"));
+				CBF_CALL(cbf_new_row(cbf));
+				CBF_CALL(cbf_set_value(cbf,table->frame_id));
+				CBF_CALL(cbf_require_column(cbf,"scan_id"));
+				CBF_CALL(cbf_set_value(cbf,table->scan_id));
+				CBF_CALL(cbf_require_column(cbf,"frame_number"));
+				CBF_CALL(cbf_set_integervalue(cbf,1+nx->slice));
+                
+				/* ensure foreign keys are well-defined */
+				CBF_CALL(_cbf_nx2cbf_table__diffrn_scan(cbf,nx,table));
+				CBF_CALL(_cbf_nx2cbf_table__diffrn_data_frame(cbf,nx,table));
+		}
+			/* set the handle to a sensible state */
+			cbf->node = *node;
+		}
+        
+		return error;
+		}
+
+	static int _cbf_nx2cbf_table__diffrn_source
+    (const cbf_handle cbf,
+     const cbf_h5handle nx,
+     cbf_nx2cbf_key_t * const table)
+	{
+		int error = CBF_SUCCESS;
+
+		/* check arguments */
+		if (!cbf) {
+			cbf_debug_print("invalid CBF handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!table || !table->diffrn_id) {
+			cbf_debug_print("invalid table list given");
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * * const node = &table->diffrn_source;
+			if (!*node) {
+				/* create the table & store the node */
+				CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+				CBF_CALL(cbf_require_category(cbf,"diffrn_source"));
+				*node = cbf->node;
+                
+				/* populate the table with all the required keys */
+				CBF_CALL(cbf_require_column(cbf,"diffrn_id"));
+				CBF_CALL(cbf_new_row(cbf));
+				CBF_CALL(cbf_set_value(cbf,table->diffrn_id));
+                
+				/* ensure foreign keys are well-defined */
+				CBF_CALL(_cbf_nx2cbf_table__diffrn(cbf,nx,table));
+			}
+			/* set the handle to a sensible state */
+			cbf->node = *node;
+		}
+        
+		return error;
+	}
+    
+		/*
+     Function to read a scalar string from a dataset
+		*/
+	static int _cbf_nx2cbfDread_scalar_string
+    (const hid_t data,
+     const char * * const value)
+	{
+		int error = CBF_SUCCESS;
+		if (!cbf_H5Ivalid(data) || !value) error |= CBF_ARGUMENT;
+		if (CBF_SUCCESS==error) {
+			hid_t data_type = CBF_H5FAIL;
+			H5T_class_t data_class = H5T_NO_CLASS;
+			if ((data_type=H5Dget_type(data))<0) {
+				cbf_debug_print("Couldn't get type of dataset");
+				error |= CBF_H5ERROR;
+			} else if (H5T_NO_CLASS==(data_class=H5Tget_class(data_type))) {
+				cbf_debug_print("Couldn't get class of datatype");
+				error |= CBF_H5ERROR;
+			} else if (H5T_STRING!=data_class) {
+				cbf_debug_print("Wrong class of datatype");
+				error |= CBF_H5DIFFERENT;
+			} else {
+				const htri_t vlstr = H5Tis_variable_str(data_type);
+				char * lvalue = NULL;
+				if (vlstr<0) {
+					cbf_debug_print("Couldn't check for a variable-length string");
+					error |= CBF_H5ERROR;
+				} else if (vlstr) {
+					/* I have a variable-length string */
+					if (H5Dread(data,data_type,H5S_ALL,H5S_ALL,H5P_DEFAULT,&lvalue)<0) {
+						cbf_debug_print("Couldn't read string");
+						error |= CBF_H5ERROR;
+					}
+				} else {
+					/* I have a fixed-length string */
+					const size_t len = H5Tget_size(data_type);
+					if (!len) {
+						cbf_debug_print("Couldn't get length of string");
+						error |= CBF_H5ERROR;
+					} else if (!(lvalue=malloc(len))) {
+						cbf_debug_print(cbf_strerror(CBF_ALLOC));
+						error |= CBF_ALLOC;
+					} else if (H5Dread(data,data_type,H5S_ALL,H5S_ALL,H5P_DEFAULT,lvalue)<0) {
+						cbf_debug_print("Couldn't read string");
+						error |= CBF_H5ERROR;
+					}
+				}
+				if (CBF_SUCCESS==error) *value = lvalue;
+			}
+			cbf_H5Tfree(data_type);
+		}
+		return error;
+	}
+
+	/* Functions to convert units for various kinds of data */
+    
+	static int cbf_convert_length
+    (const char * const original_units,
+     const char * const target_units,
+     double * const factor)
+	{
+		int error = CBF_SUCCESS;
+        
+		if (!original_units || !target_units || !factor) {
+			error = CBF_ARGUMENT;
+		} else {
+			/*
+             find the factor needed to convert to an arbitrary
+             standard intermediate form, ie metres
+             */
+			if (!strcmp("Ym",original_units)) *factor = 1e+24;
+			else if (!strcmp("Zm",original_units)) *factor = 1e+21;
+			else if (!strcmp("Em",original_units)) *factor = 1e+18;
+			else if (!strcmp("Pm",original_units)) *factor = 1e+15;
+			else if (!strcmp("Tm",original_units)) *factor = 1e+12;
+			else if (!strcmp("Gm",original_units)) *factor = 1e+9;
+			else if (!strcmp("Mm",original_units)) *factor = 1e+6;
+			else if (!strcmp("km",original_units)) *factor = 1e+3;
+			else if (!strcmp("hm",original_units)) *factor = 1e+2;
+			else if (!strcmp("dam",original_units)) *factor = 1e+1;
+			else if (!strcmp("m",original_units)) *factor = 1.;
+			else if (!strcmp("dm",original_units)) *factor = 1e-1;
+			else if (!strcmp("cm",original_units)) *factor = 1e-2;
+			else if (!strcmp("mm",original_units)) *factor = 1e-3;
+			else if (!strcmp("um",original_units)) *factor = 1e-6;
+			else if (!strcmp("nm",original_units)) *factor = 1e-9;
+			else if (!strcmp("pm",original_units)) *factor = 1e-12;
+			else if (!strcmp("fm",original_units)) *factor = 1e-15;
+			else if (!strcmp("am",original_units)) *factor = 1e-18;
+			else if (!strcmp("zm",original_units)) *factor = 1e-21;
+			else if (!strcmp("ym",original_units)) *factor = 1e-24;
+			else if (!strcmp("A",original_units)) *factor = 1e-10;
+			else error = CBF_ARGUMENT;
+            
+			/* find the factor for conversion from the intermediate form to the target units */
+			if (!strcmp("Ym",target_units)) *factor *= 1e-24;
+			else if (!strcmp("Zm",target_units)) *factor *= 1e-21;
+			else if (!strcmp("Em",target_units)) *factor *= 1e-18;
+			else if (!strcmp("Pm",target_units)) *factor *= 1e-15;
+			else if (!strcmp("Tm",target_units)) *factor *= 1e-12;
+			else if (!strcmp("Gm",target_units)) *factor *= 1e-9;
+			else if (!strcmp("Mm",target_units)) *factor *= 1e-6;
+			else if (!strcmp("km",target_units)) *factor *= 1e-3;
+			else if (!strcmp("hm",target_units)) *factor *= 1e-2;
+			else if (!strcmp("dam",target_units)) *factor *= 1e-1;
+			else if (!strcmp("m",target_units)) *factor *= 1.;
+			else if (!strcmp("dm",target_units)) *factor *= 1e+1;
+			else if (!strcmp("cm",target_units)) *factor *= 1e+2;
+			else if (!strcmp("mm",target_units)) *factor *= 1e+3;
+			else if (!strcmp("um",target_units)) *factor *= 1e+6;
+			else if (!strcmp("nm",target_units)) *factor *= 1e+9;
+			else if (!strcmp("pm",target_units)) *factor *= 1e+12;
+			else if (!strcmp("fm",target_units)) *factor *= 1e+15;
+			else if (!strcmp("am",target_units)) *factor *= 1e+18;
+			else if (!strcmp("zm",target_units)) *factor *= 1e+21;
+			else if (!strcmp("ym",target_units)) *factor *= 1e+24;
+			else if (!strcmp("A",target_units)) *factor *= 1e+10;
+			else error = CBF_ARGUMENT;
+		}
+
+		return error;
+		}
+
+	static int cbf_convert_time
+    (const char * const original_units,
+     const char * const target_units,
+     double * const factor)
+	{
+		int error = CBF_SUCCESS;
+        
+		/* check arguments */
+		if (!original_units || !target_units || !factor) {
+			error = CBF_ARGUMENT;
+		} else {
+			/*
+             find the factor needed to convert to an arbitrary
+             standard intermediate form, ie metres
+             */
+			if (!strcmp("Ys",original_units)) *factor = 1e+24;
+			else if (!strcmp("Zs",original_units)) *factor = 1e+21;
+			else if (!strcmp("Es",original_units)) *factor = 1e+18;
+			else if (!strcmp("Ps",original_units)) *factor = 1e+15;
+			else if (!strcmp("Ts",original_units)) *factor = 1e+12;
+			else if (!strcmp("Gs",original_units)) *factor = 1e+9;
+			else if (!strcmp("Ms",original_units)) *factor = 1e+6;
+			else if (!strcmp("ks",original_units)) *factor = 1e+3;
+			else if (!strcmp("hs",original_units)) *factor = 1e+2;
+			else if (!strcmp("das",original_units)) *factor = 1e+1;
+			else if (!strcmp("s",original_units)) *factor = 1.;
+			else if (!strcmp("ds",original_units)) *factor = 1e-1;
+			else if (!strcmp("cs",original_units)) *factor = 1e-2;
+			else if (!strcmp("ms",original_units)) *factor = 1e-3;
+			else if (!strcmp("us",original_units)) *factor = 1e-6;
+			else if (!strcmp("ns",original_units)) *factor = 1e-9;
+			else if (!strcmp("ps",original_units)) *factor = 1e-12;
+			else if (!strcmp("fs",original_units)) *factor = 1e-15;
+			else if (!strcmp("as",original_units)) *factor = 1e-18;
+			else if (!strcmp("zs",original_units)) *factor = 1e-21;
+			else if (!strcmp("ys",original_units)) *factor = 1e-24;
+			else error = CBF_ARGUMENT;
+            
+			/* find the factor for conversion from the intermediate form to the target units */
+			if (!strcmp("Ys",target_units)) *factor *= 1e-24;
+			else if (!strcmp("Zs",target_units)) *factor *= 1e-21;
+			else if (!strcmp("Es",target_units)) *factor *= 1e-18;
+			else if (!strcmp("Ps",target_units)) *factor *= 1e-15;
+			else if (!strcmp("Ts",target_units)) *factor *= 1e-12;
+			else if (!strcmp("Gs",target_units)) *factor *= 1e-9;
+			else if (!strcmp("Ms",target_units)) *factor *= 1e-6;
+			else if (!strcmp("ks",target_units)) *factor *= 1e-3;
+			else if (!strcmp("hs",target_units)) *factor *= 1e-2;
+			else if (!strcmp("das",target_units)) *factor *= 1e-1;
+			else if (!strcmp("s",target_units)) *factor *= 1.;
+			else if (!strcmp("ds",target_units)) *factor *= 1e+1;
+			else if (!strcmp("cs",target_units)) *factor *= 1e+2;
+			else if (!strcmp("ms",target_units)) *factor *= 1e+3;
+			else if (!strcmp("us",target_units)) *factor *= 1e+6;
+			else if (!strcmp("ns",target_units)) *factor *= 1e+9;
+			else if (!strcmp("ps",target_units)) *factor *= 1e+12;
+			else if (!strcmp("fs",target_units)) *factor *= 1e+15;
+			else if (!strcmp("as",target_units)) *factor *= 1e+18;
+			else if (!strcmp("zs",target_units)) *factor *= 1e+21;
+			else if (!strcmp("ys",target_units)) *factor *= 1e+24;
+			else error = CBF_ARGUMENT;
+		}
+
+		return error;
+		}
+
+	static int cbf_convert_energy
+    (const char * const original_units,
+     const char * const target_units,
+     double * const factor)
+	{
+		int error = CBF_SUCCESS;
+        
+		/* check arguments */
+		if (!original_units || !target_units || !factor) {
+			error = CBF_ARGUMENT;
+		} else {
+			/*
+             find the factor needed to convert to an arbitrary
+             standard intermediate form, ie metres
+             */
+			if (!strcmp("YeV",original_units)) *factor = 1e+24;
+			else if (!strcmp("ZeV",original_units)) *factor = 1e+21;
+			else if (!strcmp("EeV",original_units)) *factor = 1e+18;
+			else if (!strcmp("PeV",original_units)) *factor = 1e+15;
+			else if (!strcmp("TeV",original_units)) *factor = 1e+12;
+			else if (!strcmp("GeV",original_units)) *factor = 1e+9;
+			else if (!strcmp("MeV",original_units)) *factor = 1e+6;
+			else if (!strcmp("keV",original_units)) *factor = 1e+3;
+			else if (!strcmp("heV",original_units)) *factor = 1e+2;
+			else if (!strcmp("daeV",original_units)) *factor = 1e+1;
+			else if (!strcmp("eV",original_units)) *factor = 1.;
+			else if (!strcmp("deV",original_units)) *factor = 1e-1;
+			else if (!strcmp("ceV",original_units)) *factor = 1e-2;
+			else if (!strcmp("meV",original_units)) *factor = 1e-3;
+			else if (!strcmp("ueV",original_units)) *factor = 1e-6;
+			else if (!strcmp("neV",original_units)) *factor = 1e-9;
+			else if (!strcmp("peV",original_units)) *factor = 1e-12;
+			else if (!strcmp("feV",original_units)) *factor = 1e-15;
+			else if (!strcmp("aeV",original_units)) *factor = 1e-18;
+			else if (!strcmp("zeV",original_units)) *factor = 1e-21;
+			else if (!strcmp("yeV",original_units)) *factor = 1e-24;
+			else error = CBF_ARGUMENT;
+            
+			/* find the factor for conversion from the intermediate form to the target units */
+			if (!strcmp("YeV",target_units)) *factor *= 1e-24;
+			else if (!strcmp("ZeV",target_units)) *factor *= 1e-21;
+			else if (!strcmp("EeV",target_units)) *factor *= 1e-18;
+			else if (!strcmp("PeV",target_units)) *factor *= 1e-15;
+			else if (!strcmp("TeV",target_units)) *factor *= 1e-12;
+			else if (!strcmp("GeV",target_units)) *factor *= 1e-9;
+			else if (!strcmp("MeV",target_units)) *factor *= 1e-6;
+			else if (!strcmp("keV",target_units)) *factor *= 1e-3;
+			else if (!strcmp("heV",target_units)) *factor *= 1e-2;
+			else if (!strcmp("daeV",target_units)) *factor *= 1e-1;
+			else if (!strcmp("eV",target_units)) *factor *= 1.;
+			else if (!strcmp("deV",target_units)) *factor *= 1e+1;
+			else if (!strcmp("ceV",target_units)) *factor *= 1e+2;
+			else if (!strcmp("meV",target_units)) *factor *= 1e+3;
+			else if (!strcmp("ueV",target_units)) *factor *= 1e+6;
+			else if (!strcmp("neV",target_units)) *factor *= 1e+9;
+			else if (!strcmp("peV",target_units)) *factor *= 1e+12;
+			else if (!strcmp("feV",target_units)) *factor *= 1e+15;
+			else if (!strcmp("aeV",target_units)) *factor *= 1e+18;
+			else if (!strcmp("zeV",target_units)) *factor *= 1e+21;
+			else if (!strcmp("yeV",target_units)) *factor *= 1e+24;
+			else error = CBF_ARGUMENT;
+		}
+
+		return error;
+	}
+
+	static int cbf_convert_angle
+    (const char * const original_units,
+     const char * const target_units,
+     double * const factor)
+	{
+		int error = CBF_SUCCESS;
+
+		/* check arguments */
+		if (!original_units || !target_units || !factor) {
+			error = CBF_ARGUMENT;
+		} else {
+			/*
+             find the factor needed to convert to an arbitrary
+             standard intermediate form, ie metres
+             */
+			if (!strcmp("degrees",original_units)) *factor = 1.0;
+			else error = CBF_ARGUMENT;
+
+			/* find the factor for conversion from the intermediate form to the target units */
+			if (!strcmp("degrees",target_units)) *factor *= 1.0;
+			else error = CBF_ARGUMENT;
+		}
+        
+		return error;
+		}
+
+	static int cbf_convert_solidangle
+    (const char * const original_units,
+     const char * const target_units,
+     double * const factor)
+	{
+		int error = CBF_SUCCESS;
+
+		/* check arguments */
+		if (!original_units || !target_units || !factor) {
+			error = CBF_ARGUMENT;
+		} else {
+			/*
+             find the factor needed to convert to an arbitrary
+             standard intermediate form, ie metres
+             */
+			if (!strcmp("degrees^2",original_units)) *factor = 1.0;
+			else error = CBF_ARGUMENT;
+
+			/* find the factor for conversion from the intermediate form to the target units */
+			if (!strcmp("degrees^2",target_units)) *factor *= 1.0;
+			else error = CBF_ARGUMENT;
+		}
+
+		return error;
+		}
+
+	static int cbf_convert_current
+    (const char * const original_units,
+     const char * const target_units,
+     double * const factor)
+	{
+		int error = CBF_SUCCESS;
+        
+		/* check arguments */
+		if (!original_units || !target_units || !factor) {
+			error = CBF_ARGUMENT;
+		} else {
+			/*
+             find the factor needed to convert to an arbitrary
+             standard intermediate form, ie metres
+             */
+			if (!strcmp("kA",original_units)) *factor = 1e+3;
+			else if (!strcmp("A",original_units)) *factor = 1.;
+			else if (!strcmp("mA",original_units)) *factor = 1e-3;
+			else error = CBF_ARGUMENT;
+            
+			/* find the factor for conversion from the intermediate form to the target units */
+			if (!strcmp("kA",target_units)) *factor *= 1e-3;
+			else if (!strcmp("A",target_units)) *factor *= 1.;
+			else if (!strcmp("mA",target_units)) *factor *= 1e+3;
+			else error = CBF_ARGUMENT;
+		}
+        
+		return error;
+	}
+
+	static int cbf_convert_power
+    (const char * const original_units,
+     const char * const target_units,
+     double * const factor)
+	{
+		int error = CBF_SUCCESS;
+
+		/* check arguments */
+		if (!original_units || !target_units || !factor) {
+			error = CBF_ARGUMENT;
+		} else {
+			/*
+             find the factor needed to convert to an arbitrary
+             standard intermediate form, ie metres
+             */
+			if (!strcmp("kW",original_units)) *factor = 1e+3;
+			else if (!strcmp("W",original_units)) *factor = 1.;
+			else if (!strcmp("mW",original_units)) *factor = 1e-3;
+			else error = CBF_ARGUMENT;
+
+			/* find the factor for conversion from the intermediate form to the target units */
+			if (!strcmp("kW",target_units)) *factor *= 1e-3;
+			else if (!strcmp("W",target_units)) *factor *= 1.;
+			else if (!strcmp("mW",target_units)) *factor *= 1e+3;
+			else error = CBF_ARGUMENT;
+		}
+        
+		return error;
+		}
+    
+	static int cbf_convert_voltage
+    (const char * const original_units,
+     const char * const target_units,
+     double * const factor)
+	{
+		int error = CBF_SUCCESS;
+        
+		/* check arguments */
+		if (!original_units || !target_units || !factor) {
+			error = CBF_ARGUMENT;
+		} else {
+			/*
+             find the factor needed to convert to an arbitrary
+             standard intermediate form, ie metres
+             */
+			if (!strcmp("kV",original_units)) *factor = 1e+3;
+			else if (!strcmp("V",original_units)) *factor = 1.;
+			else if (!strcmp("mV",original_units)) *factor = 1e-3;
+			else error = CBF_ARGUMENT;
+            
+			/* find the factor for conversion from the intermediate form to the target units */
+			if (!strcmp("kV",target_units)) *factor *= 1e-3;
+			else if (!strcmp("V",target_units)) *factor *= 1.;
+			else if (!strcmp("mV",target_units)) *factor *= 1e+3;
+			else error = CBF_ARGUMENT;
+		}
+
+		return error;
+	}
+
+	typedef struct op_data_t
+	{
+		cbf_h5handle nx;
+		cbf_handle cbf;
+		cbf_nx2cbf_key_t * const table;
+	} op_data_t;
+
+	static void _cbf_write_name
+    (FILE * const out,
+     const char * const name,
+     const char * const class,
+     unsigned int indent,
+     const unsigned int processed)
+	{
+		while (indent--) fputc('\t',out);
+		if (!class) {
+			if (!processed) fprintf(out,"✗ %s\n",name);
+			else if (1==processed) fprintf(out,"✔ %s\n",name);
+			else fprintf(out,"? %s\n",name);
+		} else {
+			if (!processed) fprintf(out,"✗ %s:%s\n",name,class);
+			else if (1==processed) fprintf(out,"✔ %s:%s\n",name,class);
+			else fprintf(out,"? %s:%s\n",name,class);
+		}
+	}
+
+	static int cbf_write_nx2cbf__detector_op
+    (hid_t g_id,
+     const char * name,
+     const H5L_info_t * info,
+     void * op_data)
+	{
+		int error = CBF_SUCCESS;
+        
+		if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
+			cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
+			error |= CBF_ARGUMENT;
+		} else {
+			const op_data_t * const op_data_struct = op_data;
+			cbf_h5handle nx = op_data_struct->nx;
+			cbf_handle cbf = op_data_struct->cbf;
+			cbf_nx2cbf_key_t * const table = op_data_struct->table;
+			hid_t object = CBF_H5FAIL;
+			H5I_type_t type = H5I_BADID;
+			if (!nx) {
+				cbf_debug_print("Invalid NeXus handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf) {
+				cbf_debug_print("No CBF handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!table) {
+				cbf_debug_print("No key given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf_H5Ivalid(object=H5Oopen(g_id, name, H5P_DEFAULT))) {
+				cbf_debug_print2("error: couldn't open '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else if (H5I_BADID==(type=H5Iget_type(object))) {
+				cbf_debug_print2("error: couldn't get type of '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else {
+				if (H5I_BADID==type) {
+					/* something went wrong when finding the object type */
+					cbf_debug_print2("error: couldn't get object type of '%s'\n",name);
+					error |= CBF_H5ERROR;
+				} else if (H5I_DATASET==type) {
+					/* handle all datasets here */
+					if (!strcmp(name,"beam_center_x")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							double value = 0., factor = 0./0.;
+							const int rank = H5Sget_simple_extent_ndims(data_space);
+							if (0==rank) {
+								/* read the value */
+								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
+							} else if (1==rank) {
+								hsize_t dim[1];
+								if (1!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0};
+									hsize_t count[] = {1};
+									/* read the value */
+									CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_DOUBLE));
+		}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+							if (CBF_SUCCESS==error) {
+								/* convert the data to the correct units */
+								hid_t units = CBF_H5FAIL;
+								const char * unit_string = NULL;
+								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+								CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+								free((void*)unit_string);
+								cbf_H5Afree(units);
+							}
+							/* ensure I have suitable structure within the CBF file */
+							CBF_CALL(_cbf_nx2cbf_table__diffrn_detector_element(cbf,nx,table));
+							CBF_CALL(cbf_require_column(cbf,"center[1]"));
+							/* write the data */
+							CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"beam_center_y")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							double value = 0., factor = 0./0.;
+							const int rank = H5Sget_simple_extent_ndims(data_space);
+							if (0==rank) {
+								/* read the value */
+								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
+							} else if (1==rank) {
+								hsize_t dim[1];
+								if (1!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0};
+									hsize_t count[] = {1};
+									/* read the value */
+									CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_DOUBLE));
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+							if (CBF_SUCCESS==error) {
+								/* convert the data to the correct units */
+								hid_t units = CBF_H5FAIL;
+								const char * unit_string = NULL;
+								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+								CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+								free((void*)unit_string);
+								cbf_H5Afree(units);
+							}
+							/* ensure I have suitable structure within the CBF file */
+							CBF_CALL(_cbf_nx2cbf_table__diffrn_detector_element(cbf,nx,table));
+							CBF_CALL(cbf_require_column(cbf,"center[2]"));
+							/* write the data */
+							CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"CBF_diffrn_data_frame__details")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							const char * value = NULL;
+							const int rank = H5Sget_simple_extent_ndims(data_space);
+							/* check rank, allowing for multiple usable results */
+							if (0==rank) {
+								/* read the value */
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+							} else if (1==rank) {
+								hsize_t dim[1];
+								if (1!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hid_t vlstr = CBF_H5FAIL;
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0};
+									hsize_t count[] = {1};
+									CBF_CALL(cbf_H5Tcreate_string(&vlstr,H5T_VARIABLE));
+									CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,vlstr));
+									cbf_H5Tfree(vlstr);
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+							/* convert the data to the correct units: no-op */
+							/* ensure I have suitable structure within the CBF file */
+							CBF_CALL(_cbf_nx2cbf_table__diffrn_data_frame(cbf,nx,table));
+							CBF_CALL(cbf_require_column(cbf,"details"));
+							/* write the data */
+							CBF_CALL(cbf_set_value(cbf,value));
+							free((void*)value);
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"count_time")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (1==H5Sget_simple_extent_ndims(data_space)) {
+								hsize_t dim[1];
+								if (1!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0};
+									hsize_t count[] = {1};
+									double value = 0., factor = 0./0.;
+									CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_DOUBLE));
+									if (CBF_SUCCESS==error) {
+										/* convert the data to the correct units */
+										hid_t units = CBF_H5FAIL;
+										const char * unit_string = NULL;
+										CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+										CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+										CBF_CALL(cbf_convert_time(unit_string,"s",&factor));
+										free((void*)unit_string);
+										cbf_H5Afree(units);
+									}
+									/* ensure I have suitable structure within the CBF file */
+									CBF_CALL(_cbf_nx2cbf_table__diffrn_scan_frame(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"integration_time"));
+									/* write the data */
+									CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"data")) {
+						int indent = table->indent;
+						if (1) {
+							while (indent--) fputc('\t',stderr);
+							fprintf(stderr,"- %s\n",name);
+						}
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"dead_time")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								double value = 0., factor = 0./0.;
+								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
+								if (CBF_SUCCESS==error) {
+									/* convert the data to the correct units */
+									hid_t units = CBF_H5FAIL;
+									const char * unit_string = NULL;
+									CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+									CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+									CBF_CALL(cbf_convert_time(unit_string,"us",&factor));
+									free((void*)unit_string);
+									cbf_H5Afree(units);
+								}
+								/* ensure I have suitable structure within the CBF file */
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_detector(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"dtime"));
+								/* write the data */
+								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"description")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								if (CBF_SUCCESS==error) {
+									/* ensure I have suitable structure within the CBF file */
+									CBF_CALL(_cbf_nx2cbf_table__diffrn_detector(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"type"));
+									/* write the data */
+									CBF_CALL(cbf_set_value(cbf,value));
+								}
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"details")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								if (CBF_SUCCESS==error) {
+									/* ensure I have suitable structure within the CBF file */
+									CBF_CALL(_cbf_nx2cbf_table__diffrn_detector(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"details"));
+									/* write the data */
+									CBF_CALL(cbf_set_value(cbf,value));
+								}
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"depends_on")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * path = NULL;
+								cbf_axisData_t * prevAxisPtr = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&path));
+								while (CBF_SUCCESS==error && path && strcmp(path,".")) {
+									/*
+                                     Given the path to an axis dataset, I want to extract
+                                     all relevant details and write them out to the CBF file.
+                                     */
+									hid_t axis = CBF_H5FAIL;
+									if (!cbf_H5Ivalid(axis=H5Dopen2(g_id, path, H5P_DEFAULT))) {
+										cbf_debug_print("couldn't open dataset");
+										error |= CBF_H5ERROR;
+									} else {
+										const char * _path = NULL;
+										hid_t depends_on = CBF_H5FAIL;
+										cbf_axisData_t * axisPtr = NULL;
+										const char * const chr = strrchr(path,'/');
+										const char * const name = NULL==chr ? path : 1+chr;
+										CBF_CALL(_cbf_nx2cbf_key_require_axis(table,&axisPtr,axis,name,axisEquipment_detector));
+										CBF_CALL(cbf_H5Afind(axis,&depends_on,"depends_on",CBF_H5FAIL,CBF_H5FAIL));
+										CBF_CALL(cbf_H5Aread_string(depends_on,&_path));
+										if (CBF_SUCCESS==error) {
+											/* set dependancy of previous axis */
+											if (prevAxisPtr) prevAxisPtr->depends_on = axisPtr;
+											/* some axes are shared with other peices of equipment, set the type appropriately */
+											if (axisEquipment_image==axisPtr->equipment) axisPtr->equipment = axisEquipment_detector;
+											if (axisEquipment_detector!=axisPtr->equipment) axisPtr->equipment = axisEquipment_general;
+										} else {
+											cbf_H5Dfree(axis);
+										}
+										/* housekeeping: update the previous axis and path */
+										prevAxisPtr = axisPtr;
+										free((void*)path);
+										path = _path;
+										/* ensure hdf5 stuff is closed */
+										cbf_H5Afree(depends_on);
+									}
+								}
+								free((void*)path);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"distance")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (1==H5Sget_simple_extent_ndims(data_space)) {
+								hsize_t dim[1];
+								if (1!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0};
+									hsize_t count[] = {1};
+									double value = 0., factor = 0./0.;
+									/* read the value */
+									CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_DOUBLE));
+									if (CBF_SUCCESS==error) {
+										/* convert the data to the correct units */
+										hid_t units = CBF_H5FAIL;
+										const char * unit_string = NULL;
+										CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+										CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+										CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+										free((void*)unit_string);
+										cbf_H5Afree(units);
+									}
+									/* ensure I have suitable structure within the CBF file */
+									CBF_CALL(_cbf_nx2cbf_table__diffrn_measurement(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"sample_detector_distance"));
+									/* write the data */
+									CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"frame_start_time")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (1==H5Sget_simple_extent_ndims(data_space)) {
+								hsize_t dim[1];
+								if (1!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(table->frames==dim[0])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hid_t vlstr = CBF_H5FAIL;
+									hsize_t offset[] = {nx->slice};
+									hsize_t count[] = {1};
+									const char * value = NULL;
+									CBF_CALL(cbf_H5Tcreate_string(&vlstr,H5T_VARIABLE));
+									CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,vlstr));
+									/* ensure I have suitable structure within the CBF file */
+									CBF_CALL(_cbf_nx2cbf_table__diffrn_scan_frame(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"date"));
+									/* write the data */
+									CBF_CALL(cbf_set_value(cbf,value));
+									free((void*)value);
+									cbf_H5Tfree(vlstr);
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"frame_time")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (1==H5Sget_simple_extent_ndims(data_space)) {
+								hsize_t dim[1];
+								if (1!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0};
+									hsize_t count[] = {1};
+									double value = 0., factor = 0./0.;
+									CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_DOUBLE));
+									if (CBF_SUCCESS==error) {
+										/* convert the data to the correct units */
+										hid_t units = CBF_H5FAIL;
+										const char * unit_string = NULL;
+										CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+										CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+										CBF_CALL(cbf_convert_time(unit_string,"s",&factor));
+										free((void*)unit_string);
+										cbf_H5Afree(units);
+									}
+									/* ensure I have suitable structure within the CBF file */
+									CBF_CALL(_cbf_nx2cbf_table__diffrn_scan_frame(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"integration_period"));
+									/* write the data */
+									CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"gain_setting")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								/* ensure I have suitable structure within the CBF file */
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_detector(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"gain_setting"));
+								/* write the data */
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"offset")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (1==H5Sget_simple_extent_ndims(data_space)) {
+								hsize_t dim[1];
+								if (1!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0};
+									hsize_t count[] = {1};
+									double value = 0;
+									/* read the value */
+									CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_DOUBLE));
+									/* ensure I have suitable structure within the CBF file */
+									CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"offset"));
+									/* write the data */
+									CBF_CALL(cbf_set_doublevalue(cbf,"%g",value));
+									if (CBF_SUCCESS==error) table->has_offset = 1;
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"saturation_value")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (1==H5Sget_simple_extent_ndims(data_space)) {
+								hsize_t dim[1];
+								if (1!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0};
+									hsize_t count[] = {1};
+									int value = 0;
+									/* read the value */
+									CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_INT));
+									/* ensure I have suitable structure within the CBF file */
+									CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"overload"));
+									/* write the data */
+									CBF_CALL(cbf_set_integervalue(cbf,value));
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"scaling_factor")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (1==H5Sget_simple_extent_ndims(data_space)) {
+								hsize_t dim[1];
+								if (1!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0};
+									hsize_t count[] = {1};
+									double value = 0;
+									/* read the value */
+									CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_DOUBLE));
+									/* ensure I have suitable structure within the CBF file */
+									CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"scaling"));
+									/* write the data */
+									CBF_CALL(cbf_set_doublevalue(cbf,"%g",value));
+									if (CBF_SUCCESS==error) table->has_scaling_factor = 1;
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"sensor_material")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								/* ensure I have suitable structure within the CBF file */
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_detector(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"sensor_material"));
+								/* write the data */
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"sensor_thickness")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								double value = 0., factor = 0./0.;
+								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
+								if (CBF_SUCCESS==error) {
+									/* convert the data to the correct units */
+									hid_t units = CBF_H5FAIL;
+									const char * unit_string = NULL;
+									CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+									CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+									CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+									free((void*)unit_string);
+									cbf_H5Afree(units);
+								}
+								/* ensure I have suitable structure within the CBF file */
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_detector(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"layer_thickness"));
+								/* write the data */
+								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"threshold_energy")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								double value = 0., factor = 0./0.;
+								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
+								if (CBF_SUCCESS==error) {
+									/* convert the data to the correct units */
+									hid_t units = CBF_H5FAIL;
+									const char * unit_string = NULL;
+									CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+									CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+									CBF_CALL(cbf_convert_energy(unit_string,"eV",&factor));
+									free((void*)unit_string);
+									cbf_H5Afree(units);
+								}
+								/* ensure I have suitable structure within the CBF file */
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_detector(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"threshold"));
+								/* write the data */
+								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"type")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_detector(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"detector"));
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"undefined_value")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (1==H5Sget_simple_extent_ndims(data_space)) {
+								hsize_t dim[1];
+								if (1!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0};
+									hsize_t count[] = {1};
+									int value = 0;
+									/* read the value */
+									CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_INT));
+									/* ensure I have suitable structure within the CBF file */
+									CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"undefined_value"));
+									/* write the data */
+									CBF_CALL(cbf_set_integervalue(cbf,value));
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"x_pixel_offset") || !strcmp(name,"y_pixel_offset") || !strcmp(name,"x_pixel_size") || !strcmp(name,"y_pixel_size")) {
+						int indent = table->indent;
+						if (1) {
+							while (indent--) fputc('\t',stderr);
+							fprintf(stderr,"- %s\n",name);
+						}
+						/*--------------------------------------------------------------------------------------*/
+					} else {
+						/* unknown field: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					}
+				} else if (H5I_GROUP==type) {
+					/* get NXclass & handle all groups here */
+					const char * NX_class = NULL;
+					const int found = _cbf_NXclass(object,&NX_class);
+					if (CBF_NOTFOUND==found) {
+						/* no NX_class: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					} else if (CBF_SUCCESS!=found) {
+						if (1) {
+							cbf_debug_print(cbf_strerror(found));
+							cbf_debug_print2("error: whilst processing group '%s'\n",name);
+						}
+						error |= found;
+					} else {
+						/* I have a group with an NX_class: match on NX_class */
+						if (!strcmp(NX_class,"NXcollection")) {
+							/* known class that should be ignored: ignoring it is the correct way to process it */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/*-----------------------------------------------------------------------------------------------*/
+						} else {
+							/* unknown NX_class: (probably) not an error */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+						}
+					}
+					free((void*)NX_class);
+				} else {
+					/* unrecognised object type: can't process it, but it's not an error */
+					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+				}
+			}
+			if (cbf_H5Ivalid(object)) H5Oclose(object);
+		}
+		/*
+         Convert a CBF error to something the HDF5 iteration function can understand.
+         All errors should already have been reported, so I shouldn't need to print anything.
+         */
+		return (CBF_SUCCESS==error) ? 0 : -1;
+	}
+
+	static int cbf_write_nx2cbf__monochromator_op
+    (hid_t g_id,
+     const char * name,
+     const H5L_info_t * info,
+     void * op_data)
+	{
+		int error = CBF_SUCCESS;
+        
+		if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
+			cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
+			error |= CBF_ARGUMENT;
+		} else {
+			const op_data_t * const op_data_struct = op_data;
+			cbf_h5handle nx = op_data_struct->nx;
+			cbf_handle cbf = op_data_struct->cbf;
+			cbf_nx2cbf_key_t * const table = op_data_struct->table;
+			hid_t object = CBF_H5FAIL;
+			H5I_type_t type = H5I_BADID;
+			if (!nx) {
+				cbf_debug_print("Invalid NeXus handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf) {
+				cbf_debug_print("No CBF handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!table) {
+				cbf_debug_print("No key given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf_H5Ivalid(object=H5Oopen(g_id, name, H5P_DEFAULT))) {
+				cbf_debug_print2("error: couldn't open '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else if (H5I_BADID==(type=H5Iget_type(object))) {
+				cbf_debug_print2("error: couldn't get type of '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else {
+				if (H5I_BADID==type) {
+					/* something went wrong when finding the object type */
+					cbf_debug_print2("error: couldn't get object type of '%s'\n",name);
+					error |= CBF_H5ERROR;
+				} else if (H5I_DATASET==type) {
+					/* handle all datasets here */
+					if (!strcmp(name,"description")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"monochromator"));
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+		}
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else {
+						/* unknown field: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					}
+				} else if (H5I_GROUP==type) {
+					/* get NXclass & handle all groups here */
+					const char * NX_class = NULL;
+					const int found = _cbf_NXclass(object,&NX_class);
+					if (CBF_NOTFOUND==found) {
+						/* no NX_class: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					} else if (CBF_SUCCESS!=found) {
+						if (1) {
+							cbf_debug_print(cbf_strerror(found));
+							cbf_debug_print2("error: whilst processing group '%s'\n",name);
+						}
+						error |= found;
+					} else {
+						/* I have a group with an NX_class: match on NX_class */
+						if (!strcmp(NX_class,"NXcollection")) {
+							/* known class that should be ignored: ignoring it is the correct way to process it */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/*-----------------------------------------------------------------------------------------------*/
+						} else {
+							/* unknown NX_class: (probably) not an error */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+						}
+					}
+					free((void*)NX_class);
+				} else {
+					/* unrecognised object type: can't process it, but it's not an error */
+					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+				}
+			}
+			if (cbf_H5Ivalid(object)) H5Oclose(object);
+		}
+		/*
+         Convert a CBF error to something the HDF5 iteration function can understand.
+         All errors should already have been reported, so I shouldn't need to print anything.
+         */
+		return (CBF_SUCCESS==error) ? 0 : -1;
+	}
+
+	static int cbf_write_nx2cbf__source_op
+    (hid_t g_id,
+     const char * name,
+     const H5L_info_t * info,
+     void * op_data)
+	{
+		int error = CBF_SUCCESS;
+        
+		if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
+			cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
+			error |= CBF_ARGUMENT;
+		} else {
+			const op_data_t * const op_data_struct = op_data;
+			cbf_h5handle nx = op_data_struct->nx;
+			cbf_handle cbf = op_data_struct->cbf;
+			cbf_nx2cbf_key_t * const table = op_data_struct->table;
+			hid_t object = CBF_H5FAIL;
+			H5I_type_t type = H5I_BADID;
+			if (!nx) {
+				cbf_debug_print("Invalid NeXus handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf) {
+				cbf_debug_print("No CBF handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!table) {
+				cbf_debug_print("No key given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf_H5Ivalid(object=H5Oopen(g_id, name, H5P_DEFAULT))) {
+				cbf_debug_print2("error: couldn't open '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else if (H5I_BADID==(type=H5Iget_type(object))) {
+				cbf_debug_print2("error: couldn't get type of '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else {
+				if (H5I_BADID==type) {
+					/* something went wrong when finding the object type */
+					cbf_debug_print2("error: couldn't get object type of '%s'\n",name);
+					error |= CBF_H5ERROR;
+				} else if (H5I_DATASET==type) {
+					/* handle all datasets here */
+					if (!strcmp(name,"current")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								hid_t units = CBF_H5FAIL;
+								double value = 0., factor = 0./0.;
+								const char * unit_string = NULL;
+								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
+								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+								CBF_CALL(cbf_convert_current(unit_string,"mA",&factor));
+								free((void*)unit_string);
+								cbf_H5Afree(units);
+								/* ensure I have suitable structure within the CBF file & write the data */
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_source(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"current"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+		}
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"name")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_source(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"type"));
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"power")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								hid_t units = CBF_H5FAIL;
+								double value = 0., factor = 0./0.;
+								const char * unit_string = NULL;
+								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
+								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+								CBF_CALL(cbf_convert_power(unit_string,"kW",&factor));
+								free((void*)unit_string);
+								cbf_H5Afree(units);
+								/* ensure I have suitable structure within the CBF file & write the data */
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_source(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"power"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"probe")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"probe"));
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"target_material")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_source(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"target"));
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"type")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_source(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"source"));
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"voltage")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								hid_t units = CBF_H5FAIL;
+								double value = 0., factor = 0./0.;
+								const char * unit_string = NULL;
+								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
+								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+								CBF_CALL(cbf_convert_voltage(unit_string,"kV",&factor));
+								free((void*)unit_string);
+								cbf_H5Afree(units);
+								/* ensure I have suitable structure within the CBF file & write the data */
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_source(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"voltage"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else {
+						/* unknown field: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					}
+				} else if (H5I_GROUP==type) {
+					/* get NXclass & handle all groups here */
+					const char * NX_class = NULL;
+					const int found = _cbf_NXclass(object,&NX_class);
+					if (CBF_NOTFOUND==found) {
+						/* no NX_class: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					} else if (CBF_SUCCESS!=found) {
+						if (1) {
+							cbf_debug_print(cbf_strerror(found));
+							cbf_debug_print2("error: whilst processing group '%s'\n",name);
+						}
+						error |= found;
+					} else {
+						/* I have a group with an NX_class: match on NX_class */
+						if (!strcmp(NX_class,"NXcollection")) {
+							/* known class that should be ignored: ignoring it is the correct way to process it */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/*-----------------------------------------------------------------------------------------------*/
+						} else {
+							/* unknown NX_class: (probably) not an error */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+						}
+					}
+					free((void*)NX_class);
+				} else {
+					/* unrecognised object type: can't process it, but it's not an error */
+					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+				}
+			}
+			if (cbf_H5Ivalid(object)) H5Oclose(object);
+		}
+		/*
+         Convert a CBF error to something the HDF5 iteration function can understand.
+         All errors should already have been reported, so I shouldn't need to print anything.
+         */
+		return (CBF_SUCCESS==error) ? 0 : -1;
+	}
+
+	static int cbf_write_nx2cbf__goniometer_op
+    (hid_t g_id,
+     const char * name,
+     const H5L_info_t * info,
+     void * op_data)
+	{
+		int error = CBF_SUCCESS;
+        
+		if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
+			cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
+			error |= CBF_ARGUMENT;
+		} else {
+			const op_data_t * const op_data_struct = op_data;
+			cbf_h5handle nx = op_data_struct->nx;
+			cbf_handle cbf = op_data_struct->cbf;
+			cbf_nx2cbf_key_t * const table = op_data_struct->table;
+			hid_t object = CBF_H5FAIL;
+			H5I_type_t type = H5I_BADID;
+			if (!nx) {
+				cbf_debug_print("Invalid NeXus handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf) {
+				cbf_debug_print("No CBF handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!table) {
+				cbf_debug_print("No key given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf_H5Ivalid(object=H5Oopen(g_id, name, H5P_DEFAULT))) {
+				cbf_debug_print2("error: couldn't open '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else if (H5I_BADID==(type=H5Iget_type(object))) {
+				cbf_debug_print2("error: couldn't get type of '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else {
+				if (H5I_BADID==type) {
+					/* something went wrong when finding the object type */
+					cbf_debug_print2("error: couldn't get object type of '%s'\n",name);
+					error |= CBF_H5ERROR;
+				} else if (H5I_DATASET==type) {
+					/* handle all datasets here */
+					if (!strcmp(name,"description")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_measurement(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"device_details"));
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+		}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"details")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_measurement(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"details"));
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"local_name")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_measurement(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"device"));
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"type")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_measurement(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"device_type"));
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else {
+						/* unknown field: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					}
+				} else if (H5I_GROUP==type) {
+					/* get NXclass & handle all groups here */
+					const char * NX_class = NULL;
+					const int found = _cbf_NXclass(object,&NX_class);
+					if (CBF_NOTFOUND==found) {
+						/* no NX_class: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					} else if (CBF_SUCCESS!=found) {
+						if (1) {
+							cbf_debug_print(cbf_strerror(found));
+							cbf_debug_print2("error: whilst processing group '%s'\n",name);
+						}
+						error |= found;
+					} else {
+						/* I have a group with an NX_class: match on NX_class */
+						if (!strcmp(NX_class,"NXcollection")) {
+							/* known class that should be ignored: ignoring it is the correct way to process it */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/*-----------------------------------------------------------------------------------------------*/
+						} else {
+							/* unknown NX_class: (probably) not an error */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+						}
+					}
+					free((void*)NX_class);
+				} else {
+					/* unrecognised object type: can't process it, but it's not an error */
+					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+				}
+			}
+			if (cbf_H5Ivalid(object)) H5Oclose(object);
+		}
+		/*
+         Convert a CBF error to something the HDF5 iteration function can understand.
+         All errors should already have been reported, so I shouldn't need to print anything.
+         */
+		return (CBF_SUCCESS==error) ? 0 : -1;
+	}
+
+	static int cbf_write_nx2cbf__instrument_op
+    (hid_t g_id,
+     const char * name,
+     const H5L_info_t * info,
+     void * op_data)
+	{
+		int error = CBF_SUCCESS;
+        
+		if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
+			cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
+			error |= CBF_ARGUMENT;
+		} else {
+			const op_data_t * const op_data_struct = op_data;
+			cbf_h5handle nx = op_data_struct->nx;
+			cbf_handle cbf = op_data_struct->cbf;
+			cbf_nx2cbf_key_t * const table = op_data_struct->table;
+			hid_t object = CBF_H5FAIL;
+			H5I_type_t type = H5I_BADID;
+			if (!nx) {
+				cbf_debug_print("Invalid NeXus handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf) {
+				cbf_debug_print("No CBF handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!table) {
+				cbf_debug_print("No key given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf_H5Ivalid(object=H5Oopen(g_id, name, H5P_DEFAULT))) {
+				cbf_debug_print2("error: couldn't open '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else if (H5I_BADID==(type=H5Iget_type(object))) {
+				cbf_debug_print2("error: couldn't get type of '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else {
+				if (H5I_BADID==type) {
+					/* something went wrong when finding the object type */
+					cbf_debug_print2("error: couldn't get object type of '%s'\n",name);
+					error |= CBF_H5ERROR;
+				} else if (H5I_DATASET==type) {
+					/* handle all datasets here */
+					if (0) {
+						/* I don't actually have any items to match here */
+					} else {
+						/* unknown field: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+		}
+				} else if (H5I_GROUP==type) {
+					/* get NXclass & handle all groups here */
+					const char * NX_class = NULL;
+					const int found = _cbf_NXclass(object,&NX_class);
+					if (CBF_NOTFOUND==found) {
+						/* no NX_class: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					} else if (CBF_SUCCESS!=found) {
+						if (1) {
+							cbf_debug_print(cbf_strerror(found));
+							cbf_debug_print2("error:  whilst processing group '%s'\n",name);
+						}
+						error |= found;
+					} else {
+						/* I have a group with an NX_class: match on NX_class */
+						if (!strcmp(NX_class,"NXcollection")) {
+							/* known class that should be ignored: ignoring it is the correct way to process it */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/*-----------------------------------------------------------------------------------------------*/
+						} else if (!strcmp(NX_class,"NXdetector")) {
+							const unsigned int indent = table->indent;
+							hsize_t idx = 0;
+							hid_t group = object;
+							/* debugging output */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/* try to take ownership of the group away from the iteration function */
+							if (CBF_SUCCESS!=(error|=cbf_h5handle_set_detector(nx,object,name))) {
+								if (1) {
+									cbf_debug_print(cbf_strerror(found));
+									cbf_debug_print2("error:  failed to set the '%s' group in the handle\n",name);
+								}
+							} else {
+								object = CBF_H5FAIL;
+								/* The hdf5 handle now owns the group, process it */
+								++table->indent;
+								if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__detector_op,op_data)<0) {
+									cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+									error |= CBF_H5ERROR;
+								} else {
+									/* success: extract some data that should have been returned via the op_data argument */
+									if (!table->has_offset) {
+										CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
+										CBF_CALL(cbf_require_column(cbf,"offset"));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%g",0.0));
+									}
+									if (!table->has_scaling_factor) {
+										CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
+										CBF_CALL(cbf_require_column(cbf,"scaling"));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%g",1.0));
+									}
+									CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"linearity"));
+									CBF_CALL(cbf_set_value(cbf,"scaling_offset"));
+								}
+								table->indent = indent;
+							}
+							/*-----------------------------------------------------------------------------------------------*/
+						} else if (!strcmp(NX_class,"NXgoniometer")) {
+							const unsigned int indent = table->indent;
+							hsize_t idx = 0;
+							hid_t group = object;
+							/* debugging output */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/* try to take ownership of the group away from the iteration function */
+							if (CBF_SUCCESS!=(error|=cbf_h5handle_set_goniometer(nx,object,name))) {
+								if (1) {
+									cbf_debug_print(cbf_strerror(found));
+									cbf_debug_print2("error:  failed to set the '%s' group in the handle\n",name);
+								}
+							} else {
+								object = CBF_H5FAIL;
+								/* The hdf5 handle now owns the group, process it */
+								++table->indent;
+								if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__goniometer_op,op_data)<0) {
+                                    cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+									error |= CBF_H5ERROR;
+								}
+								table->indent = indent;
+							}
+							/*-----------------------------------------------------------------------------------------------*/
+						} else if (!strcmp(NX_class,"NXmonochromator")) {
+							const unsigned int indent = table->indent;
+							hsize_t idx = 0;
+							hid_t group = object;
+							/* debugging output */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/* try to take ownership of the group away from the iteration function */
+							if (CBF_SUCCESS!=(error|=cbf_h5handle_set_monochromator(nx,object,name))) {
+								if (1) {
+									cbf_debug_print(cbf_strerror(found));
+									cbf_debug_print2("error:  failed to set the '%s' group in the handle\n",name);
+								}
+							} else {
+								object = CBF_H5FAIL;
+								/* The hdf5 handle now owns the group, process it */
+								++table->indent;
+								if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__monochromator_op,op_data)<0) {
+                                    cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+									error |= CBF_H5ERROR;
+								}
+								table->indent = indent;
+							}
+							/*-----------------------------------------------------------------------------------------------*/
+						} else if (!strcmp(NX_class,"NXsource")) {
+							const unsigned int indent = table->indent;
+							hsize_t idx = 0;
+							hid_t group = object;
+							/* debugging output */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/* try to take ownership of the group away from the iteration function */
+							if (CBF_SUCCESS!=(error|=cbf_h5handle_set_source(nx,object,name))) {
+								if (1) {
+									cbf_debug_print(cbf_strerror(found));
+									cbf_debug_print2("error:  failed to set the '%s' group in the handle\n",name);
+								}
+							} else {
+								object = CBF_H5FAIL;
+								/* The hdf5 handle now owns the group, process it */
+								++table->indent;
+								if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__source_op,op_data)<0) {
+                                    cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+									error |= CBF_H5ERROR;
+								}
+								table->indent = indent;
+							}
+							/*-----------------------------------------------------------------------------------------------*/
+						} else {
+							/* unknown NX_class: (probably) not an error */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+						}
+					}
+					free((void*)NX_class);
+				} else {
+					/* unrecognised object type: can't process it, but it's not an error */
+					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+				}
+			}
+			if (cbf_H5Ivalid(object)) H5Oclose(object);
+		}
+		/*
+         Convert a CBF error to something the HDF5 iteration function can understand.
+         All errors should already have been reported, so I shouldn't need to print anything.
+         */
+		return (CBF_SUCCESS==error) ? 0 : -1;
+	}
+
+	static int cbf_write_nx2cbf__beam_op
+    (hid_t g_id,
+     const char * name,
+     const H5L_info_t * info,
+     void * op_data)
+	{
+		int error = CBF_SUCCESS;
+        
+		if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
+			cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
+			error |= CBF_ARGUMENT;
+		} else {
+			const op_data_t * const op_data_struct = op_data;
+			cbf_h5handle nx = op_data_struct->nx;
+			cbf_handle cbf = op_data_struct->cbf;
+			cbf_nx2cbf_key_t * const table = op_data_struct->table;
+			hid_t object = CBF_H5FAIL;
+			H5I_type_t type = H5I_BADID;
+			if (!nx) {
+				cbf_debug_print("Invalid NeXus handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf) {
+				cbf_debug_print("No CBF handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!table) {
+				cbf_debug_print("No key given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf_H5Ivalid(object=H5Oopen(g_id, name, H5P_DEFAULT))) {
+				cbf_debug_print2("error: couldn't open '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else if (H5I_BADID==(type=H5Iget_type(object))) {
+				cbf_debug_print2("error: couldn't get type of '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else {
+				double sigma_x = 0.0, sigma_y = 0.0;
+				int have_sigma_x = 0, have_sigma_y = 0;
+				if (H5I_BADID==type) {
+					/* something went wrong when finding the object type */
+					cbf_debug_print2("error: couldn't get object type of '%s'\n",name);
+					error |= CBF_H5ERROR;
+				} else if (H5I_DATASET==type) {
+					/* handle all datasets here */
+					if (!strcmp(name,"beam_size_x")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								hid_t units = CBF_H5FAIL;
+								double value = 0., factor = 0./0.;
+								const char * unit_string = NULL;
+								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
+								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+								CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+								free((void*)unit_string);
+								cbf_H5Afree(units);
+								/* store data for later conversion */
+								sigma_x = value*factor;
+								have_sigma_x = 1;
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+	}
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"beam_size_y")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								hid_t units = CBF_H5FAIL;
+								double value = 0., factor = 0./0.;
+								const char * unit_string = NULL;
+								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
+								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+								CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+								free((void*)unit_string);
+								cbf_H5Afree(units);
+								/* store data for later conversion */
+								sigma_y = value*factor;
+								have_sigma_y = 1;
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"collimation")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"collimation"));
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"incident_divergence_x")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								hid_t units = CBF_H5FAIL;
+								double value = 0., factor = 0./0.;
+								const char * unit_string = NULL;
+								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
+								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+								CBF_CALL(cbf_convert_angle(unit_string,"degrees",&factor));
+								free((void*)unit_string);
+								cbf_H5Afree(units);
+								/* ensure I have suitable structure within the CBF file & write the data */
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"div_x_source"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"incident_divergence_xy")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								hid_t units = CBF_H5FAIL;
+								double value = 0., factor = 0./0.;
+								const char * unit_string = NULL;
+								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
+								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+								CBF_CALL(cbf_convert_solidangle(unit_string,"degrees^2",&factor));
+								free((void*)unit_string);
+								cbf_H5Afree(units);
+								/* ensure I have suitable structure within the CBF file & write the data */
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"div_x_y_source"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"incident_divergence_y")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								hid_t units = CBF_H5FAIL;
+								double value = 0., factor = 0./0.;
+								const char * unit_string = NULL;
+								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
+								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+								CBF_CALL(cbf_convert_angle(unit_string,"degrees",&factor));
+								free((void*)unit_string);
+								cbf_H5Afree(units);
+								/* ensure I have suitable structure within the CBF file & write the data */
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"div_y_source"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"incident_polarisation_stokes")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (2==H5Sget_simple_extent_ndims(data_space)) {
+								hsize_t dim[2];
+								if (2!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0]) || !(4==dim[1])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0, 0};
+									hsize_t count[] = {1, 4};
+									double value[4] = {0., 0., 0., 0.};
+									/* read the value */
+									if (CBF_SUCCESS!=(error|=cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_DOUBLE))) {
+										cbf_debug_print(cbf_strerror(error));
+									} else {
+										const double psn = atan2(value[2],value[1])*90.0/acos(-1.0);
+										const double psr = sqrt(value[1]*value[1]+value[2]*value[2])/value[0];
+										/* ensure I have suitable structure within the CBF file & write the data */
+										CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
+										CBF_CALL(cbf_require_column(cbf,"polarizn_source_norm"));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%g",psn));
+										CBF_CALL(cbf_require_column(cbf,"polarizn_source_ratio"));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%g",psr));
+									}
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"wavelength")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (1==H5Sget_simple_extent_ndims(data_space)) {
+								hsize_t dim[1];
+								if (1!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0};
+									hsize_t count[] = {1};
+									double value = 0;
+									double factor;
+									/* read the value */
+									CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_DOUBLE));
+									if (CBF_SUCCESS==error) {
+										/* convert the data to the correct units */
+										hid_t units = CBF_H5FAIL;
+										const char * unit_string = NULL;
+										CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+										CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+										CBF_CALL(cbf_convert_length(unit_string,"A",&factor));
+										free((void*)unit_string);
+										cbf_H5Afree(units);
+									}
+									/* ensure I have suitable structure within the CBF file */
+									CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation_wavelength(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"wavelength"));
+									/* write the data */
+									CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"weight")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (1==H5Sget_simple_extent_ndims(data_space)) {
+								hsize_t dim[1];
+								if (1!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0};
+									hsize_t count[] = {1};
+									double value = 0;
+									/* read the value */
+									CBF_CALL(cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_DOUBLE));
+									/* ensure I have suitable structure within the CBF file */
+									CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation_wavelength(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"wt"));
+									/* write the data */
+									CBF_CALL(cbf_set_doublevalue(cbf,"%g",value));
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else {
+						/* unknown field: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					}
+				} else if (H5I_GROUP==type) {
+					/* get NXclass & handle all groups here */
+					const char * NX_class = NULL;
+					const int found = _cbf_NXclass(object,&NX_class);
+					if (CBF_NOTFOUND==found) {
+						/* no NX_class: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					} else if (CBF_SUCCESS!=found) {
+						if (1) {
+							cbf_debug_print(cbf_strerror(found));
+							cbf_debug_print2("error:  whilst processing group '%s'\n",name);
+						}
+						error |= found;
+					} else {
+						/* I have a group with an NX_class: match on NX_class */
+						if (!strcmp(NX_class,"NXcollection")) {
+							/* known class that should be ignored: ignoring it is the correct way to process it */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/*-----------------------------------------------------------------------------------------------*/
+						} else {
+							/* unknown NX_class: (probably) not an error */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+						}
+					}
+					free((void*)NX_class);
+				} else {
+					/* unrecognised object type: can't process it, but it's not an error */
+					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+				}
+				if (CBF_SUCCESS==error) {
+					if (have_sigma_x && have_sigma_y) {
+						const double inhomogeneity = (sigma_x + sigma_y) * 0.5;
+						/* TODO: warn user if data may be lost due to unequal sigma_x & sigma_y: needs a comparison */
+						/* ensure I have suitable structure within the CBF file & write the data */
+						CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
+						CBF_CALL(cbf_require_column(cbf,"inhomogeneity"));
+						CBF_CALL(cbf_set_doublevalue(cbf,"%g",inhomogeneity));
+					}
+				}
+			}
+			if (cbf_H5Ivalid(object)) H5Oclose(object);
+		}
+		/*
+         Convert a CBF error to something the HDF5 iteration function can understand.
+         All errors should already have been reported, so I shouldn't need to print anything.
+         */
+		return (CBF_SUCCESS==error) ? 0 : -1;
+	}
+
+	static int cbf_write_nx2cbf__sample_op
+    (hid_t g_id,
+     const char * name,
+     const H5L_info_t * info,
+     void * op_data)
+	{
+		int error = CBF_SUCCESS;
+
+		if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
+			cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
+			error |= CBF_ARGUMENT;
+		} else {
+			const op_data_t * const op_data_struct = op_data;
+			cbf_h5handle nx = op_data_struct->nx;
+			cbf_handle cbf = op_data_struct->cbf;
+			cbf_nx2cbf_key_t * const table = op_data_struct->table;
+			hid_t object = CBF_H5FAIL;
+			H5I_type_t type = H5I_BADID;
+			if (!nx) {
+				cbf_debug_print("Invalid NeXus handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf) {
+				cbf_debug_print("No CBF handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!table) {
+				cbf_debug_print("No key given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf_H5Ivalid(object=H5Oopen(g_id, name, H5P_DEFAULT))) {
+				cbf_debug_print2("error: couldn't open '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else if (H5I_BADID==(type=H5Iget_type(object))) {
+				cbf_debug_print2("error: couldn't get type of '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else {
+				if (H5I_BADID==type) {
+					/* something went wrong when finding the object type */
+					cbf_debug_print2("error: couldn't get object type of '%s'\n",name);
+					error |= CBF_H5ERROR;
+				} else if (H5I_DATASET==type) {
+					/* handle all datasets here */
+					if (!strcmp(name,"depends_on")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * path = NULL;
+								cbf_axisData_t * prevAxisPtr = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&path));
+								while (CBF_SUCCESS==error && path && strcmp(path,".")) {
+									/*
+                                     Given the path to an axis dataset, I want to extract
+                                     all relevant details and write them out to the CBF file.
+                                     */
+									hid_t axis = CBF_H5FAIL;
+									if (!cbf_H5Ivalid(axis=H5Dopen2(g_id, path, H5P_DEFAULT))) {
+										cbf_debug_print("couldn't open dataset");
+										error |= CBF_H5ERROR;
+									} else {
+										const char * _path = NULL;
+										hid_t depends_on = CBF_H5FAIL;
+										cbf_axisData_t * axisPtr = NULL;
+										const char * const chr = strrchr(path,'/');
+										const char * const name = NULL==chr ? path : 1+chr;
+										CBF_CALL(_cbf_nx2cbf_key_require_axis(table,&axisPtr,axis,name,axisEquipment_goniometer));
+										CBF_CALL(cbf_H5Afind(axis,&depends_on,"depends_on",CBF_H5FAIL,CBF_H5FAIL));
+										CBF_CALL(cbf_H5Aread_string(depends_on,&_path));
+										if (CBF_SUCCESS==error) {
+											/* set dependancy of previous axis */
+											if (prevAxisPtr) prevAxisPtr->depends_on = axisPtr;
+											/* some axes are shared with other peices of equipment, set the type appropriately */
+											if (axisEquipment_goniometer!=axisPtr->equipment) axisPtr->equipment = axisEquipment_general;
+										} else {
+											cbf_H5Dfree(axis);
+										}
+										/* housekeeping: update the previous axis and path */
+										prevAxisPtr = axisPtr;
+										free((void*)path);
+										path = _path;
+										/* ensure hdf5 stuff is closed */
+										cbf_H5Afree(depends_on);
+									}
+								}
+								free((void*)path);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------------------*/
+					} else {
+						/* unknown field: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					}
+				} else if (H5I_GROUP==type) {
+					/* get NXclass & handle all groups here */
+					const char * NX_class = NULL;
+					const int found = _cbf_NXclass(object,&NX_class);
+					if (CBF_NOTFOUND==found) {
+						/* no NX_class: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					} else if (CBF_SUCCESS!=found) {
+						if (1) {
+							cbf_debug_print(cbf_strerror(found));
+							cbf_debug_print2("error:  whilst processing group '%s'\n",name);
+						}
+						error |= found;
+					} else {
+						/* I have a group with an NX_class: match on NX_class */
+						if (!strcmp(NX_class,"NXcollection")) {
+							/* known class that should be ignored: ignoring it is the correct way to process it */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/*-----------------------------------------------------------------------------------------------*/
+						} else if (!strcmp(NX_class,"NXbeam")) {
+							const unsigned int indent = table->indent;
+							hsize_t idx = 0;
+							/* debugging output */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/* leave ownership of the group with the iteration function, and process it */
+							++table->indent;
+							if (H5Literate(object,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__beam_op,op_data)<0) {
+                                cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+								error |= CBF_H5ERROR;
+							}
+							table->indent = indent;
+							/*-----------------------------------------------------------------------------------------------*/
+						} else {
+							/* unknown NX_class: (probably) not an error */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+						}
+					}
+					free((void*)NX_class);
+				} else {
+					/* unrecognised object type: can't process it, but it's not an error */
+					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+				}
+			}
+			if (cbf_H5Ivalid(object)) H5Oclose(object);
+		}
+		/*
+         Convert a CBF error to something the HDF5 iteration function can understand.
+         All errors should already have been reported, so I shouldn't need to print anything.
+         */
+		return (CBF_SUCCESS==error) ? 0 : -1;
+	}
+
+	static int cbf_write_nx2cbf__entry_op
+    (hid_t g_id,
+     const char * name,
+     const H5L_info_t * info,
+     void * op_data)
+	{
+		int error = CBF_SUCCESS;
+
+		if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
+			cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
+			error |= CBF_ARGUMENT;
+		} else {
+			const op_data_t * const op_data_struct = op_data;
+			cbf_h5handle nx = op_data_struct->nx;
+			cbf_handle cbf = op_data_struct->cbf;
+			cbf_nx2cbf_key_t * const table = op_data_struct->table;
+			hid_t object = CBF_H5FAIL;
+			H5I_type_t type = H5I_BADID;
+			if (!nx) {
+				cbf_debug_print("Invalid NeXus handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf) {
+				cbf_debug_print("No CBF handle given");
+				error |= CBF_ARGUMENT;
+			} else if (!table) {
+				cbf_debug_print("No key given");
+				error |= CBF_ARGUMENT;
+			} else if (!cbf_H5Ivalid(object=H5Oopen(g_id, name, H5P_DEFAULT))) {
+				cbf_debug_print2("error: couldn't open '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else if (H5I_BADID==(type=H5Iget_type(object))) {
+				cbf_debug_print2("error: couldn't get type of '%s'\n",name);
+				error |= CBF_H5ERROR;
+			} else {
+				if (H5I_BADID==type) {
+					/* something went wrong when finding the object type */
+					cbf_debug_print2("error: couldn't get object type of '%s'\n",name);
+					error |= CBF_H5ERROR;
+				} else if (H5I_DATASET==type) {
+					/* handle all datasets here */
+					if (!strcmp(name,"end_time")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								/* ensure I have suitable structure within the CBF file */
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_scan(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"date_end"));
+								/* write the data */
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+		}
+		}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"method")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_measurement(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"method"));
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+		}
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"start_time")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (0==H5Sget_simple_extent_ndims(data_space)) {
+								const char * value = NULL;
+								CBF_CALL(_cbf_nx2cbfDread_scalar_string(object,&value));
+								/* ensure I have suitable structure within the CBF file */
+								CBF_CALL(_cbf_nx2cbf_table__diffrn_scan(cbf,nx,table));
+								CBF_CALL(cbf_require_column(cbf,"date_start"));
+								/* write the data */
+								CBF_CALL(cbf_set_value(cbf,value));
+								free((void*)value);
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*--------------------------------------------------------------------------------------*/
+					} else {
+						/* unknown field: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					}
+				} else if (H5I_GROUP==type) {
+					/* get NXclass & handle all groups here */
+					const char * NX_class = NULL;
+					const int found = _cbf_NXclass(object,&NX_class);
+					if (CBF_NOTFOUND==found) {
+						/* no NX_class: can't process it, but it's not an error */
+						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					} else if (CBF_SUCCESS!=found) {
+						if (1) {
+							cbf_debug_print(cbf_strerror(found));
+							cbf_debug_print2("error:  whilst processing group '%s'\n",name);
+						}
+						error |= found;
+					} else {
+						/* I have a group with an NX_class: match on NX_class */
+						if (!strcmp(NX_class,"NXcollection") || !strcmp(NX_class,"NXdata")) {
+							/* known class that should be ignored: ignoring it is the correct way to process it */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/*-----------------------------------------------------------------------------------------------*/
+						} else if (!strcmp(NX_class,"NXinstrument")) {
+							const unsigned int indent = table->indent;
+							hsize_t idx = 0;
+							hid_t group = object;
+							/* debugging output */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/* try to take ownership of the group away from the iteration function */
+							if (CBF_SUCCESS!=(error|=cbf_h5handle_set_instrument(nx,object,name))) {
+								if (1) {
+									cbf_debug_print(cbf_strerror(found));
+									cbf_debug_print2("error:  failed to set the '%s' group in the handle\n",name);
+								}
+							} else {
+								object = CBF_H5FAIL;
+								/* The hdf5 handle now owns the group, process it */
+								++table->indent;
+								if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__instrument_op,op_data)<0) {
+                                    cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+									error |= CBF_H5ERROR;
+								}
+								table->indent = indent;
+							}
+							/*-----------------------------------------------------------------------------------------------*/
+						} else if (!strcmp(NX_class,"NXsample")) {
+							const unsigned int indent = table->indent;
+							hsize_t idx = 0;
+							hid_t group = object;
+							/* debugging output */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							/* try to take ownership of the group away from the iteration function */
+							if (CBF_SUCCESS!=(error|=cbf_h5handle_set_sample(nx,object,name))) {
+								if (1) {
+									cbf_debug_print(cbf_strerror(found));
+									cbf_debug_print2("error:  failed to set the '%s' group in the handle\n",name);
+								}
+							} else {
+								object = CBF_H5FAIL;
+								/* The hdf5 handle now owns the group, process it */
+								++table->indent;
+								if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__sample_op,op_data)<0) {
+                                    cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+									error |= CBF_H5ERROR;
+								}
+								table->indent = indent;
+							}
+							/*-----------------------------------------------------------------------------------------------*/
+						} else {
+							/* unknown NX_class: (probably) not an error */
+							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+						}
+					}
+					free((void*)NX_class);
+				} else {
+					/* unrecognised object type: can't process it, but it's not an error */
+					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+				}
+			}
+			if (cbf_H5Ivalid(object)) H5Oclose(object);
+		}
+		/*
+         Convert a CBF error to something the HDF5 iteration function can understand.
+         All errors should already have been reported, so I shouldn't need to print anything.
+         */
+		return (CBF_SUCCESS==error) ? 0 : -1;
+	}
+
+    /* sorting function for categories */
+	static int cmp_category
+    (const void * const p1,
+     const void * const p2)
+	{
+		const char last[] = "array_data";
+		const cbf_node * const * const n1 = p1;
+		const cbf_node * const * const n2 = p2;
+		const char * const s1 = (*n1)->name;
+		const char * const s2 = (*n2)->name;
+		if (!strcmp(s1,s2)) return 0;
+		else return (!strcmp(s1,last) || (strcmp(s2,last) && strcmp(s1,s2)>0)) ? 1 : -1;
+	}
+
+	/* sorting function for columns */
+	static int cmp_column
+    (const void * const p1,
+     const void * const p2)
+	{
+		const char str[] = "id";
+		const cbf_node * const * const n1 = p1;
+		const cbf_node * const * const n2 = p2;
+		const char * const s1 = (*n1)->name;
+		const char * const s2 = (*n2)->name;
+		const int cmp = strcmp(s1,s2);
+		/* do the comparison: first check for equality, then for important values, then order the rest */
+		if (!cmp) return 0;
+		else if (!strcmp(str,s1)) return -1;
+		else if (!strcmp(str,s2)) return +1;
+		else return cmp;
+	}
+
+	/* sorting function for 'array_data' category */
+	static int cmp_arraydata
+    (const void * const p1,
+     const void * const p2)
+	{
+		const char str[] = "data";
+		const cbf_node * const * const n1 = p1;
+		const cbf_node * const * const n2 = p2;
+		const char * const s1 = (*n1)->name;
+		const char * const s2 = (*n2)->name;
+		const int cmp = strcmp(s1,s2);
+		/* do the comparison: first check for equality, then for important values, then order the rest */
+		if (!cmp) return 0;
+		else if (!strcmp(str,s1)) return +1;
+		else if (!strcmp(str,s2)) return -1;
+		else return cmp;
+		}
+
+	typedef struct cbf_H5_findObject_t
+	{
+		hid_t * foundField; /*< Where to store the object that was found. */
+		const char * * foundName; /*< Where to store the name of the object that was found. */
+		const char * searchName; /*< The name of the object, or NULL for any field name. */
+		const char * searchClass; /*< The 'NX_class' of the object, or NULL for any class. */
+		H5I_type_t searchType; /*< The HDF5 type of the object (see: H5Iget_type), or 'H5I_BADID' for any type. */
+	} cbf_H5_findObject_t;
+    
+	/*
+     Given an instance of 'cbf_H5_findObject_t' as the 'op_data', find a matching object and return
+     both the object and its name. The name should later be free'd by the caller.
+     
+     If a match is found at a given level then a positive value should be returned. If an error occurs
+     then a negative value should be returned. Failure to find a match will result in a return value
+     of 0 (unless there was an error) and the value at 'cbf_H5_findObject_t::field' being unchanged.
+     */
+	static int cbf_findObject_op
+    (hid_t g_id,
+     const char * name,
+     const H5L_info_t * info,
+     void * op_data)
+	{
+		int error = CBF_SUCCESS;
+		int found = 0;
+		if (!cbf_H5Ivalid(g_id) || !name || !info || !op_data) {
+			cbf_debug_print(cbf_strerror(CBF_ARGUMENT));
+			error |= CBF_ARGUMENT;
+		} else {
+			H5I_type_t type = H5I_BADID;
+			cbf_H5_findObject_t * const findObject = (cbf_H5_findObject_t*) op_data;
+			if (!findObject->searchName || !strcmp(name,findObject->searchName)) {
+				hid_t object = CBF_H5FAIL;
+				if (!cbf_H5Ivalid(object=H5Oopen(g_id, name, H5P_DEFAULT))) {
+					cbf_debug_print2("error: couldn't open '%s'\n",name);
+					error |= CBF_H5ERROR;
+				} else if (H5I_BADID==(type=H5Iget_type(object))) {
+					cbf_debug_print2("error: couldn't get type of '%s'\n",name);
+					error |= CBF_H5ERROR;
+				} else {
+					/* check object type: */
+					if (H5I_BADID==findObject->searchType || findObject->searchType==type) {
+						const char * class = NULL;
+						if (findObject->searchClass && CBF_SUCCESS!=(error|=_cbf_NXclass(object,&class))) {
+							cbf_debug_print("couldn't get value of 'NX_class' attribute");
+							cbf_debug_print(cbf_strerror(error));
+		}
+						/* check 'NX_class': */
+						if (!findObject->searchClass || (class && !strcmp(class,findObject->searchClass))) {
+							/* I have a match! */
+							found = 1;
+							*(findObject->foundField) = object;
+							*(findObject->foundName) = _cbf_strdup(name);
+							object = CBF_H5FAIL;
+		}
+						free((void*)class);
+		}
+				}
+				if (cbf_H5Ivalid(object)) H5Oclose(object);
+			}
+		}
+		/*
+         Convert a CBF error to something the HDF5 iteration function can understand.
+         All errors should already have been reported, so I shouldn't need to print anything.
+         */
+		return (CBF_SUCCESS==error) ? (found ? +1 : 0) : (-1);
+	}
+
+	/**
+     Reads NeXus-format data from the entry group defined in the <code>nx</code> handle, extracting data
+     related to the frame with index <code>nx->slice</code> and in CBF-format within the the <code>cbf</code>
+     handle.
+     
+     \param nx The handle defining the NeXus data to be converted.
+     \param cbf The handle in which to store the resulting CBF data.
+     \sa cbf_write_cbf_h5file
+     \sa cbf_write_minicbf_h5file
+     \sa cbf_write_nx2cbf
+     \return An error code.
+     */
+	int cbf_write_nx2cbf
+    (cbf_h5handle nx,
+     cbf_handle cbf)
+	{
+		int error = CBF_SUCCESS;
+		hid_t entry = CBF_H5FAIL;
+		const char * entry_name = NULL;
+        
+		/* check for appropriate items in the handle */
+		if (!nx) {
+			cbf_debug_print("No NeXus handle given\n");
+			error |= CBF_ARGUMENT;
+		} else if (!cbf) {
+			cbf_debug_print("No CBF handle given\n");
+			error |= CBF_ARGUMENT;
+		} else {
+			size_t _array_id_size = 0;
+			char * _array_id = NULL;
+			const char array_id[] = "array_1";
+			const char datablock_id[] = "db_1";
+			const char diffrn_id[] = "diffrn_1";
+			const char diffrn_detector_id[] = "diffrn_detector_1";
+			const char diffrn_detector_element_id[] = "diffrn_detector_element_1";
+			const char diffrn_measurement_id[] = "diffrn_measurement_1";
+			const char frame_id[] = "frame_1";
+			const char scan_id[] = "scan_1";
+			const char wavelength_id[] = "wavelength_1";
+			cbf_nx2cbf_key_t table[1];
+            
+			/* initialise & populate the key */
+			if (CBF_SUCCESS!=(error|=_cbf_create_nx2cbf_key(table))) {
+				cbf_debug_print(cbf_strerror(error));
+			} else {
+				table->array_id = array_id;
+				table->binary_id = 1;
+				table->datablock_id = datablock_id;
+				table->diffrn_id = diffrn_id;
+				table->diffrn_detector_id = diffrn_detector_id;
+				table->diffrn_detector_element_id = diffrn_detector_element_id;
+				table->diffrn_measurement_id = diffrn_measurement_id;
+				table->frame_id = frame_id;
+				table->scan_id = scan_id;
+				table->wavelength_id = wavelength_id;
+		}
+
+			/*
+             Start by converting the data, obtaining some primary keys required for converting the rest of the data.
+             When I have the data:
+             - match/insert settings for a given image axis in 'axis' and 'array_structure_list_axis' categories.
+             - obtain several axis_set_ids from the above step, one per image axis, which won't need to be changed.
+             - match/insert a row of 'array_structure_list' for each axis_set_id.
+             if all matched rows in 'array_structure_list' have the same array_id then:
+             - match/insert a row in 'array_structure', duplicating the relevant rows of 'array_structure_list'
+             if a new 'array_structure' row had to be added.
+             else:
+             - duplicate existing rows of 'array_structure_list', giving them the new array_id.
+             - insert a new row into 'array_structure'.
+             fi
+             - use the array_id obtained above to extract the smallest permissible binary_id for an image.
+             - insert the image data with the array_id & binary_id, caching them to be referred to later.
+             */
+			if (CBF_SUCCESS!=(error|=cbf_h5handle_get_entry(nx, &entry, &entry_name))) {
+				if (1) {
+					cbf_debug_print("error: couldn't get current entry from NeXus file handle");
+					cbf_debug_print(cbf_strerror(error));
+		}
+			}
+			if (1) {
+				fputc('\n',stderr);
+				int len = fprintf(stderr,"Extracting data from '%s:NXentry':\n",entry_name);
+				while (--len > 0) fputc('=',stderr);
+				fputc('\n',stderr);
+			}
+			if (CBF_SUCCESS==error) {
+				const char empty[] = "";
+				const char no_compression[] = "none";
+				const char canonical[] = "canonical";
+				const char packed[] = "packed";
+				const char packed_v2[] = "packed_v2";
+				const char byte_offset[] = "byte_offset";
+				const char nibble_offset[] = "nibble_offset";
+				const char big_endian[] = "big_endian";
+				const char little_endian[] = "little_endian";
+				const char * data_byte_order = NULL;
+				const char * data_compression = NULL;
+				char * _data_encoding = NULL;
+				const char * data_encoding = empty;
+				size_t _data_encoding_size = 0;
+				unsigned int data_row = ~0x0;
+				hid_t instrument = CBF_H5FAIL;
+				hid_t detector = CBF_H5FAIL;
+				hid_t data = CBF_H5FAIL;
+				if (1) {
+					fputc('\n',stderr);
+					int len = fprintf(stderr,"Counting frames & converting data:\n");
+					while (--len > 0) fputc('-',stderr);
+					fputc('\n',stderr);
+				}
+				if (CBF_SUCCESS==error) {
+					/* find instrument */
+					hsize_t idx = 0;
+					const char * groupName = NULL;
+					const char class[] = "NXinstrument";
+					cbf_H5_findObject_t find_data = {&instrument, &groupName, NULL, class, H5I_GROUP};
+					const herr_t err = H5Literate(entry,H5_INDEX_NAME,H5_ITER_INC,&idx,cbf_findObject_op,&find_data);
+					if (err < 0) {
+						cbf_debug_print2("error: problem while trying to find '*:%s'\n",class);
+						error |= CBF_H5ERROR;
+					} else if (!err) {
+						cbf_debug_print2("error: couldn't find '*:%s'\n",class);
+						error |= CBF_NOTFOUND;
+					} else {
+						if (CBF_SUCCESS!=(error|=cbf_h5handle_set_instrument(nx,instrument,groupName))) {
+							cbf_debug_print(cbf_strerror(error));
+							cbf_H5Gfree(instrument);
+						}
+					}
+					free((void*)groupName);
+				}
+				if (CBF_SUCCESS==error) {
+					/* find detector */
+					hsize_t idx = 0;
+					const char * groupName = NULL;
+					const char class[] = "NXdetector";
+					cbf_H5_findObject_t find_data = {&detector, &groupName, NULL, class, H5I_GROUP};
+					const herr_t err = H5Literate(instrument,H5_INDEX_NAME,H5_ITER_INC,&idx,cbf_findObject_op,&find_data);
+					if (err < 0) {
+						cbf_debug_print2("error: problem while trying to find '*:%s'\n",class);
+						error |= CBF_H5ERROR;
+					} else if (!err) {
+						cbf_debug_print2("error: couldn't find '*:%s'\n",class);
+						error |= CBF_NOTFOUND;
+					} else {
+						if (CBF_SUCCESS!=(error|=cbf_h5handle_set_detector(nx,detector,groupName))) {
+							cbf_debug_print(cbf_strerror(error));
+							cbf_H5Gfree(detector);
+						}
+					}
+					free((void*)groupName);
+				}
+				if (CBF_SUCCESS==error) {
+					/*
+                     find data
+                     TODO: use more direct method, instead of using the iteration function?
+                     */
+					hsize_t idx = 0;
+					const char * groupName = NULL;
+					const char name[] = "data";
+					cbf_H5_findObject_t find_data = {&data, &groupName, name, NULL, H5I_DATASET};
+					const herr_t err = H5Literate(detector,H5_INDEX_NAME,H5_ITER_INC,&idx,cbf_findObject_op,&find_data);
+					if (err < 0) {
+						cbf_debug_print2("error: problem while trying to find '%s'\n",name);
+						error |= CBF_H5ERROR;
+					} else if (!err) {
+						cbf_debug_print2("error: couldn't find '%s'\n",name);
+						error |= CBF_NOTFOUND;
+					}
+					free((void*)groupName);
+				}
+				if (CBF_SUCCESS==error) {
+					/* extract dimensions of data */
+					hsize_t dims[3];
+					/* extract dimensions of data, convert it and get data format & layout metadata */
+					hid_t data_space = CBF_H5FAIL;
+					if (!cbf_H5Ivalid(data_space=H5Dget_space(data))) {
+						cbf_debug_print("could not get data space");
+						error |= CBF_H5ERROR;
+					} else if (3!=H5Sget_simple_extent_ndims(data_space)) {
+						cbf_debug_print("incorrect data rank");
+						error |= CBF_H5DIFFERENT;
+					} else if (3!=H5Sget_simple_extent_dims(data_space,dims,0)) {
+						cbf_debug_print("could not get dimensions of data");
+						error |= CBF_H5ERROR;
+					} else {
+						table->frames = dims[0];
+						table->xdim = dims[2];
+						table->ydim = dims[1];
+					}
+					cbf_H5Sfree(data_space);
+				}
+				if (CBF_SUCCESS==error) {
+					cbf_debug_print5(
+                                     "Found %zu frame%s\nframe dimensions: [%zu, %zu]\n",
+                                     (size_t)(table->frames),
+                                     table->frames != 1 ? "s" : "",
+                                     (size_t)(table->ydim),
+                                     (size_t)(table->xdim)
+                                     );
+					cbf_debug_print2("%zu elems per frame\n",(size_t)(table->xdim*table->ydim));
+				}
+				if (CBF_SUCCESS==error) {
+					/* log image axes for later use */
+					const char x_pixel_offset[] = "x_pixel_offset";
+					const char y_pixel_offset[] = "y_pixel_offset";
+					const char x_pixel_size[] = "x_pixel_size";
+					const char y_pixel_size[] = "y_pixel_size";
+					const char * pixel_offset_name[] = {y_pixel_offset,x_pixel_offset};
+					const char * pixel_size_name[] = {y_pixel_size,x_pixel_size};
+					const char * _axis_set_id[] = {NULL, NULL}; /*< always free'able */
+					const char * axis_set_id[] = {empty, empty}; /*< always useable */
+					const hsize_t pixel_offset_dim[] = {table->ydim,table->xdim};
+					double elem_size[] = {0./0., 0./0.};
+					int i;
+					for (i = 0; i != 2; ++i) {
+						hid_t pixel_data = CBF_H5FAIL;
+						hid_t data_space = CBF_H5FAIL;
+						const char * path = _cbf_strdup(pixel_offset_name[i]);
+						double disp = 0.; /*< read from '*:NXdetector/[xy]_pixel_offset' */
+						double disp_incr = 0.; /*< read from '*:NXdetector/[xy]_pixel_size' */
+						int sign = 0;
+						/* extract pixel offset data */
+						if (!cbf_H5Ivalid(pixel_data=H5Dopen2(detector,pixel_offset_name[i],H5P_DEFAULT))) {
+							cbf_debug_print("error: couldn't open a dataset");
+							error |= CBF_H5ERROR;
+						} else if (!cbf_H5Ivalid(data_space=H5Dget_space(pixel_data))) {
+							cbf_debug_print("error: couldn't get a dataspace");
+							error |= CBF_H5ERROR;
+						} else {
+							const int rank = H5Sget_simple_extent_ndims(data_space);
+							if (rank < 0) {
+								cbf_debug_print("error: problem getting the rank of a dataset");
+								error |= CBF_H5ERROR;
+							} else if (1==rank) {
+								hsize_t dims[1];
+								if (rank != H5Sget_simple_extent_dims(data_space,dims,0)) {
+									cbf_debug_print("error: problem getting the dimensions of a dataset");
+									error |= CBF_H5ERROR;
+								} else if (dims[0] != pixel_offset_dim[i]) {
+									cbf_debug_print("error: dimensions of pixel offset don't match dimensions of data");
+									error |= CBF_H5DIFFERENT;
+								} else {
+									/*
+                                     I (probably) have a suitable axis:
+                                     - extract the first number to store as 'array_structure_list_axis.displacement'
+                                     - assume that it's a uniformly spaced array of pixels in 3D space, so ignore subsequent values
+                                     - store it (and dependancy chain) in the key, to be converted along with other axes
+                                     */
+									const hsize_t off[] = {0};
+									const hsize_t cnt[] = {2};
+									double disp2[] = {0.,0.};
+									double factor = 0./0.;
+									/* extract data */
+									CBF_CALL(cbf_H5Dread2(pixel_data,off,NULL,cnt,disp2,H5T_NATIVE_DOUBLE));
+									if (CBF_SUCCESS==error) {
+										/* convert the data to the correct units */
+										hid_t units = CBF_H5FAIL;
+										const char * unit_string = NULL;
+										CBF_CALL(cbf_H5Afind(pixel_data,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+										CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+										CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+										free((void*)unit_string);
+										cbf_H5Afree(units);
+									}
+									disp = disp2[0]*factor;
+									sign = (disp2[1]-disp2[0]) >= 0. ? +1 : -1;
+								}
+							} else {
+								cbf_debug_print("error: unsupported rank of a 'pixel_offset' field");
+								error |= CBF_NOTIMPLEMENTED;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						cbf_H5Dfree(pixel_data);
+						pixel_data = CBF_H5FAIL;
+						data_space = CBF_H5FAIL;
+						/*
+                         Extract pixel size data.
+                         TODO: make the presence of this data optional, using the pixel_offset fields as a backup option.
+                         */
+						if (!cbf_H5Ivalid(pixel_data=H5Dopen2(detector,pixel_size_name[i],H5P_DEFAULT))) {
+							cbf_debug_print("error: couldn't open a dataset");
+							error |= CBF_H5ERROR;
+						} else if (!cbf_H5Ivalid(data_space=H5Dget_space(pixel_data))) {
+							cbf_debug_print("error: couldn't get a dataspace");
+							error |= CBF_H5ERROR;
+						} else {
+							const int rank = H5Sget_simple_extent_ndims(data_space);
+							if (rank < 0) {
+								cbf_debug_print("error: problem getting the rank of a dataset");
+								error |= CBF_H5ERROR;
+							} else if (0==rank) {
+								double size = 0.;
+								double factor = 0./0.;
+								CBF_CALL(cbf_H5Dread2(pixel_data,NULL,NULL,NULL,&size,H5T_NATIVE_DOUBLE));
+								if (CBF_SUCCESS==error) {
+									/* convert the data to the correct units */
+									hid_t units = CBF_H5FAIL;
+									const char * unit_string = NULL;
+									CBF_CALL(cbf_H5Afind(pixel_data,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+									CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+									CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+									free((void*)unit_string);
+									cbf_H5Afree(units);
+								}
+								disp_incr = fabs(size)*factor*sign;
+								elem_size[i] = fabs(size)*factor*.001;
+							} else {
+								/* pixel size is (possibly) not uniform, this can't be handled in CBF -> fail */
+								cbf_debug_print("error: unsupported rank of a 'pixel_offset' field");
+								error |= CBF_FORMAT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						cbf_H5Dfree(pixel_data);
+						if (CBF_SUCCESS==error) {
+							cbf_axisData_t * prevAxisPtr = NULL;
+							while (CBF_SUCCESS==error && path && strcmp(path,".")) {
+								/*
+                                 Given the path to an axis dataset, I want to extract
+                                 all relevant details and write them out to the CBF file.
+                                 */
+								hid_t axis = CBF_H5FAIL;
+								if (!cbf_H5Ivalid(axis=H5Dopen2(detector, path, H5P_DEFAULT))) {
+									cbf_debug_print("couldn't open dataset");
+									error |= CBF_H5ERROR;
+								} else {
+									const char * _path = NULL;
+									hid_t depends_on = CBF_H5FAIL;
+									cbf_axisData_t * axisPtr = NULL;
+									const char * const chr = strrchr(path,'/');
+									const char * const name = NULL==chr ? path : 1+chr;
+									CBF_CALL(_cbf_nx2cbf_key_require_axis(table,&axisPtr,axis,name,axisEquipment_image));
+									CBF_CALL(cbf_H5Afind(axis,&depends_on,"depends_on",CBF_H5FAIL,CBF_H5FAIL));
+									CBF_CALL(cbf_H5Aread_string(depends_on,&_path));
+									if (CBF_SUCCESS==error) {
+										/* set dependancy of previous axis */
+										if (prevAxisPtr) prevAxisPtr->depends_on = axisPtr;
+										/* some axes are shared with other peices of equipment, set the type appropriately */
+										if (axisEquipment_image!=axisPtr->equipment && axisEquipment_detector!=axisPtr->equipment) {
+											axisPtr->equipment = axisEquipment_general;
+										}
+									} else {
+										cbf_H5Dfree(axis);
+									}
+									/* housekeeping: update the previous axis and path */
+									prevAxisPtr = axisPtr;
+									free((void*)path);
+									path = _path;
+									/* ensure hdf5 stuff is closed */
+									cbf_H5Afree(depends_on);
+								}
+							}
+						}
+						free((void*)path);
+						if (CBF_SUCCESS==error) {
+							/* search for all rows in 'array_structure_list_axis' with matching axis_id, get a unique axis_set_id to store */
+							unsigned int * rows = NULL;
+							cbf_node * node = NULL;
+							unsigned int j, nRows = 0;
+							/* select/insert a column in the CBF file */
+							CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+							/* TODO: add a function to ensure all foreign keys exist? */
+							CBF_CALL(cbf_require_category(cbf,"array_structure_list_axis"));
+							CBF_CALL(cbf_require_column(cbf,"axis_id"));
+							node = cbf->node;
+							/* extract a node set of rows with matching axis_ids from the CBF file */
+							rows = malloc(node->children*sizeof(unsigned int));
+							for (j = 0; CBF_SUCCESS==error && j != node->children; ++j) {
+								const char * val = NULL;
+								CBF_CALL(cbf_node_get_value(node,j,&val));
+								if (val && !strcmp(val,pixel_offset_name[i])) rows[nRows++] = j;
+							}
+							if (0==nRows) {
+								/* axis name is not yet present, no suffix needed */
+								CBF_CALL(cbf_new_row(cbf));
+								CBF_CALL(cbf_set_value(cbf,pixel_offset_name[i]));
+								CBF_CALL(cbf_require_column(cbf,"axis_set_id"));
+								axis_set_id[i] = pixel_offset_name[i];
+								CBF_CALL(cbf_set_value(cbf,axis_set_id[i]));
+								CBF_CALL(cbf_require_column(cbf,"displacement"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%g",disp));
+								CBF_CALL(cbf_require_column(cbf,"displacement_increment"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%g",disp_incr));
+							} else {
+								/*
+                                 The node set is indexed by rows[0:nRows], generate a unique axis_set_id using the axis name
+                                 and a numeric suffix. Store the generated string in '_axis_set_id', and point 'axis_set_id'
+                                 towards it.
+                                 */
+								cbf_debug_print("generation of unique 'axis_set_id's is not yet implemented");
+								error |= CBF_NOTIMPLEMENTED;
+							}
+							free((void*)rows);
+						}
+					}
+					/*
+                     I have axis_set_ids to use, I need a matching or new array_id. Simplest solution is one array_id per
+                     stack of frames added to the file, with a new id generated each time this function is run.
+                     */
+					if (CBF_SUCCESS==error) {
+						cbf_node * node = NULL;
+						unsigned int id = 0;
+						CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+						CBF_CALL(cbf_require_category(cbf,"array_structure"));
+						CBF_CALL(cbf_require_column(cbf,"id"));
+						node = cbf->node;
+						/* iteratively attempt to find an id that isn't used via a template like "array_%u" */
+						while (CBF_SUCCESS==error) {
+							int found = CBF_SUCCESS;
+							/* generate a test id */
+							while (CBF_SUCCESS==error) {
+								char * _array_id_new = NULL;
+								const int n = snprintf(_array_id,_array_id_size,"array_%u",id);
+								/* check if the string was formed successfully */
+								if (n > -1 && n < _array_id_size) break;
+								/* otherwise, set its size to the correct size or to the next higher power-of-2 */
+								if (n > -1) _array_id_size = 1+n;
+								else _array_id_size = _array_id_size ? 2*_array_id_size : 1;
+								/* reallocate the string */
+								if (NULL==(_array_id_new=realloc(_array_id,_array_id_size))) error |= CBF_ALLOC;
+								else _array_id = _array_id_new;
+							}
+							/* search for it in the list of existing ids */
+							found = cbf_find_row(cbf,_array_id);
+							if (CBF_NOTFOUND==found) {
+								table->array_id = _array_id;
+								break;
+							} else if (CBF_SUCCESS!=found) {
+								cbf_debug_print(cbf_strerror(found));
+								error |= found;
+							}
+							/* it already exists, try the next one... */
+							++id;
+						}
+					}
+					/* I have an array_id, I need to generate a unique binary id to accompany it */
+					if (CBF_SUCCESS==error) {
+						/* TODO */
+					}
+					/* write the data & extract some metadata from it */
+					if (CBF_SUCCESS==error) {
+						hid_t data_space = CBF_H5FAIL;
+						hid_t data_type = CBF_H5FAIL;
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(data))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else if (!cbf_H5Ivalid(data_type=H5Dget_type(data))) {
+							cbf_debug_print("could not get data type");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank of data, allowing for multiple usable results */
+							if (3==H5Sget_simple_extent_ndims(data_space)) {
+								hsize_t dim[3];
+								if (3!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (table->frames!=dim[0] || table->ydim!=dim[1] || table->xdim!=dim[2]) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_H5DIFFERENT;
+								} else {
+									hid_t native_type = CBF_H5FAIL;
+									/* ensure I have suitable structure within the CBF file */
+									CBF_CALL(_cbf_nx2cbf_table__array_data(cbf,nx,table));
+									CBF_CALL(cbf_require_column(cbf,"data"));
+									data_row = cbf->row;
+									/* extract the data */
+									if (!cbf_H5Ivalid(native_type=H5Tget_native_type(data_type,H5T_DIR_ASCEND))) {
+										cbf_debug_print("Couldn't get native type of dataset");
+										error |= CBF_H5ERROR;
+									} else if (H5Tequal(native_type,H5T_NATIVE_INT) || H5Tequal(native_type,H5T_NATIVE_UINT) /* etc. */) {
+										/* extract the data from HDF5 and store in CBF */
+										{
+											hsize_t offset[] = {nx->slice,0,0};
+											hsize_t count[] = {1,dim[1],dim[2]};
+											unsigned int compression = CBF_BYTE_OFFSET;
+											const H5T_sign_t h5sign = H5Tget_sign(native_type);
+											const size_t nelems = count[0]*count[1]*count[2];
+											const size_t elem_size = H5Tget_size(native_type);
+											void * const array = malloc(nelems*elem_size);
+											const H5T_order_t h5order = H5Tget_order(native_type);
+											if (H5T_ORDER_LE==h5order) data_byte_order = little_endian;
+											else if (H5T_ORDER_BE==h5order) data_byte_order = big_endian;
+											/* extract data from HDF5 and store in CBF: */
+											if (h5sign<0) {
+												cbf_debug_print("Couldn't get sign of integer datatype");
+												error |= CBF_H5ERROR;
+											}
+											CBF_CALL(cbf_H5Dread2(data,offset,0,count,array,native_type));
+											CBF_CALL(
+                                                     cbf_set_integerarray_wdims(
+                                                                                cbf,
+                                                                                compression,
+                                                                                table->binary_id,
+                                                                                array,
+                                                                                elem_size,
+                                                                                H5T_SGN_2==h5sign ? 1 : 0,
+                                                                                nelems,
+                                                                                data_byte_order,
+                                                                                count[2],
+                                                                                count[1],
+                                                                                count[0],
+                                                                                0
+                                                                                )
+                                                     );
+											free((void*)array);
+											/* map the compression to its string */
+											switch (compression) {
+												case CBF_CANONICAL: {data_compression = canonical; break;}
+												case CBF_PACKED: {data_compression = packed; break;}
+												case CBF_PACKED_V2: {data_compression = packed_v2; break;}
+												case CBF_BYTE_OFFSET: {data_compression = byte_offset; break;}
+												case CBF_NIBBLE_OFFSET: {data_compression = nibble_offset; break;}
+												default: {data_compression = no_compression;}
+											}
+											/* generate the encoding string */
+											while (CBF_SUCCESS==error) {
+												char * _data_encoding_new = NULL;
+												const int n = snprintf(
+                                                                       _data_encoding,
+                                                                       _data_encoding_size,
+                                                                       "%ssigned %zu-bit integer",
+                                                                       H5T_SGN_2==h5sign?"":"un",
+                                                                       8*elem_size
+                                                                       );
+												/* check if the string was formed successfully */
+												if (n > -1 && n < _data_encoding_size) break;
+												/* otherwise, set its size to the correct size or to the next higher power-of-2 */
+												if (n > -1) _data_encoding_size = 1+n;
+												else _data_encoding_size = _data_encoding_size ? 2*_data_encoding_size : 1;
+												/* reallocate the string */
+												if (NULL==(_data_encoding_new=realloc(_data_encoding,_data_encoding_size))) {
+													error |= CBF_ALLOC;
+												} else {
+													_data_encoding = _data_encoding_new;
+												}
+											}
+											data_encoding = _data_encoding;
+											/* debugging */
+											if (1) {
+												cbf_debug_print2("CBF compression: '%s'\n",data_compression);
+												cbf_debug_print2("byte_order: '%s'\n",data_byte_order);
+												cbf_debug_print2("encoding: '%s'\n",data_encoding);
+											}
+										}
+									} else if (H5Tequal(native_type,H5T_NATIVE_FLOAT) || H5Tequal(native_type,H5T_NATIVE_DOUBLE)) {
+										/* TODO: other data types */
+										cbf_debug_print("Floating-point datasets not currently supported");
+										error |= CBF_NOTIMPLEMENTED;
+									} else {
+										cbf_debug_print("Unsupported native type of dataset");
+										error |= CBF_NOTIMPLEMENTED;
+									}
+									cbf_H5Tfree(native_type);
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						cbf_H5Tfree(data_type);
+					}
+					/* write metadata about the data */
+					if (CBF_SUCCESS==error) {
+						size_t dimension[] = {table->ydim,table->xdim};
+						const int precedence[] = {2,1};
+						CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+						/* array_structure category */
+						CBF_CALL(cbf_require_category(cbf,"array_structure"));
+						CBF_CALL(cbf_require_column(cbf,"id"));
+						CBF_CALL(cbf_new_row(cbf));
+						CBF_CALL(cbf_set_value(cbf,table->array_id));
+						CBF_CALL(cbf_require_column(cbf,"byte_order"));
+						CBF_CALL(cbf_set_value(cbf,data_byte_order));
+						CBF_CALL(cbf_require_column(cbf,"compression_type"));
+						CBF_CALL(cbf_set_value(cbf,data_compression));
+						CBF_CALL(cbf_require_column(cbf,"encoding_type"));
+						CBF_CALL(cbf_set_value(cbf,data_encoding));
+						/* array_structure_list category */
+						CBF_CALL(cbf_require_category(cbf,"array_structure_list"));
+						for (i = 0; CBF_SUCCESS==error && i != 2; ++i) {
+							CBF_CALL(cbf_require_column(cbf,"array_id"));
+							CBF_CALL(cbf_new_row(cbf));
+							CBF_CALL(cbf_set_value(cbf,table->array_id));
+							CBF_CALL(cbf_require_column(cbf,"axis_set_id"));
+							CBF_CALL(cbf_set_value(cbf,axis_set_id[i]));
+							CBF_CALL(cbf_require_column(cbf,"dimension"));
+							CBF_CALL(cbf_set_integervalue(cbf,dimension[i]));
+							CBF_CALL(cbf_require_column(cbf,"direction"));
+							CBF_CALL(cbf_set_value(cbf,"increasing"));
+							/* TODO: check the index & precedence are correct */
+							CBF_CALL(cbf_require_column(cbf,"index"));
+							CBF_CALL(cbf_set_integervalue(cbf,precedence[i]));
+							CBF_CALL(cbf_require_column(cbf,"precedence"));
+							CBF_CALL(cbf_set_integervalue(cbf,precedence[i]));
+						}
+					}
+					if (CBF_SUCCESS==error) {
+						const int precedence[] = {2,1};
+						CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+						CBF_CALL(cbf_require_category(cbf,"array_element_size"));
+						for (i = 0; i != 2; ++i) {
+							CBF_CALL(cbf_require_column(cbf,"array_id"));
+							CBF_CALL(cbf_new_row(cbf));
+							CBF_CALL(cbf_set_value(cbf,table->array_id));
+							CBF_CALL(cbf_require_column(cbf,"index"));
+							CBF_CALL(cbf_set_integervalue(cbf,precedence[i]));
+							CBF_CALL(cbf_require_column(cbf,"size"));
+							CBF_CALL(cbf_set_doublevalue(cbf,"%g",elem_size[i]));
+						}
+					}
+					free((void*)_axis_set_id[0]);
+					free((void*)_axis_set_id[1]);
+				}
+				cbf_H5Dfree(data);
+				free((void*)_data_encoding);
+			}
+
+			/*
+             Do the conversion of metadata in the file.
+             */
+			if (CBF_SUCCESS==error) {
+				hsize_t idx = 0;
+				op_data_t op_data_struct = {nx, cbf, table};
+				if (1) {
+					fputc('\n',stderr);
+					int len = fprintf(stderr,"Converting metadata:\n");
+					while (--len > 0) fputc('-',stderr);
+					fputc('\n',stderr);
+		}
+				if (H5Literate(entry,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__entry_op,&op_data_struct)<0) {
+					cbf_debug_print2("error: failed to iterate over items in the '%s' group\n",entry_name);
+					error |= CBF_H5ERROR;
+				}
+			}
+
+			/*
+             Convert the axes after iterating through the file, when all of them have been found.
+             
+             TODO:
+             I need unique names for each axis, so pick an '_n' suffix, with n being some integer,
+             as an arbitrary scheme to break name collisions. Need to check any colliding items
+             for the presence of collisions, then check the colliding names for this suffix and
+             adjust it as needed to get non-colliding names.
+             
+             TODO:
+             Extract the data from each axis dataset, storing it in the appropriate place in the
+             CBF file: 'diffrn_scan_frame_axis' for data; 'axis' for metadata.
+		*/
+				if (CBF_SUCCESS == error) {
+				cbf_axisData_t * const * it = NULL;
+				cbf_axisData_t * const * const end = table->axisData+table->nAxes;
+				/* Ensure I have unique names */
+				for (it = table->axisData; end != it; ++it) {
+					cbf_axisData_t * const * it2 = NULL;
+					for (it2 = it, ++it2; end != it2; ++it2) {
+						if (!strcmp((*it)->name,(*it2)->name)) {
+							cbf_debug_print("warning: unhandled duplicate axis names found:");
+							cbf_debug_print2("Duplicated name: %s\n",(*it)->name);
+							error |= CBF_NOTIMPLEMENTED;
+				}
+			}
+		}
+				if (CBF_SUCCESS==error) {
+					fputc('\n',stderr);
+					int len = fprintf(stderr,"Found %zu %s:\n",table->nAxes,table->nAxes != 1 ? "axes" : "axis");
+					while (--len > 0) fputc('-',stderr);
+					fputc('\n',stderr);
+				}
+				if (CBF_SUCCESS==error) { /* Do the conversion to CBF format */
+					cbf_node * diffrn_measurement_axis = NULL;
+					cbf_node * diffrn_detector_axis = NULL;
+					cbf_node * diffrn_scan_frame_axis = NULL;
+					cbf_node * axis = NULL;
+					CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
+					CBF_CALL(cbf_require_category(cbf,"diffrn_measurement_axis"));
+					diffrn_measurement_axis = cbf->node;
+					CBF_CALL(cbf_require_category(cbf,"diffrn_detector_axis"));
+					diffrn_detector_axis = cbf->node;
+					CBF_CALL(cbf_require_category(cbf,"diffrn_scan_frame_axis"));
+					diffrn_scan_frame_axis = cbf->node;
+					CBF_CALL(cbf_require_category(cbf,"axis"));
+					axis = cbf->node;
+					/* NOTE: this loop writes data to several tables simultaneously */
+					for (it = table->axisData; CBF_SUCCESS==error && end != it; ++it) {
+						cbf_axisData_t * const axisData = *it;
+						unsigned int axisRow = 0;
+						if (CBF_SUCCESS==error) {
+							/* add a new row & convert the axis name */
+							cbf->node = axis;
+							CBF_CALL(cbf_require_column(cbf,"id"));
+							CBF_CALL(cbf_new_row(cbf));
+							axisRow = cbf->row;
+							CBF_CALL(cbf_set_value(cbf,axisData->name));
+							cbf_debug_print2("%s\n",axisData->name);
+						}
+						if (CBF_SUCCESS==error) {
+							/* set the 'equipment' & add to any mapping tables for detectors & goniometers */
+							CBF_CALL(cbf_require_column(cbf,"equipment"));
+							if (axisEquipment_detector==axisData->equipment) {
+								const int row = cbf->row;
+								cbf_debug_print("Equipment: detector\n");
+								CBF_CALL(cbf_set_value(cbf,"detector"));
+								cbf->node = diffrn_detector_axis;
+								CBF_CALL(cbf_require_column(cbf,"detector_id"));
+								CBF_CALL(cbf_new_row(cbf));
+								CBF_CALL(cbf_set_value(cbf,table->diffrn_detector_id));
+								CBF_CALL(cbf_require_column(cbf,"axis_id"));
+								CBF_CALL(cbf_set_value(cbf,axisData->name));
+								cbf->node = axis;
+								cbf->row = row;
+							} else if (axisEquipment_goniometer==axisData->equipment) {
+								const int row = cbf->row;
+								cbf_debug_print("Equipment: goniometer\n");
+								CBF_CALL(cbf_set_value(cbf,"goniometer"));
+								cbf->node = diffrn_measurement_axis;
+								CBF_CALL(cbf_require_column(cbf,"measurement_id"));
+								CBF_CALL(cbf_new_row(cbf));
+								CBF_CALL(cbf_set_value(cbf,diffrn_measurement_id));
+								CBF_CALL(cbf_require_column(cbf,"axis_id"));
+								CBF_CALL(cbf_set_value(cbf,axisData->name));
+								cbf->node = axis;
+								cbf->row = row;
+							} else if (axisEquipment_image==axisData->equipment) {
+								cbf_debug_print("Equipment: image\n");
+								CBF_CALL(cbf_set_value(cbf,"detector"));
+							} else if (axisEquipment_gravity==axisData->equipment) {
+								cbf_debug_print("Equipment: gravity\n");
+								CBF_CALL(cbf_set_value(cbf,"gravity"));
+							} else if (axisEquipment_source==axisData->equipment) {
+								cbf_debug_print("Equipment: source\n");
+								CBF_CALL(cbf_set_value(cbf,"source"));
+							} else {
+								cbf_debug_print("Equipment: general\n");
+								CBF_CALL(cbf_set_value(cbf,"general"));
+							}
+						}
+						if (CBF_SUCCESS==error) { /* record the name of the axis that this depends on */
+							cbf_axisData_t * const depends_on = axisData->depends_on;
+							CBF_CALL(cbf_require_column(cbf,"depends_on"));
+							if (depends_on) {
+								cbf_debug_print2("Depends on: %s\n",depends_on->name);
+								CBF_CALL(cbf_set_value(cbf,depends_on->name));
+							} else CBF_CALL(cbf_set_value(cbf,"."));
+						}
+						if (CBF_SUCCESS==error) { /* extract the transformation type */
+							hid_t attr = CBF_H5FAIL;
+							const char * type = NULL;
+							if (!cbf_H5Ivalid(attr=H5Aopen(axisData->axis,"transformation_type",H5P_DEFAULT))) {
+								cbf_debug_print("couldn't open attribute");
+								error |= CBF_H5ERROR;
+							} else if (CBF_SUCCESS!=(error|=cbf_H5Aread_string(attr,&type))) {
+								cbf_debug_print(cbf_strerror(error));
+							} else {
+								CBF_CALL(cbf_require_column(cbf,"type"));
+								if (!strcmp(type,"translation")) {
+									const hsize_t off[] = {nx->slice};
+									const hsize_t cnt[] = {1};
+									double val;
+									cbf_debug_print("Type: translation\n");
+									CBF_CALL(cbf_set_value(cbf,"translation"));
+									if (axisEquipment_image!=axisData->equipment) {
+										if (CBF_SUCCESS!=(error|=cbf_H5Dread2(axisData->axis,off,0,cnt,&val,H5T_NATIVE_DOUBLE))) {
+											cbf_debug_print(cbf_strerror(error));
+										} else {
+											cbf->node = diffrn_scan_frame_axis;
+											CBF_CALL(cbf_new_row(cbf));
+											CBF_CALL(cbf_require_column(cbf,"axis_id"));
+											CBF_CALL(cbf_set_value(cbf,axisData->name));
+											CBF_CALL(cbf_require_column(cbf,"frame_id"));
+											CBF_CALL(cbf_set_value(cbf,table->frame_id));
+											CBF_CALL(cbf_require_column(cbf,"angle"));
+											CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.0));
+											CBF_CALL(cbf_require_column(cbf,"displacement"));
+											CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",val));
+										}
+									}
+								} else  if (!strcmp(type,"rotation")) {
+									const hsize_t off[] = {nx->slice};
+									const hsize_t cnt[] = {1};
+									double val;
+									cbf_debug_print("Type: rotation\n");
+									CBF_CALL(cbf_set_value(cbf,"rotation"));
+									if (axisEquipment_image!=axisData->equipment) {
+										if (CBF_SUCCESS!=(error|=cbf_H5Dread2(axisData->axis,off,0,cnt,&val,H5T_NATIVE_DOUBLE))) {
+											cbf_debug_print(cbf_strerror(error));
+										} else {
+											cbf->node = diffrn_scan_frame_axis;
+											CBF_CALL(cbf_new_row(cbf));
+											CBF_CALL(cbf_require_column(cbf,"axis_id"));
+											CBF_CALL(cbf_set_value(cbf,axisData->name));
+											CBF_CALL(cbf_require_column(cbf,"frame_id"));
+											CBF_CALL(cbf_set_value(cbf,table->frame_id));
+											CBF_CALL(cbf_require_column(cbf,"angle"));
+											CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",val));
+											CBF_CALL(cbf_require_column(cbf,"displacement"));
+											CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.0));
+										}
+									}
+								} else {
+									if (1) fprintf(stderr,"Type: general\n");
+									CBF_CALL(cbf_set_value(cbf,"general"));
+								}
+								cbf->node = axis;
+								cbf->row = axisRow;
+							}
+							free((void*)type);
+							cbf_H5Afree(attr);
+						}
+						if (CBF_SUCCESS==error) { /* extract the vector */
+							hid_t attr = CBF_H5FAIL;
+							double vec[3];
+							if (!cbf_H5Ivalid(attr=H5Aopen(axisData->axis,"vector",H5P_DEFAULT))) {
+								cbf_debug_print("couldn't open attribute");
+								error |= CBF_H5ERROR;
+							} else if (CBF_SUCCESS!=(error|=cbf_H5Aread(attr,H5T_NATIVE_DOUBLE,vec))) {
+								cbf_debug_print(cbf_strerror(error));
+							} else {
+								cbf_debug_print4("Vector: [%g, %g, %g]\n",vec[0],vec[1],vec[2]);
+								CBF_CALL(cbf_require_column(cbf,"vector[1]"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",vec[0]));
+								CBF_CALL(cbf_require_column(cbf,"vector[2]"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",vec[1]));
+								CBF_CALL(cbf_require_column(cbf,"vector[3]"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",vec[2]));
+							}
+							cbf_H5Afree(attr);
+						}
+						/* extract the offset */
+						if (!error) {
+							htri_t has_offset = H5Aexists(axisData->axis,"offset");
+							double off[3] = {0.,0.,0.};
+							if (has_offset<0) {
+								cbf_debug_print("couldn't check existence of attribute");
+								error |= CBF_H5ERROR;
+							} else if (has_offset) {
+								hid_t offset = CBF_H5FAIL;
+								if (!cbf_H5Ivalid(offset=H5Aopen(axisData->axis,"offset",H5P_DEFAULT))) {
+									cbf_debug_print("couldn't open attribute");
+									error |= CBF_H5ERROR;
+								} else if (error|=cbf_H5Aread(offset,H5T_NATIVE_DOUBLE,off)) {
+									cbf_debug_print("couldn't read attribute");
+								} else {
+									int found = CBF_SUCCESS;
+									const char * unit_string = NULL;
+									hid_t units = CBF_H5FAIL;
+									found = cbf_H5Afind(axisData->axis,&units,"offset_units",CBF_H5FAIL,CBF_H5FAIL);
+									if (CBF_NOTFOUND==found) {
+										/*
+                                         No 'offset_units' specified, can use 'units' iff 'type' is "translation".
+                                         TODO: check the transformation type here
+                                         */
+										CBF_CALL(cbf_H5Afind(axisData->axis,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
+									} else if (found) {
+										cbf_debug_print(cbf_strerror(found));
+										error |= found;
+									}
+									CBF_CALL(cbf_H5Aread_string(units,&unit_string));
+									if (!error) {
+										/* need a conversion factor to apply to the offset before storing it */
+										double factor = 0./0.;
+										if (CBF_SUCCESS!=(error|=cbf_convert_length(unit_string,"mm",&factor))) {
+											cbf_debug_print(cbf_strerror(error));
+										} else {
+											int i;
+											cbf_debug_print4("Offset: [%g, %g, %g]\n",off[0]*factor,off[1]*factor,off[2]*factor);
+											for (i = 0; i != 3; ++i) off[i] *= factor;
+										}
+									}
+									cbf_H5Afree(units);
+									free((void*)unit_string);
+								}
+								cbf_H5Afree(offset);
+							}
+							if (!error) {
+								CBF_CALL(cbf_require_column(cbf,"offset[1]"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",off[0]));
+								CBF_CALL(cbf_require_column(cbf,"offset[2]"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",off[1]));
+								CBF_CALL(cbf_require_column(cbf,"offset[3]"));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",off[2]));
+							}
+						}
+						if (1) fputc('\n',stderr);
+					}
+					/* all real axes converted, add the gravity & beam axes to fully specify the coordinate system */
+					CBF_CALL(cbf_require_category(cbf,"axis"));
+					/* gravity: */
+					CBF_CALL(cbf_require_column(cbf,"id"));
+					CBF_CALL(cbf_new_row(cbf));
+					/* NOTE: axis_id is case-sensitive */
+					CBF_CALL(cbf_set_value(cbf,"GRAVITY"));
+					CBF_CALL(cbf_require_column(cbf,"equipment"));
+					CBF_CALL(cbf_set_value(cbf,"gravity"));
+					CBF_CALL(cbf_require_column(cbf,"type"));
+					CBF_CALL(cbf_set_value(cbf,"general"));
+					CBF_CALL(cbf_require_column(cbf,"depends_on"));
+					CBF_CALL(cbf_set_value(cbf,"."));
+					CBF_CALL(cbf_require_column(cbf,"vector[1]"));
+					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.0));
+					CBF_CALL(cbf_require_column(cbf,"vector[2]"));
+					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",-1.0));
+					CBF_CALL(cbf_require_column(cbf,"vector[3]"));
+					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.0));
+					CBF_CALL(cbf_require_column(cbf,"offset[1]"));
+					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.));
+					CBF_CALL(cbf_require_column(cbf,"offset[2]"));
+					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.));
+					CBF_CALL(cbf_require_column(cbf,"offset[3]"));
+					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.));
+					/* beam: */
+					CBF_CALL(cbf_require_column(cbf,"id"));
+					CBF_CALL(cbf_new_row(cbf));
+					/* NOTE: axis_id is case-sensitive */
+					CBF_CALL(cbf_set_value(cbf,"SOURCE"));
+					CBF_CALL(cbf_require_column(cbf,"equipment"));
+					CBF_CALL(cbf_set_value(cbf,"source"));
+					CBF_CALL(cbf_require_column(cbf,"type"));
+					CBF_CALL(cbf_set_value(cbf,"general"));
+					CBF_CALL(cbf_require_column(cbf,"depends_on"));
+					CBF_CALL(cbf_set_value(cbf,"."));
+					CBF_CALL(cbf_require_column(cbf,"vector[1]"));
+					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.0));
+					CBF_CALL(cbf_require_column(cbf,"vector[2]"));
+					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.0));
+					CBF_CALL(cbf_require_column(cbf,"vector[3]"));
+					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",-1.0));
+					CBF_CALL(cbf_require_column(cbf,"offset[1]"));
+					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.));
+					CBF_CALL(cbf_require_column(cbf,"offset[2]"));
+					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.));
+					CBF_CALL(cbf_require_column(cbf,"offset[3]"));
+					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.));
+				}
+			}
+
+			/* free the key */
+			_cbf_free_nx2cbf_key(table);
+
+			/*
+             Permute the CBF tree:
+             The data should be written last, but the writer currently writes in order of creation.
+             Columns should be sorted in alphabetical order in all tables, tables should be sorted
+             in alphabetical order except for 'array_data' which should be last.
+             */
+			if (CBF_SUCCESS==error) {
+				if (CBF_SUCCESS!=(error|=cbf_rewind_datablock(cbf))) {
+					cbf_debug_print(cbf_strerror(error));
+				} else {
+					cbf_node * const db = cbf->node;
+					cbf_node * const * const cat_end = db->child + db->children;
+					cbf_node * const * pcat;
+					/* sort each table */
+					for (pcat = db->child; cat_end != pcat; ++pcat) {
+						cbf_node * const cat = *pcat;
+						if (!strcmp(cat->name,"array_data")) qsort(cat->child, cat->children, sizeof(void*), cmp_arraydata);
+						else qsort(cat->child, cat->children, sizeof(void*), cmp_column);
+					}
+					/* sort the tables */
+					qsort(db->child, db->children, sizeof(void*), cmp_category);
+				}
+			}
+			free((void*)_array_id);
+		}
+        
+		return error;
+	}
+
+	/*
+     The following set of functions - 'cbf_write_cbf2nx__XYZ' - convert a CBF category 'XYZ' into NeXus format,
+     packing the resulting data into a location given by the 'h5handle' argument.
+	*/
+    
+	/* typedef for the 'cbf_h5handle_require_xyzzy' functions */
+	typedef int (*get_h5group_func)(cbf_h5handle, hid_t *, const char *);
+    
+	/*
+     Conversion functions for various kinds of data:
+     - strings should be converted by producing a new string that should be free'd.
+     - numbers should be converted via a '*out = f(in)' process.
+     - a NULL function pointer should indicate that no conversion is required.
+     */
+	typedef void (*convert_func)();
+	typedef int (*convert_string_func)(const char * const in, const char * * const out);
+	typedef int (*convert_double_func)(const double in, double * const out);
+    
+	/* conversion function for inhomogeneity */
+	int convert_inhomogeneity
+    (const double in,
+     double * const out)
+	{
+		int error = CBF_SUCCESS;
+		if (!out) {
+			error |= CBF_ARGUMENT;
+		} else {
+			*out = 2.0*in;
+		}
+		return error;
+	}
+
+	/*
+     Can't use standard HDF5 datatypes in static initialisation, so define some custom types.
+     The most flexible solution is to build types using hdf5's type enums, but I only want
+     a small subset of the possible values that would provide.
+     */
+	enum data_type {
+		/* invalid type */
+		CBF_T_NONE,
+		/* string types */
+		CBF_T_FLSTR,
+		CBF_T_VLSTR,
+		/* floating-point types */
+		CBF_T_F64LE,
+		/* integer types */
+	};
+
+	/*
+     A list of parameters to pass to a hypothetical 'cbf_H5Drequire_cmp' function,
+     which can be created using existing functionality.
+     */
+	typedef struct cbf2nx_item_map_t
+	{
+		const char * name;
+		const char * units;
+		get_h5group_func get_object;
+		convert_func convert;
+		enum data_type type;
+		int rank;
+	} cbf2nx_item_map_t;
+
+	/* map an item name to some parameters used for converting it */
+	typedef struct cbf2nx_column_map_t
+	{
+		const char * name;
+		cbf2nx_item_map_t data;
+	} cbf2nx_column_map_t;
+
+	/* map a category name to an array of items that it may contain */
+	typedef struct cbf2nx_category_map_t
+	{
+		const char * name;
+		cbf2nx_column_map_t * data;
+	} cbf2nx_category_map_t;
+    
+	cbf2nx_column_map_t diffrn_data_frame_map[] = {
+		{"details",{"CBF_diffrn_data_frame__details",NULL,cbf_h5handle_require_detector,NULL,CBF_T_VLSTR,1}},
+		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
+	};
+    
+	cbf2nx_column_map_t diffrn_detector_map[] = {
+		{"details",{"details",NULL,cbf_h5handle_require_detector,NULL,CBF_T_FLSTR,0}},
+		{"detector",{"type",NULL,cbf_h5handle_require_detector,NULL,CBF_T_FLSTR,0}},
+		{"dtime",{"dead_time","us",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,0}},
+		{"gain_setting",{"gain_setting",NULL,cbf_h5handle_require_detector,NULL,CBF_T_FLSTR,0}},
+		{"layer_thickness",{"sensor_thickness","mm",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,0}},
+		{"sensor_material",{"sensor_material",NULL,cbf_h5handle_require_detector,NULL,CBF_T_FLSTR,0}},
+		{"threshold",{"threshold_energy","eV",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,0}},
+		{"type",{"description",NULL,cbf_h5handle_require_detector,NULL,CBF_T_FLSTR,0}},
+		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
+	};
+    
+	cbf2nx_column_map_t diffrn_detector_element_map[] = {
+		{"center[1]",{"beam_center_x","mm",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,1}},
+		{"center[2]",{"beam_center_y","mm",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,1}},
+		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
+	};
+    
+	cbf2nx_column_map_t diffrn_measurement_map[] = {
+		{"details",{"details",NULL,cbf_h5handle_require_goniometer,NULL,CBF_T_FLSTR,0}},
+		{"device",{"local_name",NULL,cbf_h5handle_require_goniometer,NULL,CBF_T_FLSTR,0}},
+		{"device_details",{"description",NULL,cbf_h5handle_require_goniometer,NULL,CBF_T_FLSTR,0}},
+		{"device_type",{"type",NULL,cbf_h5handle_require_goniometer,NULL,CBF_T_FLSTR,0}},
+		{"sample_detector_distance",{"distance","mm",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,1}},
+		{"method",{"method",NULL,cbf_h5handle_require_entry,NULL,CBF_T_FLSTR,0}},
+		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
+	};
+    
+	cbf2nx_column_map_t diffrn_radiation_map[] = {
+		{"collimation",{"collimation",NULL,cbf_h5handle_require_beam,NULL,CBF_T_FLSTR,0}},
+		{"div_x_source",{"incident_divergence_x","degrees",cbf_h5handle_require_beam,NULL,CBF_T_F64LE,0}},
+		{"div_x_y_source",{"incident_divergence_xy","degrees^2",cbf_h5handle_require_beam,NULL,CBF_T_F64LE,0}},
+		{"div_y_source",{"incident_divergence_y","degrees",cbf_h5handle_require_beam,NULL,CBF_T_F64LE,0}},
+		{"inhomogeneity",{"beam_size_x","mm",cbf_h5handle_require_beam,(convert_func)(convert_inhomogeneity),CBF_T_F64LE,0}},
+		{"inhomogeneity",{"beam_size_y","mm",cbf_h5handle_require_beam,(convert_func)(convert_inhomogeneity),CBF_T_F64LE,0}},
+		{"monochromator",{"description",NULL,cbf_h5handle_require_monochromator,NULL,CBF_T_FLSTR,0}},
+		{"probe",{"probe",NULL,cbf_h5handle_require_source,NULL,CBF_T_FLSTR,0}},
+		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
+	};
+    
+	cbf2nx_column_map_t diffrn_radiation_wavelength_map[] = {
+		{"wavelength",{"wavelength","A",cbf_h5handle_require_beam,NULL,CBF_T_F64LE,1}},
+		{"wt",{"weight",NULL,cbf_h5handle_require_beam,NULL,CBF_T_F64LE,1}},
+		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
+	};
+    
+	cbf2nx_column_map_t diffrn_scan_frame_map[] = {
+		{"date",{"frame_start_time",NULL,cbf_h5handle_require_detector,NULL,CBF_T_VLSTR,1}},
+		{"integration_period",{"frame_time","s",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,1}},
+		{"integration_time",{"count_time","s",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,1}},
+		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
+	};
+    
+	cbf2nx_column_map_t diffrn_source_map[] = {
+		{"current",{"current","mA",cbf_h5handle_require_source,NULL,CBF_T_F64LE,0}},
+		{"power",{"power","kW",cbf_h5handle_require_source,NULL,CBF_T_F64LE,0}},
+		{"source",{"type",NULL,cbf_h5handle_require_source,NULL,CBF_T_FLSTR,0}},
+		{"target",{"target_material",NULL,cbf_h5handle_require_source,NULL,CBF_T_FLSTR,0}},
+		{"type",{"name",NULL,cbf_h5handle_require_source,NULL,CBF_T_FLSTR,0}},
+		{"voltage",{"voltage","kV",cbf_h5handle_require_source,NULL,CBF_T_F64LE,0}},
+		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
+	};
+    
+	cbf2nx_category_map_t cbf_map[] = {
+		{"diffrn_data_frame", diffrn_data_frame_map},
+		{"diffrn_detector", diffrn_detector_map},
+		{"diffrn_detector_element", diffrn_detector_element_map},
+		{"diffrn_measurement", diffrn_measurement_map},
+		{"diffrn_radiation", diffrn_radiation_map},
+		{"diffrn_radiation_wavelength", diffrn_radiation_wavelength_map},
+		{"diffrn_scan_frame", diffrn_scan_frame_map},
+		{"diffrn_source", diffrn_source_map},
+		{NULL, NULL},
+	};
+    
+	/*
+     Search a list of category mappings for one with a given name, returning the mapping data if found or NULL otherwise.
+     */
+	static const cbf2nx_column_map_t * cbf2nx_find_category_mapping
+    (const cbf2nx_category_map_t * catmap, /*< the list of category mappings to search within */
+     const char * const name /*< the name of the category mapping to search for */)
+	{
+		if (!catmap || !name) {
+			return NULL;
+				} else {
+			for (; catmap->name; ++catmap) {
+				if (!strcmp(catmap->name,name)) {
+					return catmap->data;
+				}
+			}
+			return NULL;
+				}
+	}
+    
+	int cbf_convert_cbf2nx
+    (cbf_node * const column,
+     const unsigned int row,
+     cbf_h5handle nx,
+     const cbf2nx_item_map_t * conv)
+	{
+		int error = CBF_SUCCESS;
+		if (!column) {
+			cbf_debug_print("error: invalid column given");
+			error |= CBF_ARGUMENT;
+		} else if (row >= column->children) {
+			cbf_debug_print("error: invalid row given");
+			error |= CBF_ARGUMENT;
+		} else if (!nx) {
+			cbf_debug_print("error: invalid hdf5 handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!conv) {
+			cbf_debug_print("error: invalid conversion data given");
+			error |= CBF_ARGUMENT;
+				} else {
+			hid_t obj = CBF_H5FAIL;
 #ifdef CBF_USE_ULP
-		cmp_double_param_t cmp_params;
-
-		/* set up the comparison parameters */
-		cmp_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
-		cmp_params.ulp32 = h5handle->float_ulp;
+			cmp_double_param_t cmp_double_params;
+			void * cmp_params = &cmp_double_params;
+			/* set up the comparison parameters */
+			cmp_double_params.cmp_double_as_float = cbf_has_ULP64() ? nx->cmp_double_as_float : 1;
+			cmp_double_params.ulp32 = nx->float_ulp;
 #ifndef NO_UINT64_TYPE
-		cmp_params.ulp64 = h5handle->double_ulp;
+			cmp_double_params.ulp64 = nx->double_ulp;
 #endif
+#else
+			void * cmp_params = 0;
 #endif
+			/* it looks like I might be able to convert the data */
+			CBF_CALL(conv->get_object(nx,&obj,NULL));
+			switch (conv->type) {
+				case CBF_T_FLSTR: {
+					const char * val = NULL;
+					hid_t dset = CBF_H5FAIL;
+					CBF_CALL(cbf_node_get_value(column, row, &val));
+					if (conv->convert) {
+						cbf_debug_print(cbf_strerror(CBF_NOTIMPLEMENTED));
+                        error |= CBF_NOTIMPLEMENTED;
+				}
+                    if (0 != conv->rank) {
+                        cbf_debug_print(cbf_strerror(CBF_NOTIMPLEMENTED));
+                        error |= CBF_NOTIMPLEMENTED;
+			}
+                    CBF_CALL(cbf_H5Drequire_flstring(obj,&dset,conv->name,val));
+                    if (conv->units) CBF_CALL(cbf_H5Arequire_string(dset,"units",conv->units));
+                    cbf_H5Dfree(dset);
+                    break;
+		}
+                case CBF_T_VLSTR: {
+                    const char * in = NULL;
+                    const char * _out = NULL;
+                    const char * out = NULL;
+                    hid_t dset = CBF_H5FAIL;
+                    hid_t vlstr = CBF_H5FAIL;
+                    CBF_CALL(cbf_H5Tcreate_string(&vlstr,H5T_VARIABLE));
+                    CBF_CALL(cbf_node_get_value(column, row, &in));
+                    if (conv->convert) {
+                        convert_string_func convert = (convert_string_func)(conv->convert);
+                        CBF_CALL(convert(in,&_out));
+                        out = _out;
+                    } else {
+                        out = in;
+                    }
+                    if (0==conv->rank) {
+                        CBF_CALL(cbf_H5Drequire(obj,&dset,conv->name,0,NULL,NULL,NULL,vlstr));
+                        CBF_CALL(cbf_H5Dinsert(dset,NULL,NULL,NULL,NULL,&out,vlstr));
+                    } else if (1==conv->rank) {
+                        const hsize_t max[] = {H5S_UNLIMITED};
+                        const hsize_t cnk[] = {1};
+                        const hsize_t off[] = {nx->slice};
+                        const hsize_t cnt[] = {1};
+                        hsize_t buf[] = {0};
+                        CBF_CALL(cbf_H5Drequire(obj,&dset,conv->name,1,max,cnk,buf,vlstr));
+                        CBF_CALL(cbf_H5Dinsert(dset,off,NULL,cnt,buf,&out,vlstr));
+                    } else {
+                        cbf_debug_print("error: unrecognised/not implemented data rank");
+                    }
+                    if (conv->units) CBF_CALL(cbf_H5Arequire_string(dset,"units",conv->units));
+                    cbf_H5Dfree(dset);
+                    cbf_H5Tfree(vlstr);
+                    free((void*)_out);
+                    break;
+                }
+                case CBF_T_F64LE: {
+                    double in = 0., out = 0.;
+                    hid_t dset = CBF_H5FAIL;
+                    CBF_CALL(cbf_node_get_doublevalue(column, row, &in));
+                    if (conv->convert) {
+                        convert_double_func convert = (convert_double_func)(conv->convert);
+                        CBF_CALL(convert(in,&out));
+                    } else {
+                        out = in;
+                    }
+                    if (0==conv->rank) {
+                        CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(obj,&dset,conv->name,out,cmp_double,cmp_params));
+                    } else if (1==conv->rank) {
+                        const hsize_t max[] = {H5S_UNLIMITED};
+                        const hsize_t cnk[] = {1};
+                        const hsize_t off[] = {nx->slice};
+                        const hsize_t cnt[] = {1};
+                        hsize_t buf[] = {0};
+                        CBF_CALL(cbf_H5Drequire(obj,&dset,conv->name,1,max,cnk,buf,H5T_IEEE_F64LE));
+                        CBF_CALL(cbf_H5Dinsert(dset,off,NULL,cnt,buf,&out,H5T_NATIVE_DOUBLE));
+                    } else {
+                        cbf_debug_print("error: unrecognised/not implemented data rank");
+                    }
+                    if (conv->units) CBF_CALL(cbf_H5Arequire_string(dset,"units",conv->units));
+                    cbf_H5Dfree(dset);
+                    break;
+                }
+                case CBF_T_NONE: {
+                    break;
+                }
+                default: {
+                    cbf_debug_print("error: unrecognised/not implemented conversion type");
+                    error |= CBF_NOTIMPLEMENTED;
+                    break;
+                }
+            }
+        }
+		return error;
+	}
 
-		if (0) fprintf(stderr,"diffrn_detector_axis\n");
+    static int cbf_write_cbf2nx__diffrn_detector_element
+			(cbf_handle handle,
+			 cbf_h5handle h5handle,
+     cbf_cbf2nx_key_t * const key,
+     const int list)
+	{
+		int error = CBF_SUCCESS;
+        unsigned int matched = 0;
+        const char categoryName[] = "diffrn_detector_element";
 
 		/* check arguments */
 		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key || !key->diffrn_detector_element) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+            cbf_debug_print(cbf_strerror(error));
+        } else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[1];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int row = 0, nRows = 0;
+            unsigned int indent = 1+key->indent;
+            const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
 		}
-		if (!h5handle || !cbf_H5Ivalid(h5handle->nxdetector)) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-		if (!key || !key->diffrn_detector || !key->frame) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
+                if (1 != nRows) {
+                    cbf_debug_print("error: multiple element support not yet implemented");
+                    error |= CBF_NOTIMPLEMENTED;
+		}
+		}
+            /*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+             */
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
+                    const char * val = NULL;
+                    if (CBF_SUCCESS==error) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strcmp(val,key->diffrn_detector_element)) {
+                            continue;
+		}
+		}
+                }
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"detector_id")) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &key->diffrn_detector));
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else {
+                        int is_in_list = 0;
+                        const cbf2nx_column_map_t * colmap;
+                        if (colmap_begin) {
+                            for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
+                                if (!strcmp(colmap->name,column->name)) {
+                                    is_in_list = 1;
+                                    CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
+                                }
+                            }
+                        }
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
+                    }
+                }
+                ++matched;
+            }
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
+            }
+        }
+        return error;
+    }
 
-		/* Ensure some basic structure is present */
-		_CBF_CALL(cbf_h5handle_require_detector(h5handle,0,0));
-		_CBF_CALL(_cbf_realloc_axisIndex(&axisIndex,0));
-
-		while (CBF_SUCCESS==error) {
-			const char * id = 0;
-			/* get a valid row of the 'detector_id' column */
-			_CBF_CALL(cbf_find_category(handle, "diffrn_detector_axis"));
-			_CBF_CALL(cbf_find_column(handle, "detector_id"));
-			if (CBF_SUCCESS == error) {
-				const int err = cbf_select_row(handle,axis_row);
-				if (CBF_NOTFOUND == err) break;
-				error |= err;
-				if (CBF_SUCCESS != err) {
-					fprintf(stderr,"%s: Error selecting a row: %s\n",__WHERE__,cbf_strerror(err));
-					break;
+    static int cbf_write_cbf2nx__diffrn_detector
+    (cbf_handle handle,
+     cbf_h5handle h5handle,
+     cbf_cbf2nx_key_t * const key,
+     const int list)
+	{
+		int error = CBF_SUCCESS;
+		unsigned int matched = 0;
+		const char categoryName[] = "diffrn_detector";
+        
+		/* check arguments */
+		if (!handle) {
+			cbf_debug_print("Invalid handle given\n");
+			error |= CBF_ARGUMENT;
+		} else if (!h5handle) {
+			cbf_debug_print("Invalid hdf5 handle given\n");
+			error |= CBF_ARGUMENT;
+		} else if (!key || !key->diffrn_detector) {
+			cbf_debug_print("Bad key given\n");
+			error |= CBF_ARGUMENT;
+		} else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+			if (1) cbf_debug_print(cbf_strerror(error));
+		} else {
+			cbf_node * const category = handle->node;
+			cbf_node * primary_keys[1];
+			const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+			unsigned int row = 0, nRows = 0;
+			unsigned int indent = 1+key->indent;
+			const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
+			if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+			if (key->categories) {
+				cbf_node * * it;
+				cbf_node * const * const end = key->nCat+key->categories;
+				for (it = key->categories; end != it; ++it) {
+					if (*it) {
+						*it = strcmp((*it)->name,categoryName) ? *it : NULL;
+					}
 				}
 			}
-			/* check for a relevant entry */
-			_CBF_CALL(cbf_get_value(handle, &id));
-			if (CBF_SUCCESS == error && !cbf_cistrcmp(id,key->diffrn_detector)) {
-				const char * axis = 0;
-				const char * axis_type = 0;
-				/* I have a match - find the relevant axis */
-				_CBF_CALL(cbf_find_column(handle, "axis_id"));
-				_CBF_CALL(cbf_get_value(handle, &axis));
-				_CBF_CALL(cbf_find_category(handle, "axis"));
-				_CBF_CALL(cbf_find_column(handle, "id"));
-				_CBF_CALL(cbf_find_row(handle, axis));
-				if (0) fprintf(stdout,"Converting axis data for '%s'\n",axis);
+			/* check that I have some children, and try to find the primary key columns */
+			if (0==category->children) {
+				if (1) cbf_debug_print("error: category has no children");
+				error |= CBF_NOTFOUND;
+			} else {
+				nRows = category->child[0]->children;
+				CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
+			}
+			/*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+             */
+			for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+				cbf_node * const * column_it;
+				{
+					/* check the values of the primary keys, continuing on to the next row if there is no match */
+					const char * val = NULL;
+			if (CBF_SUCCESS == error) {
+						if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+							cbf_debug_print(cbf_strerror(error));
+						} else if (strcmp(val,key->diffrn_detector)) {
+							continue;
+				}
+				}
+			}
+				for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+					cbf_node * const column = *column_it;
+					int pk = 0;
+					cbf_node * const * it;
+					cbf_node * const * const end = npk+primary_keys;
+					for (it = primary_keys; end != it; ++it) {
+						pk = column==*it ? 1 : pk;
+					}
+					/*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+					*/
+					if (pk) {
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+						/* ---------------------------------------------------------------------------------------------*/
+					} else if (!cbf_cistrcmp(column->name,"diffrn_id")) {
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+						CBF_CALL(cbf_node_get_value(column, row, &key->diffrn));
+						/* ---------------------------------------------------------------------------------------------*/
+					} else if (!cbf_cistrcmp(column->name,"number_of_axes")) {
+						if (list && !matched) {
+							unsigned int _indent = indent;
+							FILE * const out = stderr;
+							while (_indent--) fputc('\t',out);
+							fprintf(out,"- %s\n",column->name);
+						}
+						/* ---------------------------------------------------------------------------------------------*/
+					} else {
+						int is_in_list = 0;
+						const cbf2nx_column_map_t * colmap;
+						if (colmap_begin) {
+							for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
+								if (!strcmp(colmap->name,column->name)) {
+									is_in_list = 1;
+									CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
+					}
+							}
+						}
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
+					}
+				}
+				++matched;
+			}
+			if (!matched) {
+				/* TODO: in some cases this will be an error, find them */
+				if (1) cbf_debug_print("warning: No data located");
+			}
+		}
+		return error;
+	}
+    
+	static int cbf_write_cbf2nx__diffrn_measurement
+    (cbf_handle handle,
+     cbf_h5handle h5handle,
+     cbf_cbf2nx_key_t * const key,
+     const int list)
+	{
+		int error = CBF_SUCCESS;
+		unsigned int matched = 0;
+		const char categoryName[] = "diffrn_measurement";
+        
+		/* check arguments */
+		if (!handle) {
+			cbf_debug_print("Invalid handle given\n");
+			error |= CBF_ARGUMENT;
+		} else if (!h5handle) {
+			cbf_debug_print("Invalid hdf5 handle given\n");
+			error |= CBF_ARGUMENT;
+		} else if (!key || !key->diffrn) {
+			cbf_debug_print("Bad key given\n");
+			error |= CBF_ARGUMENT;
+		} else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+			cbf_debug_print(cbf_strerror(error));
+					} else {
+			cbf_node * const category = handle->node;
+			cbf_node * primary_keys[1];
+			const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+			unsigned int row = 0, nRows = 0;
+			unsigned int indent = 1+key->indent;
+			const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
+			if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+			if (key->categories) {
+				cbf_node * * it;
+				cbf_node * const * const end = key->nCat+key->categories;
+				for (it = key->categories; end != it; ++it) {
+					if (*it) {
+						*it = strcmp((*it)->name,categoryName) ? *it : NULL;
+					}
+				}
+			}
+			/* check that I have some children, and try to find the primary key columns */
+			if (0==category->children) {
+				cbf_debug_print("error: category has no children");
+				error |= CBF_NOTFOUND;
+				} else {
+				nRows = category->child[0]->children;
+				CBF_CALL(cbf_find_child(primary_keys+0, category, "diffrn_id"));
+			}
+					/*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+					*/
+			for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+				cbf_node * const * column_it;
+				{
+					/* check the values of the primary keys, continuing on to the next row if there is no match */
+					const char * val = NULL;
+					if (CBF_SUCCESS==error) {
+						if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+							cbf_debug_print(cbf_strerror(error));
+						} else if (strcmp(val,key->diffrn)) {
+							continue;
+						}
+						}
+						}
+				for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+					cbf_node * const column = *column_it;
+					int pk = 0;
+					cbf_node * const * it;
+					cbf_node * const * const end = npk+primary_keys;
+					for (it = primary_keys; end != it; ++it) {
+						pk = column==*it ? 1 : pk;
+						}
+					/*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+					if (pk) {
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+						/* ---------------------------------------------------------------------------------------------*/
+					} else if (!cbf_cistrcmp(column->name,"id")) {
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+						CBF_CALL(cbf_node_get_value(column, row, &key->diffrn_measurement));
+						/* ---------------------------------------------------------------------------------------------*/
+					} else if (!cbf_cistrcmp(column->name,"number_of_axes")) {
+						if (list && !matched) {
+							unsigned int _indent = indent;
+							FILE * const out = stderr;
+							while (_indent--) fputc('\t',out);
+							fprintf(out,"- %s\n",column->name);
+						}
+						/* ---------------------------------------------------------------------------------------------*/
+					} else {
+						int is_in_list = 0;
+						const cbf2nx_column_map_t * colmap;
+						if (colmap_begin) {
+							for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
+								if (!strcmp(colmap->name,column->name)) {
+									is_in_list = 1;
+									CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
+					}
+				}
+			}
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
+		}
+				}
+				++matched;
+			}
+			if (!matched) {
+				/* TODO: in some cases this will be an error, find them */
+				cbf_debug_print("warning: No data located");
+			}
+		}
+		return error;
+	}
+
+	static int cbf_write_cbf2nx__diffrn_radiation_wavelength
+			(cbf_handle handle,
+			 cbf_h5handle h5handle,
+     cbf_cbf2nx_key_t * const key,
+     const int list)
+	{
+		int error = CBF_SUCCESS;
+		unsigned int matched = 0;
+		const char categoryName[] = "diffrn_radiation_wavelength";
+
+		/* check arguments */
+		if (!handle) {
+			cbf_debug_print("Invalid handle given\n");
+			error |= CBF_ARGUMENT;
+		} else if (!h5handle) {
+			cbf_debug_print("Invalid hdf5 handle given\n");
+			error |= CBF_ARGUMENT;
+		} else if (!key || !key->wavelength_id) {
+			cbf_debug_print("Bad key given\n");
+			error |= CBF_ARGUMENT;
+		} else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+			cbf_debug_print(cbf_strerror(error));
+		} else {
+			cbf_node * const category = handle->node;
+			cbf_node * primary_keys[1];
+			const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+			unsigned int row = 0, nRows = 0;
+			unsigned int indent = 1+key->indent;
+			const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
+			if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+			if (key->categories) {
+				cbf_node * * it;
+				cbf_node * const * const end = key->nCat+key->categories;
+				for (it = key->categories; end != it; ++it) {
+					if (*it) {
+						*it = strcmp((*it)->name,categoryName) ? *it : NULL;
+		}
+		}
+		}
+			/* check that I have some children, and try to find the primary key columns */
+			if (0==category->children) {
+				cbf_debug_print("error: category has no children");
+				error |= CBF_NOTFOUND;
+			} else {
+				nRows = category->child[0]->children;
+				CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
+		}
+			/*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+             */
+			for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+				cbf_node * const * column_it;
+				{
+					/* check the values of the primary keys, continuing on to the next row if there is no match */
+					const char * val = NULL;
+					if (CBF_SUCCESS==error) {
+						if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+							cbf_debug_print(cbf_strerror(error));
+						} else if (strcmp(val,key->wavelength_id)) {
+							continue;
+		}
+		}
+				}
+				for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+					cbf_node * const column = *column_it;
+					int pk = 0;
+					cbf_node * const * it;
+					cbf_node * const * const end = npk+primary_keys;
+					for (it = primary_keys; end != it; ++it) {
+						pk = column==*it ? 1 : pk;
+					}
+					/*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+					if (pk) {
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+						/* ---------------------------------------------------------------------------------------------*/
+					} else {
+						int is_in_list = 0;
+						const cbf2nx_column_map_t * colmap;
+						if (colmap_begin) {
+							for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
+								if (!strcmp(colmap->name,column->name)) {
+									is_in_list = 1;
+									CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
+								}
+							}
+						}
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
+					}
+				}
+				++matched;
+			}
+			if (!matched) {
+				/* TODO: in some cases this will be an error, find them */
+				cbf_debug_print("warning: No data located");
+			}
+		}
+		return error;
+	}
+
+	static int cbf_write_cbf2nx__diffrn_source
+    (cbf_handle handle,
+     cbf_h5handle h5handle,
+     cbf_cbf2nx_key_t * const key,
+     const int list)
+		{
+		int error = CBF_SUCCESS;
+		int found = CBF_SUCCESS;
+		unsigned int matched = 0;
+		const char categoryName[] = "diffrn_source";
+        
+		/* check arguments */
+		if (!handle) {
+			cbf_debug_print("Invalid handle given\n");
+			error |= CBF_ARGUMENT;
+		} else if (!h5handle) {
+			cbf_debug_print("Invalid hdf5 handle given\n");
+			error |= CBF_ARGUMENT;
+		} else if (!key || !key->diffrn) {
+			cbf_debug_print("Bad key given\n");
+			error |= CBF_ARGUMENT;
+		} else if (CBF_SUCCESS!=(found=cbf_find_category(handle,categoryName))) {
+			if (CBF_NOTFOUND!=found) {
+				cbf_debug_print(cbf_strerror(error));
+			}
+		} else {
+			cbf_node * const category = handle->node;
+			cbf_node * primary_keys[1];
+			const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+			unsigned int row = 0, nRows = 0;
+			unsigned int indent = 1+key->indent;
+			const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
+			if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+			if (key->categories) {
+				cbf_node * * it;
+				cbf_node * const * const end = key->nCat+key->categories;
+				for (it = key->categories; end != it; ++it) {
+					if (*it) {
+						*it = strcmp((*it)->name,categoryName) ? *it : NULL;
+					}
+				}
+			}
+			/* check that I have some children, and try to find the primary key columns */
+			if (0==category->children) {
+				cbf_debug_print("category has no children");
+				error |= CBF_NOTFOUND;
+			} else {
+				nRows = category->child[0]->children;
+				CBF_CALL(cbf_find_child(primary_keys+0, category, "diffrn_id"));
+			}
+			/*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+             */
+			for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+				cbf_node * const * column_it;
+				{
+					/* check the values of the primary keys, continuing on to the next row if there is no match */
+					const char * val = NULL;
 				if (CBF_SUCCESS == error) {
+						if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+							cbf_debug_print(cbf_strerror(error));
+						} else if (strcmp(val,key->diffrn)) {
+							continue;
+					}
+					}
+				}
+				for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+					cbf_node * const column = *column_it;
+					int pk = 0;
+					cbf_node * const * it;
+					cbf_node * const * const end = npk+primary_keys;
+					for (it = primary_keys; end != it; ++it) {
+						pk = column==*it ? 1 : pk;
+					}
+					/*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+					if (pk) {
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+						/* ---------------------------------------------------------------------------------------------*/
+					} else {
+						int is_in_list = 0;
+						const cbf2nx_column_map_t * colmap;
+						if (colmap_begin) {
+							for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
+								if (!strcmp(colmap->name,column->name)) {
+									is_in_list = 1;
+									CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
+					}
+				}
+			}
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
+			}
+				}
+				++matched;
+			}
+			if (!matched) {
+				/* TODO: in some cases this will be an error, find them */
+				cbf_debug_print("warning: No data located");
+			}
+		}
+		return error;
+	}
+    
+	static int cbf_write_cbf2nx__diffrn_radiation
+    (cbf_handle handle,
+     cbf_h5handle h5handle,
+     cbf_cbf2nx_key_t * const key,
+     const int list)
+	{
+		int error = CBF_SUCCESS;
+		const char categoryName[] = "diffrn_radiation";
+        
+		/* check arguments */
+		if (!handle) {
+			cbf_debug_print("Invalid handle given\n");
+			return CBF_ARGUMENT;
+		} else if (!h5handle) {
+			cbf_debug_print("Invalid hdf5 handle given\n");
+			return CBF_ARGUMENT;
+		} else if (!key || !key->diffrn) {
+			cbf_debug_print("Bad key given\n");
+			return CBF_ARGUMENT;
+		} else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+			cbf_debug_print(cbf_strerror(error));
+		} else {
+			cbf_node * const category = handle->node;
+			cbf_node * primary_keys[1];
+			const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+			unsigned int matched = 0;
+			unsigned int row = 0, nRows = 0;
+			unsigned int indent = 1+key->indent;
+			const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
+			if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+			if (key->categories) {
+				cbf_node * * it;
+				cbf_node * const * const end = key->nCat+key->categories;
+				for (it = key->categories; end != it; ++it) {
+					if (*it) {
+						*it = strcmp((*it)->name,categoryName) ? *it : NULL;
+					}
+				}
+			}
+			/* check that I have some children, and try to find the primary key columns */
+			if (0==category->children) {
+                cbf_debug_print("error: category has no children");
+				error |= CBF_NOTFOUND;
+			} else {
+				nRows = category->child[0]->children;
+				CBF_CALL(cbf_find_child(primary_keys+0, category, "diffrn_id"));
+			}
+			for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+				cbf_node * const * column_it;
+				double psn = 0.0, psr = 0./0.;
+				int have_psn = 0, have_psr = 0;
+				{
+					/* check the values of the primary keys, continuing on to the next row if there is no match */
+					const char * val = NULL;
+			if (CBF_SUCCESS == error) {
+						if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+							cbf_debug_print(cbf_strerror(error));
+						} else if (strcmp(val,key->diffrn)) {
+							continue;
+						}
+					}
+				}
+				for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+					cbf_node * const column = *column_it;
+					int pk = 0;
+					cbf_node * const * it;
+					cbf_node * const * const end = npk+primary_keys;
+					for (it = primary_keys; end != it; ++it) {
+						pk = column==*it ? 1 : pk;
+					}
+					/*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+					if (pk) {
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+						/* ---------------------------------------------------------------------------------------------*/
+					} else if (!cbf_cistrcmp(column->name,"polarizn_source_norm")) {
+						const char * val = NULL;
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+						if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+							cbf_debug_print(cbf_strerror(error));
+			} else {
+							char * end = NULL;
+							/*
+                             NOTE: never define PI, use acos(-1.0) to get it to machine accuracy for every machine - including
+                             double-extended machines & hypothetical future quad-precision machines - without risking typos.
+                             */
+							psn = strtod(val,&end)*acos(-1.0)/90.0;
+							have_psn = (end!=val);
+			}
+						/* ---------------------------------------------------------------------------------------------*/
+					} else if (!cbf_cistrcmp(column->name,"polarizn_source_ratio")) {
+						const char * val = NULL;
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+						if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+							cbf_debug_print(cbf_strerror(error));
+						} else {
+							char * end = NULL;
+							psr = strtod(val,&end);
+							have_psr = (end!=val);
+		}
+						/* ---------------------------------------------------------------------------------------------*/
+					} else if (!cbf_cistrcmp(column->name,"wavelength_id")) {
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+						CBF_CALL(cbf_node_get_value(column, row, &key->wavelength_id));
+						/* ---------------------------------------------------------------------------------------------*/
+					} else {
+						int is_in_list = 0;
+						const cbf2nx_column_map_t * colmap;
+						if (colmap_begin) {
+							for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
+								if (!strcmp(colmap->name,column->name)) {
+									is_in_list = 1;
+									CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
+								}
+							}
+						}
+						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
+					}
+				}
+				++matched;
+				if (CBF_SUCCESS==error && have_psn && have_psr) {
 					hid_t dset = CBF_H5FAIL;
+					hid_t beam = CBF_H5FAIL;
+					hid_t sample = CBF_H5FAIL;
+					const double value[] = {1.0,psr*cos(psn),psr*sin(psn),0.0};
+					const hsize_t max[] = {H5S_UNLIMITED,4};
+					const hsize_t chunk[] = {1,4};
+					const hsize_t offset[] = {h5handle->slice,0};
+					const hsize_t count[] = {1,4};
+					hsize_t buf[] = {0,0};
+					CBF_CALL(cbf_h5handle_require_sample(h5handle,&sample,0));
+					CBF_CALL(_cbf_NXGrequire(sample,&beam,"beam","NXbeam"));
+					CBF_CALL(cbf_H5Drequire(beam,&dset,"incident_polarisation_stokes",2,max,chunk,buf,H5T_IEEE_F64LE));
+					CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,value,H5T_NATIVE_DOUBLE));
+					cbf_H5Dfree(dset);
+					cbf_H5Gfree(beam);
+				}
+			}
+			if (!matched) {
+				/* TODO: in some cases this will be an error, find them */
+				cbf_debug_print("warning: No data located");
+			}
+		}
+
+		return error;
+	}
+
+    
+    static int cbf_write_cbf_h5file__diffrn_scan_axis
+    (cbf_handle handle,
+     cbf_h5handle h5handle,
+     cbf_cbf2nx_key_t * const key,
+     const int list)
+	{
+		int error = CBF_SUCCESS;
+        unsigned int matched = 0;
+        const char categoryName[] = "diffrn_detector";
+
+        /* check arguments */
+        if (!handle) {
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key || !key->diffrn_detector) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+            cbf_debug_print(cbf_strerror(error));
+        } else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[1];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int row = 0, nRows = 0;
+            unsigned int indent = 1+key->indent;
+            const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
+		}
+		}
+			}
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
+		}
+            /*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+             */
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
+                    const char * val = NULL;
+                    if (CBF_SUCCESS==error) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strcmp(val,key->diffrn_detector)) {
+                            continue;
+				}
+			}
+		}
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"diffrn_id")) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &key->diffrn));
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"number_of_axes")) {
+                        if (list && !matched) {
+                            unsigned int _indent = indent;
+                            FILE * const out = stderr;
+                            while (_indent--) fputc('\t',out);
+                            fprintf(out,"- %s\n",column->name);
+                        }
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else {
+                        int is_in_list = 0;
+                        const cbf2nx_column_map_t * colmap;
+                        if (colmap_begin) {
+                            for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
+                                if (!strcmp(colmap->name,column->name)) {
+                                    is_in_list = 1;
+                                    CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
+                                }
+                            }
+                        }
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
+                    }
+                }
+                ++matched;
+            }
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
+            }
+        }
+        return error;
+    }
+
+    static int cbf_write_cbf2nx__diffrn_scan_axis
+    (cbf_handle handle,
+     cbf_h5handle h5handle,
+     cbf_cbf2nx_key_t * const key,
+     const int list)
+    {
+        int error = CBF_SUCCESS, found = CBF_SUCCESS;
+        const char categoryName[] = "diffrn_scan_axis";
+        
+        /* check arguments */
+        if (!handle) {
+            cbf_debug_print("Invalid handle given\n");
+            return CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            return CBF_ARGUMENT;
+        } else if (!key || !key->frame) {
+            cbf_debug_print("Bad key given\n");
+            return CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(found=cbf_find_category(handle,categoryName))) {
+            if (CBF_NOTFOUND!=found) {
+                cbf_debug_print3("error: problem finding category '%s': %s\n",categoryName,cbf_strerror(found));
+                error |= found;
+            }
+				} else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[1];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int matched = 0;
+            unsigned int row = 0, nRows = 0;
+            unsigned int indent = 1+key->indent;
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
+				}
+			}
+		}
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                CBF_CALL(cbf_find_child(primary_keys+0, category, "scan_id"));
+            }
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                const char * axis = NULL;
+                double disp_strt = 0.0, disp_incr = 0.0, disp_rstrt_incr = 0.0;
+                double angle_strt = 0.0, angle_incr = 0.0, angle_rstrt_incr = 0.0;
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
+                    const char * val = NULL;
+		if (CBF_SUCCESS == error) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (key->scan && strcmp(val,key->scan)) {
+                            continue;
+                        }
+                    }
+                }
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+				/*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+				*/
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"angle_increment")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            char * end = NULL;
+                            const double num = strtod(val,&end);
+                            angle_incr = (end!=val) ? num : angle_incr;
+				}
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"angle_rstrt_incr")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            char * end = NULL;
+                            const double num = strtod(val,&end);
+                            angle_rstrt_incr = (end!=val) ? num : angle_rstrt_incr;
+			}
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"angle_start")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            char * end = NULL;
+                            const double num = strtod(val,&end);
+                            angle_strt = (end!=val) ? num : angle_strt;
+			}
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"axis_id")) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &axis));
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"displacement_increment")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            char * end = NULL;
+                            const double num = strtod(val,&end);
+                            disp_incr = (end!=val) ? num : disp_incr;
+		}
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"displacement_rstrt_incr")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            char * end = NULL;
+                            const double num = strtod(val,&end);
+                            disp_rstrt_incr = (end!=val) ? num : disp_rstrt_incr;
+                        }
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"displacement_start")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            char * end = NULL;
+                            const double num = strtod(val,&end);
+                            disp_strt = (end!=val) ? num : disp_strt;
+                        }
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+                    }
+                }
+                ++matched;
+                /* I have all the data for this column, convert it */
+		if (CBF_SUCCESS == error) {
+                    const char * type;
+                    unsigned int i;
+                    /* find the index of the required axis within the axis settings */
+                    for (i = 0; i != key->axis.count; ++i) {
+                        if (!strcmp(key->axis.axis_id[i],axis)) {
+                            break;
+		}
+                    }
+                    /* check if I found it, if so then use it */
+                    if (i == key->axis.count) {
+                        cbf_debug_print(cbf_strerror(CBF_NOTFOUND));
+                        error |= CBF_NOTFOUND;
+                    } else {
+                        CBF_CALL(cbf_find_category(handle,"axis"));
+                        CBF_CALL(cbf_find_column(handle,"id"));
+                        CBF_CALL(cbf_find_row(handle,axis));
+                        CBF_CALL(cbf_find_column(handle,"type"));
+                        CBF_CALL(cbf_get_value(handle,&type));
+                        if (CBF_SUCCESS==error) {
+                            hid_t dset = CBF_H5FAIL;
+                            const hsize_t off[] = {h5handle->slice};
+                            const hsize_t cnt[] = {1};
+                            const hsize_t max[] = {H5S_UNLIMITED};
+                            hsize_t buf[] = {0};
+                            double data;
+                            if (!strcmp(type,"translation")) {
+                                data = disp_strt + (disp_incr+disp_rstrt_incr)*key->frame_number;
+                            } else if (!strcmp(type,"rotation")) {
+                                data = angle_strt + (angle_incr+angle_rstrt_incr)*key->frame_number;
+                            } else {
+                                data = 0./0.;
+                            }
+                            CBF_CALL(cbf_H5Dfind2(h5handle->hfile,&dset,key->axis.path[i],1,max,buf,H5T_IEEE_F64LE));
+                            CBF_CALL(cbf_H5Dinsert(dset,off,0,cnt,buf,&data,H5T_NATIVE_DOUBLE));
+                            cbf_H5Dfree(dset);
+                        }
+                    }
+                }
+            }
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
+            }
+        }
+
+		return error;
+	}
+
+    static int cbf_write_cbf2nx__diffrn_scan_frame_axis
+			(cbf_handle handle,
+			 cbf_h5handle h5handle,
+     cbf_cbf2nx_key_t * const key,
+     const int list)
+	{
+        int error = CBF_SUCCESS, found = CBF_SUCCESS;
+        unsigned int matched = 0;
+        const char categoryName[] = "diffrn_scan_frame_axis";
+
+		/* check arguments */
+		if (!handle) {
+            cbf_debug_print("Invalid handle given\n");
+			return CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+			return CBF_ARGUMENT;
+        } else if (!key || !key->frame) {
+            cbf_debug_print("Bad key given\n");
+			return CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(found=cbf_find_category(handle,categoryName))) {
+            if (CBF_NOTFOUND!=found) {
+                cbf_debug_print3("error: problem finding category '%s': %s\n",categoryName,cbf_strerror(found));
+                error |= found;
+		}
+        } else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[1];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int row = 0, nRows = 0;
+            unsigned int indent = 1+key->indent;
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
+                    }
+                }
+            }
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                CBF_CALL(cbf_find_child(primary_keys+0, category, "frame_id"));
+            }
+            if (0) {
+                unsigned int i;
+                /* fragment of code to output the list of axis_ids in the key */
+                fputc('\n',stderr);
+                int n = fprintf(stderr,"%u: %u axes:",__LINE__,key->axis.count);
+                fputc('\n',stderr);
+                for (; n; --n) fputc('-',stderr);
+                fputc('\n',stderr);
+                for (i = 0; i != key->axis.count; ++i) {
+                    fprintf(stderr,"%s\n",key->axis.axis_id[i]);
+                }
+                fputc('\n',stderr);
+            }
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                const char * axis = NULL;
+                double angle = 0.0, disp = 0.0;
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
+                    const char * val = NULL;
+                    if (CBF_SUCCESS == error) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strcmp(val,key->frame)) {
+                            continue;
+                        }
+                    }
+                }
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"angle")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            char * end = NULL;
+                            const double num = strtod(val,&end);
+                            angle = (end!=val) ? num : angle;
+                        }
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"axis_id")) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &axis));
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"displacement")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            char * end = NULL;
+                            const double num = strtod(val,&end);
+                            disp = (end!=val) ? num : disp;
+                        }
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+                    }
+                }
+                ++matched;
+                /* I have all the data for this row, convert it */
+                if (CBF_SUCCESS==error) {
+                    const char * type;
+                    unsigned int i;
+                    /* find the index of the required axis within the axis settings */
+                    for (i = 0; i != key->axis.count; ++i) {
+                        if (!strcmp(key->axis.axis_id[i],axis)) {
+                            break;
+                        }
+                    }
+                    /* check if I found it, if so then use it */
+                    if (i == key->axis.count) {
+                        cbf_debug_print(cbf_strerror(CBF_NOTFOUND));
+                        error |= CBF_NOTFOUND;
+                    } else {
+                        CBF_CALL(cbf_find_category(handle, "axis"));
+                        CBF_CALL(cbf_find_column(handle, "id"));
+                        CBF_CALL(cbf_find_row(handle, axis));
+                        CBF_CALL(cbf_find_column(handle,"type"));
+                        CBF_CALL(cbf_get_value(handle,&type));
+                        if (CBF_SUCCESS == error) {
+                            hid_t dset = CBF_H5FAIL;
+                            const hsize_t off[] = {h5handle->slice};
+                            const hsize_t cnt[] = {1};
+                            const hsize_t max[] = {H5S_UNLIMITED};
+                            hsize_t buf[] = {0};
+                            const double * data;
+                            if (!strcmp(type,"translation")) {
+                                data = &disp;
+                            } else if (!strcmp(type,"rotation")) {
+                                data = &angle;
+                            } else {
+                                data = NULL;
+                            }
+                            CBF_CALL(cbf_H5Dfind2(h5handle->hfile,&dset,key->axis.path[i],1,max,buf,H5T_IEEE_F64LE));
+                            CBF_CALL(cbf_H5Dinsert(dset,off,0,cnt,buf,data,H5T_NATIVE_DOUBLE));
+                            cbf_H5Dfree(dset);
+                        }
+                    }
+                }
+            }
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
+            }
+        }
+
+        return error;
+    }
+
+    static int cbf_write_cbf2nx__diffrn_detector_axis
+    (cbf_handle handle,
+     cbf_h5handle h5handle,
+     cbf_cbf2nx_key_t * const key,
+     const int list)
+    {
+        int error = CBF_SUCCESS, found;
+        unsigned int matched = 0;
+        const char categoryName[] = "diffrn_detector_axis";
+        
+        /* check arguments */
+        if (!handle) {
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key || !key->array) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(found=cbf_find_category(handle,categoryName))) {
+            if (CBF_NOTFOUND!=found) {
+                cbf_debug_print3("error: problem finding category '%s': %s\n",categoryName,cbf_strerror(found));
+                error |= found;
+            }
+        } else if (CBF_SUCCESS!=(error|=cbf_h5handle_require_detector(h5handle,0,0))) {
+            cbf_debug_print(cbf_strerror(error));
+        } else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[1];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int row = 0, nRows = 0;
+            unsigned int indent = 1+key->indent;
+            const unsigned int prevAxisCount = key->axis.count;
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
+                    }
+                }
+            }
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                CBF_CALL(cbf_find_child(primary_keys+0, category, "detector_id"));
+            }
+            /*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+             */
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                const char * axis = NULL;
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
+                    const char * val = NULL;
+			if (CBF_SUCCESS == error) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strcmp(val,key->diffrn_detector)) {
+                            continue;
+				}
+			}
+                }
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"axis_id")) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &axis));
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+                    }
+                }
+                ++matched;
+				if (CBF_SUCCESS == error) {
+                    if (!axis) {
+                        cbf_debug_print("'axis_id' not found");
+                        error |= CBF_NOTFOUND;
+                    } else {
+                        /* the axis exists - convert the data */
+                        hid_t det = CBF_H5FAIL;
+                        hid_t axisGroup = CBF_H5FAIL;
 					const char path_empty[] = "";
 					const char path_inst[] = "instrument";
 					const char axis_group_name[] = "pose";
@@ -9748,135 +16374,174 @@ return e; \
 						0
 					};
 					const char * const axis_path = _cbf_strjoin(path_parts,'/');
-					const char * equipment = NULL;
-					const char * depends_on = NULL;
-					const hsize_t max[] = {H5S_UNLIMITED};
-					hsize_t buf[] = {0};
-					const hsize_t chunk[] = {1};
-					if (0) {
-						const char * const * p = path_parts;
-						printf("path_parts = [\n");
-						for (; *p; ++p) printf("    '%s',\n",*p);
-						printf("]\n");
-						printf("path = '%s'\n",axis_path);
-					}
-					_CBF_CALL(cbf_find_column(handle, "equipment"));
-					_CBF_CALL(cbf_get_value(handle, &equipment));
-					_CBF_CALL(cbf_find_column(handle, "depends_on"));
-					_CBF_CALL(cbf_get_value(handle, &depends_on));
-					/* add an entry to the index pointing to the offset where the new axis will be inserted */
-					_CBF_CALL(_cbf_realloc_axisIndex(&axisIndex,axisIndex->c+1));
-					axisIndex->d[axisIndex->c-1] = key->axis.count;
-					_CBF_CALL(_cbf_insert_axis(&key->axis, axis, equipment, axis_path, depends_on));
-					{ /* make sure an axis container group exists */
-						hid_t axisGroup = CBF_H5FAIL;
-						_CBF_CALL(cbf_H5Grequire(h5handle->nxdetector,&axisGroup,axis_group_name));
-						_CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXcollection"));
+                        CBF_CALL(cbf_h5handle_require_detector(h5handle,&det,0));
+                        CBF_CALL(cbf_H5Grequire(det,&axisGroup,axis_group_name));
+                        CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXcollection"));
+                        CBF_CALL(_cbf_insert_axis(&key->axis, axis, axis_path));
 						cbf_H5Gfree(axisGroup);
+                        free((void*)axis_path);
 					}
-					/* put the axis in the HDF file */
-					_CBF_CALL(cbf_H5Drequire(h5handle->hfile,&dset,axis_path,1,max,chunk,buf,H5T_IEEE_F64LE));
-					/* convert the meta-data */
-					_CBF_CALL(cbf_write_cbfaxis_h5file(handle, axis, &axis_type, key->matrix, dset, cmp_double
-#ifdef CBF_USE_ULP
-                                                       ,&cmp_params
-#endif
-                                                       ));
-					/* convert the data */
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn_scan_frame_axis(handle,h5handle,dset,axis,axis_type,key));
-					cbf_H5Dfree(dset);
 				}
 			}
-			/* iterate to the next row */
-			++axis_row;
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
 		}
-
-		_CBF_CALL(cbf_check_axis_dependency_chain(axisIndex,&key->detector_dependency,key));
-
+            /*
+             I now have all relevant axes from this category, so I can find & write the dependancy for the sample.
+             New axes are in the range (prevAxisCount,key->axis.count], I don't need to pay attention to others.
+             For each axis I need to set a depends_on index, if it can be found, and an in_degree. An in_degree
+             of 0 means I probably have a leaf, a check to ensure only one in_degree==0 axis exists in the subset
+             is needed to ensure I have a valid leaf axis.
+             */
+            CBF_CALL(cbf_find_category(handle,"axis"));
 		if (CBF_SUCCESS == error) {
-			/* write detector dependency */
-			const unsigned int * index;
-			const unsigned int * const indexEnd = axisIndex->d+axisIndex->c;
-			for (index = axisIndex->d; indexEnd != index; ++index) {
-				if (key->axis.is_leaf[*index]) break;
+                unsigned int leaves = 0;
+                unsigned int leaf = key->axis.count;
+                unsigned int i;
+                /* populate axis dependancy and in-degree fields */
+                for (i = prevAxisCount; key->axis.count != i; ++i) {
+                    const char * depends_on = NULL;
+                    /* locate the current axis and get its dependancy */
+                    CBF_CALL(cbf_find_column(handle,"id"));
+                    CBF_CALL(cbf_find_row(handle,key->axis.axis_id[i]));
+                    CBF_CALL(cbf_find_column(handle,"depends_on"));
+                    CBF_CALL(cbf_get_value(handle,&depends_on));
+                    if (CBF_SUCCESS==error) {
+                        unsigned int j;
+                        /* I know which axis the current axis depends on, look for it in the current subset */
+                        for (j = prevAxisCount; key->axis.count != j; ++j) {
+                            if (!cbf_cistrcmp(key->axis.axis_id[j],depends_on)) break;
 			}
-			if (indexEnd != index) {
-				/* I have a valid leaf, put it in the detector */
-				if (0) fprintf(stderr,"detector leaf = %s\n",key->axis.axis_id[*index]);
-				_CBF_CALL(cbf_H5Drequire_flstring(h5handle->nxdetector,0,"depends_on",key->axis.path[*index]));
+                        if (key->axis.count != j) {
+                            /* axis i depends on axis j - record this */
+                            key->axis.depends_on[i] = j;
+                            ++key->axis.in_degree[j];
 			}
 		}
-
-		_cbf_free_axisIndex(axisIndex);
+                }
+                /* ensure there is only one leaf, and find it */
+                for (i = prevAxisCount; key->axis.count != i; ++i) {
+                    if (0==key->axis.in_degree[i]) {
+                        leaf = i;
+                        ++leaves;
+                    }
+                }
+                /* test if a single valid leaf axis was found */
+                if (1!=leaves || leaf>=key->axis.count) {
+                    cbf_debug_print("couldn't determine what defines the sample orientation");
+                    error |= CBF_FORMAT;
+                } else {
+                    /* I now have a valid leaf axis for the sample, use it */
+                    CBF_CALL(cbf_H5Drequire_flstring(h5handle->nxdetector,0,"depends_on",key->axis.path[leaf]));
+                }
+            }
+        }
 		return error;
 	}
 
-	static int cbf_write_cbf_h5file__diffrn_measurement_axis
+    static int cbf_write_cbf2nx__diffrn_measurement_axis
 			(cbf_handle handle,
 			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
+     cbf_cbf2nx_key_t * const key,
+     const int list)
 	{
-		int error = CBF_SUCCESS;
-		int axis_row = 0;
-		cbf_axisIndex_t * axisIndex = NULL;
-#ifdef CBF_USE_ULP
-		cmp_double_param_t cmp_params;
-
-		/* set up the comparison parameters */
-		cmp_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
-		cmp_params.ulp32 = h5handle->float_ulp;
-#ifndef NO_UINT64_TYPE
-		cmp_params.ulp64 = h5handle->double_ulp;
-#endif
-#endif
-
-		if (0) fprintf(stderr,"diffrn_measurement_axis\n");
+        int error = CBF_SUCCESS, found;
+        unsigned int matched = 0;
+        const char categoryName[] = "diffrn_measurement_axis";
 
 		/* check arguments */
 		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key || !key->array) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(found=cbf_find_category(handle,categoryName))) {
+            if (CBF_NOTFOUND!=found) {
+                cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(found));
+                error |= found;
 		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+        } else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[1];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int row = 0, nRows = 0;
+            unsigned int indent = 1+key->indent;
+            const unsigned int prevAxisCount = key->axis.count;
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
 		}
-		if (!key || !key->diffrn_measurement) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-
-		_CBF_CALL(_cbf_realloc_axisIndex(&axisIndex,0));
-
-		while (CBF_SUCCESS==error) {
-			const char * id = 0;
-			/* get a valid row of the 'detector_id' column */
-			_CBF_CALL(cbf_find_category(handle, "diffrn_measurement_axis"));
-			_CBF_CALL(cbf_find_column(handle, "measurement_id"));
+            }
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                CBF_CALL(cbf_find_child(primary_keys+0, category, "measurement_id"));
+            }
+            /*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+             */
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                const char * axis = NULL;
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
+                    const char * val = NULL;
 			if (CBF_SUCCESS == error) {
-				const int err = cbf_select_row(handle,axis_row);
-				if (CBF_NOTFOUND == err) break;
-				error |= err;
-				if (CBF_SUCCESS != err) {
-					fprintf(stderr,"%s: Error selecting a row: %s\n",__WHERE__,cbf_strerror(err));
-					break;
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strcmp(val,key->diffrn_measurement)) {
+                            continue;
 				}
 			}
-			/* check for a relevant entry */
-			_CBF_CALL(cbf_get_value(handle, &id));
-			if (!cbf_cistrcmp(id,key->diffrn_measurement)) {
-				const char * axis = 0;
-				const char * axis_type = 0;
-				/* I have a match - find the relevant axis */
-				_CBF_CALL(cbf_find_column(handle, "axis_id"));
-				_CBF_CALL(cbf_get_value(handle, &axis));
-				_CBF_CALL(cbf_find_category(handle, "axis"));
-				_CBF_CALL(cbf_find_column(handle, "id"));
-				_CBF_CALL(cbf_find_row(handle, axis));
-				/* convert the data */
-				if (0) fprintf(stdout,"Converting axis data for '%s'\n",axis);
+                }
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"axis_id")) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &axis));
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+                    }
+                }
+                ++matched;
 				if (CBF_SUCCESS == error) {
-					hid_t dset = CBF_H5FAIL;
+                    if (!axis) {
+                        cbf_debug_print("'axis_id' not found");
+                        error |= CBF_NOTFOUND;
+                    } else {
+                        /* the axis exists - convert the data */
+                        hid_t axisGroup = CBF_H5FAIL;
+                        hid_t sample = CBF_H5FAIL;
 					const char path_empty[] = "";
 					const char path_sample[] = "sample";
 					const char axis_group_name[] = "pose";
@@ -9889,304 +16554,597 @@ return e; \
 						0
 					};
 					const char * const axis_path = _cbf_strjoin(path_parts,'/');
-					const char * equipment = NULL;
-					const char * depends_on = NULL;
-					const hsize_t max[] = {H5S_UNLIMITED};
-					hsize_t buf[] = {0};
-					const hsize_t chunk[] = {1};
-					if (0) {
-						const char * const * p = path_parts;
-						printf("path_parts = [\n");
-						for (; *p; ++p) printf("    '%s',\n",*p);
-						printf("]\n");
-						printf("path = '%s'\n",axis_path);
-					}
-					_CBF_CALL(cbf_find_column(handle, "equipment"));
-					_CBF_CALL(cbf_get_value(handle, &equipment));
-					_CBF_CALL(cbf_find_column(handle, "depends_on"));
-					_CBF_CALL(cbf_get_value(handle, &depends_on));
-					/* add an entry to the index pointing to the offset where the new axis will be inserted */
-					_CBF_CALL(_cbf_realloc_axisIndex(&axisIndex,axisIndex->c+1));
-					axisIndex->d[axisIndex->c-1] = key->axis.count;
-					_CBF_CALL(_cbf_insert_axis(&key->axis, axis, equipment, axis_path, depends_on));
-					{ /* make sure an axis container group exists */
-						hid_t axisGroup = CBF_H5FAIL;
-						_CBF_CALL(cbf_h5handle_require_sample(h5handle,0));
-						_CBF_CALL(cbf_H5Grequire(h5handle->nxsample,&axisGroup,axis_group_name));
-						_CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXcollection"));
+                        /*
+                         TODO: restructure this to avoid a local axis list and move
+                         axis-related checks to a dedicated axis category conversion.
+                         */
+                        /* make sure an axis container group exists & log the axis in the key for further processing */
+                        CBF_CALL(cbf_h5handle_require_sample(h5handle,&sample,0));
+                        CBF_CALL(cbf_H5Grequire(sample,&axisGroup,axis_group_name));
+                        CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXcollection"));
+                        CBF_CALL(_cbf_insert_axis(&key->axis, axis, axis_path));
 						cbf_H5Gfree(axisGroup);
+                        free((void*)axis_path);
 					}
-					/* put the axis in the HDF file */
-					_CBF_CALL(cbf_H5Drequire(h5handle->hfile,&dset,axis_path,1,max,chunk,buf,H5T_IEEE_F64LE));
-					/* convert the meta-data */
-					_CBF_CALL(cbf_write_cbfaxis_h5file(handle, axis, &axis_type, key->matrix, dset, cmp_double
-#ifdef CBF_USE_ULP
-                                                       ,&cmp_params
-#endif
-                                                       ));
-					/* convert the data */
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn_scan_frame_axis(handle,h5handle,dset,axis,axis_type,key));
-					cbf_H5Dfree(dset);
 				}
 			}
-			/* iterate to the next row */
-			++axis_row;
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
 		}
-
-		_CBF_CALL(cbf_check_axis_dependency_chain(axisIndex,&key->goniometer_dependency,key));
-
+            /*
+             I now have all relevant axes from this category, so I can find & write the dependancy for the sample.
+             New axes are in the range (prevAxisCount,key->axis.count], I don't need to pay attention to others.
+             For each axis I need to set a depends_on index, if it can be found, and an in_degree. An in_degree
+             of 0 means I probably have a leaf, a check to ensure only one in_degree==0 axis exists in the subset
+             is needed to ensure I have a valid leaf axis.
+             */
+            if (CBF_SUCCESS!=(error|=cbf_find_category(handle,"axis"))) {
+                cbf_debug_print(cbf_strerror(error));
+            } else {
+                unsigned int leaves = 0;
+                unsigned int leaf = key->axis.count;
+                unsigned int i;
+                /* populate axis dependancy and in-degree fields */
+                for (i = prevAxisCount; key->axis.count != i; ++i) {
+                    const char * depends_on = NULL;
+                    /* locate the current axis and get its dependancy */
+                    CBF_CALL(cbf_find_column(handle,"id"));
+                    CBF_CALL(cbf_find_row(handle,key->axis.axis_id[i]));
+                    CBF_CALL(cbf_find_column(handle,"depends_on"));
+                    CBF_CALL(cbf_get_value(handle,&depends_on));
 		if (CBF_SUCCESS == error) {
-			/* write sample dependency */
-			const unsigned int * const indexBegin = axisIndex->d;
-			const unsigned int * const indexEnd = axisIndex->d+axisIndex->c;
-			const unsigned int * index;
-			for (index = indexBegin; indexEnd != index; ++index) {
-				if (key->axis.is_leaf[*index]) break;
+                        unsigned int j;
+                        /* I know which axis the current axis depends on, look for it in the current subset */
+                        for (j = prevAxisCount; key->axis.count != j; ++j) {
+                            if (!cbf_cistrcmp(key->axis.axis_id[j],depends_on)) break;
 			}
-			if (indexEnd != index) {
-				/* I have a valid leaf, put it in the sample */
-				if (0) fprintf(stderr,"goniometer leaf = %s\n",key->axis.axis_id[*index]);
-				_CBF_CALL(cbf_H5Drequire_flstring(h5handle->nxsample,0,"depends_on",key->axis.path[*index]));
+                        if (key->axis.count != j) {
+                            /* axis i depends on axis j - record this */
+                            key->axis.depends_on[i] = j;
+                            ++key->axis.in_degree[j];
 			}
 		}
-
-		free((void*)axisIndex);
+                }
+                /* ensure there is only one leaf, and find it */
+                for (i = prevAxisCount; key->axis.count != i; ++i) {
+                    if (0==key->axis.in_degree[i]) {
+                        leaf = i;
+                        ++leaves;
+                    }
+                }
+                /* test if a single valid leaf axis was found */
+                if (1!=leaves || leaf>=key->axis.count) {
+                    cbf_debug_print("couldn't determine what defines the sample orientation");
+                    error |= CBF_FORMAT;
+                } else {
+                    /* I now have a valid leaf axis for the sample, use it */
+                    CBF_CALL(cbf_H5Drequire_flstring(h5handle->nxsample,0,"depends_on",key->axis.path[leaf]));
+                }
+            }
+        }
 		return error;
 	}
 
-	static int cbf_write_cbf_h5file__diffrn_refln
+    static int cbf_write_cbf2nx__diffrn_refln
 			(cbf_handle handle,
 			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
+     cbf_cbf2nx_key_t * const key,
+     const int list)
 	{
-		int error = CBF_SUCCESS;
-#ifdef CBF_USE_ULP
-		cmp_double_param_t cmp_params;
-
-		/* set up the comparison parameters */
-		cmp_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
-		cmp_params.ulp32 = h5handle->float_ulp;
-#ifndef NO_UINT64_TYPE
-		cmp_params.ulp64 = h5handle->double_ulp;
-#endif
-#endif
-
-		if (0) fprintf(stderr,"diffrn_refln\n");
+        int error = CBF_SUCCESS, found;
+        unsigned int matched = 0;
+        const char categoryName[] = "diffrn_refln";
 
 		/* check arguments */
 		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key || !key->array) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(found=cbf_find_category(handle,categoryName))) {
+            if (CBF_NOTFOUND!=found) {
+                cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(found));
+                error |= found;
 		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+        } else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[1];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int row = 0, nRows = 0;
+            unsigned int indent = 1+key->indent;
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
 		}
-		if (!key) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-
-		/* I don't actually have anything to convert yet */
-
+            }
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                CBF_CALL(cbf_find_child(primary_keys+0, category, "frame_id"));
+            }
+            /*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+             */
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
+                    const char * val = NULL;
+                    if (CBF_SUCCESS==error) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strcmp(val,key->frame)) {
+                            continue;
+                        }
+                    }
+                }
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+                    }
+                }
+                ++matched;
+            }
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
+            }
+        }
 		return error;
 	}
 
-	static int cbf_write_cbf_h5file__diffrn
+    static int cbf_write_cbf2nx__diffrn
 			(cbf_handle handle,
 			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
+     cbf_cbf2nx_key_t * const key,
+     const int list)
 	{
 		int error = CBF_SUCCESS;
-#ifdef CBF_USE_ULP
-		cmp_double_param_t cmp_params;
-
-		/* set up the comparison parameters */
-		cmp_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
-		cmp_params.ulp32 = h5handle->float_ulp;
-#ifndef NO_UINT64_TYPE
-		cmp_params.ulp64 = h5handle->double_ulp;
-#endif
-#endif
-
-		if (0) fprintf(stderr,"diffrn\n");
+        unsigned int matched = 0;
+        const char categoryName[] = "diffrn";
 
 		/* check arguments */
 		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key || !key->array) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+            cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
+        } else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[1];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int row = 0, nRows = 0;
+            unsigned int indent = 1+key->indent;
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
 		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-		if (!key) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-
-		/* I don't actually have anything to convert yet */
-
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
+            }
+            /*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+             */
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
+                    const char * val = NULL;
+                    if (CBF_SUCCESS==error) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strcmp(val,key->diffrn)) {
+                            continue;
+                        }
+                    }
+                }
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+                    }
+                }
+                ++matched;
+            }
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
+            }
+        }
 		return error;
 	}
 
-	static int cbf_write_cbf_h5file__array_structure
+    static int cbf_write_cbf2nx__array_structure
 			(cbf_handle handle,
 			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
+     cbf_cbf2nx_key_t * const key,
+     const int list)
 	{
+        /*
+         I don't actually have anything to convert yet, all relevant data is obtained directly from the binary section.
+         This function is just a placeholder in case I find that there is something I need to extract/convert later.
+         */
 		int error = CBF_SUCCESS;
-
-		if (0) fprintf(stderr,"array_structure\n");
+        int found = CBF_SUCCESS;
+        unsigned int matched = 0;
+        const char categoryName[] = "array_structure";
 
 		/* check arguments */
 		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key || !key->array) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(found|=cbf_find_category(handle,categoryName))) {
+            if (CBF_NOTFOUND==found) {
+                cbf_debug_print2("warning: '%s' not found\n",categoryName);
+            } else {
+                cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(found));
+                error |= found;
 		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+        } else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[1];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int row = 0, nRows = 0;
+            unsigned int indent = 1+key->indent;
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
 		}
-		if (!key) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-
-		/* I don't actually have anything to convert yet */
-
+            }
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
+            }
+            /*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+             */
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
+                    const char * val = NULL;
+                    if (CBF_SUCCESS==error) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strcmp(val,key->array)) {
+                            continue;
+                        }
+                    }
+                }
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (
+                               !cbf_cistrcmp(column->name,"byte_order") ||
+                               !cbf_cistrcmp(column->name,"compression_type") ||
+                               !cbf_cistrcmp(column->name,"encoding_type")
+                               )
+                    {
+                        if (list && !matched) {
+                            unsigned int _indent = indent;
+                            FILE * const out = stderr;
+                            while (_indent--) fputc('\t',out);
+                            fprintf(out,"- %s\n",column->name);
+                        }
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+                    }
+                }
+                ++matched;
+            }
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
+            }
+        }
 		return error;
 	}
 
-	static int cbf_write_cbf_h5file__array_intensities
+    /*
+     Convert two strings to integers and compare them for equality.
+     If one can't be converted then the most negative representable value should be returned,
+     instead of any value near zero.
+     */
+    static int strintcmp
+    (const char * const s1,
+     const char * const s2)
+    {
+        if (!s1 || !s2) {
+            return INT_MIN;
+        } else {
+            char * s1_end = NULL;
+            char * s2_end = NULL;
+            const int s1_int = strtol(s1,&s1_end,0);
+            const int s2_int = strtol(s2,&s2_end,0);
+            if (s1==s1_end || s2==s2_end) {
+                return INT_MIN;
+            } else {
+                return s1_int-s2_int;
+            }
+        }
+    }
+    
+    static int cbf_write_cbf2nx__array_intensities
 			(cbf_handle handle,
 			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
+     cbf_cbf2nx_key_t * const key,
+     const int list)
 	{
 		int error = CBF_SUCCESS;
-		unsigned int data_id = 0;
-#ifdef CBF_USE_ULP
-		cmp_double_param_t cmp_params;
-
-		/* set up the comparison parameters */
-		cmp_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
-		cmp_params.ulp32 = h5handle->float_ulp;
-#ifndef NO_UINT64_TYPE
-		cmp_params.ulp64 = h5handle->double_ulp;
-#endif
-#endif
-
-		if (0) fprintf(stderr,"array_intensities\n");
+        unsigned int matched = 0;
+        const char categoryName[] = "array_intensities";
 
 		/* check arguments */
 		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key || !key->array || !key->binary) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+            cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
+        } else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[2];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int row = 0, nRows = 0;
+            unsigned int indent = 1+key->indent;
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
 		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-		if (!key || !key->array || !key->binary) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-
-		/* Locate the row containing relevant data */
-		_CBF_CALL(cbf_find_category(handle, "array_intensities"));
-		while (CBF_SUCCESS == error) {
-			const char * array = 0, * binary = 0;
-			_CBF_CALL(cbf_find_column(handle, "array_id"));
-			_CBF_CALL(cbf_select_row(handle,data_id));
-			_CBF_CALL(cbf_get_value(handle, &array));
-			_CBF_CALL(cbf_find_column(handle, "binary_id"));
-			_CBF_CALL(cbf_get_value(handle, &binary));
-			if (CBF_SUCCESS == error && !cbf_cistrcmp(array,key->array) && !cbf_cistrcmp(binary,key->binary)) {
-				/* I have the correct row, ensure relevant hdf5 groups exist */
-				{ /* extract linearity data */
-					hid_t dset = CBF_H5FAIL;
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                CBF_CALL(cbf_find_child(primary_keys+0, category, "array_id"));
+                CBF_CALL(cbf_find_child(primary_keys+1, category, "binary_id"));
+            }
+            /*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+             */
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                double gain = 1., offset = 0., scaling  = 1.;
 					const char * linearity = NULL;
-					const char str_scale[] = "scaling_factor";
-					const char str_offset[] = "offset";
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
+                    const char * val = NULL;
+                    if (CBF_SUCCESS==error) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strcmp(val,key->array)) {
+                            continue;
+                        }
+                    }
+                    if (CBF_SUCCESS==error) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[1], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strintcmp(val,key->binary)) {
+                            continue;
+                        }
+                    }
+                }
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"gain")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            char * end = NULL;
+                            gain = strtod(val,&end);
+                            gain = (end!=val) ? gain : 0./0.;
+                        }
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"linearity")) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &linearity));
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"offset")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            char * end = NULL;
+                            offset = strtod(val,&end);
+                            offset = (end!=val) ? offset : 0./0.;
+                        }
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"overload")) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &key->data_overload));
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"scaling")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            char * end = NULL;
+                            scaling = strtod(val,&end);
+                            scaling = (end!=val) ? scaling : 0./0.;
+                        }
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"undefined_value")) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &key->data_undefined));
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+                    }
+                }
+                ++matched;
+                if (CBF_SUCCESS==error) {
+                    /*
+                     I have extracted all the information from a relevant row,
+                     now I need to convert it to nexus format and write it.
+                     */
+                    if (!linearity) {
+                        cbf_debug_print("'array_intensities.linearity' not found");
+                        error |= CBF_NOTFOUND;
+                    } else {
 					hsize_t max[] = {H5S_UNLIMITED};
 					hsize_t cnk[] = {1};
 					hsize_t buf[] = {0};
-					hsize_t offset[] = {h5handle->slice};
+                        hsize_t data_offset[] = {h5handle->slice};
 					hsize_t count[] = {1};
-					_CBF_CALL(cbf_find_column(handle, "linearity"));
-					_CBF_CALL(cbf_get_value(handle, &linearity));
-					if (CBF_SUCCESS != error) break;
-					if (!cbf_cistrcmp(linearity,"linear")) {
-						/* store gain */
-						const char * string = NULL;
-						double num = 0./0.;
-						_CBF_CALL(cbf_find_column(handle, "gain"));
-						_CBF_CALL(cbf_get_value(handle, &string));
-						num = strtod(string,0);
-						_CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dset,str_scale,1,max,cnk,buf,H5T_IEEE_F64LE));
-						_CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
-						cbf_H5Dfree(dset);
-					} else if (!cbf_cistrcmp(linearity,"offset_scaling")) {
-						/* store scaling & offset */
-						const char * string = NULL;
-						double num = 0./0.;
-						_CBF_CALL(cbf_find_column(handle, "scaling"));
-						_CBF_CALL(cbf_get_value(handle, &string));
-						num = strtod(string,0);
-						_CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dset,str_scale,1,max,cnk,buf,H5T_IEEE_F64LE));
-						_CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
-						cbf_H5Dfree(dset);
-						_CBF_CALL(cbf_find_column(handle, "offset"));
-						_CBF_CALL(cbf_get_value(handle, &string));
-						num = strtod(string,0);
-						_CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dset,str_offset,1,max,cnk,buf,H5T_IEEE_F64LE));
-						_CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
-						cbf_H5Dfree(dset);
-					} else if (!cbf_cistrcmp(linearity,"offset")) {
-						/* store offset */
-						const char * string = NULL;
-						double num = 0./0.;
-						_CBF_CALL(cbf_find_column(handle, "offset"));
-						_CBF_CALL(cbf_get_value(handle, &string));
-						num = strtod(string,0);
-						_CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dset,str_offset,1,max,cnk,buf,H5T_IEEE_F64LE));
-						_CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
-						cbf_H5Dfree(dset);
-					} else if (!cbf_cistrcmp(linearity,"scaling")) {
-						/* store scaling */
-						const char * string = NULL;
-						double num = 0./0.;
-						_CBF_CALL(cbf_find_column(handle, "scaling"));
-						_CBF_CALL(cbf_get_value(handle, &string));
-						num = strtod(string,0);
-						_CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dset,str_scale,1,max,cnk,buf,H5T_IEEE_F64LE));
-						_CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
-						cbf_H5Dfree(dset);
-					} else if (!cbf_cistrcmp(linearity,"sqrt_scaled")) {
-						/* Extract raw data, calculate metrics & rescale. For now: complain. */
-						if (1) fprintf(stderr,"%s: Error: Nonlinear scaling is not supported.\n",__WHERE__);
-						error |= CBF_NOTIMPLEMENTED;
-					} else if (!cbf_cistrcmp(linearity,"logarithmic_scaled")) {
-						/* Extract raw data, calculate metrics & rescale. For now: complain. */
-						if (1) fprintf(stderr,"%s: Error: Nonlinear scaling is not supported.\n",__WHERE__);
-						error |= CBF_NOTIMPLEMENTED;
+                        if (!cbf_cistrcmp(linearity,"linear")) scaling = 1.0/gain;
+                        if (!cbf_cistrcmp(linearity,"linear") || !cbf_cistrcmp(linearity,"offset") || !cbf_cistrcmp(linearity,"scaling") || !cbf_cistrcmp(linearity,"scaling_offset")) {
+                            hid_t dset_offset = CBF_H5FAIL;
+                            hid_t dset_scale = CBF_H5FAIL;
+                            CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dset_offset,"offset",1,max,cnk,buf,H5T_IEEE_F64LE));
+                            CBF_CALL(cbf_H5Dinsert(dset_offset,data_offset,0,count,buf,&offset,H5T_NATIVE_DOUBLE));
+                            CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dset_scale,"scaling_factor",1,max,cnk,buf,H5T_IEEE_F64LE));
+                            CBF_CALL(cbf_H5Dinsert(dset_scale,data_offset,0,count,buf,&scaling,H5T_NATIVE_DOUBLE));
+                            cbf_H5Dfree(dset_offset);
+                            cbf_H5Dfree(dset_scale);
 					} else if (!cbf_cistrcmp(linearity,"raw")) {
 						/* no-op! */
-					} else error |= CBF_FORMAT;
+                        } else if (!cbf_cistrcmp(linearity,"sqrt_scaled") || !cbf_cistrcmp(linearity,"logarithmic_scaled")) {
+                            cbf_debug_print("unsupported 'array_intensities.linearity' value:");
+                            cbf_debug_print(linearity);
+                            error |= CBF_NOTIMPLEMENTED;
+                        } else {
+                            cbf_debug_print("unrecognised 'array_intensities.linearity' value:");
+                            cbf_debug_print(linearity);
+                            error |= CBF_FORMAT;
 				}
-				{ /* extract the saturation value */
-					_CBF_CALL(cbf_find_column(handle, "overload"));
-					_CBF_CALL(cbf_get_value(handle, &key->data_overload));
 				}
-				break;
 			}
-			++data_id;
 		}
-
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
+            }
+        }
 		return error;
 	}
 
-	/**
+    /*
 	Find a suitable HDF5 datatype for the given parameters.
 	 */
 	static int cbf_find_array_data_h5type
@@ -10202,11 +17160,11 @@ return e; \
 
 		/* check arguments */
 		if (!type) {
-			fprintf(stderr,"%s: Invalid type pointer given\n",__WHERE__);
+            cbf_debug_print("Invalid type pointer given\n");
 			return CBF_ARGUMENT;
 		}
 		if (!byteorder) {
-			fprintf(stderr,"%s: No byte order given\n",__WHERE__);
+            cbf_debug_print("No byte order given\n");
 			return CBF_ARGUMENT;
 		}
 
@@ -10249,7 +17207,7 @@ return e; \
 		return error;
 	}
 
-	/**
+    /*
 	Decompress the data selected in the handle, ensure an appropriate HDF5 dataset exists to store it,
 	insert it a the given index with some parameter values set according to the given flags.
 
@@ -10260,43 +17218,33 @@ return e; \
 			 const unsigned int row,
 			 cbf_h5handle h5handle,
 			 const char * const saturation_value,
+     const char * const undefined_value,
 			 hsize_t * dims)
 	{
-		int error = CBF_SUCCESS, found = CBF_SUCCESS, id, bits, sign, real;
+        int error = CBF_SUCCESS;
+        if (0) fprintf(stderr,"write_array_h5file\n");
+        
+        if (!node) {
+            cbf_debug_print("Invalid node given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else {
+            int found = CBF_SUCCESS, id, bits, sign, real;
 		cbf_file *file;
 		long start;
 		const char *byteorder;
 		size_t size, nelem, cbfdim[3], padding;
 		unsigned int compression;
 		hid_t h5type = CBF_H5FAIL;
-#ifdef CBF_USE_ULP
-		cmp_double_param_t cmp_params;
-
-		/* set up the comparison parameters */
-		cmp_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
-		cmp_params.ulp32 = h5handle->float_ulp;
-#ifndef NO_UINT64_TYPE
-		cmp_params.ulp64 = h5handle->double_ulp;
-#endif
-#endif
-		if (0) fprintf(stderr,"write_array_h5file\n");
-
-		if (!node) {
-			fprintf(stderr,"%s: Invalid node given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-
-		/** * find the datatype and array size */
-		_CBF_CALL(cbf_get_bintext(node, row, NULL,
+            /* find the datatype and array size */
+            CBF_CALL(cbf_get_bintext(node, row, NULL,
 			 &id, &file, &start, &size,
 			 NULL, NULL, &bits, &sign, &real,
 			 &byteorder, &nelem, cbfdim+2, cbfdim+1, cbfdim+0, &padding,
 			 &compression));
-		_CBF_CALL(cbf_find_array_data_h5type(&h5type,bits,sign,real,byteorder));
+            CBF_CALL(cbf_find_array_data_h5type(&h5type,bits,sign,real,byteorder));
 
 		if (dims) {
 			dims[0] = 0;
@@ -10304,7 +17252,7 @@ return e; \
 			dims[2] = cbfdim[2];
 		}
 
-		/** * check the saturation value */
+            /* check the saturation value */
 		if (saturation_value) {
 			hid_t dataset = CBF_H5FAIL;
 			hsize_t max[] = {H5S_UNLIMITED};
@@ -10312,25 +17260,52 @@ return e; \
 			hsize_t off[] = {h5handle->slice};
 			hsize_t cnt[] = {1};
 			hsize_t buf[] = {0};
-			_CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dataset,"saturation_value",1,max,cnk,buf,h5type));
+                CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dataset,"saturation_value",1,max,cnk,buf,h5type));
 			if (real) {
 				/* every float can be represented exactly by a double, so no need for float intermediate */
 				const double num = strtod(saturation_value,0);
-				_CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_DOUBLE));
+                    CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_DOUBLE));
 			} else {
 				if (sign) {
 					/* use longest signed integer: all smaller types represent a subset of these values */
 					const signed long num = strtol(saturation_value,0,10);
-					_CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_LONG));
+                        CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_LONG));
 				} else {
 					/* use longest unsigned integer: all smaller types represent a subset of these values */
 					const unsigned long num = strtoul(saturation_value,0,10);
-					_CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_ULONG));
+                        CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_ULONG));
 				}
 			}
 			cbf_H5Dfree(dataset);
 		}
 
+            /* check the undefined value */
+            if (undefined_value) {
+                hid_t dataset = CBF_H5FAIL;
+                hsize_t max[] = {H5S_UNLIMITED};
+                hsize_t cnk[] = {1};
+                hsize_t off[] = {h5handle->slice};
+                hsize_t cnt[] = {1};
+                hsize_t buf[] = {0};
+                CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dataset,"undefined_value",1,max,cnk,buf,h5type));
+                if (real) {
+                    /* every float can be represented exactly by a double, so no need for float intermediate */
+                    const double num = strtod(undefined_value,0);
+                    CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_DOUBLE));
+                } else {
+                    if (sign) {
+                        /* use longest signed integer: all smaller types represent a subset of these values */
+                        const signed long num = strtol(undefined_value,0,10);
+                        CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_LONG));
+                    } else {
+                        /* use longest unsigned integer: all smaller types represent a subset of these values */
+                        const unsigned long num = strtoul(undefined_value,0,10);
+                        CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_ULONG));
+                    }
+                }
+                cbf_H5Dfree(dataset);
+            }
+            
 		/* allocate space for the decompressed data */
 		if (CBF_SUCCESS == error) {
 			void * value;
@@ -10343,8 +17318,8 @@ return e; \
 			hsize_t h5chunk[] = {1, cbfdim[1], cbfdim[2]};
 			hid_t dset = CBF_H5FAIL;
 			value = malloc(nelem*elsize);
-			_CBF_CALL(cbf_set_fileposition(file, start, SEEK_SET));
-			_CBF_CALL(cbf_decompress_parameters(NULL, NULL, NULL, NULL, NULL, NULL, NULL, compression, file));
+                CBF_CALL(cbf_set_fileposition(file, start, SEEK_SET));
+                CBF_CALL(cbf_decompress_parameters(NULL, NULL, NULL, NULL, NULL, NULL, NULL, compression, file));
 			if (0) {
 				fprintf(stderr,"masked compression: %d\n",compression&CBF_COMPRESSION_MASK);
 				fprintf(stderr,"compression type: ");
@@ -10360,7 +17335,7 @@ return e; \
 				fprintf(stderr,"real?: %s\n",real?"yes":"no");
 			}
 
-			/** * ensure a dataset exists in the detector */
+                /* ensure a dataset exists in the detector */
 			found =  cbf_H5Dfind2(h5handle->nxdetector,&dset,"data",rank,h5max,buf,h5type);
 			if (CBF_SUCCESS==found) {
 			} else if (CBF_NOTFOUND==found) {
@@ -10369,13 +17344,14 @@ return e; \
 				hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
 
 				/* check variables are valid */
-				_CBF_CALL(cbf_H5Screate(&dataSpace, rank, h5dim, h5max));
+                    CBF_CALL(cbf_H5Screate(&dataSpace, rank, h5dim, h5max));
 
 				/* allow dataset to be chunked */
-				H5Pset_chunk(dcpl,rank,h5chunk);
+                    CBF_H5CALL(H5Pset_chunk(dcpl,rank,h5chunk));
 				/* allow compression */
+                    if (CBF_SUCCESS==error) {
 				if (h5handle->flags & CBF_H5COMPRESSION_ZLIB) {
-					H5Pset_deflate(dcpl, 2);
+                            H5Pset_deflate(dcpl, 1);
 				} else if (h5handle->flags & CBF_H5COMPRESSION_CBF) {
 					unsigned int cd_values[CBF_H5Z_FILTER_CBF_NELMTS];
 					cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION] = compression;
@@ -10391,20 +17367,14 @@ return e; \
 
 					if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
 						if (!H5Zfilter_avail(CBF_H5Z_FILTER_CBF)) {
-							cbf_h5reportneg(H5Zregister(CBF_H5Z_CBF),CBF_H5ERROR,error);
+                                    CBF_H5CALL(H5Zregister(CBF_H5Z_CBF));
 						}
 					}
 
-					cbf_h5reportneg
-							(H5Pset_filter
-							(dcpl,
-							 CBF_H5Z_FILTER_CBF,
-							 H5Z_FLAG_OPTIONAL,
-							 CBF_H5Z_FILTER_CBF_NELMTS,
-							 cd_values),
-					CBF_H5ERROR, error);
+                            CBF_H5CALL(H5Pset_filter(dcpl, CBF_H5Z_FILTER_CBF, H5Z_FLAG_OPTIONAL, CBF_H5Z_FILTER_CBF_NELMTS, cd_values));
 
 				}
+                    }
 
 				/* create the dataset */
 				if (CBF_SUCCESS == error)
@@ -10415,425 +17385,1023 @@ return e; \
 				if (cbf_H5Ivalid(dcpl)) H5Pclose(dcpl);
 			} else {
 				error |= found;
-				fprintf(stderr,__WHERE__": error locating primary dataset: %s\n", cbf_strerror(found));
+                    cbf_debug_print2("error locating primary dataset: %s\n", cbf_strerror(found));
 			}
 			if (CBF_SUCCESS==error) {
 				const hsize_t h5offset[] = {h5handle->slice, 0, 0};
 				const int sig[] = {1};
 				int sigbuf[] = {0};
 
-				/** * extract the image data from CBF */
-				_CBF_CALL(cbf_decompress(value, elsize, sign, nelem, &nelem_read,
+                    /* extract the image data from CBF */
+                    CBF_CALL(cbf_decompress(value, elsize, sign, nelem, &nelem_read,
 						size, compression, bits, sign, file, real, byteorder,
 						nelem, cbfdim[2], cbfdim[1], cbfdim[0], padding));
 				if (nelem_read != nelem) error |= CBF_ENDOFDATA;
 
-				/** * store the image data in HDF5 */
-				_CBF_CALL(cbf_H5Dinsert(dset,h5offset,0,h5chunk,buf,value,h5type));
-#ifdef CBF_USE_ULP
-				_CBF_CALL(cbf_H5Arequire_cmp2_ULP(dset,"signal",0,0,H5T_STD_I32LE,H5T_NATIVE_INT,sig,sigbuf,cmp_int,0));
-#else
-				_CBF_CALL(cbf_H5Arequire_cmp2(dset,"signal",0,0,H5T_STD_I32LE,H5T_NATIVE_INT,sig,sigbuf,cmp_int));
-#endif
+                    /* store the image data in HDF5 */
+                    CBF_CALL(cbf_H5Dinsert(dset,h5offset,0,h5chunk,buf,value,h5type));
+                    CBF_CALL(CBFM_H5Arequire_cmp2(dset,"signal",0,0,H5T_STD_I32LE,H5T_NATIVE_INT,sig,sigbuf,cmp_int,0));
 				cbf_H5Dfree(dset);
 				free((void*)value);
 			}
 		}
+        }
 
 		return error;
 	}
 
-	/**
-	Check the array_structure_list_axis category to ensure it only contains displacement-related axes.
-	Eventually, use this to get a 'scan type' to decide how to convert axis data.
-	*/
-	static unsigned int cbf_check_array_structure_list_axis(cbf_handle handle)
-	{
-		int error = CBF_SUCCESS;
-		/*
-		Initialise the current type to 'could be any',
-		reduce possibilities by looking at the data.
-		*/
-		unsigned int type = CBF_SCANTYPE_ALL;
-
-		/* check arguments */
-		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-
-		_CBF_CALL(cbf_find_category(handle, "array_structure_list_axis"));
-		for (error |= cbf_rewind_column(handle); CBF_SUCCESS == error; error = cbf_next_column(handle)) {
-			const char * column = NULL;
-			_CBF_CALL(cbf_column_name(handle,&column));
-			if (cbf_cistrcmp(column,"axis_set_id") &&
-				cbf_cistrcmp(column,"axis_id") &&
-				cbf_cistrcmp(column,"displacement") &&
-				cbf_cistrcmp(column,"displacement_increment"))
-			{
-				type &= ~CBF_SCANTYPE1;
-			}
-		}
-
-		return type;
-	}
-
-	static int cbf_write_cbf_h5file__array_structure_list_axis
+    static int cbf_write_cbf2nx__array_structure_list_axis
 			(cbf_handle handle,
 			 cbf_h5handle h5handle,
-			 cbf_key_t * const key,
-			 const unsigned int scantype)
+     cbf_cbf2nx_key_t * const key,
+     const int list)
 	{
 		int error = CBF_SUCCESS;
-		unsigned int asla_idx = 0;
+        unsigned int matched = 0;
+        const char categoryName[] = "array_structure_list_axis";
 #ifdef CBF_USE_ULP
-		cmp_double_param_t cmp_params;
+        cmp_double_param_t cmp_double_params;
+        void * cmp_params = &cmp_double_params;
 
 		/* set up the comparison parameters */
-		cmp_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
-		cmp_params.ulp32 = h5handle->float_ulp;
+        cmp_double_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
+        cmp_double_params.ulp32 = h5handle->float_ulp;
 #ifndef NO_UINT64_TYPE
-		cmp_params.ulp64 = h5handle->double_ulp;
+        cmp_double_params.ulp64 = h5handle->double_ulp;
 #endif
+#else
+        void * cmp_params = 0;
 #endif
-
-		if (0) fprintf(stderr,"array_structure_list_axis\n");
 
 		/* check arguments */
 		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key || !key->arrayAxisSet.axis_set_id || !key->arrayAxisSet.direction ||
+                   !key->arrayAxisSet.precedence || 0==key->arrayAxisSet.count) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+            cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
+        } else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[1];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int indent = 1+key->indent;
+            unsigned int * axes = NULL;
+            unsigned int nRows;
+            unsigned int set;
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
 		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-		if (!key || !key->arrayAxisSet.axis_set_id ||
-				   !key->arrayAxisSet.direction ||
-				   !key->arrayAxisSet.precedence ||
-				   0==key->arrayAxisSet.count)
-		{
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-
-		_CBF_CALL(cbf_find_category(handle, "array_structure_list_axis"));
-		_CBF_CALL(cbf_rewind_column(handle));
-		_CBF_CALL(cbf_rewind_row(handle));
-
-		for (asla_idx = 0; asla_idx < key->arrayAxisSet.count; ++asla_idx) {
-			unsigned int row = 0;
-			while (CBF_SUCCESS == error) {
-				const char * axisSet_id = NULL;
-				_CBF_CALL(cbf_find_category(handle, "array_structure_list_axis"));
-				_CBF_CALL(cbf_find_column(handle, "axis_set_id"));
-				_CBF_CALL(cbf_select_row(handle,row));
-				_CBF_CALL(cbf_get_value(handle, &axisSet_id));
-				if (CBF_SUCCESS == error && !cbf_cistrcmp(axisSet_id,key->arrayAxisSet.axis_set_id[asla_idx])) {
-					if (CBF_SCANTYPE1 == scantype) {
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                axes = malloc(sizeof(unsigned int)*nRows);
+                CBF_CALL(cbf_find_child(primary_keys+0, category, "axis_set_id"));
+            }
+            /*
+             - iterate over axis sets
+             - count the number of axes in each set, caching them for later reference
+             - use the number of axes (and possibly other data) to test for valid data
+             */
+            for (set = 0; CBF_SUCCESS==error && set != key->arrayAxisSet.count; ++set) {
+                unsigned int nAxes = 0;
+                unsigned int row;
+                for (row = 0; row != nRows; ++row) {
+                    const char * set_id = NULL;
+                    if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &set_id))) {
+                        cbf_debug_print(cbf_strerror(error));
+                    } else if (!strcmp(key->arrayAxisSet.axis_set_id[set],set_id)) {
+                        axes[nAxes++] = row;
+                    }
+                }
+                /*
+                 I know how many (and which) entries in ASLA relate to the current axis set:
+                 - check the number of axes in the set
+                 - extract and convert data as appropriate
+                 */
+                if (0 == nAxes) {
+                    /* no axes - missing data? */
+                    cbf_debug_print2("error: no axes found for set '%s'\n",key->arrayAxisSet.axis_set_id[set]);
+                    error |= CBF_NOTFOUND;
+                } else if (1 == nAxes) {
+                    /* 1 axis - most common case */
+                    cbf_node * const * column_it;
+                    double angle = 0., angle_incr = 0.;
+                    int have_angle = 0, have_angle_incr = 0;
+                    double disp = 0., disp_incr = 0.;
+                    int have_disp = 0, have_disp_incr = 0;
+                    double angular_pitch = 0., radial_pitch = 0.;
+                    int have_angular_pitch = 0, have_radial_pitch = 0;
 						const char * axis = NULL;
-						const char * str_disp = NULL;
-						const char * str_incr = NULL;
-						const unsigned int precedence = key->arrayAxisSet.precedence[asla_idx];
-						const unsigned int dimension = key->arrayAxisSet.dimension[asla_idx];
-						/* I have a match - find the relevant axis */
-						_CBF_CALL(cbf_find_column(handle, "axis_id"));
-						_CBF_CALL(cbf_get_value(handle, &axis));
-						_CBF_CALL(cbf_find_column(handle, "displacement"));
-						_CBF_CALL(cbf_get_value(handle, &str_disp));
-						_CBF_CALL(cbf_find_column(handle, "displacement_increment"));
-						_CBF_CALL(cbf_get_value(handle, &str_incr));
-						_CBF_CALL(cbf_find_category(handle, "axis"));
-						_CBF_CALL(cbf_find_column(handle, "id"));
-						_CBF_CALL(cbf_find_row(handle, axis));
-						/* convert the data */
-						if (0) fprintf(stdout,"Converting axis data for '%s'\n",axis);
-						if (0==precedence || 2<precedence) error |= CBF_FORMAT;
+                    for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                        cbf_node * const column = *column_it;
+                        int pk = 0;
+                        cbf_node * const * it;
+                        cbf_node * const * const end = npk+primary_keys;
+                        for (it = primary_keys; end != it; ++it) {
+                            pk = column==*it ? 1 : pk;
+                        }
+                        /*
+                         I now have all the information required:
+                         - if a column is used as a primary key, ignore it but record it as processed
+                         - if a column has a recognised name, perform the conversion
+                         - otherwise, record the column as not processed and carry on
+                         */
+                        if (pk) {
+                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            /* ---------------------------------------------------------------------------------------------*/
+                        } else if (!cbf_cistrcmp(column->name,"angle")) {
+                            const char * val = NULL;
+                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, axes[0], &val))) {
+                                cbf_debug_print(cbf_strerror(error));
+                            } else {
+                                char * end = NULL;
+                                angle = strtod(val,&end);
+                                have_angle = (end!=val) ? 1 : 0;
+                            }
+                            /* ---------------------------------------------------------------------------------------------*/
+                        } else if (!cbf_cistrcmp(column->name,"angle_increment")) {
+                            const char * val = NULL;
+                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, axes[0], &val))) {
+                                cbf_debug_print(cbf_strerror(error));
+                            } else {
+                                char * end = NULL;
+                                angle_incr = strtod(val,&end);
+                                have_angle_incr = (end!=val) ? 1 : 0;
+                            }
+                            /* ---------------------------------------------------------------------------------------------*/
+                        } else if (!cbf_cistrcmp(column->name,"angular_pitch")) {
+                            const char * val = NULL;
+                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, axes[0], &val))) {
+                                cbf_debug_print(cbf_strerror(error));
+                            } else {
+                                char * end = NULL;
+                                angular_pitch = strtod(val,&end);
+                                have_angular_pitch = (end!=val) ? 1 : 0;
+                            }
+                            /* ---------------------------------------------------------------------------------------------*/
+                        } else if (!cbf_cistrcmp(column->name,"axis_id")) {
+                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            CBF_CALL(cbf_node_get_value(column, axes[0], &axis));
+                            /* ---------------------------------------------------------------------------------------------*/
+                        } else if (!cbf_cistrcmp(column->name,"displacement")) {
+                            const char * val = NULL;
+                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, axes[0], &val))) {
+                                cbf_debug_print(cbf_strerror(error));
+                            } else {
+                                char * end = NULL;
+                                disp = strtod(val,&end);
+                                have_disp = (end!=val) ? 1 : 0;
+                            }
+                            /* ---------------------------------------------------------------------------------------------*/
+                        } else if (!cbf_cistrcmp(column->name,"displacement_increment")) {
+                            const char * val = NULL;
+                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, axes[0], &val))) {
+                                cbf_debug_print(cbf_strerror(error));
+                            } else {
+                                char * end = NULL;
+                                disp_incr = strtod(val,&end);
+                                have_disp_incr = (end!=val) ? 1 : 0;
+                            }
+                            /* ---------------------------------------------------------------------------------------------*/
+                        } else if (!cbf_cistrcmp(column->name,"radial_pitch")) {
+                            const char * val = NULL;
+                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, axes[0], &val))) {
+                                cbf_debug_print(cbf_strerror(error));
+                            } else {
+                                char * end = NULL;
+                                radial_pitch = strtod(val,&end);
+                                have_radial_pitch = (end!=val) ? 1 : 0;
+                            }
+                            /* ---------------------------------------------------------------------------------------------*/
+                        } else {
+                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+                        }
+                    }
+                    ++matched;
 						if (CBF_SUCCESS == error) {
+                        /*
+                         I now have the data for the current row, use it to write the corresponding items to HDF5.
+                         The exact comparison is correct; a difference of just 1 ulp from 0.0 implies that I need
+                         to treat the setting as non-zero, because 0.0 is used as a signalling value instead of a
+                         computed value. Compilers will complain about this: ignore them, they are wrong.
+                         */
+                        if (have_disp && have_disp_incr &&
+                            (!have_angle || 0.==angle) && (!have_angle_incr || 0.==angle_incr) &&
+                            (!have_angular_pitch || 0.==angular_pitch) && (!have_radial_pitch || 0.==radial_pitch))
+                        { /* it looks like a 1 dimensional displacement */
+                            const char * depends_on = NULL;
+                            const char * equipment = NULL;
+                            int nVector = 0, nOffset = 0;
+                            double cbfVector[3] = {0.,0.,0.};
+                            double cbfOffset[3] = {0.,0.,0.};
+                            { /* write the pixel sizes to NXdetector */
+                                hid_t detector = CBF_H5FAIL;
 							hid_t dset = CBF_H5FAIL;
-							/* axis name table - don't free any part of it */
-							const char axis_name1[] = "fast_pixel_direction";
-							const char axis_name2[] = "slow_pixel_direction";
-							const char * const axis_names[] = {
-								axis_name1,
-								axis_name2
-							};
-							const char path_empty[] = "";
-							const char path_inst[] = "instrument";
-							const char * path_parts[] = {
-								path_empty,
-								h5handle->nxid_name,
-								path_inst,
-								h5handle->nxdetector_name,
-								/* select the correct axis name */
-								axis_names[precedence-1],
-								0
-							};
-							const char * const axis_path = _cbf_strjoin(path_parts,'/');
-							const char * equipment = NULL;
-							const char * depends_on = NULL;
+                                const char empty[] = "";
+                                const char pixel_x[] = "x_pixel_size";
+                                const char pixel_y[] = "y_pixel_size";
+                                const char * p[] = {empty, pixel_y, pixel_x};
+                                CBF_CALL(cbf_h5handle_require_detector(h5handle,&detector,0));
+                                CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(detector,&dset,p[key->arrayAxisSet.precedence[set]],fabs(disp_incr),cmp_double,cmp_params));
+                                CBF_CALL(cbf_H5Arequire_string(dset,"units","mm"));
+                                cbf_H5Dfree(dset);
+                            }
+                            /* select the axis and calculate the data it should contain */
+                            if (CBF_SUCCESS!=(error|=cbf_find_category(handle,"axis"))) {
+                                cbf_debug_print(cbf_strerror(error));
+                            } else {
+                                cbf_node * const axisCategory = handle->node;
+                                if (CBF_SUCCESS!=(error|=cbf_find_column(handle,"id"))) {
+                                    cbf_debug_print(cbf_strerror(error));
+                                } else if (CBF_SUCCESS!=(error|=cbf_find_row(handle,axis))) {
+                                    cbf_debug_print2("error: problem finding '%s' in axis category\n",axis);
+                                    cbf_debug_print(cbf_strerror(error));
+                                } else {
+                                    cbf_node * const * column_it;
+                                    /* find the correct row first... */
+                                    for (column_it = axisCategory->child; CBF_SUCCESS==error && column_it != axisCategory->children+axisCategory->child; ++column_it) {
+                                        cbf_node * const column = *column_it;
+                                        if (!strcmp(column->name,"depends_on")) {
+                                            CBF_CALL(cbf_node_get_value(column, handle->row, &depends_on));
+                                            /* ---------------------------------------------------------------------------------------------*/
+                                        }else if (!strcmp(column->name,"equipment")) {
+                                            CBF_CALL(cbf_node_get_value(column, handle->row, &equipment));
+                                            /* ---------------------------------------------------------------------------------------------*/
+                                        } else if (!strcmp(column->name,"offset[1]")) {
+                                            const char * val = NULL;
+                                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, handle->row, &val))) {
+                                                cbf_debug_print(cbf_strerror(error));
+                                            } else {
+                                                char * end = NULL;
+                                                cbfOffset[0] = strtod(val,&end);
+                                                if (end!=val) ++nOffset;
+                                            }
+                                            /* ---------------------------------------------------------------------------------------------*/
+                                        } else if (!strcmp(column->name,"offset[2]")) {
+                                            const char * val = NULL;
+                                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, handle->row, &val))) {
+                                                cbf_debug_print(cbf_strerror(error));
+                                            } else {
+                                                char * end = NULL;
+                                                cbfOffset[1] = strtod(val,&end);
+                                                if (end!=val) ++nOffset;
+                                            }
+                                            /* ---------------------------------------------------------------------------------------------*/
+                                        } else if (!strcmp(column->name,"offset[3]")) {
+                                            const char * val = NULL;
+                                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, handle->row, &val))) {
+                                                cbf_debug_print(cbf_strerror(error));
+                                            } else {
+                                                char * end = NULL;
+                                                cbfOffset[2] = strtod(val,&end);
+                                                if (end!=val) ++nOffset;
+                                            }
+                                            /* ---------------------------------------------------------------------------------------------*/
+                                        } else if (!strcmp(column->name,"vector[1]")) {
+                                            const char * val = NULL;
+                                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, handle->row, &val))) {
+                                                cbf_debug_print(cbf_strerror(error));
+                                            } else {
+                                                char * end = NULL;
+                                                cbfVector[0] = strtod(val,&end);
+                                                if (end!=val) ++nVector;
+                                            }
+                                            /* ---------------------------------------------------------------------------------------------*/
+                                        } else if (!strcmp(column->name,"vector[2]")) {
+                                            const char * val = NULL;
+                                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, handle->row, &val))) {
+                                                cbf_debug_print(cbf_strerror(error));
+                                            } else {
+                                                char * end = NULL;
+                                                cbfVector[1] = strtod(val,&end);
+                                                if (end!=val) ++nVector;
+                                            }
+                                            /* ---------------------------------------------------------------------------------------------*/
+                                        } else if (!strcmp(column->name,"vector[3]")) {
+                                            const char * val = NULL;
+                                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, handle->row, &val))) {
+                                                cbf_debug_print(cbf_strerror(error));
+                                            } else {
+                                                char * end = NULL;
+                                                cbfVector[2] = strtod(val,&end);
+                                                if (end!=val) ++nVector;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if (CBF_SUCCESS==error) {
+                                double * const axisData = malloc(sizeof(double)*key->arrayAxisSet.dimension[set]);
+                                if (!axisData) {
+                                    cbf_debug_print(cbf_strerror(CBF_ALLOC));
+                                    error |= CBF_ALLOC;
+                                } else {
+                                    unsigned int i;
+                                    const unsigned int dimension = key->arrayAxisSet.dimension[set];
+                                    hid_t dset = CBF_H5FAIL;
 							const hsize_t dim[] = {dimension};
 							const hsize_t max[] = {H5S_UNLIMITED};
 							const hsize_t count[] = {dim[0]};
+                                    const hsize_t offset[] = {0};
 							hsize_t buf[] = {0};
-							_CBF_CALL(cbf_find_column(handle, "equipment"));
-							_CBF_CALL(cbf_get_value(handle, &equipment));
-							_CBF_CALL(cbf_find_column(handle, "depends_on"));
-							_CBF_CALL(cbf_get_value(handle, &depends_on));
-							/* record some data for the axis & mark it as a 'leaf' axis */
-							_CBF_CALL(_cbf_insert_axis(&key->axis, axis, equipment, axis_path, depends_on));
-							key->axis.is_leaf[key->axis.count-1] = 1;
-							/* write it to the HDF5 file */
+                                    const int found = cbf_H5Dfind2(h5handle->hfile,&dset,key->arrayAxisSet.path[set],1,0,buf,H5T_IEEE_F64LE);
+                                    /* initialise the axisData array */
+                                    if (!key->arrayAxisSet.direction || !key->arrayAxisSet.direction[set]) {
+                                        cbf_debug_print(cbf_strerror(CBF_UNDEFINED));
+                                        error |= CBF_UNDEFINED;
+                                    } else if (!strcmp(key->arrayAxisSet.direction[set],"increasing")) {
+                                        for (i = 0; i < dimension; ++i) axisData[i] = disp+i*disp_incr;
+                                    } else if (!strcmp(key->arrayAxisSet.direction[set],"decreasing")) {
+                                        for (i = 0; i < dimension; ++i) axisData[i] = disp+(dimension-i-1)*disp_incr;
+                                    } else {
+                                        cbf_debug_print(cbf_strerror(CBF_FORMAT));
+                                        error |= CBF_FORMAT;
+                                    }
+                                    /* ensure a suitable dataset exists, or create one */
 							if (CBF_SUCCESS==error) {
-								const int found =  cbf_H5Dfind2(h5handle->hfile,&dset,axis_path,1,max,buf,H5T_IEEE_F64LE);
-								const double disp = strtod(str_disp,0);
-								const double incr = strtod(str_incr,0);
-								const hsize_t offset[] = {0};
-								double * const axisData = malloc(sizeof(double)*dimension);
-								{ /* initialise the axisData array */
-									unsigned int i;
-									for (i = 0; i < dimension; ++i) axisData[i] = i*incr+disp;
-								}
 								if (CBF_SUCCESS == found) {
+                                            /* TODO: check dataset dimensions */
 									double * const currData = malloc(sizeof(double)*dimension);
-									_CBF_CALL(cbf_H5Dread2(dset,offset,0,count,currData,H5T_NATIVE_DOUBLE));
-#ifdef CBF_USE_ULP
-									if (cmp_double(axisData, currData, dimension, &cmp_params)) {
-#else
-                                    if (cmp_double(axisData, currData, dimension)) {
-#endif
-										fprintf(stderr,"%s: error: image axis data doesn't match\n",__WHERE__);
+                                            if (!currData) {
+                                                cbf_debug_print(cbf_strerror(CBF_ALLOC));
+                                                error |= CBF_ALLOC;
+                                            }
+                                            CBF_CALL(cbf_H5Dread2(dset,offset,0,count,currData,H5T_NATIVE_DOUBLE));
+                                            if (CBF_SUCCESS==error) {
+                                                if (CBFM_cmp_double(axisData, currData, dimension, cmp_params)) {
+                                                    cbf_debug_print("error: image axis data doesn't match");
 										error |= CBF_H5DIFFERENT;
 									}
+                                            }
 									free((void*)currData);
 								} else if (CBF_NOTFOUND == found) {
-									_CBF_CALL(cbf_H5Dcreate(h5handle->hfile,&dset,axis_path,1,dim,max,count,H5T_IEEE_F64LE));
-									_CBF_CALL(cbf_H5Dwrite2(dset,offset,0,count,axisData,H5T_NATIVE_DOUBLE));
+                                            CBF_CALL(cbf_H5Dcreate(h5handle->hfile,&dset,key->arrayAxisSet.path[set],1,dim,max,count,H5T_IEEE_F64LE));
+                                            CBF_CALL(cbf_H5Dwrite2(dset,offset,0,count,axisData,H5T_NATIVE_DOUBLE));
 								} else {
+                                            cbf_debug_print(cbf_strerror(found));
 									error |= found;
-									fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(found));
 								}
-#ifdef CBF_USE_ULP
-								_CBF_CALL(cbf_write_cbfaxis_h5file(handle, axis, 0, key->matrix, dset, cmp_double, &cmp_params));
-#else
-								_CBF_CALL(cbf_write_cbfaxis_h5file(handle, axis, 0, key->matrix, dset, cmp_double));
-#endif
-								free((void*)axisData);
+                                    }
+                                    /*
+                                     Get dependency for current axis set:
+                                     - In the general case there may be multiple axes in the set, each with a dependency.
+                                     - I need to find the real dependencies in this function, because I should only know
+                                     enough about the axes in the set to be able to do that here.
+                                     - A dependency is always on an axis, but might imply dependency on a different set.
+                                     - Iff the parent axis is in a set then the dependency is on that set.
+                                     - As the dependency may be on an axis, all axes must already be processed.
+                                     - As the dependency may be on a set, all sets must have been assigned a path.
+                                     - Neglect possible complications caused by one axis being in multiple sets.
+                                     */
+                                    if (CBF_SUCCESS==error) {
+                                        cbf_node * axis_id = NULL;
+                                        if (CBF_SUCCESS!=(error|=cbf_find_child(&axis_id, category, "axis_id"))) {
+                                            cbf_debug_print(cbf_strerror(error));
+                                        } else {
+                                            const char * id = NULL;
+                                            unsigned int i;
+                                            /* search for the parent axis in ASLA.axis_id: */
+                                            for (i = 0; i != axis_id->children; ++i) {
+                                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(axis_id, i, &id))) {
+                                                    cbf_debug_print(cbf_strerror(error));
+                                                } else {
+                                                    if (!strcmp(id,depends_on)) break;
+                                                }
+                                            }
+                                            if (i != axis_id->children) {
+                                                /* the parent axis exists within an axis set - the dependency is the path for that set */
+                                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], i, &id))) {
+                                                    cbf_debug_print(cbf_strerror(error));
+                                                } else {
+                                                    for (i = 0; i != key->arrayAxisSet.count; ++i) {
+                                                        if (!strcmp(key->arrayAxisSet.axis_set_id[i],id)) break;
+                                                    }
+                                                    if (i == key->arrayAxisSet.count) {
+                                                        cbf_debug_print(cbf_strerror(CBF_NOTFOUND));
+                                                        error |= CBF_NOTFOUND;
+                                                    } else {
+                                                        depends_on = key->arrayAxisSet.path[i];
+                                                    }
+                                                }
+                                            } else {
+                                                /* the parent axis is a free axis - the dependency is the path for that axis */
+                                                for (i = 0; i != key->axis.count; ++i) {
+                                                    if (!strcmp(key->axis.axis_id[i],depends_on)) break;
+                                                }
+                                                if (i == key->axis.count) {
+                                                    cbf_debug_print(cbf_strerror(CBF_NOTFOUND));
+                                                    error |= CBF_NOTFOUND;
+                                                } else {
+                                                    depends_on = key->axis.path[i];
+                                                }
+                                            }
+                                        }
+                                    }
+                                    /* add/check attributes using the data extracted from the axis */
+                                    if (CBF_SUCCESS==error) {
+                                        CBF_CALL(cbf_H5Arequire_string(dset,"transformation_type","translation"));
+                                        CBF_CALL(cbf_H5Arequire_string(dset,"units","mm"));
+                                    }
+                                    if (CBF_SUCCESS==error && depends_on) {
+                                        CBF_CALL(cbf_H5Arequire_string(dset,"depends_on",depends_on));
+                                    }
+                                    if (CBF_SUCCESS==error && equipment) {
+                                        CBF_CALL(cbf_H5Arequire_string(dset,"equipment",equipment));
+                                    }
+                                    if (CBF_SUCCESS==error && nOffset==3) {
+                                        double nxoff[3];
+                                        const hsize_t vdim[] = {3};
+                                        hsize_t vbuf[] = {0};
+                                        CBF_CALL(cbf_apply_matrix(key->matrix,cbfOffset,nxoff));
+                                        CBF_CALL(CBFM_H5Arequire_cmp2(dset,"offset",1,vdim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,nxoff,vbuf,cmp_double,cmp_params));
+                                        CBF_CALL(cbf_H5Arequire_string(dset,"offset_units","mm"));
+                                    }
+                                    if (CBF_SUCCESS==error && nVector==3) {
+                                        double nxvec[3];
+                                        const hsize_t vdim[] = {3};
+                                        hsize_t vbuf[] = {0};
+                                        CBF_CALL(cbf_apply_matrix(key->matrix,cbfVector,nxvec));
+                                        CBF_CALL(CBFM_H5Arequire_cmp2(dset,"vector",1,vdim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,nxvec,vbuf,cmp_double,cmp_params));
+                                    }
 								cbf_H5Dfree(dset);
 							}
+                                free((void*)axisData);
 						}
-						break;
+                        } else {
+                            cbf_debug_print("unrecognised combination of settings");
+                            error |= CBF_FORMAT;
 					}
 				}
-				++row;
+                } else {
+                    /* unhandled number of axes - error */
+                    cbf_debug_print("unsupported array structure");
+                    error |= CBF_NOTIMPLEMENTED;
 			}
 		}
-
-		return error;
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
 	}
-
-	/**
-	re-written 'cbf_get_value' to use a cbf_node instead of a cbf_handle.
-     */
-	static int _cbf_node_get_string(const cbf_node * node, const unsigned int row, const char * * const string)
-	{
-		const char * value = NULL;
-		if (!node || !string) return CBF_ARGUMENT;
-		if (cbf_is_binary(node,row)) return CBF_BINARY;
-		{
-			const int gcr = cbf_get_columnrow(&value,node,row);
-			if (CBF_SUCCESS != gcr) return gcr;
+            free((void*)axes);
 		}
-		*string = value ? value+1 : NULL;
-		return CBF_SUCCESS;
+        return error;
 	}
 
-	static int cbf_write_cbf_h5file__array_structure_list
+    static int cbf_write_cbf2nx__array_structure_list
 			(cbf_handle handle,
 			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
+     cbf_cbf2nx_key_t * const key,
+     const int list)
 	{
 		int error = CBF_SUCCESS;
-		int rank = -1;
-		hsize_t * dim = NULL;
-		cbf_node * array_id = NULL;
-		cbf_node * precedence = NULL;
-		cbf_node * dimension = NULL;
-		cbf_node * axis_set_id = NULL;
-		cbf_node * direction = NULL;
-		unsigned int rows = 0, i;
-
-		if (0) fprintf(stderr,"array_structure_list\n");
+        const char categoryName[] = "array_structure_list";
 
 		/* check arguments */
 		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key || !key->array) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+            cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
+        } else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[1];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            const unsigned int indent = 1+key->indent;
+            unsigned int row = 0, nRows = 0;
+            unsigned int matched = 0;
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
 		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-		if (!key || !key->array) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-
-		{ /* get the data extent */
-			const hid_t dataset = H5Dopen2(h5handle->nxdetector,"data",H5P_DEFAULT);
-			if (cbf_H5Ivalid(dataset)) {
-				const hid_t dataspace = H5Dget_space(dataset);
-				if (cbf_H5Ivalid(dataspace)) {
-					rank = H5Sget_simple_extent_dims(dataspace,0,0);
-					dim = malloc(rank>0 ? rank*sizeof(hsize_t) : 0);
-					if (rank <= 0 || rank != H5Sget_simple_extent_dims(dataspace,dim,0)) {
-						fprintf(stderr,"%s: could not get dimensions\n",__WHERE__);
-						error |= CBF_H5ERROR;
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                CBF_CALL(cbf_find_child(primary_keys+0, category, "array_id"));
 					}
-					cbf_H5Sfree(dataspace);
+            /*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+             */
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                unsigned int prec = 0, dim = 0, idx = 0;
+                const char * axis_set = NULL;
+                const char * dirn = NULL;
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
+                    const char * val = NULL;
+                    if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                        cbf_debug_print(cbf_strerror(error));
+                    } else if (strcmp(val,key->array)) {
+                        continue;
+                    }
+                }
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"axis_set_id")) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &axis_set));
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"dimension")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
 				} else {
-					fprintf(stderr,"%s: could not open dataspace\n",__WHERE__);
-					error |= CBF_H5ERROR;
+                            dim = strtol(val,0,0);
 				}
-				cbf_H5Dfree(dataset);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"direction")) {
+                        /* TODO: validate this, then store +/-1 in key->arrayAxisSet.direction */
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &dirn));
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"index")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
 			} else {
-				fprintf(stderr,"%s: could not open main dataset\n",__WHERE__);
-				error |= CBF_H5ERROR;
+                            idx = strtol(val,0,0);
+			}
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"precedence")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            prec = strtol(val,0,0);
+		}
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+                    }
+                }
+                ++matched;
+                /*
+                 - I have the array_structure_list_axis.axis_set_id and array_structure_list_axis.axis_id columns,
+                 look for rows with matching axis_set_id keys and extract the corresponding axis_id.
+                 - If the axis_id is already in the list of axes I don't need to do anything else here, otherwise
+                 I need a new axis path which may be a function of the axis_set_id data.
+
+                 Coupled axes are much more complex than others. Nexus cannot handle coupled axes directly,
+                 but I may still need to extract information from them to store per-pixel coordinates. Because
+                 I don't map any of these axes directly I don't need to make up a per-axis path, I map each
+                 axis_set_id to a NeXus axis and generate a per-axis_set_id path. I don't need to know about
+                 the axes that are in the set until I get around to writing axis data.
+                 
+                 When converting the axis category I then need to convert:
+                 1. every axis that has been used to position objects
+                 2. every axis that is used in any axis set that describes image axes
+                 */
+                if (CBF_SUCCESS==error) {
+                    const char empty_string[] = "";
+                    const char pixel_y[] = "y_pixel_offset";
+                    const char pixel_x[] = "x_pixel_offset";
+                    const char * const axis_names[] = {empty_string, pixel_x, pixel_y};
+                    if (prec < 1 || prec > 2) {
+                        /* I don't have axis names defined outside of this range */
+                        cbf_debug_print("'precedence' isn't in the range of valid values");
+                        error |= CBF_FORMAT;
+                    } else {
+                        const char * path_parts[] = {
+                            empty_string,
+                            h5handle->nxid_name,
+                            h5handle->nxinstrument_name,
+                            h5handle->nxdetector_name,
+                            /* select the correct axis name */
+                            axis_names[prec],
+                            0
+                        };
+                        const char * const axis_path = _cbf_strjoin(path_parts,'/');
+                        CBF_CALL(_cbf_insert_arrayAxisSet(&key->arrayAxisSet,axis_set,axis_path,idx,prec,dim,dirn));
+                        free((void*)axis_path);
 			}
 		}
-
-		/* get some relevant nodes so i can index them instead of re-finding them */
-		_CBF_CALL(cbf_find_category(handle, "array_structure_list"));
-		_CBF_CALL(cbf_rewind_column(handle));
-		_CBF_CALL(cbf_count_rows(handle, &rows));
-		_CBF_CALL(cbf_find_column(handle, "array_id"));
-		array_id = handle->node;
-		_CBF_CALL(cbf_find_column(handle, "precedence"));
-		precedence = handle->node;
-		_CBF_CALL(cbf_find_column(handle, "dimension"));
-		dimension = handle->node;
-		_CBF_CALL(cbf_find_column(handle, "axis_set_id"));
-		axis_set_id = handle->node;
-		_CBF_CALL(cbf_find_column(handle, "direction"));
-		direction = handle->node;
-		/* iterate over the rows, extracting data */
-		for (i = 0; CBF_SUCCESS == error && i != rows; ++i) {
-			unsigned int prec = 0, dim_i = 0;
-			const char * string = NULL;
-			const char * axis_set;
-			const char * dirn;
-			_CBF_CALL(_cbf_node_get_string(array_id,i,&string));
-			if (cbf_cistrcmp(string,key->array)) continue;
-			_CBF_CALL(_cbf_node_get_string(precedence,i,&string));
-			prec = strtoul(string,0,10);
-			_CBF_CALL(_cbf_node_get_string(dimension,i,&string));
-			dim_i = strtoul(string,0,10);
-			if (dim_i != dim[rank-prec]) {
-				/* ensure that the axis dimension is correct */
-				fprintf(stderr,"%s: Error: %s\n",__WHERE__,"unexpected dataset extent");
-				error |= CBF_H5DIFFERENT;
-			}
-			_CBF_CALL(_cbf_node_get_string(axis_set_id,i,&axis_set));
-			_CBF_CALL(_cbf_node_get_string(direction,i,&dirn));
-			_CBF_CALL(_cbf_insert_arrayAxisSet(&key->arrayAxisSet,axis_set,prec,dim_i,dirn));
-		}
-
-		free((void*)dim);
+            }
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
+            }
+        }
 		return error;
 	}
 
-	static int cbf_write_cbf_h5file__axis_dependency_chain
+    static int cbf_write_cbf2nx__axis
 			(cbf_handle handle,
 			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
+     cbf_cbf2nx_key_t * const key,
+     const int list)
 	{
 		int error = CBF_SUCCESS;
+        const char categoryName[] = "axis";
+#ifdef CBF_USE_ULP
+        cmp_double_param_t cmp_double_params;
+        void * cmp_params = &cmp_double_params;
 
-		if (0) fprintf(stderr,"axis_dependency_chain\n");
+        /* set up the comparison parameters */
+        cmp_double_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
+        cmp_double_params.ulp32 = h5handle->float_ulp;
+#ifndef NO_UINT64_TYPE
+        cmp_double_params.ulp64 = h5handle->double_ulp;
+#endif
+#else
+        void * cmp_params = 0;
+#endif
 
 		/* check arguments */
 		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        }else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+            cbf_debug_print(cbf_strerror(error));
+        } else {
+            /* The axes in key->axis are used within the scan, so I must convert them all and any axes that they depend on. */
+            cbf_node * const category = handle->node;
+            const unsigned int indent = 1+key->indent;
+            unsigned int matched = 0;
+            unsigned int i;
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
 		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-		if (!key) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-
-		{
-			unsigned int idx;
-			int * const is_processed = malloc(sizeof(int)*key->axis.count);
-			for (idx = 0; idx != key->axis.count; ++idx) is_processed[idx] = 0;
-			for (idx = 0; idx != key->axis.count; ++idx) {
-				if (is_processed[idx] || !key->axis.is_leaf[idx]) continue;
+            if (0) {
+                /* fragment of code to output the list of axis paths in the key */
+                fputc('\n',stderr);
+                int n = fprintf(stderr,"%u: %u paths:",__LINE__,key->axis.count);
+                fputc('\n',stderr);
+                for (; n; --n) fputc('-',stderr);
+                fputc('\n',stderr);
+                for (i = 0; i != key->axis.count; ++i) {
+                    fprintf(stderr,"%s\n",key->axis.path[i]);
+                }
+                fputc('\n',stderr);
+            }
 				/*
-				For each axis in the chain following a leaf axis:
-				Look up parent axis, write its path in the depends_on field for this axis.
-				Do the same - iteratively - for all dependent axes,
-				all the way down to the root coordinate system.
+             Each axis set may contain multiple axes. Each of these needs to have its full dependency chain recorded. I
+             should not generate any new axes for any axis within an axis set, but should add all parent axes that are
+             not in an axis set. The creation of an axis for the axis set is not the responsibility of this function.
 				*/
-				const char * const * const axis_id_begin = key->axis.axis_id;
-				const char * const * const axis_id_end = key->axis.axis_id+key->axis.count;
-				const char * const * it = key->axis.axis_id+idx;
-				if (0) fprintf(stderr,"found a leaf: '%s' → '%s'\n",key->axis.axis_id[idx],key->axis.depends_on[idx]);
-				while (CBF_SUCCESS == error && axis_id_end != it) {
-					const unsigned int idx2 = it-key->axis.axis_id;
-					for (it = axis_id_begin; axis_id_end != it; ++it)
-						if (!cbf_cistrcmp(key->axis.depends_on[idx2],*it)) break;
-					if (it != axis_id_end) {
+            {
+                cbf_node * asla_setid = NULL;
+                cbf_node * asla_axisid = NULL;
+                cbf_node * axis_id = NULL;
+                cbf_node * axis_dependson = NULL;
+                CBF_CALL(cbf_find_category(handle,"array_structure_list_axis"));
+                CBF_CALL(cbf_find_child(&asla_setid,handle->node,"axis_set_id"));
+                CBF_CALL(cbf_find_child(&asla_axisid,handle->node,"axis_id"));
+                CBF_CALL(cbf_find_category(handle,"axis"));
+                CBF_CALL(cbf_find_child(&axis_id,handle->node,"id"));
+                CBF_CALL(cbf_find_child(&axis_dependson,handle->node,"depends_on"));
+                if (CBF_SUCCESS==error) {
+                    unsigned int i;
+                    unsigned int nAxes = 0;
+                    const char * * axes = NULL;
+                    /* 1. get a list of all axes within a valid axis set */
+                    for (i = 0; i != key->arrayAxisSet.count; ++i) {
+                        unsigned int j = 0;
+                        /* loop over ASLA to locate matching axis_set_id, store corresponding axis_id if it isn't already present */
+                        for (j = 0; j != asla_setid->children; ++j) {
+                            const char * axis = NULL;
+                            const char * set = NULL;
+                            CBF_CALL(cbf_node_get_value(asla_setid,j,&set));
+                            CBF_CALL(cbf_node_get_value(asla_axisid,j,&axis));
+                            if (1) fprintf(stderr,"axis: '%s'\n",axis);
+                            if (1) fprintf(stderr,"set: '%s'\n",set);
+                            if (CBF_SUCCESS==error) {
+                                if (strcmp(set,key->arrayAxisSet.axis_set_id[i])) {
+                                    continue;
+                                } else {
+                                    unsigned int k = 0;
+                                    /* I have an axis id from the current set, ensure it exists within the axis list */
+                                    for (k = 0; k != nAxes; ++k) {
+                                        if (!strcmp(axis,axes[k])) break;
+                                    }
+                                    if (k == nAxes) {
+                                        const char * * newAxes = NULL;
+                                        /* axis id wasn't found in the set - add it */
+                                        ++nAxes;
+                                        if (!(newAxes=realloc(axes,sizeof(const char *)*nAxes))) {
+                                            cbf_debug_print(cbf_strerror(CBF_ALLOC));
+                                            error |= CBF_ALLOC;
+                                        } else {
+                                            axes[nAxes-1] = axis;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (0) {
+                        /* fragment of code to output the list of axis_ids in the key */
+                        fputc('\n',stderr);
+                        int n = fprintf(stderr,"%u: %u axes:",__LINE__,key->axis.count);
+                        fputc('\n',stderr);
+                        for (; n; --n) fputc('-',stderr);
+                        fputc('\n',stderr);
+                        for (i = 0; i != key->axis.count; ++i) {
+                            fprintf(stderr,"%s\n",key->axis.axis_id[i]);
+                        }
+                        fputc('\n',stderr);
+                    }
 						/*
-						I have a path to store and (possibly) another axis to traverse,
-						make use of the 'is_processed' variables to reduce the amount of work required.
+                     2. check dependency chain for each axis in axes, if the parent
+                     axis is not in axes or in key->axis then add it to key->axis
 						*/
-						const unsigned int idx3 = it-key->axis.axis_id;
-						hid_t dset = H5Dopen2(h5handle->hfile, key->axis.path[idx2], H5P_DEFAULT);
-						if (!cbf_H5Ivalid(dset)) {
-							error |= CBF_H5ERROR;
+                    for (i = 0; i != nAxes; ++i) {
+                        const char * depends_on = NULL;
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(axis_dependson,i,&depends_on))) {
+                            cbf_debug_print(cbf_strerror(error));
 						} else {
-							_CBF_CALL(cbf_H5Arequire_string(dset,"depends_on",key->axis.path[idx3]));
-							is_processed[idx2] = 1;
+                            unsigned int j = 0;
+                            unsigned int k = 0;
+                            for (j = 0; j != nAxes; ++j) {
+                                if (i != j && !strcmp(depends_on,axes[j])) {
+                                    break;
 						}
-						cbf_H5Dfree(dset);
-						if (is_processed[idx3]) break;
-					} else {
+                            }
+                            for (k = 0; k != key->axis.count; ++k) {
+                                if (!strcmp(depends_on,key->axis.axis_id[k])) {
+                                    break;
+                                }
+                            }
+                            if (j == nAxes && k == key->axis.count) {
 						/*
-						This *should* be the last axis in this chain,
-						if it doesn't appear to be then complain and give up.
-						TODO: try to extract extra axes from the CBF file.
+                                 The parent axis for CBF's axis[i] is not listed as part of an axis set for the current scan,
+                                 or as one of the axes that have already been mapped. Need to add it - and any unlisted parent
+                                 axes - to the list of axes that must be mapped.
+                                 TODO: implement this
 						*/
-						if (0) fprintf(stderr,"found a root: '%s' → '%s'\n",key->axis.axis_id[idx2],key->axis.depends_on[idx2]);
-						if (!cbf_cistrcmp(key->axis.depends_on[idx2],".")) {
-							hid_t dset = H5Dopen2(h5handle->hfile, key->axis.path[idx2], H5P_DEFAULT);
-							if (!cbf_H5Ivalid(dset)) {
+                                cbf_debug_print(cbf_strerror(CBF_NOTIMPLEMENTED));
+                                error |= CBF_NOTIMPLEMENTED;
+                            }
+                        }
+                    }
+                    free((void*)axes);
+                }
+            }
+            /* convert each axis: */
+            for (i = 0; CBF_SUCCESS==error && i != key->axis.count; ++i) {
+                const char * axis_name = key->axis.axis_id[i];
+                const char * axis_path = key->axis.path[i];
+                const char axis_root[] = ".";
+                while (CBF_SUCCESS==error && axis_name && strcmp(axis_name,".") && axis_path) {
+                    hid_t dset = CBF_H5FAIL;
+                    const htri_t exists = H5Lexists(h5handle->hfile,axis_path,H5P_DEFAULT);
+                    const hsize_t max[] = {H5S_UNLIMITED};
+                    const hsize_t cnk[] = {1};
+                    hsize_t buf[] = {0};
+                    /*
+                     - check whether a dataset exists
+                     - check whether the axis can be found
+                     */
+                    if (exists<0) {
+                        cbf_debug_print(cbf_strerror(CBF_H5ERROR));
 								error |= CBF_H5ERROR;
+                    }
+                    CBF_CALL(cbf_H5Drequire(h5handle->hfile,&dset,axis_path,1,max,cnk,buf,H5T_IEEE_F64LE));
+                    CBF_CALL(cbf_find_column(handle,"id"));
+                    CBF_CALL(cbf_find_row(handle,axis_name));
+                    if (CBF_SUCCESS==error) {
+                        cbf_node * const * column_it;
+                        double vector[3] = {0./0.,0./0.,0./0.};
+                        double offset[3] = {0./0.,0./0.,0./0.};
+                        unsigned int nVector = 0, nOffset = 0;
+                        const unsigned int row = handle->row;
+                        const char * depends_on = NULL;
+                        const char * equipment = NULL;
+                        const char * type = NULL;
+                        /* I have the relevant axis - extract data from the columns */
+                        for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                            cbf_node * const column = *column_it;
+                            if (!cbf_cistrcmp(column->name,"id")) {
+                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                                /* ---------------------------------------------------------------------------------------------*/
+                            } else if (!cbf_cistrcmp(column->name,"depends_on")) {
+                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                                CBF_CALL(cbf_node_get_value(column, row, &depends_on));
+                                /* ---------------------------------------------------------------------------------------------*/
+                            } else if (!cbf_cistrcmp(column->name,"equipment")) {
+                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                                CBF_CALL(cbf_node_get_value(column, row, &equipment));
+                                /* ---------------------------------------------------------------------------------------------*/
+                            } else if (!cbf_cistrcmp(column->name,"offset[1]")) {
+                                const char * val = NULL;
+                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                                    cbf_debug_print(cbf_strerror(error));
 							} else {
-								_CBF_CALL(cbf_H5Arequire_string(dset,"depends_on","."));
-								is_processed[idx2] = 1;
+                                    char * end = NULL;
+                                    offset[0] = strtod(val,&end);
+                                    if (end!=val) ++nOffset;
 							}
-							cbf_H5Dfree(dset);
+                                /* ---------------------------------------------------------------------------------------------*/
+                            } else if (!cbf_cistrcmp(column->name,"offset[2]")) {
+                                const char * val = NULL;
+                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                                    cbf_debug_print(cbf_strerror(error));
 						} else {
-							if (1) fprintf(stderr,"%s: Error: Unexpected axis dependency of '%s' on '%s'\n",
-									__WHERE__,key->axis.depends_on[idx2],key->axis.axis_id[idx2]);
+                                    char * end = NULL;
+                                    offset[1] = strtod(val,&end);
+                                    if (end!=val) ++nOffset;
+                                }
+                                /* ---------------------------------------------------------------------------------------------*/
+                            } else if (!cbf_cistrcmp(column->name,"offset[3]")) {
+                                const char * val = NULL;
+                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                                    cbf_debug_print(cbf_strerror(error));
+                                } else {
+                                    char * end = NULL;
+                                    offset[2] = strtod(val,&end);
+                                    if (end!=val) ++nOffset;
+                                }
+                                /* ---------------------------------------------------------------------------------------------*/
+                            } else if (!cbf_cistrcmp(column->name,"type")) {
+                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                                CBF_CALL(cbf_node_get_value(column, row, &type));
+                                /* ---------------------------------------------------------------------------------------------*/
+                            } else if (!cbf_cistrcmp(column->name,"vector[1]")) {
+                                const char * val = NULL;
+                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                                    cbf_debug_print(cbf_strerror(error));
+                                } else {
+                                    char * end = NULL;
+                                    vector[0] = strtod(val,&end);
+                                    if (end!=val) ++nVector;
+                                }
+                                /* ---------------------------------------------------------------------------------------------*/
+                            } else if (!cbf_cistrcmp(column->name,"vector[2]")) {
+                                const char * val = NULL;
+                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                                    cbf_debug_print(cbf_strerror(error));
+                                } else {
+                                    char * end = NULL;
+                                    vector[1] = strtod(val,&end);
+                                    if (end!=val) ++nVector;
+                                }
+                                /* ---------------------------------------------------------------------------------------------*/
+                            } else if (!cbf_cistrcmp(column->name,"vector[3]")) {
+                                const char * val = NULL;
+                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
+                                    cbf_debug_print(cbf_strerror(error));
+                                } else {
+                                    char * end = NULL;
+                                    vector[2] = strtod(val,&end);
+                                    if (end!=val) ++nVector;
+                                }
+                                /* ---------------------------------------------------------------------------------------------*/
+                            } else {
+                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+                            }
+                        }
+                        ++matched;
+                        /* update variables for next iteration & to record the axis dependancy */
+                        axis_name = depends_on;
+                        if (!axis_name || !strcmp(axis_name,axis_root) || !strcmp(axis_name,"?")) {
+                            axis_path = axis_root;
+                        } else {
+                            unsigned int j;
+                            for (j = 0; j != key->axis.count; ++j) {
+                                if (!strcmp(key->axis.axis_id[j],axis_name)) break;
+                            }
+                            if (j != key->axis.count) {
+                                /* assign existing axis path */
+                                axis_path = key->axis.path[j];
+                            } else {
+                                /* TODO: make up a new axis path & store it for future reference */
+                                axis_path = NULL;
+                                cbf_debug_print("conversion of axes not in detector or goniometer axis groups is not implemented - need to define a path for them");
+                                error |= CBF_NOTIMPLEMENTED;
+                            }
+                        }
+                        /* I might have the data - write it to HDF5 if I do */
+                        if (CBF_SUCCESS==error) {
+                            /* write the dependency */
+                            if (axis_path) {
+                                CBF_CALL(cbf_H5Arequire_string(dset,"depends_on",axis_path));
+                            } else {
+                                CBF_CALL(cbf_H5Arequire_string(dset,"depends_on","?"));
+                            }
+                            /* write the equipment */
+                            if (equipment) CBF_CALL(cbf_H5Arequire_string(dset,"equipment",equipment));
+                            if (!error) {
+                                /* write the offset */
+                                double nxoff[3] = {0.,0.,0.};
+                                const hsize_t dim[] = {3};
+                                double buf[] = {0};
+                                if (3==nOffset) {
+                                    CBF_CALL(cbf_apply_matrix(key->matrix,offset,nxoff));
+                                }
+                                CBF_CALL(CBFM_H5Arequire_cmp2(dset,"offset",1,dim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,nxoff,buf,cmp_double,cmp_params));
+                                CBF_CALL(cbf_H5Arequire_string(dset,"offset_units","mm"));
+                            }
+                            /* write the type */
+                            if (type) {
+                                if (CBF_SUCCESS!=(error|=cbf_H5Arequire_string(dset,"transformation_type",type))) {
+                                    cbf_debug_print(cbf_strerror(error));
+                                } else {
+                                    if (!strcmp(type,"translation")) {
+                                        CBF_CALL(cbf_H5Arequire_string(dset,"units","mm"));
+                                    } else if (!strcmp(type,"rotation")){
+                                        CBF_CALL(cbf_H5Arequire_string(dset,"units","degrees"));
+                                    } else {
+                                        cbf_debug_print(cbf_strerror(CBF_UNDEFINED));
 							error |= CBF_UNDEFINED;
 						}
 					}
 				}
+                            if (!error) {
+                                /* write the vector */
+                                double nxvec[3] = {0.,0.,0.};
+                                const hsize_t dim[] = {3};
+                                double buf[] = {0};
+                                if (3==nVector) {
+                                    CBF_CALL(cbf_apply_matrix(key->matrix,vector,nxvec));
 			}
-			free((void*)is_processed);
+                                CBF_CALL(CBFM_H5Arequire_cmp2(dset,"vector",1,dim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,nxvec,buf,cmp_double,cmp_params));
 		}
-
+                        }
+                    }
+                    cbf_H5Dfree(dset);
+                }
+            }
+        }
 		return error;
 	}
 
-	static int cbf_write_cbf_h5file__link_h5data
+    static int cbf_write_cbf2nx__link_h5data
 			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-			 const unsigned int scantype)
+     cbf_h5handle h5handle)
 	{
 		int error = CBF_SUCCESS;
 
@@ -10841,26 +18409,23 @@ return e; \
 
 		/* check arguments */
 		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
-		}
-
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else {
 		/* ensure an entry/data group exists and has a link to the dataset */
 		if (!cbf_H5Ivalid(h5handle->nxdata)) {
-			_CBF_CALL(cbf_H5Grequire(h5handle->nxid,&h5handle->nxdata,"data"));
+                CBF_CALL(cbf_H5Grequire(h5handle->nxid,&h5handle->nxdata,"data"));
 		}
-
 		/* use it to link to data */
 		if (CBF_SUCCESS==error && cbf_H5Ivalid(h5handle->nxdata)) {
 			const htri_t data_exists = H5Lexists(h5handle->nxdata,"data",H5P_DEFAULT);
 			const htri_t data_scaling_exists = H5Lexists(h5handle->nxdetector,"scaling_factor",H5P_DEFAULT);
 			const htri_t data_offset_exists = H5Lexists(h5handle->nxdetector,"offset",H5P_DEFAULT);
-			_CBF_CALL(cbf_H5Arequire_string(h5handle->nxdata,"NX_class","NXdata"));
-			_CBF_CALL(cbf_H5Arequire_string(h5handle->nxdata,"signal","data"));
+                CBF_CALL(cbf_H5Arequire_string(h5handle->nxdata,"NX_class","NXdata"));
+                CBF_CALL(cbf_H5Arequire_string(h5handle->nxdata,"signal","data"));
 			if (data_exists < 0) {
 				error |= CBF_H5ERROR;
 			} else if (data_exists) {
@@ -10902,9 +18467,9 @@ return e; \
 			}
 
 			/* extract some axes based on the scan type */
-			if (CBF_SCANTYPE1 == scantype) {
-				const htri_t axis_fast_exists = H5Lexists(h5handle->nxdetector,"fast_pixel_direction",H5P_DEFAULT);
-				const htri_t axis_slow_exists = H5Lexists(h5handle->nxdetector,"slow_pixel_direction",H5P_DEFAULT);
+                if (CBF_SUCCESS==error) {
+                    const htri_t axis_fast_exists = H5Lexists(h5handle->nxdetector,"y_pixel_offset",H5P_DEFAULT);
+                    const htri_t axis_slow_exists = H5Lexists(h5handle->nxdetector,"x_pixel_offset",H5P_DEFAULT);
 				if (axis_fast_exists < 0) {
 					error |= CBF_H5ERROR;
 				} else if (axis_fast_exists) {
@@ -10914,13 +18479,13 @@ return e; \
 					} else if(axis_exists) {
 						/* it exists - done */
 					} else {
-						H5Lcreate_hard(h5handle->nxdetector,"fast_pixel_direction",
+                            H5Lcreate_hard(h5handle->nxdetector,"y_pixel_offset",
 									   h5handle->nxdata,"y",
 									   H5P_DEFAULT,H5P_DEFAULT);
 					}
 				} else {
 					/* I can't need to link to it - complain & fail */
-					fprintf(stderr,"%s: Error: cannot find axis data\n",__WHERE__);
+                        cbf_debug_print("Error: cannot find axis data\n");
 					error |= CBF_UNDEFINED;
 				}
 				if (axis_slow_exists < 0) {
@@ -10932,476 +18497,974 @@ return e; \
 					} else if(axis_exists) {
 						/* it exists - done */
 					} else {
-						H5Lcreate_hard(h5handle->nxdetector,"slow_pixel_direction",
+                            H5Lcreate_hard(h5handle->nxdetector,"x_pixel_offset",
 									   h5handle->nxdata,"x",
 									   H5P_DEFAULT,H5P_DEFAULT);
 					}
 				} else {
 					/* I can't need to link to it - complain & fail */
-					fprintf(stderr,"%s: Error: cannot find axis data\n",__WHERE__);
+                        cbf_debug_print("Error: cannot find axis data\n");
 					error |= CBF_UNDEFINED;
 				}
-				if (CBF_SUCCESS==error) { /* axes=[...] */
+                    if (CBF_SUCCESS==error) { /* axes=[slow_dim, ..., fast_dim] */
 					hid_t h5atype = CBF_H5FAIL;
 					const char axis0[] = "";
-					const char axis1[] = "x";
-					const char axis2[] = "y";
+                        const char axis1[] = "y";
+                        const char axis2[] = "x";
 					const char * axes[] = {axis0,axis1,axis2};
 					const hsize_t dim[] = {3};
 					char * buf[3] = {0};
-					_CBF_CALL(cbf_H5Tcreate_string(&h5atype,H5T_VARIABLE));
-#ifdef CBF_USE_ULP
-					_CBF_CALL(cbf_H5Arequire_cmp2_ULP(h5handle->nxdata,"axes",1,dim,h5atype,h5atype,axes,buf,cmp_vlstring,0));
-#else
-                    _CBF_CALL(cbf_H5Arequire_cmp2(h5handle->nxdata,"axes",1,dim,h5atype,h5atype,axes,buf,cmp_vlstring));
-#endif
+                        CBF_CALL(cbf_H5Tcreate_string(&h5atype,H5T_VARIABLE));
+                        CBF_CALL(CBFM_H5Arequire_cmp2(h5handle->nxdata,"axes",1,dim,h5atype,h5atype,axes,buf,cmp_vlstring,0));
 					cbf_H5Tfree(h5atype);
 				}
-				if (CBF_SUCCESS==error) { /* x_indices=1 */
-					const int idx[] = {1};
+                    if (CBF_SUCCESS==error) {
+                        const char x_indices[] = "x_indices";
+                        const char y_indices[] = "y_indices";
+                        const char * indices[] = {
+                            y_indices,
+                            x_indices,
+                        };
+                        const int idx[] = {1,2};
+                        int i;
+                        for (i = 0; i != 2; ++i) {
 					int buf[] = {0};
-#ifdef CBF_USE_ULP
-					_CBF_CALL(cbf_H5Arequire_cmp2_ULP(h5handle->nxdata,"x_indices",0,0,H5T_STD_I32LE,H5T_NATIVE_INT,idx,buf,cmp_int,0));
-#else
-					_CBF_CALL(cbf_H5Arequire_cmp2(h5handle->nxdata,"x_indices",0,0,H5T_STD_I32LE,H5T_NATIVE_INT,idx,buf,cmp_int));
-#endif
+                            CBF_CALL(
+                                     CBFM_H5Arequire_cmp2(
+                                                             h5handle->nxdata,
+                                                             indices[i],
+                                                             0,
+                                                             0,
+                                                             H5T_STD_I32LE,
+                                                             H5T_NATIVE_INT,
+                                                             i+idx,
+                                                             buf,
+                                                             cmp_int,
+                                                             0
+                                                             )
+                                     );
 				}
-				if (CBF_SUCCESS==error) { /* y_indices=2 */
-					const int idx[] = {2};
-					int buf[] = {0};
-#ifdef CBF_USE_ULP
-					_CBF_CALL(cbf_H5Arequire_cmp2_ULP(h5handle->nxdata,"y_indices",0,0,H5T_STD_I32LE,H5T_NATIVE_INT,idx,buf,cmp_int,0));
-#else
-					_CBF_CALL(cbf_H5Arequire_cmp2(h5handle->nxdata,"y_indices",0,0,H5T_STD_I32LE,H5T_NATIVE_INT,idx,buf,cmp_int));
-#endif
 				}
+                }
+            }
+        }
+        
+        return error;
+    }
+    
+    /*
+     A primary key may be an integer or a string, I need to allow them both to compared
+     for equality. This function must return 0 if the keys are considered equal, and
+     non-zero otherwise. Note that this means 'strcmp' is a valid comparison function.
+     */
+    typedef int (*key_cmp_func)(const char *, const char *);
+    
+    /* extract a value that can be compared later */
+    typedef const char * (*key_get_value_func)(const cbf_cbf2nx_key_t * const);
+    
+    /*
+     Each key is defined by a column name. A method of comparing values for equality
+     and value to compare against allows rows to be discarded if not relevant.
+     */
+    typedef struct cbf_primary_key_t
+    {
+        /* a unique identifier */
+        const char * name;
+        /* parameterised behaviour */
+        key_get_value_func getValue;
+        key_cmp_func cmp;
+        /* some cached data */
+        cbf_node * column;
+        const char * value;
+    } cbf_primary_key_t;
+    
+    /*
+     Test if a column is a primary key, making use of the cached column pointer.
+     */
+    static int is_primary_key
+    (const cbf_primary_key_t * const keys,
+     cbf_node * const column)
+    {
+        if (!keys || !column) {
+            return 0;
 			} else {
-				fprintf(stderr,"%s: Error: unrecognised or multiple scan type(s)\n",__WHERE__);
+            const cbf_primary_key_t * it;
+            for (it = keys; it->name; ++it)
+                if (it->column == column)
+                    return 1;
 			}
+        return 0;
 		}
 
+    /*
+     Part of the primary key data type is cached values. I need to set them to a state where they can be used later on.
+     */
+    static int cbf_populate_primaryKey_cache
+    (cbf_primary_key_t * const primary_keys,
+     const cbf_cbf2nx_key_t * const key,
+     cbf_node * const category)
+    {
+        int error = CBF_SUCCESS;
+        if (!primary_keys || !key || !category) {
+            error |= CBF_ARGUMENT;
+        } else {
+            cbf_primary_key_t * it;
+            for (it = primary_keys; !error && it->name; ++it) {
+                /* reset the values in the cache */
+                it->column = NULL;
+                it->value = NULL;
+                /* attempt to set the column */
+                const int found = cbf_find_child(&it->column, category, it->name);
+                if (CBF_NOTFOUND==found) {
+                    cbf_debug_print3("warning: '%s.%s' not found\n",category->name,it->name);
+                    it->column = NULL;
+                } else if (CBF_SUCCESS!=found) {
+                    if (1) {
+                        cbf_debug_print3("error: problem finding '%s.%s'\n",category->name,it->name);
+                        cbf_debug_print(cbf_strerror(found));
+                    }
+                    error |= found;
+                } else {
+                    /* set the value */
+                    it->value = it->getValue(key);
+                }
+            }
+        }
 		return error;
 	}
 
-	static int cbf_write_cbf_h5file__diffrn_scan_frame
+    /*
+     Extract a set of matching rows, looking up rows in the cached columns and comparing data to the cached values.
+     Occasionally, a malformed file will be missing a column in a different table that defines the set of valid
+     values for a foreign key in the current table. In this case all values for the degenerate row must compare equal
+     within the matching row set that would be obtained if the degenerate key was ignored. If the values of such a
+     column were allowed to differ then this would match columns that don't belong to the same item in the parent
+     table.
+     */
+    static int cbf_get_matching_rows
+    (cbf_primary_key_t * const primary_keys,
+     const unsigned int nRows,
+     unsigned int * * const row_set,
+     unsigned int * const mRows)
+    {
+        int error = CBF_SUCCESS;
+        if (!primary_keys || !row_set || !mRows) {
+            error |= CBF_ARGUMENT;
+        } else {
+            if (!(*row_set=malloc(sizeof(unsigned int)*nRows))) {
+                error |= CBF_ALLOC;
+            } else {
+                unsigned int row;
+                cbf_primary_key_t * it;
+                *mRows = 0;
+                /* use well-defined keys to extract a set of matching rows */
+                for (row = 0; !error && row != nRows; ++row) {
+                    int row_matches = 1;
+                    cbf_primary_key_t * it;
+                    for (it = primary_keys; !error && it->name; ++it) {
+                        if (it->column && it->value) {
+                            const char * val = NULL;
+                            if ((error|=cbf_node_get_value(it->column, row, &val))) {
+                                cbf_debug_print(cbf_strerror(error));
+                            } else {
+                                if (it->cmp(it->value,val)) row_matches = 0;
+                            }
+                        }
+                    }
+                    if (row_matches) (*row_set)[(*mRows)++] = row;
+                }
+                if (*mRows) {
+                    /* check that values given for degenerate keys are consistent within the set */
+                    for (it = primary_keys; !error && it->name; ++it) {
+                        if (it->column && !it->value) {
+                            const char * ref = NULL;
+                            /* 'mRows' is unsigned and non-zero, so 'rows[0]' is valid and starting iterations from '1' is safe */
+                            CBF_CALL(cbf_node_get_value(it->column, (*row_set)[0], &ref));
+                            for (row = 1; !error && row != *mRows; ++row) {
+                                const char * val = NULL;
+                                CBF_CALL(cbf_node_get_value(it->column, (*row_set)[row], &val));
+                                if (!error && it->cmp(ref,val)) {
+                                    cbf_debug_print2(" error: inconsistent values for degenerate key '%s'\n",it->name);
+                                    error |= CBF_FORMAT;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return error;
+    }
+    
+    static int cbf_write_cbf2nx__diffrn_scan_frame
 			(cbf_handle handle,
 			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
+     cbf_cbf2nx_key_t * const key,
+     const int list)
 	{
 		int error = CBF_SUCCESS;
-#ifdef CBF_USE_ULP
-		cmp_double_param_t cmp_params;
+        unsigned int matched = 0;
+        const char categoryName[] = "diffrn_scan_frame";
 
-		/* set up the comparison parameters */
-		cmp_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
-		cmp_params.ulp32 = h5handle->float_ulp;
-#ifndef NO_UINT64_TYPE
-		cmp_params.ulp64 = h5handle->double_ulp;
-#endif
-#endif
+        /* check arguments */
+        if (!handle) {
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+            if (1) cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
+        } else {
+            cbf_node * const category = handle->node;
+            unsigned int * rows = NULL;
+            unsigned int row = 0, nRows = 0, mRows = 0;
+            unsigned int indent = 1+key->indent;
+            const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,category->name);
+            cbf_primary_key_t primary_keys[] = {
+                {"scan_id",cbf2nx_key_get_scan_id,strcmp,NULL,NULL},
+                {"frame_id",cbf2nx_key_get_frame_id,strcmp,NULL,NULL},
+                {NULL,NULL,NULL,NULL,NULL},
+            };
+            /* record that the category is recognised */
+            if (list) _cbf_write_name(stderr,category->name,0,key->indent,1);
+            CBF_CALL(_cbf2nx_key_remove_category(key,category->name));
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                CBF_CALL(cbf_populate_primaryKey_cache(primary_keys,key,category));
+            }
+            /*
+             Select only the rows matching a given (composite) key & check that all
+             degenerate keys have uniform values within the selected row set
+             */
+            CBF_CALL(cbf_get_matching_rows(primary_keys,nRows,&rows,&mRows));
+            if (0==mRows) {
+                cbf_debug_print("No matching data located");
+                error |= CBF_FORMAT;
+            }
+            /* For each matching row, iterate over all remaining columns. */
+            for (row = 0; !error && row != mRows; ++row) {
+                cbf_node * const * column_it;
+                for (column_it = category->child; !error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (is_primary_key(primary_keys,column)) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"frame_number")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        if ((error|=cbf_node_get_value(column, rows[row], &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            char * end = NULL;
+                            const double num = strtod(val,&end);
+                            key->frame_number = (end!=val) ? num : key->frame_number;
+                        }
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else {
+                        int is_in_list = 0;
+                        const cbf2nx_column_map_t * colmap;
+                        if (colmap_begin) {
+                            for (colmap = colmap_begin; !error && colmap->name; ++colmap) {
+                                if (!strcmp(colmap->name,column->name)) {
+                                    is_in_list = 1;
+                                    CBF_CALL(cbf_convert_cbf2nx(column,rows[row],h5handle,&colmap->data));
+                                }
+                            }
+                        }
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
+                    }
+                }
+                ++matched;
+            }
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
+            }
+            free((void*)rows);
+        }
+        return error;
+    }
 
-		if (0) fprintf(stderr,"diffrn_scan_frame\n");
+    static int cbf_write_cbf2nx__diffrn_data_frame
+    (cbf_handle handle,
+     cbf_h5handle h5handle,
+     cbf_cbf2nx_key_t * const key,
+     const int list)
+    {
+        int error = CBF_SUCCESS;
+        unsigned int matched = 0;
+        const char categoryName[] = "diffrn_data_frame";
 
 		/* check arguments */
 		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key || !key->frame) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+            cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
+        } else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[1];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int row = 0, nRows = 0;
+            unsigned int indent = 1+key->indent;
+            const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
 		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-		if (!key) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-
-		if (CBF_SUCCESS==error) {
-			hid_t dset = CBF_H5FAIL;
-			const hid_t h5type = H5T_IEEE_F64LE;
-			const char h5name[] = "count_time";
-			const hsize_t max[] = {H5S_UNLIMITED};
-			const hsize_t chunk[] = {1};
-			const hsize_t offset[] = {h5handle->slice};
-			const hsize_t count[] = {1};
-			hsize_t buf[] = {0};
-			const char * val = NULL;
-			double num = 0./0.;
-			_CBF_CALL(cbf_find_column(handle, "integration_time"));
-			_CBF_CALL(cbf_get_value(handle, &val));
-			num = strtod(val,0);
-			_CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dset,h5name,1,max,chunk,buf,h5type));
-			_CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
-			_CBF_CALL(cbf_H5Arequire_string(dset,"units","s"));
-			cbf_H5Dfree(dset);
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
 		}
 		/*
-		Convert 'date' column if it's in a parsable format, like "YYYY-MM-DDThh:mm:ss.s*"
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
 		*/
-		if (CBF_SUCCESS==error) {
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
 			const char * val = NULL;
-			_CBF_CALL(cbf_find_column(handle, "date"));
-			_CBF_CALL(cbf_get_value(handle, &val));
-			if (isDateTime(val)) {
-				/* Convert any sortable dates that I have */
-				int found = CBF_SUCCESS;
-				hid_t type = CBF_H5FAIL;
-				hid_t dataset = CBF_H5FAIL;
-				if (0) fprintf(stderr,"Writing 'date' items\n");
-				_CBF_CALL(cbf_H5Tcreate_string(&type,H5T_VARIABLE));
-				found =  cbf_H5Dfind2(h5handle->nxid,&dataset,"start_time",0,0,0,type);
-				if (CBF_SUCCESS==found) {
-					/* comparison with existing data, to extract earliest time */
-					/* time is in YYYY-MM-DDThh:mm:ss.s* format, should be able to use strcmp to order them */
-					/* first read the existing timestamp */
-					const hid_t currType = H5Dget_type(dataset);
-					const char * buf = 0;
-					hid_t currMemType = CBF_H5FAIL;
-					cbf_H5Tcreate_string(&currMemType,H5T_VARIABLE);
-					cbf_H5Dread2(dataset,0,0,0,&buf,currMemType);
-					cbf_H5Tfree(currMemType);
-					/* then compare them */
-					if (strcmp(val,buf) < 0) {
-						/* store the oldest timestamp */
-						_CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&val,type));
+                    if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                        cbf_debug_print(cbf_strerror(error));
+                    } else if (strcmp(val,key->frame)) {
+                        continue;
 					}
-					free((void*)buf);
-					cbf_H5Tfree(currType);
-				} else if (CBF_NOTFOUND==found) {
-					/* create the dataset & write the data */
-					_CBF_CALL(cbf_H5Dcreate(h5handle->nxid,&dataset,"start_time",0,0,0,0,type));
-					_CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&val,type));
+                }
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"array_id")) {
+                        /*
+                         Note: this item is optional iff there is a single array_id within the datablock,
+                         the code to support that must be placed in all fragments that process anything
+                         which is identified by a frame id.
+                         */
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &key->array));
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"binary_id")) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &key->binary));
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"detector_element_id")) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &key->diffrn_detector_element));
+                        /* ---------------------------------------------------------------------------------------------*/
 				} else {
-					error |= found;
-					if (1) fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(found));
+                        int is_in_list = 0;
+                        const cbf2nx_column_map_t * colmap;
+                        if (colmap_begin) {
+                            for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
+                                if (!strcmp(colmap->name,column->name)) {
+                                    is_in_list = 1;
+                                    CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
 				}
-				cbf_H5Dfree(dataset);
-				found =  cbf_H5Dfind2(h5handle->nxid,&dataset,"end_time",0,0,0,type);
-				if (CBF_SUCCESS==found) {
-					/* comparison with existing data, to extract earliest time */
-					/* time is in YYYY-MM-DDThh:mm:ss.s* format, should be able to use strcmp to order them */
-					/* first read the existing timestamp */
-					const hid_t currType = H5Dget_type(dataset);
-					const char * buf = 0;
-					hid_t currMemType = CBF_H5FAIL;
-					cbf_H5Tcreate_string(&currMemType,H5T_VARIABLE);
-					cbf_H5Dread2(dataset,0,0,0,&buf,currMemType);
-					cbf_H5Tfree(currMemType);
-					/* then compare them */
-					if (strcmp(val,buf) > 0) {
-						/* store the oldest timestamp */
-						_CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&val,type));
 					}
-					free((void*)buf);
-					cbf_H5Tfree(currType);
-				} else if (CBF_NOTFOUND==found) {
-					/* create the dataset & write the data */
-					_CBF_CALL(cbf_H5Dcreate(h5handle->nxid,&dataset,"end_time",0,0,0,0,type));
-					_CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&val,type));
+                        }
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
+                    }
+                }
+                ++matched;
+            }
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
+            }
+        }
+        return error;
+    }
+    
+    static int cbf_write_cbf2nx__diffrn_scan
+    (cbf_handle handle,
+     cbf_h5handle h5handle,
+     cbf_cbf2nx_key_t * const key,
+     const int list)
+    {
+        int error = CBF_SUCCESS;
+        unsigned int matched = 0;
+        const char categoryName[] = "diffrn_scan";
+        
+        /* check arguments */
+        if (!handle) {
+            cbf_debug_print("Invalid handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key || !key->scan) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+            cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
 				} else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[1];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int row = 0, nRows = 0;
+            unsigned int indent = 1+key->indent;
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
+                    }
+                }
+            }
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                nRows = category->child[0]->children;
+                if (1) {
+                    const int found = cbf_find_child(primary_keys+0, category, "id");
+                    if (CBF_NOTFOUND==found) {
+                        if (key->scan) {
+                            cbf_debug_print2("error: '%s.id' not found\n",categoryName);
 					error |= found;
-					if (1) fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(found));
+                        } else {
+                            cbf_debug_print2("warning: '%s.id' not found\n",categoryName);
 				}
-				cbf_H5Dfree(dataset);
-				cbf_H5Tfree(type);
-			} else {
+                        primary_keys[0] = NULL;
+                    } else if (CBF_SUCCESS!=found) {
+                        cbf_debug_print(cbf_strerror(error));
+                        error |= found;
+                    }
+                }
+            }
 				/*
-				If I can't sort dates I shouldn't write a random date:
-				require no date, it may be added later by a user.
-				Alternatively, use a flag to skip this check if using a 'template' entry group.
-				TODO: Implement this flag.
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
 				*/
-				fprintf(stderr,"%s: Warning: %s\n",__WHERE__,"skipping 'date' items");
-				error |= CBF_FORMAT;
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
+                    const char * val = NULL;
+                    if (primary_keys[0]) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (key->scan && strcmp(val,key->scan)) {
+                            continue;
 			}
 		}
-
+                }
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (
+                               !cbf_cistrcmp(column->name,"frame_id_start") ||
+                               !cbf_cistrcmp(column->name,"frame_id_end") ||
+                               !cbf_cistrcmp(column->name,"frames")
+                               )
+                    {
+                        if (list && !matched) {
+                            unsigned int _indent = indent;
+                            FILE * const out = stderr;
+                            while (_indent--) fputc('\t',out);
+                            fprintf(out,"- %s\n",column->name);
+                        }
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"date_start")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &val));
+                        CBF_CALL(cbf_H5Drequire_flstring(h5handle->nxid,0,"start_time",val));
+                        if (CBF_SUCCESS==error) key->has_start_time = 1;
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"date_end")) {
+                        const char * val = NULL;
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_node_get_value(column, row, &val));
+                        CBF_CALL(cbf_H5Drequire_flstring(h5handle->nxid,0,"end_time",val));
+                        if (CBF_SUCCESS==error) key->has_end_time = 1;
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+                    }
+                }
+                ++matched;
+            }
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
+            }
+        }
 		return error;
 	}
 
-	static int cbf_write_cbf_h5file__diffrn_data_frame
+    static int cbf_write_cbf2nx__array_data
 			(cbf_handle handle,
 			 cbf_h5handle h5handle,
-			 cbf_key_t * const key)
+     cbf_cbf2nx_key_t * const key,
+     const int list)
 	{
 		int error = CBF_SUCCESS;
-
-		if (0) fprintf(stderr,"diffrn_data_frame\n");
+        unsigned int matched = 0;
+        const char categoryName[] = "array_data";
 
 		/* check arguments */
 		if (!handle) {
-			fprintf(stderr,"%s: Invalid handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
+            cbf_debug_print("Invalid handle given\n"_);
+            error |= CBF_ARGUMENT;
+        } else if (!h5handle) {
+            cbf_debug_print("Invalid hdf5 handle given\n");
+            error |= CBF_ARGUMENT;
+        } else if (!key) {
+            cbf_debug_print("Bad key given\n");
+            error |= CBF_ARGUMENT;
+        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
+            cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
+        } else {
+            cbf_node * const category = handle->node;
+            cbf_node * primary_keys[2];
+            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
+            unsigned int row = 0, nRows = 0;
+            unsigned int indent = 1+key->indent;
+            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (key->categories) {
+                cbf_node * * it;
+                cbf_node * const * const end = key->nCat+key->categories;
+                for (it = key->categories; end != it; ++it) {
+                    if (*it) {
+                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
 		}
-		if (!h5handle) {
-			fprintf(stderr,"%s: Invalid hdf5 handle given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-		if (!key || !key->frame) {
-			fprintf(stderr,"%s: Bad key given\n",__WHERE__);
-			return CBF_ARGUMENT;
 		}
-
-		_CBF_CALL(cbf_find_category(handle, "diffrn_data_frame"));
-		_CBF_CALL(cbf_find_column(handle, "id"));
-		_CBF_CALL(cbf_find_row(handle, key->frame));
-		_CBF_CALL(cbf_count_rows(handle, &key->nFrames));
-		/* extract the other ids */
-		if (CBF_SUCCESS == error) {
-			/* The array ID may be optional iff there is only 1 ID */
-			const int fc = cbf_find_column(handle, "array_id");
-			if (CBF_SUCCESS == fc) {
-				_CBF_CALL(cbf_get_value(handle, &key->array));
-			} else if (CBF_NOTFOUND == fc) {
-				fprintf(stderr,"%s: Warning: %s\n",__WHERE__,"'diffrn_data_frame.array_id' not found");
-				if (1 != key->nFrames) {
-					error |= CBF_FORMAT;
+            /* check that I have some children, and try to find the primary key columns */
+            if (0==category->children) {
+                cbf_debug_print("category has no children");
+                error |= CBF_NOTFOUND;
+            } else {
+                int found = CBF_SUCCESS;
+                nRows = category->child[0]->children;
+                found = cbf_find_child(primary_keys+0, category, "array_id");
+                if (CBF_NOTFOUND==found && 1==nRows) {
+                    primary_keys[0] = NULL;
+                } else if (CBF_SUCCESS!=found) {
+                    cbf_debug_print(cbf_strerror(found));
+                    error |= found;
 				}
+                found = cbf_find_child(primary_keys+1, category, "binary_id");
+                if (CBF_NOTFOUND==found && 1==nRows) {
+                    primary_keys[1] = NULL;
+                } else if (CBF_SUCCESS!=found) {
+                    cbf_debug_print(cbf_strerror(found));
+                    error |= found;
+                }
+            }
+            /*
+             - Select only the rows matching a given (composite) key.
+             - For each matching row, iterate over all remaining columns.
+             */
+            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
+                cbf_node * const * column_it;
+                {
+                    /* check the values of the primary keys, continuing on to the next row if there is no match */
+                    const char * val = NULL;
+                    if (primary_keys[0]) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strcmp(val,key->array)) {
+                            continue;
+                        }
+                    }
+                    if (primary_keys[1]) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[1], row, &val))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strintcmp(val,key->binary)) {
+                            continue;
+                        }
+                    }
+                }
+                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
+                    cbf_node * const column = *column_it;
+                    int pk = 0;
+                    cbf_node * const * it;
+                    cbf_node * const * const end = npk+primary_keys;
+                    for (it = primary_keys; end != it; ++it) {
+                        pk = column==*it ? 1 : pk;
+                    }
+                    /*
+                     I now have all the information required:
+                     - if a column is used as a primary key, ignore it but record it as processed
+                     - if a column has a recognised name, perform the conversion
+                     - otherwise, record the column as not processed and carry on
+                     */
+                    if (pk) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        /* ---------------------------------------------------------------------------------------------*/
+                    } else if (!cbf_cistrcmp(column->name,"data")) {
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                        CBF_CALL(cbf_write_array_h5file(column,row,h5handle,key->data_overload,key->data_undefined,0));
+                        /* ---------------------------------------------------------------------------------------------*/
 			} else {
-				error |= fc;
-				fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(fc));
+                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
 			}
 		}
-		_CBF_CALL(cbf_find_column(handle, "binary_id"));
-		_CBF_CALL(cbf_get_value(handle, &key->binary));
-		_CBF_CALL(cbf_find_column(handle, "detector_element_id"));
-		_CBF_CALL(cbf_get_value(handle, &key->diffrn_detector_element));
-
+                ++matched;
+            }
+            if (!matched) {
+                /* TODO: in some cases this will be an error, find them */
+                cbf_debug_print("warning: No data located");
+            }
+        }
 		return error;
 	}
 
-	/** \brief Extract the data from a CBF file & put it into a NeXus file.
+    /**
+     Equivalent to <code>cbf_write_cbf2nx(handle,h5handle,0,0,0)</code>.
 
-	<p>Extracts data from <code>handle</code> and generates a NeXus file in <code>h5handle</code>. This can extract
-	metadata and image data from a single scan within a single datablock and insert it into a given index into the
-	NXentry group specified in <code>h5handle</code>. Support for multiple-scans-per-datablock and
-	multiple-datablocks-per-file will be added at a later time.</p>
-
-	<p>The flags (within <code>h5handle</code>) determine</p>
-	<ul>
-	<li>Compression algorithm: zlib/CBF/none</li>
-	<li>Plugin registration method: automatic/manual</li>
-	</ul>
+     \param handle The CBF file to extract data from.
+     \param h5handle The NeXuS file to write data to.
+     \sa cbf_write_cbf_h5file
+     \sa cbf_write_minicbf_h5file
+     \sa cbf_write_cbf2nx
+     \sa cbf_write_nx2cbf
+     \return An error code.
 	*/
 	int cbf_write_cbf_h5file
 			(cbf_handle handle,
 			 cbf_h5handle h5handle)
 	{
+        return cbf_write_cbf2nx(handle,h5handle,0,0,0);
+    }
+    
+    /**
+     Extracts data from <code>handle</code> and generates a NeXus file in <code>h5handle</code>. This will attempt
+     to extract metadata and image data from each scan (or the named scan) within each datablock (or the the named
+     datablock) and insert it into a given index into the NXentry group specified in <code>h5handle</code>.
+     
+     Each scan in the CBF file corresponds to one NXentry in NeXus, so a CBF datablock with multiple scans must be
+     converted by calling this function with the appropriate value of <code>scan</code> once for each scan in the
+     datablock.
+     
+     The flags (within <code>h5handle</code>) determine:
+     
+     - Compression algorithm: zlib/CBF/none
+     - Plugin registration method: automatic/manual
+     
+     The strings given by <code>h5handle->scan_id</code> and <code>h5handle->sample_id</code> define:
+     
+     - The presence and value of an identifier for the scan, stored in <code>/\*:NXentry/entry_identifier</code>.
+     - The presence and value of an identifier for the sample, stored in <code>/\*:NXentry/\*:NXsample/sample_identifier</code>.
+     
+     \param handle The CBF file to extract data from.
+     \param h5handle The NeXuS file to write data to.
+     \param datablock The name of the datablock to convert, or NULL to convert all datablocks.
+     \param scan The name of the scan to convert, or NULL if there is only one scan in the datablock.
+     \sa cbf_write_cbf_h5file
+     \sa cbf_write_minicbf_h5file
+     \sa cbf_write_nx2cbf
+     \return An error code.
+     */
+    int cbf_write_cbf2nx
+    (cbf_handle handle,
+     cbf_h5handle h5handle,
+     const char * const datablock,
+     const char * const scan,
+     const int list)
+    {
+        int error = CBF_SUCCESS;
+        int found = CBF_SUCCESS;
+        cbf_cbf2nx_key_t key[1];
 		cbf_node *node = NULL;
-		int error = CBF_SUCCESS;
-		cbf_key_t key[] = {_cbf_make_key()};
-
 		hid_t detector = CBF_H5FAIL, instrument = CBF_H5FAIL; /* do not free */
 
+        /* check arguments */
+        if (!handle || !h5handle) return CBF_ARGUMENT;
+        
+        /* initialise local variables */
+        *key = _cbf_make_cbf2nx_key();
+        
 		/* ensure the handle contains some basic structure */
-		_CBF_CALL(cbf_h5handle_require_instrument(h5handle,&instrument));
-		_CBF_CALL(cbf_h5handle_require_detector(h5handle,&detector,0));
+        CBF_CALL(cbf_h5handle_require_entry(h5handle,0,0));
+        CBF_CALL(cbf_h5handle_require_instrument(h5handle,&instrument,0));
+        CBF_CALL(cbf_h5handle_require_detector(h5handle,&detector,0));
 
-		if (!handle || !h5handle) return CBF_ARGUMENT;
+        if (h5handle->scan_id) {
+            CBF_CALL(cbf_H5Drequire_flstring(h5handle->nxid,0,"entry_identifier",h5handle->scan_id));
+        }
 
+        if (h5handle->sample_id) {
+            hid_t sample = CBF_H5FAIL;
+            CBF_CALL(cbf_h5handle_require_sample(h5handle,&sample,0));
+            CBF_CALL(cbf_H5Drequire_flstring(h5handle->nxsample,0,"sample_identifier",h5handle->sample_id));
+        }
+        
 		/* prepare the CBF handle */
-		_CBF_CALL(cbf_reset_refcounts(handle->dictionary));
-		_CBF_CALL(cbf_find_parent(&node, handle->node, CBF_ROOT));
-		_CBF_CALL(cbf_rewind_datablock(handle));
+        CBF_CALL(cbf_reset_refcounts(handle->dictionary));
+        CBF_CALL(cbf_find_parent(&node, handle->node, CBF_ROOT));
 
-		while (CBF_SUCCESS==error) {
-			unsigned int row_id = 0;
-			unsigned int nScans = 0;
-			const char * scan = 0;
+        /* either select the requested datablock or the first datablock */
+        if (datablock) {
+            CBF_CALL(cbf_find_datablock(handle,datablock));
+        } else {
+            CBF_CALL(cbf_rewind_datablock(handle));
+        }
+        
 			/*
-			Get the first scan for now
-			TODO: implement multi-scan datablocks
+         Process the current datablock, if valid.
+         Must have a valid datablock selected when entering this loop.
 			*/
-			_CBF_CALL(cbf_find_category(handle, "diffrn_scan"));
-			_CBF_CALL(cbf_find_column(handle, "id"));
-			_CBF_CALL(cbf_count_rows(handle,&nScans));
-			if (0 == nScans) {
-				/* if there are no scans avalable I can't convert anything */
-				error |= CBF_FORMAT;
-				fprintf(stderr,"%s: Error: %s\n",__WHERE__,"No scans found");
-			}
-			if (1 < nScans) {
-				error |= CBF_NOTIMPLEMENTED;
-				fprintf(stderr,"%s: Multiple scan support not yet implemented\n",__WHERE__);
-			}
-			_CBF_CALL(cbf_select_row(handle,0));
-			_CBF_CALL(cbf_get_value(handle, &scan));
-			{ /* if 'diffrn_scan.frames' exists then store the number of frames */
-				const int fc = cbf_find_column(handle, "frames");
-				if (CBF_SUCCESS == fc) {
-					/* it exists, so read it */
-					const char * value = NULL;
-					_CBF_CALL(cbf_get_value(handle, &value));
-					key->nFrames = strtoul(value,0,10);
-				} else if (CBF_NOTFOUND == fc) {
-					/* this is not a fatal error (or worth a warning), just carry on */
+        while (CBF_SUCCESS==error) {
+            unsigned int nCat = 0;
+            cbf_node * * categories = NULL;
+            cbf_node * scans = NULL;
+            CBF_CALL(cbf_count_categories(handle,&nCat));
+            if (!(categories=malloc(sizeof(cbf_node*)*nCat))) {
+                cbf_debug_print(cbf_strerror(CBF_ALLOC));
+                error |= CBF_ALLOC;
 				} else {
-					/* this *is* a fatal error */
-					error |= fc;
-					fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(fc));
+                memcpy(categories,handle->node->child,sizeof(cbf_node*)*nCat);
+                key->categories = categories;
+                key->nCat = nCat;
 				}
+            if (list) {
+                FILE * const stream = stdout;
+                int printed = 0;
+                fputc('\n',stream);
+                printed = fprintf(stream,"Datablock: %s\n",handle->node->name);
+                while (--printed > 0) fputc('=',stream);
+                fputc('\n',stream);
+                fputc('\n',stream);
 			}
-
 			/* get the axis transformation matrix, which is constant within a datablock */
-			_CBF_CALL(cbf_get_NX_axis_transform2(handle,key->matrix));
-
-			/* loop though all frames related to this scan */
-			while (CBF_SUCCESS == error) {
-				_cbf_reset_key(key);
-				key->nScans = nScans;
-				/* select the row to work with, extract the 'scan' value */
-				_CBF_CALL(cbf_find_category(handle, "diffrn_scan_frame"));
-				_CBF_CALL(cbf_rewind_column(handle));
-				/* Not being able to select the row is not always an error: I may have processed all rows already. */
-				if (CBF_SUCCESS != cbf_select_row(handle,row_id)) break;
-				if (CBF_SUCCESS == error) { /* allow 'diffrn_scan_frame.scan_id' to be skipped iff I have only one scan */
-					const int fc = cbf_find_column(handle, "scan_id");
-					if (CBF_SUCCESS == fc) {
-						/* The column exists, so try to read a value from the selected row. */
-						_CBF_CALL(cbf_get_value(handle, &key->scan));
-					} else if (CBF_NOTFOUND == fc) {
-						/* This might not be an error, the scan id may not be ambiguous */
-						const char msg[]= "'diffrn_scan_frame.scan_id' not found";
-						if (1 == key->nScans) {
-							/* not ambiguous - allow it, but not quietly */
-							fprintf(stderr,"%s: Warning: %s\n",__WHERE__,msg);
-						} else {
-							/* fail */
-							error |= fc;
-							fprintf(stderr,"%s: Error: %s\n",__WHERE__,msg);
+            CBF_CALL(cbf_get_NX_axis_transform2(handle,key->matrix));
+            /* Get the list of scans */
+            CBF_CALL(cbf_find_category(handle, "diffrn_scan"));
+            CBF_CALL(cbf_rewind_column(handle));
+            CBF_CALL(cbf_count_rows(handle, &key->nScans));
+            /* get the first/requested/only scan id, depending on arguments given */
+            found = cbf_find_column(handle, "id");
+            if (CBF_NOTFOUND==found) {
+                if (1 != key->nScans) {
+                    /* unindexed scan ids => error */
+                    cbf_debug_print("error: found multiple scans but no 'diffrn_scan.id'");
+                    error |= CBF_FORMAT;
 						}
+            } else if (CBF_SUCCESS!=found) {
+                cbf_debug_print(cbf_strerror(found));
+                error |= found;
 					} else {
-						error |= fc;
-						fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(fc));
+                scans = handle->node;
+                /* select the named/first scan */
+                if (scan) {
+                    CBF_CALL(cbf_find_row(handle,scan));
+                } else {
+                    CBF_CALL(cbf_rewind_row(handle));
 					}
+                /* get the scan id */
+                CBF_CALL(cbf_get_value(handle, &key->scan));
 				}
-				if (CBF_SUCCESS != error) break;
-				/* convert the row if the obtained scan value matches the expected value, always go to the next row */
-				if ((1 == key->nScans && !key->scan) || !cbf_cistrcmp(scan,key->scan)) {
-					unsigned int structure_flag = 0;
+            if (!scan && 1 != key->nScans) {
+                cbf_debug_print("error: insufficient data to select a single scan");
+                error |= CBF_ARGUMENT;
+            }
+            
 					/*
-					^ Note the kind of structure found in the image axes for this scan.
-					This will determine how it will be converted later.
+             Convert the relevant scan.
 					*/
-					_CBF_CALL(cbf_find_column(handle, "frame_id"));
-					_CBF_CALL(cbf_get_value(handle, &key->frame));
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn_scan_frame(handle, h5handle, key));
-					/* navigate to the frame data & extract some IDs */
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn_data_frame(handle, h5handle, key));
-					/* convert the metadata */
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn_detector_element(handle, h5handle, key));
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn_detector(handle, h5handle, key));
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn(handle, h5handle, key));
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn_source(handle, h5handle, key));
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn_measurement(handle, h5handle, key));
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn_radiation(handle, h5handle, key));
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn_radiation_wavelength(handle, h5handle, key));
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn_detector_axis(handle, h5handle, key));
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn_measurement_axis(handle, h5handle, key));
-					_CBF_CALL(cbf_write_cbf_h5file__diffrn_refln(handle, h5handle, key));
-					/* convert the data */
-					_CBF_CALL(cbf_write_cbf_h5file__array_intensities(handle, h5handle, key));
-					_CBF_CALL(cbf_find_category(handle, "array_data"));
 					if (CBF_SUCCESS == error) {
-						/* locate the row containing the relevant data */
-						unsigned int row = 0;
-						const cbf_node * cat = handle->node;
-						const cbf_node * data = NULL;
-						const cbf_node * arr_id = NULL;
-						const cbf_node * bin_id = NULL;
-						const int E_data = cbf_find_child((cbf_node**)(&data),cat,"data");
-						const int E_arr = cbf_find_child((cbf_node**)(&arr_id),cat,"array_id");
-						const int E_bin = cbf_find_child((cbf_node**)(&bin_id),cat,"binary_id");
-						if (CBF_SUCCESS == E_arr) {
-							/* don't need to do anything here */
-						} else if (CBF_NOTFOUND == E_arr) {
-							/* non-fatal error */
-							fprintf(stderr,"%s: Warning: %s\n",__WHERE__,"'array_data.array_id' not found");
-						} else {
-							/* fail */
-							error |= E_arr;
-							fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(E_arr));
+                unsigned int frame_row = 0;
+                unsigned int nFrames = 0;
+                cbf_node * frames_scanid = NULL;
+                if (list) {
+                    FILE * const stream = stdout;
+                    int printed = fprintf(stream,"Scan: %s\n",key->scan);
+                    while (--printed > 0) fputc('-',stream);
+                    fputc('\n',stream);
+                    fputc('\n',stream);
 						}
-						if (CBF_SUCCESS == E_bin) {
-							/* don't need to do anything here */
-						} else if (CBF_NOTFOUND == E_bin) {
-							/* non-fatal error */
-							fprintf(stderr,"%s: Warning: %s\n",__WHERE__,"'array_data.binary_id' not found");
+                /* convert the scan data */
+                CBF_CALL(cbf_write_cbf2nx__diffrn_scan(handle, h5handle, key, list));
+                /* get the list of frames */
+                CBF_CALL(cbf_find_category(handle, "diffrn_scan_frame"));
+                CBF_CALL(cbf_rewind_column(handle));
+                CBF_CALL(cbf_count_rows(handle, &nFrames));
+                /* get the scan id, if it exists */
+                found = cbf_find_column(handle, "scan_id");
+                if (CBF_NOTFOUND==found) {
+                    if (scans && 1 != key->nScans) {
+                        /* multiple unindexed frame ids => error */
+                        cbf_debug_print("error: 'diffrn_scan_frame.scan_id' not found");
+                        error |= found;
 						} else {
-							/* fail */
-							error |= E_bin;
-							fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(E_bin));
+                        cbf_debug_print("warning: 'diffrn_scan_frame.scan_id' not found");
 						}
-						if (CBF_SUCCESS == E_data) {
-							const unsigned int count = data->children;
-							if (arr_id && count!=arr_id->children) error |= CBF_FORMAT;
-							if (bin_id && count!=bin_id->children) error |= CBF_FORMAT;
-							for (row = 0; CBF_SUCCESS == error; ++row) {
-								int arr_match, bin_match;
-								if (arr_id) {
-									const char * string = NULL;
-									_CBF_CALL(_cbf_node_get_string(arr_id,row,&string));
-									arr_match = cbf_cistrcmp(key->array,string) ? 0 : 1;
+                } else if (CBF_SUCCESS!=found) {
+                    cbf_debug_print(cbf_strerror(found));
+                    error |= found;
 								} else {
-									arr_match = (1 == count && 1 == key->nFrames) ? 1 : 0;
+                    frames_scanid = handle->node;
 								}
-								if (bin_id) {
-									const char * string = NULL;
-									_CBF_CALL(_cbf_node_get_string(bin_id,row,&string));
-									bin_match = cbf_cistrcmp(key->binary,string) ? 0 : 1;
-								} else {
-									bin_match = (1 == count && 1 == key->nFrames) ? 1 : 0;
+                /* select the first frame */
+                CBF_CALL(cbf_rewind_row(handle));
+                /* loop though all frames related to this scan */
+                for (frame_row = 0; CBF_SUCCESS == error && nFrames != frame_row; ++frame_row) {
+                    if (frames_scanid) {
+                        const char * curr_scanid = NULL;
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(frames_scanid, frame_row, &curr_scanid))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else if (strcmp(curr_scanid, key->scan)) {
+                            continue;
 								}
-								if (arr_match && bin_match) break;
 							}
-							if (count != row && CBF_SUCCESS == error) {
-								/* I have some data to extract */
-								_CBF_CALL(cbf_write_array_h5file(data,row,h5handle,key->data_overload,0));
-							} else {
-								/* failure */
-								error |= CBF_FORMAT;
-								fprintf(stderr,"%s: Error: could not locate data for current frame\n",__WHERE__);
+                    _cbf_reset_cbf2nx_key(key);
+                    /* get the frame id to work with */
+                    CBF_CALL(cbf_find_category(handle, "diffrn_scan_frame"));
+                    CBF_CALL(cbf_find_column(handle, "frame_id"));
+                    CBF_CALL(cbf_select_row(handle,frame_row));
+                    CBF_CALL(cbf_get_value(handle, &key->frame));
+                    /* convert the row if the obtained scan value matches the expected value, always go to the next row */
+                    CBF_CALL(cbf_write_cbf2nx__diffrn_scan_frame(handle, h5handle, key, list));
+                    /* navigate to the frame data & extract some IDs */
+                    CBF_CALL(cbf_write_cbf2nx__diffrn_data_frame(handle, h5handle, key, list));
+                    /* convert the metadata */
+                    CBF_CALL(cbf_write_cbf2nx__diffrn_detector_element(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__diffrn_detector(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__diffrn_detector_axis(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__diffrn(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__diffrn_source(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__diffrn_measurement(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__diffrn_measurement_axis(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__diffrn_radiation(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__diffrn_radiation_wavelength(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__diffrn_refln(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__axis(handle, h5handle, key, list));
+                    if (0) {
+                        cbf_node * node = handle->node;
+                        unsigned int i;
+                        cbf_find_parent(&node,node,CBF_DATABLOCK);
+                        cbf_find_child(&node,node,"axis");
+                        cbf_find_child(&node,node,"id");
+                        for (i = 0; i != node->children; ++i) {
+                            const char * value = NULL;
+                            cbf_node_get_value(node,i,&value);
+                            fprintf(stderr,"%s\n",value);
 							}
-						} else {
-							error |= E_data;
-							fprintf(stderr,"%s: Error: cannot find 'array_data.data': %s\n",__WHERE__,cbf_strerror(E_data));
 						}
+                    CBF_CALL(cbf_write_cbf2nx__diffrn_scan_axis(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__diffrn_scan_frame_axis(handle, h5handle, key, list));
+                    /* convert the data */
+                    CBF_CALL(cbf_write_cbf2nx__array_intensities(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__array_data(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__array_structure(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__array_structure_list(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__array_structure_list_axis(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__link_h5data(handle, h5handle));
+                    ++h5handle->slice;
 					}
-					_CBF_CALL(cbf_write_cbf_h5file__array_structure(handle, h5handle, key));
-					structure_flag = cbf_check_array_structure_list_axis(handle);
-					if (CBF_SCANTYPE1 == structure_flag) {
-						_CBF_CALL(cbf_write_cbf_h5file__array_structure_list(handle, h5handle, key));
-						_CBF_CALL(cbf_write_cbf_h5file__array_structure_list_axis(handle, h5handle, key,structure_flag));
-					} else {
-						fprintf(stderr,"%s: Error: unsupported scan geometry\n",__WHERE__);
 					}
-					_CBF_CALL(cbf_write_cbf_h5file__axis_dependency_chain(handle, h5handle, key));
-					_CBF_CALL(cbf_write_cbf_h5file__link_h5data(handle, h5handle, structure_flag));
-					++h5handle->slice;
+            
+            if (CBF_SUCCESS==error && list) {
+                cbf_node * const * it;
+                cbf_node * const * const end = nCat+categories;
+                FILE * const stream = stdout;
+                for (it = categories; end != it; ++it) {
+                    if (*it) {
+                        _cbf_write_name(stream,(*it)->name,0,0,0);
 				}
-				++row_id;
 			}
-			if (CBF_SUCCESS != cbf_next_datablock(handle)) break;
+                fputc('\n',stream);
 		}
+            free((void*)categories);
+            if (datablock) {
+                /* the requested datablock has been processed - done */
+                break;
+            } else {
+                /* go on to the next datablock */
+                const int found = cbf_next_datablock(handle);
+                if (CBF_NOTFOUND != found) error |= found;
+                if (CBF_SUCCESS != found) break;
+            }
+        }
 
-		_cbf_free_key(*key);
+        _cbf_free_cbf2nx_key(*key);
 		return error;
 	}
 
-	/** \brief Extract the data from a miniCBF file & put it into a NeXus file.
-
-	<p>Extracts the miniCBF data directly - by parsing the header - and uses that plus the configuration options from
+    /**
+     Extracts the miniCBF data directly - by parsing the header - and uses that plus the configuration options from
 	<code>axisConfig</code> to generate a NeXus file in <code>h5handle</code>. This can extract metadata and image
 	data from miniCBF files containing multiple datablocks which each contain a single image and insert it into a
-	given index into the NXentry group specified in <code>h5handle</code>.</p>
+     given index into the NXentry group specified in <code>h5handle</code>.
 
-	<p>Currently, only <code>Pilatus 1.2</code> format headers are supported.</p>
+     Currently, only <code>Pilatus 1.2</code> format headers are supported.
 
-	<p>The flags determine</p>
-	<ul>
-		<li>Compression algorithm: zlib/CBF/none</li>
-		<li>Plugin registration method: automatic/manual</li>
-	</ul>
+     The flags determine:
+     
+     - Compression algorithm: zlib/CBF/none
+     - Plugin registration method: automatic/manual
+     
+     \param handle The miniCBF file to extract data from.
+     \param h5handle The NeXus file to write data to.
+     \param axisConfig The configuration settings desribing the axes and their relation to the sample and to each other.
+     \sa cbf_write_cbf_h5file
+     \sa cbf_write_minicbf_h5file
+     \sa cbf_write_nx2cbf
+     \return An error code.
 	*/
 	int cbf_write_minicbf_h5file
 		(cbf_handle handle,
@@ -11411,9 +19474,10 @@ return e; \
 		int error = CBF_SUCCESS;
 		cbf_node *node = NULL;
 		const char * saturation_value = NULL;
-
+        hid_t detector = CBF_H5FAIL, instrument = CBF_H5FAIL; /* do not free */
 #ifdef CBF_USE_ULP
 		cmp_double_param_t cmp_double_params;
+        void * cmp_params = &cmp_double_params;
 
 		/* set up the comparison parameters */
 		cmp_double_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
@@ -11421,9 +19485,10 @@ return e; \
 #ifndef NO_UINT64_TYPE
 		cmp_double_params.ulp64 = h5handle->double_ulp;
 #endif
+#else
+        void * cmp_params = 0;
 #endif
 
-		hid_t detector = CBF_H5FAIL, instrument = CBF_H5FAIL; /* do not free */
 
 		if (!handle || !h5handle) return CBF_ARGUMENT;
 
@@ -11435,18 +19500,18 @@ return e; \
 		cbf_failnez( cbf_reset_refcounts(handle->dictionary) );
 
 		/* ensure the handle contains some basic structure */
-		cbf_reportnez(cbf_h5handle_require_instrument(h5handle,&instrument), error);
+        cbf_reportnez(cbf_h5handle_require_instrument(h5handle,&instrument,0), error);
 		cbf_reportnez(cbf_h5handle_require_detector(h5handle,&detector,0), error);
 
 		/* Do the mappings from CBF to nexus */
-		cbf_onfailnez(error |= cbf_rewind_datablock(handle), fprintf(stderr,__WHERE__": CBF error: cannot find datablock.\n"));
+        cbf_onfailnez(error |= cbf_rewind_datablock(handle), cbf_debug_print("CBF error: cannot find datablock.\n"));
 		while (CBF_SUCCESS==error) {
 			/* get some useful parameters out of the metadata as it's converted */
 			double pixel_x = 0./0., pixel_y = 0./0.;
 
 			/* then search for the 'array_data' category */
 			cbf_onfailnez(cbf_find_category(handle,"array_data"),
-						  fprintf(stderr,__WHERE__": CBF error: cannot find category 'array_data'.\n"));
+                          cbf_debug_print("CBF error: cannot find category 'array_data'.\n"));
 
 			/* First: extract the metadata from the CBF, put it in nexus */
 			cbf_failnez(cbf_find_column(handle,"header_convention"));
@@ -11469,11 +19534,11 @@ return e; \
 						/* Other useful values */
 						hid_t pilatusDiagnostics = CBF_H5FAIL; /* <- non-nexus group to dump some possibly useful information into */
 						/* Get the header data */
-						if (0) fprintf(stderr,__WHERE__": %s_%s header found.\n",vendor_pilatus,version_1_2);
+                        cbf_debug_print3("%s_%s header found.\n",vendor_pilatus,version_1_2);
 						cbf_onfailnez(cbf_find_column(handle,"header_contents"),
-									  fprintf(stderr,__WHERE__": 'header_contents' not found.\n"));
+                                      cbf_debug_print("'header_contents' not found.\n"));
 						/* re-use the 'value' variable, I won't need the old value anymore */
-						cbf_onfailnez(cbf_get_value(handle,&value), fprintf(stderr,__WHERE__": 'header_contents' inaccessible.\n"));
+                        cbf_onfailnez(cbf_get_value(handle,&value), cbf_debug_print("'header_contents' inaccessible.\n"));
                         cbf_H5Drequire_flstring(detector,0,"type","pixel array");
 
 						if (0) {
@@ -11485,7 +19550,7 @@ return e; \
 								printf("token: %s\n", token);
 							} while (1);
 						}
-						if (0) fprintf(stderr,"%s: header:\n%s\n",__WHERE__,value);
+                        cbf_debug_print2("header:\n%s\n",value);
 
 						/*
 						Do the mapping, iterating over each line of the header.
@@ -11494,7 +19559,7 @@ return e; \
 						do {
 							int noMatch = 0;
 							{ /* Get the first token */
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								if (!token) break;
 								if (!strcmp("\n",token)) continue;
 							}
@@ -11504,7 +19569,7 @@ return e; \
 								/* Put the time string into the hdf5 file. */
 								hid_t type = CBF_H5FAIL;
 								hid_t dataset = CBF_H5FAIL;
-								_CBF_CALL(cbf_H5Tcreate_string(&type,H5T_VARIABLE));
+                                CBF_CALL(cbf_H5Tcreate_string(&type,H5T_VARIABLE));
 								found =  cbf_H5Dfind2(h5handle->nxid,&dataset,"start_time",0,0,0,type);
 								if (CBF_SUCCESS==found) {
 									/* comparison with existing data, to extract earliest time */
@@ -11519,17 +19584,17 @@ return e; \
 									/* then compare them */
 									if (strcmp(token,buf) < 0) {
 										/* store the oldest timestamp */
-										_CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
+                                        CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
 									}
 									free((void*)buf);
 									cbf_H5Tfree(currType);
 								} else if (CBF_NOTFOUND==found) {
 									/* create the dataset & write the data */
-									_CBF_CALL(cbf_H5Dcreate(h5handle->nxid,&dataset,"start_time",0,0,0,0,type));
-									_CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
+                                    CBF_CALL(cbf_H5Dcreate(h5handle->nxid,&dataset,"start_time",0,0,0,0,type));
+                                    CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
 								} else {
 									error |= found;
-									fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(found));
+                                    cbf_debug_print(cbf_strerror(found));
 								}
 								cbf_H5Dfree(dataset);
 								found =  cbf_H5Dfind2(h5handle->nxid,&dataset,"end_time",0,0,0,type);
@@ -11546,95 +19611,81 @@ return e; \
 									/* then compare them */
 									if (strcmp(token,buf) > 0) {
 										/* store the oldest timestamp */
-										_CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
+                                        CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
 									}
 									free((void*)buf);
 									cbf_H5Tfree(currType);
 								} else if (CBF_NOTFOUND==found) {
 									/* create the dataset & write the data */
-									_CBF_CALL(cbf_H5Dcreate(h5handle->nxid,&dataset,"end_time",0,0,0,0,type));
-									_CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
+                                    CBF_CALL(cbf_H5Dcreate(h5handle->nxid,&dataset,"end_time",0,0,0,0,type));
+                                    CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
 								} else {
 									error |= found;
-									fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(found));
+                                    cbf_debug_print(cbf_strerror(found));
 								}
 								cbf_H5Dfree(dataset);
 								cbf_H5Tfree(type);
 							} else if (!cbf_cistrcmp("Pixel_size",token)) {
 								const char errstr[] = "expected units of 'm' for 'Pixel_size'";
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								{ /* Get x pixel size */
 									hid_t h5data = CBF_H5FAIL;
 									const double num = strtod(token,0);
-#ifdef CBF_USE_ULP
-									_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(detector,&h5data,"x_pixel_size",num,cmp_double,&cmp_double_params));
-#else
-                                    _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(detector,&h5data,"x_pixel_size",num,cmp_double));
-#endif
-									_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                    CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(detector,&h5data,"x_pixel_size",num,cmp_double,cmp_params));
+                                    CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 									if (cbf_cistrcmp(token,"m")) {
 										error |= CBF_H5DIFFERENT;
-										fprintf(stderr,"%s: Error: %s\n",__WHERE__,errstr);
+                                        cbf_debug_print(errstr);
 									} else {
 										pixel_x = num;
 									}
-									_CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
+                                    CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
 									cbf_H5Dfree(h5data);
 								}
 								/* Get next useful token, just skip over useless stuff */
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								{ /* Get y pixel size */
 									hid_t h5data = CBF_H5FAIL;
 									const double num = strtod(token,0);
-#ifdef CBF_USE_ULP
-									_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(detector,&h5data,"y_pixel_size",num,cmp_double,&cmp_double_params));
-#else
-                                    _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(detector,&h5data,"y_pixel_size",num,cmp_double));
-#endif
-									_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                    CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(detector,&h5data,"y_pixel_size",num,cmp_double,cmp_params));
+                                    CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 									if (cbf_cistrcmp(token,"m")) {
 										error |= CBF_H5DIFFERENT;
-										fprintf(stderr,"%s: Error: %s\n",__WHERE__,errstr);
+                                        cbf_debug_print(errstr);
 									} else {
 										pixel_y = num;
 									}
-									_CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
+                                    CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
 									cbf_H5Dfree(h5data);
 								}
 							} else if (!cbf_cistrcmp("Silicon",token)) {
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								if (!strcmp("sensor",token)) {
-									_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                    CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 									if (!strcmp("thickness",token)) {
-										_CBF_CALL(cbf_H5Drequire_flstring(detector,0,"sensor_material","Silicon"));
-										_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                        CBF_CALL(cbf_H5Drequire_flstring(detector,0,"sensor_material","Silicon"));
+                                        CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 										{
 											hid_t h5data = CBF_H5FAIL;
 											double num = strtod(token,0);
-#ifdef CBF_USE_ULP
-											_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(detector,&h5data,"sensor_thickness",
-                                                                                  num,cmp_double,&cmp_double_params));
-#else
-                                            _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(detector,&h5data,"sensor_thickness",
-                                                                                  num,cmp_double));
-#endif
-											_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                            CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(detector,&h5data,"sensor_thickness",
+                                                                                      num,cmp_double,cmp_params));
+                                            CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 											if (cbf_cistrcmp(token,"m")) {
 												error |= CBF_H5DIFFERENT;
-												fprintf(stderr,"%s: Error: %s\n",__WHERE__,
-														"expected units of 'm' for 'Silicon sensor thickness'");
+                                                cbf_debug_print("expected units of 'm' for 'Silicon sensor thickness'");
 											}
-											_CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
+                                            CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
 											cbf_H5Dfree(h5data);
 										}
 									} else noMatch = 1;
 								} else noMatch = 1;
 							} else if (!cbf_cistrcmp("Detector_distance",token)) {
 								/* Get value & units */
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								detector_distance = strtod(token,0);
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								if (!cbf_cistrcmp(token,"m")) {
 									hid_t h5data = CBF_H5FAIL;
 									const hsize_t max[] = {H5S_UNLIMITED};
@@ -11642,40 +19693,40 @@ return e; \
 									const hsize_t off[] = {h5handle->slice};
 									const hsize_t cnt[] = {1};
 									hsize_t buf[] = {0};
-									_CBF_CALL(cbf_H5Drequire(detector,&h5data,"distance",1,max,cnk,buf,H5T_IEEE_F64LE));
-									_CBF_CALL(cbf_H5Dinsert(h5data,off,0,cnt,buf,&detector_distance,H5T_NATIVE_DOUBLE));
-									_CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
+                                    CBF_CALL(cbf_H5Drequire(detector,&h5data,"distance",1,max,cnk,buf,H5T_IEEE_F64LE));
+                                    CBF_CALL(cbf_H5Dinsert(h5data,off,0,cnt,buf,&detector_distance,H5T_NATIVE_DOUBLE));
+                                    CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
 									cbf_H5Dfree(h5data);
 								} else {
 									error |= CBF_H5DIFFERENT;
-									fprintf(stderr,"%s: Error: %s\n",__WHERE__,"expected units of 'm' for 'Detector_distance'");
+                                    cbf_debug_print("error: expected units of 'm' for 'Detector_distance'");
 								}
 							} else if (!cbf_cistrcmp("Detector",token)) {
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value));
-								_CBF_CALL(cbf_H5Drequire_flstring(detector,0,"description",token));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value));
+                                CBF_CALL(cbf_H5Drequire_flstring(detector,0,"description",token));
 							} else if (!cbf_cistrcmp("N_excluded_pixels",token)) {
 								hid_t h5location = CBF_H5FAIL;
-								_CBF_CALL(cbf_H5Grequire(detector,&h5location,"pilatus_diagnostics"));
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value));
-								_CBF_CALL(cbf_H5Drequire_flstring(h5location,0,"N_excluded_pixels",token));
+                                CBF_CALL(_cbf_NXGrequire(detector,&h5location,"pilatus_diagnostics","NXcollection"));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value));
+                                CBF_CALL(cbf_H5Drequire_flstring(h5location,0,"N_excluded_pixels",token));
 								cbf_H5Gfree(h5location);
 							} else if (!cbf_cistrcmp("Excluded_pixels",token)) {
 								hid_t h5location = CBF_H5FAIL;
-								_CBF_CALL(cbf_H5Grequire(detector,&h5location,"pilatus_diagnostics"));
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value));
-								_CBF_CALL(cbf_H5Drequire_flstring(h5location,0,"Excluded_pixels",token));
+                                CBF_CALL(_cbf_NXGrequire(detector,&h5location,"pilatus_diagnostics","NXcollection"));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value));
+                                CBF_CALL(cbf_H5Drequire_flstring(h5location,0,"Excluded_pixels",token));
 								cbf_H5Gfree(h5location);
 							} else if (!cbf_cistrcmp("Flat_field",token)) {
 								hid_t h5location = CBF_H5FAIL;
-								_CBF_CALL(cbf_H5Grequire(detector,&h5location,"pilatus_diagnostics"));
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value));
-								_CBF_CALL(cbf_H5Drequire_flstring(h5location,0,"Flat_field",token));
+                                CBF_CALL(_cbf_NXGrequire(detector,&h5location,"pilatus_diagnostics","NXcollection"));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value));
+                                CBF_CALL(cbf_H5Drequire_flstring(h5location,0,"Flat_field",token));
 								cbf_H5Gfree(h5location);
 							} else if (!cbf_cistrcmp("Trim_file",token)) {
 								hid_t h5location = CBF_H5FAIL;
-								_CBF_CALL(cbf_H5Grequire(detector,&h5location,"pilatus_diagnostics"));
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value));
-								_CBF_CALL(cbf_H5Drequire_flstring(h5location,0,"Trim_file",token));
+                                CBF_CALL(_cbf_NXGrequire(detector,&h5location,"pilatus_diagnostics","NXcollection"));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value));
+                                CBF_CALL(cbf_H5Drequire_flstring(h5location,0,"Trim_file",token));
 								cbf_H5Gfree(h5location);
 							} else if (!cbf_cistrcmp("Exposure_time",token)) {
 								hid_t h5data = CBF_H5FAIL;
@@ -11688,12 +19739,12 @@ return e; \
 								const hsize_t count[] = {1};
 								hsize_t buf[] = {0};
 								double num = 0./0.;
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								num = strtod(token,0);
-								_CBF_CALL(cbf_H5Drequire(h5location,&h5data,h5name,1,max,chunk,buf,h5type));
-								_CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
-								_CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
+                                CBF_CALL(cbf_H5Drequire(h5location,&h5data,h5name,1,max,chunk,buf,h5type));
+                                CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
 								cbf_H5Dfree(h5data);
 							} else if (!cbf_cistrcmp("Exposure_period",token)) {
 								hid_t h5data = CBF_H5FAIL;
@@ -11706,34 +19757,27 @@ return e; \
 								const hsize_t count[] = {1};
 								hsize_t buf[] = {0};
 								double num = 0./0.;
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								num = strtod(token,0);
-								_CBF_CALL(cbf_H5Drequire(h5location,&h5data,h5name,1,max,chunk,buf,h5type));
-								_CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
-								_CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
+                                CBF_CALL(cbf_H5Drequire(h5location,&h5data,h5name,1,max,chunk,buf,h5type));
+                                CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
 								cbf_H5Dfree(h5data);
 							} else if (!cbf_cistrcmp("Tau",token)) {
 								hid_t h5data = CBF_H5FAIL;
 								hid_t h5location = detector;
-								const hid_t h5type = H5T_IEEE_F64LE;
 								const char h5name[] = "dead_time";
-								const hsize_t max[] = {H5S_UNLIMITED};
-								const hsize_t chunk[] = {1};
-								const hsize_t offset[] = {h5handle->slice};
-								const hsize_t count[] = {1};
-								hsize_t buf[] = {0};
 								double num = 0./0.;
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								num = strtod(token,0);
-								_CBF_CALL(cbf_H5Drequire(h5location,&h5data,h5name,1,max,chunk,buf,h5type));
-								_CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
-								_CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
+                                CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(h5location,&h5data,h5name,num,cmp_double,cmp_params));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
 								cbf_H5Dfree(h5data);
 							} else if (!cbf_cistrcmp("Count_cutoff",token)) {
 								/* store the string for later interpretation */
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								if (CBF_SUCCESS==error) {
 									saturation_value = _cbf_strdup(token);
 								}
@@ -11741,27 +19785,22 @@ return e; \
 								double num = 0./0.;
 								hid_t h5data = CBF_H5FAIL;
 								/* Get value & units */
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								num = strtod(token,0);
-#ifdef CBF_USE_ULP
-								_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(detector,&h5data,"threshold_energy",
-                                                                      num,cmp_double,&cmp_double_params));
-#else
- 								_CBF_CALL(cbf_H5Drequire_scalar_F64LE2(detector,&h5data,"threshold_energy",
-                                                                      num,cmp_double));
-#endif
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
-								_CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
+                                CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(detector,&h5data,"threshold_energy", num,cmp_double,cmp_params));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
 								cbf_H5Dfree(h5data);
 							} else if (!cbf_cistrcmp("Gain_setting",token)) {
 								int error = CBF_SUCCESS;
 								/* [1,end): gain setting string */
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value));
-								_CBF_CALL(cbf_H5Drequire_flstring(detector,0,"gain_setting",token));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 1, &value));
+                                CBF_CALL(cbf_H5Drequire_flstring(detector,0,"gain_setting",token));
 							} else if (!cbf_cistrcmp("Wavelength",token)) {
 								/* Get value & units */
 								hid_t h5data = CBF_H5FAIL;
-								hid_t h5location = CBF_H5FAIL; /* DO NOT FREE THIS! */
+                                hid_t sample = CBF_H5FAIL;
+                                hid_t beam = CBF_H5FAIL;
 								const hid_t h5type = H5T_IEEE_F64LE;
 								const char h5name[] = "wavelength";
 								const hsize_t max[] = {H5S_UNLIMITED};
@@ -11770,13 +19809,15 @@ return e; \
 								const hsize_t count[] = {1};
 								hsize_t buf[] = {0};
 								double num = 0./0.;
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								num = strtod(token,0);
-								cbf_h5handle_require_monochromator(h5handle, &h5location);
-								_CBF_CALL(cbf_H5Drequire(h5location,&h5data,h5name,1,max,chunk,buf,h5type));
-								_CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
-								_CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
+                                CBF_CALL(cbf_h5handle_require_sample(h5handle, &sample,0));
+                                CBF_CALL(_cbf_NXGrequire(sample,&beam,"beam","NXbeam"));
+                                CBF_CALL(cbf_H5Drequire(beam,&h5data,h5name,1,max,chunk,buf,h5type));
+                                CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
+                                cbf_H5Gfree(beam);
 								cbf_H5Dfree(h5data);
 							} else if (!cbf_cistrcmp("Beam_xy",token)) {
 								/*
@@ -11784,15 +19825,15 @@ return e; \
 								I might need to read all the header to know if I can actually convert these values to NeXus data.
 								*/
 								double num_x = 0./0., num_y = 0./0.;
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								num_x = strtod(token,0);
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								num_y = strtod(token,0);
 								/* Extract the units (should be pixels, but I don't want to lose important information if it isn't) */
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								if (cbf_cistrcmp(token,"pixels")) {
 									error |= CBF_H5DIFFERENT;
-									fprintf(stderr,"%s: Error: %s\n",__WHERE__,"expected units of 'pixels' for 'Beam_xy'");
+                                    cbf_debug_print("error: expected units of 'pixels' for 'Beam_xy'");
 								} else {
 									beam_x = num_x;
 									beam_y = num_y;
@@ -11803,7 +19844,7 @@ return e; \
 								*/
 								const char * end = 0;
 								double num = 0./0.;
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								num = strtod(token,(char**)(&end));
 								if (end != token && 0.0 != num) {
 									/* I have a valid & useful flux, map it to /entry/sample/beam/flux */
@@ -11811,38 +19852,29 @@ return e; \
 									hid_t h5data = CBF_H5FAIL;
 									hid_t h5location = CBF_H5FAIL;
 									/* Ensure I have a valid sample group */
-									_CBF_CALL(cbf_h5handle_require_sample(h5handle, &sample));
+                                    CBF_CALL(cbf_h5handle_require_sample(h5handle, &sample,0));
 									/* Ensure I have a valid beam group */
-									_CBF_CALL(cbf_H5Grequire(sample,&h5location,"beam"));
-									_CBF_CALL(cbf_H5Arequire_string(h5location, "NX_class", "NXbeam"));
+                                    CBF_CALL(cbf_H5Grequire(sample,&h5location,"beam"));
+                                    CBF_CALL(cbf_H5Arequire_string(h5location, "NX_class", "NXbeam"));
 									/* Store value & units */
-#ifdef CBF_USE_ULP
-									_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(h5location, &h5data, "flux", num, cmp_double,&cmp_double_params));
-#else
-                                    _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(h5location, &h5data, "flux", num, cmp_double));
-#endif
-									_CBF_CALL(cbf_H5Arequire_string(h5data, "units", "s-1"));
+                                    CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(h5location, &h5data, "flux", num, cmp_double,cmp_params));
+                                    CBF_CALL(cbf_H5Arequire_string(h5data, "units", "s-1"));
 									/* cleanup temporary dataset */
 									cbf_H5Dfree(h5data);
 									cbf_H5Gfree(h5location);
 								}
 							} else if (!cbf_cistrcmp("Filter_transmission",token)) {
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								/* write it to the file */
 								if (cbf_H5Ivalid(instrument)) {
 									/* Get value */
 									const double num = strtod(token,0);
 									hid_t h5location = CBF_H5FAIL;
-									_CBF_CALL(cbf_H5Grequire(instrument,&h5location,"attenuator"));
-									_CBF_CALL(cbf_H5Arequire_string(h5location, "NX_class", "NXattenuator"));
+                                    CBF_CALL(cbf_H5Grequire(instrument,&h5location,"attenuator"));
+                                    CBF_CALL(cbf_H5Arequire_string(h5location, "NX_class", "NXattenuator"));
 									/* Get value & units */
-#ifdef CBF_USE_ULP
-									_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(h5location, 0, "attenuator_transmission",
-                                                                        num, cmp_double,&cmp_double_params));
-#else
-                                    _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(h5location, 0, "attenuator_transmission",
-                                                                        num, cmp_double));
-#endif
+                                    CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(h5location, 0, "attenuator_transmission",
+                                                                              num, cmp_double,cmp_params));
 									/* cleanup temporary dataset */
 									cbf_H5Gfree(h5location);
 								}
@@ -11850,12 +19882,12 @@ return e; \
 								hid_t sample = CBF_H5FAIL; /* DO NOT FREE THIS! */
 								hid_t h5location = CBF_H5FAIL;
 								/* Ensure I have a valid sample group */
-								_CBF_CALL(cbf_h5handle_require_sample(h5handle, &sample));
+                                CBF_CALL(cbf_h5handle_require_sample(h5handle, &sample,0));
 								/* Ensure I have a valid beam group */
-								_CBF_CALL(cbf_H5Grequire(sample,&h5location,"beam"));
-								_CBF_CALL(cbf_H5Arequire_string(h5location, "NX_class", "NXbeam"));
+                                CBF_CALL(cbf_H5Grequire(sample,&h5location,"beam"));
+                                CBF_CALL(cbf_H5Arequire_string(h5location, "NX_class", "NXbeam"));
 								/* Get value & units */
-								_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+                                CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								if (CBF_SUCCESS==error) {
 									/* extract value from header */
 									const double p = strtod(token, 0);
@@ -11869,21 +19901,20 @@ return e; \
 									hid_t h5data = CBF_H5FAIL;
 									hid_t h5type = H5T_IEEE_F64LE;
 									const char h5name[] = "incident_polarisation_stokes";
-									_CBF_CALL(cbf_H5Drequire(h5location,&h5data,h5name,2,max,chunk,buf,h5type));
-									_CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,polarisation,H5T_NATIVE_DOUBLE));
+                                    CBF_CALL(cbf_H5Drequire(h5location,&h5data,h5name,2,max,chunk,buf,h5type));
+                                    CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,polarisation,H5T_NATIVE_DOUBLE));
 									cbf_H5Dfree(h5data);
 								}
 								cbf_H5Gfree(h5location);
 							} else if (!cbf_cistrcmp("Alpha",token)) {
-#ifdef CBF_USE_ULP
 #define _CBF_CONVERT_AXIS(axisName) \
 do { \
 	/* Find the data for the current axis, or fail */ \
 	cbf_configItem_t * const axisItem = cbf_config_findMinicbf(axisConfig, axisName); \
-	_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value)); \
+CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value)); \
 	if (cbf_config_end(axisConfig) == axisItem) { \
 		error |= CBF_NOTFOUND; \
-		fprintf(stderr,"Config settings for axis '%s' could not be found: " \
+cbf_debug_print2("Config settings for axis '%s' could not be found: " \
 				"this will eventually be a fatal error\n", axisName); \
 							} else if (axisItem->convert) { \
 		hid_t h5data = CBF_H5FAIL; \
@@ -11895,12 +19926,12 @@ do { \
 		const hsize_t count[] = {1}; \
 		hsize_t buf[] = {0}; \
 		const double num = strtod(token,0); \
-		_CBF_CALL(cbf_h5handle_require_sample(h5handle, &sample)); \
-		_CBF_CALL(cbf_H5Grequire(sample,&axes,"pose")); \
-		_CBF_CALL(cbf_H5Arequire_string(axes,"NX_class","NXcollection")); \
-		_CBF_CALL(cbf_H5Drequire(axes,&h5data,axisItem->nexus,1,max,chunk,buf,H5T_IEEE_F64LE)); \
-		_CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE)); \
-		_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value)); \
+CBF_CALL(cbf_h5handle_require_sample(h5handle, &sample,0)); \
+CBF_CALL(cbf_H5Grequire(sample,&axes,"pose")); \
+CBF_CALL(cbf_H5Arequire_string(axes,"NX_class","NXcollection")); \
+CBF_CALL(cbf_H5Drequire(axes,&h5data,axisItem->nexus,1,max,chunk,buf,H5T_IEEE_F64LE)); \
+CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE)); \
+CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value)); \
 		if (axisItem->depends_on) { \
 			const char dot[] = "."; \
 			if (strcmp(axisItem->depends_on,dot)) { \
@@ -11916,72 +19947,18 @@ do { \
 					0 \
 							}; \
 				const char * const axis_path = _cbf_strjoin(path_parts,'/'); \
-				_CBF_CALL(_cbf_pilatusAxis2nexusAxisAttrs(h5data,token,axis_path,axisItem,cmp_double ,&cmp_double_params )); \
+CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,axis_path,axisItem,cmp_double,cmp_params )); \
 				free((void*)axis_path); \
 							} else { \
-				_CBF_CALL(_cbf_pilatusAxis2nexusAxisAttrs(h5data,token,dot,axisItem,cmp_double,&cmp_double_params)); \
+CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,dot,axisItem,cmp_double,cmp_params)); \
 							} \
 							} else { \
-			_CBF_CALL(_cbf_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,&cmp_double_params)); \
+CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp_params)); \
 							} \
 		cbf_H5Dfree(h5data); \
 		cbf_H5Gfree(axes); \
 							} \
 } while (0)
-#else
-#define _CBF_CONVERT_AXIS(axisName) \
-do { \
-	/* Find the data for the current axis, or fail */ \
-	cbf_configItem_t * const axisItem = cbf_config_findMinicbf(axisConfig, axisName); \
-	_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value)); \
-	if (cbf_config_end(axisConfig) == axisItem) { \
-		error |= CBF_NOTFOUND; \
-		fprintf(stderr,"Config settings for axis '%s' could not be found: " \
-				"this will eventually be a fatal error\n", axisName); \
-							} else if (axisItem->convert) { \
-		hid_t h5data = CBF_H5FAIL; \
-		hid_t sample = CBF_H5FAIL; \
-		hid_t axes = CBF_H5FAIL; \
-		const hsize_t max[] = {H5S_UNLIMITED}; \
-		const hsize_t chunk[] = {1}; \
-		const hsize_t offset[] = {h5handle->slice}; \
-		const hsize_t count[] = {1}; \
-		hsize_t buf[] = {0}; \
-		const double num = strtod(token,0); \
-		_CBF_CALL(cbf_h5handle_require_sample(h5handle, &sample)); \
-		_CBF_CALL(cbf_H5Grequire(sample,&axes,"pose")); \
-		_CBF_CALL(cbf_H5Arequire_string(axes,"NX_class","NXcollection")); \
-		_CBF_CALL(cbf_H5Drequire(axes,&h5data,axisItem->nexus,1,max,chunk,buf,H5T_IEEE_F64LE)); \
-		_CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE)); \
-		_CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value)); \
-		if (axisItem->depends_on) { \
-			const char dot[] = "."; \
-			if (strcmp(axisItem->depends_on,dot)) { \
-				const char path_empty[] = ""; \
-				const char path_sample[] = "sample"; \
-				const char axis_group_name[] = "pose"; \
-				const char * path_parts[] = { \
-					path_empty, \
-					h5handle->nxid_name, \
-					path_sample, \
-					axis_group_name, \
-					axisItem->depends_on, \
-					0 \
-							}; \
-				const char * const axis_path = _cbf_strjoin(path_parts,'/'); \
-				_CBF_CALL(_cbf_pilatusAxis2nexusAxisAttrs(h5data,token,axis_path,axisItem,cmp_double )); \
-				free((void*)axis_path); \
-							} else { \
-				_CBF_CALL(_cbf_pilatusAxis2nexusAxisAttrs(h5data,token,dot,axisItem,cmp_double)); \
-							} \
-							} else { \
-			_CBF_CALL(_cbf_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double)); \
-							} \
-		cbf_H5Dfree(h5data); \
-		cbf_H5Gfree(axes); \
-							} \
-} while (0)
-#endif
 								_CBF_CONVERT_AXIS("Alpha");
 							} else if (!cbf_cistrcmp("Kappa",token)) {
 								_CBF_CONVERT_AXIS("Kappa");
@@ -11999,12 +19976,12 @@ do { \
 							} else if (!cbf_cistrcmp("Angle_increment",token)) {
 							} else noMatch = 1;
 							if (noMatch) {
-								fprintf(stderr,"%s: error: Could not match entry in pilatus header: '%s'\n",__WHERE__,token);
+                                cbf_debug_print2("warning: Could not match entry in pilatus header: '%s'\n",token);
 							}
 							/* Done matching the entry from this line, go on to the next one */
 							while (token && strcmp("\n",token)) {
 								error = _cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value);
-								if (CBF_SUCCESS != error) fprintf(stderr,"%s: error: %s\n",__WHERE__,cbf_strerror(error));
+                                cbf_debug_print(cbf_strerror(error));
 							}
 						} while (1);
 						free(token);
@@ -12028,37 +20005,27 @@ do { \
 									0
 								};
 								const char * const axis_path = _cbf_strjoin(path_parts,'/');
-								_CBF_CALL(cbf_h5handle_require_sample(h5handle, &h5location));
-								_CBF_CALL(cbf_H5Drequire_flstring(h5location,0,"depends_on",axis_path));
+                                CBF_CALL(cbf_h5handle_require_sample(h5handle, &h5location,0));
+                                CBF_CALL(cbf_H5Drequire_flstring(h5location,0,"depends_on",axis_path));
 								free((void*)axis_path);
 							} else {
-								fprintf(stderr,"Config settings for 'Sample' could not be found: "
+                                cbf_debug_print("Config settings for 'Sample' could not be found: "
 										"this will eventually be a fatal error\n");
 							}
-							if (0) fprintf(stderr, __WHERE__ ": 'sample/depends_on' written\n");
+                            cbf_debug_print("'sample/depends_on' written\n");
 						}
 						{ /* write beam_center_x */
 							hid_t h5data = CBF_H5FAIL;
-#ifdef CBF_USE_ULP
-							_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(detector, &h5data, "beam_center_x",
-                                                                  beam_x*pixel_x, cmp_double, &cmp_double_params));
-#else
-							_CBF_CALL(cbf_H5Drequire_scalar_F64LE2(detector, &h5data, "beam_center_x",
-                                                                  beam_x*pixel_x, cmp_double));
-#endif
-							_CBF_CALL(cbf_H5Arequire_string(h5data,"units","m"));
+                            CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(detector, &h5data, "beam_center_x",
+                                                                      beam_x*pixel_x, cmp_double, cmp_params));
+                            CBF_CALL(cbf_H5Arequire_string(h5data,"units","m"));
 							cbf_H5Dfree(h5data);
 						}
 						{ /* write beam_center_y */
 							hid_t h5data = CBF_H5FAIL;
-#ifdef CBF_USE_ULP
-							_CBF_CALL(cbf_H5Drequire_scalar_F64LE2_ULP(detector, &h5data, "beam_center_y",
-                                                            beam_y*pixel_y, cmp_double, &cmp_double_params));
-#else
-                            _CBF_CALL(cbf_H5Drequire_scalar_F64LE2(detector, &h5data, "beam_center_y",
-                                                                  beam_y*pixel_y, cmp_double));
-#endif
-							_CBF_CALL(cbf_H5Arequire_string(h5data,"units","m"));
+                            CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(detector, &h5data, "beam_center_y",
+                                                                      beam_y*pixel_y, cmp_double, cmp_params));
+                            CBF_CALL(cbf_H5Arequire_string(h5data,"units","m"));
 							cbf_H5Dfree(h5data);
 						}
 						{
@@ -12086,34 +20053,27 @@ do { \
 							const char path_empty[] = "";
 							const char path_inst[] = "instrument";
 							const char axis_group_name[] = "pose";
-							_CBF_CALL(cbf_H5Grequire(h5location,&axis_group,axis_group_name));
-							_CBF_CALL(cbf_H5Arequire_string(axis_group,"NX_class","NXcollection"));
+                            CBF_CALL(cbf_H5Grequire(h5location,&axis_group,axis_group_name));
+                            CBF_CALL(cbf_H5Arequire_string(axis_group,"NX_class","NXcollection"));
 							{ /* Translation-specific */
 								hid_t h5data = CBF_H5FAIL;
 								hid_t h5type = H5T_IEEE_F64LE;
 								const double num = detector_distance;
 								const double vector[] = {0.0, 0.0, 1.0};
 								const double offset[] = {-beam_x*pixel_x, -beam_y*pixel_y, 0.0};
-								_CBF_CALL(cbf_H5Drequire(axis_group,&h5data,axis_translation,1,max,chunk,buf,h5type));
-								_CBF_CALL(cbf_H5Dinsert(h5data,h5offset,0,h5count,buf,&num,H5T_NATIVE_DOUBLE));
-								_CBF_CALL(cbf_H5Arequire_string(h5data,"units","m"));
-								_CBF_CALL(cbf_H5Arequire_string(h5data,"offset_units","m"));
-								_CBF_CALL(cbf_H5Arequire_string(h5data,"transformation_type","translation"));
-								_CBF_CALL(cbf_H5Arequire_string(h5data,"depends_on","."));
-#ifdef CBF_USE_ULP
-								_CBF_CALL(cbf_H5Arequire_cmp2_ULP(h5data,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,vector,
-														vbuf,cmp_double,&cmp_double_params));
-								_CBF_CALL(cbf_H5Arequire_cmp2_ULP(h5data,"offset",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,offset,
-														vbuf,cmp_double,&cmp_double_params));
-#else
-								_CBF_CALL(cbf_H5Arequire_cmp2(h5data,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,vector,
-														vbuf,cmp_double));
-								_CBF_CALL(cbf_H5Arequire_cmp2(h5data,"offset",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,offset,
-														vbuf,cmp_double));
-#endif
+                                CBF_CALL(cbf_H5Drequire(axis_group,&h5data,axis_translation,1,max,chunk,buf,h5type));
+                                CBF_CALL(cbf_H5Dinsert(h5data,h5offset,0,h5count,buf,&num,H5T_NATIVE_DOUBLE));
+                                CBF_CALL(cbf_H5Arequire_string(h5data,"units","m"));
+                                CBF_CALL(cbf_H5Arequire_string(h5data,"offset_units","m"));
+                                CBF_CALL(cbf_H5Arequire_string(h5data,"transformation_type","translation"));
+                                CBF_CALL(cbf_H5Arequire_string(h5data,"depends_on","."));
+                                CBF_CALL(CBFM_H5Arequire_cmp2(h5data,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,vector,
+                                                                 vbuf,cmp_double,cmp_params));
+                                CBF_CALL(CBFM_H5Arequire_cmp2(h5data,"offset",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,offset,
+                                                                 vbuf,cmp_double,cmp_params));
 								/* cleanup temporary datasets */
 								cbf_H5Dfree(h5data);
-								if (0) fprintf(stderr, __WHERE__ ": 'detector/%s' written\n",axis_translation);
+                                cbf_debug_print2("'detector/%s' written\n",axis_translation);
 							}
 							{ /* Rotation-specific */
 								hid_t h5data = CBF_H5FAIL;
@@ -12130,22 +20090,17 @@ do { \
 									0
 								};
 								const char * const axis_path = _cbf_strjoin(path_parts,'/');
-								_CBF_CALL(cbf_H5Drequire(axis_group,&h5data,axis_rotation,1,max,chunk,buf,h5type));
-								_CBF_CALL(cbf_H5Dinsert(h5data,h5offset,0,h5count,buf,&num,H5T_NATIVE_DOUBLE));
-								_CBF_CALL(cbf_H5Arequire_string(h5data,"units","deg"));
-								_CBF_CALL(cbf_H5Arequire_string(h5data,"transformation_type","rotation"));
-								_CBF_CALL(cbf_H5Arequire_string(h5data,"depends_on",axis_path));
-#ifdef CBF_USE_ULP
-								_CBF_CALL(cbf_H5Arequire_cmp2_ULP(h5data,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
-														vector, vbuf,cmp_double,&cmp_double_params));
-#else
-								_CBF_CALL(cbf_H5Arequire_cmp2(h5data,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
-														vector, vbuf,cmp_double));
-#endif
+                                CBF_CALL(cbf_H5Drequire(axis_group,&h5data,axis_rotation,1,max,chunk,buf,h5type));
+                                CBF_CALL(cbf_H5Dinsert(h5data,h5offset,0,h5count,buf,&num,H5T_NATIVE_DOUBLE));
+                                CBF_CALL(cbf_H5Arequire_string(h5data,"units","deg"));
+                                CBF_CALL(cbf_H5Arequire_string(h5data,"transformation_type","rotation"));
+                                CBF_CALL(cbf_H5Arequire_string(h5data,"depends_on",axis_path));
+                                CBF_CALL(CBFM_H5Arequire_cmp2(h5data,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
+                                                                 vector, vbuf,cmp_double,cmp_params));
 								/* cleanup temporary datasets */
 								cbf_H5Dfree(h5data);
 								free((void*)axis_path);
-								if (0) fprintf(stderr, __WHERE__ ": 'detector/%s' written\n",axis_rotation);
+                                cbf_debug_print2("'detector/%s' written\n",axis_rotation);
 							}
 							cbf_H5Gfree(axis_group);
 							{ /* tie everything to the detector */
@@ -12159,7 +20114,7 @@ do { \
 									0
 								};
 								const char * const axis_path = _cbf_strjoin(path_parts,'/');
-								_CBF_CALL(cbf_H5Drequire_flstring(detector,0,"depends_on",axis_path));
+                                CBF_CALL(cbf_H5Drequire_flstring(detector,0,"depends_on",axis_path));
 								free((void*)axis_path);
 							}
 						}
@@ -12168,149 +20123,129 @@ do { \
 				}
 			}
 			/* Second: extract the raw data from the CBF, put it in nexus */
-			cbf_onfailnez(cbf_find_column(handle,"data"), fprintf(stderr,__WHERE__": CBF error: cannot find column `data'.\n"));
+            cbf_onfailnez(cbf_find_column(handle,"data"), cbf_debug_print("error: cannot find column `data'.\n"));
 			/* get the first row, TODO: convert every row */
-			cbf_onfailnez(cbf_select_row(handle,0), fprintf(stderr,__WHERE__": CBF error: cannot find row 0.\n"));
+            cbf_onfailnez(cbf_select_row(handle,0), cbf_debug_print("error: cannot find row 0.\n"));
 			if(1) {
 				hsize_t h5dim[] = {0, 0, 0};
 				/* convert the data */
-				_CBF_CALL(cbf_write_array_h5file(handle->node, handle->row, h5handle, saturation_value, h5dim));
+                CBF_CALL(cbf_write_array_h5file(handle->node, handle->row, h5handle, saturation_value, 0, h5dim));
 				/* ensure I have an axis for each index of the image - mapping pixel indices to spatial coordinates */
 				if (1) {
 					hid_t h5axis = CBF_H5FAIL;
-					const char h5name[] = "slow_pixel_direction";
+                    const char h5name[] = "x_pixel_offset";
 					hsize_t buf[] = {0};
-					const int found =  cbf_H5Dfind2(detector,&h5axis,h5name,1,h5dim+1,buf,H5T_IEEE_F64LE);
+                    const int found =  cbf_H5Dfind2(detector,&h5axis,h5name,1,h5dim+2,buf,H5T_IEEE_F64LE);
 					const hsize_t offset[] = {0};
-					const hsize_t * count = h5dim+1;
+                    const hsize_t * count = h5dim+2;
 					double * const expected_data = malloc((*count) * sizeof(double));
 					{
 						hsize_t n = 0;
-						for (n=0; n!=h5dim[1]; ++n)
+                        for (n=0; n!=h5dim[2]; ++n)
 							expected_data[n] = (double)(n)*pixel_x;
 					}
 					if (CBF_SUCCESS==found) {
 						double * const actual_data = malloc((*count) * sizeof(double));
-						_CBF_CALL(cbf_H5Dread2(h5axis,offset,0,count,actual_data,H5T_NATIVE_DOUBLE));
-						if (cmp_double(expected_data, actual_data, *count
-#ifdef CBF_USE_ULP
-                                       , &cmp_double_params
-#endif
-                                       )) {
-							fprintf(stderr,__WHERE__": error: data doesn't match in %s, x pixel size might not match\n",h5name);
+                        CBF_CALL(cbf_H5Dread2(h5axis,offset,0,count,actual_data,H5T_NATIVE_DOUBLE));
+                        if (CBFM_cmp_double(expected_data, actual_data, *count, cmp_params)) {
+                            cbf_debug_print2("error: data doesn't match in %s, x pixel size might not match\n",h5name);
 							error |= CBF_H5DIFFERENT;
 						}
 						free((void*)(actual_data));
 					} else if (CBF_NOTFOUND==found) {
-						_CBF_CALL(cbf_H5Dcreate(detector,&h5axis,h5name,1,h5dim+1,h5dim+1,0,H5T_IEEE_F64LE));
-						_CBF_CALL(cbf_H5Dwrite2(h5axis,offset,0,count,expected_data,H5T_NATIVE_DOUBLE));
+                        CBF_CALL(cbf_H5Dcreate(detector,&h5axis,h5name,1,h5dim+2,h5dim+2,0,H5T_IEEE_F64LE));
+                        CBF_CALL(cbf_H5Dwrite2(h5axis,offset,0,count,expected_data,H5T_NATIVE_DOUBLE));
 					} else {
 						error |= found;
-						fprintf(stderr,"%s: Error locating axis: %s\n",__WHERE__,cbf_strerror(found));
+                        cbf_debug_print2("Error locating axis: %s\n",cbf_strerror(found));
 					}
 					free((void*)(expected_data));
-					_CBF_CALL(cbf_H5Arequire_string(h5axis,"units","m"));
+                    CBF_CALL(cbf_H5Arequire_string(h5axis,"units","m"));
 					{
 						const double vector[] = {1.0, 0.0, 0.0};
 						const hsize_t vdims[] = {3};
 						double vbuf[3] = {0./0.};
-#ifdef CBF_USE_ULP
-						_CBF_CALL(cbf_H5Arequire_cmp2_ULP(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
-								  vector,vbuf,cmp_double,&cmp_double_params));
-#else
-						_CBF_CALL(cbf_H5Arequire_cmp2(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
-								  vector,vbuf,cmp_double));
-#endif
+                        CBF_CALL(CBFM_H5Arequire_cmp2(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
+                                                         vector,vbuf,cmp_double,cmp_params));
 					}
-					_CBF_CALL(cbf_H5Arequire_string(h5axis,"transformation_type","translation"));
+                    CBF_CALL(cbf_H5Arequire_string(h5axis,"transformation_type","translation"));
 					{
 						const char path_empty[] = "";
-						const char path_inst[] = "instrument";
 						const char path_pose[] = "pose";
 						const char path_axis[] = "rotation";
 						const char * const path_parts[] = {
 							path_empty,
 							h5handle->nxid_name,
-							path_inst,
+                            h5handle->nxinstrument_name,
 							h5handle->nxdetector_name,
 							path_pose,
 							path_axis,
 							0
 						};
 						const char * axis_path = _cbf_strjoin(path_parts,'/');
-						_CBF_CALL(cbf_H5Arequire_string(h5axis,"depends_on",axis_path));
+                        CBF_CALL(cbf_H5Arequire_string(h5axis,"depends_on",axis_path));
 						free((void*)axis_path);
 					}
 					cbf_H5Dfree(h5axis);
 				}
 				if (1) {
 					hid_t h5axis = CBF_H5FAIL;
-					const char h5name[] = "fast_pixel_direction";
+                    const char h5name[] = "y_pixel_offset";
 					hsize_t buf[] = {0};
-					const int found =  cbf_H5Dfind2(detector,&h5axis,h5name,1,h5dim+2,buf,H5T_IEEE_F64LE);
+                    const int found =  cbf_H5Dfind2(detector,&h5axis,h5name,1,h5dim+1,buf,H5T_IEEE_F64LE);
 					const hsize_t offset[] = {0};
-					const hsize_t * count = h5dim+2;
+                    const hsize_t * count = h5dim+1;
 					double * const expected_data = malloc((*count) * sizeof(double));
 					{
 						hsize_t n = 0;
-						for (n=0; n!=h5dim[2]; ++n)
+                        for (n=0; n!=h5dim[1]; ++n)
 							expected_data[n] = (double)(n)*pixel_y;
 					}
 					if (CBF_SUCCESS==found) {
 						double * const actual_data = malloc((*count) * sizeof(double));
-						_CBF_CALL(cbf_H5Dread2(h5axis,offset,0,count,actual_data,H5T_NATIVE_DOUBLE));
-						if (cmp_double(expected_data, actual_data, *count
-#ifdef CBF_USE_ULP
-                                       , &cmp_double_params
-#endif
-                                       )) {
-								fprintf(stderr,__WHERE__": error: data doesn't match in %s, y pixel size might not match\n",h5name);
+                        CBF_CALL(cbf_H5Dread2(h5axis,offset,0,count,actual_data,H5T_NATIVE_DOUBLE));
+                        if (CBFM_cmp_double(expected_data, actual_data, *count, cmp_params)) {
+                            cbf_debug_print2("error: data doesn't match in %s, y pixel size might not match\n",h5name);
 							error |= CBF_H5DIFFERENT;
 						}
 						free((void*)(actual_data));
 					} else if (CBF_NOTFOUND==found) {
-						_CBF_CALL(cbf_H5Dcreate(detector,&h5axis,h5name,1,h5dim+2,h5dim+2,0,H5T_IEEE_F64LE));
-						_CBF_CALL(cbf_H5Dwrite2(h5axis,offset,0,count,expected_data,H5T_NATIVE_DOUBLE));
+                        CBF_CALL(cbf_H5Dcreate(detector,&h5axis,h5name,1,h5dim+1,h5dim+1,0,H5T_IEEE_F64LE));
+                        CBF_CALL(cbf_H5Dwrite2(h5axis,offset,0,count,expected_data,H5T_NATIVE_DOUBLE));
 					} else {
 						error |= found;
-						fprintf(stderr,"%s: Error locating axis: %s\n",__WHERE__,cbf_strerror(found));
+                        cbf_debug_print2("Error locating axis: %s\n",cbf_strerror(found));
 					}
 					free((void*)(expected_data));
-					_CBF_CALL(cbf_H5Arequire_string(h5axis,"units","m"));
+                    CBF_CALL(cbf_H5Arequire_string(h5axis,"units","m"));
 					{
 						const double vector[] = {0.0, 1.0, 0.0};
 						const hsize_t vdims[] = {3};
 						double vbuf[3] = {0./0.};
-#ifdef CBF_USE_ULP
-						_CBF_CALL(cbf_H5Arequire_cmp2_ULP(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
-								  vector,vbuf,cmp_double,&cmp_double_params));
-#else
-						_CBF_CALL(cbf_H5Arequire_cmp2(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
-								  vector,vbuf,cmp_double));
-#endif
+                        CBF_CALL(CBFM_H5Arequire_cmp2(h5axis,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
+                                                         vector,vbuf,cmp_double,cmp_params));
 					}
-					_CBF_CALL(cbf_H5Arequire_string(h5axis,"transformation_type","translation"));
+                    CBF_CALL(cbf_H5Arequire_string(h5axis,"transformation_type","translation"));
 					{
 						const char path_empty[] = "";
-						const char path_inst[] = "instrument";
 						const char path_pose[] = "pose";
 						const char path_axis[] = "rotation";
 						const char * const path_parts[] = {
 							path_empty,
 							h5handle->nxid_name,
-							path_inst,
+                            h5handle->nxinstrument_name,
 							h5handle->nxdetector_name,
 							path_pose,
 							path_axis,
 							0
 						};
 						const char * axis_path = _cbf_strjoin(path_parts,'/');
-						_CBF_CALL(cbf_H5Arequire_string(h5axis,"depends_on",axis_path));
+                        CBF_CALL(cbf_H5Arequire_string(h5axis,"depends_on",axis_path));
 						free((void*)axis_path);
 					}
 					cbf_H5Dfree(h5axis);
 				}
-				_CBF_CALL(cbf_write_cbf_h5file__link_h5data(handle, h5handle, CBF_SCANTYPE1));
+                CBF_CALL(cbf_write_cbf2nx__link_h5data(handle, h5handle));
 			}
 			free((void*)saturation_value);
 			++h5handle->slice;
@@ -12468,7 +20403,7 @@ do { \
 
         H5T_order_t type_order;
 
-        H5T_sign_t type_sign;
+        H5T_sign_t type_sign = H5T_SGN_ERROR;
 
         errorcode = 0;
 
@@ -12629,9 +20564,9 @@ do { \
 
                     char * ivalue;
 
-                    long xdata;
+                    long xdata = 0;
 
-                    unsigned long uxdata;
+                    unsigned long uxdata = 0;
 
                     int sign;
 
@@ -13069,9 +21004,9 @@ do { \
 
                     char * ivalue;
 
-                    long xdata;
+                    long xdata = 0;
 
-                    unsigned long uxdata;
+                    unsigned long uxdata = 0;
 
                     int sign;
 
@@ -13546,7 +21481,6 @@ do { \
         return CBF_SUCCESS;
     }
 
-
     /* Callback routine for objects in a group */
 
 
@@ -13554,7 +21488,7 @@ do { \
                             const H5L_info_t *info,
                             void *op_data){
 
-        int cbfrow;
+        int cbfrow = -1;
 
         int errorcode;
 
@@ -13606,7 +21540,7 @@ do { \
 
         unsigned int compression;
 
-        int binary_id, bits, sign, type, checked_digest, realarray;
+        int binary_id, bits, sign, type, checked_digest, realarray = 0;
 
         const char *byteorder;
 

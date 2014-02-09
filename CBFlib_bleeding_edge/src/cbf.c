@@ -8713,6 +8713,7 @@ int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablocknam
         CBF_STRERROR_CHECK_ERROR(CBF_NOCOMPRESSION,"CBF_NOCOMPRESSION");
         CBF_STRERROR_CHECK_ERROR(CBF_H5ERROR,"Problem using HDF5 library function(s)");
         CBF_STRERROR_CHECK_ERROR(CBF_H5DIFFERENT,"Value differs from that in HDF5 file");
+		CBF_STRERROR_CHECK_ERROR(CBF_SIZE,"Invalid size");
         return "Unknown error";
 #undef CBF_STRERROR_CHECK_ERROR
     }

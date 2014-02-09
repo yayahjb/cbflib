@@ -368,6 +368,7 @@ extern "C" {
 #define CBF_NOCOMPRESSION    0x00040000  /* 262144 */    
 #define CBF_H5ERROR          0x00080000  /* 524288 */
 #define CBF_H5DIFFERENT      0x00100000  /* 1048576 */
+#define CBF_SIZE             0x00200000  /* 2097152 */
     
   /* HDF5 CBF Filter number */
 
@@ -548,6 +549,8 @@ extern "C" {
 /* debug print macros, enabled if CBFDEBUG defined */
 
 #ifdef CBFDEBUG
+#define CBFM_PROLOG do
+#define CBFM_EPILOG while(0)
 #define cbf_debug_print(ARG) \
   {fprintf(stderr,__FILE__":%d: CBFlib debug: %s\n", __LINE__, ARG);}
 #define cbf_debug_print2(FMT,ARG) \
@@ -559,6 +562,8 @@ extern "C" {
 #define cbf_debug_print5(FMT,ARG0,ARG1,ARG2,ARG3) \
   {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1,ARG2,ARG3);}
 #else
+#define CBFM_PROLOG
+#define CBFM_EPILOG
 #define cbf_debug_print(ARG)
 #define cbf_debug_print2(FMT,ARG)
 #define cbf_debug_print3(FMT,ARG0,ARG1)
