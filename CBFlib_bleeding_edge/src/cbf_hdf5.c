@@ -3901,30 +3901,30 @@ cbf_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp)
         char * end = 0;
 
 #define GET_TOKEN() \
-do { \
+CBFM_PROLOG { \
   const int e = cbf_configParse_scan(buf, n, ln, pre, configFile); \
     if (cbf_configError_success!=e) { \
 	fprintf(logFile,"\nError: %s\n",cbf_config_strerror(e)); \
 return e; \
 } \
-} while (0);
+} CBFM_EPILOG
 
 #define REQUIRE_TOKEN(TKN) \
-do { \
+CBFM_PROLOG { \
 const char * const _tkn = (TKN); \
 if (strcmp(_tkn,*buf)) { \
 fprintf(logFile,"Config parsing error on line %lu: expected " #TKN ", got '%s'\n",*ln,*buf); \
     return cbf_configError_unexpectedInput; \
 } \
-} while (0);
+} CBFM_EPILOG
 
 #define REQUIRE_NOT_EOL() \
-do{ \
+CBFM_PROLOG { \
 if (!strcmp("\n",*buf)) { \
 fprintf(logFile,"Config parsing error on line %lu: unexpected newline\n",*ln); \
     return cbf_configError_unexpectedInput; \
 } \
-} while (0);
+} CBFM_EPILOG
 
         /* literal '['. */
         GET_TOKEN();
@@ -3988,55 +3988,55 @@ fprintf(logFile,"Config parsing error on line %lu: unexpected newline\n",*ln); \
         char pre = '\0';
 
 #define GET_TOKEN() \
-do { \
+CBFM_PROLOG { \
 	const int e = cbf_configParse_scan(&tkn, &n, &ln, &pre, configFile); \
 	if (cbf_configError_success!=e) { \
 		fprintf(logFile,"\nError: %s\n",cbf_config_strerror(e)); \
 return e; \
 } \
-} while (0)
+} CBFM_EPILOG
 
 #define REQUIRE_TOKEN(TKN) \
-do { \
+CBFM_PROLOG { \
 const char * const _tkn = (TKN); \
 if (strcmp(_tkn,tkn)) { \
 fprintf(logFile,"Config parsing error on line %lu: expected " #TKN ", got '%s'\n",ln,tkn); \
 return cbf_configError_unexpectedInput; \
 } \
-} while (0)
+} CBFM_EPILOG
 
 #define REQUIRE_EOL() \
-do{ \
+CBFM_PROLOG { \
 if (strcmp("\n",tkn)) { \
 fprintf(logFile,"Config parsing error on line %lu: expected '\\n', got '%s'\n",ln,tkn); \
 return cbf_configError_unexpectedInput; \
 } \
-} while (0)
+} CBFM_EPILOG
 
 #define REQUIRE_NOT_EOL() \
-do{ \
+CBFM_PROLOG { \
 if (!strcmp("\n",tkn)) { \
 fprintf(logFile,"Config parsing error on line %lu: unexpected newline\n",ln); \
 return cbf_configError_unexpectedInput; \
 } \
-} while (0)
+} CBFM_EPILOG
 
 #define REQUIRE_NEXUS_AXIS() \
-do { \
+CBFM_PROLOG { \
 if (strcmp(".",tkn) && cbf_config_end(vec) == cbf_config_findNexus(vec,tkn)) { \
 fprintf(logFile,"Config parsing error on line %lu: Nexus axis '%s' not defined\n",ln,tkn); \
 return cbf_configError_undefinedValue; \
 } \
-} while (0)
+} CBFM_EPILOG
 
 #define REQUIRE_VECTOR() \
-do { \
+CBFM_PROLOG { \
 const int e = cbf_configParse_extractVector(configFile, logFile, it, &tkn, &n, &ln, &pre); \
 if (cbf_configError_success!=e) { \
 fprintf(logFile,"Error reading a vector: %s\n",cbf_config_strerror(e)); \
 return e; \
 } \
-} while (0)
+} CBFM_EPILOG
 
         /* first token of the line */
         GET_TOKEN();
@@ -19908,7 +19908,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								cbf_H5Gfree(h5location);
 							} else if (!cbf_cistrcmp("Alpha",token)) {
 #define _CBF_CONVERT_AXIS(axisName) \
-do { \
+CBFM_PROLOG { \
 	/* Find the data for the current axis, or fail */ \
 	cbf_configItem_t * const axisItem = cbf_config_findMinicbf(axisConfig, axisName); \
 CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value)); \
@@ -19958,7 +19958,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 		cbf_H5Dfree(h5data); \
 		cbf_H5Gfree(axes); \
 							} \
-} while (0)
+} CBFM_EPILOG
 								_CBF_CONVERT_AXIS("Alpha");
 							} else if (!cbf_cistrcmp("Kappa",token)) {
 								_CBF_CONVERT_AXIS("Kappa");

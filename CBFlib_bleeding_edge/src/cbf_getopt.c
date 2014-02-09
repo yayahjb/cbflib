@@ -68,6 +68,13 @@ extern "C" {
 #include <string.h>
 
 
+	/* \brief Consume one option from the option specification string given in 'options'.
+
+	If hasvalue is greater than zero an option value is required, if hasvalue is zero the
+	option has no value, if hasvalue is less than zero the value is optional.
+
+	\return The new location within the option specification string.
+	*/
     static const char * cbf_getopt_locate_option(const char * options,
                                           char * optchar,
                                           const char * * longopt,
