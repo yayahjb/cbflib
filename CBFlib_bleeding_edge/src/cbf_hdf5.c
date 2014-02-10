@@ -2028,17 +2028,6 @@ cbf_debug_print2("%s", "'" #exp "' failed"); \
 	}
 
 
-    /* We provide a macro and 2 versions of each of the calls with _ULP
-     variants. */
-
-#ifdef CBF_USE_ULP
-#define CBFM_H5Arequire_cmp2(id,nm,rk,dm,ft,mt,vl,bf,cmp,prm) \
-cbf_H5Arequire_cmp2_ULP(id,nm,rk,dm,ft,mt,vl,bf,cmp,prm)
-#else
-#define CBFM_H5Arequire_cmp2(id,nm,rk,dm,ft,mt,vl,bf,cmp,prm) \
-cbf_H5Arequire_cmp2(id,nm,rk,dm,ft,mt,vl,bf,cmp)
-#endif
-    
 	/**
      Checks the existance of an attribute of the given name, size, type and value. Equal value is determined by a
 	custom comparison function which may use some extra data for more sophisticated tests. A new attribute with the
@@ -3184,16 +3173,6 @@ if (CBF_SUCCESS==found) {
         }
         
 
-    /* We provide a macro and 2 versions of each of the calls with _ULP
-     variants. */
-
-#ifdef CBF_USE_ULP
-#define CBFM_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp,prm) \
-cbf_H5Drequire_scalar_F64LE2_ULP(loc,ds,nm,val,cmp,prm)
-#else
-#define CBFM_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp,prm) \
-cbf_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp)
-#endif
 
      /**
      Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related parameters
