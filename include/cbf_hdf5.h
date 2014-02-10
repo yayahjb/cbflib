@@ -425,6 +425,18 @@ field of the source */
      void * const buf,
          int (*cmp)(const void *, const void *, size_t));
 
+    /* We provide a macro and 2 versions of each of the calls with _ULP
+     variants. */
+
+#ifdef CBF_USE_ULP
+#define CBFM_H5Arequire_cmp2(id,nm,rk,dm,ft,mt,vl,bf,cmp,prm) \
+cbf_H5Arequire_cmp2_ULP(id,nm,rk,dm,ft,mt,vl,bf,cmp,prm)
+#else
+#define CBFM_H5Arequire_cmp2(id,nm,rk,dm,ft,mt,vl,bf,cmp,prm) \
+cbf_H5Arequire_cmp2(id,nm,rk,dm,ft,mt,vl,bf,cmp)
+#endif
+
+    
 	/**
 	\brief Check for an attribute with the given space/type/value, or set one if it doesn't exist.
 	\ingroup section_HDF5_H5A
@@ -588,6 +600,17 @@ field of the source */
 		hid_t * const dataset,
 		const char * const name,
         const double value);
+
+    /* We provide a macro and 2 versions of each of the calls with _ULP
+     variants. */
+
+#ifdef CBF_USE_ULP
+#define CBFM_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp,prm) \
+cbf_H5Drequire_scalar_F64LE2_ULP(loc,ds,nm,val,cmp,prm)
+#else
+#define CBFM_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp,prm) \
+cbf_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp)
+#endif
 
 	/**
 	\brief Write a scalar 64-bit floating point number as a dataset with comparison.
