@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.3.2 24 Sep 2013                                          #
+# Version 0.9.4 11 Feb 2014                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -250,7 +250,7 @@
 
 
 # Version string
-VERSION = 0.9.3.2
+VERSION = 0.9.4
 
 
 #
@@ -308,16 +308,6 @@ AR	= /usr/bin/ar
 #
 RANLIB  = /usr/bin/ranlib
 
-#
-# Program to use to decompress a data file
-#
-DECOMPRESS = bunzip2
-
-
-#
-# Program to use to compress a data file
-#
-COMPRESS = /usr/bin/bzip2
 
 #
 # Program to use to generate a signature
@@ -331,11 +321,6 @@ SIGNATURE ?= ( cat > md5tmp; cmake -E md5sum md5tmp| sed "s/ .*//")
 #
 ALLBUTONE = tail -n +2
 
-
-#
-# Extension for compressed data file (with period)
-#
-CEXT = .bz2
 
 #
 # Extension for signatures of files
@@ -747,6 +732,7 @@ all::	$(BIN) $(SOURCE) $(F90SOURCE) $(HEADERS) $(HDF5)\
 	$(BIN)/img2cif        \
 	$(BIN)/makecbf        \
 	$(BIN)/minicbf2nexus  \
+	$(BIN)/nexus2cbf      \
 	$(BIN)/sequence_match \
 	$(BIN)/testcell       \
 	$(BIN)/testalloc      \
@@ -788,51 +774,63 @@ Makefiles: Makefile			 \
 
 Makefile_LINUX: $(M4)/Makefile.m4
 	-cp Makefile_LINUX Makefile_LINUX_old
-	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX 
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX $(M4)/Makefile.m4 > Makefile_LINUX.tmp
+	mv Makefile_LINUX.tmp Makefile_LINUX
 
 Makefile_LINUX_DMALLOC: $(M4)/Makefile.m4
 	-cp Makefile_LINUX Makefile_LINUX_old
-	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_DMALLOC
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_DMALLOC.tmp
+	mv Makefile_LINUX_DMALLOC.tmp Makefile_LINUX_DMALLOC
 
 Makefile_LINUX_64: $(M4)/Makefile.m4
 	-cp Makefile_LINUX_64 Makefile_LINUX_64_old
-	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_64 $(M4)/Makefile.m4 > Makefile_LINUX_64
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_64 $(M4)/Makefile.m4 > Makefile_LINUX_64.tmp
+	mv Makefile_LINUX_64.tmp Makefile_LINUX_64
 
 Makefile_LINUX_gcc42: $(M4)/Makefile.m4
 	-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
-	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42 $(M4)/Makefile.m4 > Makefile_LINUX_gcc42 
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42 $(M4)/Makefile.m4 > Makefile_LINUX_gcc42.tmp 
+	mv Makefile_LINUX_gcc42.tmp Makefile_LINUX_gcc42
 
 Makefile_LINUX_gcc42_DMALLOC: $(M4)/Makefile.m4
 	-cp Makefile_LINUX_gcc42 Makefile_LINUX_gcc42_old
-	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_gcc42_DMALLOC 
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=LINUX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_LINUX_gcc42_DMALLOC.tmp
+	mv Makefile_LINUX_gcc42_DMALLOC.tmp Makefile_LINUX_gcc42_DMALLOC
 
 Makefile_OSX: $(M4)/Makefile.m4
 	-cp Makefile_OSX Makefile_OSX_old
-	m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX $(M4)/Makefile.m4 > Makefile_OSX 
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX $(M4)/Makefile.m4 > Makefile_OSX.tmp
+	mv Makefile_OSX.tmp Makefile_OSX
 
 Makefile_OSX_gcc42: $(M4)/Makefile.m4
 	-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
-	m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42 $(M4)/Makefile.m4 > Makefile_OSX_gcc42 
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42 $(M4)/Makefile.m4 > Makefile_OSX_gcc42.tmp
+	mv Makefile_OSX_gcc42.tmp Makefile_OSX_gcc42
 
 Makefile_OSX_gcc42_DMALLOC: $(M4)/Makefile.m4
 	-cp Makefile_OSX_gcc42 Makefile_OSX_gcc42_old
-	m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_OSX_gcc42_DMALLOC
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=OSX_gcc42_DMALLOC $(M4)/Makefile.m4 > Makefile_OSX_gcc42_DMALLOC.tmp
+	mv Makefile_OSX_gcc42_DMALLOC.tmp Makefile_OSX_gcc42_DMALLOC
 
 Makefile_AIX: $(M4)/Makefile.m4
 	-cp Makefile_AIX Makefile_AIX_old
-	m4 -P $(PYCIFRWDEF) -Dcbf_system=AIX $(M4)/Makefile.m4 > Makefile_AIX 
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=AIX $(M4)/Makefile.m4 > Makefile_AIX.tmp
+	mv Makefile_AIX.tmp Makefile_AIX
 
 Makefile_MINGW: $(M4)/Makefile.m4
 	-cp Makefile_MINGW Makefile_MINGW_old
-	m4 -P $(PYCIFRWDEF) -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW 
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=MINGW $(M4)/Makefile.m4 > Makefile_MINGW.tmp
+	mv Makefile_MINGW.tmp Makefile_MINGW
 
 Makefile_IRIX_gcc: $(M4)/Makefile.m4
 	-cp Makefile_IRIX_gcc Makefile_IRIX_gcc_old
-	m4 -P $(PYCIFREDEF) -Dcbf_system=IRIX_gcc $(M4)/Makefile.m4 > Makefile_IRIX_gcc
+	m4 -P $(PYCIFREDEF) -Dcbf_system=IRIX_gcc $(M4)/Makefile.m4 > Makefile_IRIX_gcc.tmp
+	mv Makefile_IRIX_gcc.tmp Makefile_IRIX_gcc
 	
 Makefile: $(M4)/Makefile.m4
 	-cp Makefile Makefile_old
-	m4 -P $(PYCIFRWDEF) -Dcbf_system=default $(M4)/Makefile.m4 > Makefile 
+	m4 -P $(PYCIFRWDEF) -Dcbf_system=default $(M4)/Makefile.m4 > Makefile.tmp
+	mv Makefile.tmp Makefile 
 
 symlinksdone:
 	chmod a+x .symlinks
@@ -882,6 +880,8 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 	cp $(BIN)/minicbf2nexus $(INSTALLDIR)/bin/minicbf2nexus
 	-cp $(INSTALLDIR)/bin/cbf2nexus $(INSTALLDIR)/bin/cbf2nexus_old
 	cp $(BIN)/cbf2nexus $(INSTALLDIR)/bin/cbf2nexus
+	-cp $(INSTALLDIR)/bin/nexus2cbf $(INSTALLDIR)/bin/nexus2cbf_old
+	cp $(BIN)/nexus2cbf $(INSTALLDIR)/bin/nexus2cbf
 	-cp $(INSTALLDIR)/bin/sequence_match $(INSTALLDIR)/bin/sequence_match_old
 	cp $(BIN)/sequence_match $(INSTALLDIR)/bin/sequence_match
 	-cp $(INSTALLDIR)/bin/arvai_test $(INSTALLDIR)/bin/arvai_test_old
@@ -922,6 +922,7 @@ endif
 	chmod 755 $(INSTALLDIR)/bin/img2cif
 	chmod 755 $(INSTALLDIR)/bin/makecbf
 	chmod 755 $(INSTALLDIR)/bin/minicbf2nexus
+	chmod 755 $(INSTALLDIR)/bin/nexus2cbf
 	chmod 755 $(INSTALLDIR)/bin/sequence_match
 	chmod 755 $(INSTALLDIR)/bin/testalloc
 	chmod 755 $(INSTALLDIR)/bin/testflat
@@ -1224,7 +1225,7 @@ $(BIN)/cif2cbf: $(LIB)/libcbf.a $(EXAMPLES)/cif2cbf.c $(LIB)/libimg.a \
 #
 # cbf2nexus example program
 #
-$(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c $(LIB)/libimg.a \
+$(BIN)/cbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/cbf2nexus.c \
 	$(GOPTLIB)	$(GOPTINC) 
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/cbf2nexus.c $(GOPTLIB) -L$(LIB) \
@@ -1238,6 +1239,17 @@ $(BIN)/minicbf2nexus: $(LIB)/libcbf.a $(EXAMPLES)/minicbf2nexus.c $(LIB)/libimg.
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/minicbf2nexus.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+	
+#
+# nexus2cbf example program
+#
+$(BIN)/nexus2cbf: $(LIB)/libcbf.a $(EXAMPLES)/nexus2cbf.c \
+	$(GOPTLIB)	$(GOPTINC) 
+	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
+	$(EXAMPLES)/nexus2cbf.c $(GOPTLIB) -L$(LIB) \
+	-lcbf $(EXTRALIBS) $(HDF5LIBS) -limg -o $@
+
+
 #
 # dectris cbf_template_t program
 #
@@ -1405,19 +1417,37 @@ TESTINPUT_BASIC =  example.mar2300
 DATADIRI_INPUT_BASIC = $(DATADIRI)/example.mar2300
 
 
-TESTINPUT_EXTRA =  9ins.cif mb_LP_1_001.img insulin_pilatus6m.cbf testrealin.cbf \
-	testflatin.cbf testflatpackedin.cbf XRD1621.tif \
-	X4_lots_M1S4_1_0001.cbf X4_lots_M1S4_1_0002.cbf \
-	X4_lots_M1S4_1_0003.cbf X4_lots_M1S4_1_0004.cbf \
-	X4_lots_M1S4_1_0005.cbf
-DATADIRI_INPUT_EXTRA = $(DATADIRI)/9ins.cif $(DATADIRI)/mb_LP_1_001.img \
-	$(DATADIRI)/insulin_pilatus6m.cbf $(DATADIRI)/testrealin.cbf \
-	$(DATADIRI)/testflatin.cbf $(DATADIRI)/testflatpackedin.cbf \
-	$(DATADIRI)/XRD1621.tif $(DATADIRI)/X4_lots_M1S4_1_0001.cbf \
+TESTINPUT_EXTRA =  \
+	1191_00005.cbf \
+	9ins.cif \
+	X4_lots_M1S4_1_0001.cbf \
+	X4_lots_M1S4_1_0002.cbf \
+	X4_lots_M1S4_1_0003.cbf \
+	X4_lots_M1S4_1_0004.cbf \
+	X4_lots_M1S4_1_0005.cbf \
+	XRD1621.tif \
+	insulin_pilatus6m.cbf \
+	mb_LP_1_001.img \
+	testflatin.cbf \
+	testflatpackedin.cbf \
+	testrealin.cbf \
+	thaumatin_die_M1S5_1_0005_2.cbf
+
+DATADIRI_INPUT_EXTRA = \
+	$(DATADIRI)/1191_00005.cbf \
+	$(DATADIRI)/9ins.cif \
+	$(DATADIRI)/X4_lots_M1S4_1_0001.cbf \
 	$(DATADIRI)/X4_lots_M1S4_1_0002.cbf \
 	$(DATADIRI)/X4_lots_M1S4_1_0003.cbf \
 	$(DATADIRI)/X4_lots_M1S4_1_0004.cbf \
-	$(DATADIRI)/X4_lots_M1S4_1_0005.cbf
+	$(DATADIRI)/X4_lots_M1S4_1_0005.cbf \
+	$(DATADIRI)/XRD1621.tif \
+	$(DATADIRI)/insulin_pilatus6m.cbf \
+	$(DATADIRI)/mb_LP_1_001.img \
+	$(DATADIRI)/testflatin.cbf \
+	$(DATADIRI)/testflatpackedin.cbf \
+	$(DATADIRI)/testrealin.cbf \
+	$(DATADIRI)/thaumatin_die_M1S5_1_0005_2.cbf
 
 
 # Output Data Files
@@ -1630,7 +1660,7 @@ basic:	$(BIN)/makecbf $(BIN)/img2cif $(BIN)/cif2cbf $(TESTINPUT_BASIC)
 #
 ifneq ($(F90C),)
 extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf \
-	$(BIN)/minicbf2nexus $(BIN)/testcell \
+	$(BIN)/minicbf2nexus $(BIN)/cbf2nexus $(BIN)/nexus2cbf $(BIN)/testcell \
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
 	$(BIN)/test_xds_binary $(BIN)/test_fcb_read_image $(BIN)/convert_minicbf \
 	$(BIN)/sauter_test $(BIN)/adscimg2cbf $(BIN)/cbf2adscimg \
@@ -1640,7 +1670,7 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf \
 	basic $(TESTINPUT_EXTRA) $(TESTOUTPUT)
 else
 extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf \
-	$(BIN)/minicbf2nexus $(BIN)/testcell \
+	$(BIN)/minicbf2nexus $(BIN)/cbf2nexus $(BIN)/nexus2cbf $(BIN)/testcell \
 	$(BIN)/testreals $(BIN)/testflat $(BIN)/testflatpacked \
 	$(BIN)/convert_minicbf \
 	$(BIN)/sauter_test $(BIN)/adscimg2cbf $(BIN)/cbf2adscimg \
@@ -1720,13 +1750,25 @@ ifneq ($(CBF_USE_ULP),)
 	$(TIME) $(BIN)/testulp
 endif
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/minicbf2nexus -c zlib \
-	-C config ../X4_lots_M1S4_1_*.cbf -o minicbf.h5
+	-C config $(HDF5REGISTER) -o minicbf.h5  ../X4_lots_M1S4_1_*.cbf
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/h5dump ../minicbf_original.h5 | $(ALLBUTONE) > minicbf_original.dump
 	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/h5dump minicbf.h5 | $(ALLBUTONE) > minicbf.dump
 	-cd $(MINICBF_TEST); $(DIFF) minicbf_original.dump minicbf.dump
 	cd $(MINICBF_TEST); rm -f minicbf_original.dump
 	cd $(MINICBF_TEST); rm -f minicbf.dump
 	cd $(MINICBF_TEST); rm -f minicbf.h5
+	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/cbf2nexus -c zlib \
+	--list -o i19-1.h5 ../1191_00005.cbf
+	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/nexus2cbf \
+	-o i19-1.cbf i19-1.h5
+	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/cbf2nexus -c zlib \
+	--list -o i19-2.h5 i19-1.cbf
+	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/nexus2cbf \
+	-o i19-2.cbf i19-2.h5
+	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/h5dump i19-1.h5 | $(ALLBUTONE) > i19-1.dump
+	cd $(MINICBF_TEST); $(TIME) ../$(BIN)/h5dump i19-2.h5 | $(ALLBUTONE) > i19-2.dump
+	-cd $(MINICBF_TEST); $(DIFF) i19-1.dump i19-2.dump
+	-cd $(MINICBF_TEST); $(DIFF) i19-1.cbf i19-2.cbf
 	$(TIME) $(BIN)/testreals
 	-cmp testrealin.cbf testrealout.cbf
 	$(TIME) $(BIN)/testflat
@@ -1868,6 +1910,7 @@ empty:
 	@-rm -rf  $(BIN)/cif2cbf*
 	@-rm -rf  $(BIN)/cbf2nexus*
 	@-rm -rf  $(BIN)/minicbf2nexus*
+	@-rm -rf  $(BIN)/nexus2cbf*
 	@-rm -rf  $(BIN)/convert_image*
 	@-rm -rf  $(BIN)/convert_minicbf*
 	@-rm -rf  $(BIN)/test_fcb_read_image*
