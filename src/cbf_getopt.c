@@ -449,14 +449,13 @@ extern "C" {
                             optstruct->optval = cbf_copy_string(NULL,argv[ii+1],0);
 
                             ii++;
+						}
 
                             foundopt++;
 
                             break;
 
                         }
-
-                    }
 
                 } while (*opts);
 
@@ -674,7 +673,8 @@ extern "C" {
 
                     }
 
-                  memmove((void *)(&((handle->optstructs)[ios-1])),(void *)(&temp),
+                  memmove((void *)(&((handle->optstructs)[ios-1])),
+                                (void *)(&temp),
                                 sizeof(cbf_getopt_optstruct));
 
                 }
