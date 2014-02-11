@@ -1002,7 +1002,7 @@ add_test(minicbf2nexus-verify ${CMAKE_COMMAND} -P ${CMAKE_RUNTIME_OUTPUT_DIRECTO
 set_tests_properties(minicbf2nexus-verify PROPERTIES DEPENDS minicbf2nexus-generate)
   
 # round-trip cbf2nexus & nexus2cbf tests using i19 data
-set(test_input_cbf "/home/hjw63250/NXExampleData/cbf/i19/1191_00005.cbf")
+set(test_input_cbf "${CBF_DATADIRI}/1191_00005.cbf")
 set(test_output_prefix "i19")
 configure_file(${CBF__EXAMPLES}/test-round-trip-generate.cmake ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test-round-trip-i19-generate.cmake)
 add_test(round-trip-i19-generate ${CMAKE_COMMAND} -P ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test-round-trip-i19-generate.cmake)
@@ -1016,7 +1016,7 @@ add_test(round-trip-i19-verify-strong ${CMAKE_COMMAND} -P ${CMAKE_RUNTIME_OUTPUT
 set_tests_properties(round-trip-i19-verify-strong PROPERTIES DEPENDS round-trip-i19-generate)
 
 # round-trip cbf2nexus & nexus2cbf tests using i03 data
-set(test_input_cbf "/home/hjw63250/NXExampleData/cbf/i03/thaumatin_die_M1S5_1_0005_2.cbf")
+set(test_input_cbf "${CBF_DATADIRI}/thaumatin_die_M1S5_1_0005_2.cbf")
 set(test_output_prefix "i03")
 configure_file(${CBF__EXAMPLES}/test-round-trip-generate.cmake ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test-round-trip-i03-generate.cmake)
 add_test(round-trip-i03-generate ${CMAKE_COMMAND} -P ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test-round-trip-i03-generate.cmake)

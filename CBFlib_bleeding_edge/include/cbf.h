@@ -259,12 +259,12 @@ extern "C" {
 /* Version numbers */
 #define CBF_VERS_MAJOR   0   /* For major interface/format changes        */
 #define CBF_VERS_MINOR   9   /* For minor interface/format changes        */
-#define CBF_VERS_RELEASE 3.2   /* For tweaks, bug-fixes, or development     */
+#define CBF_VERS_RELEASE 4   /* For tweaks, bug-fixes, or development     */
 #define CBF_VERS_SUBRELEASE ""   
                              /* For pre-releases like RC1                 */
                              /* Empty string for real releases.           */
 #define CBF_APIVERS_CUR  2   /* Number of major interface version         */
-#define CBF_APIVERS_REV  0   /* Interface changes                         */
+#define CBF_APIVERS_REV  1   /* Interface changes                         */
 #define CBF_APIVERS_AGE  0   /* Number of interfaces added                */
 
 #include "cbf_tree.h"
