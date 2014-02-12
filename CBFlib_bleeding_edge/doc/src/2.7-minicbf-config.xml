@@ -1,0 +1,28 @@
+<div>
+	<h4>Reading miniCBF configuration settings</h4>
+	<p>This example demonstrates how a miniCBF configuration file should be parsed, what should be checked before the extracted settings are used and what should
+	be cleaned up by the caller afterwards:</p>
+	<code><pre>/* Declare some important variables */
+int configError = cbf_configError_success;
+FILE * configFile = fopen("config.txt","r");
+cbf_config_t * const configSettings = cbf_config_create();
+
+/*
+Read and check the configuration settings,
+writing any error messages to stderr.
+*/
+configError = cbf_config_parse(configFile,stderr,configSettings);
+/* I no longer need to keep the file open */
+fclose(configFile);
+
+/* Check if I could read the file successfully */
+if (cbf_configError_success != configError) {
+	fprintf(stderr, "Error parsing configuration file 'config.txt': %s\n",
+		cbf_config_strerror(configError));
+} else {
+	/* Use the configuration settings here... */
+}
+
+/* Clean up the settings to avoid memory leaks */
+cbf_config_free(configSettings);</pre></code>
+</div>

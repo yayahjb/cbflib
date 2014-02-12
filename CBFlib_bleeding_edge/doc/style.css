@@ -1,0 +1,101 @@
+html
+{
+	margin: 0 5%;
+}
+
+h1,
+h2
+{
+	text-align: center;
+}
+
+h1,
+h2,
+h3,
+h4
+{
+	color: #0808A0;
+	font-weight: bold;
+}
+
+pre
+{
+	border: 1px solid grey;
+	font-family: "", "monospace";
+	padding: 0.5em;
+	white-space: pre;
+}
+
+code
+{
+	font-family: "", "monospace";
+	white-space: normal;
+}
+
+ul.mini-ToC
+{
+	list-style-type: none;
+	margin-right: 1em;
+}
+
+ul.mini-ToC ul
+{
+	list-style-type: none;
+}
+
+li.mini-ToC a
+{
+	display: block;
+	margin: 0.2em auto;
+	text-decoration: none;
+}
+
+li.mini-ToC a {border-bottom: 1px black dotted;}
+li.mini-ToC a:hover {border-bottom: 1px black solid;}
+
+ul.see-also
+{
+	list-style-type: none;
+	padding-left: 0;
+}
+
+table.hdf5-types
+{
+	border-collapse: collapse;
+	margin: auto;
+}
+
+table.hdf5-types td
+{
+	border: 1px solid black;
+	padding: 0.5em;
+}
+
+table.params
+{
+	border-collapse: separate;
+	margin: 0;
+	width: 100%;
+}
+
+table.params td
+{
+	border: none;
+	padding: 0 0.5em;
+}
+
+table.params th
+{
+	background: #acacb8;
+	font-weight: bold;
+	padding: 0 0 0 0.5em;
+}
+
+table.params tr:nth-child(even) {background: #eee;}
+table.params tr:nth-child(odd)  {background: #ddd;}
+
+table.params td.type,
+table.params td.name
+{
+	font-family: "", "monospace";
+}
