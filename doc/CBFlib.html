@@ -12814,11 +12814,11 @@ implemented in this version of CBFlib:
 <p>
 1. An entropy-encoding scheme using canonical coding<br />
 2. A CCP4-style packing scheme.
+3. A simple and efficient byte-offset compression.
+4. A slightly more complex nibble-offset compression.
 <p>
-Both encode the difference (or error) between the current element in the array and
-the prior element.  Parameters required for more sophisticated predictors have been
-included in the compression functions and will be used in a future version of the
-library.
+All encode the difference (or error) between the current element in the array and
+the prior element or neighboring elements.
 <p>
 
 <h4><A NAME="3.3.1">3.3.1  Canonical-code compression</A></h4>
