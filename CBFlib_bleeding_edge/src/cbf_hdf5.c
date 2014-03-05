@@ -1000,6 +1000,9 @@ cbf_debug_print2("%s", "'" #exp "' failed"); \
 		free((void*)obj.depends_on);
 	}
 
+	/*
+	append an axis entry to the given axis list object, taking ownership of the path iff the function returns successfully.
+	*/
 	static int _cbf_insert_axis
 			(cbf_axis_t * const obj,
 			 const char * const axis_id,
@@ -1016,7 +1019,7 @@ cbf_debug_print2("%s", "'" #exp "' failed"); \
 			if (!(obj->depends_on = realloc(obj->depends_on,obj->count*sizeof(unsigned int*)))) error |= CBF_ALLOC;
 			if (CBF_SUCCESS == error) {
 				obj->axis_id[idx] = axis_id;
-				obj->path[idx] = _cbf_strdup(path);
+				obj->path[idx] = path;
 				obj->in_degree[idx] = 0;
 				obj->depends_on[idx] = ~((unsigned int)(0));
 			}
@@ -1028,6 +1031,31 @@ cbf_debug_print2("%s", "'" #exp "' failed"); \
 	{
 		_cbf_free_axis(*obj);
 		*obj = _cbf_make_axis();
+	}
+
+	/*
+	Search the array of strings in 'array' for the first matching 'str'.
+	Set the value pointed by 'idx' to the index of the match, or 'size', if it can be dereferenced.
+	Return successfully iff a match is found.
+	*/
+	static int find_index_of_str_in_array
+			(const char * const * const array,
+			 const size_t size,
+			 const char * const str,
+			 size_t * const idx)
+	{
+		int error = CBF_SUCCESS;
+		if (!array || !str) {
+			error |= CBF_ARGUMENT;
+		} else {
+			size_t i;
+			for (i = 0; size != i; ++i) {
+				if (!strcmp(array[i],str)) break;
+			}
+			if (size==i) error |= CBF_NOTFOUND;
+			if (idx) *idx = i;
+		}
+		return error;
 	}
 
 	/**
@@ -1148,12 +1176,108 @@ cbf_debug_print2("%s", "'" #exp "' failed"); \
 	}
     
 	/*
-     Some simple 'getters' to access read-only primary key values. C's 'offsetof' isn't used in order to
-     allow simpler refactoring if keys should be stored by column & index instead of directly by value.
+	Some simple 'getters' to access read-only primary key values. C's
+	'offsetof' isn't used in order to allow simpler refactoring if keys should
+	be stored by column & index instead of directly by value.
+
+	These functions should have a signature compatible with:
+	const char * f(const cbf_cbf2nx_key_t *);
+	The first parameter is the key to get the value from.
      */
-	static const char * cbf2nx_key_get_scan_id(const cbf_cbf2nx_key_t * const key) {if (key) return key->scan; else return NULL;}
-	static const char * cbf2nx_key_get_frame_id(const cbf_cbf2nx_key_t * const key) {if (key) return key->frame; else return NULL;}
     
+	/*
+	Many of these are small functions that do almost exactly the same thing, so
+	define the implementation in one place so they can be more easily
+	maintained.
+
+	-CBF2NX_DECL_KEY_STR_GETTER(FUNC,MEMBER):
+		Declares and defines a function 'FUNC' to get the (const char *) value
+		of 'key->MEMBER'.
+	*/
+#define CBF2NX_DECL_KEY_STR_GETTER(FUNC,MEMBER) \
+static const char * FUNC \
+	(const cbf_cbf2nx_key_t * const key) \
+{ \
+	if (key) { \
+		return key->MEMBER; \
+	} else { \
+		return NULL; \
+	} \
+}
+
+	CBF2NX_DECL_KEY_STR_GETTER(cbf2nx_key_get_array_id,array);
+	CBF2NX_DECL_KEY_STR_GETTER(cbf2nx_key_get_binary_id,binary);
+	CBF2NX_DECL_KEY_STR_GETTER(cbf2nx_key_get_scan_id,scan);
+	CBF2NX_DECL_KEY_STR_GETTER(cbf2nx_key_get_frame_id,frame);
+	CBF2NX_DECL_KEY_STR_GETTER(cbf2nx_key_get_diffrn_id,diffrn);
+	CBF2NX_DECL_KEY_STR_GETTER(cbf2nx_key_get_diffrnDetector_id,diffrn_detector);
+	CBF2NX_DECL_KEY_STR_GETTER(cbf2nx_key_get_diffrnDetectorElement_id,diffrn_detector_element);
+	CBF2NX_DECL_KEY_STR_GETTER(cbf2nx_key_get_diffrnMeasurement_id,diffrn_measurement);
+	CBF2NX_DECL_KEY_STR_GETTER(cbf2nx_key_get_wavelength_id,wavelength_id);
+
+	/*
+	Some simple 'setters' to take a string and set a value in the key.
+
+	These functions should have a signature compatible with:
+	int f(cbf_cbf2nx_key_t *, const char *);
+	The first parameter is the key to store the value in.
+	The second parameter is the value to be stored.
+	*/
+
+	/*
+	Many of these are small functions that do almost exactly the same thing, so
+	define the implementation in one place so they can be more easily
+	maintained.
+
+	- CBF2NX_DECL_KEY_STR_SETTER(FUNC,MEMBER):
+		Declares and defines a function 'FUNC' to set the (const char *) value
+		of 'key->MEMBER'.
+	*/
+#define CBF2NX_DECL_KEY_STR_SETTER(FUNC,MEMBER) \
+static int FUNC \
+		(cbf_cbf2nx_key_t * const key, \
+		const char * const value) \
+{ \
+	int error = CBF_SUCCESS; \
+	if (!key || !value) { \
+		error |= CBF_ARGUMENT; \
+	} else { \
+		key->MEMBER = value; \
+	} \
+	return error; \
+}
+
+	CBF2NX_DECL_KEY_STR_SETTER(cbf2nx_key_set_diffrn,diffrn);
+	CBF2NX_DECL_KEY_STR_SETTER(cbf2nx_key_set_diffrn_detector,diffrn_detector);
+	CBF2NX_DECL_KEY_STR_SETTER(cbf2nx_key_set_diffrn_measurement,diffrn_measurement);
+	CBF2NX_DECL_KEY_STR_SETTER(cbf2nx_key_set_array,array);
+	CBF2NX_DECL_KEY_STR_SETTER(cbf2nx_key_set_binary,binary);
+	CBF2NX_DECL_KEY_STR_SETTER(cbf2nx_key_set_overload,data_overload);
+	CBF2NX_DECL_KEY_STR_SETTER(cbf2nx_key_set_undefined,data_undefined);
+	CBF2NX_DECL_KEY_STR_SETTER(cbf2nx_key_set_diffrn_detector_element,diffrn_detector_element);
+	CBF2NX_DECL_KEY_STR_SETTER(cbf2nx_key_set_wavelength_id,wavelength_id);
+
+	/*
+	Function to set the (unsigned integer) value of 'key->frame_number'.
+	*/
+	static int cbf2nx_key_set_frame_number
+			(cbf_cbf2nx_key_t * const key,
+			 const char * const value)
+	{
+		int error = CBF_SUCCESS;
+		if (!key || !value) {
+			error |= CBF_ARGUMENT;
+		} else {
+			char * end;
+			unsigned int frame_number = strtoull(value,&end,10);
+			if (end!=value)
+				key->frame_number = frame_number;
+			else
+				error |= CBF_FORMAT;
+		}
+		return error;
+	}
+
     /****************************************************************
      The following section of code is extracted from J. Sloan's
      cbf_hdf5.i
@@ -3172,13 +3296,10 @@ if (CBF_SUCCESS==found) {
             return error;
         }
         
-
-
      /**
      Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related parameters
      for a scalar dataset.It ensures that a scalar 64-bit IEEE floating point dataset exists with the appropriate
      name and (for an existing dataset) the correct value as determined by the comparison function <code>cmp</code>.
-     
      
      \param location The group containing the new dataset.
      \param dataset An optional pointer to a place to store the new dataset.
@@ -3199,7 +3320,8 @@ if (CBF_SUCCESS==found) {
      \sa cbf_H5Dfree
      \return An error code.
      */
-    int cbf_H5Drequire_scalar_F64LE2 (const hid_t location,
+    int cbf_H5Drequire_scalar_F64LE2
+			(const hid_t location,
      hid_t * const dataset,
      const char * const name,
 		const double value,
@@ -4206,6 +4328,12 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		return error;
 	}
 
+	/* ************************************************************************
+	Define a set of node manipulation functions which are missing from cbf's
+	node tree interface. TODO: clean them up and add them to that interface and
+	correct the handle interface to use these functions.
+	************************************************************************ */
+
     /*
      Get the ascii value of a given row of a node, in the same way as 'cbf_get_value' gets data from a handle.
      */
@@ -4241,15 +4369,74 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		} else if (cbf_is_binary(node, row)) {
 			error |= CBF_BINARY;
 		} else if (CBF_SUCCESS!=(error|=cbf_get_columnrow(&text, node, row))) {
-			cbf_debug_print(cbf_strerror(error));
+			cbf_debug_print2("error: %s\n",cbf_strerror(error));
 		} else {
 			char * end = NULL;
 			const double tmp_val = strtod(text+1, &end);
 			if (end == text+1) {
-				cbf_debug_print2("%s: error: %s\n", cbf_strerror(CBF_FORMAT));
+				cbf_debug_print2("error: %s\n", cbf_strerror(CBF_FORMAT));
 				error |= CBF_FORMAT;
 			} else {
 				*value = tmp_val;
+			}
+		}
+		return error;
+	}
+
+	static int cbf_node_get_uintvalue
+			(cbf_node * const node,
+			 const unsigned int row,
+			 unsigned int * const value)
+	{
+		int error = CBF_SUCCESS;
+		const char * text = NULL;
+		if (!node || row >= node->children || !value) {
+			error |= CBF_ARGUMENT;
+		} else if (cbf_is_binary(node, row)) {
+			error |= CBF_BINARY;
+		} else if (CBF_SUCCESS!=(error|=cbf_get_columnrow(&text, node, row))) {
+			cbf_debug_print2("error: %s\n", cbf_strerror(error));
+		} else {
+			char * end = NULL;
+			const unsigned int tmp_val = strtoul(text+1, &end, 0);
+			if (end == text+1) {
+				cbf_debug_print2("error: %s\n", cbf_strerror(CBF_FORMAT));
+				error |= CBF_FORMAT;
+			} else {
+				*value = tmp_val;
+			}
+		}
+		return error;
+	}
+
+	/*
+	Search for a row with matching value, with the first to check being given by 'row'.
+	If you want to find the first matching row in a column then set row to '0'.
+	If you already have a matching row and want to find the next then set row to '1+matching_row'.
+	*/
+	static int cbf_node_find_nextrow
+			(cbf_node * const node,
+			 unsigned int row,
+			 const char * const value,
+			 unsigned int * const nextrow)
+	{
+		int error = CBF_SUCCESS;
+		if (!nextrow || !node || !value) {
+			error |= CBF_ARGUMENT;
+		} else if (row >= node->children || CBF_COLUMN != node->type) {
+			error |= CBF_ARGUMENT;
+		} else {
+			for (; row != node->children; ++row) {
+				const char * str = NULL;
+				cbf_node_get_value(node,row,&str);
+				if (!strcmp(value,str)) {
+					break;
+				}
+			}
+			if (row == node->children) {
+				error |= CBF_NOTFOUND;
+			} else {
+				*nextrow = row;
 			}
 		}
 		return error;
@@ -14448,7 +14635,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							CBF_CALL(cbf_new_row(cbf));
 							axisRow = cbf->row;
 							CBF_CALL(cbf_set_value(cbf,axisData->name));
-							cbf_debug_print2("%s\n",axisData->name);
+							fprintf(stderr,"  %s\n",axisData->name);
 						}
 						if (CBF_SUCCESS==error) {
 							/* set the 'equipment' & add to any mapping tables for detectors & goniometers */
@@ -14637,7 +14824,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",off[2]));
 							}
 						}
-						if (1) fputc('\n',stderr);
 					}
 					/* all real axes converted, add the gravity & beam axes to fully specify the coordinate system */
 					CBF_CALL(cbf_require_category(cbf,"axis"));
@@ -14723,27 +14909,461 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 	}
 
 	/*
-     The following set of functions - 'cbf_write_cbf2nx__XYZ' - convert a CBF category 'XYZ' into NeXus format,
-     packing the resulting data into a location given by the 'h5handle' argument.
+	Find a suitable HDF5 datatype for the given parameters.
 	*/
+	static int cbf_find_array_data_h5type
+			(hid_t * const type,
+			 unsigned int bits,
+			 int sign,
+			 int real,
+			 const char *byteorder)
+	{
+		int error = CBF_SUCCESS;
     
-	/* typedef for the 'cbf_h5handle_require_xyzzy' functions */
-	typedef int (*get_h5group_func)(cbf_h5handle, hid_t *, const char *);
+		cbf_debug_print("find_array_data_h5type\n");
+    
+		/* check arguments */
+		if (!type) {
+			cbf_debug_print("Invalid type pointer given\n");
+			return CBF_ARGUMENT;
+		}
+		if (!byteorder) {
+			cbf_debug_print("No byte order given\n");
+			return CBF_ARGUMENT;
+	}
+
+		if (real) {
+			const int order = ('l'==*byteorder||'L'==*byteorder) ? 0 : 1;
+			if (!sign) error |= CBF_FORMAT;
+			else {
+				const hid_t tbl[2][2] = {
+					{H5T_IEEE_F32LE,H5T_IEEE_F64LE},
+					{H5T_IEEE_F32BE,H5T_IEEE_F64BE}
+	};
+				unsigned int idx = 2;
+				idx = bits<=64 ? 1 : idx;
+				idx = bits<=32 ? 0 : idx;
+				if (idx > 1) error |= CBF_FORMAT;
+				else *type = tbl[order][idx];
+			}
+		} else {
+			const int order = ('l'==*byteorder||'L'==*byteorder) ? 0 : 1;
+			/* define a lookup table for integer types */
+			const hid_t tbl[2][2][4] = {
+	{
+					{H5T_STD_I8LE,H5T_STD_I16LE,H5T_STD_I32LE,H5T_STD_I64LE},
+					{H5T_STD_U8LE,H5T_STD_U16LE,H5T_STD_U32LE,H5T_STD_U64LE}
+				}, {
+					{H5T_STD_I8BE,H5T_STD_I16BE,H5T_STD_I32BE,H5T_STD_I64BE},
+					{H5T_STD_U8BE,H5T_STD_U16BE,H5T_STD_U32BE,H5T_STD_U64BE}
+				}
+	};
+			/* select a value from the table */
+			unsigned int idx = 4;
+			idx = bits<=64 ? 3 : idx;
+			idx = bits<=32 ? 2 : idx;
+			idx = bits<=16 ? 1 : idx;
+			idx = bits<=8  ? 0 : idx;
+			if (idx > 3) error |= CBF_FORMAT;
+			else *type = tbl[order][sign?0:1][idx];
+		}
+    
+		return error;
+	}
     
 	/*
-     Conversion functions for various kinds of data:
-     - strings should be converted by producing a new string that should be free'd.
-     - numbers should be converted via a '*out = f(in)' process.
-     - a NULL function pointer should indicate that no conversion is required.
-     */
-	typedef void (*convert_func)();
-	typedef int (*convert_string_func)(const char * const in, const char * * const out);
-	typedef int (*convert_double_func)(const double in, double * const out);
+	Decompress the data selected in the handle, ensure an appropriate HDF5 dataset exists to store it,
+	insert it a the given index with some parameter values set according to the given flags.
     
-	/* conversion function for inhomogeneity */
-	int convert_inhomogeneity
-    (const double in,
-     double * const out)
+	Writes saturation_value and data to h5handle->nxdetector
+     */
+	static int cbf_write_array_h5file
+			(const cbf_node * node,
+     const unsigned int row,
+			 cbf_h5handle h5handle,
+			 const char * const saturation_value,
+			 const char * const undefined_value,
+			 hsize_t * dims)
+	{
+		int error = CBF_SUCCESS;
+		cbf_debug_print("write_array_h5file\n");
+
+		if (!node) {
+			cbf_debug_print("Invalid node given\n");
+			error |= CBF_ARGUMENT;
+		} else if (!h5handle) {
+			cbf_debug_print("Invalid hdf5 handle given\n");
+			error |= CBF_ARGUMENT;
+				} else {
+			int found = CBF_SUCCESS, id, bits, sign, real;
+			cbf_file *file;
+			long start;
+			const char *byteorder;
+			size_t size, nelem, cbfdim[3], padding;
+			unsigned int compression;
+			hid_t h5type = CBF_H5FAIL;
+			/* find the datatype and array size */
+			CBF_CALL(cbf_get_bintext(node, row, NULL,
+					 &id, &file, &start, &size,
+					 NULL, NULL, &bits, &sign, &real,
+					 &byteorder, &nelem, cbfdim+2, cbfdim+1, cbfdim+0, &padding,
+					 &compression));
+			CBF_CALL(cbf_find_array_data_h5type(&h5type,bits,sign,real,byteorder));
+
+			if (dims) {
+				dims[0] = 0;
+				dims[1] = cbfdim[1];
+				dims[2] = cbfdim[2];
+				}
+
+			/* check the saturation value */
+			if (saturation_value) {
+				hid_t dataset = CBF_H5FAIL;
+				hsize_t max[] = {H5S_UNLIMITED};
+				hsize_t cnk[] = {1};
+				hsize_t off[] = {h5handle->slice};
+				hsize_t cnt[] = {1};
+                        hsize_t buf[] = {0};
+				CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dataset,"saturation_value",1,max,cnk,buf,h5type));
+				if (real) {
+					/* every float can be represented exactly by a double, so no need for float intermediate */
+					const double num = strtod(saturation_value,0);
+					CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_DOUBLE));
+                    } else {
+					if (sign) {
+						/* use longest signed integer: all smaller types represent a subset of these values */
+						const signed long num = strtol(saturation_value,0,10);
+						CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_LONG));
+					} else {
+						/* use longest unsigned integer: all smaller types represent a subset of these values */
+						const unsigned long num = strtoul(saturation_value,0,10);
+						CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_ULONG));
+                    }
+                }
+				cbf_H5Dfree(dataset);
+                    }
+
+			/* check the undefined value */
+			if (undefined_value) {
+				hid_t dataset = CBF_H5FAIL;
+				hsize_t max[] = {H5S_UNLIMITED};
+				hsize_t cnk[] = {1};
+				hsize_t off[] = {h5handle->slice};
+				hsize_t cnt[] = {1};
+                        hsize_t buf[] = {0};
+				CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dataset,"undefined_value",1,max,cnk,buf,h5type));
+				if (real) {
+					/* every float can be represented exactly by a double, so no need for float intermediate */
+					const double num = strtod(undefined_value,0);
+					CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_DOUBLE));
+                    } else {
+					if (sign) {
+						/* use longest signed integer: all smaller types represent a subset of these values */
+						const signed long num = strtol(undefined_value,0,10);
+						CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_LONG));
+					} else {
+						/* use longest unsigned integer: all smaller types represent a subset of these values */
+						const unsigned long num = strtoul(undefined_value,0,10);
+						CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_ULONG));
+                    }
+                }
+				cbf_H5Dfree(dataset);
+                }
+
+			/* allocate space for the decompressed data */
+			if (CBF_SUCCESS == error) {
+				void * value;
+				const unsigned int elsize = (bits+7)/8;
+				size_t nelem_read;
+				const int rank = 3;
+				hsize_t buf[] = {0, 0, 0};
+				hsize_t h5dim[] = {0, cbfdim[1], cbfdim[2]};
+				hsize_t h5max[] = {H5S_UNLIMITED, cbfdim[1], cbfdim[2]};
+				hsize_t h5chunk[] = {1, cbfdim[1], cbfdim[2]};
+				hid_t dset = CBF_H5FAIL;
+				value = malloc(nelem*elsize);
+				CBF_CALL(cbf_set_fileposition(file, start, SEEK_SET));
+				CBF_CALL(cbf_decompress_parameters(NULL, NULL, NULL, NULL, NULL, NULL, NULL, compression, file));
+				if (0) {
+					fprintf(stderr,"masked compression: %d\n",compression&CBF_COMPRESSION_MASK);
+					fprintf(stderr,"compression type: ");
+					if (compression == CBF_CANONICAL) fprintf(stderr,"CBF_CANONICAL\n");
+					else if ((compression&CBF_COMPRESSION_MASK) == CBF_PACKED) fprintf(stderr,"CBF_PACKED\n");
+					else if ((compression&CBF_COMPRESSION_MASK) == CBF_PACKED_V2) fprintf(stderr,"CBF_PACKED_V2\n");
+					else if (compression == CBF_BYTE_OFFSET) fprintf(stderr,"CBF_BYTE_OFFSET\n");
+					else if (compression == CBF_NIBBLE_OFFSET) fprintf(stderr,"CBF_NIBBLE_OFFSET\n");
+					else if (compression == CBF_PREDICTOR) fprintf(stderr,"CBF_PREDICTOR\n");
+					else if (compression == CBF_NONE) fprintf(stderr,"CBF_NONE\n");
+					else fprintf(stderr,"Unknown\n");
+					fprintf(stderr,"element size: %d\n",(unsigned int)(elsize));
+					fprintf(stderr,"real?: %s\n",real?"yes":"no");
+                }
+
+				/* ensure a dataset exists in the detector */
+				found =  cbf_H5Dfind2(h5handle->nxdetector,&dset,"data",rank,h5max,buf,h5type);
+				if (CBF_SUCCESS==found) {
+				} else if (CBF_NOTFOUND==found) {
+					/* define variables & check args */
+					hid_t dataSpace = CBF_H5FAIL;
+					hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
+
+					/* check variables are valid */
+					CBF_CALL(cbf_H5Screate(&dataSpace, rank, h5dim, h5max));
+
+					/* allow dataset to be chunked */
+					CBF_H5CALL(H5Pset_chunk(dcpl,rank,h5chunk));
+					/* allow compression */
+					if (CBF_SUCCESS==error) {
+						if (h5handle->flags & CBF_H5COMPRESSION_ZLIB) {
+							H5Pset_deflate(dcpl, 1);
+						} else if (h5handle->flags & CBF_H5COMPRESSION_CBF) {
+							unsigned int cd_values[CBF_H5Z_FILTER_CBF_NELMTS];
+							cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION] = compression;
+							cd_values[CBF_H5Z_FILTER_CBF_RESERVED]    = 0;
+							cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID]   = id;
+							cd_values[CBF_H5Z_FILTER_CBF_PADDING]     = padding;
+							cd_values[CBF_H5Z_FILTER_CBF_ELSIZE]      = elsize;
+							cd_values[CBF_H5Z_FILTER_CBF_ELSIGN]      = sign;
+							cd_values[CBF_H5Z_FILTER_CBF_REAL]        = real;
+							cd_values[CBF_H5Z_FILTER_CBF_DIMFAST]     = *(h5chunk+2);
+							cd_values[CBF_H5Z_FILTER_CBF_DIMMID]      = *(h5chunk+1);
+							cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = *(h5chunk+0);
+
+							if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
+								if (!H5Zfilter_avail(CBF_H5Z_FILTER_CBF)) {
+									CBF_H5CALL(H5Zregister(CBF_H5Z_CBF));
+            }
+        }
+
+							CBF_H5CALL(H5Pset_filter(dcpl, CBF_H5Z_FILTER_CBF, H5Z_FLAG_OPTIONAL, CBF_H5Z_FILTER_CBF_NELMTS, cd_values));
+
+		}
+		}
+
+					/* create the dataset */
+					if (CBF_SUCCESS == error)
+						dset = H5Dcreate2(h5handle->nxdetector,"data",h5type,dataSpace,H5P_DEFAULT,dcpl,H5P_DEFAULT);
+
+					/* check local variables are properly closed */
+					if (cbf_H5Ivalid(dataSpace)) H5Sclose(dataSpace);
+					if (cbf_H5Ivalid(dcpl)) H5Pclose(dcpl);
+            } else {
+					error |= found;
+					cbf_debug_print2("error locating primary dataset: %s\n", cbf_strerror(found));
+		}
+                    if (CBF_SUCCESS==error) {
+					const hsize_t h5offset[] = {h5handle->slice, 0, 0};
+					const int sig[] = {1};
+					int sigbuf[] = {0};
+
+					/* extract the image data from CBF */
+					CBF_CALL(cbf_decompress(value, elsize, sign, nelem, &nelem_read,
+							 size, compression, bits, sign, file, real, byteorder,
+							 nelem, cbfdim[2], cbfdim[1], cbfdim[0], padding));
+					if (nelem_read != nelem) error |= CBF_ENDOFDATA;
+
+					/* store the image data in HDF5 */
+					CBF_CALL(cbf_H5Dinsert(dset,h5offset,0,h5chunk,buf,value,h5type));
+					CBF_CALL(CBFM_H5Arequire_cmp2(dset,"signal",0,0,H5T_STD_I32LE,H5T_NATIVE_INT,sig,sigbuf,cmp_int,0));
+					cbf_H5Dfree(dset);
+					free((void*)value);
+		}
+		}
+                }
+
+		return error;
+                    }
+
+                    /*
+	A primary key may be an integer or a string, I need to allow them both to be compared
+	for equality. This function must return 0 if the keys are considered equal, and
+	non-zero otherwise. Note that this means 'strcmp' is a valid comparison function.
+                     */
+	typedef int (*key_cmp_func)(const char *, const char *);
+
+	/* Define the signature of a function to extract a value from a 'cbf_cbf2nx_key_t' object. */
+	typedef const char * (*key_get_value_func)(const cbf_cbf2nx_key_t * const);
+
+	/*
+	Each key is defined by a column name. A method of comparing values for equality
+	and value to compare against allows rows to be discarded if not relevant.
+	*/
+	typedef struct cbf_primary_key_t
+	{
+		/* a unique identifier */
+		const char * name;
+		/* parameterised behaviour */
+		key_get_value_func getValue;
+		key_cmp_func cmp;
+	} cbf_primary_key_t;
+        
+	/*
+	count the number of valid keys that are pointed to by 'begin'.
+	*/
+	static size_t cbf_count_primary_keys
+			(const cbf_primary_key_t * begin)
+	{
+		if (!begin) {
+			return 0;
+		} else {
+			const cbf_primary_key_t * end = begin;
+			while (end->name) ++end;
+			return end-begin;
+					}
+				}
+
+			/*
+	Test if an array of pointers of given length contains a given pointer.
+	If an invalid (null) array is given then it contains nothing.
+	Returns non-zero if the pointer 'value' is in the array, zero otherwise.
+             */
+	static int array_contains
+			(const void * const * const begin,
+			 const size_t size,
+			 const void * const value)
+				{
+		if (!begin) {
+			return 0;
+		} else {
+			const void * const * it;
+			const void * const end = size+begin;
+			for (it = begin; end != it; ++it)
+				if (value == *it)
+					return 1;
+				}
+		return 0;
+				}
+
+					/*
+	Locate the column for each primary key of the category, and cache both the column and its requested value for later use.
+					*/
+	static int cbf_populate_primaryKey_cache
+			(cbf_primary_key_t * const primary_keys,
+			 cbf_node * * * const primary_key_column,
+			 const char * * * const primary_key_value,
+			 const cbf_cbf2nx_key_t * const key,
+			 cbf_node * const category)
+	{
+		int error = CBF_SUCCESS;
+		if (!primary_keys || !primary_key_column || !key || !category) {
+			error |= CBF_ARGUMENT;
+		} else if (!(*primary_key_column=malloc(cbf_count_primary_keys(primary_keys)*sizeof(cbf_node*)))) {
+			error |= CBF_ALLOC;
+		} else if (!(*primary_key_value=malloc(cbf_count_primary_keys(primary_keys)*sizeof(const char*)))) {
+			error |= CBF_ALLOC;
+					} else {
+			cbf_primary_key_t * it;
+			for (it = primary_keys; !error && it->name; ++it) {
+				/* reset the values in the cache */
+				(*primary_key_column)[it-primary_keys] = NULL;
+				/* attempt to set the column */
+				const int found = cbf_find_child((*primary_key_column)+(it-primary_keys), category, it->name);
+				if (CBF_NOTFOUND==found) {
+					cbf_debug_print3("warning: '%s.%s' not found\n",category->name,it->name);
+					(*primary_key_column)[it-primary_keys] = NULL;
+				} else if (CBF_SUCCESS!=found) {
+					if (1) {
+						cbf_debug_print3("error: problem finding '%s.%s'\n",category->name,it->name);
+						cbf_debug_print2("error: %s\n",cbf_strerror(found));
+					}
+					error |= found;
+							}
+				/* cache the values of primary keys */
+				if (it->getValue) (*primary_key_value)[it-primary_keys] = it->getValue(key);
+				else (*primary_key_value)[it-primary_keys] = NULL;
+						}
+					}
+		return error;
+	}
+    
+	/*
+	Extract a set of matching rows from the given primary keys of a cbf category, looking up rows in the cached
+	columns and comparing data to the cached values.
+
+	Occasionally, a malformed file will be missing a column in a different table that defines the set of valid
+	values for a foreign key in the current table. In this case all values for the degenerate row must compare equal
+	within the matching row set that would be obtained if the degenerate key was ignored. If the values of such a
+	column were allowed to differ then this would match columns that don't belong to the same item in the parent
+	table.
+	*/
+	static int cbf_get_matching_rows
+			(cbf_primary_key_t * const primary_keys,
+			 cbf_node * const * const primary_key_column,
+			 const char * const * const primary_key_value,
+			 const unsigned int nRows,
+			 unsigned int * * const row_set,
+			 unsigned int * const mRows)
+	{
+		int error = CBF_SUCCESS;
+		if (!primary_keys || !primary_key_column || !row_set || !mRows) {
+			error |= CBF_ARGUMENT;
+					} else {
+			if (!(*row_set=malloc(sizeof(unsigned int)*nRows))) {
+				error |= CBF_ALLOC;
+				} else {
+				unsigned int row;
+				cbf_primary_key_t * it;
+				*mRows = 0;
+				/* use well-defined keys to extract a set of matching rows */
+				for (row = 0; !error && row != nRows; ++row) {
+					int row_matches = 1;
+					cbf_primary_key_t * it;
+					for (it = primary_keys; !error && it->name; ++it) {
+						cbf_node * const column = primary_key_column[it-primary_keys];
+						const char * const value = primary_key_value[it-primary_keys];
+						if (column && value) {
+					const char * val = NULL;
+							if ((error|=cbf_node_get_value(column, row, &val))) {
+								cbf_debug_print2("error: %s\n",cbf_strerror(error));
+							} else {
+								if (it->cmp(value,val)) row_matches = 0;
+						}
+						}
+						}
+					if (row_matches) (*row_set)[(*mRows)++] = row;
+						}
+				if (*mRows) {
+					/* check that values given for degenerate keys are consistent within the set */
+					for (it = primary_keys; !error && it->name; ++it) {
+						cbf_node * const column = primary_key_column[it-primary_keys];
+						const char * const value = primary_key_value[it-primary_keys];
+						if (column && !value) {
+							const char * ref = NULL;
+							/* 'mRows' is unsigned and non-zero, so 'rows[0]' is valid and starting iterations from '1' is safe */
+							CBF_CALL(cbf_node_get_value(column, (*row_set)[0], &ref));
+							for (row = 1; !error && row != *mRows; ++row) {
+								const char * val = NULL;
+								CBF_CALL(cbf_node_get_value(column, (*row_set)[row], &val));
+								if (!error && it->cmp(ref,val)) {
+									cbf_debug_print2("error: inconsistent values for degenerate key '%s'\n",it->name);
+									error |= CBF_FORMAT;
+						}
+					}
+				}
+			}
+		}
+				}
+			}
+		return error;
+	}
+
+	/* typedef to match the signature of the 'cbf_h5handle_require_xyzzy' functions */
+	typedef int (*get_h5group_func)(cbf_h5handle, hid_t *, const char *);
+
+	/*
+	Conversion filter function signatures for various kinds of data:
+	- strings should be converted by producing a new string that should be free'd.
+	- numbers should be converted via a '*out = f(in)' process.
+	- a NULL function pointer should indicate that no conversion filter is required.
+	*/
+	typedef void (*filter_func)();
+	typedef int (*filter_string_func)(const char * const in, const char * * const out);
+	typedef int (*filter_double_func)(const double in, double * const out);
+
+	/* conversion function for inhomogeneity, to introduce a factor of 2 in the conversion */
+	int filter_inhomogeneity
+			(const double in,
+			 double * const out)
 	{
 		int error = CBF_SUCCESS;
 		if (!out) {
@@ -14752,157 +15372,1394 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			*out = 2.0*in;
 		}
 		return error;
-	}
+		}
 
-	/*
-     Can't use standard HDF5 datatypes in static initialisation, so define some custom types.
-     The most flexible solution is to build types using hdf5's type enums, but I only want
-     a small subset of the possible values that would provide.
-     */
-	enum data_type {
-		/* invalid type */
-		CBF_T_NONE,
-		/* string types */
-		CBF_T_FLSTR,
-		CBF_T_VLSTR,
-		/* floating-point types */
-		CBF_T_F64LE,
-		/* integer types */
+			/*
+	Define the possible mapping types, which will affect how a pointer is dereferenced later on.
+             */
+	enum mapping_type {
+		/* ignore this item - no mapping wanted */
+		CBF_MAP_NONE,
+		/* convert to a nexus field */
+		CBF_MAP_DATA,
+		/* extract a key value */
+		CBF_MAP_KEY,
+		/*
+		Store data from a column so it can be used via a callback function
+		once all columns in the current row have been processed.
+		*/
+		CBF_MAP_CACHE,
 	};
 
 	/*
-     A list of parameters to pass to a hypothetical 'cbf_H5Drequire_cmp' function,
-     which can be created using existing functionality.
-     */
-	typedef struct cbf2nx_item_map_t
-	{
+	A list of parameters to pass to a hypothetical 'cbf_nexus_dataset_with_units_require_cmp'
+	function, which can be created using existing functionality but is extremely specialised.
+	*/
+	typedef struct cbf2nx_item_datamap_t
+				{
 		const char * name;
 		const char * units;
 		get_h5group_func get_object;
-		convert_func convert;
-		enum data_type type;
+		filter_func filter;
 		int rank;
-	} cbf2nx_item_map_t;
+	} cbf2nx_item_datamap_t;
 
-	/* map an item name to some parameters used for converting it */
+	/* Conversion function for an item of data. */
+	typedef int (*convert_func)(cbf_node *, const unsigned int, cbf_h5handle, const cbf2nx_item_datamap_t *);
+
+	/* Single object to store both a conversion function and its data, for reference by 'cbf2nx_column_map_t'. */
+	typedef struct cbf2nx_convert_t {
+		convert_func convert;
+		cbf2nx_item_datamap_t data;
+	} cbf2nx_convert_t;
+
+	/* Define the signature of a function to be used to set a specific value in the 'key' object. */
+	typedef int (*set_key_func)(cbf_cbf2nx_key_t *, const char *);
+
+	/* Add a layer of indirection. */
+	typedef struct cbf2nx_set_key_t {
+		set_key_func set_key;
+	} cbf2nx_set_key_t;
+
+	/* Define the signature of a function to cache the value at 'arg_0[arg_1]' in the cache object given by 'arg_2'. */
+	typedef int (*cache_item_func)(cbf_node *, const unsigned int, void *);
+
+	/* Add a layer of indirection. */
+	typedef struct cbf2nx_cache_item_t {
+		cache_item_func cache_item;
+	} cbf2nx_cache_item_t;
+
+	/* map an item name to some (discriminated) parameters used for converting it */
 	typedef struct cbf2nx_column_map_t
 	{
 		const char * name;
-		cbf2nx_item_map_t data;
+		enum mapping_type type;
+		const void * data;
 	} cbf2nx_column_map_t;
 
-	/* map a category name to an array of items that it may contain */
+	/* define the information required to manage the lifetime of a cache object */
+	typedef struct cbf2nx_cache_t
+	{
+		size_t size; /*< the size of the cache object to be allocated */
+		int (*ctor) (void * self); /*< initialise 'self' to a standard state */
+		int (*dtor)(void * self); /*< free any allocated memory in 'self' */
+	} cbf2nx_cache_t;
+
+	/* define function signatures to per-row and per-table cache processing functions */
+	typedef int (*process_row_func)(cbf_node *, cbf_h5handle, cbf_cbf2nx_key_t *, void *, void *);
+	typedef int (*process_tbl_func)(cbf_node *, cbf_h5handle, cbf_cbf2nx_key_t *, void *);
+
+	/*
+	Map a category name to an array of primary keys, data which it may contain and cache
+	objects & processing functions for each row and for the whole set of matched rows.
+	*/
 	typedef struct cbf2nx_category_map_t
 	{
 		const char * name;
-		cbf2nx_column_map_t * data;
+		cbf_primary_key_t * key_data;
+		cbf2nx_column_map_t * column_data;
+		cbf2nx_cache_t row_cache;
+		process_row_func process_row;
+		cbf2nx_cache_t tbl_cache;
+		process_tbl_func process_tbl;
 	} cbf2nx_category_map_t;
-    
-	cbf2nx_column_map_t diffrn_data_frame_map[] = {
-		{"details",{"CBF_diffrn_data_frame__details",NULL,cbf_h5handle_require_detector,NULL,CBF_T_VLSTR,1}},
-		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
-	};
-    
-	cbf2nx_column_map_t diffrn_detector_map[] = {
-		{"details",{"details",NULL,cbf_h5handle_require_detector,NULL,CBF_T_FLSTR,0}},
-		{"detector",{"type",NULL,cbf_h5handle_require_detector,NULL,CBF_T_FLSTR,0}},
-		{"dtime",{"dead_time","us",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,0}},
-		{"gain_setting",{"gain_setting",NULL,cbf_h5handle_require_detector,NULL,CBF_T_FLSTR,0}},
-		{"layer_thickness",{"sensor_thickness","mm",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,0}},
-		{"sensor_material",{"sensor_material",NULL,cbf_h5handle_require_detector,NULL,CBF_T_FLSTR,0}},
-		{"threshold",{"threshold_energy","eV",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,0}},
-		{"type",{"description",NULL,cbf_h5handle_require_detector,NULL,CBF_T_FLSTR,0}},
-		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
-	};
-    
-	cbf2nx_column_map_t diffrn_detector_element_map[] = {
-		{"center[1]",{"beam_center_x","mm",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,1}},
-		{"center[2]",{"beam_center_y","mm",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,1}},
-		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
-	};
-    
-	cbf2nx_column_map_t diffrn_measurement_map[] = {
-		{"details",{"details",NULL,cbf_h5handle_require_goniometer,NULL,CBF_T_FLSTR,0}},
-		{"device",{"local_name",NULL,cbf_h5handle_require_goniometer,NULL,CBF_T_FLSTR,0}},
-		{"device_details",{"description",NULL,cbf_h5handle_require_goniometer,NULL,CBF_T_FLSTR,0}},
-		{"device_type",{"type",NULL,cbf_h5handle_require_goniometer,NULL,CBF_T_FLSTR,0}},
-		{"sample_detector_distance",{"distance","mm",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,1}},
-		{"method",{"method",NULL,cbf_h5handle_require_entry,NULL,CBF_T_FLSTR,0}},
-		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
-	};
-    
-	cbf2nx_column_map_t diffrn_radiation_map[] = {
-		{"collimation",{"collimation",NULL,cbf_h5handle_require_beam,NULL,CBF_T_FLSTR,0}},
-		{"div_x_source",{"incident_divergence_x","degrees",cbf_h5handle_require_beam,NULL,CBF_T_F64LE,0}},
-		{"div_x_y_source",{"incident_divergence_xy","degrees^2",cbf_h5handle_require_beam,NULL,CBF_T_F64LE,0}},
-		{"div_y_source",{"incident_divergence_y","degrees",cbf_h5handle_require_beam,NULL,CBF_T_F64LE,0}},
-		{"inhomogeneity",{"beam_size_x","mm",cbf_h5handle_require_beam,(convert_func)(convert_inhomogeneity),CBF_T_F64LE,0}},
-		{"inhomogeneity",{"beam_size_y","mm",cbf_h5handle_require_beam,(convert_func)(convert_inhomogeneity),CBF_T_F64LE,0}},
-		{"monochromator",{"description",NULL,cbf_h5handle_require_monochromator,NULL,CBF_T_FLSTR,0}},
-		{"probe",{"probe",NULL,cbf_h5handle_require_source,NULL,CBF_T_FLSTR,0}},
-		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
-	};
-    
-	cbf2nx_column_map_t diffrn_radiation_wavelength_map[] = {
-		{"wavelength",{"wavelength","A",cbf_h5handle_require_beam,NULL,CBF_T_F64LE,1}},
-		{"wt",{"weight",NULL,cbf_h5handle_require_beam,NULL,CBF_T_F64LE,1}},
-		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
-	};
-    
-	cbf2nx_column_map_t diffrn_scan_frame_map[] = {
-		{"date",{"frame_start_time",NULL,cbf_h5handle_require_detector,NULL,CBF_T_VLSTR,1}},
-		{"integration_period",{"frame_time","s",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,1}},
-		{"integration_time",{"count_time","s",cbf_h5handle_require_detector,NULL,CBF_T_F64LE,1}},
-		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
-	};
-    
-	cbf2nx_column_map_t diffrn_source_map[] = {
-		{"current",{"current","mA",cbf_h5handle_require_source,NULL,CBF_T_F64LE,0}},
-		{"power",{"power","kW",cbf_h5handle_require_source,NULL,CBF_T_F64LE,0}},
-		{"source",{"type",NULL,cbf_h5handle_require_source,NULL,CBF_T_FLSTR,0}},
-		{"target",{"target_material",NULL,cbf_h5handle_require_source,NULL,CBF_T_FLSTR,0}},
-		{"type",{"name",NULL,cbf_h5handle_require_source,NULL,CBF_T_FLSTR,0}},
-		{"voltage",{"voltage","kV",cbf_h5handle_require_source,NULL,CBF_T_F64LE,0}},
-		{NULL,{NULL,NULL,NULL,NULL,CBF_T_NONE,0}},
-	};
-    
-	cbf2nx_category_map_t cbf_map[] = {
-		{"diffrn_data_frame", diffrn_data_frame_map},
-		{"diffrn_detector", diffrn_detector_map},
-		{"diffrn_detector_element", diffrn_detector_element_map},
-		{"diffrn_measurement", diffrn_measurement_map},
-		{"diffrn_radiation", diffrn_radiation_map},
-		{"diffrn_radiation_wavelength", diffrn_radiation_wavelength_map},
-		{"diffrn_scan_frame", diffrn_scan_frame_map},
-		{"diffrn_source", diffrn_source_map},
-		{NULL, NULL},
-	};
-    
+
+
 	/*
-     Search a list of category mappings for one with a given name, returning the mapping data if found or NULL otherwise.
-     */
-	static const cbf2nx_column_map_t * cbf2nx_find_category_mapping
-    (const cbf2nx_category_map_t * catmap, /*< the list of category mappings to search within */
-     const char * const name /*< the name of the category mapping to search for */)
+	Define some functions for manipulating caches of per-row data for various parts of the conversion process
+	For each kind of cahce required I need to define:
+	- a type
+	- functions to manage its lifetime
+	- functions to populate it
+	- a function to use it
+	*/
+
+	/*
+	Many caches make use of a simple method of adding string or floating-point data,
+	these should turn all the boilerplate code to do that into one-liners.
+	*/
+#define DECL_CACHE_STR_SETTER(FUNCTION_NAME, CACHE_TYPE, CACHE_MEMBER) \
+static int FUNCTION_NAME \
+	(cbf_node * const column, \
+	const unsigned int row, \
+	void * const cache) \
+{ \
+	int error = CBF_SUCCESS; \
+	CACHE_TYPE * const c = cache; \
+	if (!column || !c) { \
+		error |= CBF_ARGUMENT; \
+} else { \
+		error |= cbf_node_get_value(column, row, &c->CACHE_MEMBER); \
+} \
+	return error; \
+		}
+
+#define DECL_CACHE_DOUBLE_SETTER(FUNCTION_NAME, CACHE_TYPE, CACHE_MEMBER) \
+static int FUNCTION_NAME \
+	(cbf_node * const column, \
+	const unsigned int row, \
+	void * const cache) \
+{ \
+	int error = CBF_SUCCESS; \
+	CACHE_TYPE * const c = cache; \
+	if (!column || !c) { \
+		error |= CBF_ARGUMENT; \
+} else { \
+		error |= cbf_node_get_doublevalue(column, row, &c->CACHE_MEMBER); \
+} \
+	return error; \
+		}
+
+#define DECL_CACHE_UINT_SETTER(FUNCTION_NAME, CACHE_TYPE, CACHE_MEMBER) \
+static int FUNCTION_NAME \
+	(cbf_node * const column, \
+	const unsigned int row, \
+	void * const cache) \
+{ \
+	int error = CBF_SUCCESS; \
+	CACHE_TYPE * const c = cache; \
+	if (!column || !c) { \
+		error |= CBF_ARGUMENT; \
+} else { \
+		error |= cbf_node_get_uintvalue(column, row, &c->CACHE_MEMBER); \
+} \
+	return error; \
+				}
+
+					/*
+	Define a type, constructor and setters to use when processing a single row of the 'array_data' table.
+                     */
+	typedef struct ArrayDataCache
 	{
-		if (!catmap || !name) {
-			return NULL;
-				} else {
-			for (; catmap->name; ++catmap) {
-				if (!strcmp(catmap->name,name)) {
-					return catmap->data;
+		cbf_node * column;
+		unsigned int row;
+	} ArrayDataCache;
+
+	static int ctor_ArrayDataCache
+			(void * const self)
+	{
+		int error = CBF_SUCCESS;
+		ArrayDataCache * const c = self;
+		if (!c) {
+			error |= CBF_ARGUMENT;
+					} else {
+			c->column = NULL;
+			c->row = 0;
+								}
+		return error;
+	}
+
+	static int cache_ArrayData_data
+			(cbf_node * const column,
+			 const unsigned int row,
+			 void * const cache)
+		{
+		int error = CBF_SUCCESS;
+		ArrayDataCache * const c = cache;
+		if (!column || !c) {
+			error |= CBF_ARGUMENT;
+		} else {
+			c->column = column;
+			c->row = row;
+					}
+		return error;
 				}
-			}
-			return NULL;
+
+			/*
+	Process data from a single row of 'array_data'.
+
+	This just needs to extract some data from the 'key' object and call a function
+	which is also used when converting minicbf data to nexus data.
+             */
+	static int process_ArrayDataCache
+			(cbf_node * const category,
+			 cbf_h5handle nx,
+			 cbf_cbf2nx_key_t * const key,
+			 void * const rcache,
+			 void * const tcache)
+				{
+		int error = CBF_SUCCESS;
+		ArrayDataCache * const c = rcache;
+		if (!category || !nx || !key || !c || tcache) {
+			error |= CBF_ARGUMENT;
+		} else {
+			if (!c->column) {
+				cbf_debug_print("error: no data located");
+			} else {
+				CBF_CALL(cbf_write_array_h5file(c->column,c->row,nx,key->data_overload,key->data_undefined,0));
+					}
+					}
+		return error;
 				}
+
+					/*
+	Define a type, constructor and setters to use when processing a single row of the 'diffrn_radiation' table.
+                     */
+	typedef struct DiffrnRadiationRowCache
+	{
+		double psn;
+		double psr;
+	} DiffrnRadiationRowCache;
+
+	static int ctor_DiffrnRadiationRowCache
+			(void * const self)
+	{
+		int error = CBF_SUCCESS;
+		DiffrnRadiationRowCache * const c = self;
+		if (!c) {
+			error |= CBF_ARGUMENT;
+					} else {
+			c->psn = 0.0;
+			c->psr = 0.0;
+					}
+		return error;
 	}
     
-	int cbf_convert_cbf2nx
-    (cbf_node * const column,
-     const unsigned int row,
-     cbf_h5handle nx,
-     const cbf2nx_item_map_t * conv)
+	DECL_CACHE_DOUBLE_SETTER(cache_DiffrnRadiation_PSN, DiffrnRadiationRowCache, psn);
+	DECL_CACHE_DOUBLE_SETTER(cache_DiffrnRadiation_PSR, DiffrnRadiationRowCache, psr);
+
+	/*
+	Process data from a single row of 'diffrn_radiation'.
+
+	Calculate some of the stokes parameters and make reasonable assumptions for those
+	which can't be identified with sufficient reliability (ie: intensity, which is not
+	present in CBF in a usable form; and circular polarisation, which is not present
+	in CBF in any form). Write the data to the appropriate place in nexus.
+	*/
+	static int process_DiffrnRadiationRowCache
+			(cbf_node * const category,
+			 cbf_h5handle nx,
+     cbf_cbf2nx_key_t * const key,
+			 void * const rcache,
+			 void * const tcache)
 	{
+		int error = CBF_SUCCESS;
+		DiffrnRadiationRowCache * const c = rcache;
+		if (!category || !nx || !key || !c || tcache) {
+			error |= CBF_ARGUMENT;
+		} else {
+			/* check existance of relevant columns */
+			const int have_psn = cbf_find_child(NULL,category,"polarizn_source_norm");
+			const int have_psr = cbf_find_child(NULL,category,"polarizn_source_ratio");
+			/* convert some data to a more useful form */
+			c->psn *= acos(-1.0)/90.0;
+			/* store computed data in nexus, if all went well */
+			if (!have_psn && !have_psr) {
+					hid_t dset = CBF_H5FAIL;
+					hid_t beam = CBF_H5FAIL;
+				const double value[] = {1.0,c->psr*cos(c->psn),c->psr*sin(c->psn),0.0};
+					const hsize_t max[] = {H5S_UNLIMITED,4};
+					const hsize_t chunk[] = {1,4};
+				const hsize_t offset[] = {nx->slice,0};
+					const hsize_t count[] = {1,4};
+					hsize_t buf[] = {0,0};
+				CBF_CALL(cbf_h5handle_require_beam(nx,&beam,0));
+					CBF_CALL(cbf_H5Drequire(beam,&dset,"incident_polarisation_stokes",2,max,chunk,buf,H5T_IEEE_F64LE));
+					CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,value,H5T_NATIVE_DOUBLE));
+					cbf_H5Dfree(dset);
+			} else if (CBF_NOTFOUND != have_psn) {
+				cbf_debug_print("error: problem testing for existence of 'diffrn_radiation.polarizn_source_norm':");
+				cbf_debug_print2("error: %s\n",cbf_strerror(have_psn));
+				error |= have_psn;
+			} else if (CBF_NOTFOUND != have_psr) {
+				cbf_debug_print3("error: %s %s\n","problem testing for existence of 'diffrn_radiation.polarizn_source_ratio':",cbf_strerror(have_psr));
+				error |= have_psr;
+				}
+			}
+		return error;
+	}
+
+	/*
+	Define a type, constructor and setters to use when processing a single row of the 'diffrn_scan_axis' table.
+	*/
+	typedef struct DiffrnScanAxisCache
+	{
+		const char * axis;
+		double disp_strt;
+		double angle_strt;
+		double disp_incr;
+		double angle_incr;
+		double disp_rstrt_incr;
+		double angle_rstrt_incr;
+	} DiffrnScanAxisCache;
+    
+	static int ctor_DiffrnScanAxisCache
+			(void * const self)
+	{
+		int error = CBF_SUCCESS;
+		DiffrnScanAxisCache * const c = self;
+		if (!c) {
+            error |= CBF_ARGUMENT;
+        } else {
+			c->axis = NULL;
+			c->disp_strt = 0.0;
+			c->angle_strt = 0.0;
+			c->disp_incr = 0.0;
+			c->angle_incr = 0.0;
+			c->disp_rstrt_incr = 0.0;
+			c->angle_rstrt_incr = 0.0;
+		}
+        return error;
+    }
+
+	DECL_CACHE_STR_SETTER(cache_DiffrnScanAxis_axis, DiffrnScanAxisCache, axis);
+	DECL_CACHE_DOUBLE_SETTER(cache_DiffrnScanAxis_angleIncr, DiffrnScanAxisCache, angle_incr);
+	DECL_CACHE_DOUBLE_SETTER(cache_DiffrnScanAxis_angleRstrtIncr, DiffrnScanAxisCache, angle_rstrt_incr);
+	DECL_CACHE_DOUBLE_SETTER(cache_DiffrnScanAxis_angleStrt, DiffrnScanAxisCache, angle_strt);
+	DECL_CACHE_DOUBLE_SETTER(cache_DiffrnScanAxis_dispIncr, DiffrnScanAxisCache, disp_incr);
+	DECL_CACHE_DOUBLE_SETTER(cache_DiffrnScanAxis_dispRstrtIncr, DiffrnScanAxisCache, disp_rstrt_incr);
+	DECL_CACHE_DOUBLE_SETTER(cache_DiffrnScanAxis_dispStrt, DiffrnScanAxisCache, disp_strt);
+        
+				/*
+	Process data from a single row of 'diffrn_scan_axis'.
+
+	For the axis with the id located in the row, locate the 'type' from the cbf file,
+	the path from the 'key' object, then insert a calulated displacement or angle
+	(depending on type) for the current frame. This value should be replaced by a per-
+	frame value later on, if one is given, so it acts as a bit like a default value.
+				*/
+	static int process_DiffrnScanAxisCache
+			(cbf_node * const category,
+			 cbf_h5handle nx,
+			 cbf_cbf2nx_key_t * const key,
+			 void * const rcache,
+			 void * const tcache)
+	{
+		int error = CBF_SUCCESS;
+		DiffrnScanAxisCache * const c = rcache;
+		if (!category || !nx || !key || !c || tcache) {
+			error |= CBF_ARGUMENT;
+                        } else {
+                    unsigned int i;
+                    /* find the index of the required axis within the axis settings */
+                    for (i = 0; i != key->axis.count; ++i) {
+				if (!strcmp(key->axis.axis_id[i],c->axis)) {
+                            break;
+		}
+                    }
+                    /* check if I found it, if so then use it */
+                    if (i == key->axis.count) {
+				cbf_debug_print2("error: %s\n",cbf_strerror(CBF_NOTFOUND));
+                        error |= CBF_NOTFOUND;
+                    } else {
+				cbf_node * axis_category = NULL;
+				cbf_node * axis_id_column = NULL;
+				cbf_node * axis_type_column = NULL;
+				const char * type = NULL;
+				unsigned int row = 0;
+				CBF_CALL(cbf_find_parent(&axis_category,category,CBF_DATABLOCK));
+				CBF_CALL(cbf_find_child(&axis_category,axis_category,"axis"));
+				CBF_CALL(cbf_find_child(&axis_id_column,axis_category,"id"));
+				CBF_CALL(cbf_find_child(&axis_type_column,axis_category,"type"));
+				CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,c->axis,&row));
+				CBF_CALL(cbf_node_get_value(axis_type_column,row,&type));
+                        if (CBF_SUCCESS==error) {
+                            hid_t dset = CBF_H5FAIL;
+					const hsize_t off[] = {nx->slice};
+                            const hsize_t cnt[] = {1};
+                            const hsize_t max[] = {H5S_UNLIMITED};
+                            hsize_t buf[] = {0};
+                            double data;
+                            if (!strcmp(type,"translation")) {
+						data = c->disp_strt + (c->disp_incr+c->disp_rstrt_incr)*key->frame_number;
+                            } else if (!strcmp(type,"rotation")) {
+						data = c->angle_strt + (c->angle_incr+c->angle_rstrt_incr)*key->frame_number;
+                            } else {
+                                data = 0./0.;
+                            }
+					CBF_CALL(cbf_H5Dfind2(nx->hfile,&dset,key->axis.path[i],1,max,buf,H5T_IEEE_F64LE));
+                            CBF_CALL(cbf_H5Dinsert(dset,off,0,cnt,buf,&data,H5T_NATIVE_DOUBLE));
+                            cbf_H5Dfree(dset);
+                        }
+                    }
+                }
+		return error;
+	}
+
+	/*
+	Define a type, constructor and setters to use when processing a single row of the 'diffrn_scan_frame_axis' table.
+	*/
+	typedef struct DiffrnScanFrameAxisCache
+	{
+		const char * axis;
+		double angle;
+		double disp;
+	} DiffrnScanFrameAxisCache;
+
+	static int ctor_DiffrnScanFrameAxisCache
+			(void * const self)
+	{
+		int error = CBF_SUCCESS;
+		DiffrnScanFrameAxisCache * const c = self;
+		if (!c) {
+			error |= CBF_ARGUMENT;
+        } else {
+			c->axis = NULL;
+			c->angle = 0.0;
+			c->disp = 0.0;
+                    }
+		return error;
+                }
+
+	DECL_CACHE_STR_SETTER(cache_DiffrnScanFrameAxis_axis, DiffrnScanFrameAxisCache, axis);
+	DECL_CACHE_DOUBLE_SETTER(cache_DiffrnScanFrameAxis_angle, DiffrnScanFrameAxisCache, angle);
+	DECL_CACHE_DOUBLE_SETTER(cache_DiffrnScanFrameAxis_disp, DiffrnScanFrameAxisCache, disp);
+
+                    /*
+	Process data from a single row of 'diffrn_scan_frame_axis'.
+
+	For the axis with the id located in the row, locate the 'type' from the cbf file,
+	the path from the 'key' object, then insert the displacement or angle (depending
+	on type) for the current frame.
+                     */
+	static int process_DiffrnScanFrameAxisCache
+			(cbf_node * const category,
+			 cbf_h5handle nx,
+			 cbf_cbf2nx_key_t * const key,
+			 void * const rcache,
+			 void * const tcache)
+	{
+		int error = CBF_SUCCESS;
+		DiffrnScanFrameAxisCache * const c = rcache;
+		if (!category || !nx || !key || !c || tcache) {
+			error |= CBF_ARGUMENT;
+                        } else {
+                    unsigned int i;
+                    /* find the index of the required axis within the axis settings */
+                    for (i = 0; i != key->axis.count; ++i) {
+				if (!strcmp(key->axis.axis_id[i],c->axis)) {
+                            break;
+                        }
+                    }
+                    /* check if I found it, if so then use it */
+                    if (i == key->axis.count) {
+				cbf_debug_print2("error: %s\n",cbf_strerror(CBF_NOTFOUND));
+                        error |= CBF_NOTFOUND;
+                    } else {
+				cbf_node * axis_category = NULL;
+				cbf_node * axis_id_column = NULL;
+				cbf_node * axis_type_column = NULL;
+				const char * type = NULL;
+				unsigned int row = 0;
+				CBF_CALL(cbf_find_parent(&axis_category,category,CBF_DATABLOCK));
+				CBF_CALL(cbf_find_child(&axis_category,axis_category,"axis"));
+				CBF_CALL(cbf_find_child(&axis_id_column,axis_category,"id"));
+				CBF_CALL(cbf_find_child(&axis_type_column,axis_category,"type"));
+				CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,c->axis,&row));
+				CBF_CALL(cbf_node_get_value(axis_type_column,row,&type));
+                        if (CBF_SUCCESS == error) {
+                            hid_t dset = CBF_H5FAIL;
+					const hsize_t off[] = {nx->slice};
+                            const hsize_t cnt[] = {1};
+                            const hsize_t max[] = {H5S_UNLIMITED};
+                            hsize_t buf[] = {0};
+                            const double * data;
+                            if (!strcmp(type,"translation")) {
+						data = &c->disp;
+                            } else if (!strcmp(type,"rotation")) {
+						data = &c->angle;
+                            } else {
+                                data = NULL;
+                            }
+					CBF_CALL(cbf_H5Dfind2(nx->hfile,&dset,key->axis.path[i],1,max,buf,H5T_IEEE_F64LE));
+                            CBF_CALL(cbf_H5Dinsert(dset,off,0,cnt,buf,data,H5T_NATIVE_DOUBLE));
+                            cbf_H5Dfree(dset);
+                        }
+                    }
+                }
+        return error;
+    }
+
+	/*
+	Define a type, constructor, destructor and setters to use when accumulating data from rows of the
+	'diffrn_detector_axis' table and when processing that data after all of it has been acquired.
+	*/
+	typedef struct DiffrnDetectorAxisTCache
+    {
+		size_t count;
+		const char * * axis_id;
+		unsigned int * in_degree;
+		const char * * path;
+	} DiffrnDetectorAxisTCache;
+        
+	static int ctor_DiffrnDetectorAxisTCache
+			(void * const self)
+	{
+		int error = CBF_SUCCESS;
+		DiffrnDetectorAxisTCache * const c = self;
+		if (!c) {
+            error |= CBF_ARGUMENT;
+        } else {
+			c->count = 0;
+			c->axis_id = NULL;
+			c->in_degree = NULL;
+			c->path = NULL;
+                    }
+		return error;
+                }
+
+	static int dtor_DiffrnDetectorAxisTCache
+			(void * const self)
+	{
+		int error = CBF_SUCCESS;
+		DiffrnDetectorAxisTCache * const c = self;
+		if (!c) {
+			error |= CBF_ARGUMENT;
+            } else {
+			size_t i;
+			for (i = 0; i != c->count; ++i) free((void*)c->path[i]);
+			free((void*)c->axis_id);
+			free((void*)c->in_degree);
+			free((void*)c->path);
+            }
+		return error;
+	}
+
+            /*
+	A utility function to simplify usage of the 'DiffrnDetectorAxisTCache' object.
+             */
+	static int DiffrnDetectorAxisTCache_insert_axis
+			(DiffrnDetectorAxisTCache * const c,
+			 const char * const axis_id,
+			 const char * const path)
+                {
+		int error = CBF_SUCCESS;
+		if (!c) {
+			error |= CBF_ARGUMENT;
+		} else {
+			const char * * new_axis_id = realloc(c->axis_id,(1+c->count)*sizeof(char*));
+			unsigned int * new_in_degree = realloc(c->in_degree,(1+c->count)*sizeof(unsigned int));
+			const char * * new_path = realloc(c->path,(1+c->count)*sizeof(char*));
+			if (!new_axis_id) {
+				error |= CBF_ALLOC;
+			} else {
+				c->axis_id = new_axis_id;
+				}
+			if (!new_in_degree) {
+				error |= CBF_ALLOC;
+                    } else {
+				c->in_degree = new_in_degree;
+                    }
+			if (!new_path) {
+				error |= CBF_ALLOC;
+                    } else {
+				c->path = new_path;
+					}
+			if (!error) {
+				c->axis_id[c->count] = axis_id;
+				c->in_degree[c->count] = 0;
+				c->path[c->count] = path;
+				++c->count;
+				}
+			}
+		return error;
+		}
+
+            /*
+	Process data accumulated from all matching rows of 'diffrn_detector_axis'.
+
+	This searches for a single leaf axis in the extracted set of axes, then writes the
+	detector dependency in nexus, and traverses the dependency chain for it to add each
+	required axis to the 'key' object with any relevant paths which were generated
+	when extracting data from each individual row of 'diffrn_detector_axis'.
+             */
+	static int process_DiffrnDetectorAxisTCache
+			(cbf_node * const category,
+			 cbf_h5handle nx,
+			 cbf_cbf2nx_key_t * const key,
+			 void * const tcache)
+	{
+		int error = CBF_SUCCESS;
+		DiffrnDetectorAxisTCache * const c = tcache;
+		if (!category || !nx || !key || !c) {
+			cbf_debug_print("error: can't process data from 'diffrn_detector_axis' table.");
+			error |= CBF_ARGUMENT;
+		} else {
+				/*
+			I now have all relevant axes from this category, so I can find & write the dependancy for the detector.
+			New axes are in the cache object. For each axis I need to set an in_degree, which tells me how many axes
+			refer to this axis. An in_degree of 0 means I probably have a leaf, a check to ensure only one axis has
+			an in_degree of 0 exists in the subset is needed to ensure I have a single valid leaf axis. If I have a
+			valid leaf then I can write the detector's dependency and add that and all it's dependent axes to the key
+			for later conversion.
+				*/
+                unsigned int i;
+			unsigned int leaf = c->count;
+                unsigned int leaves = 0;
+			cbf_node * axis_category = NULL;
+			cbf_node * axis_id_column = NULL;
+			cbf_node * axis_dependsOn_column = NULL;
+			CBF_CALL(cbf_find_parent(&axis_category,category,CBF_DATABLOCK));
+			CBF_CALL(cbf_find_child(&axis_category,axis_category,"axis"));
+			CBF_CALL(cbf_find_child(&axis_id_column,axis_category,"id"));
+			CBF_CALL(cbf_find_child(&axis_dependsOn_column,axis_category,"depends_on"));
+			/* populate the in-degree field in the cached data */
+			for (i = 0; c->count != i; ++i) {
+				unsigned int row = 0;
+                    const char * depends_on = NULL;
+                    /* locate the current axis and get its dependancy */
+				CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,c->axis_id[i],&row));
+				CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&depends_on));
+                    if (CBF_SUCCESS==error) {
+                        unsigned int j;
+                        /* I know which axis the current axis depends on, look for it in the current subset */
+					for (j = 0; c->count != j; ++j) {
+						if (!cbf_cistrcmp(c->axis_id[j],depends_on)) break;
+			}
+					if (c->count != j) {
+						++c->in_degree[j];
+			}
+		}
+                }
+                /* ensure there is only one leaf, and find it */
+			for (i = 0; c->count != i; ++i) {
+				if (0==c->in_degree[i]) {
+                        leaf = i;
+                        ++leaves;
+                    }
+                }
+                /* test if a single valid leaf axis was found */
+			if (1!=leaves || leaf>=c->count) {
+				cbf_debug_print("error: couldn't determine what defines the detector orientation");
+                    error |= CBF_FORMAT;
+                } else {
+				unsigned int row = 0;
+				unsigned int prev_idx = key->axis.count;
+				const char * axis_id = c->axis_id[leaf];
+				size_t index;
+				/* I now have a valid leaf axis, write the dependency... */
+				CBF_CALL(cbf_H5Drequire_flstring(nx->nxdetector,0,"depends_on",c->path[leaf]));
+				/* ...record the leaf axis in the key... */
+				if ((error|=_cbf_insert_axis(&key->axis,axis_id,c->path[leaf]))) {
+					cbf_debug_print2("error: %s\n",cbf_strerror(error));
+				} else {
+					c->path[leaf] = NULL;
+                }
+				/* ...find the next axis to look for... */
+				CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,axis_id,&row));
+				CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&axis_id));
+				/* ...and log all dependent axes in the key, taking paths from the cache when possible. */
+				while (axis_id && strcmp(axis_id,".") && !error) {
+					/* search for an axis with an id given by axis_id in the key, the cache, then the cbf file. */
+					if (!find_index_of_str_in_array(key->axis.axis_id,key->axis.count,axis_id,&index)) {
+						/* I already have the axis in the key, so I don't need to process any more axes. */
+						key->axis.depends_on[prev_idx] = index;
+						break;
+					} else if (!find_index_of_str_in_array(c->axis_id,c->count,axis_id,&index)) {
+						const unsigned int idx = key->axis.count;
+						/* I have a match in the cache - re-use its path. */
+						if ((error|=_cbf_insert_axis(&key->axis,axis_id,c->path[index]))) {
+							cbf_debug_print2("error: %s\n",cbf_strerror(error));
+						} else {
+							/* give up ownership of the path */
+							c->path[index] = NULL;
+							/* set dependency indices */
+							key->axis.depends_on[prev_idx] = idx;
+							prev_idx = idx;
+							/* look up the next axis to process */
+							CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,axis_id,&row));
+							CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&axis_id));
+            }
+					} else if (!(error|=cbf_node_find_nextrow(axis_id_column,0,axis_id,&row))) {
+						const unsigned int idx = key->axis.count;
+						/* No match found in the key or cache, found one in the axes in the cbf file. */
+						if ((error|=_cbf_insert_axis(&key->axis,axis_id,NULL))) {
+							cbf_debug_print2("error: %s\n",cbf_strerror(error));
+						} else {
+							key->axis.depends_on[prev_idx] = idx;
+							prev_idx = idx;
+        }
+						CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&axis_id));
+        } else {
+						/* it appears that the expected axis doesn't exist, this is an error */
+						cbf_debug_print3("error: %s %s\n","No axis found for axis with axis_id:",axis_id);
+						error |= CBF_NOTFOUND;
+		}
+		}
+            }
+            }
+		return error;
+	}
+
+            /*
+	Define a type, constructor and setters to use when processing a single row of the 'diffrn_detector_axis' table.
+             */
+	typedef struct DiffrnDetectorAxisRCache
+                {
+		const char * axis;
+	} DiffrnDetectorAxisRCache;
+
+	static int ctor_DiffrnDetectorAxisRCache
+			(void * const self)
+	{
+		int error = CBF_SUCCESS;
+		DiffrnDetectorAxisRCache * const c = self;
+		if (!c) {
+            error |= CBF_ARGUMENT;
+        } else {
+			c->axis = NULL;
+				}
+		return error;
+			}
+
+	DECL_CACHE_STR_SETTER(cache_DiffrnDetectorAxis_axis, DiffrnDetectorAxisRCache, axis);
+
+                    /*
+	Process data from a single row of 'diffrn_detector_axis'.
+
+	This generates a path for the axis that was found and inserts it into the table-level cache for further processing.
+                     */
+	static int process_DiffrnDetectorAxisRCache
+			(cbf_node * const category,
+			 cbf_h5handle nx,
+			 cbf_cbf2nx_key_t * const key,
+			 void * const rcache,
+			 void * const tcache)
+                {
+		int error = CBF_SUCCESS;
+		DiffrnDetectorAxisRCache * const r = rcache;
+		DiffrnDetectorAxisTCache * const t = tcache;
+		if (!category || !nx || !key || !r || !t) {
+			cbf_debug_print("error: can't process row of 'diffrn_detector_axis'.");
+			error |= CBF_ARGUMENT;
+                    } else {
+			if (!r->axis) {
+				cbf_debug_print("error: 'axis_id' not found");
+                        error |= CBF_NOTFOUND;
+                    } else {
+                        /* the axis exists - convert the data */
+				hid_t det = CBF_H5FAIL;
+                        hid_t axisGroup = CBF_H5FAIL;
+					const char axis_group_name[] = "pose";
+				CBF_CALL(cbf_h5handle_require_detector(nx,&det,0));
+				CBF_CALL(cbf_H5Grequire(det,&axisGroup,axis_group_name));
+				CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXcollection"));
+				if (!error) {
+					const char path_empty[] = "";
+					const char * path_parts[] = {
+						path_empty,
+						nx->nxid_name,
+						nx->nxinstrument_name,
+						nx->nxdetector_name,
+						axis_group_name,
+						r->axis,
+						0
+					};
+					const char * axis_path = _cbf_strjoin(path_parts,'/');
+					/* try to transfer ownership of the path to the table-level cache */
+					if ((error|=DiffrnDetectorAxisTCache_insert_axis(t,r->axis,axis_path))) {
+						cbf_debug_print2("error: %s\n",cbf_strerror(error));
+					} else {
+						axis_path = NULL;
+					}
+					free((void*)axis_path);
+				}
+				cbf_H5Gfree(axisGroup);
+			}
+		}
+		return error;
+	}
+
+                        /*
+	Define a type, constructor, destructor and setters to use when accumulating data from rows of the
+	'diffrn_measurement_axis' table and when processing that data after all of it has been acquired.
+                         */
+	typedef struct DiffrnMeasurementAxisTCache
+	{
+		size_t count;
+		const char * * axis_id;
+		unsigned int * in_degree;
+		const char * * path;
+	} DiffrnMeasurementAxisTCache;
+
+	static int ctor_DiffrnMeasurementAxisTCache
+			(void * const self)
+	{
+		int error = CBF_SUCCESS;
+		DiffrnMeasurementAxisTCache * const c = self;
+		if (!c) {
+			error |= CBF_ARGUMENT;
+		} else {
+			c->count = 0;
+			c->axis_id = NULL;
+			c->in_degree = NULL;
+			c->path = NULL;
+					}
+		return error;
+				}
+
+	static int dtor_DiffrnMeasurementAxisTCache
+			(void * const self)
+	{
+		int error = CBF_SUCCESS;
+		DiffrnMeasurementAxisTCache * const c = self;
+		if (!c) {
+			error |= CBF_ARGUMENT;
+		} else {
+			size_t i;
+			for (i = 0; i != c->count; ++i) free((void*)c->path[i]);
+			free((void*)c->axis_id);
+			free((void*)c->in_degree);
+			free((void*)c->path);
+			}
+		return error;
+		}
+
+            /*
+	A utility function to simplify usage of the 'DiffrnMeasurementAxisTCache' object.
+             */
+	static int DiffrnMeasurementAxisTCache_insert_axis
+			(DiffrnMeasurementAxisTCache * const c,
+			 const char * const axis_id,
+			 const char * const path)
+	{
+		int error = CBF_SUCCESS;
+		if (!c) {
+			error |= CBF_ARGUMENT;
+            } else {
+			const char * * new_axis_id = realloc(c->axis_id,(1+c->count)*sizeof(char*));
+			unsigned int * new_in_degree = realloc(c->in_degree,(1+c->count)*sizeof(unsigned int));
+			const char * * new_path = realloc(c->path,(1+c->count)*sizeof(char*));
+			if (!new_axis_id) {
+				error |= CBF_ALLOC;
+			} else {
+				c->axis_id = new_axis_id;
+			}
+			if (!new_in_degree) {
+				error |= CBF_ALLOC;
+			} else {
+				c->in_degree = new_in_degree;
+			}
+			if (!new_path) {
+				error |= CBF_ALLOC;
+			} else {
+				c->path = new_path;
+			}
+			if (!error) {
+				c->axis_id[c->count] = axis_id;
+				c->in_degree[c->count] = 0;
+				c->path[c->count] = path;
+				++c->count;
+			}
+		}
+		return error;
+	}
+
+	/*
+	Process data accumulated from all matching rows of 'diffrn_measurement_axis'.
+
+	This searches for a single leaf axis in the extracted set of axes, then writes the
+	sample dependency in nexus, and traverses the dependency chain for it to add each
+	required axis to the 'key' object with any relevant paths which were generated
+	when extracting data from each individual row of 'diffrn_measurement_axis'.
+	*/
+	static int process_DiffrnMeasurementAxisTCache
+			(cbf_node * const category,
+			 cbf_h5handle nx,
+			 cbf_cbf2nx_key_t * const key,
+			 void * const tcache)
+	{
+		int error = CBF_SUCCESS;
+		DiffrnMeasurementAxisTCache * const c = tcache;
+		if (!category || !nx || !key || !c) {
+			cbf_debug_print("error: can't process data from 'diffrn_measurement_axis' table.");
+			error |= CBF_ARGUMENT;
+		} else {
+				/*
+             I now have all relevant axes from this category, so I can find & write the dependancy for the sample.
+			New axes are in the cache object. For each axis I need to set an in_degree, which tells me how many axes
+			refer to this axis. An in_degree of 0 means I probably have a leaf, a check to ensure only one axis has
+			an in_degree of 0 exists in the subset is needed to ensure I have a single valid leaf axis. If I have a
+			valid leaf then I can write the sample's dependency and add that and all it's dependent axes to the key
+			for later conversion.
+             */
+                unsigned int i;
+			unsigned int leaf = c->count;
+                unsigned int leaves = 0;
+			cbf_node * axis_category = NULL;
+			cbf_node * axis_id_column = NULL;
+			cbf_node * axis_dependsOn_column = NULL;
+			CBF_CALL(cbf_find_parent(&axis_category,category,CBF_DATABLOCK));
+			CBF_CALL(cbf_find_child(&axis_category,axis_category,"axis"));
+			CBF_CALL(cbf_find_child(&axis_id_column,axis_category,"id"));
+			CBF_CALL(cbf_find_child(&axis_dependsOn_column,axis_category,"depends_on"));
+			/* populate the in-degree field in the cached data */
+			for (i = 0; c->count != i; ++i) {
+				unsigned int row = 0;
+                    const char * depends_on = NULL;
+                    /* locate the current axis and get its dependancy */
+				CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,c->axis_id[i],&row));
+				CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&depends_on));
+		if (CBF_SUCCESS == error) {
+                        unsigned int j;
+                        /* I know which axis the current axis depends on, look for it in the current subset */
+					for (j = 0; c->count != j; ++j) {
+						if (!cbf_cistrcmp(c->axis_id[j],depends_on)) break;
+			}
+					if (c->count != j) {
+						++c->in_degree[j];
+			}
+		}
+                }
+                /* ensure there is only one leaf, and find it */
+			for (i = 0; c->count != i; ++i) {
+				if (0==c->in_degree[i]) {
+                        leaf = i;
+                        ++leaves;
+                    }
+                }
+                /* test if a single valid leaf axis was found */
+			if (1!=leaves || leaf>=c->count) {
+				/* it *might* be possible to use multiple goniometers, so a different check might be required here */
+				cbf_debug_print("error: couldn't determine what defines the sample orientation");
+                    error |= CBF_FORMAT;
+                } else {
+				unsigned int row = 0;
+				unsigned int prev_idx = key->axis.count;
+				const char * axis_id = c->axis_id[leaf];
+				size_t index;
+				/* I now have a valid leaf axis, write the dependency... */
+				CBF_CALL(cbf_H5Drequire_flstring(nx->nxsample,0,"depends_on",c->path[leaf]));
+				/* ...record the leaf axis in the key... */
+				if ((error|=_cbf_insert_axis(&key->axis,axis_id,c->path[leaf]))) {
+					cbf_debug_print2("error: %s\n",cbf_strerror(error));
+				} else {
+					c->path[leaf] = NULL;
+                }
+				/* ...find the next axis to look for... */
+				CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,axis_id,&row));
+				CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&axis_id));
+				/* ...and log all dependent axes in the key, taking paths from the cache when possible. */
+				while (axis_id && strcmp(axis_id,".") && !error) {
+					/* search for an axis with an id given by axis_id in the key, the cache, then the cbf file. */
+					if (!find_index_of_str_in_array(key->axis.axis_id,key->axis.count,axis_id,&index)) {
+						/* I already have the axis in the key, so I don't need to process any more axes. */
+						key->axis.depends_on[prev_idx] = index;
+						break;
+					} else if (!find_index_of_str_in_array(c->axis_id,c->count,axis_id,&index)) {
+						const unsigned int idx = key->axis.count;
+						/* I have a match in the cache - re-use its path. */
+						if ((error|=_cbf_insert_axis(&key->axis,axis_id,c->path[index]))) {
+							cbf_debug_print2("error: %s\n",cbf_strerror(error));
+						} else {
+							/* give up ownership of the path */
+							c->path[index] = NULL;
+							/* set dependency indices */
+							key->axis.depends_on[prev_idx] = idx;
+							prev_idx = idx;
+							/* look up the next axis to process */
+							CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,axis_id,&row));
+							CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&axis_id));
+            }
+					} else if (!(error|=cbf_node_find_nextrow(axis_id_column,0,axis_id,&row))) {
+						const unsigned int idx = key->axis.count;
+						/* No match found in the key or cache, found one in the axes in the cbf file. */
+						if ((error|=_cbf_insert_axis(&key->axis,axis_id,NULL))) {
+							cbf_debug_print2("error: %s\n",cbf_strerror(error));
+						} else {
+							key->axis.depends_on[prev_idx] = idx;
+							prev_idx = idx;
+        }
+						CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&axis_id));
+					} else {
+						/* it appears that the expected axis doesn't exist, this is an error */
+						cbf_debug_print3("error: %s %s\n","No axis found for axis with axis_id:", axis_id);
+						error |= CBF_NOTFOUND;
+					}
+				}
+			}
+		}
+		return error;
+	}
+
+	/*
+	Define a type, constructor and setters to use when processing a single row of the 'diffrn_measurement_axis' table.
+	*/
+	typedef struct DiffrnMeasurementAxisRCache
+	{
+		const char * axis;
+		/* insert data to identify different goniometers here? */
+	} DiffrnMeasurementAxisRCache;
+
+	static int ctor_DiffrnMeasurementAxisRCache
+			(void * const self)
+	{
+		int error = CBF_SUCCESS;
+		DiffrnMeasurementAxisRCache * const c = self;
+		if (!c) {
+            error |= CBF_ARGUMENT;
+        } else {
+			c->axis = NULL;
+		}
+		return error;
+		}
+
+	DECL_CACHE_STR_SETTER(cache_DiffrnMeasurementAxis_axis, DiffrnMeasurementAxisRCache, axis);
+
+            /*
+	Process data from a single row of 'diffrn_measurement_axis'.
+
+	This generates a path for the axis that was found and inserts it into the table-level cache for further processing.
+             */
+	static int process_DiffrnMeasurementAxisRCache
+			(cbf_node * const category,
+			 cbf_h5handle nx,
+			 cbf_cbf2nx_key_t * const key,
+			 void * const rcache,
+			 void * const tcache)
+                {
+		int error = CBF_SUCCESS;
+		DiffrnMeasurementAxisRCache * const r = rcache;
+		DiffrnMeasurementAxisTCache * const t = tcache;
+		if (!category || !nx || !key || !r || !t) {
+			cbf_debug_print("error: can't process row of 'diffrn_measurement_axis'.");
+			error |= CBF_ARGUMENT;
+		} else {
+			if (!r->axis) {
+				cbf_debug_print("error: 'axis_id' not found");
+				error |= CBF_NOTFOUND;
+			} else {
+				/* the axis exists - convert the data */
+				hid_t sample = CBF_H5FAIL;
+				hid_t axisGroup = CBF_H5FAIL;
+				const char axis_group_name[] = "pose";
+				CBF_CALL(cbf_h5handle_require_sample(nx,&sample,0));
+				CBF_CALL(cbf_H5Grequire(sample,&axisGroup,axis_group_name));
+				CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXcollection"));
+				if (!error) {
+					const char path_empty[] = "";
+					const char * path_parts[] = {
+						path_empty,
+						nx->nxid_name,
+						nx->nxsample_name,
+						axis_group_name,
+						r->axis,
+						0
+					};
+					const char * axis_path = _cbf_strjoin(path_parts,'/');
+					/* try to transfer ownership of the path to the table-level cache */
+					if ((error|=DiffrnMeasurementAxisTCache_insert_axis(t,r->axis,axis_path))) {
+						cbf_debug_print2("error: %s\n",cbf_strerror(error));
+					} else {
+						axis_path = NULL;
+                        }
+					free((void*)axis_path);
+                    }
+				cbf_H5Gfree(axisGroup);
+                }
+                    }
+		return error;
+	}
+
+                    /*
+	Define a type, constructor and setters to use when processing a single row of the 'array_intensities' table.
+                     */
+	typedef struct ArrayIntensitiesCache
+	{
+		const char * linearity;
+		double gain;
+		double offset;
+		double scaling;
+	} ArrayIntensitiesCache;
+
+	static int ctor_ArrayIntensitiesCache
+			(void * const self)
+	{
+		int error = CBF_SUCCESS;
+		ArrayIntensitiesCache * const c = self;
+		if (!c) {
+			error |= CBF_ARGUMENT;
+                    } else {
+			c->linearity = NULL;
+			c->gain = 0.0;
+			c->offset = 0.0;
+			c->scaling = 0.0;
+                    }
+		return error;
+	}
+
+	DECL_CACHE_STR_SETTER(cache_ArrayIntensities_linearity, ArrayIntensitiesCache, linearity);
+	DECL_CACHE_DOUBLE_SETTER(cache_ArrayIntensities_gain, ArrayIntensitiesCache, gain);
+	DECL_CACHE_DOUBLE_SETTER(cache_ArrayIntensities_offset, ArrayIntensitiesCache, offset);
+	DECL_CACHE_DOUBLE_SETTER(cache_ArrayIntensities_scaling, ArrayIntensitiesCache, scaling);
+
+	/*
+	Process data from a single row of 'array_intensities'.
+
+	The processing depends on the value of 'linearity':
+	if linearity is "linear" then the scaling factor is assumed to be 1/gain.
+	if linearity in ["linear","offset","scaling","scaling_offset"]:
+	write the 'offset' and 'scaling_factor' to datasets with those names
+	elseif linearity in ["sqrt_scaled","logarithmic_scaled"]:
+	throw Exception("Non-linear scaling is not supported in NeXus")
+	elseif linearity is "raw" then no scaling information needs to be stored for this row
+	else throw Exception("Unrecognised linearity")
+	*/
+	static int process_ArrayIntensitiesCache
+			(cbf_node * const category,
+			 cbf_h5handle nx,
+     cbf_cbf2nx_key_t * const key,
+			 void * const rcache,
+			 void * const tcache)
+	{
+		int error = CBF_SUCCESS;
+		ArrayIntensitiesCache * const c = rcache;
+		if (!category || !nx || !key || !c || tcache) {
+            error |= CBF_ARGUMENT;
+        } else {
+				/*
+			I have extracted all the information from a relevant row,
+			now I need to convert it to nexus format and write it.
+				*/
+			if (!c->linearity) {
+				cbf_debug_print("error: 'array_intensities.linearity' not found");
+				error |= CBF_NOTFOUND;
+			} else {
+				hsize_t max[] = {H5S_UNLIMITED};
+				hsize_t cnk[] = {1};
+				hsize_t buf[] = {0};
+				hsize_t data_offset[] = {nx->slice};
+				hsize_t count[] = {1};
+				if (!cbf_cistrcmp(c->linearity,"linear")) c->scaling = 1.0/c->gain;
+				if (!cbf_cistrcmp(c->linearity,"linear") || !cbf_cistrcmp(c->linearity,"offset") || !cbf_cistrcmp(c->linearity,"scaling") || !cbf_cistrcmp(c->linearity,"scaling_offset")) {
+					hid_t dset_offset = CBF_H5FAIL;
+					hid_t dset_scale = CBF_H5FAIL;
+					CBF_CALL(cbf_H5Drequire(nx->nxdetector,&dset_offset,"offset",1,max,cnk,buf,H5T_IEEE_F64LE));
+					CBF_CALL(cbf_H5Dinsert(dset_offset,data_offset,0,count,buf,&c->offset,H5T_NATIVE_DOUBLE));
+					CBF_CALL(cbf_H5Drequire(nx->nxdetector,&dset_scale,"scaling_factor",1,max,cnk,buf,H5T_IEEE_F64LE));
+					CBF_CALL(cbf_H5Dinsert(dset_scale,data_offset,0,count,buf,&c->scaling,H5T_NATIVE_DOUBLE));
+					cbf_H5Dfree(dset_offset);
+					cbf_H5Dfree(dset_scale);
+				} else if (!cbf_cistrcmp(c->linearity,"raw")) {
+					/* no-op! */
+				} else if (!cbf_cistrcmp(c->linearity,"sqrt_scaled") || !cbf_cistrcmp(c->linearity,"logarithmic_scaled")) {
+					cbf_debug_print3("error: %s %s\n","unsupported 'array_intensities.linearity' value:",c->linearity);
+				} else {
+					cbf_debug_print3("error: %s %s\n","unrecognised 'array_intensities.linearity' value:",c->linearity);
+					error |= CBF_FORMAT;
+		}
+		}
+		}
+		return error;
+            }
+
+            /*
+	Define a type, constructor and setters to use when processing a single row of the 'array_structure_list' table.
+             */
+	typedef struct ArrayStructureListCache
+                {
+		const char * axis_set_id;
+		const char * direction;
+		unsigned int dimension;
+		unsigned int index;
+		unsigned int precedence;
+	} ArrayStructureListCache;
+
+	static int ctor_ArrayStructureListCache
+			(void * const self)
+	{
+		int error = CBF_SUCCESS;
+		ArrayStructureListCache * const c = self;
+		if (!c) {
+			error |= CBF_ARGUMENT;
+		} else {
+			c->axis_set_id = NULL;
+			c->direction = NULL;
+			c->dimension = 0;
+			c->index = 0;
+			c->precedence = 0;
+                        }
+		return error;
+                    }
+
+	DECL_CACHE_STR_SETTER(cache_ArrayStructureList_axis_set_id, ArrayStructureListCache, axis_set_id);
+	DECL_CACHE_STR_SETTER(cache_ArrayStructureList_direction, ArrayStructureListCache, direction);
+	DECL_CACHE_UINT_SETTER(cache_ArrayStructureList_dimension, ArrayStructureListCache, dimension);
+	DECL_CACHE_UINT_SETTER(cache_ArrayStructureList_index, ArrayStructureListCache, index);
+	DECL_CACHE_UINT_SETTER(cache_ArrayStructureList_precedence, ArrayStructureListCache, precedence);
+
+                    /*
+	Process data from a single row of 'array_structure_list'.
+
+	Picks a name for the axis set based on its precedence, constructs a path for it and then caches
+	that data in the given 'key'.
+                     */
+	static int process_ArrayStructureListCache
+			(cbf_node * const category,
+			 cbf_h5handle nx,
+			 cbf_cbf2nx_key_t * const key,
+			 void * const rcache,
+			 void * const tcache)
+	{
+		int error = CBF_SUCCESS;
+		ArrayStructureListCache * const c = rcache;
+		if (!category || !nx || !key || !c || tcache) {
+			error |= CBF_ARGUMENT;
+                    } else {
+			const char empty_string[] = "";
+			const char pixel_y[] = "y_pixel_offset";
+			const char pixel_x[] = "x_pixel_offset";
+			const char * const axis_names[] = {empty_string, pixel_x, pixel_y};
+			if (c->precedence < 1 || c->precedence > 2) {
+				/* I don't have axis names defined outside of this range */
+				cbf_debug_print("error: 'precedence' isn't in the range of valid values");
+				error |= CBF_FORMAT;
+			} else {
+				CBF_CALL(cbf_h5handle_require_detector(nx,0,0));
+				if (!error) {
+					const char * path_parts[] = {
+						empty_string,
+						nx->nxid_name,
+						nx->nxinstrument_name,
+						nx->nxdetector_name,
+						/* select the correct axis name */
+						axis_names[c->precedence],
+						0
+					};
+					const char * const axis_path = _cbf_strjoin(path_parts,'/');
+					CBF_CALL(
+							_cbf_insert_arrayAxisSet(
+							&key->arrayAxisSet,
+					c->axis_set_id,
+					axis_path,
+					c->index,
+					c->precedence,
+					c->dimension,
+					c->direction
+													)
+							);
+					free((void*)axis_path);
+                    }
+                }
+            }
+		return error;
+	}
+
+        /*
+	Extract a fixed-length string value from 'column[row]', apply an optional
+	filter found in 'conv' and store it in 'nx'. The group, field name and format of the
+	data in 'nx' is found in 'conv'.
+         */
+	static int cbf_convert_cbf2nx_flstr
+			(cbf_node * const column,
+			 const unsigned int row,
+			 cbf_h5handle nx,
+			 const cbf2nx_item_datamap_t * conv)
+	{
+		int error = CBF_SUCCESS;
+		if (!column) {
+			cbf_debug_print("error: invalid column given");
+            error |= CBF_ARGUMENT;
+		} else if (row >= column->children) {
+			cbf_debug_print("error: invalid row given");
+            error |= CBF_ARGUMENT;
+		} else if (!nx) {
+			cbf_debug_print("error: invalid hdf5 handle given");
+            error |= CBF_ARGUMENT;
+		} else if (!conv) {
+			cbf_debug_print("error: invalid conversion data given");
+			error |= CBF_ARGUMENT;
+            } else {
+			hid_t obj = CBF_H5FAIL;
+			hid_t dset = CBF_H5FAIL;
+			const char * in = NULL;
+			const char * _out = NULL;
+			const char * out = NULL;
+			CBF_CALL(conv->get_object(nx,&obj,NULL));
+			CBF_CALL(cbf_node_get_value(column, row, &in));
+			if (conv->filter) {
+				filter_string_func filter = (filter_string_func)(conv->filter);
+				CBF_CALL(filter(in,&_out));
+				out = _out;
+        } else {
+				out = in;
+		}
+			if (0 != conv->rank) {
+				cbf_debug_print2("error: %s\n",cbf_strerror(CBF_NOTIMPLEMENTED));
+				error |= CBF_NOTIMPLEMENTED;
+		}
+			CBF_CALL(cbf_H5Drequire_flstring(obj,&dset,conv->name,out));
+			if (conv->units) CBF_CALL(cbf_H5Arequire_string(dset,"units",conv->units));
+			cbf_H5Dfree(dset);
+			free((void*)_out);
+            }
+		return error;
+            }
+
+            /*
+	Extract a variable-length string value from 'column[row]', apply an optional
+	filter found in 'conv' and store it in 'nx'. The group, field name and format of the
+	data in 'nx' is found in 'conv'.
+             */
+	static int cbf_convert_cbf2nx_vlstr
+			(cbf_node * const column,
+			 const unsigned int row,
+			 cbf_h5handle nx,
+			 const cbf2nx_item_datamap_t * const conv)
+                {
+		int error = CBF_SUCCESS;
+		if (!column) {
+			cbf_debug_print2("error: %s\n","invalid column given");
+			error |= CBF_ARGUMENT;
+		} else if (row >= column->children) {
+			cbf_debug_print2("error: %s\n","invalid row given");
+			error |= CBF_ARGUMENT;
+		} else if (!nx) {
+			cbf_debug_print2("error: %s\n","invalid hdf5 handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!conv) {
+			cbf_debug_print2("error: %s\n","invalid conversion data given");
+			error |= CBF_ARGUMENT;
+		} else {
+			hid_t obj = CBF_H5FAIL;
+			hid_t dset = CBF_H5FAIL;
+			hid_t vlstr = CBF_H5FAIL;
+			const char * in = NULL;
+			const char * _out = NULL;
+			const char * out = NULL;
+			CBF_CALL(conv->get_object(nx,&obj,NULL));
+			CBF_CALL(cbf_H5Tcreate_string(&vlstr,H5T_VARIABLE));
+			CBF_CALL(cbf_node_get_value(column, row, &in));
+			if (conv->filter) {
+				filter_string_func filter = (filter_string_func)(conv->filter);
+				CBF_CALL(filter(in,&_out));
+				out = _out;
+			} else {
+				out = in;
+                        }
+			if (0==conv->rank) {
+				CBF_CALL(cbf_H5Drequire(obj,&dset,conv->name,0,NULL,NULL,NULL,vlstr));
+				CBF_CALL(cbf_H5Dwrite2(dset,NULL,NULL,NULL,&out,vlstr));
+			} else if (1==conv->rank) {
+				const hsize_t max[] = {H5S_UNLIMITED};
+				const hsize_t cnk[] = {1};
+				const hsize_t off[] = {nx->slice};
+				const hsize_t cnt[] = {1};
+				hsize_t buf[] = {0};
+				CBF_CALL(cbf_H5Drequire(obj,&dset,conv->name,1,max,cnk,buf,vlstr));
+				CBF_CALL(cbf_H5Dinsert(dset,off,NULL,cnt,buf,&out,vlstr));
+			} else {
+				cbf_debug_print("error: unrecognised/not implemented data rank");
+                    }
+			if (conv->units) CBF_CALL(cbf_H5Arequire_string(dset,"units",conv->units));
+			cbf_H5Dfree(dset);
+			cbf_H5Tfree(vlstr);
+			free((void*)_out);
+                }
+		return error;
+                    }
+
+                    /*
+	Extract a double-precision floating-point value from 'column[row]', apply an optional
+	filter found in 'conv' and store it in 'nx'. The group, field name and format of the
+	data in 'nx' is found in 'conv'.
+                     */
+	static int cbf_convert_cbf2nx_double
+			(cbf_node * const column,
+			 const unsigned int row,
+			 cbf_h5handle nx,
+			 const cbf2nx_item_datamap_t * conv)
+                    {
 		int error = CBF_SUCCESS;
 		if (!column) {
 			cbf_debug_print("error: invalid column given");
@@ -14916,7 +16773,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		} else if (!conv) {
 			cbf_debug_print("error: invalid conversion data given");
 			error |= CBF_ARGUMENT;
-				} else {
+		} else {
 			hid_t obj = CBF_H5FAIL;
 #ifdef CBF_USE_ULP
 			cmp_double_param_t cmp_double_params;
@@ -14929,1987 +16786,35 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 #endif
 #else
 			void * cmp_params = 0;
+            CBF_UNUSED(cmp_params);
 #endif
 			/* it looks like I might be able to convert the data */
 			CBF_CALL(conv->get_object(nx,&obj,NULL));
-			switch (conv->type) {
-				case CBF_T_FLSTR: {
-					const char * val = NULL;
-					hid_t dset = CBF_H5FAIL;
-					CBF_CALL(cbf_node_get_value(column, row, &val));
-					if (conv->convert) {
-						cbf_debug_print(cbf_strerror(CBF_NOTIMPLEMENTED));
-                        error |= CBF_NOTIMPLEMENTED;
-				}
-                    if (0 != conv->rank) {
-                        cbf_debug_print(cbf_strerror(CBF_NOTIMPLEMENTED));
-                        error |= CBF_NOTIMPLEMENTED;
-			}
-                    CBF_CALL(cbf_H5Drequire_flstring(obj,&dset,conv->name,val));
-                    if (conv->units) CBF_CALL(cbf_H5Arequire_string(dset,"units",conv->units));
-                    cbf_H5Dfree(dset);
-                    break;
-		}
-                case CBF_T_VLSTR: {
-                    const char * in = NULL;
-                    const char * _out = NULL;
-                    const char * out = NULL;
-                    hid_t dset = CBF_H5FAIL;
-                    hid_t vlstr = CBF_H5FAIL;
-                    CBF_CALL(cbf_H5Tcreate_string(&vlstr,H5T_VARIABLE));
-                    CBF_CALL(cbf_node_get_value(column, row, &in));
-                    if (conv->convert) {
-                        convert_string_func convert = (convert_string_func)(conv->convert);
-                        CBF_CALL(convert(in,&_out));
-                        out = _out;
-                    } else {
-                        out = in;
-                    }
-                    if (0==conv->rank) {
-                        CBF_CALL(cbf_H5Drequire(obj,&dset,conv->name,0,NULL,NULL,NULL,vlstr));
-                        CBF_CALL(cbf_H5Dinsert(dset,NULL,NULL,NULL,NULL,&out,vlstr));
-                    } else if (1==conv->rank) {
-                        const hsize_t max[] = {H5S_UNLIMITED};
-                        const hsize_t cnk[] = {1};
-                        const hsize_t off[] = {nx->slice};
-                        const hsize_t cnt[] = {1};
-                        hsize_t buf[] = {0};
-                        CBF_CALL(cbf_H5Drequire(obj,&dset,conv->name,1,max,cnk,buf,vlstr));
-                        CBF_CALL(cbf_H5Dinsert(dset,off,NULL,cnt,buf,&out,vlstr));
-                    } else {
-                        cbf_debug_print("error: unrecognised/not implemented data rank");
-                    }
-                    if (conv->units) CBF_CALL(cbf_H5Arequire_string(dset,"units",conv->units));
-                    cbf_H5Dfree(dset);
-                    cbf_H5Tfree(vlstr);
-                    free((void*)_out);
-                    break;
-                }
-                case CBF_T_F64LE: {
-                    double in = 0., out = 0.;
-                    hid_t dset = CBF_H5FAIL;
-                    CBF_CALL(cbf_node_get_doublevalue(column, row, &in));
-                    if (conv->convert) {
-                        convert_double_func convert = (convert_double_func)(conv->convert);
-                        CBF_CALL(convert(in,&out));
-                    } else {
-                        out = in;
-                    }
-                    if (0==conv->rank) {
-                        CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(obj,&dset,conv->name,out,cmp_double,cmp_params));
-                    } else if (1==conv->rank) {
-                        const hsize_t max[] = {H5S_UNLIMITED};
-                        const hsize_t cnk[] = {1};
-                        const hsize_t off[] = {nx->slice};
-                        const hsize_t cnt[] = {1};
-                        hsize_t buf[] = {0};
-                        CBF_CALL(cbf_H5Drequire(obj,&dset,conv->name,1,max,cnk,buf,H5T_IEEE_F64LE));
-                        CBF_CALL(cbf_H5Dinsert(dset,off,NULL,cnt,buf,&out,H5T_NATIVE_DOUBLE));
-                    } else {
-                        cbf_debug_print("error: unrecognised/not implemented data rank");
-                    }
-                    if (conv->units) CBF_CALL(cbf_H5Arequire_string(dset,"units",conv->units));
-                    cbf_H5Dfree(dset);
-                    break;
-                }
-                case CBF_T_NONE: {
-                    break;
-                }
-                default: {
-                    cbf_debug_print("error: unrecognised/not implemented conversion type");
-                    error |= CBF_NOTIMPLEMENTED;
-                    break;
-                }
-            }
-        }
-		return error;
-	}
-
-    static int cbf_write_cbf2nx__diffrn_detector_element
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-		int error = CBF_SUCCESS;
-        unsigned int matched = 0;
-        const char categoryName[] = "diffrn_detector_element";
-
-		/* check arguments */
-		if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!key || !key->diffrn_detector_element) {
-            cbf_debug_print("Bad key given\n");
-            error |= CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-            cbf_debug_print(cbf_strerror(error));
-        } else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[1];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            unsigned int row = 0, nRows = 0;
-            unsigned int indent = 1+key->indent;
-            const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-		}
-		}
-		}
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                nRows = category->child[0]->children;
-                CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
-                if (1 != nRows) {
-                    cbf_debug_print("error: multiple element support not yet implemented");
-                    error |= CBF_NOTIMPLEMENTED;
-		}
-		}
-            /*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-             */
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-                    const char * val = NULL;
-                    if (CBF_SUCCESS==error) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (strcmp(val,key->diffrn_detector_element)) {
-                            continue;
-		}
-		}
-                }
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (pk) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"detector_id")) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &key->diffrn_detector));
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else {
-                        int is_in_list = 0;
-                        const cbf2nx_column_map_t * colmap;
-                        if (colmap_begin) {
-                            for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
-                                if (!strcmp(colmap->name,column->name)) {
-                                    is_in_list = 1;
-                                    CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
-                                }
-                            }
-                        }
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
-                    }
-                }
-                ++matched;
-            }
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
-            }
-        }
-        return error;
-    }
-
-    static int cbf_write_cbf2nx__diffrn_detector
-    (cbf_handle handle,
-     cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-		int error = CBF_SUCCESS;
-		unsigned int matched = 0;
-		const char categoryName[] = "diffrn_detector";
-        
-		/* check arguments */
-		if (!handle) {
-			cbf_debug_print("Invalid handle given\n");
-			error |= CBF_ARGUMENT;
-		} else if (!h5handle) {
-			cbf_debug_print("Invalid hdf5 handle given\n");
-			error |= CBF_ARGUMENT;
-		} else if (!key || !key->diffrn_detector) {
-			cbf_debug_print("Bad key given\n");
-			error |= CBF_ARGUMENT;
-		} else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-			if (1) cbf_debug_print(cbf_strerror(error));
-		} else {
-			cbf_node * const category = handle->node;
-			cbf_node * primary_keys[1];
-			const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-			unsigned int row = 0, nRows = 0;
-			unsigned int indent = 1+key->indent;
-			const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
-			if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-			if (key->categories) {
-				cbf_node * * it;
-				cbf_node * const * const end = key->nCat+key->categories;
-				for (it = key->categories; end != it; ++it) {
-					if (*it) {
-						*it = strcmp((*it)->name,categoryName) ? *it : NULL;
-					}
-				}
-			}
-			/* check that I have some children, and try to find the primary key columns */
-			if (0==category->children) {
-				if (1) cbf_debug_print("error: category has no children");
-				error |= CBF_NOTFOUND;
+			double in = 0., out = 0.;
+			hid_t dset = CBF_H5FAIL;
+			CBF_CALL(cbf_node_get_doublevalue(column, row, &in));
+			if (conv->filter) {
+				filter_double_func filter = (filter_double_func)(conv->filter);
+				CBF_CALL(filter(in,&out));
 			} else {
-				nRows = category->child[0]->children;
-				CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
-			}
-			/*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-             */
-			for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-				cbf_node * const * column_it;
-				{
-					/* check the values of the primary keys, continuing on to the next row if there is no match */
-					const char * val = NULL;
-			if (CBF_SUCCESS == error) {
-						if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-							cbf_debug_print(cbf_strerror(error));
-						} else if (strcmp(val,key->diffrn_detector)) {
-							continue;
-				}
-				}
-			}
-				for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-					cbf_node * const column = *column_it;
-					int pk = 0;
-					cbf_node * const * it;
-					cbf_node * const * const end = npk+primary_keys;
-					for (it = primary_keys; end != it; ++it) {
-						pk = column==*it ? 1 : pk;
-					}
-					/*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-					*/
-					if (pk) {
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-						/* ---------------------------------------------------------------------------------------------*/
-					} else if (!cbf_cistrcmp(column->name,"diffrn_id")) {
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-						CBF_CALL(cbf_node_get_value(column, row, &key->diffrn));
-						/* ---------------------------------------------------------------------------------------------*/
-					} else if (!cbf_cistrcmp(column->name,"number_of_axes")) {
-						if (list && !matched) {
-							unsigned int _indent = indent;
-							FILE * const out = stderr;
-							while (_indent--) fputc('\t',out);
-							fprintf(out,"- %s\n",column->name);
-						}
-						/* ---------------------------------------------------------------------------------------------*/
-					} else {
-						int is_in_list = 0;
-						const cbf2nx_column_map_t * colmap;
-						if (colmap_begin) {
-							for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
-								if (!strcmp(colmap->name,column->name)) {
-									is_in_list = 1;
-									CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
-					}
-							}
-						}
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
-					}
-				}
-				++matched;
-			}
-			if (!matched) {
-				/* TODO: in some cases this will be an error, find them */
-				if (1) cbf_debug_print("warning: No data located");
-			}
-		}
-		return error;
-	}
-    
-	static int cbf_write_cbf2nx__diffrn_measurement
-    (cbf_handle handle,
-     cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-		int error = CBF_SUCCESS;
-		unsigned int matched = 0;
-		const char categoryName[] = "diffrn_measurement";
-        
-		/* check arguments */
-		if (!handle) {
-			cbf_debug_print("Invalid handle given\n");
-			error |= CBF_ARGUMENT;
-		} else if (!h5handle) {
-			cbf_debug_print("Invalid hdf5 handle given\n");
-			error |= CBF_ARGUMENT;
-		} else if (!key || !key->diffrn) {
-			cbf_debug_print("Bad key given\n");
-			error |= CBF_ARGUMENT;
-		} else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-			cbf_debug_print(cbf_strerror(error));
-					} else {
-			cbf_node * const category = handle->node;
-			cbf_node * primary_keys[1];
-			const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-			unsigned int row = 0, nRows = 0;
-			unsigned int indent = 1+key->indent;
-			const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
-			if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-			if (key->categories) {
-				cbf_node * * it;
-				cbf_node * const * const end = key->nCat+key->categories;
-				for (it = key->categories; end != it; ++it) {
-					if (*it) {
-						*it = strcmp((*it)->name,categoryName) ? *it : NULL;
-					}
-				}
-			}
-			/* check that I have some children, and try to find the primary key columns */
-			if (0==category->children) {
-				cbf_debug_print("error: category has no children");
-				error |= CBF_NOTFOUND;
-				} else {
-				nRows = category->child[0]->children;
-				CBF_CALL(cbf_find_child(primary_keys+0, category, "diffrn_id"));
-			}
-					/*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-					*/
-			for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-				cbf_node * const * column_it;
-				{
-					/* check the values of the primary keys, continuing on to the next row if there is no match */
-					const char * val = NULL;
-					if (CBF_SUCCESS==error) {
-						if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-							cbf_debug_print(cbf_strerror(error));
-						} else if (strcmp(val,key->diffrn)) {
-							continue;
-						}
-						}
-						}
-				for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-					cbf_node * const column = *column_it;
-					int pk = 0;
-					cbf_node * const * it;
-					cbf_node * const * const end = npk+primary_keys;
-					for (it = primary_keys; end != it; ++it) {
-						pk = column==*it ? 1 : pk;
-						}
-					/*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-					if (pk) {
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-						/* ---------------------------------------------------------------------------------------------*/
-					} else if (!cbf_cistrcmp(column->name,"id")) {
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-						CBF_CALL(cbf_node_get_value(column, row, &key->diffrn_measurement));
-						/* ---------------------------------------------------------------------------------------------*/
-					} else if (!cbf_cistrcmp(column->name,"number_of_axes")) {
-						if (list && !matched) {
-							unsigned int _indent = indent;
-							FILE * const out = stderr;
-							while (_indent--) fputc('\t',out);
-							fprintf(out,"- %s\n",column->name);
-						}
-						/* ---------------------------------------------------------------------------------------------*/
-					} else {
-						int is_in_list = 0;
-						const cbf2nx_column_map_t * colmap;
-						if (colmap_begin) {
-							for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
-								if (!strcmp(colmap->name,column->name)) {
-									is_in_list = 1;
-									CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
-					}
-				}
-			}
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
-		}
-				}
-				++matched;
-			}
-			if (!matched) {
-				/* TODO: in some cases this will be an error, find them */
-				cbf_debug_print("warning: No data located");
-			}
-		}
-		return error;
-	}
-
-	static int cbf_write_cbf2nx__diffrn_radiation_wavelength
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-		int error = CBF_SUCCESS;
-		unsigned int matched = 0;
-		const char categoryName[] = "diffrn_radiation_wavelength";
-
-		/* check arguments */
-		if (!handle) {
-			cbf_debug_print("Invalid handle given\n");
-			error |= CBF_ARGUMENT;
-		} else if (!h5handle) {
-			cbf_debug_print("Invalid hdf5 handle given\n");
-			error |= CBF_ARGUMENT;
-		} else if (!key || !key->wavelength_id) {
-			cbf_debug_print("Bad key given\n");
-			error |= CBF_ARGUMENT;
-		} else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-			cbf_debug_print(cbf_strerror(error));
-		} else {
-			cbf_node * const category = handle->node;
-			cbf_node * primary_keys[1];
-			const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-			unsigned int row = 0, nRows = 0;
-			unsigned int indent = 1+key->indent;
-			const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
-			if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-			if (key->categories) {
-				cbf_node * * it;
-				cbf_node * const * const end = key->nCat+key->categories;
-				for (it = key->categories; end != it; ++it) {
-					if (*it) {
-						*it = strcmp((*it)->name,categoryName) ? *it : NULL;
-		}
-		}
-		}
-			/* check that I have some children, and try to find the primary key columns */
-			if (0==category->children) {
-				cbf_debug_print("error: category has no children");
-				error |= CBF_NOTFOUND;
-			} else {
-				nRows = category->child[0]->children;
-				CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
-		}
-			/*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-             */
-			for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-				cbf_node * const * column_it;
-				{
-					/* check the values of the primary keys, continuing on to the next row if there is no match */
-					const char * val = NULL;
-					if (CBF_SUCCESS==error) {
-						if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-							cbf_debug_print(cbf_strerror(error));
-						} else if (strcmp(val,key->wavelength_id)) {
-							continue;
-		}
-		}
-				}
-				for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-					cbf_node * const column = *column_it;
-					int pk = 0;
-					cbf_node * const * it;
-					cbf_node * const * const end = npk+primary_keys;
-					for (it = primary_keys; end != it; ++it) {
-						pk = column==*it ? 1 : pk;
-					}
-					/*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-					if (pk) {
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-						/* ---------------------------------------------------------------------------------------------*/
-					} else {
-						int is_in_list = 0;
-						const cbf2nx_column_map_t * colmap;
-						if (colmap_begin) {
-							for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
-								if (!strcmp(colmap->name,column->name)) {
-									is_in_list = 1;
-									CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
-								}
-							}
-						}
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
-					}
-				}
-				++matched;
-			}
-			if (!matched) {
-				/* TODO: in some cases this will be an error, find them */
-				cbf_debug_print("warning: No data located");
-			}
-		}
-		return error;
-	}
-
-	static int cbf_write_cbf2nx__diffrn_source
-    (cbf_handle handle,
-     cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-		{
-		int error = CBF_SUCCESS;
-		int found = CBF_SUCCESS;
-		unsigned int matched = 0;
-		const char categoryName[] = "diffrn_source";
-        
-		/* check arguments */
-		if (!handle) {
-			cbf_debug_print("Invalid handle given\n");
-			error |= CBF_ARGUMENT;
-		} else if (!h5handle) {
-			cbf_debug_print("Invalid hdf5 handle given\n");
-			error |= CBF_ARGUMENT;
-		} else if (!key || !key->diffrn) {
-			cbf_debug_print("Bad key given\n");
-			error |= CBF_ARGUMENT;
-		} else if (CBF_SUCCESS!=(found=cbf_find_category(handle,categoryName))) {
-			if (CBF_NOTFOUND!=found) {
-				cbf_debug_print(cbf_strerror(error));
-			}
-		} else {
-			cbf_node * const category = handle->node;
-			cbf_node * primary_keys[1];
-			const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-			unsigned int row = 0, nRows = 0;
-			unsigned int indent = 1+key->indent;
-			const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
-			if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-			if (key->categories) {
-				cbf_node * * it;
-				cbf_node * const * const end = key->nCat+key->categories;
-				for (it = key->categories; end != it; ++it) {
-					if (*it) {
-						*it = strcmp((*it)->name,categoryName) ? *it : NULL;
-					}
-				}
-			}
-			/* check that I have some children, and try to find the primary key columns */
-			if (0==category->children) {
-				cbf_debug_print("category has no children");
-				error |= CBF_NOTFOUND;
-			} else {
-				nRows = category->child[0]->children;
-				CBF_CALL(cbf_find_child(primary_keys+0, category, "diffrn_id"));
-			}
-			/*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-             */
-			for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-				cbf_node * const * column_it;
-				{
-					/* check the values of the primary keys, continuing on to the next row if there is no match */
-					const char * val = NULL;
-				if (CBF_SUCCESS == error) {
-						if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-							cbf_debug_print(cbf_strerror(error));
-						} else if (strcmp(val,key->diffrn)) {
-							continue;
-					}
-					}
-				}
-				for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-					cbf_node * const column = *column_it;
-					int pk = 0;
-					cbf_node * const * it;
-					cbf_node * const * const end = npk+primary_keys;
-					for (it = primary_keys; end != it; ++it) {
-						pk = column==*it ? 1 : pk;
-					}
-					/*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-					if (pk) {
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-						/* ---------------------------------------------------------------------------------------------*/
-					} else {
-						int is_in_list = 0;
-						const cbf2nx_column_map_t * colmap;
-						if (colmap_begin) {
-							for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
-								if (!strcmp(colmap->name,column->name)) {
-									is_in_list = 1;
-									CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
-					}
-				}
-			}
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
-			}
-				}
-				++matched;
-			}
-			if (!matched) {
-				/* TODO: in some cases this will be an error, find them */
-				cbf_debug_print("warning: No data located");
-			}
-		}
-		return error;
-	}
-    
-	static int cbf_write_cbf2nx__diffrn_radiation
-    (cbf_handle handle,
-     cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-		int error = CBF_SUCCESS;
-		const char categoryName[] = "diffrn_radiation";
-        
-		/* check arguments */
-		if (!handle) {
-			cbf_debug_print("Invalid handle given\n");
-			return CBF_ARGUMENT;
-		} else if (!h5handle) {
-			cbf_debug_print("Invalid hdf5 handle given\n");
-			return CBF_ARGUMENT;
-		} else if (!key || !key->diffrn) {
-			cbf_debug_print("Bad key given\n");
-			return CBF_ARGUMENT;
-		} else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-			cbf_debug_print(cbf_strerror(error));
-		} else {
-			cbf_node * const category = handle->node;
-			cbf_node * primary_keys[1];
-			const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-			unsigned int matched = 0;
-			unsigned int row = 0, nRows = 0;
-			unsigned int indent = 1+key->indent;
-			const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
-			if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-			if (key->categories) {
-				cbf_node * * it;
-				cbf_node * const * const end = key->nCat+key->categories;
-				for (it = key->categories; end != it; ++it) {
-					if (*it) {
-						*it = strcmp((*it)->name,categoryName) ? *it : NULL;
-					}
-				}
-			}
-			/* check that I have some children, and try to find the primary key columns */
-			if (0==category->children) {
-                cbf_debug_print("error: category has no children");
-				error |= CBF_NOTFOUND;
-			} else {
-				nRows = category->child[0]->children;
-				CBF_CALL(cbf_find_child(primary_keys+0, category, "diffrn_id"));
-			}
-			for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-				cbf_node * const * column_it;
-				double psn = 0.0, psr = 0./0.;
-				int have_psn = 0, have_psr = 0;
-				{
-					/* check the values of the primary keys, continuing on to the next row if there is no match */
-					const char * val = NULL;
-			if (CBF_SUCCESS == error) {
-						if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-							cbf_debug_print(cbf_strerror(error));
-						} else if (strcmp(val,key->diffrn)) {
-							continue;
-						}
-					}
-				}
-				for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-					cbf_node * const column = *column_it;
-					int pk = 0;
-					cbf_node * const * it;
-					cbf_node * const * const end = npk+primary_keys;
-					for (it = primary_keys; end != it; ++it) {
-						pk = column==*it ? 1 : pk;
-					}
-					/*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-					if (pk) {
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-						/* ---------------------------------------------------------------------------------------------*/
-					} else if (!cbf_cistrcmp(column->name,"polarizn_source_norm")) {
-						const char * val = NULL;
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-						if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-							cbf_debug_print(cbf_strerror(error));
-			} else {
-							char * end = NULL;
-							/*
-                             NOTE: never define PI, use acos(-1.0) to get it to machine accuracy for every machine - including
-                             double-extended machines & hypothetical future quad-precision machines - without risking typos.
-                             */
-							psn = strtod(val,&end)*acos(-1.0)/90.0;
-							have_psn = (end!=val);
-			}
-						/* ---------------------------------------------------------------------------------------------*/
-					} else if (!cbf_cistrcmp(column->name,"polarizn_source_ratio")) {
-						const char * val = NULL;
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-						if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-							cbf_debug_print(cbf_strerror(error));
-						} else {
-							char * end = NULL;
-							psr = strtod(val,&end);
-							have_psr = (end!=val);
-		}
-						/* ---------------------------------------------------------------------------------------------*/
-					} else if (!cbf_cistrcmp(column->name,"wavelength_id")) {
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-						CBF_CALL(cbf_node_get_value(column, row, &key->wavelength_id));
-						/* ---------------------------------------------------------------------------------------------*/
-					} else {
-						int is_in_list = 0;
-						const cbf2nx_column_map_t * colmap;
-						if (colmap_begin) {
-							for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
-								if (!strcmp(colmap->name,column->name)) {
-									is_in_list = 1;
-									CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
-								}
-							}
-						}
-						if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
-					}
-				}
-				++matched;
-				if (CBF_SUCCESS==error && have_psn && have_psr) {
-					hid_t dset = CBF_H5FAIL;
-					hid_t beam = CBF_H5FAIL;
-					hid_t sample = CBF_H5FAIL;
-					const double value[] = {1.0,psr*cos(psn),psr*sin(psn),0.0};
-					const hsize_t max[] = {H5S_UNLIMITED,4};
-					const hsize_t chunk[] = {1,4};
-					const hsize_t offset[] = {h5handle->slice,0};
-					const hsize_t count[] = {1,4};
-					hsize_t buf[] = {0,0};
-					CBF_CALL(cbf_h5handle_require_sample(h5handle,&sample,0));
-					CBF_CALL(_cbf_NXGrequire(sample,&beam,"beam","NXbeam"));
-					CBF_CALL(cbf_H5Drequire(beam,&dset,"incident_polarisation_stokes",2,max,chunk,buf,H5T_IEEE_F64LE));
-					CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,value,H5T_NATIVE_DOUBLE));
-					cbf_H5Dfree(dset);
-					cbf_H5Gfree(beam);
-				}
-			}
-			if (!matched) {
-				/* TODO: in some cases this will be an error, find them */
-				cbf_debug_print("warning: No data located");
-			}
-		}
-
-		return error;
-	}
-
-    
-    static int cbf_write_cbf_h5file__diffrn_scan_axis
-    (cbf_handle handle,
-     cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-		int error = CBF_SUCCESS;
-        unsigned int matched = 0;
-        const char categoryName[] = "diffrn_detector";
-
-        /* check arguments */
-        if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!key || !key->diffrn_detector) {
-            cbf_debug_print("Bad key given\n");
-            error |= CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-            cbf_debug_print(cbf_strerror(error));
-        } else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[1];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            unsigned int row = 0, nRows = 0;
-            unsigned int indent = 1+key->indent;
-            const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-		}
-		}
-			}
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                nRows = category->child[0]->children;
-                CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
-		}
-            /*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-             */
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-                    const char * val = NULL;
-                    if (CBF_SUCCESS==error) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (strcmp(val,key->diffrn_detector)) {
-                            continue;
-				}
-			}
-		}
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (pk) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"diffrn_id")) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &key->diffrn));
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"number_of_axes")) {
-                        if (list && !matched) {
-                            unsigned int _indent = indent;
-                            FILE * const out = stderr;
-                            while (_indent--) fputc('\t',out);
-                            fprintf(out,"- %s\n",column->name);
+				out = in;
                         }
-                        /* ---------------------------------------------------------------------------------------------*/
+			if (0==conv->rank) {
+				CBF_CALL(CBFM_H5Drequire_scalar_F64LE2(obj,&dset,conv->name,out,cmp_double,cmp_params));
+			} else if (1==conv->rank) {
+				const hsize_t max[] = {H5S_UNLIMITED};
+				const hsize_t cnk[] = {1};
+				const hsize_t off[] = {nx->slice};
+				const hsize_t cnt[] = {1};
+				hsize_t buf[] = {0};
+				CBF_CALL(cbf_H5Drequire(obj,&dset,conv->name,1,max,cnk,buf,H5T_IEEE_F64LE));
+				CBF_CALL(cbf_H5Dinsert(dset,off,NULL,cnt,buf,&out,H5T_NATIVE_DOUBLE));
                     } else {
-                        int is_in_list = 0;
-                        const cbf2nx_column_map_t * colmap;
-                        if (colmap_begin) {
-                            for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
-                                if (!strcmp(colmap->name,column->name)) {
-                                    is_in_list = 1;
-                                    CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
-                                }
-                            }
-                        }
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
+				cbf_debug_print("error: unrecognised/not implemented data rank");
                     }
+			if (conv->units) CBF_CALL(cbf_H5Arequire_string(dset,"units",conv->units));
+			cbf_H5Dfree(dset);
                 }
-                ++matched;
-            }
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
-            }
-        }
-        return error;
-    }
-
-    static int cbf_write_cbf2nx__diffrn_scan_axis
-    (cbf_handle handle,
-     cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-    {
-        int error = CBF_SUCCESS, found = CBF_SUCCESS;
-        const char categoryName[] = "diffrn_scan_axis";
-        
-        /* check arguments */
-        if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
-            return CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-            return CBF_ARGUMENT;
-        } else if (!key || !key->frame) {
-            cbf_debug_print("Bad key given\n");
-            return CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(found=cbf_find_category(handle,categoryName))) {
-            if (CBF_NOTFOUND!=found) {
-                cbf_debug_print3("error: problem finding category '%s': %s\n",categoryName,cbf_strerror(found));
-                error |= found;
-            }
-				} else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[1];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            unsigned int matched = 0;
-            unsigned int row = 0, nRows = 0;
-            unsigned int indent = 1+key->indent;
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-				}
-			}
-		}
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                nRows = category->child[0]->children;
-                CBF_CALL(cbf_find_child(primary_keys+0, category, "scan_id"));
-            }
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                const char * axis = NULL;
-                double disp_strt = 0.0, disp_incr = 0.0, disp_rstrt_incr = 0.0;
-                double angle_strt = 0.0, angle_incr = 0.0, angle_rstrt_incr = 0.0;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-                    const char * val = NULL;
-		if (CBF_SUCCESS == error) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (key->scan && strcmp(val,key->scan)) {
-                            continue;
-                        }
-                    }
-                }
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-				/*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-				*/
-                    if (pk) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"angle_increment")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else {
-                            char * end = NULL;
-                            const double num = strtod(val,&end);
-                            angle_incr = (end!=val) ? num : angle_incr;
-				}
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"angle_rstrt_incr")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else {
-                            char * end = NULL;
-                            const double num = strtod(val,&end);
-                            angle_rstrt_incr = (end!=val) ? num : angle_rstrt_incr;
-			}
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"angle_start")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else {
-                            char * end = NULL;
-                            const double num = strtod(val,&end);
-                            angle_strt = (end!=val) ? num : angle_strt;
-			}
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"axis_id")) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &axis));
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"displacement_increment")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else {
-                            char * end = NULL;
-                            const double num = strtod(val,&end);
-                            disp_incr = (end!=val) ? num : disp_incr;
-		}
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"displacement_rstrt_incr")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else {
-                            char * end = NULL;
-                            const double num = strtod(val,&end);
-                            disp_rstrt_incr = (end!=val) ? num : disp_rstrt_incr;
-                        }
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"displacement_start")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else {
-                            char * end = NULL;
-                            const double num = strtod(val,&end);
-                            disp_strt = (end!=val) ? num : disp_strt;
-                        }
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
-                    }
-                }
-                ++matched;
-                /* I have all the data for this column, convert it */
-		if (CBF_SUCCESS == error) {
-                    const char * type;
-                    unsigned int i;
-                    /* find the index of the required axis within the axis settings */
-                    for (i = 0; i != key->axis.count; ++i) {
-                        if (!strcmp(key->axis.axis_id[i],axis)) {
-                            break;
-		}
-                    }
-                    /* check if I found it, if so then use it */
-                    if (i == key->axis.count) {
-                        cbf_debug_print(cbf_strerror(CBF_NOTFOUND));
-                        error |= CBF_NOTFOUND;
-                    } else {
-                        CBF_CALL(cbf_find_category(handle,"axis"));
-                        CBF_CALL(cbf_find_column(handle,"id"));
-                        CBF_CALL(cbf_find_row(handle,axis));
-                        CBF_CALL(cbf_find_column(handle,"type"));
-                        CBF_CALL(cbf_get_value(handle,&type));
-                        if (CBF_SUCCESS==error) {
-                            hid_t dset = CBF_H5FAIL;
-                            const hsize_t off[] = {h5handle->slice};
-                            const hsize_t cnt[] = {1};
-                            const hsize_t max[] = {H5S_UNLIMITED};
-                            hsize_t buf[] = {0};
-                            double data;
-                            if (!strcmp(type,"translation")) {
-                                data = disp_strt + (disp_incr+disp_rstrt_incr)*key->frame_number;
-                            } else if (!strcmp(type,"rotation")) {
-                                data = angle_strt + (angle_incr+angle_rstrt_incr)*key->frame_number;
-                            } else {
-                                data = 0./0.;
-                            }
-                            CBF_CALL(cbf_H5Dfind2(h5handle->hfile,&dset,key->axis.path[i],1,max,buf,H5T_IEEE_F64LE));
-                            CBF_CALL(cbf_H5Dinsert(dset,off,0,cnt,buf,&data,H5T_NATIVE_DOUBLE));
-                            cbf_H5Dfree(dset);
-                        }
-                    }
-                }
-            }
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
-            }
-        }
-
-		return error;
-	}
-
-    static int cbf_write_cbf2nx__diffrn_scan_frame_axis
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-        int error = CBF_SUCCESS, found = CBF_SUCCESS;
-        unsigned int matched = 0;
-        const char categoryName[] = "diffrn_scan_frame_axis";
-
-		/* check arguments */
-		if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
-			return CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-			return CBF_ARGUMENT;
-        } else if (!key || !key->frame) {
-            cbf_debug_print("Bad key given\n");
-			return CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(found=cbf_find_category(handle,categoryName))) {
-            if (CBF_NOTFOUND!=found) {
-                cbf_debug_print3("error: problem finding category '%s': %s\n",categoryName,cbf_strerror(found));
-                error |= found;
-		}
-        } else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[1];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            unsigned int row = 0, nRows = 0;
-            unsigned int indent = 1+key->indent;
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-                    }
-                }
-            }
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                nRows = category->child[0]->children;
-                CBF_CALL(cbf_find_child(primary_keys+0, category, "frame_id"));
-            }
-            if (0) {
-                unsigned int i;
-                /* fragment of code to output the list of axis_ids in the key */
-                fputc('\n',stderr);
-                int n = fprintf(stderr,"%u: %u axes:",__LINE__,key->axis.count);
-                fputc('\n',stderr);
-                for (; n; --n) fputc('-',stderr);
-                fputc('\n',stderr);
-                for (i = 0; i != key->axis.count; ++i) {
-                    fprintf(stderr,"%s\n",key->axis.axis_id[i]);
-                }
-                fputc('\n',stderr);
-            }
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                const char * axis = NULL;
-                double angle = 0.0, disp = 0.0;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-                    const char * val = NULL;
-                    if (CBF_SUCCESS == error) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (strcmp(val,key->frame)) {
-                            continue;
-                        }
-                    }
-                }
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (pk) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"angle")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else {
-                            char * end = NULL;
-                            const double num = strtod(val,&end);
-                            angle = (end!=val) ? num : angle;
-                        }
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"axis_id")) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &axis));
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"displacement")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else {
-                            char * end = NULL;
-                            const double num = strtod(val,&end);
-                            disp = (end!=val) ? num : disp;
-                        }
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
-                    }
-                }
-                ++matched;
-                /* I have all the data for this row, convert it */
-                if (CBF_SUCCESS==error) {
-                    const char * type;
-                    unsigned int i;
-                    /* find the index of the required axis within the axis settings */
-                    for (i = 0; i != key->axis.count; ++i) {
-                        if (!strcmp(key->axis.axis_id[i],axis)) {
-                            break;
-                        }
-                    }
-                    /* check if I found it, if so then use it */
-                    if (i == key->axis.count) {
-                        cbf_debug_print(cbf_strerror(CBF_NOTFOUND));
-                        error |= CBF_NOTFOUND;
-                    } else {
-                        CBF_CALL(cbf_find_category(handle, "axis"));
-                        CBF_CALL(cbf_find_column(handle, "id"));
-                        CBF_CALL(cbf_find_row(handle, axis));
-                        CBF_CALL(cbf_find_column(handle,"type"));
-                        CBF_CALL(cbf_get_value(handle,&type));
-                        if (CBF_SUCCESS == error) {
-                            hid_t dset = CBF_H5FAIL;
-                            const hsize_t off[] = {h5handle->slice};
-                            const hsize_t cnt[] = {1};
-                            const hsize_t max[] = {H5S_UNLIMITED};
-                            hsize_t buf[] = {0};
-                            const double * data;
-                            if (!strcmp(type,"translation")) {
-                                data = &disp;
-                            } else if (!strcmp(type,"rotation")) {
-                                data = &angle;
-                            } else {
-                                data = NULL;
-                            }
-                            CBF_CALL(cbf_H5Dfind2(h5handle->hfile,&dset,key->axis.path[i],1,max,buf,H5T_IEEE_F64LE));
-                            CBF_CALL(cbf_H5Dinsert(dset,off,0,cnt,buf,data,H5T_NATIVE_DOUBLE));
-                            cbf_H5Dfree(dset);
-                        }
-                    }
-                }
-            }
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
-            }
-        }
-
-        return error;
-    }
-
-    static int cbf_write_cbf2nx__diffrn_detector_axis
-    (cbf_handle handle,
-     cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-    {
-        int error = CBF_SUCCESS, found;
-        unsigned int matched = 0;
-        const char categoryName[] = "diffrn_detector_axis";
-        
-        /* check arguments */
-        if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!key || !key->array) {
-            cbf_debug_print("Bad key given\n");
-            error |= CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(found=cbf_find_category(handle,categoryName))) {
-            if (CBF_NOTFOUND!=found) {
-                cbf_debug_print3("error: problem finding category '%s': %s\n",categoryName,cbf_strerror(found));
-                error |= found;
-            }
-        } else if (CBF_SUCCESS!=(error|=cbf_h5handle_require_detector(h5handle,0,0))) {
-            cbf_debug_print(cbf_strerror(error));
-        } else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[1];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            unsigned int row = 0, nRows = 0;
-            unsigned int indent = 1+key->indent;
-            const unsigned int prevAxisCount = key->axis.count;
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-                    }
-                }
-            }
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                nRows = category->child[0]->children;
-                CBF_CALL(cbf_find_child(primary_keys+0, category, "detector_id"));
-            }
-            /*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-             */
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                const char * axis = NULL;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-                    const char * val = NULL;
-			if (CBF_SUCCESS == error) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (strcmp(val,key->diffrn_detector)) {
-                            continue;
-				}
-			}
-                }
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (pk) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"axis_id")) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &axis));
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
-                    }
-                }
-                ++matched;
-				if (CBF_SUCCESS == error) {
-                    if (!axis) {
-                        cbf_debug_print("'axis_id' not found");
-                        error |= CBF_NOTFOUND;
-                    } else {
-                        /* the axis exists - convert the data */
-                        hid_t det = CBF_H5FAIL;
-                        hid_t axisGroup = CBF_H5FAIL;
-					const char path_empty[] = "";
-					const char path_inst[] = "instrument";
-					const char axis_group_name[] = "pose";
-					const char * path_parts[] = {
-						path_empty,
-						h5handle->nxid_name,
-						path_inst,
-						h5handle->nxdetector_name,
-						axis_group_name,
-						axis,
-						0
-					};
-					const char * const axis_path = _cbf_strjoin(path_parts,'/');
-                        CBF_CALL(cbf_h5handle_require_detector(h5handle,&det,0));
-                        CBF_CALL(cbf_H5Grequire(det,&axisGroup,axis_group_name));
-                        CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXcollection"));
-                        CBF_CALL(_cbf_insert_axis(&key->axis, axis, axis_path));
-						cbf_H5Gfree(axisGroup);
-                        free((void*)axis_path);
-					}
-				}
-			}
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
-		}
-            /*
-             I now have all relevant axes from this category, so I can find & write the dependancy for the sample.
-             New axes are in the range (prevAxisCount,key->axis.count], I don't need to pay attention to others.
-             For each axis I need to set a depends_on index, if it can be found, and an in_degree. An in_degree
-             of 0 means I probably have a leaf, a check to ensure only one in_degree==0 axis exists in the subset
-             is needed to ensure I have a valid leaf axis.
-             */
-            CBF_CALL(cbf_find_category(handle,"axis"));
-		if (CBF_SUCCESS == error) {
-                unsigned int leaves = 0;
-                unsigned int leaf = key->axis.count;
-                unsigned int i;
-                /* populate axis dependancy and in-degree fields */
-                for (i = prevAxisCount; key->axis.count != i; ++i) {
-                    const char * depends_on = NULL;
-                    /* locate the current axis and get its dependancy */
-                    CBF_CALL(cbf_find_column(handle,"id"));
-                    CBF_CALL(cbf_find_row(handle,key->axis.axis_id[i]));
-                    CBF_CALL(cbf_find_column(handle,"depends_on"));
-                    CBF_CALL(cbf_get_value(handle,&depends_on));
-                    if (CBF_SUCCESS==error) {
-                        unsigned int j;
-                        /* I know which axis the current axis depends on, look for it in the current subset */
-                        for (j = prevAxisCount; key->axis.count != j; ++j) {
-                            if (!cbf_cistrcmp(key->axis.axis_id[j],depends_on)) break;
-			}
-                        if (key->axis.count != j) {
-                            /* axis i depends on axis j - record this */
-                            key->axis.depends_on[i] = j;
-                            ++key->axis.in_degree[j];
-			}
-		}
-                }
-                /* ensure there is only one leaf, and find it */
-                for (i = prevAxisCount; key->axis.count != i; ++i) {
-                    if (0==key->axis.in_degree[i]) {
-                        leaf = i;
-                        ++leaves;
-                    }
-                }
-                /* test if a single valid leaf axis was found */
-                if (1!=leaves || leaf>=key->axis.count) {
-                    cbf_debug_print("couldn't determine what defines the sample orientation");
-                    error |= CBF_FORMAT;
-                } else {
-                    /* I now have a valid leaf axis for the sample, use it */
-                    CBF_CALL(cbf_H5Drequire_flstring(h5handle->nxdetector,0,"depends_on",key->axis.path[leaf]));
-                }
-            }
-        }
-		return error;
-	}
-
-    static int cbf_write_cbf2nx__diffrn_measurement_axis
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-        int error = CBF_SUCCESS, found;
-        unsigned int matched = 0;
-        const char categoryName[] = "diffrn_measurement_axis";
-
-		/* check arguments */
-		if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!key || !key->array) {
-            cbf_debug_print("Bad key given\n");
-            error |= CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(found=cbf_find_category(handle,categoryName))) {
-            if (CBF_NOTFOUND!=found) {
-                cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(found));
-                error |= found;
-		}
-        } else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[1];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            unsigned int row = 0, nRows = 0;
-            unsigned int indent = 1+key->indent;
-            const unsigned int prevAxisCount = key->axis.count;
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-		}
-		}
-            }
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                nRows = category->child[0]->children;
-                CBF_CALL(cbf_find_child(primary_keys+0, category, "measurement_id"));
-            }
-            /*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-             */
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                const char * axis = NULL;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-                    const char * val = NULL;
-			if (CBF_SUCCESS == error) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (strcmp(val,key->diffrn_measurement)) {
-                            continue;
-				}
-			}
-                }
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (pk) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"axis_id")) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &axis));
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
-                    }
-                }
-                ++matched;
-				if (CBF_SUCCESS == error) {
-                    if (!axis) {
-                        cbf_debug_print("'axis_id' not found");
-                        error |= CBF_NOTFOUND;
-                    } else {
-                        /* the axis exists - convert the data */
-                        hid_t axisGroup = CBF_H5FAIL;
-                        hid_t sample = CBF_H5FAIL;
-					const char path_empty[] = "";
-					const char path_sample[] = "sample";
-					const char axis_group_name[] = "pose";
-					const char * path_parts[] = {
-						path_empty,
-						h5handle->nxid_name,
-						path_sample,
-						axis_group_name,
-						axis,
-						0
-					};
-					const char * const axis_path = _cbf_strjoin(path_parts,'/');
-                        /*
-                         TODO: restructure this to avoid a local axis list and move
-                         axis-related checks to a dedicated axis category conversion.
-                         */
-                        /* make sure an axis container group exists & log the axis in the key for further processing */
-                        CBF_CALL(cbf_h5handle_require_sample(h5handle,&sample,0));
-                        CBF_CALL(cbf_H5Grequire(sample,&axisGroup,axis_group_name));
-                        CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXcollection"));
-                        CBF_CALL(_cbf_insert_axis(&key->axis, axis, axis_path));
-						cbf_H5Gfree(axisGroup);
-                        free((void*)axis_path);
-					}
-				}
-			}
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
-		}
-            /*
-             I now have all relevant axes from this category, so I can find & write the dependancy for the sample.
-             New axes are in the range (prevAxisCount,key->axis.count], I don't need to pay attention to others.
-             For each axis I need to set a depends_on index, if it can be found, and an in_degree. An in_degree
-             of 0 means I probably have a leaf, a check to ensure only one in_degree==0 axis exists in the subset
-             is needed to ensure I have a valid leaf axis.
-             */
-            if (CBF_SUCCESS!=(error|=cbf_find_category(handle,"axis"))) {
-                cbf_debug_print(cbf_strerror(error));
-            } else {
-                unsigned int leaves = 0;
-                unsigned int leaf = key->axis.count;
-                unsigned int i;
-                /* populate axis dependancy and in-degree fields */
-                for (i = prevAxisCount; key->axis.count != i; ++i) {
-                    const char * depends_on = NULL;
-                    /* locate the current axis and get its dependancy */
-                    CBF_CALL(cbf_find_column(handle,"id"));
-                    CBF_CALL(cbf_find_row(handle,key->axis.axis_id[i]));
-                    CBF_CALL(cbf_find_column(handle,"depends_on"));
-                    CBF_CALL(cbf_get_value(handle,&depends_on));
-		if (CBF_SUCCESS == error) {
-                        unsigned int j;
-                        /* I know which axis the current axis depends on, look for it in the current subset */
-                        for (j = prevAxisCount; key->axis.count != j; ++j) {
-                            if (!cbf_cistrcmp(key->axis.axis_id[j],depends_on)) break;
-			}
-                        if (key->axis.count != j) {
-                            /* axis i depends on axis j - record this */
-                            key->axis.depends_on[i] = j;
-                            ++key->axis.in_degree[j];
-			}
-		}
-                }
-                /* ensure there is only one leaf, and find it */
-                for (i = prevAxisCount; key->axis.count != i; ++i) {
-                    if (0==key->axis.in_degree[i]) {
-                        leaf = i;
-                        ++leaves;
-                    }
-                }
-                /* test if a single valid leaf axis was found */
-                if (1!=leaves || leaf>=key->axis.count) {
-                    cbf_debug_print("couldn't determine what defines the sample orientation");
-                    error |= CBF_FORMAT;
-                } else {
-                    /* I now have a valid leaf axis for the sample, use it */
-                    CBF_CALL(cbf_H5Drequire_flstring(h5handle->nxsample,0,"depends_on",key->axis.path[leaf]));
-                }
-            }
-        }
-		return error;
-	}
-
-    static int cbf_write_cbf2nx__diffrn_refln
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-        int error = CBF_SUCCESS, found;
-        unsigned int matched = 0;
-        const char categoryName[] = "diffrn_refln";
-
-		/* check arguments */
-		if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!key || !key->array) {
-            cbf_debug_print("Bad key given\n");
-            error |= CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(found=cbf_find_category(handle,categoryName))) {
-            if (CBF_NOTFOUND!=found) {
-                cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(found));
-                error |= found;
-		}
-        } else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[1];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            unsigned int row = 0, nRows = 0;
-            unsigned int indent = 1+key->indent;
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-		}
-		}
-            }
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                nRows = category->child[0]->children;
-                CBF_CALL(cbf_find_child(primary_keys+0, category, "frame_id"));
-            }
-            /*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-             */
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-                    const char * val = NULL;
-                    if (CBF_SUCCESS==error) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (strcmp(val,key->frame)) {
-                            continue;
-                        }
-                    }
-                }
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (pk) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
-                    }
-                }
-                ++matched;
-            }
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
-            }
-        }
-		return error;
-	}
-
-    static int cbf_write_cbf2nx__diffrn
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-		int error = CBF_SUCCESS;
-        unsigned int matched = 0;
-        const char categoryName[] = "diffrn";
-
-		/* check arguments */
-		if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!key || !key->array) {
-            cbf_debug_print("Bad key given\n");
-            error |= CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-            cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
-        } else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[1];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            unsigned int row = 0, nRows = 0;
-            unsigned int indent = 1+key->indent;
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-		}
-		}
-		}
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                nRows = category->child[0]->children;
-                CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
-            }
-            /*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-             */
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-                    const char * val = NULL;
-                    if (CBF_SUCCESS==error) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (strcmp(val,key->diffrn)) {
-                            continue;
-                        }
-                    }
-                }
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (pk) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
-                    }
-                }
-                ++matched;
-            }
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
-            }
-        }
-		return error;
-	}
-
-    static int cbf_write_cbf2nx__array_structure
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-        /*
-         I don't actually have anything to convert yet, all relevant data is obtained directly from the binary section.
-         This function is just a placeholder in case I find that there is something I need to extract/convert later.
-         */
-		int error = CBF_SUCCESS;
-        int found = CBF_SUCCESS;
-        unsigned int matched = 0;
-        const char categoryName[] = "array_structure";
-
-		/* check arguments */
-		if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!key || !key->array) {
-            cbf_debug_print("Bad key given\n");
-            error |= CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(found|=cbf_find_category(handle,categoryName))) {
-            if (CBF_NOTFOUND==found) {
-                cbf_debug_print2("warning: '%s' not found\n",categoryName);
-            } else {
-                cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(found));
-                error |= found;
-		}
-        } else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[1];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            unsigned int row = 0, nRows = 0;
-            unsigned int indent = 1+key->indent;
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-		}
-		}
-            }
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                nRows = category->child[0]->children;
-                CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
-            }
-            /*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-             */
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-                    const char * val = NULL;
-                    if (CBF_SUCCESS==error) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (strcmp(val,key->array)) {
-                            continue;
-                        }
-                    }
-                }
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (pk) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (
-                               !cbf_cistrcmp(column->name,"byte_order") ||
-                               !cbf_cistrcmp(column->name,"compression_type") ||
-                               !cbf_cistrcmp(column->name,"encoding_type")
-                               )
-                    {
-                        if (list && !matched) {
-                            unsigned int _indent = indent;
-                            FILE * const out = stderr;
-                            while (_indent--) fputc('\t',out);
-                            fprintf(out,"- %s\n",column->name);
-                        }
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
-                    }
-                }
-                ++matched;
-            }
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
-            }
-        }
 		return error;
 	}
 
@@ -16917,6 +16822,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      Convert two strings to integers and compare them for equality.
      If one can't be converted then the most negative representable value should be returned,
      instead of any value near zero.
+	Used to compare binary id values for equality.
      */
     static int strintcmp
     (const char * const s1,
@@ -16937,458 +16843,606 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         }
     }
     
-    static int cbf_write_cbf2nx__array_intensities
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
+	static cbf_primary_key_t array_data_key[] = {
+		{"array_id",cbf2nx_key_get_array_id,strcmp},
+		{"binary_id",cbf2nx_key_get_binary_id,strintcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t array_data_map[] = {
+		{"data",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_ArrayData_data}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t array_intensities_key[] = {
+		{"array_id",cbf2nx_key_get_array_id,strcmp},
+		{"binary_id",cbf2nx_key_get_binary_id,strintcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t array_intensities_map[] = {
+		{"gain",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_ArrayIntensities_gain}}},
+		{"linearity",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_ArrayIntensities_linearity}}},
+		{"offset",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_ArrayIntensities_offset}}},
+		{"overload",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_overload}}},
+		{"scaling",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_ArrayIntensities_scaling}}},
+		{"undefined_value",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_undefined}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t array_structure_key[] = {
+		{"id",cbf2nx_key_get_array_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t array_structure_map[] = {
+		{"byte_order",CBF_MAP_NONE,NULL},
+		{"compression_type",CBF_MAP_NONE,NULL},
+		{"encoding_type",CBF_MAP_NONE,NULL},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t array_structure_list_key[] = {
+		{"array_id",cbf2nx_key_get_array_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t array_structure_list_map[] = {
+		{"axis_set_id",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_ArrayStructureList_axis_set_id}}},
+		{"dimension",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_ArrayStructureList_dimension}}},
+		{"direction",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_ArrayStructureList_direction}}},
+		{"index",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_ArrayStructureList_index}}},
+		{"precedence",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_ArrayStructureList_precedence}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_key[] = {
+		{"id",cbf2nx_key_get_diffrn_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_map[] = {
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_data_frame_keys[] = {
+		{"id",cbf2nx_key_get_frame_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_data_frame_map[] = {
+		{"array_id",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_array}}},
+		{"binary_id",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_binary}}},
+		{"details",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_vlstr,{"CBF_diffrn_data_frame__details",NULL,cbf_h5handle_require_detector,NULL,1}}}},
+		{"detector_element_id",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_diffrn_detector_element}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_detector_keys[] = {
+		{"id",cbf2nx_key_get_diffrnDetector_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_detector_map[] = {
+		{"details",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"details",NULL,cbf_h5handle_require_detector,NULL,0}}}},
+		{"detector",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"type",NULL,cbf_h5handle_require_detector,NULL,0}}}},
+		{"diffrn_id",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_diffrn}}},
+		{"dtime",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"dead_time","us",cbf_h5handle_require_detector,NULL,0}}}},
+		{"gain_setting",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"gain_setting",NULL,cbf_h5handle_require_detector,NULL,0}}}},
+		{"layer_thickness",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"sensor_thickness","mm",cbf_h5handle_require_detector,NULL,0}}}},
+		{"number_of_axes",CBF_MAP_NONE,NULL},
+		{"sensor_material",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"sensor_material",NULL,cbf_h5handle_require_detector,NULL,0}}}},
+		{"threshold",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"threshold_energy","eV",cbf_h5handle_require_detector,NULL,0}}}},
+		{"type",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"description",NULL,cbf_h5handle_require_detector,NULL,0}}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_detector_axis_keys[] = {
+		{"detector_id",cbf2nx_key_get_diffrnDetector_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_detector_axis_map[] = {
+		{"axis_id",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnDetectorAxis_axis}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_detector_element_keys[] = {
+		{"id",cbf2nx_key_get_diffrnDetectorElement_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_detector_element_map[] = {
+		{"center[1]",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"beam_center_x","mm",cbf_h5handle_require_detector,NULL,1}}}},
+		{"center[2]",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"beam_center_y","mm",cbf_h5handle_require_detector,NULL,1}}}},
+		{"detector_id",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_diffrn_detector}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_measurement_keys[] = {
+		{"diffrn_id",cbf2nx_key_get_diffrn_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_measurement_map[] = {
+		{"details",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"details",NULL,cbf_h5handle_require_goniometer,NULL,0}}}},
+		{"device",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"local_name",NULL,cbf_h5handle_require_goniometer,NULL,0}}}},
+		{"device_details",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"description",NULL,cbf_h5handle_require_goniometer,NULL,0}}}},
+		{"device_type",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"type",NULL,cbf_h5handle_require_goniometer,NULL,0}}}},
+		{"id",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_diffrn_measurement}}},
+		{"method",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"method",NULL,cbf_h5handle_require_entry,NULL,0}}}},
+		{"number_of_axes",CBF_MAP_NONE,NULL},
+		{"sample_detector_distance",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"distance","mm",cbf_h5handle_require_detector,NULL,1}}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_measurement_axis_keys[] = {
+		{"measurement_id",cbf2nx_key_get_diffrnMeasurement_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_measurement_axis_map[] = {
+		/* should also have 'measurement_device' somewhere, eventuallly */
+		{"axis_id",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnMeasurementAxis_axis}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_radiation_keys[] = {
+		{"diffrn_id",cbf2nx_key_get_diffrn_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_radiation_map[] = {
+		{"collimation",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"collimation",NULL,cbf_h5handle_require_beam,NULL,0}}}},
+		{"div_x_source",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"incident_divergence_x","degrees",cbf_h5handle_require_beam,NULL,0}}}},
+		{"div_x_y_source",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"incident_divergence_xy","degrees^2",cbf_h5handle_require_beam,NULL,0}}}},
+		{"div_y_source",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"incident_divergence_y","degrees",cbf_h5handle_require_beam,NULL,0}}}},
+		{"inhomogeneity",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"beam_size_x","mm",cbf_h5handle_require_beam,(filter_func)(filter_inhomogeneity),0}}}},
+		{"inhomogeneity",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"beam_size_y","mm",cbf_h5handle_require_beam,(filter_func)(filter_inhomogeneity),0}}}},
+		{"monochromator",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"description",NULL,cbf_h5handle_require_monochromator,NULL,0}}}},
+		{"polarizn_source_norm",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_PSN}}},
+		{"polarizn_source_ratio",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_PSR}}},
+		{"probe",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"probe",NULL,cbf_h5handle_require_source,NULL,0}}}},
+		{"wavelength_id",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_wavelength_id}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_radiation_wavelength_keys[] = {
+		{"id",cbf2nx_key_get_wavelength_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_radiation_wavelength_map[] = {
+		{"wavelength",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"wavelength","A",cbf_h5handle_require_beam,NULL,1}}}},
+		{"wt",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"weight",NULL,cbf_h5handle_require_beam,NULL,1}}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_refln_key[] = {
+		{"frame_id",cbf2nx_key_get_frame_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_refln_map[] = {
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_scan_keys[] = {
+		{"id",cbf2nx_key_get_scan_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_scan_map[] = {
+		{"date_start",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_vlstr,{"start_time",NULL,cbf_h5handle_require_entry,NULL,0}}}},
+		{"date_end",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_vlstr,{"end_time",NULL,cbf_h5handle_require_entry,NULL,0}}}},
+		{"frame_id_start",CBF_MAP_NONE,NULL},
+		{"frame_id_end",CBF_MAP_NONE,NULL},
+		{"frames",CBF_MAP_NONE,NULL},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_scan_axis_keys[] = {
+		{"scan_id",cbf2nx_key_get_scan_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_scan_axis_map[] = {
+		{"angle_increment",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnScanAxis_angleIncr}}},
+		{"angle_rstrt_incr",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnScanAxis_angleRstrtIncr}}},
+		{"angle_start",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnScanAxis_angleStrt}}},
+		{"axis_id",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnScanAxis_axis}}},
+		{"displacement_increment",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnScanAxis_dispIncr}}},
+		{"displacement_rstrt_incr",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnScanAxis_dispRstrtIncr}}},
+		{"displacement_start",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnScanAxis_dispStrt}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_scan_frame_keys[] = {
+		{"scan_id",cbf2nx_key_get_scan_id,strcmp},
+		{"frame_id",cbf2nx_key_get_frame_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_scan_frame_map[] = {
+		{"date",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_vlstr,{"frame_start_time",NULL,cbf_h5handle_require_detector,NULL,1}}}},
+		{"frame_number",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_frame_number}}},
+		{"integration_period",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"frame_time","s",cbf_h5handle_require_detector,NULL,1}}}},
+		{"integration_time",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"count_time","s",cbf_h5handle_require_detector,NULL,1}}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_scan_frame_axis_keys[] = {
+		{"frame_id",cbf2nx_key_get_frame_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_scan_frame_axis_map[] = {
+		{"angle",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnScanFrameAxis_angle}}},
+		{"axis_id",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnScanFrameAxis_axis}}},
+		{"displacement",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnScanFrameAxis_disp}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf_primary_key_t diffrn_source_keys[] = {
+		{"diffrn_id",cbf2nx_key_get_diffrn_id,strcmp},
+		{NULL,NULL,NULL},
+	};
+
+	static cbf2nx_column_map_t diffrn_source_map[] = {
+		{"current",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"current","mA",cbf_h5handle_require_source,NULL,0}}}},
+		{"power",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"power","kW",cbf_h5handle_require_source,NULL,0}}}},
+		{"source",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_vlstr,{"type",NULL,cbf_h5handle_require_source,NULL,0}}}},
+		{"target",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_vlstr,{"target_material",NULL,cbf_h5handle_require_source,NULL,0}}}},
+		{"type",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_vlstr,{"name",NULL,cbf_h5handle_require_source,NULL,0}}}},
+		{"voltage",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"voltage","kV",cbf_h5handle_require_source,NULL,0}}}},
+		{NULL,CBF_MAP_NONE,NULL},
+	};
+
+	static cbf2nx_category_map_t cbf_map[] = {
+	{
+			"array_data",
+			array_data_key,
+			array_data_map,
+			{sizeof(ArrayDataCache), ctor_ArrayDataCache, NULL},
+			process_ArrayDataCache,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"array_intensities",
+			array_intensities_key,
+			array_intensities_map,
+			{sizeof(ArrayIntensitiesCache), ctor_ArrayIntensitiesCache, NULL},
+			process_ArrayIntensitiesCache,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"array_structure",
+			array_structure_key,
+			array_structure_map,
+			{0, NULL, NULL}, NULL,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"array_structure_list",
+			array_structure_list_key,
+			array_structure_list_map,
+			{sizeof(ArrayStructureListCache), ctor_ArrayStructureListCache, NULL},
+			process_ArrayStructureListCache,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"diffrn",
+			diffrn_key,
+			diffrn_map,
+			{0, NULL, NULL}, NULL,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"diffrn_data_frame",
+			diffrn_data_frame_keys,
+			diffrn_data_frame_map,
+			{0, NULL, NULL}, NULL,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"diffrn_detector",
+			diffrn_detector_keys,
+			diffrn_detector_map,
+			{0, NULL, NULL}, NULL,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"diffrn_detector_axis",
+			diffrn_detector_axis_keys,
+			diffrn_detector_axis_map,
+			{sizeof(DiffrnDetectorAxisRCache), ctor_DiffrnDetectorAxisRCache, NULL},
+			process_DiffrnDetectorAxisRCache,
+			{sizeof(DiffrnDetectorAxisTCache), ctor_DiffrnDetectorAxisTCache, dtor_DiffrnDetectorAxisTCache},
+			process_DiffrnDetectorAxisTCache,
+		},
+		{
+			"diffrn_detector_element",
+			diffrn_detector_element_keys,
+			diffrn_detector_element_map,
+			{0, NULL, NULL}, NULL,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"diffrn_measurement",
+			diffrn_measurement_keys,
+			diffrn_measurement_map,
+			{0, NULL, NULL}, NULL,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"diffrn_measurement_axis",
+			diffrn_measurement_axis_keys,
+			diffrn_measurement_axis_map,
+			{sizeof(DiffrnMeasurementAxisRCache), ctor_DiffrnMeasurementAxisRCache, NULL},
+			process_DiffrnMeasurementAxisRCache,
+			{sizeof(DiffrnMeasurementAxisTCache), ctor_DiffrnMeasurementAxisTCache, dtor_DiffrnMeasurementAxisTCache},
+			process_DiffrnMeasurementAxisTCache,
+		},
+		{
+			"diffrn_radiation",
+			diffrn_radiation_keys,
+			diffrn_radiation_map,
+			{sizeof(DiffrnRadiationRowCache), ctor_DiffrnRadiationRowCache, NULL},
+			process_DiffrnRadiationRowCache,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"diffrn_radiation_wavelength",
+			diffrn_radiation_wavelength_keys,
+			diffrn_radiation_wavelength_map,
+			{0, NULL, NULL}, NULL,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"diffrn_refln",
+			diffrn_refln_key,
+			diffrn_refln_map,
+			{0, NULL, NULL}, NULL,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"diffrn_scan",
+			diffrn_scan_keys,
+			diffrn_scan_map,
+			{0, NULL, NULL}, NULL,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"diffrn_scan_axis",
+			diffrn_scan_axis_keys,
+			diffrn_scan_axis_map,
+			{sizeof(DiffrnScanAxisCache), ctor_DiffrnScanAxisCache, NULL},
+			process_DiffrnScanAxisCache,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"diffrn_scan_frame",
+			diffrn_scan_frame_keys,
+			diffrn_scan_frame_map,
+			{0, NULL, NULL}, NULL,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"diffrn_scan_frame_axis",
+			diffrn_scan_frame_axis_keys,
+			diffrn_scan_frame_axis_map,
+			{sizeof(DiffrnScanFrameAxisCache), ctor_DiffrnScanFrameAxisCache, NULL},
+			process_DiffrnScanFrameAxisCache,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			"diffrn_source",
+			diffrn_source_keys,
+			diffrn_source_map,
+			{0, NULL, NULL}, NULL,
+			{0, NULL, NULL}, NULL,
+		},
+		{
+			NULL, NULL, NULL,
+			{0, NULL, NULL}, NULL,
+			{0, NULL, NULL}, NULL,
+		},
+	};
+
+            /*
+	Search a list of category mappings for one with a given name, returning the mapping data if found or NULL otherwise.
+             */
+	static const cbf2nx_category_map_t * cbf2nx_find_category_mapping
+			(const cbf2nx_category_map_t * catmap, /*< the list of category mappings to search within */
+			 const char * const name /*< the name of the category mapping to search for */)
+                {
+		if (!catmap || !name) {
+			return NULL;
+		} else {
+			for (; catmap->name; ++catmap) {
+				if (!strcmp(catmap->name,name)) {
+					return catmap;
+                        }
+                    }
+			return NULL;
+                        }
+                    }
+
+                    /*
+	Write some data to a hdf5 handle according to the conversion method(s) specified in the given mapping.
+
+	Searches the given column mapping array for the method to map the given column, extracts the relevant
+	information from the mapping data and applies it, which usually involves forwarding to a function with
+	a signature which depends on the type of conversion to be performed.
+
+	This iterates over all columns in the mapping to allow multiple conversions to be applied for a single
+	column.
+                     */
+	static int cbf2nx_apply_conversions
+			(cbf_h5handle h5handle,
+			 cbf_cbf2nx_key_t * const key,
+			 const cbf2nx_column_map_t * const colmap_begin,
+			 cbf_node * const column,
+			 const unsigned int row,
+			 void * const row_cache,
+			 const int list,
+			 const unsigned int matched)
 	{
 		int error = CBF_SUCCESS;
-        unsigned int matched = 0;
-        const char categoryName[] = "array_intensities";
-
-		/* check arguments */
-		if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!key || !key->array || !key->binary) {
-            cbf_debug_print("Bad key given\n");
-            error |= CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-            cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
-        } else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[2];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            unsigned int row = 0, nRows = 0;
-            unsigned int indent = 1+key->indent;
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-		}
-		}
-		}
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                nRows = category->child[0]->children;
-                CBF_CALL(cbf_find_child(primary_keys+0, category, "array_id"));
-                CBF_CALL(cbf_find_child(primary_keys+1, category, "binary_id"));
-            }
-            /*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-             */
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                double gain = 1., offset = 0., scaling  = 1.;
-					const char * linearity = NULL;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-                    const char * val = NULL;
-                    if (CBF_SUCCESS==error) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (strcmp(val,key->array)) {
-                            continue;
+		if (!key || !column) {
+			error |= CBF_ARGUMENT;
+                        } else {
+			int in_list = 0;
+			const unsigned int indent = 1+key->indent;
+			if (colmap_begin) {
+				const cbf2nx_column_map_t * colmap;
+				for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
+					if (!strcmp(colmap->name,column->name)) {
+						in_list = 1;
+						switch (colmap->type) {
+							case CBF_MAP_NONE: {
+								if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,2);
+								break;
                         }
-                    }
-                    if (CBF_SUCCESS==error) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[1], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (strintcmp(val,key->binary)) {
-                            continue;
-                        }
-                    }
-                }
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (pk) {
+							case CBF_MAP_DATA: {
                         if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"gain")) {
+								const cbf2nx_convert_t * const conversion = (const cbf2nx_convert_t *)(colmap->data);
+								if (!conversion) {
+									cbf_debug_print("error: malformed mapping method");
+									error |= CBF_FORMAT;
+                        } else {
+									CBF_CALL(conversion->convert(column,row,h5handle,&conversion->data));
+                        }
+								break;
+							}
+							case CBF_MAP_KEY: {
                         const char * val = NULL;
                         if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
+								CBF_CALL(cbf_node_get_value(column, row, &val));
+								const cbf2nx_set_key_t * const set_key = (const cbf2nx_set_key_t *)(colmap->data);
+								if (!set_key) {
+									cbf_debug_print("error: malformed mapping method");
+									error |= CBF_FORMAT;
                         } else {
-                            char * end = NULL;
-                            gain = strtod(val,&end);
-                            gain = (end!=val) ? gain : 0./0.;
+									CBF_CALL(set_key->set_key(key,val));
                         }
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"linearity")) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &linearity));
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"offset")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else {
-                            char * end = NULL;
-                            offset = strtod(val,&end);
-                            offset = (end!=val) ? offset : 0./0.;
-                        }
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"overload")) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &key->data_overload));
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"scaling")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else {
-                            char * end = NULL;
-                            scaling = strtod(val,&end);
-                            scaling = (end!=val) ? scaling : 0./0.;
-                        }
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"undefined_value")) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &key->data_undefined));
-                        /* ---------------------------------------------------------------------------------------------*/
+								break;
+							}
+							case CBF_MAP_CACHE: {
+								const cbf2nx_cache_item_t * const cache_item = (const cbf2nx_cache_item_t *)(colmap->data);
+								if (!cache_item) {
+									cbf_debug_print("error: malformed mapping method");
+									error |= CBF_FORMAT;
                     } else {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+									CBF_CALL(cache_item->cache_item(column,row,row_cache));
                     }
+								break;
                 }
-                ++matched;
-                if (CBF_SUCCESS==error) {
-                    /*
-                     I have extracted all the information from a relevant row,
-                     now I need to convert it to nexus format and write it.
-                     */
-                    if (!linearity) {
-                        cbf_debug_print("'array_intensities.linearity' not found");
-                        error |= CBF_NOTFOUND;
-                    } else {
-					hsize_t max[] = {H5S_UNLIMITED};
-					hsize_t cnk[] = {1};
-					hsize_t buf[] = {0};
-                        hsize_t data_offset[] = {h5handle->slice};
-					hsize_t count[] = {1};
-                        if (!cbf_cistrcmp(linearity,"linear")) scaling = 1.0/gain;
-                        if (!cbf_cistrcmp(linearity,"linear") || !cbf_cistrcmp(linearity,"offset") || !cbf_cistrcmp(linearity,"scaling") || !cbf_cistrcmp(linearity,"scaling_offset")) {
-                            hid_t dset_offset = CBF_H5FAIL;
-                            hid_t dset_scale = CBF_H5FAIL;
-                            CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dset_offset,"offset",1,max,cnk,buf,H5T_IEEE_F64LE));
-                            CBF_CALL(cbf_H5Dinsert(dset_offset,data_offset,0,count,buf,&offset,H5T_NATIVE_DOUBLE));
-                            CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dset_scale,"scaling_factor",1,max,cnk,buf,H5T_IEEE_F64LE));
-                            CBF_CALL(cbf_H5Dinsert(dset_scale,data_offset,0,count,buf,&scaling,H5T_NATIVE_DOUBLE));
-                            cbf_H5Dfree(dset_offset);
-                            cbf_H5Dfree(dset_scale);
-					} else if (!cbf_cistrcmp(linearity,"raw")) {
-						/* no-op! */
-                        } else if (!cbf_cistrcmp(linearity,"sqrt_scaled") || !cbf_cistrcmp(linearity,"logarithmic_scaled")) {
-                            cbf_debug_print("unsupported 'array_intensities.linearity' value:");
-                            cbf_debug_print(linearity);
-                            error |= CBF_NOTIMPLEMENTED;
-                        } else {
-                            cbf_debug_print("unrecognised 'array_intensities.linearity' value:");
-                            cbf_debug_print(linearity);
+							default: {
+								if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+								cbf_debug_print("error: invalid mapping method");
                             error |= CBF_FORMAT;
 				}
 				}
 			}
 		}
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
             }
+			if (!in_list && list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
         }
 		return error;
 	}
 
     /*
-	Find a suitable HDF5 datatype for the given parameters.
+	Define a type to hold data for a single row of the 'axis' category.
+	The validity of string types can be tested by comparison to 'NULL',
+	the validity of vector types can be tested by checking if the number
+	of elements found (in 'nComponent') is 3.
 	 */
-	static int cbf_find_array_data_h5type
-			(hid_t * const type,
-			 unsigned int bits,
-			 int sign,
-			 int real,
-			 const char *byteorder)
+	typedef struct cbf_axis_data_t
 	{
-		int error = CBF_SUCCESS;
+		const char * id;
+		const char * depends_on;
+		const char * equipment;
+		const char * type;
+		double offset[3];
+		double vector[3];
+		unsigned int nOffset;
+		unsigned int nVector;
+	} cbf_axis_data_t;
 
-		if (0) fprintf(stderr,"find_array_data_h5type\n");
-
-		/* check arguments */
-		if (!type) {
-            cbf_debug_print("Invalid type pointer given\n");
-			return CBF_ARGUMENT;
-		}
-		if (!byteorder) {
-            cbf_debug_print("No byte order given\n");
-			return CBF_ARGUMENT;
-		}
-
-		if (real) {
-			const int order = ('l'==*byteorder||'L'==*byteorder) ? 0 : 1;
-			if (!sign) error |= CBF_FORMAT;
-			else {
-				const hid_t tbl[2][2] = {
-					{H5T_IEEE_F32LE,H5T_IEEE_F64LE},
-					{H5T_IEEE_F32BE,H5T_IEEE_F64BE}
-				};
-				unsigned int idx = 2;
-				idx = bits<=64 ? 1 : idx;
-				idx = bits<=32 ? 0 : idx;
-				if (idx > 1) error |= CBF_FORMAT;
-				else *type = tbl[order][idx];
-			}
-		} else {
-			const int order = ('l'==*byteorder||'L'==*byteorder) ? 0 : 1;
-			/* define a lookup table for integer types */
-			const hid_t tbl[2][2][4] = {
+	/*
+	Generate a set of reasonable initial values for 'cbf_axis_data_t',
+	used to initialise and reset objects of that type.
+	*/
+	static cbf_axis_data_t cbf_axis_data_init()
 				{
-					{H5T_STD_I8LE,H5T_STD_I16LE,H5T_STD_I32LE,H5T_STD_I64LE},
-					{H5T_STD_U8LE,H5T_STD_U16LE,H5T_STD_U32LE,H5T_STD_U64LE}
-				}, {
-					{H5T_STD_I8BE,H5T_STD_I16BE,H5T_STD_I32BE,H5T_STD_I64BE},
-					{H5T_STD_U8BE,H5T_STD_U16BE,H5T_STD_U32BE,H5T_STD_U64BE}
+		return (cbf_axis_data_t) {NULL,NULL,NULL,NULL,{0.,0.,0.},{0.,0.,0.},0,0};
 				}
-			};
-			/* select a value from the table */
-			unsigned int idx = 4;
-			idx = bits<=64 ? 3 : idx;
-			idx = bits<=32 ? 2 : idx;
-			idx = bits<=16 ? 1 : idx;
-			idx = bits<=8  ? 0 : idx;
-			if (idx > 3) error |= CBF_FORMAT;
-			else *type = tbl[order][sign?0:1][idx];
-		}
-
-		return error;
-	}
 
     /*
-	Decompress the data selected in the handle, ensure an appropriate HDF5 dataset exists to store it,
-	insert it a the given index with some parameter values set according to the given flags.
+	Read a given row of data from the given axis category, after initialising
+	the 'data' struct to sensible default values. Unrecognised columns will
+	cause a warning to be printed, but are otherwise ignored rather than causing
+	an error. Missing columns are not logged.
 
-	Writes saturation_value and data to h5handle->nxdetector
+	\return An error code.
 	*/
-	static int cbf_write_array_h5file
-			(const cbf_node * node,
-			 const unsigned int row,
-			 cbf_h5handle h5handle,
-			 const char * const saturation_value,
-     const char * const undefined_value,
-			 hsize_t * dims)
+	static int cbf_read_axis_row
+			(cbf_axis_data_t * const data /*< The location where extracted data should be stored. */,
+			 cbf_node * const category /*< The category to extract data from. */,
+			 const unsigned int row /*< The row to extract data from. */)
 	{
         int error = CBF_SUCCESS;
-        if (0) fprintf(stderr,"write_array_h5file\n");
-        
-        if (!node) {
-            cbf_debug_print("Invalid node given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
+		/* check that the arguments are sensible */
+		if (!data || !category) {
             error |= CBF_ARGUMENT;
         } else {
-            int found = CBF_SUCCESS, id, bits, sign, real;
-		cbf_file *file;
-		long start;
-		const char *byteorder;
-		size_t size, nelem, cbfdim[3], padding;
-		unsigned int compression;
-		hid_t h5type = CBF_H5FAIL;
-            /* find the datatype and array size */
-            CBF_CALL(cbf_get_bintext(node, row, NULL,
-			 &id, &file, &start, &size,
-			 NULL, NULL, &bits, &sign, &real,
-			 &byteorder, &nelem, cbfdim+2, cbfdim+1, cbfdim+0, &padding,
-			 &compression));
-            CBF_CALL(cbf_find_array_data_h5type(&h5type,bits,sign,real,byteorder));
-
-		if (dims) {
-			dims[0] = 0;
-			dims[1] = cbfdim[1];
-			dims[2] = cbfdim[2];
-		}
-
-            /* check the saturation value */
-		if (saturation_value) {
-			hid_t dataset = CBF_H5FAIL;
-			hsize_t max[] = {H5S_UNLIMITED};
-			hsize_t cnk[] = {1};
-			hsize_t off[] = {h5handle->slice};
-			hsize_t cnt[] = {1};
-			hsize_t buf[] = {0};
-                CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dataset,"saturation_value",1,max,cnk,buf,h5type));
-			if (real) {
-				/* every float can be represented exactly by a double, so no need for float intermediate */
-				const double num = strtod(saturation_value,0);
-                    CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_DOUBLE));
+			cbf_node * const * column_it;
+			/* initialise the 'axis_data' type to reasonable defaults */
+			*data = cbf_axis_data_init();
+			/* iterate through all columns, storing values in the 'axis_data' type for later use */
+			for (column_it = category->child; !error && column_it != category->children+category->child; ++column_it) {
+				cbf_node * const column = *column_it;
+				if (!strcmp(column->name,"id")) {
+					CBF_CALL(cbf_node_get_value(column, row, &data->id));
+				} else if (!strcmp(column->name,"depends_on")) {
+					CBF_CALL(cbf_node_get_value(column, row, &data->depends_on));
+				} else if (!strcmp(column->name,"equipment")) {
+					CBF_CALL(cbf_node_get_value(column, row, &data->equipment));
+				} else if (!strcmp(column->name,"type")) {
+					CBF_CALL(cbf_node_get_value(column, row, &data->type));
+				} else if (!strcmp(column->name,"offset[1]")) {
+					CBF_CALL(cbf_node_get_doublevalue(column, row, 0+data->offset));
+					if (!error) ++data->nOffset;
+				} else if (!strcmp(column->name,"offset[2]")) {
+					CBF_CALL(cbf_node_get_doublevalue(column, row, 1+data->offset));
+					if (!error) ++data->nOffset;
+				} else if (!strcmp(column->name,"offset[3]")) {
+					CBF_CALL(cbf_node_get_doublevalue(column, row, 2+data->offset));
+					if (!error) ++data->nOffset;
+				} else if (!strcmp(column->name,"vector[1]")) {
+					CBF_CALL(cbf_node_get_doublevalue(column, row, 0+data->vector));
+					if (!error) ++data->nVector;
+				} else if (!strcmp(column->name,"vector[2]")) {
+					CBF_CALL(cbf_node_get_doublevalue(column, row, 1+data->vector));
+					if (!error) ++data->nVector;
+				} else if (!strcmp(column->name,"vector[3]")) {
+					CBF_CALL(cbf_node_get_doublevalue(column, row, 2+data->vector));
+					if (!error) ++data->nVector;
 			} else {
-				if (sign) {
-					/* use longest signed integer: all smaller types represent a subset of these values */
-					const signed long num = strtol(saturation_value,0,10);
-                        CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_LONG));
-				} else {
-					/* use longest unsigned integer: all smaller types represent a subset of these values */
-					const unsigned long num = strtoul(saturation_value,0,10);
-                        CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_ULONG));
+					cbf_debug_print2("warning: unrecognised column in 'axis' table:\n %s\n",column->name);
 				}
 			}
-			cbf_H5Dfree(dataset);
 		}
-
-            /* check the undefined value */
-            if (undefined_value) {
-                hid_t dataset = CBF_H5FAIL;
-                hsize_t max[] = {H5S_UNLIMITED};
-                hsize_t cnk[] = {1};
-                hsize_t off[] = {h5handle->slice};
-                hsize_t cnt[] = {1};
-                hsize_t buf[] = {0};
-                CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dataset,"undefined_value",1,max,cnk,buf,h5type));
-                if (real) {
-                    /* every float can be represented exactly by a double, so no need for float intermediate */
-                    const double num = strtod(undefined_value,0);
-                    CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_DOUBLE));
-                } else {
-                    if (sign) {
-                        /* use longest signed integer: all smaller types represent a subset of these values */
-                        const signed long num = strtol(undefined_value,0,10);
-                        CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_LONG));
-                    } else {
-                        /* use longest unsigned integer: all smaller types represent a subset of these values */
-                        const unsigned long num = strtoul(undefined_value,0,10);
-                        CBF_CALL(cbf_H5Dinsert(dataset,off,0,cnt,buf,&num,H5T_NATIVE_ULONG));
-                    }
-                }
-                cbf_H5Dfree(dataset);
-            }
-            
-		/* allocate space for the decompressed data */
-		if (CBF_SUCCESS == error) {
-			void * value;
-			const unsigned int elsize = (bits+7)/8;
-			size_t nelem_read;
-			const int rank = 3;
-			hsize_t buf[] = {0, 0, 0};
-			hsize_t h5dim[] = {0, cbfdim[1], cbfdim[2]};
-			hsize_t h5max[] = {H5S_UNLIMITED, cbfdim[1], cbfdim[2]};
-			hsize_t h5chunk[] = {1, cbfdim[1], cbfdim[2]};
-			hid_t dset = CBF_H5FAIL;
-			value = malloc(nelem*elsize);
-                CBF_CALL(cbf_set_fileposition(file, start, SEEK_SET));
-                CBF_CALL(cbf_decompress_parameters(NULL, NULL, NULL, NULL, NULL, NULL, NULL, compression, file));
-			if (0) {
-				fprintf(stderr,"masked compression: %d\n",compression&CBF_COMPRESSION_MASK);
-				fprintf(stderr,"compression type: ");
-				if (compression == CBF_CANONICAL) fprintf(stderr,"CBF_CANONICAL\n");
-				else if ((compression&CBF_COMPRESSION_MASK) == CBF_PACKED) fprintf(stderr,"CBF_PACKED\n");
-				else if ((compression&CBF_COMPRESSION_MASK) == CBF_PACKED_V2) fprintf(stderr,"CBF_PACKED_V2\n");
-				else if (compression == CBF_BYTE_OFFSET) fprintf(stderr,"CBF_BYTE_OFFSET\n");
-				else if (compression == CBF_NIBBLE_OFFSET) fprintf(stderr,"CBF_NIBBLE_OFFSET\n");
-				else if (compression == CBF_PREDICTOR) fprintf(stderr,"CBF_PREDICTOR\n");
-				else if (compression == CBF_NONE) fprintf(stderr,"CBF_NONE\n");
-				else fprintf(stderr,"Unknown\n");
-				fprintf(stderr,"element size: %d\n",(unsigned int)(elsize));
-				fprintf(stderr,"real?: %s\n",real?"yes":"no");
-			}
-
-                /* ensure a dataset exists in the detector */
-			found =  cbf_H5Dfind2(h5handle->nxdetector,&dset,"data",rank,h5max,buf,h5type);
-			if (CBF_SUCCESS==found) {
-			} else if (CBF_NOTFOUND==found) {
-				/* define variables & check args */
-				hid_t dataSpace = CBF_H5FAIL;
-				hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
-
-				/* check variables are valid */
-                    CBF_CALL(cbf_H5Screate(&dataSpace, rank, h5dim, h5max));
-
-				/* allow dataset to be chunked */
-                    CBF_H5CALL(H5Pset_chunk(dcpl,rank,h5chunk));
-				/* allow compression */
-                    if (CBF_SUCCESS==error) {
-				if (h5handle->flags & CBF_H5COMPRESSION_ZLIB) {
-                            H5Pset_deflate(dcpl, 1);
-				} else if (h5handle->flags & CBF_H5COMPRESSION_CBF) {
-					unsigned int cd_values[CBF_H5Z_FILTER_CBF_NELMTS];
-					cd_values[CBF_H5Z_FILTER_CBF_COMPRESSION] = compression;
-					cd_values[CBF_H5Z_FILTER_CBF_RESERVED]    = 0;
-					cd_values[CBF_H5Z_FILTER_CBF_BINARY_ID]   = id;
-					cd_values[CBF_H5Z_FILTER_CBF_PADDING]     = padding;
-					cd_values[CBF_H5Z_FILTER_CBF_ELSIZE]      = elsize;
-					cd_values[CBF_H5Z_FILTER_CBF_ELSIGN]      = sign;
-					cd_values[CBF_H5Z_FILTER_CBF_REAL]        = real;
-					cd_values[CBF_H5Z_FILTER_CBF_DIMFAST]     = *(h5chunk+2);
-					cd_values[CBF_H5Z_FILTER_CBF_DIMMID]      = *(h5chunk+1);
-					cd_values[CBF_H5Z_FILTER_CBF_DIMSLOW]     = *(h5chunk+0);
-
-					if (h5handle->flags & CBF_H5_REGISTER_COMPRESSIONS) {
-						if (!H5Zfilter_avail(CBF_H5Z_FILTER_CBF)) {
-                                    CBF_H5CALL(H5Zregister(CBF_H5Z_CBF));
-						}
-					}
-
-                            CBF_H5CALL(H5Pset_filter(dcpl, CBF_H5Z_FILTER_CBF, H5Z_FLAG_OPTIONAL, CBF_H5Z_FILTER_CBF_NELMTS, cd_values));
-
-				}
-                    }
-
-				/* create the dataset */
-				if (CBF_SUCCESS == error)
-					dset = H5Dcreate2(h5handle->nxdetector,"data",h5type,dataSpace,H5P_DEFAULT,dcpl,H5P_DEFAULT);
-
-				/* check local variables are properly closed */
-				if (cbf_H5Ivalid(dataSpace)) H5Sclose(dataSpace);
-				if (cbf_H5Ivalid(dcpl)) H5Pclose(dcpl);
-			} else {
-				error |= found;
-                    cbf_debug_print2("error locating primary dataset: %s\n", cbf_strerror(found));
-			}
-			if (CBF_SUCCESS==error) {
-				const hsize_t h5offset[] = {h5handle->slice, 0, 0};
-				const int sig[] = {1};
-				int sigbuf[] = {0};
-
-                    /* extract the image data from CBF */
-                    CBF_CALL(cbf_decompress(value, elsize, sign, nelem, &nelem_read,
-						size, compression, bits, sign, file, real, byteorder,
-						nelem, cbfdim[2], cbfdim[1], cbfdim[0], padding));
-				if (nelem_read != nelem) error |= CBF_ENDOFDATA;
-
-                    /* store the image data in HDF5 */
-                    CBF_CALL(cbf_H5Dinsert(dset,h5offset,0,h5chunk,buf,value,h5type));
-                    CBF_CALL(CBFM_H5Arequire_cmp2(dset,"signal",0,0,H5T_STD_I32LE,H5T_NATIVE_INT,sig,sigbuf,cmp_int,0));
-				cbf_H5Dfree(dset);
-				free((void*)value);
-			}
-		}
-        }
-
 		return error;
 	}
 
+	/*
+	This function iterates through stored axis sets, it doesn't iterate of a subset of rows within a table,
+	so it shouldn't be forced into the same processing model as the conversion functions which do.
+
+	See the comments for a description of what this function does.
+	*/
     static int cbf_write_cbf2nx__array_structure_list_axis
 			(cbf_handle handle,
 			 cbf_h5handle h5handle,
@@ -17410,6 +17464,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 #endif
 #else
         void * cmp_params = 0;
+        CBF_UNUSED(cmp_params);
 #endif
 
 		/* check arguments */
@@ -17419,8 +17474,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         } else if (!h5handle) {
             cbf_debug_print("Invalid hdf5 handle given\n");
             error |= CBF_ARGUMENT;
-        } else if (!key || !key->arrayAxisSet.axis_set_id || !key->arrayAxisSet.direction ||
-                   !key->arrayAxisSet.precedence || 0==key->arrayAxisSet.count) {
+		} else if
+			(!key ||
+			!key->arrayAxisSet.axis_set_id ||
+			!key->arrayAxisSet.direction ||
+			!key->arrayAxisSet.precedence ||
+			0==key->arrayAxisSet.count)
+		{
             cbf_debug_print("Bad key given\n");
             error |= CBF_ARGUMENT;
         } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
@@ -17445,7 +17505,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		}
             /* check that I have some children, and try to find the primary key columns */
             if (0==category->children) {
-                cbf_debug_print("category has no children");
+                cbf_debug_print2("error: %s\n","category has no children");
                 error |= CBF_NOTFOUND;
             } else {
                 nRows = category->child[0]->children;
@@ -17463,7 +17523,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 for (row = 0; row != nRows; ++row) {
                     const char * set_id = NULL;
                     if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &set_id))) {
-                        cbf_debug_print(cbf_strerror(error));
+                        cbf_debug_print2("error: %s\n",cbf_strerror(error));
                     } else if (!strcmp(key->arrayAxisSet.axis_set_id[set],set_id)) {
                         axes[nAxes++] = row;
                     }
@@ -17496,85 +17556,41 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             pk = column==*it ? 1 : pk;
                         }
                         /*
-                         I now have all the information required:
+						I now have all the information required to read some relevant data:
                          - if a column is used as a primary key, ignore it but record it as processed
                          - if a column has a recognised name, perform the conversion
                          - otherwise, record the column as not processed and carry on
                          */
                         if (pk) {
                             if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                            /* ---------------------------------------------------------------------------------------------*/
                         } else if (!cbf_cistrcmp(column->name,"angle")) {
-                            const char * val = NULL;
                             if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, axes[0], &val))) {
-                                cbf_debug_print(cbf_strerror(error));
-                            } else {
-                                char * end = NULL;
-                                angle = strtod(val,&end);
-                                have_angle = (end!=val) ? 1 : 0;
-                            }
-                            /* ---------------------------------------------------------------------------------------------*/
+								CBF_CALL(cbf_node_get_doublevalue(column, axes[0], &angle));
+								if (!error) have_angle = 1;
                         } else if (!cbf_cistrcmp(column->name,"angle_increment")) {
-                            const char * val = NULL;
                             if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, axes[0], &val))) {
-                                cbf_debug_print(cbf_strerror(error));
-                            } else {
-                                char * end = NULL;
-                                angle_incr = strtod(val,&end);
-                                have_angle_incr = (end!=val) ? 1 : 0;
-                            }
-                            /* ---------------------------------------------------------------------------------------------*/
+								CBF_CALL(cbf_node_get_doublevalue(column, axes[0], &angle_incr));
+								if (!error) have_angle_incr = 1;
                         } else if (!cbf_cistrcmp(column->name,"angular_pitch")) {
-                            const char * val = NULL;
                             if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, axes[0], &val))) {
-                                cbf_debug_print(cbf_strerror(error));
-                            } else {
-                                char * end = NULL;
-                                angular_pitch = strtod(val,&end);
-                                have_angular_pitch = (end!=val) ? 1 : 0;
-                            }
-                            /* ---------------------------------------------------------------------------------------------*/
+								CBF_CALL(cbf_node_get_doublevalue(column, axes[0], &angular_pitch));
+								if (!error) have_angular_pitch = 1;
                         } else if (!cbf_cistrcmp(column->name,"axis_id")) {
                             if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
                             CBF_CALL(cbf_node_get_value(column, axes[0], &axis));
-                            /* ---------------------------------------------------------------------------------------------*/
                         } else if (!cbf_cistrcmp(column->name,"displacement")) {
-                            const char * val = NULL;
                             if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, axes[0], &val))) {
-                                cbf_debug_print(cbf_strerror(error));
-                            } else {
-                                char * end = NULL;
-                                disp = strtod(val,&end);
-                                have_disp = (end!=val) ? 1 : 0;
-                            }
-                            /* ---------------------------------------------------------------------------------------------*/
+								CBF_CALL(cbf_node_get_doublevalue(column, axes[0], &disp));
+								if (!error) have_disp = 1;
                         } else if (!cbf_cistrcmp(column->name,"displacement_increment")) {
-                            const char * val = NULL;
                             if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, axes[0], &val))) {
-                                cbf_debug_print(cbf_strerror(error));
-                            } else {
-                                char * end = NULL;
-                                disp_incr = strtod(val,&end);
-                                have_disp_incr = (end!=val) ? 1 : 0;
-                            }
-                            /* ---------------------------------------------------------------------------------------------*/
+								CBF_CALL(cbf_node_get_doublevalue(column, axes[0], &disp_incr));
+								if (!error) have_disp_incr = 1;
                         } else if (!cbf_cistrcmp(column->name,"radial_pitch")) {
-                            const char * val = NULL;
                             if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, axes[0], &val))) {
-                                cbf_debug_print(cbf_strerror(error));
+								CBF_CALL(cbf_node_get_doublevalue(column, axes[0], &radial_pitch));
+								if (!error) have_radial_pitch = 1;
                             } else {
-                                char * end = NULL;
-                                radial_pitch = strtod(val,&end);
-                                have_radial_pitch = (end!=val) ? 1 : 0;
-                            }
-                            /* ---------------------------------------------------------------------------------------------*/
-                        } else {
                             if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
                         }
                     }
@@ -17586,15 +17602,12 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                          to treat the setting as non-zero, because 0.0 is used as a signalling value instead of a
                          computed value. Compilers will complain about this: ignore them, they are wrong.
                          */
-                        if (have_disp && have_disp_incr &&
+						if
+							(have_disp && have_disp_incr &&
                             (!have_angle || 0.==angle) && (!have_angle_incr || 0.==angle_incr) &&
                             (!have_angular_pitch || 0.==angular_pitch) && (!have_radial_pitch || 0.==radial_pitch))
                         { /* it looks like a 1 dimensional displacement */
-                            const char * depends_on = NULL;
-                            const char * equipment = NULL;
-                            int nVector = 0, nOffset = 0;
-                            double cbfVector[3] = {0.,0.,0.};
-                            double cbfOffset[3] = {0.,0.,0.};
+							cbf_axis_data_t axis_settings = cbf_axis_data_init();
                             { /* write the pixel sizes to NXdetector */
                                 hid_t detector = CBF_H5FAIL;
 							hid_t dset = CBF_H5FAIL;
@@ -17607,98 +17620,30 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 CBF_CALL(cbf_H5Arequire_string(dset,"units","mm"));
                                 cbf_H5Dfree(dset);
                             }
-                            /* select the axis and calculate the data it should contain */
+							/* select the axis and extract the data it contains */
                             if (CBF_SUCCESS!=(error|=cbf_find_category(handle,"axis"))) {
-                                cbf_debug_print(cbf_strerror(error));
+                                cbf_debug_print2("error: %s\n",cbf_strerror(error));
                             } else {
                                 cbf_node * const axisCategory = handle->node;
                                 if (CBF_SUCCESS!=(error|=cbf_find_column(handle,"id"))) {
-                                    cbf_debug_print(cbf_strerror(error));
+                                    cbf_debug_print2("error: %s\n",cbf_strerror(error));
                                 } else if (CBF_SUCCESS!=(error|=cbf_find_row(handle,axis))) {
                                     cbf_debug_print2("error: problem finding '%s' in axis category\n",axis);
                                     cbf_debug_print(cbf_strerror(error));
                                 } else {
-                                    cbf_node * const * column_it;
-                                    /* find the correct row first... */
-                                    for (column_it = axisCategory->child; CBF_SUCCESS==error && column_it != axisCategory->children+axisCategory->child; ++column_it) {
-                                        cbf_node * const column = *column_it;
-                                        if (!strcmp(column->name,"depends_on")) {
-                                            CBF_CALL(cbf_node_get_value(column, handle->row, &depends_on));
-                                            /* ---------------------------------------------------------------------------------------------*/
-                                        }else if (!strcmp(column->name,"equipment")) {
-                                            CBF_CALL(cbf_node_get_value(column, handle->row, &equipment));
-                                            /* ---------------------------------------------------------------------------------------------*/
-                                        } else if (!strcmp(column->name,"offset[1]")) {
-                                            const char * val = NULL;
-                                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, handle->row, &val))) {
-                                                cbf_debug_print(cbf_strerror(error));
-                                            } else {
-                                                char * end = NULL;
-                                                cbfOffset[0] = strtod(val,&end);
-                                                if (end!=val) ++nOffset;
+									CBF_CALL(cbf_read_axis_row(&axis_settings,axisCategory,handle->row));
                                             }
-                                            /* ---------------------------------------------------------------------------------------------*/
-                                        } else if (!strcmp(column->name,"offset[2]")) {
-                                            const char * val = NULL;
-                                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, handle->row, &val))) {
-                                                cbf_debug_print(cbf_strerror(error));
-                                            } else {
-                                                char * end = NULL;
-                                                cbfOffset[1] = strtod(val,&end);
-                                                if (end!=val) ++nOffset;
                                             }
-                                            /* ---------------------------------------------------------------------------------------------*/
-                                        } else if (!strcmp(column->name,"offset[3]")) {
-                                            const char * val = NULL;
-                                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, handle->row, &val))) {
-                                                cbf_debug_print(cbf_strerror(error));
-                                            } else {
-                                                char * end = NULL;
-                                                cbfOffset[2] = strtod(val,&end);
-                                                if (end!=val) ++nOffset;
-                                            }
-                                            /* ---------------------------------------------------------------------------------------------*/
-                                        } else if (!strcmp(column->name,"vector[1]")) {
-                                            const char * val = NULL;
-                                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, handle->row, &val))) {
-                                                cbf_debug_print(cbf_strerror(error));
-                                            } else {
-                                                char * end = NULL;
-                                                cbfVector[0] = strtod(val,&end);
-                                                if (end!=val) ++nVector;
-                                            }
-                                            /* ---------------------------------------------------------------------------------------------*/
-                                        } else if (!strcmp(column->name,"vector[2]")) {
-                                            const char * val = NULL;
-                                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, handle->row, &val))) {
-                                                cbf_debug_print(cbf_strerror(error));
-                                            } else {
-                                                char * end = NULL;
-                                                cbfVector[1] = strtod(val,&end);
-                                                if (end!=val) ++nVector;
-                                            }
-                                            /* ---------------------------------------------------------------------------------------------*/
-                                        } else if (!strcmp(column->name,"vector[3]")) {
-                                            const char * val = NULL;
-                                            if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, handle->row, &val))) {
-                                                cbf_debug_print(cbf_strerror(error));
-                                            } else {
-                                                char * end = NULL;
-                                                cbfVector[2] = strtod(val,&end);
-                                                if (end!=val) ++nVector;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+							/* calculate the array of values the axis should have, and store the axis */
                             if (CBF_SUCCESS==error) {
                                 double * const axisData = malloc(sizeof(double)*key->arrayAxisSet.dimension[set]);
                                 if (!axisData) {
-                                    cbf_debug_print(cbf_strerror(CBF_ALLOC));
+                                    cbf_debug_print2("error: %s\n",cbf_strerror(CBF_ALLOC));
                                     error |= CBF_ALLOC;
                                 } else {
                                     unsigned int i;
                                     const unsigned int dimension = key->arrayAxisSet.dimension[set];
+									const char * depends_on_path = NULL;
                                     hid_t dset = CBF_H5FAIL;
 							const hsize_t dim[] = {dimension};
 							const hsize_t max[] = {H5S_UNLIMITED};
@@ -17708,14 +17653,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     const int found = cbf_H5Dfind2(h5handle->hfile,&dset,key->arrayAxisSet.path[set],1,0,buf,H5T_IEEE_F64LE);
                                     /* initialise the axisData array */
                                     if (!key->arrayAxisSet.direction || !key->arrayAxisSet.direction[set]) {
-                                        cbf_debug_print(cbf_strerror(CBF_UNDEFINED));
+                                        cbf_debug_print2("error: %s\n",cbf_strerror(CBF_UNDEFINED));
                                         error |= CBF_UNDEFINED;
                                     } else if (!strcmp(key->arrayAxisSet.direction[set],"increasing")) {
                                         for (i = 0; i < dimension; ++i) axisData[i] = disp+i*disp_incr;
                                     } else if (!strcmp(key->arrayAxisSet.direction[set],"decreasing")) {
                                         for (i = 0; i < dimension; ++i) axisData[i] = disp+(dimension-i-1)*disp_incr;
                                     } else {
-                                        cbf_debug_print(cbf_strerror(CBF_FORMAT));
+                                        cbf_debug_print2("error: %s\n",cbf_strerror(CBF_FORMAT));
                                         error |= CBF_FORMAT;
                                     }
                                     /* ensure a suitable dataset exists, or create one */
@@ -17724,7 +17669,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                             /* TODO: check dataset dimensions */
 									double * const currData = malloc(sizeof(double)*dimension);
                                             if (!currData) {
-                                                cbf_debug_print(cbf_strerror(CBF_ALLOC));
+                                                cbf_debug_print2("error: %s\n",cbf_strerror(CBF_ALLOC));
                                                 error |= CBF_ALLOC;
                                             }
                                             CBF_CALL(cbf_H5Dread2(dset,offset,0,count,currData,H5T_NATIVE_DOUBLE));
@@ -17739,7 +17684,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                             CBF_CALL(cbf_H5Dcreate(h5handle->hfile,&dset,key->arrayAxisSet.path[set],1,dim,max,count,H5T_IEEE_F64LE));
                                             CBF_CALL(cbf_H5Dwrite2(dset,offset,0,count,axisData,H5T_NATIVE_DOUBLE));
 								} else {
-                                            cbf_debug_print(cbf_strerror(found));
+                                            cbf_debug_print2("error: %s\n",cbf_strerror(found));
 									error |= found;
 								}
                                     }
@@ -17757,43 +17702,43 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     if (CBF_SUCCESS==error) {
                                         cbf_node * axis_id = NULL;
                                         if (CBF_SUCCESS!=(error|=cbf_find_child(&axis_id, category, "axis_id"))) {
-                                            cbf_debug_print(cbf_strerror(error));
+                                            cbf_debug_print2("error: %s\n",cbf_strerror(error));
                                         } else {
                                             const char * id = NULL;
                                             unsigned int i;
                                             /* search for the parent axis in ASLA.axis_id: */
                                             for (i = 0; i != axis_id->children; ++i) {
                                                 if (CBF_SUCCESS!=(error|=cbf_node_get_value(axis_id, i, &id))) {
-                                                    cbf_debug_print(cbf_strerror(error));
+                                                    cbf_debug_print2("error: %s\n",cbf_strerror(error));
                                                 } else {
-                                                    if (!strcmp(id,depends_on)) break;
+													if (!strcmp(id,axis_settings.depends_on)) break;
                                                 }
                                             }
                                             if (i != axis_id->children) {
                                                 /* the parent axis exists within an axis set - the dependency is the path for that set */
                                                 if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], i, &id))) {
-                                                    cbf_debug_print(cbf_strerror(error));
+                                                    cbf_debug_print2("error: %s\n",cbf_strerror(error));
                                                 } else {
                                                     for (i = 0; i != key->arrayAxisSet.count; ++i) {
                                                         if (!strcmp(key->arrayAxisSet.axis_set_id[i],id)) break;
                                                     }
                                                     if (i == key->arrayAxisSet.count) {
-                                                        cbf_debug_print(cbf_strerror(CBF_NOTFOUND));
+                                                        cbf_debug_print2("error: %s\n",cbf_strerror(CBF_NOTFOUND));
                                                         error |= CBF_NOTFOUND;
                                                     } else {
-                                                        depends_on = key->arrayAxisSet.path[i];
+														depends_on_path = key->arrayAxisSet.path[i];
                                                     }
                                                 }
                                             } else {
                                                 /* the parent axis is a free axis - the dependency is the path for that axis */
                                                 for (i = 0; i != key->axis.count; ++i) {
-                                                    if (!strcmp(key->axis.axis_id[i],depends_on)) break;
+													if (!strcmp(key->axis.axis_id[i],axis_settings.depends_on)) break;
                                                 }
                                                 if (i == key->axis.count) {
-                                                    cbf_debug_print(cbf_strerror(CBF_NOTFOUND));
+                                                    cbf_debug_print2("error: %s\n",cbf_strerror(CBF_NOTFOUND));
                                                     error |= CBF_NOTFOUND;
                                                 } else {
-                                                    depends_on = key->axis.path[i];
+                                                    depends_on_path = key->axis.path[i];
                                                 }
                                             }
                                         }
@@ -17803,39 +17748,39 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                         CBF_CALL(cbf_H5Arequire_string(dset,"transformation_type","translation"));
                                         CBF_CALL(cbf_H5Arequire_string(dset,"units","mm"));
                                     }
-                                    if (CBF_SUCCESS==error && depends_on) {
-                                        CBF_CALL(cbf_H5Arequire_string(dset,"depends_on",depends_on));
+                                    if (CBF_SUCCESS==error && depends_on_path) {
+                                        CBF_CALL(cbf_H5Arequire_string(dset,"depends_on",depends_on_path));
                                     }
-                                    if (CBF_SUCCESS==error && equipment) {
-                                        CBF_CALL(cbf_H5Arequire_string(dset,"equipment",equipment));
+                                    if (CBF_SUCCESS==error && axis_settings.equipment) {
+                                        CBF_CALL(cbf_H5Arequire_string(dset,"equipment",axis_settings.equipment));
                                     }
-                                    if (CBF_SUCCESS==error && nOffset==3) {
-                                        double nxoff[3];
+									if (CBF_SUCCESS==error && axis_settings.nOffset==3) {
+										double offset[3];
                                         const hsize_t vdim[] = {3};
                                         hsize_t vbuf[] = {0};
-                                        CBF_CALL(cbf_apply_matrix(key->matrix,cbfOffset,nxoff));
-                                        CBF_CALL(CBFM_H5Arequire_cmp2(dset,"offset",1,vdim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,nxoff,vbuf,cmp_double,cmp_params));
+                                        CBF_CALL(cbf_apply_matrix(key->matrix,axis_settings.offset,offset));
+                                        CBF_CALL(CBFM_H5Arequire_cmp2(dset,"offset",1,vdim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,offset,vbuf,cmp_double,cmp_params));
                                         CBF_CALL(cbf_H5Arequire_string(dset,"offset_units","mm"));
                                     }
-                                    if (CBF_SUCCESS==error && nVector==3) {
-                                        double nxvec[3];
+									if (CBF_SUCCESS==error && axis_settings.nVector==3) {
+										double vector[3];
                                         const hsize_t vdim[] = {3};
                                         hsize_t vbuf[] = {0};
-                                        CBF_CALL(cbf_apply_matrix(key->matrix,cbfVector,nxvec));
-                                        CBF_CALL(CBFM_H5Arequire_cmp2(dset,"vector",1,vdim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,nxvec,vbuf,cmp_double,cmp_params));
+                                        CBF_CALL(cbf_apply_matrix(key->matrix,axis_settings.vector,vector));
+                                        CBF_CALL(CBFM_H5Arequire_cmp2(dset,"vector",1,vdim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,vector,vbuf,cmp_double,cmp_params));
                                     }
 								cbf_H5Dfree(dset);
 							}
                                 free((void*)axisData);
 						}
                         } else {
-                            cbf_debug_print("unrecognised combination of settings");
+                            cbf_debug_print("error: unrecognised combination of settings");
                             error |= CBF_FORMAT;
 					}
 				}
                 } else {
                     /* unhandled number of axes - error */
-                    cbf_debug_print("unsupported array structure");
+                    cbf_debug_print("error: unsupported array structure");
                     error |= CBF_NOTIMPLEMENTED;
 			}
 		}
@@ -17848,177 +17793,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         return error;
 	}
 
-    static int cbf_write_cbf2nx__array_structure_list
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-		int error = CBF_SUCCESS;
-        const char categoryName[] = "array_structure_list";
-
-		/* check arguments */
-		if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!key || !key->array) {
-            cbf_debug_print("Bad key given\n");
-            error |= CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-            cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
-        } else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[1];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            const unsigned int indent = 1+key->indent;
-            unsigned int row = 0, nRows = 0;
-            unsigned int matched = 0;
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-		}
-		}
-		}
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                nRows = category->child[0]->children;
-                CBF_CALL(cbf_find_child(primary_keys+0, category, "array_id"));
-					}
             /*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-             */
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                unsigned int prec = 0, dim = 0, idx = 0;
-                const char * axis_set = NULL;
-                const char * dirn = NULL;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-                    const char * val = NULL;
-                    if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                        cbf_debug_print(cbf_strerror(error));
-                    } else if (strcmp(val,key->array)) {
-                        continue;
-                    }
-                }
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (pk) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"axis_set_id")) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &axis_set));
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"dimension")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-				} else {
-                            dim = strtol(val,0,0);
-				}
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"direction")) {
-                        /* TODO: validate this, then store +/-1 in key->arrayAxisSet.direction */
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &dirn));
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"index")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-			} else {
-                            idx = strtol(val,0,0);
-			}
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"precedence")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else {
-                            prec = strtol(val,0,0);
-		}
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
-                    }
-                }
-                ++matched;
-                /*
-                 - I have the array_structure_list_axis.axis_set_id and array_structure_list_axis.axis_id columns,
-                 look for rows with matching axis_set_id keys and extract the corresponding axis_id.
-                 - If the axis_id is already in the list of axes I don't need to do anything else here, otherwise
-                 I need a new axis path which may be a function of the axis_set_id data.
+	Special function to handle axis conversions by dealing with axis sets and
+	traversing the dependency chain for all referenced leaf axes. This doesn't
+	match a set of rows within the axis table, so should not be forced into
+	the same processing model as the conversion functions which do.
 
-                 Coupled axes are much more complex than others. Nexus cannot handle coupled axes directly,
-                 but I may still need to extract information from them to store per-pixel coordinates. Because
-                 I don't map any of these axes directly I don't need to make up a per-axis path, I map each
-                 axis_set_id to a NeXus axis and generate a per-axis_set_id path. I don't need to know about
-                 the axes that are in the set until I get around to writing axis data.
-                 
-                 When converting the axis category I then need to convert:
-                 1. every axis that has been used to position objects
-                 2. every axis that is used in any axis set that describes image axes
+	See comments for a description of what this function does.
                  */
-                if (CBF_SUCCESS==error) {
-                    const char empty_string[] = "";
-                    const char pixel_y[] = "y_pixel_offset";
-                    const char pixel_x[] = "x_pixel_offset";
-                    const char * const axis_names[] = {empty_string, pixel_x, pixel_y};
-                    if (prec < 1 || prec > 2) {
-                        /* I don't have axis names defined outside of this range */
-                        cbf_debug_print("'precedence' isn't in the range of valid values");
-                        error |= CBF_FORMAT;
-                    } else {
-                        const char * path_parts[] = {
-                            empty_string,
-                            h5handle->nxid_name,
-                            h5handle->nxinstrument_name,
-                            h5handle->nxdetector_name,
-                            /* select the correct axis name */
-                            axis_names[prec],
-                            0
-                        };
-                        const char * const axis_path = _cbf_strjoin(path_parts,'/');
-                        CBF_CALL(_cbf_insert_arrayAxisSet(&key->arrayAxisSet,axis_set,axis_path,idx,prec,dim,dirn));
-                        free((void*)axis_path);
-			}
-		}
-            }
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
-            }
-        }
-		return error;
-	}
-
     static int cbf_write_cbf2nx__axis
 			(cbf_handle handle,
 			 cbf_h5handle h5handle,
@@ -18039,6 +17821,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 #endif
 #else
         void * cmp_params = 0;
+        CBF_UNUSED(cmp_params);
 #endif
 
 		/* check arguments */
@@ -18052,11 +17835,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             cbf_debug_print("Bad key given\n");
             error |= CBF_ARGUMENT;
         }else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-            cbf_debug_print(cbf_strerror(error));
+            cbf_debug_print2("error: %s\n",cbf_strerror(error));
         } else {
             /* The axes in key->axis are used within the scan, so I must convert them all and any axes that they depend on. */
             cbf_node * const category = handle->node;
-            const unsigned int indent = 1+key->indent;
             unsigned int matched = 0;
             unsigned int i;
             if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
@@ -18069,18 +17851,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		}
 		}
 		}
-            if (0) {
-                /* fragment of code to output the list of axis paths in the key */
-                fputc('\n',stderr);
-                int n = fprintf(stderr,"%u: %u paths:",__LINE__,key->axis.count);
-                fputc('\n',stderr);
-                for (; n; --n) fputc('-',stderr);
-                fputc('\n',stderr);
-                for (i = 0; i != key->axis.count; ++i) {
-                    fprintf(stderr,"%s\n",key->axis.path[i]);
-                }
-                fputc('\n',stderr);
-            }
 				/*
              Each axis set may contain multiple axes. Each of these needs to have its full dependency chain recorded. I
              should not generate any new axes for any axis within an axis set, but should add all parent axes that are
@@ -18126,7 +17896,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                         /* axis id wasn't found in the set - add it */
                                         ++nAxes;
                                         if (!(newAxes=realloc(axes,sizeof(const char *)*nAxes))) {
-                                            cbf_debug_print(cbf_strerror(CBF_ALLOC));
+                                            cbf_debug_print2("error: %s\n",cbf_strerror(CBF_ALLOC));
                                             error |= CBF_ALLOC;
                                         } else {
                                             axes[nAxes-1] = axis;
@@ -18136,18 +17906,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             }
                         }
                     }
-                    if (0) {
-                        /* fragment of code to output the list of axis_ids in the key */
-                        fputc('\n',stderr);
-                        int n = fprintf(stderr,"%u: %u axes:",__LINE__,key->axis.count);
-                        fputc('\n',stderr);
-                        for (; n; --n) fputc('-',stderr);
-                        fputc('\n',stderr);
-                        for (i = 0; i != key->axis.count; ++i) {
-                            fprintf(stderr,"%s\n",key->axis.axis_id[i]);
-                        }
-                        fputc('\n',stderr);
-                    }
 						/*
                      2. check dependency chain for each axis in axes, if the parent
                      axis is not in axes or in key->axis then add it to key->axis
@@ -18155,7 +17913,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     for (i = 0; i != nAxes; ++i) {
                         const char * depends_on = NULL;
                         if (CBF_SUCCESS!=(error|=cbf_node_get_value(axis_dependson,i,&depends_on))) {
-                            cbf_debug_print(cbf_strerror(error));
+                            cbf_debug_print2("error: %s\n",cbf_strerror(error));
 						} else {
                             unsigned int j = 0;
                             unsigned int k = 0;
@@ -18176,7 +17934,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                  axes - to the list of axes that must be mapped.
                                  TODO: implement this
 						*/
-                                cbf_debug_print(cbf_strerror(CBF_NOTIMPLEMENTED));
+                                cbf_debug_print2("error: %s\n",cbf_strerror(CBF_NOTIMPLEMENTED));
                                 error |= CBF_NOTIMPLEMENTED;
                             }
                         }
@@ -18191,121 +17949,18 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 const char axis_root[] = ".";
                 while (CBF_SUCCESS==error && axis_name && strcmp(axis_name,".") && axis_path) {
                     hid_t dset = CBF_H5FAIL;
-                    const htri_t exists = H5Lexists(h5handle->hfile,axis_path,H5P_DEFAULT);
                     const hsize_t max[] = {H5S_UNLIMITED};
                     const hsize_t cnk[] = {1};
                     hsize_t buf[] = {0};
-                    /*
-                     - check whether a dataset exists
-                     - check whether the axis can be found
-                     */
-                    if (exists<0) {
-                        cbf_debug_print(cbf_strerror(CBF_H5ERROR));
-								error |= CBF_H5ERROR;
-                    }
                     CBF_CALL(cbf_H5Drequire(h5handle->hfile,&dset,axis_path,1,max,cnk,buf,H5T_IEEE_F64LE));
                     CBF_CALL(cbf_find_column(handle,"id"));
                     CBF_CALL(cbf_find_row(handle,axis_name));
                     if (CBF_SUCCESS==error) {
-                        cbf_node * const * column_it;
-                        double vector[3] = {0./0.,0./0.,0./0.};
-                        double offset[3] = {0./0.,0./0.,0./0.};
-                        unsigned int nVector = 0, nOffset = 0;
-                        const unsigned int row = handle->row;
-                        const char * depends_on = NULL;
-                        const char * equipment = NULL;
-                        const char * type = NULL;
-                        /* I have the relevant axis - extract data from the columns */
-                        for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                            cbf_node * const column = *column_it;
-                            if (!cbf_cistrcmp(column->name,"id")) {
-                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                                /* ---------------------------------------------------------------------------------------------*/
-                            } else if (!cbf_cistrcmp(column->name,"depends_on")) {
-                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                                CBF_CALL(cbf_node_get_value(column, row, &depends_on));
-                                /* ---------------------------------------------------------------------------------------------*/
-                            } else if (!cbf_cistrcmp(column->name,"equipment")) {
-                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                                CBF_CALL(cbf_node_get_value(column, row, &equipment));
-                                /* ---------------------------------------------------------------------------------------------*/
-                            } else if (!cbf_cistrcmp(column->name,"offset[1]")) {
-                                const char * val = NULL;
-                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                                    cbf_debug_print(cbf_strerror(error));
-							} else {
-                                    char * end = NULL;
-                                    offset[0] = strtod(val,&end);
-                                    if (end!=val) ++nOffset;
-							}
-                                /* ---------------------------------------------------------------------------------------------*/
-                            } else if (!cbf_cistrcmp(column->name,"offset[2]")) {
-                                const char * val = NULL;
-                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                                    cbf_debug_print(cbf_strerror(error));
-						} else {
-                                    char * end = NULL;
-                                    offset[1] = strtod(val,&end);
-                                    if (end!=val) ++nOffset;
-                                }
-                                /* ---------------------------------------------------------------------------------------------*/
-                            } else if (!cbf_cistrcmp(column->name,"offset[3]")) {
-                                const char * val = NULL;
-                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                                    cbf_debug_print(cbf_strerror(error));
-                                } else {
-                                    char * end = NULL;
-                                    offset[2] = strtod(val,&end);
-                                    if (end!=val) ++nOffset;
-                                }
-                                /* ---------------------------------------------------------------------------------------------*/
-                            } else if (!cbf_cistrcmp(column->name,"type")) {
-                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                                CBF_CALL(cbf_node_get_value(column, row, &type));
-                                /* ---------------------------------------------------------------------------------------------*/
-                            } else if (!cbf_cistrcmp(column->name,"vector[1]")) {
-                                const char * val = NULL;
-                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                                    cbf_debug_print(cbf_strerror(error));
-                                } else {
-                                    char * end = NULL;
-                                    vector[0] = strtod(val,&end);
-                                    if (end!=val) ++nVector;
-                                }
-                                /* ---------------------------------------------------------------------------------------------*/
-                            } else if (!cbf_cistrcmp(column->name,"vector[2]")) {
-                                const char * val = NULL;
-                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                                    cbf_debug_print(cbf_strerror(error));
-                                } else {
-                                    char * end = NULL;
-                                    vector[1] = strtod(val,&end);
-                                    if (end!=val) ++nVector;
-                                }
-                                /* ---------------------------------------------------------------------------------------------*/
-                            } else if (!cbf_cistrcmp(column->name,"vector[3]")) {
-                                const char * val = NULL;
-                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                                if (CBF_SUCCESS!=(error|=cbf_node_get_value(column, row, &val))) {
-                                    cbf_debug_print(cbf_strerror(error));
-                                } else {
-                                    char * end = NULL;
-                                    vector[2] = strtod(val,&end);
-                                    if (end!=val) ++nVector;
-                                }
-                                /* ---------------------------------------------------------------------------------------------*/
-                            } else {
-                                if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
-                            }
-                        }
+						cbf_axis_data_t axis_settings = cbf_axis_data_init();
+						cbf_read_axis_row(&axis_settings,category,handle->row);
                         ++matched;
                         /* update variables for next iteration & to record the axis dependancy */
-                        axis_name = depends_on;
+						axis_name = axis_settings.depends_on;
                         if (!axis_name || !strcmp(axis_name,axis_root) || !strcmp(axis_name,"?")) {
                             axis_path = axis_root;
                         } else {
@@ -18319,7 +17974,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             } else {
                                 /* TODO: make up a new axis path & store it for future reference */
                                 axis_path = NULL;
-                                cbf_debug_print("conversion of axes not in detector or goniometer axis groups is not implemented - need to define a path for them");
+                                cbf_debug_print("conversion of axes not in detector or goniometer axis groups is not implemented - need to define a path for them\n");
+                                cbf_debug_print2("problematic axus %s\n",axis_name);
                                 error |= CBF_NOTIMPLEMENTED;
                             }
                         }
@@ -18332,42 +17988,42 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 CBF_CALL(cbf_H5Arequire_string(dset,"depends_on","?"));
                             }
                             /* write the equipment */
-                            if (equipment) CBF_CALL(cbf_H5Arequire_string(dset,"equipment",equipment));
+							if (axis_settings.equipment) CBF_CALL(cbf_H5Arequire_string(dset,"equipment",axis_settings.equipment));
                             if (!error) {
                                 /* write the offset */
-                                double nxoff[3] = {0.,0.,0.};
+								double offset[3] = {0.,0.,0.};
                                 const hsize_t dim[] = {3};
                                 double buf[] = {0};
-                                if (3==nOffset) {
-                                    CBF_CALL(cbf_apply_matrix(key->matrix,offset,nxoff));
+								if (3==axis_settings.nOffset) {
+                                    CBF_CALL(cbf_apply_matrix(key->matrix,axis_settings.offset,offset));
                                 }
-                                CBF_CALL(CBFM_H5Arequire_cmp2(dset,"offset",1,dim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,nxoff,buf,cmp_double,cmp_params));
+                                CBF_CALL(CBFM_H5Arequire_cmp2(dset,"offset",1,dim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,offset,buf,cmp_double,cmp_params));
                                 CBF_CALL(cbf_H5Arequire_string(dset,"offset_units","mm"));
                             }
                             /* write the type */
-                            if (type) {
-                                if (CBF_SUCCESS!=(error|=cbf_H5Arequire_string(dset,"transformation_type",type))) {
-                                    cbf_debug_print(cbf_strerror(error));
+                            if (axis_settings.type) {
+                                if (CBF_SUCCESS!=(error|=cbf_H5Arequire_string(dset,"transformation_type",axis_settings.type))) {
+                                    cbf_debug_print2("error: %s\n",cbf_strerror(error));
                                 } else {
-                                    if (!strcmp(type,"translation")) {
+                                    if (!strcmp(axis_settings.type,"translation")) {
                                         CBF_CALL(cbf_H5Arequire_string(dset,"units","mm"));
-                                    } else if (!strcmp(type,"rotation")){
+                                    } else if (!strcmp(axis_settings.type,"rotation")){
                                         CBF_CALL(cbf_H5Arequire_string(dset,"units","degrees"));
                                     } else {
-                                        cbf_debug_print(cbf_strerror(CBF_UNDEFINED));
+                                        cbf_debug_print2("error: unrecognised axis type: %s\n",axis_settings.type);
 							error |= CBF_UNDEFINED;
 						}
 					}
 				}
                             if (!error) {
                                 /* write the vector */
-                                double nxvec[3] = {0.,0.,0.};
+								double vector[3] = {0.,0.,0.};
                                 const hsize_t dim[] = {3};
                                 double buf[] = {0};
-                                if (3==nVector) {
-                                    CBF_CALL(cbf_apply_matrix(key->matrix,vector,nxvec));
+                                if (3==axis_settings.nVector) {
+                                    CBF_CALL(cbf_apply_matrix(key->matrix,axis_settings.vector,vector));
 			}
-                                CBF_CALL(CBFM_H5Arequire_cmp2(dset,"vector",1,dim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,nxvec,buf,cmp_double,cmp_params));
+                                CBF_CALL(CBFM_H5Arequire_cmp2(dset,"vector",1,dim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,vector,buf,cmp_double,cmp_params));
 		}
                         }
                     }
@@ -18378,6 +18034,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		return error;
 	}
 
+	/*
+	Create an 'NXdata' class and ensure it contains links to existing data within the
+	rest of the entry group, to allow automatic visualisation. The paths for existing
+	links are not checked.
+	*/
     static int cbf_write_cbf2nx__link_h5data
 			(cbf_handle handle,
      cbf_h5handle h5handle)
@@ -18527,631 +18188,175 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 }
             }
         }
-        
         return error;
     }
     
     /*
-     A primary key may be an integer or a string, I need to allow them both to compared
-     for equality. This function must return 0 if the keys are considered equal, and
-     non-zero otherwise. Note that this means 'strcmp' is a valid comparison function.
-     */
-    typedef int (*key_cmp_func)(const char *, const char *);
+	Parametric conversion of data within a sebset of the rows of a single table.
     
-    /* extract a value that can be compared later */
-    typedef const char * (*key_get_value_func)(const cbf_cbf2nx_key_t * const);
+	Note: This accesses (read-only) global state in the form of a table which gives data about mappings.
     
-    /*
-     Each key is defined by a column name. A method of comparing values for equality
-     and value to compare against allows rows to be discarded if not relevant.
-     */
-    typedef struct cbf_primary_key_t
-    {
-        /* a unique identifier */
-        const char * name;
-        /* parameterised behaviour */
-        key_get_value_func getValue;
-        key_cmp_func cmp;
-        /* some cached data */
-        cbf_node * column;
-        const char * value;
-    } cbf_primary_key_t;
+	Data is extracted and converted by:
+	Direct conversion from a single CBF data item to a single NeXus data item.
+	Collecting information from each column within a single matching row, then processing it in some way.
+	Collecting information from each matching row within a single table, then processing it in some way.
     
-    /*
-     Test if a column is a primary key, making use of the cached column pointer.
-     */
-    static int is_primary_key
-    (const cbf_primary_key_t * const keys,
-     cbf_node * const column)
-    {
-        if (!keys || !column) {
-            return 0;
-			} else {
-            const cbf_primary_key_t * it;
-            for (it = keys; it->name; ++it)
-                if (it->column == column)
-                    return 1;
-			}
-        return 0;
-		}
+	In complex cases, this _should_ involve collecting data in a per-row cache,
+	then adding it to a per-table cache, then adding it to the higher-level
+	'key' object. This is by design, to allow suitable processing to be
+	inserted in between each level in order to ensure data integrity and
+	perform format conversions and carry out memory management as needed.
 
-    /*
-     Part of the primary key data type is cached values. I need to set them to a state where they can be used later on.
+	This is done by performing the following operations:
+	- Locate the category requested and the mapping data for it. An
+	error will occur if either isn't found.
+	- Data about the primary keys of the table must be populated, to be used
+	when matching rows and iterating through columns.
+	- A set of matching rows is extracted from the table.
+	- create a table-specific cache object
+	- foreach matching row {
+	- create a row-specific cache object
+	- foreach column {
+	either {
+	- filter data value
+	- store in nexus file
+} or {
+	- cache value as a key to be used later
+} or {
+	- cache value in per-row cache object
+                    }
+                }
+	- process row-specific cache object, which may involve writing data
+	to the nexus file or storing it in a table-specific cache object.
+	- destroy the row-specific cache object
+            }
+	- process and then destroy the table-specific cache object
+
+	This should be used by:
+	- defining a set of primary key columns and telling the program how to get at their values.
+	- defining a set of filter functions which may be used when converting data items directly.
+	- defining a set of cache objects and functions to populate and process them.
+	- gluing everything together with mapping tables in a pre-defined format.
+
+	Future extensions:
+	Replace the whole data conversion model/pipeline with a more powerful dRel-based model.
      */
-    static int cbf_populate_primaryKey_cache
-    (cbf_primary_key_t * const primary_keys,
-     const cbf_cbf2nx_key_t * const key,
-     cbf_node * const category)
+	static int cbf2nx_convert_category
+			(cbf_node * const node /*< the datablock being converted */,
+			 cbf_h5handle nx /*< the nexus file to store it in */,
+			 const char * const categoryName /*< the category to convert */,
+			 cbf_cbf2nx_key_t * const key /*< a higher-level cache of values to control the conversion */,
+			 const int list /*< boolean: list items or not? */,
+			 const int required /*< boolean: is this category required for success? */)
     {
         int error = CBF_SUCCESS;
-        if (!primary_keys || !key || !category) {
-            error |= CBF_ARGUMENT;
-        } else {
-            cbf_primary_key_t * it;
-            for (it = primary_keys; !error && it->name; ++it) {
-                /* reset the values in the cache */
-                it->column = NULL;
-                it->value = NULL;
-                /* attempt to set the column */
-                const int found = cbf_find_child(&it->column, category, it->name);
-                if (CBF_NOTFOUND==found) {
-                    cbf_debug_print3("warning: '%s.%s' not found\n",category->name,it->name);
-                    it->column = NULL;
-                } else if (CBF_SUCCESS!=found) {
-                    if (1) {
-                        cbf_debug_print3("error: problem finding '%s.%s'\n",category->name,it->name);
-                        cbf_debug_print(cbf_strerror(found));
-                    }
-                    error |= found;
-                } else {
-                    /* set the value */
-                    it->value = it->getValue(key);
-                }
-            }
-        }
-		return error;
-	}
-
-    /*
-     Extract a set of matching rows, looking up rows in the cached columns and comparing data to the cached values.
-     Occasionally, a malformed file will be missing a column in a different table that defines the set of valid
-     values for a foreign key in the current table. In this case all values for the degenerate row must compare equal
-     within the matching row set that would be obtained if the degenerate key was ignored. If the values of such a
-     column were allowed to differ then this would match columns that don't belong to the same item in the parent
-     table.
-     */
-    static int cbf_get_matching_rows
-    (cbf_primary_key_t * const primary_keys,
-     const unsigned int nRows,
-     unsigned int * * const row_set,
-     unsigned int * const mRows)
-    {
-        int error = CBF_SUCCESS;
-        if (!primary_keys || !row_set || !mRows) {
-            error |= CBF_ARGUMENT;
-        } else {
-            if (!(*row_set=malloc(sizeof(unsigned int)*nRows))) {
-                error |= CBF_ALLOC;
-            } else {
-                unsigned int row;
-                cbf_primary_key_t * it;
-                *mRows = 0;
-                /* use well-defined keys to extract a set of matching rows */
-                for (row = 0; !error && row != nRows; ++row) {
-                    int row_matches = 1;
-                    cbf_primary_key_t * it;
-                    for (it = primary_keys; !error && it->name; ++it) {
-                        if (it->column && it->value) {
-                            const char * val = NULL;
-                            if ((error|=cbf_node_get_value(it->column, row, &val))) {
-                                cbf_debug_print(cbf_strerror(error));
-                            } else {
-                                if (it->cmp(it->value,val)) row_matches = 0;
-                            }
-                        }
-                    }
-                    if (row_matches) (*row_set)[(*mRows)++] = row;
-                }
-                if (*mRows) {
-                    /* check that values given for degenerate keys are consistent within the set */
-                    for (it = primary_keys; !error && it->name; ++it) {
-                        if (it->column && !it->value) {
-                            const char * ref = NULL;
-                            /* 'mRows' is unsigned and non-zero, so 'rows[0]' is valid and starting iterations from '1' is safe */
-                            CBF_CALL(cbf_node_get_value(it->column, (*row_set)[0], &ref));
-                            for (row = 1; !error && row != *mRows; ++row) {
-                                const char * val = NULL;
-                                CBF_CALL(cbf_node_get_value(it->column, (*row_set)[row], &val));
-                                if (!error && it->cmp(ref,val)) {
-                                    cbf_debug_print2(" error: inconsistent values for degenerate key '%s'\n",it->name);
-                                    error |= CBF_FORMAT;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return error;
-    }
-    
-    static int cbf_write_cbf2nx__diffrn_scan_frame
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-		int error = CBF_SUCCESS;
         unsigned int matched = 0;
-        const char categoryName[] = "diffrn_scan_frame";
 
         /* check arguments */
-        if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
+        if (!node) {
+            cbf_debug_print2("error: %s\n","Invalid cbf node given\n");
             error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
+		} else if (CBF_DATABLOCK != node->type) {
+			cbf_debug_print2("error: %s\n","cbf node is not a datablock");
             error |= CBF_ARGUMENT;
+		} else if (!nx) {
+            cbf_debug_print2("error: %s\n","Invalid hdf5 handle given");
+			error |= CBF_ARGUMENT;
+		} else if (!categoryName) {
+			cbf_debug_print2("error: %s\n","No category specified");
+			error |= CBF_ARGUMENT;
         } else if (!key) {
-            cbf_debug_print("Bad key given\n");
+            cbf_debug_print2("error: %s\n","Bad key given\n");
             error |= CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-            if (1) cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
         } else {
-            cbf_node * const category = handle->node;
+			/* arguments are fine, try to get a category to use and mappings to convert it */
+			cbf_node * category = NULL;
+			const cbf2nx_category_map_t * const category_map = cbf2nx_find_category_mapping(cbf_map,categoryName);
+			const int found = cbf_find_child(&category,node,categoryName);
+			if (!category_map) {
+                cbf_debug_print("error: No mapping located for category");
+				error |= CBF_NOTFOUND;
+			}
+			if (CBF_NOTFOUND==found) {
+				if (required) {
+					cbf_debug_print("error: required category not found");
+					error |= CBF_NOTFOUND;
+				}
+			} else if (found) {
+                cbf_debug_print2("error: %s\n",cbf_strerror(found));
+				error |= found;
+			}
+			if (category && !error) {
+				/* I have a category and the conversions for it, apply them */
             unsigned int * rows = NULL;
             unsigned int row = 0, nRows = 0, mRows = 0;
             unsigned int indent = 1+key->indent;
-            const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,category->name);
-            cbf_primary_key_t primary_keys[] = {
-                {"scan_id",cbf2nx_key_get_scan_id,strcmp,NULL,NULL},
-                {"frame_id",cbf2nx_key_get_frame_id,strcmp,NULL,NULL},
-                {NULL,NULL,NULL,NULL,NULL},
-            };
+				cbf_node * * primary_key_column = NULL;
+				const char * * primary_key_value = NULL;
+				/* allocate cache objects */
+				void * const row_cache = category_map->row_cache.size ? malloc(category_map->row_cache.size) : NULL;
+				void * const tbl_cache = category_map->tbl_cache.size ? malloc(category_map->tbl_cache.size) : NULL;
+				if (tbl_cache && category_map->tbl_cache.ctor) CBF_CALL(category_map->tbl_cache.ctor(tbl_cache));
             /* record that the category is recognised */
             if (list) _cbf_write_name(stderr,category->name,0,key->indent,1);
             CBF_CALL(_cbf2nx_key_remove_category(key,category->name));
             /* check that I have some children, and try to find the primary key columns */
             if (0==category->children) {
-                cbf_debug_print("category has no children");
+                cbf_debug_print2("error: %s\n","category has no children");
                 error |= CBF_NOTFOUND;
             } else {
                 nRows = category->child[0]->children;
-                CBF_CALL(cbf_populate_primaryKey_cache(primary_keys,key,category));
+					CBF_CALL(cbf_populate_primaryKey_cache(category_map->key_data,&primary_key_column,&primary_key_value,key,category));
             }
-            /*
-             Select only the rows matching a given (composite) key & check that all
-             degenerate keys have uniform values within the selected row set
-             */
-            CBF_CALL(cbf_get_matching_rows(primary_keys,nRows,&rows,&mRows));
+				/* ensure I have at least one matching row */
+				CBF_CALL(cbf_get_matching_rows(category_map->key_data,primary_key_column,primary_key_value,nRows,&rows,&mRows));
             if (0==mRows) {
-                cbf_debug_print("No matching data located");
+                cbf_debug_print2("error: %s\n","No matching data located");
                 error |= CBF_FORMAT;
             }
-            /* For each matching row, iterate over all remaining columns. */
+				/*
+				iterate over matching rows and over each column in each matching
+				row, calling a function to convert or cache the data.
+				*/
             for (row = 0; !error && row != mRows; ++row) {
                 cbf_node * const * column_it;
+					if (row_cache && category_map->row_cache.ctor) CBF_CALL(category_map->row_cache.ctor(row_cache));
                 for (column_it = category->child; !error && column_it != category->children+category->child; ++column_it) {
                     cbf_node * const column = *column_it;
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (is_primary_key(primary_keys,column)) {
+						if (array_contains((const void * const *)primary_key_column,cbf_count_primary_keys(category_map->key_data),column)) {
                         if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"frame_number")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        if ((error|=cbf_node_get_value(column, rows[row], &val))) {
-                            cbf_debug_print(cbf_strerror(error));
                         } else {
-                            char * end = NULL;
-                            const double num = strtod(val,&end);
-                            key->frame_number = (end!=val) ? num : key->frame_number;
+							CBF_CALL(cbf2nx_apply_conversions(nx,key,category_map->column_data,column,row,row_cache,list,matched));
                         }
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else {
-                        int is_in_list = 0;
-                        const cbf2nx_column_map_t * colmap;
-                        if (colmap_begin) {
-                            for (colmap = colmap_begin; !error && colmap->name; ++colmap) {
-                                if (!strcmp(colmap->name,column->name)) {
-                                    is_in_list = 1;
-                                    CBF_CALL(cbf_convert_cbf2nx(column,rows[row],h5handle,&colmap->data));
                                 }
-                            }
-                        }
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
-                    }
-                }
                 ++matched;
+					/* use cache object */
+					if (row_cache && category_map->process_row) CBF_CALL(category_map->process_row(category,nx,key,row_cache,tbl_cache));
+					/* clear out old data, leaving the cache ready to be re-used or disposed of */
+					if (row_cache && category_map->row_cache.dtor) CBF_CALL(category_map->row_cache.dtor(row_cache));
             }
             if (!matched) {
                 /* TODO: in some cases this will be an error, find them */
                 cbf_debug_print("warning: No data located");
             }
+				/* use cache object */
+				if (tbl_cache && category_map->process_tbl) CBF_CALL(category_map->process_tbl(category,nx,key,tbl_cache));
+				/* clear out old data, leaving the cache ready to be re-used or disposed of */
+				if (tbl_cache && category_map->tbl_cache.dtor) CBF_CALL(category_map->tbl_cache.dtor(tbl_cache));
+				/* clean up */
+				free(row_cache);
+				free(tbl_cache);
             free((void*)rows);
+				free((void*)primary_key_column);
+				free((void*)primary_key_value);
         }
-        return error;
     }
-
-    static int cbf_write_cbf2nx__diffrn_data_frame
-    (cbf_handle handle,
-     cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-    {
-        int error = CBF_SUCCESS;
-        unsigned int matched = 0;
-        const char categoryName[] = "diffrn_data_frame";
-
-		/* check arguments */
-		if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!key || !key->frame) {
-            cbf_debug_print("Bad key given\n");
-            error |= CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-            cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
-        } else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[1];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            unsigned int row = 0, nRows = 0;
-            unsigned int indent = 1+key->indent;
-            const cbf2nx_column_map_t * const colmap_begin = cbf2nx_find_category_mapping(cbf_map,categoryName);
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
+		if (error && categoryName) {
+           cbf_debug_print(categoryName);
 		}
-		}
-		}
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                nRows = category->child[0]->children;
-                CBF_CALL(cbf_find_child(primary_keys+0, category, "id"));
-		}
-		/*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-		*/
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-			const char * val = NULL;
-                    if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                        cbf_debug_print(cbf_strerror(error));
-                    } else if (strcmp(val,key->frame)) {
-                        continue;
-					}
-                }
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (pk) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"array_id")) {
-                        /*
-                         Note: this item is optional iff there is a single array_id within the datablock,
-                         the code to support that must be placed in all fragments that process anything
-                         which is identified by a frame id.
-                         */
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &key->array));
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"binary_id")) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &key->binary));
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"detector_element_id")) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &key->diffrn_detector_element));
-                        /* ---------------------------------------------------------------------------------------------*/
-				} else {
-                        int is_in_list = 0;
-                        const cbf2nx_column_map_t * colmap;
-                        if (colmap_begin) {
-                            for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
-                                if (!strcmp(colmap->name,column->name)) {
-                                    is_in_list = 1;
-                                    CBF_CALL(cbf_convert_cbf2nx(column,row,h5handle,&colmap->data));
-				}
-					}
-                        }
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,is_in_list?1:0);
-                    }
-                }
-                ++matched;
-            }
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
-            }
-        }
         return error;
     }
     
-    static int cbf_write_cbf2nx__diffrn_scan
-    (cbf_handle handle,
-     cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-    {
-        int error = CBF_SUCCESS;
-        unsigned int matched = 0;
-        const char categoryName[] = "diffrn_scan";
-        
-        /* check arguments */
-        if (!handle) {
-            cbf_debug_print("Invalid handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!key || !key->scan) {
-            cbf_debug_print("Bad key given\n");
-            error |= CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-            cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
-				} else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[1];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            unsigned int row = 0, nRows = 0;
-            unsigned int indent = 1+key->indent;
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-                    }
-                }
-            }
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                nRows = category->child[0]->children;
-                if (1) {
-                    const int found = cbf_find_child(primary_keys+0, category, "id");
-                    if (CBF_NOTFOUND==found) {
-                        if (key->scan) {
-                            cbf_debug_print2("error: '%s.id' not found\n",categoryName);
-					error |= found;
-                        } else {
-                            cbf_debug_print2("warning: '%s.id' not found\n",categoryName);
-				}
-                        primary_keys[0] = NULL;
-                    } else if (CBF_SUCCESS!=found) {
-                        cbf_debug_print(cbf_strerror(error));
-                        error |= found;
-                    }
-                }
-            }
-				/*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-				*/
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-                    const char * val = NULL;
-                    if (primary_keys[0]) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (key->scan && strcmp(val,key->scan)) {
-                            continue;
-			}
-		}
-                }
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (pk) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (
-                               !cbf_cistrcmp(column->name,"frame_id_start") ||
-                               !cbf_cistrcmp(column->name,"frame_id_end") ||
-                               !cbf_cistrcmp(column->name,"frames")
-                               )
-                    {
-                        if (list && !matched) {
-                            unsigned int _indent = indent;
-                            FILE * const out = stderr;
-                            while (_indent--) fputc('\t',out);
-                            fprintf(out,"- %s\n",column->name);
-                        }
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"date_start")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &val));
-                        CBF_CALL(cbf_H5Drequire_flstring(h5handle->nxid,0,"start_time",val));
-                        if (CBF_SUCCESS==error) key->has_start_time = 1;
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"date_end")) {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_node_get_value(column, row, &val));
-                        CBF_CALL(cbf_H5Drequire_flstring(h5handle->nxid,0,"end_time",val));
-                        if (CBF_SUCCESS==error) key->has_end_time = 1;
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
-                    }
-                }
-                ++matched;
-            }
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
-            }
-        }
-		return error;
-	}
-
-    static int cbf_write_cbf2nx__array_data
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
-	{
-		int error = CBF_SUCCESS;
-        unsigned int matched = 0;
-        const char categoryName[] = "array_data";
-
-		/* check arguments */
-		if (!handle) {
-            cbf_debug_print("Invalid handle given\n"_);
-            error |= CBF_ARGUMENT;
-        } else if (!h5handle) {
-            cbf_debug_print("Invalid hdf5 handle given\n");
-            error |= CBF_ARGUMENT;
-        } else if (!key) {
-            cbf_debug_print("Bad key given\n");
-            error |= CBF_ARGUMENT;
-        } else if (CBF_SUCCESS!=(error|=cbf_find_category(handle,categoryName))) {
-            cbf_debug_print3("error: couldn't find category '%s': %s\n",categoryName,cbf_strerror(error));
-        } else {
-            cbf_node * const category = handle->node;
-            cbf_node * primary_keys[2];
-            const unsigned int npk = sizeof(primary_keys)/sizeof(*primary_keys);
-            unsigned int row = 0, nRows = 0;
-            unsigned int indent = 1+key->indent;
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
-            if (key->categories) {
-                cbf_node * * it;
-                cbf_node * const * const end = key->nCat+key->categories;
-                for (it = key->categories; end != it; ++it) {
-                    if (*it) {
-                        *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-		}
-		}
-		}
-            /* check that I have some children, and try to find the primary key columns */
-            if (0==category->children) {
-                cbf_debug_print("category has no children");
-                error |= CBF_NOTFOUND;
-            } else {
-                int found = CBF_SUCCESS;
-                nRows = category->child[0]->children;
-                found = cbf_find_child(primary_keys+0, category, "array_id");
-                if (CBF_NOTFOUND==found && 1==nRows) {
-                    primary_keys[0] = NULL;
-                } else if (CBF_SUCCESS!=found) {
-                    cbf_debug_print(cbf_strerror(found));
-                    error |= found;
-				}
-                found = cbf_find_child(primary_keys+1, category, "binary_id");
-                if (CBF_NOTFOUND==found && 1==nRows) {
-                    primary_keys[1] = NULL;
-                } else if (CBF_SUCCESS!=found) {
-                    cbf_debug_print(cbf_strerror(found));
-                    error |= found;
-                }
-            }
-            /*
-             - Select only the rows matching a given (composite) key.
-             - For each matching row, iterate over all remaining columns.
-             */
-            for (row = 0; CBF_SUCCESS==error && row != nRows; ++row) {
-                cbf_node * const * column_it;
-                {
-                    /* check the values of the primary keys, continuing on to the next row if there is no match */
-                    const char * val = NULL;
-                    if (primary_keys[0]) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[0], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (strcmp(val,key->array)) {
-                            continue;
-                        }
-                    }
-                    if (primary_keys[1]) {
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(primary_keys[1], row, &val))) {
-                            cbf_debug_print(cbf_strerror(error));
-                        } else if (strintcmp(val,key->binary)) {
-                            continue;
-                        }
-                    }
-                }
-                for (column_it = category->child; CBF_SUCCESS==error && column_it != category->children+category->child; ++column_it) {
-                    cbf_node * const column = *column_it;
-                    int pk = 0;
-                    cbf_node * const * it;
-                    cbf_node * const * const end = npk+primary_keys;
-                    for (it = primary_keys; end != it; ++it) {
-                        pk = column==*it ? 1 : pk;
-                    }
-                    /*
-                     I now have all the information required:
-                     - if a column is used as a primary key, ignore it but record it as processed
-                     - if a column has a recognised name, perform the conversion
-                     - otherwise, record the column as not processed and carry on
-                     */
-                    if (pk) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        /* ---------------------------------------------------------------------------------------------*/
-                    } else if (!cbf_cistrcmp(column->name,"data")) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-                        CBF_CALL(cbf_write_array_h5file(column,row,h5handle,key->data_overload,key->data_undefined,0));
-                        /* ---------------------------------------------------------------------------------------------*/
-			} else {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
-			}
-		}
-                ++matched;
-            }
-            if (!matched) {
-                /* TODO: in some cases this will be an error, find them */
-                cbf_debug_print("warning: No data located");
-            }
-        }
-		return error;
-	}
-
     /**
      Equivalent to <code>cbf_write_cbf2nx(handle,h5handle,0,0,0)</code>.
 
@@ -19189,26 +18394,23 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      - The presence and value of an identifier for the scan, stored in <code>/\*:NXentry/entry_identifier</code>.
      - The presence and value of an identifier for the sample, stored in <code>/\*:NXentry/\*:NXsample/sample_identifier</code>.
      
-     \param handle The CBF file to extract data from.
-     \param h5handle The NeXuS file to write data to.
-     \param datablock The name of the datablock to convert, or NULL to convert all datablocks.
-     \param scan The name of the scan to convert, or NULL if there is only one scan in the datablock.
      \sa cbf_write_cbf_h5file
      \sa cbf_write_minicbf_h5file
      \sa cbf_write_nx2cbf
      \return An error code.
      */
     int cbf_write_cbf2nx
-    (cbf_handle handle,
-     cbf_h5handle h5handle,
-     const char * const datablock,
-     const char * const scan,
-     const int list)
+			(cbf_handle handle /**< The CBF file to extract data from. */,
+			 cbf_h5handle h5handle /**< The NeXuS file to write data to. */,
+			 const char * const datablock /**< The name of the datablock to convert, or NULL to convert all datablocks. */,
+			 const char * const scan /**< The name of the scan to convert, or NULL if there is only one scan in the datablock. */,
+			 const int list /**< Boolean flag to determine if a list of processed items is printed. */)
     {
         int error = CBF_SUCCESS;
         int found = CBF_SUCCESS;
         cbf_cbf2nx_key_t key[1];
 		cbf_node *node = NULL;
+		cbf_node * db = NULL;
 		hid_t detector = CBF_H5FAIL, instrument = CBF_H5FAIL; /* do not free */
 
         /* check arguments */
@@ -19242,6 +18444,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         } else {
             CBF_CALL(cbf_rewind_datablock(handle));
         }
+        db = handle->node;
         
 			/*
          Process the current datablock, if valid.
@@ -19253,7 +18456,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             cbf_node * scans = NULL;
             CBF_CALL(cbf_count_categories(handle,&nCat));
             if (!(categories=malloc(sizeof(cbf_node*)*nCat))) {
-                cbf_debug_print(cbf_strerror(CBF_ALLOC));
+                cbf_debug_print2("error: %s\n",cbf_strerror(CBF_ALLOC));
                 error |= CBF_ALLOC;
 				} else {
                 memcpy(categories,handle->node->child,sizeof(cbf_node*)*nCat);
@@ -19284,7 +18487,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     error |= CBF_FORMAT;
 						}
             } else if (CBF_SUCCESS!=found) {
-                cbf_debug_print(cbf_strerror(found));
+                cbf_debug_print2("error: %s\n",cbf_strerror(found));
                 error |= found;
 					} else {
                 scans = handle->node;
@@ -19317,7 +18520,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     fputc('\n',stream);
 						}
                 /* convert the scan data */
-                CBF_CALL(cbf_write_cbf2nx__diffrn_scan(handle, h5handle, key, list));
+				CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_scan", key, list, 1));
                 /* get the list of frames */
                 CBF_CALL(cbf_find_category(handle, "diffrn_scan_frame"));
                 CBF_CALL(cbf_rewind_column(handle));
@@ -19333,7 +18536,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         cbf_debug_print("warning: 'diffrn_scan_frame.scan_id' not found");
 						}
                 } else if (CBF_SUCCESS!=found) {
-                    cbf_debug_print(cbf_strerror(found));
+                    cbf_debug_print2("error: %s\n",cbf_strerror(found));
                     error |= found;
 								} else {
                     frames_scanid = handle->node;
@@ -19345,7 +18548,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     if (frames_scanid) {
                         const char * curr_scanid = NULL;
                         if (CBF_SUCCESS!=(error|=cbf_node_get_value(frames_scanid, frame_row, &curr_scanid))) {
-                            cbf_debug_print(cbf_strerror(error));
+                            cbf_debug_print2("error: %s\n",cbf_strerror(error));
                         } else if (strcmp(curr_scanid, key->scan)) {
                             continue;
 								}
@@ -19357,40 +18560,28 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     CBF_CALL(cbf_select_row(handle,frame_row));
                     CBF_CALL(cbf_get_value(handle, &key->frame));
                     /* convert the row if the obtained scan value matches the expected value, always go to the next row */
-                    CBF_CALL(cbf_write_cbf2nx__diffrn_scan_frame(handle, h5handle, key, list));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_scan_frame", key, list, 1));
                     /* navigate to the frame data & extract some IDs */
-                    CBF_CALL(cbf_write_cbf2nx__diffrn_data_frame(handle, h5handle, key, list));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_data_frame", key, list, 1));
                     /* convert the metadata */
-                    CBF_CALL(cbf_write_cbf2nx__diffrn_detector_element(handle, h5handle, key, list));
-                    CBF_CALL(cbf_write_cbf2nx__diffrn_detector(handle, h5handle, key, list));
-                    CBF_CALL(cbf_write_cbf2nx__diffrn_detector_axis(handle, h5handle, key, list));
-                    CBF_CALL(cbf_write_cbf2nx__diffrn(handle, h5handle, key, list));
-                    CBF_CALL(cbf_write_cbf2nx__diffrn_source(handle, h5handle, key, list));
-                    CBF_CALL(cbf_write_cbf2nx__diffrn_measurement(handle, h5handle, key, list));
-                    CBF_CALL(cbf_write_cbf2nx__diffrn_measurement_axis(handle, h5handle, key, list));
-                    CBF_CALL(cbf_write_cbf2nx__diffrn_radiation(handle, h5handle, key, list));
-                    CBF_CALL(cbf_write_cbf2nx__diffrn_radiation_wavelength(handle, h5handle, key, list));
-                    CBF_CALL(cbf_write_cbf2nx__diffrn_refln(handle, h5handle, key, list));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_detector_element", key, list, 1));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_detector", key, list, 1));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_detector_axis", key, list, 1));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn", key, list, 1));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_source", key, list, 1));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_measurement", key, list, 1));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_measurement_axis", key, list, 1));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_radiation", key, list, 1));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_radiation_wavelength", key, list, 1));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_refln", key, list, 0));
                     CBF_CALL(cbf_write_cbf2nx__axis(handle, h5handle, key, list));
-                    if (0) {
-                        cbf_node * node = handle->node;
-                        unsigned int i;
-                        cbf_find_parent(&node,node,CBF_DATABLOCK);
-                        cbf_find_child(&node,node,"axis");
-                        cbf_find_child(&node,node,"id");
-                        for (i = 0; i != node->children; ++i) {
-                            const char * value = NULL;
-                            cbf_node_get_value(node,i,&value);
-                            fprintf(stderr,"%s\n",value);
-							}
-						}
-                    CBF_CALL(cbf_write_cbf2nx__diffrn_scan_axis(handle, h5handle, key, list));
-                    CBF_CALL(cbf_write_cbf2nx__diffrn_scan_frame_axis(handle, h5handle, key, list));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_scan_axis", key, list, 0));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_scan_frame_axis", key, list, 0));
                     /* convert the data */
-                    CBF_CALL(cbf_write_cbf2nx__array_intensities(handle, h5handle, key, list));
-                    CBF_CALL(cbf_write_cbf2nx__array_data(handle, h5handle, key, list));
-                    CBF_CALL(cbf_write_cbf2nx__array_structure(handle, h5handle, key, list));
-                    CBF_CALL(cbf_write_cbf2nx__array_structure_list(handle, h5handle, key, list));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "array_intensities", key, list, 1));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "array_data", key, list, 1));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "array_structure", key, list, 0));
+					CBF_CALL(cbf2nx_convert_category(db, h5handle, "array_structure_list", key, list, 1));
                     CBF_CALL(cbf_write_cbf2nx__array_structure_list_axis(handle, h5handle, key, list));
                     CBF_CALL(cbf_write_cbf2nx__link_h5data(handle, h5handle));
                     ++h5handle->slice;
@@ -19466,6 +18657,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 #endif
 #else
         void * cmp_params = 0;
+        CBF_UNUSED(cmp_params);
 #endif
 
 
@@ -19573,7 +18765,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
 								} else {
 									error |= found;
-                                    cbf_debug_print(cbf_strerror(found));
+                                    cbf_debug_print2("error: %s\n",cbf_strerror(found));
 								}
 								cbf_H5Dfree(dataset);
 								found =  cbf_H5Dfind2(h5handle->nxid,&dataset,"end_time",0,0,0,type);
@@ -19600,12 +18792,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&token,type));
 								} else {
 									error |= found;
-                                    cbf_debug_print(cbf_strerror(found));
+                                    cbf_debug_print2("error: %s\n",cbf_strerror(found));
 								}
 								cbf_H5Dfree(dataset);
 								cbf_H5Tfree(type);
 							} else if (!cbf_cistrcmp("Pixel_size",token)) {
-								const char errstr[] = "expected units of 'm' for 'Pixel_size'";
                                 CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 								{ /* Get x pixel size */
 									hid_t h5data = CBF_H5FAIL;
@@ -19614,7 +18805,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 									if (cbf_cistrcmp(token,"m")) {
 										error |= CBF_H5DIFFERENT;
-                                        cbf_debug_print(errstr);
+                                        cbf_debug_print("error: expected units of 'm' for 'Pixel_size'");
 									} else {
 										pixel_x = num;
 									}
@@ -19631,7 +18822,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
 									if (cbf_cistrcmp(token,"m")) {
 										error |= CBF_H5DIFFERENT;
-                                        cbf_debug_print(errstr);
+                                        cbf_debug_print2("error: %s\n","expected units of 'm' for 'Pixel_size'");
 									} else {
 										pixel_y = num;
 									}
@@ -19960,7 +19151,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 							/* Done matching the entry from this line, go on to the next one */
 							while (token && strcmp("\n",token)) {
 								error = _cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value);
-                                cbf_debug_print(cbf_strerror(error));
+                                cbf_debug_print2("error %s\n",cbf_strerror(error));
 							}
 						} while (1);
 						free(token);
@@ -20030,7 +19221,6 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 							const char * axis_translation = "translation";
 							const char * axis_rotation = "rotation";
 							const char path_empty[] = "";
-							const char path_inst[] = "instrument";
 							const char axis_group_name[] = "pose";
                             CBF_CALL(cbf_H5Grequire(h5location,&axis_group,axis_group_name));
                             CBF_CALL(cbf_H5Arequire_string(axis_group,"NX_class","NXcollection"));
@@ -20062,7 +19252,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 								const char * path_parts[] = {
 									path_empty,
 									h5handle->nxid_name,
-									path_inst,
+									h5handle->nxinstrument_name,
 									h5handle->nxdetector_name,
 									axis_group_name,
 									axis_translation,
@@ -20086,7 +19276,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 								const char * path_parts[] = {
 									path_empty,
 									h5handle->nxid_name,
-									path_inst,
+									h5handle->nxinstrument_name,
 									h5handle->nxdetector_name,
 									axis_group_name,
 									axis_rotation,

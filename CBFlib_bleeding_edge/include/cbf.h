@@ -545,12 +545,129 @@ extern "C" {
   #endif
 #endif
 
+/*
+Flag to control level of debug output.
+Possible debug-level settings:
+0: silent failures.
+1: cause & location of 'exceptions'.
+2: stack trace from 'exceptions' & deprecation warnings.
+3: (mostly) complete stack trace.
+4: extra information.
+5: trace from significant branches.
+*/
+#define CBF_PRINT_DEBUG_LEVEL 2
+#define CBF_USE_SAFE_PRINT_DEBUG 1
     
-/* debug print macros, enabled if CBFDEBUG defined */
+/* flag to control strict macro calls that will fail without a semicolon */
+/* #define CBF_USE_STRICT_CALL 1 */
 
-#ifdef CBFDEBUG
+/* switch between safe & unsafe macros */
+#ifdef CBF_USE_STRICT_CALL
 #define CBFM_PROLOG do
 #define CBFM_EPILOG while(0)
+#else
+#define CBFM_PROLOG
+#define CBFM_EPILOG
+#endif
+
+/*
+Define some unconditional error printing macros, to ensure that the same format is used everywhere.
+NOTE: This _must_ be unconditional, because it will be used for hints to the user about how to fix
+a problem; not for debug output, which is handled via a separate code path.
+*/
+#define CBF_PRINT_ERROR(MSG) fprintf(stderr,"%s:%d: error: %s\n",__FILE__,__LINE__,MSG)
+#define CBF_PRINT_WARNING(MSG) fprintf(stderr,"%s:%d: warning: %s\n",__FILE__,__LINE__,MSG)
+
+/*
+Define some conditional debug printing macros, in safe and unsafe forms.
+
+TODO: Debug output should be enabled/disabled on a per-source-file or
+per-fragment basis by (re?)defining a single flag, to give detailed output
+relating to bugs; not throughout the whole library, giving an un-readable
+mess of often incorrect (due to the semantically incorrect handling of
+'CBF_NOTFOUND' in many functions) and almost entirely irrelevent information.
+
+This will always expand a call of the form 'CBF_PRINT_DEBUG(LVL,MSG);' into a
+single statement. This may be a 'do {..} while (0);' statement, a single call
+to 'fprintf()', or the null statement ';'. It must _always_ be followed by a
+semicolon, which either terminates the statement or provides it.
+
+The value used for 'LVL' _must_ be a small literal integer or a preprocessor
+token, for example:
+
+#define INFO 3
+CBF_PRINT_DEBUG(3,"foo");
+CBF_PRINT_DEBUG(INFO,"bar");
+
+The folowing is not valid:
+
+const int level = 3;
+CBF_PRINT_DEBUG(level,"foo");
+
+For maximum portability, the value used for the 'CBF_PRINT_DEBUG_LEVEL' should
+be a literal integer and for 'LVL' should be a literal integer or a symbol
+which is defined as a literal integer.
+
+The value given for 'MSG' should be a single string, as a literal character
+array or as a variable which is a pointer to the start of a character array.
+The result of 'cbf_strerror()' is a valid value to use here, as:
+
+CBF_PRINT_DEBUG(3,cbf_strerror(error));
+*/
+#define CBF_PRINT_DEBUG_IMPL(MSG) fprintf(stderr,"%s:%d: debug: %s\n",__FILE__,__LINE__,(MSG))
+#if CBF_USE_SAFE_PRINT_DEBUG
+	/*
+	Safe version: debug code always visible to the compiler, to prompt the
+	maintainer to keep it up-to-date.
+
+	This version allows switchable debug levels on a per-fragment basis and
+	runtime-selection of the debug level to be printed, for ease of use.
+	*/
+	#define CBF_PRINT_DEBUG(LVL,MSG) do {if ((CBF_PRINT_DEBUG_LEVEL)>=(LVL)) CBF_PRINT_DEBUG_IMPL(MSG);} while (0)
+#else
+	/*
+	Unsafe version: hidden from the compiler, so not as likely to work when you
+	need to use it.
+
+	This version always expands to a single unconditional statement, for speed.
+	*/
+	#define CBF_PRINT_DEBUG_LVL(LVL) CBF_PRINT_DEBUG_LVL##LVL
+	#define CBF_PRINT_DEBUG(LVL,MSG) CBF_PRINT_DEBUG_LVL(LVL)(MSG)
+	#if CBF_PRINT_DEBUG_LEVEL >= 0
+		#define CBF_PRINT_DEBUG_LVL0(MSG) CBF_PRINT_DEBUG_IMPL(MSG)
+	#else
+		#define CBF_PRINT_DEBUG_LVL0(MSG)
+	#endif
+	#if CBF_PRINT_DEBUG_LEVEL >= 1
+		#define CBF_PRINT_DEBUG_LVL1(MSG) CBF_PRINT_DEBUG_IMPL(MSG)
+	#else
+		#define CBF_PRINT_DEBUG_LVL1(MSG)
+	#endif
+	#if CBF_PRINT_DEBUG_LEVEL >= 2
+		#define CBF_PRINT_DEBUG_LVL2(MSG) CBF_PRINT_DEBUG_IMPL(MSG)
+	#else
+		#define CBF_PRINT_DEBUG_LVL2(MSG)
+	#endif
+	#if CBF_PRINT_DEBUG_LEVEL >= 3
+		#define CBF_PRINT_DEBUG_LVL3(MSG) CBF_PRINT_DEBUG_IMPL(MSG)
+	#else
+		#define CBF_PRINT_DEBUG_LVL3(MSG)
+	#endif
+	#if CBF_PRINT_DEBUG_LEVEL >= 4
+		#define CBF_PRINT_DEBUG_LVL4(MSG) CBF_PRINT_DEBUG_IMPL(MSG)
+	#else
+		#define CBF_PRINT_DEBUG_LVL4(MSG)
+	#endif
+	#if CBF_PRINT_DEBUG_LEVEL >= 5
+		#define CBF_PRINT_DEBUG_LVL5(MSG) CBF_PRINT_DEBUG_IMPL(MSG)
+	#else
+		#define CBF_PRINT_DEBUG_LVL5(MSG)
+	#endif
+#endif
+
+/* debug print macros, enabled if CBFDEBUG defined */
+
+#if CBFDEBUG
 #define cbf_debug_print(ARG) \
   {fprintf(stderr,__FILE__":%d: CBFlib debug: %s\n", __LINE__, ARG);}
 #define cbf_debug_print2(FMT,ARG) \
@@ -562,8 +679,6 @@ extern "C" {
 #define cbf_debug_print5(FMT,ARG0,ARG1,ARG2,ARG3) \
   {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1,ARG2,ARG3);}
 #else
-#define CBFM_PROLOG
-#define CBFM_EPILOG
 #define cbf_debug_print(ARG)
 #define cbf_debug_print2(FMT,ARG)
 #define cbf_debug_print3(FMT,ARG0,ARG1)
@@ -617,7 +732,21 @@ if (CBF_SUCCESS != err) \
 
 #endif
 
+/*
+Macro to suppress warnings about unused variables in functions that don't need
+to use all of their variables.
     
+Can be used as:
+void f
+	(int x)
+{
+	CBF_UNUSED(x);
+	return;
+}
+*/
+#define CBF_UNUSED(x) ((void)((x)))
+
+
   /* string for an error */
     
 const char * cbf_strerror(const int err);
