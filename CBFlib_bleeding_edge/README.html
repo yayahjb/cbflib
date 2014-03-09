@@ -32,7 +32,7 @@ ALT="[CBFlib]"></A>
 | <A HREF = "doc/CBFlib_NOTICES.html">NOTICE</A>
 | <a href=doc/gpl.txt>doc/GPL</a>
 | <a href=doc/lgpl.txt>doc/LGPL</a>
-| <a href="doc/cif_img_1.7.3.html">imgCIF dictionary</a>
+| <a href="doc/cif_img_1.7.8.html">imgCIF dictionary</a>
 | <a href = "http://sf.net/projects/cbflib">SourceForge CBFlib site</a>
 |<br />
 | <a href="http://arcib.dowling.edu/donation.shtml">Click Here to Make a Donation</a>
@@ -42,10 +42,8 @@ ALT="[CBFlib]"></A>
 <font color="#0808A0">
 <H2 ALIGN=CENTER>README</H2>
 <H3 ALIGN=CENTER>
-Information for CBFlib 0.9.3 release of 15 October 2013<br />
-    Revised as CBFlib 0.9.3.1 16 October 2013<br />
-    Revised as CBFlib 0.9.3.2 29 October 2013<br />
-    Revised as CBFlib 0.9.3.3 7 November 2013<br />
+Information for CBFlib 0.9.4 release of 12 February 2014<br />
+    Revised as CBFlib 0.9.4.1 9 March 2014<br />
 </H3>
 </font><font color="#000000">
 <CENTER>
@@ -68,7 +66,7 @@ Bernstein + Sons<br />
 yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 </noscript>
 <p>
-&#169; Copyright 2006 -- 2013 Herbert J. Bernstein
+&#169; Copyright 2006 -- 2014 Herbert J. Bernstein
 <P>
 <hr>
 <b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=doc/gpl.txt>GPL</a>.
@@ -98,11 +96,21 @@ Recent work on integration among CBF, HDF5 and NeXus supported in part
 by Pandata ODI (EU 7th Framework Programme)
 <P>
 <HR>
-CBFlib 0.9.3.3 adds examples of the description of a multi-module FEL detector,
-thanks to Aaron Brewster of LCLS.  New convenience accessor functions have
-been added to expose the details of axes field by field.  Corrections have
+<p>
+CBFlib 0.9.4.1 has further refactoring by Jonathan Sloan, and partial documentation 
+with an updated dictionary.  This is an interim release, expected to be become a full 
+release with 0.9.4.2.
+<p>
+CBFlib 0.9.4 provides a reasonably functional mapping of CBF files to
+NeXus files that carries all essential information for monchromatic
+MX processing in the NeXus file, and extends the cmake build capabilities
+and refactors a lot of the mapping code.  Our thanks to Jonathan Sloan for this effort.
+<p>
+CBFlib 0.9.3.3 added examples of the description of a multi-module FEL detector,
+thanks to Aaron Brewster of LCLS.  New convenience accessor functions were
+been added to expose the details of axes field by field.  Corrections were
 been made to the handling of _axis.rotation and _axis.rotation_axis.
-This is an interim release.  The API version and dictionary will be updated
+This was an interim release.  The API version and dictionary were to be updated
 on the next release.
 <p>
 CBFlib 0.9.3.2 has a revised API version, and, otherwise, the same code as CBFlib 
@@ -121,8 +129,8 @@ NeXus information and the new FEL detector tags, _axis.rotation_axis
 and _axis.rotation are avialable at
 <a href="https://sites.google.com/site/nexuscbf/">https://sites.google.com/site/nexuscbf/</a>.
     
-The commulative changes in releases 0.9.1, 0.9.2 and 0.9.3 since CBFlib 0.9.0
-are:
+The commulative changes in releases 0.9.1, 0.9.2, and 0.9.3  since CBFlib 0.9.0
+were:
 <ul>
 <li>Temporary removal of default PyCifRW support for compliance with
 Fedora license requirements.
@@ -150,6 +158,9 @@ The changes for FEL support involve major changes to the positioner logic
 used in computing goniometer and detector positions.  This code should
 be used with caution.
 <p>
+The changes for the CBF-HDF5 mappings are extensive and should be used with
+caution.
+<p>
 Please report all difficulties you may encounter with this release to
 <script language="javascript" type="text/javascript">
         <!--
@@ -171,8 +182,8 @@ Laboratory for their major contributions to this release.  Without
 their efforts it would not have happened.
     
 <p>
-CBFlib 0.9.2.5 in October 2012 through CBFlib 0.9.2.12 in June 2013 were an accumulation of minor revisions to the
-CBFlib 0.0.2.4 release, plus the testbed
+CBFlib 0.9.2.5 in October 2012 through CBFlib 0.9.2.12 in June 2013 were an accumulation 
+of minor revisions to the CBFlib 0.9.2.4 release, plus the testbed
 for HDF5/NeXus support and preliminary Eiger support, now released in CBFlib 0.9.3.
     <p>
 CBFlib 0.9.2.4 was a minor revision to the CBFlib 0.9.2.3 release
@@ -221,37 +232,41 @@ and write CBF binary data files and imgCIF ASCII data files.
 <P>
 <H3>Installation</H3>
 <P>
-CBFLIB should be built on a disk with at least 350 megabytes of free 
+CBFLIB should be built on a disk with at least 500 megabytes of free 
 space, for a full installation with complete tests.  <b>Read the
 instructions below carefully, if space is a problem.</b>
 <p>
 A gizpped tarball of this release is available on sourceforge at
 <p>
 <a 
-href="http://downloads.sf.net/cbflib/CBFlib-0.9.3.3.tar.gz">http://downloads.sf.net/cbflib/CBFlib-0.9.3.3.tar.gz</a>
+href="http://downloads.sf.net/cbflib/CBFlib-0.9.4.1.tar.gz">http://downloads.sf.net/cbflib/CBFlib-0.9.4.1.tar.gz</a>
 
 <P>
 In addition,
-<A href="http://downloads.sf.net/cbflib/CBFlib_0.9.3.2_Data_Files_Input.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.3.2_Data_Files_Input.tar.gz</a>
+<A 
+href="http://downloads.sf.net/cbflib/CBFlib_0.9.4_Data_Files_Input.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.4_Data_Files_Input.tar.gz</a>
 (13 MB) is a "gzipped" tar of the input data files needed to test the API,
-<A href="http://downloads.sf.net/cbflib/CBFlib_0.9.3.2_Data_Files_Output.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.3.2_Data_Files_Output.tar.gz</a>
+<A 
+href="http://downloads.sf.net/cbflib/CBFlib_0.9.4_Data_Files_Output.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.4_Data_Files_Output.tar.gz</a>
 (34 MB) is a "gzipped" tar of the output data files needed to test the API, and, if space is at a premium,
-<A href="http://downloads.sf.net/cbflib/CBFlib_0.9.3.2_Data_Files_Output_Sigs_Only.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.3.2_Data_Files_Output_Sigs_Only.tar.gz</a>
+<A 
+href="http://downloads.sf.net/cbflib/CBFlib_0.9.4_Data_Files_Output_Sigs_Only.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.4_Data_Files_Output_Sigs_Only.tar.gz</a>
 (1KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
 
-Place the CBFlib_0.9.3.2.tar.gz file in the directory
+Place the CBFlib_0.9.4.1.tar.gz file in the directory
 that is intended to contain up to 4 new directories, named 
-CBFlib_0.9.3.2 (the &quot;top-level&quot; directory),
-CBFlib_0.9.3.2_Data_Files_Input and either CBFlib_0.9.3.2_Data_Files_Output or
-CBFlib_0.9.3.2_Data_Files_Output_Sigs_Only.
-If you have wget on your machine, you only need to download the source tarball.  If you do not have wget,
+CBFlib_0.9.4.1 (the &quot;top-level&quot; directory),
+CBFlib_0.9.4_Data_Files_Input and either CBFlib_0.9.4_Data_Files_Output or
+CBFlib_0.9.4_Data_Files_Output_Sigs_Only.
+If you have wget on your machine, you only need to download the source tarball.  
+If you do not have wget,
 you will need to download all the tarballs into the same directory
 <p>
-Uncompress CBFlib_0.9.3.3.tar.gz with gunzip and unpack it with tar:
+Uncompress CBFlib_0.9.4.1.tar.gz with gunzip and unpack it with tar:
 <p>
 <PRE>
-     gunzip CBFlib_0.9.3.3.tar.gz
-     tar xvf CBFLIB_0.9.3.3.tar
+     gunzip CBFlib_0.9.4.1.tar.gz
+     tar xvf CBFLIB_0.9.4.1.tar
 </PRE>
 <p>
 To run the test programs, you will also need 
@@ -261,37 +276,46 @@ Chris Nielsen's sample ADSC Quantum 315 image,
 mb_LP_1_001.img, and Eric Eikenberry's SLS sample Pilatus 6m image,
 insulin_pilatus6m, as sample data.  In addition there are
 is a PDB mmCIF file, 9ins.cif, and 3 special test files
-testflatin.cbf, testflatpackedin.cbf and testrealin.cbf.
+testflatin.cbf, testflatpackedin.cbf and testrealin.cbf,
+and several files related to NeXus and FEL testing.
  All these files will be
-dowloaded and extracted by the Makefile from CBFlib_0.9.3_Data_Files_Input.  Do
+dowloaded and extracted by the Makefile from CBFlib_0.9.4_Data_Files_Input.  Do
 not download copies into the top level directory.
 <P>
 After unpacking the archives, the top-level directory should contain
-a makefile:
+a makefile and a cmake file.:
 <p>
 <TABLE ALIGN=CENTER>
-<TR><TD>&nbsp;&nbsp;Makefile<TD>&nbsp;&nbsp;Makefile for unix
+<tr><td>&nbsp;&nbsp;Makefile</td><td>&nbsp;&nbsp;Makefile for Linux</td></tr>
+<tr><td>&nbsp;&nbsp;CMakeLists.txt</td><td>&nbsp;&nbsp;Top level data file for cmake 
+builds</td></tr>
 </TABLE>
+and several alternate makefiles for other systems
 <p>
 and the subdirectories:
 <p>
 <TABLE ALIGN=CENTER>
+<TR><TD>&nbsp;&nbsp;doc/<TD>&nbsp;&nbsp;Documentation
 <TR><TD>&nbsp;&nbsp;src/<TD>&nbsp;&nbsp;CBFLIB source files
 <TR><TD>&nbsp;&nbsp;include/<TD>&nbsp;&nbsp;CBFLIB header files
 <TR><TD>&nbsp;&nbsp;<TD>&nbsp;&nbsp;
+<TR><TD>&nbsp;&nbsp;external_packages/<TD>&nbsp;&nbsp;For additional support kits
 <TR><TD>&nbsp;&nbsp;bin/<TD>&nbsp;&nbsp;Executable example programs
-<TR><TD>&nbsp;&nbsp;doc/<TD>&nbsp;&nbsp;Documentation
 <TR><TD>&nbsp;&nbsp;examples/<TD>&nbsp;&nbsp;Example program source files
 <TR><TD>&nbsp;&nbsp;html_images/<TD>&nbsp;&nbsp;JPEG images used in rendering the HTML files
 <TR><TD>&nbsp;&nbsp;lib/<TD>&nbsp;&nbsp;Compiled CBFLIB (libcbf.a) and FCBLIB (libfcb.a) libraries 
 <TR><TD>&nbsp;&nbsp;m4/<TD>&nbsp;&nbsp;CBFLIB m4 macro files (used to build .f90 files)
 <TR><TD>&nbsp;&nbsp;mswin/<TD>&nbsp;&nbsp;An MS Windows CodeWarrior project file
 <TR><TD>&nbsp;&nbsp;pycbf/<TD>&nbsp;&nbsp;Jon Wright's Python bindings
+<TR><TD>&nbsp;&nbsp;ply-3.2/<TD>&nbsp;&nbsp;A support kit needed for dREL code
+<TR><TD>&nbsp;&nbsp;drel-ply/<TD>&nbsp;&nbsp;A support kit needed for dREL code
+<TR><TD>&nbsp;&nbsp;dREL-ply-0.5/<TD>&nbsp;&nbsp;A support kit needed for dREL code
 </TABLE>
 <p>
 <p>
-and additional Makefiles for other systems.  All the makefiles are created from
-m4/Makefile.m4.   Edit the closest approximation to your system, and then copy that variant to Makefile.
+All the makefiles are created from
+m4/Makefile.m4.   Edit the closest approximation to your system, 
+and then copy that variant to Makefile.
 <p>
 In building this release there is an enviroment variable you may need to set if
 you are building on an older machine with a broken dlfnc that cannot support the
@@ -344,12 +368,13 @@ CMakeLists.txt is to use pcreposix.h.
     
 A partial preliminary CMakeLists.txt has been included in this kit.  It is not yet complete, but
 on machines for which the Makefiles are not appropriate, it is worth a try.  To use in,
-create a directory named CBFlib-0.9.3.1-build on the same level as CBFlib-0.9.3.1, and in the new,
+create a directory named CBFlib-0.9.4.1-build on the same level as CBFlib-0.9.4.1, and in 
+the new,
 empty build directory, try
 <p>
     <div>
     <pre>
-    cmake ../CBFlib-0.9.3.1
+    cmake ../CBFlib-0.9.4.1
     make all
     make test
     </pre>
@@ -357,13 +382,22 @@ empty build directory, try
 <p>
 Work on improving cmake support will continue, and comments, corrections and suggestions
 would be appreciated.
+<p>
+Depending on your system, some tests may fail mysteriously under cmake.  The most likely
+cause is a failure to link example programs to the HDF5 shared library or other shared
+libraries when tests are run prior to those libraries having been installed in
+locations known to your system's loader.  This is handled automatically in the Makefiles,
+but we do not yet have a reliable way to do so for cmake ctest tests.  Until this is
+resolved, you may need to set various system-dependent environment variables such as 
+DYLD_LIBRARY_PATH, LD_LIBRARY_PATH or PATH.  We hope to resolve this for the 0.9.4.2
+release.
     
   
 <P>
 Please refer to the manual <a HREF="doc/CBFlib.html">doc/CBFlib.html</a>
 for more detailed information.<HR>
 <HR>
-Updated 16 October 2013.
+Updated 9 March 2014.
 <script language="javascript" type="text/javascript">
 <!-- 
       var name = "yayahjb@";
