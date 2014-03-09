@@ -9,7 +9,7 @@ m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
 #                                                                    #
-# (C) Copyright 2006 - 2013 Herbert J. Bernstein                     #
+# (C) Copyright 2006 - 2014 Herbert J. Bernstein                     #
 #                                                                    #
 ######################################################################
 
@@ -2288,6 +2288,14 @@ empty:
 	@-rm -rf $(INCLUDE)/tiff*
 	@-rm -rf $(INCLUDE)/H5*
 	@-rm -rf $(INCLUDE)/hdf5*
+	@-rm -rf share
+	@-rm -rf $(MINICBF_TEST)/i19*
+	@-rm -rf solib
+	@-rm -f  thaumatin_die_M1S5_1_0005_2.cbf
+	@-rm -f  1191_00005.cbf
+	@-rm -f  XRD1621.tif
+	@-rm -f  md5tmp
+	@-rm -rf $(PYCBF)/build
 	@-rm -f  *_old
 	@-rm -f X4_lots_M1S4_1_*.cbf
 	@-rm -f testfile.h5
