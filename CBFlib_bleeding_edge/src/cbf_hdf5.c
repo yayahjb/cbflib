@@ -4629,6 +4629,132 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 	}
 
 	/**
+     This will check if the entry group and definition within the handle matches any 
+     existing group of the same name within the current file and has a definition
+     designation that agrees. If the group name doesn't match a new group is opened or created
+     and added to the handle.  If the <code>definition</code> does not match, it is replaced with
+     the new one.  If the <code>version</code> attribute does not match it is replaced with the
+     new one.  If the <code>URL></code> attribute does not match it is replace with the new
+     one. The <code>NX_class</code> attributes are not checked, but if a new entry
+     is created it will be created with <code>NX_class</code> NXentry.
+     
+     \param nx The HDF5 handle to use.
+     \param group An optional pointer to a place where the group ID should be stored.
+     \param name The group name, or null to use the default name of <code>"entry"</code>.
+     \param definition The definition name, or null to not specify a definition name.
+     \param version The version string, or null to not specify a version string.
+     \param URL The URL at which the definition is stored, or null to not specify a URL
+     \sa cbf_h5handle_get_entry
+     \sa cbf_h5handle_set_entry
+     \sa cbf_h5handle_require_entry
+     \return An error code.
+     */
+	int cbf_h5handle_require_entry_definition
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * name,
+     const char * definition,
+     const char * version,
+     const char * URL
+     )
+	{
+        int matchgroup;  /* 0 for not found, 1 for matched, -1 for not matched*/
+        int matchdefinition;  /* 0 for not found, 1 for matched, -1 for not matched*/
+        int matchversion;  /* 0 for not found, 1 for matched, -1 for not matched*/
+        int matchURL;  /* 0 for not found, 1 for matched, -1 for not matched*/
+		int error = CBF_SUCCESS;
+
+        hid_t type = CBF_H5FAIL;
+        matchgroup = 0;
+        matchdefinition = definition?0:1;
+        matchversion = version?0:1;
+        matchURL = URL?0:1;
+        
+        CBF_CALL(cbf_H5Tcreate_string(&type,H5T_VARIABLE));
+        
+		if (!nx) {
+			error |= CBF_ARGUMENT;
+		} else {
+			hid_t curr_group = CBF_H5FAIL;
+			hid_t parent = CBF_H5FAIL;
+            hid_t dataset = CBF_H5FAIL;
+            hid_t attribute = CBF_H5FAIL;
+			const char * curr_name = NULL;
+			const char default_name[] = "entry";
+			const char * group_name = name ? name : default_name;
+			CBF_CALL(cbf_h5handle_get_file(nx,&parent));
+            
+			/* check if the names of the groups match, and if the parent contains the assumed group */
+			if (CBF_SUCCESS==cbf_h5handle_get_entry(nx,&curr_group,&curr_name)) {
+				if (!cbf_cistrcmp(group_name,curr_name)) {
+					hid_t test_group = CBF_H5FAIL;
+					if (CBF_SUCCESS==cbf_H5Gfind(parent,&test_group,group_name)) {
+						if (!cbf_H5Ocmp(test_group,curr_group)) matchgroup = 1;
+                        /* If we have the group and want the definition to match
+                         search for the definition field */
+                        if (matchgroup && (!matchdefinition)) {
+                            if (CBF_SUCCESS==cbf_H5Dfind2(test_group,&dataset,"definition",0,0,0,type)){
+                                const hid_t currType = H5Dget_type(dataset);
+                                const char * buf = 0;
+                                hid_t currMemType = CBF_H5FAIL;
+                                cbf_H5Tcreate_string(&currMemType,H5T_VARIABLE);
+                                cbf_H5Dread2(dataset,0,0,0,&buf,currMemType);
+                                cbf_H5Tfree(currMemType);
+                                /* then compare them */
+                                if (cbf_cistrcmp(definition,buf) != 0) {
+                                    CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&definition,type));
+                                }
+                                free((void*)buf);
+                                cbf_H5Tfree(currType);
+                            } else {
+                                CBF_CALL(cbf_H5Dcreate(test_group,&dataset,"definition",0,0,0,0,type));
+                                CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&definition,type));
+                            }
+                            /* The definition now matches, see if we want the version and/or URL */
+                            if (!matchversion) {
+                                CBF_CALL(cbf_H5Arequire_string(dataset,"version",version));
+                            }
+                            if (!matchURL) {
+                                CBF_CALL(cbf_H5Arequire_string(dataset,"URL",URL));
+                            }
+                        }
+					} else {
+						matchgroup = 0;
+					}
+					cbf_H5Gfree(test_group);
+      			}
+			}
+			/* if there is no match I need to create/find a suitable group and put it in the handle */
+			if (CBF_SUCCESS==error && !matchgroup) {
+				hid_t new_group = CBF_H5FAIL;
+				CBF_CALL(cbf_H5Grequire(parent,&new_group,group_name));
+				CBF_CALL(cbf_H5Arequire_string(new_group,"NX_class","NXentry"));
+				CBF_CALL(cbf_h5handle_set_entry(nx,new_group,group_name));
+                if (!matchdefinition) {
+                    CBF_CALL(cbf_H5Dcreate(new_group,&dataset,"definition",0,0,0,0,type));
+                    CBF_CALL(cbf_H5Dwrite2(dataset,0,0,0,&definition,type));
+                    if (!matchversion) {
+                        CBF_CALL(cbf_H5Arequire_string(dataset,"version",version));
+                    }
+                    if (!matchURL) {
+                        CBF_CALL(cbf_H5Arequire_string(dataset,"URL",URL));
+                    }
+                }
+				if (CBF_SUCCESS!=error) {
+                    cbf_H5Gfree(new_group);
+                }
+			}
+			/* if there haven't been any major problems, return any requested data */
+			CBF_CALL(cbf_h5handle_get_entry(nx,group,0));
+            cbf_H5Tfree(type);
+            cbf_H5Dfree(dataset);
+            cbf_H5Afree(attribute);
+		}
+		return error;
+	}
+
+    
+	/**
      Check the handle for the presence of an sample group and its name, optionally returning any combination of them.
      \param nx A handle to query for the presence of the requested information.
      \param group A place to store the group (if found), or null if the group isn't wanted.

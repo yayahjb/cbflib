@@ -935,6 +935,18 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 			 const char * name);
 
 	/**
+     \brief Ensure I have an entry in the hdf5 handle with definition
+     \ingroup section_H5Handle
+	 */
+	int cbf_h5handle_require_entry_definition
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * name,
+     const char * definition,
+     const char * version,
+     const char * URL);
+
+	/**
 	\brief Get the current id and name of the sample group within the given handle.
 	\ingroup section_H5Handle
 	 */
