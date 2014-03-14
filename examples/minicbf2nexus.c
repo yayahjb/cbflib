@@ -395,7 +395,7 @@ int main (int argc, char *argv [])
 		cbf_h5handle h5out = NULL;
 		if(CBF_SUCCESS != (error |= cbf_create_h5handle2(&h5out,hdf5out))) {
 			fprintf(stderr,"Couldn't open the HDF5 file '%s'.\n", hdf5out);
-		} else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry(h5out,0,group))) {
+		} else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5out,0,group,"NXmx","1.0",0))) {
 			fprintf(stderr,"Couldn't create an NXentry group in the HDF5 file '%s'.\n", hdf5out);
 		} else {
             h5out->flags = h5_write_flags;
