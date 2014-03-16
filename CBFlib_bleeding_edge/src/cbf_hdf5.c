@@ -1841,7 +1841,7 @@ static int FUNC \
 				if (attribute>=0) *attr = attribute;
 				else error |= CBF_H5ERROR;
 			} else {
-                cbf_debug_print2("%s: attribute '%s' exists\n",name);
+                cbf_debug_print2("attribute '%s' exists\n",name);
 				error |= CBF_IDENTICAL;
 			}
 		}
@@ -1889,19 +1889,19 @@ static int FUNC \
 			if (exists<0) {
 				error |= CBF_H5ERROR;
 			} else if (!exists) {
-				cbf_debug_print2("%s: attribute '%s' doesn't exist\n",name);
+				cbf_debug_print2("attribute '%s' doesn't exist\n",name);
 				error |= CBF_NOTFOUND;
 			} else {
 				hid_t attribute = H5Aopen(location,name,H5P_DEFAULT);
 				if (attribute<0) {
-					cbf_debug_print2("%s: could not open '%s' attribute\n",name);
+					cbf_debug_print2("could not open '%s' attribute\n",name);
 					error |= CBF_H5ERROR;
 				} else {
 					/* get the datatype */
 					const hid_t currType = H5Aget_type(attribute);
 					const hid_t currSpace = H5Aget_space(attribute);
 					if (!(cbf_H5Ivalid(currType) && cbf_H5Ivalid(currSpace))) {
-						cbf_debug_print2("%s: could not get type or space of '%s' attribute\n",name);
+						cbf_debug_print2("could not get type or space of '%s' attribute\n",name);
 						error |= CBF_H5ERROR;
 					} else {
 						if (H5I_DATATYPE==H5Iget_type(type)) {
@@ -2711,7 +2711,7 @@ if (CBF_SUCCESS==found) {
 		/* check if the link exists */
 			const htri_t l = H5Lexists(location, name, H5P_DEFAULT);
 		if (l < 0) {
-				cbf_debug_print2("%s: error: Could not check if link '%s' exists\n",name);
+				cbf_debug_print2("error: Could not check if link '%s' exists\n",name);
 				error |= CBF_H5ERROR;
 		} else if (!l) {
 				error |= CBF_NOTFOUND;
@@ -13106,7 +13106,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								/* The hdf5 handle now owns the group, process it */
 								++table->indent;
 								if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__detector_op,op_data)<0) {
-									cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+									cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
 									error |= CBF_H5ERROR;
 								} else {
 									/* success: extract some data that should have been returned via the op_data argument */
@@ -13144,7 +13144,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								/* The hdf5 handle now owns the group, process it */
 								++table->indent;
 								if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__goniometer_op,op_data)<0) {
-                                    cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+                                    cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
 									error |= CBF_H5ERROR;
 								}
 								table->indent = indent;
@@ -13167,7 +13167,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								/* The hdf5 handle now owns the group, process it */
 								++table->indent;
 								if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__monochromator_op,op_data)<0) {
-                                    cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+                                    cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
 									error |= CBF_H5ERROR;
 								}
 								table->indent = indent;
@@ -13190,7 +13190,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								/* The hdf5 handle now owns the group, process it */
 								++table->indent;
 								if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__source_op,op_data)<0) {
-                                    cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+                                    cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
 									error |= CBF_H5ERROR;
 								}
 								table->indent = indent;
@@ -13723,7 +13723,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							/* leave ownership of the group with the iteration function, and process it */
 							++table->indent;
 							if (H5Literate(object,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__beam_op,op_data)<0) {
-                                cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+                                cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
 								error |= CBF_H5ERROR;
 							}
 							table->indent = indent;
@@ -13898,7 +13898,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								/* The hdf5 handle now owns the group, process it */
 								++table->indent;
 								if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__instrument_op,op_data)<0) {
-                                    cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+                                    cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
 									error |= CBF_H5ERROR;
 								}
 								table->indent = indent;
@@ -13921,7 +13921,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								/* The hdf5 handle now owns the group, process it */
 								++table->indent;
 								if (H5Literate(group,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__sample_op,op_data)<0) {
-                                    cbf_debug_print3("%s: error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
+                                    cbf_debug_print3("error: failed to iterate over items in the '%s:%s' group\n",name,NX_class);
 									error |= CBF_H5ERROR;
 								}
 								table->indent = indent;
