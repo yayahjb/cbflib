@@ -856,7 +856,13 @@ extern "C" {
                 {int ii;
                     fprintf(stderr,"\nCompressed data as characters\n:");
                     for (ii=0; ii<500 && ii < *buf_size; ii++){
-                        fprintf(stderr,"%c",(*((char**)buf))[ii]);
+                        unsigned char c;
+                        c = (*((char**)buf))[ii];
+                        if (c < 32 || c > 126) {
+                          fprintf(stderr,"%x",c);
+                        } else {
+                          fprintf(stderr,"%c",c);
+                    }
                     }
                     fprintf(stderr,"\nCompressed data as hex\n:");
                     for (ii=0; ii<500 && ii < *buf_size; ii++) {

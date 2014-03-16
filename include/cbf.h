@@ -675,7 +675,7 @@ CBF_PRINT_DEBUG(3,cbf_strerror(error));
 #define cbf_debug_print3(FMT,ARG0,ARG1) \
   {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1);}
 #define cbf_debug_print4(FMT,ARG0,ARG1,ARG2) \
-  {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1,ARG2)}
+  {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1,ARG2);}
 #define cbf_debug_print5(FMT,ARG0,ARG1,ARG2,ARG3) \
   {fprintf(stderr,__FILE__":%d: CBFlib debug: " FMT "\n", __LINE__, ARG0,ARG1,ARG2,ARG3);}
 #else
