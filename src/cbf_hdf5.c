@@ -1836,7 +1836,7 @@ static int FUNC \
 			const htri_t exists = H5Aexists(location,name);
 			if (exists<0) {
 				error |= CBF_H5ERROR;
-			} else if (!exists) {
+			} else if (exists<=0) {
 				const hid_t attribute = H5Acreate2(location, name, type, space, H5P_DEFAULT, H5P_DEFAULT);
 				if (attribute>=0) *attr = attribute;
 				else error |= CBF_H5ERROR;
@@ -2102,7 +2102,7 @@ static int FUNC \
 			if (CBF_SUCCESS != (error|=cbf_H5Screate(&attrSpace, rank, dim, 0))) {
 				cbf_debug_print("error: couldn't create data space");
 			} else {
-		if (H5Aexists(ID,name)) {
+		if (H5Aexists(ID,name)>0) {
 			hid_t attr = H5Aopen(ID,name,H5P_DEFAULT);
 			hid_t currSpace = H5Aget_space(attr);
 			hid_t currType = H5Aget_type(attr);
@@ -2202,7 +2202,7 @@ static int FUNC \
 
 		/* do some work */
 		if (CBF_SUCCESS==error) {
-		if (H5Aexists(ID,name)) {
+		if (H5Aexists(ID,name) > 0) {
 			hid_t attr = H5Aopen(ID,name,H5P_DEFAULT);
 			hid_t currSpace = H5Aget_space(attr);
 			hid_t currType = H5Aget_type(attr);
@@ -2306,7 +2306,7 @@ static int FUNC \
 			if (CBF_SUCCESS != (error|=cbf_H5Screate(&attrSpace, rank, dim, 0))) {
 				cbf_debug_print("error: couldn't create data space");
 			} else {
-                if (H5Aexists(ID,name)) {
+                if (H5Aexists(ID,name) > 0) {
                     hid_t attr = H5Aopen(ID,name,H5P_DEFAULT);
                     hid_t currSpace = H5Aget_space(attr);
                     hid_t currType = H5Aget_type(attr);
@@ -4370,12 +4370,15 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			error |= CBF_BINARY;
 		} else if (CBF_SUCCESS!=(error|=cbf_get_columnrow(&text, node, row))) {
 			cbf_debug_print2("error: %s\n",cbf_strerror(error));
+		} else if (!text || *text==CBF_TOKEN_NULL) {
+            *value = 0.;
+            return CBF_SUCCESS;
 		} else {
 			char * end = NULL;
 			const double tmp_val = strtod(text+1, &end);
 			if (end == text+1) {
 				cbf_debug_print2("error: %s\n", cbf_strerror(CBF_FORMAT));
-				error |= CBF_FORMAT;
+                *value = 0.;
 			} else {
 				*value = tmp_val;
 			}
@@ -4396,12 +4399,16 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			error |= CBF_BINARY;
 		} else if (CBF_SUCCESS!=(error|=cbf_get_columnrow(&text, node, row))) {
 			cbf_debug_print2("error: %s\n", cbf_strerror(error));
+		} else if (!text || *text==CBF_TOKEN_NULL) {
+            *value = 0;
+            return CBF_SUCCESS;
 		} else {
 			char * end = NULL;
 			const unsigned int tmp_val = strtoul(text+1, &end, 0);
 			if (end == text+1) {
 				cbf_debug_print2("error: %s\n", cbf_strerror(CBF_FORMAT));
 				error |= CBF_FORMAT;
+                *value = 0;
 			} else {
 				*value = tmp_val;
 			}
@@ -6846,7 +6853,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         attribexists = H5Aexists(hid,attribname);
 
-        if (attribexists >=0 && attribexists) {
+        if (attribexists > 0) {
 
             hsize_t attribsize = 0;
 
@@ -14899,10 +14906,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						if (!error) {
 							htri_t has_offset = H5Aexists(axisData->axis,"offset");
 							double off[3] = {0.,0.,0.};
-							if (has_offset<0) {
+							if (has_offset<=0) {
 								cbf_debug_print("couldn't check existence of attribute");
 								error |= CBF_H5ERROR;
-							} else if (has_offset) {
+							} else if (has_offset>0) {
 								hid_t offset = CBF_H5FAIL;
 								if (!cbf_H5Ivalid(offset=H5Aopen(axisData->axis,"offset",H5P_DEFAULT))) {
 									cbf_debug_print("couldn't open attribute");
@@ -18149,6 +18156,9 @@ static int FUNCTION_NAME \
                                 if (3==axis_settings.nVector) {
                                     CBF_CALL(cbf_apply_matrix(key->matrix,axis_settings.vector,vector));
 			}
+                                if (H5Aexists(dset,"vector") > 0) {
+                                    H5Adelete_by_name(dset,".","vector",H5P_DEFAULT);
+                                }
                                 CBF_CALL(CBFM_H5Arequire_cmp2(dset,"vector",1,dim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,vector,buf,cmp_double,cmp_params));
 		}
                         }
