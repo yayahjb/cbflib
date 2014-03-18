@@ -1,12 +1,12 @@
 /**********************************************************************
  * cbf_hdf5 -- read and write HDF5/NeXus files                        *
  *                                                                    *
- * Version 0.9.3 21 December 2012                                     *
+ * Version 0.9.4.1.1 15 March 2014                                    *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
  *                                                                    *
- * (C) Copyright 2009, 2012 Herbert J. Bernstein                      *
+ * (C) Copyright 2009, 2012, 2013, 2014 Herbert J. Bernstein          *
  *                                                                    *
  **********************************************************************/
 
@@ -3608,6 +3608,7 @@ if (CBF_SUCCESS==found) {
 
      \param id0 An HDF5 identifier.
      \param id1 An HDF5 identifier.
+     \sa cbf_H5Ocmp
      \sa cbf_H5Ivalid
      \return 0 if equal, a positive value if not equal, or a negative value if there is an error.
      */
@@ -3637,7 +3638,22 @@ if (CBF_SUCCESS==found) {
         return error;
     }
 
+	/**
+	Attempt to close an object identifier of unknown type, but don't modify the identifier that described it.
     
+	\param ID The HDF5 object to be closed.
+	\sa cbf_H5Ocmp
+	\sa cbf_H5Ofree
+	\sa cbf_H5Ivalid
+	\return An error code.
+	 */
+	int cbf_H5Ofree(const hid_t ID)
+	{
+		if (cbf_H5Ivalid(ID)) return H5Oclose(ID)>=0 ? CBF_SUCCESS : CBF_H5ERROR;
+		else return CBF_ARGUMENT;
+	}
+
+
     /****************************************************************
      End of section of code extracted from J. Sloan's
      cbf_hdf5_common.c
@@ -4504,7 +4520,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 	}
     
 	/**
-     Check the handle for the presence of an entry group and its name, optionally returning any combination of them.
+	Check the handle for the presence of an entry group and its name,
+	optionally returning any combination of them. The error code
+	'CBF_NOTFOUND' will be returned if any of the requested items of data
+	cannot be found.
+
+	The handle retains ownership of the returned object and/or string, neither
+	of them should be free'd by the caller.
+
      \param nx A handle to query for the presence of the requested information.
      \param group A place to store the group (if found), or null if the group isn't wanted.
      \param name A place to store the name of the group (if found), or null if the name isn't wanted.
@@ -4892,7 +4915,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 	}
     
 	/**
-     Check the handle for the presence of a beam group and its name, optionally returning any combination of them.
+	Check the handle for the presence of a beam group and its name,
+	optionally returning any combination of them. The error code
+	'CBF_NOTFOUND' will be returned if any of the requested items of data
+	cannot be found.
+
+	The handle retains ownership of the returned object and/or string, neither
+	of them should be free'd by the caller.
+
      \param nx A handle to query for the presence of the requested information.
      \param group A place to store the group (if found), or null if the group isn't wanted.
      \param name A place to store the name of the group (if found), or null if the name isn't wanted.
@@ -5022,12 +5052,20 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 	}
 
 	/**
-     Check the handle for the presence of an instrument group and its name, optionally returning any combination of them.
+	Check the handle for the presence of an instrument group and its name,
+	optionally returning any combination of them. The error code
+	'CBF_NOTFOUND' will be returned if any of the requested items of data
+	cannot be found.
+
+	The handle retains ownership of the returned object and/or string, neither
+	of them should be free'd by the caller.
+
      \param nx A handle to query for the presence of the requested information.
      \param group A place to store the group (if found), or null if the group isn't wanted.
      \param name A place to store the name of the group (if found), or null if the name isn't wanted.
      \sa cbf_h5handle_get_instrument
      \sa cbf_h5handle_set_instrument
+     \sa cbf_h5handle_find_instrument
      \sa cbf_h5handle_require_instrument
      \return An error code.
      */
@@ -5061,9 +5099,12 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      \param nx The handle to add information to.
      \param group The group to be set as the current instrument group
      \param name The name which the group should be given.
+
      \sa cbf_h5handle_get_instrument
      \sa cbf_h5handle_set_instrument
+     \sa cbf_h5handle_find_instrument
      \sa cbf_h5handle_require_instrument
+
      \return An error code.
 	 */
 	int cbf_h5handle_set_instrument
@@ -5105,9 +5146,12 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      \param nx The HDF5 handle to use.
 	\param group An optional pointer to a place where the group should be stored.
      \param name The group name, or null to use the default name of <code>"instrument"</code>.
+
      \sa cbf_h5handle_get_instrument
      \sa cbf_h5handle_set_instrument
+	 \sa cbf_h5handle_find_instrument
      \sa cbf_h5handle_require_instrument
+
      \return An error code.
 	 */
 	int cbf_h5handle_require_instrument
@@ -5154,12 +5198,20 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 	}
 
 	/**
-     Check the handle for the presence of an detector group and its name, optionally returning any combination of them.
+	Check the handle for the presence of an detector group and its name,
+	optionally returning any combination of them. The error code
+	'CBF_NOTFOUND' will be returned if any of the requested items of data
+	cannot be found.
+
+	The handle retains ownership of the returned object and/or string, neither
+	of them should be free'd by the caller.
+
      \param nx A handle to query for the presence of the requested information.
      \param group A place to store the group (if found), or null if the group isn't wanted.
      \param name A place to store the name of the group (if found), or null if the name isn't wanted.
      \sa cbf_h5handle_get_detector
      \sa cbf_h5handle_set_detector
+     \sa cbf_h5handle_find_detector
      \sa cbf_h5handle_require_detector
      \return An error code.
      */
@@ -5195,6 +5247,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      \param name The name which the group should be given.
      \sa cbf_h5handle_get_detector
      \sa cbf_h5handle_set_detector
+     \sa cbf_h5handle_find_detector
      \sa cbf_h5handle_require_detector
      \return An error code.
 	 */
@@ -5237,6 +5290,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      \param name The group name, or null to use the default name of <code>"detector"</code>.
      \sa cbf_h5handle_get_detector
      \sa cbf_h5handle_set_detector
+     \sa cbf_h5handle_find_detector
      \sa cbf_h5handle_require_detector
      \return An error code.
 	 */
@@ -5284,7 +5338,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 	}
     
 	/**
-     Check the handle for the presence of an goniometer group and its name, optionally returning any combination of them.
+	Check the handle for the presence of an goniometer group and its name,
+	optionally returning any combination of them. The error code
+	'CBF_NOTFOUND' will be returned if any of the requested items of data
+	cannot be found.
+
+	The handle retains ownership of the returned object and/or string, neither
+	of them should be free'd by the caller.
+
      \param nx A handle to query for the presence of the requested information.
      \param group A place to store the group (if found), or null if the group isn't wanted.
      \param name A place to store the name of the group (if found), or null if the name isn't wanted.
@@ -5414,7 +5475,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 	}
 
 	/**
-     Check the handle for the presence of an monochromator group and its name, optionally returning any combination of them.
+	Check the handle for the presence of an monochromator group and its name,
+	optionally returning any combination of them. The error code
+	'CBF_NOTFOUND' will be returned if any of the requested items of data
+	cannot be found.
+
+	The handle retains ownership of the returned object and/or string, neither
+	of them should be free'd by the caller.
+
      \param nx A handle to query for the presence of the requested information.
      \param group A place to store the group (if found), or null if the group isn't wanted.
      \param name A place to store the name of the group (if found), or null if the name isn't wanted.
@@ -5544,7 +5612,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 	}
 
 	/**
-     Check the handle for the presence of an source group and its name, optionally returning any combination of them.
+	Check the handle for the presence of an source group and its name,
+	optionally returning any combination of them. The error code
+	'CBF_NOTFOUND' will be returned if any of the requested items of data
+	cannot be found.
+
+	The handle retains ownership of the returned object and/or string, neither
+	of them should be free'd by the caller.
+
      \param nx A handle to query for the presence of the requested information.
      \param group A place to store the group (if found), or null if the group isn't wanted.
      \param name A place to store the name of the group (if found), or null if the name isn't wanted.
@@ -10404,6 +10479,18 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 	{
 		hid_t fcreate_prop_list;
 
+        char verstring[] = CBF_VERS_STRING;
+        
+        char svnrev[] = CBF_SVN_REVISION_STRING;
+        
+        char svndate[] = CBF_SVN_DATE_STRING;
+        
+        char buffer[140];
+        
+        int ii, irev, idate;
+
+        int error = CBF_SUCCESS;
+
 		cbf_failnez(cbf_make_h5handle(h5handle));
 
 		cbf_h5onfailneg(fcreate_prop_list = H5Pcreate(H5P_FILE_ACCESS),
@@ -10421,7 +10508,47 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		cbf_h5onfailneg(H5Pclose(fcreate_prop_list), CBF_ARGUMENT,
                         cbf_free((void**) h5handle, NULL));
 
-		return CBF_SUCCESS;
+		CBF_CALL(cbf_H5Arequire_string((*h5handle)->hfile,"NX_class","NXroot"));
+		CBF_CALL(cbf_H5Arequire_string((*h5handle)->hfile,"creator","CBFlib"));
+        buffer[0] = '\0';
+        
+        strncat(buffer,verstring,50);
+        for (ii=strlen(svnrev)-1; ii >= 0; ii--) {
+            if (svnrev[ii] == '$' || svnrev[ii] == ' ') {
+                svnrev[ii] = '\0';
+            } else break;
+        }
+        irev = 0;
+        if (strlen(svnrev)>0 && svnrev[0]=='$') irev++;
+        for (ii=0; ii < strlen(svnrev); ii++) {
+            if (svnrev[ii]==':') {
+                irev = ii+1;
+                if (ii < strlen(svnrev)-1 && svnrev[ii+1]==' ') irev++;
+                break;
+            }
+        }
+        for (ii=strlen(svndate)-1; ii >= 0; ii--) {
+            if (svndate[ii] == '$' || svndate[ii] == ' ') {
+                svndate[ii] = '\0';
+            } else break;
+        }
+        idate = 0;
+        if (strlen(svndate)>0 && svndate[0]=='$') idate++;
+        for (ii=0; ii < strlen(svndate); ii++) {
+            if (svndate[ii]==':') {
+                idate = ii+1;
+                if (ii < strlen(svndate)-1 && svndate[ii]==' ') idate++;
+                break;
+            }
+        }
+
+        strncat(buffer," (r",3);
+        strncat(buffer,svnrev+irev,10);
+        strncat(buffer,") ",2);
+        strncat(buffer,svndate+idate,50);
+		CBF_CALL(cbf_H5Arequire_string((*h5handle)->hfile,"creator_version", 
+            buffer));
+		return error;
 	}
 
 	/**
@@ -11339,6 +11466,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			else if (!strcmp("zm",original_units)) *factor = 1e-21;
 			else if (!strcmp("ym",original_units)) *factor = 1e-24;
 			else if (!strcmp("A",original_units)) *factor = 1e-10;
+			else if (!strcmp("angstroms",original_units)) *factor = 1e-10;
 			else error = CBF_ARGUMENT;
             
 			/* find the factor for conversion from the intermediate form to the target units */
@@ -11364,6 +11492,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			else if (!strcmp("zm",target_units)) *factor *= 1e+21;
 			else if (!strcmp("ym",target_units)) *factor *= 1e+24;
 			else if (!strcmp("A",target_units)) *factor *= 1e+10;
+			else if (!strcmp("angstroms",target_units)) *factor *= 1e+10;
 			else error = CBF_ARGUMENT;
 		}
 
@@ -13500,7 +13629,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 										const char * unit_string = NULL;
 										CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 										CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-										CBF_CALL(cbf_convert_length(unit_string,"A",&factor));
+										CBF_CALL(cbf_convert_length(unit_string,"angstroms",&factor));
 										free((void*)unit_string);
 										cbf_H5Afree(units);
 									}
@@ -14146,7 +14275,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
              - insert the image data with the array_id & binary_id, caching them to be referred to later.
              */
 			if (CBF_SUCCESS!=(error|=cbf_h5handle_get_entry(nx, &entry, &entry_name))) {
-				if (1) {
+				{
 					cbf_debug_print("error: couldn't get current entry from NeXus file handle");
 					cbf_debug_print(cbf_strerror(error));
 		}
@@ -14612,7 +14741,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 											}
 											data_encoding = _data_encoding;
 											/* debugging */
-											if (1) {
+											{
 												cbf_debug_print2("CBF compression: '%s'\n",data_compression);
 												cbf_debug_print2("byte_order: '%s'\n",data_byte_order);
 												cbf_debug_print2("encoding: '%s'\n",data_encoding);
@@ -15217,19 +15346,28 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 				value = malloc(nelem*elsize);
 				CBF_CALL(cbf_set_fileposition(file, start, SEEK_SET));
 				CBF_CALL(cbf_decompress_parameters(NULL, NULL, NULL, NULL, NULL, NULL, NULL, compression, file));
-				if (0) {
-					fprintf(stderr,"masked compression: %d\n",compression&CBF_COMPRESSION_MASK);
-					fprintf(stderr,"compression type: ");
-					if (compression == CBF_CANONICAL) fprintf(stderr,"CBF_CANONICAL\n");
-					else if ((compression&CBF_COMPRESSION_MASK) == CBF_PACKED) fprintf(stderr,"CBF_PACKED\n");
-					else if ((compression&CBF_COMPRESSION_MASK) == CBF_PACKED_V2) fprintf(stderr,"CBF_PACKED_V2\n");
-					else if (compression == CBF_BYTE_OFFSET) fprintf(stderr,"CBF_BYTE_OFFSET\n");
-					else if (compression == CBF_NIBBLE_OFFSET) fprintf(stderr,"CBF_NIBBLE_OFFSET\n");
-					else if (compression == CBF_PREDICTOR) fprintf(stderr,"CBF_PREDICTOR\n");
-					else if (compression == CBF_NONE) fprintf(stderr,"CBF_NONE\n");
-					else fprintf(stderr,"Unknown\n");
-					fprintf(stderr,"element size: %d\n",(unsigned int)(elsize));
-					fprintf(stderr,"real?: %s\n",real?"yes":"no");
+                {
+					cbf_debug_print2("masked compression: %d\n",compression&CBF_COMPRESSION_MASK);
+					cbf_debug_print("compression type: ");
+					if (compression == CBF_CANONICAL) {
+                        cbf_debug_print("CBF_CANONICAL\n");
+                    } else if ((compression&CBF_COMPRESSION_MASK) == CBF_PACKED){
+                        cbf_debug_print("CBF_PACKED\n");
+                    } else if ((compression&CBF_COMPRESSION_MASK) == CBF_PACKED_V2) {
+                        cbf_debug_print("CBF_PACKED_V2\n");
+                    } else if (compression == CBF_BYTE_OFFSET) {
+                        cbf_debug_print("CBF_BYTE_OFFSET\n");
+                    } else if (compression == CBF_NIBBLE_OFFSET) {
+                        cbf_debug_print("CBF_NIBBLE_OFFSET\n");
+                    } else if (compression == CBF_PREDICTOR) {
+                        cbf_debug_print("CBF_PREDICTOR\n");
+                    } else if (compression == CBF_NONE) {
+                        cbf_debug_print("CBF_NONE\n");
+                    } else {
+                        cbf_debug_print("Unknown\n");
+                }
+					cbf_debug_print2("element size: %d\n",(unsigned int)(elsize));
+					cbf_debug_print2("real?: %s\n",real?"yes":"no");
                 }
 
 				/* ensure a dataset exists in the detector */
@@ -17146,7 +17284,7 @@ static int FUNCTION_NAME \
 	};
 
 	static cbf2nx_column_map_t diffrn_radiation_wavelength_map[] = {
-		{"wavelength",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"wavelength","A",cbf_h5handle_require_beam,NULL,1}}}},
+		{"wavelength",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"wavelength","angstroms",cbf_h5handle_require_beam,NULL,1}}}},
 		{"wt",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"weight",NULL,cbf_h5handle_require_beam,NULL,1}}}},
 		{NULL,CBF_MAP_NONE,NULL},
 	};
@@ -18181,7 +18319,7 @@ static int FUNCTION_NAME \
 	{
 		int error = CBF_SUCCESS;
 
-		if (0) fprintf(stderr,"link_h5data\n");
+		cbf_debug_print("link_h5data\n");
 
 		/* check arguments */
 		if (!handle) {
@@ -18502,6 +18640,7 @@ static int FUNCTION_NAME \
      \sa cbf_write_minicbf_h5file
      \sa cbf_write_cbf2nx
      \sa cbf_write_nx2cbf
+     \sa cbf_write_nx2cbf2
      \return An error code.
 	*/
 	int cbf_write_cbf_h5file
@@ -18533,6 +18672,7 @@ static int FUNCTION_NAME \
      \sa cbf_write_cbf_h5file
      \sa cbf_write_minicbf_h5file
      \sa cbf_write_nx2cbf
+     \sa cbf_write_nx2cbf2
      \return An error code.
      */
     int cbf_write_cbf2nx
@@ -18770,6 +18910,7 @@ static int FUNCTION_NAME \
      \sa cbf_write_cbf_h5file
      \sa cbf_write_minicbf_h5file
      \sa cbf_write_nx2cbf
+     \sa cbf_write_nx2cbf2
      \return An error code.
 	*/
 	int cbf_write_minicbf_h5file
@@ -19122,7 +19263,11 @@ static int FUNCTION_NAME \
                                 CBF_CALL(cbf_H5Drequire(beam,&h5data,h5name,1,max,chunk,buf,h5type));
                                 CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE));
                                 CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value));
+								if (!strcmp(token,"A")||!strcmp(token,"angstroms")) {
+									CBF_CALL(cbf_H5Arequire_string(h5data,"units","angstroms"));
+								} else {
                                 CBF_CALL(cbf_H5Arequire_string(h5data,"units",token));
+								}
                                 cbf_H5Gfree(beam);
 								cbf_H5Dfree(h5data);
 							} else if (!cbf_cistrcmp("Beam_xy",token)) {

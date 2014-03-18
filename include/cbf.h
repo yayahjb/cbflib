@@ -263,10 +263,22 @@ extern "C" {
 #define CBF_VERS_SUBRELEASE ""   
                              /* For pre-releases like RC1                 */
                              /* Empty string for real releases.           */
+                             /* Must be a quoted string                   */
+#define CBF_SVN_REVISION $Revision: 247$
+#define CBF_SVN_DATE     $Date$
 #define CBF_APIVERS_CUR  2   /* Number of major interface version         */
 #define CBF_APIVERS_REV  1   /* Interface changes                         */
 #define CBF_APIVERS_AGE  0   /* Number of interfaces added                */
 
+#define _CBF_STR2(n) #n
+#define _CBF_STR(n) _CBF_STR2(n)
+
+#define CBF_VERS_STRING _CBF_STR(CBF_VERS_MAJOR) "." \
+_CBF_STR(CBF_VERS_MINOR) "." \
+_CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
+
+#define CBF_SVN_REVISION_STRING _CBF_STR(CBF_SVN_REVISION)
+#define CBF_SVN_DATE_STRING _CBF_STR(CBF_SVN_DATE)
 #include "cbf_tree.h"
 
 #include <stdlib.h>
