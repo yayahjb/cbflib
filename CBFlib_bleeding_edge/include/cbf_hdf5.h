@@ -655,11 +655,13 @@ cbf_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp)
 	/* Custom HDF5 types - to get the correct string type for datasets in a consistent way */
 
 	/**
+	\brief Get a HDF5 string datatype to describe a sting of the specified length.
 	\ingroup section_HDF5_H5T
 	 */
 	int cbf_H5Tcreate_string(hid_t * const type, const size_t len);
 
 	/**
+	\brief Close a HDF5 datatype identifier.
 	\ingroup section_HDF5_H5T
 	 */
 	int cbf_H5Tfree(const hid_t ID);
@@ -667,6 +669,7 @@ cbf_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp)
 	/* HDF5 dataspace functions: I need a uniform method of creating data spaces to ensure correct operation of comparison functions */
 
 	/**
+	\brief Create a dataspace with some given values.
 	\ingroup section_HDF5_H5S
 	 */
 	int cbf_H5Screate
@@ -676,16 +679,24 @@ cbf_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp)
 		const hsize_t * const max);
 
 	/**
+	\brief Close a HDF5 dataspace identifier.
 	\ingroup section_HDF5_H5S
 	 */
 	int cbf_H5Sfree(const hid_t ID);
 
-	/** \brief A missing HDF5 function.
+	/**
+	\brief A missing HDF5 function.
 	\ingroup section_HDF5_H5O
 	*/
 	htri_t cbf_H5Ocmp
 		(const hid_t id0,
 		const hid_t id1);
+
+	/**
+	\brief Close a HDF5 object identifier.
+	\ingroup section_HDF5_H5O
+	 */
+	int cbf_H5Ofree(const hid_t ID);
 
 
     /****************************************************************
@@ -1019,6 +1030,15 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 			 const char * const name);
 
 	/**
+	\brief Find an existing instrument group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_find_instrument
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
+
+	/**
 	\brief Ensure I have an instrument in the hdf5 handle.
 	\ingroup section_H5Handle
 	 */
@@ -1044,6 +1064,15 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 			(const cbf_h5handle nx,
 			 const hid_t group,
 			 const char * const name);
+
+	/**
+	\brief Find an existing detector group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_find_detector
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
 
 	/**
 	\brief Ensure I have a detector in the hdf5 handle.
