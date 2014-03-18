@@ -264,7 +264,7 @@ extern "C" {
                              /* For pre-releases like RC1                 */
                              /* Empty string for real releases.           */
                              /* Must be a quoted string                   */
-#define CBF_SVN_REVISION $Revision: 247$
+#define CBF_SVN_REVISION $Rev$
 #define CBF_SVN_DATE     $Date$
 #define CBF_APIVERS_CUR  2   /* Number of major interface version         */
 #define CBF_APIVERS_REV  1   /* Interface changes                         */
