@@ -10202,6 +10202,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 #endif
         (*h5handle)->scan_id = NULL;
         (*h5handle)->sample_id = NULL;
+#ifdef CBFDEBUG
+		(*h5handle)->logfile = stderr;
+#else
+		(*h5handle)->logfile = NULL;
+#endif
         return CBF_SUCCESS;
 
     }
@@ -14275,16 +14280,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
              - insert the image data with the array_id & binary_id, caching them to be referred to later.
              */
 			if (CBF_SUCCESS!=(error|=cbf_h5handle_get_entry(nx, &entry, &entry_name))) {
-				{
 					cbf_debug_print("error: couldn't get current entry from NeXus file handle");
 					cbf_debug_print(cbf_strerror(error));
 		}
-			}
-			if (1) {
-				fputc('\n',stderr);
-				int len = fprintf(stderr,"Extracting data from '%s:NXentry':\n",entry_name);
-				while (--len > 0) fputc('=',stderr);
-				fputc('\n',stderr);
+            if (!error && nx->logfile) {
+                fputc('\n',nx->logfile);
+                int len = fprintf(nx->logfile,"Extracting data from '%s:NXentry':\n",entry_name);
+                while (--len > 0) fputc('=',nx->logfile);
+                fputc('\n',nx->logfile);
 			}
 			if (CBF_SUCCESS==error) {
 				const char empty[] = "";
@@ -14305,11 +14308,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 				hid_t instrument = CBF_H5FAIL;
 				hid_t detector = CBF_H5FAIL;
 				hid_t data = CBF_H5FAIL;
-				if (1) {
-					fputc('\n',stderr);
-					int len = fprintf(stderr,"Counting frames & converting data:\n");
-					while (--len > 0) fputc('-',stderr);
-					fputc('\n',stderr);
+                if (!error && nx->logfile) {
+                    fputc('\n',nx->logfile);
+                    int len = fprintf(nx->logfile,"Counting frames & converting data:\n");
+                    while (--len > 0) fputc('-',nx->logfile);
+                    fputc('\n',nx->logfile);
 				}
 				if (CBF_SUCCESS==error) {
 					/* find instrument */
@@ -14393,15 +14396,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					}
 					cbf_H5Sfree(data_space);
 				}
-				if (CBF_SUCCESS==error) {
-					cbf_debug_print5(
+                if (!error && nx->logfile) {
+                    /* tell the user something about the data if they requested some information */
+                    fprintf(
+                            nx->logfile,
                                      "Found %zu frame%s\nframe dimensions: [%zu, %zu]\n",
                                      (size_t)(table->frames),
                                      table->frames != 1 ? "s" : "",
                                      (size_t)(table->ydim),
                                      (size_t)(table->xdim)
                                      );
-					cbf_debug_print2("%zu elems per frame\n",(size_t)(table->xdim*table->ydim));
+                    fprintf(nx->logfile,"%zu elems per frame\n",(size_t)(table->xdim*table->ydim));
 				}
 				if (CBF_SUCCESS==error) {
 					/* log image axes for later use */
@@ -14741,10 +14746,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 											}
 											data_encoding = _data_encoding;
 											/* debugging */
-											{
-												cbf_debug_print2("CBF compression: '%s'\n",data_compression);
-												cbf_debug_print2("byte_order: '%s'\n",data_byte_order);
-												cbf_debug_print2("encoding: '%s'\n",data_encoding);
+                                            if (!error && nx->logfile) {
+                                                fprintf(nx->logfile,"CBF compression: '%s'\n",data_compression);
+                                                fprintf(nx->logfile,"byte_order: '%s'\n",data_byte_order);
+                                                fprintf(nx->logfile,"encoding: '%s'\n",data_encoding);
 											}
 										}
 									} else if (H5Tequal(native_type,H5T_NATIVE_FLOAT) || H5Tequal(native_type,H5T_NATIVE_DOUBLE)) {
@@ -14827,11 +14832,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			if (CBF_SUCCESS==error) {
 				hsize_t idx = 0;
 				op_data_t op_data_struct = {nx, cbf, table};
-				if (1) {
-					fputc('\n',stderr);
-					int len = fprintf(stderr,"Converting metadata:\n");
-					while (--len > 0) fputc('-',stderr);
-					fputc('\n',stderr);
+                if (!error && nx->logfile) {
+                    fputc('\n',nx->logfile);
+                    int len = fprintf(nx->logfile,"Converting metadata:\n");
+                    while (--len > 0) fputc('-',nx->logfile);
+                    fputc('\n',nx->logfile);
 		}
 				if (H5Literate(entry,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__entry_op,&op_data_struct)<0) {
 					cbf_debug_print2("error: failed to iterate over items in the '%s' group\n",entry_name);
@@ -14866,13 +14871,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 				}
 			}
 		}
-				if (CBF_SUCCESS==error) {
-					fputc('\n',stderr);
-					int len = fprintf(stderr,"Found %zu %s:\n",table->nAxes,table->nAxes != 1 ? "axes" : "axis");
-					while (--len > 0) fputc('-',stderr);
-					fputc('\n',stderr);
+                if (!error && nx->logfile) {
+                    fputc('\n',nx->logfile);
+                    int len = fprintf(nx->logfile,"Found %zu %s:\n",table->nAxes,table->nAxes != 1 ? "axes" : "axis");
+                    while (--len > 0) fputc('-',nx->logfile);
+                    fputc('\n',nx->logfile);
 				}
-				if (CBF_SUCCESS==error) { /* Do the conversion to CBF format */
+                if (!error) { /* Do the conversion to CBF format */
 					cbf_node * diffrn_measurement_axis = NULL;
 					cbf_node * diffrn_detector_axis = NULL;
 					cbf_node * diffrn_scan_frame_axis = NULL;
@@ -14897,14 +14902,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							CBF_CALL(cbf_new_row(cbf));
 							axisRow = cbf->row;
 							CBF_CALL(cbf_set_value(cbf,axisData->name));
-							fprintf(stderr,"  %s\n",axisData->name);
+                            if (!error && nx->logfile) fprintf(nx->logfile,"%s\n",axisData->name);
 						}
 						if (CBF_SUCCESS==error) {
 							/* set the 'equipment' & add to any mapping tables for detectors & goniometers */
 							CBF_CALL(cbf_require_column(cbf,"equipment"));
 							if (axisEquipment_detector==axisData->equipment) {
 								const int row = cbf->row;
-								cbf_debug_print("Equipment: detector\n");
+                                if (!error && nx->logfile) fprintf(nx->logfile,"Equipment: detector\n");
 								CBF_CALL(cbf_set_value(cbf,"detector"));
 								cbf->node = diffrn_detector_axis;
 								CBF_CALL(cbf_require_column(cbf,"detector_id"));
@@ -14916,7 +14921,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								cbf->row = row;
 							} else if (axisEquipment_goniometer==axisData->equipment) {
 								const int row = cbf->row;
-								cbf_debug_print("Equipment: goniometer\n");
+                                if (!error && nx->logfile) fprintf(nx->logfile,"Equipment: goniometer\n");
 								CBF_CALL(cbf_set_value(cbf,"goniometer"));
 								cbf->node = diffrn_measurement_axis;
 								CBF_CALL(cbf_require_column(cbf,"measurement_id"));
@@ -14927,16 +14932,16 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								cbf->node = axis;
 								cbf->row = row;
 							} else if (axisEquipment_image==axisData->equipment) {
-								cbf_debug_print("Equipment: image\n");
+                                if (!error && nx->logfile) fprintf(nx->logfile,"Equipment: image\n");
 								CBF_CALL(cbf_set_value(cbf,"detector"));
 							} else if (axisEquipment_gravity==axisData->equipment) {
-								cbf_debug_print("Equipment: gravity\n");
+                                if (!error && nx->logfile) fprintf(nx->logfile,"Equipment: gravity\n");
 								CBF_CALL(cbf_set_value(cbf,"gravity"));
 							} else if (axisEquipment_source==axisData->equipment) {
-								cbf_debug_print("Equipment: source\n");
+                                if (!error && nx->logfile) fprintf(nx->logfile,"Equipment: source\n");
 								CBF_CALL(cbf_set_value(cbf,"source"));
 							} else {
-								cbf_debug_print("Equipment: general\n");
+                                if (!error && nx->logfile) fprintf(nx->logfile,"Equipment: general\n");
 								CBF_CALL(cbf_set_value(cbf,"general"));
 							}
 						}
@@ -14944,7 +14949,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							cbf_axisData_t * const depends_on = axisData->depends_on;
 							CBF_CALL(cbf_require_column(cbf,"depends_on"));
 							if (depends_on) {
-								cbf_debug_print2("Depends on: %s\n",depends_on->name);
+                                if (!error && nx->logfile) fprintf(nx->logfile,"Depends on: %s\n",depends_on->name);
 								CBF_CALL(cbf_set_value(cbf,depends_on->name));
 							} else CBF_CALL(cbf_set_value(cbf,"."));
 						}
@@ -14962,7 +14967,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									const hsize_t off[] = {nx->slice};
 									const hsize_t cnt[] = {1};
 									double val;
-									cbf_debug_print("Type: translation\n");
+                                    if (!error && nx->logfile) fprintf(nx->logfile,"Type: translation\n");
 									CBF_CALL(cbf_set_value(cbf,"translation"));
 									if (axisEquipment_image!=axisData->equipment) {
 										if (CBF_SUCCESS!=(error|=cbf_H5Dread2(axisData->axis,off,0,cnt,&val,H5T_NATIVE_DOUBLE))) {
@@ -14984,7 +14989,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									const hsize_t off[] = {nx->slice};
 									const hsize_t cnt[] = {1};
 									double val;
-									cbf_debug_print("Type: rotation\n");
+                                    if (!error && nx->logfile) fprintf(nx->logfile,"Type: rotation\n");
 									CBF_CALL(cbf_set_value(cbf,"rotation"));
 									if (axisEquipment_image!=axisData->equipment) {
 										if (CBF_SUCCESS!=(error|=cbf_H5Dread2(axisData->axis,off,0,cnt,&val,H5T_NATIVE_DOUBLE))) {
@@ -15003,7 +15008,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 										}
 									}
 								} else {
-									if (1) fprintf(stderr,"Type: general\n");
+                                    if (!error && nx->logfile) fprintf(nx->logfile,"Type: general\n");
 									CBF_CALL(cbf_set_value(cbf,"general"));
 								}
 								cbf->node = axis;
@@ -15021,7 +15026,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							} else if (CBF_SUCCESS!=(error|=cbf_H5Aread(attr,H5T_NATIVE_DOUBLE,vec))) {
 								cbf_debug_print(cbf_strerror(error));
 							} else {
-								cbf_debug_print4("Vector: [%g, %g, %g]\n",vec[0],vec[1],vec[2]);
+                                if (!error && nx->logfile) fprintf(nx->logfile,"Vector: [%g, %g, %g]\n",vec[0],vec[1],vec[2]);
 								CBF_CALL(cbf_require_column(cbf,"vector[1]"));
 								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",vec[0]));
 								CBF_CALL(cbf_require_column(cbf,"vector[2]"));
@@ -15068,7 +15073,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 											cbf_debug_print(cbf_strerror(error));
 										} else {
 											int i;
-											cbf_debug_print4("Offset: [%g, %g, %g]\n",off[0]*factor,off[1]*factor,off[2]*factor);
+                                            if (!error && nx->logfile) fprintf(nx->logfile,"Offset: [%g, %g, %g]\n",off[0]*factor,off[1]*factor,off[2]*factor);
 											for (i = 0; i != 3; ++i) off[i] *= factor;
 										}
 									}
@@ -15086,6 +15091,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",off[2]));
 							}
 						}
+                        if (!error && nx->logfile) fputc('\n',nx->logfile);
 					}
 					/* all real axes converted, add the gravity & beam axes to fully specify the coordinate system */
 					CBF_CALL(cbf_require_category(cbf,"axis"));
@@ -18640,7 +18646,6 @@ static int FUNCTION_NAME \
      \sa cbf_write_minicbf_h5file
      \sa cbf_write_cbf2nx
      \sa cbf_write_nx2cbf
-     \sa cbf_write_nx2cbf2
      \return An error code.
 	*/
 	int cbf_write_cbf_h5file
@@ -18672,7 +18677,6 @@ static int FUNCTION_NAME \
      \sa cbf_write_cbf_h5file
      \sa cbf_write_minicbf_h5file
      \sa cbf_write_nx2cbf
-     \sa cbf_write_nx2cbf2
      \return An error code.
      */
     int cbf_write_cbf2nx
@@ -18910,7 +18914,6 @@ static int FUNCTION_NAME \
      \sa cbf_write_cbf_h5file
      \sa cbf_write_minicbf_h5file
      \sa cbf_write_nx2cbf
-     \sa cbf_write_nx2cbf2
      \return An error code.
 	*/
 	int cbf_write_minicbf_h5file

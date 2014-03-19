@@ -258,7 +258,7 @@ extern "C" {
 
 #endif
 
-
+#include <stdio.h>
 #include <hdf5.h>
 #include "cbf.h"
 #include "cbf_tree.h"
@@ -708,8 +708,6 @@ cbf_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp)
      config.h
      ****************************************************************/
     
-    struct FILE;
-
 	extern const int cbf_configError_success;
 
     /* Opaque type for a collection of configuration items */
@@ -869,6 +867,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 		const char * nxgoniometer_name;
 		const char * nxmonochromator_name;
 		const char * nxsource_name;
+        FILE * logfile;
     }
     cbf_h5handle_struct;
     

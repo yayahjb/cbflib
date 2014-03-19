@@ -267,6 +267,7 @@ int main (int argc, char *argv [])
 	int error = CBF_SUCCESS;
     cbf_getopt_handle opts = NULL;
 	int h5_write_flags = 0;
+	int list = 0;
 	unsigned int frame = 0;
 	const char * cifout = NULL;
 	const char * hdf5in = NULL;
@@ -275,7 +276,7 @@ int main (int argc, char *argv [])
 	/* Attempt to read the arguments */
 	if (CBF_SUCCESS != (error |= cbf_make_getopt_handle(&opts))) {
 		fprintf(stderr,"Could not create a 'cbf_getopt' handle.\n");
-	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):f(frame):" ))) {
+	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):f(frame):\1(list)\2(no-list)" ))) {
 		fprintf(stderr,"Could not parse arguments.\n");
 	} else {
     	int errflg = 0;
@@ -322,6 +323,16 @@ int main (int argc, char *argv [])
 					case 0: { /* input file */
 						if (hdf5in) ++errflg;
 						else hdf5in = optarg;
+						break;
+					}
+					case '\1': {
+						if (list) ++errflg;
+						list = -1;
+						break;
+					}
+					case '\2': {
+						if (list) ++errflg;
+						list = 1;
 						break;
 					}
 					default: {
@@ -398,6 +409,7 @@ int main (int argc, char *argv [])
 		if (CBF_SUCCESS == error) {
 			clock_t a = clock(), b;
 			h5in->slice = 0;
+            if (list > 0) h5in->logfile = stdout;
 			error |= cbf_write_nx2cbf(h5in, cif);
 			b = clock();
 			printf("Time to convert '%s': %.3fs\n", cifout, ((float)(b - a))/CLOCKS_PER_SEC);
