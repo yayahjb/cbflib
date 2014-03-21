@@ -11796,11 +11796,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		if (!class) {
 			if (!processed) fprintf(out,"✗ %s\n",name);
 			else if (1==processed) fprintf(out,"✔ %s\n",name);
-			else fprintf(out,"? %s\n",name);
+			else fprintf(out,"- %s\n",name);
 		} else {
 			if (!processed) fprintf(out,"✗ %s:%s\n",name,class);
 			else if (1==processed) fprintf(out,"✔ %s:%s\n",name,class);
-			else fprintf(out,"? %s:%s\n",name,class);
+			else fprintf(out,"- %s:%s\n",name,class);
 		}
 	}
 
@@ -12292,7 +12292,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									}
 									/* ensure I have suitable structure within the CBF file */
 									CBF_CALL(_cbf_nx2cbf_table__diffrn_scan_frame(cbf,nx,table));
-									CBF_CALL(cbf_require_column(cbf,"integration_period"));
+									CBF_CALL(cbf_require_column(cbf,"time_period"));
 									/* write the data */
 									CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
 								}
@@ -13605,7 +13605,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						}
 						cbf_H5Sfree(data_space);
 						/*-----------------------------------------------------------------------------------------------*/
-					} else if (!strcmp(name,"wavelength")) {
+					} else if (!strcmp(name,"incident_wavelength")||!strcmp(name,"wavelength")) {
 						hid_t data_space = CBF_H5FAIL;
 						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
@@ -15659,6 +15659,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		CBF_MAP_NONE,
 		/* convert to a nexus field */
 		CBF_MAP_DATA,
+        CBF_MAP_DATA_DEPRECATED,
 		/* extract a key value */
 		CBF_MAP_KEY,
 		/*
@@ -17290,7 +17291,7 @@ static int FUNCTION_NAME \
 	};
 
 	static cbf2nx_column_map_t diffrn_radiation_wavelength_map[] = {
-		{"wavelength",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"wavelength","angstroms",cbf_h5handle_require_beam,NULL,1}}}},
+		{"wavelength",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"incident_wavelength","angstroms",cbf_h5handle_require_beam,NULL,1}}}},
 		{"wt",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"weight",NULL,cbf_h5handle_require_beam,NULL,1}}}},
 		{NULL,CBF_MAP_NONE,NULL},
 	};
@@ -17343,8 +17344,12 @@ static int FUNCTION_NAME \
 	static cbf2nx_column_map_t diffrn_scan_frame_map[] = {
 		{"date",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_vlstr,{"frame_start_time",NULL,cbf_h5handle_require_detector,NULL,1}}}},
 		{"frame_number",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_frame_number}}},
-		{"integration_period",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"frame_time","s",cbf_h5handle_require_detector,NULL,1}}}},
+		{"time_period",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"frame_time","s",cbf_h5handle_require_detector,NULL,1}}}},
+        /* deprecated erroneous use of integration period will be supported for read with a warning */
+        {"integration_period",CBF_MAP_DATA_DEPRECATED,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"frame_time","s",cbf_h5handle_require_detector,NULL,1}}}},
 		{"integration_time",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"count_time","s",cbf_h5handle_require_detector,NULL,1}}}},
+        /* deprecated erroneous use of exposure will be supported for read with a warning */
+        {"exposure_time",CBF_MAP_DATA_DEPRECATED,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_double,{"count_time","s",cbf_h5handle_require_detector,NULL,1}}}},
 		{NULL,CBF_MAP_NONE,NULL},
 	};
 
@@ -17574,16 +17579,22 @@ static int FUNCTION_NAME \
 			if (colmap_begin) {
 				const cbf2nx_column_map_t * colmap;
 				for (colmap = colmap_begin; CBF_SUCCESS==error && colmap->name; ++colmap) {
-					if (!strcmp(colmap->name,column->name)) {
+                    if (!cbf_cistrcmp(colmap->name,column->name)) {
+                        int state = 3;
 						in_list = 1;
 						switch (colmap->type) {
 							case CBF_MAP_NONE: {
-								if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,2);
+								state = 2;
 								break;
                         }
+                            case CBF_MAP_DATA_DEPRECATED: {
+                                if (h5handle->logfile && !matched) {
+                                  fprintf(h5handle->logfile,"Deprecated CBF tag '%s' \n", column->name);
+                                }
+                                }
 							case CBF_MAP_DATA: {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
 								const cbf2nx_convert_t * const conversion = (const cbf2nx_convert_t *)(colmap->data);
+								state = 1;
 								if (!conversion) {
 									cbf_debug_print("error: malformed mapping method");
 									error |= CBF_FORMAT;
@@ -17593,20 +17604,21 @@ static int FUNCTION_NAME \
 								break;
 							}
 							case CBF_MAP_KEY: {
-                        const char * val = NULL;
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
-								CBF_CALL(cbf_node_get_value(column, row, &val));
 								const cbf2nx_set_key_t * const set_key = (const cbf2nx_set_key_t *)(colmap->data);
+								state = 1;
 								if (!set_key) {
 									cbf_debug_print("error: malformed mapping method");
 									error |= CBF_FORMAT;
                         } else {
+									const char * val = NULL;
+									CBF_CALL(cbf_node_get_value(column, row, &val));
 									CBF_CALL(set_key->set_key(key,val));
                         }
 								break;
 							}
 							case CBF_MAP_CACHE: {
 								const cbf2nx_cache_item_t * const cache_item = (const cbf2nx_cache_item_t *)(colmap->data);
+								state = 1;
 								if (!cache_item) {
 									cbf_debug_print("error: malformed mapping method");
 									error |= CBF_FORMAT;
@@ -17616,15 +17628,16 @@ static int FUNCTION_NAME \
 								break;
                 }
 							default: {
-								if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+								state = 1;
 								cbf_debug_print("error: invalid mapping method");
                             error |= CBF_FORMAT;
 				}
 				}
+						if (h5handle->logfile && !matched) _cbf_write_name(h5handle->logfile,column->name,0,indent,state);
 			}
 		}
             }
-			if (!in_list && list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+            if (!in_list && h5handle->logfile && !matched) _cbf_write_name(h5handle->logfile,column->name,0,indent,0);
         }
 		return error;
 	}
@@ -17770,7 +17783,7 @@ static int FUNCTION_NAME \
             unsigned int * axes = NULL;
             unsigned int nRows;
             unsigned int set;
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (h5handle->logfile) _cbf_write_name(h5handle->logfile,categoryName,0,key->indent,1);
             if (key->categories) {
                 cbf_node * * it;
                 cbf_node * const * const end = key->nCat+key->categories;
@@ -17839,36 +17852,36 @@ static int FUNCTION_NAME \
                          - otherwise, record the column as not processed and carry on
                          */
                         if (pk) {
-                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (h5handle->logfile && !matched) _cbf_write_name(h5handle->logfile,column->name,0,indent,1);
                         } else if (!cbf_cistrcmp(column->name,"angle")) {
-                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (h5handle->logfile && !matched) _cbf_write_name(h5handle->logfile,column->name,0,indent,1);
 								CBF_CALL(cbf_node_get_doublevalue(column, axes[0], &angle));
 								if (!error) have_angle = 1;
                         } else if (!cbf_cistrcmp(column->name,"angle_increment")) {
-                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (h5handle->logfile && !matched) _cbf_write_name(h5handle->logfile,column->name,0,indent,1);
 								CBF_CALL(cbf_node_get_doublevalue(column, axes[0], &angle_incr));
 								if (!error) have_angle_incr = 1;
                         } else if (!cbf_cistrcmp(column->name,"angular_pitch")) {
-                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (h5handle->logfile && !matched) _cbf_write_name(h5handle->logfile,column->name,0,indent,1);
 								CBF_CALL(cbf_node_get_doublevalue(column, axes[0], &angular_pitch));
 								if (!error) have_angular_pitch = 1;
                         } else if (!cbf_cistrcmp(column->name,"axis_id")) {
-                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (h5handle->logfile && !matched) _cbf_write_name(h5handle->logfile,column->name,0,indent,1);
                             CBF_CALL(cbf_node_get_value(column, axes[0], &axis));
                         } else if (!cbf_cistrcmp(column->name,"displacement")) {
-                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (h5handle->logfile && !matched) _cbf_write_name(h5handle->logfile,column->name,0,indent,1);
 								CBF_CALL(cbf_node_get_doublevalue(column, axes[0], &disp));
 								if (!error) have_disp = 1;
                         } else if (!cbf_cistrcmp(column->name,"displacement_increment")) {
-                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (h5handle->logfile && !matched) _cbf_write_name(h5handle->logfile,column->name,0,indent,1);
 								CBF_CALL(cbf_node_get_doublevalue(column, axes[0], &disp_incr));
 								if (!error) have_disp_incr = 1;
                         } else if (!cbf_cistrcmp(column->name,"radial_pitch")) {
-                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (h5handle->logfile && !matched) _cbf_write_name(h5handle->logfile,column->name,0,indent,1);
 								CBF_CALL(cbf_node_get_doublevalue(column, axes[0], &radial_pitch));
 								if (!error) have_radial_pitch = 1;
                             } else {
-                            if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,0);
+                            if (h5handle->logfile && !matched) _cbf_write_name(h5handle->logfile,column->name,0,indent,0);
                         }
                     }
                     ++matched;
@@ -18118,7 +18131,7 @@ static int FUNCTION_NAME \
             cbf_node * const category = handle->node;
             unsigned int matched = 0;
             unsigned int i;
-            if (list) _cbf_write_name(stderr,categoryName,0,key->indent,1);
+            if (h5handle->logfile) _cbf_write_name(h5handle->logfile,categoryName,0,key->indent,1);
             if (key->categories) {
                 cbf_node * * it;
                 cbf_node * const * const end = key->nCat+key->categories;
@@ -18578,7 +18591,7 @@ static int FUNCTION_NAME \
 				void * const tbl_cache = category_map->tbl_cache.size ? malloc(category_map->tbl_cache.size) : NULL;
 				if (tbl_cache && category_map->tbl_cache.ctor) CBF_CALL(category_map->tbl_cache.ctor(tbl_cache));
             /* record that the category is recognised */
-            if (list) _cbf_write_name(stderr,category->name,0,key->indent,1);
+                if (nx->logfile) _cbf_write_name(nx->logfile,category->name,0,key->indent,1);
             CBF_CALL(_cbf2nx_key_remove_category(key,category->name));
             /* check that I have some children, and try to find the primary key columns */
             if (0==category->children) {
@@ -18604,7 +18617,7 @@ static int FUNCTION_NAME \
                 for (column_it = category->child; !error && column_it != category->children+category->child; ++column_it) {
                     cbf_node * const column = *column_it;
 						if (array_contains((const void * const *)primary_key_column,cbf_count_primary_keys(category_map->key_data),column)) {
-                        if (list && !matched) _cbf_write_name(stderr,column->name,0,indent,1);
+                            if (nx->logfile && !matched) _cbf_write_name(nx->logfile,column->name,0,indent,1);
                         } else {
 							CBF_CALL(cbf2nx_apply_conversions(nx,key,category_map->column_data,column,row,row_cache,list,matched));
                         }
@@ -19252,7 +19265,7 @@ static int FUNCTION_NAME \
                                 hid_t sample = CBF_H5FAIL;
                                 hid_t beam = CBF_H5FAIL;
 								const hid_t h5type = H5T_IEEE_F64LE;
-								const char h5name[] = "wavelength";
+								const char h5name[] = "incident_wavelength";
 								const hsize_t max[] = {H5S_UNLIMITED};
 								const hsize_t chunk[] = {1};
 								const hsize_t offset[] = {h5handle->slice};
@@ -19435,7 +19448,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 							/* Done matching the entry from this line, go on to the next one */
 							while (token && strcmp("\n",token)) {
 								error = _cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value);
-                                cbf_debug_print2("error %s\n",cbf_strerror(error));
+                                if (error) cbf_debug_print2("error %s\n",cbf_strerror(error));
 							}
 						} while (1);
 						free(token);
