@@ -287,7 +287,7 @@ int main (int argc, char *argv [])
 	/* Attempt to read the arguments */
 	if (CBF_SUCCESS != (error |= cbf_make_getopt_handle(&opts))) {
 		fprintf(stderr,"Could not create a 'cbf_getopt' handle.\n");
-	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):(experiment_id):(sample_id):(datablock):(scan):\1(list)\1(no-list)" ))) {
+	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):(experiment_id):(sample_id):(datablock):(scan):\1(list)\2(no-list)" ))) {
 		fprintf(stderr,"Could not parse arguments.\n");
 	} else {
     	int errflg = 0;
@@ -339,28 +339,19 @@ int main (int argc, char *argv [])
 					}
 					break;
 				}
-					case 0: case '\1': {
-						if (optstr) {
-							/* long options without any corresponding short options */
-							if (!cbf_cistrcmp("experiment_id",optstr)) {
-								scan_id = optarg;
-							} else if (!cbf_cistrcmp("sample_id",optstr)) {
-								sample_id = optarg;
-							} else if (!cbf_cistrcmp("datablock",optstr)) {
-								datablock = optarg;
-							} else if (!cbf_cistrcmp("scan",optstr)) {
-								scan = optarg;
-							} else if (!cbf_cistrcmp("list",optstr)) {
+                case '\1': {
+                    if (list) errflg++;
 								list = 1;
-							} else if (!cbf_cistrcmp("no-list",optstr)) {
-								list = 0;
-							} else {
-								++errflg;
+                    break;
 							}
-						} else if (NULL != optarg) {
+                case '\2': {
+                    if (list) errflg++;
+                    list = -1;
+                    break;
+                }
+                case 0: {
 							/* input file */
 							cifin[cifid++] = optarg;
-						}
 					break;
 				}
 				default: {
@@ -412,6 +403,11 @@ int main (int argc, char *argv [])
 		} else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5out,0,group,"NXmx","1.0",0))) {
 			fprintf(stderr,"Couldn't create an NXentry group in the HDF5 file '%s'.\n", hdf5out);
 		} else {
+            if (list > 0) {
+                h5out->logfile = stdout;
+            } else {
+                h5out->logfile = NULL;
+            }
 	h5out->flags = h5_write_flags;
 			h5out->scan_id = _cbf_strdup(scan_id);
 			h5out->sample_id = _cbf_strdup(sample_id);
