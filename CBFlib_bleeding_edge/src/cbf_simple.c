@@ -8574,6 +8574,775 @@ extern "C" {
     }
 
 
+    /* Unit conversion tables */
+
+    /* Unit Prefix Table */
+    
+    typedef struct{
+        
+        char * prefix;
+        
+        char * abbrev;
+        
+        double convfactor;
+        
+    } cbf_unit_prefix_struct;
+    
+#define CBF_UNITS_NUM_PREFIXES 26
+    
+    cbf_unit_prefix_struct cbf_unit_prefix_table[26] = {
+        {"yotta","Y",1.e24},
+        {"zetta","Z",1.e21},
+        {"exa","E",1.e18},
+        {"peta","P",1.e15},
+        {"tera","T",1.e12},
+        {"giga","G",1.e9},
+        {"mega","M",1.e6},
+        {"kilo","k",1.e3},
+        {"hecto","h",1.e2},
+        {"deka","da",10.},
+        {"deci","d",1.e-1},
+        {"centi","c",1.e-2},
+        {"milli","m",1.e-3},
+        {"micro","u",1.e-6},
+        {"nano","n",1.e-9},
+        {"pico","p",1.e-12},
+        {"femto","f",1.e-15},
+        {"atto","a",1.e-18},
+        {"zepto","z",1.e-21},
+        {"yocto","y",1.e-24},
+        {"kibbi","Ki",1024.},
+        {"mebi","Mi",1048576.},
+        {"gibi","Gi",1073741824.},
+        {"tebi","Ti",1099511627776.},
+        {"peti","Pi",1125899906842624.},
+        {"exbi","Ei",1152921504606846976.}};
+    
+    typedef struct {
+        
+        char * ln1;
+        char * ln2;
+        char * abbrev;
+        double convfactor;
+        
+    } cbf_unit_name_struct;
+    
+#define CBF_UNITS_NUM_UNITS 33
+    
+    cbf_unit_name_struct cbf_unit_name_table[CBF_UNITS_NUM_UNITS] = {
+        {"metre","meter","m",1.},              /*1*/
+        {"inch","in","m",0.0254},              /*2*/
+        {"foot","ft","m",0.3048},              /*3*/
+        {"yard","yd","m",0.9144},              /*4*/
+        {"mile","mi","m",1609.344},            /*5*/
+        {"angstrom","\xc5","m",1.e-10},        /*6*/
+        {"litre","liter","L",1.0},             /*7*/
+        {"cubic_metre","m^3","L",1.0},         /*8*/
+        {"gram",NULL,"g",1.0},                 /*9*/
+        {"second","sec","s",1.0},              /*10*/
+        {"ampere","amp","A",1.},               /*11*/
+        {"kelvin",NULL,"K",1.},                /*12*/
+        {"mole",NULL,"mol",1.},                /*13*/
+        {"candela",NULL,"cd",1.},              /*14*/
+        {"radian",NULL,"rad",1.},              /*15*/
+        {"steradian",NULL,"sr",1.},            /*16*/
+        {"hertz",NULL,"Hz",1.},                /*17*/
+        {"newton",NULL,"N",1.},                /*18*/
+        {"joule",NULL,"J",1.},                 /*19*/
+        {"electronvolt","eV","J",1.60218e-19}, /*20*/
+        {"watt",NULL,"W",1.},                  /*21*/
+        {"volt",NULL,"V",1.},                  /*22*/
+        {"weber",NULL,"Wb",1.},                /*23*/
+        {"becqueral",NULL,"Bq",1.},            /*24*/
+        {"curie","Ci","Bq",3.7e10},            /*25*/
+        {"pascal",NULL,"Pa",1.},               /*26*/
+        {"gray",NULL,"Gy",1.},                 /*27*/
+        {"rad",NULL,"Gy",1.e-2},               /*28*/
+        {"sievert",NULL,"Sv",1.},              /*29*/
+        {"rem",NULL,"Sv",1.e-2},               /*30*/
+        {"minute","min","s",60.},              /*31*/
+        {"hour","hr","s",3600.},               /*32*/
+        {"day","dy","s",86400.}                /*33*/
+    };
+
+    
+    int cbf_scale_unit(const char * unit, char * *  rev_unit,
+                        double * unit_per_rev_unit) {
+        
+        double convfactor;
+        
+        /* For internal use, we will convert angstroms,
+         meters, and metres to m */
+        
+        int ii, jj, kk;
+        
+        long lu, lucut, lp;
+        
+        int error;
+        
+        int found_prefix, found_unit;
+        
+        int pass;
+        
+        error = CBF_SUCCESS;
+        
+        if (!unit || ! rev_unit) return CBF_ARGUMENT;
+        
+        if (unit)  {
+            cbf_debug_print2("Scale unit |%s|\n",unit);
+        }
+        
+        if (!unit || !rev_unit) return CBF_FORMAT;
+        
+        *rev_unit = NULL;
+         
+        lu = lucut = strlen(unit);
+                
+        *rev_unit = (char *)malloc(lu+1);
+        
+        if (!rev_unit)return CBF_ALLOC;
+                    
+        for (ii=0; ii < lu+1; ii++) (*rev_unit)[ii] = unit[ii];
+        
+        convfactor = 1.;
+        
+        /* First remove all long form prefixes, treating them
+           as case insensitive.  This will leave only 1 and
+           2 character short prefixes.*/
+        
+        found_prefix = 1;
+        
+        while (found_prefix) {
+            
+            found_prefix = 0;
+            
+            for (ii=0; ii < CBF_UNITS_NUM_PREFIXES; ii++) {
+                
+                cbf_unit_prefix_struct * upp;
+                
+                char * prefix;
+                                
+                upp = cbf_unit_prefix_table+ii;
+                
+                prefix = upp->prefix;
+                
+                lp = strlen(prefix);
+                
+                if (lp <= lu && !cbf_cistrncmp(prefix,*rev_unit,lp)) {
+                    
+                    found_prefix = 1;
+                    
+                    convfactor *= upp->convfactor;
+                    
+                    for (jj = lp; jj < lu+1; jj++) (*rev_unit)[jj-lp] = (*rev_unit)[jj];
+                    
+                    lu -= lp;
+                    
+                    lucut = lu;
+                    
+                }
+                
+            }
+        }
+        
+        /* Now convert all units to their abbreviations.  But no
+           conversion will be done for units followed by '^'.
+           A check will be made for a '/'.  If to the right of
+           a '/' then the reciprocal of convfactor will be applied.*/
+        
+        found_unit = 1;
+        
+        pass = 0;
+        
+        while (found_unit) {
+            
+            found_unit = 0;
+            
+            for (ii=0; ii < CBF_UNITS_NUM_UNITS; ii++) {
+            
+                cbf_unit_name_struct* unp;
+            
+                char * ln;
+                        
+                long lln;
+                
+                unp = cbf_unit_name_table+ii;
+                
+                ln = (pass==0)?(unp->ln1):(unp->ln2);
+                
+                if (ln) {
+                    
+                  lln =strlen(ln);
+                    
+                }
+                
+                lucut = lu;
+                
+                if (ln && lln<=lucut) {
+                    
+                    long ilu;
+                    
+                    for (ilu = lucut-lln; ilu >= 0; ilu--) {
+                        
+                        int notmatch;
+                        
+                        if (pass==0) {
+                            
+                            notmatch = cbf_cistrncmp((*rev_unit)+ilu,ln,lln);
+
+                        } else {
+                            
+                            notmatch = strncmp((*rev_unit)+ilu,ln,lln);
+
+                        }
+                        
+                        if (!notmatch) {
+                            
+                            char * abbrev;
+                            
+                            size_t labbrev;
+                            
+                            int okconv = 1;
+                            
+                            if (ilu < lucut-lln && (*rev_unit)[ilu+lln]=='s') lln++;
+                            
+                            if (ilu < lucut-lln && (*rev_unit)[ilu+lln]=='^') okconv = 0;
+                            
+                            if (okconv) {
+                                
+                                int divide = 0;
+                                
+                                for (jj= ilu; jj >= 0; jj--) {
+                                    
+                                    if ((*rev_unit)[jj]=='/') {
+                                        
+                                        divide = 1;
+                                        
+                                        break;
+                                        
+                                    }
+                                }
+                                
+                                if (! divide ) {
+                                    
+                                    convfactor *= unp->convfactor;
+                                    
+                                } else {
+                                    
+                                    convfactor /= unp->convfactor;
+                                    
+                                }
+                                
+                                abbrev = unp->abbrev;
+                                
+                                labbrev = strlen(abbrev);
+                                
+                                for (jj=0 ; jj< labbrev; jj++) {
+                                      
+                                    (*rev_unit)[ilu+jj]=abbrev[jj];
+                                    
+                                }
+                                
+                                if (labbrev < lln) {
+                                    
+                                    for (kk = labbrev; ilu+lln+kk-labbrev < lu+1; kk++) {
+                                        
+                                        (*rev_unit)[ilu+kk] = (*rev_unit)[ilu+lln+kk-labbrev];
+                                        
+                                    }
+                                    
+                                }
+                                
+                                lu -= (lln-labbrev);
+                                
+                            }
+                            
+                            lucut = ilu;
+                            
+                            found_unit = 1;
+                            
+                        }
+                        
+                    }
+                    
+                    
+                }
+                
+            }
+            
+            if (!found_unit && pass==0) {
+                
+                pass++;
+                
+                found_unit = 1;
+
+            }
+            
+        }
+        
+        if (unit_per_rev_unit) *unit_per_rev_unit = convfactor;
+        
+        return error;
+        
+    }
+
+    
+    /* cbf_scale_units: return the number of actual units per standard
+       unit for an SI or IEC binary-prefixed unit, with special coding
+       to relate angstroms to metres.  See 
+        http://physics.nist.gov/cuu/Units/prefixes.html
+     */
+    
+    int cbf_scale_units(const char * actual_units, const char * std_units,
+                        double * actual_per_std) {
+        
+        double inconvfactor, outconvfactor;
+        
+        /* For internal use, we will convert angstroms,
+           meters, and metres to m */
+        
+        char * rev_actual_units;
+        char * rev_std_units;
+        int ii;
+        size_t lau, lsu;
+        
+        int error;
+        
+        error = CBF_SUCCESS;
+        
+        if (std_units && actual_units)  {
+            cbf_debug_print3("Scale actual |%s| to standard |%s|\n",actual_units,std_units);
+        }
+        
+        if (!std_units ||
+            !actual_units ||
+            !cbf_cistrcmp(actual_units, std_units)) {
+            
+            *actual_per_std = 1.;
+            
+            return error;
+            
+        }
+        
+        rev_actual_units = rev_std_units = NULL;
+        
+        error |= cbf_scale_unit(actual_units,&rev_actual_units,&inconvfactor);
+        
+        error |= cbf_scale_unit(std_units,&rev_std_units,&outconvfactor);
+                
+        if (error || !rev_actual_units || !rev_std_units) {
+            
+            if (rev_actual_units) free (rev_actual_units);
+            
+            if (rev_std_units) free (rev_std_units);
+
+            return (!error)?CBF_ALLOC:error;
+            
+        }
+        
+        lau = strlen(rev_actual_units);
+        
+        lsu = strlen(rev_std_units);
+        
+        
+        if (lau >= strlen("angstrom") && !cbf_cistrnrcmp(rev_actual_units,"angstrom",lau)) {
+            
+            inconvfactor = 1.e-10;
+            
+            rev_actual_units[lau-strlen("angstrom")] = 'm';
+            
+            rev_actual_units[lau-strlen("angstrom")+1] = '\0';
+            
+            
+        } else if (lau >= strlen("angstroms") && !cbf_cistrnrcmp(rev_actual_units,"angstroms",lau)) {
+            
+            inconvfactor = 1.e-10;
+            
+            rev_actual_units[lau-strlen("angstroms")] = 'm';
+            
+            rev_actual_units[lau-strlen("angstroms")+1] = '\0';
+            
+            
+        } else if (lau >= strlen("metres") && (!cbf_cistrnrcmp(rev_actual_units,"metres",lau) ||
+                   !cbf_cistrnrcmp(rev_actual_units,"meters",lau))) {
+            
+            inconvfactor = 1.;
+            
+            rev_actual_units[lau-strlen("metres")] = 'm';
+            
+            rev_actual_units[lau-strlen("metres")+1] = '\0';
+            
+            
+        } else if (lau >= strlen("metre") && (!cbf_cistrnrcmp(rev_actual_units,"metre",lau) ||
+                   !cbf_cistrnrcmp(rev_actual_units,"meter",lau))) {
+            
+            inconvfactor = 1.;
+            
+            rev_actual_units[lau-strlen("metre")] = 'm';
+            
+            rev_actual_units[lau-strlen("metre")+1] = '\0';
+            
+            
+        }
+        
+        if (lsu >= strlen("angstrom") && !cbf_cistrnrcmp(rev_std_units,"angstrom",lsu)) {
+            
+            outconvfactor *= 1.e-10;
+            
+            rev_std_units[lsu-strlen("angstrom")] = 'm';
+            
+            rev_std_units[lsu-strlen("angstrom")+1] = '\0';
+            
+            
+        } else if (lsu >= strlen("angstroms") && !cbf_cistrnrcmp(rev_std_units,"angstroms",lsu)) {
+            
+            outconvfactor *= 1.e-10;
+            
+            rev_std_units[lsu-strlen("angstroms")] = 'm';
+            
+            rev_std_units[lsu-strlen("angstroms")+1] = '\0';
+            
+            
+        } else if (lsu >= strlen("metres") && (!cbf_cistrnrcmp(rev_std_units,"metres",lsu) ||
+                   !cbf_cistrnrcmp(rev_std_units,"meters",lsu))) {
+            
+            rev_std_units[lsu-strlen("metres")] = 'm';
+            
+            rev_std_units[lsu-strlen("metres")+1] = '\0';
+            
+            
+        } else if (lsu >= strlen("metre") && (!cbf_cistrnrcmp(rev_std_units,"metre",lsu) ||
+                   !cbf_cistrnrcmp(rev_std_units,"meter",lsu))) {
+            
+            rev_std_units[lsu-strlen("metre")] = 'm';
+            
+            rev_std_units[lsu-strlen("metre")+1] = '\0';
+            
+            
+        }
+        
+        lau = strlen(rev_actual_units);
+        
+        lsu = strlen(rev_std_units);
+        
+        cbf_debug_print3("Scale actual |%s| to standard |%s|\n",rev_actual_units,rev_std_units);
+        cbf_debug_print3("inconvfactor |%g| outconvfactor |%g|\n",inconvfactor,outconvfactor);
+        
+        if (lau == lsu+1
+                   
+            && !cbf_cistrcmp(rev_actual_units+1,rev_std_units)) {
+            
+            switch (rev_actual_units[0]) {
+                    
+                case ('d') : *actual_per_std =  1.e-1; break;
+                case ('c') : *actual_per_std =  1.e-2; break;
+                case ('m') : *actual_per_std =  1.e-3; break;
+                case ('u') : *actual_per_std =  1.e-6; break;
+                case ('n') : *actual_per_std =  1.e-9; break;
+                case ('p') : *actual_per_std = 1.e-12; break;
+                case ('f') : *actual_per_std = 1.e-15; break;
+                case ('a') : *actual_per_std = 1.e-18; break;
+                case ('z') : *actual_per_std = 1.e-21; break;
+                case ('y') : *actual_per_std = 1.e-24; break;
+                case ('h') : *actual_per_std =   1.e2; break;
+                case ('K') : *actual_per_std =   1.e3; break;
+                case ('k') : *actual_per_std =   1.e3; break;
+                case ('M') : *actual_per_std =   1.e6; break;
+                case ('G') : *actual_per_std =   1.e9; break;
+                case ('T') : *actual_per_std =  1.e12; break;
+                case ('P') : *actual_per_std =  1.e15; break;
+                case ('E') : *actual_per_std =  1.e18; break;
+                case ('Z') : *actual_per_std =  1.e21; break;
+                case ('Y') : *actual_per_std =  1.e24; break;
+                default:  error = CBF_FORMAT;
+                    
+            }
+            
+            if (!error) {
+                
+                *actual_per_std *= (inconvfactor/outconvfactor);
+                
+            }
+            
+            if (rev_actual_units) free (rev_actual_units);
+            
+            if (rev_std_units) free (rev_std_units);
+            
+            cbf_debug_print2("actual units per standard unit = %g\n", *actual_per_std);
+            
+            return error;
+            
+        } else if (lau == lsu+2
+                   
+                   && !cbf_cistrcmp(actual_units+2,std_units)) {
+            
+            switch (rev_actual_units[0]) {
+                case ('d') :
+                    if (rev_actual_units[1]=='a') {
+                        *actual_per_std =  10.; break;
+                    } else {
+                        error = CBF_FORMAT;
+                    }
+                case ('K') :
+                    if (rev_actual_units[1]=='i') {
+                        *actual_per_std =  1024.; break;
+                    } else {
+                        error = CBF_FORMAT;
+                    }
+                case ('M') :
+                    if (rev_actual_units[1]=='i') {
+                        *actual_per_std =  1048576.; break;
+                    } else {
+                        error = CBF_FORMAT;
+                    }
+                case ('G') :
+                    if (rev_actual_units[1]=='i') {
+                        *actual_per_std =  1073741824.; break;
+                    } else {
+                        error = CBF_FORMAT;
+                    }
+                case ('T') :
+                    if (rev_actual_units[1]=='i') {
+                        *actual_per_std =  1048576.*1048576.; break;
+                    } else {
+                         error = CBF_FORMAT;
+                    }
+                case ('P') :
+                    if (rev_actual_units[1]=='i') {
+                        *actual_per_std =  1048576.*1073741824.; break;
+                    } else {
+                         error = CBF_FORMAT;
+                    }
+                case ('E') :
+                    if (rev_actual_units[1]=='i') {
+                        *actual_per_std =  1073741824.*1073741824.; break;
+                    } else {
+                         error = CBF_FORMAT;
+                    }
+                default:  error = CBF_FORMAT;
+                    
+            }
+            
+            *actual_per_std *= (inconvfactor/outconvfactor);
+            
+            if (rev_actual_units) free (rev_actual_units);
+            
+            if (rev_std_units) free (rev_std_units);
+            
+            cbf_debug_print2("actual units per standard unit = %g\n", *actual_per_std);
+            
+            return CBF_SUCCESS;
+            
+            
+        } else if (lau == lsu-1
+                   
+                   && !cbf_cistrcmp(actual_units,std_units+1)) {
+            
+            int error;
+            
+            error = CBF_SUCCESS;
+            
+            switch (std_units[0]) {
+                    
+                case ('d') : *actual_per_std =   1.e1; break;
+                case ('c') : *actual_per_std =   1.e2; break;
+                case ('m') : *actual_per_std =   1.e3; break;
+                case ('u') : *actual_per_std =   1.e6; break;
+                case ('n') : *actual_per_std =   1.e9; break;
+                case ('p') : *actual_per_std =  1.e12; break;
+                case ('f') : *actual_per_std =  1.e15; break;
+                case ('a') : *actual_per_std =  1.e18; break;
+                case ('z') : *actual_per_std =  1.e21; break;
+                case ('y') : *actual_per_std =  1.e24; break;
+                case ('h') : *actual_per_std =  1.e-2; break;
+                case ('K') : *actual_per_std =  1.e-3; break;
+                case ('k') : *actual_per_std =  1.e-3; break;
+                case ('M') : *actual_per_std =  1.e-6; break;
+                case ('G') : *actual_per_std =  1.e-9; break;
+                case ('T') : *actual_per_std = 1.e-12; break;
+                case ('P') : *actual_per_std = 1.e-15; break;
+                case ('E') : *actual_per_std = 1.e-18; break;
+                case ('Z') : *actual_per_std = 1.e-21; break;
+                case ('Y') : *actual_per_std = 1.e-24; break;
+                default:  error = CBF_FORMAT;
+
+            }
+            
+            if (!error) {
+                
+                *actual_per_std *= (inconvfactor/outconvfactor);
+                
+            }
+            
+            if (rev_actual_units) free (rev_actual_units);
+            
+            if (rev_std_units) free (rev_std_units);
+            
+            cbf_debug_print2("actual units per standard unit = %g\n", *actual_per_std);
+            
+            return error;
+            
+        } else if (lau == lsu-2
+                   
+                   && !cbf_cistrcmp(actual_units,std_units+2)) {
+            
+            int error;
+            
+            error = CBF_SUCCESS;
+            
+            switch (rev_std_units[0]) {
+                case ('d') :
+                    if (rev_std_units[1]=='a') {
+                        *actual_per_std =  10.; break;
+                    } else {
+                        error = CBF_FORMAT;
+                    }
+                    break;
+                case ('K') :
+                    if (rev_std_units[1]=='i') {
+                        *actual_per_std =  1024.; break;
+                    } else {
+                        error = CBF_FORMAT;
+                    }
+                    break;
+                case ('M') :
+                    if (rev_std_units[1]=='i') {
+                        *actual_per_std =  1048576.; break;
+                    } else {
+                        error = CBF_FORMAT;
+                    }
+                    break;
+                case ('G') :
+                    if (rev_std_units[1]=='i') {
+                        *actual_per_std =  1073741824.; break;
+                    } else {
+                        error = CBF_FORMAT;
+                    }
+                    break;
+                case ('T') :
+                    if (rev_std_units[1]=='i') {
+                        *actual_per_std =  1048576.*1048576.; break;
+                    } else {
+                        error = CBF_FORMAT;
+                    }
+                    break;
+                case ('P') :
+                    if (rev_std_units[1]=='i') {
+                        *actual_per_std =  1048576.*1073741824.; break;
+                    } else {
+                        error = CBF_FORMAT;
+                    }
+                    break;
+                case ('E') :
+                    if (rev_std_units[1]=='i') {
+                        *actual_per_std =  1073741824.*1073741824.; break;
+                    } else {
+                        error = CBF_FORMAT;
+                    }
+                    break;
+                default:  error = CBF_FORMAT;
+                    
+            }
+            
+            if (!error) {
+                
+                *actual_per_std *= (inconvfactor/outconvfactor);
+                
+            }
+            
+            if (rev_actual_units) free (rev_actual_units);
+            
+            if (rev_std_units) free (rev_std_units);
+            
+            cbf_debug_print2("actual units per standard unit = %g\n", *actual_per_std);
+            
+            return error;
+            
+            
+       } else if (lau == lsu
+                   
+                   && lau > 1
+                   
+                   && !cbf_cistrcmp(rev_actual_units+1,rev_std_units+1)) {
+            
+            switch (actual_units[0]) {
+                    
+                case ('d') : *actual_per_std =  1.e-1; break;
+                case ('c') : *actual_per_std =  1.e-2; break;
+                case ('m') : *actual_per_std =  1.e-3; break;
+                case ('u') : *actual_per_std =  1.e-6; break;
+                case ('n') : *actual_per_std =  1.e-9; break;
+                case ('p') : *actual_per_std = 1.e-12; break;
+                case ('f') : *actual_per_std = 1.e-15; break;
+                case ('a') : *actual_per_std = 1.e-18; break;
+                case ('z') : *actual_per_std = 1.e-21; break;
+                case ('y') : *actual_per_std = 1.e-24; break;
+                case ('h') : *actual_per_std =   1.e2; break;
+                case ('K') : *actual_per_std =   1.e3; break;
+                case ('k') : *actual_per_std =   1.e3; break;
+                case ('M') : *actual_per_std =   1.e6; break;
+                case ('G') : *actual_per_std =   1.e9; break;
+                case ('T') : *actual_per_std =  1.e12; break;
+                case ('P') : *actual_per_std =  1.e15; break;
+                case ('E') : *actual_per_std =  1.e18; break;
+                case ('Z') : *actual_per_std =  1.e21; break;
+                case ('Y') : *actual_per_std =  1.e24; break;
+                default:  error = CBF_FORMAT;
+                    
+            }
+            
+            switch (std_units[0]) {
+                    
+                case ('d') : *actual_per_std *=   1.e1; break;
+                case ('c') : *actual_per_std *=   1.e2; break;
+                case ('m') : *actual_per_std *=   1.e3; break;
+                case ('u') : *actual_per_std *=   1.e6; break;
+                case ('n') : *actual_per_std *=   1.e9; break;
+                case ('p') : *actual_per_std *=  1.e12; break;
+                case ('f') : *actual_per_std *=  1.e15; break;
+                case ('a') : *actual_per_std *=  1.e18; break;
+                case ('z') : *actual_per_std *=  1.e21; break;
+                case ('y') : *actual_per_std *=  1.e24; break;
+                case ('h') : *actual_per_std *=  1.e-2; break;
+                case ('K') : *actual_per_std *=  1.e-3; break;
+                case ('k') : *actual_per_std *=  1.e-3; break;
+                case ('M') : *actual_per_std *=  1.e-6; break;
+                case ('G') : *actual_per_std *=  1.e-9; break;
+                case ('T') : *actual_per_std *= 1.e-12; break;
+                case ('P') : *actual_per_std *= 1.e-15; break;
+                case ('E') : *actual_per_std *= 1.e-18; break;
+                case ('Z') : *actual_per_std *= 1.e-21; break;
+                case ('Y') : *actual_per_std *= 1.e-24; break;
+                default:  error = CBF_FORMAT;
+            }
+            
+           if (!error) {
+               
+               *actual_per_std *= (inconvfactor/outconvfactor);
+               
+           }
+           
+           if (rev_actual_units) free (rev_actual_units);
+           
+           if (rev_std_units) free (rev_std_units);
+           
+           cbf_debug_print2("actual units per standard unit = %g\n", *actual_per_std);
+           
+           return error;
+           
+        }
+        
+        if (rev_actual_units) free (rev_actual_units);
+        
+        if (rev_std_units) free (rev_std_units);
+        
+        cbf_debug_print2("actual units per standard unit = %g\n", *actual_per_std);
+        return CBF_FORMAT;
+
+    }
+
+
+
 
 #ifdef __cplusplus
 
