@@ -11433,351 +11433,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		return error;
 	}
 
-	/* Functions to convert units for various kinds of data */
     
-	static int cbf_convert_length
-    (const char * const original_units,
-     const char * const target_units,
-     double * const factor)
-	{
-		int error = CBF_SUCCESS;
-        
-		if (!original_units || !target_units || !factor) {
-			error = CBF_ARGUMENT;
-		} else {
-			/*
-             find the factor needed to convert to an arbitrary
-             standard intermediate form, ie metres
-             */
-			if (!strcmp("Ym",original_units)) *factor = 1e+24;
-			else if (!strcmp("Zm",original_units)) *factor = 1e+21;
-			else if (!strcmp("Em",original_units)) *factor = 1e+18;
-			else if (!strcmp("Pm",original_units)) *factor = 1e+15;
-			else if (!strcmp("Tm",original_units)) *factor = 1e+12;
-			else if (!strcmp("Gm",original_units)) *factor = 1e+9;
-			else if (!strcmp("Mm",original_units)) *factor = 1e+6;
-			else if (!strcmp("km",original_units)) *factor = 1e+3;
-			else if (!strcmp("hm",original_units)) *factor = 1e+2;
-			else if (!strcmp("dam",original_units)) *factor = 1e+1;
-			else if (!strcmp("m",original_units)) *factor = 1.;
-			else if (!strcmp("dm",original_units)) *factor = 1e-1;
-			else if (!strcmp("cm",original_units)) *factor = 1e-2;
-			else if (!strcmp("mm",original_units)) *factor = 1e-3;
-			else if (!strcmp("um",original_units)) *factor = 1e-6;
-			else if (!strcmp("nm",original_units)) *factor = 1e-9;
-			else if (!strcmp("pm",original_units)) *factor = 1e-12;
-			else if (!strcmp("fm",original_units)) *factor = 1e-15;
-			else if (!strcmp("am",original_units)) *factor = 1e-18;
-			else if (!strcmp("zm",original_units)) *factor = 1e-21;
-			else if (!strcmp("ym",original_units)) *factor = 1e-24;
-			else if (!strcmp("A",original_units)) *factor = 1e-10;
-			else if (!strcmp("angstroms",original_units)) *factor = 1e-10;
-			else error = CBF_ARGUMENT;
-            
-			/* find the factor for conversion from the intermediate form to the target units */
-			if (!strcmp("Ym",target_units)) *factor *= 1e-24;
-			else if (!strcmp("Zm",target_units)) *factor *= 1e-21;
-			else if (!strcmp("Em",target_units)) *factor *= 1e-18;
-			else if (!strcmp("Pm",target_units)) *factor *= 1e-15;
-			else if (!strcmp("Tm",target_units)) *factor *= 1e-12;
-			else if (!strcmp("Gm",target_units)) *factor *= 1e-9;
-			else if (!strcmp("Mm",target_units)) *factor *= 1e-6;
-			else if (!strcmp("km",target_units)) *factor *= 1e-3;
-			else if (!strcmp("hm",target_units)) *factor *= 1e-2;
-			else if (!strcmp("dam",target_units)) *factor *= 1e-1;
-			else if (!strcmp("m",target_units)) *factor *= 1.;
-			else if (!strcmp("dm",target_units)) *factor *= 1e+1;
-			else if (!strcmp("cm",target_units)) *factor *= 1e+2;
-			else if (!strcmp("mm",target_units)) *factor *= 1e+3;
-			else if (!strcmp("um",target_units)) *factor *= 1e+6;
-			else if (!strcmp("nm",target_units)) *factor *= 1e+9;
-			else if (!strcmp("pm",target_units)) *factor *= 1e+12;
-			else if (!strcmp("fm",target_units)) *factor *= 1e+15;
-			else if (!strcmp("am",target_units)) *factor *= 1e+18;
-			else if (!strcmp("zm",target_units)) *factor *= 1e+21;
-			else if (!strcmp("ym",target_units)) *factor *= 1e+24;
-			else if (!strcmp("A",target_units)) *factor *= 1e+10;
-			else if (!strcmp("angstroms",target_units)) *factor *= 1e+10;
-			else error = CBF_ARGUMENT;
-		}
-
-		return error;
-		}
-
-	static int cbf_convert_time
-    (const char * const original_units,
-     const char * const target_units,
-     double * const factor)
-	{
-		int error = CBF_SUCCESS;
-        
-		/* check arguments */
-		if (!original_units || !target_units || !factor) {
-			error = CBF_ARGUMENT;
-		} else {
-			/*
-             find the factor needed to convert to an arbitrary
-             standard intermediate form, ie metres
-             */
-			if (!strcmp("Ys",original_units)) *factor = 1e+24;
-			else if (!strcmp("Zs",original_units)) *factor = 1e+21;
-			else if (!strcmp("Es",original_units)) *factor = 1e+18;
-			else if (!strcmp("Ps",original_units)) *factor = 1e+15;
-			else if (!strcmp("Ts",original_units)) *factor = 1e+12;
-			else if (!strcmp("Gs",original_units)) *factor = 1e+9;
-			else if (!strcmp("Ms",original_units)) *factor = 1e+6;
-			else if (!strcmp("ks",original_units)) *factor = 1e+3;
-			else if (!strcmp("hs",original_units)) *factor = 1e+2;
-			else if (!strcmp("das",original_units)) *factor = 1e+1;
-			else if (!strcmp("s",original_units)) *factor = 1.;
-			else if (!strcmp("ds",original_units)) *factor = 1e-1;
-			else if (!strcmp("cs",original_units)) *factor = 1e-2;
-			else if (!strcmp("ms",original_units)) *factor = 1e-3;
-			else if (!strcmp("us",original_units)) *factor = 1e-6;
-			else if (!strcmp("ns",original_units)) *factor = 1e-9;
-			else if (!strcmp("ps",original_units)) *factor = 1e-12;
-			else if (!strcmp("fs",original_units)) *factor = 1e-15;
-			else if (!strcmp("as",original_units)) *factor = 1e-18;
-			else if (!strcmp("zs",original_units)) *factor = 1e-21;
-			else if (!strcmp("ys",original_units)) *factor = 1e-24;
-			else error = CBF_ARGUMENT;
-            
-			/* find the factor for conversion from the intermediate form to the target units */
-			if (!strcmp("Ys",target_units)) *factor *= 1e-24;
-			else if (!strcmp("Zs",target_units)) *factor *= 1e-21;
-			else if (!strcmp("Es",target_units)) *factor *= 1e-18;
-			else if (!strcmp("Ps",target_units)) *factor *= 1e-15;
-			else if (!strcmp("Ts",target_units)) *factor *= 1e-12;
-			else if (!strcmp("Gs",target_units)) *factor *= 1e-9;
-			else if (!strcmp("Ms",target_units)) *factor *= 1e-6;
-			else if (!strcmp("ks",target_units)) *factor *= 1e-3;
-			else if (!strcmp("hs",target_units)) *factor *= 1e-2;
-			else if (!strcmp("das",target_units)) *factor *= 1e-1;
-			else if (!strcmp("s",target_units)) *factor *= 1.;
-			else if (!strcmp("ds",target_units)) *factor *= 1e+1;
-			else if (!strcmp("cs",target_units)) *factor *= 1e+2;
-			else if (!strcmp("ms",target_units)) *factor *= 1e+3;
-			else if (!strcmp("us",target_units)) *factor *= 1e+6;
-			else if (!strcmp("ns",target_units)) *factor *= 1e+9;
-			else if (!strcmp("ps",target_units)) *factor *= 1e+12;
-			else if (!strcmp("fs",target_units)) *factor *= 1e+15;
-			else if (!strcmp("as",target_units)) *factor *= 1e+18;
-			else if (!strcmp("zs",target_units)) *factor *= 1e+21;
-			else if (!strcmp("ys",target_units)) *factor *= 1e+24;
-			else error = CBF_ARGUMENT;
-		}
-
-		return error;
-		}
-
-	static int cbf_convert_energy
-    (const char * const original_units,
-     const char * const target_units,
-     double * const factor)
-	{
-		int error = CBF_SUCCESS;
-        
-		/* check arguments */
-		if (!original_units || !target_units || !factor) {
-			error = CBF_ARGUMENT;
-		} else {
-			/*
-             find the factor needed to convert to an arbitrary
-             standard intermediate form, ie metres
-             */
-			if (!strcmp("YeV",original_units)) *factor = 1e+24;
-			else if (!strcmp("ZeV",original_units)) *factor = 1e+21;
-			else if (!strcmp("EeV",original_units)) *factor = 1e+18;
-			else if (!strcmp("PeV",original_units)) *factor = 1e+15;
-			else if (!strcmp("TeV",original_units)) *factor = 1e+12;
-			else if (!strcmp("GeV",original_units)) *factor = 1e+9;
-			else if (!strcmp("MeV",original_units)) *factor = 1e+6;
-			else if (!strcmp("keV",original_units)) *factor = 1e+3;
-			else if (!strcmp("heV",original_units)) *factor = 1e+2;
-			else if (!strcmp("daeV",original_units)) *factor = 1e+1;
-			else if (!strcmp("eV",original_units)) *factor = 1.;
-			else if (!strcmp("deV",original_units)) *factor = 1e-1;
-			else if (!strcmp("ceV",original_units)) *factor = 1e-2;
-			else if (!strcmp("meV",original_units)) *factor = 1e-3;
-			else if (!strcmp("ueV",original_units)) *factor = 1e-6;
-			else if (!strcmp("neV",original_units)) *factor = 1e-9;
-			else if (!strcmp("peV",original_units)) *factor = 1e-12;
-			else if (!strcmp("feV",original_units)) *factor = 1e-15;
-			else if (!strcmp("aeV",original_units)) *factor = 1e-18;
-			else if (!strcmp("zeV",original_units)) *factor = 1e-21;
-			else if (!strcmp("yeV",original_units)) *factor = 1e-24;
-			else error = CBF_ARGUMENT;
-            
-			/* find the factor for conversion from the intermediate form to the target units */
-			if (!strcmp("YeV",target_units)) *factor *= 1e-24;
-			else if (!strcmp("ZeV",target_units)) *factor *= 1e-21;
-			else if (!strcmp("EeV",target_units)) *factor *= 1e-18;
-			else if (!strcmp("PeV",target_units)) *factor *= 1e-15;
-			else if (!strcmp("TeV",target_units)) *factor *= 1e-12;
-			else if (!strcmp("GeV",target_units)) *factor *= 1e-9;
-			else if (!strcmp("MeV",target_units)) *factor *= 1e-6;
-			else if (!strcmp("keV",target_units)) *factor *= 1e-3;
-			else if (!strcmp("heV",target_units)) *factor *= 1e-2;
-			else if (!strcmp("daeV",target_units)) *factor *= 1e-1;
-			else if (!strcmp("eV",target_units)) *factor *= 1.;
-			else if (!strcmp("deV",target_units)) *factor *= 1e+1;
-			else if (!strcmp("ceV",target_units)) *factor *= 1e+2;
-			else if (!strcmp("meV",target_units)) *factor *= 1e+3;
-			else if (!strcmp("ueV",target_units)) *factor *= 1e+6;
-			else if (!strcmp("neV",target_units)) *factor *= 1e+9;
-			else if (!strcmp("peV",target_units)) *factor *= 1e+12;
-			else if (!strcmp("feV",target_units)) *factor *= 1e+15;
-			else if (!strcmp("aeV",target_units)) *factor *= 1e+18;
-			else if (!strcmp("zeV",target_units)) *factor *= 1e+21;
-			else if (!strcmp("yeV",target_units)) *factor *= 1e+24;
-			else error = CBF_ARGUMENT;
-		}
-
-		return error;
-	}
-
-	static int cbf_convert_angle
-    (const char * const original_units,
-     const char * const target_units,
-     double * const factor)
-	{
-		int error = CBF_SUCCESS;
-
-		/* check arguments */
-		if (!original_units || !target_units || !factor) {
-			error = CBF_ARGUMENT;
-		} else {
-			/*
-             find the factor needed to convert to an arbitrary
-             standard intermediate form, ie metres
-             */
-			if (!strcmp("degrees",original_units)) *factor = 1.0;
-			else error = CBF_ARGUMENT;
-
-			/* find the factor for conversion from the intermediate form to the target units */
-			if (!strcmp("degrees",target_units)) *factor *= 1.0;
-			else error = CBF_ARGUMENT;
-		}
-        
-		return error;
-		}
-
-	static int cbf_convert_solidangle
-    (const char * const original_units,
-     const char * const target_units,
-     double * const factor)
-	{
-		int error = CBF_SUCCESS;
-
-		/* check arguments */
-		if (!original_units || !target_units || !factor) {
-			error = CBF_ARGUMENT;
-		} else {
-			/*
-             find the factor needed to convert to an arbitrary
-             standard intermediate form, ie metres
-             */
-			if (!strcmp("degrees^2",original_units)) *factor = 1.0;
-			else error = CBF_ARGUMENT;
-
-			/* find the factor for conversion from the intermediate form to the target units */
-			if (!strcmp("degrees^2",target_units)) *factor *= 1.0;
-			else error = CBF_ARGUMENT;
-		}
-
-		return error;
-		}
-
-	static int cbf_convert_current
-    (const char * const original_units,
-     const char * const target_units,
-     double * const factor)
-	{
-		int error = CBF_SUCCESS;
-        
-		/* check arguments */
-		if (!original_units || !target_units || !factor) {
-			error = CBF_ARGUMENT;
-		} else {
-			/*
-             find the factor needed to convert to an arbitrary
-             standard intermediate form, ie metres
-             */
-			if (!strcmp("kA",original_units)) *factor = 1e+3;
-			else if (!strcmp("A",original_units)) *factor = 1.;
-			else if (!strcmp("mA",original_units)) *factor = 1e-3;
-			else error = CBF_ARGUMENT;
-            
-			/* find the factor for conversion from the intermediate form to the target units */
-			if (!strcmp("kA",target_units)) *factor *= 1e-3;
-			else if (!strcmp("A",target_units)) *factor *= 1.;
-			else if (!strcmp("mA",target_units)) *factor *= 1e+3;
-			else error = CBF_ARGUMENT;
-		}
-        
-		return error;
-	}
-
-	static int cbf_convert_power
-    (const char * const original_units,
-     const char * const target_units,
-     double * const factor)
-	{
-		int error = CBF_SUCCESS;
-
-		/* check arguments */
-		if (!original_units || !target_units || !factor) {
-			error = CBF_ARGUMENT;
-		} else {
-			/*
-             find the factor needed to convert to an arbitrary
-             standard intermediate form, ie metres
-             */
-			if (!strcmp("kW",original_units)) *factor = 1e+3;
-			else if (!strcmp("W",original_units)) *factor = 1.;
-			else if (!strcmp("mW",original_units)) *factor = 1e-3;
-			else error = CBF_ARGUMENT;
-
-			/* find the factor for conversion from the intermediate form to the target units */
-			if (!strcmp("kW",target_units)) *factor *= 1e-3;
-			else if (!strcmp("W",target_units)) *factor *= 1.;
-			else if (!strcmp("mW",target_units)) *factor *= 1e+3;
-			else error = CBF_ARGUMENT;
-		}
-        
-		return error;
-		}
-    
-	static int cbf_convert_voltage
-    (const char * const original_units,
-     const char * const target_units,
-     double * const factor)
-	{
-		int error = CBF_SUCCESS;
-        
-		/* check arguments */
-		if (!original_units || !target_units || !factor) {
-			error = CBF_ARGUMENT;
-		} else {
-			/*
-             find the factor needed to convert to an arbitrary
-             standard intermediate form, ie metres
-             */
-			if (!strcmp("kV",original_units)) *factor = 1e+3;
-			else if (!strcmp("V",original_units)) *factor = 1.;
-			else if (!strcmp("mV",original_units)) *factor = 1e-3;
-			else error = CBF_ARGUMENT;
-            
-			/* find the factor for conversion from the intermediate form to the target units */
-			if (!strcmp("kV",target_units)) *factor *= 1e-3;
-			else if (!strcmp("V",target_units)) *factor *= 1.;
-			else if (!strcmp("mV",target_units)) *factor *= 1e+3;
-			else error = CBF_ARGUMENT;
-		}
-
-		return error;
-	}
-
 	typedef struct op_data_t
 	{
 		cbf_h5handle nx;
@@ -11881,7 +11537,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								const char * unit_string = NULL;
 								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-								CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+								CBF_CALL(cbf_scale_units(unit_string,"mm",&factor));
 								free((void*)unit_string);
 								cbf_H5Afree(units);
 							}
@@ -11930,7 +11586,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								const char * unit_string = NULL;
 								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-								CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+								CBF_CALL(cbf_scale_units(unit_string,"mm",&factor));
 								free((void*)unit_string);
 								cbf_H5Afree(units);
 							}
@@ -12012,7 +11668,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 										const char * unit_string = NULL;
 										CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 										CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-										CBF_CALL(cbf_convert_time(unit_string,"s",&factor));
+										CBF_CALL(cbf_scale_units(unit_string,"s",&factor));
 										free((void*)unit_string);
 										cbf_H5Afree(units);
 									}
@@ -12053,7 +11709,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									const char * unit_string = NULL;
 									CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 									CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-									CBF_CALL(cbf_convert_time(unit_string,"us",&factor));
+									CBF_CALL(cbf_scale_units(unit_string,"us",&factor));
 									free((void*)unit_string);
 									cbf_H5Afree(units);
 								}
@@ -12204,7 +11860,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 										const char * unit_string = NULL;
 										CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 										CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-										CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+										CBF_CALL(cbf_scale_units(unit_string,"mm",&factor));
 										free((void*)unit_string);
 										cbf_H5Afree(units);
 									}
@@ -12286,7 +11942,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 										const char * unit_string = NULL;
 										CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 										CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-										CBF_CALL(cbf_convert_time(unit_string,"s",&factor));
+										CBF_CALL(cbf_scale_units(unit_string,"s",&factor));
 										free((void*)unit_string);
 										cbf_H5Afree(units);
 									}
@@ -12475,7 +12131,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									const char * unit_string = NULL;
 									CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 									CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-									CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+									CBF_CALL(cbf_scale_units(unit_string,"mm",&factor));
 									free((void*)unit_string);
 									cbf_H5Afree(units);
 								}
@@ -12508,7 +12164,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									const char * unit_string = NULL;
 									CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 									CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-									CBF_CALL(cbf_convert_energy(unit_string,"eV",&factor));
+									CBF_CALL(cbf_scale_units(unit_string,"eV",&factor));
 									free((void*)unit_string);
 									cbf_H5Afree(units);
 								}
@@ -12791,7 +12447,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
 								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-								CBF_CALL(cbf_convert_current(unit_string,"mA",&factor));
+								CBF_CALL(cbf_scale_units(unit_string,"mA",&factor));
 								free((void*)unit_string);
 								cbf_H5Afree(units);
 								/* ensure I have suitable structure within the CBF file & write the data */
@@ -12842,7 +12498,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
 								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-								CBF_CALL(cbf_convert_power(unit_string,"kW",&factor));
+								CBF_CALL(cbf_scale_units(unit_string,"kW",&factor));
 								free((void*)unit_string);
 								cbf_H5Afree(units);
 								/* ensure I have suitable structure within the CBF file & write the data */
@@ -12937,7 +12593,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
 								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-								CBF_CALL(cbf_convert_voltage(unit_string,"kV",&factor));
+								CBF_CALL(cbf_scale_units(unit_string,"kV",&factor));
 								free((void*)unit_string);
 								cbf_H5Afree(units);
 								/* ensure I have suitable structure within the CBF file & write the data */
@@ -13414,7 +13070,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
 								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-								CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+								CBF_CALL(cbf_scale_units(unit_string,"mm",&factor));
 								free((void*)unit_string);
 								cbf_H5Afree(units);
 								/* store data for later conversion */
@@ -13442,7 +13098,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
 								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-								CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+								CBF_CALL(cbf_scale_units(unit_string,"mm",&factor));
 								free((void*)unit_string);
 								cbf_H5Afree(units);
 								/* store data for later conversion */
@@ -13492,7 +13148,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
 								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-								CBF_CALL(cbf_convert_angle(unit_string,"degrees",&factor));
+								CBF_CALL(cbf_scale_units(unit_string,"degrees",&factor));
 								free((void*)unit_string);
 								cbf_H5Afree(units);
 								/* ensure I have suitable structure within the CBF file & write the data */
@@ -13521,7 +13177,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
 								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-								CBF_CALL(cbf_convert_solidangle(unit_string,"degrees^2",&factor));
+								CBF_CALL(cbf_scale_units(unit_string,"degrees^2",&factor));
 								free((void*)unit_string);
 								cbf_H5Afree(units);
 								/* ensure I have suitable structure within the CBF file & write the data */
@@ -13550,7 +13206,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(cbf_H5Dread2(object,0,0,0,&value,H5T_NATIVE_DOUBLE));
 								CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 								CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-								CBF_CALL(cbf_convert_angle(unit_string,"degrees",&factor));
+								CBF_CALL(cbf_scale_units(unit_string,"degrees",&factor));
 								free((void*)unit_string);
 								cbf_H5Afree(units);
 								/* ensure I have suitable structure within the CBF file & write the data */
@@ -13634,7 +13290,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 										const char * unit_string = NULL;
 										CBF_CALL(cbf_H5Afind(object,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 										CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-										CBF_CALL(cbf_convert_length(unit_string,"angstroms",&factor));
+										CBF_CALL(cbf_scale_units(unit_string,"angstroms",&factor));
 										free((void*)unit_string);
 										cbf_H5Afree(units);
 									}
@@ -14467,7 +14123,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 										const char * unit_string = NULL;
 										CBF_CALL(cbf_H5Afind(pixel_data,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 										CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-										CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+                                        CBF_CALL(cbf_scale_units(unit_string,"mm",&factor));
 										free((void*)unit_string);
 										cbf_H5Afree(units);
 									}
@@ -14508,7 +14164,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									const char * unit_string = NULL;
 									CBF_CALL(cbf_H5Afind(pixel_data,&units,"units",CBF_H5FAIL,CBF_H5FAIL));
 									CBF_CALL(cbf_H5Aread_string(units,&unit_string));
-									CBF_CALL(cbf_convert_length(unit_string,"mm",&factor));
+                                    CBF_CALL(cbf_scale_units(unit_string,"mm",&factor));
 									free((void*)unit_string);
 									cbf_H5Afree(units);
 								}
@@ -15069,7 +14725,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									if (!error) {
 										/* need a conversion factor to apply to the offset before storing it */
 										double factor = 0./0.;
-										if (CBF_SUCCESS!=(error|=cbf_convert_length(unit_string,"mm",&factor))) {
+                                        if (CBF_SUCCESS!=(error|=cbf_scale_units(unit_string,"mm",&factor))) {
 											cbf_debug_print(cbf_strerror(error));
 										} else {
 											int i;
