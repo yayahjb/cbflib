@@ -287,7 +287,7 @@ int main (int argc, char *argv [])
 	/* Attempt to read the arguments */
 	if (CBF_SUCCESS != (error |= cbf_make_getopt_handle(&opts))) {
 		fprintf(stderr,"Could not create a 'cbf_getopt' handle.\n");
-	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):(experiment_id):(sample_id):(datablock):(scan):\1(list)\2(no-list)" ))) {
+	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):\x03(experiment_id):\x04(sample_id):\x05(datablock):\x06(scan):\x01(list)\x02(no-list)" ))) {
 		fprintf(stderr,"Could not parse arguments.\n");
 	} else {
     	int errflg = 0;
@@ -339,14 +339,34 @@ int main (int argc, char *argv [])
 					}
 					break;
 				}
-                case '\1': {
+                case '\x01': {
                     if (list) errflg++;
 								list = 1;
                     break;
 							}
-                case '\2': {
+                case '\x02': {
                     if (list) errflg++;
                     list = -1;
+                    break;
+                }
+                case '\x03': {
+                    if (scan_id) errflg++;
+                    scan_id = optarg;
+                    break;
+                }
+                case '\x04': {
+                    if (sample_id) errflg++;
+                    sample_id = optarg;
+                    break;
+                }
+                case '\x05': {
+                   if (datablock) errflg++;
+                    datablock = optarg;
+                    break;
+                }
+                case '\x06': {
+                   if (scan) errflg++;
+                    scan = optarg;
                     break;
                 }
                 case 0: {
