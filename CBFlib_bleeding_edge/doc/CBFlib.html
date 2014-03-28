@@ -782,7 +782,7 @@ http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz</a>
       <LI><A HREF="#2.5.13">2.5.13 FCB_SKIP_WHITESPACE</a>
     </UL>
         <li>
-  			<a href="#2.6">2.6 HDF5 abstraction layer and convenience functions (new for version 0.9.3)</a>
+          <a href="#2.6">2.6 HDF5 abstraction layer and convenience functions</a>
 			<ul>
             <li>
               <a href="#2.6.1">2.6.1 cbf_H5Acreate</a>
@@ -869,21 +869,24 @@ http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz</a>
               <a href="#2.6.28">2.6.28 cbf_H5Ocmp</a>
             </li>
             <li>
-              <a href="#2.6.29">2.6.29 cbf_H5Screate</a>
+              <a href="#2.6.29">2.6.29 cbf_H5Ofree</a>
             </li>
             <li>
-              <a href="#2.6.30">2.6.30 cbf_H5Sfree</a>
+              <a href="#2.6.30">2.6.30 cbf_H5Screate</a>
             </li>
             <li>
-              <a href="#2.6.31">2.6.31 cbf_H5Tcreate_string</a>
+              <a href="#2.6.31">2.6.31 cbf_H5Sfree</a>
             </li>
             <li>
-              <a href="#2.6.32">2.6.32 cbf_H5Tfree</a>
+              <a href="#2.6.32">2.6.32 cbf_H5Tcreate_string</a>
+            </li>
+            <li>
+              <a href="#2.6.33">2.6.33 cbf_H5Tfree</a>
             </li>
 			</ul>
   		</li>
         <li>
-  			<a href="#2.7">2.7 High-level NeXus-related functions (new for version 0.9.3)</a>
+          <a href="#2.7">2.7 High-level NeXus-related functions</a>
 			<ul>
             <li>
               <a href="#2.7.1">2.7.1 cbf_h5handle_get_file</a>
@@ -901,97 +904,106 @@ http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz</a>
               <a href="#2.7.5">2.7.5 cbf_h5handle_require_entry</a>
             </li>
             <li>
-              <a href="#2.7.6">2.7.6 cbf_h5handle_get_sample</a>
+              <a href="#2.7.6">2.7.6 cbf_h5handle_require_entry_definition</a>
             </li>
             <li>
-              <a href="#2.7.7">2.7.7 cbf_h5handle_set_sample</a>
+              <a href="#2.7.7">2.7.7 cbf_h5handle_get_sample</a>
             </li>
             <li>
-              <a href="#2.7.8">2.7.8 cbf_h5handle_require_sample</a>
+              <a href="#2.7.8">2.7.8 cbf_h5handle_set_sample</a>
             </li>
             <li>
-              <a href="#2.7.9">2.7.9 cbf_h5handle_get_beam</a>
+              <a href="#2.7.9">2.7.9 cbf_h5handle_require_sample</a>
             </li>
             <li>
-              <a href="#2.7.10">2.7.10 cbf_h5handle_set_beam</a>
+              <a href="#2.7.10">2.7.10 cbf_h5handle_get_beam</a>
             </li>
             <li>
-              <a href="#2.7.11">2.7.11 cbf_h5handle_require_beam</a>
+              <a href="#2.7.11">2.7.11 cbf_h5handle_set_beam</a>
             </li>
             <li>
-              <a href="#2.7.12">2.7.12 cbf_h5handle_get_instrument</a>
+              <a href="#2.7.12">2.7.12 cbf_h5handle_require_beam</a>
             </li>
             <li>
-              <a href="#2.7.13">2.7.13 cbf_h5handle_set_instrument</a>
+              <a href="#2.7.13">2.7.13 cbf_h5handle_get_instrument</a>
             </li>
             <li>
-              <a href="#2.7.14">2.7.14 cbf_h5handle_require_instrument</a>
+              <a href="#2.7.14">2.7.14 cbf_h5handle_set_instrument</a>
             </li>
             <li>
-              <a href="#2.7.15">2.7.15 cbf_h5handle_get_detector</a>
+              <a href="#2.7.15">2.7.15 cbf_h5handle_find_instrument</a>
             </li>
             <li>
-              <a href="#2.7.16">2.7.16 cbf_h5handle_set_detector</a>
+              <a href="#2.7.16">2.7.16 cbf_h5handle_require_instrument</a>
             </li>
             <li>
-              <a href="#2.7.17">2.7.17 cbf_h5handle_require_detector</a>
+              <a href="#2.7.17">2.7.17 cbf_h5handle_get_detector</a>
             </li>
             <li>
-              <a href="#2.7.18">2.7.18 cbf_h5handle_get_goniometer</a>
+              <a href="#2.7.18">2.7.18 cbf_h5handle_set_detector</a>
             </li>
             <li>
-              <a href="#2.7.19">2.7.19 cbf_h5handle_set_goniometer</a>
+              <a href="#2.7.19">2.7.19 cbf_h5handle_find_detector</a>
             </li>
             <li>
-              <a href="#2.7.20">2.7.20 cbf_h5handle_require_goniometer</a>
+              <a href="#2.7.20">2.7.20 cbf_h5handle_require_detector</a>
             </li>
             <li>
-              <a href="#2.7.21">2.7.21 cbf_h5handle_get_monochromator</a>
+              <a href="#2.7.21">2.7.21 cbf_h5handle_get_goniometer</a>
             </li>
             <li>
-              <a href="#2.7.22">2.7.22 cbf_h5handle_set_monochromator</a>
+              <a href="#2.7.22">2.7.22 cbf_h5handle_set_goniometer</a>
             </li>
             <li>
-              <a href="#2.7.23">2.7.23 cbf_h5handle_require_monochromator</a>
+              <a href="#2.7.23">2.7.23 cbf_h5handle_require_goniometer</a>
             </li>
             <li>
-              <a href="#2.7.24">2.7.24 cbf_h5handle_get_source</a>
+              <a href="#2.7.24">2.7.24 cbf_h5handle_get_monochromator</a>
             </li>
             <li>
-              <a href="#2.7.25">2.7.25 cbf_h5handle_set_source</a>
+              <a href="#2.7.25">2.7.25 cbf_h5handle_set_monochromator</a>
             </li>
             <li>
-              <a href="#2.7.26">2.7.26 cbf_h5handle_require_source</a>
+              <a href="#2.7.26">2.7.26 cbf_h5handle_require_monochromator</a>
             </li>
             <li>
-              <a href="#2.7.27">2.7.27 cbf_free_h5handle</a>
+              <a href="#2.7.27">2.7.27 cbf_h5handle_get_source</a>
             </li>
             <li>
-              <a href="#2.7.28">2.7.28 cbf_create_h5handle3</a>
+              <a href="#2.7.28">2.7.28 cbf_h5handle_set_source</a>
             </li>
             <li>
-              <a href="#2.7.29">2.7.29 cbf_write_cbf_h5file</a>
+              <a href="#2.7.29">2.7.29 cbf_h5handle_require_source</a>
             </li>
             <li>
-              <a href="#2.7.30">2.7.30 cbf_write_cbf2nx</a>
+              <a href="#2.7.30">2.7.30 cbf_free_h5handle</a>
             </li>
             <li>
-              <a href="#2.7.31">2.7.31 cbf_write_minicbf_h5file</a>
+              <a href="#2.7.31">2.7.31 cbf_create_h5handle3</a>
             </li>
             <li>
-              <a href="#2.7.32">2.7.32 cbf_write_nx2cbf</a>
+              <a href="#2.7.32">2.7.32 cbf_write_cbf_h5file</a>
             </li>
             <li>
-              <a href="#2.7.33">2.7.33 cbf_config_create</a>
+              <a href="#2.7.33">2.7.33 cbf_write_cbf2nx</a>
             </li>
             <li>
-              <a href="#2.7.34">2.7.34 cbf_config_parse</a>
+              <a href="#2.7.34">2.7.34 cbf_write_minicbf_h5file</a>
             </li>
             <li>
-              <a href="#2.7.35">2.7.35 cbf_config_free</a>
+              <a href="#2.7.35">2.7.35 cbf_write_nx2cbf</a>
             </li>
             <li>
-              <a href="#2.7.36">2.7.36 cbf_config_strerror</a>
+              <a href="#2.7.36">2.7.36 cbf_config_create</a>
+            </li>
+            <li>
+              <a href="#2.7.37">2.7.37 cbf_config_parse</a>
+            </li>
+            <li>
+              <a href="#2.7.38">2.7.38 cbf_config_free</a>
+            </li>
+            <li>
+              <a href="#2.7.39">2.7.39 cbf_config_strerror</a>
             </li>
 			</ul>
   		</li>
@@ -7461,10 +7473,8 @@ Returns 0 if the function is successful.
 <A HREF="#2.5.6">2.5.6  FCB_OPEN_CIFIN</a><br />
 <A HREF="#2.5.7">2.5.7  FCB_DECOMPRESS: FCB_DECOMPRESS_PACKED_I2, FCB_DECOMPRESS_PACKED_I4, FCB_DECOMPRESS_PACKED_3D_I2, FCB_DECOMPRESS_PACKED_3D_I4</a><br />
 <A HREF="#2.5.9">2.5.9  FCB_READ_BYTE</a>
-
-
-<p><hr /><P>
-  
+</p>
+    <hr/>
     <div id="2.6">
       <h2>2.6 HDF5 abstraction layer and convenience functions</h2>
       <div>
@@ -7472,16 +7482,15 @@ Returns 0 if the function is successful.
 	<code>X</code> is usually a single letter identifying the section of the API that the function resides in. A
 	<code>cbf_</code> prefix is used on all functions to avoid naming conflicts and make it clear that all these
 	functions use the CBFlib error handling method whenever an error may occur.</p>
-	
 	<p>The main purpose of this API is to not to reimplement the HDF5 API, but to make common HDF5-related tasks
 	easier when working with HDF5 files within CBFlib. The API therefore doesn't attempt to cover every possible use
 	of HDF5, but to simplify common tasks. Use of the HDF5 API is not unexpected in library or user code, but
 	functions in this section should be preferred in order to reduce development time and the amount of debugging
 	required. A relatively comprehensive test program is provided, this should be used to verify that the functions in
 	this section of the API are performing as expected and can be used as a source of example code.</p>
-	
+      </div>
 	<p>This section describes functions available for working with:</p>
-      <ul class="mini-ToC">
+      <ul>
         <li>
           <strong>Attributes:</strong>
 			<ul>
@@ -7515,7 +7524,7 @@ Returns 0 if the function is successful.
 			</ul>
 		</li>
         <li>
-          <strong>Datasets</strong>
+          <strong>Datasets:</strong>
 			<ul>
             <li>
               <a href="#2.6.10">2.6.10 cbf_H5Dcreate</a>
@@ -7594,16 +7603,19 @@ Returns 0 if the function is successful.
             <li>
               <a href="#2.6.28">2.6.28 cbf_H5Ocmp</a>
             </li>
+            <li>
+              <a href="#2.6.29">2.6.29 cbf_H5Ofree</a>
+            </li>
 			</ul>
 		</li>
         <li>
           <strong>Dataspaces:</strong>
 			<ul>
             <li>
-              <a href="#2.6.29">2.6.29 cbf_H5Screate</a>
+              <a href="#2.6.30">2.6.30 cbf_H5Screate</a>
             </li>
             <li>
-              <a href="#2.6.30">2.6.30 cbf_H5Sfree</a>
+              <a href="#2.6.31">2.6.31 cbf_H5Sfree</a>
             </li>
 			</ul>
 		</li>
@@ -7611,10 +7623,10 @@ Returns 0 if the function is successful.
           <strong>Datatypes:</strong>
           <ul>
             <li>
-              <a href="#2.6.31">2.6.31 cbf_H5Tcreate_string</a>
+              <a href="#2.6.32">2.6.32 cbf_H5Tcreate_string</a>
             </li>
             <li>
-              <a href="#2.6.32">2.6.32 cbf_H5Tfree</a>
+              <a href="#2.6.33">2.6.33 cbf_H5Tfree</a>
             </li>
 	</ul>
         </li>
@@ -7762,7 +7774,6 @@ Returns 0 if the function is successful.
       </div>
       <div>
 	<h4>Comparing data</h4>
-	
 	<p>Some of the functions in this section will require a comparison function and some comparison parameters to be
 	provided. The function should return zero if the data in the two arrays are considered equal and non-zero otherwise, note that
 	this is the same as <code>C</code>'s <code>strcmp()</code>. The signature of the comparison functions used here
@@ -8746,7 +8757,7 @@ if (CBF_SUCCESS==found) {
     In this case, store it for later use and print a message.
 	*/
     error |= found;
-    fprintf(stderr,"There was an error - %s.\n",cbf_strerror(error));
+     cbf_debug_print(cbf_strerror(error));
 }
 /* clean up: */
 cbf_H5Dfree(dataset);</pre>
@@ -9350,7 +9361,6 @@ if (CBF_NOTFOUND==error) {
           <strong>DESCRIPTION</strong>
         </p>
         <p>Convenience function using the HDF5 abstraction layer to avoid the need to consider array-related parameters for a scalar dataset.It ensures that a scalar 64-bit IEEE floating point dataset exists with the appropriate name and (for an existing dataset) the correct value as determined by the comparison function <code>cmp</code>.</p>
-        <p>This function is implemented as a single call to <code>cbf_H5Drequire_scalar_F64LE2_ULP</code>.</p>
         <p>
           <strong>ARGUMENTS</strong>
         </p>
@@ -10077,7 +10087,50 @@ if (CBF_NOTFOUND==error) {
       </div>
       <hr/>
       <div class="function" id="2.6.29">
-        <h4>2.6.29 cbf_H5Screate</h4>
+        <h4>2.6.29 cbf_H5Ofree</h4>
+        <p>Close a HDF5 object identifier. </p>
+        <p>
+          <strong>PROTOTYPE</strong>
+        </p>
+        <p>
+          <code>#include "cbf_hdf5.h"</code>
+          <br/>
+          <code>int cbf_H5Ofree (const hid_t ID)</code>
+        </p>
+        <p>
+          <strong>DESCRIPTION</strong>
+        </p>
+        <p>Attempt to close an object identifier of unknown type, but don't modify the identifier that described it.</p>
+        <p>
+          <strong>ARGUMENTS</strong>
+        </p>
+        <table class="params">
+          <tr>
+            <td class="name">ID</td>
+            <td class="desc">
+              <p>The HDF5 object to be closed. </p>
+            </td>
+          </tr>
+        </table>
+        <p>
+          <strong>RETURN VALUE</strong>
+        </p>
+        <p>An error code. </p>
+        <p>
+          <strong>SEE ALSO</strong>
+        </p>
+        <ul class="see-also">
+          <li>
+            <a href="#2.6.28">2.6.28 cbf_H5Ocmp</a>
+          </li>
+          <li>
+            <a href="#2.6.27">2.6.27 cbf_H5Ivalid</a>
+          </li>
+        </ul>
+      </div>
+      <hr/>
+      <div class="function" id="2.6.30">
+        <h4>2.6.30 cbf_H5Screate</h4>
         <p>Create a dataspace with some given values. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -10130,13 +10183,13 @@ if (CBF_NOTFOUND==error) {
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.6.30">2.6.30 cbf_H5Sfree</a>
+            <a href="#2.6.31">2.6.31 cbf_H5Sfree</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.6.30">
-        <h4>2.6.30 cbf_H5Sfree</h4>
+      <div class="function" id="2.6.31">
+        <h4>2.6.31 cbf_H5Sfree</h4>
         <p>Close a HDF5 dataspace identifier. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -10170,14 +10223,14 @@ if (CBF_NOTFOUND==error) {
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.6.29">2.6.29 cbf_H5Screate</a>
+            <a href="#2.6.30">2.6.30 cbf_H5Screate</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.6.31">
-        <h4>2.6.31 cbf_H5Tcreate_string</h4>
-	<p>Get a HDF5 string datatype with a specified length.</p>
+      <div class="function" id="2.6.32">
+        <h4>2.6.32 cbf_H5Tcreate_string</h4>
+        <p>Get a HDF5 string datatype to describe a sting of the specified length. </p>
         <p>
           <strong>PROTOTYPE</strong>
         </p>
@@ -10216,13 +10269,13 @@ if (CBF_NOTFOUND==error) {
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.6.32">2.6.32 cbf_H5Tfree</a>
+            <a href="#2.6.33">2.6.33 cbf_H5Tfree</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.6.32">
-        <h4>2.6.32 cbf_H5Tfree</h4>
+      <div class="function" id="2.6.33">
+        <h4>2.6.33 cbf_H5Tfree</h4>
         <p>Close a HDF5 datatype identifier. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -10256,7 +10309,7 @@ if (CBF_NOTFOUND==error) {
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.6.31">2.6.31 cbf_H5Tcreate_string</a>
+            <a href="#2.6.32">2.6.32 cbf_H5Tcreate_string</a>
           </li>
 	</ul>
       </div>
@@ -10269,8 +10322,8 @@ if (CBF_NOTFOUND==error) {
 	Wherever possible these functions should be used instead of directly accessing a <code>cbf_h5handle</code> or <code>cbf_config_t</code> in order make code easier
 	to read, to maintain the integrity of the data structures and to ensure all resources allocated to these object are correctly cleaned up.</p>
       </div>
-	<p>This section describes functions for working with:</p>
-      <ul class="mini-ToC">
+      <p>This section describes functions available for working with:</p>
+      <ul>
         <li>
           <strong>CBF's HDF5 handles:</strong>
 			<ul>
@@ -10290,85 +10343,94 @@ if (CBF_NOTFOUND==error) {
               <a href="#2.7.5">2.7.5 cbf_h5handle_require_entry</a>
             </li>
             <li>
-              <a href="#2.7.6">2.7.6 cbf_h5handle_get_sample</a>
+              <a href="#2.7.6">2.7.6 cbf_h5handle_require_entry_definition</a>
             </li>
             <li>
-              <a href="#2.7.7">2.7.7 cbf_h5handle_set_sample</a>
+              <a href="#2.7.7">2.7.7 cbf_h5handle_get_sample</a>
             </li>
             <li>
-              <a href="#2.7.8">2.7.8 cbf_h5handle_require_sample</a>
+              <a href="#2.7.8">2.7.8 cbf_h5handle_set_sample</a>
             </li>
             <li>
-              <a href="#2.7.9">2.7.9 cbf_h5handle_get_beam</a>
+              <a href="#2.7.9">2.7.9 cbf_h5handle_require_sample</a>
             </li>
             <li>
-              <a href="#2.7.10">2.7.10 cbf_h5handle_set_beam</a>
+              <a href="#2.7.10">2.7.10 cbf_h5handle_get_beam</a>
             </li>
             <li>
-              <a href="#2.7.11">2.7.11 cbf_h5handle_require_beam</a>
+              <a href="#2.7.11">2.7.11 cbf_h5handle_set_beam</a>
             </li>
             <li>
-              <a href="#2.7.12">2.7.12 cbf_h5handle_get_instrument</a>
+              <a href="#2.7.12">2.7.12 cbf_h5handle_require_beam</a>
             </li>
             <li>
-              <a href="#2.7.13">2.7.13 cbf_h5handle_set_instrument</a>
+              <a href="#2.7.13">2.7.13 cbf_h5handle_get_instrument</a>
             </li>
             <li>
-              <a href="#2.7.14">2.7.14 cbf_h5handle_require_instrument</a>
+              <a href="#2.7.14">2.7.14 cbf_h5handle_set_instrument</a>
             </li>
             <li>
-              <a href="#2.7.15">2.7.15 cbf_h5handle_get_detector</a>
+              <a href="#2.7.15">2.7.15 cbf_h5handle_find_instrument</a>
             </li>
             <li>
-              <a href="#2.7.16">2.7.16 cbf_h5handle_set_detector</a>
+              <a href="#2.7.16">2.7.16 cbf_h5handle_require_instrument</a>
             </li>
             <li>
-              <a href="#2.7.17">2.7.17 cbf_h5handle_require_detector</a>
+              <a href="#2.7.17">2.7.17 cbf_h5handle_get_detector</a>
             </li>
             <li>
-              <a href="#2.7.18">2.7.18 cbf_h5handle_get_goniometer</a>
+              <a href="#2.7.18">2.7.18 cbf_h5handle_set_detector</a>
             </li>
             <li>
-              <a href="#2.7.19">2.7.19 cbf_h5handle_set_goniometer</a>
+              <a href="#2.7.19">2.7.19 cbf_h5handle_find_detector</a>
             </li>
             <li>
-              <a href="#2.7.20">2.7.20 cbf_h5handle_require_goniometer</a>
+              <a href="#2.7.20">2.7.20 cbf_h5handle_require_detector</a>
             </li>
             <li>
-              <a href="#2.7.21">2.7.21 cbf_h5handle_get_monochromator</a>
+              <a href="#2.7.21">2.7.21 cbf_h5handle_get_goniometer</a>
             </li>
             <li>
-              <a href="#2.7.22">2.7.22 cbf_h5handle_set_monochromator</a>
+              <a href="#2.7.22">2.7.22 cbf_h5handle_set_goniometer</a>
             </li>
             <li>
-              <a href="#2.7.23">2.7.23 cbf_h5handle_require_monochromator</a>
+              <a href="#2.7.23">2.7.23 cbf_h5handle_require_goniometer</a>
             </li>
             <li>
-              <a href="#2.7.24">2.7.24 cbf_h5handle_get_source</a>
+              <a href="#2.7.24">2.7.24 cbf_h5handle_get_monochromator</a>
             </li>
             <li>
-              <a href="#2.7.25">2.7.25 cbf_h5handle_set_source</a>
+              <a href="#2.7.25">2.7.25 cbf_h5handle_set_monochromator</a>
             </li>
             <li>
-              <a href="#2.7.26">2.7.26 cbf_h5handle_require_source</a>
+              <a href="#2.7.26">2.7.26 cbf_h5handle_require_monochromator</a>
             </li>
             <li>
-              <a href="#2.7.27">2.7.27 cbf_free_h5handle</a>
+              <a href="#2.7.27">2.7.27 cbf_h5handle_get_source</a>
             </li>
             <li>
-              <a href="#2.7.28">2.7.28 cbf_create_h5handle3</a>
+              <a href="#2.7.28">2.7.28 cbf_h5handle_set_source</a>
             </li>
             <li>
-              <a href="#2.7.29">2.7.29 cbf_write_cbf_h5file</a>
+              <a href="#2.7.29">2.7.29 cbf_h5handle_require_source</a>
             </li>
             <li>
-              <a href="#2.7.30">2.7.30 cbf_write_cbf2nx</a>
+              <a href="#2.7.30">2.7.30 cbf_free_h5handle</a>
             </li>
             <li>
-              <a href="#2.7.31">2.7.31 cbf_write_minicbf_h5file</a>
+              <a href="#2.7.31">2.7.31 cbf_create_h5handle3</a>
             </li>
             <li>
-              <a href="#2.7.32">2.7.32 cbf_write_nx2cbf</a>
+              <a href="#2.7.32">2.7.32 cbf_write_cbf_h5file</a>
+            </li>
+            <li>
+              <a href="#2.7.33">2.7.33 cbf_write_cbf2nx</a>
+            </li>
+            <li>
+              <a href="#2.7.34">2.7.34 cbf_write_minicbf_h5file</a>
+            </li>
+            <li>
+              <a href="#2.7.35">2.7.35 cbf_write_nx2cbf</a>
             </li>
 			</ul>
 		</li>
@@ -10376,16 +10438,16 @@ if (CBF_NOTFOUND==error) {
           <strong>miniCBF configuration settings:</strong>
 			<ul>
             <li>
-              <a href="#2.7.33">2.7.33 cbf_config_create</a>
+              <a href="#2.7.36">2.7.36 cbf_config_create</a>
             </li>
             <li>
-              <a href="#2.7.34">2.7.34 cbf_config_parse</a>
+              <a href="#2.7.37">2.7.37 cbf_config_parse</a>
             </li>
             <li>
-              <a href="#2.7.35">2.7.35 cbf_config_free</a>
+              <a href="#2.7.38">2.7.38 cbf_config_free</a>
             </li>
             <li>
-              <a href="#2.7.36">2.7.36 cbf_config_strerror</a>
+              <a href="#2.7.39">2.7.39 cbf_config_strerror</a>
             </li>
 			</ul>
 		</li>
@@ -10527,7 +10589,8 @@ cbf_config_free(configSettings);</pre>
         <p>
           <strong>DESCRIPTION</strong>
         </p>
-        <p>Check the handle for the presence of an entry group and its name, optionally returning any combination of them. </p>
+        <p>Check the handle for the presence of an entry group and its name, optionally returning any combination of them. The error code 'CBF_NOTFOUND' will be returned if any of the requested items of data cannot be found.</p>
+        <p>The handle retains ownership of the returned object and/or string, neither of them should be free'd by the caller.</p>
         <p>
           <strong>ARGUMENTS</strong>
         </p>
@@ -10679,7 +10742,83 @@ cbf_config_free(configSettings);</pre>
       </div>
 	<hr />
       <div class="function" id="2.7.6">
-        <h4>2.7.6 cbf_h5handle_get_sample</h4>
+        <h4>2.7.6 cbf_h5handle_require_entry_definition</h4>
+        <p>Ensure I have an entry in the hdf5 handle with definition. </p>
+        <p>
+          <strong>PROTOTYPE</strong>
+        </p>
+        <p>
+          <code>#include "cbf_hdf5.h"</code>
+          <br/>
+          <code>int cbf_h5handle_require_entry_definition (const cbf_h5handle nx, hid_t *const group, const char *name, const char *definition, const char *version, const char *URL)</code>
+        </p>
+        <p>
+          <strong>DESCRIPTION</strong>
+        </p>
+        <p>This will check if the entry group and definition within the handle matches any existing group of the same name within the current file and has a definition designation that agrees. If the group name doesn't match a new group is opened or created and added to the handle. If the <code>definition</code> does not match, it is replaced with the new one. If the <code>version</code> attribute does not match it is replaced with the new one. If the <code>URL&gt;</code> attribute does not match it is replace with the new one. The <code>NX_class</code> attributes are not checked, but if a new entry is created it will be created with <code>NX_class</code> NXentry.</p>
+        <p>
+          <strong>ARGUMENTS</strong>
+        </p>
+        <table class="params">
+          <tr>
+            <td class="name">nx</td>
+            <td class="desc">
+              <p>The HDF5 handle to use. </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="name">group</td>
+            <td class="desc">
+              <p>An optional pointer to a place where the group ID should be stored. </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="name">name</td>
+            <td class="desc">
+              <p>The group name, or null to use the default name of <code>"entry"</code>. </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="name">definition</td>
+            <td class="desc">
+              <p>The definition name, or null to not specify a definition name. </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="name">version</td>
+            <td class="desc">
+              <p>The version string, or null to not specify a version string. </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="name">URL</td>
+            <td class="desc">
+              <p>The URL at which the definition is stored, or null to not specify a URL </p>
+            </td>
+          </tr>
+        </table>
+        <p>
+          <strong>RETURN VALUE</strong>
+        </p>
+        <p>An error code. </p>
+        <p>
+          <strong>SEE ALSO</strong>
+        </p>
+        <ul class="see-also">
+          <li>
+            <a href="#2.7.3">2.7.3 cbf_h5handle_get_entry</a>
+          </li>
+          <li>
+            <a href="#2.7.4">2.7.4 cbf_h5handle_set_entry</a>
+          </li>
+          <li>
+            <a href="#2.7.5">2.7.5 cbf_h5handle_require_entry</a>
+          </li>
+        </ul>
+      </div>
+      <hr/>
+      <div class="function" id="2.7.7">
+        <h4>2.7.7 cbf_h5handle_get_sample</h4>
         <p>Get the current id and name of the sample group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -10725,16 +10864,16 @@ cbf_config_free(configSettings);</pre>
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.7.7">2.7.7 cbf_h5handle_set_sample</a>
+            <a href="#2.7.8">2.7.8 cbf_h5handle_set_sample</a>
           </li>
           <li>
-            <a href="#2.7.8">2.7.8 cbf_h5handle_require_sample</a>
+            <a href="#2.7.9">2.7.9 cbf_h5handle_require_sample</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.7.7">
-        <h4>2.7.7 cbf_h5handle_set_sample</h4>
+      <div class="function" id="2.7.8">
+        <h4>2.7.8 cbf_h5handle_set_sample</h4>
         <p>Set the id and name of the sample group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -10780,16 +10919,16 @@ cbf_config_free(configSettings);</pre>
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.7.6">2.7.6 cbf_h5handle_get_sample</a>
+            <a href="#2.7.7">2.7.7 cbf_h5handle_get_sample</a>
           </li>
           <li>
-            <a href="#2.7.8">2.7.8 cbf_h5handle_require_sample</a>
+            <a href="#2.7.9">2.7.9 cbf_h5handle_require_sample</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.7.8">
-        <h4>2.7.8 cbf_h5handle_require_sample</h4>
+      <div class="function" id="2.7.9">
+        <h4>2.7.9 cbf_h5handle_require_sample</h4>
         <p>Ensure I have a sample in the hdf5 handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -10835,16 +10974,16 @@ cbf_config_free(configSettings);</pre>
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.7.6">2.7.6 cbf_h5handle_get_sample</a>
+            <a href="#2.7.7">2.7.7 cbf_h5handle_get_sample</a>
           </li>
           <li>
-            <a href="#2.7.7">2.7.7 cbf_h5handle_set_sample</a>
+            <a href="#2.7.8">2.7.8 cbf_h5handle_set_sample</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.7.9">
-        <h4>2.7.9 cbf_h5handle_get_beam</h4>
+      <div class="function" id="2.7.10">
+        <h4>2.7.10 cbf_h5handle_get_beam</h4>
         <p>Get the current id and name of the beam group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -10857,7 +10996,8 @@ cbf_config_free(configSettings);</pre>
         <p>
           <strong>DESCRIPTION</strong>
         </p>
-        <p>Check the handle for the presence of a beam group and its name, optionally returning any combination of them. </p>
+        <p>Check the handle for the presence of a beam group and its name, optionally returning any combination of them. The error code 'CBF_NOTFOUND' will be returned if any of the requested items of data cannot be found.</p>
+        <p>The handle retains ownership of the returned object and/or string, neither of them should be free'd by the caller.</p>
         <p>
           <strong>ARGUMENTS</strong>
         </p>
@@ -10890,16 +11030,16 @@ cbf_config_free(configSettings);</pre>
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.7.10">2.7.10 cbf_h5handle_set_beam</a>
+            <a href="#2.7.11">2.7.11 cbf_h5handle_set_beam</a>
           </li>
           <li>
-            <a href="#2.7.11">2.7.11 cbf_h5handle_require_beam</a>
+            <a href="#2.7.12">2.7.12 cbf_h5handle_require_beam</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.7.10">
-        <h4>2.7.10 cbf_h5handle_set_beam</h4>
+      <div class="function" id="2.7.11">
+        <h4>2.7.11 cbf_h5handle_set_beam</h4>
         <p>Set the id and name of the beam group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -10945,16 +11085,16 @@ cbf_config_free(configSettings);</pre>
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.7.9">2.7.9 cbf_h5handle_get_beam</a>
+            <a href="#2.7.10">2.7.10 cbf_h5handle_get_beam</a>
           </li>
           <li>
-            <a href="#2.7.11">2.7.11 cbf_h5handle_require_beam</a>
+            <a href="#2.7.12">2.7.12 cbf_h5handle_require_beam</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.7.11">
-        <h4>2.7.11 cbf_h5handle_require_beam</h4>
+      <div class="function" id="2.7.12">
+        <h4>2.7.12 cbf_h5handle_require_beam</h4>
         <p>Ensure I have a beam in the hdf5 handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11000,16 +11140,16 @@ cbf_config_free(configSettings);</pre>
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.7.9">2.7.9 cbf_h5handle_get_beam</a>
+            <a href="#2.7.10">2.7.10 cbf_h5handle_get_beam</a>
           </li>
           <li>
-            <a href="#2.7.10">2.7.10 cbf_h5handle_set_beam</a>
+            <a href="#2.7.11">2.7.11 cbf_h5handle_set_beam</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.7.12">
-        <h4>2.7.12 cbf_h5handle_get_instrument</h4>
+      <div class="function" id="2.7.13">
+        <h4>2.7.13 cbf_h5handle_get_instrument</h4>
         <p>Get the current id and name of the instrument group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11022,7 +11162,8 @@ cbf_config_free(configSettings);</pre>
         <p>
           <strong>DESCRIPTION</strong>
         </p>
-        <p>Check the handle for the presence of an instrument group and its name, optionally returning any combination of them. </p>
+        <p>Check the handle for the presence of an instrument group and its name, optionally returning any combination of them. The error code 'CBF_NOTFOUND' will be returned if any of the requested items of data cannot be found.</p>
+        <p>The handle retains ownership of the returned object and/or string, neither of them should be free'd by the caller.</p>
         <p>
           <strong>ARGUMENTS</strong>
         </p>
@@ -11055,16 +11196,19 @@ cbf_config_free(configSettings);</pre>
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.7.13">2.7.13 cbf_h5handle_set_instrument</a>
+            <a href="#2.7.14">2.7.14 cbf_h5handle_set_instrument</a>
           </li>
           <li>
-            <a href="#2.7.14">2.7.14 cbf_h5handle_require_instrument</a>
+            <a href="#2.7.15">2.7.15 cbf_h5handle_find_instrument</a>
+          </li>
+          <li>
+            <a href="#2.7.16">2.7.16 cbf_h5handle_require_instrument</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.7.13">
-        <h4>2.7.13 cbf_h5handle_set_instrument</h4>
+      <div class="function" id="2.7.14">
+        <h4>2.7.14 cbf_h5handle_set_instrument</h4>
         <p>Set the id and name of the instrument group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11110,16 +11254,49 @@ cbf_config_free(configSettings);</pre>
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.7.12">2.7.12 cbf_h5handle_get_instrument</a>
+            <a href="#2.7.13">2.7.13 cbf_h5handle_get_instrument</a>
           </li>
           <li>
-            <a href="#2.7.14">2.7.14 cbf_h5handle_require_instrument</a>
+            <a href="#2.7.15">2.7.15 cbf_h5handle_find_instrument</a>
+          </li>
+          <li>
+            <a href="#2.7.16">2.7.16 cbf_h5handle_require_instrument</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.7.14">
-        <h4>2.7.14 cbf_h5handle_require_instrument</h4>
+      <div class="function" id="2.7.15">
+        <h4>2.7.15 cbf_h5handle_find_instrument</h4>
+        <p>Find an existing instrument group within the given handle. </p>
+        <p>
+          <strong>PROTOTYPE</strong>
+        </p>
+        <p>
+          <code>#include "cbf_hdf5.h"</code>
+          <br/>
+          <code>int cbf_h5handle_find_instrument (const cbf_h5handle nx, hid_t *const group, const char **const name)</code>
+        </p>
+        <p>
+          <strong>ARGUMENTS</strong>
+        </p>
+        <table class="params">
+          <tr>
+            <td class="name">nx</td>
+            <td class="desc"/>
+          </tr>
+          <tr>
+            <td class="name">group</td>
+            <td class="desc"/>
+          </tr>
+          <tr>
+            <td class="name">name</td>
+            <td class="desc"/>
+          </tr>
+        </table>
+      </div>
+      <hr/>
+      <div class="function" id="2.7.16">
+        <h4>2.7.16 cbf_h5handle_require_instrument</h4>
         <p>Ensure I have an instrument in the hdf5 handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11165,16 +11342,19 @@ cbf_config_free(configSettings);</pre>
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.7.12">2.7.12 cbf_h5handle_get_instrument</a>
+            <a href="#2.7.13">2.7.13 cbf_h5handle_get_instrument</a>
           </li>
           <li>
-            <a href="#2.7.13">2.7.13 cbf_h5handle_set_instrument</a>
+            <a href="#2.7.14">2.7.14 cbf_h5handle_set_instrument</a>
+          </li>
+          <li>
+            <a href="#2.7.15">2.7.15 cbf_h5handle_find_instrument</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.7.15">
-        <h4>2.7.15 cbf_h5handle_get_detector</h4>
+      <div class="function" id="2.7.17">
+        <h4>2.7.17 cbf_h5handle_get_detector</h4>
         <p>Get the current id and name of the detector group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11187,7 +11367,8 @@ cbf_config_free(configSettings);</pre>
         <p>
           <strong>DESCRIPTION</strong>
         </p>
-        <p>Check the handle for the presence of an detector group and its name, optionally returning any combination of them. </p>
+        <p>Check the handle for the presence of an detector group and its name, optionally returning any combination of them. The error code 'CBF_NOTFOUND' will be returned if any of the requested items of data cannot be found.</p>
+        <p>The handle retains ownership of the returned object and/or string, neither of them should be free'd by the caller.</p>
         <p>
           <strong>ARGUMENTS</strong>
         </p>
@@ -11220,16 +11401,19 @@ cbf_config_free(configSettings);</pre>
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.7.16">2.7.16 cbf_h5handle_set_detector</a>
+            <a href="#2.7.18">2.7.18 cbf_h5handle_set_detector</a>
           </li>
           <li>
-            <a href="#2.7.17">2.7.17 cbf_h5handle_require_detector</a>
+            <a href="#2.7.19">2.7.19 cbf_h5handle_find_detector</a>
+          </li>
+          <li>
+            <a href="#2.7.20">2.7.20 cbf_h5handle_require_detector</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.7.16">
-        <h4>2.7.16 cbf_h5handle_set_detector</h4>
+      <div class="function" id="2.7.18">
+        <h4>2.7.18 cbf_h5handle_set_detector</h4>
         <p>Set the id and name of the detector group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11275,16 +11459,49 @@ cbf_config_free(configSettings);</pre>
         </p>
 	<ul class="see-also">
           <li>
-            <a href="#2.7.15">2.7.15 cbf_h5handle_get_detector</a>
+            <a href="#2.7.17">2.7.17 cbf_h5handle_get_detector</a>
           </li>
           <li>
-            <a href="#2.7.17">2.7.17 cbf_h5handle_require_detector</a>
+            <a href="#2.7.19">2.7.19 cbf_h5handle_find_detector</a>
+          </li>
+          <li>
+            <a href="#2.7.20">2.7.20 cbf_h5handle_require_detector</a>
           </li>
 	</ul>
       </div>
 	<hr />
-      <div class="function" id="2.7.17">
-        <h4>2.7.17 cbf_h5handle_require_detector</h4>
+      <div class="function" id="2.7.19">
+        <h4>2.7.19 cbf_h5handle_find_detector</h4>
+        <p>Find an existing detector group within the given handle. </p>
+        <p>
+          <strong>PROTOTYPE</strong>
+        </p>
+        <p>
+          <code>#include "cbf_hdf5.h"</code>
+          <br/>
+          <code>int cbf_h5handle_find_detector (const cbf_h5handle nx, hid_t *const group, const char **const name)</code>
+        </p>
+        <p>
+          <strong>ARGUMENTS</strong>
+        </p>
+        <table class="params">
+          <tr>
+            <td class="name">nx</td>
+            <td class="desc"/>
+          </tr>
+          <tr>
+            <td class="name">group</td>
+            <td class="desc"/>
+          </tr>
+          <tr>
+            <td class="name">name</td>
+            <td class="desc"/>
+          </tr>
+        </table>
+      </div>
+      <hr/>
+      <div class="function" id="2.7.20">
+        <h4>2.7.20 cbf_h5handle_require_detector</h4>
         <p>Ensure I have a detector in the hdf5 handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11330,16 +11547,19 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.15">2.7.15 cbf_h5handle_get_detector</a>
+            <a href="#2.7.17">2.7.17 cbf_h5handle_get_detector</a>
           </li>
           <li>
-            <a href="#2.7.16">2.7.16 cbf_h5handle_set_detector</a>
+            <a href="#2.7.18">2.7.18 cbf_h5handle_set_detector</a>
+          </li>
+          <li>
+            <a href="#2.7.19">2.7.19 cbf_h5handle_find_detector</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.18">
-        <h4>2.7.18 cbf_h5handle_get_goniometer</h4>
+      <div class="function" id="2.7.21">
+        <h4>2.7.21 cbf_h5handle_get_goniometer</h4>
         <p>Get the current id and name of the goniometer group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11352,7 +11572,8 @@ cbf_config_free(configSettings);</pre>
         <p>
           <strong>DESCRIPTION</strong>
         </p>
-        <p>Check the handle for the presence of an goniometer group and its name, optionally returning any combination of them. </p>
+        <p>Check the handle for the presence of an goniometer group and its name, optionally returning any combination of them. The error code 'CBF_NOTFOUND' will be returned if any of the requested items of data cannot be found.</p>
+        <p>The handle retains ownership of the returned object and/or string, neither of them should be free'd by the caller.</p>
         <p>
           <strong>ARGUMENTS</strong>
         </p>
@@ -11385,16 +11606,16 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.19">2.7.19 cbf_h5handle_set_goniometer</a>
+            <a href="#2.7.22">2.7.22 cbf_h5handle_set_goniometer</a>
           </li>
           <li>
-            <a href="#2.7.20">2.7.20 cbf_h5handle_require_goniometer</a>
+            <a href="#2.7.23">2.7.23 cbf_h5handle_require_goniometer</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.19">
-        <h4>2.7.19 cbf_h5handle_set_goniometer</h4>
+      <div class="function" id="2.7.22">
+        <h4>2.7.22 cbf_h5handle_set_goniometer</h4>
         <p>Set the id and name of the goniometer group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11440,16 +11661,16 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.18">2.7.18 cbf_h5handle_get_goniometer</a>
+            <a href="#2.7.21">2.7.21 cbf_h5handle_get_goniometer</a>
           </li>
           <li>
-            <a href="#2.7.20">2.7.20 cbf_h5handle_require_goniometer</a>
+            <a href="#2.7.23">2.7.23 cbf_h5handle_require_goniometer</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.20">
-        <h4>2.7.20 cbf_h5handle_require_goniometer</h4>
+      <div class="function" id="2.7.23">
+        <h4>2.7.23 cbf_h5handle_require_goniometer</h4>
         <p>Ensure I have a goniometer in the hdf5 handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11495,16 +11716,16 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.18">2.7.18 cbf_h5handle_get_goniometer</a>
+            <a href="#2.7.21">2.7.21 cbf_h5handle_get_goniometer</a>
           </li>
           <li>
-            <a href="#2.7.19">2.7.19 cbf_h5handle_set_goniometer</a>
+            <a href="#2.7.22">2.7.22 cbf_h5handle_set_goniometer</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.21">
-        <h4>2.7.21 cbf_h5handle_get_monochromator</h4>
+      <div class="function" id="2.7.24">
+        <h4>2.7.24 cbf_h5handle_get_monochromator</h4>
         <p>Get the current id and name of the monochromator group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11517,7 +11738,8 @@ cbf_config_free(configSettings);</pre>
         <p>
           <strong>DESCRIPTION</strong>
         </p>
-        <p>Check the handle for the presence of an monochromator group and its name, optionally returning any combination of them. </p>
+        <p>Check the handle for the presence of an monochromator group and its name, optionally returning any combination of them. The error code 'CBF_NOTFOUND' will be returned if any of the requested items of data cannot be found.</p>
+        <p>The handle retains ownership of the returned object and/or string, neither of them should be free'd by the caller.</p>
         <p>
           <strong>ARGUMENTS</strong>
         </p>
@@ -11550,16 +11772,16 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.22">2.7.22 cbf_h5handle_set_monochromator</a>
+            <a href="#2.7.25">2.7.25 cbf_h5handle_set_monochromator</a>
           </li>
           <li>
-            <a href="#2.7.23">2.7.23 cbf_h5handle_require_monochromator</a>
+            <a href="#2.7.26">2.7.26 cbf_h5handle_require_monochromator</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.22">
-        <h4>2.7.22 cbf_h5handle_set_monochromator</h4>
+      <div class="function" id="2.7.25">
+        <h4>2.7.25 cbf_h5handle_set_monochromator</h4>
         <p>Set the id and name of the monochromator group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11605,16 +11827,16 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.21">2.7.21 cbf_h5handle_get_monochromator</a>
+            <a href="#2.7.24">2.7.24 cbf_h5handle_get_monochromator</a>
           </li>
           <li>
-            <a href="#2.7.23">2.7.23 cbf_h5handle_require_monochromator</a>
+            <a href="#2.7.26">2.7.26 cbf_h5handle_require_monochromator</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.23">
-        <h4>2.7.23 cbf_h5handle_require_monochromator</h4>
+      <div class="function" id="2.7.26">
+        <h4>2.7.26 cbf_h5handle_require_monochromator</h4>
         <p>Ensure I have a monochromator in the hdf5 handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11660,16 +11882,16 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.21">2.7.21 cbf_h5handle_get_monochromator</a>
+            <a href="#2.7.24">2.7.24 cbf_h5handle_get_monochromator</a>
           </li>
           <li>
-            <a href="#2.7.22">2.7.22 cbf_h5handle_set_monochromator</a>
+            <a href="#2.7.25">2.7.25 cbf_h5handle_set_monochromator</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.24">
-        <h4>2.7.24 cbf_h5handle_get_source</h4>
+      <div class="function" id="2.7.27">
+        <h4>2.7.27 cbf_h5handle_get_source</h4>
         <p>Get the current id and name of the source group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11682,7 +11904,8 @@ cbf_config_free(configSettings);</pre>
         <p>
           <strong>DESCRIPTION</strong>
         </p>
-        <p>Check the handle for the presence of an source group and its name, optionally returning any combination of them. </p>
+        <p>Check the handle for the presence of an source group and its name, optionally returning any combination of them. The error code 'CBF_NOTFOUND' will be returned if any of the requested items of data cannot be found.</p>
+        <p>The handle retains ownership of the returned object and/or string, neither of them should be free'd by the caller.</p>
         <p>
           <strong>ARGUMENTS</strong>
         </p>
@@ -11715,16 +11938,16 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.25">2.7.25 cbf_h5handle_set_source</a>
+            <a href="#2.7.28">2.7.28 cbf_h5handle_set_source</a>
           </li>
           <li>
-            <a href="#2.7.26">2.7.26 cbf_h5handle_require_source</a>
+            <a href="#2.7.29">2.7.29 cbf_h5handle_require_source</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.25">
-        <h4>2.7.25 cbf_h5handle_set_source</h4>
+      <div class="function" id="2.7.28">
+        <h4>2.7.28 cbf_h5handle_set_source</h4>
         <p>Set the id and name of the source group within the given handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11770,16 +11993,16 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.24">2.7.24 cbf_h5handle_get_source</a>
+            <a href="#2.7.27">2.7.27 cbf_h5handle_get_source</a>
           </li>
           <li>
-            <a href="#2.7.26">2.7.26 cbf_h5handle_require_source</a>
+            <a href="#2.7.29">2.7.29 cbf_h5handle_require_source</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.26">
-        <h4>2.7.26 cbf_h5handle_require_source</h4>
+      <div class="function" id="2.7.29">
+        <h4>2.7.29 cbf_h5handle_require_source</h4>
         <p>Ensure I have a source in the hdf5 handle. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11825,16 +12048,16 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.24">2.7.24 cbf_h5handle_get_source</a>
+            <a href="#2.7.27">2.7.27 cbf_h5handle_get_source</a>
           </li>
           <li>
-            <a href="#2.7.25">2.7.25 cbf_h5handle_set_source</a>
+            <a href="#2.7.28">2.7.28 cbf_h5handle_set_source</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.27">
-        <h4>2.7.27 cbf_free_h5handle</h4>
+      <div class="function" id="2.7.30">
+        <h4>2.7.30 cbf_free_h5handle</h4>
         <p>Free a handle for an HDF5 file. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11868,13 +12091,13 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.28">2.7.28 cbf_create_h5handle3</a>
+            <a href="#2.7.31">2.7.31 cbf_create_h5handle3</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.28">
-        <h4>2.7.28 cbf_create_h5handle3</h4>
+      <div class="function" id="2.7.31">
+        <h4>2.7.31 cbf_create_h5handle3</h4>
         <p>Allocates space for a HDF5 file handle and associates it with the given file. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11914,13 +12137,13 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.27">2.7.27 cbf_free_h5handle</a>
+            <a href="#2.7.30">2.7.30 cbf_free_h5handle</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.29">
-        <h4>2.7.29 cbf_write_cbf_h5file</h4>
+      <div class="function" id="2.7.32">
+        <h4>2.7.32 cbf_write_cbf_h5file</h4>
         <p>Extract the data from a CBF file &amp; put it into a NeXus file. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -11960,19 +12183,19 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.31">2.7.31 cbf_write_minicbf_h5file</a>
+            <a href="#2.7.34">2.7.34 cbf_write_minicbf_h5file</a>
           </li>
           <li>
-            <a href="#2.7.30">2.7.30 cbf_write_cbf2nx</a>
+            <a href="#2.7.33">2.7.33 cbf_write_cbf2nx</a>
           </li>
           <li>
-            <a href="#2.7.32">2.7.32 cbf_write_nx2cbf</a>
+            <a href="#2.7.35">2.7.35 cbf_write_nx2cbf</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.30">
-        <h4>2.7.30 cbf_write_cbf2nx</h4>
+      <div class="function" id="2.7.33">
+        <h4>2.7.33 cbf_write_cbf2nx</h4>
         <p>Extract the data from a CBF file &amp; put it into a NeXus file. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -12027,7 +12250,9 @@ cbf_config_free(configSettings);</pre>
           </tr>
           <tr>
             <td class="name">list</td>
-            <td class="desc"/>
+            <td class="desc">
+              <p>Boolean flag to determine if a list of processed items is printed. </p>
+            </td>
           </tr>
         </table>
         <p>
@@ -12039,19 +12264,19 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.29">2.7.29 cbf_write_cbf_h5file</a>
+            <a href="#2.7.32">2.7.32 cbf_write_cbf_h5file</a>
           </li>
           <li>
-            <a href="#2.7.31">2.7.31 cbf_write_minicbf_h5file</a>
+            <a href="#2.7.34">2.7.34 cbf_write_minicbf_h5file</a>
           </li>
           <li>
-            <a href="#2.7.32">2.7.32 cbf_write_nx2cbf</a>
+            <a href="#2.7.35">2.7.35 cbf_write_nx2cbf</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.31">
-        <h4>2.7.31 cbf_write_minicbf_h5file</h4>
+      <div class="function" id="2.7.34">
+        <h4>2.7.34 cbf_write_minicbf_h5file</h4>
         <p>Extract the data from a miniCBF file &amp; put it into a NeXus file. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -12103,16 +12328,16 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.29">2.7.29 cbf_write_cbf_h5file</a>
+            <a href="#2.7.32">2.7.32 cbf_write_cbf_h5file</a>
           </li>
           <li>
-            <a href="#2.7.32">2.7.32 cbf_write_nx2cbf</a>
+            <a href="#2.7.35">2.7.35 cbf_write_nx2cbf</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.32">
-        <h4>2.7.32 cbf_write_nx2cbf</h4>
+      <div class="function" id="2.7.35">
+        <h4>2.7.35 cbf_write_nx2cbf</h4>
         <p>Extract data from a nexus file and store it in a CBF file. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -12152,16 +12377,16 @@ cbf_config_free(configSettings);</pre>
         </p>
         <ul class="see-also">
           <li>
-            <a href="#2.7.29">2.7.29 cbf_write_cbf_h5file</a>
+            <a href="#2.7.32">2.7.32 cbf_write_cbf_h5file</a>
           </li>
           <li>
-            <a href="#2.7.31">2.7.31 cbf_write_minicbf_h5file</a>
+            <a href="#2.7.34">2.7.34 cbf_write_minicbf_h5file</a>
           </li>
         </ul>
       </div>
       <hr/>
-      <div class="function" id="2.7.33">
-        <h4>2.7.33 cbf_config_create</h4>
+      <div class="function" id="2.7.36">
+        <h4>2.7.36 cbf_config_create</h4>
         <p>Obtain a new handle for some configuration settings. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -12185,8 +12410,8 @@ cbf_config_free(configSettings);</pre>
         <p>A newly allocated object for miniCBF configuration settings, or NULL. </p>
       </div>
       <hr/>
-      <div class="function" id="2.7.34">
-        <h4>2.7.34 cbf_config_parse</h4>
+      <div class="function" id="2.7.37">
+        <h4>2.7.37 cbf_config_parse</h4>
         <p>Read a minicbf configuration file into the given handle, writing errors to logfile. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -12229,8 +12454,8 @@ cbf_config_free(configSettings);</pre>
         <p>A parser error code. </p>
       </div>
       <hr/>
-      <div class="function" id="2.7.35">
-        <h4>2.7.35 cbf_config_free</h4>
+      <div class="function" id="2.7.38">
+        <h4>2.7.38 cbf_config_free</h4>
         <p>Free any heap memory associated with the given cbf_hdf5_configItemVectorhandle object. </p>
         <p>
           <strong>PROTOTYPE</strong>
@@ -12261,8 +12486,8 @@ cbf_config_free(configSettings);</pre>
         <p>Nothing. </p>
       </div>
       <hr/>
-      <div class="function" id="2.7.36">
-        <h4>2.7.36 cbf_config_strerror</h4>
+      <div class="function" id="2.7.39">
+        <h4>2.7.39 cbf_config_strerror</h4>
         <p>Convert a parse error to a descriptive string. </p>
         <p>
           <strong>PROTOTYPE</strong>

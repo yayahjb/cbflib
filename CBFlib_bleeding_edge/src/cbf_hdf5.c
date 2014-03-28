@@ -11502,7 +11502,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					/* handle all datasets here */
 					if (!strcmp(name,"beam_center_x")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -11551,7 +11551,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"beam_center_y")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -11600,7 +11600,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"CBF_diffrn_data_frame__details")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -11643,7 +11643,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"count_time")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -11687,14 +11687,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"data")) {
 						int indent = table->indent;
-						if (1) {
-							while (indent--) fputc('\t',stderr);
-							fprintf(stderr,"- %s\n",name);
+						if (nx->logfile) {
+							while (indent--) fputc('\t',nx->logfile);
+							fprintf(nx->logfile,"- %s\n",name);
 						}
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"dead_time")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -11727,7 +11727,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"description")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -11753,7 +11753,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"details")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -11779,7 +11779,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"depends_on")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -11834,7 +11834,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"distance")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -11879,7 +11879,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"frame_start_time")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -11917,7 +11917,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"frame_time")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -11961,7 +11961,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"gain_setting")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -11985,7 +11985,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"offset")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12021,7 +12021,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"saturation_value")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12056,7 +12056,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"scaling_factor")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12092,7 +12092,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"sensor_material")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12116,7 +12116,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"sensor_thickness")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12149,7 +12149,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"threshold_energy")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12182,7 +12182,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"type")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12204,7 +12204,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"undefined_value")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12239,14 +12239,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"x_pixel_offset") || !strcmp(name,"y_pixel_offset") || !strcmp(name,"x_pixel_size") || !strcmp(name,"y_pixel_size")) {
 						int indent = table->indent;
-						if (1) {
-							while (indent--) fputc('\t',stderr);
-							fprintf(stderr,"- %s\n",name);
+						if (nx->logfile) {
+							while (indent--) fputc('\t',nx->logfile);
+							fprintf(nx->logfile,"- %s\n",name);
 						}
 						/*--------------------------------------------------------------------------------------*/
 					} else {
 						/* unknown field: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					}
 				} else if (H5I_GROUP==type) {
 					/* get NXclass & handle all groups here */
@@ -12254,7 +12254,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					const int found = _cbf_NXclass(object,&NX_class);
 					if (CBF_NOTFOUND==found) {
 						/* no NX_class: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					} else if (CBF_SUCCESS!=found) {
 						if (1) {
 							cbf_debug_print(cbf_strerror(found));
@@ -12265,17 +12265,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/* I have a group with an NX_class: match on NX_class */
 						if (!strcmp(NX_class,"NXcollection")) {
 							/* known class that should be ignored: ignoring it is the correct way to process it */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/*-----------------------------------------------------------------------------------------------*/
 						} else {
 							/* unknown NX_class: (probably) not an error */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,0);
 						}
 					}
 					free((void*)NX_class);
 				} else {
 					/* unrecognised object type: can't process it, but it's not an error */
-					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 				}
 			}
 			if (cbf_H5Ivalid(object)) H5Oclose(object);
@@ -12329,7 +12329,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					/* handle all datasets here */
 					if (!strcmp(name,"description")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12351,7 +12351,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else {
 						/* unknown field: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					}
 				} else if (H5I_GROUP==type) {
 					/* get NXclass & handle all groups here */
@@ -12359,7 +12359,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					const int found = _cbf_NXclass(object,&NX_class);
 					if (CBF_NOTFOUND==found) {
 						/* no NX_class: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					} else if (CBF_SUCCESS!=found) {
 						if (1) {
 							cbf_debug_print(cbf_strerror(found));
@@ -12370,17 +12370,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/* I have a group with an NX_class: match on NX_class */
 						if (!strcmp(NX_class,"NXcollection")) {
 							/* known class that should be ignored: ignoring it is the correct way to process it */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/*-----------------------------------------------------------------------------------------------*/
 						} else {
 							/* unknown NX_class: (probably) not an error */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,0);
 						}
 					}
 					free((void*)NX_class);
 				} else {
 					/* unrecognised object type: can't process it, but it's not an error */
-					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 				}
 			}
 			if (cbf_H5Ivalid(object)) H5Oclose(object);
@@ -12434,7 +12434,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					/* handle all datasets here */
 					if (!strcmp(name,"current")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12463,7 +12463,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"name")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12485,7 +12485,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"power")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12514,7 +12514,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"probe")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12536,7 +12536,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"target_material")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12558,7 +12558,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"type")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12580,7 +12580,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"voltage")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12609,7 +12609,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else {
 						/* unknown field: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					}
 				} else if (H5I_GROUP==type) {
 					/* get NXclass & handle all groups here */
@@ -12617,7 +12617,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					const int found = _cbf_NXclass(object,&NX_class);
 					if (CBF_NOTFOUND==found) {
 						/* no NX_class: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					} else if (CBF_SUCCESS!=found) {
 						if (1) {
 							cbf_debug_print(cbf_strerror(found));
@@ -12628,17 +12628,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/* I have a group with an NX_class: match on NX_class */
 						if (!strcmp(NX_class,"NXcollection")) {
 							/* known class that should be ignored: ignoring it is the correct way to process it */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/*-----------------------------------------------------------------------------------------------*/
 						} else {
 							/* unknown NX_class: (probably) not an error */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,0);
 						}
 					}
 					free((void*)NX_class);
 				} else {
 					/* unrecognised object type: can't process it, but it's not an error */
-					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 				}
 			}
 			if (cbf_H5Ivalid(object)) H5Oclose(object);
@@ -12692,7 +12692,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					/* handle all datasets here */
 					if (!strcmp(name,"description")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12714,7 +12714,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"details")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12736,7 +12736,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"local_name")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12758,7 +12758,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"type")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -12780,7 +12780,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else {
 						/* unknown field: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					}
 				} else if (H5I_GROUP==type) {
 					/* get NXclass & handle all groups here */
@@ -12788,7 +12788,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					const int found = _cbf_NXclass(object,&NX_class);
 					if (CBF_NOTFOUND==found) {
 						/* no NX_class: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					} else if (CBF_SUCCESS!=found) {
 						if (1) {
 							cbf_debug_print(cbf_strerror(found));
@@ -12799,17 +12799,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/* I have a group with an NX_class: match on NX_class */
 						if (!strcmp(NX_class,"NXcollection")) {
 							/* known class that should be ignored: ignoring it is the correct way to process it */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/*-----------------------------------------------------------------------------------------------*/
 						} else {
 							/* unknown NX_class: (probably) not an error */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,0);
 						}
 					}
 					free((void*)NX_class);
 				} else {
 					/* unrecognised object type: can't process it, but it's not an error */
-					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 				}
 			}
 			if (cbf_H5Ivalid(object)) H5Oclose(object);
@@ -12865,7 +12865,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/* I don't actually have any items to match here */
 					} else {
 						/* unknown field: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 		}
 				} else if (H5I_GROUP==type) {
 					/* get NXclass & handle all groups here */
@@ -12873,7 +12873,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					const int found = _cbf_NXclass(object,&NX_class);
 					if (CBF_NOTFOUND==found) {
 						/* no NX_class: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					} else if (CBF_SUCCESS!=found) {
 						if (1) {
 							cbf_debug_print(cbf_strerror(found));
@@ -12884,14 +12884,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/* I have a group with an NX_class: match on NX_class */
 						if (!strcmp(NX_class,"NXcollection")) {
 							/* known class that should be ignored: ignoring it is the correct way to process it */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/*-----------------------------------------------------------------------------------------------*/
 						} else if (!strcmp(NX_class,"NXdetector")) {
 							const unsigned int indent = table->indent;
 							hsize_t idx = 0;
 							hid_t group = object;
 							/* debugging output */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/* try to take ownership of the group away from the iteration function */
 							if (CBF_SUCCESS!=(error|=cbf_h5handle_set_detector(nx,object,name))) {
 								if (1) {
@@ -12929,7 +12929,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							hsize_t idx = 0;
 							hid_t group = object;
 							/* debugging output */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/* try to take ownership of the group away from the iteration function */
 							if (CBF_SUCCESS!=(error|=cbf_h5handle_set_goniometer(nx,object,name))) {
 								if (1) {
@@ -12952,7 +12952,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							hsize_t idx = 0;
 							hid_t group = object;
 							/* debugging output */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/* try to take ownership of the group away from the iteration function */
 							if (CBF_SUCCESS!=(error|=cbf_h5handle_set_monochromator(nx,object,name))) {
 								if (1) {
@@ -12975,7 +12975,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							hsize_t idx = 0;
 							hid_t group = object;
 							/* debugging output */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/* try to take ownership of the group away from the iteration function */
 							if (CBF_SUCCESS!=(error|=cbf_h5handle_set_source(nx,object,name))) {
 								if (1) {
@@ -12995,13 +12995,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							/*-----------------------------------------------------------------------------------------------*/
 						} else {
 							/* unknown NX_class: (probably) not an error */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,0);
 						}
 					}
 					free((void*)NX_class);
 				} else {
 					/* unrecognised object type: can't process it, but it's not an error */
-					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 				}
 			}
 			if (cbf_H5Ivalid(object)) H5Oclose(object);
@@ -13057,7 +13057,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					/* handle all datasets here */
 					if (!strcmp(name,"beam_size_x")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -13085,7 +13085,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"beam_size_y")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -13113,7 +13113,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"collimation")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -13135,7 +13135,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"incident_divergence_x")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -13164,7 +13164,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"incident_divergence_xy")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -13193,7 +13193,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"incident_divergence_y")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -13222,7 +13222,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"incident_polarisation_stokes")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -13263,7 +13263,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"incident_wavelength")||!strcmp(name,"wavelength")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -13309,7 +13309,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"weight")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -13344,7 +13344,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else {
 						/* unknown field: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					}
 				} else if (H5I_GROUP==type) {
 					/* get NXclass & handle all groups here */
@@ -13352,7 +13352,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					const int found = _cbf_NXclass(object,&NX_class);
 					if (CBF_NOTFOUND==found) {
 						/* no NX_class: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					} else if (CBF_SUCCESS!=found) {
 						if (1) {
 							cbf_debug_print(cbf_strerror(found));
@@ -13363,17 +13363,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/* I have a group with an NX_class: match on NX_class */
 						if (!strcmp(NX_class,"NXcollection")) {
 							/* known class that should be ignored: ignoring it is the correct way to process it */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/*-----------------------------------------------------------------------------------------------*/
 						} else {
 							/* unknown NX_class: (probably) not an error */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,0);
 						}
 					}
 					free((void*)NX_class);
 				} else {
 					/* unrecognised object type: can't process it, but it's not an error */
-					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 				}
 				if (CBF_SUCCESS==error) {
 					if (have_sigma_x && have_sigma_y) {
@@ -13437,7 +13437,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					/* handle all datasets here */
 					if (!strcmp(name,"depends_on")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -13491,7 +13491,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------------------*/
 					} else {
 						/* unknown field: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					}
 				} else if (H5I_GROUP==type) {
 					/* get NXclass & handle all groups here */
@@ -13499,7 +13499,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					const int found = _cbf_NXclass(object,&NX_class);
 					if (CBF_NOTFOUND==found) {
 						/* no NX_class: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					} else if (CBF_SUCCESS!=found) {
 						if (1) {
 							cbf_debug_print(cbf_strerror(found));
@@ -13510,13 +13510,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/* I have a group with an NX_class: match on NX_class */
 						if (!strcmp(NX_class,"NXcollection")) {
 							/* known class that should be ignored: ignoring it is the correct way to process it */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/*-----------------------------------------------------------------------------------------------*/
 						} else if (!strcmp(NX_class,"NXbeam")) {
 							const unsigned int indent = table->indent;
 							hsize_t idx = 0;
 							/* debugging output */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/* leave ownership of the group with the iteration function, and process it */
 							++table->indent;
 							if (H5Literate(object,H5_INDEX_NAME,H5_ITER_NATIVE,&idx,cbf_write_nx2cbf__beam_op,op_data)<0) {
@@ -13527,13 +13527,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							/*-----------------------------------------------------------------------------------------------*/
 						} else {
 							/* unknown NX_class: (probably) not an error */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,0);
 						}
 					}
 					free((void*)NX_class);
 				} else {
 					/* unrecognised object type: can't process it, but it's not an error */
-					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 				}
 			}
 			if (cbf_H5Ivalid(object)) H5Oclose(object);
@@ -13587,7 +13587,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					/* handle all datasets here */
 					if (!strcmp(name,"end_time")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -13611,7 +13611,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"method")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -13633,7 +13633,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*-----------------------------------------------------------------------------------------------*/
 					} else if (!strcmp(name,"start_time")) {
 						hid_t data_space = CBF_H5FAIL;
-						if (1) _cbf_write_name(stderr,name,0,table->indent,1);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
 							cbf_debug_print("could not get data space");
 							error |= CBF_H5ERROR;
@@ -13657,7 +13657,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/*--------------------------------------------------------------------------------------*/
 					} else {
 						/* unknown field: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					}
 				} else if (H5I_GROUP==type) {
 					/* get NXclass & handle all groups here */
@@ -13665,7 +13665,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					const int found = _cbf_NXclass(object,&NX_class);
 					if (CBF_NOTFOUND==found) {
 						/* no NX_class: can't process it, but it's not an error */
-						if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 					} else if (CBF_SUCCESS!=found) {
 						if (1) {
 							cbf_debug_print(cbf_strerror(found));
@@ -13676,14 +13676,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/* I have a group with an NX_class: match on NX_class */
 						if (!strcmp(NX_class,"NXcollection") || !strcmp(NX_class,"NXdata")) {
 							/* known class that should be ignored: ignoring it is the correct way to process it */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/*-----------------------------------------------------------------------------------------------*/
 						} else if (!strcmp(NX_class,"NXinstrument")) {
 							const unsigned int indent = table->indent;
 							hsize_t idx = 0;
 							hid_t group = object;
 							/* debugging output */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/* try to take ownership of the group away from the iteration function */
 							if (CBF_SUCCESS!=(error|=cbf_h5handle_set_instrument(nx,object,name))) {
 								if (1) {
@@ -13706,7 +13706,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							hsize_t idx = 0;
 							hid_t group = object;
 							/* debugging output */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,1);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 							/* try to take ownership of the group away from the iteration function */
 							if (CBF_SUCCESS!=(error|=cbf_h5handle_set_sample(nx,object,name))) {
 								if (1) {
@@ -13726,13 +13726,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							/*-----------------------------------------------------------------------------------------------*/
 						} else {
 							/* unknown NX_class: (probably) not an error */
-							if (1) _cbf_write_name(stderr,name,NX_class,table->indent,0);
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,0);
 						}
 					}
 					free((void*)NX_class);
 				} else {
 					/* unrecognised object type: can't process it, but it's not an error */
-					if (1) _cbf_write_name(stderr,name,0,table->indent,0);
+					if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,0);
 				}
 			}
 			if (cbf_H5Ivalid(object)) H5Oclose(object);
@@ -17826,8 +17826,8 @@ static int FUNCTION_NAME \
                             const char * set = NULL;
                             CBF_CALL(cbf_node_get_value(asla_setid,j,&set));
                             CBF_CALL(cbf_node_get_value(asla_axisid,j,&axis));
-                            if (1) fprintf(stderr,"axis: '%s'\n",axis);
-                            if (1) fprintf(stderr,"set: '%s'\n",set);
+                            if (h5handle->logfile) fprintf(h5handle->logfile,"axis: '%s'\n",axis);
+                            if (h5handle->logfile) fprintf(h5handle->logfile,"set: '%s'\n",set);
                             if (CBF_SUCCESS==error) {
                                 if (strcmp(set,key->arrayAxisSet.axis_set_id[i])) {
                                     continue;
@@ -18412,14 +18412,13 @@ static int FUNCTION_NAME \
                 key->categories = categories;
                 key->nCat = nCat;
 				}
-            if (list) {
-                FILE * const stream = stdout;
+            if (h5handle->logfile) {
                 int printed = 0;
-                fputc('\n',stream);
-                printed = fprintf(stream,"Datablock: %s\n",handle->node->name);
-                while (--printed > 0) fputc('=',stream);
-                fputc('\n',stream);
-                fputc('\n',stream);
+                fputc('\n',h5handle->logfile);
+                printed = fprintf(h5handle->logfile,"Datablock: %s\n",handle->node->name);
+                while (--printed > 0) fputc('=',h5handle->logfile);
+                fputc('\n',h5handle->logfile);
+                fputc('\n',h5handle->logfile);
 			}
 			/* get the axis transformation matrix, which is constant within a datablock */
             CBF_CALL(cbf_get_NX_axis_transform2(handle,key->matrix));
@@ -18461,12 +18460,11 @@ static int FUNCTION_NAME \
                 unsigned int frame_row = 0;
                 unsigned int nFrames = 0;
                 cbf_node * frames_scanid = NULL;
-                if (list) {
-                    FILE * const stream = stdout;
-                    int printed = fprintf(stream,"Scan: %s\n",key->scan);
-                    while (--printed > 0) fputc('-',stream);
-                    fputc('\n',stream);
-                    fputc('\n',stream);
+                if (h5handle->logfile) {
+                    int printed = fprintf(h5handle->logfile,"Scan: %s\n",key->scan);
+                    while (--printed > 0) fputc('-',h5handle->logfile);
+                    fputc('\n',h5handle->logfile);
+                    fputc('\n',h5handle->logfile);
 						}
                 /* convert the scan data */
 				CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_scan", key, list, 1));
@@ -18537,16 +18535,15 @@ static int FUNCTION_NAME \
 					}
 					}
             
-            if (CBF_SUCCESS==error && list) {
+            if (CBF_SUCCESS==error && h5handle->logfile) {
                 cbf_node * const * it;
                 cbf_node * const * const end = nCat+categories;
-                FILE * const stream = stdout;
                 for (it = categories; end != it; ++it) {
                     if (*it) {
-                        _cbf_write_name(stream,(*it)->name,0,0,0);
+                        _cbf_write_name(h5handle->logfile,(*it)->name,0,0,0);
 				}
 			}
-                fputc('\n',stream);
+                fputc('\n',h5handle->logfile);
 		}
             free((void*)categories);
             if (datablock) {
