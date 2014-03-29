@@ -4288,8 +4288,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		if (CBF_SUCCESS==error) { /* vector */
 			const hsize_t vdims[] = {3};
 			double buf[3] = {0./0.};
-			CBF_CALL(CBFM_H5Arequire_cmp2(h5data,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
-					  axisItem->vector,buf,cmp,cmp_params));
+			double matrix[3][3] = {
+				{-1.,0.0,0.0},
+				{0.0,1.0,0.0},
+				{0.0,0.0,-1.},
+			};
+			double vector[3];
+			CBF_CALL(cbf_apply_matrix(matrix,(double *)axisItem->vector,vector));
+			CBF_CALL(CBFM_H5Arequire_cmp2(h5data,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,vector,buf,cmp,cmp_params));
 		}
 		return error;
 	}
@@ -4400,6 +4406,46 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			}
 		}
 		return error;
+	}
+
+	/* Test for the presence of a floating-point value in a column.
+
+	Attempt to access the value at the given column/row location and try to
+	convert it to a floating point value, discarding the result and returning
+	a boolean value which can be used to find out if a conversion would
+	succeed.
+
+	TODO: Merge this functionality into the 'cbf_node_get_doublevalue'
+	function, to allow the test an conversion to be performed in a single
+	operation.
+
+	\return A boolean value suitable for use in a conditional statement.
+	*/
+	static int cbf_node_has_doublevalue
+			(cbf_node * const node,
+			 const unsigned int row)
+	{
+		int ret;
+		const char * text = NULL;
+		if (!node || row >= node->children) {
+			ret = 0;
+		} else if (cbf_is_binary(node, row)) {
+			ret = 0;
+		} else if (CBF_SUCCESS!=cbf_get_columnrow(&text, node, row)) {
+			ret = 0;
+		} else if (!text || *text==CBF_TOKEN_NULL) {
+			ret = 0;
+		} else {
+			char * end = NULL;
+			/* check if it can be converted, but don't store the value */
+			(void)(strtod(text+1, &end));
+			if (end == text+1) {
+				ret = 0;
+			} else {
+				ret = 1;
+			}
+		}
+		return ret;
 	}
 
 	static int cbf_node_get_uintvalue
@@ -5198,7 +5244,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 	}
 
 	/**
-	Check the handle for the presence of an detector group and its name,
+     Check the handle for the presence of a detector group and its name,
 	optionally returning any combination of them. The error code
 	'CBF_NOTFOUND' will be returned if any of the requested items of data
 	cannot be found.
@@ -5883,7 +5929,62 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
     }
 
+	/* Get an axis' vector and offset.
 
+	Attempts to locate the row of the 'id' column in the given category whose
+	value is the same as that given by 'axis_id'. If the row can be found then
+	the vector and offset are read.
+    
+	This reads data directly from the node tree, instead of using a handle.
+
+	\return An error code.
+	*/
+	int cbf_node_get_axis_vector_and_offset
+			(/* The axis category to read axes from. */
+			cbf_node * axes,
+			/* The (case-sensitive) name of the axis to find and extract data from. */
+                                       const char *axis_id,
+			/* A place to store the 3-element vector attribute, or 'NULL' if it isn't wanted. */
+                                       double vector[3],
+			/* A place to store the 3-element offset attribute, or 'NULL' if it isn't wanted. */
+			double offset[3])
+	{
+		int error = CBF_SUCCESS;
+		if (!axes || !axis_id) {
+			return CBF_ARGUMENT;
+		} else if (CBF_CATEGORY != axes->type) {
+			error |= CBF_ARGUMENT;
+		} else {
+			int found = CBF_SUCCESS;
+			cbf_node * col = NULL;
+			unsigned int row = 0;
+			CBF_CALL(cbf_find_child(&col, axes, "id"));
+			found = cbf_node_find_nextrow(col, 0, axis_id, &row);
+			if (!found) {
+        if (vector) {
+					cbf_failnez(cbf_find_child(&col,axes,"vector[1]"));
+					if (cbf_node_get_doublevalue(col,row,vector+0)) vector[0] = 0.;
+					cbf_failnez(cbf_find_child(&col,axes,"vector[2]"));
+					if (cbf_node_get_doublevalue(col,row,vector+1)) vector[1] = 0.;
+					cbf_failnez(cbf_find_child(&col,axes,"vector[3]"));
+					if (cbf_node_get_doublevalue(col,row,vector+2)) vector[2] = 0.;
+        }
+        if (offset) {
+					cbf_failnez(cbf_find_child(&col,axes,"offset[1]"));
+					if (cbf_node_get_doublevalue(col,row,offset+0)) offset[0] = 0.;
+					cbf_failnez(cbf_find_child(&col,axes,"offset[2]"));
+					if (cbf_node_get_doublevalue(col,row,offset+1)) offset[1] = 0.;
+					cbf_failnez(cbf_find_child(&col,axes,"offset[3]"));
+					if (cbf_node_get_doublevalue(col,row,offset+2)) offset[2] = 0.;
+        }
+			} else {
+				if (CBF_NOTFOUND != found) CBF_PRINT_ERROR(cbf_strerror(found));
+				error |= found;
+			}
+		}
+		return error;
+	}
+        
     /* get an axis vector and offset */
 
     int cbf_get_axis_vector_and_offset(cbf_handle handle,
@@ -5993,6 +6094,132 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
     }
 
+	/* Extract the direction of the beam.
+
+	Attempt to read data from the 'BEAM' axis, if it exists, otherwise attempt
+	to read data from the 'SOURCE' axis and multiply the direction by '-1'. If
+	neither of those axes can be found then assume that the beam direction is
+	[0,0,-1]. The axis names are case-sensitive.
+
+	This reads data directly from the node tree, instead of using a handle.
+
+	\return An error code.
+	*/
+	static int cbf_node_get_beam_dirn
+			(/* The axis category to read axes from. */
+			cbf_node * axes,
+			/* A place to store the 3-element direction vector. */
+			double vector[3])
+	{
+		int error = CBF_SUCCESS;
+		if (!axes || !vector) {
+			error |= CBF_ARGUMENT;
+		} else if (CBF_CATEGORY != axes->type) {
+			error |= CBF_ARGUMENT;
+		} else {
+			/* take the beam direction, if given, -source if source is given, or [0, 0, -1] */
+			if (cbf_node_get_axis_vector_and_offset(axes,"BEAM",vector,NULL)) {
+				if (cbf_node_get_axis_vector_and_offset(axes,"SOURCE",vector, NULL)) {
+					vector[0] = 0.;
+					vector[1] = 0.;
+					vector[2] = -1.;
+				} else {
+					vector[0] = -vector[0];
+					vector[1] = -vector[1];
+					vector[2] = -vector[2];
+				}
+			}
+		}
+		return error;
+	}
+
+
+	/* Extract the direction of gravity.
+
+	Attempt to read data from the 'GRAVITY' axis, if it exists, otherwise
+	attempt to read data from the 'UP' axis and multiply the direction by '-1'.
+	If neither of those axes can be found then assume that the gravity
+	direction is [0,-1,0]. The axis names are case-sensitive.
+
+	This reads data directly from the node tree, instead of using a handle.
+
+	\return An error code.
+	*/
+	static int cbf_node_get_gravity_dirn
+			(/* The axis category to read axes from. */
+			cbf_node * axes,
+			/* A place to store the 3-element direction vector. */
+			double vector[3])
+	{
+		int error = CBF_SUCCESS;
+		if (!axes || !vector) {
+			error |= CBF_ARGUMENT;
+		} else if (CBF_CATEGORY != axes->type) {
+			error |= CBF_ARGUMENT;
+		} else {
+			/* take gravity if given, -up if up is given, otherwise [0, -1, 0 ] */
+			if (cbf_node_get_axis_vector_and_offset(axes,"GRAVITY",vector,NULL)) {
+				if (cbf_node_get_axis_vector_and_offset(axes,"UP",vector,NULL)) {
+					vector[0] = 0.;
+					vector[1] = -1.;
+					vector[2] = 0.;
+				} else {
+					vector[0] = -vector[0];
+					vector[1] = -vector[1];
+					vector[2] = -vector[2];
+				}
+			}
+		}
+		return error;
+	}
+
+	/* Get the direction of the beam.
+
+	Locates the 'axis' category in the handle and then forwards to the
+	corresponding 'node' variant ('cbf_node_get_beam_dirn') to extract the
+	data.
+
+	\return An error code.
+	*/
+	static int cbf_get_beam_dirn
+			(cbf_handle handle,
+			 double vector[3])
+	{
+		int error = CBF_SUCCESS;
+		if (!handle) {
+			error |= CBF_ARGUMENT;
+		} else {
+			cbf_node * axes = NULL;
+			CBF_CALL(cbf_find_parent(&axes,handle->node,CBF_DATABLOCK));
+			CBF_CALL(cbf_find_child(&axes,axes,"axis"));
+			CBF_CALL(cbf_node_get_beam_dirn(axes,vector));
+		}
+		return error;
+	}
+
+	/* Get the direction of gravity.
+
+	Locates the 'axis' category in the handle and then forwards to the
+	corresponding 'node' variant ('cbf_node_get_gravity_dirn') to extract the
+	data.
+
+	\return An error code.
+	*/
+	static int cbf_get_gravity_dirn
+			(cbf_handle handle,
+			 double vector[3])
+	{
+		int error = CBF_SUCCESS;
+		if (!handle) {
+			error |= CBF_ARGUMENT;
+            } else {
+			cbf_node * axes = NULL;
+			CBF_CALL(cbf_find_parent(&axes,handle->node,CBF_DATABLOCK));
+			CBF_CALL(cbf_find_child(&axes,axes,"axis"));
+			CBF_CALL(cbf_node_get_gravity_dirn(axes,vector));
+            }
+		return error;
+        }
 
 
     /* compute the transform from CBF vectors to NeXus vectors
@@ -6015,33 +6242,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         if (cbf_find_tag(handle,"_axis.id")) return CBF_NOTFOUND;
 
-        /* take the beam, if given, -source if source is given, or -Z */
-
-        if (cbf_get_axis_vector_and_offset(handle,"BEAM",beam, NULL)) {
-
-            if (cbf_get_axis_vector_and_offset(handle,"SOURCE",beam, NULL)) {
-
-                beam[0] = 0.; beam[1] = 0.; beam[2] = -1.;
-
-            } else {
-
-                beam[0] = -beam[0]; beam[1] = -beam[1]; beam[2] = -beam[2];
-            }
-
-        }
-
-        /* take gravity if given, otherwise [0, -1, 0 ],
-         -up if up is givem, otherwise -Y */
-
-        if (cbf_get_axis_vector_and_offset(handle,"GRAVITY",gravity,NULL)) {
-
-            if (cbf_get_axis_vector_and_offset(handle,"GRAVITY",gravity,NULL)) {
-
-                gravity[0] = 0; gravity[1] = -1.; gravity[2] = 0.;
-
-            }
-
-        }
+		/* Get the 'beam' and 'gravity' directions, or usable defaults, from the current datablock. */
+		cbf_failnez(cbf_get_beam_dirn(handle,beam));
+		cbf_failnez(cbf_get_gravity_dirn(handle,gravity));
 
         cbf_failnez(cbf_cross_product(beam,gravity,x_nx));
 
@@ -6083,33 +6286,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		double x_nx[3], y_nx[3];
 		double normx_nx, normy_nx;
 
-		if (!handle || !matrix) return CBF_ARGUMENT;
-
-		/* take the beam direction, if given, -source if source is given, or -Z */
-		if (cbf_get_axis_vector_and_offset(handle,"BEAM",beam,NULL)) {
-			if (cbf_get_axis_vector_and_offset(handle,"SOURCE",beam, NULL)) {
-				beam[0] = 0.;
-				beam[1] = 0.;
-				beam[2] = -1.;
-			} else {
-				beam[0] = -beam[0];
-				beam[1] = -beam[1];
-				beam[2] = -beam[2];
-			}
-		}
-
-        /* take gravity if given, otherwise [0, -1, 0 ], -up if up is given, otherwise -Y */
-		if (cbf_get_axis_vector_and_offset(handle,"GRAVITY",gravity,NULL)) {
-			if (cbf_get_axis_vector_and_offset(handle,"UP",gravity,NULL)) {
-				gravity[0] = 0.;
-				gravity[1] = -1.;
-				gravity[2] = 0.;
-			} else {
-				gravity[0] = -gravity[0];
-				gravity[1] = -gravity[1];
-				gravity[2] = -gravity[2];
-			}
-		}
+		/* Get the 'beam' and 'gravity' directions, or usable defaults, from the current datablock. */
+		cbf_failnez(cbf_get_beam_dirn(handle,beam));
+		cbf_failnez(cbf_get_gravity_dirn(handle,gravity));
 
 		/* try to get normalised 'x' axis */
 		cbf_failnez(cbf_cross_product(beam,gravity,x_nx));
@@ -13244,14 +13423,29 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									if (CBF_SUCCESS!=(error|=cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_DOUBLE))) {
 										cbf_debug_print(cbf_strerror(error));
 									} else {
-										const double psn = atan2(value[2],value[1])*90.0/acos(-1.0);
+										const double psn = atan2(-value[2],value[1])*90.0/acos(-1.0);
 										const double psr = sqrt(value[1]*value[1]+value[2]*value[2])/value[0];
-										/* ensure I have suitable structure within the CBF file & write the data */
+										/* extract & store the 2-parameter representation */
 										CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
 										CBF_CALL(cbf_require_column(cbf,"polarizn_source_norm"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",psn));
 										CBF_CALL(cbf_require_column(cbf,"polarizn_source_ratio"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",psr));
+										/*
+										Store the stokes vector - assuming uniform values over all frames.
+										This should only be done if the polarisation really is the same
+										for all frames, if it isn't then these fields should not be used.
+										There is currently no check that values are uniform across frames.
+										*/
+										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_I"));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[0]));
+										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_Q"));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[1]));
+										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_U"));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[2]));
+										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_V"));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[3]));
+										/* TODO: define and then store per-frame data about the radiation */
 									}
 								}
 							} else {
@@ -15380,7 +15574,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 	} cbf2nx_cache_t;
 
 	/* define function signatures to per-row and per-table cache processing functions */
-	typedef int (*process_row_func)(cbf_node *, cbf_h5handle, cbf_cbf2nx_key_t *, void *, void *);
+	typedef int (*process_row_func)(cbf_node *, cbf_h5handle, cbf_cbf2nx_key_t *, void *, void *, const unsigned int);
 	typedef int (*process_tbl_func)(cbf_node *, cbf_h5handle, cbf_cbf2nx_key_t *, void *);
 
 	/*
@@ -15460,6 +15654,23 @@ static int FUNCTION_NAME \
 	return error; \
 				}
 
+#define DECL_CACHE_NODE_SETTER(FUNCTION_NAME, CACHE_TYPE, CACHE_MEMBER) \
+static int FUNCTION_NAME \
+	(cbf_node * const column, \
+	const unsigned int row, \
+	void * const cache) \
+{ \
+	int error = CBF_SUCCESS; \
+	CACHE_TYPE * const c = cache; \
+	CBF_UNUSED(row); \
+	if (!column || !c) { \
+		error |= CBF_ARGUMENT; \
+	} else { \
+		c->CACHE_MEMBER = column; \
+	} \
+	return error; \
+}
+
 					/*
 	Define a type, constructor and setters to use when processing a single row of the 'array_data' table.
                      */
@@ -15510,10 +15721,12 @@ static int FUNCTION_NAME \
 			 cbf_h5handle nx,
 			 cbf_cbf2nx_key_t * const key,
 			 void * const rcache,
-			 void * const tcache)
+			 void * const tcache,
+			const unsigned int row)
 				{
 		int error = CBF_SUCCESS;
 		ArrayDataCache * const c = rcache;
+		CBF_UNUSED(row);
 		if (!category || !nx || !key || !c || tcache) {
 			error |= CBF_ARGUMENT;
 		} else {
@@ -15531,8 +15744,12 @@ static int FUNCTION_NAME \
                      */
 	typedef struct DiffrnRadiationRowCache
 	{
-		double psn;
-		double psr;
+		cbf_node * stokes_I;
+		cbf_node * stokes_Q;
+		cbf_node * stokes_U;
+		cbf_node * stokes_V;
+		cbf_node * psn;
+		cbf_node * psr;
 	} DiffrnRadiationRowCache;
 
 	static int ctor_DiffrnRadiationRowCache
@@ -15543,14 +15760,22 @@ static int FUNCTION_NAME \
 		if (!c) {
 			error |= CBF_ARGUMENT;
 					} else {
-			c->psn = 0.0;
-			c->psr = 0.0;
+			c->stokes_I = NULL;
+			c->stokes_Q = NULL;
+			c->stokes_U = NULL;
+			c->stokes_V = NULL;
+			c->psn = NULL;
+			c->psr = NULL;
 					}
 		return error;
 	}
     
-	DECL_CACHE_DOUBLE_SETTER(cache_DiffrnRadiation_PSN, DiffrnRadiationRowCache, psn);
-	DECL_CACHE_DOUBLE_SETTER(cache_DiffrnRadiation_PSR, DiffrnRadiationRowCache, psr);
+	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_I, DiffrnRadiationRowCache, stokes_I);
+	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_Q, DiffrnRadiationRowCache, stokes_Q);
+	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_U, DiffrnRadiationRowCache, stokes_U);
+	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_V, DiffrnRadiationRowCache, stokes_V);
+	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_PSN, DiffrnRadiationRowCache, psn);
+	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_PSR, DiffrnRadiationRowCache, psr);
 
 	/*
 	Process data from a single row of 'diffrn_radiation'.
@@ -15559,29 +15784,81 @@ static int FUNCTION_NAME \
 	which can't be identified with sufficient reliability (ie: intensity, which is not
 	present in CBF in a usable form; and circular polarisation, which is not present
 	in CBF in any form). Write the data to the appropriate place in nexus.
+
+	If the stokes vector is properly specified then the 2-parameter polarisation is
+	ignored.
 	*/
 	static int process_DiffrnRadiationRowCache
 			(cbf_node * const category,
 			 cbf_h5handle nx,
      cbf_cbf2nx_key_t * const key,
 			 void * const rcache,
-			 void * const tcache)
+			 void * const tcache,
+			 const unsigned int row)
 	{
 		int error = CBF_SUCCESS;
 		DiffrnRadiationRowCache * const c = rcache;
 		if (!category || !nx || !key || !c || tcache) {
 			error |= CBF_ARGUMENT;
 		} else {
-			/* check existance of relevant columns */
-			const int have_psn = cbf_find_child(NULL,category,"polarizn_source_norm");
-			const int have_psr = cbf_find_child(NULL,category,"polarizn_source_ratio");
-			/* convert some data to a more useful form */
-			c->psn *= acos(-1.0)/90.0;
+			/* get the angle to rotate from cbf to nexus polarisation coordinate frames */
+			cbf_node * axes = NULL;
+			double beam_dirn[3] = {0.0,0.0,0.0};
+			double gravity_dirn[3] = {0.0,0.0,0.0};
+			double x_nx[3] = {0.0,0.0,0.0};
+			double y_nx[3] = {0.0,0.0,0.0};
+			double phi = 0.0;
+			CBF_CALL(cbf_find_parent(&axes,category,CBF_DATABLOCK));
+			CBF_CALL(cbf_find_child(&axes,axes,"axis"));
+			CBF_CALL(cbf_node_get_beam_dirn(axes, beam_dirn));
+			CBF_CALL(cbf_node_get_gravity_dirn(axes, gravity_dirn));
+			CBF_CALL(cbf_cross_product(beam_dirn,gravity_dirn,x_nx));
+			CBF_CALL(cbf_cross_product(beam_dirn,x_nx,y_nx));
+			if (!error) {
+				phi = atan2(-y_nx[0],y_nx[1]);
+			}
 			/* store computed data in nexus, if all went well */
-			if (!have_psn && !have_psr) {
+			if (!error) {
+				int have_data = 0;
+				double value[4] = {0.0,0.0,0.0,0.0};
+				if (
+					cbf_node_has_doublevalue(c->stokes_I,row) &&
+					cbf_node_has_doublevalue(c->stokes_Q,row) &&
+					cbf_node_has_doublevalue(c->stokes_U,row) &&
+					cbf_node_has_doublevalue(c->stokes_V,row)
+				)
+				{
+					double Q = 0.0, U = 0.0;
+					/* I have all the relevant columns for a stokes vector */
+					CBF_CALL(cbf_node_get_doublevalue(c->stokes_I,row,value+0));
+					CBF_CALL(cbf_node_get_doublevalue(c->stokes_Q,row,&Q));
+					CBF_CALL(cbf_node_get_doublevalue(c->stokes_U,row,&U));
+					CBF_CALL(cbf_node_get_doublevalue(c->stokes_V,row,value+3));
+					value[1] = cos(phi)*Q + sin(phi)*U;
+					value[2] = -sin(phi)*Q + cos(phi)*U;
+					have_data = 1;
+				} else if (
+					cbf_node_has_doublevalue(c->psn,row) &&
+					cbf_node_has_doublevalue(c->psr,row)
+				)
+				{
+					/*
+					I don't have a valid stokes vector, but I do have a valid
+					2-parameter representation that I know how to convert.
+					*/
+					double psn = 0.0, psr = 0.0;
+					CBF_CALL(cbf_node_get_doublevalue(c->psn,row,&psn));
+					CBF_CALL(cbf_node_get_doublevalue(c->psr,row,&psr));
+					psn *= acos(-1.0)/90.0;
+					value[0] = 1.0;
+					value[1] = psr*cos(psn-phi);
+					value[2] = -psr*sin(psn-phi);
+					value[3] = 0.0;
+					have_data = 1;
+				}
+				if (!error && have_data) {
 					hid_t dset = CBF_H5FAIL;
 					hid_t beam = CBF_H5FAIL;
-				const double value[] = {1.0,c->psr*cos(c->psn),c->psr*sin(c->psn),0.0};
 					const hsize_t max[] = {H5S_UNLIMITED,4};
 					const hsize_t chunk[] = {1,4};
 				const hsize_t offset[] = {nx->slice,0};
@@ -15591,15 +15868,9 @@ static int FUNCTION_NAME \
 					CBF_CALL(cbf_H5Drequire(beam,&dset,"incident_polarisation_stokes",2,max,chunk,buf,H5T_IEEE_F64LE));
 					CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,value,H5T_NATIVE_DOUBLE));
 					cbf_H5Dfree(dset);
-			} else if (CBF_NOTFOUND != have_psn) {
-				cbf_debug_print("error: problem testing for existence of 'diffrn_radiation.polarizn_source_norm':");
-				cbf_debug_print2("error: %s\n",cbf_strerror(have_psn));
-				error |= have_psn;
-			} else if (CBF_NOTFOUND != have_psr) {
-				cbf_debug_print3("error: %s %s\n","problem testing for existence of 'diffrn_radiation.polarizn_source_ratio':",cbf_strerror(have_psr));
-				error |= have_psr;
 				}
 			}
+		}
 		return error;
 	}
 
@@ -15657,10 +15928,12 @@ static int FUNCTION_NAME \
 			 cbf_h5handle nx,
 			 cbf_cbf2nx_key_t * const key,
 			 void * const rcache,
-			 void * const tcache)
+			 void * const tcache,
+			 const unsigned int row)
 	{
 		int error = CBF_SUCCESS;
 		DiffrnScanAxisCache * const c = rcache;
+		CBF_UNUSED(row);
 		if (!category || !nx || !key || !c || tcache) {
 			error |= CBF_ARGUMENT;
                         } else {
@@ -15751,10 +16024,12 @@ static int FUNCTION_NAME \
 			 cbf_h5handle nx,
 			 cbf_cbf2nx_key_t * const key,
 			 void * const rcache,
-			 void * const tcache)
+			 void * const tcache,
+			 const unsigned int row)
 	{
 		int error = CBF_SUCCESS;
 		DiffrnScanFrameAxisCache * const c = rcache;
+		CBF_UNUSED(row);
 		if (!category || !nx || !key || !c || tcache) {
 			error |= CBF_ARGUMENT;
                         } else {
@@ -16048,11 +16323,13 @@ static int FUNCTION_NAME \
 			 cbf_h5handle nx,
 			 cbf_cbf2nx_key_t * const key,
 			 void * const rcache,
-			 void * const tcache)
+			 void * const tcache,
+			 const unsigned int row)
                 {
 		int error = CBF_SUCCESS;
 		DiffrnDetectorAxisRCache * const r = rcache;
 		DiffrnDetectorAxisTCache * const t = tcache;
+		CBF_UNUSED(row);
 		if (!category || !nx || !key || !r || !t) {
 			cbf_debug_print("error: can't process row of 'diffrn_detector_axis'.");
 			error |= CBF_ARGUMENT;
@@ -16340,11 +16617,13 @@ static int FUNCTION_NAME \
 			 cbf_h5handle nx,
 			 cbf_cbf2nx_key_t * const key,
 			 void * const rcache,
-			 void * const tcache)
+			 void * const tcache,
+			 const unsigned int row)
                 {
 		int error = CBF_SUCCESS;
 		DiffrnMeasurementAxisRCache * const r = rcache;
 		DiffrnMeasurementAxisTCache * const t = tcache;
+		CBF_UNUSED(row);
 		if (!category || !nx || !key || !r || !t) {
 			cbf_debug_print("error: can't process row of 'diffrn_measurement_axis'.");
 			error |= CBF_ARGUMENT;
@@ -16434,10 +16713,12 @@ static int FUNCTION_NAME \
 			 cbf_h5handle nx,
      cbf_cbf2nx_key_t * const key,
 			 void * const rcache,
-			 void * const tcache)
+			 void * const tcache,
+			 const unsigned int row)
 	{
 		int error = CBF_SUCCESS;
 		ArrayIntensitiesCache * const c = rcache;
+		CBF_UNUSED(row);
 		if (!category || !nx || !key || !c || tcache) {
             error |= CBF_ARGUMENT;
         } else {
@@ -16523,10 +16804,12 @@ static int FUNCTION_NAME \
 			 cbf_h5handle nx,
 			 cbf_cbf2nx_key_t * const key,
 			 void * const rcache,
-			 void * const tcache)
+			 void * const tcache,
+			 const unsigned int row)
 	{
 		int error = CBF_SUCCESS;
 		ArrayStructureListCache * const c = rcache;
+		CBF_UNUSED(row);
 		if (!category || !nx || !key || !c || tcache) {
 			error |= CBF_ARGUMENT;
                     } else {
@@ -16937,6 +17220,10 @@ static int FUNCTION_NAME \
 		{"polarizn_source_norm",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_PSN}}},
 		{"polarizn_source_ratio",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_PSR}}},
 		{"probe",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"probe",NULL,cbf_h5handle_require_source,NULL,0}}}},
+		{"stokes_polarisation_I",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_I}}},
+		{"stokes_polarisation_Q",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_Q}}},
+		{"stokes_polarisation_U",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_U}}},
+		{"stokes_polarisation_V",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_V}}},
 		{"wavelength_id",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_wavelength_id}}},
 		{NULL,CBF_MAP_NONE,NULL},
 	};
@@ -18280,7 +18567,7 @@ static int FUNCTION_NAME \
                                 }
                 ++matched;
 					/* use cache object */
-					if (row_cache && category_map->process_row) CBF_CALL(category_map->process_row(category,nx,key,row_cache,tbl_cache));
+					if (row_cache && category_map->process_row) CBF_CALL(category_map->process_row(category,nx,key,row_cache,tbl_cache,row));
 					/* clear out old data, leaving the cache ready to be re-used or disposed of */
 					if (row_cache && category_map->row_cache.dtor) CBF_CALL(category_map->row_cache.dtor(row_cache));
             }

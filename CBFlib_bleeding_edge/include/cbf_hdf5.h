@@ -655,7 +655,7 @@ cbf_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp)
 	/* Custom HDF5 types - to get the correct string type for datasets in a consistent way */
 
 	/**
-	\brief Get a HDF5 string datatype to describe a sting of the specified length.
+	\brief Get a HDF5 string datatype to describe a string of the specified length.
 	\ingroup section_HDF5_H5T
 	 */
 	int cbf_H5Tcreate_string(hid_t * const type, const size_t len);
