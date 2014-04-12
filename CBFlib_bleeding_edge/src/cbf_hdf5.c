@@ -488,7 +488,7 @@ extern "C" {
             "entry):NXentry"},
         {CBF_H5_COLUMN_GROUP, "instrument:NXinstrument"},
         {CBF_H5_COLUMN_GROUP, "$or(CBF_diffrn_detector__$(_diffrn_detector.id,0),detector):NXdetector"},
-        {CBF_H5_COLUMN_DATASET|CBF_H5_TERMINATE, "CBF_axis__$(axis_id)"}
+        {CBF_H5_COLUMN_DATASET|CBF_H5_TERMINATE, "$(axis_id)"}
     };
     cbf_colnxdsat cbf_nxmapping_array_structure_list_axis[] = {
         {CBF_H5_COLUMN_ATTRIBUTE, 3, "axis_id", "CBF_array_structure_list_axis__axis_id",NULL,CBF_H5_TEXT|CBF_H5_ARRAY,0},
@@ -517,7 +517,7 @@ extern "C" {
             "$ifeq($(_axis.equipment,$match(_axis.id,$(axis_id))),detector,$or(CBF_diffrn_detector__$(_diffrn_detector.id,0),detector):NXdectector,"
             "$(_axis.equipment,$match(_axis.id,$(axis_id))),goniometer,$or(CBF_diffrn_measurement__$(_diffrn_measurement.id,0),goniometer):NXsample,"
             "detector:NXdetector"},
-        {CBF_H5_COLUMN_DATASET|CBF_H5_TERMINATE, "CBF_axis__$(id)"}
+        {CBF_H5_COLUMN_DATASET|CBF_H5_TERMINATE, "$(id)"}
     };
     cbf_colnxdsat cbf_nxmapping_axis[] = {
         {CBF_H5_COLUMN_ATTRIBUTE, 3, "depends_on", "depends_on",NULL,CBF_H5_TEXT,CBF_H5_COLUMN_PATH},
@@ -585,7 +585,7 @@ extern "C" {
             "entry):NXentry"},
         {CBF_H5_COLUMN_GROUP, "instrument:NXinstrument"},
         {CBF_H5_COLUMN_GROUP, "$or(CBF_diffrn_detector__$(_diffrn_detector.id,0),detector):NXdetector"},
-        {CBF_H5_COLUMN_DATASET|CBF_H5_TERMINATE, "CBF_axis__$(axis_id)"}
+        {CBF_H5_COLUMN_DATASET|CBF_H5_TERMINATE, "$(axis_id)"}
     };
     cbf_colnxdsat * cbf_nxmapping_diffrn_detector_axis = NULL;
 
@@ -4352,8 +4352,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
 	/* ************************************************************************
 	Define a set of node manipulation functions which are missing from cbf's
-	node tree interface. TODO: clean them up and add them to that interface and
-	correct the handle interface to use these functions.
+     node tree interface. All to be removed and replaced with the regular
+     routines they duplicate.  This level of access is error-prone and
+     produces unclear code.
 	************************************************************************ */
 
     /*
@@ -6273,43 +6274,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
     }
 
-	/*
-	Get the axis transform for the current datablock, instead of an arbitrarily chosen datablock.
-	*/
-
-	int cbf_get_NX_axis_transform2
-			(cbf_handle handle,
-			 double matrix [3][3])
-	{
-		double beam[3];
-		double gravity[3];
-		double x_nx[3], y_nx[3];
-		double normx_nx, normy_nx;
-
-		/* Get the 'beam' and 'gravity' directions, or usable defaults, from the current datablock. */
-		cbf_failnez(cbf_get_beam_dirn(handle,beam));
-		cbf_failnez(cbf_get_gravity_dirn(handle,gravity));
-
-		/* try to get normalised 'x' axis */
-		cbf_failnez(cbf_cross_product(beam,gravity,x_nx));
-		normx_nx = cbf_norm(x_nx);
-		if (normx_nx <= 1.e-38) return CBF_ARGUMENT;
-		cbf_failnez(cbf_scalar_product(1./normx_nx,x_nx,x_nx));
-
-		/* try to get normalised 'y' axis */
-		cbf_failnez(cbf_cross_product(beam,x_nx,y_nx));
-		normy_nx = cbf_norm(y_nx);
-		if (normy_nx <= 1.e-38) return CBF_ARGUMENT;
-		cbf_failnez(cbf_scalar_product(1./normy_nx,y_nx,y_nx));
-
-		/* form the transformation matrix */
-		matrix[0][0] = x_nx[0]; matrix[0][1] = x_nx[1]; matrix[0][2] = x_nx[2];
-		matrix[1][0] = y_nx[0]; matrix[1][1] = y_nx[1]; matrix[1][2] = y_nx[2];
-		matrix[2][0] = beam[0]; matrix[2][1] = beam[1]; matrix[2][2] = beam[2];
-
-		return CBF_SUCCESS;
-	}
-
 
     /* Write the HDF5 version of the NeXus axis definitions, if
      the original CBF had axis definitions */
@@ -6344,7 +6308,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         if (errorcode) return errorcode;
 
 
-        /* We will need use the instrument group or create it*/
+        /* We will need to use the instrument group or create it*/
 
         cbf_reportnez(cbf_require_nxgroup(h5handle,
                                           "instrument",
@@ -6366,11 +6330,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             char nxequipment[2048];
 
+            hid_t poiseid = CBF_H5FAIL;
+            
 			hid_t equipmentid = CBF_H5FAIL;
 
             hid_t nxaxisid = CBF_H5FAIL;
-
-			hid_t nxaxisoffsetid = CBF_H5FAIL;
 
 			hid_t dtype = CBF_H5FAIL, dspace = CBF_H5FAIL, dprop = CBF_H5FAIL;
 
@@ -6442,9 +6406,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             if (!cbf_find_column(handle,"rotation_axis")) {
                 
-                cbf_reportnez(cbf_get_value(handle,&depends_on),errorcode);
+                cbf_reportnez(cbf_get_value(handle,&rotation_axis),errorcode);
                 
-                if (!depends_on) rotation_axis = ".";
+                if (!rotation_axis) rotation_axis = ".";
                 
             }
             
@@ -6504,17 +6468,19 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
              to the appropriate detector so we can put this axis in
              /instrument:NXinstrument
              /CBF_diffrn_detector__DETECTORNAME:NXdetector
-             /CBF_axis__AXISID=[]
+                 /poise:NXpoise
+                   /AXISID=[]
 
              If the equipment type is goniometer, we need to map the axis_id
              to the appropriate goniometer, so we can put this axis in
              /instrument:NXinstrument
              /CBF_diffrn_measurement__GONIOMETERNAME:NXsample
+                 /poise:NXpoise
              /CBF__axis__AXISID=[]
 
              For other equipment types, we put this axis in
              /instrument:NXinstrument
-             /coordinate_system:NXcoordinate_system
+               /poise:NXpoise
              /CBF__axis__AXISID=[]
              */
 
@@ -6557,9 +6523,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             } else {
 
-                strcpy(nxequipment,"coordinate_system");
+                strcpy(nxequipment,"poise");
 
-                equipmentclass = "NXcoordinate_system";
+                equipmentclass = "NXpoise";
 
             }
 
@@ -6568,6 +6534,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                               nxequipment, equipmentclass,
                                               instrumentid, &equipmentid),errorcode);
 
+            cbf_reportnez(cbf_require_nxgroup(h5handle,"poise","NXpoise",
+                                              equipmentid, &poiseid), errorcode);
+            
             cbf_reportnez(cbf_get_axis_parameters(handle,
                                                   &sscanpoints,
                                                   &units,
@@ -6576,102 +6545,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             scanpoints = (hsize_t)sscanpoints;
 
-            /* At this point we are ready to write the field CBF_axis__AXISID[] */
+            /* At this point we are ready to write the field AXISID[] */
 
 
 
-            if (cbf_norm(offset) > 1.e-20) {
-
-                char * nxaxis_offset_name;
-
-                char * nxaxis_name;
-
-                char * nxdepends_on_name;
-
-                char * nxrotation_axis_name;
-
-                hid_t mtype;
-
-                cbf_reportnez(cbf_strcat("CBF_axis_offset__",
-                                         axis_id,&nxaxis_offset_name),
-                              errorcode);
-
-                cbf_reportnez(cbf_strcat("CBF_axis__",
-                                         axis_id,&nxaxis_name),errorcode);
-
-                cbf_reportnez(cbf_strcat("CBF_axis__",
-                                         depends_on,&nxdepends_on_name),errorcode);
-
-                cbf_reportnez(cbf_strcat("CBF_axis__",
-                                         rotation_axis,&nxrotation_axis_name),errorcode);
-
-                cbf_h5reportneg(dspace = H5Screate_simple(1,&naught,&one),CBF_ALLOC,errorcode);
-
-                cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
-
-                cbf_h5reportneg(mtype = H5Tcopy(H5T_NATIVE_DOUBLE),CBF_ALLOC,errorcode);
-
-                cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
-
-                cbf_h5reportneg(H5Pset_chunk(dprop, 1, &one),CBF_ALLOC,errorcode);
-
-                cbf_h5reportneg(nxaxisoffsetid = H5Dcreatex(equipmentid,nxaxis_offset_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
-
-                /* cbf_h5reportneg(H5Dwrite(nxaxisoffsetid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode); */
-
-
-                cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
-
-                cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
-
-                cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
-
-                cbf_h5reportneg(H5Pclose(dprop),CBF_ALLOC,errorcode);
-
-
-                errorcode |= cbf_apply_h5text_attribute(nxaxisoffsetid,
-                                                        "transformation_type",
-                                                        "translation",
-                                                        errorcode);
-
-                errorcode |= cbf_apply_h5text_attribute(nxaxisoffsetid,
-                                                        "system",system,errorcode);
-
-
-                errorcode |= cbf_apply_h5vector_attribute(nxaxisoffsetid,
-                                                          "vector",(double *)offset,3,errorcode);
-
-                if (!cbf_cistrcmp(depends_on,".")) {
-
-                    errorcode |= cbf_apply_h5text_attribute(nxaxisoffsetid,
-                                                            "depends_on",depends_on,errorcode);
-
-                } else {
-
-                    errorcode |= cbf_apply_h5text_attribute(nxaxisoffsetid,
-                                                            "depends_on",nxdepends_on_name,errorcode);
-
-                }
-
-                if (cbf_cistrcmp(rotation_axis,".")) {
-                                        
-                    errorcode |= cbf_apply_h5text_attribute(nxaxisoffsetid,
-                                                            "rotation_axis",nxrotation_axis_name,errorcode);
-                    
-                    errorcode |= cbf_apply_h5vector_attribute(nxaxisoffsetid,
-                                                            "rotation",&rotation,1,errorcode);
-                    
-                }
-
-
-                cbf_reportnez(cbf_location_string(datablock,"axis","offset",row,&cbfloc),errorcode);
-
-                errorcode |= cbf_apply_h5text_attribute(nxaxisoffsetid,
-                                                        "cbf_location",
-                                                        cbfloc,
-                                                        errorcode);
-
-                cbf_h5reportneg(H5Dclose(nxaxisoffsetid),CBF_FORMAT,errorcode);
+            {
 
 
                 if (scanpoints > 0) {
@@ -6700,141 +6578,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
                     cbf_h5reportneg(dspace = H5Screate_simple(1,&scanpointsfound,&scanpoints),CBF_ALLOC,errorcode);
 
-                    cbf_h5reportneg(mtype = H5Tcopy(H5T_NATIVE_DOUBLE),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)scanarray),CBF_ALLOC,errorcode);;
-
-                    cbf_reportnez(cbf_free((void **)(&scanarray),NULL),errorcode);
-
-                    cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(H5Pclose(dprop),CBF_ALLOC,errorcode);
-
-                    if (units) {
-
-                        errorcode |= cbf_apply_h5text_attribute(nxaxisid,
-                                                                "units",units,errorcode);
-                    }
-
-                } else {
-
-					hid_t mtype = CBF_H5FAIL;
-
-                    cbf_h5reportneg(dspace = H5Screate_simple(1,&naught,&one),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(H5Pset_chunk(dprop, 1, &one),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
-
-                    /* cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);*/
-
-                    cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(H5Tclose(mtype),CBF_ALLOC,errorcode);
-
-                    cbf_h5reportneg(H5Pclose(dprop),CBF_ALLOC,errorcode);
-
-                }
-
-                errorcode |= cbf_apply_h5text_attribute(nxaxisid,
-                                                        "transformation_type",type,errorcode);
-
-                errorcode |= cbf_apply_h5text_attribute(nxaxisid,
-                                                        "system",system,errorcode);
-
-                errorcode |= cbf_apply_h5vector_attribute(nxaxisid,
-                                                          "vector",(double *)vector,3,errorcode);
-
-
-                errorcode |= cbf_apply_h5text_attribute(nxaxisid,
-                                                        "depends_on",nxaxis_offset_name,errorcode);
-
-                cbf_reportnez(cbf_location_string(datablock,"axis","vector",row,&cbfloc),errorcode);
-
-                errorcode |= cbf_apply_h5text_attribute(nxaxisoffsetid,
-                                                        "cbf_location",
-                                                        cbfloc,
-                                                        errorcode);
-
-                cbf_h5reportneg(H5Dclose(nxaxisoffsetid),CBF_ALLOC,errorcode);
-
-                cbf_reportnez(cbf_free((void **)&nxaxis_offset_name,NULL),errorcode);
-
-                cbf_reportnez(cbf_free((void **)&nxaxis_name,NULL),errorcode);
-
-                cbf_reportnez(cbf_free((void **)&nxdepends_on_name,NULL),errorcode);
-
-                cbf_reportnez(cbf_free((void **)&nxrotation_axis_name,NULL),errorcode);
-
-                cbf_reportnez(cbf_free((void **)&cbfloc,NULL),errorcode);
-
-            } else {
-
-                char * nxaxis_name;
-
-                char * nxdepends_on_name;
-
-                char * nxrotation_axis_name;
-
-                cbf_reportnez(cbf_strcat("CBF_axis__",
-                                         axis_id,&nxaxis_name),errorcode);
-
-                cbf_reportnez(cbf_strcat("CBF_axis__",
-                                         depends_on,&nxdepends_on_name),errorcode);
-
-                cbf_reportnez(cbf_strcat("CBF_axis__",
-                                         rotation_axis,&nxrotation_axis_name),errorcode);
-                
-
-                if (scanpoints > 0) {
-
-                    hsize_t scanpointsfound;
-
-					hid_t mtype = CBF_H5FAIL;
-
-                    size_t sscanpointsfound;
-
-                    double * scanarray;
-
-                    cbf_reportnez(cbf_alloc(((void **) &scanarray),NULL,
-                                            scanpoints*sizeof(double),1),errorcode);
-
-                    cbf_reportnez(cbf_get_axis_scan_points(handle,
-                                                           scanarray,
-                                                           (size_t)scanpoints,
-                                                           &sscanpointsfound,
-                                                           units,
-                                                           axis_id),errorcode);
-
-                    scanpointsfound = (hsize_t)sscanpointsfound;
-
-                    if (sscanpointsfound == 0) scanpointsfound=1;
-
-                    cbf_h5reportneg(dspace = H5Screate_simple(1,&scanpointsfound,&scanpoints),CBF_ALLOC,errorcode);
-
                     cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
 
                     cbf_h5reportneg(mtype = H5Tcopy(H5T_NATIVE_DOUBLE),CBF_ALLOC,errorcode);
 
                     cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
 
-                    cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
+                    cbf_h5reportneg(nxaxisid = H5Dcreatex(poiseid,axis_id,dtype,dspace,dprop),CBF_ALLOC,errorcode);
 
                     cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)scanarray),CBF_ALLOC,errorcode);
 
@@ -6867,7 +6617,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
                     cbf_h5reportneg(H5Pset_chunk(dprop, 1, &one),CBF_ALLOC,errorcode);
 
-                    cbf_h5reportneg(nxaxisid = H5Dcreatex(equipmentid,nxaxis_name,dtype,dspace,dprop),CBF_ALLOC,errorcode);
+                    cbf_h5reportneg(nxaxisid = H5Dcreatex(poiseid,axis_id,dtype,dspace,dprop),CBF_ALLOC,errorcode);
 
                     /* cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode); */
 
@@ -6890,25 +6640,27 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 errorcode |= cbf_apply_h5text_attribute(nxaxisid,
                                                         "system",system,errorcode);
 
+                if (cbf_norm(offset) > 1.e-20) {
+                    
+                errorcode |= cbf_apply_h5vector_attribute(nxaxisid,
+                                                              "offset",(double *)offset,3,errorcode);
+                    
+                    errorcode |= cbf_apply_h5text_attribute(nxaxisid,
+                                                            "offset_units","mm",errorcode);
+                    
+                }
+                
                 errorcode |= cbf_apply_h5vector_attribute(nxaxisid,
                                                           "vector",(double *)vector,3,errorcode);
 
-                if (!cbf_cistrcmp(depends_on,".")) {
 
                     errorcode |= cbf_apply_h5text_attribute(nxaxisid,
                                                             "depends_on",depends_on,errorcode);
 
-                } else {
-
-                    errorcode |= cbf_apply_h5text_attribute(nxaxisid,
-                                                            "depends_on",nxdepends_on_name,errorcode);
-
-                }
-
                 if (cbf_cistrcmp(rotation_axis,".")) {
                     
                     errorcode |= cbf_apply_h5text_attribute(nxaxisid,
-                                                            "rotation_axis",nxrotation_axis_name,errorcode);
+                                                            "rotation_axis",rotation_axis,errorcode);
                     
                     errorcode |= cbf_apply_h5vector_attribute(nxaxisid,
                                                             "rotation",&rotation,1,errorcode);
@@ -6924,15 +6676,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
                 cbf_h5reportneg(H5Dclose(nxaxisid),CBF_FORMAT,errorcode);
 
-                cbf_reportnez(cbf_free((void **)&nxaxis_name,NULL),errorcode);
-
-                cbf_reportnez(cbf_free((void **)&nxdepends_on_name,NULL),errorcode);
-
-                cbf_reportnez(cbf_free((void **)&nxrotation_axis_name,NULL),errorcode);
-
                 cbf_reportnez(cbf_free((void **)&cbfloc,NULL),errorcode);
             }
 
+            cbf_h5reportneg(H5Gclose(poiseid),CBF_FORMAT,errorcode);
+            
             cbf_h5reportneg(H5Gclose(equipmentid),CBF_FORMAT,errorcode);
 
         }
@@ -10841,9 +10589,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		const char * name;
 		hid_t axis;
 		cbf_axisEquipment_e equipment;
+        int flags;
 		struct cbf_axisData_t * depends_on;
+        struct cbf_axisData_t * rotation_axis;
 	} cbf_axisData_t;
     
+#define CBF_AXIS_DATA_PGA  1   /* Flag bit for primary goniometer axis */
+
 	/*
      Allocate and initialise a new 'cbf_axisData_t' object.
      */
@@ -10860,7 +10612,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			data->name = NULL;
 			data->axis = CBF_H5FAIL;
 			data->equipment = axisEquipment_general;
+            data->flags = 0;
 			data->depends_on = NULL;
+            data->rotation_axis = NULL;
 		}
 		return error;
 	}
@@ -13405,7 +13159,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						}
 						cbf_H5Sfree(data_space);
 						/*-----------------------------------------------------------------------------------------------*/
-					} else if (!strcmp(name,"incident_polarisation_stokes")) {
+					} else if (!strcmp(name,"incident_polarisation_stokes")
+                               ||!strcmp(name,"incident_polarisation_stokes_average")) {
 						hid_t data_space = CBF_H5FAIL;
 						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
 						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
@@ -13429,8 +13184,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									if (CBF_SUCCESS!=(error|=cbf_H5Dread2(object,offset,0,count,&value,H5T_NATIVE_DOUBLE))) {
 										cbf_debug_print(cbf_strerror(error));
 									} else {
-										const double psn = atan2(-value[2],value[1])*90.0/acos(-1.0);
-										const double psr = sqrt(value[1]*value[1]+value[2]*value[2])/value[0];
+										const double psn = atan2(value[2],value[1])*22.5/atan2(1.,1.);
+										const double psr = sqrt(value[1]*value[1]+value[2]*value[2])/
+                                        sqrt(value[1]*value[1]+value[2]*value[2]+value[3]*value[3]);
 										/* extract & store the 2-parameter representation */
 										CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
 										CBF_CALL(cbf_require_column(cbf,"polarizn_source_norm"));
@@ -13665,6 +13421,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 										const char * const chr = strrchr(path,'/');
 										const char * const name = NULL==chr ? path : 1+chr;
 										CBF_CALL(_cbf_nx2cbf_key_require_axis(table,&axisPtr,axis,name,axisEquipment_goniometer));
+                                        if (!prevAxisPtr) axisPtr->flags=CBF_AXIS_DATA_PGA;
 										CBF_CALL(cbf_H5Afind(axis,&depends_on,"depends_on",CBF_H5FAIL,CBF_H5FAIL));
 										CBF_CALL(cbf_H5Aread_string(depends_on,&_path));
 										if (CBF_SUCCESS==error) {
@@ -14744,6 +14501,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					cbf_node * diffrn_detector_axis = NULL;
 					cbf_node * diffrn_scan_frame_axis = NULL;
 					cbf_node * axis = NULL;
+                    double McStas2CBF[3][3];
+                    double pgavec[3];
+                    double norm_pgavec;
+                    int ii, jj;
+                    int havepga, havegravity, havesource;
 					CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
 					CBF_CALL(cbf_require_category(cbf,"diffrn_measurement_axis"));
 					diffrn_measurement_axis = cbf->node;
@@ -14753,6 +14515,64 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					diffrn_scan_frame_axis = cbf->node;
 					CBF_CALL(cbf_require_category(cbf,"axis"));
 					axis = cbf->node;
+                    /* extract the CBF coordinate system from the data
+                       if there is a primary goniometer axis*/
+                    havepga = havegravity = havesource = 0;
+                    for (it = table->axisData; CBF_SUCCESS==error && end != it; ++it) {
+                        hid_t attr = CBF_H5FAIL;
+                        cbf_axisData_t * const axisData = *it;
+                        if ((axisData->flags&CBF_AXIS_DATA_PGA) == 0) continue;
+                        if (!cbf_H5Ivalid(attr=H5Aopen(axisData->axis,"vector",H5P_DEFAULT))) {
+                            cbf_debug_print("couldn't open attribute");
+                            error |= CBF_H5ERROR;
+                        } else if (CBF_SUCCESS!=(error|=cbf_H5Aread(attr,H5T_NATIVE_DOUBLE,pgavec))) {
+                            cbf_debug_print(cbf_strerror(error));
+                        } else {
+                            havepga = 1;
+                        }
+                        break;
+                    }
+                    if (havepga) {
+                        double cbfZ[3];
+                        double sourcedotX;
+                        double norm_cbfZ;
+                        norm_pgavec = cbf_norm(pgavec);
+                        if (norm_pgavec < 1.e-38) {
+                            error |= CBF_FORMAT;
+                            cbf_debug_print(cbf_strerror(error));
+                            havepga = 0;
+                        } else {
+                            CBF_CALL(cbf_scalar_product(1./norm_pgavec,pgavec,McStas2CBF[0]));
+                        }
+                        sourcedotX = -pgavec[2];
+                        cbfZ[0] = cbfZ[1] = 0.;
+                        cbfZ[2] = -1;
+                        for (ii=0; ii < 0; ii++) {
+                            cbfZ[ii] = cbfZ[ii]-sourcedotX*pgavec[ii];
+                        }
+                        norm_cbfZ = cbf_norm(cbfZ);
+                        if (norm_cbfZ < 1.e-38) {
+                            error |= CBF_FORMAT;
+                            cbf_debug_print(cbf_strerror(error));
+                            havepga = 0;
+                        } else {
+                            CBF_CALL(cbf_scalar_product(1./norm_cbfZ,cbfZ,McStas2CBF[2]));
+                        }
+                        
+                        CBF_CALL(cbf_cross_product(cbfZ,McStas2CBF[0],McStas2CBF[1]));
+                    }
+                    if (!havepga) {
+                        error |= CBF_FORMAT;
+                        cbf_debug_print2("%s, failed to find valid primary goniometer axis\n",
+                                         cbf_strerror(error));
+                        for (ii=0;ii<3;ii++) {
+                            for (jj=0;jj<3;jj++) {
+                                McStas2CBF[ii][jj] = (ii==jj)?1.:0.;
+                            }
+                        }
+                        McStas2CBF[0][0] = McStas2CBF[2][2] = -1.;
+                    }
+                    
 					/* NOTE: this loop writes data to several tables simultaneously */
 					for (it = table->axisData; CBF_SUCCESS==error && end != it; ++it) {
 						cbf_axisData_t * const axisData = *it;
@@ -14764,6 +14584,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							CBF_CALL(cbf_new_row(cbf));
 							axisRow = cbf->row;
 							CBF_CALL(cbf_set_value(cbf,axisData->name));
+                            if (!error && !cbf_cistrcmp(axisData->name,"GRAVITY")) havegravity = 1;
+                            if (!error && !cbf_cistrcmp(axisData->name,"SOURCE")) havesource = 1;
                             if (!error && nx->logfile) fprintf(nx->logfile,"%s\n",axisData->name);
 						}
 						if (CBF_SUCCESS==error) {
@@ -14798,10 +14620,12 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(cbf_set_value(cbf,"detector"));
 							} else if (axisEquipment_gravity==axisData->equipment) {
                                 if (!error && nx->logfile) fprintf(nx->logfile,"Equipment: gravity\n");
-								CBF_CALL(cbf_set_value(cbf,"gravity"));
+                                /* CBF_CALL(cbf_set_value(cbf,"gravity")); */
+                                CBF_CALL(cbf_set_value(cbf,"general"));
 							} else if (axisEquipment_source==axisData->equipment) {
                                 if (!error && nx->logfile) fprintf(nx->logfile,"Equipment: source\n");
-								CBF_CALL(cbf_set_value(cbf,"source"));
+                                /* CBF_CALL(cbf_set_value(cbf,"source")); */
+                                CBF_CALL(cbf_set_value(cbf,"general"));
 							} else {
                                 if (!error && nx->logfile) fprintf(nx->logfile,"Equipment: general\n");
 								CBF_CALL(cbf_set_value(cbf,"general"));
@@ -14888,13 +14712,16 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							} else if (CBF_SUCCESS!=(error|=cbf_H5Aread(attr,H5T_NATIVE_DOUBLE,vec))) {
 								cbf_debug_print(cbf_strerror(error));
 							} else {
-                                if (!error && nx->logfile) fprintf(nx->logfile,"Vector: [%g, %g, %g]\n",vec[0],vec[1],vec[2]);
+                                double vector[3];
+                                CBF_CALL(cbf_apply_matrix(McStas2CBF,vec,vector));
+                                if (!error && nx->logfile) fprintf(nx->logfile,"Vector: [%g, %g, %g]\n",
+                                                                   vector[0],vector[1],vector[2]);
 								CBF_CALL(cbf_require_column(cbf,"vector[1]"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",vec[0]));
+                                CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",vector[0]));
 								CBF_CALL(cbf_require_column(cbf,"vector[2]"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",vec[1]));
+                                CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",vector[1]));
 								CBF_CALL(cbf_require_column(cbf,"vector[3]"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",vec[2]));
+                                CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",vector[2]));
 							}
 							cbf_H5Afree(attr);
 						}
@@ -14902,20 +14729,22 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						if (!error) {
 							htri_t has_offset = H5Aexists(axisData->axis,"offset");
 							double off[3] = {0.,0.,0.};
+                            double offset[3];
 							if (has_offset<=0) {
 								cbf_debug_print("couldn't check existence of attribute");
 								error |= CBF_H5ERROR;
 							} else if (has_offset>0) {
-								hid_t offset = CBF_H5FAIL;
-								if (!cbf_H5Ivalid(offset=H5Aopen(axisData->axis,"offset",H5P_DEFAULT))) {
+                                hid_t Aoffset = CBF_H5FAIL;
+                                if (!cbf_H5Ivalid(Aoffset=H5Aopen(axisData->axis,"offset",H5P_DEFAULT))) {
 									cbf_debug_print("couldn't open attribute");
 									error |= CBF_H5ERROR;
-								} else if (error|=cbf_H5Aread(offset,H5T_NATIVE_DOUBLE,off)) {
+                                } else if (error|=cbf_H5Aread(Aoffset,H5T_NATIVE_DOUBLE,off)) {
 									cbf_debug_print("couldn't read attribute");
 								} else {
 									int found = CBF_SUCCESS;
 									const char * unit_string = NULL;
 									hid_t units = CBF_H5FAIL;
+                                    CBF_CALL(cbf_apply_matrix(McStas2CBF,off,offset));
 									found = cbf_H5Afind(axisData->axis,&units,"offset_units",CBF_H5FAIL,CBF_H5FAIL);
 									if (CBF_NOTFOUND==found) {
 										/*
@@ -14935,32 +14764,36 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 											cbf_debug_print(cbf_strerror(error));
 										} else {
 											int i;
-                                            if (!error && nx->logfile) fprintf(nx->logfile,"Offset: [%g, %g, %g]\n",off[0]*factor,off[1]*factor,off[2]*factor);
-											for (i = 0; i != 3; ++i) off[i] *= factor;
+                                            if (!error && nx->logfile) fprintf(nx->logfile,"Offset: [%g, %g, %g]\n",offset[0]*factor,offset[1]*factor,offset[2]*factor);
+                                            for (i = 0; i != 3; ++i) offset[i] *= factor;
 										}
 									}
 									cbf_H5Afree(units);
 									free((void*)unit_string);
 								}
-								cbf_H5Afree(offset);
+                                cbf_H5Afree(Aoffset);
 							}
 							if (!error) {
 								CBF_CALL(cbf_require_column(cbf,"offset[1]"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",off[0]));
+                                CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",offset[0]));
 								CBF_CALL(cbf_require_column(cbf,"offset[2]"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",off[1]));
+                                CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",offset[1]));
 								CBF_CALL(cbf_require_column(cbf,"offset[3]"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",off[2]));
+                                CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",offset[2]));
 							}
 						}
                         if (!error && nx->logfile) fputc('\n',nx->logfile);
 					}
-					/* all real axes converted, add the gravity & beam axes to fully specify the coordinate system */
+                    /* all real axes converted, add the gravity & beam axes to 
+                     fully specify the coordinate system for future McStas conversions*/
+                    if (!havegravity) {
+                        double gravity[3] = {0.,-1.,0.};
+                        double cbf_gravity[3];
+                        CBF_CALL(cbf_apply_matrix(McStas2CBF,gravity,cbf_gravity));
 					CBF_CALL(cbf_require_category(cbf,"axis"));
 					/* gravity: */
 					CBF_CALL(cbf_require_column(cbf,"id"));
 					CBF_CALL(cbf_new_row(cbf));
-					/* NOTE: axis_id is case-sensitive */
 					CBF_CALL(cbf_set_value(cbf,"GRAVITY"));
 					CBF_CALL(cbf_require_column(cbf,"equipment"));
 					CBF_CALL(cbf_set_value(cbf,"gravity"));
@@ -14969,21 +14802,26 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					CBF_CALL(cbf_require_column(cbf,"depends_on"));
 					CBF_CALL(cbf_set_value(cbf,"."));
 					CBF_CALL(cbf_require_column(cbf,"vector[1]"));
-					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.0));
+                        CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",cbf_gravity[0]));
 					CBF_CALL(cbf_require_column(cbf,"vector[2]"));
-					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",-1.0));
+                        CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",cbf_gravity[1]));
 					CBF_CALL(cbf_require_column(cbf,"vector[3]"));
-					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.0));
+                        CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",cbf_gravity[2]));
 					CBF_CALL(cbf_require_column(cbf,"offset[1]"));
 					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.));
 					CBF_CALL(cbf_require_column(cbf,"offset[2]"));
 					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.));
 					CBF_CALL(cbf_require_column(cbf,"offset[3]"));
 					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.));
+                    }
+                    if (!havesource) {
+                        double source[3] = {0.,0.,-1.};
+                        double cbf_source[3];
+                        CBF_CALL(cbf_apply_matrix(McStas2CBF,source,cbf_source));
+                        CBF_CALL(cbf_require_category(cbf,"axis"));
 					/* beam: */
 					CBF_CALL(cbf_require_column(cbf,"id"));
 					CBF_CALL(cbf_new_row(cbf));
-					/* NOTE: axis_id is case-sensitive */
 					CBF_CALL(cbf_set_value(cbf,"SOURCE"));
 					CBF_CALL(cbf_require_column(cbf,"equipment"));
 					CBF_CALL(cbf_set_value(cbf,"source"));
@@ -14992,11 +14830,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					CBF_CALL(cbf_require_column(cbf,"depends_on"));
 					CBF_CALL(cbf_set_value(cbf,"."));
 					CBF_CALL(cbf_require_column(cbf,"vector[1]"));
-					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.0));
+                        CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",cbf_source[0]));
 					CBF_CALL(cbf_require_column(cbf,"vector[2]"));
-					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.0));
+                        CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",cbf_source[1]));
 					CBF_CALL(cbf_require_column(cbf,"vector[3]"));
-					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",-1.0));
+                        CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",cbf_source[2]));
 					CBF_CALL(cbf_require_column(cbf,"offset[1]"));
 					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.));
 					CBF_CALL(cbf_require_column(cbf,"offset[2]"));
@@ -15005,6 +14843,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					CBF_CALL(cbf_set_doublevalue(cbf,"%.15g",0.));
 				}
 			}
+            }
 
 			/* free the key */
 			_cbf_free_nx2cbf_key(table);
@@ -15799,6 +15638,72 @@ static int FUNCTION_NAME \
 
 	If the stokes vector is properly specified then the 2-parameter polarisation is
 	ignored.
+     
+     
+     Stokes_I:  Ip+In, where where Ip is the intensity
+     (amplitude squared) of the electric vector in the
+     plane of polarization and In is the intensity
+     (amplitude squared) of the electric vector in the
+     plane of the normal to the plane of polarization.
+     
+     Stokes_Q:  (Ip-In)*cos(2*theta), where where Ip is
+     the intensity (amplitude squared) of the electric vector
+     in the plane of polarization, In is the intensity
+     (amplitude squared) of the electric vector in the plane
+     of the normal to the plane of polarization, and theta
+     is the angle as viewed from the specimen, between the
+     normal to the polarization plane and the laboratory Y
+     axis.
+     
+     Stokes_U:  (Ip-In)*sin(2*theta), where where Ip is
+     the intensity (amplitude squared) of the electric vector
+     in the plane of polarization, In is the intensity
+     (amplitude squared) of the electric vector in the plane
+     of the normal to the plane of polarization, and theta is
+     the angle as viewed from the specimen, between the normal
+     to the polarization plane and the laboratory Y axis.
+     
+     Stokes_V:  +/-2*sqrt(IpIn), with a + sign for right-handed
+     circular polarization, where where Ip is the intensity
+     (amplitude squared) of the electric vector in the plane of
+     polarization and In is the intensity (amplitude squared) of
+     the electric vector in the plane of the normal to the plane of polarization, and theta is the angle as viewed from the
+     specimen, between the normal to the polarization plane
+     and the laboratory Y axis.
+     
+     The theta referred to in Stokes_Q and Stokes_U is that same
+     as the value of _diffrn_radiation.polarizn_source_norm,
+     and depends on the choice of laboratory coordinate systems.
+     In particular, that angle may change between the CBF laboratory
+     coordinate system and the NeXus McStas coordinate system.  In
+     all cases the normal to the polarization plane is assumed to
+     be orthogonal to the direction of the beam
+     
+     
+     Looking head-on at the beam from sample to source, we have
+     
+     
+            \             |  CIF_Y [0,1,0]
+             \            |
+              \           |    | nx_y (nexus Y axis)
+               \          |    |
+                \         |    /   
+                 \        |   |
+         normal   \       |   |
+   to polarization \      |   /
+         plane      \     |  |
+    (in this case    \    |  |
+     theta =+45 deg)  \   |  /
+                       \  | |
+                        \ | |
+                         \|/
+     
+     In this example, nx_y is at a negative angle. phi, from
+     CIF_Y, and the new value of nx_theta with be increased
+     by -phi.  
+       nx_Stokes_Q = cos(2*phi)*Stokes_Q+sin(2*phi)*Stokes_U
+       nx_Stokes_U = cos(2*phi)*Stokes_U-sin(2*phi)*Stohes_Q
+     
 	*/
 	static int process_DiffrnRadiationRowCache
 			(cbf_node * const category,
@@ -15846,8 +15751,8 @@ static int FUNCTION_NAME \
 					CBF_CALL(cbf_node_get_doublevalue(c->stokes_Q,row,&Q));
 					CBF_CALL(cbf_node_get_doublevalue(c->stokes_U,row,&U));
 					CBF_CALL(cbf_node_get_doublevalue(c->stokes_V,row,value+3));
-					value[1] = cos(phi)*Q + sin(phi)*U;
-					value[2] = -sin(phi)*Q + cos(phi)*U;
+					value[1] = cos(2.*phi)*Q + sin(2.*phi)*U;
+					value[2] = -sin(2.*phi)*Q + cos(2.*phi)*U;
 					have_data = 1;
 				} else if (
 					cbf_node_has_doublevalue(c->psn,row) &&
@@ -15856,16 +15761,18 @@ static int FUNCTION_NAME \
 				{
 					/*
 					I don't have a valid stokes vector, but I do have a valid
-					2-parameter representation that I know how to convert.
+					2-parameter representation that I know how to convert
+                    if we assume no incoherent radiation.
 					*/
 					double psn = 0.0, psr = 0.0;
 					CBF_CALL(cbf_node_get_doublevalue(c->psn,row,&psn));
 					CBF_CALL(cbf_node_get_doublevalue(c->psr,row,&psr));
-					psn *= acos(-1.0)/90.0;
+					psn *= atan2(1.,1.)/45.0;
 					value[0] = 1.0;
-					value[1] = psr*cos(psn-phi);
-					value[2] = -psr*sin(psn-phi);
-					value[3] = 0.0;
+					value[1] = psr*cos(2.*(psn-phi));
+					value[2] = psr*sin(2.*(psn-phi));
+					value[3] = 0.0;  /* No circular component assumed */
+                    if (fabs(psr) < 1.0) value[3] = sqrt(1.-psr*psr);
 					have_data = 1;
 				}
 				if (!error && have_data) {
@@ -16209,18 +16116,25 @@ static int FUNCTION_NAME \
                 unsigned int leaves = 0;
 			cbf_node * axis_category = NULL;
 			cbf_node * axis_id_column = NULL;
-			cbf_node * axis_dependsOn_column = NULL;
+            cbf_node * axis_depends_on_column = NULL;
+            cbf_node * axis_rotation_axis_column = NULL;
 			CBF_CALL(cbf_find_parent(&axis_category,category,CBF_DATABLOCK));
 			CBF_CALL(cbf_find_child(&axis_category,axis_category,"axis"));
 			CBF_CALL(cbf_find_child(&axis_id_column,axis_category,"id"));
-			CBF_CALL(cbf_find_child(&axis_dependsOn_column,axis_category,"depends_on"));
+            if (cbf_find_child(&axis_depends_on_column,axis_category,"depends_on")) {
+                axis_depends_on_column = NULL;
+            };
+            if (cbf_find_child(&axis_rotation_axis_column,axis_category,"rotation_axis")) {
+                axis_rotation_axis_column = NULL;
+            };
 			/* populate the in-degree field in the cached data */
 			for (i = 0; c->count != i; ++i) {
 				unsigned int row = 0;
                     const char * depends_on = NULL;
                     /* locate the current axis and get its dependancy */
 				CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,c->axis_id[i],&row));
-				CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&depends_on));
+                if (axis_depends_on_column) {
+                CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&depends_on));
                     if (CBF_SUCCESS==error) {
                         unsigned int j;
                         /* I know which axis the current axis depends on, look for it in the current subset */
@@ -16232,6 +16146,7 @@ static int FUNCTION_NAME \
 			}
 		}
                 }
+            }
                 /* ensure there is only one leaf, and find it */
 			for (i = 0; c->count != i; ++i) {
 				if (0==c->in_degree[i]) {
@@ -16258,7 +16173,7 @@ static int FUNCTION_NAME \
                 }
 				/* ...find the next axis to look for... */
 				CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,axis_id,&row));
-				CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&axis_id));
+                CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&axis_id));
 				/* ...and log all dependent axes in the key, taking paths from the cache when possible. */
 				while (axis_id && strcmp(axis_id,".") && !error) {
 					/* search for an axis with an id given by axis_id in the key, the cache, then the cbf file. */
@@ -16279,7 +16194,7 @@ static int FUNCTION_NAME \
 							prev_idx = idx;
 							/* look up the next axis to process */
 							CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,axis_id,&row));
-							CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&axis_id));
+                            CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&axis_id));
             }
 					} else if (!(error|=cbf_node_find_nextrow(axis_id_column,0,axis_id,&row))) {
 						const unsigned int idx = key->axis.count;
@@ -16290,7 +16205,7 @@ static int FUNCTION_NAME \
 							key->axis.depends_on[prev_idx] = idx;
 							prev_idx = idx;
         }
-						CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&axis_id));
+                        CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&axis_id));
         } else {
 						/* it appears that the expected axis doesn't exist, this is an error */
 						cbf_debug_print3("error: %s %s\n","No axis found for axis with axis_id:",axis_id);
@@ -16501,18 +16416,18 @@ static int FUNCTION_NAME \
                 unsigned int leaves = 0;
 			cbf_node * axis_category = NULL;
 			cbf_node * axis_id_column = NULL;
-			cbf_node * axis_dependsOn_column = NULL;
+            cbf_node * axis_depends_on_column = NULL;
 			CBF_CALL(cbf_find_parent(&axis_category,category,CBF_DATABLOCK));
 			CBF_CALL(cbf_find_child(&axis_category,axis_category,"axis"));
 			CBF_CALL(cbf_find_child(&axis_id_column,axis_category,"id"));
-			CBF_CALL(cbf_find_child(&axis_dependsOn_column,axis_category,"depends_on"));
+            CBF_CALL(cbf_find_child(&axis_depends_on_column,axis_category,"depends_on"));
 			/* populate the in-degree field in the cached data */
 			for (i = 0; c->count != i; ++i) {
 				unsigned int row = 0;
                     const char * depends_on = NULL;
                     /* locate the current axis and get its dependancy */
 				CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,c->axis_id[i],&row));
-				CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&depends_on));
+                CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&depends_on));
 		if (CBF_SUCCESS == error) {
                         unsigned int j;
                         /* I know which axis the current axis depends on, look for it in the current subset */
@@ -16551,7 +16466,7 @@ static int FUNCTION_NAME \
                 }
 				/* ...find the next axis to look for... */
 				CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,axis_id,&row));
-				CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&axis_id));
+                CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&axis_id));
 				/* ...and log all dependent axes in the key, taking paths from the cache when possible. */
 				while (axis_id && strcmp(axis_id,".") && !error) {
 					/* search for an axis with an id given by axis_id in the key, the cache, then the cbf file. */
@@ -16572,7 +16487,7 @@ static int FUNCTION_NAME \
 							prev_idx = idx;
 							/* look up the next axis to process */
 							CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,axis_id,&row));
-							CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&axis_id));
+                            CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&axis_id));
             }
 					} else if (!(error|=cbf_node_find_nextrow(axis_id_column,0,axis_id,&row))) {
 						const unsigned int idx = key->axis.count;
@@ -16583,7 +16498,7 @@ static int FUNCTION_NAME \
 							key->axis.depends_on[prev_idx] = idx;
 							prev_idx = idx;
         }
-						CBF_CALL(cbf_node_get_value(axis_dependsOn_column,row,&axis_id));
+                        CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&axis_id));
 					} else {
 						/* it appears that the expected axis doesn't exist, this is an error */
 						cbf_debug_print3("error: %s %s\n","No axis found for axis with axis_id:", axis_id);
@@ -17608,11 +17523,15 @@ static int FUNCTION_NAME \
 		const char * id;
 		const char * depends_on;
 		const char * equipment;
+        const char * equipment_component;
+        const char * rotation_axis;
+        double rotation;
 		const char * type;
 		double offset[3];
 		double vector[3];
 		unsigned int nOffset;
 		unsigned int nVector;
+        int flags;
 	} cbf_axis_data_t;
 
 	/*
@@ -17621,7 +17540,7 @@ static int FUNCTION_NAME \
 	*/
 	static cbf_axis_data_t cbf_axis_data_init()
 				{
-		return (cbf_axis_data_t) {NULL,NULL,NULL,NULL,{0.,0.,0.},{0.,0.,0.},0,0};
+        return (cbf_axis_data_t) {NULL,NULL,NULL,NULL,NULL,0.,NULL,{0.,0.,0.},{0.,0.,0.},0,0,0};
 				}
 
     /*
@@ -17654,6 +17573,12 @@ static int FUNCTION_NAME \
 					CBF_CALL(cbf_node_get_value(column, row, &data->depends_on));
 				} else if (!strcmp(column->name,"equipment")) {
 					CBF_CALL(cbf_node_get_value(column, row, &data->equipment));
+                } else if (!strcmp(column->name,"equipment_component")) {
+                    CBF_CALL(cbf_node_get_value(column, row, &data->equipment_component));
+                } else if (!strcmp(column->name,"rotation_axis")) {
+                    CBF_CALL(cbf_node_get_value(column, row, &data->rotation_axis));
+                } else if (!strcmp(column->name,"rotation")) {
+                    CBF_CALL(cbf_node_get_doublevalue(column, row, &data->rotation));
 				} else if (!strcmp(column->name,"type")) {
 					CBF_CALL(cbf_node_get_value(column, row, &data->type));
 				} else if (!strcmp(column->name,"offset[1]")) {
@@ -17889,6 +17814,7 @@ static int FUNCTION_NAME \
                                     unsigned int i;
                                     const unsigned int dimension = key->arrayAxisSet.dimension[set];
 									const char * depends_on_path = NULL;
+                                    const char * rotation_axis_path = NULL;
                                     hid_t dset = CBF_H5FAIL;
 							const hsize_t dim[] = {dimension};
 							const hsize_t max[] = {H5S_UNLIMITED};
@@ -17999,6 +17925,19 @@ static int FUNCTION_NAME \
                                     if (CBF_SUCCESS==error && axis_settings.equipment) {
                                         CBF_CALL(cbf_H5Arequire_string(dset,"equipment",axis_settings.equipment));
                                     }
+                                    if (CBF_SUCCESS==error && axis_settings.equipment_component && strlen(axis_settings.equipment_component)>0) {
+                                        CBF_CALL(cbf_H5Arequire_string(dset,"equipment_component",axis_settings.equipment_component));
+                                    }
+                                    if (CBF_SUCCESS==error && axis_settings.rotation_axis && strlen(axis_settings.rotation_axis)>0) {
+                                        /* *** Change to a path instead of an axis name *** */
+                                        CBF_CALL(cbf_H5Arequire_string(dset,"rotation_axis",axis_settings.rotation_axis));
+                                        {
+                                            const hsize_t rdim[] = {1};
+                                            hsize_t rbuf[] = {0};
+                                            CBF_CALL(CBFM_H5Arequire_cmp2(dset,"rotation",1,rdim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,&(axis_settings.rotation),rbuf,cmp_double,cmp_params));
+                                        }
+                                        
+                                    }
 									if (CBF_SUCCESS==error && axis_settings.nOffset==3) {
 										double offset[3];
                                         const hsize_t vdim[] = {3};
@@ -18039,6 +17978,238 @@ static int FUNCTION_NAME \
 	}
 
             /*
+     Special function to support axis conversions back from NeXus to
+     CBF by recording the axes CBF_X_, CBF_Y_, CBF_Z_, BEAM, GRAVITY,
+     UP and other general axes in NXentry/NXinstrument/NXpoise, if possible.
+
+     */
+    static int cbf_write_cbf2nx__cbf_general_axes
+    (cbf_handle handle,
+     cbf_h5handle h5handle,
+     double matrix[3][3])
+    {
+        
+        const char* anames[7] = {"CBF_X_","CBF_Y_","CBF_Z_","BEAM", "SOURCE", "GRAVITY", "UP"};
+        int afound[7] = {0,0,0,0,0,0,0};
+        hid_t instrument = CBF_H5FAIL;
+        hid_t poise = CBF_H5FAIL;
+        int error;
+        unsigned int rows, row;
+        hid_t dset = CBF_H5FAIL;
+        const hsize_t max[] = {H5S_UNLIMITED};
+        const hsize_t cnk[] = {1};
+        hsize_t buf[] = {0};
+        
+        
+        if (!handle || !h5handle || !matrix) return CBF_ARGUMENT;
+        
+        error = 0;
+        
+        /* ensure the handle contains some basic structure */
+        CBF_CALL(cbf_h5handle_require_entry(h5handle,0,0));
+        CBF_CALL(cbf_h5handle_require_instrument(h5handle,&instrument,0));
+        CBF_CALL(cbf_H5Grequire(instrument,&poise,"poise"));
+        CBF_CALL(cbf_H5Arequire_string(poise,"NXclass","NXpoise"));
+        
+        CBF_CALL(cbf_find_category(handle, "axis"));
+        CBF_CALL(cbf_find_column(handle,"id"));
+        CBF_CALL(cbf_count_rows(handle,&rows));
+        
+        for(row=0; row < rows+7 && !error; row++) {
+            const char * axis_id;
+            const char * equipment;
+            const char * equipment_component;
+            const char * depends_on;
+            const char * rotation_axis;
+            const char * type;
+            const char * system;
+            double rotation;
+            double vector[3], offset[3];
+            
+            if (row < rows) {
+                
+                CBF_CALL(cbf_find_category(handle, "axis"));
+                CBF_CALL(cbf_find_column(handle,"id"));
+                CBF_CALL(cbf_select_row(handle,row));
+                CBF_CALL(cbf_find_column(handle,"id"));
+                CBF_CALL(cbf_get_value(handle,&axis_id));
+                
+                if (!cbf_cistrcmp(axis_id,"BEAM")) afound[3] = 1;
+                if (!cbf_cistrcmp(axis_id,"SOURCE")) afound[4] = 1;
+                if (!cbf_cistrcmp(axis_id,"GRAVITY")) afound[5] = 1;
+                if (!cbf_cistrcmp(axis_id,"UP")) afound[6] = 1;
+                
+                equipment = "general";
+                if (!cbf_find_column(handle,"equipment")) {
+                    CBF_CALL(cbf_get_value(handle,&equipment));
+                    if (!equipment)  equipment = "general";
+                }
+                
+                cbf_debug_print3("processing axis %s for equipment %s\n",axis_id,equipment);
+                
+                if (!cbf_cistrcmp(equipment,"detector")||
+                    !cbf_cistrcmp(equipment,"goniometer")) continue;
+                
+                equipment = "general";
+                
+                depends_on = ".";
+                if (!cbf_find_column(handle,"depends_on")) {
+                    CBF_CALL(cbf_get_value(handle,&depends_on));
+                    if (!depends_on) depends_on = ".";
+                }
+                
+                rotation_axis= ".";
+                if (!cbf_find_column(handle,"rotation_axis")) {
+                    CBF_CALL(cbf_get_value(handle,&depends_on));
+                    if (!rotation_axis) rotation_axis = ".";
+                }
+                
+                rotation = 0.;
+                if (!cbf_find_column(handle,"rotation")) {
+                    CBF_CALL(cbf_get_doublevalue(handle,&rotation));
+                }
+                
+                type = "general";
+                if (!cbf_find_column(handle,"type")) {
+                    CBF_CALL(cbf_get_value(handle,&type));
+                    if (!type) type = "general";
+                }
+                
+                system = "laboratory";
+                if (!cbf_find_column(handle,"system")) {
+                    CBF_CALL(cbf_get_value(handle,&system));
+                    if (!system||!system[0]) system = "laboratory";
+                    if (cbf_cistrcmp(system,".")||cbf_cistrcmp(system,"?"))
+                        system = "laboratory";
+                }
+                
+                if (cbf_cistrcmp(system,"laboratory")) {
+                    CBF_CALL(cbf_get_axis_vector_and_offset(handle,axis_id,
+                                                            vector, offset));
+                } else {
+                    double cbfvector[3], cbfoffset[3];
+                    CBF_CALL(cbf_get_axis_poise(handle, 0.,
+                                                (double *)cbfvector,(double *)cbfvector+1,(double *)cbfvector+2,
+                                                (double *)cbfoffset,(double *)cbfoffset+1,(double *)cbfoffset+2,
+                                                NULL,axis_id,NULL));
+                    system = "McStas_absolute";
+                    CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
+                    CBF_CALL(cbf_apply_matrix(matrix,cbfoffset,offset));
+                }
+                
+            } else {
+                
+                double cbfvector[3];
+                
+                axis_id = anames[row-rows];
+                depends_on = ".";
+                equipment = "general";
+                rotation_axis = ".";
+                rotation = 0.;
+                system = "McStas_absolute";
+                type = "general";
+                offset[0] = offset[1] = offset[2] = 0.;
+                                
+                switch (row-rows) {
+                    case 0:
+                        cbfvector[0] = 1.;
+                        cbfvector[1] = 0.;
+                        cbfvector[2] = 0.;
+                        CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
+                        break;
+                    case 1:
+                        cbfvector[0] = 0.;
+                        cbfvector[1] = 1.;
+                        cbfvector[2] = 0.;
+                        CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
+                        break;
+                    case 2:
+                        cbfvector[0] = 0.;
+                        cbfvector[1] = 0.;
+                        cbfvector[2] = 1.;
+                        CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
+                        break;
+                    case 3: /* BEAM */
+                        if (afound[3] || afound[4]) continue;
+                        cbfvector[0] = 0.;
+                        cbfvector[1] = 0.;
+                        cbfvector[2] = 1.;
+                        break;
+                    case 4: /* SOURCE */
+                        if (afound[3] || afound[4]) continue;
+                        cbfvector[0] = 0.;
+                        cbfvector[1] = 0.;
+                        cbfvector[2] = -1.;
+                        break;
+                    case 5: /* GRAVITY */
+                        if (afound[5] || afound[6] ) continue;
+                        vector[0] = 0.;
+                        vector[1] = -1.;
+                        vector[2] = 0.;
+                        break;
+                    case 6: /* UP */
+                        if (afound[5] || afound[7]) continue;
+                        vector[0] = 0.;
+                        vector[1] = 1.;
+                        vector[2] = 0.;
+                        break;
+                    default:
+                        continue;
+
+                }
+                
+                cbf_debug_print3("processing axis %s for equipment %s\n",axis_id,equipment);
+            }
+            
+            CBF_CALL(cbf_H5Drequire(poise,&dset,axis_id,1,max,cnk,buf,H5T_IEEE_F64LE));
+            CBF_CALL(cbf_H5Arequire_string(dset,"depends_on",depends_on));
+            CBF_CALL(cbf_H5Arequire_string(dset,"equipment",equipment));
+            CBF_CALL(cbf_H5Arequire_string(dset,"transformation_type",type));
+            CBF_CALL(cbf_H5Arequire_string(dset,"system",system));
+            if (cbf_cistrcmp(rotation_axis,".")) {
+                CBF_CALL(cbf_H5Arequire_string(dset,"rotation_axis",rotation_axis));
+                if (!error) {
+                    /* write the offset */
+                    const hsize_t dim[] = {1};
+                    double buf[] = {0};
+                    if (H5Aexists(dset,"rotation") > 0) {
+                        H5Adelete_by_name(dset,".","rotation",H5P_DEFAULT);
+                    }
+                    CBF_CALL(CBFM_H5Arequire_cmp2(dset,"rotation",1,dim,H5T_IEEE_F64LE,
+                                                  H5T_NATIVE_DOUBLE,&rotation,buf,
+                                                  cmp_double,cmp_params));
+                    CBF_CALL(cbf_H5Arequire_string(dset,"rotation_units","degrees"));
+                }
+            }
+            
+            if (!error && cbf_norm(offset) > 1.e-20) {
+                /* write the offset */
+                const hsize_t dim[] = {3};
+                double buf[] = {0};
+                if (H5Aexists(dset,"offset") > 0) {
+                    H5Adelete_by_name(dset,".","offset",H5P_DEFAULT);
+                }
+                CBF_CALL(CBFM_H5Arequire_cmp2(dset,"offset",1,dim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,offset,buf,cmp_double,cmp_params));
+                CBF_CALL(cbf_H5Arequire_string(dset,"offset_units","mm"));
+            }
+            if (!error) {
+                /* write the vector */
+                const hsize_t dim[] = {3};
+                double buf[] = {0};
+                if (H5Aexists(dset,"vector") > 0) {
+                    H5Adelete_by_name(dset,".","vector",H5P_DEFAULT);
+                }
+                CBF_CALL(CBFM_H5Arequire_cmp2(dset,"vector",1,dim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,vector,buf,cmp_double,cmp_params));
+            }
+            
+            cbf_H5Dfree(dset);
+        }
+        cbf_H5Gfree(poise);
+        return error;
+    }
+
+    
+    /*
 	Special function to handle axis conversions by dealing with axis sets and
 	traversing the dependency chain for all referenced leaf axes. This doesn't
 	match a set of rows within the axis table, so should not be forced into
@@ -18105,13 +18276,20 @@ static int FUNCTION_NAME \
                 cbf_node * asla_setid = NULL;
                 cbf_node * asla_axisid = NULL;
                 cbf_node * axis_id = NULL;
-                cbf_node * axis_dependson = NULL;
+                cbf_node * axis_depends_on = NULL;
+                cbf_node * axis_rotation_axis = NULL;
                 CBF_CALL(cbf_find_category(handle,"array_structure_list_axis"));
                 CBF_CALL(cbf_find_child(&asla_setid,handle->node,"axis_set_id"));
                 CBF_CALL(cbf_find_child(&asla_axisid,handle->node,"axis_id"));
                 CBF_CALL(cbf_find_category(handle,"axis"));
                 CBF_CALL(cbf_find_child(&axis_id,handle->node,"id"));
-                CBF_CALL(cbf_find_child(&axis_dependson,handle->node,"depends_on"));
+                if(cbf_find_child(&axis_depends_on,handle->node,"depends_on")) {
+                    axis_depends_on = NULL;
+                };
+                if(cbf_find_child(&axis_depends_on,handle->node,"rotation_axis")) {
+                    axis_rotation_axis = NULL;
+                };
+
                 if (CBF_SUCCESS==error) {
                     unsigned int i;
                     unsigned int nAxes = 0;
@@ -18157,7 +18335,7 @@ static int FUNCTION_NAME \
 						*/
                     for (i = 0; i != nAxes; ++i) {
                         const char * depends_on = NULL;
-                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(axis_dependson,i,&depends_on))) {
+                        if (CBF_SUCCESS!=(error|=cbf_node_get_value(axis_depends_on,i,&depends_on))) {
                             cbf_debug_print2("error: %s\n",cbf_strerror(error));
 						} else {
                             unsigned int j = 0;
@@ -18190,7 +18368,9 @@ static int FUNCTION_NAME \
             /* convert each axis: */
             for (i = 0; CBF_SUCCESS==error && i != key->axis.count; ++i) {
                 const char * axis_name = key->axis.axis_id[i];
+                const char * axis_rot_name = NULL;
                 const char * axis_path = key->axis.path[i];
+                const char * axis_rot_path = NULL;
                 const char axis_root[] = ".";
                 while (CBF_SUCCESS==error && axis_name && strcmp(axis_name,".") && axis_path) {
                     hid_t dset = CBF_H5FAIL;
@@ -18204,9 +18384,10 @@ static int FUNCTION_NAME \
 						cbf_axis_data_t axis_settings = cbf_axis_data_init();
 						cbf_read_axis_row(&axis_settings,category,handle->row);
                         ++matched;
-                        /* update variables for next iteration & to record the axis dependancy */
+                        /* update variables for next iteration & to record the axis dependency */
 						axis_name = axis_settings.depends_on;
-                        if (!axis_name || !strcmp(axis_name,axis_root) || !strcmp(axis_name,"?")) {
+                        if (!axis_name || !strcmp(axis_name,axis_root)
+                            || !strcmp(axis_name,"?") || !strcmp(axis_name,".")) {
                             axis_path = axis_root;
                         } else {
                             unsigned int j;
@@ -18224,6 +18405,27 @@ static int FUNCTION_NAME \
                                 error |= CBF_NOTIMPLEMENTED;
                             }
                         }
+                        axis_rot_name = axis_settings.rotation_axis;
+                        if (!axis_rot_name || !strcmp(axis_rot_name,axis_root)
+                            || !strcmp(axis_rot_name,"?")|| !strcmp(axis_rot_name,".")) {
+                            axis_rot_path = NULL;
+                        } else {
+                            unsigned int j;
+                            for (j = 0; j != key->axis.count; ++j) {
+                                if (!strcmp(key->axis.axis_id[j],axis_rot_name)) break;
+                            }
+                            if (j != key->axis.count) {
+                                /* assign existing axis path */
+                                axis_rot_path = key->axis.path[j];
+                            } else {
+                                /* TODO: make up a new axis path & store it for future reference */
+                                axis_rot_path = NULL;
+                                cbf_debug_print("conversion of axes not in detector or goniometer axis groups is not implemented - need to define a path for them\n");
+                                cbf_debug_print2("problematic axis %s\n",axis_name);
+                                error |= CBF_NOTIMPLEMENTED;
+                            }
+                        }
+                        
                         /* I might have the data - write it to HDF5 if I do */
                         if (CBF_SUCCESS==error) {
                             /* write the dependency */
@@ -18234,6 +18436,14 @@ static int FUNCTION_NAME \
                             }
                             /* write the equipment */
 							if (axis_settings.equipment) CBF_CALL(cbf_H5Arequire_string(dset,"equipment",axis_settings.equipment));
+                            if (axis_settings.equipment_component) CBF_CALL(cbf_H5Arequire_string(dset,"equipment_component",axis_settings.equipment_component));
+                            if (axis_rot_path) {
+                                CBF_CALL(cbf_H5Arequire_string(dset,"rotation_axis",axis_rot_path));
+                                const hsize_t dim[] = {1};
+                                double buf[] = {0};
+                                CBF_CALL(CBFM_H5Arequire_cmp2(dset,"",1,dim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,&(axis_settings.rotation),buf,cmp_double,cmp_params));
+                                CBF_CALL(cbf_H5Arequire_string(dset,"rotation_units","degrees"));
+                            }
                             if (!error) {
                                 /* write the offset */
 								double offset[3] = {0.,0.,0.};
@@ -18720,7 +18930,7 @@ static int FUNCTION_NAME \
                 fputc('\n',h5handle->logfile);
 			}
 			/* get the axis transformation matrix, which is constant within a datablock */
-            CBF_CALL(cbf_get_NX_axis_transform2(handle,key->matrix));
+            CBF_CALL(cbf_get_NX_axis_transform(handle,key->matrix));
             /* Get the list of scans */
             CBF_CALL(cbf_find_category(handle, "diffrn_scan"));
             CBF_CALL(cbf_rewind_column(handle));
@@ -18821,6 +19031,7 @@ static int FUNCTION_NAME \
 					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_radiation_wavelength", key, list, 1));
 					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_refln", key, list, 0));
                     CBF_CALL(cbf_write_cbf2nx__axis(handle, h5handle, key, list));
+                    CBF_CALL(cbf_write_cbf2nx__cbf_general_axes(handle, h5handle, key->matrix));
 					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_scan_axis", key, list, 0));
 					CBF_CALL(cbf2nx_convert_category(db, h5handle, "diffrn_scan_frame_axis", key, list, 0));
                     /* convert the data */
