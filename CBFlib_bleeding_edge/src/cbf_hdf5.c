@@ -6523,9 +6523,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             } else {
 
-                strcpy(nxequipment,"poise");
+                strcpy(nxequipment,"transformations");
 
-                equipmentclass = "NXpoise";
+                equipmentclass = "NXtransformations";
 
             }
 
@@ -6534,7 +6534,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                               nxequipment, equipmentclass,
                                               instrumentid, &equipmentid),errorcode);
 
-            cbf_reportnez(cbf_require_nxgroup(h5handle,"poise","NXpoise",
+            cbf_reportnez(cbf_require_nxgroup(h5handle,"transformations","NXtransformations",
                                               equipmentid, &poiseid), errorcode);
             
             cbf_reportnez(cbf_get_axis_parameters(handle,
@@ -12196,7 +12196,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						error |= found;
 					} else {
 						/* I have a group with an NX_class: match on NX_class */
-						if (!strcmp(NX_class,"NXpoise")) {
+						if (!strcmp(NX_class,"NXtransformations")) {
+							/* known class that will be processed */
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
+						} else if (!strcmp(NX_class,"NXpoise")) {
 							/* known class that will be processed */
 							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 						} else if (!strcmp(NX_class,"NXcollection")) {
@@ -12732,7 +12735,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						error |= found;
 					} else {
 						/* I have a group with an NX_class: match on NX_class */
-						if (!strcmp(NX_class,"NXpoise")) {
+						if (!strcmp(NX_class,"NXtransformations")) {
+							/* known class that will be processed */
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
+						} else if (!strcmp(NX_class,"NXpoise")) {
 							/* known class that will be processed */
 							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 						} else if (!strcmp(NX_class,"NXcollection")) {
@@ -12819,7 +12825,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						error |= found;
 					} else {
 						/* I have a group with an NX_class: match on NX_class */
-                        if (!strcmp(NX_class,"NXpoise")) {
+                        if (!strcmp(NX_class,"NXtransformations")) {
+							/* known class that will be processed */
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
+                        } else if (!strcmp(NX_class,"NXpoise")) {
 							/* known class that will be processed */
 							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 						} else if (!strcmp(NX_class,"NXcollection")) {
@@ -13317,7 +13326,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						error |= found;
 					} else {
 						/* I have a group with an NX_class: match on NX_class */
-                        if (!strcmp(NX_class,"NXpoise")) {
+                        if (!strcmp(NX_class,"NXtransformations")) {
+							/* known class that will be processed */
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
+                        } else if (!strcmp(NX_class,"NXpoise")) {
 							/* known class that will be processed */
 							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 						} else if (!strcmp(NX_class,"NXcollection")) {
@@ -13467,7 +13479,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						error |= found;
 					} else {
 						/* I have a group with an NX_class: match on NX_class */
-                        if (!strcmp(NX_class,"NXpoise")) {
+                        if (!strcmp(NX_class,"NXtransformations")) {
+							/* known class that will be processed */
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
+                        } else if (!strcmp(NX_class,"NXpoise")) {
 							/* known class that will be processed */
 							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 						} else if (!strcmp(NX_class,"NXcollection")) {
@@ -13635,7 +13650,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						error |= found;
 					} else {
 						/* I have a group with an NX_class: match on NX_class */
-                        if (!strcmp(NX_class,"NXpoise")) {
+                        if (!strcmp(NX_class,"NXtransformations")) {
+							/* known class that will be processed */
+							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
+                        } else if (!strcmp(NX_class,"NXpoise")) {
 							/* known class that will be processed */
 							if (nx->logfile) _cbf_write_name(nx->logfile,name,NX_class,table->indent,1);
 						} else if (!strcmp(NX_class,"NXcollection") || !strcmp(NX_class,"NXdata")) {
@@ -16268,10 +16286,10 @@ static int FUNCTION_NAME \
                         /* the axis exists - convert the data */
 				hid_t det = CBF_H5FAIL;
                         hid_t axisGroup = CBF_H5FAIL;
-                const char axis_group_name[] = "poise";
+                const char axis_group_name[] = "transformations";
 				CBF_CALL(cbf_h5handle_require_detector(nx,&det,0));
 				CBF_CALL(cbf_H5Grequire(det,&axisGroup,axis_group_name));
-                CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXpoise"));
+                CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXtransformations"));
 				if (!error) {
 					const char path_empty[] = "";
 					const char * path_parts[] = {
@@ -16562,10 +16580,10 @@ static int FUNCTION_NAME \
 				/* the axis exists - convert the data */
 				hid_t sample = CBF_H5FAIL;
 				hid_t axisGroup = CBF_H5FAIL;
-                const char axis_group_name[] = "poise";
+                const char axis_group_name[] = "transformations";
 				CBF_CALL(cbf_h5handle_require_sample(nx,&sample,0));
 				CBF_CALL(cbf_H5Grequire(sample,&axisGroup,axis_group_name));
-                CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXpoise"));
+                CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXtransformations"));
 				if (!error) {
 					const char path_empty[] = "";
 					const char * path_parts[] = {
@@ -17980,7 +17998,8 @@ static int FUNCTION_NAME \
             /*
      Special function to support axis conversions back from NeXus to
      CBF by recording the axes CBF_X_, CBF_Y_, CBF_Z_, BEAM, GRAVITY,
-     UP and other general axes in NXentry/NXinstrument/NXpoise, if possible.
+     UP and other general axes in NXentry/NXinstrument/NXtranformations,
+     if possible.
 
      */
     static int cbf_write_cbf2nx__cbf_general_axes
@@ -18008,8 +18027,8 @@ static int FUNCTION_NAME \
         /* ensure the handle contains some basic structure */
         CBF_CALL(cbf_h5handle_require_entry(h5handle,0,0));
         CBF_CALL(cbf_h5handle_require_instrument(h5handle,&instrument,0));
-        CBF_CALL(cbf_H5Grequire(instrument,&poise,"poise"));
-        CBF_CALL(cbf_H5Arequire_string(poise,"NXclass","NXpoise"));
+        CBF_CALL(cbf_H5Grequire(instrument,&poise,"transformations"));
+        CBF_CALL(cbf_H5Arequire_string(poise,"NXclass","NXtransformations"));
         
         CBF_CALL(cbf_find_category(handle, "axis"));
         CBF_CALL(cbf_find_column(handle,"id"));
@@ -19557,8 +19576,8 @@ cbf_debug_print2("Config settings for axis '%s' could not be found: " \
 		hsize_t buf[] = {0}; \
 		const double num = strtod(token,0); \
 CBF_CALL(cbf_h5handle_require_sample(h5handle, &sample,0)); \
-CBF_CALL(cbf_H5Grequire(sample,&axes,"poise")); \
-CBF_CALL(cbf_H5Arequire_string(axes,"NX_class","NXpoise")); \
+CBF_CALL(cbf_H5Grequire(sample,&axes,"transformations")); \
+CBF_CALL(cbf_H5Arequire_string(axes,"NX_class","NXtransformations")); \
 CBF_CALL(cbf_H5Drequire(axes,&h5data,axisItem->nexus,1,max,chunk,buf,H5T_IEEE_F64LE)); \
 CBF_CALL(cbf_H5Dinsert(h5data,offset,0,count,buf,&num,H5T_NATIVE_DOUBLE)); \
 CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value)); \
@@ -19567,7 +19586,7 @@ CBF_CALL(_cbf_scan_pilatus_V1_2_miniheader(&token, &n, &newline, 0, &value)); \
 			if (strcmp(axisItem->depends_on,dot)) { \
 				const char path_empty[] = ""; \
 				const char path_sample[] = "sample"; \
-const char axis_group_name[] = "poise"; \
+const char axis_group_name[] = "transformations"; \
 				const char * path_parts[] = { \
 					path_empty, \
 					h5handle->nxid_name, \
@@ -19625,7 +19644,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 								hid_t h5location = CBF_H5FAIL; /* DO NOT FREE THIS */
 								const char path_empty[] = "";
 								const char path_sample[] = "sample";
-                                const char axis_group_name[] = "poise";
+                                const char axis_group_name[] = "transformations";
 								const char * path_parts[] = {
 									path_empty,
 									h5handle->nxid_name,
@@ -19681,9 +19700,9 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 							const char * axis_translation = "translation";
 							const char * axis_rotation = "rotation";
 							const char path_empty[] = "";
-                            const char axis_group_name[] = "poise";
+                            const char axis_group_name[] = "transformations";
                             CBF_CALL(cbf_H5Grequire(h5location,&axis_group,axis_group_name));
-                            CBF_CALL(cbf_H5Arequire_string(axis_group,"NX_class","NXpoise"));
+                            CBF_CALL(cbf_H5Arequire_string(axis_group,"NX_class","NXtransformations"));
 							{ /* Translation-specific */
 								hid_t h5data = CBF_H5FAIL;
 								hid_t h5type = H5T_IEEE_F64LE;
@@ -19800,7 +19819,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     CBF_CALL(cbf_H5Arequire_string(h5axis,"transformation_type","translation"));
 					{
 						const char path_empty[] = "";
-                        const char path_pose[] = "poise";
+                        const char path_pose[] = "transformations";
 						const char path_axis[] = "rotation";
 						const char * const path_parts[] = {
 							path_empty,
@@ -19857,7 +19876,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     CBF_CALL(cbf_H5Arequire_string(h5axis,"transformation_type","translation"));
 					{
 						const char path_empty[] = "";
-                        const char path_pose[] = "poise";
+                        const char path_pose[] = "transformations";
 						const char path_axis[] = "rotation";
 						const char * const path_parts[] = {
 							path_empty,
