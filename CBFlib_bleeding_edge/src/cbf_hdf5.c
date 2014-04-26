@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_hdf5 -- read and write HDF5/NeXus files                        *
  *                                                                    *
- * Version 0.9.4.1.1 15 March 2014                                    *
+ * Version 0.9.5 25 April 2014                                        *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -6468,19 +6468,19 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
              to the appropriate detector so we can put this axis in
              /instrument:NXinstrument
              /CBF_diffrn_detector__DETECTORNAME:NXdetector
-                 /poise:NXpoise
+                 /transformations:NXtransformations
                    /AXISID=[]
 
              If the equipment type is goniometer, we need to map the axis_id
              to the appropriate goniometer, so we can put this axis in
              /instrument:NXinstrument
              /CBF_diffrn_measurement__GONIOMETERNAME:NXsample
-                 /poise:NXpoise
+                 /transformations:NXtransformations
              /CBF__axis__AXISID=[]
 
              For other equipment types, we put this axis in
              /instrument:NXinstrument
-               /poise:NXpoise
+               /transformations:NXtransformations
              /CBF__axis__AXISID=[]
              */
 
@@ -13195,7 +13195,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									} else {
 										const double psn = atan2(value[2],value[1])*22.5/atan2(1.,1.);
 										const double psr = sqrt(value[1]*value[1]+value[2]*value[2])/
-                                        sqrt(value[1]*value[1]+value[2]*value[2]+value[3]*value[3]);
+                                        fabs(value[0]);
 										/* extract & store the 2-parameter representation */
 										CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
 										CBF_CALL(cbf_require_column(cbf,"polarizn_source_norm"));
@@ -13207,6 +13207,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 										This should only be done if the polarisation really is the same
 										for all frames, if it isn't then these fields should not be used.
 										There is currently no check that values are uniform across frames.
+                                         
+                                        At this stage we have the vector in the MCStas coordinate
+                                         frame.
 										*/
 										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_I"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[0]));
@@ -13216,7 +13219,62 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[2]));
 										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_V"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[3]));
-										/* TODO: define and then store per-frame data about the radiation */
+										/* TODO: define and then store per-frame data about the radiation
+                                           and rotate the stokes vector into the CBF coordimate frame */
+									}
+								}
+							} else {
+								cbf_debug_print("incorrect data rank");
+								error |= CBF_H5DIFFERENT;
+							}
+						}
+						cbf_H5Sfree(data_space);
+						/*-----------------------------------------------------------------------------------------------*/
+					} else if (!strcmp(name,"incident_polarisation_stokes_uncertainties")
+                               ||!strcmp(name,"incident_polarisation_stokes_average_uncertainties")) {
+						hid_t data_space = CBF_H5FAIL;
+						if (nx->logfile) _cbf_write_name(nx->logfile,name,0,table->indent,1);
+						if (!cbf_H5Ivalid(data_space=H5Dget_space(object))) {
+							cbf_debug_print("could not get data space");
+							error |= CBF_H5ERROR;
+						} else {
+							/* check rank, allowing for multiple usable results */
+							if (2==H5Sget_simple_extent_ndims(data_space)) {
+								hsize_t dim[2];
+								if (2!=H5Sget_simple_extent_dims(data_space,dim,0)) {
+									cbf_debug_print("Couldn't get dimensions of dataset");
+									error |= CBF_H5ERROR;
+								} else if (!(1==dim[0] || table->frames==dim[0]) || !(4==dim[1])) {
+									cbf_debug_print("invalid dimensions of dataset");
+									error |= CBF_SIZE;
+								} else {
+									hsize_t offset[] = {dim[0]>1 ? nx->slice : 0, 0};
+									hsize_t count[] = {1, 4};
+									double value_esds[4] = {0., 0., 0., 0.};
+									/* read the value */
+									if (CBF_SUCCESS!=(error|=cbf_H5Dread2(object,offset,0,count,&value_esds,H5T_NATIVE_DOUBLE))) {
+										cbf_debug_print(cbf_strerror(error));
+									} else {
+                                         /* Store the stokes vector esds - assuming uniform values over all frames.
+                                         This should only be done if the polarisation really is the same
+                                         for all frames, if it isn't then these fields should not be used.
+                                         There is currently no check that values are uniform across frames.
+                                             
+                                         At this stage we have the uncertainties in the MCStas coordinate
+                                         frame.
+                                         */
+										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_I_esd"));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value_esds[0]));
+										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_Q_esd"));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value_esds[1]));
+										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_U_esd"));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value_esds[2]));
+										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_V_esd"));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value_esds[3]));
+										/* TODO: define and then store per-frame data about the radiation
+                                           rotate to the CBF coordinate frame, and generate the
+                                           uncertainties for the 2-parameters form.
+                                         */
 									}
 								}
 							} else {
@@ -15619,6 +15677,13 @@ static int FUNCTION_NAME \
 		cbf_node * stokes_V;
 		cbf_node * psn;
 		cbf_node * psr;
+        cbf_node * stokes_I_esd;
+		cbf_node * stokes_Q_esd;
+		cbf_node * stokes_U_esd;
+		cbf_node * stokes_V_esd;
+		cbf_node * psn_esd;
+		cbf_node * psr_esd;
+
 	} DiffrnRadiationRowCache;
 
 	static int ctor_DiffrnRadiationRowCache
@@ -15635,6 +15700,12 @@ static int FUNCTION_NAME \
 			c->stokes_V = NULL;
 			c->psn = NULL;
 			c->psr = NULL;
+			c->stokes_I_esd = NULL;
+			c->stokes_Q_esd = NULL;
+			c->stokes_U_esd = NULL;
+			c->stokes_V_esd = NULL;
+			c->psn_esd = NULL;
+			c->psr_esd = NULL;
 					}
 		return error;
 	}
@@ -15645,7 +15716,14 @@ static int FUNCTION_NAME \
 	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_V, DiffrnRadiationRowCache, stokes_V);
 	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_PSN, DiffrnRadiationRowCache, psn);
 	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_PSR, DiffrnRadiationRowCache, psr);
+    DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_I_ESD, DiffrnRadiationRowCache, stokes_I_esd);
+	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_Q_ESD, DiffrnRadiationRowCache, stokes_Q_esd);
+	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_U_ESD, DiffrnRadiationRowCache, stokes_U_esd);
+	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_V_ESD, DiffrnRadiationRowCache, stokes_V_esd);
+	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_PSN_ESD, DiffrnRadiationRowCache, psn_esd);
+	DECL_CACHE_NODE_SETTER(cache_DiffrnRadiation_PSR_ESD, DiffrnRadiationRowCache, psr_esd);
 
+    
 	/*
 	Process data from a single row of 'diffrn_radiation'.
 
@@ -15654,8 +15732,8 @@ static int FUNCTION_NAME \
 	present in CBF in a usable form; and circular polarisation, which is not present
 	in CBF in any form). Write the data to the appropriate place in nexus.
 
-	If the stokes vector is properly specified then the 2-parameter polarisation is
-	ignored.
+	 If the stokes vector is properly specified then the 2-parameter polarisation
+     is ignored.
      
      
      Stokes_I:  Ip+In, where where Ip is the intensity
@@ -15685,7 +15763,8 @@ static int FUNCTION_NAME \
      circular polarization, where where Ip is the intensity
      (amplitude squared) of the electric vector in the plane of
      polarization and In is the intensity (amplitude squared) of
-     the electric vector in the plane of the normal to the plane of polarization, and theta is the angle as viewed from the
+     the electric vector in the plane of the normal to the plane 
+     of polarization, and theta is the angle as viewed from the
      specimen, between the normal to the polarization plane
      and the laboratory Y axis.
      
@@ -15755,7 +15834,9 @@ static int FUNCTION_NAME \
 			/* store computed data in nexus, if all went well */
 			if (!error) {
 				int have_data = 0;
+                int have_data_esds = 0;
 				double value[4] = {0.0,0.0,0.0,0.0};
+                double value_esds[4] = {0.0,0.0,0.0,0.0};
 				if (
 					cbf_node_has_doublevalue(c->stokes_I,row) &&
 					cbf_node_has_doublevalue(c->stokes_Q,row) &&
@@ -15772,6 +15853,28 @@ static int FUNCTION_NAME \
 					value[1] = cos(2.*phi)*Q + sin(2.*phi)*U;
 					value[2] = -sin(2.*phi)*Q + cos(2.*phi)*U;
 					have_data = 1;
+                    if (
+                        cbf_node_has_doublevalue(c->stokes_I_esd,row) &&
+                        cbf_node_has_doublevalue(c->stokes_Q_esd,row) &&
+                        cbf_node_has_doublevalue(c->stokes_U_esd,row) &&
+                        cbf_node_has_doublevalue(c->stokes_V_esd,row)
+                        )
+                    {
+                        double Q_esd = 0.0, U_esd = 0.0;
+                        /* The uncertainties are estimated by the square
+                         root of the sum of the squares of the component
+                         uncertainties */
+                        CBF_CALL(cbf_node_get_doublevalue(c->stokes_I_esd,row,value_esds+0));
+                        CBF_CALL(cbf_node_get_doublevalue(c->stokes_Q_esd,row,&Q_esd));
+                        CBF_CALL(cbf_node_get_doublevalue(c->stokes_U_esd,row,&U_esd));
+                        CBF_CALL(cbf_node_get_doublevalue(c->stokes_V_esd,row,value_esds+3));
+                        value_esds[1] = sqrt(cos(2.*phi)*Q_esd*cos(2.*phi)*Q_esd
+                                             + sin(2.*phi)*U_esd*sin(2.*phi)*U_esd);
+                        value_esds[2] = sqrt(sin(2.*phi)*Q_esd*sin(2.*phi)*Q_esd
+                                             + cos(2.*phi)*U_esd*cos(2.*phi)*U_esd);
+                        have_data_esds = 1;
+                    }
+                    
 				} else if (
 					cbf_node_has_doublevalue(c->psn,row) &&
 					cbf_node_has_doublevalue(c->psr,row)
@@ -15780,7 +15883,7 @@ static int FUNCTION_NAME \
 					/*
 					I don't have a valid stokes vector, but I do have a valid
 					2-parameter representation that I know how to convert
-                    if we assume no incoherent radiation.
+                     if we assume circular component.
 					*/
 					double psn = 0.0, psr = 0.0;
 					CBF_CALL(cbf_node_get_doublevalue(c->psn,row,&psn));
@@ -15790,8 +15893,29 @@ static int FUNCTION_NAME \
 					value[1] = psr*cos(2.*(psn-phi));
 					value[2] = psr*sin(2.*(psn-phi));
 					value[3] = 0.0;  /* No circular component assumed */
-                    if (fabs(psr) < 1.0) value[3] = sqrt(1.-psr*psr);
 					have_data = 1;
+                    if (
+                        cbf_node_has_doublevalue(c->psn_esd,row) &&
+                        cbf_node_has_doublevalue(c->psr_esd,row)
+                        )
+                    { double psn_esd = 0.0, psr_esd = 0.0;
+                        /* The uncertainties are estimated by the square
+                         root of the sum of the squares of the component
+                         uncertainties.  In this case we are apprximating
+                         with differentials.  This is only valid for small
+                         uncertainties */
+                        
+                        CBF_CALL(cbf_node_get_doublevalue(c->psn_esd,row,&psn_esd));
+                        CBF_CALL(cbf_node_get_doublevalue(c->psr_esd,row,&psr_esd));
+                        value_esds[0] = 0.;
+                        value_esds[1] = sqrt(cos(2.*(psn-phi))*psr_esd*cos(2.*(psn-phi))*psr_esd
+                                              + 4*value[2]*psn_esd*value[2]*psn_esd);
+                        
+                        value_esds[2] = sqrt(sin(2.*(psn-phi))*psr_esd*sin(2.*(psn-phi))*psr_esd
+                                              + 4*value[1]*psn_esd*value[1]*psn_esd);
+                        value_esds[3] = 0.;
+                        have_data_esds = 1;
+				}
 				}
 				if (!error && have_data) {
 					hid_t dset = CBF_H5FAIL;
@@ -15806,7 +15930,21 @@ static int FUNCTION_NAME \
 					CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,value,H5T_NATIVE_DOUBLE));
 					cbf_H5Dfree(dset);
 				}
+                if (!error && have_data_esds) {
+                    hid_t dset = CBF_H5FAIL;
+                    hid_t beam = CBF_H5FAIL;
+                    const hsize_t max[] = {H5S_UNLIMITED,4};
+                    const hsize_t chunk[] = {1,4};
+                    const hsize_t offset[] = {nx->slice,0};
+                    const hsize_t count[] = {1,4};
+                    hsize_t buf[] = {0,0};
+                    CBF_CALL(cbf_h5handle_require_beam(nx,&beam,0));
+                    CBF_CALL(cbf_H5Drequire(beam,&dset,"incident_polarisation_stokes_uncertainties",2,max,chunk,buf,H5T_IEEE_F64LE));
+                    CBF_CALL(cbf_H5Dinsert(dset,offset,0,count,buf,value_esds,H5T_NATIVE_DOUBLE));
+                    cbf_H5Dfree(dset);
 			}
+
+		}
 		}
 		return error;
 	}
@@ -17164,11 +17302,17 @@ static int FUNCTION_NAME \
 		{"monochromator",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"description",NULL,cbf_h5handle_require_monochromator,NULL,0}}}},
 		{"polarizn_source_norm",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_PSN}}},
 		{"polarizn_source_ratio",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_PSR}}},
+        {"polarizn_source_norm_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_PSN_ESD}}},
+        {"polarizn_source_ratio_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_PSR_ESD}}},
 		{"probe",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"probe",NULL,cbf_h5handle_require_source,NULL,0}}}},
 		{"stokes_polarisation_I",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_I}}},
 		{"stokes_polarisation_Q",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_Q}}},
 		{"stokes_polarisation_U",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_U}}},
 		{"stokes_polarisation_V",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_V}}},
+		{"stokes_polarisation_I_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_I_ESD}}},
+		{"stokes_polarisation_Q_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_Q_ESD}}},
+		{"stokes_polarisation_U_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_U_ESD}}},
+		{"stokes_polarisation_V_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_V_ESD}}},
 		{"wavelength_id",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_wavelength_id}}},
 		{NULL,CBF_MAP_NONE,NULL},
 	};
@@ -19819,14 +19963,14 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     CBF_CALL(cbf_H5Arequire_string(h5axis,"transformation_type","translation"));
 					{
 						const char path_empty[] = "";
-                        const char path_pose[] = "transformations";
+                        const char path_transformations[] = "transformations";
 						const char path_axis[] = "rotation";
 						const char * const path_parts[] = {
 							path_empty,
 							h5handle->nxid_name,
                             h5handle->nxinstrument_name,
 							h5handle->nxdetector_name,
-							path_pose,
+                            path_transformations,
 							path_axis,
 							0
 						};
@@ -19876,14 +20020,14 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
                     CBF_CALL(cbf_H5Arequire_string(h5axis,"transformation_type","translation"));
 					{
 						const char path_empty[] = "";
-                        const char path_pose[] = "transformations";
+                        const char path_transformations[] = "transformations";
 						const char path_axis[] = "rotation";
 						const char * const path_parts[] = {
 							path_empty,
 							h5handle->nxid_name,
                             h5handle->nxinstrument_name,
 							h5handle->nxdetector_name,
-							path_pose,
+                            path_transformations,
 							path_axis,
 							0
 						};
