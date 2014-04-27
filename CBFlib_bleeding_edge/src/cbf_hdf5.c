@@ -964,7 +964,7 @@ cbf_debug_print2("%s", "'" #exp "' failed"); \
 		const char * * path;
         
 		/*
-         for use in checking dependancy chains & identifying leves,
+         for use in checking dependency chains & identifying leves,
          in_degree of 0 => leaf axis, default should be 0.
          */
 		unsigned int * in_degree;
@@ -3871,7 +3871,7 @@ if (CBF_SUCCESS==found) {
     }
 
     /*
-     Releases any previously held dependancy and takes ownership of a new one.
+     Releases any previously held dependency and takes ownership of a new one.
      The given string will be free'd by the object when it is no longer needed.
      */
 	static void cbf_config_setSampleDependsOn(cbf_config_t * vector, const char * const depends_on)
@@ -3883,7 +3883,7 @@ if (CBF_SUCCESS==found) {
     }
 
     /*
-     \return The current dependancy setting for the sample group, or null if not set.
+     \return The current dependency setting for the sample group, or null if not set.
      */
 	static const char * cbf_config_getSampleDependsOn(const cbf_config_t * const vector)
     {
@@ -11741,7 +11741,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 										CBF_CALL(cbf_H5Afind(axis,&depends_on,"depends_on",CBF_H5FAIL,CBF_H5FAIL));
 										CBF_CALL(cbf_H5Aread_string(depends_on,&_path));
 										if (CBF_SUCCESS==error) {
-											/* set dependancy of previous axis */
+											/* set dependency of previous axis */
 											if (prevAxisPtr) prevAxisPtr->depends_on = axisPtr;
 											/* some axes are shared with other peices of equipment, set the type appropriately */
 											if (axisEquipment_image==axisPtr->equipment) axisPtr->equipment = axisEquipment_detector;
@@ -13198,7 +13198,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                         fabs(value[0]);
 										/* extract & store the 2-parameter representation */
 										CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
-										CBF_CALL(cbf_require_column(cbf,"polarizn_source_norm"));
+										CBF_CALL(cbf_require_column(cbf,"polarizn_source_norm_McStas"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",psn));
 										CBF_CALL(cbf_require_column(cbf,"polarizn_source_ratio"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",psr));
@@ -13211,13 +13211,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                         At this stage we have the vector in the MCStas coordinate
                                          frame.
 										*/
-										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_I"));
+										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_I"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[0]));
-										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_Q"));
+										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_Q_McStas"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[1]));
-										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_U"));
+										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_U_McStas"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[2]));
-										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_V"));
+										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_V"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[3]));
 										/* TODO: define and then store per-frame data about the radiation
                                            and rotate the stokes vector into the CBF coordimate frame */
@@ -13263,13 +13263,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                          At this stage we have the uncertainties in the MCStas coordinate
                                          frame.
                                          */
-										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_I_esd"));
+										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_I_esd"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value_esds[0]));
-										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_Q_esd"));
+										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_Q_McStas_esd"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value_esds[1]));
-										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_U_esd"));
+										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_U_McStas_esd"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value_esds[2]));
-										CBF_CALL(cbf_require_column(cbf,"stokes_polarisation_V_esd"));
+										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_V_esd"));
 										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value_esds[3]));
 										/* TODO: define and then store per-frame data about the radiation
                                            rotate to the CBF coordinate frame, and generate the
@@ -13495,7 +13495,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 										CBF_CALL(cbf_H5Afind(axis,&depends_on,"depends_on",CBF_H5FAIL,CBF_H5FAIL));
 										CBF_CALL(cbf_H5Aread_string(depends_on,&_path));
 										if (CBF_SUCCESS==error) {
-											/* set dependancy of previous axis */
+											/* set dependency of previous axis */
 											if (prevAxisPtr) prevAxisPtr->depends_on = axisPtr;
 											/* some axes are shared with other peices of equipment, set the type appropriately */
 											if (axisEquipment_goniometer!=axisPtr->equipment) axisPtr->equipment = axisEquipment_general;
@@ -14148,7 +14148,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                      I (probably) have a suitable axis:
                                      - extract the first number to store as 'array_structure_list_axis.displacement'
                                      - assume that it's a uniformly spaced array of pixels in 3D space, so ignore subsequent values
-                                     - store it (and dependancy chain) in the key, to be converted along with other axes
+                                     - store it (and dependency chain) in the key, to be converted along with other axes
                                      */
 									const hsize_t off[] = {0};
 									const hsize_t cnt[] = {2};
@@ -14238,7 +14238,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									CBF_CALL(cbf_H5Afind(axis,&depends_on,"depends_on",CBF_H5FAIL,CBF_H5FAIL));
 									CBF_CALL(cbf_H5Aread_string(depends_on,&_path));
 									if (CBF_SUCCESS==error) {
-										/* set dependancy of previous axis */
+                                        /* set dependency of previous axis */
 										if (prevAxisPtr) prevAxisPtr->depends_on = axisPtr;
 										/* some axes are shared with other peices of equipment, set the type appropriately */
 										if (axisEquipment_image!=axisPtr->equipment && axisEquipment_detector!=axisPtr->equipment) {
@@ -14582,6 +14582,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     double norm_pgavec;
                     int ii, jj;
                     int havepga, havegravity, havesource;
+                    double Q_McStas, U_McStas, psn_McStas;
 					CBF_CALL(cbf_require_datablock(cbf,table->datablock_id));
 					CBF_CALL(cbf_require_category(cbf,"diffrn_measurement_axis"));
 					diffrn_measurement_axis = cbf->node;
@@ -14647,6 +14648,81 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             }
                         }
                         McStas2CBF[0][0] = McStas2CBF[2][2] = -1.;
+                    }
+                    
+                    /* At this point, I may have some incompletely processed Stokes vector
+                       information still in the McStas coordinate system.  This requires
+                       rotation of the second and third components of the vector.
+                     
+                       If esd's were provided, they need to be computed
+                     
+                    */
+                    
+                    if (CBF_SUCCESS==error &&
+                        CBF_SUCCESS==cbf_find_category(cbf,"diffrn_radiation") &&
+                        CBF_SUCCESS==cbf_find_column(cbf,"polarizn_source_norm_McStas") &&
+                        CBF_SUCCESS==cbf_get_doublevalue(cbf,&psn_McStas)){
+                        double phi;
+                        phi = atan2(-McStas2CBF[1][0],McStas2CBF[1][1])*45./atan2(1.,1.);
+                        CBF_CALL(cbf_set_column_name(cbf,"polarizn_source_norm"));
+                        CBF_CALL(cbf_set_doublevalue(cbf,"%g",psn_McStas-phi));
+                    }
+                    if (CBF_SUCCESS==error &&
+                        CBF_SUCCESS==cbf_find_category(cbf,"diffrn_radiation") &&
+                        CBF_SUCCESS==cbf_find_column(cbf,"polarizn_Stokes_Q_McStas") &&
+                        CBF_SUCCESS==cbf_get_doublevalue(cbf,&Q_McStas) &&
+                        CBF_SUCCESS==cbf_find_column(cbf,"polarizn_Stokes_U_McStas") &&
+                        CBF_SUCCESS==cbf_get_doublevalue(cbf,&U_McStas)){
+                        double phi, Q_CBF, U_CBF, I_McStas;
+                        double Q_McStas_esd, U_McStas_esd, I_McStas_esd;
+                        double Q_CBF_esd, U_CBF_esd;
+                        double psr, psr_esd, psn_esd;
+                        phi = atan2(-McStas2CBF[1][0],McStas2CBF[1][1]);
+                        Q_CBF = cos(2.*phi)*Q_McStas + sin(2.*phi)*U_McStas;
+                        U_CBF = -sin(2.*phi)*Q_McStas + cos(2.*phi)*U_McStas;
+                        CBF_CALL(cbf_find_column(cbf,"polarizn_Stokes_Q_McStas"));
+                        CBF_CALL(cbf_set_column_name(cbf,"polarizn_Stokes_Q"));
+                        CBF_CALL(cbf_set_doublevalue(cbf,"%g",Q_CBF));
+                        CBF_CALL(cbf_find_column(cbf,"polarizn_Stokes_U_McStas"));
+                        CBF_CALL(cbf_set_column_name(cbf,"polarizn_Stokes_U"));
+                        CBF_CALL(cbf_set_doublevalue(cbf,"%g",U_CBF));
+                        if (CBF_SUCCESS==error &&
+                            CBF_SUCCESS==cbf_find_column(cbf,"polarizn_Stokes_Q_McStas_esd") &&
+                            CBF_SUCCESS==cbf_get_doublevalue(cbf,&Q_McStas_esd) &&
+                            CBF_SUCCESS==cbf_find_column(cbf,"polarizn_Stokes_U_McStas_esd") &&
+                            CBF_SUCCESS==cbf_get_doublevalue(cbf,&U_McStas_esd)){
+                            Q_CBF_esd = sqrt(cos(2.*phi)*Q_McStas_esd*cos(2.*phi)*Q_McStas_esd
+                                             + sin(2.*phi)*U_McStas_esd*sin(2.*phi)*U_McStas_esd);
+                            U_CBF_esd = sqrt(sin(2.*phi)*Q_McStas_esd*sin(2.*phi)*Q_McStas_esd
+                                             + cos(2.*phi)*U_McStas_esd*cos(2.*phi)*U_McStas_esd);
+                            CBF_CALL(cbf_find_column(cbf,"polarizn_Stokes_Q_McStas_esd"));
+                            CBF_CALL(cbf_set_column_name(cbf,"polarizn_Stokes_Q_esd"));
+                            CBF_CALL(cbf_set_doublevalue(cbf,"%g",Q_CBF_esd));
+                            CBF_CALL(cbf_find_column(cbf,"polarizn_Stokes_U_McStas_esd"));
+                            CBF_CALL(cbf_set_column_name(cbf,"polarizn_Stokes_U_esd"));
+                            CBF_CALL(cbf_set_doublevalue(cbf,"%g",U_CBF_esd));
+                            if (CBF_SUCCESS == error &&
+                                CBF_SUCCESS==cbf_find_column(cbf,"polarizn_Stokes_I_McStas") &&
+                                CBF_SUCCESS==cbf_get_doublevalue(cbf,&I_McStas) &&
+                                CBF_SUCCESS==cbf_find_column(cbf,"polarizn_Stokes_I_McStas_esd") &&
+                                CBF_SUCCESS==cbf_get_doublevalue(cbf,&I_McStas_esd) &&
+                                Q_McStas*Q_McStas+U_McStas*U_McStas > 0. &&
+                                fabs(I_McStas)> 0.) {
+                                psr = sqrt(Q_McStas*Q_McStas+U_McStas*U_McStas)/fabs(I_McStas);
+                                psn_esd = ((22.5/atan2(1.,1.))*
+                                           sqrt(Q_McStas*Q_McStas_esd*Q_McStas*Q_McStas_esd+
+                                                U_McStas*U_McStas_esd*U_McStas*U_McStas_esd)/
+                                           (Q_McStas*Q_McStas+U_McStas*U_McStas));
+                                psr_esd = ((1./I_McStas)*(1./I_McStas)*
+                                           sqrt(Q_McStas*Q_McStas_esd*Q_McStas*Q_McStas_esd+
+                                                U_McStas*U_McStas_esd*U_McStas*U_McStas_esd+
+                                                psr*I_McStas_esd*psr*I_McStas_esd));
+                                CBF_CALL(cbf_require_column(cbf,"polarizn_source_norm_esd"));
+                                CBF_CALL(cbf_set_doublevalue(cbf,"%g",psn_esd));
+                                CBF_CALL(cbf_require_column(cbf,"polarizn_source_ratio"));
+                                CBF_CALL(cbf_set_doublevalue(cbf,"%g",psr_esd));
+                            }
+                        }
                     }
                     
 					/* NOTE: this loop writes data to several tables simultaneously */
@@ -15850,8 +15926,8 @@ static int FUNCTION_NAME \
 					CBF_CALL(cbf_node_get_doublevalue(c->stokes_Q,row,&Q));
 					CBF_CALL(cbf_node_get_doublevalue(c->stokes_U,row,&U));
 					CBF_CALL(cbf_node_get_doublevalue(c->stokes_V,row,value+3));
-					value[1] = cos(2.*phi)*Q + sin(2.*phi)*U;
-					value[2] = -sin(2.*phi)*Q + cos(2.*phi)*U;
+					value[1] = cos(2.*phi)*Q - sin(2.*phi)*U;
+					value[2] = +sin(2.*phi)*Q + cos(2.*phi)*U;
 					have_data = 1;
                     if (
                         cbf_node_has_doublevalue(c->stokes_I_esd,row) &&
@@ -15883,15 +15959,15 @@ static int FUNCTION_NAME \
 					/*
 					I don't have a valid stokes vector, but I do have a valid
 					2-parameter representation that I know how to convert
-                     if we assume circular component.
+                     if we assume no circular component.
 					*/
 					double psn = 0.0, psr = 0.0;
 					CBF_CALL(cbf_node_get_doublevalue(c->psn,row,&psn));
 					CBF_CALL(cbf_node_get_doublevalue(c->psr,row,&psr));
 					psn *= atan2(1.,1.)/45.0;
 					value[0] = 1.0;
-					value[1] = psr*cos(2.*(psn-phi));
-					value[2] = psr*sin(2.*(psn-phi));
+					value[1] = psr*cos(2.*(psn+phi));
+					value[2] = psr*sin(2.*(psn+phi));
 					value[3] = 0.0;  /* No circular component assumed */
 					have_data = 1;
                     if (
@@ -15908,10 +15984,10 @@ static int FUNCTION_NAME \
                         CBF_CALL(cbf_node_get_doublevalue(c->psn_esd,row,&psn_esd));
                         CBF_CALL(cbf_node_get_doublevalue(c->psr_esd,row,&psr_esd));
                         value_esds[0] = 0.;
-                        value_esds[1] = sqrt(cos(2.*(psn-phi))*psr_esd*cos(2.*(psn-phi))*psr_esd
+                        value_esds[1] = sqrt(cos(2.*(psn+phi))*psr_esd*cos(2.*(psn+phi))*psr_esd
                                               + 4*value[2]*psn_esd*value[2]*psn_esd);
                         
-                        value_esds[2] = sqrt(sin(2.*(psn-phi))*psr_esd*sin(2.*(psn-phi))*psr_esd
+                        value_esds[2] = sqrt(sin(2.*(psn+phi))*psr_esd*sin(2.*(psn+phi))*psr_esd
                                               + 4*value[1]*psn_esd*value[1]*psn_esd);
                         value_esds[3] = 0.;
                         have_data_esds = 1;
@@ -16260,7 +16336,7 @@ static int FUNCTION_NAME \
 			error |= CBF_ARGUMENT;
 		} else {
 				/*
-			I now have all relevant axes from this category, so I can find & write the dependancy for the detector.
+             I now have all relevant axes from this category, so I can find & write the dependency for the detector.
 			New axes are in the cache object. For each axis I need to set an in_degree, which tells me how many axes
 			refer to this axis. An in_degree of 0 means I probably have a leaf, a check to ensure only one axis has
 			an in_degree of 0 exists in the subset is needed to ensure I have a single valid leaf axis. If I have a
@@ -16287,7 +16363,7 @@ static int FUNCTION_NAME \
 			for (i = 0; c->count != i; ++i) {
 				unsigned int row = 0;
                     const char * depends_on = NULL;
-                    /* locate the current axis and get its dependancy */
+                /* locate the current axis and get its dependency */
 				CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,c->axis_id[i],&row));
                 if (axis_depends_on_column) {
                 CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&depends_on));
@@ -16560,7 +16636,7 @@ static int FUNCTION_NAME \
 			error |= CBF_ARGUMENT;
 		} else {
 				/*
-             I now have all relevant axes from this category, so I can find & write the dependancy for the sample.
+             I now have all relevant axes from this category, so I can find & write the dependency for the sample.
 			New axes are in the cache object. For each axis I need to set an in_degree, which tells me how many axes
 			refer to this axis. An in_degree of 0 means I probably have a leaf, a check to ensure only one axis has
 			an in_degree of 0 exists in the subset is needed to ensure I have a single valid leaf axis. If I have a
@@ -16581,7 +16657,7 @@ static int FUNCTION_NAME \
 			for (i = 0; c->count != i; ++i) {
 				unsigned int row = 0;
                     const char * depends_on = NULL;
-                    /* locate the current axis and get its dependancy */
+                /* locate the current axis and get its dependency */
 				CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,c->axis_id[i],&row));
                 CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&depends_on));
 		if (CBF_SUCCESS == error) {
@@ -17305,14 +17381,14 @@ static int FUNCTION_NAME \
         {"polarizn_source_norm_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_PSN_ESD}}},
         {"polarizn_source_ratio_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_PSR_ESD}}},
 		{"probe",CBF_MAP_DATA,(cbf2nx_convert_t[]){{cbf_convert_cbf2nx_flstr,{"probe",NULL,cbf_h5handle_require_source,NULL,0}}}},
-		{"stokes_polarisation_I",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_I}}},
-		{"stokes_polarisation_Q",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_Q}}},
-		{"stokes_polarisation_U",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_U}}},
-		{"stokes_polarisation_V",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_V}}},
-		{"stokes_polarisation_I_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_I_ESD}}},
-		{"stokes_polarisation_Q_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_Q_ESD}}},
-		{"stokes_polarisation_U_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_U_ESD}}},
-		{"stokes_polarisation_V_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_V_ESD}}},
+		{"polarizn_Stokes_I",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_I}}},
+		{"polarizn_Stokes_Q",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_Q}}},
+		{"polarizn_Stokes_U",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_U}}},
+		{"polarizn_Stokes_V",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_V}}},
+		{"polarizn_Stokes_I_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_I_ESD}}},
+		{"polarizn_Stokes_Q_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_Q_ESD}}},
+		{"polarizn_Stokes_U_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_U_ESD}}},
+		{"polarizn_Stokes_V_esd",CBF_MAP_CACHE,(cbf2nx_cache_item_t[]){{cache_DiffrnRadiation_V_ESD}}},
 		{"wavelength_id",CBF_MAP_KEY,(cbf2nx_set_key_t[]){{cbf2nx_key_set_wavelength_id}}},
 		{NULL,CBF_MAP_NONE,NULL},
 	};
@@ -18154,6 +18230,10 @@ static int FUNCTION_NAME \
         
         const char* anames[7] = {"CBF_X_","CBF_Y_","CBF_Z_","BEAM", "SOURCE", "GRAVITY", "UP"};
         int afound[7] = {0,0,0,0,0,0,0};
+        double beamvector[3] = {0.,0.,-1.};
+        double sourcevector[3] = {0.,0.,1.};
+        double gravityvector[3]= {0.,-1.,0.};
+        double upvector[3]= {0.,1.,0.};
         hid_t instrument = CBF_H5FAIL;
         hid_t poise = CBF_H5FAIL;
         int error;
@@ -18196,11 +18276,6 @@ static int FUNCTION_NAME \
                 CBF_CALL(cbf_select_row(handle,row));
                 CBF_CALL(cbf_find_column(handle,"id"));
                 CBF_CALL(cbf_get_value(handle,&axis_id));
-                
-                if (!cbf_cistrcmp(axis_id,"BEAM")) afound[3] = 1;
-                if (!cbf_cistrcmp(axis_id,"SOURCE")) afound[4] = 1;
-                if (!cbf_cistrcmp(axis_id,"GRAVITY")) afound[5] = 1;
-                if (!cbf_cistrcmp(axis_id,"UP")) afound[6] = 1;
                 
                 equipment = "general";
                 if (!cbf_find_column(handle,"equipment")) {
@@ -18260,6 +18335,52 @@ static int FUNCTION_NAME \
                     CBF_CALL(cbf_apply_matrix(matrix,cbfoffset,offset));
                 }
                 
+                if (!cbf_cistrcmp(axis_id,"BEAM")) {
+                    if (CBF_SUCCESS== error) {
+                        afound[3] = 1;
+                        beamvector[0] = vector[0];
+                        beamvector[1] = vector[1];
+                        beamvector[2] = vector[2];
+                        sourcevector[0] = -beamvector[0];
+                        sourcevector[1] = -beamvector[1];
+                        sourcevector[2] = -beamvector[2];
+                    }
+                }
+                if (!cbf_cistrcmp(axis_id,"SOURCE")) {
+                    if (CBF_SUCCESS== error) {
+                        afound[4] = 1;
+                        sourcevector[0] = vector[0];
+                        sourcevector[1] = vector[1];
+                        sourcevector[2] = vector[2];
+                        beamvector[0] = -sourcevector[0];
+                        beamvector[1] = -sourcevector[1];
+                        beamvector[2] = -sourcevector[2];
+                    }
+                }
+                if (!cbf_cistrcmp(axis_id,"GRAVITY")) {
+                    if (CBF_SUCCESS== error) {
+                        afound[5] = 1;
+                        gravityvector[0] = vector[0];
+                        gravityvector[1] = vector[1];
+                        gravityvector[2] = vector[2];
+                        upvector[0] = -gravityvector[0];
+                        upvector[1] = -gravityvector[1];
+                        upvector[2] = -gravityvector[2];
+                    }
+                }
+                if (!cbf_cistrcmp(axis_id,"UP")) {
+                    if (CBF_SUCCESS== error) {
+                        afound[6] = 1;
+                        upvector[0] = vector[0];
+                        upvector[1] = vector[1];
+                        upvector[2] = vector[2];
+                        gravityvector[0] = -upvector[0];
+                        gravityvector[1] = -upvector[1];
+                        gravityvector[2] = -upvector[2];
+                    }
+                }
+
+                
             } else {
                 
                 double cbfvector[3];
@@ -18293,32 +18414,56 @@ static int FUNCTION_NAME \
                         CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
                         break;
                     case 3: /* BEAM */
-                        if (afound[3] || afound[4]) continue;
-                        cbfvector[0] = 0.;
-                        cbfvector[1] = 0.;
-                        cbfvector[2] = 1.;
+                        if (afound[3] || afound[4])
+                        {
+                            vector[0] = beamvector[0];
+                            vector[1] = beamvector[1];
+                            vector[2] = beamvector[2];
+                        } else {
+                            vector[0] = 0.;
+                            vector[1] = 0.;
+                            vector[2] = 1.;
+                        }
+                        CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
                         break;
                     case 4: /* SOURCE */
-                        if (afound[3] || afound[4]) continue;
-                        cbfvector[0] = 0.;
-                        cbfvector[1] = 0.;
-                        cbfvector[2] = -1.;
+                        if (afound[3] || afound[4]){
+                            vector[0] = sourcevector[0];
+                            vector[1] = sourcevector[1];
+                            vector[2] = sourcevector[2];
+                        } else {
+                            vector[0] = 0.;
+                            vector[1] = 0.;
+                            vector[2] = -1.;
+                        }
+                        CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
                         break;
                     case 5: /* GRAVITY */
-                        if (afound[5] || afound[6] ) continue;
+                        if (afound[5] || afound[6] ) {
+                            vector[0] = gravityvector[0];
+                            vector[1] = gravityvector[1];
+                            vector[2] = gravityvector[2];
+                        } else {
                         vector[0] = 0.;
                         vector[1] = -1.;
                         vector[2] = 0.;
+                        }
+                        CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
                         break;
                     case 6: /* UP */
-                        if (afound[5] || afound[7]) continue;
+                        if (afound[5] || afound[6]) {
+                            vector[0] = upvector[0];
+                            vector[1] = upvector[1];
+                            vector[2] = upvector[2];
+                        } else {
                         vector[0] = 0.;
                         vector[1] = 1.;
                         vector[2] = 0.;
+                        }
+                        CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
                         break;
                     default:
                         continue;
-
                 }
                 
                 cbf_debug_print3("processing axis %s for equipment %s\n",axis_id,equipment);
@@ -18332,7 +18477,7 @@ static int FUNCTION_NAME \
             if (cbf_cistrcmp(rotation_axis,".")) {
                 CBF_CALL(cbf_H5Arequire_string(dset,"rotation_axis",rotation_axis));
                 if (!error) {
-                    /* write the offset */
+                    /* write the rotation */
                     const hsize_t dim[] = {1};
                     double buf[] = {0};
                     if (H5Aexists(dset,"rotation") > 0) {
@@ -19827,7 +19972,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 							* beam_center_x
 							* beam_center_y
 							* detector_distance
-							Creates dependancy chain:
+                             Creates dependency chain:
 							detector -> rotation -> translation -> .
 							*/
 							/* TODO: write depends_on attributes with full paths */
