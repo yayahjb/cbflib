@@ -79,7 +79,7 @@ if [ ! -e lgpl.txt ] ; then
   $LN doc/lgpl.txt lgpl.txt
 fi
 if [ ! -e CBFlib.tar.gz ] ; then
-  $LN ../CBFlib-0.9.4.1.tar.gz CBFlib.tar.gz
+  $LN ../CBFlib-0.9.5.tar.gz CBFlib.tar.gz
 fi
 if [ ! -e template_adscquantum315_3072x3072.cbf ] ; then
   $LN examples/template_adscquantum315_3072x3072.cbf template_adscquantum315_3072x3072.cbf

@@ -42,8 +42,7 @@ ALT="[CBFlib]"></A>
 <font color="#0808A0">
 <H2 ALIGN=CENTER>README</H2>
 <H3 ALIGN=CENTER>
-Information for CBFlib 0.9.4 release of 12 February 2014<br />
-    Revised as CBFlib 0.9.4.1 9 March 2014<br />
+Information for CBFlib 0.9.5 release of 27 April 2014<br />
 </H3>
 </font><font color="#000000">
 <CENTER>
@@ -96,6 +95,15 @@ Recent work on integration among CBF, HDF5 and NeXus supported in part
 by Pandata ODI (EU 7th Framework Programme)
 <P>
 <HR>
+<p>
+CBFlib 0.9.5 is the full release resulting from the interim effort on
+0.9.4, reflecting significant and unfortunately somewhat disruptive
+changes resulting from changes to the agreed CBF-NeXus mapping.
+Axis data on the NeXus side is now in a new tranformations:NXtransformations
+group.  Polarization is now handled with Stokes vectors with optional esds.
+Further changes are expected for full support of mapping multi-module
+detectors such as FELs where module positioning may be refined, but
+this mapping should work for unitary detectors.
 <p>
 CBFlib 0.9.4.1 has further refactoring by Jonathan Sloan, and partial documentation 
 with an updated dictionary.  This is an interim release, expected to be become a full 
@@ -239,34 +247,34 @@ instructions below carefully, if space is a problem.</b>
 A gizpped tarball of this release is available on sourceforge at
 <p>
 <a 
-href="http://downloads.sf.net/cbflib/CBFlib-0.9.4.1.tar.gz">http://downloads.sf.net/cbflib/CBFlib-0.9.4.1.tar.gz</a>
+href="http://downloads.sf.net/cbflib/CBFlib-0.9.5.tar.gz">http://downloads.sf.net/cbflib/CBFlib-0.9.5.tar.gz</a>
 
 <P>
 In addition,
 <A 
-href="http://downloads.sf.net/cbflib/CBFlib_0.9.4_Data_Files_Input.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.4_Data_Files_Input.tar.gz</a>
+href="http://downloads.sf.net/cbflib/CBFlib_0.9.5_Data_Files_Input.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.5_Data_Files_Input.tar.gz</a>
 (13 MB) is a "gzipped" tar of the input data files needed to test the API,
 <A 
-href="http://downloads.sf.net/cbflib/CBFlib_0.9.4_Data_Files_Output.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.4_Data_Files_Output.tar.gz</a>
+href="http://downloads.sf.net/cbflib/CBFlib_0.9.5_Data_Files_Output.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.5_Data_Files_Output.tar.gz</a>
 (34 MB) is a "gzipped" tar of the output data files needed to test the API, and, if space is at a premium,
 <A 
-href="http://downloads.sf.net/cbflib/CBFlib_0.9.4_Data_Files_Output_Sigs_Only.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.4_Data_Files_Output_Sigs_Only.tar.gz</a>
+href="http://downloads.sf.net/cbflib/CBFlib_0.9.5_Data_Files_Output_Sigs_Only.tar.gz">http://downloads.sf.net/cbflib/CBFlib_0.9.5_Data_Files_Output_Sigs_Only.tar.gz</a>
 (1KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
 
-Place the CBFlib_0.9.4.1.tar.gz file in the directory
+Place the CBFlib_0.9.5.tar.gz file in the directory
 that is intended to contain up to 4 new directories, named 
-CBFlib_0.9.4.1 (the &quot;top-level&quot; directory),
-CBFlib_0.9.4_Data_Files_Input and either CBFlib_0.9.4_Data_Files_Output or
-CBFlib_0.9.4_Data_Files_Output_Sigs_Only.
+CBFlib_0.9.5 (the &quot;top-level&quot; directory),
+CBFlib_0.9.5_Data_Files_Input and either CBFlib_0.9.5_Data_Files_Output or
+CBFlib_0.9.5_Data_Files_Output_Sigs_Only.
 If you have wget on your machine, you only need to download the source tarball.  
 If you do not have wget,
 you will need to download all the tarballs into the same directory
 <p>
-Uncompress CBFlib_0.9.4.1.tar.gz with gunzip and unpack it with tar:
+Uncompress CBFlib_0.9.5.tar.gz with gunzip and unpack it with tar:
 <p>
 <PRE>
-     gunzip CBFlib_0.9.4.1.tar.gz
-     tar xvf CBFLIB_0.9.4.1.tar
+     gunzip CBFlib_0.9.5.tar.gz
+     tar xvf CBFLIB_0.9.5.tar
 </PRE>
 <p>
 To run the test programs, you will also need 
@@ -279,7 +287,7 @@ is a PDB mmCIF file, 9ins.cif, and 3 special test files
 testflatin.cbf, testflatpackedin.cbf and testrealin.cbf,
 and several files related to NeXus and FEL testing.
  All these files will be
-dowloaded and extracted by the Makefile from CBFlib_0.9.4_Data_Files_Input.  Do
+dowloaded and extracted by the Makefile from CBFlib_0.9.5_Data_Files_Input.  Do
 not download copies into the top level directory.
 <P>
 After unpacking the archives, the top-level directory should contain
@@ -368,13 +376,13 @@ CMakeLists.txt is to use pcreposix.h.
     
 A partial preliminary CMakeLists.txt has been included in this kit.  It is not yet complete, but
 on machines for which the Makefiles are not appropriate, it is worth a try.  To use in,
-create a directory named CBFlib-0.9.4.1-build on the same level as CBFlib-0.9.4.1, and in 
+create a directory named CBFlib-0.9.5-build on the same level as CBFlib-0.9.5, and in
 the new,
 empty build directory, try
 <p>
     <div>
     <pre>
-    cmake ../CBFlib-0.9.4.1
+    cmake ../CBFlib-0.9.5
     make all
     make test
     </pre>
@@ -389,7 +397,7 @@ libraries when tests are run prior to those libraries having been installed in
 locations known to your system's loader.  This is handled automatically in the Makefiles,
 but we do not yet have a reliable way to do so for cmake ctest tests.  Until this is
 resolved, you may need to set various system-dependent environment variables such as 
-DYLD_LIBRARY_PATH, LD_LIBRARY_PATH or PATH.  We hope to resolve this for the 0.9.4.2
+DYLD_LIBRARY_PATH, LD_LIBRARY_PATH or PATH.  We hope to resolve this for an upcoming
 release.
     
   
@@ -397,7 +405,7 @@ release.
 Please refer to the manual <a HREF="doc/CBFlib.html">doc/CBFlib.html</a>
 for more detailed information.<HR>
 <HR>
-Updated 9 March 2014.
+Updated 27 April 2014.
 <script language="javascript" type="text/javascript">
 <!-- 
       var name = "yayahjb@";

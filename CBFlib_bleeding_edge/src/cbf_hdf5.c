@@ -13102,7 +13102,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								/* ensure I have suitable structure within the CBF file & write the data */
 								CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
 								CBF_CALL(cbf_require_column(cbf,"div_x_source"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 							} else {
 								cbf_debug_print("incorrect data rank");
 								error |= CBF_H5DIFFERENT;

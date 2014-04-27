@@ -99,7 +99,7 @@ ALT="[CBF/imgCIF]"></A>
 | <A HREF = "CBFlib_NOTICES.html">NOTICE</A>
 | <a href=gpl.txt>GPL</a>
 | <a href=lgpl.txt>LGPL</a>
-| <a href="cif_img_1.6.3.html">imgCIF dictionary</a>
+| <a href="cif_img_1.7.10.html">imgCIF dictionary</a>
 |<br />
 | <a href="http://arcib.dowling.edu/donation.shtml">Click Here to Make a Donation</a>
 |<P>
@@ -110,8 +110,8 @@ ALT="[CBF/imgCIF]"></A>
 <CENTER>
 <b>An API for CBF/imgCIF<br />
 Crystallographic Binary Files with ASCII Support</b><br />
-Version 0.9.3<BR>
-13 October 2013<BR>
+Version 0.9.5<BR>
+27 April 2014<BR>
 <p>
 </CENTER>
 </font><font color="#000000">
@@ -136,7 +136,7 @@ Bernstein + Sons<br />
 yaya <b>at</b> bernstein-plus-sons <b>dot</b> com
 </noscript>
 <p>
-&#169; Copyright 2006, 2007, 2008, 2011, 2013 Herbert J. Bernstein
+&#169; Copyright 2006, 2007, 2008, 2011, 2013, 2014 Herbert J. Bernstein
 <P>
 <hr />
 <b>YOU MAY REDISTRIBUTE THE CBFLIB PACKAGE UNDER THE TERMS OF THE <a href=gpl.txt>GPL</a>.
@@ -421,6 +421,24 @@ default use of PyCifRW to avoid Fedora license issue.</td>
 <td valign="top">&nbsp;&nbsp;JS, HJB</td>
 <td>&nbsp;&nbsp;Added low-level 'cbf_H5*' functions for interacting with HDF5, higher level functions for converting CBF or miniCBF files to NeXus format, two utility programs to convert CBF or miniCBF files to NeXus format and some unit tests for the low-level 'cbf_H5*' functions.  Add initial FEL detector support.</td>
 </tr>
+    <tr>
+        <td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.9.4">0.9.4</a></td>
+        <td valign="top">&nbsp;&nbsp;March 2014</td>
+        <td valign="top">&nbsp;&nbsp;JS, HJB</td>
+        <td>&nbsp;&nbsp;Refactored implementation of the NXMX application defintion
+            functional mapping with improvements to cmake support and a preliminary
+            effort at handling Stokes polarization mapping.  This release had serious
+            issues in the functional mapping axis mapping and should not be used for
+            production involving NeXus files.
+   </td>
+    </tr>
+    <tr>
+        <td valign="top">&nbsp;&nbsp;<a href="ChangeLog.html#0.9.5">0.9.5</a></td>
+        <td valign="top">&nbsp;&nbsp;April 2014</td>
+        <td valign="top">&nbsp;&nbsp;HJB</td>
+        <td>&nbsp;&nbsp;This is a production release for single detector module
+        single crystal MX NeXus support.</td>
+    </tr>
 </TABLE>
 
 <hr />
@@ -452,14 +470,14 @@ In order to work with CBFlib, you need:
 <ul>
 <li>the source code, in the form
 of a &quot;gzipped&quot; tar,
-<A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2.11.tar.gz">CBFlib_0.9.2.11.tar.gz</A>; and
+<A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.5.tar.gz">CBFlib_0.9.5.tar.gz</A>; and
 <li>the test data:
 <ul>
-<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2.11_Data_Files_Input.tar.gz">CBFlib_0.9.2.11_Data_Files_Input.tar.gz</a>
+<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.5_Data_Files_Input.tar.gz">CBFlib_0.9.5_Data_Files_Input.tar.gz</a>
 (17 MB) a "gzipped" tar of the input data files needed to test the API;
-<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2.11_Data_Files_Output.tar.gz">CBFlib_0.9.2.11_Data_Files_Output.tar.gz</a>
+<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.5_Data_Files_Output.tar.gz">CBFlib_0.9.5_Data_Files_Output.tar.gz</a>
 (36 MB) a "gzipped" tar of the output data files needed to test the API, or, if space is at a premium;
-<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2.11_Data_Files_Output_Sigs_Only.tar.gz">CBFlib_0.9.2.11_Data_Files_Output_Sigs_Only.tar.gz</a>
+<li><A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.5_Data_Files_Output_Sigs_Only.tar.gz">CBFlib_0.9.5_Data_Files_Output_Sigs_Only.tar.gz</a>
 (1 KB) is a "gzipped" tar of only the MD5 signatures of the output data files needed to test the API.
 </ul>
 </ul>
@@ -473,7 +491,7 @@ instructions below on using only the signatures of the test files.</b>
 Uncompress and unpack :
 <P>
 <ul>
-<li>gunzip &lt; CBFlib_0.9.2.11.tar.gz | tar xvf -
+<li>gunzip &lt; CBFlib_0.9.5.tar.gz | tar xvf -
 </ul>
 <P>   
 <p>
@@ -513,7 +531,7 @@ you may rebuild the Makefiles to include James Hester's PyCifRW.  The
 process under bash is:<p>
 <pre>
 export CBFLIB_USE_PYCIFRW=yes
-cd CBFlib_0.9.2.11
+cd CBFlib_0.9.5
 touch m4/Makefile.m4
 make Makefiles
 </pre>
@@ -562,15 +580,15 @@ or in the environment
 <p>
 We have included examples of
 CBF/imgCIF files produced by CBFlib in the test data 
-<A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.2.11_Data_Files_Output.tar.gz">CBFlib_0.9.2.11_Data_Files_Output.tar.gz</a>,
+<A HREF="http://downloads.sf.net/cbflib/CBFlib_0.9.5_Data_Files_Output.tar.gz">CBFlib_0.9.5_Data_Files_Output.tar.gz</a>,
 the current best draft of
 the 
-<A HREF="cif_img_1.6.3.html">CBF Extensions Dictionary</A>, 
+<A HREF="cif_img_1.7.10.html">CBF Extensions Dictionary</A>,
 and of Andy Hammersley's CBF definition, updated to become a 
 <A HREF="cbf_definition_rev.html">
 DRAFT CBF/ImgCIF DEFINITION</A>.
 <p>
-CBFlib 0.9.2.11 includes a program, tiff2cbf, to convert from tiff files
+CBFlib 0.9.5 includes a program, tiff2cbf, to convert from tiff files
 to CBF files, that requires an augmented version of tiff-3.9.4 called 
 tiff-3.9.4-rev-6Feb11, that installs into the CBFlib_0.9.2.11 directory.
 If a system copy is desired, download and install
@@ -14616,7 +14634,7 @@ CBF_axis_omega vector [0 0 0]
 
 <hr />
 <hr />
-Updated 11 Feb 2014.
+Updated 27 April 2014.
 Contact:
 <script language="javascript" type="text/javascript">
 <!--
