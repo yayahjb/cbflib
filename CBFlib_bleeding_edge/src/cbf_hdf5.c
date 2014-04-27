@@ -1,7 +1,7 @@
 /**********************************************************************
  * cbf_hdf5 -- read and write HDF5/NeXus files                        *
  *                                                                    *
- * Version 0.9.5 25 April 2014                                        *
+ * Version 0.9.5 27 April 2014                                        *
  *                                                                    *
  *                          Paul Ellis and                            *
  *         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        *
@@ -11478,7 +11478,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							CBF_CALL(_cbf_nx2cbf_table__diffrn_detector_element(cbf,nx,table));
 							CBF_CALL(cbf_require_column(cbf,"center[1]"));
 							/* write the data */
-							CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+							CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 						}
 						cbf_H5Sfree(data_space);
 						/*-----------------------------------------------------------------------------------------------*/
@@ -11527,7 +11527,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							CBF_CALL(_cbf_nx2cbf_table__diffrn_detector_element(cbf,nx,table));
 							CBF_CALL(cbf_require_column(cbf,"center[2]"));
 							/* write the data */
-							CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+							CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 						}
 						cbf_H5Sfree(data_space);
 						/*-----------------------------------------------------------------------------------------------*/
@@ -11609,7 +11609,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									CBF_CALL(_cbf_nx2cbf_table__diffrn_scan_frame(cbf,nx,table));
 									CBF_CALL(cbf_require_column(cbf,"integration_time"));
 									/* write the data */
-									CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+									CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 								}
 							} else {
 								cbf_debug_print("incorrect data rank");
@@ -11650,7 +11650,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(_cbf_nx2cbf_table__diffrn_detector(cbf,nx,table));
 								CBF_CALL(cbf_require_column(cbf,"dtime"));
 								/* write the data */
-								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 							} else {
 								cbf_debug_print("incorrect data rank");
 								error |= CBF_H5DIFFERENT;
@@ -11801,7 +11801,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									CBF_CALL(_cbf_nx2cbf_table__diffrn_measurement(cbf,nx,table));
 									CBF_CALL(cbf_require_column(cbf,"sample_detector_distance"));
 									/* write the data */
-									CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+									CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 								}
 							} else {
 								cbf_debug_print("incorrect data rank");
@@ -11883,7 +11883,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									CBF_CALL(_cbf_nx2cbf_table__diffrn_scan_frame(cbf,nx,table));
 									CBF_CALL(cbf_require_column(cbf,"time_period"));
 									/* write the data */
-									CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+									CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 								}
 							} else {
 								cbf_debug_print("incorrect data rank");
@@ -11942,7 +11942,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
 									CBF_CALL(cbf_require_column(cbf,"offset"));
 									/* write the data */
-									CBF_CALL(cbf_set_doublevalue(cbf,"%g",value));
+									CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",value));
 									if (CBF_SUCCESS==error) table->has_offset = 1;
 								}
 							} else {
@@ -12013,7 +12013,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
 									CBF_CALL(cbf_require_column(cbf,"scaling"));
 									/* write the data */
-									CBF_CALL(cbf_set_doublevalue(cbf,"%g",value));
+									CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",value));
 									if (CBF_SUCCESS==error) table->has_scaling_factor = 1;
 								}
 							} else {
@@ -12072,7 +12072,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(_cbf_nx2cbf_table__diffrn_detector(cbf,nx,table));
 								CBF_CALL(cbf_require_column(cbf,"layer_thickness"));
 								/* write the data */
-								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 							} else {
 								cbf_debug_print("incorrect data rank");
 								error |= CBF_H5DIFFERENT;
@@ -12105,7 +12105,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								CBF_CALL(_cbf_nx2cbf_table__diffrn_detector(cbf,nx,table));
 								CBF_CALL(cbf_require_column(cbf,"threshold"));
 								/* write the data */
-								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 							} else {
 								cbf_debug_print("incorrect data rank");
 								error |= CBF_H5DIFFERENT;
@@ -12391,7 +12391,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								/* ensure I have suitable structure within the CBF file & write the data */
 								CBF_CALL(_cbf_nx2cbf_table__diffrn_source(cbf,nx,table));
 								CBF_CALL(cbf_require_column(cbf,"current"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 							} else {
 								cbf_debug_print("incorrect data rank");
 								error |= CBF_H5DIFFERENT;
@@ -12442,7 +12442,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								/* ensure I have suitable structure within the CBF file & write the data */
 								CBF_CALL(_cbf_nx2cbf_table__diffrn_source(cbf,nx,table));
 								CBF_CALL(cbf_require_column(cbf,"power"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 							} else {
 								cbf_debug_print("incorrect data rank");
 								error |= CBF_H5DIFFERENT;
@@ -12537,7 +12537,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								/* ensure I have suitable structure within the CBF file & write the data */
 								CBF_CALL(_cbf_nx2cbf_table__diffrn_source(cbf,nx,table));
 								CBF_CALL(cbf_require_column(cbf,"voltage"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 							} else {
 								cbf_debug_print("incorrect data rank");
 								error |= CBF_H5DIFFERENT;
@@ -12858,12 +12858,12 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									if (!table->has_offset) {
 										CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
 										CBF_CALL(cbf_require_column(cbf,"offset"));
-										CBF_CALL(cbf_set_doublevalue(cbf,"%g",0.0));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",0.0));
 									}
 									if (!table->has_scaling_factor) {
 										CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
 										CBF_CALL(cbf_require_column(cbf,"scaling"));
-										CBF_CALL(cbf_set_doublevalue(cbf,"%g",1.0));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",1.0));
 									}
 									CBF_CALL(_cbf_nx2cbf_table__array_intensities(cbf,nx,table));
 									CBF_CALL(cbf_require_column(cbf,"linearity"));
@@ -13131,7 +13131,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								/* ensure I have suitable structure within the CBF file & write the data */
 								CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
 								CBF_CALL(cbf_require_column(cbf,"div_x_y_source"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 							} else {
 								cbf_debug_print("incorrect data rank");
 								error |= CBF_H5DIFFERENT;
@@ -13160,7 +13160,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								/* ensure I have suitable structure within the CBF file & write the data */
 								CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
 								CBF_CALL(cbf_require_column(cbf,"div_y_source"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+								CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 							} else {
 								cbf_debug_print("incorrect data rank");
 								error |= CBF_H5DIFFERENT;
@@ -13199,9 +13199,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 										/* extract & store the 2-parameter representation */
 										CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
 										CBF_CALL(cbf_require_column(cbf,"polarizn_source_norm_McStas"));
-										CBF_CALL(cbf_set_doublevalue(cbf,"%g",psn));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",psn));
 										CBF_CALL(cbf_require_column(cbf,"polarizn_source_ratio"));
-										CBF_CALL(cbf_set_doublevalue(cbf,"%g",psr));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",psr));
 										/*
 										Store the stokes vector - assuming uniform values over all frames.
 										This should only be done if the polarisation really is the same
@@ -13212,13 +13212,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                          frame.
 										*/
 										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_I"));
-										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[0]));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",value[0]));
 										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_Q_McStas"));
-										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[1]));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",value[1]));
 										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_U_McStas"));
-										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[2]));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",value[2]));
 										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_V"));
-										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value[3]));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",value[3]));
 										/* TODO: define and then store per-frame data about the radiation
                                            and rotate the stokes vector into the CBF coordimate frame */
 									}
@@ -13264,13 +13264,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                          frame.
                                          */
 										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_I_esd"));
-										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value_esds[0]));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",value_esds[0]));
 										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_Q_McStas_esd"));
-										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value_esds[1]));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",value_esds[1]));
 										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_U_McStas_esd"));
-										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value_esds[2]));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",value_esds[2]));
 										CBF_CALL(cbf_require_column(cbf,"polarizn_Stokes_V_esd"));
-										CBF_CALL(cbf_set_doublevalue(cbf,"%g",value_esds[3]));
+										CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",value_esds[3]));
 										/* TODO: define and then store per-frame data about the radiation
                                            rotate to the CBF coordinate frame, and generate the
                                            uncertainties for the 2-parameters form.
@@ -13321,7 +13321,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation_wavelength(cbf,nx,table));
 									CBF_CALL(cbf_require_column(cbf,"wavelength"));
 									/* write the data */
-									CBF_CALL(cbf_set_doublevalue(cbf,"%g",factor*value));
+									CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",factor*value));
 								}
 							} else {
 								cbf_debug_print("incorrect data rank");
@@ -13356,7 +13356,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 									CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation_wavelength(cbf,nx,table));
 									CBF_CALL(cbf_require_column(cbf,"wt"));
 									/* write the data */
-									CBF_CALL(cbf_set_doublevalue(cbf,"%g",value));
+									CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",value));
 								}
 							} else {
 								cbf_debug_print("incorrect data rank");
@@ -13410,7 +13410,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 						/* ensure I have suitable structure within the CBF file & write the data */
 						CBF_CALL(_cbf_nx2cbf_table__diffrn_radiation(cbf,nx,table));
 						CBF_CALL(cbf_require_column(cbf,"inhomogeneity"));
-						CBF_CALL(cbf_set_doublevalue(cbf,"%g",inhomogeneity));
+						CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",inhomogeneity));
 					}
 				}
 			}
@@ -14283,9 +14283,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 								axis_set_id[i] = pixel_offset_name[i];
 								CBF_CALL(cbf_set_value(cbf,axis_set_id[i]));
 								CBF_CALL(cbf_require_column(cbf,"displacement"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%g",disp));
+                                CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",disp));
 								CBF_CALL(cbf_require_column(cbf,"displacement_increment"));
-								CBF_CALL(cbf_set_doublevalue(cbf,"%g",disp_incr));
+                                CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",disp_incr));
 							} else {
 								/*
                                  The node set is indexed by rows[0:nRows], generate a unique axis_set_id using the axis name
@@ -14511,7 +14511,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 							CBF_CALL(cbf_require_column(cbf,"index"));
 							CBF_CALL(cbf_set_integervalue(cbf,precedence[i]));
 							CBF_CALL(cbf_require_column(cbf,"size"));
-							CBF_CALL(cbf_set_doublevalue(cbf,"%g",elem_size[i]));
+                            CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",elem_size[i]));
 						}
 					}
 					free((void*)_axis_set_id[0]);
@@ -14665,7 +14665,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         double phi;
                         phi = atan2(-McStas2CBF[1][0],McStas2CBF[1][1])*45./atan2(1.,1.);
                         CBF_CALL(cbf_set_column_name(cbf,"polarizn_source_norm"));
-                        CBF_CALL(cbf_set_doublevalue(cbf,"%g",psn_McStas-phi));
+                        CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",psn_McStas-phi));
                     }
                     if (CBF_SUCCESS==error &&
                         CBF_SUCCESS==cbf_find_category(cbf,"diffrn_radiation") &&
@@ -14682,10 +14682,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         U_CBF = -sin(2.*phi)*Q_McStas + cos(2.*phi)*U_McStas;
                         CBF_CALL(cbf_find_column(cbf,"polarizn_Stokes_Q_McStas"));
                         CBF_CALL(cbf_set_column_name(cbf,"polarizn_Stokes_Q"));
-                        CBF_CALL(cbf_set_doublevalue(cbf,"%g",Q_CBF));
+                        CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",Q_CBF));
                         CBF_CALL(cbf_find_column(cbf,"polarizn_Stokes_U_McStas"));
                         CBF_CALL(cbf_set_column_name(cbf,"polarizn_Stokes_U"));
-                        CBF_CALL(cbf_set_doublevalue(cbf,"%g",U_CBF));
+                        CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",U_CBF));
                         if (CBF_SUCCESS==error &&
                             CBF_SUCCESS==cbf_find_column(cbf,"polarizn_Stokes_Q_McStas_esd") &&
                             CBF_SUCCESS==cbf_get_doublevalue(cbf,&Q_McStas_esd) &&
@@ -14697,10 +14697,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                              + cos(2.*phi)*U_McStas_esd*cos(2.*phi)*U_McStas_esd);
                             CBF_CALL(cbf_find_column(cbf,"polarizn_Stokes_Q_McStas_esd"));
                             CBF_CALL(cbf_set_column_name(cbf,"polarizn_Stokes_Q_esd"));
-                            CBF_CALL(cbf_set_doublevalue(cbf,"%g",Q_CBF_esd));
+                            CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",Q_CBF_esd));
                             CBF_CALL(cbf_find_column(cbf,"polarizn_Stokes_U_McStas_esd"));
                             CBF_CALL(cbf_set_column_name(cbf,"polarizn_Stokes_U_esd"));
-                            CBF_CALL(cbf_set_doublevalue(cbf,"%g",U_CBF_esd));
+                            CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",U_CBF_esd));
                             if (CBF_SUCCESS == error &&
                                 CBF_SUCCESS==cbf_find_column(cbf,"polarizn_Stokes_I_McStas") &&
                                 CBF_SUCCESS==cbf_get_doublevalue(cbf,&I_McStas) &&
@@ -14718,9 +14718,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                 U_McStas*U_McStas_esd*U_McStas*U_McStas_esd+
                                                 psr*I_McStas_esd*psr*I_McStas_esd));
                                 CBF_CALL(cbf_require_column(cbf,"polarizn_source_norm_esd"));
-                                CBF_CALL(cbf_set_doublevalue(cbf,"%g",psn_esd));
+                                CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",psn_esd));
                                 CBF_CALL(cbf_require_column(cbf,"polarizn_source_ratio"));
-                                CBF_CALL(cbf_set_doublevalue(cbf,"%g",psr_esd));
+                                CBF_CALL(cbf_set_doublevalue(cbf,"%-.15g",psr_esd));
                             }
                         }
                     }

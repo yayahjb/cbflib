@@ -2,7 +2,7 @@
 ######################################################################
 #  Makefile - command file for make to create CBFlib                 #
 #                                                                    #
-# Version 0.9.4 11 Feb 2014                                          #
+# Version 0.9.5 11 Feb 2014                                          #
 #                                                                    #
 #                          Paul Ellis and                            #
 #         Herbert J. Bernstein (yaya@bernstein-plus-sons.com)        #
@@ -250,7 +250,7 @@
 
 
 # Version string
-VERSION = 0.9.4
+VERSION = 0.9.5
 
 
 #

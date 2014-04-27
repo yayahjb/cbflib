@@ -1,4 +1,4 @@
-m4_define(`cbf_version',`0.9.4')m4_dnl
+m4_define(`cbf_version',`0.9.5')m4_dnl
 m4_define(`cbf_date',`11 Feb 2014')m4_dnl
 m4_ifelse(cbf_system,`',`m4_define(`cbf_system',`LINUX')')
 `######################################################################
