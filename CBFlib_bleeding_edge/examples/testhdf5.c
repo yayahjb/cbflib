@@ -1580,8 +1580,12 @@ int main()
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
+    hid_t error_stack;
+    H5E_auto2_t  old_func;
+    void *old_client_data;
     
 	/* test the test functions a bit */
+    
 	TEST(1);
 	TEST_CBF_PASS(CBF_SUCCESS);
 	TEST_CBF_FAIL(CBF_FORMAT);
@@ -1593,13 +1597,22 @@ int main()
 	TEST(!cbf_H5Ivalid(CBF_H5FAIL));
 	TEST(H5I_DATATYPE==H5Iget_type(H5T_STD_I32LE));
     
+    
 	{ /* Try opening a file */
 		const char filename[] = "testfile.h5";
 		hid_t h5file = CBF_H5FAIL;
 		TEST_CBF_PASS(cbf_H5Fopen(&h5file, filename));
 		TEST(cbf_H5Ivalid(h5file));
 		/* test the API */
+
+        error_stack = H5E_DEFAULT;
+        H5Eget_auto2(error_stack, &old_func, &old_client_data);
+        H5Eset_auto2(error_stack, NULL, NULL);
+        
 		TEST_COMPONENT(testGroups(h5file));
+        
+		H5Eset_auto(error_stack, old_func, old_client_data);
+        
 		TEST_COMPONENT(testDatatypes());
 		TEST_COMPONENT(testDataspaces());
 		{ /* close the file */
