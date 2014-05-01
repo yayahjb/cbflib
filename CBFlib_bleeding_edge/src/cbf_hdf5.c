@@ -869,7 +869,6 @@ cbf_debug_print2("%s", "'" #exp "' failed"); \
     
     /****************************************************************
     Store & manuipluate a set of keys identifying a set of data of interest.
-    TODO: Fix CBF memory allocation routines to behave correctly, then use them to check for leaks
      ****************************************************************/
 
 	/**
