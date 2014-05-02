@@ -1,4 +1,7 @@
 # some sample config settings for a minicbf file
+# revised 28 Mar 2014 to give the CBF, rather than
+# the NeXus coordinate frame version of the axes
+# as per JS axis-patch -- HJB
 
 map Start_angle to CBF_axis_omega
 map Phi to CBF_axis_phi
@@ -6,6 +9,6 @@ map Kappa to CBF_axis_kappa
 
 Sample depends-on CBF_axis_phi
 
-CBF_axis_phi vector [1 0 0] depends-on CBF_axis_kappa
+CBF_axis_phi vector [-1 0 0] depends-on CBF_axis_kappa
 CBF_axis_kappa vector [0 1 0] depends-on .
 CBF_axis_omega vector [0 0 0]

@@ -1451,6 +1451,18 @@ int cbf_get_axis_scan_points(cbf_handle handle,
                                  const char * units,
                                  const char * axis_id);
     
+    int cbf_scale_unit(const char * unit, char * *  rev_unit,
+                       double * unit_per_rev_unit);
+    
+    /* cbf_scale_units: return the number of actual units per standard
+     unit for an SI or IEC binary-prefixed unit, with special coding
+     to relate angstroms to metres.  See
+     http://physics.nist.gov/cuu/Units/prefixes.html
+     */
+    
+int cbf_scale_units(const char * actual_units, const char * std_units,
+                        double * actual_per_std);
+    
 #ifdef __cplusplus
 
 }

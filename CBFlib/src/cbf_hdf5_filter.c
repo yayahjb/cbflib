@@ -355,8 +355,15 @@ extern "C" {
             tempfile->characters_used = tempfile->characters_size = nbytes;
 #ifdef CBFDEBUG
             {int ii;
-                for (ii=0; ii<500 && ii < nbytes; ii++)
-                    fprintf(stderr,"%d: %x %c ",ii,(*((char**)buf))[ii],(*((char **)buf))[ii]);
+                for (ii=0; ii<500 && ii < nbytes; ii++) {
+                    unsigned char c;
+                    c = (*((char**)buf))[ii];
+                    if (c < 32 || c > 126) {
+                        fprintf(stderr,"%d: %x ? ",ii,c);
+                    } else {
+                        fprintf(stderr,"%d: %x %c ",ii,c,c);
+            }
+                }
             }
 #endif
             
@@ -541,8 +548,15 @@ extern "C" {
             fprintf(stderr," errorcode %d after decompress\n",errorcode);
             
             {int ii;
-                for (ii=0; ii<500 && ii < nelem_read*elsize; ii++)
-                    fprintf(stderr,"%d: %x %c ",ii,(((char*)destination))[ii],(((char *)destination))[ii]);
+                for (ii=0; ii<500 && ii < nelem_read*elsize; ii++) {
+                    unsigned char c;
+                    c = (((char*)destination))[ii];
+                    if (c < 32 || c > 126) {
+                        fprintf(stderr,"%d: %x ? ",ii,c);
+                    } else {
+                        fprintf(stderr,"%d: %x %c ",ii,c,c);
+            }
+                }
             }
 #endif
             
@@ -856,7 +870,13 @@ extern "C" {
                 {int ii;
                     fprintf(stderr,"\nCompressed data as characters\n:");
                     for (ii=0; ii<500 && ii < *buf_size; ii++){
-                        fprintf(stderr,"%c",(*((char**)buf))[ii]);
+                        unsigned char c;
+                        c = (*((char**)buf))[ii];
+                        if (c < 32 || c > 126) {
+                          fprintf(stderr,"%x",c);
+                        } else {
+                          fprintf(stderr,"%c",c);
+                    }
                     }
                     fprintf(stderr,"\nCompressed data as hex\n:");
                     for (ii=0; ii<500 && ii < *buf_size; ii++) {

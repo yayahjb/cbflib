@@ -79,11 +79,15 @@ int main(const int argc, const char * const * const argv)
 	int help = 0;
 	int error = 0;
 	const char * const * arg = argv + (argc ? 1 : 0);
+	const char * file_in = NULL;
+	const char * file_out = NULL;
+	FILE * in = stdin;
+	FILE * out = stdout;
 
 	/* extract command line arguments */
-	for (; arg != argv+argc; ++arg) {
+	for (; !error && arg != argv+argc; ++arg) {
 		if (!strcmp(*arg,"-?") || !strcmp(*arg,"--help")) {
-			help = 2;
+			help = 1;
 			break;
 		} else if (!strcmp(*arg,"-n")) {
 			/* try to extract a positive integer from argv[2], set N appropriately */
@@ -99,7 +103,24 @@ int main(const int argc, const char * const * const argv)
 				fprintf(stderr,"Expected an argument for '-n'\n");
 				error = 1;
 			}
-			break;
+		} else if (!strcmp(*arg,"-i")) {
+			/* extract an input file name to replace the 'in' stream */
+			if (arg+1 != argv+argc) {
+				++arg;
+				file_in = *arg;
+		} else {
+				fprintf(stderr,"Expected an argument for '-n'\n");
+				error = 1;
+			}
+		} else if (!strcmp(*arg,"-o")) {
+			/* extract an output file name to replace the 'out' stream */
+			if (arg+1 != argv+argc) {
+				++arg;
+				file_out = *arg;
+			} else {
+				fprintf(stderr,"Expected an argument for '-n'\n");
+				error = 1;
+			}
 		} else {
 			/* print error message to stderr */
 			fprintf(stderr,"Unrecognised argument: '%s'\n",*arg);
@@ -108,30 +129,45 @@ int main(const int argc, const char * const * const argv)
 		}
 	}
 
-	if (help) {
+	if (file_in) {
+		if (!(in = fopen(file_in,"r"))) {
+			fprintf(stderr,"Couldn't open file: '%s'\n",file_in);
+			error = 1;
+		}
+	}
+	if (file_out) {
+		if (!(out = fopen(file_out,"w"))) {
+			fprintf(stderr,"Couldn't open file: '%s'\n",file_out);
+			error = 1;
+		}
+	}
+
+	if (help || error) {
 		/* print usage message */
 		printf(
-			"Usage:\n\n"
-			"%s\n"
-			"Input to 'stdin' passed straight to 'stdout'.\n\n"
-			"%s -?\n"
-			"%s --help\n"
-			"Print a short usage message, then immediately exit successfully without filtering anything.\n\n"
-			"%s -n N\n"
-			"Remove the first N lines from stdin, delimited by the '\\n' character, passing the rest to stdout.\n",
-			*argv, *argv, *argv, *argv
+			"Usage:\n"
+			"\t%s [-n <integer>] [-i input_file] [-o output_file] [-?|--help]\n"
+			"\t-i input_file\n"
+			"Read data from the file specified by 'input_file', or from stdin if not specified."
+			"\t-o output_file\n"
+			"Write data to the file specified by 'output_file', or to stdout if not specified."
+			"\t-n <integer>\n"
+			"Remove the first 'n' lines from the input file/stream, delimited by the '\\n' character, passing the rest to the outout file/stream.\n"
+			"\t-? | --help\n"
+			"Print a short usage message, then immediately exit successfully without filtering anything.\n",
+			*argv
 		);
 		/* return successfully - even if there were some errors in the arguments - if one of the 'help' arguments was used */
-		if (2 == help) return 0;
+		if (help) return 0;
 	}
 
 	if (!error) {
 		/* start filtering */
-		while (!feof(stdin)) {
-			const int c = fgetc(stdin);
+		while (!feof(in)) {
+			const int c = fgetc(in);
 			if (N) {
 				if ('\n' == c) --N;
-			} else fputc(c,stdout);
+			} else fputc(c,out);
 		}
 	}
 

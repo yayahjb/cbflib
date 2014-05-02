@@ -2169,6 +2169,8 @@ int cbf_next_datablock (cbf_handle handle)
 {
   cbf_node *parent, *node;
 
+    int error;
+
   unsigned int index;
 
   if (!handle)
@@ -2193,7 +2195,9 @@ int cbf_next_datablock (cbf_handle handle)
 
     /* Get the next data block */
 
-  cbf_failnez (cbf_get_child (&node, parent, index + 1))
+    error = cbf_get_child (&node, parent, index + 1);
+
+    if (!error) {
 
   handle->node = node;
 
@@ -2201,6 +2205,13 @@ int cbf_next_datablock (cbf_handle handle)
     /* Success */
 
   return 0;
+        
+    } else {
+        
+      return error;
+        
+}
+
 }
 
 
@@ -2357,10 +2368,12 @@ int cbf_next_blockitem (cbf_handle handle, CBF_NODETYPE * type)
 
   /* Make the next column in the current category the current column */
 
-int cbf_next_column (cbf_handle handle)
-{
+int cbf_next_column (cbf_handle handle) {
+    
   cbf_node *parent, *node;
 
+    int error;
+    
   unsigned int index;
 
   if (!handle)
@@ -2385,14 +2398,22 @@ int cbf_next_column (cbf_handle handle)
 
     /* Get the next column */
 
-  cbf_failnez (cbf_get_child (&node, parent, index + 1))
+    error = cbf_get_child (&node, parent, index + 1);
 
+    if (!error) {
+        
   handle->node = node;
 
 
     /* Success */
 
   return 0;
+        
+    } else {
+        
+        return error;
+}
+
 }
 
 
@@ -2730,6 +2751,8 @@ int cbf_find_category (cbf_handle handle, const char *categoryname)
 {
   cbf_node *node;
 
+    int error;
+
   if (!handle)
 
     return CBF_ARGUMENT;
@@ -2746,7 +2769,9 @@ int cbf_find_category (cbf_handle handle, const char *categoryname)
 
     /* Find the category */
 
-  cbf_failnez (cbf_find_typed_child (&node, node, categoryname, CBF_CATEGORY))
+    error = cbf_find_typed_child (&node, node, categoryname, CBF_CATEGORY);
+
+    if (!error) {
 
   handle->node = node;
 
@@ -2758,15 +2783,23 @@ int cbf_find_category (cbf_handle handle, const char *categoryname)
     /* Success */
 
   return 0;
+        
+    } else {
+        
+        return error;
+        
+}
 }
 
 
   /* Make the named column in the current category the current column */
 
-int cbf_find_column (cbf_handle handle, const char *columnname)
-{
+int cbf_find_column (cbf_handle handle, const char *columnname) {
+    
   cbf_node *node;
 
+    int error;
+    
   if (!handle)
 
     return CBF_ARGUMENT;
@@ -2779,14 +2812,23 @@ int cbf_find_column (cbf_handle handle, const char *columnname)
 
     /* Find the column */
 
-  cbf_failnez (cbf_find_child (&node, node, columnname))
+    error = cbf_find_child (&node, node, columnname);
 
+    if (!error) {
+        
   handle->node = node;
 
 
     /* Success */
 
-  return 0;
+        return CBF_SUCCESS;
+        
+    } else {
+        
+        return error;
+        
+}
+
 }
 
 
@@ -8713,6 +8755,7 @@ int cbf_construct_functions_dictionary(cbf_handle dict, const char *datablocknam
         CBF_STRERROR_CHECK_ERROR(CBF_NOCOMPRESSION,"CBF_NOCOMPRESSION");
         CBF_STRERROR_CHECK_ERROR(CBF_H5ERROR,"Problem using HDF5 library function(s)");
         CBF_STRERROR_CHECK_ERROR(CBF_H5DIFFERENT,"Value differs from that in HDF5 file");
+		CBF_STRERROR_CHECK_ERROR(CBF_SIZE,"Invalid size");
         return "Unknown error";
 #undef CBF_STRERROR_CHECK_ERROR
     }

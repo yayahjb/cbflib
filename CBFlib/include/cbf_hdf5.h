@@ -247,6 +247,8 @@
  * Crystallography                                                    *
  **********************************************************************/
 
+/** \file cbf_hdf5.h */
+
 #ifndef CBF_HDF5_H
 #define CBF_HDF5_H
 
@@ -256,7 +258,7 @@ extern "C" {
 
 #endif
 
-
+#include <stdio.h>
 #include <hdf5.h>
 #include "cbf.h"
 #include "cbf_tree.h"
@@ -300,26 +302,119 @@ field of the source */
 
 #define CBF_H5FAIL ((hid_t)(-1))
     
-	/* Function to check validity of a HDF5 identifier. */
+	/**
+	\defgroup section_HDF5_H5A
+	\defgroup section_HDF5_H5D
+	\defgroup section_HDF5_H5F
+	\defgroup section_HDF5_H5G
+	\defgroup section_HDF5_H5I
+	\defgroup section_HDF5_H5O
+	\defgroup section_HDF5_H5S
+	\defgroup section_HDF5_H5T
+
+	\defgroup section_H5Handle
+	\defgroup section_minicbf_config
+	*/
+
+	/**
+	\brief Check the validity of an object identifier.
+	\ingroup section_HDF5_H5I
+	*/
 	int cbf_H5Ivalid(const hid_t ID);
 
-	/* find/create/free a HDF5 group if it's valid & possibly set the ID to an invalid identifier
-     can write requireGroup function as {if (!find(group)) create(group); return group;} */
+	/*
+	Find/create/free a HDF5 group if it's valid & possibly set the ID to an invalid identifier
+    can write requireGroup function as {if (!find(group)) create(group); return group;}
+	*/
 
+	/**
+	\brief Attempt to create a group.
+	\ingroup section_HDF5_H5G
+	*/
 	int cbf_H5Gcreate(const hid_t location, hid_t * const group, const char * const name);
 
+	/**
+	\brief Check if a group exists.
+	\ingroup section_HDF5_H5G
+	 */
+	int cbf_H5Gfind(const hid_t location, hid_t * const group, const char * const name);
+
+	/**
+	\brief Ensure a group exists.
+	\ingroup section_HDF5_H5G
+	 */
 	int cbf_H5Grequire(const hid_t location, hid_t * const group, const char * const name);
 
+	/**
+	\brief Close a HDF5 group.
+	\ingroup section_HDF5_H5G
+	 */
 	int cbf_H5Gfree(const hid_t ID);
 
 	/* Open/close a HDF5 file if it's valid & possibly set the ID to an invalid identifier */
 
+	/**
+	\brief Attempt to open an HDF5 file by file name
+	\ingroup section_HDF5_H5F
+	 */
 	int cbf_H5Fopen(hid_t * const file, const char * const name);
 
+	/**
+	\brief Close a HDF5 file
+	\ingroup section_HDF5_H5F
+	 */
 	int cbf_H5Fclose(const hid_t ID);
 
 	/* Attributes */
     
+	/**
+	\brief Create a new attribute
+	\ingroup section_HDF5_H5A
+	 */
+	int cbf_H5Acreate
+			(const hid_t location,
+			 hid_t * const attr,
+			 const char * const name,
+			 const hid_t type,
+			 const hid_t space);
+
+	/**
+	\brief Try to locate an existing attribute
+	\ingroup section_HDF5_H5A
+	 */
+	int cbf_H5Afind
+			(const hid_t location,
+			 hid_t * const attr,
+			 const char * const name,
+			 const hid_t type,
+			 const hid_t space);
+
+	/**
+	\brief Read an entire attribute from a file
+	\ingroup section_HDF5_H5A
+	 */
+	int cbf_H5Aread
+			(const hid_t attr,
+			 const hid_t type,
+			 void * const buf);
+
+	/**
+	\brief Read an entire string attribute from a file
+	\ingroup section_HDF5_H5A
+	 */
+	int cbf_H5Aread_string
+			(const hid_t attr,
+			 const char * * const val);
+
+	/**
+	\brief Write an entire attribute to a file.
+	\ingroup section_HDF5_H5A
+	 */
+	int cbf_H5Awrite
+			(const hid_t attr,
+			 const hid_t type,
+			 void * const buf);
+
 	int cbf_H5Arequire_cmp
     (const hid_t ID,
      const char * const name,
@@ -330,6 +425,22 @@ field of the source */
      void * const buf,
          int (*cmp)(const void *, const void *, size_t));
 
+    /* We provide a macro and 2 versions of each of the calls with _ULP
+     variants. */
+
+#ifdef CBF_USE_ULP
+#define CBFM_H5Arequire_cmp2(id,nm,rk,dm,ft,mt,vl,bf,cmp,prm) \
+cbf_H5Arequire_cmp2_ULP(id,nm,rk,dm,ft,mt,vl,bf,cmp,prm)
+#else
+#define CBFM_H5Arequire_cmp2(id,nm,rk,dm,ft,mt,vl,bf,cmp,prm) \
+cbf_H5Arequire_cmp2(id,nm,rk,dm,ft,mt,vl,bf,cmp)
+#endif
+
+    
+	/**
+	\brief Check for an attribute with the given space/type/value, or set one if it doesn't exist.
+	\ingroup section_HDF5_H5A
+	 */
 	int cbf_H5Arequire_cmp2
 		(const hid_t ID,
 		const char * const name,
@@ -341,6 +452,10 @@ field of the source */
 		void * const buf,
 		int (*cmp)(const void *, const void *, size_t));
 	
+	/**
+	\brief Check for an attribute with the given space/type/value, or set one if it doesn't exist.
+	\ingroup section_HDF5_H5A
+	 */
     int cbf_H5Arequire_cmp2_ULP
         (const hid_t ID,
          const char * const name,
@@ -353,13 +468,27 @@ field of the source */
          int (*cmp)(const void *, const void *, size_t, const void *),
          const void * const cmp_params);
 
+	/**
+	\brief Check for a scalar string attribute with a given value, or set one if it doesn't exist.
+	\ingroup section_HDF5_H5A
+	 */
 	int cbf_H5Arequire_string
 		(const hid_t location,
 		const char * const name,
 		const char * const value);
 
+	/**
+	\brief Close a HDF5 attribute.
+	\ingroup section_HDF5_H5A
+	 */
+	int cbf_H5Afree(const hid_t ID);
+
 	/*  find/create/free hdf5 datasets without directly using hdf5 API */
 
+	/**
+	\brief Creates a new dataset in the given location.
+	\ingroup section_HDF5_H5D
+	 */
 	int cbf_H5Dcreate
 		(const hid_t location,
 		hid_t * const dataset,
@@ -372,7 +501,6 @@ field of the source */
 
     /* Look for a dataset with the given properties. */
      
-     
 	int cbf_H5Dfind
         (const hid_t location,
          hid_t * const dataset,
@@ -383,6 +511,10 @@ field of the source */
          const hsize_t * const chunk,
          const hid_t type);
 	
+	/**
+	\brief Look for a dataset with the given properties.
+	\ingroup section_HDF5_H5D
+	 */
     int cbf_H5Dfind2
 		(const hid_t location,
 		hid_t * const dataset,
@@ -392,6 +524,10 @@ field of the source */
 		hsize_t * const buf,
 		const hid_t type);
 
+	/**
+	\brief Ensure that a dataset exists, returning a handle to an existing dataset or creating a new dataset if needed.
+	\ingroup section_HDF5_H5D
+	 */
 	int cbf_H5Drequire
 			(const hid_t location,
 			 hid_t * const dataset,
@@ -402,6 +538,10 @@ field of the source */
 			 hsize_t * const buf,
 			 const hid_t type);
 
+	/**
+	\brief Add some data to a datset, expanding the dataset to the appropriate size if needed.
+	\ingroup section_HDF5_H5D
+	 */
 	int cbf_H5Dinsert
 			(const hid_t dataset,
 			 const hsize_t * const offset,
@@ -411,6 +551,10 @@ field of the source */
 			 const void * const value,
 			 const hid_t type);
 
+	/**
+	\brief Change the extent of a chunked dataset to the values in <code>dim</code>.
+	\ingroup section_HDF5_H5D
+	 */
 	int cbf_H5Dset_extent(const hid_t dataset, const hsize_t * const dim);
 
 	int cbf_H5Dwrite
@@ -420,6 +564,10 @@ field of the source */
         const hsize_t * const count,
         const void * const value);
 
+	/**
+	\brief Add some data to the specified position in the dataset, without checking what (if anything) was there before.
+	\ingroup section_HDF5_H5D
+	 */
 	int cbf_H5Dwrite2
 		(const hid_t dataset,
 		const hsize_t * const offset,
@@ -435,6 +583,10 @@ field of the source */
 		const hsize_t * const count,
         void * const value);
 
+	/**
+	\brief Extract some existing data from a dataset at a known position with memtype.
+	\ingroup section_HDF5_H5D
+	 */
 	int cbf_H5Dread2
 		(const hid_t dataset,
 		const hsize_t * const offset,
@@ -449,6 +601,21 @@ field of the source */
 		const char * const name,
         const double value);
 
+    /* We provide a macro and 2 versions of each of the calls with _ULP
+     variants. */
+
+#ifdef CBF_USE_ULP
+#define CBFM_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp,prm) \
+cbf_H5Drequire_scalar_F64LE2_ULP(loc,ds,nm,val,cmp,prm)
+#else
+#define CBFM_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp,prm) \
+cbf_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp)
+#endif
+
+	/**
+	\brief Write a scalar 64-bit floating point number as a dataset with comparison.
+	\ingroup section_HDF5_H5D
+	 */
 	int cbf_H5Drequire_scalar_F64LE2
 		(const hid_t location,
 		hid_t * const dataset,
@@ -457,6 +624,10 @@ field of the source */
 		int (*cmp)(const void *, const void *, size_t)
         );
 
+	/**
+	\brief Write a scalar 64-bit floating point number as a dataset with a user-defined comparison.
+	\ingroup section_HDF5_H5D
+	 */
 	int cbf_H5Drequire_scalar_F64LE2_ULP
     (const hid_t location,
      hid_t * const dataset,
@@ -465,29 +636,67 @@ field of the source */
      int (*cmp)(const void *, const void *, size_t, const void *),
      const void * const cmp_params);
 
+	/**
+	\brief Write a single fixed-length string as a dataset.
+	\ingroup section_HDF5_H5D
+	 */
     int cbf_H5Drequire_flstring
 		(const hid_t location,
 		hid_t * const dataset,
 		const char * const name,
 		const char * const value);
 
+	/**
+	\brief Close a HDF5 dataset.
+	\ingroup section_HDF5_H5D
+	 */
 	int cbf_H5Dfree(const hid_t ID);
 
 	/* Custom HDF5 types - to get the correct string type for datasets in a consistent way */
 
-	int cbf_H5Tcreate_string(hid_t * type, const size_t len);
+	/**
+	\brief Get a HDF5 string datatype to describe a string of the specified length.
+	\ingroup section_HDF5_H5T
+	 */
+	int cbf_H5Tcreate_string(hid_t * const type, const size_t len);
 
+	/**
+	\brief Close a HDF5 datatype identifier.
+	\ingroup section_HDF5_H5T
+	 */
 	int cbf_H5Tfree(const hid_t ID);
 
 	/* HDF5 dataspace functions: I need a uniform method of creating data spaces to ensure correct operation of comparison functions */
 
+	/**
+	\brief Create a dataspace with some given values.
+	\ingroup section_HDF5_H5S
+	 */
 	int cbf_H5Screate
 		(hid_t * const ID,
 		const int rank,
 		const hsize_t * const dim,
 		const hsize_t * const max);
 
+	/**
+	\brief Close a HDF5 dataspace identifier.
+	\ingroup section_HDF5_H5S
+	 */
 	int cbf_H5Sfree(const hid_t ID);
+
+	/**
+	\brief A missing HDF5 function.
+	\ingroup section_HDF5_H5O
+	*/
+	htri_t cbf_H5Ocmp
+		(const hid_t id0,
+		const hid_t id1);
+
+	/**
+	\brief Close a HDF5 object identifier.
+	\ingroup section_HDF5_H5O
+	 */
+	int cbf_H5Ofree(const hid_t ID);
 
 
     /****************************************************************
@@ -499,25 +708,35 @@ field of the source */
      config.h
      ****************************************************************/
     
-    struct FILE;
-
 	extern const int cbf_configError_success;
-
-    /** \brief Convert a parse error to a descriptive string. */
-    const char * cbf_config_strerror(const int error);
 
     /* Opaque type for a collection of configuration items */
     struct cbf_config_t;
 	typedef struct cbf_config_t cbf_config_t;
 
-	/** \brief Obtain a new handle for some configuration settings. */
+	/**
+	\brief Obtain a new handle for some configuration settings.
+	\ingroup section_minicbf_config
+	*/
 	cbf_config_t * cbf_config_create();
 
-	/** \brief Free any heap memory associated with the given cbf_hdf5_configItemVectorhandle object. */
+	/**
+	\brief Read a minicbf configuration file into the given handle, writing errors to <code>logfile</code>.
+	\ingroup section_minicbf_config
+	*/
+	int cbf_config_parse(FILE * const configFile, FILE * const logFile, cbf_config_t * const vec);
+
+	/**
+	\brief Free any heap memory associated with the given cbf_hdf5_configItemVectorhandle object.
+	\ingroup section_minicbf_config
+	*/
 	void cbf_config_free(const cbf_config_t * const vector);
 
-	/** \brief Read a minicbf configuration file into the given handle, writing errors to <code>logfile</code>. */
-	int cbf_config_parse(FILE * const configFile, FILE * const logFile, cbf_config_t * const vec);
+    /**
+	\brief Convert a parse error to a descriptive string.
+	\ingroup section_minicbf_config
+	*/
+    const char * cbf_config_strerror(const int error);
 
     /****************************************************************
      End of section of code extracted from J. Sloan's
@@ -534,11 +753,6 @@ field of the source */
 	} cbf_name_value_pair;
     
 
-    
-    /* Write a CBF value into a NeXus file
-     Will add a piece of data with a given name to /entry/group@groupNXclass/subGroup@subGroupNXclass/name */
-    
-    
 #define cbf_h5failneg(x,code) {int err; err = (x); if (err < 0) {return (code);}}
 #define cbf_h5onfailneg(x,code,y) {int err; err = (x); if (err < 0) {{y;} return (code);}}
 #define cbf_h5reportneg(x,code,cerr) \
@@ -617,10 +831,12 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 		hid_t nxid;    /* /entry@NXentry */
 		hid_t nxdata; /* /entry/data@NXdata */
 		hid_t nxsample; /* /entry/sample@NXsample group */
+		hid_t nxbeam; /* /entry/beam@NXbeam group */
 		hid_t nxinst;  /* /entry/instrument@NXinstrument */
 		hid_t nxdetector; /* /entry/instrument/detector@NXdetector */
 		hid_t nxmonochromator;  /* /entry/instrument/monochromator@NXmonochromator */
         hid_t nxgoniometer;  /* /entry/instrument/goniometer@NXgoniometer */
+		hid_t nxsource;  /* /entry/instrument/source@NXsource */
         hid_t rootid;  /* The root CBF database group */
         hid_t dbid;    /* The current datablock in the CBF */
         hid_t sfid;    /* The current saveframe in the current datablock or -1 */
@@ -643,7 +859,15 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 #endif
         cbf_bookmark
         bookmark;/* Read bookmark to save names for paths */
-
+        const char * scan_id; /* a unique identifier for the scan */
+        const char * sample_id; /* a unique identifier for the sample */
+		const char * nxsample_name;
+		const char * nxbeam_name;
+		const char * nxinstrument_name;
+		const char * nxgoniometer_name;
+		const char * nxmonochromator_name;
+		const char * nxsource_name;
+        FILE * logfile;
     }
     cbf_h5handle_struct;
     
@@ -677,25 +901,268 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
 	typedef cbf_h5Ovisit_struct *cbf_h5Ovisithandle;
     
-    /* Ensure I have a file to do stuff with. */
-	int cbf_h5handle_require_file(const cbf_h5handle handle, const char * name);
+	/**
+	\brief Get the current id of the file within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_get_file
+			(const cbf_h5handle nx,
+			 hid_t * const file);
     
-    /* Ensure I have a top-level NXentry group in the handle */
-	int cbf_h5handle_require_entry(const cbf_h5handle handle, hid_t * group, const char * name);
+	/**
+	\brief Set the id of the file within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_set_file
+			(const cbf_h5handle nx,
+			 const hid_t file);
     
-    /* Ensure I have an NXsample group in the handle called 'sample' below the entry */
-	int cbf_h5handle_require_sample(const cbf_h5handle handle, hid_t * group);
+	/**
+	\brief Get the current id and name of the entry group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_get_entry
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
     
-    /* Ensure I have an NXinstrument group in the handle called 'instrument' */
-	int cbf_h5handle_require_instrument(const cbf_h5handle handle, hid_t * group);
+	/**
+	\brief Set the id and name of the entry group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_set_entry
+			(const cbf_h5handle nx,
+			 const hid_t group,
+			 const char * const name);
     
-    /* Ensure I have a detector with the given name in the hdf5 handle */
-    int cbf_h5handle_require_detector(const cbf_h5handle handle, hid_t * group,
+	/**
+	\brief Ensure I have an entry in the hdf5 handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_require_entry
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * name);
+
+	/**
+     \brief Ensure I have an entry in the hdf5 handle with definition
+     \ingroup section_H5Handle
+	 */
+	int cbf_h5handle_require_entry_definition
+    (const cbf_h5handle nx,
+     hid_t * const group,
+     const char * name,
+     const char * definition,
+     const char * version,
+     const char * URL);
+
+	/**
+	\brief Get the current id and name of the sample group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_get_sample
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
+
+	/**
+	\brief Set the id and name of the sample group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_set_sample
+			(const cbf_h5handle nx,
+			 const hid_t group,
                                       const char * const name);
     
-    /* Ensure I have a monochromator in the hdf5 handle */
-	int cbf_h5handle_require_monochromator(const cbf_h5handle handle, hid_t * group);
+	/**
+	\brief Ensure I have a sample in the hdf5 handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_require_sample
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * name);
     
+	/**
+	\brief Get the current id and name of the beam group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_get_beam
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
+
+	/**
+	\brief Set the id and name of the beam group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_set_beam
+			(const cbf_h5handle nx,
+			 const hid_t group,
+			 const char * const name);
+
+	/**
+	\brief Ensure I have a beam in the hdf5 handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_require_beam
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * name);
+
+	/**
+	\brief Get the current id and name of the instrument group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_get_instrument
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
+
+	/**
+	\brief Set the id and name of the instrument group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_set_instrument
+			(const cbf_h5handle nx,
+			 const hid_t group,
+			 const char * const name);
+
+	/**
+	\brief Find an existing instrument group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_find_instrument
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
+
+	/**
+	\brief Ensure I have an instrument in the hdf5 handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_require_instrument
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * name);
+
+	/**
+	\brief Get the current id and name of the detector group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_get_detector
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
+
+	/**
+	\brief Set the id and name of the detector group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_set_detector
+			(const cbf_h5handle nx,
+			 const hid_t group,
+			 const char * const name);
+
+	/**
+	\brief Find an existing detector group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_find_detector
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
+
+	/**
+	\brief Ensure I have a detector in the hdf5 handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_require_detector
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * name);
+
+	/**
+	\brief Get the current id and name of the goniometer group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_get_goniometer
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
+
+	/**
+	\brief Set the id and name of the goniometer group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_set_goniometer
+			(const cbf_h5handle nx,
+			 const hid_t group,
+			 const char * const name);
+
+	/**
+	\brief Ensure I have a goniometer in the hdf5 handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_require_goniometer
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * name);
+
+	/**
+	\brief Get the current id and name of the monochromator group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_get_monochromator
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
+
+	/**
+	\brief Set the id and name of the monochromator group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_set_monochromator
+			(const cbf_h5handle nx,
+			 const hid_t group,
+			 const char * const name);
+
+	/**
+	\brief Ensure I have a monochromator in the hdf5 handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_require_monochromator
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * name);
+
+	/**
+	\brief Get the current id and name of the source group within the given handle.
+	\ingroup section_H5Handle
+	 */
+	int cbf_h5handle_get_source
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * * const name);
+
+	/**
+	\brief Set the id and name of the source group within the given handle.
+	\ingroup section_H5Handle
+	*/
+	int cbf_h5handle_set_source
+			(const cbf_h5handle nx,
+			 const hid_t group,
+			 const char * const name);
+
+	/**
+	\brief Ensure I have a source in the hdf5 handle.
+	\ingroup section_H5Handle
+	*/
+	int cbf_h5handle_require_source
+			(const cbf_h5handle nx,
+			 hid_t * const group,
+			 const char * name);
+
     /* Create a dotted CBF location string
      returns a newly allocated string that
      must be freed */
@@ -920,6 +1387,10 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     /* Free an H5File handle */
     
+	/**
+	\brief Free a handle for an HDF5 file.
+	\ingroup section_H5Handle
+	*/
     int cbf_free_h5handle(cbf_h5handle h5handle);
     
     /* Make an (empty) H5File handle */
@@ -956,17 +1427,48 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 	/* Create an HDF5 File handle without adding an NXcbf group to it */
 	int cbf_create_h5handle2(cbf_h5handle *h5handle,const char * h5filename);
     
+	/**
+	\brief Allocates space for a HDF5 file handle and associates it with the given file.
+	\ingroup section_H5Handle
+	*/
+	int cbf_create_h5handle3(cbf_h5handle * handle, hid_t file);
+
     /*  Write cbf to HDF5 file hfile */
     
 	int cbf_write_h5file (cbf_handle handle, cbf_h5handle h5handle, int flags);
     
-	/* Write a cbf file to a nexus file */
+	/**
+	\brief Extract the data from a CBF file & put it into a NeXus file.
+	\ingroup section_H5Handle
+	 */
 	int cbf_write_cbf_h5file
 			(cbf_handle handle,
 			 cbf_h5handle h5handle);
 
-	/* Write a minicbf file to a nexus file */
+	/**
+	\brief Extract the data from a CBF file & put it into a NeXus file.
+	\ingroup section_H5Handle
+	 */
+	int cbf_write_cbf2nx
+			(cbf_handle handle,
+			 cbf_h5handle h5handle,
+			 const char * const datablock,
+			 const char * const scan,
+			 const int list);
+
+	/**
+	\brief Extract the data from a miniCBF file & put it into a NeXus file.
+	\ingroup section_H5Handle
+	 */
 	int cbf_write_minicbf_h5file (cbf_handle handle, cbf_h5handle h5handle, const cbf_config_t * const axisConfig);
+
+	/**
+	\brief Extract data from a nexus file and store it in a CBF file
+	\ingroup section_H5Handle
+	*/
+	int cbf_write_nx2cbf
+			(cbf_h5handle nx,
+			 cbf_handle cbf);
 
     /* Open an HDF5 File handle */
     

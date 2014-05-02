@@ -1,0 +1,62 @@
+<div>
+	<h4>Comparing data</h4>
+	<p>Some of the functions in this section will require a comparison function and some comparison parameters to be
+	provided. The function should return zero if the data in the two arrays are considered equal and non-zero otherwise, note that
+	this is the same as <code>C</code>'s <code>strcmp()</code>. The signature of the comparison functions used here
+	is:</p>
+	<p><code>int compare 
+	(const void * expected,
+	const void * existing,
+	size_t length,
+	const void * params)</code></p>
+	<p>This will be called with:</p>
+	<table class="params">
+		<tr style="background:none;">
+			<th style="border-top-left-radius:5px;">Type</th>
+			<th>Name</th>
+			<th style="border-top-right-radius:5px;">Description</th>
+		</tr>
+		<tr><td class="type">const void *</td><td class="name">expected</td><td class="desc">A pointer to the array of requested values that was passed to the function.</td></tr>
+		<tr><td class="type">const void *</td><td class="name">existing</td><td class="desc">An array of existing values read from the object.</td></tr>
+		<tr><td class="type">size_t</td><td class="name">length</td><td class="desc">The length of the <code>expected</code> and <code>existing</code> arrays.</td></tr>
+		<tr><td class="type">const void *</td><td class="name">params</td><td class="desc">A pointer to the comparison parameters which were passed to the calling function.</td></tr>
+	</table>
+	<p>The comparison parameters allow more complex comparisons to be performed, such as a check that the numbers are 'close
+	enough' as determined by some variable measure of closeness. It is the caller's responsibility to ensure that the comparison
+	function is appropriate for the type of data expected and that <code>params</code> is of the appropriate type for the
+	comparison function. The parameters <code>expected</code> and <code>existing</code> should normally be cast to the appropriate
+	type before being used.</p>
+	
+	<p>An example function for comparing <code>int</code>s, taken from the implementation of CBFlib:</p>
+	<code><pre>/*
+Compare two arrays of ints.
+Most parameters are defined as being 'const' even though
+the expected signature allows them to be mutable.
+*/
+int cmp_int
+	(const void * const expected,
+	const void * const existing,
+	size_t length,
+	const void * const params)
+{
+	/*
+	Cast the array pointers to the appropriate type, preserving the const-ness of the data.
+	I won't be using any parameters for this comparison, so just ignore that argument.
+	*/
+	const int * A = expected;
+	const int * B = existing;
+	
+	/*
+	Iterate through the arrays comparing each element and decrementing a counter.
+	If any are not equal the loop will exit early with length being non-zero.
+	*/
+	while (length &amp;&amp; *A++ == *B++) --length;
+	
+	/*
+	Return a value indicating whether the arrays are equal.
+	*/
+	return length;
+}</pre></code>
+	<p>Some older functions use a simpler 3-argument comparison function, which doesn't have a parameter that can be used
+	to pass some extra information to or retrieve information from the function.</p>
+</div>

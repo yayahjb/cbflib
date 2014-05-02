@@ -78,8 +78,10 @@ fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(err)); \
  NOTE: this only works with exactly representable 'sentinel' values, do not use with arbitrary numbers
  */
 #ifdef CBF_USE_ULP
+#define CBFM_cmp_dbl_exact(exp,ext,len,prm) cmp_dbl_exact(exp,ext,len,prm)
 int cmp_dbl_exact(const void * expected, const void * existing, size_t length, const void * const params)
 #else
+#define CBFM_cmp_dbl_exact(exp,ext,len,prm) cmp_dbl_exact(exp,ext,len)
 int cmp_dbl_exact(const void * expected, const void * existing, size_t length)
 #endif
 {
@@ -90,8 +92,10 @@ int cmp_dbl_exact(const void * expected, const void * existing, size_t length)
 }
 
 #ifdef CBF_USE_ULP
+#define CBFM_cmp_int_exact(exp,ext,len,prm) cmp_int_exact(exp,ext,len,prm)
 int cmp_int_exact(const void * expected, const void * existing, size_t length, const void * const params)
 #else
+#define CBFM_cmp_int_exact(exp,ext,len,prm) cmp_int_exact(exp,ext,len)
 int cmp_int_exact(const void * expected, const void * existing, size_t length)
 #endif
 {
@@ -102,8 +106,10 @@ int cmp_int_exact(const void * expected, const void * existing, size_t length)
 }
 
 #ifdef CBF_USE_ULP
+#define CBFM_cmp_hsize_t_exact(exp,ext,len,prm) cmp_hsize_t_exact(exp,ext,len,prm)
 int cmp_hsize_t_exact(const void * expected, const void * existing, size_t length, const void * const params)
 #else
+#define CBFM_cmp_hsize_t_exact(exp,ext,len,prm) cmp_hsize_t_exact(exp,ext,len)
 int cmp_hsize_t_exact(const void * expected, const void * existing, size_t length)
 #endif
 {
@@ -113,19 +119,190 @@ int cmp_hsize_t_exact(const void * expected, const void * existing, size_t lengt
 	return length;
 }
 
-/*
- compare 2 HDF5 objects, return 0 if they are equal, non-zero otherwise
- */
-int cmp_object(const hid_t obj1, const hid_t obj2)
+testResult_t test_H5Acreate
+		(const hid_t obj,
+		hid_t * const attr,
+		const char * const name,
+		const hid_t type,
+		const hid_t space)
 {
-	H5O_info_t info1, info2;
-	if (!cbf_H5Ivalid(obj1)) return 1;
-	if (!cbf_H5Ivalid(obj2)) return 1;
-	H5Oget_info(obj1, &info1);
-	H5Oget_info(obj2, &info2);
-	if (info1.fileno != info2.fileno) return 1;
-	if (info1.addr != info2.addr) return 1;
-	return 0;
+	int error = CBF_SUCCESS;
+	testResult_t r = {0,0,0};
+
+	/* check parameters */
+	if (!cbf_H5Ivalid(obj)
+			 || !attr
+			 || !name
+			 || H5I_DATATYPE!=H5Iget_type(type)
+			 || !cbf_H5Ivalid(space))
+		error |= CBF_ARGUMENT;
+
+	/* check preconditions */
+	if (CBF_SUCCESS==error && !r.fail) {
+		/* no attribute should exist with the given name */
+		const htri_t exists = H5Aexists(obj,name);
+		if (exists<0) {
+			error |= CBF_H5ERROR;
+		} else if (exists) {
+			error |= CBF_UNDEFINED;
+}
+	}
+
+	if (CBF_SUCCESS==error && !r.fail) {
+		/* verify expected failures */
+		if (!r.fail) {
+			hid_t attribute = CBF_H5FAIL;
+			TEST_CBF_FAIL(cbf_H5Acreate(CBF_H5FAIL, &attribute, name, type, space));
+			TEST_CBF_FAIL(cbf_H5Acreate(obj, 0, name, type, space));
+			TEST_CBF_FAIL(cbf_H5Acreate(obj, &attribute, 0, type, space));
+			TEST_CBF_FAIL(cbf_H5Acreate(obj, &attribute, name, CBF_H5FAIL, space));
+			TEST_CBF_FAIL(cbf_H5Acreate(obj, &attribute, name, type, CBF_H5FAIL));
+			/* check that attr is unchanged */
+			TEST(CBF_H5FAIL==attribute);
+		}
+
+		if (!r.fail) {
+			/* check I can create an attribute */
+			TEST_CBF_PASS(cbf_H5Acreate(obj, attr, name, type, space));
+			TEST(cbf_H5Ivalid(*attr));
+		}
+
+		if (!r.fail) {
+			/* check I can't create the same attribute and that the argument is unchanged */
+			hid_t attribute = CBF_H5FAIL;
+			TEST_CBF_FAIL(cbf_H5Acreate(obj, &attribute, name, type, space));
+			TEST(CBF_H5FAIL==attribute);
+		}
+	} else {
+		fprintf(stderr,"%s: Skipping attribute/create tests\n",__WHERE__);
+		++r.skip;
+	}
+
+	return r;
+}
+
+testResult_t test_H5Afree
+		(const hid_t attr)
+{
+	int error = CBF_SUCCESS;
+	testResult_t r = {0,0,0};
+
+	/* preconditions/check arguments */
+	if (!cbf_H5Ivalid(attr)) error |= CBF_ARGUMENT;
+
+	if (CBF_SUCCESS==error && !r.fail) {
+		/* verify expected failures */
+		TEST_CBF_FAIL(cbf_H5Afree(CBF_H5FAIL));
+
+		/* check the attribute can be free'd */
+		TEST_CBF_PASS(cbf_H5Afree(attr));
+
+		/* check the attribute can't be free'd again */
+		TEST_CBF_FAIL(cbf_H5Afree(attr));
+	} else {
+		fprintf(stderr,"%s: Skipping attribute/free tests\n",__WHERE__);
+		++r.skip;
+	}
+
+	return r;
+}
+
+testResult_t test_H5Afind
+		(const hid_t obj,
+		 const char * const validAttr,
+		 const char * const invalidAttr,
+		 const hid_t type,
+		 const hid_t wrongType,
+		 const hid_t space)
+{
+	int error = CBF_SUCCESS;
+	testResult_t r = {0,0,0};
+
+	/* check parameters */
+	if (!cbf_H5Ivalid(obj)
+			|| !validAttr
+			|| !invalidAttr
+			|| H5I_DATATYPE!=H5Iget_type(type)
+			|| H5I_DATATYPE!=H5Iget_type(wrongType)
+			|| !cbf_H5Ivalid(space))
+		error |= CBF_ARGUMENT;
+
+	/* check preconditions */
+	if (CBF_SUCCESS==error && !r.fail) {
+		const htri_t exists_valid = H5Aexists(obj,validAttr);
+		const htri_t exists_invalid = H5Aexists(obj,invalidAttr);
+		/* the 'valid' attribute should exist */
+		if (exists_valid<0) error |= CBF_H5ERROR;
+		else if (!exists_valid) error |= CBF_UNDEFINED;
+		/* the 'invalid' attribute shouldn't exist */
+		if (exists_invalid<0) error |= CBF_H5ERROR;
+		else if (exists_invalid) error |= CBF_UNDEFINED;
+	}
+
+	if (CBF_SUCCESS==error && !r.fail) {
+		/* verify expected failures */
+		if (!r.fail) {
+			hid_t attr = CBF_H5FAIL;
+			TEST_CBF_FAIL(cbf_H5Afind(CBF_H5FAIL, &attr, validAttr, type, space));
+			TEST_CBF_FAIL(cbf_H5Afind(obj, 0, validAttr, type, space));
+			TEST_CBF_FAIL(cbf_H5Afind(obj, &attr, 0, type, space));
+			/* check that attr is unchanged */
+			TEST(CBF_H5FAIL==attr);
+		}
+
+		/* test failure to find a non-existant attribute */
+		if (!r.fail) {
+			hid_t attr = CBF_H5FAIL;
+			TEST_CBF_NOTFOUND(cbf_H5Afind(obj, &attr, invalidAttr, type, space));
+			/* check that attr is unchanged */
+			TEST(CBF_H5FAIL==attr);
+		}
+
+		/* test failure to find an existing attribute with a different type */
+		if (!r.fail) {
+			hid_t attr = CBF_H5FAIL;
+			TEST_CBF_FAIL(cbf_H5Afind(obj, &attr, validAttr, wrongType, space));
+			/* check that attr is unchanged */
+			TEST(CBF_H5FAIL==attr);
+		}
+
+		/* TODO: tests for different dataspaces */
+
+		/* test successfully finding an attribute that does exist & has known type */
+		if (!r.fail) {
+			hid_t attr = CBF_H5FAIL;
+			TEST_CBF_PASS(cbf_H5Afind(obj, &attr, validAttr, type, space));
+			/* check that attr is valid */
+			TEST(cbf_H5Ivalid(attr));
+			/* clean up */
+			cbf_H5Afree(attr);
+		}
+
+		/* test successfully finding an attribute that does exist but has unknown type */
+		if (!r.fail) {
+			hid_t attr = CBF_H5FAIL;
+			TEST_CBF_PASS(cbf_H5Afind(obj, &attr, validAttr, CBF_H5FAIL, space));
+			/* check that attr is valid */
+			TEST(cbf_H5Ivalid(attr));
+			/* clean up */
+			cbf_H5Afree(attr);
+		}
+
+		/* test successfully finding an attribute that does exist but has unknown space */
+		if (!r.fail) {
+			hid_t attr = CBF_H5FAIL;
+			TEST_CBF_PASS(cbf_H5Afind(obj, &attr, validAttr, type, CBF_H5FAIL));
+			/* check that attr is valid */
+			TEST(cbf_H5Ivalid(attr));
+			/* clean up */
+			cbf_H5Afree(attr);
+		}
+	} else {
+		fprintf(stderr,"%s: Skipping attribute/find tests\n",__WHERE__);
+		++r.skip;
+	}
+
+	return r;
 }
 
 testResult_t _test_H5Arequire_cmp
@@ -141,12 +318,11 @@ testResult_t _test_H5Arequire_cmp
  const void * const attrValue,
  const void * const attrValue_b,
  void * const buf,
+ int cmp(const void *, const void *, size_t
 #ifdef CBF_USE_ULP
- int cmp(const void *, const void *, size_t, const void * const),
- const void * const cmp_params)
-#else
-int cmp(const void *, const void *, size_t))
+         , const void * const
 #endif
+ ),const void * const cmp_params)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -159,11 +335,7 @@ int cmp(const void *, const void *, size_t))
     
     
 	/* test creation of the attributes */
-#ifdef CBF_USE_ULP
-	TEST_CBF_PASS(cbf_H5Arequire_cmp2_ULP(obj,attrName,rank,dim,ftype,mtype,attrValue,buf,cmp,cmp_params));
-#else
-	TEST_CBF_PASS(cbf_H5Arequire_cmp2(obj,attrName,rank,dim,ftype,mtype,attrValue,buf,cmp));
-#endif
+	TEST_CBF_PASS(CBFM_H5Arequire_cmp2(obj,attrName,rank,dim,ftype,mtype,attrValue,buf,cmp,cmp_params));
 	{ /* check that it actually exists */
 		hid_t attr = CBF_H5FAIL;
 		TEST(H5Aexists(obj,attrName)>0);
@@ -184,35 +356,17 @@ int cmp(const void *, const void *, size_t))
 		H5Aclose(attr);
 	}
 	/* test verification of existing attributes */
-#ifdef CBF_USE_ULP
-	TEST_CBF_PASS(cbf_H5Arequire_cmp2_ULP(obj,attrName,rank,dim,ftype,mtype,attrValue,buf,cmp,cmp_params));
-#else
-	TEST_CBF_PASS(cbf_H5Arequire_cmp2(obj,attrName,rank,dim,ftype,mtype,attrValue,buf,cmp));
-#endif
+	TEST_CBF_PASS(CBFM_H5Arequire_cmp2(obj,attrName,rank,dim,ftype,mtype,attrValue,buf,cmp,cmp_params));
 	if (rank>0) { /* test failure to verify differing attribute sizes */
-#ifdef CBF_USE_ULP
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2_ULP(obj,attrName,rank,dim_h,ftype,mtype,attrValue,buf,cmp,cmp_params));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2_ULP(obj,attrName,rank,dim_l,ftype,mtype,attrValue,buf,cmp,cmp_params));
-#else
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,attrName,rank,dim_h,ftype,mtype,attrValue,buf,cmp));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,attrName,rank,dim_l,ftype,mtype,attrValue,buf,cmp));
-#endif
+		TEST_CBF_FAIL(CBFM_H5Arequire_cmp2(obj,attrName,rank,dim_h,ftype,mtype,attrValue,buf,cmp,cmp_params));
+		TEST_CBF_FAIL(CBFM_H5Arequire_cmp2(obj,attrName,rank,dim_l,ftype,mtype,attrValue,buf,cmp,cmp_params));
 	}
-#ifdef CBF_USE_ULP
 	/* test failure to verify differing attribute types */
-	TEST_CBF_FAIL(cbf_H5Arequire_cmp2_ULP(obj,attrName,rank,dim,ftype_b,mtype,attrValue,buf,cmp,cmp_params));
+	TEST_CBF_FAIL(CBFM_H5Arequire_cmp2(obj,attrName,rank,dim,ftype_b,mtype,attrValue,buf,cmp,cmp_params));
 	/* test failure to verify differing rank */
-	TEST_CBF_FAIL(cbf_H5Arequire_cmp2_ULP(obj,attrName,rank+1,dim,ftype,mtype,attrValue,buf,cmp,cmp_params));
+	TEST_CBF_FAIL(CBFM_H5Arequire_cmp2(obj,attrName,rank+1,dim,ftype,mtype,attrValue,buf,cmp,cmp_params));
 	/* test failure to verify differing attribute values */
-	TEST_CBF_FAIL(cbf_H5Arequire_cmp2_ULP(obj,attrName,rank,dim,ftype,mtype,attrValue_b,buf,cmp,cmp_params));
-#else
-	/* test failure to verify differing attribute types */
-	TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,attrName,rank,dim,ftype_b,mtype,attrValue,buf,cmp));
-	/* test failure to verify differing rank */
-	TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,attrName,rank+1,dim,ftype,mtype,attrValue,buf,cmp));
-	/* test failure to verify differing attribute values */
-	TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,attrName,rank,dim,ftype,mtype,attrValue_b,buf,cmp));
-#endif
+	TEST_CBF_FAIL(CBFM_H5Arequire_cmp2(obj,attrName,rank,dim,ftype,mtype,attrValue_b,buf,cmp,cmp_params));
 	return r;
 }
 
@@ -228,37 +382,21 @@ testResult_t test_H5Arequire_cmp(const hid_t obj)
 		int attrValue[] = {0,1,2,3};
 		int buf[4];
 		const hsize_t dim[] = {4};
-#ifdef CBF_USE_ULP
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2_ULP(CBF_H5FAIL,attrName,1,dim,H5T_STD_I32LE,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact,0));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2_ULP(obj,0,1,dim,H5T_STD_I32LE,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact,0));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2_ULP(obj,attrName,-1,dim,H5T_STD_I32LE,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact,0));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2_ULP(obj,attrName,1,0,H5T_STD_I32LE,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact,0));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2_ULP(obj,attrName,1,dim,CBF_H5FAIL,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact,0));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2_ULP(obj,attrName,1,dim,H5T_STD_I32LE,CBF_H5FAIL,attrValue,buf,cmp_int_exact,0));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2_ULP(obj,attrName,1,dim,H5T_STD_I32LE,H5T_NATIVE_INT,0,buf,cmp_int_exact,0));
-#else
-        TEST_CBF_FAIL(cbf_H5Arequire_cmp2(CBF_H5FAIL,attrName,1,dim,H5T_STD_I32LE,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,0,1,dim,H5T_STD_I32LE,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,attrName,-1,dim,H5T_STD_I32LE,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,attrName,1,0,H5T_STD_I32LE,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,attrName,1,dim,CBF_H5FAIL,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,attrName,1,dim,H5T_STD_I32LE,CBF_H5FAIL,attrValue,buf,cmp_int_exact));
-		TEST_CBF_FAIL(cbf_H5Arequire_cmp2(obj,attrName,1,dim,H5T_STD_I32LE,H5T_NATIVE_INT,0,buf,cmp_int_exact));
-        
-#endif
+		TEST_CBF_FAIL(CBFM_H5Arequire_cmp2(CBF_H5FAIL,attrName,1,dim,H5T_STD_I32LE,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact,0));
+		TEST_CBF_FAIL(CBFM_H5Arequire_cmp2(obj,0,1,dim,H5T_STD_I32LE,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact,0));
+		TEST_CBF_FAIL(CBFM_H5Arequire_cmp2(obj,attrName,-1,dim,H5T_STD_I32LE,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact,0));
+		TEST_CBF_FAIL(CBFM_H5Arequire_cmp2(obj,attrName,1,0,H5T_STD_I32LE,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact,0));
+		TEST_CBF_FAIL(CBFM_H5Arequire_cmp2(obj,attrName,1,dim,CBF_H5FAIL,H5T_NATIVE_INT,attrValue,buf,cmp_int_exact,0));
+		TEST_CBF_FAIL(CBFM_H5Arequire_cmp2(obj,attrName,1,dim,H5T_STD_I32LE,CBF_H5FAIL,attrValue,buf,cmp_int_exact,0));
+		TEST_CBF_FAIL(CBFM_H5Arequire_cmp2(obj,attrName,1,dim,H5T_STD_I32LE,H5T_NATIVE_INT,0,buf,cmp_int_exact,0));
 	}
     
 	{ /* rank 0 */
 		int attrValue[] = {42};
 		int attrValue_b[] = {43};
 		int buf[1];
-#ifdef CBF_USE_ULP
 		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i0",0,0,0,0,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,0,cmp_int_exact,0));
 		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i0_b",0,0,0,0,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact,0));
-#else
-		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i0",0,0,0,0,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,0,cmp_int_exact));
-		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i0_b",0,0,0,0,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact));
-#endif
 	}
 	{ /* rank 1 */
 		const hsize_t dim_l[] = {3};
@@ -267,13 +405,8 @@ testResult_t test_H5Arequire_cmp(const hid_t obj)
 		int attrValue[] = {0,1,2,3};
 		int attrValue_b[] = {0,1,2,4};
 		int buf[4];
-#ifdef CBF_USE_ULP
 		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i1",1,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,0,cmp_int_exact,0));
 		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i1_b",1,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact,0));
-#else
-        TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i1",1,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,0,cmp_int_exact));
-		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i1_b",1,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact));
-#endif
 	}
 	{ /* rank 2 */
 		const hsize_t dim_l[] = {3,3};
@@ -290,13 +423,8 @@ testResult_t test_H5Arequire_cmp(const hid_t obj)
 			{8,9,10,12}
 		};
 		int buf[12];
-#ifdef CBF_USE_ULP
 		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i2",2,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,0,cmp_int_exact,0));
 		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i2_b",2,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact,0));
-#else
-		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i2",2,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,0,cmp_int_exact));
-		TEST_COMPONENT(_test_H5Arequire_cmp(obj,"i2_b",2,dim,dim_h,dim_l,H5T_STD_I32LE,H5T_STD_U32LE,H5T_NATIVE_INT,attrValue,attrValue_b,buf,cmp_int_exact));
-#endif
 	}
 	return r;
 }
@@ -347,6 +475,42 @@ testResult_t test_H5Arequire_string(const hid_t obj)
 	return r;
 }
 
+testResult_t test_attribute
+		(const hid_t obj)
+{
+	int error = CBF_SUCCESS;
+	testResult_t r = {0,0,0};
+
+	/* preconditions/check arguments */
+	if (!cbf_H5Ivalid(obj)) error |= CBF_ARGUMENT;
+
+	if (CBF_SUCCESS==error && !r.fail) {
+		const char validName[] = "attr";
+		const char invalidName[] = "attr_invalid";
+		const hid_t space = H5Screate(H5S_SCALAR);
+		if (space < 0) error |= CBF_H5ERROR;
+
+		/* test create & free functions together */
+		if (CBF_SUCCESS==error && !r.fail) {
+			hid_t attr = CBF_H5FAIL;
+			TEST_COMPONENT(test_H5Acreate(obj, &attr, validName, H5T_STD_I32LE, space));
+			TEST_COMPONENT(test_H5Afree(attr));
+		}
+
+		/* test some other functions */
+		TEST_COMPONENT(test_H5Afind(obj, validName, invalidName, H5T_STD_I32LE, H5T_STD_U64BE, space));
+		TEST_COMPONENT(test_H5Arequire_cmp(obj));
+		TEST_COMPONENT(test_H5Arequire_string(obj));
+
+		H5Sclose(space);
+	} else {
+		fprintf(stderr,"%s: Skipping attribute tests\n",__WHERE__);
+		++r.skip;
+	}
+
+	return r;
+}
+
 testResult_t testDatasetFind(const hid_t grp, hsize_t * const buf)
 {
 	int error = CBF_SUCCESS;
@@ -383,7 +547,6 @@ testResult_t testDatasetFind(const hid_t grp, hsize_t * const buf)
 		TEST_CBF_FAIL(cbf_H5Dfind2(grp,0,name1,rank,max,buf,H5T_NATIVE_INT));
 		TEST_CBF_FAIL(cbf_H5Dfind2(grp,&handle,0,rank,max,buf,H5T_NATIVE_INT));
 		TEST_CBF_FAIL(cbf_H5Dfind2(grp,&handle,name1,-1,max,buf,H5T_NATIVE_INT));
-		TEST_CBF_FAIL(cbf_H5Dfind2(grp,&handle,name1,rank,max,buf,CBF_H5FAIL));
 		{ /* check it can find a match */
 			hid_t handle = CBF_H5FAIL;
 			TEST_CBF_PASS(cbf_H5Dfind2(grp,&handle,name1,rank,max,buf,H5T_NATIVE_INT));
@@ -404,6 +567,12 @@ testResult_t testDatasetFind(const hid_t grp, hsize_t * const buf)
 			TEST_CBF_FAIL(cbf_H5Dfind2(grp,&handle,name1,rank,max,buf,H5T_NATIVE_UINT));
 			TEST(!cbf_H5Ivalid(handle));
 			TEST(tmpHandle==handle);
+			cbf_H5Dfree(handle);
+		}
+		{ /* test no failure when no type given */
+			hid_t handle = CBF_H5FAIL;
+			TEST_CBF_PASS(cbf_H5Dfind2(grp,&handle,name1,rank,max,buf,CBF_H5FAIL));
+			TEST(cbf_H5Ivalid(handle));
 			cbf_H5Dfree(handle);
 		}
 		{ /* test failure when rank differs */
@@ -476,7 +645,7 @@ testResult_t test_H5Dcreate(const hid_t grp, hid_t * const dset, const char * na
 		TEST(H5I_DATASET==H5Iget_type(*dset));
 		TEST(H5Lexists(grp,name,H5P_DEFAULT)>0);
 		TEST(cbf_H5Ivalid(dsetObj=H5Oopen(grp,name,H5P_DEFAULT)));
-		TEST(!cmp_object(*dset,dsetObj));
+		TEST(!cbf_H5Ocmp(*dset,dsetObj));
 		H5Oclose(dsetObj);
 	}
 	{ /* dataset exists: ensure 'create' fails, verify the handle is valid, unmodified & the dataset (link, at least) remains */
@@ -490,7 +659,7 @@ testResult_t test_H5Dcreate(const hid_t grp, hid_t * const dset, const char * na
 		TEST(H5I_DATASET==H5Iget_type(*dset));
 		TEST(H5Lexists(grp,name,H5P_DEFAULT)>0);
 		TEST(cbf_H5Ivalid(dsetObj=H5Oopen(grp,name,H5P_DEFAULT)));
-		TEST(!cmp_object(*dset,dsetObj));
+		TEST(!cbf_H5Ocmp(*dset,dsetObj));
 		H5Oclose(dsetObj);
 	}
     
@@ -511,7 +680,7 @@ testResult_t test_H5Dfree(const hid_t grp, const hid_t dset, const char * name)
 		TEST(H5I_DATASET==H5Iget_type(dset));
 		TEST(H5Lexists(grp,name,H5P_DEFAULT)>0);
 		TEST(cbf_H5Ivalid(dsetObj=H5Oopen(grp,name,H5P_DEFAULT)));
-		TEST(!cmp_object(dset,dsetObj));
+		TEST(!cbf_H5Ocmp(dset,dsetObj));
 		H5Oclose(dsetObj);
 	}
 	/* free'ing an invalid handle should fail */
@@ -601,20 +770,11 @@ testResult_t test_H5Drequire_F64LE(const hid_t grp)
 	TEST(H5I_GROUP==H5Iget_type(grp));
     
 	/* verify expected failures */
-#ifdef CBF_USE_ULP
-	TEST_CBF_FAIL(cbf_H5Drequire_scalar_F64LE2_ULP(CBF_H5FAIL,&handle,name,value,cmp_dbl_exact,0));
-	TEST_CBF_FAIL(cbf_H5Drequire_scalar_F64LE2_ULP(grp,&handle,0,value,cmp_dbl_exact,0));
-#else
-	TEST_CBF_FAIL(cbf_H5Drequire_scalar_F64LE2(CBF_H5FAIL,&handle,name,value,cmp_dbl_exact));
-	TEST_CBF_FAIL(cbf_H5Drequire_scalar_F64LE2(grp,&handle,0,value,cmp_dbl_exact));
-#endif
+	TEST_CBF_FAIL(CBFM_H5Drequire_scalar_F64LE2(CBF_H5FAIL,&handle,name,value,cmp_dbl_exact,0));
+	TEST_CBF_FAIL(CBFM_H5Drequire_scalar_F64LE2(grp,&handle,0,value,cmp_dbl_exact,0));
     
 	/* test creation of the dataset */
-#ifdef CBF_USE_ULP
-	TEST_CBF_PASS(cbf_H5Drequire_scalar_F64LE2_ULP(grp,&handle,name,value,cmp_dbl_exact,0));
-#else
-	TEST_CBF_PASS(cbf_H5Drequire_scalar_F64LE2(grp,&handle,name,value,cmp_dbl_exact));
-#endif
+	TEST_CBF_PASS(CBFM_H5Drequire_scalar_F64LE2(grp,&handle,name,value,cmp_dbl_exact,0));
     
 	{/* independently verify existance */
 		hid_t dset = CBF_H5FAIL;
@@ -644,17 +804,10 @@ testResult_t test_H5Drequire_F64LE(const hid_t grp)
 	}
 	cbf_H5Dfree(handle);
     
-#ifdef CBF_USE_ULP
 	/* test verification of existing datasets */
-	TEST_CBF_PASS(cbf_H5Drequire_scalar_F64LE2_ULP(grp,&handle,name,value,cmp_dbl_exact,0));
+	TEST_CBF_PASS(CBFM_H5Drequire_scalar_F64LE2(grp,&handle,name,value,cmp_dbl_exact,0));
 	/* test failure to verify a different dataset */
-	TEST_CBF_FAIL(cbf_H5Drequire_scalar_F64LE2_ULP(grp,&handle,name,value_b,cmp_dbl_exact,0));
-#else
-	/* test verification of existing datasets */
-	TEST_CBF_PASS(cbf_H5Drequire_scalar_F64LE2(grp,&handle,name,value,cmp_dbl_exact));
-	/* test failure to verify a different dataset */
-	TEST_CBF_FAIL(cbf_H5Drequire_scalar_F64LE2(grp,&handle,name,value_b,cmp_dbl_exact));
-#endif
+	TEST_CBF_FAIL(CBFM_H5Drequire_scalar_F64LE2(grp,&handle,name,value_b,cmp_dbl_exact,0));
 	cbf_H5Dfree(handle);
     
 	return r;
@@ -795,20 +948,12 @@ testResult_t testDataset_read_write(const hid_t grp)
 			/* check I can read the data with the default stride */
 			fill_array(dataRead2,N2,-1);
 			TEST_CBF_PASS(cbf_H5Dread2(handle2,offset,stride,count,dataRead2,H5T_NATIVE_INT));
-#ifdef CBF_USE_ULP
-			TEST(!cmp_int_exact(dataWrite2,dataRead2,N2,0));
-#else
-            TEST(!cmp_int_exact(dataWrite2,dataRead2,N2));
-#endif
+			TEST(!CBFM_cmp_int_exact(dataWrite2,dataRead2,N2,0));
             
 			/* check I can read the data with the (equivalent) null stride */
 			fill_array(dataRead2,N2,-1);
 			TEST_CBF_PASS(cbf_H5Dread2(handle2,offset,0,count,dataRead2,H5T_NATIVE_INT));
-#ifdef CBF_USE_ULP
-			TEST(!cmp_int_exact(dataWrite2,dataRead2,N2,0));
-#else
-            TEST(!cmp_int_exact(dataWrite2,dataRead2,N2));
-#endif
+			TEST(!CBFM_cmp_int_exact(dataWrite2,dataRead2,N2,0));
             
 			/* verify writing with null stride */
 			TEST_CBF_PASS(cbf_H5Dwrite2(handle2,offset,0,count,dataWrite2,H5T_NATIVE_INT));
@@ -816,20 +961,12 @@ testResult_t testDataset_read_write(const hid_t grp)
 			/* check I can read the data with the (equivalent) default stride */
 			fill_array(dataRead2,N2,-1);
 			TEST_CBF_PASS(cbf_H5Dread2(handle2,offset,stride,count,dataRead2,H5T_NATIVE_INT));
-#ifdef CBF_USE_ULP
-			TEST(!cmp_int_exact(dataWrite2,dataRead2,N2,0));
-#else
-            TEST(!cmp_int_exact(dataWrite2,dataRead2,N2));
-#endif
+			TEST(!CBFM_cmp_int_exact(dataWrite2,dataRead2,N2,0));
             
 			/* check I can read the data with the null stride */
 			fill_array(dataRead2,N2,-1);
 			TEST_CBF_PASS(cbf_H5Dread2(handle2,offset,0,count,dataRead2,H5T_NATIVE_INT));
-#ifdef CBF_USE_ULP
-			TEST(!cmp_int_exact(dataWrite2,dataRead2,N2,0));
-#else
-            TEST(!cmp_int_exact(dataWrite2,dataRead2,N2));
-#endif
+			TEST(!CBFM_cmp_int_exact(dataWrite2,dataRead2,N2,0));
 		}
         
 		{ /* verify writing with an offset */
@@ -837,19 +974,11 @@ testResult_t testDataset_read_write(const hid_t grp)
 			/* check I can read the data with the default stride */
 			fill_array(dataRead2,N2,-1);
 			TEST_CBF_PASS(cbf_H5Dread2(handle2,offset_1,stride,count,dataRead2,H5T_NATIVE_INT));
-#ifdef CBF_USE_ULP
-			TEST(!cmp_int_exact(dataWrite2,dataRead2,N2,0));
-#else
-            TEST(!cmp_int_exact(dataWrite2,dataRead2,N2));
-#endif
+			TEST(!CBFM_cmp_int_exact(dataWrite2,dataRead2,N2,0));
 			/* check I can read the data with the (equivalent) null stride */
 			fill_array(dataRead2,N2,-1);
 			TEST_CBF_PASS(cbf_H5Dread2(handle2,offset_1,0,count,dataRead2,H5T_NATIVE_INT));
-#ifdef CBF_USE_ULP
-			TEST(!cmp_int_exact(dataWrite2,dataRead2,N2,0));
-#else
-			TEST(!cmp_int_exact(dataWrite2,dataRead2,N2));
-#endif
+			TEST(!CBFM_cmp_int_exact(dataWrite2,dataRead2,N2,0));
 		}
         
 		{ /* verify writing with a non-trivial stride, which uses but doesn't verify that a different count works */
@@ -864,22 +993,14 @@ testResult_t testDataset_read_write(const hid_t grp)
 			/* check I can read the data with the same stride */
 			fill_array(dataRead2,N2,-1);
 			TEST_CBF_PASS(cbf_H5Dread2(handle2,offset,stride_2,count_2,dataRead2,H5T_NATIVE_INT));
-#ifdef CBF_USE_ULP
-            TEST(!cmp_int_exact(dataWrite2,dataRead2,N,0));
-#else
-            TEST(!cmp_int_exact(dataWrite2,dataRead2,N));
-#endif
+            TEST(!CBFM_cmp_int_exact(dataWrite2,dataRead2,N,0));
 			{ /* check the data was embedded correctly */
 				const int result[16] = {
 					0,-1,1,-1,4,-1,9,-1,16,-1,25,-1,36,-1,49,-1
 				};
 				fill_array(dataRead2,N2,-1);
 				TEST_CBF_PASS(cbf_H5Dread2(handle2,offset,stride,count,dataRead2,H5T_NATIVE_INT));
-#ifdef CBF_USE_ULP
-				TEST(!cmp_int_exact(result,dataRead2,N2,0));
-#else
-                TEST(!cmp_int_exact(result,dataRead2,N2));
-#endif
+				TEST(!CBFM_cmp_int_exact(result,dataRead2,N2,0));
 			}
 		}
         
@@ -898,19 +1019,11 @@ testResult_t testDataset_read_write(const hid_t grp)
 				/* ...with the default - null - stride */
 				fill_array(dataRead2,N2,-1);
 				TEST_CBF_PASS(cbf_H5Dread2(handle2,offset,0,count,dataRead2,H5T_NATIVE_INT));
-#ifdef CBF_USE_ULP
-				TEST(!cmp_int_exact(result,dataRead2,N2,0));
-#else
-                TEST(!cmp_int_exact(result,dataRead2,N2));
-#endif
+				TEST(!CBFM_cmp_int_exact(result,dataRead2,N2,0));
 				/* ...with the equivalent - non-null - stride */
 				fill_array(dataRead2,N2,-1);
 				TEST_CBF_PASS(cbf_H5Dread2(handle2,offset,stride,count,dataRead2,H5T_NATIVE_INT));
-#ifdef CBF_USE_ULP
-				TEST(!cmp_int_exact(result,dataRead2,N2,0));
-#else
-				TEST(!cmp_int_exact(result,dataRead2,N2));
-#endif
+				TEST(!CBFM_cmp_int_exact(result,dataRead2,N2,0));
 			}
 		}
 	} else {
@@ -955,7 +1068,7 @@ testResult_t test_H5Drequire
 		TEST(H5I_DATASET==H5Iget_type(dset));
 		TEST(H5Lexists(grp,name,H5P_DEFAULT)>0);
 		TEST(cbf_H5Ivalid(dsetObj=H5Oopen(grp,name,H5P_DEFAULT)));
-		TEST(!cmp_object(dset,dsetObj));
+		TEST(!cbf_H5Ocmp(dset,dsetObj));
 		H5Oclose(dsetObj);
 	}
 	/* check it works *with* a previously existing dataset */
@@ -966,7 +1079,7 @@ testResult_t test_H5Drequire
 		TEST(H5I_DATASET==H5Iget_type(dset));
 		TEST(H5Lexists(grp,name,H5P_DEFAULT)>0);
 		TEST(cbf_H5Ivalid(dsetObj=H5Oopen(grp,name,H5P_DEFAULT)));
-		TEST(!cmp_object(dset,dsetObj));
+		TEST(!cbf_H5Ocmp(dset,dsetObj));
 		H5Oclose(dsetObj);
 	}
     
@@ -985,14 +1098,13 @@ testResult_t test_H5Dinsert
  const void * const val,
  void * const valBuf, /* length = nElems */
  const hid_t type, /* type of val & valBuf = H5T_NATIVE_SOMETHING */
+ int (*cmp)(const void * const, const void * const, size_t
 #ifdef CBF_USE_ULP
- int (*cmp)(const void * const, const void * const, size_t, const void * const),
+ ,const void * const
+#endif
+ ),
  const size_t length,
  const void * const cmp_params)
-#else
-int (*cmp)(const void * const, const void * const, size_t),
-const size_t length)
-#endif
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -1005,11 +1117,11 @@ const size_t length)
 	TEST_CBF_PASS(cbf_H5Dinsert(dset,off,std,cnt,buf,val,type));
 	{/* post-conditions */
 		CBF_CALL(cbf_H5Dread2(dset,off,std,cnt,valBuf,type));
+		if (CBF_SUCCESS==error) TEST(!cmp(val,valBuf,length
 #ifdef CBF_USE_ULP
-		if (CBF_SUCCESS==error) TEST(!cmp(val,valBuf,length,cmp_params));
-#else
-        if (CBF_SUCCESS==error) TEST(!cmp(val,valBuf,length));
+                                          ,cmp_params
 #endif
+                                          ));
 	}
     
 	return r;
@@ -1121,15 +1233,9 @@ testResult_t testDatasets(const hid_t grp)
 			TEST_CBF_FAIL(cbf_H5Dinsert(dset,off0,std,cnt,buf,0,H5T_NATIVE_INT));
 			TEST_CBF_FAIL(cbf_H5Dinsert(dset,off0,std,cnt,buf,val,CBF_H5FAIL));
 			/* check if things work */
-#ifdef CBF_USE_ULP
 			TEST_COMPONENT(test_H5Dinsert(dset,off0,std,cnt,buf,val,valBuf,H5T_NATIVE_INT,cmp_int_exact,2,NULL));
 			TEST_COMPONENT(test_H5Dinsert(dset,off1,0,cnt,buf,val,valBuf,H5T_NATIVE_INT,cmp_int_exact,2,NULL));
 			TEST_COMPONENT(test_H5Dinsert(dset,off2,std,cnt,0,val,valBuf,H5T_NATIVE_INT,cmp_int_exact,2,NULL));
-#else
-			TEST_COMPONENT(test_H5Dinsert(dset,off0,std,cnt,buf,val,valBuf,H5T_NATIVE_INT,cmp_int_exact,2L));
-			TEST_COMPONENT(test_H5Dinsert(dset,off1,0,cnt,buf,val,valBuf,H5T_NATIVE_INT,cmp_int_exact,2));
-			TEST_COMPONENT(test_H5Dinsert(dset,off2,std,cnt,0,val,valBuf,H5T_NATIVE_INT,cmp_int_exact,2));
-#endif
 		}
 		cbf_H5Dfree(dset);
 	} else {
@@ -1148,8 +1254,7 @@ testResult_t testDatasets(const hid_t grp)
 			fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(error));
 			return r;
 		}
-		TEST_COMPONENT(test_H5Arequire_cmp(handle));
-		TEST_COMPONENT(test_H5Arequire_string(handle));
+		TEST_COMPONENT(test_attribute(handle));
 		/* free the handle after using it */
 		cbf_H5Dfree(handle);
 	} else {
@@ -1219,6 +1324,45 @@ testResult_t testGroups(const hid_t obj)
     
 	if (CBF_SUCCESS==error && !r.fail) {
 		/*
+		cbf_H5Gfind:
+		Verify expected failures,
+		check I can retrieve an existing group,
+		check failure mode for non-existant group.
+		*/
+		hid_t grp = CBF_H5FAIL;
+
+		{
+			/*
+			Preconditions:
+			A group with name given by grpname1 exists;
+			A group with name given by grpname2 doesn't exist.
+			*/
+			hid_t testObject = CBF_H5FAIL;
+			TEST(H5Lexists(obj,grpname1,H5P_DEFAULT)>0);
+			TEST(cbf_H5Ivalid(testObject = H5Oopen(obj,grpname1,H5P_DEFAULT)));
+			TEST(H5I_GROUP==H5Iget_type(testObject));
+			H5Oclose(testObject);
+			TEST(H5Lexists(obj,grpname2,H5P_DEFAULT)==0);
+		}
+
+		/* verify expected failures */
+		TEST_CBF_FAIL(cbf_H5Gfind(CBF_H5FAIL, &grp, grpname1));
+		TEST_CBF_FAIL(cbf_H5Gfind(obj, 0, grpname1));
+		TEST_CBF_FAIL(cbf_H5Gfind(obj, &grp, 0));
+
+		/* check it can find an existing group */
+		TEST_CBF_PASS(cbf_H5Gfind(obj, &grp, grpname1));
+		cbf_H5Gfree(grp);
+
+		/* check it doesn't find a non-exstant group correctly */
+		TEST_CBF_NOTFOUND(cbf_H5Gfind(obj, &grp, grpname2));
+	} else {
+		fprintf(stderr,"Skipping group/find tests\n");
+		++r.skip;
+	}
+
+	if (CBF_SUCCESS==error && !r.fail) {
+		/*
          cbf_H5Grequire:
          Verify expected failures,
          check I can retrieve an existing group,
@@ -1247,7 +1391,7 @@ testResult_t testGroups(const hid_t obj)
 			TEST(H5Lexists(obj,grpname2,H5P_DEFAULT)>0);
 			TEST(cbf_H5Ivalid(testObject = H5Oopen(obj,grpname2,H5P_DEFAULT)));
 			TEST(H5I_GROUP==H5Iget_type(grp2));
-			TEST(!cmp_object(testObject,grp2));
+			TEST(!cbf_H5Ocmp(testObject,grp2));
 			H5Oclose(testObject);
 		}
 		cbf_H5Gfree(grp1);
@@ -1272,8 +1416,7 @@ testResult_t testGroups(const hid_t obj)
 		/* test some of the attribute management API */
 		hid_t grp = CBF_H5FAIL;
 		CBF_CALL(cbf_H5Grequire(obj,&grp,grpname1));
-		TEST_COMPONENT(test_H5Arequire_cmp(grp));
-		TEST_COMPONENT(test_H5Arequire_string(grp));
+		TEST_COMPONENT(test_attribute(grp));
 		cbf_H5Gfree(grp);
 	} else {
 		++r.skip;
@@ -1359,13 +1502,8 @@ testResult_t testDataspaces()
 			TEST(cbf_H5Ivalid(space));
 			TEST(1==H5Sget_simple_extent_dims(space,0,0));
 			TEST(1==H5Sget_simple_extent_dims(space,_dim,_max));
-#ifdef CBF_USE_ULP
-			TEST(!cmp_hsize_t_exact(dim,_dim,1,0));
-			TEST(!cmp_hsize_t_exact(max,_max,1,0));
-#else
-			TEST(!cmp_hsize_t_exact(dim,_dim,1));
-			TEST(!cmp_hsize_t_exact(max,_max,1));
-#endif
+			TEST(!CBFM_cmp_hsize_t_exact(dim,_dim,1,0));
+			TEST(!CBFM_cmp_hsize_t_exact(max,_max,1,0));
 			cbf_H5Sfree(space);
 		}
 		{ /* dim & !max => pass */
@@ -1375,13 +1513,8 @@ testResult_t testDataspaces()
 			TEST(cbf_H5Ivalid(space));
 			TEST(1==H5Sget_simple_extent_dims(space,0,0));
 			TEST(1==H5Sget_simple_extent_dims(space,_dim,_max));
-#ifdef CBF_USE_ULP
-			TEST(!cmp_hsize_t_exact(dim,_dim,1,0));
-			TEST(!cmp_hsize_t_exact(dim,_max,1,0));
-#else
-			TEST(!cmp_hsize_t_exact(dim,_dim,1));
-			TEST(!cmp_hsize_t_exact(dim,_max,1));
-#endif
+			TEST(!CBFM_cmp_hsize_t_exact(dim,_dim,1,0));
+			TEST(!CBFM_cmp_hsize_t_exact(dim,_max,1,0));
 			cbf_H5Sfree(space);
 		}
 		{ /* !dim & max => fail */
@@ -1410,13 +1543,8 @@ testResult_t testDataspaces()
 			TEST(cbf_H5Ivalid(space));
 			TEST(2==H5Sget_simple_extent_dims(space,0,0));
 			TEST(2==H5Sget_simple_extent_dims(space,_dim,_max));
-#ifdef CBF_USE_ULP
-			TEST(!cmp_hsize_t_exact(dim,_dim,2,0));
-			TEST(!cmp_hsize_t_exact(max,_max,2,0));
-#else
-			TEST(!cmp_hsize_t_exact(dim,_dim,2));
-			TEST(!cmp_hsize_t_exact(max,_max,2));
-#endif
+			TEST(!CBFM_cmp_hsize_t_exact(dim,_dim,2,0));
+			TEST(!CBFM_cmp_hsize_t_exact(max,_max,2,0));
 			cbf_H5Sfree(space);
 		}
 		{ /* dim & !max => pass */
@@ -1426,13 +1554,8 @@ testResult_t testDataspaces()
 			TEST(cbf_H5Ivalid(space));
 			TEST(2==H5Sget_simple_extent_dims(space,0,0));
 			TEST(2==H5Sget_simple_extent_dims(space,_dim,_max));
-#ifdef CBF_USE_ULP
-			TEST(!cmp_hsize_t_exact(dim,_dim,2,0));
-			TEST(!cmp_hsize_t_exact(dim,_max,2,0));
-#else
-			TEST(!cmp_hsize_t_exact(dim,_dim,2));
-			TEST(!cmp_hsize_t_exact(dim,_max,2));
-#endif
+			TEST(!CBFM_cmp_hsize_t_exact(dim,_dim,2,0));
+			TEST(!CBFM_cmp_hsize_t_exact(dim,_max,2,0));
 			cbf_H5Sfree(space);
 		}
 		{ /* !dim & max => fail */
@@ -1457,8 +1580,12 @@ int main()
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
+    hid_t error_stack;
+    H5E_auto2_t  old_func;
+    void *old_client_data;
     
 	/* test the test functions a bit */
+    
 	TEST(1);
 	TEST_CBF_PASS(CBF_SUCCESS);
 	TEST_CBF_FAIL(CBF_FORMAT);
@@ -1468,6 +1595,8 @@ int main()
     
 	/* check that cbf_H5Ivalid can fail: */
 	TEST(!cbf_H5Ivalid(CBF_H5FAIL));
+	TEST(H5I_DATATYPE==H5Iget_type(H5T_STD_I32LE));
+    
     
 	{ /* Try opening a file */
 		const char filename[] = "testfile.h5";
@@ -1475,7 +1604,15 @@ int main()
 		TEST_CBF_PASS(cbf_H5Fopen(&h5file, filename));
 		TEST(cbf_H5Ivalid(h5file));
 		/* test the API */
+
+        error_stack = H5E_DEFAULT;
+        H5Eget_auto2(error_stack, &old_func, &old_client_data);
+        H5Eset_auto2(error_stack, NULL, NULL);
+        
 		TEST_COMPONENT(testGroups(h5file));
+        
+		H5Eset_auto(error_stack, old_func, old_client_data);
+        
 		TEST_COMPONENT(testDatatypes());
 		TEST_COMPONENT(testDataspaces());
 		{ /* close the file */
@@ -1487,6 +1624,6 @@ int main()
 	}
     
 	printf_results(&r);
-	return r.fail ? 1 : 0;
+	return r.fail || r.skip ? 1 : 0;
 }
 

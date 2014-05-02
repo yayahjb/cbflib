@@ -1,0 +1,39 @@
+<div>
+	<h4>Using CBF's getopt functions</h4>
+	<p>These functions are used within many of CBF's utility programs to parse command-line arguments in a similar way to GNU's getopt.</p>
+	<p>When parsing command line arguments the first thing to do is create a handle and call the parsing function, the last thing to do is free the handle:</p>
+	<code><pre>#include &lt;cbf_getopt.h&gt;
+
+int main (int argc, char * * argv) {
+	cbf_getopt_handle handle = NULL;
+	const char option_spec[] = "insert your option specification string here";
+	
+	/* Allocate a new handle: */
+	cbf_make_getopt_handle(&amp;handle);
+	
+	/* Parse the arguments according to the option specification string */
+	cbf_getopt_parse(handle,argc,argv,option_spec);
+
+	/*
+	Use the options...
+	*/
+	
+	/* Always remember to free the handle: */
+	cbf_free_getopt_handle(handle);
+
+}</pre></code>
+	<p>There are several methods to iterate over the parsed arguments that are contained within the handle, the method used in most of CBFlib's utilities is similar to:</p>
+	<code><pre>int error = CBF_SUCCESS;
+if (!cbf_rewind_getopt_option(handle)) {
+	int optopt;
+	int optord;
+	const char * optstr;
+	const char * optval;
+	for(; !cbf_get_getopt_data(handle,&amp;optopt,&amp;optord,&amp;optstr,&amp;optval); cbf_next_getopt_option(handle)) {
+		/*
+		Use the selected option data...
+		*/
+	}
+}</pre></code>
+	<p>The syntax that the option specification string should use is described in the documentation for the <code>cbf_getopt_parse</code> function.</p>
+</div>
