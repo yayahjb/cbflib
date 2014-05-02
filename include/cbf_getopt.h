@@ -62,6 +62,11 @@
  *                                                                    *
  **********************************************************************/
 
+/**
+\file cbf_getopt.h
+\defgroup getopt
+*/
+
 #ifndef CBF_GETOPT_H
 #define CBF_GETOPT_H
 
@@ -139,37 +144,53 @@ typedef struct {
 typedef cbf_getopt_struct * cbf_getopt_handle;
 
 
-/* create a cbf_getopt handle */
-
+	/**
+	\brief Create a cbf_getopt handle.
+	\ingroup getopt
+	*/
 int cbf_make_getopt_handle(cbf_getopt_handle * handle);
 
-/* free a cbf_getopt handle */
-
+	/**
+	\brief Free a cbf_getopt handle.
+	\ingroup getopt
+	*/
 int cbf_free_getopt_handle(cbf_getopt_handle handle);
 
+	/**
+	\brief Parse argc and argv into a cbf_getopt_handle according to the option specification given by <code>options</code>.
+	\ingroup getopt
+	*/
+	int cbf_getopt_parse( cbf_getopt_handle handle, int argc, char ** argv,
+			  const char * options);
 
-/* Populate a cbf_getopt data structure and set to search from the first argument */
-
-int cbf_getopt_parse ( cbf_getopt_handle handle, int argc, char ** argv, const char * options);
-
-/* Get first option from a cbf_getopt handle */
-
+	/**
+	\brief Select the first option within a cbf_getopt handle.
+	\ingroup getopt
+	*/
 int cbf_rewind_getopt_option ( cbf_getopt_handle handle );
 
-/* Get next option from a cbf_getopt handle */
-
+	/**
+	\brief Select the next option within a cbf_getopt handle.
+	\ingroup getopt
+	 */
 int cbf_next_getopt_option ( cbf_getopt_handle handle );
 
-/* Get option by number (0 ... ) from a cbf_getopt handle */
-
+	/**
+	\brief Select an option within the given handle by its index.
+	\ingroup getopt
+	 */
 int cbf_select_getopt_option ( cbf_getopt_handle handle, unsigned int option );
 
-/* Count the options in a cbf_getopt handle */
-
+	/**
+	\brief Get the number of options within the given handle.
+	\ingroup getopt
+	 */
 int cbf_count_getopt_options ( cbf_getopt_handle handle, unsigned int * options );
 
-/* Get the data for an option */
-
+	/**
+	\brief Get the data for an option.
+	\ingroup getopt
+	*/
 int cbf_get_getopt_data ( cbf_getopt_handle handle, int * optopt,
                          int * optord, const char * * optstr, const char ** optval);
     

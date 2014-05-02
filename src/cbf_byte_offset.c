@@ -1982,7 +1982,7 @@ int cbf_decompress_byte_offset_fast(void         *destination,
                 delta.el0 |= (signed char) rawdata[i++] << 8;
                 if (delta.el0 & 0x8000) delta.el1 = delta.el2 = delta.el3 = ~0;
                 
-                if (delta.el0&0xffff == 0x8000) {
+                if ((delta.el0&0xffff) == 0x8000) {
                     delta.el2 = delta.el3 = 0;
                     delta.el0 = rawdata[i++];
                     delta.el0 |= rawdata[i++] << 8;
@@ -1990,7 +1990,7 @@ int cbf_decompress_byte_offset_fast(void         *destination,
                     delta.el1 |= (signed char) rawdata[i++] << 8;
                     if (delta.el1 & 0x8000) delta.el2 = delta.el3 = ~0;
                     
-                    if (delta.el0 == 0 && delta.el1&0x8000 == 0x8000) {
+                    if (delta.el0 == 0 && (delta.el1&0x8000) == 0x8000) {
                         delta.el0 = rawdata[i++];
                         delta.el0 |= rawdata[i++] << 8;
                         delta.el1 = rawdata[i++];

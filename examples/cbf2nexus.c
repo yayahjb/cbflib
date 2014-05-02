@@ -261,6 +261,13 @@
 #define NOTMPDIR
 #endif
 
+/*
+The 'strdup' function isn't available when compiling with -ansi on GCC, so provide an alternative.
+*/
+static char * _cbf_strdup(const char *s)
+{
+	return s ? strcpy(malloc(sizeof(char)*(1+strlen(s))),s) : 0;
+}
 
 int main (int argc, char *argv [])
 {
@@ -268,22 +275,34 @@ int main (int argc, char *argv [])
     cbf_getopt_handle opts = NULL;
 	size_t cifid = 0;
 	int h5_write_flags = 0;
+	int list = 0;
 	const char ** const cifin = memset(malloc(argc*sizeof(char*)),0,argc*sizeof(char*));
+	const char * scan_id = NULL;
+	const char * sample_id = NULL;
 	const char *hdf5out = NULL;
 	const char *group = NULL;
+	const char * datablock = NULL;
+	const char * scan = NULL;
 
 	/* Attempt to read the arguments */
 	if (CBF_SUCCESS != (error |= cbf_make_getopt_handle(&opts))) {
 		fprintf(stderr,"Could not create a 'cbf_getopt' handle.\n");
-	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):" ))) {
+	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):\x03(experiment_id):\x04(sample_id):\x05(datablock):\x06(scan):\x01(list)\x02(no-list)" ))) {
 		fprintf(stderr,"Could not parse arguments.\n");
 	} else {
     	int errflg = 0;
+		if (0) { /* debug the option processing code */
+			const cbf_getopt_optstruct * optstruct = 0;
+			for (optstruct = opts->optstructs; optstruct != opts->optstructs+opts->optstructs_size; ++optstruct) {
+				printf("(%c, %s, %s),\n", optstruct->optopt, optstruct->optstr, optstruct->optval);
+			}
+		}
 		/* successful so far, try to make sense of the options */
 		if (!cbf_rewind_getopt_option(opts)) {
 			int c = 0;
     const char * optarg = NULL;
-        for(; !cbf_get_getopt_data(opts,&c,NULL,NULL,&optarg); cbf_next_getopt_option(opts)) {
+			const char * optstr = NULL;
+			for(; !cbf_get_getopt_data(opts,&c,NULL,&optstr,&optarg); cbf_next_getopt_option(opts)) {
             switch (c) {
 				case 'c': { /* compression */
 					if (!cbf_cistrcmp("zlib",optarg?optarg:"")) {
@@ -301,12 +320,12 @@ int main (int argc, char *argv [])
 					break;
 				}
 				case 'g': { /* group within output file where data should be stored */
-					if (group) errflg++;
+						if (group) ++errflg;
 					else group = optarg;
 					break;
 				}
 				case 'o': { /* output file */
-					if (hdf5out) errflg++;
+						if (hdf5out) ++errflg;
                     else hdf5out = optarg;
                     break;
 				}
@@ -316,16 +335,47 @@ int main (int argc, char *argv [])
 					} else if (cbf_cistrcmp(optarg?optarg:"","plugin") == 0) {
 						h5_write_flags &= ~CBF_H5_REGISTER_COMPRESSIONS;
 					} else {
-						errflg++;
+							++errflg;
 					}
 					break;
 				}
-				case 0: { /* input file */
-					if (NULL != optarg) cifin[cifid++] = optarg;
+                case '\x01': {
+                    if (list) errflg++;
+								list = 1;
+					break;
+				}
+                case '\x02': {
+                    if (list) errflg++;
+                    list = -1;
+                    break;
+                }
+                case '\x03': {
+                    if (scan_id) errflg++;
+                    scan_id = optarg;
+                    break;
+                }
+                case '\x04': {
+                    if (sample_id) errflg++;
+                    sample_id = optarg;
+                    break;
+                }
+                case '\x05': {
+                   if (datablock) errflg++;
+                    datablock = optarg;
+                    break;
+                }
+                case '\x06': {
+                   if (scan) errflg++;
+                    scan = optarg;
+                    break;
+                }
+                case 0: {
+							/* input file */
+							cifin[cifid++] = optarg;
 					break;
 				}
 				default: {
-                    errflg++;
+						++errflg;
                     break;
 				}
             }
@@ -342,12 +392,21 @@ int main (int argc, char *argv [])
 		++errflg;
 	}
 	if (errflg) {
-			fprintf(stderr, "Usage:\n\t%s [options] -o|--output output_nexus input_minicbf_files...\n"
+			fprintf(stderr, "Usage:\n\t%s [options] -o|--output output_nexus input_cbf_files...\n"
 				"Options:\n"
 						"\t-c|--compression cbf|none|zlib (default: none)\n"
 						"\t-g|--group output_group (default: 'entry')\n"
 						"\t-Z|--register manual|plugin (default: plugin)\n"
-						"These options are NOT case-sensitive.\n",
+							"\t--datablock datablock_name\n"
+							"\t--scan scan_name\n"
+							"\t--experiment_id unique_experiment_id\n"
+							"\t--sample_id unique_sample_id\n"
+							"\t--[no-]list\n"
+							"'datablock' should be the name of the datablock to use, or omitted to use all.\n"
+							"'scan' should be the name of the scan to convert, or may be omitted if there is only one scan.\n"
+							"'experiment_id' should be a unique identifier for the scan.\n"
+							"'sample_id' should be a unique identifier for the sample.\n"
+							"'list' and 'no-list' will determine whether the list of items that have been recognised during conversion is printed or not.\n",
 				argv[0]);
 			error |= CBF_ARGUMENT;
     }
@@ -355,25 +414,33 @@ int main (int argc, char *argv [])
 
 	/* If I could read the arguments then attempt to use them */
 	if (CBF_SUCCESS == error) {
-		size_t f = 0;
-	// prepare the output file
 		cbf_h5handle h5out = NULL;
+		size_t f = 0;
+
+		/* prepare the output file */
 		if(CBF_SUCCESS != (error |= cbf_create_h5handle2(&h5out,hdf5out))) {
 			fprintf(stderr,"Couldn't open the HDF5 file '%s'.\n", hdf5out);
-		} else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry(h5out,0,group))) {
+		} else if (CBF_SUCCESS != (error |= cbf_h5handle_require_entry_definition(h5out,0,group,"NXmx","1.2",0))) {
 			fprintf(stderr,"Couldn't create an NXentry group in the HDF5 file '%s'.\n", hdf5out);
 		} else {
+            if (list > 0) {
+                h5out->logfile = stdout;
+            } else {
+                h5out->logfile = NULL;
+            }
 	h5out->flags = h5_write_flags;
-		}
-
+			h5out->scan_id = _cbf_strdup(scan_id);
+			h5out->sample_id = _cbf_strdup(sample_id);
 #ifdef CBF_USE_ULP
-	// set up some parameters for comparing floating point numbers
+			/* set up some parameters for comparing floating point numbers */
 	h5out->cmp_double_as_float = 0;
 	h5out->float_ulp = 4;
 #ifndef NO_UINT64_TYPE
 	h5out->double_ulp = 4;
 #endif
 #endif
+		}
+
 	for (f = 0; CBF_SUCCESS == error && f != cifid; ++f) {
 			cbf_handle cif = NULL;
 	#ifdef NOTMPDIR
@@ -417,15 +484,15 @@ int main (int argc, char *argv [])
 
 			/* Read the file */
 			if (CBF_SUCCESS == error) {
-		// start timing
+				/* start timing */
 				clock_t a = clock(), b;
-			// prepare the file
+				/* prepare the file */
 				FILE * in = NULL;
 				if (NULL == (in = fopen(cifin[f], "rb"))) {
 				fprintf (stderr,"Couldn't open the input CIF file '%s': %s\n", cifin[f], strerror(errno));
-					error |= CBF_FILEREAD;
+					error |= CBF_FILEOPEN;
 			}
-			// ensure temporary file is removed when the program closes
+				/* ensure temporary file is removed when the program closes */
 				if (ciftmp == cifin[f]) {
 				if (unlink(ciftmp)) {
 					fprintf(stderr,"Can't unlink temporary file '%s': %s\n", ciftmp,strerror(errno));
@@ -433,7 +500,7 @@ int main (int argc, char *argv [])
 				}
 			}
 				if (CBF_SUCCESS == error) {
-			// make the handle
+					/* make the handle */
 					if (CBF_SUCCESS != (error |= cbf_make_handle(&cif))) {
 				fprintf(stderr,"Failed to create handle for input_cif\n");
 						error |= CBF_ALLOC;
@@ -441,23 +508,23 @@ int main (int argc, char *argv [])
 						fprintf(stderr,"Couldn't read the input CIF file '%s': %s\n", cifin[f], cbf_strerror(error));
 						error |= CBF_FILEREAD;
 					} else {
-						// ensure the file can be cleaned up after any errors but is not accidentally closed
+						/* ensure the file can be cleaned up after any errors but is not accidentally closed */
 						in = NULL;
 			}
 		}
-				// clean up local variables
+				/* clean up local variables */
 				if (in) fclose(in);
-		// stop timing
+				/* stop timing */
 		b = clock ();
 		printf("Time to read '%s': %.3fs\n", cifin[f], ((float)(b - a))/CLOCKS_PER_SEC);
 			}
 
 			/* Do the conversion */
 			if (CBF_SUCCESS == error) {
-		// start timing
+				/* start timing */
 				clock_t a = clock(), b;
-			error |= cbf_write_cbf_h5file(cif, h5out);
-		// stop timing
+				error |= cbf_write_cbf2nx(cif, h5out, datablock, scan, list);
+				/* stop timing */
 		b = clock ();
 				printf("Time to convert '%s': %.3fs\n", cifin[f], ((float)(b - a))/CLOCKS_PER_SEC);
 			}
@@ -467,11 +534,11 @@ int main (int argc, char *argv [])
 	}
 
 		{ /* Write the file/close the handle */
-		// start timing
+			/* start timing */
 			clock_t a = clock(), b;
-		// clean up cbf handles
+			/* clean up cbf handles */
 			error |= cbf_free_h5handle(h5out);
-		// stop timing
+			/* stop timing */
 		b = clock ();
 		printf("Time to write '%s': %.3fs\n", hdf5out, ((float)(b - a))/CLOCKS_PER_SEC);
 	}

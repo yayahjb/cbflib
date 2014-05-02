@@ -268,6 +268,15 @@ int cbf_cistrcmp (const char *s1, const char *s2);
 
 int cbf_cistrncmp (const char *s1, const char *s2, size_t n);
 
+    /* Case-insensitive limited right string compare
+     test that s1 ends with s2
+     Returns CBF_SUCCESS (0) if s1 ends with up to n characters of s2
+     CBF_NOTFOUND otherwise
+     */
+    
+    int cbf_cistrnrcmp (const char *s1, const char *s2, size_t n);
+    
+    
   /* swap bytes in an array (local copy of swab to deal with
      systems that lack swab */
      

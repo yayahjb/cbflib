@@ -68,6 +68,13 @@ extern "C" {
 #include <string.h>
 
 
+	/* \brief Consume one option from the option specification string given in 'options'.
+
+	If hasvalue is greater than zero an option value is required, if hasvalue is zero the
+	option has no value, if hasvalue is less than zero the value is optional.
+
+	\return The new location within the option specification string.
+	*/
     static const char * cbf_getopt_locate_option(const char * options,
                                           char * optchar,
                                           const char * * longopt,
@@ -81,11 +88,17 @@ extern "C" {
 
         if (hasvalue) *hasvalue = 0;
 
+		/* Anything other than '(' or ':' is a short option character. 
+           It may have a long option, a value or both. */
+
         if (*options != '(' && *options != ':' && optchar)*optchar = *options;
 
         while ((c=*options)) {
 
             if (c=='(') {
+
+				/* A long option is surrounded by '(' and ')'. A value 
+                   specification may follow. */
 
                 ++options;
 
@@ -103,6 +116,11 @@ extern "C" {
 
             } else if (c==':') {
 
+				/* A single ':' characters results in hasvalue being set 
+                   to a positive number. Two ':' characters results in 
+                   hasvalue being set to a negative number. This always 
+                   ends processing for this option. */
+
                 if (hasvalue) *hasvalue = 1;
 
                 options ++;
@@ -118,6 +136,8 @@ extern "C" {
 
             } else if (c) {
 
+				/* Consume the single option character. */
+
                 options ++;
 
                 if ((c=*options) && (c=='(' || c==':')) continue;
@@ -131,10 +151,23 @@ extern "C" {
         return options;
     }
 
-    /* create a cbf_getopt handle */
+	/**
+	Allocate memory for a new handle and initialise it.
 
-    int cbf_make_getopt_handle(cbf_getopt_handle * handle) {
-
+	\sa cbf_make_getopt_handle
+	\sa cbf_free_getopt_handle
+	\sa cbf_getopt_parse
+	\sa cbf_rewind_getopt_option
+	\sa cbf_next_getopt_option
+	\sa cbf_select_getopt_option
+	\sa cbf_count_getopt_options
+	\sa cbf_get_getopt_data
+	\return An error code.
+	*/
+	int cbf_make_getopt_handle(
+        cbf_getopt_handle * handle /**< A pointer to the handle to be allocated. */
+    )
+	{
         *handle = NULL;
 
         cbf_failnez (cbf_alloc ((void **) handle, NULL,
@@ -143,14 +176,14 @@ extern "C" {
         (*handle)->optstructs = NULL;
 
         cbf_onfailnez (cbf_alloc ((void **) &((*handle)->optstructs),
-                                  &((*handle)->optstructs_capacity),sizeof(cbf_getopt_optstruct), 10),
+                                  &((*handle)->optstructs_capacity),
+                                  sizeof(cbf_getopt_optstruct), 10),
                        cbf_free((void **) handle, NULL))
 
         (*handle)->optstructs_size = 0;
         (*handle)->optind = 0; /* ordinal of option in options     */
         (*handle)->options = NULL;
-
-        return 0;
+		return CBF_SUCCESS;
     }
 
 
@@ -187,15 +220,26 @@ extern "C" {
             cbf_failnez(cbf_free_text(&(handle->options),NULL))
         }
 
-        return 0;
-
-
+		return CBF_SUCCESS;
     }
 
-    /* free a cbf_getopt handle */
+	/**
+	Free a handle and all memory it is responsible for.
 
-    int cbf_free_getopt_handle(cbf_getopt_handle handle) {
-
+	\sa cbf_make_getopt_handle
+	\sa cbf_free_getopt_handle
+	\sa cbf_getopt_parse
+	\sa cbf_rewind_getopt_option
+	\sa cbf_next_getopt_option
+	\sa cbf_select_getopt_option
+	\sa cbf_count_getopt_options
+	\sa cbf_get_getopt_data
+	\return An error code.
+	*/
+	int cbf_free_getopt_handle(
+        cbf_getopt_handle handle /**< The handle to be free'd. */
+    )
+	{
         void *memblock;
 
         cbf_failnez( cbf_clear_getopt_handle(handle) )
@@ -214,14 +258,68 @@ extern "C" {
 
         }
 
-        return 0;
+        return CBF_SUCCESS;
 
     }
 
 
-/* parse argc and argv into a newly created cbf_getopt */
+	/**
+	Parses command line options according to a option specification string "[+-]?([^\(:]\([^\)]*\):{0,2})+".
 
-    int cbf_getopt_parse(cbf_getopt_handle handle, int argc, char ** argv, const char * options) {
+	For example, "ab:c::d(long-d)e(long-e):f(long-f)::\1(long-g)\1(long-h):\1(long-i)::" specifies:
+
+	- A short option 'a' without a value.
+	- A short option 'b' with a required value.
+	- A short option 'c' with an optional value.
+	- A long option "long-d" with short version 'd' and no value.
+	- A long option "long-e" with short version 'e' and a required value.
+	- A long option "long-f" with short version 'f' and an optional value.
+	- A long option "long-g" with no short version and no value.
+	- A long option "long-h" with no short version and a required value.
+	- A long option "long-i" with no short version and an optional value.
+
+	A required option will always cause the following argument to be consumed, an optional option will cause
+	the next argument to be consumed iff it doesn't begin with '-'. An argument of "--" may be consumed as
+	the value of an option which requires an argument, or will otherwise end option parsing.
+
+	A leading '-' in the option string will result in anything that looks like an option being treated as an
+	option with an optional argument. A leading '+' in the option string will cause option processing to end
+	before or after the first non-option argument has been processed.
+
+	This function will:
+
+	- Clear the previous contents of the handle, and copy the option specification string.
+	- Iterate over each argument to:
+		- Check for "--", which ends option parsing.
+		- Check for a long option beginning with "--", storing the option in optstr and any value in optval.
+		- Check for a short option beginning with '-', storing the option in optopt and any value in optval.
+			optstr is set to a single character string equal to optopt.
+	- Append remaining options with:
+		- optval = argv[i]
+		- optopt = 0
+		- optord = -1
+		- optstr = NULL
+	- Permute the options using a stable partitioning algorithm within the handle to
+	sort all non-options to the end iff the option specification string is not '-'.
+
+	\sa cbf_make_getopt_handle
+	\sa cbf_free_getopt_handle
+	\sa cbf_getopt_parse
+	\sa cbf_rewind_getopt_option
+	\sa cbf_next_getopt_option
+	\sa cbf_select_getopt_option
+	\sa cbf_count_getopt_options
+	\sa cbf_get_getopt_data
+	\return An error code.
+	*/
+
+    int cbf_getopt_parse(
+             cbf_getopt_handle handle, /**< The <code>cbf_getopt_handle</code> to populate. */
+			 int argc, /**< The number of arguments in the argument vector. */
+			 char ** argv, /**< The argument vector - as may have been passed to main. */
+			 const char * options /**< The option specification string. */
+    )
+	{
 
         int ii, iii, ios;
 
@@ -254,12 +352,14 @@ extern "C" {
             voptstructs = (void *)(handle->optstructs);
 
             cbf_failnez(cbf_realloc((void **) &voptstructs,
-                                    &(handle->optstructs_capacity),sizeof(cbf_getopt_optstruct),argc))
+                                    &(handle->optstructs_capacity),
+                                    sizeof(cbf_getopt_optstruct),argc))
 
         } else {
 
             cbf_failnez(cbf_alloc((void **) &voptstructs,
-                                  &(handle->optstructs_capacity),sizeof(cbf_getopt_optstruct),argc))
+                                  &(handle->optstructs_capacity),
+                                  sizeof(cbf_getopt_optstruct),argc))
 
         }
 
@@ -344,17 +444,18 @@ extern "C" {
                         if (ii+1 < argc && (hasvalue >0
                                             || (*(argv[ii+1])!='-'&& hasvalue < 0) )) {
 
+                            /* NOTE: an argument of "--" will be matched by the above test! */
+
                             optstruct->optval = cbf_copy_string(NULL,argv[ii+1],0);
 
                             ii++;
+						}
 
                             foundopt++;
 
                             break;
 
                         }
-
-                    }
 
                 } while (*opts);
 
@@ -384,9 +485,7 @@ extern "C" {
 
                 /* this is not an expected long option and the option string
                  does not have a leading '-', therefore this is simply
-                 a non-option value
-
-                 */
+                 a non-option value */
 
                 if (*options=='+') break;
 
@@ -526,11 +625,8 @@ extern "C" {
         }
 
 
-        /*
-           ii is the last argument processed, the remaining arguments get added
-           at the end
-
-         */
+        /* ii is the last argument processed, the remaining arguments get added
+           at the end */
 
         ios =  handle->optstructs_size;
 
@@ -551,9 +647,7 @@ extern "C" {
         }
 
         /* if *options is not '-', then all non-options in obstructs need to
-           be sorted to the end of the list
-
-         */
+           be sorted to the end of the list */
 
         iii = ios-1;
 
@@ -574,11 +668,14 @@ extern "C" {
                     for (ii = iii; ii < ios-1; ii++) {
 
                         memmove((void *)(&((handle->optstructs)[ii])),
-                                (void *)(&((handle->optstructs)[ii+1])), sizeof(cbf_getopt_optstruct));
+                                (void *)(&((handle->optstructs)[ii+1])), 
+                                sizeof(cbf_getopt_optstruct));
 
                     }
 
-                  memmove((void *)(&((handle->optstructs)[ios-1])),(void *)(&temp),sizeof(cbf_getopt_optstruct));
+                  memmove((void *)(&((handle->optstructs)[ios-1])),
+                                (void *)(&temp),
+                                sizeof(cbf_getopt_optstruct));
 
                 }
 
@@ -590,71 +687,158 @@ extern "C" {
 
         }
 
-        return 0;
+        return CBF_SUCCESS;
 
 
     }
 
+	/**
+	Selects the option at index <code>0</code> within the given handle,
+	or fails if no handle is given or no options are present.
 
-
-    /* Get first option from a cbf_getopt handle */
-
-    int cbf_rewind_getopt_option ( cbf_getopt_handle handle ) {
-
+	\sa cbf_make_getopt_handle
+	\sa cbf_free_getopt_handle
+	\sa cbf_getopt_parse
+	\sa cbf_rewind_getopt_option
+	\sa cbf_next_getopt_option
+	\sa cbf_select_getopt_option
+	\sa cbf_count_getopt_options
+	\sa cbf_get_getopt_data
+	\return An error code.
+	*/
+	int cbf_rewind_getopt_option(
+        cbf_getopt_handle handle /**< The handle to attempt to use. */
+    )
+	{
         if ( !handle ) return CBF_ARGUMENT;
 
         handle->optind = 0 ;
 
         if ( handle->optind >=  handle->optstructs_size) return CBF_NOTFOUND;
 
-        return 0;
+        return CBF_SUCCESS;
 
     }
 
-    /* Get next option from a cbf_getopt handle */
+	/**
+	Selects the option at <code>current_index + 1</code> within the given handle,
+	or fails if no handle is given or no further options are present.
 
-    int cbf_next_getopt_option ( cbf_getopt_handle handle ){
-
+	\sa cbf_make_getopt_handle
+	\sa cbf_free_getopt_handle
+	\sa cbf_getopt_parse
+	\sa cbf_rewind_getopt_option
+	\sa cbf_next_getopt_option
+	\sa cbf_select_getopt_option
+	\sa cbf_count_getopt_options
+	\sa cbf_get_getopt_data
+	\return An error code.
+	 */
+	int cbf_next_getopt_option(
+        cbf_getopt_handle handle /**< The handle to attempt to use. */
+    )
+	{
         if ( !handle ) return CBF_ARGUMENT;
 
         handle->optind++;
 
         if ( handle->optind >=  handle->optstructs_size) return CBF_NOTFOUND;
 
-        return 0;
+        return CBF_SUCCESS;
 
     }
 
-    /* Get option by number (0 ... ) from a cbf_getopt handle */
+	/**
+	Selects the option at <code>option</code> within the given handle,
+	or fails if no handle is given or no further options are present.
+	The value of <code>option</code> should be less than the value
+	obtained by a call to <code>cbf_count_getopt_options</code>. If
+	<code>option</code> is set to zero the first option will be
+	selected, if it exists.
 
-    int cbf_select_getopt_option ( cbf_getopt_handle handle, unsigned int option ) {
-
+	\sa cbf_make_getopt_handle
+	\sa cbf_free_getopt_handle
+	\sa cbf_getopt_parse
+	\sa cbf_rewind_getopt_option
+	\sa cbf_next_getopt_option
+	\sa cbf_select_getopt_option
+	\sa cbf_count_getopt_options
+	\sa cbf_get_getopt_data
+	\return An error code.
+	 */
+	int cbf_select_getopt_option(
+            cbf_getopt_handle handle, /**< The handle to attempt to use. */
+			unsigned int option /**< The index of the option to select. */
+    )
+	{
         if ( !handle ) return CBF_ARGUMENT;
 
-        if ( option < 0 || option >=  handle->optstructs_size) return CBF_ARGUMENT;
+        if ( option >=  handle->optstructs_size) return CBF_ARGUMENT;
 
         handle->optind = option;
 
-        return 0;
+        return CBF_SUCCESS;
 
     }
 
-    /* Count the options in a cbf_getopt handle */
+	/**
+	The value returned in <code>options</code> will be a number that is one
+	larger than the highest index that may be used to select an option with
+	a call to <code>cbf_select_getopt_option</code>. All non-negative
+	integers smaller than this value index an option.
 
-    int cbf_count_getopt_options ( cbf_getopt_handle handle, unsigned int * options ) {
-
+	\sa cbf_make_getopt_handle
+	\sa cbf_free_getopt_handle
+	\sa cbf_getopt_parse
+	\sa cbf_rewind_getopt_option
+	\sa cbf_next_getopt_option
+	\sa cbf_select_getopt_option
+	\sa cbf_count_getopt_options
+	\sa cbf_get_getopt_data
+	\return An error code.
+	 */
+	int cbf_count_getopt_options(
+            cbf_getopt_handle handle, /**< The handle to attempt to use. */
+			unsigned int * options /**< The (optional) location to store the total number of options. */
+    )
+	{
         if ( !handle ) return CBF_ARGUMENT;
 
         if ( options ) *options = handle->optstructs_size;
 
-        return 0;
+        return CBF_SUCCESS;
     }
 
-    /* Get the data for an option */
+	/**
+	Retrieves the data stored in the given handle relating the the currently selected option within
+	the handle. To select an option see the documentation for the <code>cbf_rewind_getopt_option</code>,
+	<code>cbf_next_getopt_option</code>, <code>cbf_count_getopt_options</code> and
+	<code>cbf_select_getopt_option</code> functions.
 
-    int cbf_get_getopt_data ( cbf_getopt_handle handle, int * optopt,
-                             int * optord, const char * * optstr, const char * * optval) {
-
+	\sa cbf_make_getopt_handle
+	\sa cbf_free_getopt_handle
+	\sa cbf_getopt_parse
+	\sa cbf_rewind_getopt_option
+	\sa cbf_next_getopt_option
+	\sa cbf_select_getopt_option
+	\sa cbf_count_getopt_options
+	\sa cbf_get_getopt_data
+	\return An error code.
+	*/
+	int cbf_get_getopt_data(
+             cbf_getopt_handle handle, /**< The handle to read data from. */
+			 int * optopt, /**< The (optional) location to return the single 
+                              character short option, which defaults to 
+                              '<code>\\0</code>'. */
+			 int * optord, /**< The (optional) location to return the index of 
+                              the option within the option specification string that 
+                              was parsed by <code>cbf_getopt_parse</code>. */
+			 const char * * optstr, /**< The (optional) location to return the 
+                              long form of the option or a single character string 
+                              version of the short form. */
+			 const char * * optval /**< The (optional) location to return the value 
+                              associated with the selected option, if any. */)
+	{
         cbf_getopt_optstruct * optstruct;
 
         if ( !handle ) return CBF_ARGUMENT;
@@ -671,7 +855,7 @@ extern "C" {
 
         if (optval) *optval = optstruct->optval;
 
-        return 0;
+        return CBF_SUCCESS;
 
     }
 
