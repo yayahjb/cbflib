@@ -18267,6 +18267,7 @@ static int FUNCTION_NAME \
             const char * system;
             double rotation;
             double vector[3], offset[3];
+            double cbfvector[3], cbfoffset[3];
             
             if (row < rows) {
                 
@@ -18323,8 +18324,10 @@ static int FUNCTION_NAME \
                 if (cbf_cistrcmp(system,"laboratory")) {
                     CBF_CALL(cbf_get_axis_vector_and_offset(handle,axis_id,
                                                             vector, offset));
+                    cbfvector[0] = vector[0];
+                    cbfvector[1] = vector[1];
+                    cbfvector[2] = vector[2];
                 } else {
-                    double cbfvector[3], cbfoffset[3];
                     CBF_CALL(cbf_get_axis_poise(handle, 0.,
                                                 (double *)cbfvector,(double *)cbfvector+1,(double *)cbfvector+2,
                                                 (double *)cbfoffset,(double *)cbfoffset+1,(double *)cbfoffset+2,
@@ -18337,9 +18340,9 @@ static int FUNCTION_NAME \
                 if (!cbf_cistrcmp(axis_id,"BEAM")) {
                     if (CBF_SUCCESS== error) {
                         afound[3] = 1;
-                        beamvector[0] = vector[0];
-                        beamvector[1] = vector[1];
-                        beamvector[2] = vector[2];
+                        beamvector[0] = cbfvector[0];
+                        beamvector[1] = cbfvector[1];
+                        beamvector[2] = cbfvector[2];
                         sourcevector[0] = -beamvector[0];
                         sourcevector[1] = -beamvector[1];
                         sourcevector[2] = -beamvector[2];
@@ -18348,9 +18351,9 @@ static int FUNCTION_NAME \
                 if (!cbf_cistrcmp(axis_id,"SOURCE")) {
                     if (CBF_SUCCESS== error) {
                         afound[4] = 1;
-                        sourcevector[0] = vector[0];
-                        sourcevector[1] = vector[1];
-                        sourcevector[2] = vector[2];
+                        sourcevector[0] = cbfvector[0];
+                        sourcevector[1] = cbfvector[1];
+                        sourcevector[2] = cbfvector[2];
                         beamvector[0] = -sourcevector[0];
                         beamvector[1] = -sourcevector[1];
                         beamvector[2] = -sourcevector[2];
@@ -18359,9 +18362,9 @@ static int FUNCTION_NAME \
                 if (!cbf_cistrcmp(axis_id,"GRAVITY")) {
                     if (CBF_SUCCESS== error) {
                         afound[5] = 1;
-                        gravityvector[0] = vector[0];
-                        gravityvector[1] = vector[1];
-                        gravityvector[2] = vector[2];
+                        gravityvector[0] = cbfvector[0];
+                        gravityvector[1] = cbfvector[1];
+                        gravityvector[2] = cbfvector[2];
                         upvector[0] = -gravityvector[0];
                         upvector[1] = -gravityvector[1];
                         upvector[2] = -gravityvector[2];
@@ -18370,9 +18373,9 @@ static int FUNCTION_NAME \
                 if (!cbf_cistrcmp(axis_id,"UP")) {
                     if (CBF_SUCCESS== error) {
                         afound[6] = 1;
-                        upvector[0] = vector[0];
-                        upvector[1] = vector[1];
-                        upvector[2] = vector[2];
+                        upvector[0] = cbfvector[0];
+                        upvector[1] = cbfvector[1];
+                        upvector[2] = cbfvector[2];
                         gravityvector[0] = -upvector[0];
                         gravityvector[1] = -upvector[1];
                         gravityvector[2] = -upvector[2];
@@ -18415,49 +18418,49 @@ static int FUNCTION_NAME \
                     case 3: /* BEAM */
                         if (afound[3] || afound[4])
                         {
-                            vector[0] = beamvector[0];
-                            vector[1] = beamvector[1];
-                            vector[2] = beamvector[2];
+                            cbfvector[0] = beamvector[0];
+                            cbfvector[1] = beamvector[1];
+                            cbfvector[2] = beamvector[2];
                         } else {
-                            vector[0] = 0.;
-                            vector[1] = 0.;
-                            vector[2] = 1.;
+                            cbfvector[0] = 0.;
+                            cbfvector[1] = 0.;
+                            cbfvector[2] = -1.;
                         }
                         CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
                         break;
                     case 4: /* SOURCE */
                         if (afound[3] || afound[4]){
-                            vector[0] = sourcevector[0];
-                            vector[1] = sourcevector[1];
-                            vector[2] = sourcevector[2];
+                            cbfvector[0] = sourcevector[0];
+                            cbfvector[1] = sourcevector[1];
+                            cbfvector[2] = sourcevector[2];
                         } else {
-                            vector[0] = 0.;
-                            vector[1] = 0.;
-                            vector[2] = -1.;
+                            cbfvector[0] = 0.;
+                            cbfvector[1] = 0.;
+                            cbfvector[2] = 1.;
                         }
                         CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
                         break;
                     case 5: /* GRAVITY */
                         if (afound[5] || afound[6] ) {
-                            vector[0] = gravityvector[0];
-                            vector[1] = gravityvector[1];
-                            vector[2] = gravityvector[2];
+                            cbfvector[0] = gravityvector[0];
+                            cbfvector[1] = gravityvector[1];
+                            cbfvector[2] = gravityvector[2];
                         } else {
-                        vector[0] = 0.;
-                        vector[1] = -1.;
-                        vector[2] = 0.;
+                            cbfvector[0] = 0.;
+                            cbfvector[1] = -1.;
+                            cbfvector[2] = 0.;
                         }
                         CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
                         break;
                     case 6: /* UP */
                         if (afound[5] || afound[6]) {
-                            vector[0] = upvector[0];
-                            vector[1] = upvector[1];
-                            vector[2] = upvector[2];
+                            cbfvector[0] = upvector[0];
+                            cbfvector[1] = upvector[1];
+                            cbfvector[2] = upvector[2];
                         } else {
-                        vector[0] = 0.;
-                        vector[1] = 1.;
-                        vector[2] = 0.;
+                            cbfvector[0] = 0.;
+                            cbfvector[1] = 1.;
+                            cbfvector[2] = 0.;
                         }
                         CBF_CALL(cbf_apply_matrix(matrix,cbfvector,vector));
                         break;
