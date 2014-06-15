@@ -5270,14 +5270,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		if (!nx) {
 			error |= CBF_ARGUMENT;
 		} else {
+            if (nx->num_detectors < 1 || nx->cur_detector >= nx->num_detectors) {
+                return CBF_NOTFOUND;
+            }
 			/* check for a valid group */
 			if (group) {
-				if (cbf_H5Ivalid(nx->nxdetector)) *group = nx->nxdetector;
+				if (cbf_H5Ivalid(nx->nxdetectors[nx->cur_detector])) *group = nx->nxdetectors[nx->cur_detector];
 				else error |= CBF_NOTFOUND;
 			}
 			/* check for a name */
 			if (name) {
-				if (nx->nxdetector_name) *name = nx->nxdetector_name;
+				if (nx->nxdetector_names[nx->cur_detector]) *name = nx->nxdetector_names[nx->cur_detector];
 				else error |= CBF_NOTFOUND;
 			}
 		}
@@ -5302,12 +5305,31 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      const hid_t group,
 			 const char * const name)
 	{
+        int ii;
 		int error = CBF_SUCCESS;
+        void * nameblock;
+        nameblock = (void *)(nx->nxdetector_names);
 		if (!nx || !cbf_H5Ivalid(group) || !name) {
 			error |= CBF_ARGUMENT;
-			} else {
-			hid_t * const nxGroup = &(nx->nxdetector);
-			const char * * const nxName = &(nx->nxdetector_name);
+            return error;
+        }
+        if (nx->nxdetectors == NULL){
+            cbf_failnez(cbf_alloc(((void **) &(nx->nxdetectors)),NULL,
+                                  sizeof(hid_t),10));
+            cbf_onfailnez(cbf_alloc(((void **) &(nx->nxdetector_names)),NULL,
+                                    sizeof(char *),10),cbf_free(&(nameblock),NULL));
+            for (ii = 0; ii < 10; ii ++) {
+                nx->nxdetectors[ii] = (hid_t)CBF_H5FAIL;
+                nx->nxdetector_names[ii] = NULL;
+            }
+            nx->num_detectors = 1;
+            nx->cap_detectors = 10;
+            nx->cur_detector = 0;
+        }
+        
+        {
+			hid_t * const nxGroup = &(nx->nxdetectors[nx->cur_detector]);
+			const char * * const nxName = &(nx->nxdetector_names[nx->cur_detector]);
 			const htri_t cmp = cbf_H5Ocmp(*nxGroup,group);
 			if (cmp < 0) {
 				error |= CBF_H5ERROR;
@@ -5321,7 +5343,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			} else {
 				/* already set - check that the names match, too */
 				if (!*nxName || strcmp(name,*nxName)) error |= CBF_H5DIFFERENT;
-		}
+            }
 		}
 		return error;
 	}
@@ -9997,83 +10019,93 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     int cbf_free_h5handle(cbf_h5handle h5handle)
 	{
 		int error = CBF_SUCCESS;
+        int ii;
 		if (!h5handle) {
 			error |= CBF_ARGUMENT;
 		} else {
-        void * memblock = (void *) h5handle;
-
-		if (cbf_H5Ivalid(h5handle->colid)) {
-			CBF_H5CALL(H5Gclose(h5handle->colid));
-        }
-
-		if (cbf_H5Ivalid(h5handle->catid)) {
-			CBF_H5CALL(H5Gclose(h5handle->catid));
-        }
-
-		if (cbf_H5Ivalid(h5handle->sfid)) {
-			CBF_H5CALL(H5Gclose(h5handle->sfid));
-        }
-
-		if (cbf_H5Ivalid(h5handle->dbid)) {
-			CBF_H5CALL(H5Gclose(h5handle->dbid));
-        }
-
-		if (cbf_H5Ivalid(h5handle->rootid)) {
-			CBF_H5CALL(H5Gclose(h5handle->rootid));
-        }
-
-		if (cbf_H5Ivalid(h5handle->curnxid)) {
-			CBF_H5CALL(H5Gclose(h5handle->curnxid));
-        }
-
-		if (cbf_H5Ivalid(h5handle->dataid)) {
-			CBF_H5CALL(H5Gclose(h5handle->dataid));
-        }
-
-		if (cbf_H5Ivalid(h5handle->nxid)) {
-			CBF_H5CALL(H5Gclose(h5handle->nxid));
-		}
-
-		if (cbf_H5Ivalid(h5handle->nxdata)) {
-			CBF_H5CALL(H5Gclose(h5handle->nxdata));
-		}
-
-		if (cbf_H5Ivalid(h5handle->nxinst)) {
-			CBF_H5CALL(H5Gclose(h5handle->nxinst));
-		}
-
-		if (cbf_H5Ivalid(h5handle->nxsample)) {
-			CBF_H5CALL(H5Gclose(h5handle->nxsample));
-		}
-
+            void * memblock = (void *) h5handle;
+            void * detblock = (void *) h5handle->nxdetectors;
+            
+            if (cbf_H5Ivalid(h5handle->colid)) {
+                CBF_H5CALL(H5Gclose(h5handle->colid));
+            }
+            
+            if (cbf_H5Ivalid(h5handle->catid)) {
+                CBF_H5CALL(H5Gclose(h5handle->catid));
+            }
+            
+            if (cbf_H5Ivalid(h5handle->sfid)) {
+                CBF_H5CALL(H5Gclose(h5handle->sfid));
+            }
+            
+            if (cbf_H5Ivalid(h5handle->dbid)) {
+                CBF_H5CALL(H5Gclose(h5handle->dbid));
+            }
+            
+            if (cbf_H5Ivalid(h5handle->rootid)) {
+                CBF_H5CALL(H5Gclose(h5handle->rootid));
+            }
+            
+            if (cbf_H5Ivalid(h5handle->curnxid)) {
+                CBF_H5CALL(H5Gclose(h5handle->curnxid));
+            }
+            
+            if (cbf_H5Ivalid(h5handle->dataid)) {
+                CBF_H5CALL(H5Gclose(h5handle->dataid));
+            }
+            
+            if (cbf_H5Ivalid(h5handle->nxid)) {
+                CBF_H5CALL(H5Gclose(h5handle->nxid));
+            }
+            
+            if (cbf_H5Ivalid(h5handle->nxdata)) {
+                CBF_H5CALL(H5Gclose(h5handle->nxdata));
+            }
+            
+            if (cbf_H5Ivalid(h5handle->nxinst)) {
+                CBF_H5CALL(H5Gclose(h5handle->nxinst));
+            }
+            
+            if (cbf_H5Ivalid(h5handle->nxsample)) {
+                CBF_H5CALL(H5Gclose(h5handle->nxsample));
+            }
+            
 			if (cbf_H5Ivalid(h5handle->nxbeam)) {
 				CBF_H5CALL(H5Gclose(h5handle->nxbeam));
 			}
             
-		if (cbf_H5Ivalid(h5handle->nxdetector)) {
-			CBF_H5CALL(H5Gclose(h5handle->nxdetector));
-		}
-
+            for (ii=0; ii< h5handle->num_detectors; ii++) {
+                if (cbf_H5Ivalid(h5handle->nxdetectors[ii])) {
+                    CBF_H5CALL(H5Gclose(h5handle->nxdetectors[ii]));
+                }
+            }
+            
 			if (cbf_H5Ivalid(h5handle->nxgoniometer)) {
 				CBF_H5CALL(H5Gclose(h5handle->nxgoniometer));
 			}
             
-		if (cbf_H5Ivalid(h5handle->nxmonochromator)) {
-			CBF_H5CALL(H5Gclose(h5handle->nxmonochromator));
-		}
-
+            if (cbf_H5Ivalid(h5handle->nxmonochromator)) {
+                CBF_H5CALL(H5Gclose(h5handle->nxmonochromator));
+            }
+            
 			if (cbf_H5Ivalid(h5handle->nxsource)) {
 				CBF_H5CALL(H5Gclose(h5handle->nxsource));
 			}
             
-		if (cbf_H5Ivalid(h5handle->hfile)) {
-			CBF_H5CALL(H5Fclose(h5handle->hfile));
-        }
-
+            if (cbf_H5Ivalid(h5handle->hfile)) {
+                CBF_H5CALL(H5Fclose(h5handle->hfile));
+            }
+            
 			free((void*)h5handle->scan_id);
 			free((void*)h5handle->sample_id);
-		free((void*)h5handle->nxid_name);
-		free((void*)h5handle->nxdetector_name);
+            free((void*)h5handle->nxid_name);
+            for (ii=0; ii < h5handle->num_detectors; ii++){
+                 free((void*)h5handle->nxdetector_names[ii]);
+            }
+            h5handle->num_detectors = 0;
+            if (h5handle->nxdetectors) {
+                error |= cbf_free(&detblock,NULL);
+            }
 			free((void*)h5handle->nxsample_name);
 			free((void*)h5handle->nxbeam_name);
 			free((void*)h5handle->nxinstrument_name);
@@ -10081,7 +10113,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			free((void*)h5handle->nxmonochromator_name);
 			free((void*)h5handle->nxsource_name);
 			error |= cbf_free(&memblock,NULL);
-    }
+        }
         return error;
     }
 
@@ -10092,6 +10124,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         cbf_failnez (cbf_alloc ((void **) h5handle, NULL,
                                 sizeof(cbf_h5handle_struct), 1));
 
+        (*h5handle)->slice  = 0;
+        (*h5handle)->num_detectors  = 0;
         (*h5handle)->hfile   = (hid_t)CBF_H5FAIL;
         (*h5handle)->rootid  = (hid_t)CBF_H5FAIL;
         (*h5handle)->dbid    = (hid_t)CBF_H5FAIL;
@@ -10103,14 +10137,16 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		(*h5handle)->nxinst  = (hid_t)CBF_H5FAIL;
 		(*h5handle)->nxsample  = (hid_t)CBF_H5FAIL;
 		(*h5handle)->nxbeam  = (hid_t)CBF_H5FAIL;
-		(*h5handle)->nxdetector  = (hid_t)CBF_H5FAIL;
+		(*h5handle)->nxdetectors  = NULL;
+        (*h5handle)->num_detectors  = 0;
+        (*h5handle)->cur_detector  = 0;
 		(*h5handle)->nxgoniometer = (hid_t)CBF_H5FAIL;
 		(*h5handle)->nxmonochromator = (hid_t)CBF_H5FAIL;
 		(*h5handle)->nxsource = (hid_t)CBF_H5FAIL;
         (*h5handle)->curnxid = (hid_t)CBF_H5FAIL;
         (*h5handle)->dataid  = (hid_t)CBF_H5FAIL;
 		(*h5handle)->nxid_name = NULL;
-		(*h5handle)->nxdetector_name = NULL;
+		(*h5handle)->nxdetector_names = NULL;
 		(*h5handle)->nxsample_name = NULL;
 		(*h5handle)->nxbeam_name = NULL;
 		(*h5handle)->nxinstrument_name = NULL;
@@ -15138,13 +15174,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
 			/* check the saturation value */
 			if (saturation_value) {
+                int ii;
 				hid_t dataset = CBF_H5FAIL;
 				hsize_t max[] = {H5S_UNLIMITED};
 				hsize_t cnk[] = {1};
 				hsize_t off[] = {h5handle->slice};
 				hsize_t cnt[] = {1};
                         hsize_t buf[] = {0};
-				CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dataset,"saturation_value",1,max,cnk,buf,h5type));
+				CBF_CALL(cbf_H5Drequire(h5handle->nxdetectors[h5handle->cur_detector],&dataset,"saturation_value",1,max,cnk,buf,h5type));
 				if (real) {
 					/* every float can be represented exactly by a double, so no need for float intermediate */
 					const double num = strtod(saturation_value,0);
@@ -15171,7 +15208,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 				hsize_t off[] = {h5handle->slice};
 				hsize_t cnt[] = {1};
                         hsize_t buf[] = {0};
-				CBF_CALL(cbf_H5Drequire(h5handle->nxdetector,&dataset,"undefined_value",1,max,cnk,buf,h5type));
+				CBF_CALL(cbf_H5Drequire(h5handle->nxdetectors[h5handle->cur_detector],&dataset,"undefined_value",1,max,cnk,buf,h5type));
 				if (real) {
 					/* every float can be represented exactly by a double, so no need for float intermediate */
 					const double num = strtod(undefined_value,0);
@@ -15229,7 +15266,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 }
 
 				/* ensure a dataset exists in the detector */
-				found =  cbf_H5Dfind2(h5handle->nxdetector,&dset,"data",rank,h5max,buf,h5type);
+				found =  cbf_H5Dfind2(h5handle->nxdetectors[h5handle->cur_detector],
+                                      &dset,"data",rank,h5max,buf,h5type);
 				if (CBF_SUCCESS==found) {
 				} else if (CBF_NOTFOUND==found) {
 					/* define variables & check args */
@@ -15271,7 +15309,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
 					/* create the dataset */
 					if (CBF_SUCCESS == error)
-						dset = H5Dcreate2(h5handle->nxdetector,"data",h5type,dataSpace,H5P_DEFAULT,dcpl,H5P_DEFAULT);
+						dset = H5Dcreate2(h5handle->nxdetectors[h5handle->cur_detector],"data",h5type,dataSpace,H5P_DEFAULT,dcpl,H5P_DEFAULT);
 
 					/* check local variables are properly closed */
 					if (cbf_H5Ivalid(dataSpace)) H5Sclose(dataSpace);
@@ -16395,7 +16433,7 @@ static int FUNCTION_NAME \
 				const char * axis_id = c->axis_id[leaf];
 				size_t index;
 				/* I now have a valid leaf axis, write the dependency... */
-				CBF_CALL(cbf_H5Drequire_flstring(nx->nxdetector,0,"depends_on",c->path[leaf]));
+				CBF_CALL(cbf_H5Drequire_flstring(nx->nxdetectors[nx->cur_detector],0,"depends_on",c->path[leaf]));
 				/* ...record the leaf axis in the key... */
 				if ((error|=_cbf_insert_axis(&key->axis,axis_id,c->path[leaf]))) {
 					cbf_debug_print2("error: %s\n",cbf_strerror(error));
@@ -16509,7 +16547,7 @@ static int FUNCTION_NAME \
 						path_empty,
 						nx->nxid_name,
 						nx->nxinstrument_name,
-						nx->nxdetector_name,
+						nx->nxdetector_names[nx->cur_detector],
 						axis_group_name,
 						r->axis,
 						0
@@ -16897,9 +16935,9 @@ static int FUNCTION_NAME \
 				if (!cbf_cistrcmp(c->linearity,"linear") || !cbf_cistrcmp(c->linearity,"offset") || !cbf_cistrcmp(c->linearity,"scaling") || !cbf_cistrcmp(c->linearity,"scaling_offset")) {
 					hid_t dset_offset = CBF_H5FAIL;
 					hid_t dset_scale = CBF_H5FAIL;
-					CBF_CALL(cbf_H5Drequire(nx->nxdetector,&dset_offset,"offset",1,max,cnk,buf,H5T_IEEE_F64LE));
+					CBF_CALL(cbf_H5Drequire(nx->nxdetectors[nx->cur_detector],&dset_offset,"offset",1,max,cnk,buf,H5T_IEEE_F64LE));
 					CBF_CALL(cbf_H5Dinsert(dset_offset,data_offset,0,count,buf,&c->offset,H5T_NATIVE_DOUBLE));
-					CBF_CALL(cbf_H5Drequire(nx->nxdetector,&dset_scale,"scaling_factor",1,max,cnk,buf,H5T_IEEE_F64LE));
+					CBF_CALL(cbf_H5Drequire(nx->nxdetectors[nx->cur_detector],&dset_scale,"scaling_factor",1,max,cnk,buf,H5T_IEEE_F64LE));
 					CBF_CALL(cbf_H5Dinsert(dset_scale,data_offset,0,count,buf,&c->scaling,H5T_NATIVE_DOUBLE));
 					cbf_H5Dfree(dset_offset);
 					cbf_H5Dfree(dset_scale);
@@ -16986,7 +17024,7 @@ static int FUNCTION_NAME \
 						empty_string,
 						nx->nxid_name,
 						nx->nxinstrument_name,
-						nx->nxdetector_name,
+						nx->nxdetector_names[nx->cur_detector],
 						/* select the correct axis name */
 						axis_names[c->precedence],
 						0
@@ -18017,7 +18055,7 @@ static int FUNCTION_NAME \
 							cbf_axis_data_t axis_settings = cbf_axis_data_init();
                             { /* write the pixel sizes to NXdetector */
                                 hid_t detector = CBF_H5FAIL;
-							hid_t dset = CBF_H5FAIL;
+							    hid_t dset = CBF_H5FAIL;
                                 const char empty[] = "";
                                 const char pixel_x[] = "x_pixel_size";
                                 const char pixel_y[] = "y_pixel_size";
@@ -18830,8 +18868,10 @@ static int FUNCTION_NAME \
 		/* use it to link to data */
 		if (CBF_SUCCESS==error && cbf_H5Ivalid(h5handle->nxdata)) {
 			const htri_t data_exists = H5Lexists(h5handle->nxdata,"data",H5P_DEFAULT);
-			const htri_t data_scaling_exists = H5Lexists(h5handle->nxdetector,"scaling_factor",H5P_DEFAULT);
-			const htri_t data_offset_exists = H5Lexists(h5handle->nxdetector,"offset",H5P_DEFAULT);
+			const htri_t data_scaling_exists = H5Lexists(h5handle->nxdetectors[h5handle->cur_detector],
+                                                         "scaling_factor",H5P_DEFAULT);
+			const htri_t data_offset_exists = H5Lexists(h5handle->nxdetectors[h5handle->cur_detector],
+                                                        "offset",H5P_DEFAULT);
                 CBF_CALL(cbf_H5Arequire_string(h5handle->nxdata,"NX_class","NXdata"));
                 CBF_CALL(cbf_H5Arequire_string(h5handle->nxdata,"signal","data"));
 			if (data_exists < 0) {
@@ -18839,7 +18879,8 @@ static int FUNCTION_NAME \
 			} else if (data_exists) {
 				/* it exists - done */
 			} else {
-				H5Lcreate_hard(h5handle->nxdetector,"data",h5handle->nxdata,"data",H5P_DEFAULT,H5P_DEFAULT);
+				H5Lcreate_hard(h5handle->nxdetectors[h5handle->cur_detector],
+                               "data",h5handle->nxdata,"data",H5P_DEFAULT,H5P_DEFAULT);
 			}
 			if (data_scaling_exists < 0) {
 				error |= CBF_H5ERROR;
@@ -18850,7 +18891,8 @@ static int FUNCTION_NAME \
 				} else if(scaling_exists) {
 					/* it exists - done */
 				} else {
-					H5Lcreate_hard(h5handle->nxdetector,"scaling_factor",
+					H5Lcreate_hard(h5handle->nxdetectors[h5handle->cur_detector],
+                                   "scaling_factor",
 								   h5handle->nxdata,"scaling_factor",
 								   H5P_DEFAULT,H5P_DEFAULT);
 				}
@@ -18866,7 +18908,8 @@ static int FUNCTION_NAME \
 				} else if(offset_exists) {
 					/* it exists - done */
 				} else {
-					H5Lcreate_hard(h5handle->nxdetector,"offset",
+					H5Lcreate_hard(h5handle->nxdetectors[h5handle->cur_detector],
+                                   "offset",
 								   h5handle->nxdata,"offset",
 								   H5P_DEFAULT,H5P_DEFAULT);
 				}
@@ -18876,8 +18919,10 @@ static int FUNCTION_NAME \
 
 			/* extract some axes based on the scan type */
                 if (CBF_SUCCESS==error) {
-                    const htri_t axis_fast_exists = H5Lexists(h5handle->nxdetector,"y_pixel_offset",H5P_DEFAULT);
-                    const htri_t axis_slow_exists = H5Lexists(h5handle->nxdetector,"x_pixel_offset",H5P_DEFAULT);
+                    const htri_t axis_fast_exists = H5Lexists(h5handle->nxdetectors[h5handle->cur_detector],
+                                                              "y_pixel_offset",H5P_DEFAULT);
+                    const htri_t axis_slow_exists = H5Lexists(h5handle->nxdetectors[h5handle->cur_detector],
+                                                              "x_pixel_offset",H5P_DEFAULT);
 				if (axis_fast_exists < 0) {
 					error |= CBF_H5ERROR;
 				} else if (axis_fast_exists) {
@@ -18887,7 +18932,8 @@ static int FUNCTION_NAME \
 					} else if(axis_exists) {
 						/* it exists - done */
 					} else {
-                            H5Lcreate_hard(h5handle->nxdetector,"y_pixel_offset",
+                            H5Lcreate_hard(h5handle->nxdetectors[h5handle->cur_detector],
+                                           "y_pixel_offset",
 									   h5handle->nxdata,"y",
 									   H5P_DEFAULT,H5P_DEFAULT);
 					}
@@ -18905,7 +18951,8 @@ static int FUNCTION_NAME \
 					} else if(axis_exists) {
 						/* it exists - done */
 					} else {
-                            H5Lcreate_hard(h5handle->nxdetector,"x_pixel_offset",
+                            H5Lcreate_hard(h5handle->nxdetectors[h5handle->cur_detector],
+                                           "x_pixel_offset",
 									   h5handle->nxdata,"x",
 									   H5P_DEFAULT,H5P_DEFAULT);
 					}
@@ -20023,7 +20070,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 									path_empty,
 									h5handle->nxid_name,
 									h5handle->nxinstrument_name,
-									h5handle->nxdetector_name,
+									h5handle->nxdetector_names[h5handle->cur_detector],
 									axis_group_name,
 									axis_translation,
 									0
@@ -20047,7 +20094,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 									path_empty,
 									h5handle->nxid_name,
 									h5handle->nxinstrument_name,
-									h5handle->nxdetector_name,
+									h5handle->nxdetector_names[h5handle->cur_detector],
 									axis_group_name,
 									axis_rotation,
 									0
@@ -20116,7 +20163,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 							path_empty,
 							h5handle->nxid_name,
                             h5handle->nxinstrument_name,
-							h5handle->nxdetector_name,
+							h5handle->nxdetector_names[h5handle->cur_detector],
                             path_transformations,
 							path_axis,
 							0
@@ -20173,7 +20220,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 							path_empty,
 							h5handle->nxid_name,
                             h5handle->nxinstrument_name,
-							h5handle->nxdetector_name,
+							h5handle->nxdetector_names[h5handle->cur_detector],
                             path_transformations,
 							path_axis,
 							0

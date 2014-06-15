@@ -827,13 +827,16 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     {
         int   rwmode;  /* 0 for read-only, 1 for read-write */
 		unsigned int slice; /* The slice within the HDF5 data arrays where data will be added */
+        unsigned int num_detectors; /* The number of NXdetector groups */
+        unsigned int cap_detectors; /* The capacity in terms of NXdetector groups */
+        unsigned int cur_detector;  /* The currently active detector, numbered from 1 */
 		hid_t hfile;   /* The HDF5 file */
 		hid_t nxid;    /* /entry@NXentry */
 		hid_t nxdata; /* /entry/data@NXdata */
 		hid_t nxsample; /* /entry/sample@NXsample group */
 		hid_t nxbeam; /* /entry/beam@NXbeam group */
 		hid_t nxinst;  /* /entry/instrument@NXinstrument */
-		hid_t nxdetector; /* /entry/instrument/detector@NXdetector */
+		hid_t * nxdetectors; /* /entry/instrument/detector@NXdetector */
 		hid_t nxmonochromator;  /* /entry/instrument/monochromator@NXmonochromator */
         hid_t nxgoniometer;  /* /entry/instrument/goniometer@NXgoniometer */
 		hid_t nxsource;  /* /entry/instrument/source@NXsource */
@@ -846,7 +849,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
         hid_t dataid;  /* The NeXus NXdata group */
 		/* Names of various groups, used to construct paths to the axes */
 		const char * nxid_name;
-		const char * nxdetector_name;
+		const char * * nxdetector_names;
 		/* Flags for various options */
         int flags;
 #ifdef CBF_USE_ULP

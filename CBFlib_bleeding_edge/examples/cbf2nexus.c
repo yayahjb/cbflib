@@ -311,7 +311,7 @@ int main (int argc, char *argv [])
 					} else if (!cbf_cistrcmp("cbf",optarg?optarg:"")) {
 						h5_write_flags &= ~CBF_H5COMPRESSION_ZLIB;
 						h5_write_flags |= CBF_H5COMPRESSION_CBF;
-					}else if (!cbf_cistrcmp("none",optarg?optarg:"")) {
+					} else if (!cbf_cistrcmp("none",optarg?optarg:"")) {
 						/* remove any previously set (system default?) compressions */
 						h5_write_flags &= ~CBF_H5COMPRESSION_ZLIB;
 						h5_write_flags &= ~CBF_H5COMPRESSION_CBF;
