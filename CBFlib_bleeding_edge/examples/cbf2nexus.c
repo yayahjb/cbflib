@@ -440,12 +440,12 @@ int main (int argc, char *argv [])
             } else {
                 h5out->logfile = NULL;
             }
+            h5out->flags = h5_write_flags;
             if (noCBFnames >= 0) {
                 h5out->flags |= CBF_H5_CBFNONAMES;
             } else {
                 h5out->flags &= ~CBF_H5_CBFNONAMES;
             }
-            h5out->flags = h5_write_flags;
 			h5out->scan_id = _cbf_strdup(scan_id);
 			h5out->sample_id = _cbf_strdup(sample_id);
 #ifdef CBF_USE_ULP
