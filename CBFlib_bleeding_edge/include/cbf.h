@@ -468,6 +468,8 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 #define CBF_H5_REGISTER_COMPRESSIONS \
                         0x4000  /* Flag to try to register
                                      CBF compressions                 */
+#define CBF_H5_CBFNONAMES \
+                        0x8000  /* Flag to not carry CBF names into HDF5  */
 
 
   /* Flags used for logging */

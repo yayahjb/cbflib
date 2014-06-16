@@ -5289,6 +5289,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     
 	/**
      Sets the detector group and name within the handle to the given values.
+     
      Doesn't check or modify the <code>NX_class</code> attribute in any way.
      The handle will take ownership of the group id iff this function succeeds.
      \param nx The handle to add information to.
@@ -5306,6 +5307,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			 const char * const name)
 	{
         int ii;
+        int match;
 		int error = CBF_SUCCESS;
         void * nameblock;
         nameblock = (void *)(nx->nxdetector_names);
@@ -5313,19 +5315,65 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			error |= CBF_ARGUMENT;
             return error;
         }
-        if (nx->nxdetectors == NULL){
-            cbf_failnez(cbf_alloc(((void **) &(nx->nxdetectors)),NULL,
-                                  sizeof(hid_t),10));
-            cbf_onfailnez(cbf_alloc(((void **) &(nx->nxdetector_names)),NULL,
-                                    sizeof(char *),10),cbf_free(&(nameblock),NULL));
-            for (ii = 0; ii < 10; ii ++) {
-                nx->nxdetectors[ii] = (hid_t)CBF_H5FAIL;
-                nx->nxdetector_names[ii] = NULL;
+        
+        /* See if there is a match on name */
+        
+        match = 0;
+        for (ii = 0; ii < nx->num_detectors; ii++) {
+            if (!cbf_cistrcmp(name,nx->nxdetector_names[ii])) {
+                nx->cur_detector = ii;
+                match = 1;
+                break;
             }
-            nx->num_detectors = 1;
-            nx->cap_detectors = 10;
-            nx->cur_detector = 0;
         }
+        if (!match) {
+            /*  There is no matching name, we need to find or create
+             a new slot */
+            if (nx->nxdetectors == NULL){
+                cbf_failnez(cbf_alloc(((void **) &(nx->nxdetectors)),NULL,
+                                      sizeof(hid_t),10));
+                cbf_onfailnez(cbf_alloc(((void **) &(nx->nxdetector_names)),NULL,
+                                        sizeof(char *),10),cbf_free(&(nameblock),NULL));
+                for (ii = 0; ii < 10; ii ++) {
+                    nx->nxdetectors[ii] = (hid_t)CBF_H5FAIL;
+                    nx->nxdetector_names[ii] = NULL;
+                }
+                nx->num_detectors = 0;
+                nx->cap_detectors = 10;
+                nx->cur_detector = 0;
+            }
+            if (nx->num_detectors >= nx->cap_detectors ) {
+                unsigned int newcap = 2*nx->cap_detectors;
+                unsigned int oldcap = nx->cap_detectors;
+                hid_t * oldnxdetectors = nx->nxdetectors;
+                const char ** oldnxdetector_names = nx->nxdetector_names;
+                void * oldnxdmap = (void *)nx->nxdetectors;
+                void * oldnxdnmap = (void *)nx->nxdetector_names;
+                cbf_failnez(cbf_alloc(((void **) &(nx->nxdetectors)),NULL,
+                                      sizeof(hid_t),newcap));
+                cbf_onfailnez(cbf_alloc(((void **) &(nx->nxdetector_names)),NULL,
+                                        sizeof(char *),newcap),cbf_free(&(nameblock),NULL));
+                for (ii = 0; ii < newcap; ii ++) {
+                    if (ii < oldcap) {
+                        nx->nxdetectors[ii] = oldnxdetectors[ii];
+                        nx->nxdetector_names[ii] = oldnxdetector_names[ii];
+                    } else {
+                        nx->nxdetectors[ii] = (hid_t)CBF_H5FAIL;
+                        nx->nxdetector_names[ii] = NULL;
+                    }
+                }
+                nx->cap_detectors = newcap;
+                if (oldcap && oldnxdetectors) {
+                    cbf_free(&oldnxdmap,NULL);
+                    cbf_free(&oldnxdnmap,NULL);
+                }
+            }
+            nx->cur_detector = nx->num_detectors;
+            (nx->num_detectors)++;
+            
+        }
+        
+        
         
         {
 			hid_t * const nxGroup = &(nx->nxdetectors[nx->cur_detector]);
@@ -5367,32 +5415,68 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
      hid_t * const group,
      const char * name)
 	{
+        int ii;
+        unsigned int save_cur_detector;
 		int error = CBF_SUCCESS;
 		if (!nx) {
 			error |= CBF_ARGUMENT;
 		} else {
-			int match = 0;
 			hid_t curr_group = CBF_H5FAIL;
 			hid_t parent = CBF_H5FAIL;
-			const char * curr_name = NULL;
 			const char default_name[] = "detector";
 			const char * group_name = name ? name : default_name;
+            hid_t test_group = CBF_H5FAIL;
+            hid_t cur_group = CBF_H5FAIL;
+            const char * cur_name = NULL;
+            int found;
+            if (nx->nxdetectors&&nx->num_detectors>0&&!name&&!group){
+                nx->cur_detector = 0;
+                return error;
+            }
+            if (nx->nxdetectors&&nx->num_detectors>0&&!name&&group&&!cbf_H5Ivalid(*group)){
+                *group = nx->nxdetectors[0];
+                return error;
+            }
 			CBF_CALL(cbf_h5handle_get_instrument(nx,&parent,0));
 			/* check if the names of the groups match, and if the parent contains the assumed group */
-			if (CBF_SUCCESS==cbf_h5handle_get_detector(nx,&curr_group,&curr_name)) {
-				if (!strcmp(group_name,curr_name)) {
-					hid_t test_group = CBF_H5FAIL;
-					const int found = cbf_H5Gfind(parent,&test_group,group_name);
-					if (CBF_SUCCESS==found) {
-						if (!cbf_H5Ocmp(test_group,curr_group)) match = 1;
-					} else if (CBF_NOTFOUND!=found) {
-						error |= found;
-			}
-					cbf_H5Gfree(test_group);
-				}
-			}
-			/* if there is no match I need to create/find a suitable group and put it in the handle */
-			if (CBF_SUCCESS==error && !match) {
+            if (error==CBF_SUCCESS &&((group!=NULL && cbf_H5Ivalid(*group)) || name!=NULL)) {
+                save_cur_detector = nx->cur_detector;
+                for (ii = 0; ii < nx->num_detectors; ii++) {
+                    cur_group = nx->nxdetectors[ii];
+                    cur_name = nx->nxdetector_names[ii];
+                    if (nx->nxdetector_names[ii] && !cbf_cistrcmp(group_name,nx->nxdetector_names[ii])){
+                        if (group == NULL || !cbf_H5Ivalid(*group)) {
+                            nx->cur_detector = ii;
+                            return CBF_SUCCESS;
+                        }
+                        found = cbf_H5Gfind(parent,&test_group,group_name);
+                        if (found == CBF_SUCCESS){
+                            if (!cbf_H5Ocmp(test_group,curr_group)) {
+                                nx->cur_detector = ii;
+                                cbf_H5Gfree(test_group);
+                                return CBF_SUCCESS;
+                            } else {
+                                error |= found;
+                                cbf_H5Gfree(test_group);
+                                nx->cur_detector = save_cur_detector;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            /* One of the following holds:
+               1.  We failed to find the instrument -- leave now with an error
+               2.  We specified a group,  but the name did not match
+               3.  We specified a group, the name matched, but the group didn't
+               4.  We specified a group that did not match
+               5.  We did not specify a group
+               In cases 2 -- 5, we need to create a new detector group with the
+               name specified and add it as a new detector.  If the same matches
+               it goes into that slot, otherwise into a new slot.
+             */
+			if (CBF_SUCCESS==error) {
 				hid_t new_group = CBF_H5FAIL;
 				CBF_CALL(cbf_H5Grequire(parent,&new_group,group_name));
 				CBF_CALL(cbf_H5Arequire_string(new_group,"NX_class","NXdetector"));
@@ -5404,6 +5488,56 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 		}
 		return error;
 	}
+    
+    /* process a CBF looking for all detector_elements that might have data
+       and process them to produce NXdetector groups in the h5handle  
+    */
+    
+    int cbf_require_nxdetectors(cbf_handle handle,cbf_h5handle h5handle){
+        
+        const char * detmodname;
+        int error=0;
+        
+        if (!handle || !h5handle) return CBF_ARGUMENT;
+        
+        /* First try for DIFFRN_DATA_FRAME (or the deprecated
+          DIFFRN_FRAME_DATA) that directly associates data
+          with detector elements */
+        
+        if ((!cbf_find_category(handle,"diffrn_data_frame")||
+            !cbf_find_category(handle,"diffrn_frame_data"))&&
+            !cbf_find_column(handle,"detector_element_id")){
+            
+            cbf_failnez(cbf_rewind_row(handle));
+            do {
+                if (!cbf_get_value(handle,&detmodname) && detmodname) {
+                    error |= cbf_h5handle_require_detector(h5handle,NULL,detmodname);
+                }
+                
+            } while (!cbf_next_row(handle));
+            
+            return error;
+        }
+        
+        /* Then try DIFFRN_DETECTOR_ELEMENT */
+        
+        if (!cbf_find_category(handle,"diffrn_detector_element")&&
+            !cbf_find_column(handle,"id")){
+            
+            cbf_failnez(cbf_rewind_row(handle));
+            do {
+                if (!cbf_get_value(handle,&detmodname) && detmodname) {
+                    error |= cbf_h5handle_require_detector(h5handle,NULL,detmodname);
+                }
+                
+            } while (!cbf_next_row(handle));
+            
+            return error;
+        }
+
+        return CBF_NOTFOUND;
+        
+    }
     
 	/**
 	Check the handle for the presence of an goniometer group and its name,
@@ -15174,7 +15308,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
 			/* check the saturation value */
 			if (saturation_value) {
-                int ii;
 				hid_t dataset = CBF_H5FAIL;
 				hsize_t max[] = {H5S_UNLIMITED};
 				hsize_t cnk[] = {1};
@@ -16536,7 +16669,7 @@ static int FUNCTION_NAME \
                     } else {
                         /* the axis exists - convert the data */
 				hid_t det = CBF_H5FAIL;
-                        hid_t axisGroup = CBF_H5FAIL;
+                hid_t axisGroup = CBF_H5FAIL;
                 const char axis_group_name[] = "transformations";
 				CBF_CALL(cbf_h5handle_require_detector(nx,&det,0));
 				CBF_CALL(cbf_H5Grequire(det,&axisGroup,axis_group_name));
@@ -19237,7 +19370,12 @@ static int FUNCTION_NAME \
 		/* ensure the handle contains some basic structure */
         CBF_CALL(cbf_h5handle_require_entry(h5handle,0,0));
         CBF_CALL(cbf_h5handle_require_instrument(h5handle,&instrument,0));
-        CBF_CALL(cbf_h5handle_require_detector(h5handle,&detector,0));
+        if (h5handle->flags & CBF_H5_CBFNONAMES) {
+            CBF_CALL(cbf_h5handle_require_detector(h5handle,&detector,0));
+        } else {
+            CBF_CALL(cbf_require_nxdetectors(handle,h5handle));
+            detector = h5handle->nxdetectors[h5handle->cur_detector];
+        }
 
         if (h5handle->scan_id) {
             CBF_CALL(cbf_H5Drequire_flstring(h5handle->nxid,0,"entry_identifier",h5handle->scan_id));
