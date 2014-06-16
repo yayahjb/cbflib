@@ -276,6 +276,7 @@ int main (int argc, char *argv [])
 	size_t cifid = 0;
 	int h5_write_flags = 0;
 	int list = 0;
+    int noCBFnames = 0;
 	const char ** const cifin = memset(malloc(argc*sizeof(char*)),0,argc*sizeof(char*));
 	const char * scan_id = NULL;
 	const char * sample_id = NULL;
@@ -287,7 +288,7 @@ int main (int argc, char *argv [])
 	/* Attempt to read the arguments */
 	if (CBF_SUCCESS != (error |= cbf_make_getopt_handle(&opts))) {
 		fprintf(stderr,"Could not create a 'cbf_getopt' handle.\n");
-	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):\x03(experiment_id):\x04(sample_id):\x05(datablock):\x06(scan):\x01(list)\x02(no-list)" ))) {
+	} else if (CBF_SUCCESS != (error |= cbf_getopt_parse(opts, argc, argv, "c(compression):g(group):o(output):Z(register):\x03(experiment_id):\x04(sample_id):\x05(datablock):\x06(scan):\x01(list)\x02(no-list):\x07(CBFnames):\0x08(noCBFnames)" ))) {
 		fprintf(stderr,"Could not parse arguments.\n");
 	} else {
     	int errflg = 0;
@@ -341,7 +342,7 @@ int main (int argc, char *argv [])
 				}
                 case '\x01': {
                     if (list) errflg++;
-								list = 1;
+                    list = 1;
                     break;
 							}
                 case '\x02': {
@@ -369,6 +370,17 @@ int main (int argc, char *argv [])
                     scan = optarg;
                     break;
                 }
+                case '\x07': {
+                    if (noCBFnames) ++errflg;
+                    noCBFnames = -1;
+                    break;
+                }
+                case '\x08': {
+                    if (noCBFnames) ++errflg;
+                    noCBFnames = 1;
+                    break;
+                }
+
                 case 0: {
 							/* input file */
 							cifin[cifid++] = optarg;
@@ -416,7 +428,7 @@ int main (int argc, char *argv [])
 	if (CBF_SUCCESS == error) {
 		cbf_h5handle h5out = NULL;
 		size_t f = 0;
-
+        
 		/* prepare the output file */
 		if(CBF_SUCCESS != (error |= cbf_create_h5handle2(&h5out,hdf5out))) {
 			fprintf(stderr,"Couldn't open the HDF5 file '%s'.\n", hdf5out);
@@ -428,60 +440,65 @@ int main (int argc, char *argv [])
             } else {
                 h5out->logfile = NULL;
             }
-	h5out->flags = h5_write_flags;
+            if (noCBFnames >= 0) {
+                h5out->flags |= CBF_H5_CBFNONAMES;
+            } else {
+                h5out->flags &= ~CBF_H5_CBFNONAMES;
+            }
+            h5out->flags = h5_write_flags;
 			h5out->scan_id = _cbf_strdup(scan_id);
 			h5out->sample_id = _cbf_strdup(sample_id);
 #ifdef CBF_USE_ULP
 			/* set up some parameters for comparing floating point numbers */
-	h5out->cmp_double_as_float = 0;
-	h5out->float_ulp = 4;
+            h5out->cmp_double_as_float = 0;
+            h5out->float_ulp = 4;
 #ifndef NO_UINT64_TYPE
-	h5out->double_ulp = 4;
+            h5out->double_ulp = 4;
 #endif
 #endif
 		}
-
-	for (f = 0; CBF_SUCCESS == error && f != cifid; ++f) {
+        
+        for (f = 0; CBF_SUCCESS == error && f != cifid; ++f) {
 			cbf_handle cif = NULL;
-	#ifdef NOTMPDIR
+#ifdef NOTMPDIR
 			char ciftmp[] = "cif2cbfXXXXXX";
-	#else
+#else
 			char ciftmp[] = "/tmp/cif2cbfXXXXXX";
     		int ciftmpfd;
-	#endif
+#endif
 			/* Get suitable file - reading from stdin to a temporary file if needed */
 			if (!(cifin[f]) || strcmp(cifin[f]?cifin[f]:"","-") == 0) {
 				FILE *file = NULL;
 				int nbytes;
 				char buf[C2CBUFSIZ];
-	#ifdef NOMKSTEMP
+#ifdef NOMKSTEMP
 				if (mktemp(ciftmp) == NULL ) {
-				fprintf(stderr,"%s: Can't create temporary file name %s.\n%s\n", argv[0], ciftmp,strerror(errno));
+                    fprintf(stderr,"%s: Can't create temporary file name %s.\n%s\n", argv[0], ciftmp,strerror(errno));
 					error |= CBF_FILEOPEN;
 				} else if ((file = fopen(ciftmp,"wb+")) == NULL) {
-				fprintf(stderr,"Can't open temporary file %s.\n%s\n", ciftmp,strerror(errno));
+                    fprintf(stderr,"Can't open temporary file %s.\n%s\n", ciftmp,strerror(errno));
 					error |= CBF_FILEOPEN;
-			}
-	#else
-			if ((ciftmpfd = mkstemp(ciftmp)) == -1 ) {
-				fprintf(stderr,"%s: Can't create temporary file %s.\n%s\n", argv[0], ciftmp,strerror(errno));
+                }
+#else
+                if ((ciftmpfd = mkstemp(ciftmp)) == -1 ) {
+                    fprintf(stderr,"%s: Can't create temporary file %s.\n%s\n", argv[0], ciftmp,strerror(errno));
 					error |= CBF_FILEOPEN;
 				} else if ((file = fdopen(ciftmpfd, "w+")) == NULL) {
-				fprintf(stderr,"Can't open temporary file %s.\n%s\n", ciftmp,strerror(errno));
+                    fprintf(stderr,"Can't open temporary file %s.\n%s\n", ciftmp,strerror(errno));
 					error |= CBF_FILEOPEN;
-			}
-	#endif
-			while ((nbytes = fread(buf, 1, C2CBUFSIZ, stdin))) {
-				if(nbytes != fwrite(buf, 1, nbytes, file)) {
-					fprintf(stderr,"Failed to write %s.\n", ciftmp);
+                }
+#endif
+                while ((nbytes = fread(buf, 1, C2CBUFSIZ, stdin))) {
+                    if(nbytes != fwrite(buf, 1, nbytes, file)) {
+                        fprintf(stderr,"Failed to write %s.\n", ciftmp);
 						error |= CBF_FILEWRITE;
 						break;
-				}
-			}
-			fclose(file);
-			cifin[f] = ciftmp;
-		}
-
+                    }
+                }
+                fclose(file);
+                cifin[f] = ciftmp;
+            }
+            
 			/* Read the file */
 			if (CBF_SUCCESS == error) {
 				/* start timing */
@@ -489,20 +506,20 @@ int main (int argc, char *argv [])
 				/* prepare the file */
 				FILE * in = NULL;
 				if (NULL == (in = fopen(cifin[f], "rb"))) {
-				fprintf (stderr,"Couldn't open the input CIF file '%s': %s\n", cifin[f], strerror(errno));
+                    fprintf (stderr,"Couldn't open the input CIF file '%s': %s\n", cifin[f], strerror(errno));
 					error |= CBF_FILEOPEN;
-			}
+                }
 				/* ensure temporary file is removed when the program closes */
 				if (ciftmp == cifin[f]) {
-				if (unlink(ciftmp)) {
-					fprintf(stderr,"Can't unlink temporary file '%s': %s\n", ciftmp,strerror(errno));
+                    if (unlink(ciftmp)) {
+                        fprintf(stderr,"Can't unlink temporary file '%s': %s\n", ciftmp,strerror(errno));
 						error |= CBF_FILECLOSE;
-				}
-			}
+                    }
+                }
 				if (CBF_SUCCESS == error) {
 					/* make the handle */
 					if (CBF_SUCCESS != (error |= cbf_make_handle(&cif))) {
-				fprintf(stderr,"Failed to create handle for input_cif\n");
+                        fprintf(stderr,"Failed to create handle for input_cif\n");
 						error |= CBF_ALLOC;
 					} else if (CBF_SUCCESS != (error |= cbf_read_file(cif, in, MSG_DIGEST))) {
 						fprintf(stderr,"Couldn't read the input CIF file '%s': %s\n", cifin[f], cbf_strerror(error));
@@ -510,38 +527,38 @@ int main (int argc, char *argv [])
 					} else {
 						/* ensure the file can be cleaned up after any errors but is not accidentally closed */
 						in = NULL;
-			}
-		}
+                    }
+                }
 				/* clean up local variables */
 				if (in) fclose(in);
 				/* stop timing */
-		b = clock ();
-		printf("Time to read '%s': %.3fs\n", cifin[f], ((float)(b - a))/CLOCKS_PER_SEC);
+                b = clock ();
+                printf("Time to read '%s': %.3fs\n", cifin[f], ((float)(b - a))/CLOCKS_PER_SEC);
 			}
-
+            
 			/* Do the conversion */
 			if (CBF_SUCCESS == error) {
 				/* start timing */
 				clock_t a = clock(), b;
 				error |= cbf_write_cbf2nx(cif, h5out, datablock, scan, list);
 				/* stop timing */
-		b = clock ();
+                b = clock ();
 				printf("Time to convert '%s': %.3fs\n", cifin[f], ((float)(b - a))/CLOCKS_PER_SEC);
 			}
-
+            
 			/* Clean up */
 			if (cif) cbf_free_handle(cif);
-	}
-
+        }
+        
 		{ /* Write the file/close the handle */
 			/* start timing */
 			clock_t a = clock(), b;
 			/* clean up cbf handles */
 			error |= cbf_free_h5handle(h5out);
 			/* stop timing */
-		b = clock ();
-		printf("Time to write '%s': %.3fs\n", hdf5out, ((float)(b - a))/CLOCKS_PER_SEC);
-	}
+            b = clock ();
+            printf("Time to write '%s': %.3fs\n", hdf5out, ((float)(b - a))/CLOCKS_PER_SEC);
+        }
 	}
 
 	/* Cleanup */
