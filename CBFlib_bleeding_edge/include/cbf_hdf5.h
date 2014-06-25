@@ -870,6 +870,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 		const char * nxgoniometer_name;
 		const char * nxmonochromator_name;
 		const char * nxsource_name;
+        const cbf_handle scratch_tables;
         FILE * logfile;
     }
     cbf_h5handle_struct;
@@ -1276,7 +1277,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
      
      */
     
-    int cbf_apply_h5text_dataset_slab(hid_t hid,
+    int cbf_add_h5text_dataset_slab(hid_t hid,
                                       const char* datasetname,
                                       const char* datasettext,
                                       const hsize_t slab,
@@ -1284,7 +1285,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     
     /* apply a text dataset to a group */
     
-    int cbf_apply_h5text_dataset(hid_t hid,
+    int cbf_add_h5text_dataset(hid_t hid,
                                  const char* datasetname,
                                  const char* datasettext,
                                  int errorcode);

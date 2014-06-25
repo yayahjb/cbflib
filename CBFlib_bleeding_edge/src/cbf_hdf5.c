@@ -689,9 +689,9 @@ extern "C" {
         {CBF_H5_COLUMN_DATASET, 0, "diffrn_id",
             "CBF_diffrn_id",NULL,CBF_H5_TEXT,0},
         {CBF_H5_COLUMN_DATASET, 2, "div_x_source",
-            "divergence_x","deg",CBF_H5_FLOAT,0},
+            "divergence_x","degrees",CBF_H5_FLOAT,0},
         {CBF_H5_COLUMN_DATASET, 2, "div_y_source",
-            "divergence_y","deg",CBF_H5_FLOAT,0},
+            "divergence_y","degrees",CBF_H5_FLOAT,0},
         {CBF_H5_COLUMN_DATASET, 2, "div_x_y_source",
             "CBF_diffrn_radiation__div_x_y_source","deg^2",CBF_H5_FLOAT,0},
         {CBF_H5_COLUMN_DATASET, 2, "filter_edge",
@@ -701,11 +701,11 @@ extern "C" {
         {CBF_H5_COLUMN_DATASET, 2, "monochromator",
             "CBF_diffrn_radiation__monochromator",NULL,CBF_H5_TEXT,0},
         {CBF_H5_COLUMN_DATASET, 2, "polarisn_norm",
-            "CBF_diffrn_radiation__polarisn_norm","deg",CBF_H5_FLOAT,0},
+            "CBF_diffrn_radiation__polarisn_norm","degrees",CBF_H5_FLOAT,0},
         {CBF_H5_COLUMN_DATASET, 2, "polarisn_ratio",
             "CBF_diffrn_radiation__polarisn_ratio",NULL,CBF_H5_FLOAT,0},
         {CBF_H5_COLUMN_DATASET, 2, "polarizn_source_norm",
-            "CBF_diffrn_radiation__polarizn_source_norm","deg",CBF_H5_FLOAT,0},
+            "CBF_diffrn_radiation__polarizn_source_norm","degrees",CBF_H5_FLOAT,0},
         {CBF_H5_COLUMN_DATASET, 2, "polarizn_source_ratio",
             "CBF_diffrn_radiation__polarizn_source_ratio",NULL,CBF_H5_FLOAT,0},
         {CBF_H5_COLUMN_DATASET, 2, "probe",
@@ -2510,7 +2510,7 @@ static int cmp_string
 		/* allow dataset to be chunked */
 			if (rank && chunk) CBF_H5CALL(H5Pset_chunk(dcpl,rank,chunk));
 			if (exists < 0) {
-                cbf_debug_print("error: couldn't check if dataset exists");
+                cbf_debug_print("error: couldn't check is dataset exists");
                 error |= CBF_H5ERROR;
 			} else if (exists) {
 				cbf_debug_print("error: dataset already exists");
@@ -4281,7 +4281,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
              )
 	{
 		int error = CBF_SUCCESS;
-		CBF_CALL(cbf_H5Arequire_string(h5data,"units",strcmp(units, "deg.")?units:"deg"));
+		CBF_CALL(cbf_H5Arequire_string(h5data,"units",strcmp(units, "deg.")?units:"degrees"));
 		/* transformation type */
 		CBF_CALL(cbf_H5Arequire_string(h5data,"transformation_type","rotation"));
 		/* dependency */
@@ -5511,10 +5511,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         int processed_nxdetectors=0;
         hid_t instrumentid;
         hid_t detectorid;
-        hid_t group_indexid;
         hid_t group_namesid;
-        hid_t group_parentid;
-        hid_t group_typeid;
         htri_t dsexists;
         
         if (!handle || !h5handle) return CBF_ARGUMENT;
@@ -5524,14 +5521,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         cbf_reportnez(cbf_h5handle_require_instrument(h5handle,
                                                       &instrumentid,0),error);
         
-        
-        /* First try for DIFFRN_DATA_FRAME (or the deprecated
+        /* First process for DIFFRN_DATA_FRAME (or the deprecated
          DIFFRN_FRAME_DATA) that directly associates data
          with detector elements */
         
         if ((!cbf_find_category(handle,"diffrn_data_frame")||
              !cbf_find_category(handle,"diffrn_frame_data"))&&
-            !cbf_find_column(handle,"detector_element_id")){
+             !cbf_find_column(handle,"detector_element_id")){
             
             cbf_failnez(cbf_rewind_row(handle));
             do {
@@ -5544,7 +5540,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             processed_nxdetectors=1;
         }
         
-        /* Then try DIFFRN_DETECTOR_ELEMENT */
+        /* Then process DIFFRN_DETECTOR_ELEMENT */
         
         if (!cbf_find_category(handle,"diffrn_detector_element")&&
             !cbf_find_column(handle,"id")){
@@ -5563,7 +5559,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     cbf_reportnez(_cbf_NXGrequire(instrumentid,&detectorid,
                                                   detname,
                                                   "NXdetector_group"),error);
-                    
+                                        
                      /* If there is no group_names dataset, we need to
                      create it, as well as group_index, group_parent
                      and group_type */
@@ -5704,6 +5700,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 
             } while (!cbf_next_row(handle));
             
+            /* Add in the axes */
+            
+            cbf_reportnez(cbf_write_h5nxaxes(handle, h5handle),error);
+                          
             return error;
         }
         
@@ -6600,6 +6600,64 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         return CBF_SUCCESS;
 
     }
+    
+    
+    /* Set the nexus path of an axis */
+    
+    int cbf_set_nexus_axis_path(cbf_h5handle h5handle, const char * axis_id, const char * nexus_path) {
+        
+        if (!h5handle || !axis_id || !nexus_path ) return CBF_ARGUMENT;
+        
+        if (!(h5handle->scratch_tables)
+            || cbf_require_datablock(h5handle->scratch_tables,"scratch")
+            || cbf_require_category(h5handle->scratch_tables,"scratch_axis")
+            || cbf_rewind_row(h5handle->scratch_tables)
+            || cbf_require_column(h5handle->scratch_tables,"axis_id")) {
+            
+            return CBF_FORMAT;
+            
+        }
+        
+        if (cbf_find_row(h5handle->scratch_tables,axis_id)) {
+            
+            cbf_failnez(cbf_new_row(h5handle->scratch_tables));
+            
+            cbf_failnez(cbf_set_value(h5handle->scratch_tables, axis_id));
+            
+        }
+        
+        cbf_failnez(cbf_require_column(h5handle->scratch_tables,"nexus_path"));
+        
+        cbf_failnez(cbf_set_value(h5handle->scratch_tables,nexus_path));
+        
+        return CBF_SUCCESS;
+        
+    }
+    
+ 
+    /* Get the nexus path of an axis, if previously set */
+    
+    int cbf_get_nexus_axis_path(cbf_h5handle h5handle, const char * axis_id, const char * * nexus_path) {
+        
+        if (!h5handle || !axis_id || !nexus_path ) return CBF_ARGUMENT;
+        
+        if (!(h5handle->scratch_tables)
+                              || cbf_find_datablock(h5handle->scratch_tables,"scratch")
+                              || cbf_find_category(h5handle->scratch_tables,"scratch_axis")
+                              || cbf_rewind_row(h5handle->scratch_tables)
+                              || cbf_find_column(h5handle->scratch_tables,"axis_id")
+                              || cbf_find_row(h5handle->scratch_tables,axis_id)
+                              || cbf_find_column(h5handle->scratch_tables,"nexus_path")
+                              || cbf_get_value(h5handle->scratch_tables,nexus_path)){
+                                  
+        
+            return CBF_NOTFOUND;
+            
+        }
+
+        return CBF_SUCCESS;
+        
+    }
 
 
     /* Write the HDF5 version of the NeXus axis definitions, if
@@ -6609,6 +6667,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
 
         int errorcode;
+        
+        hid_t instrumentid;
 
         unsigned int rows, row;
 
@@ -6619,8 +6679,6 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         hsize_t naught=0;
 
         double zero[1];
-
-        hid_t instrumentid;
 
         const char* datablock;
 
@@ -6636,13 +6694,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
 
         /* We will need to use the instrument group or create it*/
-
-        cbf_reportnez(cbf_require_nxgroup(h5handle,
-                                          "instrument",
-                                          "NXinstrument",
-                                          h5handle->nxid,
-                                          &instrumentid),errorcode);
-
+        
+        cbf_reportnez(cbf_h5handle_require_instrument(h5handle,
+                                                      &instrumentid,0),errorcode);
+        
+        cbf_reportnez(cbf_require_datablock(h5handle->scratch_tables,"scratch"),errorcode);
+        
+        cbf_reportnez(cbf_require_category(h5handle->scratch_tables,"scratch_axis"),errorcode);
+        
         cbf_reportnez(cbf_find_category(handle, "axis"),errorcode);
 
         cbf_reportnez(cbf_find_column(handle,"id"),errorcode);
@@ -6670,6 +6729,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             const char * equipmentclass;
 
             const char * equipmentname;
+            
+            const char * equipmentcomponent;
 
             const char * axis_id;
 
@@ -6680,16 +6741,28 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             const char * type;
 
             const char * system;
+            
+            const char * axisequipment;
+            
+            const char * axispath;
 
             hsize_t scanpoints;
 
             size_t sscanpoints;
+            
+            const char * path_axis_general[8];
+
+            const char * path_axis_detector[8];
+
+            const char * path_axis_goniometer[8];
 
             const char * units;
 
             double vector[3], offset[3];
 
             double rotation;
+            
+            cbf_reportnez(cbf_find_datablock(handle, datablock),errorcode);
 
             cbf_reportnez(cbf_find_category(handle, "axis"),errorcode);
 
@@ -6699,21 +6772,55 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             rotation_axis = ".";
             
+            axisequipment = ".";
+            
             rotation = 0.0;
 
             equipment = "general";
+            
+            equipmentcomponent = ".";
 
-            equipmentclass = "NXcoordinate_system";
+            equipmentclass = "NXtransformations";
 
             type = "general";
 
             system = "laboratory";
+            
+            path_axis_general[0] =
+            path_axis_detector[0] =
+            path_axis_goniometer[0] = "";
+            
+            path_axis_general[1] =
+            path_axis_detector[1] =
+            path_axis_goniometer[1] = (h5handle->nxid_name)?(h5handle->nxid_name):"entry";
+            
+            path_axis_general[2] =
+            path_axis_detector[2] =
+            path_axis_goniometer[2] = (h5handle->nxinstrument_name)?(h5handle->nxinstrument_name):"instrument";
+            
+            path_axis_general[3] = "transformations";
+            path_axis_detector[3] = 0;
+            path_axis_goniometer[3] = 0;
+            
+            path_axis_general[4] = 0;
 
             cbf_reportnez(cbf_select_row(handle,row),errorcode);
 
             cbf_reportnez(cbf_find_column(handle,"id"),errorcode);
 
             cbf_reportnez(cbf_get_value(handle,&axis_id),errorcode);
+            
+            cbf_reportnez(cbf_require_column(h5handle->scratch_tables,"axis_id"),errorcode);
+            
+            cbf_reportnez(cbf_rewind_row(h5handle->scratch_tables),errorcode);
+            
+            if (cbf_find_row(h5handle->scratch_tables,axis_id)) {
+                
+                cbf_reportnez(cbf_new_row(h5handle->scratch_tables),errorcode);
+                
+                cbf_reportnez(cbf_set_value(h5handle->scratch_tables,axis_id),errorcode);
+                
+            }
 
             if (!cbf_find_column(handle,"equipment")) {
 
@@ -6721,6 +6828,14 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
                 if (!equipment)  equipment = "general";
 
+            }
+
+            if (!cbf_find_column(handle,"equipment_component")) {
+                
+                cbf_reportnez(cbf_get_value(handle,&equipmentcomponent),errorcode);
+                
+                if (!equipmentcomponent)  equipmentcomponent = ".";
+                
             }
 
             if (!cbf_find_column(handle,"depends_on")) {
@@ -6775,11 +6890,9 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             } else {
 
                 double cbfvector[3], cbfoffset[3];
-
-                cbf_reportnez(cbf_get_axis_poise(handle, 0.,
-                                                 (double *)cbfvector,(double *)cbfvector+1,(double *)cbfvector+2,
-                                                 (double *)cbfoffset,(double *)cbfoffset+1,(double *)cbfoffset+2,
-                                                 NULL,axis_id,NULL),errorcode);
+                
+                cbf_reportnez(cbf_get_axis_vector_and_offset(handle,axis_id,
+                                                             cbfvector, cbfoffset),errorcode);
 
                 system = "McStas_absolute";
 
@@ -6794,30 +6907,30 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
              If the equipment type is detector, we need to map the axis_id
              to the appropriate detector so we can put this axis in
              /instrument:NXinstrument
-             /CBF_diffrn_detector__DETECTORNAME:NXdetector
+               /DETECTORNAME:NXdetector_group
                  /transformations:NXtransformations
                    /AXISID=[]
 
              If the equipment type is goniometer, we need to map the axis_id
              to the appropriate goniometer, so we can put this axis in
              /instrument:NXinstrument
-             /CBF_diffrn_measurement__GONIOMETERNAME:NXsample
+               /GONIOMETERNAME:NXsample
                  /transformations:NXtransformations
-             /CBF__axis__AXISID=[]
+                   /AXISID=[]
 
              For other equipment types, we put this axis in
              /instrument:NXinstrument
                /transformations:NXtransformations
-             /CBF__axis__AXISID=[]
+                 /AXISID=[]
              */
 
             cbf_reportnez(cbf_get_axis_equipment_id(handle,&equipmentname,equipment,axis_id),errorcode);
 
-            if (!equipment) equipment = "";
+            if (!equipment) equipment = "general";
 
             if (cbf_cistrcmp(equipment,"detector")==0) {
 
-                strcpy(nxequipment,"CBF_diffrn_detector__");
+                nxequipment[0]='\0';
 
                 if (equipmentname) {
 
@@ -6828,11 +6941,21 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     strcpy(nxequipment,"detector");
                 }
 
-                equipmentclass = "NXdetector";
-
+                equipmentclass = "NXdetector_group";
+                
+                path_axis_detector[3] = nxequipment;
+                
+                path_axis_detector[4] = "transformations";
+                
+                path_axis_detector[5] = axis_id;
+                
+                path_axis_detector[6] = 0;
+                
+                axispath = _cbf_strjoin(path_axis_detector,'/');
+                
             } else if (cbf_cistrcmp(equipment,"goniometer")==0) {
 
-                strcpy(nxequipment,"CBF_diffrn_measurement__");
+                nxequipment[0]='\0';
 
                 if (equipmentname) {
 
@@ -6845,24 +6968,85 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     strcpy(nxequipment,"sample");
                 }
 
-
                 equipmentclass = "NXsample";
+                
+                path_axis_goniometer[3] = nxequipment;
+                
+                path_axis_goniometer[4] = "transformations";
+                
+                path_axis_goniometer[5] = axis_id;
+                
+                path_axis_goniometer[6] = 0;
+                
+                axispath = _cbf_strjoin(path_axis_goniometer,'/');
+                
+                cbf_reportnez(cbf_h5handle_require_sample(h5handle,0,nxequipment),errorcode);
+                
 
-            } else {
+            } else if (cbf_cistrcmp(equipment,"general")==0){
 
                 strcpy(nxequipment,"transformations");
 
                 equipmentclass = "NXtransformations";
+                
+                path_axis_general[4] = axis_id;
+                
+                path_axis_general[5] = 0;
+                
+                axispath = _cbf_strjoin(path_axis_general,'/');
+
+
+            } else {
+                
+                if (!cbf_cistrcmp(equipmentcomponent,".")) {
+                    
+                    equipmentcomponent = equipment;
+                    
+                    equipment = "general";
+                
+                }
+                
+                strcpy(nxequipment,"transformations");
+                
+                equipmentclass = "NXtransformations";
+                
+                path_axis_general[4] = axis_id;
+                
+                path_axis_general[5] = 0;
+                
+                axispath = _cbf_strjoin(path_axis_general,'/');
+
 
             }
 
+            cbf_reportnez(cbf_require_column(h5handle->scratch_tables,"nexus_path"),errorcode);
+            
+            cbf_reportnez(cbf_set_value(h5handle->scratch_tables,axispath),errorcode);
+            
+            free((void*)axispath);
 
             cbf_reportnez(cbf_require_nxgroup(h5handle,
                                               nxequipment, equipmentclass,
-                                              instrumentid, &equipmentid),errorcode);
-
-        cbf_reportnez(cbf_require_nxgroup(h5handle,"transformations","NXtransformations",
-                                              equipmentid, &poiseid), errorcode);
+                                              h5handle->nxinst, &equipmentid),errorcode);
+            
+            if (cbf_cistrcmp(equipmentclass,"NXtransformations")) {
+                
+                
+                
+                cbf_reportnez(cbf_require_nxgroup(h5handle,
+                                                  "transformations",
+                                                  "NXtransformations",
+                                                  equipmentid,
+                                                  &poiseid),
+                              errorcode);
+                
+            } else {
+                
+                poiseid = equipmentid;
+                
+                equipmentid = CBF_H5FAIL;
+                
+            }
             
             cbf_reportnez(cbf_get_axis_parameters(handle,
                                                   &sscanpoints,
@@ -6877,13 +7061,16 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
 
             {
-
-
+                
                 if (scanpoints > 0) {
 
                     hsize_t scanpointsfound;
 
 					hid_t mtype = CBF_H5FAIL;
+                    
+                    hsize_t chunk[] = {1};
+                    
+                    hsize_t maxsize[] = {H5S_UNLIMITED};
 
                     size_t sscanpointsfound;
 
@@ -6903,13 +7090,15 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
                     if (sscanpointsfound==0) scanpointsfound=1;
 
-                    cbf_h5reportneg(dspace = H5Screate_simple(1,&scanpointsfound,&scanpoints),CBF_ALLOC,errorcode);
+                    cbf_h5reportneg(dspace = H5Screate_simple(1,&scanpointsfound,maxsize),CBF_ALLOC,errorcode);
 
                     cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
 
                     cbf_h5reportneg(mtype = H5Tcopy(H5T_NATIVE_DOUBLE),CBF_ALLOC,errorcode);
 
                     cbf_h5reportneg(dprop = H5Pcreate(H5P_DATASET_CREATE),CBF_ALLOC,errorcode);
+                    
+                    cbf_h5reportneg(H5Pset_chunk(dprop,1,chunk),CBF_ALLOC,errorcode);
 
                     cbf_h5reportneg(nxaxisid = H5Dcreatex(poiseid,axis_id,dtype,dspace,dprop),CBF_ALLOC,errorcode);
 
@@ -6946,7 +7135,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
                     cbf_h5reportneg(nxaxisid = H5Dcreatex(poiseid,axis_id,dtype,dspace,dprop),CBF_ALLOC,errorcode);
 
-                    /* cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode); */
+                    cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);
 
                     cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
 
@@ -6963,13 +7152,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                                         "transformation_type",
                                                         type,
                                                         errorcode);
-
-                errorcode |= cbf_apply_h5text_attribute(nxaxisid,
+                
+                if (cbf_cistrcmp(system,"McStas_absolute")) {
+                    
+                    errorcode |= cbf_apply_h5text_attribute(nxaxisid,
                                                         "system",system,errorcode);
+                    
+                }
 
                 if (cbf_norm(offset) > 1.e-20) {
                     
-                errorcode |= cbf_apply_h5vector_attribute(nxaxisid,
+                    errorcode |= cbf_apply_h5vector_attribute(nxaxisid,
                                                               "offset",(double *)offset,3,errorcode);
                     
                     errorcode |= cbf_apply_h5text_attribute(nxaxisid,
@@ -6977,12 +7170,68 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                 }
                 
-                errorcode |= cbf_apply_h5vector_attribute(nxaxisid,
+                    errorcode |= cbf_apply_h5vector_attribute(nxaxisid,
                                                           "vector",(double *)vector,3,errorcode);
 
+                if (!cbf_cistrcmp(depends_on,".")) {
 
                     errorcode |= cbf_apply_h5text_attribute(nxaxisid,
                                                             "depends_on",depends_on,errorcode);
+                } else {
+ 
+                    char * dopath = NULL;
+                    
+                    const char * doequip;
+                    
+                    const char * doequipname;
+                    
+                    cbf_reportnez(cbf_get_axis_equipment(handle,depends_on,&doequip),errorcode);
+                    
+                    cbf_reportnez(cbf_get_axis_equipment_id(handle,&doequipname,doequip,depends_on),errorcode);
+                    
+                    if (!cbf_cistrcmp(doequip,"detector")) {
+                        
+                        path_axis_detector[3] = doequipname;
+                        
+                        path_axis_detector[4] = "transformations";
+                        
+                        path_axis_detector[5] = depends_on;
+                        
+                        path_axis_detector[6] = 0;
+                        
+                        dopath = _cbf_strjoin(path_axis_detector,'/');
+
+                        
+                    } else if (!cbf_cistrcmp(doequip,"goniometer")) {
+                        
+                        path_axis_goniometer[3] = doequipname;
+                        
+                        path_axis_goniometer[4] = "transformations";
+                        
+                        path_axis_goniometer[5] = depends_on;
+                        
+                        path_axis_goniometer[6] = 0;
+                        
+                        dopath = _cbf_strjoin(path_axis_goniometer,'/');
+                        
+                    } else {
+                        
+                        path_axis_general[4] = depends_on;
+                        
+                        path_axis_general[5] = 0;
+                        
+                        dopath = _cbf_strjoin(path_axis_general,'/');
+                    }
+                    
+                    if (dopath) {
+                        
+                        errorcode |= cbf_apply_h5text_attribute(nxaxisid,
+                                                                "depends_on",
+                                                                dopath,errorcode);
+                        free((void*)dopath);
+                    }
+
+                }
 
                 if (cbf_cistrcmp(rotation_axis,".")) {
                     
@@ -6992,6 +7241,18 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     errorcode |= cbf_apply_h5vector_attribute(nxaxisid,
                                                             "rotation",&rotation,1,errorcode);
                     
+                }
+                
+                if (equipment && cbf_cistrcmp(equipment,".")) {
+                    
+                    errorcode |= cbf_apply_h5text_attribute(nxaxisid,
+                                                            "equipment",equipment,errorcode);                    
+                }
+
+                if (equipmentcomponent && cbf_cistrcmp(equipmentcomponent,".")) {
+                    
+                    errorcode |= cbf_apply_h5text_attribute(nxaxisid,
+                                                            "equipment_component",equipmentcomponent,errorcode);
                 }
 
                 cbf_reportnez(cbf_location_string(datablock,"axis","vector",row,&cbfloc),errorcode);
@@ -7008,7 +7269,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
             cbf_h5reportneg(H5Gclose(poiseid),CBF_FORMAT,errorcode);
             
-            cbf_h5reportneg(H5Gclose(equipmentid),CBF_FORMAT,errorcode);
+            if (cbf_H5Ivalid(equipmentid)) {
+                
+                cbf_h5reportneg(H5Gclose(equipmentid),CBF_FORMAT,errorcode);
+                
+            }
 
         }
 
@@ -7221,7 +7486,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         cbf_h5reportneg(attribtype = H5Tcopy(H5T_C_S1),CBF_ALLOC,errorcode);
 
-        cbf_h5reportneg(H5Tset_size(attribtype,strlen(attribtext)),CBF_ALLOC,errorcode);
+        cbf_h5reportneg(H5Tset_size(attribtype,strlen(attribtext)+1),CBF_ALLOC,errorcode);
 
         cbf_h5reportneg(attribid = H5Acreatex(hid,attribname,
                                               attribtype,
@@ -10412,6 +10677,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 			free((void*)h5handle->nxgoniometer_name);
 			free((void*)h5handle->nxmonochromator_name);
 			free((void*)h5handle->nxsource_name);
+            cbf_free_handle(h5handle->scratch_tables);
 			error |= cbf_free(&memblock,NULL);
         }
         return error;
@@ -10469,6 +10735,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 #else
 		(*h5handle)->logfile = NULL;
 #endif
+        cbf_make_handle(&((*h5handle)->scratch_tables));
         return CBF_SUCCESS;
 
     }
@@ -16056,12 +16323,12 @@ static int FUNCTION_NAME \
 	which is also used when converting minicbf data to nexus data.
              */
 	static int process_ArrayDataCache
-			(cbf_node * const category,
-			 cbf_h5handle nx,
-			 cbf_cbf2nx_key_t * const key,
-			 void * const rcache,
-			 void * const tcache,
-			const unsigned int row)
+    (cbf_node * const category,
+     cbf_h5handle nx,
+     cbf_cbf2nx_key_t * const key,
+     void * const rcache,
+     void * const tcache,
+     const unsigned int row)
 				{
 		int error = CBF_SUCCESS;
 		ArrayDataCache * const c = rcache;
@@ -16215,12 +16482,12 @@ static int FUNCTION_NAME \
      
 	*/
 	static int process_DiffrnRadiationRowCache
-			(cbf_node * const category,
-			 cbf_h5handle nx,
+    (cbf_node * const category,
+     cbf_h5handle nx,
      cbf_cbf2nx_key_t * const key,
-			 void * const rcache,
-			 void * const tcache,
-			 const unsigned int row)
+     void * const rcache,
+     void * const tcache,
+     const unsigned int row)
 	{
 		int error = CBF_SUCCESS;
 		DiffrnRadiationRowCache * const c = rcache;
@@ -16671,17 +16938,17 @@ static int FUNCTION_NAME \
 			cbf_debug_print("error: can't process data from 'diffrn_detector_axis' table.");
 			error |= CBF_ARGUMENT;
 		} else {
-				/*
+            /*
              I now have all relevant axes from this category, so I can find & write the dependency for the detector.
-			New axes are in the cache object. For each axis I need to set an in_degree, which tells me how many axes
-			refer to this axis. An in_degree of 0 means I probably have a leaf, a check to ensure only one axis has
-			an in_degree of 0 exists in the subset is needed to ensure I have a single valid leaf axis. If I have a
-			valid leaf then I can write the detector's dependency and add that and all it's dependent axes to the key
-			for later conversion.
-				*/
-                unsigned int i;
+             New axes are in the cache object. For each axis I need to set an in_degree, which tells me how many axes
+             refer to this axis. An in_degree of 0 means I probably have a leaf, a check to ensure only one axis has
+             an in_degree of 0 exists in the subset is needed to ensure I have a single valid leaf axis. If I have a
+             valid leaf then I can write the detector's dependency and add that and all it's dependent axes to the key
+             for later conversion.
+             */
+            unsigned int i;
 			unsigned int leaf = c->count;
-                unsigned int leaves = 0;
+            unsigned int leaves = 0;
 			cbf_node * axis_category = NULL;
 			cbf_node * axis_id_column = NULL;
             cbf_node * axis_depends_on_column = NULL;
@@ -16698,35 +16965,35 @@ static int FUNCTION_NAME \
 			/* populate the in-degree field in the cached data */
 			for (i = 0; c->count != i; ++i) {
 				unsigned int row = 0;
-                    const char * depends_on = NULL;
+                const char * depends_on = NULL;
                 /* locate the current axis and get its dependency */
 				CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,c->axis_id[i],&row));
                 if (axis_depends_on_column) {
-                CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&depends_on));
+                    CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&depends_on));
                     if (CBF_SUCCESS==error) {
                         unsigned int j;
                         /* I know which axis the current axis depends on, look for it in the current subset */
-					for (j = 0; c->count != j; ++j) {
-						if (!cbf_cistrcmp(c->axis_id[j],depends_on)) break;
-			}
-					if (c->count != j) {
-						++c->in_degree[j];
-			}
-		}
-                }
-            }
-                /* ensure there is only one leaf, and find it */
-			for (i = 0; c->count != i; ++i) {
-				if (0==c->in_degree[i]) {
-                        leaf = i;
-                        ++leaves;
+                        for (j = 0; c->count != j; ++j) {
+                            if (!cbf_cistrcmp(c->axis_id[j],depends_on)) break;
+                        }
+                        if (c->count != j) {
+                            ++c->in_degree[j];
+                        }
                     }
                 }
-                /* test if a single valid leaf axis was found */
+            }
+            /* ensure there is only one leaf, and find it */
+			for (i = 0; c->count != i; ++i) {
+				if (0==c->in_degree[i]) {
+                    leaf = i;
+                    ++leaves;
+                }
+            }
+            /* test if a single valid leaf axis was found */
 			if (1!=leaves || leaf>=c->count) {
 				cbf_debug_print("error: couldn't determine what defines the detector orientation");
-                    error |= CBF_FORMAT;
-                } else {
+                error |= CBF_FORMAT;
+            } else {
 				unsigned int row = 0;
 				unsigned int prev_idx = key->axis.count;
 				const char * axis_id = c->axis_id[leaf];
@@ -16763,7 +17030,7 @@ static int FUNCTION_NAME \
 							/* look up the next axis to process */
 							CBF_CALL(cbf_node_find_nextrow(axis_id_column,0,axis_id,&row));
                             CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&axis_id));
-            }
+                        }
 					} else if (!(error|=cbf_node_find_nextrow(axis_id_column,0,axis_id,&row))) {
 						const unsigned int idx = key->axis.count;
 						/* No match found in the key or cache, found one in the axes in the cbf file. */
@@ -16772,16 +17039,16 @@ static int FUNCTION_NAME \
 						} else {
 							key->axis.depends_on[prev_idx] = idx;
 							prev_idx = idx;
-        }
+                        }
                         CBF_CALL(cbf_node_get_value(axis_depends_on_column,row,&axis_id));
-        } else {
+                    } else {
 						/* it appears that the expected axis doesn't exist, this is an error */
 						cbf_debug_print3("error: %s %s\n","No axis found for axis with axis_id:",axis_id);
 						error |= CBF_NOTFOUND;
-		}
-		}
+                    }
+                }
             }
-            }
+        }
 		return error;
 	}
 
@@ -16789,7 +17056,7 @@ static int FUNCTION_NAME \
 	Define a type, constructor and setters to use when processing a single row of the 'diffrn_detector_axis' table.
              */
 	typedef struct DiffrnDetectorAxisRCache
-                {
+    {
 		const char * axis;
 	} DiffrnDetectorAxisRCache;
 
@@ -16820,7 +17087,7 @@ static int FUNCTION_NAME \
 			 void * const rcache,
 			 void * const tcache,
 			 const unsigned int row)
-                {
+    {
 		int error = CBF_SUCCESS;
 		DiffrnDetectorAxisRCache * const r = rcache;
 		DiffrnDetectorAxisTCache * const t = tcache;
@@ -16828,38 +17095,52 @@ static int FUNCTION_NAME \
 		if (!category || !nx || !key || !r || !t) {
 			cbf_debug_print("error: can't process row of 'diffrn_detector_axis'.");
 			error |= CBF_ARGUMENT;
-                    } else {
+        } else {
 			if (!r->axis) {
 				cbf_debug_print("error: 'axis_id' not found");
-                        error |= CBF_NOTFOUND;
-                    } else {
-                        /* the axis exists - convert the data */
+                error |= CBF_NOTFOUND;
+            } else {
+                const char * axis_path;
+                const char * taxis_path;
+
+                /* the axis exists - convert the data */
 				hid_t det = CBF_H5FAIL;
                 hid_t axisGroup = CBF_H5FAIL;
                 const char axis_group_name[] = "transformations";
-				CBF_CALL(cbf_h5handle_require_detector(nx,&det,0));
-				CBF_CALL(cbf_H5Grequire(det,&axisGroup,axis_group_name));
-                CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXtransformations"));
-				if (!error) {
-					const char path_empty[] = "";
-					const char * path_parts[] = {
-						path_empty,
-						nx->nxid_name,
-						nx->nxinstrument_name,
-						nx->nxdetector_names[nx->cur_detector],
-						axis_group_name,
-						r->axis,
-						0
-					};
-					const char * axis_path = _cbf_strjoin(path_parts,'/');
-					/* try to transfer ownership of the path to the table-level cache */
-					if ((error|=DiffrnDetectorAxisTCache_insert_axis(t,r->axis,axis_path))) {
-						cbf_debug_print2("error: %s\n",cbf_strerror(error));
-					} else {
-						axis_path = NULL;
-					}
-					free((void*)axis_path);
-				}
+                if (cbf_get_nexus_axis_path(nx,r->axis,&taxis_path)) {
+                    CBF_CALL(cbf_h5handle_require_detector(nx,&det,0));
+                    CBF_CALL(cbf_H5Grequire(det,&axisGroup,axis_group_name));
+                    CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXtransformations"));
+                    if (!error) {
+                        const char path_empty[] = "";
+                        const char * path_parts[] = {
+                            path_empty,
+                            nx->nxid_name,
+                            nx->nxinstrument_name,
+                            nx->nxdetector_names[nx->cur_detector],
+                            axis_group_name,
+                            r->axis,
+                            0 };
+                        axis_path = _cbf_strjoin(path_parts,'/');
+                        /* try to transfer ownership of the path to the table-level cache */
+                        if ((error|=DiffrnDetectorAxisTCache_insert_axis(t,r->axis,axis_path))) {
+                            cbf_debug_print2("error: %s\n",cbf_strerror(error));
+                        } else {
+                            axis_path = NULL;
+                        }
+                        free((void*)axis_path);
+                    }
+                } else {
+                    axis_path = _cbf_strdup(taxis_path);
+                    cbf_debug_print3("Mapped axis path for axis '%s' to '%s'\n",r->axis,axis_path);
+                    /* try to transfer ownership of the path to the table-level cache */
+                    if ((error|=DiffrnDetectorAxisTCache_insert_axis(t,r->axis,axis_path))) {
+                        cbf_debug_print2("error: %s\n",cbf_strerror(error));
+                    } else {
+                        axis_path = NULL;
+                    }
+                    free((void*)axis_path);
+                }
 				cbf_H5Gfree(axisGroup);
 			}
 		}
@@ -17127,34 +17408,50 @@ static int FUNCTION_NAME \
 				cbf_debug_print("error: 'axis_id' not found");
 				error |= CBF_NOTFOUND;
 			} else {
+                const char * axis_path;
+                const char * taxis_path;
+                
 				/* the axis exists - convert the data */
 				hid_t sample = CBF_H5FAIL;
 				hid_t axisGroup = CBF_H5FAIL;
                 const char axis_group_name[] = "transformations";
-				CBF_CALL(cbf_h5handle_require_sample(nx,&sample,0));
-				CBF_CALL(cbf_H5Grequire(sample,&axisGroup,axis_group_name));
-                CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXtransformations"));
-				if (!error) {
-					const char path_empty[] = "";
-					const char * path_parts[] = {
-						path_empty,
-						nx->nxid_name,
-						nx->nxsample_name,
-						axis_group_name,
-						r->axis,
-						0
-					};
-					const char * axis_path = _cbf_strjoin(path_parts,'/');
-					/* try to transfer ownership of the path to the table-level cache */
-					if ((error|=DiffrnMeasurementAxisTCache_insert_axis(t,r->axis,axis_path))) {
-						cbf_debug_print2("error: %s\n",cbf_strerror(error));
-					} else {
-						axis_path = NULL;
+                if (cbf_get_nexus_axis_path(nx,r->axis,&taxis_path)) {
+                    CBF_CALL(cbf_h5handle_require_sample(nx,&sample,0));
+                    CBF_CALL(cbf_H5Grequire(sample,&axisGroup,axis_group_name));
+                    CBF_CALL(cbf_H5Arequire_string(axisGroup,"NX_class","NXtransformations"));
+                    if (!error) {
+                        const char path_empty[] = "";
+                        const char * path_parts[] = {
+                            path_empty,
+                            nx->nxid_name,
+                            nx->nxsample_name,
+                            axis_group_name,
+                            r->axis,
+                            0
+                        };
+                        axis_path = _cbf_strjoin(path_parts,'/');
+                        /* try to transfer ownership of the path to the table-level cache */
+                        if ((error|=DiffrnMeasurementAxisTCache_insert_axis(t,r->axis,axis_path))) {
+                            cbf_debug_print2("error: %s\n",cbf_strerror(error));
+                        } else {
+                            axis_path = NULL;
                         }
-					free((void*)axis_path);
+                        free((void*)axis_path);
                     }
-				cbf_H5Gfree(axisGroup);
+                } else {
+                    axis_path = _cbf_strdup(taxis_path);
+                    cbf_debug_print3("Mapped axis path for axis '%s' to '%s'\n",r->axis,axis_path);
+                    /* try to transfer ownership of the path to the table-level cache */
+                    if ((error|=DiffrnMeasurementAxisTCache_insert_axis(t,r->axis,axis_path))) {
+                        cbf_debug_print2("error: %s\n",cbf_strerror(error));
+                    } else {
+                        axis_path = NULL;
+                    }
+                    free((void*)axis_path);
+
                 }
+				cbf_H5Gfree(axisGroup);
+            }
                     }
 		return error;
 	}
@@ -17204,12 +17501,12 @@ static int FUNCTION_NAME \
 	else throw Exception("Unrecognised linearity")
 	*/
 	static int process_ArrayIntensitiesCache
-			(cbf_node * const category,
-			 cbf_h5handle nx,
-     cbf_cbf2nx_key_t * const key,
-			 void * const rcache,
-			 void * const tcache,
-			 const unsigned int row)
+                    (cbf_node * const category,
+                     cbf_h5handle nx,
+                     cbf_cbf2nx_key_t * const key,
+                     void * const rcache,
+                     void * const tcache,
+                     const unsigned int row)
 	{
 		int error = CBF_SUCCESS;
 		ArrayIntensitiesCache * const c = rcache;
@@ -18005,14 +18302,14 @@ static int FUNCTION_NAME \
 	column.
                      */
 	static int cbf2nx_apply_conversions
-			(cbf_h5handle h5handle,
-			 cbf_cbf2nx_key_t * const key,
-			 const cbf2nx_column_map_t * const colmap_begin,
-			 cbf_node * const column,
-			 const unsigned int row,
-			 void * const row_cache,
-			 const int list,
-			 const unsigned int matched)
+                    (cbf_h5handle h5handle,
+                     cbf_cbf2nx_key_t * const key,
+                     const cbf2nx_column_map_t * const colmap_begin,
+                     cbf_node * const column,
+                     const unsigned int row,
+                     void * const row_cache,
+                     const int list,
+                     const unsigned int matched)
 	{
 		int error = CBF_SUCCESS;
 		if (!key || !column) {
@@ -18188,10 +18485,10 @@ static int FUNCTION_NAME \
 	See the comments for a description of what this function does.
 	*/
     static int cbf_write_cbf2nx__array_structure_list_axis
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
+                    (cbf_handle handle,
+                     cbf_h5handle h5handle,
+                     cbf_cbf2nx_key_t * const key,
+                     const int list)
 	{
 		int error = CBF_SUCCESS;
         unsigned int matched = 0;
@@ -18575,7 +18872,7 @@ static int FUNCTION_NAME \
         int error;
         unsigned int rows, row;
         hid_t dset = CBF_H5FAIL;
-        const hsize_t max[] = {H5S_UNLIMITED};
+        const hsize_t max[] = {1};
         const hsize_t cnk[] = {1};
         hsize_t buf[] = {0};
         
@@ -18865,17 +19162,17 @@ static int FUNCTION_NAME \
 	See comments for a description of what this function does.
                  */
     static int cbf_write_cbf2nx__axis
-			(cbf_handle handle,
-			 cbf_h5handle h5handle,
-     cbf_cbf2nx_key_t * const key,
-     const int list)
+                    (cbf_handle handle,
+                     cbf_h5handle h5handle,
+                     cbf_cbf2nx_key_t * const key,
+                     const int list)
 	{
 		int error = CBF_SUCCESS;
         const char categoryName[] = "axis";
 #ifdef CBF_USE_ULP
         cmp_double_param_t cmp_double_params;
         void * cmp_params = &cmp_double_params;
-
+        
         /* set up the comparison parameters */
         cmp_double_params.cmp_double_as_float = cbf_has_ULP64() ? h5handle->cmp_double_as_float : 1;
         cmp_double_params.ulp32 = h5handle->float_ulp;
@@ -18886,7 +19183,7 @@ static int FUNCTION_NAME \
         void * cmp_params = 0;
         CBF_UNUSED(cmp_params);
 #endif
-
+        
 		/* check arguments */
 		if (!handle) {
             cbf_debug_print("Invalid handle given\n");
@@ -18911,14 +19208,14 @@ static int FUNCTION_NAME \
                 for (it = key->categories; end != it; ++it) {
                     if (*it) {
                         *it = strcmp((*it)->name,categoryName) ? *it : NULL;
-		}
-		}
-		}
-				/*
+                    }
+                }
+            }
+            /*
              Each axis set may contain multiple axes. Each of these needs to have its full dependency chain recorded. I
              should not generate any new axes for any axis within an axis set, but should add all parent axes that are
              not in an axis set. The creation of an axis for the axis set is not the responsibility of this function.
-				*/
+             */
             {
                 cbf_node * asla_setid = NULL;
                 cbf_node * asla_axisid = NULL;
@@ -18936,7 +19233,7 @@ static int FUNCTION_NAME \
                 if(cbf_find_child(&axis_depends_on,handle->node,"rotation_axis")) {
                     axis_rotation_axis = NULL;
                 };
-
+                
                 if (CBF_SUCCESS==error) {
                     unsigned int i;
                     unsigned int nAxes = 0;
@@ -18976,10 +19273,10 @@ static int FUNCTION_NAME \
                             }
                         }
                     }
-						/*
+                    /*
                      2. check dependency chain for each axis in axes, if the parent
                      axis is not in axes or in key->axis then add it to key->axis
-						*/
+                     */
                     for (i = 0; i != nAxes; ++i) {
                         const char * depends_on = NULL;
                         if (CBF_SUCCESS!=(error|=cbf_node_get_value(axis_depends_on,i,&depends_on))) {
@@ -18990,7 +19287,7 @@ static int FUNCTION_NAME \
                             for (j = 0; j != nAxes; ++j) {
                                 if (i != j && !strcmp(depends_on,axes[j])) {
                                     break;
-						}
+                                }
                             }
                             for (k = 0; k != key->axis.count; ++k) {
                                 if (!strcmp(depends_on,key->axis.axis_id[k])) {
@@ -18998,12 +19295,12 @@ static int FUNCTION_NAME \
                                 }
                             }
                             if (j == nAxes && k == key->axis.count) {
-						/*
+                                /*
                                  The parent axis for CBF's axis[i] is not listed as part of an axis set for the current scan,
                                  or as one of the axes that have already been mapped. Need to add it - and any unlisted parent
                                  axes - to the list of axes that must be mapped.
                                  TODO: implement this
-						*/
+                                 */
                                 cbf_debug_print2("error: %s\n",cbf_strerror(CBF_NOTIMPLEMENTED));
                                 error |= CBF_NOTIMPLEMENTED;
                             }
@@ -19039,7 +19336,7 @@ static int FUNCTION_NAME \
                         } else {
                             unsigned int j;
                             for (j = 0; j != key->axis.count; ++j) {
-                                if (!strcmp(key->axis.axis_id[j],axis_name)) break;
+                                if (!cbf_cistrcmp(key->axis.axis_id[j],axis_name)) break;
                             }
                             if (j != key->axis.count) {
                                 /* assign existing axis path */
@@ -19113,10 +19410,10 @@ static int FUNCTION_NAME \
                                         CBF_CALL(cbf_H5Arequire_string(dset,"units","degrees"));
                                     } else {
                                         cbf_debug_print2("error: unrecognised axis type: %s\n",axis_settings.type);
-							error |= CBF_UNDEFINED;
-						}
-					}
-				}
+                                        error |= CBF_UNDEFINED;
+                                    }
+                                }
+                            }
                             if (!error) {
                                 /* write the vector */
 								double vector[3] = {0.,0.,0.};
@@ -19124,12 +19421,12 @@ static int FUNCTION_NAME \
                                 double buf[] = {0};
                                 if (3==axis_settings.nVector) {
                                     CBF_CALL(cbf_apply_matrix(key->matrix,axis_settings.vector,vector));
-			}
+                                }
                                 if (H5Aexists(dset,"vector") > 0) {
                                     H5Adelete_by_name(dset,".","vector",H5P_DEFAULT);
                                 }
                                 CBF_CALL(CBFM_H5Arequire_cmp2(dset,"vector",1,dim,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,vector,buf,cmp_double,cmp_params));
-		}
+                            }
                         }
                     }
                     cbf_H5Dfree(dset);
@@ -19356,12 +19653,12 @@ static int FUNCTION_NAME \
 	Replace the whole data conversion model/pipeline with a more powerful dRel-based model.
      */
 	static int cbf2nx_convert_category
-			(cbf_node * const node /*< the datablock being converted */,
-			 cbf_h5handle nx /*< the nexus file to store it in */,
-			 const char * const categoryName /*< the category to convert */,
-			 cbf_cbf2nx_key_t * const key /*< a higher-level cache of values to control the conversion */,
-			 const int list /*< boolean: list items or not? */,
-			 const int required /*< boolean: is this category required for success? */)
+                    (cbf_node * const node /*< the datablock being converted */,
+                     cbf_h5handle nx /*< the nexus file to store it in */,
+                     const char * const categoryName /*< the category to convert */,
+                     cbf_cbf2nx_key_t * const key /*< a higher-level cache of values to control the conversion */,
+                     const int list /*< boolean: list items or not? */,
+                     const int required /*< boolean: is this category required for success? */)
     {
         int error = CBF_SUCCESS;
         unsigned int matched = 0;
@@ -20382,7 +20679,7 @@ CBF_CALL(CBFM_pilatusAxis2nexusAxisAttrs(h5data,token,"",axisItem,cmp_double,cmp
 								const char * const axis_path = _cbf_strjoin(path_parts,'/');
                                 CBF_CALL(cbf_H5Drequire(axis_group,&h5data,axis_rotation,1,max,chunk,buf,h5type));
                                 CBF_CALL(cbf_H5Dinsert(h5data,h5offset,0,h5count,buf,&num,H5T_NATIVE_DOUBLE));
-                                CBF_CALL(cbf_H5Arequire_string(h5data,"units","deg"));
+                                CBF_CALL(cbf_H5Arequire_string(h5data,"units","degrees"));
                                 CBF_CALL(cbf_H5Arequire_string(h5data,"transformation_type","rotation"));
                                 CBF_CALL(cbf_H5Arequire_string(h5data,"depends_on",axis_path));
                                 CBF_CALL(CBFM_H5Arequire_cmp2(h5data,"vector",1,vdims,H5T_IEEE_F64LE,H5T_NATIVE_DOUBLE,
