@@ -596,15 +596,21 @@ extern "C" {
     }
 
 
-
-
-
-    /* Get the element id */
+    /* Get the element id 
+       The elements are taken mod the number of elements
+     */
 
     int cbf_get_element_id (cbf_handle handle, unsigned int element_number,
                             const char **element_id)
     {
         const char *diffrn_id, *id;
+
+        unsigned int elements, elno;
+
+        /* count the elements */
+        
+        cbf_failnez (cbf_count_elements (handle, &elements));
+        elno = element_number%elements;
 
 
         /* Get the diffrn.id */
@@ -617,14 +623,14 @@ extern "C" {
         cbf_failnez (cbf_find_column   (handle, "id"))
         cbf_failnez (cbf_get_value     (handle, &id))
 
-        cbf_failnez (cbf_find_category (handle, "diffrn_detector_element"))
+        cbf_failnez (cbf_find_category (handle, "diffrn_detector_element"));
         cbf_failnez (cbf_find_column   (handle, "detector_id"))
 
         do
 
             cbf_failnez (cbf_find_nextrow (handle, id))
 
-            while (element_number--);
+            while (elno--);
 
         cbf_failnez (cbf_find_column (handle, "id"))
         cbf_failnez (cbf_get_value   (handle, element_id))
@@ -664,23 +670,173 @@ extern "C" {
         return 0;
     }
 
-    /* Get the array id for a given detector element */
+
+    /* Get the array section id for a given detector element 
+       Returns the array id if no section id is found or
+       is "." */
+    
+    int cbf_get_array_section_id (cbf_handle handle,
+                                  unsigned int element_number,
+                                  const char **array_section_id)
+    {
+        const char *element_id;
+        
+        const char *array_id;
+        
+        const char *xarray_id;
+        
+        unsigned int elements;
+        
+        unsigned int count;
+        
+        unsigned int ii;
+        
+        
+        if (!handle || !array_section_id) return CBF_ARGUMENT;
+        
+        *array_section_id = NULL;
+        
+        cbf_failnez (cbf_get_array_id(handle,element_number,&array_id));
+        
+        cbf_failnez (cbf_count_elements(handle,&elements));
+        
+        if (elements == 0) return CBF_FORMAT;
+        
+        count = element_number/elements;
+        
+        if (!cbf_find_category(handle,"array_structure_list_section")
+            && !cbf_find_column(handle,"array_id")
+            && !cbf_rewind_row(handle)) {
+            
+            for (ii = 0; ii < count; ii ++) {
+                
+                cbf_failnez(cbf_find_nextrow(handle,array_id));
+                
+            }
+            
+            if (!cbf_find_column(handle,"id")
+                && !cbf_get_value(handle,array_section_id)) return CBF_SUCCESS;
+            
+        }
+        return (cbf_get_array_id(handle,element_number,array_section_id));
+        
+    }
+
+    /* Extract an array_id from an array_section_id either
+       as the entire section id, or as the portion of the
+       string up to the first paren.
+     */
+    
+    int cbf_get_array_section_array_id(cbf_handle handle,
+                                       const char * array_section_id,
+                                       const char ** array_id) {
+        
+        const char * ptr;
+        
+        size_t len;
+        
+        char * xarray_id;
+        
+        int error;
+        
+        if ( !handle
+            || !array_section_id
+            || !array_id ) return CBF_ARGUMENT;
+        
+        ptr = array_section_id;
+        
+        len = 0;
+        
+        error = CBF_SUCCESS;
+        
+        while (*ptr && *ptr != '(') {
+            
+            ptr++;
+            
+            len++;
+            
+        }
+        
+        cbf_failnez(cbf_alloc((void **) &xarray_id,NULL,len+1,1));
+        
+        strncpy(xarray_id,array_section_id,len);
+        
+        xarray_id[len] = '\0';
+        
+        error |= cbf_find_category(handle,"array_structure");
+        
+        error |= cbf_find_column(handle,"id");
+        
+        error |= cbf_find_row(handle,xarray_id);
+        
+        error |= cbf_get_value(handle,array_id);
+        
+        cbf_free((void **) &xarray_id, NULL);
+        
+        return error;
+        
+    }
+    
+    
+    /* Get the array id for a given detector element 
+       the element numbers are taken mod the number
+       of elements.
+     
+     */
 
     int cbf_get_array_id (cbf_handle handle, unsigned int element_number,
                           const char **array_id)
     {
         const char *element_id;
+        const char *array_section_id;
 
         *array_id = NULL;
+
+        if (!handle || !array_id) return CBF_ARGUMENT;
 
         if (!cbf_get_element_id (handle, element_number, &element_id)&&
             (!cbf_find_category  (handle, "diffrn_data_frame") ||
              !cbf_find_category  (handle, "diffrn_frame_data")))
         {
-            cbf_failnez (cbf_find_column    (handle, "detector_element_id"))
-            cbf_failnez (cbf_find_row       (handle, element_id))
-            cbf_failnez (cbf_find_column    (handle, "array_id"))
-            cbf_failnez (cbf_get_value      (handle, array_id))
+            cbf_failnez (cbf_find_column    (handle, "detector_element_id"));
+
+            cbf_failnez (cbf_find_row       (handle, element_id));
+            
+            if (cbf_find_column    (handle, "array_id")
+                || cbf_get_value      (handle, array_id)
+                || ! *array_id) {
+                
+                *array_id = NULL;
+                
+                cbf_failnez(cbf_find_column(handle,"array_section_id"));
+                
+                cbf_failnez(cbf_get_value(handle,&array_section_id));
+                
+                if (array_section_id && cbf_cistrcmp(".",array_section_id)) {
+                    
+                    if (!cbf_find_category(handle,"array_structure_list_section")
+                        && !cbf_find_column(handle,"id")
+                        && !cbf_find_row(handle,array_section_id)
+                        && !cbf_find_column(handle,"array_id")){
+                        
+                        cbf_failnez (cbf_get_value (handle, array_id));
+                        
+        } else {
+
+                        cbf_failnez(cbf_get_array_section_array_id(handle,array_section_id,array_id));
+                        
+                    }
+                    
+                } else {
+                    
+            return CBF_NOTFOUND;
+                }
+
+            } else {
+
+                return CBF_SUCCESS;
+                
+        }
 
         } else {
 
@@ -700,16 +856,20 @@ extern "C" {
                            double * psize)
     {
         const char *array_id;
+        const char *array_section_id;
         int        aid, precedence, max_precedence, axis_index;
 
-        cbf_failnez (cbf_get_array_id   (handle, element_number, &array_id))
+        cbf_failnez (cbf_get_array_id   (handle, element_number, &array_id));
+        cbf_failnez (cbf_get_array_section_id   (handle, element_number, &array_section_id));
 
         cbf_failnez (cbf_find_category (handle, "array_structure_list"))
+        if (cbf_find_column(handle,"array_section_id")) {
         cbf_failnez (cbf_find_column   (handle, "array_id"))
+        }
 
         precedence = max_precedence = axis_index = 0;
 
-        while (cbf_find_nextrow (handle, array_id) == 0)
+        while (cbf_find_nextrow (handle, array_section_id) == 0)
         {
             cbf_failnez (cbf_find_column      (handle, "precedence"))
             cbf_failnez (cbf_get_integervalue (handle, &precedence))
@@ -722,12 +882,14 @@ extern "C" {
                 cbf_failnez (cbf_get_integervalue (handle, &axis_index))
                 if (axis_index < 1) return CBF_FORMAT;
             }
+            if (cbf_find_column(handle,"array_section_id")) {
             cbf_failnez (cbf_find_column (handle, "array_id"))
+        }
         }
 
         if (axis_index == 0 && axis_number < 0 ) {
             cbf_failnez (cbf_rewind_row (handle) )
-            while (cbf_find_nextrow (handle, array_id) == 0) {
+            while (cbf_find_nextrow (handle, array_section_id) == 0) {
                 cbf_failnez (cbf_find_column      (handle, "precedence"))
                 cbf_failnez (cbf_get_integervalue (handle, &precedence))
 
@@ -737,8 +899,10 @@ extern "C" {
                     if (axis_index < 1) return CBF_FORMAT;
                     break;
                 }
+                if (cbf_find_column(handle,"array_section_id")) {
                 cbf_failnez (cbf_find_column (handle, "array_id"))
             }
+        }
         }
 
         if (axis_index == 0 ) return CBF_NOTFOUND;
@@ -772,12 +936,16 @@ extern "C" {
                            double psize)
     {
         const char *array_id;
+        const char *array_section_id;
         int        aid, precedence, max_precedence, axis_index;
 
         cbf_failnez (cbf_get_array_id   (handle, element_number, &array_id))
+        cbf_failnez (cbf_get_array_section_id   (handle, element_number, &array_section_id))
 
         cbf_failnez (cbf_find_category (handle, "array_structure_list"))
-        cbf_failnez (cbf_find_column   (handle, "array_id"))
+        if (cbf_find_column(handle,"array_section_id")) {
+            cbf_failnez (cbf_find_column   (handle, "array_id"));
+        }
 
         precedence = max_precedence = axis_index = 0;
 
@@ -794,7 +962,9 @@ extern "C" {
                 cbf_failnez (cbf_get_integervalue (handle, &axis_index))
                 if (axis_index < 1) return CBF_FORMAT;
             }
-            cbf_failnez (cbf_find_column (handle, "array_id"))
+            if (cbf_find_column(handle,"array_section_id")) {
+                cbf_failnez (cbf_find_column   (handle, "array_id"));
+        }
         }
 
         if (axis_index == 0 && axis_number < 0 ) {
@@ -809,8 +979,10 @@ extern "C" {
                     if (axis_index < 1) return CBF_FORMAT;
                     break;
                 }
-                cbf_failnez (cbf_find_column (handle, "array_id"))
+                if (cbf_find_column(handle,"array_section_id")) {
+                    cbf_failnez (cbf_find_column   (handle, "array_id"));
             }
+        }
         }
 
         if (axis_index == 0 ) return CBF_NOTFOUND;
@@ -4103,13 +4275,13 @@ extern "C" {
                             && cbf_cistrcmp(positioner->axis[i].depends_on,
                                             positioner->axis[irot].name)) {
 
-                            fprintf (stderr," CBFlib: cbf_calculate_position: "
+                            /* fprintf (stderr," CBFlib: cbf_calculate_position: "
                                      "different rotation axis %s dependency for %s, %s vs. %s "
                                      "not supported\n",
                                      positioner->axis[irot].name,
                                      positioner->axis[i].name,
                                      positioner->axis[i].depends_on,
-                                     positioner->axis[irot].depends_on);
+                                     positioner->axis[irot].depends_on); */
 
                             return CBF_FORMAT;
 
@@ -4645,6 +4817,8 @@ extern "C" {
 
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
 
+        const char *array_section_id;
+
         const char * target_axis;
 
         const char * rotation_axis;
@@ -4675,13 +4849,16 @@ extern "C" {
 
         /* Construct the detector surface */
 
-        cbf_failnez (cbf_get_array_id  (handle, element_number, &array_id))
+        cbf_failnez (cbf_get_array_id  (handle, element_number, &array_id));
+        cbf_failnez (cbf_get_array_section_id  (handle, element_number, &array_section_id))
         cbf_failnez (cbf_find_category (handle, "array_structure_list"))
-        cbf_failnez (cbf_find_column   (handle, "array_id"))
+        if (cbf_find_column(handle,"array_section_id")) {
+            cbf_failnez (cbf_find_column   (handle, "array_id"));
+        }
 
         surface_axis [0] = surface_axis [1] = NULL;
 
-        while (cbf_find_nextrow (handle, array_id) == 0)
+        while (cbf_find_nextrow (handle, array_section_id) == 0)
         {
             cbf_failnez (cbf_find_column      (handle, "precedence"))
             cbf_failnez (cbf_get_integervalue (handle, &precedence))
@@ -4696,7 +4873,9 @@ extern "C" {
 
             cbf_failnez (cbf_find_column (handle, "axis_set_id"))
             cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
-            cbf_failnez (cbf_find_column (handle, "array_id"))
+            if (cbf_find_column(handle,"array_section_id")) {
+                cbf_failnez (cbf_find_column   (handle, "array_id"));
+        }
         }
 
         if (!surface_axis [0])
@@ -4977,6 +5156,8 @@ extern "C" {
 
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
 
+        const char *array_section_id;
+
         const char * target_axis;
 
         const char * rotation_axis;
@@ -5011,8 +5192,11 @@ extern "C" {
         /* Construct the detector surface */
 
         cbf_failnez (cbf_get_array_id  (handle, element_number, &array_id))
+        cbf_failnez (cbf_get_array_section_id  (handle, element_number, &array_section_id))
         cbf_failnez (cbf_require_category (handle, "array_structure_list"))
-        cbf_failnez (cbf_require_column   (handle, "array_id"))
+        if (cbf_find_column(handle,"array_section_id")) {
+            cbf_failnez (cbf_find_column   (handle, "array_id"));
+        }
 
         surface_axis [0] = surface_axis [1] = NULL;
 
@@ -5031,13 +5215,17 @@ extern "C" {
 
             cbf_failnez (cbf_find_column (handle, "axis_set_id"))
             cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
-            cbf_failnez (cbf_find_column (handle, "array_id"))
+            if (cbf_find_column(handle,"array_section_id")) {
+                cbf_failnez (cbf_find_column   (handle, "array_id"));
+        }
         }
 
         if (!surface_axis[0]) {
             cbf_failnez (cbf_require_column  (handle, "array_id"))
             cbf_failnez (cbf_new_row         (handle))
             cbf_failnez (cbf_set_value       (handle, array_id))
+            cbf_failnez (cbf_require_column  (handle, "array_section_id"))
+            cbf_failnez (cbf_set_value       (handle, array_section_id))
             cbf_failnez (cbf_require_column  (handle, "precedence"))
             cbf_failnez (cbf_set_integervalue(handle,1))
             cbf_failnez (cbf_require_column  (handle, "axis_set_id"))
@@ -5049,6 +5237,8 @@ extern "C" {
             cbf_failnez (cbf_require_column  (handle,"array_id"))
             cbf_failnez (cbf_new_row         (handle))
             cbf_failnez (cbf_set_value       (handle, array_id))
+            cbf_failnez (cbf_require_column  (handle, "array_section_id"))
+            cbf_failnez (cbf_set_value       (handle, array_section_id))
             cbf_failnez (cbf_require_column  (handle, "precedence"))
             cbf_failnez (cbf_set_integervalue(handle,2))
             cbf_failnez (cbf_require_column  (handle, "axis_set_id"))
@@ -5333,6 +5523,8 @@ extern "C" {
 
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
 
+        const char * array_section_id;
+
         const char * target_axis;
 
         const char * rotation_axis;
@@ -5352,20 +5544,23 @@ extern "C" {
 
         /* Get the detector id */
 
-        cbf_failnez (cbf_get_diffrn_id (handle, &diffrn_id))
+        cbf_failnez (cbf_get_diffrn_id (handle, &diffrn_id));
 
-        cbf_failnez (cbf_find_category (handle, "diffrn_detector"))
-        cbf_failnez (cbf_find_column   (handle, "diffrn_id"))
-        cbf_failnez (cbf_find_row      (handle, diffrn_id))
-        cbf_failnez (cbf_find_column   (handle, "id"))
-        cbf_failnez (cbf_get_value     (handle, &id))
+        cbf_failnez (cbf_find_category (handle, "diffrn_detector"));
+        cbf_failnez (cbf_find_column   (handle, "diffrn_id"));
+        cbf_failnez (cbf_find_row      (handle, diffrn_id));
+        cbf_failnez (cbf_find_column   (handle, "id"));
+        cbf_failnez (cbf_get_value     (handle, &id));
 
 
         /* Construct the detector surface */
 
-        cbf_failnez (cbf_get_array_id  (handle, element_number, &array_id))
-        cbf_failnez (cbf_find_category (handle, "array_structure_list"))
-        cbf_failnez (cbf_find_column   (handle, "array_id"))
+        cbf_failnez (cbf_get_array_id  (handle, element_number, &array_id));
+        cbf_failnez (cbf_get_array_section_id( handle,element_number,&array_section_id));
+        cbf_failnez (cbf_find_category (handle, "array_structure_list"));
+        if (cbf_find_column(handle,"array_section_id")) {
+            cbf_failnez (cbf_find_column   (handle, "array_id"));
+        }
 
         surface_axis [0] = surface_axis [1] = NULL;
 
@@ -5384,7 +5579,9 @@ extern "C" {
 
             cbf_failnez (cbf_find_column (handle, "axis_set_id"))
             cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
-            cbf_failnez (cbf_find_column (handle, "array_id"))
+            if (cbf_find_column(handle,"array_section_id")) {
+                cbf_failnez (cbf_find_column   (handle, "array_id"));
+        }
         }
 
         if (!surface_axis [0])
@@ -5663,6 +5860,8 @@ extern "C" {
 
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
 
+        const char *array_section_id;
+
         const char *surface_axis [2];
 
         double displacement [2], increment [2];
@@ -5691,13 +5890,16 @@ extern "C" {
         /* Construct the detector surface */
 
         cbf_failnez (cbf_get_array_id  (handle, element_number, &array_id))
+        cbf_failnez (cbf_get_array_section_id  (handle, element_number, &array_section_id))
         cbf_failnez (cbf_require_category (handle, "array_structure_list"))
+        if (cbf_find_column(handle,"array_section_id")) {
         cbf_failnez (cbf_require_column   (handle, "array_id"))
+        }
 
         surface_axis [0] = surface_axis [1] = NULL;
 
 
-        while (cbf_find_nextrow (handle, array_id) == 0)
+        while (cbf_find_nextrow (handle, array_section_id) == 0)
         {
             cbf_failnez (cbf_find_column      (handle, "precedence"))
             cbf_failnez (cbf_get_integervalue (handle, &precedence))
@@ -5712,13 +5914,17 @@ extern "C" {
 
             cbf_failnez (cbf_find_column (handle, "axis_set_id"))
             cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
-            cbf_failnez (cbf_find_column (handle, "array_id"))
+            if (cbf_find_column(handle,"array_section_id")) {
+                cbf_failnez (cbf_require_column   (handle, "array_id"))
+        }
         }
 
         if (!surface_axis[0]) {
             cbf_failnez (cbf_require_column  (handle, "array_id"))
             cbf_failnez (cbf_new_row         (handle))
             cbf_failnez (cbf_set_value       (handle, array_id))
+            cbf_failnez (cbf_require_column  (handle, "array_section_id"))
+            cbf_failnez (cbf_set_value       (handle, array_section_id))
             cbf_failnez (cbf_require_column  (handle, "precedence"))
             cbf_failnez (cbf_set_integervalue(handle,1))
             cbf_failnez (cbf_require_column  (handle, "axis_set_id"))
@@ -5728,6 +5934,8 @@ extern "C" {
             cbf_failnez (cbf_require_column  (handle,"array_id"))
             cbf_failnez (cbf_new_row         (handle))
             cbf_failnez (cbf_set_value       (handle, array_id))
+            cbf_failnez (cbf_require_column  (handle, "array_section_id"))
+            cbf_failnez (cbf_set_value       (handle, array_section_id))
             cbf_failnez (cbf_require_column  (handle, "precedence"))
             cbf_failnez (cbf_set_integervalue(handle,2))
             cbf_failnez (cbf_require_column  (handle, "axis_set_id"))
@@ -7941,6 +8149,8 @@ extern "C" {
 
         const char *diffrn_id, *id, *this_id, *axis_id, *array_id;
 
+        const char *array_section_id;
+
         const char * target_axis;
 
         const char * rotation_axis;
@@ -7972,8 +8182,11 @@ extern "C" {
         /* Construct the detector surface */
 
         cbf_failnez (cbf_get_array_id  (handle, element_number, &array_id))
+        cbf_failnez (cbf_get_array_section_id  (handle, element_number, &array_section_id))
         cbf_failnez (cbf_find_category (handle, "array_structure_list"))
-        cbf_failnez (cbf_find_column   (handle, "array_id"))
+        if (cbf_find_column(handle,"array_section_id")) {
+            cbf_failnez (cbf_find_column   (handle, "array_id"));
+        }
 
         surface_axis [0] = surface_axis [1] = NULL;
 
@@ -7992,7 +8205,9 @@ extern "C" {
 
             cbf_failnez (cbf_find_column (handle, "axis_set_id"))
             cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
-            cbf_failnez (cbf_find_column (handle, "array_id"))
+            if (cbf_find_column(handle,"array_section_id")) {
+                cbf_failnez (cbf_find_column   (handle, "array_id"));
+        }
         }
 
         if (!surface_axis [0])
@@ -8376,15 +8591,128 @@ extern "C" {
         return errorcode;
     }
 
+    /*  For a given axis, return the first element_id
+        associated with it for the given equipment
+        and equipment_id */
+
+    int cbf_get_axis_element_id(cbf_handle handle,
+                                const char ** element_id,
+                                const char * equipment_id,
+                                const char * equipment,
+                                const char * axis_id) {
+        
+        int errorcode, errorcode2;
+        
+        /* check the arguments */
+        
+        if (!handle || !element_id || !equipment_id || !equipment || !axis_id)
+            
+            return CBF_ARGUMENT;
+        
+        *element_id = NULL;
+        
+        errorcode = errorcode2 = 0;
+        
+        if (cbf_cistrcmp(equipment,"detector")==0 ) {
+            
+            const char * detector_id;
+            
+            const char * detector_element_id;
+            
+            const char * axis_set_id;
+            
+            const char * array_id;
+            
+            axis_set_id = array_id  = detector_element_id = NULL;
+            
+            errorcode2 |= cbf_find_category(handle, "array_structure_list_axis");
+            
+            errorcode2 |= cbf_find_column(handle,"axis_id");
+            
+            errorcode2 |= cbf_rewind_row(handle);
+            
+            errorcode2 |= cbf_find_row(handle, axis_id);
+            
+            errorcode2 |= cbf_find_column(handle,"axis_set_id");
+            
+            errorcode2 |= cbf_get_value(handle,&axis_set_id);
+            
+            if (errorcode2) axis_set_id = axis_id;
+            
+            errorcode |= errorcode2;
+            
+            errorcode2 = 0;
+            
+            errorcode2 |= cbf_find_category(handle, "array_structure_list");
+            
+            errorcode2 |= cbf_find_column(handle,"axis_set_id");
+            
+            errorcode2 |= cbf_rewind_row(handle);
+            
+            errorcode2 |= cbf_find_row(handle, axis_set_id);
+            
+            errorcode2 |= cbf_find_column(handle, "array_id");
+            
+            errorcode2 |= cbf_get_value(handle,&array_id);
+            
+            if (!errorcode2 && array_id) {
+                
+                errorcode2 |= cbf_find_category(handle, "diffrn_data_frame");
+                
+                errorcode2 |= cbf_find_column(handle,"array_id");
+                
+                errorcode2 |= cbf_rewind_row(handle);
+                
+                errorcode2 |= cbf_find_row(handle, array_id);
+                
+                errorcode2 |= cbf_find_column(handle, "detector_element_id");
+                
+                errorcode2 |= cbf_get_value(handle,&detector_element_id);
+                
+                if (!errorcode2 && detector_element_id) {
+                    
+                    errorcode2 |= cbf_find_category(handle, "diffrn_detector_element");
+                    
+                    errorcode2 |= cbf_find_column(handle,"id");
+                    
+                    errorcode2 |= cbf_rewind_row(handle);
+                    
+                    errorcode2 |= cbf_find_row(handle, detector_element_id);
+                    
+                    errorcode2 |= cbf_find_column(handle, "detector_id");
+                    
+                    errorcode2 |= cbf_get_value(handle,&detector_id);
+                    
+                    if (errorcode2) detector_id = NULL;
+                    
+                    if (!detector_id || cbf_cistrcmp(detector_id,equipment_id)) return CBF_NOTFOUND;
+                    
+                }
+                
+            }
+            
+            
+            *element_id = detector_element_id;
+            
+            return errorcode|errorcode2;
+            
+        }
+        
+        return CBF_NOTFOUND;
+        
+        
+    }
+    
     /* get the id of the particular equipment associated with
-       the specified axis_id for for specified equipment */
+       the specified axis_id for the specified equipment type */
+
 
     int cbf_get_axis_equipment_id(cbf_handle handle,
                                     const char ** equipment_id,
                                     const char * equipment,
                                     const char * axis_id)
     {
-        int errorcode;
+        int errorcode, errorcode2;
 
         /* check the arguments */
 
@@ -8394,7 +8722,7 @@ extern "C" {
 
         *equipment_id = NULL;
 
-        errorcode = 0;
+        errorcode = errorcode2 = 0;
 
         if (cbf_cistrcmp(equipment,"detector")==0 ) {
 
@@ -8411,6 +8739,82 @@ extern "C" {
             errorcode |= cbf_get_value(handle,equipment_id);
 
             if (errorcode) *equipment_id = NULL;
+
+            if (!*equipment_id || !cbf_cistrcmp(*equipment_id,".")) {
+                
+                const char * axis_set_id;
+                
+                const char * array_id;
+                
+                const char * detector_element_id;
+                
+                axis_set_id = array_id = detector_element_id = NULL;
+                
+                errorcode2 |= cbf_find_category(handle, "array_structure_list_axis");
+                
+                errorcode2 |= cbf_find_column(handle,"axis_id");
+                
+                errorcode2 |= cbf_rewind_row(handle);
+                
+                errorcode2 |= cbf_find_row(handle, axis_id);
+                
+                errorcode2 |= cbf_find_column(handle,"axis_set_id");
+                
+                errorcode2 |= cbf_get_value(handle,&axis_set_id);
+                
+                if (errorcode2) axis_set_id = axis_id;
+                
+                errorcode |= errorcode2;
+                
+                errorcode2 = 0;
+                
+                errorcode2 |= cbf_find_category(handle, "array_structure_list");
+                
+                errorcode2 |= cbf_find_column(handle,"axis_set_id");
+                
+                errorcode2 |= cbf_rewind_row(handle);
+                
+                errorcode2 |= cbf_find_row(handle, axis_set_id);
+                
+                errorcode2 |= cbf_find_column(handle, "array_id");
+                
+                errorcode2 |= cbf_get_value(handle,&array_id);
+                
+                if (!errorcode2 && array_id) {
+                    
+                    errorcode2 |= cbf_find_category(handle, "diffrn_data_frame");
+                    
+                    errorcode2 |= cbf_find_column(handle,"array_id");
+                    
+                    errorcode2 |= cbf_rewind_row(handle);
+                    
+                    errorcode2 |= cbf_find_row(handle, array_id);
+                    
+                    errorcode2 |= cbf_find_column(handle, "detector_element_id");
+                    
+                    errorcode2 |= cbf_get_value(handle,&detector_element_id);
+                    
+                    if (!errorcode2 && detector_element_id) {
+                        
+                        errorcode2 |= cbf_find_category(handle, "diffrn_detector_element");
+                        
+                        errorcode2 |= cbf_find_column(handle,"id");
+                        
+                        errorcode2 |= cbf_rewind_row(handle);
+                        
+                        errorcode2 |= cbf_find_row(handle, detector_element_id);
+                        
+                        errorcode2 |= cbf_find_column(handle, "detector_id");
+                        
+                        errorcode2 |= cbf_get_value(handle,equipment_id);
+                        
+                        if (errorcode2) *equipment_id = NULL;
+                      
+                    }
+                    
+                }
+ 
+            }
 
             return CBF_SUCCESS;
 
@@ -8443,13 +8847,32 @@ extern "C" {
 
     }
 
-    /* get the dimension and units of the available scan points for an axis */
+    /* get the dimension and units of the available scan points for an axis
+     If the axis is an array axis or array section axis, the number
+     of scan points in the number of pixels for that axis */
 
     int cbf_get_axis_parameters(cbf_handle handle,
                                   size_t * scanpoints,
                                   const char ** units,
                                   const char * equipment,
                                   const char * axis_id) {
+        
+        const char * axis_set_id = NULL;
+        
+        const char * detector_element_id = NULL;
+        
+        const char * equipmentid = NULL;
+        
+        const char * axistype = NULL;
+        
+        int dimension;
+        
+        int isarrayaxis, isscanaxis;
+        
+        isarrayaxis = 0;
+        
+        isscanaxis = 0;
+        
         /* check the arguments */
 
         if (!handle || !scanpoints || !units || !equipment || !axis_id)
@@ -8467,18 +8890,21 @@ extern "C" {
 
         while (!cbf_find_nextrow(handle,axis_id)) {
 
-            const char * equipmentid;
-
-            const char * axistype;
-
             if (cbf_find_column(handle,"equipment")) return CBF_SUCCESS;
 
             if (cbf_get_value(handle,&equipmentid)) return CBF_SUCCESS;
 
             if (cbf_find_column(handle,"id")) return CBF_SUCCESS;
 
+            if (equipmentid
+                && (!cbf_cistrcmp(equipmentid,"detector")
+                    || !cbf_cistrcmp(equipmentid,"goniometer")
+                    )) {
+                    
             if (!equipmentid || cbf_cistrcmp(equipmentid,equipment)) continue;
 
+                }
+            
             if (cbf_find_column(handle,"type")) return CBF_SUCCESS;
 
             if (cbf_get_value(handle,&axistype)) return CBF_SUCCESS;
@@ -8487,7 +8913,7 @@ extern "C" {
 
             if (!cbf_cistrcmp(axistype,"rotation")) {
 
-                *units = "deg";
+                *units = "degrees";
 
             } else if (!cbf_cistrcmp(axistype,"translation")) {
 
@@ -8501,18 +8927,88 @@ extern "C" {
 
         if (!units) return CBF_SUCCESS;
 
+        if (!cbf_find_category(handle, "diffrn_scan_axis")
+            &&!cbf_find_column(handle,"axis_id")
+            &&!cbf_rewind_row(handle)
+            &&!cbf_find_row(handle, axis_id)) {
+            
+            isscanaxis = 1;
+            
+        } else {
+            
+            if (!cbf_find_category(handle, "diffrn_scan_frame_axis")
+                &&!cbf_find_column(handle,"axis_id")
+                &&!cbf_rewind_row(handle)
+                &&!cbf_find_row(handle, axis_id)) {
+                
+                isscanaxis = 1;
+                
+            }
+            
+            if (!cbf_cistrcmp(equipmentid,"detector")) {
+                
+                axis_set_id = detector_element_id = NULL;
+                
+                if (!cbf_find_category(handle, "array_structure_list_axis")
+                    &&!cbf_find_column(handle,"axis_id")
+                    &&!cbf_rewind_row(handle)
+                    &&!cbf_find_row(handle, axis_id)
+                    &&!cbf_find_column(handle,"axis_set_id")
+                    &&!cbf_get_value(handle,&axis_set_id))
+                {
+                    
+                    if (!cbf_find_category(handle, "array_structure_list")
+                        &&!cbf_find_column(handle,"axis_set_id")
+                        &&!cbf_rewind_row(handle)
+                        &&!cbf_find_row(handle, axis_set_id)
+                        &&!cbf_find_column(handle,"dimension")
+                        &&!cbf_require_integervalue(handle,&dimension,0)){
+                        
+                        isarrayaxis = 1;
+                        
+                        if (!isscanaxis){
+                            
+                            *scanpoints = dimension;
+                            
+                            return CBF_SUCCESS;
+                            
+                        }
+                    }
+                    
+                }
+                
+            }
+            
         if (!cbf_find_category(handle,"diffrn_scan")) {
 
             const char * framesstr;
 
-            cbf_failnez(cbf_find_column(handle,"frames"));
+                if (!cbf_find_column(handle,"frames")
 
-            cbf_failnez(cbf_rewind_row(handle));
+                    && !cbf_rewind_row(handle)
 
-            cbf_failnez(cbf_get_value(handle,&framesstr));
+                    && !cbf_get_value(handle,&framesstr)
 
+                    && framesstr) {
+                    
             sscanf(framesstr,"%zd",scanpoints);
 
+                    
+                } else {
+                    
+                    *scanpoints = 0;
+                }
+                
+                if (isscanaxis) {
+                    
+                    if (*scanpoints < 1) *scanpoints = 1;
+                    
+                    *scanpoints *= dimension;
+                    
+                    
+                    
+                }
+                
             return CBF_SUCCESS;
 
         }
@@ -8521,8 +9017,15 @@ extern "C" {
 
     }
 
+    }
 
-    /* get the scan points for an axis */
+
+    /* get the scan points for an axis.  If the axis
+       is an array axis, with no scan changes, an array
+       of the pixel centers is provided.  If there are
+       scan changes, a linearized 2-dimensional array
+       will be returned, with the pixel positions as
+       the fast index and the frame as the slow.  */
 
     int cbf_get_axis_scan_points(cbf_handle handle,
                                 double * scanarray,
@@ -8531,6 +9034,24 @@ extern "C" {
                                 const char * units,
                                 const char * axis_id) {
 
+        const char * axis_set_id;
+        
+        const char * detector_element_id;
+        
+        int dimension;
+        
+        int isarrayaxis, isscanaxis;
+        
+        double displacement, displacement_increment;
+        
+        double angle, angle_increment;
+        
+        const char * direction;
+        
+        isarrayaxis = 0;
+        
+        isscanaxis = 0;
+        
         /* check the arguments */
 
         if (!handle || !scanarray || scanpoints < 1 || !units || !axis_id)
@@ -8539,25 +9060,193 @@ extern "C" {
 
         *scanpointsfound = 0;
 
+        axis_set_id = detector_element_id = NULL;
+        
+        displacement = displacement_increment = angle = angle_increment = 0.;
+        
+        direction = "increasing";
+        
+        if (!cbf_find_category(handle, "array_structure_list_axis")
+            &&!cbf_find_column(handle,"axis_id")
+            &&!cbf_rewind_row(handle)
+            &&!cbf_find_row(handle, axis_id)
+            &&!cbf_find_column(handle,"axis_set_id")
+            &&!cbf_get_value(handle,&axis_set_id))
+        {
+            
+            if (!cbf_find_column(handle,"displacement_increment")) {
+                
+                cbf_require_doublevalue(handle,&displacement_increment,0.);
+                
+            }
+            
+            if (!cbf_find_column(handle,"displacement")) {
+                
+                cbf_require_doublevalue(handle,&displacement,0.);
+                
+            }
+
+            if (!cbf_find_column(handle,"angle_increment")) {
+                
+                cbf_require_doublevalue(handle,&angle_increment,0.);
+                
+            }
+            
+            if (!cbf_find_column(handle,"angle")) {
+                
+                cbf_require_doublevalue(handle,&angle,0.);
+                
+            }
+
+            if (!cbf_find_category(handle, "array_structure_list")
+                &&!cbf_find_column(handle,"axis_set_id")
+                &&!cbf_rewind_row(handle)
+                &&!cbf_find_row(handle, axis_set_id)
+                &&!cbf_find_column(handle,"dimension")
+                &&!cbf_require_integervalue(handle,&dimension,0)){
+                
+                if (!cbf_find_column(handle,"direction")) {
+                    
+                    cbf_require_value(handle,&direction,"increasing");
+                    
+                }
+                
+                isarrayaxis = 1;
+                
+            }
+            
+        }
+
+
         if (cbf_find_category(handle, "diffrn_scan_frame_axis")
             || cbf_find_column(handle,"axis_id")
-            || cbf_rewind_row(handle)) return CBF_SUCCESS;
+            || cbf_rewind_row(handle)
+            || cbf_find_nextrow(handle,axis_id)
+            || cbf_rewind_row(handle))  {
+
+            if (isarrayaxis) {
+                
+                if (!direction || !cbf_cistrcmp(direction,"increasing" )) {
+                    
+                    while (*scanpointsfound < scanpoints
+                           && *scanpointsfound < dimension) {
+                        
+                        scanarray[*scanpointsfound] =
+                        displacement + displacement_increment*(*scanpointsfound);
+                        
+                        (*scanpointsfound)++;
+                        
+                        
+                    }
+                    
+                } else {
+                    
+                    while (*scanpointsfound < scanpoints
+                           && *scanpointsfound < dimension) {
+                        
+                        scanarray[*scanpointsfound] =
+                        displacement + displacement_increment
+                        *(dimension - *scanpointsfound - 1);
+                        
+                        (*scanpointsfound)++;
+                        
+                        
+                    }
+                    
+                }
+            }
+            
+            return CBF_SUCCESS;
+            
+        }
 
         while (!cbf_find_nextrow(handle,axis_id)&& *scanpointsfound < scanpoints) {
 
+            double newstart, newincrement;
+
             if (!cbf_cistrcmp(units,"deg")) {
 
-                cbf_failnez(cbf_find_column(handle,"angle"))
+                cbf_failnez(cbf_find_column(handle,"angle"));
+
+                cbf_failnez(cbf_get_doublevalue(handle, &newstart));
+                
+                if (isarrayaxis) {
+                    
+                    newstart += angle;
+                    
+                    newincrement = angle_increment;
+                    
+                }
+                
 
             } else {
 
-                cbf_failnez(cbf_find_column(handle,"displacement"))
+                cbf_failnez(cbf_find_column(handle,"displacement"));
+
+                cbf_failnez(cbf_get_doublevalue(handle, &newstart));
+                
+                if (isarrayaxis) {
+                    
+                    newstart += displacement;
+                    
+                    newincrement = displacement_increment;
+                    
+            }
 
             }
 
-            cbf_failnez(cbf_get_doublevalue(handle,&(scanarray[*scanpointsfound])));
-
+            
+                                            
+            if (!isarrayaxis) {
+                        
+            scanarray[*scanpointsfound] = newstart;
+            
             (*scanpointsfound)++;
+
+            } else {
+                
+                int ii, ifrom, ito, istep;
+                
+                if (!direction || cbf_cistrcmp(direction,"increasing" )) {
+                    
+                    ifrom = -1;
+                    
+                    ito = dimension -1;
+                    
+                    istep = 1;
+                    
+                } else {
+                    
+                    ifrom = dimension;
+                    
+                    ito = 0;
+                    
+                    istep = -1;
+                    
+                }
+                
+                ii = ifrom;
+                
+                do {
+                    
+                    if (*scanpointsfound < scanpoints) {
+                    
+                    ii += istep;
+                    
+                    scanarray[*scanpointsfound] = newstart+ii*newincrement;
+                    
+                    (*scanpointsfound)++;
+                        
+                    } else {
+                        
+                        break;
+                        
+                    }
+                    
+                    
+                } while (ii != ito);
+                
+            }
 
             cbf_failnez(cbf_find_column(handle,"axis_id"));
 

@@ -406,6 +406,14 @@ int cbf_get_element_id (cbf_handle handle, unsigned int element_number,
 int cbf_get_detector_id (cbf_handle handle, unsigned int element_number,
                                            const char **detector_id);
                                           
+    /* Get the array section id for a given detector element
+     Returns the array id if no section id is found or
+     is "." */
+
+int cbf_get_array_section_id (cbf_handle handle,
+                                  unsigned int element_number,
+                                  const char **array_section_id);
+
 
   /* Get the array id for a given detector element */
 
@@ -1425,6 +1433,16 @@ int cbf_construct_frame_positioner (cbf_handle handle,
                                     cbf_positioner *positioner,
                                     const char *axis_id,
                                     const char *frame_id);
+
+    /*  For a given axis, return the first element_id
+     associated with it for the given equipment
+     and equipment_id */
+    
+int cbf_get_axis_element_id(cbf_handle handle,
+                                const char ** element_id,
+                                const char * equipment_id,
+                                const char * equipment,
+                                const char * axis_id);
 
     /* get the id of the particular equipment associated with
      the specified axis_id for for specified equipment */
