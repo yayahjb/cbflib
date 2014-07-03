@@ -257,6 +257,7 @@ extern "C" {
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <limits.h>
 
 #include "cbf.h"
 #include "cbf_alloc.h"
@@ -596,6 +597,131 @@ extern "C" {
     }
 
 
+    /* convert an array_id or element_id and optional 
+       array_section_id to an element_number = ordinal 
+       from 0 of the
+       detector_element for the array_id
+       + (the number of detector elements)
+         *(the ordinal of the array_section_id
+            from 0 for that array_id)
+     */
+       
+    
+    int cbf_get_element_number(cbf_handle handle,
+                               const char *element_id,
+                               const char *array_id,
+                               const char *array_section_id,
+                               unsigned int * element_number) {
+        
+        unsigned int elements, elno;
+        
+        unsigned int elementidrow, arrayidrow, arraysectionrow;
+        
+        int index;
+        
+        const char * xarray_id = NULL;
+        
+        const char * xarray_section_id = NULL;
+        
+        if (!handle || (!array_id && !element_id) ) return CBF_ARGUMENT;
+        
+        if (array_section_id && !array_id) return CBF_ARGUMENT;
+        
+        elno = elements = elementidrow = arrayidrow = INT_MAX;
+        
+        cbf_failnez(cbf_count_elements(handle,&elements));
+        
+        if (!cbf_find_category  (handle, "diffrn_data_frame") ||
+             !cbf_find_category  (handle, "diffrn_frame_data")) {
+                
+            elementidrow = arrayidrow = INT_MAX;
+            
+            if (element_id) {
+                
+                cbf_failnez (cbf_find_column    (handle, "detector_element_id"));
+                
+                cbf_failnez (cbf_find_row       (handle, element_id));
+                
+                cbf_failnez (cbf_row_number     (handle, &elementidrow));
+                
+                elno = elementidrow;
+                
+                if (array_id) {
+                    
+                    cbf_failnez (cbf_find_column    (handle, "array_id"));
+                    
+                    cbf_failnez (cbf_get_value      (handle, &xarray_id));
+                    
+                    if (!xarray_id || cbf_cistrcmp(xarray_id,array_id)) return CBF_FORMAT;
+                    
+                    arrayidrow = elementidrow;
+                    
+                }
+                
+            }
+            
+            
+            if (arrayidrow == INT_MAX && array_id) {
+                
+                cbf_failnez (cbf_find_column    (handle, "array_id"));
+                
+                cbf_failnez (cbf_find_row       (handle, array_id));
+                
+                cbf_failnez (cbf_row_number     (handle, &arrayidrow));
+                
+                elno = arrayidrow;
+                
+            }
+            
+        }
+        
+        if (array_section_id) {
+            
+            arraysectionrow = 0;
+            
+            cbf_failnez(cbf_find_category(handle,"array_structure_list_section"));
+            
+            cbf_failnez(cbf_find_column(handle,"array_id"));
+            
+            cbf_failnez(cbf_find_row(handle,array_id));
+            
+            while (!cbf_find_column(handle,"id")
+                   && !cbf_get_value(handle,&xarray_section_id)) {
+
+                if (!cbf_cistrcmp(xarray_section_id,array_section_id)) {
+
+                    elno += elements*arraysectionrow;
+
+                    if (element_number) *element_number = elno;
+
+                    return CBF_SUCCESS;
+
+                }
+                
+                cbf_failnez(cbf_find_column(handle,"index"));
+                
+                cbf_failnez(cbf_get_integervalue(handle,&index));
+                
+                if (index == 1) arraysectionrow++;
+                
+                cbf_failnez(cbf_find_column(handle,"array_id"));
+                
+                cbf_failnez(cbf_find_nextrow(handle,array_id));
+                
+                
+            }
+            
+            return CBF_NOTFOUND;
+            
+            
+        }
+        
+        if (element_number) *element_number = elno;
+ 
+        return CBF_SUCCESS;
+        
+    }
+    
     /* Get the element id 
        The elements are taken mod the number of elements
      */
@@ -611,6 +737,8 @@ extern "C" {
         
         cbf_failnez (cbf_count_elements (handle, &elements));
         elno = element_number%elements;
+
+        /* fprintf(stderr,"element number %d elno %d section %d\n",element_number,elno,element_number/elements); */
 
 
         /* Get the diffrn.id */
@@ -691,6 +819,8 @@ extern "C" {
         
         unsigned int ii;
         
+        int index;
+        
         
         if (!handle || !array_section_id) return CBF_ARGUMENT;
         
@@ -704,13 +834,28 @@ extern "C" {
         
         count = element_number/elements;
         
+        /* fprintf(stderr,"element number %d elno %d section %d\n",element_number,element_number%elements,element_number/elements); */
+
+        
         if (!cbf_find_category(handle,"array_structure_list_section")
             && !cbf_find_column(handle,"array_id")
             && !cbf_rewind_row(handle)) {
             
-            for (ii = 0; ii < count; ii ++) {
+            for (ii = 0; ii <= count; ii ++) {
+                
+                index = -1;
+                
+                do {
                 
                 cbf_failnez(cbf_find_nextrow(handle,array_id));
+                
+                    cbf_failnez(cbf_find_column(handle,"index"));
+                
+                    cbf_failnez(cbf_get_integervalue(handle,&index));
+                    
+                    cbf_failnez(cbf_find_column(handle,"array_id"));
+                    
+                } while (index != 1);
                 
             }
             
@@ -718,6 +863,7 @@ extern "C" {
                 && !cbf_get_value(handle,array_section_id)) return CBF_SUCCESS;
             
         }
+        
         return (cbf_get_array_id(handle,element_number,array_section_id));
         
     }
@@ -4831,6 +4977,8 @@ extern "C" {
 
         cbf_positioner positioner;
 
+        /* fprintf(stderr,"cbf_construct_detector elno %d\n",element_number); */
+
         if (!detector)
 
             return CBF_ARGUMENT;
@@ -4995,6 +5143,8 @@ extern "C" {
             size_t index;
 
             int found;
+
+            /* fprintf(stderr,"connecting %s\n",positioner->axis[axis_index].name); */
 
             target_axis = positioner->axis[axis_index].depends_on;
 
@@ -9017,6 +9167,8 @@ extern "C" {
 
     }
 
+        return CBF_SUCCESS;
+        
     }
 
 

@@ -395,6 +395,23 @@ int cbf_set_divergence (cbf_handle handle, double div_x_source,
 int cbf_count_elements (cbf_handle handle, unsigned int *elements);
 
 
+    
+    /* convert an array_id or element_id and optional
+     array_section_id to an element_number = ordinal
+     from 0 of the
+     detector_element for the array_id
+     + (the number of detector elements)
+     *(the ordinal of the array_section_id
+     from 0 for that array_id)
+     */
+    
+    
+    int cbf_get_element_number(cbf_handle handle,
+                               const char *element_id,
+                               const char *array_id,
+                               const char *array_section_id,
+                               unsigned int * element_number);
+    
   /* Get the element id */
 
 int cbf_get_element_id (cbf_handle handle, unsigned int element_number,
