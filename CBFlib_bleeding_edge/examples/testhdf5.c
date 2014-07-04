@@ -626,7 +626,7 @@ testResult_t test_H5Dcreate(const hid_t grp, hid_t * const dset, const char * na
     
 	/* Ensure it fails at the appropriate times */
 	TEST_CBF_FAIL(cbf_H5Dcreate(CBF_H5FAIL,dset,name,rank,dim,max,chunk,H5T_NATIVE_INT));
-	TEST_CBF_FAIL(cbf_H5Dcreate(grp,dset,0,rank,dim,max,chunk,H5T_NATIVE_INT));
+	TEST_CBF_PASS(cbf_H5Dcreate(grp,dset,0,rank,dim,max,chunk,H5T_NATIVE_INT));
 	TEST_CBF_FAIL(cbf_H5Dcreate(grp,dset,name,-1,dim,max,chunk,H5T_NATIVE_INT));
 	TEST_CBF_FAIL(cbf_H5Dcreate(grp,dset,name,rank,0,max,chunk,H5T_NATIVE_INT));
 	TEST_CBF_FAIL(cbf_H5Dcreate(grp,dset,name,rank,dim,max,0,H5T_NATIVE_INT));

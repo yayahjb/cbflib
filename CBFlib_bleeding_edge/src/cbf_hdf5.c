@@ -7486,7 +7486,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
         cbf_h5reportneg(attribtype = H5Tcopy(H5T_C_S1),CBF_ALLOC,errorcode);
 
-        cbf_h5reportneg(H5Tset_size(attribtype,strlen(attribtext)+1),CBF_ALLOC,errorcode);
+        cbf_h5reportneg(H5Tset_size(attribtype,strlen(attribtext)),CBF_ALLOC,errorcode);
 
         cbf_h5reportneg(attribid = H5Acreatex(hid,attribname,
                                               attribtype,
