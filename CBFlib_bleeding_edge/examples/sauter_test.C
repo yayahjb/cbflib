@@ -5,10 +5,6 @@
 #include <exception>
 #include <iostream>
 
-#ifdef CBFLIB_MEM_DEBUG
-extern size_t memory_allocated;
-#endif
-
 struct Error : public std::exception {
   std::string s;
   Error(std::string s):s(s){}
@@ -20,10 +16,6 @@ int main() {
   std::string file("adscconverted_flat.cbf");
 
   for (int cc=0; cc<20000; ++cc) {
-#ifdef CBFLIB_MEM_DEBUG 
-    fprintf(stderr,"Iteration %8d\n",cc);
-    fprintf(stderr,"Memory allocated %ld\n",(long)memory_allocated);
-#endif
     cbf_handle cbf_h;
     FILE* private_file = std::fopen(file.c_str(),"rb");
     if (!private_file) throw Error("cbf file BAD_OPEN");

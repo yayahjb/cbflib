@@ -431,7 +431,47 @@ int cbf_get_array_section_id (cbf_handle handle,
                                   unsigned int element_number,
                                   const char **array_section_id);
 
+    /* Determine a rank for an array_section_id
+     as the maximum of the indices in
+     ARRAY_STRUCTURE_LIST_SECTION or by counting the
+     comma-separated components of the name
+     */
 
+    int cbf_get_array_section_rank(cbf_handle handle,
+                                   const char * array_section_id,
+                                   size_t * rank);
+    
+    /* Determine start, end and stride for an array_section_id
+     for a given index, either from  ARRAY_STRUCTURE_LIST_SECTION
+     or by parsing comma-separated components of the name
+     */
+    
+    int cbf_get_array_section_section(cbf_handle handle,
+                                      const char * array_section_id,
+                                      size_t index,
+                                      size_t * start,
+                                      size_t * end,
+                                      long * stride );
+    
+    
+    /* Extract an array_id from an array_section_id either
+     as the entire section id, or as the portion of the
+     string up to the first paren.
+     
+     If this is a valid array_section, the mapping to an
+     array_id in ARRAY_STRUCTURE_LIST_SETCTION takes
+     presedence over parsing the section name.
+     
+     */
+    
+    int cbf_get_array_section_array_id(cbf_handle handle,
+                                       const char * array_section_id,
+                                       const char ** array_id);
+
+
+
+    
+    
   /* Get the array id for a given detector element */
 
 int cbf_get_array_id (cbf_handle handle, unsigned int element_number,
@@ -931,6 +971,21 @@ int cbf_set_real_map_segment_mask (cbf_handle    handle,
 #define cbf_set_real_map_segment_mask_sf(handle, reserved, segment_id, binary_id, compression, array, elsize, ndimslow, ndimmid, ndimfast) \
         cbf_set_real_map_segment_mask ((handle),(reserved),(segment_id),(binary_id),(compression),(array),(elsize),(ndimslow),(ndimmid),(ndimfast) )
 
+
+    /* Get the array parameters */
+    
+int cbf_get_array_arrayparameters (cbf_handle    handle,
+                                       const char   *array_id,
+                                       int          binary_id,
+                                       unsigned int *compression,
+                                       int          *id,
+                                       size_t       *elsize,
+                                       int          *elsigned,
+                                       int          *elunsigned,
+                                       size_t       *nelem,
+                                       int          *minelem,
+                                       int          *maxelem,
+                                       int          *realarray);
 
   /* Get the 3D array size. ndimslow is the slowest dimension, 
                             ndimmid is the next faster dimension,

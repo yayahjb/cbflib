@@ -3567,6 +3567,48 @@ int cbf_get_integervalue (cbf_handle handle, int *number)
   return 0;
 }
 
+    /* Get the (long) numeric value of the current (row, column) entry */
+
+int cbf_get_longvalue (cbf_handle handle, long *number)
+{
+    const char *value;
+    
+    const char *typeofvalue;
+    
+    
+    /* Get the value */
+    
+    cbf_failnez (cbf_get_value (handle, &value))
+    
+    cbf_failnez (cbf_get_typeofvalue (handle, &typeofvalue))
+    
+    if (!typeofvalue || cbf_cistrcmp(typeofvalue,"null") == 0 ) {
+        
+        if (number) *number = 0;
+        
+        return 0;
+        
+    }
+    
+    
+    
+    /* Convert it into an integer */
+    
+    if (!value)
+        
+        return CBF_NOTFOUND;
+    
+    if (number)
+        
+        *number = atol (value);
+    
+    
+    /* Success */
+    
+    return 0;
+}
+
+
 
   /* Get the (double) numeric value of the current (row, column) entry */
 

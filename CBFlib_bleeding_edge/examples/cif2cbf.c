@@ -63,6 +63,7 @@
  *    [-O] \                                                          *
  *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
  *    [--register {manual|plugin}] \                                  *
+ *    [-U n] \                                                        *
  *    [input_cif] [output_cbf]                                        *
  *                                                                    *
  *  the options are:                                                  *
@@ -167,6 +168,9 @@
  *  --register manual or plugin (default plugin)                      *
  *     controls whether to rely on the HDF5 filter plugin mechanism   *
  *     or to manually register the CBFlib compression for HDF5        *
+ *                                                                    *
+ *  --U n                                            *
+ *     test cbf_construct_detector in element_id n                    *
  *                                                                    *
  *  -O when in -5 w (hdf5 write) mode, -O forces the use of opaque    *
  *     objects for CBF binaries                                       *
@@ -405,6 +409,7 @@
 #include "cbf_string.h"
 #include "cbf_copy.h"
 #include "cbf_hdf5.h"
+#include "cbf_alloc.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -598,6 +603,7 @@ int main (int argc, char *argv [])
      *    [-5 {r|w|rw|rn|wn|rwn|n[oH5]} \                                 *
      *    [-O] \                                                          *
      *    [--register {manual|plugin} \                                   *
+     *    [-U n]     \                                   *
      *    [input_cif] [output_cbf]                                        *
      *                                                                    *
      **********************************************************************/
@@ -615,6 +621,8 @@ int main (int argc, char *argv [])
     hdf5mode = 0;
     hdf5noH5 = 0;
     hdf5register = 0;
+    unsigned int elno = 0;
+
 
     cifin = NULL;
     cbfout = NULL;
@@ -647,6 +655,7 @@ int main (int argc, char *argv [])
                                  "v(validation-dictionary):" \
                                  "5(hdf5):" \
                                  "Z(register):" \
+                                 "U(construct-detector):" \
                                  "O(opaque)" \
                                  "w(read-wide)" \
                                  "W(write-wide)" \
@@ -766,7 +775,15 @@ int main (int argc, char *argv [])
                 case 'D':  /* test construct_detector */
                     if (testconstruct) errflg++;
                     else testconstruct = 1;
+                    elno = 0;
                     break;
+
+                case 'U': /* test construct detector on element number n */
+                    if (testconstruct) errflg++;
+                    else testconstruct = 1;
+                    elno = atoi(optarg);
+                    break;
+                    
 
                 case '5': /* set hdf5 flags */
                     if (hdf5mode || hdf5noH5){
@@ -800,6 +817,7 @@ int main (int argc, char *argv [])
                         errflg++;
                     }
                     break;
+                    
                 case 'O': /* set Opaque mode */
                     if (opaquemode) errflg++;
                     opaquemode = 1;
@@ -1028,6 +1046,8 @@ int main (int argc, char *argv [])
                 "    [-O] \\\n");
         fprintf(stderr,
                 "    [--register {manual|plugin}] \\\n");
+        fprintf(stderr,
+                "    [-U n] \\\n");
         fprintf(stderr,
                 "    [input_cif] [output_cbf] \n\n");
         exit(2);
@@ -1804,9 +1824,42 @@ int main (int argc, char *argv [])
     }
 
     if (testconstruct) {
+        void * array;
+        const char * array_id;
+        const char * array_section_id;
+        unsigned int compression;
+        int          id;
+        size_t       elsize;
+        int          elsigned;
+        int          elunsigned;
+        size_t       nelem;
+        int          minelem;
+        int          maxelem;
+        int          realarray;
+        size_t dimslow, dimmid, dimfast;
         cbf_detector detector;
-        cbf_failnez(cbf_construct_detector (cbf, &detector, 0))
+        cbf_failnez(cbf_construct_detector (cbf, &detector, elno))
+        cbf_failnez(cbf_get_3d_image_size(cbf,0,elno,&dimslow,&dimmid,&dimfast));
+        fprintf(stderr,"dimslow = %ld, dimmid = %ld, dimfast = %ld\n",(long)dimslow,(long)dimmid,(long)dimfast);
+        cbf_failnez(cbf_get_array_id(cbf,elno,&array_id));
+        cbf_failnez(cbf_get_array_section_id(cbf,elno,&array_section_id));
+        cbf_failnez(cbf_get_array_arrayparameters (cbf,
+                                                   array_id,
+                                                   0,
+                                                   &compression,
+                                                   &id,
+                                                   &elsize,
+                                                   &elsigned,
+                                                   &elunsigned,
+                                                   &nelem,
+                                                   &minelem,
+                                                   &maxelem,
+                                                   &realarray));
+        cbf_failnez(cbf_alloc(&array,NULL,1,dimslow*dimmid*dimfast*elsize));
+        cbf_failnez(cbf_get_image(cbf,0,elno,array,elsize,elsigned,dimmid,dimfast));
+        
         cbf_free_detector (detector);
+        
     }
 
 

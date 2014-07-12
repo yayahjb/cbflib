@@ -259,11 +259,6 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-
-#ifdef CBFLIB_MEM_DEBUG
-size_t memory_allocated;
-#endif
-
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
@@ -294,8 +289,7 @@ int cbf_realloc (void **old_block, size_t *old_nelem,
 
     /* Allocate the memory */
 
-  if (nelem > 0)
-  {
+  if (nelem > 0) {
   
 #ifdef CBFLIB_MEM_DEBUG
 
@@ -303,32 +297,17 @@ int cbf_realloc (void **old_block, size_t *old_nelem,
 
 #endif
     
-    new_block = malloc (nelem * elsize + sizeof(size_t));
+    new_block = malloc (nelem * elsize);
 
     if (!new_block)
 
       return CBF_ALLOC;
     
-    *(size_t *)new_block = nelem * elsize;
-
-#ifdef CBFLIB_MEM_DEBUG
-
-    fprintf(stderr, "allocated %ld size %ld\n",(long)new_block,(long)(nelem * elsize));
-    
-    cnew_block = (char *)new_block;
-      
-    cnew_block += sizeof(size_t);
-    
-    new_block = (void *)cnew_block;
-    
-    memory_allocated += nelem * elsize;
-    
-#endif
-
-  }
-  else
+  } else {
 
     new_block = NULL;
+
+  }
 
 
     /* Copy the old data */
@@ -349,22 +328,6 @@ int cbf_realloc (void **old_block, size_t *old_nelem,
 
   if (*old_block)  {
   
-#ifdef CBFLIB_MEM_DEBUG
-  
-    char * cold_block;
-    
-    cold_block = (void *)(*old_block);
-  
-    (cold_block) -= sizeof(size_t);
-    
-    *old_block = (char *)cold_block;
-  
-    memory_allocated -= *(size_t *)(*old_block); 
-    
-    fprintf(stderr, "freeing %ld size %ld\n",(long)(*old_block),(long)(*(size_t *)(*old_block)));
-
-#endif
-
     free (*old_block);
     
   }
@@ -457,22 +420,6 @@ int cbf_free (void **old_block, size_t *old_nelem)
     /* Free the memory */
 
   if (*old_block)  {
-
-#ifdef CBFLIB_MEM_DEBUG
-  
-    char * cold_block;
-    
-    cold_block = (void *)(*old_block);
-  
-    (cold_block) -= sizeof(size_t);
-    
-    *old_block = (char *)cold_block;
-  
-    memory_allocated -= *(size_t *)(*old_block); 
-    
-    fprintf(stderr,"freeing %ld size %ld\n",(long)(*old_block),(long)(*(size_t *)(*old_block)));
-
-#endif
 
     free (*old_block);
     

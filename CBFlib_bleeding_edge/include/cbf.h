@@ -790,6 +790,15 @@ cbf_handle_struct;
 typedef cbf_handle_struct *cbf_handle;
 
 
+    /* 3D array 1-based indexing macro */
+    
+#define cbf_offset_1_3(i,j,k,dimfast,dimmid) ((i-1)+(dimfast)*(j-1)+(dimfast)*(dimmid)*(k-1))
+    
+    /* 3D array 0-based indexing macro */
+    
+#define cbf_offset_0_3(i,j,k,dimfast,dimmid) ((i)+(dimfast)*(j)+(dimfast)*(dimmid)*(k))
+
+
   /* Prototypes */
 
   /* Create a handle */
@@ -1171,6 +1180,11 @@ int cbf_set_typeofvalue (cbf_handle handle, const char *typeofvalue);
   /* Get the (int) numeric value of the current (row, column) entry */
   
 int cbf_get_integervalue (cbf_handle handle, int *number);
+
+
+  /* Get the (long) numeric value of the current (row, column) entry */
+  
+int cbf_get_longvalue (cbf_handle handle, long *number);
 
 
   /* Get the (double) numeric value of the current (row, column) entry */

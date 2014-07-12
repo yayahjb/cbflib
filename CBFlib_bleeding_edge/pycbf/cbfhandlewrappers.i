@@ -4348,6 +4348,12 @@ SEE ALSO
     void set_datablockname(const char* arg){
       cbf_failnez(cbf_set_datablockname(self,arg));}
 
+/* cfunc cbf_get_element_number   pyfunc get_element_number  
+   arg cbf_handle handle    arg const char *element_id    arg const char *array_id    arg const char *array_section_id    arg unsigned int      *element_number */
+
+     void get_element_number(void){
+        cbf_failnez(CBF_NOTIMPLEMENTED);}
+
 /* cfunc cbf_set_crystal_id   pyfunc set_crystal_id  
    arg cbf_handle handle    arg const char *crystal_id */
 
@@ -7248,9 +7254,18 @@ C prototype: int cbf_get_element_id (cbf_handle handle,
 
 CBFLib documentation:
 DESCRIPTION
-cbf_get_element_id sets *element_id to point to the ASCII value of 
-the element_number'th  \"diffrn_data_frame.detector_element_id \" 
-entry, counting from 0.
+cbf_get_element_number sets element_number to a number that can be 
+used in other cbf_simple calls to identify the detector element 
+element_id and optionally the specific array_id> and 
+array_section_id. cbf_get_element_id sets *element_id to point to the 
+ASCII value of the element_number'th  
+\"diffrn_data_frame.detector_element_id \" entry, counting from 0. 
+The element_number is the ordinal of the detector element in the 
+DIFFRN_DETECTOR_ELEMENT category. If an array_section_id is specified 
+(i.e. is not NULL), the element_number is the sum of the ordinal of 
+the detector element plus the number of detector elements multiplied 
+by the ordinal of array_section_id for the specified array_id> in the 
+ARRAY_STRUCTURE_LIST_SECTION category.
 If the detector element does not exist, the function returns 
 CBF_NOTFOUND.
 The element_id will be valid as long as the item exists and has not 
@@ -7260,7 +7275,9 @@ ARGUMENTS
 handle           CBF handle. element_number   The number of the 
 detector element counting from 0 by order of appearance in the  
 \"diffrn_data_frame \" category. element_id       Pointer to the 
-destination.
+destination string for cbf_get_element_id, but the string itself for 
+cbf_get_element_number. array_id           The optional array id or 
+NULL. array_section_id   The optional array_section_id or NULL.
 RETURN VALUE
 Returns an error code on failure or 0 for success.
 ----------------------------------------------------------------------

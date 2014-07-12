@@ -717,7 +717,7 @@ http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz</a>
 	  <LI><A HREF="#2.4.10">2.4.10 cbf_get_divergence</a>
 	  <LI><A HREF="#2.4.11">2.4.11 cbf_set_divergence</a>
 	  <LI><A HREF="#2.4.12">2.4.12 cbf_count_elements</a>
-	  <LI><A HREF="#2.4.13">2.4.13 cbf_get_element_id</a>
+	  <LI><A HREF="#2.4.13">2.4.13 cbf_get_element_number, cbf_get_element_id</a>
 	  <LI><A HREF="#2.4.14">2.4.14 cbf_get_gain</a>
 	  <LI><A HREF="#2.4.15">2.4.15 cbf_set_gain</a>
 	  <LI><A HREF="#2.4.16">2.4.16 cbf_get_overload</a>
@@ -4692,15 +4692,28 @@ cbf_count_elements sets *<i>elements</i>  to the number of detector elements.
 
 <p>Returns an error code on failure or 0 for success.
 <p><hr /><P>
-<h4><A NAME="2.4.13">2.4.13 cbf_get_element_id</A></h4>
+<h4><A NAME="2.4.13">2.4.13 cbf_get_element_number, cbf_get_element_id</A></h4>
 <p><b>PROTOTYPE</b>
 <p>#include "cbf_simple.h"
 <p>
+int cbf_get_element_number(cbf_handle <i>handle</i>, const char <i>*element_id</i>,
+    const char <i>*array_id</i>,
+    const char <i>*array_section_id</i>,
+    unsigned int <i>*element_number</i>);<br />
 int cbf_get_element_id (cbf_handle <i>handle</i>, unsigned int <i>element_number</i>, const char **<i>element_id</i>);
 <p>
 <b>DESCRIPTION</b>
 <p>
+cbf_get_element_number sets <i>element_number</i> to a number that can be used
+    in other cbf_simple calls to identify the detector element <i>element_id</i>
+    and optionally the specific <i>array_id> and <i>array_section_id</i>.  
 cbf_get_element_id sets *<i>element_id</i> to point to the ASCII value of the <i>element_number</i>'th &quot;diffrn_data_frame.detector_element_id&quot; entry, counting from 0.
+    The <i>element_number</i> is the ordinal of the detector element in the
+    DIFFRN_DETECTOR_ELEMENT category.  If an <i>array_section_id</a> is
+    specified (i.e. is not NULL), the <i>element_number</i> is the sum of
+    the ordinal of the detector element plus the number of detector elements
+    multiplied by the ordinal of <i>array_section_id</i> for the specified
+    <i>array_id> in the ARRAY_STRUCTURE_LIST_SECTION category.
 <p>
 If the detector element does not exist, the function returns CBF_NOTFOUND.
 <p>
@@ -4712,7 +4725,11 @@ The <i>element_id</i> must not be modified by the program in any way.
 <TABLE>
 <TR><td valign="top">&nbsp;&nbsp;<i>handle</i><td valign="top">&nbsp;&nbsp;CBF handle.
 <TR><td valign="top">&nbsp;&nbsp;<i>element_number</i><td valign="top">&nbsp;&nbsp;The number of the detector element counting from 0 by order of appearance in the &quot;diffrn_data_frame&quot; category.
-<TR><td valign="top">&nbsp;&nbsp;<i>element_id</i><td valign="top">&nbsp;&nbsp;Pointer to the destination.
+<TR><td valign="top">&nbsp;&nbsp;<i>element_id</i><td valign="top">&nbsp;&nbsp;Pointer to the destination
+    string for cbf_get_element_id, but the string itself for cbf_get_element_number.
+<TR><td valign="top">&nbsp;&nbsp;<i>array_id</i><td valign="top">&nbsp;&nbsp;The optional array id or NULL.
+<TR><td valign="top">&nbsp;&nbsp;<i>array_section_id</i><td valign="top">&nbsp;&nbsp;The optional
+    array_section_id or NULL.
 </TABLE>
 <p>
 <b>RETURN VALUE</b>

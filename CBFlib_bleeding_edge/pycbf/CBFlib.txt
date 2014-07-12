@@ -10,8 +10,8 @@
 
                              An API for CBF/imgCIF
                 Crystallographic Binary Files with ASCII Support
-                                 Version 0.9.3
-                                13 October 2013
+                                 Version 0.9.5
+                                 27 April 2014
 
                                        by
                                  Paul J. Ellis
@@ -22,7 +22,7 @@
                                 Bernstein + Sons
                       yaya at bernstein-plus-sons dot com
 
-        (c) Copyright 2006, 2007, 2008, 2011, 2013 Herbert J. Bernstein
+     (c) Copyright 2006, 2007, 2008, 2011, 2013, 2014 Herbert J. Bernstein
 
      ----------------------------------------------------------------------
 
@@ -231,6 +231,18 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                                        unit tests for the low-level 'cbf_H5*' 
                                        functions. Add initial FEL detector    
                                        support.                               
+     0.9.4     March 2014      JS, HJB   Refactored implementation of the     
+                                       NXMX application defintion functional  
+                                       mapping with improvements to cmake     
+                                       support and a preliminary effort at    
+                                       handling Stokes polarization mapping.  
+                                       This release had serious issues in the 
+                                       functional mapping axis mapping and    
+                                       should not be used for production      
+                                       involving NeXus files.                 
+     0.9.5     April 2014      HJB       This is a production release for     
+                                       single detector module single crystal  
+                                       MX NeXus support.                      
 
      ----------------------------------------------------------------------
 
@@ -255,15 +267,15 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    In order to work with CBFlib, you need:
 
-     * the source code, in the form of a "gzipped" tar,
-       CBFlib_0.9.2.11.tar.gz; and
+     * the source code, in the form of a "gzipped" tar, CBFlib_0.9.5.tar.gz;
+       and
      * the test data:
-          * CBFlib_0.9.2.11_Data_Files_Input.tar.gz (17 MB) a "gzipped" tar
-            of the input data files needed to test the API;
-          * CBFlib_0.9.2.11_Data_Files_Output.tar.gz (36 MB) a "gzipped" tar
-            of the output data files needed to test the API, or, if space is
-            at a premium;
-          * CBFlib_0.9.2.11_Data_Files_Output_Sigs_Only.tar.gz (1 KB) is a
+          * CBFlib_0.9.5_Data_Files_Input.tar.gz (17 MB) a "gzipped" tar of
+            the input data files needed to test the API;
+          * CBFlib_0.9.5_Data_Files_Output.tar.gz (36 MB) a "gzipped" tar of
+            the output data files needed to test the API, or, if space is at
+            a premium;
+          * CBFlib_0.9.5_Data_Files_Output_Sigs_Only.tar.gz (1 KB) is a
             "gzipped" tar of only the MD5 signatures of the output data files
             needed to test the API.
 
@@ -276,7 +288,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
    Uncompress and unpack :
 
-     * gunzip < CBFlib_0.9.2.11.tar.gz | tar xvf -
+     * gunzip < CBFlib_0.9.5.tar.gz | tar xvf -
 
    To run the test programs, you will also need Paul Ellis's sample MAR345
    image, example.mar2300, Chris Nielsen's sample ADSC Quantum 315 image,
@@ -307,7 +319,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
        under bash is:
 
  export CBFLIB_USE_PYCIFRW=yes
- cd CBFlib_0.9.2.11
+ cd CBFlib_0.9.5
  touch m4/Makefile.m4
  make Makefiles
 
@@ -337,12 +349,12 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
    environment
 
    We have included examples of CBF/imgCIF files produced by CBFlib in the
-   test data CBFlib_0.9.2.11_Data_Files_Output.tar.gz, the current best draft
-   of the CBF Extensions Dictionary, and of Andy Hammersley's CBF definition,
+   test data CBFlib_0.9.5_Data_Files_Output.tar.gz, the current best draft of
+   the CBF Extensions Dictionary, and of Andy Hammersley's CBF definition,
    updated to become a DRAFT CBF/ImgCIF DEFINITION.
 
-   CBFlib 0.9.2.11 includes a program, tiff2cbf, to convert from tiff files
-   to CBF files, that requires an augmented version of tiff-3.9.4 called
+   CBFlib 0.9.5 includes a program, tiff2cbf, to convert from tiff files to
+   CBF files, that requires an augmented version of tiff-3.9.4 called
    tiff-3.9.4-rev-6Feb11, that installs into the CBFlib_0.9.2.11 directory.
    If a system copy is desired, download and install
    http://downloads.sf.net/cbflib/tiff-3.9.4-rev-6Feb11.tar.gz
@@ -472,7 +484,7 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
                * 2.4.10 cbf_get_divergence
                * 2.4.11 cbf_set_divergence
                * 2.4.12 cbf_count_elements
-               * 2.4.13 cbf_get_element_id
+               * 2.4.13 cbf_get_element_number, cbf_get_element_id
                * 2.4.14 cbf_get_gain
                * 2.4.15 cbf_set_gain
                * 2.4.16 cbf_get_overload
@@ -4208,20 +4220,31 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
 
      ----------------------------------------------------------------------
 
-    2.4.13 cbf_get_element_id
+    2.4.13 cbf_get_element_number, cbf_get_element_id
 
      PROTOTYPE
 
      #include "cbf_simple.h"
 
+     int cbf_get_element_number(cbf_handle handle, const char *element_id,
+     const char *array_id, const char *array_section_id, unsigned int
+     *element_number);
      int cbf_get_element_id (cbf_handle handle, unsigned int element_number,
      const char **element_id);
 
      DESCRIPTION
 
+     cbf_get_element_number sets element_number to a number that can be used
+     in other cbf_simple calls to identify the detector element element_id
+     and optionally the specific array_id> and array_section_id.
      cbf_get_element_id sets *element_id to point to the ASCII value of the
      element_number'th "diffrn_data_frame.detector_element_id" entry,
-     counting from 0.
+     counting from 0. The element_number is the ordinal of the detector
+     element in the DIFFRN_DETECTOR_ELEMENT category. If an array_section_id
+     is specified (i.e. is not NULL), the element_number is the sum of the
+     ordinal of the detector element plus the number of detector elements
+     multiplied by the ordinal of array_section_id for the specified
+     array_id> in the ARRAY_STRUCTURE_LIST_SECTION category.
 
      If the detector element does not exist, the function returns
      CBF_NOTFOUND.
@@ -4234,10 +4257,14 @@ for important disclaimers and the IUCr Policy on the Use of the Crystallographic
      ARGUMENTS
 
        handle           CBF handle.                                           
-       element_number   The number of the detector element counting from 0 by 
-                      order of appearance in the "diffrn_data_frame"          
+       element_number     The number of the detector element counting from 0  
+                        by order of appearance in the "diffrn_data_frame"     
                       category.                                               
-       element_id       Pointer to the destination.                           
+       element_id         Pointer to the destination string for               
+                        cbf_get_element_id, but the string itself for         
+                        cbf_get_element_number.                               
+       array_id           The optional array id or NULL.                      
+       array_section_id   The optional array_section_id or NULL.              
 
      RETURN VALUE
 
@@ -12113,4 +12140,4 @@ src/                      include/             m4/                  Description
 
      ----------------------------------------------------------------------
 
-     Updated 11 Feb 2014. Contact:  yaya at bernstein-plus-sons dot com
+     Updated 27 April 2014. Contact:  yaya at bernstein-plus-sons dot com
