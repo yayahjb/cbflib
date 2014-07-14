@@ -3285,7 +3285,7 @@ extern "C" {
                         section_offset = elsize*cbf_offset_0_3(iii,jjj,kkk,sectiondim[0],sectiondim[1]);
                         /* fprintf(stderr,"ii,jj,kk: %d %d %d array_offset: %ld,iii,jjj,kkk: %d %d %d section_offset: %ld\n",
                                 ii,jj,kk,(unsigned long)array_offset,iii,jjj,kkk,(unsigned long)section_offset); */
-                        memcpy(array+section_offset,temparray+array_offset,elsize);
+                        memcpy(((char *)array)+section_offset,((char *)temparray)+array_offset,elsize);
                                                             
                     }
                 }
@@ -3690,7 +3690,7 @@ extern "C" {
                         iii = (ii-start[0])/stride[0];
                         array_offset = elsize*cbf_offset_1_3(ii,jj,kk,xdimfast,xdimmid);
                         section_offset = elsize*cbf_offset_0_3(iii,jjj,kkk,sectiondim[0],sectiondim[1]);
-                        memcpy(temparray+array_offset,array+section_offset,elsize);
+                        memcpy(((char *)temparray)+array_offset,((char *)array)+section_offset,elsize);
                         
                     }
                 }
