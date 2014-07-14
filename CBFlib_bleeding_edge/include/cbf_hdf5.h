@@ -870,7 +870,8 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
 		const char * nxgoniometer_name;
 		const char * nxmonochromator_name;
 		const char * nxsource_name;
-        const cbf_handle scratch_tables;
+        const char * nxfilename;
+        cbf_handle scratch_tables;
         FILE * logfile;
     }
     cbf_h5handle_struct;
@@ -1225,8 +1226,35 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                                   double matrix [3][3]);
     
     
+    
+    /* Get a nexus detector name */
+    
+    int cbf_get_NX_detector_name(cbf_h5handle h5handle,
+                                 unsigned int row,
+                                 const char * * detector_element);
+
+    
+    /* Set a nexus detector name */
+    
+    int cbf_set_NX_detector_name(cbf_h5handle h5handle, const char * detector_element);
+    
+    /* Count the nexus detector names */
+    
+    int cbf_count_NX_detector_names(cbf_h5handle h5handle, unsigned int * count);
+    
+    /* Get the nexus path of an axis, if previously set */
+    
+    int cbf_get_NX_axis_path(cbf_h5handle h5handle, const char * axis_id, const char * * nexus_path);
+
+    /* Set the nexus path of an axis */
+    
+    int cbf_set_NX_axis_path(cbf_h5handle h5handle, const char * axis_id, const char * nexus_path);
+
+    
+    
     /* Write the HDF5 version of the NeXus axis definitions, if
      the original CBF had axis definitions */
+    
     
     int cbf_write_h5nxaxes(cbf_handle handle, cbf_h5handle h5handle);
     
@@ -1266,6 +1294,25 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                                    const char* attribname,
                                    const char* attribtext,
                                    int errorcode);
+
+    /* apply a text attribute slab to a dataset
+     
+     Actually works with a text data set and makes
+     the attribute be an object reference to that
+     dataset.  The name of the dataset is the
+     name of the attribute with the optional
+     prefix and suffix
+     
+     */
+    
+    int cbf_add_h5text_attribute_slab(hid_t datasetid,
+                                      hid_t groupid,
+                                      const char* attributename,
+                                      const char* attributetext,
+                                      const char* datasetnameprefix,
+                                      const char* datasetnamesuffix,
+                                      const hsize_t slab,
+                                      int errorcode);
 
     /* apply a text dataset slab to a group
      
