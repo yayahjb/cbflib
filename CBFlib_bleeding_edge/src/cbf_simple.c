@@ -860,11 +860,539 @@ extern "C" {
         
     }
 
+    int cbf_get_array_section_type (cbf_handle handle,
+                                    const char *array_id,
+                                    int * bits, int * sign, int * real) {
+        
+        
+        const char * xarray_id;
+        
+        const char * encoding_type;
+        
+        char * ptr;
+        
+        int xbits, xsign, xreal;
+        
+        int failure = 3;
+        
+        if (!handle || !array_id ) return CBF_ARGUMENT;
+        
+        cbf_failnez(cbf_get_array_section_array_id(handle,array_id,&xarray_id));
+        
+        if (!cbf_find_category(handle,"array_structure")
+            &&!cbf_find_column(handle,"id")
+            &&!cbf_rewind_row(handle)
+            &&!cbf_find_row(handle,"xarray_id")
+            &&!cbf_find_column(handle,"encoding_type")
+            &&!cbf_get_value(handle,&encoding_type)
+            &&encoding_type) {
+            
+            ptr = (char *)encoding_type;
+            
+            xbits = 32;
+            
+            xsign = 1;
+            
+            xreal = 0;
+            
+            failure = 3;
+            
+            while (*ptr) {
+                
+                if (*ptr==' '||*ptr=='\t'||*ptr=='\n'||*ptr=='\r') {
+                    
+                    ptr++; continue;
+                    
+                }
+                
+                if (cbf_cistrncmp(ptr,"signed", 6) == 0) {
+                    
+                    ptr += 6;  xsign = 1; failure--; continue;
+
+                }
+
+                if (cbf_cistrncmp(ptr,"unsigned", 8) == 0) {
+                    
+                    ptr += 8;  xsign = 0; failure--; continue;
+                    
+                }
+                
+                if (failure == 2) {
+                    
+                    int count;
+                    
+                    count = 0;
+                    
+                    sscanf (ptr, "%d-%n", &xbits, &count);
+                    
+                    if (cbf_cistrncmp (ptr+count, "bit", 3 ) == 0) {
+                        
+                        if (count && xbits > 0 && xbits <= 64)
+                        {
+                            ptr += count;
+                            
+                            if (*ptr == ' '||*ptr=='\t'||*ptr=='\n'||*ptr=='\r' ) ptr++;
+                            
+                            failure --;
+                        }
+
+                    }
+                }
+                if (failure == 1) {
+                    
+                    if (cbf_cistrncmp (ptr, "integer", 7 ) == 0) {
+                        
+                        ptr+= 7; xreal = 0; failure--;
+                        
+                     } else {
+                        
+                        if (cbf_cistrncmp(ptr, "real", 4 ) == 0 ) {
+                            
+                            ptr+=4;  if(*ptr == ' '||*ptr=='\t'||*ptr=='\n'||*ptr=='\r') ptr++;
+                            
+                            if (cbf_cistrncmp(ptr, "ieee", 4 ) == 0 ) {
+                                
+                                ptr+= 4; xreal = 1; failure--;
+                                
+                            }
+                            
+                        } else {
+                            
+                            if (cbf_cistrncmp(ptr, "complex", 7 ) == 0 ) {
+                                
+                                ptr+=7;  if(*ptr == ' '||*ptr=='\t'||*ptr=='\n'||*ptr=='\r') ptr++;
+                                
+                                if (cbf_cistrncmp(ptr, "ieee", 4 ) == 0 ) {
+                                    
+                                    ptr+=4; xreal = 1; failure--;
+                                    
+                                }
+                                
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                }
+                
+            }
+            
+            if (!failure) {
+                
+                if (bits) *bits = xbits;
+                
+                if (sign) *sign = xsign;
+                
+                if (real) *real = xreal;
+                
+                return CBF_SUCCESS;
+                
+            }
+            
+        }
+        
+        /* as a fall-back for miniCBFs, try to get the information
+         from the data */
+            
+        if (!cbf_find_category(handle,"array_data")
+            &&!cbf_find_column(handle,"array_id")
+            &&!cbf_rewind_row(handle)
+            &&!cbf_find_row(handle,"xarray_id")
+            &&!cbf_find_column(handle,"data")){
+            
+            int elsigned, elunsigned, realarray;
+            
+            size_t elsize;
+            
+            cbf_failnez(cbf_get_arrayparameters(handle,NULL,NULL,&elsize,&elsigned,&elunsigned,NULL,NULL,NULL,&realarray));
+            
+            if (real) *real = realarray;
+            
+            if (sign) *sign = elsigned;
+            
+            if (bits) *bits = CHAR_BIT*elsize;
+            
+            return CBF_SUCCESS;
+            
+        }
+
+        return CBF_NOTFOUND;
+        
+    }
+    
+    
+    /* Get the size of an array or array section.  The arrray dim
+       is filled with dimesions from fast to slow up to rank.  Unused
+       dimensions are set to 1.  rank must be at least 1 and not more
+       than 100*/
+    
+    int cbf_get_array_section_size (cbf_handle    handle,
+                               const char   *array_id,
+                               size_t       rank,
+                               size_t       *dims)
+    {
+        
+        int done [rank], precedence;
+        
+        size_t kdim[rank];
+        
+        int ii;
+        
+        const char * xarray_id;
+        
+        if (rank < 1 || rank > 100 || !dims)
+                    
+            return CBF_ARGUMENT;
+        
+        for (ii=0; ii < rank; ii++) dims[ii] = 1;
+        
+        /* If array_id is NULL, try directly from the first entry
+         in _array_data.data */
+        
+        if (!array_id) {
+            
+            size_t nelem;
+            
+            unsigned int compression;
+            
+            if (rank > 3) return CBF_ARGUMENT;
+            
+            cbf_failnez (cbf_find_category (handle, "array_data"))
+            
+            cbf_failnez (cbf_find_column(handle,"data"))
+            
+            cbf_failnez (cbf_rewind_row(handle))
+            
+            cbf_failnez (cbf_get_arrayparameters_wdims(handle,
+                                                       &compression,NULL,NULL,NULL,NULL,&nelem,NULL,NULL,NULL,NULL,
+                                                       dims,kdim+1,kdim+2,NULL));
+            if (rank > 1) {
+                
+                dims[1] = kdim[1];
+                
+                if (dims[1] == 0) dims[1] = 1;
+                
+            }
+            
+            if (rank > 2) {
+                
+                dims[2] = kdim[2];
+                
+                if (dims[2] == 0) dims[2] = 1;
+                
+            }
+            
+            if (dims[0] == 0) dims[0] = 1;
+
+                        
+            return CBF_SUCCESS;
+            
+        }
+        
+        /* See if this is an array section is or an array id */
+        
+        cbf_failnez(cbf_get_array_section_array_id(handle,array_id,&xarray_id));
+        
+        if (cbf_cistrcmp(array_id,xarray_id)) {
+            
+            /* This is actually an array section */
+            
+            size_t index;
+            
+            size_t kstart,kend;
+            
+            long kstride;
+            
+            for (index = 1L; index < rank+1; index++) {
+                
+                /* fprintf(stderr,"cbf_get_array_section_section array_id = '%s'"
+                 ", xarray_id = '%s'"
+                 ", index= %d\n",array_id,xarray_id,index); */
+                
+                cbf_failnez(cbf_get_array_section_section(handle,
+                                                          array_id,
+                                                          index,&kstart,
+                                                          &kend,
+                                                          &kstride));
+                
+                dims[index-1] = kend - kstart;
+                
+                if (kdim[index-1] < 0) dims[index-1] = -dims[index-1];
+                
+                if (kstride < 0) kstride = -kstride;
+                
+                if (kstride == 0) kstride = 1;
+                
+                dims[index-1] += kstride;
+                
+                dims[index-1] /= kstride;
+                
+            }
+            
+            return CBF_SUCCESS;
+            
+        }
+        
+        /* Get the dimensions from the array_structure_list category */
+        
+        for (ii = 0; ii < rank; ii++) {
+            
+            done[ii] = 0;
+            
+        };
+                
+        cbf_failnez (cbf_find_category (handle, "array_structure_list"));
+        cbf_failnez (cbf_find_column   (handle, "array_id"));
+        
+        while (cbf_find_nextrow (handle, array_id) == 0)
+        {
+            long xdim;
+            
+            cbf_failnez (cbf_find_column      (handle, "precedence"));
+            cbf_failnez (cbf_get_integervalue (handle, &precedence));
+            
+            if (precedence < 1 || precedence > rank)
+                
+                return CBF_FORMAT;
+            
+            cbf_failnez (cbf_find_column      (handle, "dimension"));
+            cbf_failnez (cbf_get_longvalue    (handle, &xdim));
+            dims[precedence-1] = xdim;
+            
+            if (done [precedence-1])
+                
+                return CBF_FORMAT;
+            
+            done [precedence-1] = 1;
+            
+            cbf_failnez (cbf_find_column (handle, "array_id"));
+        }
+        
+        for (ii=0; ii < rank; ii++) {
+            
+            if (dims[ii] == 0) dims[ii] = 1;
+            
+        }
+        
+        if (!done [1])
+            
+            return CBF_NOTFOUND;
+        
+        
+        return CBF_SUCCESS;
+    }
+
+    
+    
+    /* Get the size, origins and strides of an array or array section.  
+     The arrray dim is filled with dimesions from fast to slow up to rank.  
+     Unused dimensions are set to 1.  rank must be at least 1 and not more
+     than 100*  Unused strides are set to 1, unused origins are set to 1*/
+    
+    int cbf_get_array_section_sizes (cbf_handle    handle,
+                                    const char   *array_id,
+                                    size_t       rank,
+                                    size_t       *dims,
+                                    size_t       *origins,
+                                    long         *strides)
+    {
+        
+        int done [rank], precedence;
+        
+        size_t kdim[rank];
+        
+        int ii;
+        
+        const char * xarray_id;
+        
+        if (rank < 1 || rank > 100 || !dims)
+            
+            return CBF_ARGUMENT;
+        
+        for (ii=0; ii < rank; ii++) {
+            
+            if (dims) dims[ii] = 1;
+            
+            if (strides) strides[ii] = 1;
+            
+            if (origins) origins[ii] = 1;
+            
+        }
+            
+        
+        /* If array_id is NULL, try directly from the first entry
+         in _array_data.data */
+        
+        if (!array_id) {
+            
+            size_t nelem;
+            
+            unsigned int compression;
+            
+            if (rank > 3) return CBF_ARGUMENT;
+            
+            cbf_failnez (cbf_find_category (handle, "array_data"))
+            
+            cbf_failnez (cbf_find_column(handle,"data"))
+            
+            cbf_failnez (cbf_rewind_row(handle))
+            
+            cbf_failnez (cbf_get_arrayparameters_wdims(handle,
+                                                       &compression,NULL,NULL,NULL,NULL,&nelem,NULL,NULL,NULL,NULL,
+                                                       kdim,kdim+1,kdim+2,NULL));
+            if (dims) {
+                
+                dims[0] = kdim[0];
+                
+                if (dims[0] == 0) dims[0] = 1;
+                
+            }
+            
+            if (rank > 1 && dims) {
+                
+                dims[1] = kdim[1];
+                
+                if (dims[1] == 0) dims[1] = 1;
+                
+            }
+            
+            if (rank > 2 && dims ) {
+                
+                dims[2] = kdim[2];
+                
+                if (dims[2] == 0) dims[2] = 1;
+                
+            }
+                        
+            return CBF_SUCCESS;
+            
+        }
+        
+        /* See if this is an array section is or an array id */
+        
+        cbf_failnez(cbf_get_array_section_array_id(handle,array_id,&xarray_id));
+        
+        if (cbf_cistrcmp(array_id,xarray_id)) {
+            
+            /* This is actually an array section */
+            
+            size_t index;
+            
+            size_t kstart,kend;
+            
+            long kstride;
+            
+            for (index = 1L; index < rank+1; index++) {
+                
+                /* fprintf(stderr,"cbf_get_array_section_section array_id = '%s'"
+                 ", xarray_id = '%s'"
+                 ", index= %d\n",array_id,xarray_id,index); */
+                
+                cbf_failnez(cbf_get_array_section_section(handle,
+                                                          array_id,
+                                                          index,&kstart,
+                                                          &kend,
+                                                          &kstride));
+                
+                
+                if (strides) {
+                    
+                    strides[index-1] = kstride;
+                    
+                }
+                
+                if (origins) {
+                    
+                    origins[index-1] = kend;
+                    
+                }
+
+
+                if (dims) {
+                    
+                    dims[index-1] = kend - kstart;
+                    
+                    if (kdim[index-1] < 0) dims[index-1] = -dims[index-1];
+                    
+                    if (kstride < 0) kstride = -kstride;
+                    
+                    if (kstride == 0) kstride = 1;
+                    
+                    dims[index-1] += kstride;
+                    
+                    dims[index-1] /= kstride;
+                    
+                }
+                
+                 
+            }
+            
+            return CBF_SUCCESS;
+            
+        }
+        
+        /* Get the dimensions from the array_structure_list category */
+        
+        for (ii = 0; ii < rank; ii++) {
+            
+            done[ii] = 0;
+            
+        };
+        
+        cbf_failnez (cbf_find_category (handle, "array_structure_list"));
+        cbf_failnez (cbf_find_column   (handle, "array_id"));
+        
+        while (cbf_find_nextrow (handle, array_id) == 0)
+        {
+            long xdim;
+            
+            cbf_failnez (cbf_find_column      (handle, "precedence"));
+            cbf_failnez (cbf_get_integervalue (handle, &precedence));
+            
+            if (precedence < 1 || precedence > rank)
+                
+                return CBF_FORMAT;
+            
+            cbf_failnez (cbf_find_column      (handle, "dimension"));
+            cbf_failnez (cbf_get_longvalue    (handle, &xdim));
+            dims[precedence-1] = xdim;
+            
+            if (done [precedence-1])
+                
+                return CBF_FORMAT;
+            
+            done [precedence-1] = 1;
+            
+            cbf_failnez (cbf_find_column (handle, "array_id"));
+        }
+        
+        for (ii=0; ii < rank; ii++) {
+            
+            if (dims[ii] == 0) dims[ii] = 1;
+            
+        }
+        
+        if (!done [1])
+            
+            return CBF_NOTFOUND;
+        
+        
+        return CBF_SUCCESS;
+    }
+    
+
+    
     /* Determine a rank for an array_section_id 
      as the maximum of the indices in 
      ARRAY_STRUCTURE_LIST_SECTION or by counting the
      comma-separated components of the name
+     
+     If the array_section_id is actually an array_id,
+     the rank is computed from ARRAY_STRUCTURE_LIST
+     
      */
+    
     
     int cbf_get_array_section_rank(cbf_handle handle,
                                    const char * array_section_id,
@@ -872,15 +1400,59 @@ extern "C" {
         
         const char * ptr;
         
+        const char * array_id;
+        
         size_t len;
         
         int index;
         
-        int error;
+        int error = 0;
         
         if ( !handle
             || !array_section_id
             || !rank ) return CBF_ARGUMENT;
+        
+        /* See if this is an array id */
+        
+        if (!cbf_get_array_section_array_id(handle,array_section_id,&array_id)
+            && array_id
+            && !cbf_cistrcmp(array_section_id,array_id)) {
+            
+            long precedence, maxprecedence;
+            
+            maxprecedence = 0;
+            
+            if (!cbf_find_category(handle,"array_structure_list")
+                && !cbf_find_column(handle,"array_id")
+                && !cbf_rewind_row(handle)
+                && !cbf_find_row(handle,array_id)) {
+                
+                do {
+                    
+                    cbf_failnez(cbf_find_column(handle,"precedence"));
+                    
+                    cbf_failnez(cbf_get_longvalue(handle,&precedence));
+                    
+                    if (precedence > maxprecedence) maxprecedence = precedence;
+        
+                    cbf_failnez(cbf_find_column(handle,"array_id"));
+                }
+                
+                while (!cbf_find_nextrow(handle,array_id));
+                
+                if (maxprecedence > 0) {
+                    
+                    *rank = (size_t)maxprecedence;
+                    
+                    return CBF_SUCCESS;
+                    
+                }
+                 
+            }
+
+            
+            
+        }
         
         
         /* Try for the explicit mapping */
@@ -936,7 +1508,9 @@ extern "C" {
             
             if (*ptr == ')') return CBF_SUCCESS;
             
-            (*rank)++;
+            if (*ptr == ',') (*rank)++;
+               
+            ptr++;
                
         }
         
@@ -2998,7 +3572,7 @@ extern "C" {
         
         if (cbf_cistrcmp(array_id,xarray_id)) {
             
-            /* This is actually and array section */
+            /* This is actually an array section */
             
             size_t rank;
             
@@ -9897,7 +10471,8 @@ extern "C" {
 
             if (cbf_get_value(handle,&axistype)) return CBF_SUCCESS;
 
-            if (!axistype || !cbf_cistrcmp(axistype,"general")) return CBF_SUCCESS;
+            if (!axistype 
+                ||!cbf_cistrcmp(axistype,"general")) return CBF_SUCCESS;
 
             if (!cbf_cistrcmp(axistype,"rotation")) {
 
@@ -9979,8 +10554,11 @@ extern "C" {
 
                     && framesstr) {
                     
-            sscanf(framesstr,"%zd",scanpoints);
+                    long tscp;
 
+                    sscanf(framesstr,"%ld",&tscp);
+                    
+                    *scanpoints = tscp;
                     
                 } else {
                     

@@ -1361,6 +1361,30 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                                int errorcode);
     
     
+    /* add an unsigned long dataset slab to a group
+     
+     places the specified datasetvalue in the specified slab of the
+     specified datasetname for group hid.  The dataset is created
+     if it does not already exist.
+     
+     The slabs are indexed from 0
+     
+     */
+    
+    int cbf_add_h5ulong_dataset_slab(hid_t hid,
+                                     const char* datasetname,
+                                     const unsigned long datasetvalue,
+                                     const hsize_t slab,
+                                     int errorcode);
+
+    /* add an unsigned long dataset to a group */
+    
+    int cbf_add_h5ulong_dataset(hid_t hid,
+                                const char* datasetname,
+                                const long datasetvalue,
+                                int errorcode);
+
+    
     /* Write a binary value to an HDF5 file */
     
     int cbf_write_h5binary (cbf_handle handle,

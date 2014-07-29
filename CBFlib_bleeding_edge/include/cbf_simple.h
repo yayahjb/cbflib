@@ -437,6 +437,33 @@ int cbf_get_array_section_id (cbf_handle handle,
      comma-separated components of the name
      */
 
+    int cbf_get_array_section_type (cbf_handle handle,
+                                    const char *array_id,
+                                    int * bits, int * sign, int * real);
+    
+    /* Get the size of an array or array section.  The arrray dim
+     is filled with dimesions from fast to slow up to rank.  Unused
+     dimensions are set to 1.  rank must be at least 1 and not more
+     than 100*/
+    
+    int cbf_get_array_section_size (cbf_handle    handle,
+                                    const char   *array_id,
+                                    size_t       rank,
+                                    size_t       *dims);
+    
+    /* Get the size, origins and strides of an array or array section.
+     The arrray dim is filled with dimesions from fast to slow up to rank.
+     Unused dimensions are set to 1.  rank must be at least 1 and not more
+     than 100*  Unused strides are set to 1, unused origins are set to 1 */
+     
+     int cbf_get_array_section_sizes (cbf_handle    handle,
+     const char   *array_id,
+     size_t       rank,
+     size_t       *dims,
+     size_t       *origins,
+     long         *strides);
+
+    
     int cbf_get_array_section_rank(cbf_handle handle,
                                    const char * array_section_id,
                                    size_t * rank);
