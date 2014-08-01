@@ -1330,6 +1330,60 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                                       const hsize_t slab,
                                       int errorcode);
     
+    /* get the length of text list attribute from a group or dataset
+     this uses variable length strings*/
+    
+    int cbf_get_h5text_list_attribute_length(hid_t hid,
+                                             const char* attribname,
+                                             size_t *length,
+                                             int errorcode);
+    
+    /* apply a text list attribute to a group or dataset
+     this uses variable length strings*/
+    
+    int cbf_apply_h5text_list_attribute(hid_t hid,
+                                        const char* attribname,
+                                        const size_t length,
+                                        const char** attribtext,
+                                        int errorcode);
+    
+    /* read a text list attribute from a group or dataset
+     this uses variable length strings.  To use this code,
+     The calling routine should first call
+     cbf_get_h5text_list_attribute_length and allocate
+     attribtext as an array of char * of that length.
+     The call to the cbf_get_h5text_list_attribute will allocate
+     the individual text strings, or return NULL for each
+     string.
+     
+     */
+    
+    int cbf_get_h5text_list_attribute(hid_t hid,
+                                      const char* attribname,
+                                      const size_t length,
+                                      const char** attribtext,
+                                      int errorcode);
+    
+    
+    /* add a text list attribute slab to a text list attribue of a group or dataset
+     this uses variable length strings*/
+    
+    int cbf_add_h5text_list_attribute_slab(hid_t hid,
+                                           const char* attribname,
+                                           const char* attribtext,
+                                           const hsize_t slab,
+                                           int errorcode);
+    /* Get the rank of a dataset */
+    
+    int cbf_get_h5dataset_rank(hid_t hid, const char * datasetname, size_t * rank);
+    
+    /* Get the dimensions of a dataset */
+    
+    int cbf_get_h5dataset_dims(hid_t hid, const char * datasetname, size_t rank,
+                               size_t * dims,
+                               size_t * maxdims);
+
+    
     /* apply a text dataset to a group */
     
     int cbf_add_h5text_dataset(hid_t hid,

@@ -5984,6 +5984,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     int cbf_require_nxarrayid(const cbf_handle handle,
                               const cbf_h5handle h5handle,
                               const char * array_id,
+                              const char * binary_id,
                               hid_t nxdata, hid_t nxdetector) {
         
         const char * axis_set_id;
@@ -6000,6 +6001,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         const char * axis_indices_parts[3];
         
+        hid_t dsetid;
+        
+        const char * datasetname;
+        
+        const char * datasetname_parts[4] = {
+            "data",
+            array_id,
+            binary_id,
+            0
+        };
+        
         htri_t alexists;
         
         int error = 0;
@@ -6015,6 +6027,19 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         if (!handle
             || !h5handle
             || !array_id ) return CBF_ARGUMENT;
+        
+        datasetname = NULL;
+        
+        dsetid = CBF_H5FAIL;
+        
+        if (cbf_H5Ivalid(nxdata)) {
+        
+            datasetname = _cbf_strjoin(datasetname_parts,'_');
+            
+            dsetid = H5Dopen2(nxdata,datasetname,H5P_DEFAULT);
+            
+            free((void*)datasetname);
+        }
         
         if (!cbf_get_array_section_array_id(handle,array_id,&xarray_id)
             && cbf_H5Ivalid(nxdetector)) {
@@ -6206,6 +6231,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
             
         }
             
+        /* Scan array_structure list for axis_set references for this array_id
+           Use them to populate axis_indices and axes in nxdata and to add links
+           for the individual axes both NXdata, to NXdetector_element and
+           to NXdetector_module */
+            
             
         if (cbf_H5Ivalid(nxdata) && !cbf_find_category(handle,"array_structure_list")
             && !cbf_find_column(handle,"array_id")
@@ -6283,6 +6313,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         axis_indices = _cbf_strjoin(axis_indices_parts,'_');
                         
+                        if (cbf_H5Ivalid(nxdata)) {
+                            
                         error |=
                         cbf_apply_h5integer_attribute(nxdata,axis_indices,precedence-1,error);
                         
@@ -6302,7 +6334,35 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                             
                         }
                         
+                            /* Now we need to formulate the axes attribute
+                             If it does not exist, create it
+                             If it does exist, first check the relevant slab
+                             for existing data, in which case, don't overwrite
+                             */
+                            
+                            alexists = H5Aexists(dsetid, "axes");
+                            
+                            if (alexists == 0) {
+                                
+                                cbf_reportnez(cbf_add_h5text_attribute_slab(dsetid,nxdata,"axes",
+                                                                            axis_id,NULL,NULL,
+                                                                            precedence-1,error),error);
+                            } else if (alexists > 0) {
+                                
+                                /* Should check for an existing slab with this attribute value */
+                                
+                                
+                                cbf_reportnez(cbf_add_h5text_attribute_slab(dsetid,nxdata,"axes",
+                                                                            axis_id,NULL,NULL,
+                                                                            precedence-1,error),error);
+                                
+                            }
+                            
+                            
+                        }
+                        
                         cbf_failnez(cbf_find_column(handle,"axis_set_id"));
+                        
                         
                     }
                     
@@ -6311,9 +6371,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 
             }
             
+            if (cbf_H5Ivalid(dsetid)) H5Dclose(dsetid);
+            
             return CBF_SUCCESS;
             
         } else {
+            
+            if (cbf_H5Ivalid(dsetid)) H5Dclose(dsetid);
             
             return CBF_NOTFOUND;
         }
@@ -6398,6 +6462,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         hid_t master_dataid;
         
+        hid_t dsetid;
+        
         int error = 0;
         
         if (!handle || !data_h5handle ) return CBF_ARGUMENT;
@@ -6409,6 +6475,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         data_detectorid   = master_detectorid   = CBF_H5FAIL;
         
         data_dataid       = master_dataid       = CBF_H5FAIL;
+        
+        dsetid = CBF_H5FAIL;
         
         if (master_h5handle) {
             
@@ -6624,11 +6692,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         error|= cbf_require_nxarrayid(handle,data_h5handle,
                                                       arrayid,
+                                                      binaryid,
                                                       data_dataid,
                                                       CBF_H5FAIL);
                         
                         error|= cbf_require_nxarrayid(handle,master_h5handle,
                                                       arrayid,
+                                                      binaryid,
                                                       CBF_H5FAIL,
                                                       master_detectorid);
 
@@ -6665,11 +6735,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         error|= cbf_require_nxarrayid(handle,data_h5handle,
                                                       arrayid,
+                                                      binaryid,
                                                       data_detectorid,
                                                       CBF_H5FAIL);
                         
                         error|= cbf_require_nxarrayid(handle,master_h5handle,
                                                       arrayid,
+                                                      binaryid,
                                                       CBF_H5FAIL,
                                                       master_detectorid);
                         
@@ -6718,6 +6790,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         error|= cbf_require_nxarrayid(handle,data_h5handle,
                                                       arrayid,
+                                                      binaryid,
                                                       data_dataid,
                                                       data_detectorid);
 
@@ -6750,6 +6823,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                         
                         error|= cbf_require_nxarrayid(handle,data_h5handle,
                                                       arrayid,
+                                                      binaryid,
                                                       data_detectorid,
                                                       data_detectorid);
                         
@@ -9029,14 +9103,13 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         int iparts;
         
-        int error;
-        
         hobj_ref_t dsref;
         
         htri_t aexists;
         
+        htri_t dsexists;
         
-        error = 0;
+        size_t length, ii;
         
         if (!cbf_H5Ivalid(datasetid)
             || !cbf_H5Ivalid(groupid)
@@ -9055,25 +9128,520 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
     
         datasetname = _cbf_strjoin(datasetnameparts,'_');
         
-        error |= cbf_add_h5text_dataset_slab(groupid,datasetname,attributetext,slab,0);
-        
-        cbf_h5reportneg(H5Rcreate(&dsref,groupid,datasetname,H5R_OBJECT,-1),CBF_H5ERROR,error);
-        
         aexists = H5Aexists(datasetid,attributename);
+        
+        dsexists = H5Lexists(groupid,datasetname, H5P_DEFAULT);
+        
+        if ((dsexists <= 0 || aexists <= 0) && slab < 256 && strlen(attributetext) < 255 ) {
+        
+            errorcode |= cbf_add_h5text_list_attribute_slab(datasetid,attributename,attributetext,slab,errorcode);
+            
+            return errorcode;
+            
+        } else if (aexists && dsexists <= 0) {
+            
+            /* copy the small attribute form to the large one */
+            
+            if (!cbf_get_h5text_list_attribute_length(datasetid,attributename,&length,errorcode) && length > 0) {
+                
+                char * attriblist[length];
+                
+                for (ii=0; ii < length; ii++) attriblist[ii] = NULL;
+                
+                cbf_reportnez(cbf_get_h5text_list_attribute(datasetid,attributename,length,(const char **)attriblist, errorcode),errorcode);
+                
+                cbf_h5reportneg(H5Adelete(datasetid,attributename),CBF_H5ERROR,errorcode);
+                
+                aexists = 0;
+                
+                for (ii=0; ii < length; ii++) {
+                    
+                    if (attriblist[length-1-ii]) {
+                        
+                        cbf_reportnez(cbf_add_h5text_dataset_slab(groupid,datasetname,attriblist[length-1-ii],length-1-ii,errorcode),errorcode);
+                        
+                        free(attriblist[length-1-ii]);
+                        
+                    }
+                }
+                
+            }
+            
+        }
+        
+        errorcode |= cbf_add_h5text_dataset_slab(groupid,datasetname,attributetext,slab,0);
         
         if (aexists < 0 || !aexists ) {
 
-            error |= cbf_apply_h5reference_attribute(datasetid,attributename,dsref,error);
+            cbf_h5reportneg(H5Rcreate(&dsref,groupid,datasetname,H5R_OBJECT,-1),CBF_H5ERROR,errorcode);
         
+            errorcode |= cbf_apply_h5reference_attribute(datasetid,attributename,dsref,errorcode);
 
         }
         
         free((void*)datasetname);
         
-        return CBF_SUCCESS;
+        return errorcode;
         
         
      }
+    
+    /* get the length of text list attribute from a group or dataset
+     this uses fixed length strings*/
+    
+    int cbf_get_h5text_list_attribute_length(hid_t hid,
+                                             const char* attribname,
+                                             size_t *length,
+                                             int errorcode)
+    {
+        
+        hid_t attribspace, attribid;
+        
+        htri_t attribexists;
+        
+        int ndims = 0;
+        
+        hsize_t attribdims[1];
+        
+        hsize_t attribmaxdims[1];
+        
+        if (!cbf_H5Ivalid(hid) || ! attribname || !length  ) return CBF_ARGUMENT;
+        
+        attribspace = attribid = CBF_H5FAIL;
+        
+        attribexists = H5Aexists(hid,attribname);
+        
+        if (attribexists > 0)  {
+            
+        return CBF_SUCCESS;
+        
+        } else {
+        
+            *length = 0;
+            
+            return CBF_NOTFOUND;
+     }
+
+        cbf_h5reportneg(attribid = H5Aopen(hid,attribname,H5P_DEFAULT),CBF_H5ERROR,errorcode);
+        
+        cbf_h5reportneg(attribspace = H5Aget_space(attribid),CBF_FORMAT,errorcode);
+        
+        cbf_h5reportneg(ndims = H5Sget_simple_extent_ndims(attribspace),CBF_FORMAT,errorcode);
+        
+        if (ndims != 1) {
+            
+            errorcode |= CBF_FORMAT;
+            
+        }
+        
+        if (errorcode == CBF_SUCCESS) {
+            
+            cbf_h5reportneg(H5Sget_simple_extent_dims(attribspace,
+                                                      attribdims,attribmaxdims),CBF_FORMAT,errorcode);
+            
+            *length = attribdims[0];
+            
+            
+        }
+        
+        if (cbf_H5Ivalid(attribid)) H5Aclose(attribid);
+        
+        if (cbf_H5Ivalid(attribspace)) H5Sclose(attribspace);
+        
+        return errorcode;
+        
+    }
+    
+
+    
+    /* apply a text list attribute to a group or dataset
+       this uses fixed length strings*/
+    
+    int cbf_apply_h5text_list_attribute(hid_t hid,
+                                   const char* attribname,
+                                   const size_t length,
+                                   const char** attriblist,
+                                   int errorcode)
+    {
+        
+        hsize_t attribdims[1];
+        
+        hid_t attribspace, attribtype, attribid;
+        
+        htri_t attribexists;
+        
+        int ii;
+        
+        size_t width;
+        
+        if (!cbf_H5Ivalid(hid) || ! attribname || length == 0 || !attriblist ) return CBF_ARGUMENT;
+        
+        attribspace = attribtype = attribid = CBF_H5FAIL;
+        
+        attribexists = H5Aexists(hid,attribname);
+        
+        if (attribexists > 0) H5Adelete(hid,attribname);
+        
+        width = 0;
+        
+        for (ii=0; ii < length; ii++) {
+            
+            size_t swidth;
+            
+            swidth = strlen(attriblist[ii]);
+            
+            if (swidth > width) width = swidth;
+            
+        }
+        
+        width ++;
+        
+        cbf_h5reportneg(attribtype = H5Tcopy (H5T_C_S1), CBF_H5ERROR,errorcode);
+        
+        cbf_h5reportneg(H5Tset_size(attribtype, width),CBF_H5ERROR,errorcode);
+        
+        attribdims[0] = length;
+        
+        cbf_h5reportneg(attribspace = H5Screate_simple(1,attribdims, NULL),CBF_H5ERROR,errorcode);
+        
+        cbf_h5reportneg(attribid = H5Acreate2(hid, attribname, attribtype, attribspace, H5P_DEFAULT, H5P_DEFAULT),CBF_H5ERROR,errorcode);
+        
+        {  char membuf[length*width];
+            
+            for (ii=0; ii < length; ii++) {
+                
+                strncpy(membuf+ii*width,attriblist[ii],width);
+                
+            }
+            
+                        
+             cbf_h5reportneg(H5Awrite(attribid, attribtype, membuf),CBF_H5ERROR,errorcode);
+            
+        }
+        
+        
+        if (cbf_H5Ivalid(attribid)) H5Aclose(attribid);
+        
+        if (cbf_H5Ivalid(attribtype)) H5Tclose(attribtype);
+
+        if (cbf_H5Ivalid(attribspace)) H5Sclose(attribspace);
+        
+        return errorcode;
+        
+    }
+
+
+    /* read a text list attribute from a group or dataset
+     this uses fixed length strings.  To use this code,
+     The calling routine should first call 
+     cbf_get_h5text_list_attribute_length and allocate
+     attribtext as an array of char * of that length.
+     The call to the cbf_get_h5text_list_attribute will allocate
+     the individual text strings.
+     
+     */
+    
+    int cbf_get_h5text_list_attribute(hid_t hid,
+                                      const char* attribname,
+                                      const size_t length,
+                                      const char** attriblist,
+                                      int errorcode)
+    {
+        
+        hid_t attribspace, attribtype, attribmemtype, attribid;
+        
+        htri_t attribexists;
+        
+        size_t width;
+        
+        int ndims = 0;
+        
+        int ii;
+        
+        hsize_t attribdims[1];
+        
+        hsize_t attribmaxdims[1];
+        
+        if (!cbf_H5Ivalid(hid) || ! attribname || !length || !attriblist ) return CBF_ARGUMENT;
+        
+        attribspace = attribid = attribtype = attribmemtype = CBF_H5FAIL;
+        
+        for (ii = 0; ii < length; ii++) attriblist[ii] = NULL;
+        
+        attribexists = H5Aexists(hid,attribname);
+        
+        if (attribexists <= 0)  {
+
+            return CBF_NOTFOUND;
+        }
+        
+        cbf_h5reportneg(attribid = H5Aopen(hid,attribname,H5P_DEFAULT),CBF_H5ERROR,errorcode);
+        
+        cbf_h5reportneg(attribtype = H5Aget_type(attribid),CBF_FORMAT,errorcode);
+        
+        cbf_h5reportneg(attribmemtype = H5Tget_native_type(attribtype, H5T_DIR_ASCEND),CBF_FORMAT,errorcode);
+        
+        width = H5Tget_size(attribtype);
+
+        cbf_h5reportneg(attribspace = H5Aget_space(attribid),CBF_FORMAT,errorcode);
+        
+        cbf_h5reportneg(ndims = H5Sget_simple_extent_ndims(attribspace),CBF_FORMAT,errorcode);
+        
+        if (ndims != 1) {
+            
+            errorcode |= CBF_FORMAT;
+            
+        }
+        
+        if (errorcode == CBF_SUCCESS) {
+            
+            cbf_h5reportneg(H5Sget_simple_extent_dims(attribspace,
+                                                      attribdims,attribmaxdims),CBF_FORMAT,errorcode);
+            
+            if (attribdims[0] > length) return CBF_FORMAT;
+            
+            
+        }
+        
+        if (width == 0 || width > 257) return CBF_FORMAT;
+        
+        
+        if (width > 0 && attribdims[0] > 0) {
+            
+            char* membuf=NULL;
+            
+            cbf_failnez(cbf_alloc((void * *)(&membuf),NULL,1,width));
+            
+            cbf_h5reportneg(H5Aread(attribid,attribmemtype,membuf),CBF_H5ERROR,errorcode);
+            
+            for (ii = 0; ii < attribdims[0]; ii++) {
+                
+                cbf_failnez(cbf_alloc((void * *)(&(attriblist[ii])),NULL,1,width));
+                
+                strncpy((char *)(attriblist[ii]),membuf+width*ii,width);
+                            
+                
+            }
+            
+            free(membuf);
+            
+        }
+
+        
+        if (cbf_H5Ivalid(attribid)) H5Aclose(attribid);
+        
+        if (cbf_H5Ivalid(attribtype)) H5Tclose(attribtype);
+        
+        if (cbf_H5Ivalid(attribmemtype)) H5Tclose(attribmemtype);
+        
+        if (cbf_H5Ivalid(attribspace)) H5Sclose(attribspace);
+        
+        return errorcode;
+        
+    }
+    
+    /* add a text list attribute slab to a text list attribue of a group or dataset
+     this uses fixed length strings*/
+    
+    int cbf_add_h5text_list_attribute_slab(hid_t hid,
+                                        const char* attribname,
+                                        const char* attribtext,
+                                        const hsize_t slab,
+                                        int errorcode)
+    {
+        
+        htri_t attribexists;
+        
+        hsize_t ii;
+        
+        size_t length;
+        
+        if (!cbf_H5Ivalid(hid) || ! attribname || !attribtext ) return CBF_ARGUMENT;
+                
+        attribexists = H5Aexists(hid,attribname);
+        
+        if (attribexists < 0 || !attribexists) {
+            
+            const char * attriblist[slab+1];
+            
+            for (ii=0; ii < slab; ii++) {
+                
+                attriblist[ii] = "";
+                
+            }
+            
+            attriblist[slab] = attribtext;
+            
+            cbf_reportnez(cbf_apply_h5text_list_attribute(hid,attribname,slab+1,attriblist,errorcode),errorcode);
+            
+            return errorcode;
+            
+        }
+        
+        cbf_failnez(cbf_get_h5text_list_attribute_length(hid,attribname,&length,errorcode));
+        
+        if (length > slab ) {
+            
+            char * attriblist[length];
+            
+            char * bumped;
+            
+            cbf_failnez(cbf_get_h5text_list_attribute(hid,attribname,length,(const char **)attriblist,errorcode));
+            
+            bumped = attriblist[slab];
+            
+            attriblist[slab] = (char *)attribtext;
+            
+            cbf_failnez(cbf_apply_h5text_list_attribute(hid,attribname,length,(const char **)attriblist,errorcode));
+            
+            attriblist[slab] = bumped;
+            
+            for (ii=0; ii < length; ii++) if (attriblist[ii]) free(attriblist[ii]);
+            
+            
+        } else {
+            
+            char * attriblist[slab+1];
+            
+            cbf_failnez(cbf_get_h5text_list_attribute(hid,attribname,length,(const char **)attriblist,errorcode));
+            
+            for (ii = length; ii < slab; ii++) attriblist[ii] = "";
+            
+            attriblist[slab] = (char *)attribtext;
+            
+            cbf_failnez(cbf_apply_h5text_list_attribute(hid,attribname,slab+1,(const char **)attriblist,errorcode));
+            
+            for (ii=0; ii < length; ii++) if (attriblist[ii]) free(attriblist[ii]);
+
+        }
+        
+        return errorcode;
+        
+    }
+
+    
+    
+    
+    /* Get the rank of a dataset */
+    
+    int cbf_get_h5dataset_rank(hid_t hid, const char * datasetname, size_t * rank) {
+        
+        hid_t datasetspace, datasetid;
+        
+        htri_t dsexists;
+        
+        int errorcode = 0;
+        
+        int ndims;
+        
+        if (!cbf_H5Ivalid(hid) || !datasetname || !rank ) return CBF_ARGUMENT;
+        
+        datasetspace = datasetid = CBF_H5FAIL;
+        
+        dsexists = H5Lexists(hid,datasetname, H5P_DEFAULT);
+        
+        if (dsexists < 0 ||
+            !dsexists
+            || (datasetid = H5Dopen2(hid,datasetname, H5P_DEFAULT))< 0) {
+            
+            return CBF_NOTFOUND;
+            
+        }
+        
+        if (datasetid <= 0) {
+            
+            datasetid = H5Dopen2(hid,datasetname, H5P_DEFAULT);
+            
+        }
+        
+        cbf_h5reportneg(datasetspace = H5Dget_space(datasetid),CBF_FORMAT,errorcode);
+        
+        cbf_h5reportneg(ndims = H5Sget_simple_extent_ndims(datasetspace),CBF_FORMAT,errorcode);
+        
+        if ( cbf_H5Ivalid(datasetspace) ) H5Sclose(datasetspace);
+        
+        if ( cbf_H5Ivalid(datasetid) ) H5Dclose(datasetid);
+        
+        if (ndims < 0) return CBF_FORMAT;
+        
+        *rank = ndims;
+        
+        return CBF_SUCCESS;
+        
+    }
+    
+    /* Get the dimensions of a dataset */
+    
+    int cbf_get_h5dataset_dims(hid_t hid, const char * datasetname, size_t rank,
+                               size_t * dims,
+                               size_t * maxdims) {
+        
+        hid_t datasetspace, datasetid;
+        
+        htri_t dsexists;
+        
+        int errorcode;
+        
+        int ndims;
+        
+        if (!cbf_H5Ivalid(hid) || !datasetname || rank == 0  ) return CBF_ARGUMENT;
+        
+        else {
+            
+            hsize_t h5dims[rank];
+            
+            hsize_t h5maxdims[rank];
+            
+            size_t ii;
+            
+            datasetspace = datasetid = CBF_H5FAIL;
+            
+            dsexists = H5Lexists(hid,datasetname, H5P_DEFAULT);
+            
+            if (dsexists < 0 ||
+                !dsexists
+                || (datasetid = H5Dopen2(hid,datasetname, H5P_DEFAULT))< 0) {
+                
+                return CBF_NOTFOUND;
+                
+            }
+            
+            if (datasetid <= 0) {
+                
+                datasetid = H5Dopen2(hid,datasetname, H5P_DEFAULT);
+                
+            }
+            
+            cbf_h5reportneg(datasetspace = H5Dget_space(datasetid),CBF_FORMAT,errorcode);
+            
+            cbf_h5reportneg(ndims = H5Sget_simple_extent_ndims(datasetspace),CBF_FORMAT,errorcode);
+            
+            if (ndims <= rank) {
+                
+                cbf_h5reportneg(H5Sget_simple_extent_dims(datasetspace,h5dims,h5maxdims),CBF_FORMAT,errorcode);
+
+            }
+            
+            if ( cbf_H5Ivalid(datasetspace) ) H5Sclose(datasetspace);
+            
+            if ( cbf_H5Ivalid(datasetid) ) H5Dclose(datasetid);
+            
+            if (ndims < 0) return CBF_FORMAT;
+            
+            for (ii = 0; ii < ndims; ii ++) {
+                
+                if (dims) dims[ii] = h5dims[ii];
+                
+                if (maxdims) maxdims[ii] = h5maxdims[ii];
+                
+            }
+            
+            return CBF_SUCCESS;
+            
+        }
+        
+    }
+
 
     /* apply a text dataset slab to a group
 
