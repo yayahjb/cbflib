@@ -1553,7 +1553,14 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
     int cbf_create_h5handle(cbf_h5handle *h5handle,
 							const char * h5filename);
     
+    
+    /* Require the filename in the H5 file handle */
+    
+    int cbf_require_h5handle_filename(cbf_h5handle h5handle);
+
+    
 	/* Create an HDF5 File handle without adding an NXcbf group to it */
+    
 	int cbf_create_h5handle2(cbf_h5handle *h5handle,const char * h5filename);
     
 	/**
