@@ -1080,7 +1080,7 @@ int cbf_count_typed_children (unsigned int *children, const cbf_node *node, CBF_
 
   *children = 0;
 
-  for (i=0; i < node->children; i++) {
+  for (i=0; i < (ssize_t)(node->children); i++) {
 
     if ( (node->child[i])->type == type ) (*children)++;
 
@@ -1797,7 +1797,7 @@ int cbf_compute_hashcode(const char *string, unsigned int *hashcode)
 
     *hashcode = 0;
 
-    for (i = 0; i<strlen(string); i++)
+    for (i = 0; i<(ssize_t)strlen(string); i++)
     {
         *hashcode = (((int)(toupper(string[i])))<<8)^((*hashcode)>>1);
     }

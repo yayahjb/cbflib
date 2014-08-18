@@ -82,7 +82,7 @@ typedef union YYSTYPE
   const char  *text;
   cbf_node    *node;
 }
-/* Line 1529 of yacc.c.  */
+/* Line 1489 of yacc.c.  */
 
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

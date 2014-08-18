@@ -258,6 +258,7 @@ extern "C" {
 #include <string.h>
 #include <limits.h>
 
+#include "cbf.h"
 #include "cbf_predictor.h"
 
 
@@ -278,6 +279,21 @@ int cbf_compress_predictor (void         *source,
                             size_t        dimslow,
                             size_t        padding)
 {
+        CBF_UNUSED( source );
+        CBF_UNUSED( elsize );
+        CBF_UNUSED( elsign );
+        CBF_UNUSED( nelem );
+        CBF_UNUSED( compression );
+        CBF_UNUSED( file );
+        CBF_UNUSED( compressedsize );
+        CBF_UNUSED( storedbits );
+        CBF_UNUSED( realarray );
+        CBF_UNUSED( byteorder );
+        CBF_UNUSED( dimfast );
+        CBF_UNUSED( dimmid );
+        CBF_UNUSED( dimslow );
+        CBF_UNUSED( padding );
+        
   fprintf (stderr,
       "\n*** Predictor-Huffman Algorithm Not Implemented Yet -- Abort ***\n");
 
@@ -307,6 +323,25 @@ int cbf_decompress_predictor (void         *destination,
                               size_t        dimslow,
                               size_t        padding)
 {
+        
+        CBF_UNUSED( destination );
+        CBF_UNUSED( elsize );
+        CBF_UNUSED( elsign );
+        CBF_UNUSED( nelem );
+        CBF_UNUSED( nelem_read );
+        CBF_UNUSED( compressedsize );
+        CBF_UNUSED( compression );
+        CBF_UNUSED( data_bits );
+        CBF_UNUSED( data_sign );
+        CBF_UNUSED( file );
+        CBF_UNUSED( realarray );
+        CBF_UNUSED( byteorder );
+        CBF_UNUSED( dimover );
+        CBF_UNUSED( dimfast );
+        CBF_UNUSED( dimmid );
+        CBF_UNUSED( dimslow );
+        CBF_UNUSED( padding );
+        
   fprintf (stderr,
       "\n*** Predictor-Huffman Algorithm Not Implemented Yet -- Abort ***\n");
 

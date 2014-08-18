@@ -316,6 +316,35 @@ field of the source */
 	\defgroup section_minicbf_config
 	*/
 
+    
+	/**
+     Concatenate several null-terminated strings into a single string, with each component
+     separated by one 'sep' character. A leading or trailing empty string will cause a
+     leading or trailing 'sep' character to be written, the character may be repeated by
+     inserting an empty string into the 'parts' array at the appropriate place. The 'parts'
+     array must be terminated by a null pointer, not a pointer to an empty string.
+     
+     Examples:
+     _cbf_str_join({0},c);
+     → ""
+     _cbf_str_join({"string",0},c);
+     → "string"
+     _cbf_str_join({"","",0},'#');
+     → "#"
+     _cbf_str_join({"multi","part","string",0},'-');
+     → "multi-part-string"
+     _cbf_str_join({"A","string","","with","more","separators",0},'_');
+     → "A_string__with_more_separators"
+     _cbf_str_join({"","leading",0},'_');
+     → "_leading"
+     _cbf_str_join({"trailing","",0},'_');
+     → "trailing_"
+     
+     Returns a string which must be free'd on success, NULL on failure.
+     Creating an empty string is not failure to create a string.
+     */
+	char * _cbf_str_join(const char * const * const parts, const char sep);
+    
 	/**
 	\brief Check the validity of an object identifier.
 	\ingroup section_HDF5_H5I
@@ -718,7 +747,7 @@ cbf_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp)
 	\brief Obtain a new handle for some configuration settings.
 	\ingroup section_minicbf_config
 	*/
-	cbf_config_t * cbf_config_create();
+	cbf_config_t * cbf_config_create( void );
 
 	/**
 	\brief Read a minicbf configuration file into the given handle, writing errors to <code>logfile</code>.

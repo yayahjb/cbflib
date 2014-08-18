@@ -43,7 +43,8 @@ extern "C" {
 #ifndef PROTO_LIST
 #define PROTO_LIST(list) list
 #else
-#define PROTO_LIST(list) ()
+#undef PROTO_LIST
+#define PROTO_LIST(list) list
 #endif
 #endif
 

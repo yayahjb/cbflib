@@ -764,7 +764,9 @@ extern "C" {
             
             int binary_id, elsigned, elunsigned;
             
-            size_t elements,elements_read, oelsize;
+            size_t elements, elements_read;
+            
+            size_t oelsize;
             
             int minelement, maxelement;
             
@@ -831,7 +833,7 @@ extern "C" {
                     }
                     
                     if (((eltype &(CBF_CPY_SETINTEGER)) || eltype == 0)
-                        && (elsize == 0 || elsize==oelsize)
+                        && (elsize == 0 || elsize==(ssize_t)oelsize)
                         && (elsign == 0 || 
                             ((elsign & CBF_CPY_SETSIGNED) && elsigned) ||
                             ((elsign & CBF_CPY_SETUNSIGNED) && elunsigned))
@@ -877,9 +879,9 @@ extern "C" {
                                 
                                 double doval;
                                 
-                                for (icount = 0; icount < elements; icount++) {
+                                for (icount = 0; icount < (int)elements; icount++) {
                                     
-                                    if (oelsize == sizeof(char)){
+                                    if ((ssize_t)oelsize == sizeof(char)){
                                         if (elsigned) doval = (double)((signed char *)array)[icount];
                                         else doval = (double)((unsigned char *)array)[icount];
                                         if (doval < cliplow) doval = cliplow;
@@ -887,7 +889,7 @@ extern "C" {
                                         if (elsigned) ((signed char *)array)[icount] = (signed char)doval;
                                         else ((unsigned char *)array)[icount] = (unsigned char)doval;
                                         
-                                    } else if (oelsize == sizeof(short int)){
+                                    } else if ((ssize_t)oelsize == sizeof(short int)){
                                         if (elsigned) doval = (double)((signed short int *)array)[icount];
                                         else doval = (double)((unsigned short int *)array)[icount];
                                         if (doval < cliplow) doval = cliplow;
@@ -895,7 +897,7 @@ extern "C" {
                                         if (elsigned) ((signed short int *)array)[icount] = (signed short int)doval;
                                         else ((unsigned short int *)array)[icount] = (unsigned short int)doval;
                                         
-                                    } else if (oelsize == sizeof(int)){
+                                    } else if ((ssize_t)oelsize == sizeof(int)){
                                         if (elsigned) doval = (double)((signed int *)array)[icount];
                                         else doval = (double)((unsigned int *)array)[icount];
                                         if (doval < cliplow) doval = cliplow;
@@ -903,7 +905,7 @@ extern "C" {
                                         if (elsigned) ((signed int *)array)[icount] = (signed int)doval;
                                         else ((unsigned int *)array)[icount] = (unsigned int)doval;
                                         
-                                    } else if (oelsize == sizeof(long int)){
+                                    } else if ((ssize_t)oelsize == sizeof(long int)){
                                         if (elsigned) doval = (double)((signed long int *)array)[icount];
                                         else doval = (double)((unsigned long int *)array)[icount];
                                         if (doval < cliplow) doval = cliplow;
@@ -912,7 +914,7 @@ extern "C" {
                                         else ((unsigned long int *)array)[icount] = (unsigned long int)doval;
                                         
 #ifdef CBF_USE_LONG_LONG                                                        
-                                    } else if (oelsize == sizeof(long long int)){
+                                    } else if ((ssize_t)oelsize == sizeof(long long int)){
                                         if (elsigned) doval = (double)((signed long long int *)array)[icount];
                                         else doval = (double)((unsigned long long int *)array)[icount];
                                         if (doval < cliplow) doval = cliplow;
@@ -937,7 +939,7 @@ extern "C" {
                                 if (toupper(border[0])=='L') {
                                     
                                     
-                                    for (icount = 0; icount < elements; icount++ ) {
+                                    for (icount = 0; icount < (int)elements; icount++ ) {
                                         
                                         
                                         memmove(((unsigned char *)narray)+icount*elsize,((unsigned char *)array)+icount*oelsize,xelsize);
@@ -951,7 +953,7 @@ extern "C" {
                                                 (((signed char *)array)[icount*oelsize+oelsize-1]<0)?(~0):0;
                                             
                                             if (nelunsigned) 
-                                                for(jcount=0;jcount<=nelsize-oelsize;jcount++) 
+                                                for(jcount=0;jcount<=(int)(nelsize-oelsize);jcount++)
                                                     ((signed char *)narray)[icount*elsize+xelsize+jcount]=fill;
                                             
                                         }
@@ -960,7 +962,7 @@ extern "C" {
                                     
                                 } else {
                                     
-                                    for (icount = 0; icount < elements; icount++ ) {
+                                    for (icount = 0; icount < (int)elements; icount++ ) {
                                         
                                         for (jcount = xelsize-1; jcount>=0; jcount--) {
                                             
@@ -974,7 +976,7 @@ extern "C" {
                                                     (((signed char *)array)[icount*oelsize]<0)?(~0):0;
                                                 
                                                 if (nelunsigned) 
-                                                    for(jcount=0;jcount<=nelsize-oelsize;jcount++) 
+                                                    for(jcount=0;jcount<=(int)(nelsize-oelsize);jcount++)
                                                         ((signed char *)narray)[icount*elsize+jcount]=fill;
                                                 
                                             }
@@ -1004,7 +1006,7 @@ extern "C" {
                                     
                                     if (elsigned) {
                                         
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             
                                             xvalue = ((signed char *)array)[icount];
                                             
@@ -1017,7 +1019,7 @@ extern "C" {
                                         
                                     } else {
                                         
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             
                                             xvalue = ((unsigned char *)array)[icount];
                                             
@@ -1034,7 +1036,7 @@ extern "C" {
                                     
                                     if (elsigned) {
                                         
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             
                                             xvalue = ((signed short int *)array)[icount];
                                             
@@ -1047,7 +1049,7 @@ extern "C" {
                                         
                                     } else {
                                         
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             
                                             xvalue = ((unsigned short int *)array)[icount];
                                             
@@ -1064,7 +1066,7 @@ extern "C" {
                                     
                                     if (elsigned) {
                                         
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             
                                             xvalue = ((signed int *)array)[icount];
                                             
@@ -1077,7 +1079,7 @@ extern "C" {
                                         
                                     } else {
                                         
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             
                                             xvalue = ((unsigned int *)array)[icount];
                                             
@@ -1094,7 +1096,7 @@ extern "C" {
                                     
                                     if (elsigned) {
                                         
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             
                                             xvalue = ((signed long int *)array)[icount];
                                             
@@ -1107,7 +1109,7 @@ extern "C" {
                                         
                                     } else {
                                         
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             
                                             xvalue = ((unsigned long int *)array)[icount];
                                             
@@ -1126,7 +1128,7 @@ extern "C" {
                                     
                                     if (elsigned) {
                                         
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             
                                             xvalue = ((signed long long int *)array)[icount];
                                             
@@ -1139,7 +1141,7 @@ extern "C" {
                                         
                                     } else {
                                         
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             
                                             xvalue = ((unsigned long long int *)array)[icount];
                                             
@@ -1160,7 +1162,7 @@ extern "C" {
                                         
                                         unsigned long yvalue[2];
                                         
-                                        for (icount = 0; icount < 2* elements; icount++) {
+                                        for (icount = 0; icount < 2*((int)elements); icount++) {
                                             
                                             yvalue[0] = ((unsigned long int *)array)[2*icount];
                                             
@@ -1187,7 +1189,7 @@ extern "C" {
                                         
                                         unsigned long yvalue[2];
                                         
-                                        for (icount = 0; icount < 2* elements; icount++) {
+                                        for (icount = 0; icount < 2*((int)elements); icount++) {
                                             
                                             yvalue[0] = ((unsigned long int *)array)[2*icount];
                                             
@@ -1244,7 +1246,7 @@ extern "C" {
                     }
                     
                     if (((eltype &(CBF_CPY_SETREAL)) || eltype == 0)
-                        && (elsize == 0 || elsize==oelsize) && cliplow >= cliphigh) {
+                        && (elsize == 0 || elsize==(ssize_t)oelsize) && cliplow >= cliphigh) {
                         
                         
                         cbf_failnez(cbf_set_realarray_wdims_fs(
@@ -1266,7 +1268,7 @@ extern "C" {
                                 
                                 double doval;
                                 
-                                for (icount = 0; icount < elements; icount++) {
+                                for (icount = 0; icount < (int)elements; icount++) {
                                     
                                     if (oelsize==sizeof(float)){
                                         doval = (double)((float *)array)[icount];
@@ -1341,11 +1343,11 @@ extern "C" {
                                 
                                 if (nelsize==sizeof(char)){
                                     
-                                    if (oelsize == sizeof(float)) {
+                                    if ((ssize_t)oelsize == sizeof(float)) {
                                         
                                         if (nelsigned) {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
@@ -1359,7 +1361,7 @@ extern "C" {
                                             
                                         } else {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
@@ -1373,11 +1375,11 @@ extern "C" {
                                             
                                         }
                                         
-                                    } else if (oelsize == sizeof(double)) {
+                                    } else if ((ssize_t)oelsize == sizeof(double)) {
                                         
                                         if (nelsigned) {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((double *)array)[icount];
                                                 
@@ -1391,7 +1393,7 @@ extern "C" {
                                             
                                         } else {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((double *)array)[icount];
                                                 
@@ -1410,11 +1412,11 @@ extern "C" {
                                     
                                 } else if (nelsize==sizeof(short int)){
                                     
-                                    if (oelsize == sizeof(float)) {
+                                    if ((ssize_t)oelsize == sizeof(float)) {
                                         
                                         if (nelsigned) {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
@@ -1428,7 +1430,7 @@ extern "C" {
                                             
                                         } else {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
@@ -1442,11 +1444,11 @@ extern "C" {
                                             
                                         }
                                         
-                                    } else if (oelsize == sizeof(double)) {
+                                    } else if ((ssize_t)oelsize == sizeof(double)) {
                                         
                                         if (nelsigned) {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((double *)array)[icount];
                                                 
@@ -1460,7 +1462,7 @@ extern "C" {
                                             
                                         } else {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((double *)array)[icount];
                                                 
@@ -1478,11 +1480,11 @@ extern "C" {
                                     
                                 } else if (nelsize==sizeof(int)){
                                     
-                                    if (oelsize == sizeof(float)) {
+                                    if ((ssize_t)oelsize == sizeof(float)) {
                                         
                                         if (nelsigned) {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
@@ -1496,7 +1498,7 @@ extern "C" {
                                             
                                         } else {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
@@ -1510,11 +1512,11 @@ extern "C" {
                                             
                                         }
                                         
-                                    } else if (oelsize == sizeof(double)) {
+                                    } else if ((ssize_t)oelsize == sizeof(double)) {
                                         
                                         if (nelsigned) {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((double *)array)[icount];
                                                 
@@ -1528,7 +1530,7 @@ extern "C" {
                                             
                                         } else {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((double *)array)[icount];
                                                 
@@ -1547,11 +1549,11 @@ extern "C" {
                                     
                                 } else if (nelsize==sizeof(long int)){
                                     
-                                    if (oelsize == sizeof(float)) {
+                                    if ((ssize_t)oelsize == sizeof(float)) {
                                         
                                         if (nelsigned) {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
@@ -1565,7 +1567,7 @@ extern "C" {
                                             
                                         } else {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
@@ -1579,11 +1581,11 @@ extern "C" {
                                             
                                         }
                                         
-                                    } else if (oelsize == sizeof(double)) {
+                                    } else if ((ssize_t)oelsize == sizeof(double)) {
                                         
                                         if (nelsigned) {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((double *)array)[icount];
                                                 
@@ -1597,7 +1599,7 @@ extern "C" {
                                             
                                         } else {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((double *)array)[icount];
                                                 
@@ -1617,11 +1619,11 @@ extern "C" {
 #ifdef CBF_USE_LONG_LONG
                                 } else if (nelsize==sizeof(long long int)){
                                     
-                                    if (oelsize == sizeof(float)) {
+                                    if ((ssize_t)oelsize == sizeof(float)) {
                                         
                                         if (nelsigned) {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
@@ -1635,7 +1637,7 @@ extern "C" {
                                             
                                         } else {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
@@ -1649,11 +1651,11 @@ extern "C" {
                                             
                                         }
                                         
-                                    } else if (oelsize == sizeof(double)) {
+                                    } else if ((ssize_t)oelsize == sizeof(double)) {
                                         
                                         if (nelsigned) {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((double *)array)[icount];
                                                 
@@ -1667,7 +1669,7 @@ extern "C" {
                                             
                                         } else {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((double *)array)[icount];
                                                 
@@ -1701,11 +1703,11 @@ extern "C" {
                                     }
                                     
                                     
-                                    if (oelsize == sizeof(float)) {
+                                    if ((ssize_t)oelsize == sizeof(float)) {
                                         
                                         if (nelsigned) {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
@@ -1726,7 +1728,7 @@ extern "C" {
                                             
                                         } else {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((float *)array)[icount];
                                                 
@@ -1747,11 +1749,11 @@ extern "C" {
                                             
                                         }
                                         
-                                    } else if (oelsize == sizeof(double)) {
+                                    } else if ((ssize_t)oelsize == sizeof(double)) {
                                         
                                         if (nelsigned) {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((double *)array)[icount];
                                                 
@@ -1771,7 +1773,7 @@ extern "C" {
                                             
                                         } else {
                                             
-                                            for (icount = 0; icount < elements; icount++) {
+                                            for (icount = 0; icount < (int)elements; icount++) {
                                                 
                                                 valtemp = ((double *)array)[icount];
                                                 
@@ -1824,21 +1826,21 @@ extern "C" {
                                 
                                 if (oelsize==sizeof(float)){
                                     if (nelsize == sizeof(float)) {
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             ((float *)narray)[icount] = ((float *)array)[icount];
                                         }
                                     } else if (nelsize == sizeof(double)) {
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             ((double *)narray)[icount] = ((float *)array)[icount];
                                         }
                                     } else {free(array); free(narray); return CBF_ARGUMENT;}
                                 } else if (oelsize==sizeof(double)){
                                     if (nelsize == sizeof(float)) {
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             ((float *)narray)[icount] = ((double *)array)[icount];
                                         }
                                     } else if (nelsize == sizeof(double)) {
-                                        for (icount = 0; icount < elements; icount++) {
+                                        for (icount = 0; icount < (int)elements; icount++) {
                                             ((double *)narray)[icount] = ((double *)array)[icount];
                                         }
                                     } else {free(array); free(narray); return CBF_ARGUMENT;}

@@ -301,8 +301,16 @@ int cbf_compress_none (void         *source,
 
   char * rformat;
 
+        CBF_UNUSED( compression );
 
+        CBF_UNUSED( dimfast );
 
+        CBF_UNUSED( dimmid );
+        
+        CBF_UNUSED( dimslow );
+        
+        CBF_UNUSED( padding );
+        
     /* Is the element size valid? */
 
   if (elsize != sizeof (int) &&
@@ -618,6 +626,22 @@ int cbf_decompress_none (void         *destination,
 
   char * rformat;
 
+        CBF_UNUSED( compressedsize );
+        
+        CBF_UNUSED( compression );
+        
+        CBF_UNUSED( byteorder );
+        
+        CBF_UNUSED( dimover );
+        
+        CBF_UNUSED( dimfast );
+        
+        CBF_UNUSED( dimmid );
+        
+        CBF_UNUSED( dimslow );
+
+        CBF_UNUSED( padding );
+        
     /* prepare the errorcode */
 
   errorcode = 0;

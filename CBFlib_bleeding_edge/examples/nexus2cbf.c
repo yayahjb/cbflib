@@ -300,6 +300,7 @@ int main (int argc, char *argv [])
 								frame = _frame;
 							}
 						}
+                        break;
 					}
 					case 'g': { /* group within input file where data should be found */
 						if (group) ++errflg;

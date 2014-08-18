@@ -948,7 +948,7 @@ int cbf_construct_tree (cbf_compress_data *data, cbf_compress_node **node,
     
     /* Make the 0 branch then the 1 branch */
     
-    if ((*node)->bitcount == bits)
+    if ((int)((*node)->bitcount) == bits)
     {
         (*root)->child [0] = *node;
         
@@ -960,7 +960,7 @@ int cbf_construct_tree (cbf_compress_data *data, cbf_compress_node **node,
                                          &(*root)->child [0]))
     }
     
-    if ((*node)->bitcount == bits)
+    if ((int)((*node)->bitcount) == bits)
     {
         (*root)->child [1] = *node;
         
@@ -1156,11 +1156,13 @@ int cbf_get_code (cbf_compress_data *data, cbf_compress_node *root,
 
     /* Read a multi-precision integer code */
 
-int cbf_get_mpint_code (cbf_compress_data *data, cbf_compress_node *root,
+static int cbf_get_mpint_code (cbf_compress_data *data, cbf_compress_node *root,
                         unsigned int code[4],
                         unsigned int *bitcount, int numints)
 {
     int bits0, bits1;
+    
+    CBF_UNUSED( numints );
     
     /* Decode the bitstream  */
     
@@ -1338,8 +1340,10 @@ int cbf_put_code (cbf_compress_data *data, int code, unsigned int overflow,
 
     /* Write a coded multi-precision integer */
 
-int cbf_put_mpint_code (cbf_compress_data *data, int code[5], unsigned int overflow,
-                        unsigned int *bitcount, int numints)
+static int cbf_put_mpint_code (cbf_compress_data *data, int code[5],
+                               unsigned int overflow,
+                               unsigned int *bitcount,
+                               int numints)
 {
     unsigned int bits, kbits, m, endcode;
     
@@ -1431,7 +1435,7 @@ int cbf_put_mpint_code (cbf_compress_data *data, int code[5], unsigned int overf
     /* Write the number */
     
     
-    for (j = 0; j < bits; j += sizeof(int)*CHAR_BIT) {
+    for (j = 0; j < (int)bits; j += sizeof(int)*CHAR_BIT) {
         
         kbits = sizeof(int)*CHAR_BIT;
         
@@ -1824,7 +1828,17 @@ int cbf_compress_canonical (void         *source,
     
     char * rformat;
     
+    CBF_UNUSED( compression );
     
+    CBF_UNUSED( byteorder );
+    
+    CBF_UNUSED( dimfast );
+    
+    CBF_UNUSED( dimmid );
+    
+    CBF_UNUSED( dimslow );
+    
+    CBF_UNUSED( padding );
     
     /* Is the element size valid? */
     
@@ -1984,7 +1998,7 @@ int cbf_compress_canonical (void         *source,
     
     /* Start from 0 */
     
-    for (i = 0; i < numints-1; i++ ) lastelement[i] = 0;
+    for (i = 0; (int)i < numints-1; i++ ) lastelement[i] = 0;
     
     lastelement[numints-1] = unsign;
     
@@ -2008,7 +2022,7 @@ int cbf_compress_canonical (void         *source,
                 
             } else {
                 
-                for (iint = 0; iint < numints; iint++) {
+                for (iint = 0; (int)iint < numints; iint++) {
                     
                     element[iint] = *((unsigned int *) unsigned_char_data);
                     
@@ -2049,7 +2063,7 @@ int cbf_compress_canonical (void         *source,
             if (elsign && (int) (element[numints-1] - unsign) < 0)
                 
             {
-                for(i=0; i <numints-1; i++) element[numints]=0;
+                for(i=0; (int)i < numints-1; i++) element[numints]=0;
                 
                 element[numints-1] = 0;
             }
@@ -2057,7 +2071,7 @@ int cbf_compress_canonical (void         *source,
             else
                 
             {
-                for(i=0; i <numints-1; i++) element[numints]=0;
+                for(i=0; (int)i <numints-1; i++) element[numints]=0;
                 
                 element[numints-1] = limit;
             }
@@ -2080,7 +2094,7 @@ int cbf_compress_canonical (void         *source,
             
         } else {
             
-            for (i=0;i<numints;i++) code[i] = lastelement[i];
+            for (i=0; (int)i < numints; i++) code[i] = lastelement[i];
             
             code[numints] = 0;
             
@@ -2101,7 +2115,7 @@ int cbf_compress_canonical (void         *source,
         
         /* Update the previous element */
         
-        for (i=0;i<numints;i++) lastelement[i] = element[i];
+        for (i=0; (int)i < numints; i++) lastelement[i] = element[i];
     }
     
     
@@ -2178,6 +2192,26 @@ int cbf_decompress_canonical (void         *destination,
     char* rformat;
     
     char* border;
+    
+    CBF_UNUSED( compressedsize );
+    
+    CBF_UNUSED( compression );
+    
+    CBF_UNUSED( data_bits );
+    
+    CBF_UNUSED( data_sign );
+    
+    CBF_UNUSED( byteorder );
+    
+    CBF_UNUSED( dimover );
+    
+    CBF_UNUSED( dimfast );
+    
+    CBF_UNUSED( dimmid );
+    
+    CBF_UNUSED( dimslow );
+    
+    CBF_UNUSED( padding );
     
     /* Is the element size valid? */
     
@@ -2277,7 +2311,7 @@ int cbf_decompress_canonical (void         *destination,
     
     /* Initialise the first element */
     
-    for (iint = 0; iint < numints-1; iint++)
+    for (iint = 0; iint < (int)(numints-1); iint++)
         
         last_element [iint] = 0;
     
@@ -2316,7 +2350,7 @@ int cbf_decompress_canonical (void         *destination,
             
             cbf_mpint_add_acc(last_element,numints,offset,(bits+sizeof(int)*CHAR_BIT-1)/(sizeof(int)*CHAR_BIT));
             
-            for (i=0; i < numints; i++) element[i] = last_element[i];
+            for (i=0; i < (int)numints; i++) element[i] = last_element[i];
             
         }
         
@@ -2370,7 +2404,7 @@ int cbf_decompress_canonical (void         *destination,
                         
                     } else {
                         
-                        for (iint = 0; iint < numints; iint++) {
+                        for (iint = 0; iint < (int)numints; iint++) {
                             
                             ((unsigned int *) unsigned_char_data)[iint] = element[iint];
                             

@@ -760,6 +760,16 @@ void f
 */
 #define CBF_UNUSED(x) ((void)((x)))
 
+/* macros to define arrays with variable dimensions */
+
+#define CBF_START_ARRAY(type,name,dimension) \
+    { type * name; \
+      if (!cbf_alloc((void **) &(name),NULL,sizeof(type),dimension)) {
+
+#define CBF_END_ARRAY(name) \
+      cbf_free((void **) &(name), NULL); } \
+    }
+
 
   /* string for an error */
     
@@ -800,6 +810,10 @@ typedef cbf_handle_struct *cbf_handle;
 
 
   /* Prototypes */
+
+  /* Set a logfile in a handle */
+    
+int cbf_set_cbf_logfile (cbf_handle handle, FILE * logfile);
 
   /* Create a handle */
 
@@ -1581,6 +1595,9 @@ int cbf_find_tag_category (cbf_handle handle, const char* tagname,
   
 int cbf_set_tag_category (cbf_handle handle, const char* tagname,
                                             const char* categoryname);
+  /* check a category for all required tags and for parent tags */
+
+int cbf_check_category_tags(cbf_handle handle, cbf_node* category, cbf_node* parent);
 
   /* Validate portion of CBF */
  

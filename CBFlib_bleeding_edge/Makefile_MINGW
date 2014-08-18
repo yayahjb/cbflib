@@ -456,6 +456,7 @@ INCLUDE  = $(ROOT)/include
 M4       = $(ROOT)/m4
 PYCBF    = $(ROOT)/pycbf
 EXAMPLES = $(ROOT)/examples
+TEMPLATES= $(ROOT)/templates
 DECTRIS_EXAMPLES = $(EXAMPLES)/dectris_cbf_template_test
 DOC      = $(ROOT)/doc
 MINICBF_TEST = $(ROOT)/minicbf_test
@@ -858,7 +859,7 @@ symlinksdone:
 
 install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 	$(INSTALLDIR)/include $(INSTALLDIR)/include/cbflib \
-	$(PYSOURCE) shared
+	$(PYSOURCE) shared $(EXAMPLES)/batch_convert_minicbf.sh
 	-chmod -R 755 $(INSTALLDIR)/include/cbflib
 	-chmod 755 $(INSTALLDIR)/lib/libcbf.a
 	-cp $(INSTALLDIR)/lib/libcbf.a $(INSTALLDIR)/lib/libcbf_old.a
@@ -917,6 +918,8 @@ install:  all $(INSTALLDIR) $(INSTALLDIR)/lib $(INSTALLDIR)/bin \
 ifneq ($(CBF_USE_ULP),)
 	-cp $(INSTALLDIR)/bin/testulp $(INSTALLDIR)/bin/testulp_old
 	cp $(BIN)/testulp $(INSTALLDIR)/bin/testulp
+	-cp $(INSTALLDIR)/bin/batch_convert_minicbf.sh $(INSTALLDIR)/bin/batch_convert_minicbf_old.sh
+	cp $(EXAMPLES)/batch_convert_minicbf.sh $(INSTALLDIR)/bin/batch_convert_minicbf.sh
 endif
 		chmod -R 755 $(INSTALLDIR)/include/cbflib
 	-rm -rf $(INSTALLDIR)/include/cbflib_old
@@ -949,6 +952,7 @@ ifneq ($(CBF_USE_ULP),)
 	chmod 755 $(INSTALLDIR)/bin/testulp
 endif
 	chmod 755 $(INSTALLDIR)/bin/tiff2cbf
+	chmod 755 $(INSTALLDIR)/bin/batch_convert_minicbf.sh
 	chmod 644 $(INSTALLDIR)/include/cbflib/*.h
 	
 
@@ -1182,10 +1186,11 @@ $(BIN)/convert_image: $(LIB)/libcbf.a $(EXAMPLES)/convert_image.c $(EXAMPLES)/im
 # convert_minicbf example program
 #
 $(BIN)/convert_minicbf: $(LIB)/libcbf.a $(EXAMPLES)/convert_minicbf.c \
-	$(GOPTLIB)	$(GOPTINC)
+	$(GOPTLIB)	$(GOPTINC) $(EXAMPLES)/batch_convert_minicbf.sh
 	$(CC) $(CFLAGS) $(MISCFLAG) $(CBF_REGEXFLAG) $(INCLUDES) $(WARNINGS) \
 	$(EXAMPLES)/convert_minicbf.c $(GOPTLIB) -L$(LIB) \
 	-lcbf $(EXTRALIBS) $(HDF5LIBS) -o $@
+	chmod 755 $(EXAMPLES)/batch_convert_minicbf.sh
 
 #
 # makecbf example program
@@ -1687,7 +1692,8 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf \
 	$(BIN)/changtestcompression $(BIN)/tiff2cbf \
 	$(BIN)/testhdf5 $(BIN)/testalloc \
 	$(BIN_TESTULP) \
-	basic $(TESTINPUT_EXTRA) $(TESTOUTPUT)
+	basic $(TESTINPUT_EXTRA) $(TESTOUTPUT) $(EXAMPLES)/batch_convert_minicbf.sh \
+	$(TEMPLATES)/template_X4_lots_M1S4.cbf
 else
 extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf \
 	$(BIN)/minicbf2nexus $(BIN)/cbf2nexus $(BIN)/nexus2cbf $(BIN)/testcell \
@@ -1696,7 +1702,7 @@ extra:	$(BIN)/convert_image $(BIN)/convert_minicbf $(BIN)/cif2cbf \
 	$(BIN)/sauter_test $(BIN)/adscimg2cbf $(BIN)/cbf2adscimg \
 	$(BIN)/testhdf5 $(BIN)/testalloc \
 	$(BIN_TESTULP) \
-	basic $(TESTINPUT_EXTRA) $(TESTOUTPUT)
+	basic $(TESTINPUT_EXTRA) $(TESTOUTPUT) $(EXAMPLES)/batch_convert_minicbf.sh
 endif
 	$(TIME) $(BIN)/cif2cbf -e hex -c none \
 	makecbf.cbf cif2cbf_ehcn.cif
@@ -1705,15 +1711,15 @@ endif
 	-cmp makecbf.cbf cif2cbf_encp.cbf
 	$(TIME) $(BIN)/cif2cbf -i 9ins.cif -o 9ins.cbf
 	-cmp 9ins.cif 9ins.cbf
-	$(TIME) $(BIN)/convert_image -p templates/template_mar345_2300x2300.cbf -F example.mar2300 converted_flat.cbf
+	$(TIME) $(BIN)/convert_image -p $(TEMPLATES)/template_mar345_2300x2300.cbf -F example.mar2300 converted_flat.cbf
 	-cmp converted_flat.cbf converted_flat_orig.cbf
-	$(TIME) $(BIN)/convert_image -p templates/template_mar345_2300x2300.cbf example.mar2300 converted.cbf
+	$(TIME) $(BIN)/convert_image -p $(TEMPLATES)/template_mar345_2300x2300.cbf example.mar2300 converted.cbf
 	-cmp converted.cbf converted_orig.cbf
 	-$(TIME) $(BIN)/testcell < testcell.dat > testcell.prt
 	-cmp testcell.prt testcell_orig.prt
-	$(TIME) $(BIN)/convert_image -p templates/template_adscquantum315_3072x3072.cbf -F -d adscquantum315 mb_LP_1_001.img adscconverted_flat.cbf
+	$(TIME) $(BIN)/convert_image -p $(TEMPLATES)/template_adscquantum315_3072x3072.cbf -F -d adscquantum315 mb_LP_1_001.img adscconverted_flat.cbf
 	-cmp adscconverted_flat.cbf adscconverted_flat_orig.cbf
-	$(TIME) $(BIN)/convert_image -p templates/template_adscquantum315_3072x3072.cbf -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
+	$(TIME) $(BIN)/convert_image -p $(TEMPLATES)/template_adscquantum315_3072x3072.cbf -d adscquantum315 mb_LP_1_001.img adscconverted.cbf
 	-cmp adscconverted.cbf adscconverted_orig.cbf
 	$(TIME) $(BIN)/adscimg2cbf --no_pad  --cbf_packed,flat mb_LP_1_001.img
 	-cmp mb_LP_1_001.cbf mb_LP_1_001_orig.cbf
@@ -1728,10 +1734,13 @@ endif
 ifneq ($(CLEANTESTS),)
 	rm nmb_LP_1_001.img
 endif
-	$(TIME) $(BIN)/convert_minicbf -p templates/template_pilatus6m_2463x2527.cbf -d pilatus6m -v 1 insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
+	$(TIME) $(BIN)/convert_minicbf -p $(TEMPLATES)/template_pilatus6m_2463x2527.cbf -d pilatus6m -v 1 insulin_pilatus6m.cbf insulin_pilatus6mconverted.cbf
 	-cmp insulin_pilatus6mconverted.cbf insulin_pilatus6mconverted_rev_orig.cbf
-	-$(TIME) $(BIN)/convert_minicbf -p templates/template_pilatus6m_2463x2527.cbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted_v2.cbf
+	-$(TIME) $(BIN)/convert_minicbf -p $(TEMPLATES)/template_pilatus6m_2463x2527.cbf -d pilatus6m insulin_pilatus6m.cbf insulin_pilatus6mconverted_v2.cbf
 	-cmp insulin_pilatus6mconverted_v2.cbf insulin_pilatus6mconverted_v2_orig.cbf
+	(CBF_CONVERT_MINICBF_PATH=$(BIN); export CBF_CONVERT_MINICBF_PATH; \
+	    $(EXAMPLES)/batch_convert_minicbf.sh "." "minicbf_test" \
+	    "X4_lots_M1S4_1_*.cbf"  $(TEMPLATES)/template_X4_lots_M1S4.cbf)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
 	$(TIME) $(BIN)/cif2cbf -5 w -O $(HDF5REGISTER) -i insulin_pilatus6mconverted.cbf -o insulin_pilatus6mconverted.cbf.h5)
 	-(HDF5_PLUGIN_PATH=$(SOLIB); export HDF5_PLUGIN_PATH; \
@@ -1906,7 +1915,7 @@ javatests: $(BIN)/ctestcbf $(BIN)/testcbf.class $(SOLIB)/libcbf_wrap.so
 	$(LDPREFIX) java -cp $(JCBF)/cbflib-$(VERSION).jar:$(BIN) testcbf > testcbfj.txt
 	$(DIFF) testcbfc.txt testcbfj.txt
 
-dectristests: $(BIN)/cbf_template_t templates/cbf_test_orig.out
+dectristests: $(BIN)/cbf_template_t $(TEMPLATES)/cbf_test_orig.out
 	(cd templates; ../bin/cbf_template_t; diff -a -u cbf_test_orig.out cbf_template_t.out)
 
 #

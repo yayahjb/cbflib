@@ -470,12 +470,12 @@ extern "C" {
     int iint, jsize;  \
     int jrun;         \
     int succnt = 0;   \
-    if (numints==1 || curmode <= sizeof(int)*CHAR_BIT) { \
+    if (numints==1 || curmode <= (int)(sizeof(int)*CHAR_BIT)) { \
       termmode = 1<<(curmode-1);  \
       cbf_failnez(cbf_put_bits(file,&termmode,curmode)) \
     } else { \
       jsize = 0; \
-      for (iint=0; iint*sizeof(int) < curmode; iint++) { \
+      for (iint=0; (int)(iint*sizeof(int)) < curmode; iint++) { \
         cbf_failnez(cbf_put_bits(file,&xzero,sizeof(int))) \
         jsize += sizeof(int); \
       } \
@@ -491,15 +491,15 @@ extern "C" {
     prevmode = curmode; \
     curmode = usedmode = newmode; \
     if ( tempmode==CBF_NIBBLE_UPN  && prevmode <= 32) { \
-        if (curmode == succs[prevmode]) { \
+        if (curmode == (int)succs[prevmode]) { \
             succnt = 1; \
-        } else if (prevmode <= 16 && curmode == succs[succs[prevmode]]) { \
+        } else if (prevmode <= 16 && curmode == (int)succs[succs[prevmode]]) { \
             succnt = 2; \
-        } else if (prevmode <= 12 && curmode == succs[succs[succs[prevmode]]]) { \
+        } else if (prevmode <= 12 && curmode == (int)succs[succs[succs[prevmode]]]) { \
             succnt = 3; \
-        } else if (prevmode <= 8 && curmode == succs[succs[succs[succs[prevmode]]]]) { \
+        } else if (prevmode <= 8 && curmode == (int)succs[succs[succs[succs[prevmode]]]]) { \
             succnt = 4; \
-        } else if (prevmode <= 6 && curmode == succs[succs[succs[succs[succs[prevmode]]]]]) { \
+        } else if (prevmode <= 6 && curmode == (int)succs[succs[succs[succs[succs[prevmode]]]]]) { \
             succnt = 5; \
         } else { tempmode = curmode;} \
     } \
@@ -516,7 +516,7 @@ extern "C" {
             cbf_failnez(cbf_put_bits(file,delta[jrun],curmode))  \
             bsize += curmode; \
         } else {            \
-            for (iint = 0; iint < kint[jrun]+1; iint++) { \
+            for (iint = 0; iint < (kint[jrun]+1); iint++) { \
                 \
                 cbf_failnez (cbf_put_integer (file, delta[jrun][iint], \
                                               iint==numints-1?1:0,\
@@ -532,7 +532,7 @@ extern "C" {
             cbf_failnez(cbf_put_bits(file,delta[jrun],curmode)) \
             bsize += curmode; \
         } else {                                          \
-            for (iint = 0; iint < kint[jrun]+1; iint++) {       \
+            for (iint = 0; iint < (kint[jrun]+1); iint++) {       \
                                                           \
                 cbf_failnez (cbf_put_integer (file, delta[jrun][iint],                        \
                                               iint==numints-1?1:0,                      \
@@ -601,6 +601,18 @@ int cbf_compress_nibble_offset (void         *source,
         int usedmode;
         
         int *termflag[17];
+        
+        CBF_UNUSED( compression );
+        
+        CBF_UNUSED( byteorder );
+        
+        CBF_UNUSED( dimfast );
+        
+        CBF_UNUSED( dimmid );
+        
+        CBF_UNUSED( dimslow );
+        
+        CBF_UNUSED( padding );
         
         termflag[2] = &dflag;
         
@@ -1042,6 +1054,22 @@ int cbf_decompress_nibble_offset (void         *destination,
         
         int succnt, sucmode;
         
+        CBF_UNUSED( compressedsize );
+        
+        CBF_UNUSED( compression );
+        
+        CBF_UNUSED( byteorder );
+        
+        CBF_UNUSED( dimover );
+        
+        CBF_UNUSED( dimfast );
+        
+        CBF_UNUSED( dimmid );
+        
+        CBF_UNUSED( dimslow );
+        
+        CBF_UNUSED( padding );
+        
         /* prepare the errorcode */
         
         errorcode = 0;
@@ -1211,7 +1239,7 @@ int cbf_decompress_nibble_offset (void         *destination,
 
                  default:
                     cbf_failnez(cbf_get_bits(file,delta,curmode))
-                    if (curmode < sizeof(int))
+                    if (curmode < (int)sizeof(int))
                         delta[0] &= masks[curmode];
                     bitsread += curmode;
                     nextmode = curmode;

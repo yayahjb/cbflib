@@ -690,7 +690,7 @@ extern "C" {
     
     /* Write a datablock name to a file */
     
-    int cbf_write_datablockname (const cbf_node *datablock, cbf_file *file)
+    static int cbf_write_datablockname (const cbf_node *datablock, cbf_file *file)
     {
         /* Does the node exist? */
         
@@ -724,7 +724,7 @@ extern "C" {
     
     /* Write a save frame name to a file */
     
-    int cbf_write_saveframename (const cbf_node *saveframe, cbf_file *file)
+    static int cbf_write_saveframename (const cbf_node *saveframe, cbf_file *file)
     {
         /* Does the node exist? */
         
@@ -822,7 +822,7 @@ extern "C" {
             
             ipos = strlen(itemname);
             
-            if ( ipos < limit ) itemname[ipos++] = '.';
+            if ( ipos < (ssize_t)limit ) itemname[ipos++] = '.';
             
             if ( limit-ipos > 0) strncpy(itemname+ipos,tempcol,limit-ipos);
             
@@ -838,7 +838,7 @@ extern "C" {
     
     /* Write an item name to a file */
     
-    int cbf_write_itemname (cbf_handle handle, const cbf_node *column, cbf_file *file)
+    static int cbf_write_itemname (cbf_handle handle, const cbf_node *column, cbf_file *file)
     {
         char itemname[81];
         
@@ -878,7 +878,7 @@ extern "C" {
     
     /* Write a value to a file */
     
-    int cbf_write_value (cbf_handle handle, cbf_node *column, unsigned int row,
+    static int cbf_write_value (cbf_handle handle, cbf_node *column, unsigned int row,
                          cbf_file *file, int isbuffer)
     {
         const char *text;
@@ -952,7 +952,7 @@ extern "C" {
     
     /* Write a category to a file */
     
-    int cbf_write_category (cbf_handle handle, const cbf_node *category, cbf_file *file, int isbuffer)
+    static int cbf_write_category (cbf_handle handle, const cbf_node *category, cbf_file *file, int isbuffer)
     {
         unsigned int count, first, last=0, column, columns, row, maxrows, matrixcount;
         

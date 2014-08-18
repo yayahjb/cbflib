@@ -484,6 +484,8 @@ extern "C" {
         
         void *memblock;
         
+        CBF_UNUSED( context );
+        
         if (string) {
             
             if (type)
@@ -581,6 +583,8 @@ extern "C" {
     void cbf_free_string (cbf_context *context, const char *string)
     {
         void * memblock;
+        
+        CBF_UNUSED( context );
         
         memblock = (void *)string;
         

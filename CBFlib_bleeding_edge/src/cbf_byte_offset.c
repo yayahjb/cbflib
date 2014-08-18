@@ -311,6 +311,14 @@ int cbf_compress_byte_offset (void         *source,
         
         unsigned char fixup1;
         
+        CBF_UNUSED(dimfast);
+        
+        CBF_UNUSED(dimmid);
+        
+        CBF_UNUSED(dimslow);
+        
+        CBF_UNUSED(padding);
+        
         /* Is the element size valid? */
         
         if (elsize != sizeof (int) &&
@@ -1040,7 +1048,7 @@ int cbf_compress_byte_offset (void         *source,
 
   /* Decompress an array with the byte-offset algorithm */
 
-int cbf_decompress_byte_offset_slow (void         *destination,
+static int cbf_decompress_byte_offset_slow (void         *destination,
                                 size_t        elsize,
                                 int           elsign,
                                 size_t        nelem,
@@ -1074,6 +1082,22 @@ int cbf_decompress_byte_offset_slow (void         *destination,
   
   size_t numread;
 
+        CBF_UNUSED(compressedsize);
+        
+        CBF_UNUSED(compression);
+        
+        CBF_UNUSED(byteorder);
+        
+        CBF_UNUSED(dimover);
+        
+        CBF_UNUSED(dimfast);
+        
+        CBF_UNUSED(dimmid);
+        
+        CBF_UNUSED(dimslow);
+        
+        CBF_UNUSED(padding);
+        
     /* prepare the errorcode */
 
   errorcode = 0;
@@ -1365,7 +1389,7 @@ int cbf_decompress_byte_offset_slow (void         *destination,
  * this fast version assumes chars are 8 bits
  * and signed integers are represented in two's complement format
  */
-int cbf_decompress_byte_offset_fast(void         *destination,
+static int cbf_decompress_byte_offset_fast(void         *destination,
                                 size_t        elsize,
                                 int           elsign,
                                 size_t        nelem,
@@ -1396,6 +1420,24 @@ int cbf_decompress_byte_offset_fast(void         *destination,
     int i = 0;
     
     unsigned char *rawdata = NULL;
+    
+    CBF_UNUSED(nelem);
+    
+    CBF_UNUSED(compression);
+    
+    CBF_UNUSED(data_sign);
+    
+    CBF_UNUSED(byteorder);
+    
+    CBF_UNUSED(dimover);
+    
+    CBF_UNUSED(dimfast);
+    
+    CBF_UNUSED(dimmid);
+    
+    CBF_UNUSED(dimslow);
+    
+    CBF_UNUSED(padding);
     
     
     /* Is the element size valid? */
@@ -1588,10 +1630,10 @@ int cbf_decompress_byte_offset_fast(void         *destination,
         }
 #else
 #if CBF_SLL_INTS==2
-        while (i < compressedsize) {
+        while (i < (int)compressedsize) {
             delta.el1 = 0;
             delta.el0 = (signed char) rawdata[i++];
-            if (delta.el0 == (signed char) 0x80) {
+            if ((int)delta.el0 == (signed char) 0x80) {
                 delta.el0 = rawdata[i++];
                 delta.el0 |= (signed char) rawdata[i++] << 8;
                 if (delta.el0 & 0x8000L) {
@@ -1892,10 +1934,10 @@ int cbf_decompress_byte_offset_fast(void         *destination,
         }
 #else
 #if CBF_SLL_INTS==2
-        while (i < compressedsize) {
+        while (i < (int)compressedsize) {
             delta.el1 = 0;
             delta.el0 = (signed char) rawdata[i++];
-            if (delta.el0 == (signed char) 0x80) {
+            if ((int)delta.el0 == (signed char) 0x80) {
                 delta.el0 = rawdata[i++];
                 delta.el0 |= (signed char) rawdata[i++] << 8;
                 if (delta.el0 & 0x8000L) {

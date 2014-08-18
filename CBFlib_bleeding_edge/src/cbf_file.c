@@ -1385,7 +1385,7 @@ int cbf_flush_characters (cbf_file *file)
 
   if (file->digest)
 
-    MD5Update (file->digest, file->characters, file->characters_used);
+    MD5Update (file->digest, (unsigned char *)(file->characters), file->characters_used);
 
   while (file->temporary) {
   
@@ -1455,7 +1455,7 @@ int cbf_flush_characters (cbf_file *file)
 
     /* Remove the characters written */
 
-  if (done < file->characters_used)
+  if (done < (ssize_t)(file->characters_used))
   {
     if (done > 0)
     {
@@ -2004,7 +2004,7 @@ int cbf_put_block (cbf_file *file, size_t nelem)
 
   if (nelem && file->digest)
 
-    MD5Update (file->digest, file->buffer, nelem);
+    MD5Update (file->digest, (unsigned char *)(file->buffer), nelem);
 
   while (file->temporary)  {
       
@@ -2157,7 +2157,7 @@ int cbf_copy_file (cbf_file *destination, cbf_file *source, size_t nelem)
 
     if (todo > 0 && destination->digest)
 
-      MD5Update (destination->digest, source->buffer, todo);
+      MD5Update (destination->digest, (unsigned char *)(source->buffer), todo);
 
     while (destination->temporary)  {
   
@@ -2315,7 +2315,7 @@ int cbf_set_fileposition (cbf_file *file, long int position, int whence)
    
    if (whence == SEEK_END) position += file->characters-file->characters_base+file->characters_used;
    
-   if (position < 0 || position > file->characters-file->characters_base+file->characters_used)
+   if (position < 0 || position > (ssize_t)(file->characters-file->characters_base)+(ssize_t)(file->characters_used))
    
      return CBF_FILESEEK;
    
@@ -2328,8 +2328,8 @@ int cbf_set_fileposition (cbf_file *file, long int position, int whence)
  } else {
 
    if (file->characters && whence == SEEK_CUR 
-     && ((position >= 0 && file->characters_used > position)
-       || (position < 0 && file->characters - file->characters_base >  -position)))  {
+     && ((position >= 0 && (ssize_t)(file->characters_used) > position)
+       || (position < 0 && (ssize_t)(file->characters) - (ssize_t)(file->characters_base) >  -position)))  {
 
      file->characters += position;
           

@@ -553,7 +553,7 @@ int cbf_nblen (const char *line, size_t *nblen)
 
   /* Skip whitespace and comments */
 
-int cbf_skip_whitespace (cbf_file *file, const char **line,
+static int cbf_skip_whitespace (cbf_file *file, const char **line,
                                          const char **curpoint,
                                          int        *freshline)
 {

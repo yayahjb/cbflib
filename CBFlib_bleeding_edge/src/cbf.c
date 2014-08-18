@@ -2439,7 +2439,7 @@ int cbf_next_row (cbf_handle handle)
 
     /* Is the row valid? */
 
-  if (handle->row >= rows)
+  if (handle->row >= 0 && (unsigned int)(handle->row) >= rows)
 
     return CBF_NOTFOUND;
 
@@ -3719,7 +3719,7 @@ int cbf_set_doublevalue (cbf_handle handle, const char *format, double number)
   
     /* undo locale conversions of '.' to ',' */
     
-  for (ic = 0; ic < strlen(value+lopos); ic++)
+  for (ic = 0; ic < (int)strlen(value+lopos); ic++)
     if (value[lopos+ic] == ',') value[lopos+ic] = '.';
 
 
@@ -4920,9 +4920,9 @@ int cbf_set_hashedvalue(cbf_handle handle, const char * value,
   
   cbf_failnez( cbf_count_rows       (handle,   (unsigned int *)&catrownum))
   
-  if (catrownum < hashcode+1) {
+  if ((unsigned int)catrownum < hashcode+1) {
   
-    for (rownum = catrownum; rownum < hashcode+1; rownum++) {
+    for (rownum = catrownum; (unsigned int)rownum < hashcode+1; rownum++) {
     
       cbf_failnez(cbf_new_row(handle))
     	
@@ -5103,9 +5103,9 @@ int cbf_find_hashedvalue(cbf_handle handle, const char * value,
   
   cbf_failnez( cbf_count_rows       (handle, (unsigned int *)&catrownum))
   
-  if (catrownum < hashcode+1) {
+  if ((unsigned int)catrownum < hashcode+1) {
   
-    for (rownum = catrownum; rownum < hashcode+1; rownum++) {
+    for (rownum = catrownum; (unsigned int)rownum < hashcode+1; rownum++) {
     
       cbf_failnez( cbf_new_row(handle))
     	
@@ -5803,10 +5803,8 @@ int cbf_convert_dictionary (cbf_handle handle, cbf_handle dictionary )
 {
     cbf_handle dict;
 		
-    unsigned int blocks, frames, blockitems;
+    unsigned int blocks, frames, blockitems, blocknum, itemnum;
 
-    int blocknum, itemnum;
-    
     unsigned int numrows, rownum, parent_row;
 
     CBF_NODETYPE itemtype;
@@ -6597,7 +6595,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 
   const char * expression;
 
-  unsigned int children, columns, rows;
+  unsigned int children, columns, column, rows;
   
   cbf_file * file;
   
@@ -6611,7 +6609,7 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
   
   int count;
   
-  int column, minrows, maxrows;
+  unsigned int minrows, maxrows;
   
   file = handle->file;
 
@@ -7961,7 +7959,7 @@ int cbf_mpint_load_acc(unsigned int * acc, size_t acsize,
 
   unsigned char * unsigned_char_data;
 
-  int iint, numints;
+  unsigned int iint, numints;
 
   unsigned int sign;
 
@@ -8063,7 +8061,9 @@ int cbf_mpint_store_acc(unsigned int * acc, size_t acsize,
 
   unsigned char * unsigned_char_data;
 
-  int iint, numints;
+  unsigned int iint, numints;
+  
+  CBF_UNUSED(elsign);
   
   bits = elsize * CHAR_BIT;
 
@@ -8124,7 +8124,7 @@ int cbf_mpint_store_acc(unsigned int * acc, size_t acsize,
 
 int cbf_mpint_clear_acc(unsigned int * acc, size_t acsize) {
 
-  int iint;
+  unsigned int iint;
 
   for (iint=0; iint<acsize; iint++) acc[iint] = 0;
 
@@ -8141,7 +8141,7 @@ int cbf_mpint_increment_acc(unsigned int * acc, size_t acsize) {
   the sign bit set and, if after an increment of the
   element, the  sign bit of that element is no longer set */
 
-  int iint;
+  unsigned int iint;
 
   int carry, precarry;
 
@@ -8178,7 +8178,7 @@ int cbf_mpint_decrement_acc(unsigned int * acc, size_t acsize) {
   not have the sign bit set and, if after an increment of the
   element, the  sign bit of that element is set */
   
-  int iint;
+  unsigned int iint;
 
   int borrow, preborrow;
 
@@ -8210,7 +8210,7 @@ int cbf_mpint_decrement_acc(unsigned int * acc, size_t acsize) {
 
 int cbf_mpint_negate_acc(unsigned int * acc, size_t acsize) {
 
-  int iint;
+  unsigned int iint;
   
   for (iint=0; iint< acsize; iint++) {
 
@@ -8226,7 +8226,7 @@ int cbf_mpint_negate_acc(unsigned int * acc, size_t acsize) {
 
 int cbf_mpint_add_acc(unsigned int * acc, size_t acsize, unsigned int * add, size_t addsize) {
 
-  int iint;
+  unsigned int iint;
 
   unsigned int carry;
 
@@ -8266,7 +8266,7 @@ int cbf_mpint_add_acc(unsigned int * acc, size_t acsize, unsigned int * add, siz
 
       for (iint = acsize; iint < acsize; iint++)
 
-        if ( add[iint] != -1) return CBF_ARGUMENT;
+        if ( (int)(add[iint]) != -1) return CBF_ARGUMENT;
 
     } else {
 
@@ -8306,7 +8306,7 @@ int cbf_mpint_add_acc(unsigned int * acc, size_t acsize, unsigned int * add, siz
 
 int cbf_mpint_rightshift_acc(unsigned int * acc, size_t acsize, int shift) {
 
-  int iint;
+  unsigned int iint;
 
   size_t bigshift;
 
@@ -8320,7 +8320,7 @@ int cbf_mpint_rightshift_acc(unsigned int * acc, size_t acsize, int shift) {
 
   bigshift = 0;
 
-  if (shift >= sizeof(unsigned int)*CHAR_BIT) {
+  if (shift >= (int)sizeof(unsigned int)*CHAR_BIT) {
 
     extrabits = 0;
 
@@ -8372,7 +8372,7 @@ int cbf_mpint_rightshift_acc(unsigned int * acc, size_t acsize, int shift) {
 
 int cbf_mpint_leftshift_acc(unsigned int * acc, size_t acsize, int shift) {
 
-  int iint;
+  unsigned int iint;
 
   size_t bigshift;
 
@@ -8386,7 +8386,7 @@ int cbf_mpint_leftshift_acc(unsigned int * acc, size_t acsize, int shift) {
 
   bigshift = 0;
 
-  if (shift >= sizeof(unsigned int)*CHAR_BIT) {
+  if (shift >= (int)sizeof(unsigned int)*CHAR_BIT) {
 
     extrabits = 0;
 

@@ -278,7 +278,7 @@ extern "C" {
 
   /* Return a copy of the text */
 
-int cbf_return_text (int code, YYSTYPE *val, const char *text, char type)
+static int cbf_return_text (int code, YYSTYPE *val, const char *text, char type)
 {
 
   val->text = cbf_copy_string (NULL, text, type);
@@ -295,7 +295,7 @@ int cbf_return_text (int code, YYSTYPE *val, const char *text, char type)
 
   /* Back up one character in the file */
   
-int cbf_lex_unget (cbf_file *file, YYSTYPE *val, int c[5]) {
+static int cbf_lex_unget (cbf_file *file, YYSTYPE *val, int c[5]) {
 
     if ( file->temporary || file->characters )  {
     
@@ -1588,7 +1588,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                         depth++;
                         
                         
-                        if (depth > tokentype_size) {
+                        if (depth > (ssize_t)tokentype_size) {
                             
                             cbf_onerrornez(cbf_realloc((void **)vtokentype, NULL, sizeof(int),tokentype_size*2),
                                            val,{cbf_free((void **)vtokentype, NULL);
@@ -1599,7 +1599,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                             
                         }
                         
-                        if (depth > state_size) {
+                        if (depth > (ssize_t)state_size) {
                             
                             cbf_onerrornez(cbf_realloc((void **)vstate, NULL, sizeof(int),state_size*2),
                                            val,{cbf_free((void **)vtokentype, NULL);
@@ -1611,7 +1611,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                         }
                         
                         
-                        if (depth > index_size) {
+                        if (depth > (ssize_t)index_size) {
                             
                             cbf_onerrornez(cbf_realloc((void **)vindex, NULL, sizeof(int),index_size*2),
                                            val,{cbf_free((void **)vtokentype, NULL);
@@ -1713,7 +1713,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
               
               cbf_errornez (cbf_get_buffer (file, &line, &length), val)
               
-              for (ii = 0; ii < length; ii++) {
+              for (ii = 0; ii < (ssize_t)length; ii++) {
                   
                   cbf_errornez (cbf_save_character_trim (handle->commentfile, line[ii]), val)
                   

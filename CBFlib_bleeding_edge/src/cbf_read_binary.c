@@ -257,6 +257,7 @@ extern "C" {
 #include "cbf_file.h"
 #include "cbf_context.h"
 #include "cbf_binary.h"
+#include "cbf_read_binary.h"
 #include "cbf_codes.h"
 
 #include <ctype.h>

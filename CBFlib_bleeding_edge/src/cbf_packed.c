@@ -348,7 +348,7 @@ static const unsigned int cbf_packedv2_bits [16] = { 0, CBF_PACKED_V2_BITS1,
 
   /* Add an integer to the array of offsets to write (version 2) */
 
-int cbf_add_offsetv2 (cbf_packed_data *data, unsigned int *element,
+static int cbf_add_offsetv2 (cbf_packed_data *data, unsigned int *element,
                                              unsigned int *last_element,
                                                       int  numints)
 {
@@ -518,7 +518,7 @@ int cbf_add_offsetv2 (cbf_packed_data *data, unsigned int *element,
 
   /* Add an integer to the array of offsets to write (version 1) */
 
-int cbf_add_offset (cbf_packed_data *data, unsigned int *element,
+static int cbf_add_offset (cbf_packed_data *data, unsigned int *element,
                                            unsigned int *last_element, 
                                                     int  numints)
 {
@@ -638,7 +638,7 @@ int cbf_add_offset (cbf_packed_data *data, unsigned int *element,
      The flag v2flag selects version 1 (v2flag = 0)
      or version 2 (v2flag = 1)  */
 
-int cbf_pack_chunk (cbf_packed_data *data, int size, int chunk,
+static int cbf_pack_chunk (cbf_packed_data *data, int size, int chunk,
                                            cbf_file *file,
                                            unsigned long *bitcount,
                                            int v2flag, int clipbits)
@@ -724,7 +724,8 @@ int cbf_pack_chunk (cbf_packed_data *data, int size, int chunk,
 
   /* Get the maximum size required to code 1 << chunk offsets */
 
-unsigned int cbf_maximum_size (cbf_packed_data *data, unsigned int start,
+static unsigned int cbf_maximum_size (cbf_packed_data *data,
+                                      unsigned int start,
                                                       unsigned int chunk)
 {
   unsigned int maxsize, index, count;
@@ -753,7 +754,7 @@ unsigned int cbf_maximum_size (cbf_packed_data *data, unsigned int start,
      The flag v2flag selects version 1 (v2flag = 0)
      or version 2 (v2flag = 1)  */
 
-int cbf_pack_nextchunk (cbf_packed_data *data, cbf_file *file,
+static int cbf_pack_nextchunk (cbf_packed_data *data, cbf_file *file,
                                                unsigned long *bitcount,
                                                int v2flag, int clipbits)
 {
@@ -772,7 +773,7 @@ int cbf_pack_nextchunk (cbf_packed_data *data, cbf_file *file,
 
   chunk = 0;
 
-  while (data->offsets >= (2 << chunk))
+  while ((ssize_t)(data->offsets) >= (2 << chunk))
   {
     next_size = cbf_maximum_size (data, 1 << chunk, chunk);
     
@@ -905,9 +906,13 @@ int cbf_pack_nextchunk (cbf_packed_data *data, cbf_file *file,
     
       */
 
-int cbf_update_jpa_pointers(unsigned char * trail_char_data[8],
-                               size_t *ndimfast, size_t *ndimmid, size_t *ndimslow,
-                               size_t   dimfast, size_t   dimmid, size_t   dimslow,
+    static int cbf_update_jpa_pointers(unsigned char * trail_char_data[8],
+                                       size_t *ndimfast,
+                                       size_t *ndimmid,
+                                       size_t *ndimslow,
+                                       size_t   dimfast,
+                                       size_t   dimmid,
+                                       size_t   dimslow,
                                size_t   elsize, 
                          unsigned int  *average,
                          unsigned int   compression) {
@@ -920,6 +925,8 @@ int cbf_update_jpa_pointers(unsigned char * trail_char_data[8],
     
     int mask, signbit;
     
+        CBF_UNUSED( dimslow );
+        
     average[0] = 0;
     
     numints = (elsize + sizeof(unsigned int) -1)/sizeof(unsigned int);
@@ -938,7 +945,7 @@ int cbf_update_jpa_pointers(unsigned char * trail_char_data[8],
 
     signbit = 1<<(CHAR_BIT*(elsize - (numints-1)*sizeof(unsigned int))-1);
     
-    for (i = 1; i < numints; i++) average[i] = 0;
+        for (i = 1; i < (int)numints; i++) average[i] = 0;
                                
     (*ndimfast)++;
     
@@ -1141,7 +1148,9 @@ int cbf_compress_packed (void         *source,
 
   char * rformat;
 
+        CBF_UNUSED( byteorder );
 
+        CBF_UNUSED( padding );
 
     /* Is the element size valid? */
 
@@ -1479,7 +1488,18 @@ int cbf_decompress_packed (void         *destination,
 
   char * rformat;
 
+        CBF_UNUSED( compressedsize );
 
+        CBF_UNUSED( data_bits );
+        
+        CBF_UNUSED( data_sign );
+        
+        CBF_UNUSED( byteorder );
+        
+        CBF_UNUSED( dimover );
+        
+        CBF_UNUSED( padding );
+        
     /* Is the element size valid? */
 
   if (elsize != sizeof (int) &&
@@ -1638,11 +1658,11 @@ int cbf_decompress_packed (void         *destination,
     for (pixel = 0; pixel < pixelcount; pixel++)
     {
 
-      for (i = 0; i < numints; i++) element[i] = last_element[i];
+                for (i = 0; i < (int)numints; i++) element[i] = last_element[i];
 
         /* Read an offset */
 
-      for (i = 0; i < numints; i++) offset[i] = 0;
+                for (i = 0; i < (int)numints; i++) offset[i] = 0;
       
       if (bits) {
           
@@ -1742,7 +1762,7 @@ int cbf_decompress_packed (void         *destination,
         
       } else {
       	
-       for (i = 0; i < numints-1; i++ )last_element[i] = element[i];
+                    for (i = 0; i < (int)(numints-1); i++ )last_element[i] = element[i];
       
        last_element[numints-1] = element[numints-1]+unsign;
        

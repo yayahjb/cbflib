@@ -415,7 +415,7 @@ int cbf_md5digest (cbf_file *file, size_t size, char *digest)
 
     cbf_failnez (cbf_get_buffer (file, &buffer, NULL))
 
-    MD5Update (&context, buffer, todo);
+            MD5Update (&context, (unsigned char *) buffer, todo);
 
     size -= todo;
   }
@@ -528,7 +528,7 @@ int cbf_tobase64 (cbf_file *infile, cbf_file *outfile, size_t size)
 
     c [1] = c [2] = 0;
 
-    for (read = 0; read < 3 && read < size; read++)
+            for (read = 0; read < 3 && read < (int)size; read++)
     {
       c [read] = cbf_get_character (infile);
 
@@ -603,6 +603,9 @@ int cbf_tobase32k(cbf_file *infile, cbf_file *outfile, size_t size)
 	unsigned char b;
 	int count_enc=0;
 	int new_l =0;
+        
+        CBF_UNUSED(size);
+        
 	tmp[2] = '\0';
         txt = (unsigned char *) malloc(sizeof(char) *maxlen + 1);
 	txt[maxlen] = '\0'; /*freaky but makes me feel better*/
@@ -645,7 +648,7 @@ int cbf_tobase32k(cbf_file *infile, cbf_file *outfile, size_t size)
                 	enc = cbf_encode32k_bit_op(txt, sz, pencsize);
                 	cbf_endianFix(enc ,*pencsize, 0, bigEndian);
             count_w = 0;
-			while(count_w<*pencsize)
+			while(count_w < (int)(*pencsize))
 			{
 				cbf_put_character(outfile, enc[count_w]);
 				count_w++;
@@ -759,7 +762,7 @@ char * cbf_encode32k_bit_op(unsigned char *txt, size_t size, size_t *size2)
                         first += result << (shift +(7 - n));
                 }
                 if(index < size){
-                        for(shift = 7; shift > n; shift--)
+                    for(shift = 7; shift > (int)n; shift--)
                         {
                                 result = txt[index] >> shift;
                                 result = result & mask;
@@ -773,7 +776,7 @@ char * cbf_encode32k_bit_op(unsigned char *txt, size_t size, size_t *size2)
                                 second += result << (shift + (7 -n));
         		}
                         if((index + 1) < size){
-		       		for(shift = 7; shift > n; shift --)
+                        for(shift = 7; shift > (int)n; shift --)
                                 {
                                         result = txt[index+1] >> shift;
                                         result = result & mask;
@@ -791,7 +794,7 @@ char * cbf_encode32k_bit_op(unsigned char *txt, size_t size, size_t *size2)
 }
 
 /*Determine whether the machine is little endian*/
-int cbf_isBigEndian()
+    int cbf_isBigEndian( void )
 {
 	long tmp = 1;
 	
@@ -822,8 +825,10 @@ int cbf_tobasex (cbf_file *infile, cbf_file *outfile, size_t size,
 {
   int c [8];
 
-  int count, read;
+        ssize_t count;
 
+        ssize_t read;
+        
   long l;
 
   unsigned long block_count;
@@ -886,7 +891,7 @@ int cbf_tobasex (cbf_file *infile, cbf_file *outfile, size_t size,
 
     memset (c, 0, sizeof (c));
 
-    for (read = 0; read < elsize && read < size; read++)
+            for (read = 0; read < (ssize_t)elsize && read < (ssize_t)size; read++)
     {
       c [read] = cbf_get_character (infile);
 
@@ -904,9 +909,9 @@ int cbf_tobasex (cbf_file *infile, cbf_file *outfile, size_t size,
 
     number [0] = '\0';
 
-    if ((outfile->write_encoding & ENC_BACKWARD) && read < elsize)
+            if ((outfile->write_encoding & ENC_BACKWARD) && read < (ssize_t)elsize)
 
-      for (count = read; count < elsize; count++)
+                for (count = read; count < (ssize_t)elsize; count++)
 
         strcat (number, "==");
 
@@ -938,9 +943,9 @@ int cbf_tobasex (cbf_file *infile, cbf_file *outfile, size_t size,
 
         sprintf (number + strlen (number), "%lX", l);
 
-    if ((outfile->write_encoding & ENC_FORWARD) && read < elsize)
+            if ((outfile->write_encoding & ENC_FORWARD) && read < (ssize_t)elsize)
 
-      for (count = read; count < elsize; count++)
+                for (count = read; count < (ssize_t)elsize; count++)
 
         strcat (number, "==");
 
@@ -1313,11 +1318,13 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 	int clear;
 	char b ='\0';
 	int a = 0;
-	int sc;
+        ssize_t sc;
 	int count_w =0;
 	int check_range =0;
 	size_t all = 0;
 	
+        CBF_UNUSED( size );
+        
 	/* Initialize the MD5 context*/
 	if (digest)
 		MD5Init(&context);
@@ -1388,7 +1395,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 			cbf_endianFix(enc, sz, 0, 1);
 		}
 		sc=0;
-       		while(sc<sz)	
+       		while(sc < (ssize_t)sz)
 		{
 		 	if(enc[sc]=='\xEF' && enc[sc+1]=='\xBB')
 			{
@@ -1410,7 +1417,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 					{
 						cbf_decode32k_bit_op(enc, decoded, (sz-2));
 						count_w=0;
-						while(count_w<(sz-4))
+						while(count_w < (ssize_t)(sz-4))
 			                        { 
 							if(outfile)
 							
@@ -1436,7 +1443,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 						size_t temp = sz;
 						cbf_decode32k_bit_op(enc, decoded, temp);
 						count_w=0;
-				 		while(count_w<(temp-1))
+				 		while(count_w < (ssize_t)(temp-1))
 				 		{
 							if(outfile)
 							
@@ -1473,7 +1480,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 						mah = 1;
 						cbf_decode32k_bit_op(enc, decoded, (sz-2));
 						count_w=0;
-						 while(count_w<(sz-4))
+                        while(count_w < (ssize_t)(sz-4))
 						 {
 							if(outfile)
 							
@@ -1539,7 +1546,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 						{
 							cbf_decode32k_bit_op(enc, decoded, (sz-2));
 							count_w=0;
-							while(count_w<(sz-5))
+                        while(count_w < (ssize_t)(sz-5))
 							{
 								if(outfile)
 							
@@ -1603,7 +1610,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 				{
 				        cbf_decode32k_bit_op(enc, decoded, (sz-2));
 						count_w=0;
-						 while(count_w<(sz-5))
+                        while(count_w < (ssize_t)(sz-5))
 						 {
 							if(outfile)
 							
@@ -1672,7 +1679,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 					cbf_endianFix(enc, sz, 0, 1);
 				}
 				 sc =0;
-				 while(sc<sz)
+                        while(sc < (ssize_t)sz)
 				 {
 				 	if(enc[sc] == '\xEF' &&  enc[sc+1]=='\xBB')
 					{
@@ -1824,7 +1831,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 				 
                  }
 		sc=0;
-       		while(sc<sz)	
+       		while(sc < (ssize_t)sz)
 		{
 		 	if(enc[sc]=='\xEF' && enc[sc+1]=='\xBB')
 			{
@@ -1846,7 +1853,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 					{
 						cbf_decode32k_bit_op(enc, decoded, (sz-2));
 						count_w=0;
-						while(count_w<(sz-4))
+						while(count_w < (ssize_t)(sz-4))
 			                        { 
 							if(outfile)
 							
@@ -1872,7 +1879,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 						size_t temp = sz;
 						cbf_decode32k_bit_op(enc, decoded, temp);
 						count_w=0;
-				 		while(count_w<(temp-1))
+				 		while(count_w < (ssize_t)(temp-1))
 				 		{
 							if(outfile)
 							
@@ -1909,7 +1916,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 						mah = 1;
 						cbf_decode32k_bit_op(enc, decoded, (sz-2));
 						count_w=0;
-						 while(count_w<(sz-4))
+                        while(count_w < (ssize_t)(sz-4))
 						 {
 							if(outfile)
 							
@@ -1975,7 +1982,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 						{
 							cbf_decode32k_bit_op(enc, decoded, (sz-2));
 							count_w=0;
-							while(count_w<(sz-5))
+                        while(count_w < (ssize_t)(sz-5))
 							{
 								if(outfile)
 							
@@ -2039,7 +2046,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 				{
 				        cbf_decode32k_bit_op(enc, decoded, (sz-2));
 						count_w=0;
-						 while(count_w<(sz-5))
+                        while(count_w < (ssize_t)(sz-5))
 						 {
 							if(outfile)
 							
@@ -2101,7 +2108,7 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
                                  	sz++; 
                           	} 
 				 sc =0;
-				 while(sc<sz)
+                        while(sc < (ssize_t)sz)
 				 {
 				 	if(enc[sc]=='\xEF' && enc[sc+1]=='\xBB')
 					{

@@ -714,7 +714,7 @@ extern "C" {
 
         handle->optind = 0 ;
 
-        if ( handle->optind >=  handle->optstructs_size) return CBF_NOTFOUND;
+        if ( handle->optind >=  (ssize_t)(handle->optstructs_size)) return CBF_NOTFOUND;
 
         return CBF_SUCCESS;
 
@@ -742,7 +742,7 @@ extern "C" {
 
         handle->optind++;
 
-        if ( handle->optind >=  handle->optstructs_size) return CBF_NOTFOUND;
+        if ( handle->optind >=  (ssize_t)(handle->optstructs_size)) return CBF_NOTFOUND;
 
         return CBF_SUCCESS;
 
@@ -843,7 +843,7 @@ extern "C" {
 
         if ( !handle ) return CBF_ARGUMENT;
 
-        if ( handle->optind < 0 || handle->optind >= handle->optstructs_size) return CBF_NOTFOUND;
+        if ( handle->optind < 0 || handle->optind >= (ssize_t)(handle->optstructs_size)) return CBF_NOTFOUND;
 
         optstruct = &(handle->optstructs[handle->optind]);
 

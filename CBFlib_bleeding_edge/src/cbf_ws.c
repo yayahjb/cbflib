@@ -310,7 +310,7 @@ extern "C" {
             following the CBF value conventions
     */
     
-    int cbf_create_bracket_tree(cbf_node * * brackettree, CBF_NODETYPE brackettype) {
+    static int cbf_create_bracket_tree(cbf_node * * brackettree, CBF_NODETYPE brackettype) {
         
         if (brackettype == CBF_BKT || brackettype == CBF_BRC || brackettype == CBF_PRN) {
             
@@ -335,7 +335,7 @@ extern "C" {
         
         sprintf (numberstring,"%ld:",(long int)columnnumber);
         
-        for (ii=0; ii < strlen(numberstring); ii++) {
+        for (ii=0; ii < (ssize_t)strlen(numberstring); ii++) {
             
             cbf_failnez(cbf_save_character (commentfile, numberstring[ii]))
             
@@ -785,7 +785,7 @@ extern "C" {
                 
                 istart = 0;
                 
-                for (ii=0; ii < strlen(string+1); ii++) {
+                for (ii=0; ii < (ssize_t)strlen(string+1); ii++) {
                     
                     if ((string+1)[ii] == ' ' || (string+1)[ii] == '\t') {
                         
@@ -827,7 +827,7 @@ extern "C" {
                         
                     }
                     
-                    for (iii=ii; iii<  strlen(string+1); iii++) {
+                    for (iii=ii; iii< (ssize_t)strlen(string+1); iii++) {
                         
                         if (file->column >= file->columnlimit) {
                             
@@ -883,7 +883,7 @@ extern "C" {
                 
                 istart = 0;
                 
-                for (ii=0; ii < strlen(string+1); ii++) {
+                for (ii=0; ii < (ssize_t)strlen(string+1); ii++) {
                     
                     if ((string+1)[ii] == ' ' || (string+1)[ii] == '\t') {
                         
@@ -921,7 +921,7 @@ extern "C" {
                     
                     cbf_failnez (cbf_write_character (file, initc))
                     
-                    for (iii=ii; iii<  strlen(string+1); iii++) {
+                    for (iii=ii; iii< (ssize_t)strlen(string+1); iii++) {
                         
                         if (file->column >= file->columnlimit) {
                             
@@ -1432,7 +1432,7 @@ extern "C" {
                             depth++;
                             
                             
-                            if (depth > tokentype_size) {
+                            if (depth > (ssize_t)tokentype_size) {
                                 
                                 cbf_onfailnez(cbf_realloc((void **)vtokentype, NULL, sizeof(int),tokentype_size*2),
                                               {cbf_free((void **)vtokentype, NULL);
@@ -1443,7 +1443,7 @@ extern "C" {
                                 
                             }
                             
-                            if (depth > state_size) {
+                            if (depth > (ssize_t)state_size) {
                                 
                                 cbf_onfailnez(cbf_realloc((void **)vstate, NULL, sizeof(int),state_size*2),
                                               {cbf_free((void **)vtokentype, NULL);
@@ -1455,7 +1455,7 @@ extern "C" {
                             }
                             
                             
-                            if (depth > index_size) {
+                            if (depth > (ssize_t)index_size) {
                                 
                                 cbf_onfailnez(cbf_realloc((void **)vindex, NULL, sizeof(int),index_size*2),
                                               {cbf_free((void **)vtokentype, NULL);
@@ -1522,6 +1522,9 @@ extern "C" {
     {
         const char *text;
         
+        CBF_UNUSED( isbuffer );
+        
+        CBF_UNUSED( whichlogue );
         
         /* Check the arguments */
         

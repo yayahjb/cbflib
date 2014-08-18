@@ -297,7 +297,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val );
 */
 
 
-int cbf_lex_wrapper (void *val, void *vcontext)
+static int cbf_lex_wrapper (void *val, void *vcontext)
 {
   int token;
   
@@ -325,7 +325,7 @@ int cbf_lex_wrapper (void *val, void *vcontext)
   return token;
 }
 
-int cbf_syntax_error (cbf_handle handle, const char *message)
+static int cbf_syntax_error (cbf_handle handle, const char *message)
 {
 
   cbf_log( handle, message, CBF_LOGERROR|CBF_LOGSTARTLOC );
@@ -392,6 +392,9 @@ int cbf_syntax_error (cbf_handle handle, const char *message)
 %no_lines
 %expect 0
 
+%defines
+%token-table
+
 %%
 
 cbf:              cbfstart                      {
@@ -399,9 +402,9 @@ cbf:              cbfstart                      {
                                                 }
                 | CbfThruDBElement              {
                 
-                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
+                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)));
                                                   
-                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_ROOT))
+                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_ROOT));
                                                 }
                                                 ;
 
@@ -413,7 +416,7 @@ cbfstart:                                       {
 CbfThruDBName:   cbf DataBlockName             {
                 
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_DATABLOCK,
-                                                                                                                  (cbf_node *) NULL))
+                                                                                                                  (cbf_node *) NULL));
              
                                                   if (strlen($2)==0) {
                                                   
@@ -430,11 +433,11 @@ CbfThruDBName:   cbf DataBlockName             {
                                                   
                                                   }
 
-                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_DATABLOCK, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_DATABLOCK, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
     
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
     
                                                 }
 
@@ -442,10 +445,10 @@ CbfThruDBName:   cbf DataBlockName             {
                                                   cbf_log((cbf_handle)(((void **)context)[2]),"prior save frame not terminated",
                                                       CBF_LOGWARNING|CBF_LOGSTARTLOC);
                                                       
-                                                  cbf_failnez (cbf_find_parent (&($$), $1, CBF_ROOT))
+                                                  cbf_failnez (cbf_find_parent (&($$), $1, CBF_ROOT));
                 
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_DATABLOCK,
-                                                                                                                  (cbf_node *) NULL))
+                                                      (cbf_node *) NULL));
              
                                                   if (strlen($2)==0) {
                                                   
@@ -462,11 +465,11 @@ CbfThruDBName:   cbf DataBlockName             {
                                                   
                                                   }
 
-                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_DATABLOCK, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_DATABLOCK, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                     
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
  
                                                   }
                 ;
@@ -605,62 +608,62 @@ CbfThruSFElement: CbfThruDBElement SaveFrameName
                                                 }
                 | CbfThruSFAssignment           {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_CATEGORY,
-                                                                                                                   NULL))
+                                                                                                                   NULL));
                                                                                                                    
-                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
+                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)));
 
-                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME))
+                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME));
                                                 }
                 | CbfThruSFLoopAssignment       {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_CATEGORY,
-                                                                                                                   NULL))
+                                                                                                                   NULL));
                                                   
-                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
+                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)));
 
-                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME))
+                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME));
                                                 }
                 | ErrorCbfThruExtraSFValue      {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_CATEGORY,
-                                                                                                                   NULL))
+                                                                                                                   NULL));
 
-                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
+                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)));
 
-                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME))
+                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME));
                                                 }
                 ;
 
 CbfThruSaveFrame: CbfThruSFElement SAVEEND      {
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_CATEGORY,
-                                                                                                                   NULL))
+                                                                                                                   NULL));
 
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $1, CBF_SAVEFRAME,
-                                                                                                                   NULL))
+                                                                                                                   NULL));
 
-                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
+                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)));
 
-                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME))
+                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME));
 
 
                                                 }
                 ;
 
 CbfThruCategory: CbfThruDBElement CategoryName  {
-                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_CATEGORY, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
     
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
                                                   
                                                   ((void **)context)[3] = (void *)$$;
                                                   
                                                 }
                 | ErrorCbfWODBName CategoryName  
                                                 {
-                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_CATEGORY, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
                                                   
                                                  ((void **)context)[3] = (void *)$$;
                                                   
@@ -669,15 +672,15 @@ CbfThruCategory: CbfThruDBElement CategoryName  {
                 | CbfThruCategory CategoryName  { cbf_log ((cbf_handle)(((void **)context)[2]),"data name with no value1",
                                                     CBF_LOGERROR|CBF_LOGSTARTLOC);
                                                     
-                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
+                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)));
 
-                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_DATABLOCK))
+                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_DATABLOCK));
                 
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_CATEGORY, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
                                                   
                                                   ((void **)context)[3] = (void *)$$;
                                                   
@@ -685,15 +688,15 @@ CbfThruCategory: CbfThruDBElement CategoryName  {
                 | CbfThruColumn  CategoryName   { cbf_log ((cbf_handle)(((void **)context)[2]),"data name with no value",
                                                     CBF_LOGERROR|CBF_LOGSTARTLOC);
                                                     
-                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
+                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)));
 
-                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_DATABLOCK))
+                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_DATABLOCK));
                 
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_CATEGORY, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
                     
                                                   ((void **)context)[3] = (void *)$$;
                                                   
@@ -701,63 +704,63 @@ CbfThruCategory: CbfThruDBElement CategoryName  {
                 ;
 
 CbfThruColumn:    CbfThruCategory ColumnName    {
-                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_COLUMN, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_COLUMN, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
     
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
                                                   
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
-                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                                                                                  (cbf_node *)(((void **)context)[3])));
                                                   
                                                 }
                 | CbfThruColumn ItemName        { cbf_log ((cbf_handle)(((void **)context)[2]),"data name with no value",CBF_LOGERROR|CBF_LOGSTARTLOC);
                 
-                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
+                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)));
 
-                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_DATABLOCK))
+                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_DATABLOCK));
                                                   
-                                                  cbf_failnez (cbf_make_new_child (&($$), $$, CBF_CATEGORY, $2))                                                 
+                                                  cbf_failnez (cbf_make_new_child (&($$), $$, CBF_CATEGORY, $2));                              
                                                    
                                                   ((void **)context)[3] = (void *)$$;
 
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                     
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
                     
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
-                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                                                                                  (cbf_node *)(((void **)context)[3])));
                                                   
                                                 }
                 | CbfThruDBElement ItemName     {
-                                                  cbf_failnez (cbf_make_new_child (&($$), $1, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_new_child (&($$), $1, CBF_CATEGORY, $2));
                                                   
                                                   ((void **)context)[3] = (void *)$$;
 
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                     
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
                                                                         
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
-                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                                                                                  (cbf_node *)(((void **)context)[3])));
                                                 }
                 | ErrorCbfWODBName ItemName     {
-                                                  cbf_failnez (cbf_make_new_child (&($$), $1, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_new_child (&($$), $1, CBF_CATEGORY, $2));
                                                   
                                                   ((void **)context)[3] = (void *)$$;
 
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                     
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
                     
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
-                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                                                                                  (cbf_node *)(((void **)context)[3])));
                                                 }
 
                 ;
@@ -766,12 +769,12 @@ CbfThruAssignment:
                   CbfThruColumn Value           {
                                                   $$ = $1;
 
-                                                  cbf_failnez (cbf_set_columnrow ($$, 0, $2, 1))
+                                                  cbf_failnez (cbf_set_columnrow ($$, 0, $2, 1));
                       
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
 
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $2, CBF_VALUE,
-                                                                                                                  (cbf_node *) $$))
+                                                                                                                  (cbf_node *) $$));
                                                 }
 
                 ;
@@ -779,11 +782,11 @@ ErrorCbfThruExtraValue:
                  CbfThruAssignment Value        {
                                                   $$ = $1;
                      
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
                      
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
                                                   
-                                                  cbf_failnez(cbf_free_text(&($2),NULL))
+                                                  cbf_failnez(cbf_free_text(&($2),NULL));
 
                                                 }
                                                 
@@ -791,73 +794,73 @@ ErrorCbfThruExtraValue:
                                                 {
                                                   $$ = $1;
                                                   
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
 
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
 
-                                                  cbf_failnez(cbf_free_text(&($2),NULL))
+                                                  cbf_failnez(cbf_free_text(&($2),NULL));
 
                                                 }
                 | CbfThruLoopStart Value
                                                 {
                                                   $$ = $1;
                                                     
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
                                                   
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"loop value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
 
-                                                  cbf_failnez(cbf_free_text(&($2),NULL))
+                                                  cbf_failnez(cbf_free_text(&($2),NULL));
 
                                                 }
                 ;
 
 
 CbfThruLoopStart: CbfThruDBElement Loop         {
-                                                  cbf_failnez (cbf_make_node (&($$), CBF_LINK, NULL, NULL))
+                                                  cbf_failnez (cbf_make_node (&($$), CBF_LINK, NULL, NULL));
 
-                                                  cbf_failnez (cbf_set_link ($$, $1))
+                                                  cbf_failnez (cbf_set_link ($$, $1));
                                                 }
                 | ErrorCbfWODBName Loop       {
-                                                  cbf_failnez (cbf_make_node (&($$), CBF_LINK, NULL, NULL))
+                                                  cbf_failnez (cbf_make_node (&($$), CBF_LINK, NULL, NULL));
 
-                                                  cbf_failnez (cbf_set_link ($$, $1))
+                                                  cbf_failnez (cbf_set_link ($$, $1));
                                                 }
                 | CbfThruLoopStart Loop       {
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"redundant \"loop_\" ",CBF_LOGERROR|CBF_LOGSTARTLOC);
                                                   
-                                                  cbf_failnez (cbf_make_node (&($$), CBF_LINK, NULL, NULL))
+                                                  cbf_failnez (cbf_make_node (&($$), CBF_LINK, NULL, NULL));
 
-                                                  cbf_failnez (cbf_set_link ($$, $1))
+                                                  cbf_failnez (cbf_set_link ($$, $1));
                                                 }
 
                 ;
 
 CbfThruLoopCategory:
                   CbfThruLoopStart CategoryName {
-                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_CATEGORY, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
                                                   ((void **)context)[3] = (void *)$$;
 
-                                                  cbf_failnez (cbf_set_link ($1, $$))
+                                                  cbf_failnez (cbf_set_link ($1, $$));
 
                                                   ((void **)context)[3] = (void *)$$;
                                                   
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
 
                                                   $$ = $1;
                                                  }
                 | CbfThruLoopColumn CategoryName {
-                                                  cbf_failnez (cbf_find_parent (&($$), $1, CBF_DATABLOCK))
+                                                  cbf_failnez (cbf_find_parent (&($$), $1, CBF_DATABLOCK));
 
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_CATEGORY, $2));
 
-                                                  cbf_failnez (cbf_set_link ($1, $$))
+                                                  cbf_failnez (cbf_set_link ($1, $$));
                                                   
                                                   ((void **)context)[3] = (void *)$$;
                                                   
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
 
                                                   $$ = $1;
                                                 }
@@ -865,57 +868,57 @@ CbfThruLoopCategory:
 
 CbfThruLoopColumn:
                   CbfThruLoopStart ItemName     {
-                                                  cbf_failnez (cbf_make_new_child (&($$), $1, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_new_child (&($$), $1, CBF_CATEGORY, $2));
                                                   
                                                   ((void **)context)[3] = (void *)$$;
 
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                                                                                                                       
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
                                                   
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
-                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                                                                                  (cbf_node *)(((void **)context)[3])));
 
-                                                  cbf_failnez (cbf_set_link ($1, $$))
+                                                  cbf_failnez (cbf_set_link ($1, $$));
 
-                                                  cbf_failnez (cbf_add_link ($1, $$))
+                                                  cbf_failnez (cbf_add_link ($1, $$));
 
                                                   $$ = $1;
                                                 }
                 | CbfThruLoopColumn ItemName    {
                                                   $$ = ((void **)context)[3];
 
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
                                                   
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
-                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                                                                                  (cbf_node *)(((void **)context)[3])));
 
-                                                  cbf_failnez (cbf_set_link ($1, $$))
+                                                  cbf_failnez (cbf_set_link ($1, $$));
 
-                                                  cbf_failnez (cbf_add_link ($1, $$))
+                                                  cbf_failnez (cbf_add_link ($1, $$));
 
                                                   $$ = $1;
                                                 }
                 | CbfThruLoopCategory ColumnName
                                                 {
-                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_COLUMN, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_COLUMN, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                  
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
                                                   
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
-                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                                                                                  (cbf_node *)(((void **)context)[3])));
 
-                                                  cbf_failnez (cbf_set_link ($1, $$))
+                                                  cbf_failnez (cbf_set_link ($1, $$));
 
-                                                  cbf_failnez (cbf_add_link ($1, $$))
+                                                  cbf_failnez (cbf_add_link ($1, $$));
 
                                                   $$ = $1;
                                                 }
@@ -925,32 +928,32 @@ CbfThruLoopAssignment:
                  CbfThruLoopColumn Value       {
                                                   $$ = $1;
 
-                                                  cbf_failnez (cbf_shift_link ($$))
+                                                  cbf_failnez (cbf_shift_link ($$));
 
-                                                  cbf_failnez (cbf_add_columnrow ($$, $2))
+                                                  cbf_failnez (cbf_add_columnrow ($$, $2));
                      
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
 
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $2, CBF_VALUE,
-                                                                                                                  (cbf_node *) $$))
+                                                                                                                  (cbf_node *) $$));
                                                 }
                 | CbfThruLoopAssignment Value          {
                                                   $$ = $1;
 
-                                                  cbf_failnez (cbf_shift_link ($$))
+                                                  cbf_failnez (cbf_shift_link ($$));
 
-                                                  cbf_failnez (cbf_add_columnrow ($$, $2))
+                                                  cbf_failnez (cbf_add_columnrow ($$, $2));
                     
-                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+                                                  cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
 
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $2, CBF_VALUE,
-                                                                                                                  (cbf_node *) $$))
+                                                                                                                  (cbf_node *) $$));
                                                 }
                 ;
 
 CbfThruSFCategory:  
                   CbfThruSFElement CategoryName {
-                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_CATEGORY, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
@@ -959,11 +962,11 @@ CbfThruSFCategory:
                 | CbfThruSFCategory CategoryName   
                                                 {  cbf_log((cbf_handle)(((void **)context)[2]), "data name with no value", CBF_LOGERROR|CBF_LOGSTARTLOC);
                                                 
-                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
+                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)));
                                                   
-                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME))
+                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME));
                                                   
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_CATEGORY, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
@@ -972,11 +975,11 @@ CbfThruSFCategory:
 
                 | CbfThruSFColumn CategoryName  {  cbf_log((cbf_handle)(((void **)context)[2]), "data name with no value", CBF_LOGERROR|CBF_LOGSTARTLOC);
                 
-                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
+                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)));
                                                   
-                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME))
+                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME));
                                                   
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_CATEGORY, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
@@ -985,44 +988,44 @@ CbfThruSFCategory:
                  ;
 
 CbfThruSFColumn: CbfThruSFCategory ColumnName   {
-                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_COLUMN, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_COLUMN, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
-                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                                                                                  (cbf_node *)(((void **)context)[3])));
                                                 }
                 | CbfThruSFElement ItemName     {
-                                                  cbf_failnez (cbf_make_new_child (&($$), $1, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_new_child (&($$), $1, CBF_CATEGORY, $2));
                                                                                                     
                                                   ((void **)context)[3] = (void *)$$;
 
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
-                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                                                                                  (cbf_node *)(((void **)context)[3])));
                                                 }
                   
                 |  CbfThruSFColumn ItemName
                                                 {
                                                   cbf_log((cbf_handle)(((void **)context)[2]), "data name with no value", CBF_LOGERROR|CBF_LOGSTARTLOC);
                                                   
-                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)))
+                                                  $$ = $1; cbf_failnez (cbf_undo_links (&($$)));
                                                   
-                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME))
+                                                  cbf_failnez (cbf_find_parent (&($$), $$, CBF_SAVEFRAME));
                                                    
-                                                  cbf_failnez (cbf_make_new_child (&($$), $$, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_new_child (&($$), $$, CBF_CATEGORY, $2));
                                                                                                     
                                                   ((void **)context)[3] = (void *)$$;
 
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
-                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                                                                                  (cbf_node *)(((void **)context)[3])));
                                                 }
                ;
 
@@ -1030,10 +1033,10 @@ CbfThruSFAssignment:
                   CbfThruSFColumn Value        {
                                                   $$ = $1;
 
-                                                  cbf_failnez (cbf_set_columnrow ($$, 0, $2, 1))
+                                                  cbf_failnez (cbf_set_columnrow ($$, 0, $2, 1));
 
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $2, CBF_VALUE,
-                                                                                                                  (cbf_node *) $$))
+                                                                                                                  (cbf_node *) $$));
                                                 }                                                
                 ;
 
@@ -1045,7 +1048,7 @@ ErrorCbfThruExtraSFValue:
                                                   
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
 
-                                                  cbf_failnez(cbf_free_text(&($2), NULL))
+                                                  cbf_failnez(cbf_free_text(&($2), NULL));
 
                                                 }
                                                 
@@ -1055,7 +1058,7 @@ ErrorCbfThruExtraSFValue:
                                                   
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
 
-                                                  cbf_failnez(cbf_free_text(&($2), NULL))
+                                                  cbf_failnez(cbf_free_text(&($2), NULL));
                                                 }
                 | CbfThruSFLoopStart Value
                                                 {
@@ -1063,7 +1066,7 @@ ErrorCbfThruExtraSFValue:
                                                   
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"loop value without tag",CBF_LOGERROR|CBF_LOGSTARTLOC);
 
-                                                  cbf_failnez(cbf_free_text(&($2), NULL))
+                                                  cbf_failnez(cbf_free_text(&($2), NULL));
 
                                                 }
                 ;
@@ -1071,39 +1074,39 @@ ErrorCbfThruExtraSFValue:
 
 CbfThruSFLoopStart:  
                   CbfThruSFElement Loop         {
-                                                  cbf_failnez (cbf_make_node (&($$), CBF_LINK, NULL, NULL))
+                                                  cbf_failnez (cbf_make_node (&($$), CBF_LINK, NULL, NULL));
 
-                                                  cbf_failnez (cbf_set_link ($$, $1))
+                                                  cbf_failnez (cbf_set_link ($$, $1));
                                                 }
                 | CbfThruSFLoopStart Loop       {
                                                   cbf_log ((cbf_handle)(((void **)context)[2]),"redundant \"loop_\" ",CBF_LOGERROR|CBF_LOGSTARTLOC);
                                                   
-                                                  cbf_failnez (cbf_make_node (&($$), CBF_LINK, NULL, NULL))
+                                                  cbf_failnez (cbf_make_node (&($$), CBF_LINK, NULL, NULL));
 
-                                                  cbf_failnez (cbf_set_link ($$, $1))
+                                                  cbf_failnez (cbf_set_link ($$, $1));
                                                 }
                 ;
 
 CbfThruSFLoopCategory:
                   CbfThruSFLoopStart CategoryName  {
-                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_CATEGORY, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
 
-                                                  cbf_failnez (cbf_set_link ($1, $$))
+                                                  cbf_failnez (cbf_set_link ($1, $$));
                                                   
                                                   ((void **)context)[3] = (void *)$$;
 
                                                   $$ = $1;
                                                 }
                 | CbfThruSFLoopColumn CategoryName {
-                                                  cbf_failnez (cbf_find_parent (&($$), $1, CBF_SAVEFRAME))
+                                                  cbf_failnez (cbf_find_parent (&($$), $1, CBF_SAVEFRAME));
 
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_CATEGORY, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
 
-                                                  cbf_failnez (cbf_set_link ($1, $$))
+                                                  cbf_failnez (cbf_set_link ($1, $$));
                                                  
                                                   ((void **)context)[3] = (void *)$$;
 
@@ -1113,48 +1116,48 @@ CbfThruSFLoopCategory:
 
 CbfThruSFLoopColumn:
                   CbfThruSFLoopStart ItemName     {
-                                                  cbf_failnez (cbf_make_new_child (&($$), $1, CBF_CATEGORY, $2))
+                                                  cbf_failnez (cbf_make_new_child (&($$), $1, CBF_CATEGORY, $2));
                                                   
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, cbf_copy_string(NULL,$2,0)));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
-                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                                                                                  (cbf_node *)(((void **)context)[3])));
 
-                                                  cbf_failnez (cbf_set_link ($1, $$))
+                                                  cbf_failnez (cbf_set_link ($1, $$));
 
-                                                  cbf_failnez (cbf_add_link ($1, $$))
+                                                  cbf_failnez (cbf_add_link ($1, $$));
 
                                                   $$ = $1;
                                                 }
                 | CbfThruSFLoopColumn ItemName  {
                                                   $$ = ((void **)context)[3];
 
-                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $$, CBF_COLUMN, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
-                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                                                                                  (cbf_node *)(((void **)context)[3])));
 
-                                                  cbf_failnez (cbf_set_link ($1, $$))
+                                                  cbf_failnez (cbf_set_link ($1, $$));
 
-                                                  cbf_failnez (cbf_add_link ($1, $$))
+                                                  cbf_failnez (cbf_add_link ($1, $$));
 
                                                   $$ = $1;
                                                 }
                 | CbfThruSFLoopCategory ColumnName       {
-                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_COLUMN, $2))
+                                                  cbf_failnez (cbf_make_child (&($$), $1, CBF_COLUMN, $2));
                                                   
                                                   ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
                                                   
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $$, CBF_COLUMN,
-                                                                                                                  (cbf_node *)(((void **)context)[3])))
+                                                                                                                  (cbf_node *)(((void **)context)[3])));
 
-                                                  cbf_failnez (cbf_set_link ($1, $$))
+                                                  cbf_failnez (cbf_set_link ($1, $$));
 
-                                                  cbf_failnez (cbf_add_link ($1, $$))
+                                                  cbf_failnez (cbf_add_link ($1, $$));
 
                                                   $$ = $1;
                                                 }
@@ -1164,41 +1167,41 @@ CbfThruSFLoopAssignment:
                   CbfThruSFLoopColumn Value       {
                                                   $$ = $1;
 
-                                                  cbf_failnez (cbf_shift_link ($$))
+                                                  cbf_failnez (cbf_shift_link ($$));
 
-                                                  cbf_failnez (cbf_add_columnrow ($$, $2))
+                                                  cbf_failnez (cbf_add_columnrow ($$, $2));
 
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $2, CBF_VALUE,
-                                                                                                                  (cbf_node *) $$))
+                                                                                                                  (cbf_node *) $$));
                                                 }
                 | CbfThruSFLoopAssignment Value    {
                                                   $$ = $1;
 
-                                                  cbf_failnez (cbf_shift_link ($$))
+                                                  cbf_failnez (cbf_shift_link ($$));
 
-                                                  cbf_failnez (cbf_add_columnrow ($$, $2))
+                                                  cbf_failnez (cbf_add_columnrow ($$, $2));
 
                                                   cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $2, CBF_VALUE,
-                                                                                                                  (cbf_node *) $$))
+                                                                                                                  (cbf_node *) $$));
                                                 }
                 ;
                 
 CbfThruFunction: CbfThruDBElement FunctionName Value	{								
 		
-					        	cbf_failnez (cbf_make_new_child (&($$), $1, CBF_FUNCTION, $2))
+					        	cbf_failnez (cbf_make_new_child (&($$), $1, CBF_FUNCTION, $2));
                                                   
                                                         ((cbf_handle)(((void **)context)[2]))->node=(cbf_node *)$$;
 													
-							cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])))
+							cbf_failnez(cbf_apply_ws((cbf_handle)(((void **)context)[2])));
 													
 							((void **)context)[3] = (void *)$$;
 						
-							cbf_failnez (cbf_make_child (&($$), $1, CBF_COLUMN, $2))
+							cbf_failnez (cbf_make_child (&($$), $1, CBF_COLUMN, $2));
 							
-							cbf_failnez (cbf_set_columnrow ($$, 0, $3, 1))	
+							cbf_failnez (cbf_set_columnrow ($$, 0, $3, 1));	
                                                   	
 							cbf_failnez (cbf_validate ((cbf_handle)(((void **)context)[2]), (cbf_node *) $3, CBF_VALUE,
-                                                                                                                  (cbf_node *) $$))
+                                                                                                                  (cbf_node *) $$));
 							}
 							;
 Loop:             LOOP                          

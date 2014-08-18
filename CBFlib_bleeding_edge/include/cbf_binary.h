@@ -312,7 +312,10 @@ int cbf_is_binary (const cbf_node *column, unsigned int row);
 
 int cbf_is_mimebinary (const cbf_node *column, unsigned int row);
 
+  /* set column->child[row] to null, simplified cbf_set_columnrow */
 
+int cbf_setnull_columnrow (const cbf_node *column, const unsigned int row);
+    
   /* Free a value */
 
 int cbf_free_value (cbf_context *context, const cbf_node *column, unsigned int row);

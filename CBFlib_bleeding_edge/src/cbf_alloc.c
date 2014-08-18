@@ -291,12 +291,6 @@ int cbf_realloc (void **old_block, size_t *old_nelem,
 
   if (nelem > 0) {
   
-#ifdef CBFLIB_MEM_DEBUG
-
-    char * cnew_block;
-
-#endif
-    
     new_block = malloc (nelem * elsize);
 
     if (!new_block)

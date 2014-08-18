@@ -593,7 +593,7 @@ int cbf_setnull_columnrow (const cbf_node *column, const unsigned int row)
 
     if (CBF_COLUMN != column->type) return CBF_ARGUMENT;
 
-    if (row < 0 || row >= column->children) return CBF_ARGUMENT;
+    if (row >= column->children) return CBF_ARGUMENT;
 
     /* Set the new value */
 

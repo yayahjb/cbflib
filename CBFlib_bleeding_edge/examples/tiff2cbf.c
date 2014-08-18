@@ -182,6 +182,8 @@
 #include <ctype.h>
 #include <time.h>
 
+int local_exit(int);
+
 int local_exit(int status) {
   exit(status);
   return status;    /* to avoid warning messages */
@@ -280,7 +282,7 @@ int main (int argc, char *argv [])
         
         cbf_failnez (cbf_require_column       (cbf, "header_convention"))
         cbf_failnez (cbf_count_rows           (cbf, &rows))
-        while (rows < imageno) {
+        while (imageno >=0 && rows < (unsigned int)imageno) {
             cbf_failnez (cbf_new_row          (cbf))
             rows++;
         }

@@ -1033,9 +1033,7 @@ extern "C" {
                                size_t       *dims)
     {
         
-        int done [rank], precedence;
-        
-        size_t kdim[rank];
+        int precedence;
         
         int ii;
         
@@ -1045,7 +1043,11 @@ extern "C" {
                     
             return CBF_ARGUMENT;
         
-        for (ii=0; ii < rank; ii++) dims[ii] = 1;
+        for (ii=0; ii < (ssize_t)rank; ii++) dims[ii] = 1;
+        
+        CBF_START_ARRAY(int,done,rank);
+        
+        CBF_START_ARRAY(size_t,kdim,rank);
         
         /* If array_id is NULL, try directly from the first entry
          in _array_data.data */
@@ -1056,17 +1058,30 @@ extern "C" {
             
             unsigned int compression;
             
-            if (rank > 3) return CBF_ARGUMENT;
+            if (rank > 3) {
             
-            cbf_failnez (cbf_find_category (handle, "array_data"))
+                cbf_free((void **) &kdim,NULL);
             
-            cbf_failnez (cbf_find_column(handle,"data"))
+                cbf_free((void **) &done,NULL);
             
-            cbf_failnez (cbf_rewind_row(handle))
+                return CBF_ARGUMENT;
             
-            cbf_failnez (cbf_get_arrayparameters_wdims(handle,
+            }
+            
+            cbf_onfailnez (cbf_find_category (handle, "array_data"),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
+            
+            cbf_onfailnez (cbf_find_column(handle,"data"),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
+            
+            cbf_onfailnez (cbf_rewind_row(handle),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
+            
+            cbf_onfailnez (cbf_get_arrayparameters_wdims(handle,
                                                        &compression,NULL,NULL,NULL,NULL,&nelem,NULL,NULL,NULL,NULL,
-                                                       dims,kdim+1,kdim+2,NULL));
+                                                         dims,kdim+1,kdim+2,NULL),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
+            
             if (rank > 1) {
                 
                 dims[1] = kdim[1];
@@ -1085,14 +1100,18 @@ extern "C" {
             
             if (dims[0] == 0) dims[0] = 1;
 
+            cbf_free((void **) &kdim,NULL);
                         
+            cbf_free((void **) &done,NULL);
+            
             return CBF_SUCCESS;
             
         }
         
         /* See if this is an array section is or an array id */
         
-        cbf_failnez(cbf_get_array_section_array_id(handle,array_id,&xarray_id));
+        cbf_onfailnez(cbf_get_array_section_array_id(handle,array_id,&xarray_id),
+                      {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);})
         
         if (cbf_cistrcmp(array_id,xarray_id)) {
             
@@ -1106,19 +1125,24 @@ extern "C" {
             
             for (index = 1L; index < rank+1; index++) {
                 
+                ssize_t tdim;
+                
                 /* fprintf(stderr,"cbf_get_array_section_section array_id = '%s'"
                  ", xarray_id = '%s'"
                  ", index= %d\n",array_id,xarray_id,index); */
                 
-                cbf_failnez(cbf_get_array_section_section(handle,
+                cbf_onfailnez(cbf_get_array_section_section(handle,
                                                           array_id,
                                                           index,&kstart,
                                                           &kend,
-                                                          &kstride));
+                                                            &kstride),
+                              {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
                 
-                dims[index-1] = kend - kstart;
+                tdim = kend - kstart;
                 
-                if (kdim[index-1] < 0) dims[index-1] = -dims[index-1];
+                if (tdim < 0) tdim = -tdim;
+                
+                dims[index-1] = tdim;
                 
                 if (kstride < 0) kstride = -kstride;
                 
@@ -1130,34 +1154,44 @@ extern "C" {
                 
             }
             
+            cbf_free((void **) &kdim,NULL);
+            
+            cbf_free((void **) &done,NULL);
+            
             return CBF_SUCCESS;
             
         }
         
         /* Get the dimensions from the array_structure_list category */
         
-        for (ii = 0; ii < rank; ii++) {
+        for (ii = 0; ii < (ssize_t)rank; ii++) {
             
             done[ii] = 0;
             
         };
                 
-        cbf_failnez (cbf_find_category (handle, "array_structure_list"));
-        cbf_failnez (cbf_find_column   (handle, "array_id"));
+        cbf_onfailnez (cbf_find_category (handle, "array_structure_list"),
+                       {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
+        cbf_onfailnez (cbf_find_column   (handle, "array_id"),
+                       {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
         
         while (cbf_find_nextrow (handle, array_id) == 0)
         {
             long xdim;
             
-            cbf_failnez (cbf_find_column      (handle, "precedence"));
-            cbf_failnez (cbf_get_integervalue (handle, &precedence));
+            cbf_onfailnez (cbf_find_column      (handle, "precedence"),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);})
+            cbf_onfailnez (cbf_get_integervalue (handle, &precedence),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);})
             
-            if (precedence < 1 || precedence > rank)
+            if (precedence < 1 || precedence > (ssize_t)rank)
                 
                 return CBF_FORMAT;
             
-            cbf_failnez (cbf_find_column      (handle, "dimension"));
-            cbf_failnez (cbf_get_longvalue    (handle, &xdim));
+            cbf_onfailnez (cbf_find_column      (handle, "dimension"),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);})
+            cbf_onfailnez (cbf_get_longvalue    (handle, &xdim),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);})
             dims[precedence-1] = xdim;
             
             if (done [precedence-1])
@@ -1166,19 +1200,29 @@ extern "C" {
             
             done [precedence-1] = 1;
             
-            cbf_failnez (cbf_find_column (handle, "array_id"));
+            cbf_onfailnez (cbf_find_column (handle, "array_id"),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);})
         }
         
-        for (ii=0; ii < rank; ii++) {
+        for (ii=0; ii < (ssize_t)rank; ii++) {
             
             if (dims[ii] == 0) dims[ii] = 1;
             
         }
         
-        if (!done [1])
+        if (!done [1]) {
+            
+            cbf_free((void **) &kdim,NULL);
+            
+            cbf_free((void **) &done,NULL);
             
             return CBF_NOTFOUND;
         
+        }
+        
+        CBF_END_ARRAY(kdim);
+        
+        CBF_END_ARRAY(done);
         
         return CBF_SUCCESS;
     }
@@ -1198,9 +1242,7 @@ extern "C" {
                                     long         *strides)
     {
         
-        int done [rank], precedence;
-        
-        size_t kdim[rank];
+        int precedence;
         
         int ii;
         
@@ -1210,7 +1252,7 @@ extern "C" {
             
             return CBF_ARGUMENT;
         
-        for (ii=0; ii < rank; ii++) {
+        for (ii=0; ii < (ssize_t)rank; ii++) {
             
             if (dims) dims[ii] = 1;
             
@@ -1220,6 +1262,9 @@ extern "C" {
             
         }
             
+        CBF_START_ARRAY(int,done,rank);
+        
+        CBF_START_ARRAY(size_t,kdim,rank);
         
         /* If array_id is NULL, try directly from the first entry
          in _array_data.data */
@@ -1230,17 +1275,29 @@ extern "C" {
             
             unsigned int compression;
             
-            if (rank > 3) return CBF_ARGUMENT;
+            if (rank > 3) {
             
-            cbf_failnez (cbf_find_category (handle, "array_data"))
+                cbf_free((void **) &kdim,NULL);
             
-            cbf_failnez (cbf_find_column(handle,"data"))
+                cbf_free((void **) &done,NULL);
             
-            cbf_failnez (cbf_rewind_row(handle))
+                return CBF_ARGUMENT;
             
-            cbf_failnez (cbf_get_arrayparameters_wdims(handle,
+            }
+            
+            cbf_onfailnez (cbf_find_category (handle, "array_data"),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
+            
+            cbf_onfailnez (cbf_find_column(handle,"data"),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
+            
+            cbf_onfailnez (cbf_rewind_row(handle),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
+            
+            cbf_onfailnez (cbf_get_arrayparameters_wdims(handle,
                                                        &compression,NULL,NULL,NULL,NULL,&nelem,NULL,NULL,NULL,NULL,
-                                                       kdim,kdim+1,kdim+2,NULL));
+                                                         kdim,kdim+1,kdim+2,NULL),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
             if (dims) {
                 
                 dims[0] = kdim[0];
@@ -1265,13 +1322,18 @@ extern "C" {
                 
             }
                         
+            cbf_free((void **) &kdim,NULL);
+            
+            cbf_free((void **) &done,NULL);
+            
             return CBF_SUCCESS;
             
         }
         
         /* See if this is an array section is or an array id */
         
-        cbf_failnez(cbf_get_array_section_array_id(handle,array_id,&xarray_id));
+        cbf_onfailnez(cbf_get_array_section_array_id(handle,array_id,&xarray_id),
+                      {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
         
         if (cbf_cistrcmp(array_id,xarray_id)) {
             
@@ -1289,11 +1351,13 @@ extern "C" {
                  ", xarray_id = '%s'"
                  ", index= %d\n",array_id,xarray_id,index); */
                 
-                cbf_failnez(cbf_get_array_section_section(handle,
+                cbf_onfailnez(cbf_get_array_section_section(handle,
                                                           array_id,
                                                           index,&kstart,
                                                           &kend,
-                                                          &kstride));
+                                                            &kstride),
+                              {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
+                
                 
                 
                 if (strides) {
@@ -1311,9 +1375,13 @@ extern "C" {
 
                 if (dims) {
                     
-                    dims[index-1] = kend - kstart;
+                    ssize_t tdim;
                     
-                    if (kdim[index-1] < 0) dims[index-1] = -dims[index-1];
+                    tdim = kend - kstart;
+                    
+                    if (tdim < 0) tdim = -tdim;
+                        
+                    dims[index-1] = tdim;
                     
                     if (kstride < 0) kstride = -kstride;
                     
@@ -1328,34 +1396,44 @@ extern "C" {
                  
             }
             
+            cbf_free((void **) &kdim,NULL);
+            
+            cbf_free((void **) &done,NULL);
+            
             return CBF_SUCCESS;
             
         }
         
         /* Get the dimensions from the array_structure_list category */
         
-        for (ii = 0; ii < rank; ii++) {
+        for (ii = 0; ii < (ssize_t)rank; ii++) {
             
             done[ii] = 0;
             
         };
         
-        cbf_failnez (cbf_find_category (handle, "array_structure_list"));
-        cbf_failnez (cbf_find_column   (handle, "array_id"));
+        cbf_onfailnez (cbf_find_category (handle, "array_structure_list"),
+                       {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
+        cbf_onfailnez (cbf_find_column   (handle, "array_id"),
+                       {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
         
         while (cbf_find_nextrow (handle, array_id) == 0)
         {
             long xdim;
             
-            cbf_failnez (cbf_find_column      (handle, "precedence"));
-            cbf_failnez (cbf_get_integervalue (handle, &precedence));
+            cbf_onfailnez (cbf_find_column      (handle, "precedence"),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
+            cbf_onfailnez (cbf_get_integervalue (handle, &precedence),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
             
-            if (precedence < 1 || precedence > rank)
+            if (precedence < 1 || precedence > (ssize_t)rank)
                 
                 return CBF_FORMAT;
             
-            cbf_failnez (cbf_find_column      (handle, "dimension"));
-            cbf_failnez (cbf_get_longvalue    (handle, &xdim));
+            cbf_onfailnez (cbf_find_column      (handle, "dimension"),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
+            cbf_onfailnez (cbf_get_longvalue    (handle, &xdim),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
             dims[precedence-1] = xdim;
             
             if (done [precedence-1])
@@ -1364,19 +1442,29 @@ extern "C" {
             
             done [precedence-1] = 1;
             
-            cbf_failnez (cbf_find_column (handle, "array_id"));
+            cbf_onfailnez (cbf_find_column (handle, "array_id"),
+                           {cbf_free((void **) &kdim,NULL);cbf_free((void **) &done,NULL);});
         }
         
-        for (ii=0; ii < rank; ii++) {
+        for (ii=0; ii < (ssize_t)rank; ii++) {
             
             if (dims[ii] == 0) dims[ii] = 1;
             
         }
         
-        if (!done [1])
+        if (!done [1]){
+            
+            cbf_free((void **) &kdim,NULL);
+            
+            cbf_free((void **) &done,NULL);
             
             return CBF_NOTFOUND;
         
+        }
+        
+        CBF_END_ARRAY(kdim);
+        
+        CBF_END_ARRAY(done);
         
         return CBF_SUCCESS;
     }
@@ -1408,6 +1496,10 @@ extern "C" {
         
         int error = 0;
         
+        long precedence, maxprecedence;
+        
+        maxprecedence = 0;
+
         if ( !handle
             || !array_section_id
             || !rank ) return CBF_ARGUMENT;
@@ -1417,10 +1509,6 @@ extern "C" {
         if (!cbf_get_array_section_array_id(handle,array_section_id,&array_id)
             && array_id
             && !cbf_cistrcmp(array_section_id,array_id)) {
-            
-            long precedence, maxprecedence;
-            
-            maxprecedence = 0;
             
             if (!cbf_find_category(handle,"array_structure_list")
                 && !cbf_find_column(handle,"array_id")
@@ -1433,7 +1521,11 @@ extern "C" {
                     
                     cbf_failnez(cbf_get_longvalue(handle,&precedence));
                     
-                    if (precedence > maxprecedence) maxprecedence = precedence;
+                    if (precedence > maxprecedence){
+        
+                        maxprecedence = precedence;
+                        
+                    }
         
                     cbf_failnez(cbf_find_column(handle,"array_id"));
                 }
@@ -1473,7 +1565,7 @@ extern "C" {
                 
                 cbf_failnez(cbf_get_integervalue(handle,&index));
                 
-                if (index > *rank) *rank = index;
+                if (index > (ssize_t)(*rank)) *rank = index;
                 
             }
             
@@ -1635,7 +1727,7 @@ extern "C" {
                 
                 cbf_failnez(cbf_get_longvalue(handle,&xindex));
                 
-                if (index != xindex) continue;
+                if ((ssize_t)index != xindex) continue;
                 
                 xstride = 1;
                 
@@ -2702,6 +2794,8 @@ extern "C" {
 
         size_t ndim0;
 
+        CBF_UNUSED( reserved );
+
         binary_id = 0;
 
         ndim0 = 1;
@@ -3003,6 +3097,7 @@ extern "C" {
                               size_t        ndimmid,
                               size_t        ndimfast)
     {
+        CBF_UNUSED( reserved );
 
         if (require) {
 
@@ -3204,6 +3299,7 @@ extern "C" {
     {
         const char *array_id;
 
+        CBF_UNUSED( binary_id );
 
         cbf_failnez (cbf_get_map_array_id (handle, reserved, segment_id, &array_id,
                                            0, 0, *ndimslow, *ndimmid,  *ndimfast) )
@@ -3578,7 +3674,9 @@ extern "C" {
             
             size_t index;
             
-            size_t kstart[3],kend[3],kdim[3];
+            size_t kstart[3],kend[3];
+            
+            ssize_t kdim[3];
             
             long kstride[3];
             
@@ -3813,7 +3911,7 @@ extern "C" {
             
             stride[0] = stride[1] = stride[2] = dir[0] = dir[1] = dir[2] = 1;
             
-            for (ii = 0; ii < rank; ii++) {
+            for (ii = 0; ii < (ssize_t)rank; ii++) {
                 
                 cbf_failnez(cbf_get_array_section_section(handle,array_id,ii+1,
                                                           start+ii, end+ii, stride+ii));
@@ -3849,11 +3947,11 @@ extern "C" {
                following the indexing of both the section and the
                overall array */
             
-            for (kk = start[2]; kk*dir[2] <  end[2]*dir[2]; kk += stride[2]) {
+            for (kk = start[2]; kk*dir[2] <  (int)(end[2]*dir[2]); kk += stride[2]) {
                 kkk = (kk-start[2])/stride[2];
-                for (jj = start[1]; jj*dir[1] <  end[1]*dir[1]; jj += stride[1]) {
+                for (jj = start[1]; jj*dir[1] <  (int)(end[1]*dir[1]); jj += stride[1]) {
                     jjj = (jj-start[1])/stride[1];
-                    for (ii = start[0]; ii*dir[0] <  end[0]*dir[0]; ii += stride[0]) {
+                    for (ii = start[0]; ii*dir[0] <  (int)(end[0]*dir[0]); ii += stride[0]) {
                         iii = (ii-start[0])/stride[0];
                         array_offset = elsize*cbf_offset_1_3(ii,jj,kk,xdimfast,xdimmid);
                         section_offset = elsize*cbf_offset_0_3(iii,jjj,kkk,sectiondim[0],sectiondim[1]);
@@ -4220,7 +4318,7 @@ extern "C" {
             
             stride[0] = stride[1] = stride[2] = dir[0] = dir[1] = dir[2] = 1;
             
-            for (ii = 0; ii < rank; ii++) {
+            for (ii = 0; ii < (ssize_t)rank; ii++) {
                 
                 cbf_failnez(cbf_get_array_section_section(handle,array_id,ii+1,
                                                           start+ii, end+ii, stride+ii));
@@ -4256,11 +4354,11 @@ extern "C" {
              following the indexing of both the section and the
              overall array */
             
-            for (kk = start[2]; kk*dir[2] <  end[2]*dir[2]; kk += stride[2]) {
+            for (kk = start[2]; kk*dir[2] <  (int)(end[2]*dir[2]); kk += stride[2]) {
                 kkk = (kk-start[2])/stride[2];
-                for (jj = start[1]; jj*dir[1] <  end[1]*dir[1]; jj += stride[1]) {
+                for (jj = start[1]; jj*dir[1] <  (int)(end[1]*dir[1]); jj += stride[1]) {
                     jjj = (jj-start[1])/stride[1];
-                    for (ii = start[0]; ii*dir[0] <  end[0]*dir[0]; ii += stride[0]) {
+                    for (ii = start[0]; ii*dir[0] <  (int)(end[0]*dir[0]); ii += stride[0]) {
                         iii = (ii-start[0])/stride[0];
                         array_offset = elsize*cbf_offset_1_3(ii,jj,kk,xdimfast,xdimmid);
                         section_offset = elsize*cbf_offset_0_3(iii,jjj,kkk,sectiondim[0],sectiondim[1]);
@@ -4512,7 +4610,7 @@ extern "C" {
 
         /* Check for valid arguments */
 
-        if (!handle || !axis_id || !ancestor || ancestor_index < 0) return CBF_ARGUMENT;
+        if (!handle || !axis_id || !ancestor ) return CBF_ARGUMENT;
 
         *ancestor = NULL;
         curlevel = ancestor_index;
@@ -5071,7 +5169,7 @@ extern "C" {
 
     /* Create a positioner */
 
-    int cbf_make_positioner (cbf_positioner *positioner)
+    static int cbf_make_positioner (cbf_positioner *positioner)
     {
         cbf_failnez (cbf_alloc ((void **) positioner, NULL,
                                 sizeof (cbf_positioner_struct), 1))
@@ -5171,7 +5269,7 @@ extern "C" {
 
      /* Add a positioner axis with rotation*/
 
-    int cbf_add_positioner_axis_wrot (cbf_positioner positioner,
+    static int cbf_add_positioner_axis_wrot (cbf_positioner positioner,
                                  const char    *name,
                                  const char    *depends_on,
                                  const char    *rotation_axis,
@@ -5302,34 +5400,10 @@ extern "C" {
         return 0;
     }
 
-    /* Add a positioner axis */
-
-    int cbf_add_positioner_axis (cbf_positioner positioner,
-                                 const char    *name,
-                                 const char    *depends_on,
-                                 cbf_axis_type  type,
-                                 double         vector1,
-                                 double         vector2,
-                                 double         vector3,
-                                 double         offset1,
-                                 double         offset2,
-                                 double         offset3,
-                                 double         start,
-                                 double         increment)
-    {
-
-        return cbf_add_positioner_axis_wrot (positioner,
-                                name, depends_on, NULL, type,
-                                vector1, vector2, vector3,
-                                offset1, offset2, offset3,
-                                start, increment, 0.0);
-
-    }
-
 
     /* Add a goniometer axis from a file */
 
-    int cbf_read_positioner_axis (cbf_handle      handle,
+    static int cbf_read_positioner_axis (cbf_handle      handle,
                                   unsigned int    reserved,
                                   cbf_positioner  positioner,
                                   const char     *axis_id,
@@ -5664,7 +5738,7 @@ extern "C" {
 
     /* Calculate a position given initial coordinates */
 
-    int cbf_calculate_position (cbf_positioner positioner,
+    static int cbf_calculate_position (cbf_positioner positioner,
                                 unsigned int   reserved,
                                 double         ratio,
                                 double         initial1,
@@ -5913,7 +5987,7 @@ extern "C" {
 
     /* Calculate the initial position given final coordinates */
 
-    int cbf_calculate_initial_position (cbf_positioner positioner,
+    static int cbf_calculate_initial_position (cbf_positioner positioner,
                                         unsigned int   reserved,
                                         double         ratio,
                                         double         final1,
@@ -7684,7 +7758,7 @@ extern "C" {
 
     /* Update the pixel settings */
 
-    int cbf_update_pixel (cbf_detector detector, double index1,
+    static int cbf_update_pixel (cbf_detector detector, double index1,
                           double index2)
     {
         if (!detector)
@@ -8507,7 +8581,7 @@ extern "C" {
 
         if (axis_number < 0) axis_number = detector->axes+1+axis_number;
 
-        if (!detector || axis_number < 1 || detector-> axes < axis_number )
+        if (!detector || axis_number < 1 || (ssize_t)(detector-> axes) < axis_number )
 
             return CBF_ARGUMENT;
 
@@ -10697,7 +10771,7 @@ extern "C" {
                 if (!direction || !cbf_cistrcmp(direction,"increasing" )) {
                     
                     while (*scanpointsfound < scanpoints
-                           && *scanpointsfound < dimension) {
+                           && *scanpointsfound < (size_t)dimension) {
                         
                         scanarray[*scanpointsfound] =
                         displacement + displacement_increment*(*scanpointsfound);
@@ -10710,7 +10784,7 @@ extern "C" {
                 } else {
                     
                     while (*scanpointsfound < scanpoints
-                           && *scanpointsfound < dimension) {
+                           && *scanpointsfound < (size_t)dimension) {
                         
                         scanarray[*scanpointsfound] =
                         displacement + displacement_increment
@@ -11094,15 +11168,15 @@ extern "C" {
                                 
                                 labbrev = strlen(abbrev);
                                 
-                                for (jj=0 ; jj< labbrev; jj++) {
+                                for (jj=0 ; jj< (ssize_t)labbrev; jj++) {
                                       
                                     (*rev_unit)[ilu+jj]=abbrev[jj];
                                     
                                 }
                                 
-                                if (labbrev < lln) {
+                                if ((ssize_t)labbrev < lln) {
                                     
-                                    for (kk = labbrev; ilu+lln+kk-labbrev < lu+1; kk++) {
+                                    for (kk = labbrev; (ssize_t)(ilu+lln+kk-labbrev) < lu+1; kk++) {
                                         
                                         (*rev_unit)[ilu+kk] = (*rev_unit)[ilu+lln+kk-labbrev];
                                         

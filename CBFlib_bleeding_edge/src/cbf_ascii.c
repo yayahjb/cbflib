@@ -515,7 +515,7 @@ int cbf_write_ascii (cbf_handle handle, const char *string, cbf_file *file)
 
         end = column + 1;
 
-      for (c = string + 1; *c && end <= (file->columnlimit); c++) {
+      for (c = string + 1; *c && end <= (int)(file->columnlimit); c++) {
 
         if (*c == '\t')
 
@@ -527,7 +527,7 @@ int cbf_write_ascii (cbf_handle handle, const char *string, cbf_file *file)
 
       }
 
-      if (end > (file->columnlimit))
+      if (end > (int)(file->columnlimit))
 
         cbf_failnez (cbf_write_character (file, '\n'))
     }
@@ -699,7 +699,7 @@ int cbf_write_ascii (cbf_handle handle, const char *string, cbf_file *file)
       
       if (lc > lw) lw = lc;
 
-      if ( foldme || lw > file->columnlimit || (unfoldme && *(c-1)=='\\')) {
+      if ( foldme || lw > (int)(file->columnlimit) || (unfoldme && *(c-1)=='\\')) {
 
         sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
 
@@ -830,7 +830,7 @@ int cbf_write_ascii (cbf_handle handle, const char *string, cbf_file *file)
       
       if (lc > lw) lw = lc;
 
-      if ( foldme || lw > file->columnlimit || (unfoldme && *(c-1)=='\\')) {
+      if ( foldme || lw > (int)(file->columnlimit) || (unfoldme && *(c-1)=='\\')) {
 
         sprintf(buffer, "output line %u(%u) folded",1+file->line,1+file->column);
 

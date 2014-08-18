@@ -294,7 +294,7 @@ char * cbf_encode32k_bit_op(unsigned char *txt, size_t size, size_t *size2);
 
   /* Test for big endian */
   
-int cbf_isBigEndian();
+int cbf_isBigEndian( void );
 
   /* Fix endianess */
 
