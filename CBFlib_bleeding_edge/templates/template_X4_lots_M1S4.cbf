@@ -1,0 +1,196 @@
+###CBF: VERSION 1.7.10
+# CIF file written by CBFlib v0.9.5
+
+data_db_1
+
+# category DIFFRN
+
+_diffrn.id diffrn_1
+_diffrn.crystal_id DIFFRN_CRYSTAL_ID
+
+# category DIFFRN_SOURCE
+
+_diffrn_source.diffrn_id DIFFRN_ID
+_diffrn_source.source synchrotron
+_diffrn_source.type '?'
+
+# category DIFFRN_RADIATION
+
+_diffrn_radiation.diffrn_id diffrn_1
+_diffrn_radiation.polarizn_Stokes_I 1
+_diffrn_radiation.polarizn_Stokes_Q 0.99
+_diffrn_radiation.polarizn_Stokes_U -2.42480066231176e-16
+_diffrn_radiation.polarizn_Stokes_V 0
+_diffrn_radiation.polarizn_source_norm 180
+_diffrn_radiation.polarizn_source_ratio 0.99
+_diffrn_radiation.wavelength_id wavelength_1
+
+# category DIFFRN_RADIATION_WAVELENGTH
+
+_diffrn_radiation_wavelength.id wavelength_1
+_diffrn_radiation_wavelength.wavelength 0.9795
+_diffrn_radiation_wavelength.wt 1.0
+
+# category DIFFRN_DETECTOR
+
+_diffrn_detector.id diffrn_detector_1
+_diffrn_detector.detector 'pixel array'
+_diffrn_detector.diffrn_id diffrn_1
+_diffrn_detector.dtime 0.1991
+_diffrn_detector.gain_setting 'mid gain (vrf = -0.200)'
+_diffrn_detector.layer_thickness 0.32
+_diffrn_detector.sensor_material Silicon
+_diffrn_detector.threshold 6327
+_diffrn_detector.type 'PILATUS 6M-F, S/N 60-0114-F'
+_diffrn_detector.number_of_axes 2
+
+# category DIFFRN_DETECTOR_AXIS
+
+
+loop_
+_diffrn_detector_axis.axis_id
+_diffrn_detector_axis.detector_id
+ rotation diffrn_detector_1
+ DETECTOR_Z  diffrn_detector_1
+ 
+ 
+# category DIFFRN_DETECTOR_ELEMENT
+
+_diffrn_detector_element.id diffrn_detector_element_1
+_diffrn_detector_element.center[1] 212.47848
+_diffrn_detector_element.center[2] 220.00176
+_diffrn_detector_element.detector_id diffrn_detector_1
+
+
+# category DIFFRN_DATA_FRAME
+
+
+
+loop_
+_array_element_size.array_id
+_array_element_size.index
+_array_element_size.size
+ array_0 2 0.000172
+ array_0 1 0.000172
+
+_array_intensities.array_id array_0
+_array_intensities.binary_id 1
+_array_intensities.linearity scaling_offset
+_array_intensities.offset 0
+_array_intensities.overload 495976
+_array_intensities.scaling 1
+
+_array_structure.id array_0
+_array_structure.byte_order little_endian
+_array_structure.compression_type none
+_array_structure.encoding_type 'signed 32-bit integer'
+
+loop_
+_array_structure_list.array_id
+_array_structure_list.axis_set_id
+_array_structure_list.dimension
+_array_structure_list.direction
+_array_structure_list.index
+_array_structure_list.precedence
+ array_0 y_pixel_offset 2527 increasing 2 2
+ array_0 x_pixel_offset 2463 increasing 1 1
+
+loop_
+_array_structure_list_axis.axis_id
+_array_structure_list_axis.axis_set_id
+_array_structure_list_axis.displacement
+_array_structure_list_axis.displacement_increment
+ y_pixel_offset y_pixel_offset 0.086 0.172
+ x_pixel_offset x_pixel_offset 0.086 0.172
+
+loop_
+_axis.id
+_axis.depends_on
+_axis.equipment
+_axis.offset[1]
+_axis.offset[2]
+_axis.offset[3]
+_axis.type
+_axis.vector[1]
+_axis.vector[2]
+_axis.vector[3]
+ y_pixel_offset rotation detector -212.47848 220.00176 0 translation 0 -1 0
+ x_pixel_offset  y_pixel_offset detector 0 0 0 translation 1 0 0
+
+ rotation DETECTOR_Z detector 0 0 0 rotation 0 0 -1
+ DETECTOR_Z '.' detector 0 0 0 translation 0 0 -1
+ 
+ GONIOMETER_PHI GONIOMETER_KAPPA goniometer 0 0 0 rotation 1 0 0
+ GONIOMETER_KAPPA '.' goniometer 0 0 0 rotation 0 -1 0
+ 
+ GRAVITY '.' gravity 0 0 0 general 0 1 0
+ SOURCE '.' source 0 0 0 general 0 0 1
+
+# category DIFFRN_DATA_FRAME
+
+_diffrn_data_frame.id frame_1
+_diffrn_data_frame.array_id array_0
+_diffrn_data_frame.binary_id 1
+_diffrn_data_frame.detector_element_id diffrn_detector_element_1
+
+# category DIFFRN_MEASUREMENT
+
+_diffrn_measurement.id diffrn_measurement_1
+_diffrn_measurement.diffrn_id diffrn_1
+_diffrn_measurement.sample_detector_distance 190.18
+_diffrn_measurement.number_of_axes 2
+
+# category DIFFRN_MEASUREMENT_AXIS
+
+
+loop_
+_diffrn_measurement_axis.axis_id
+_diffrn_measurement_axis.measurement_id
+ GONIOMETER_PHI diffrn_measurement_1
+ GONIOMETER_KAPPA diffrn_measurement_1
+
+
+# category DIFFRN_SCAN
+
+_diffrn_scan.id scan_1
+_diffrn_scan.date_end 2013-02-08T12:03:12.789
+_diffrn_scan.date_start 2013-02-08T12:03:12.789
+_diffrn_scan.frames 1
+
+# category DIFFRN_SCAN_AXIS
+
+loop_
+_diffrn_scan_axis.scan_id
+_diffrn_scan_axis.axis_id
+_diffrn_scan_axis.angle_start
+_diffrn_scan_axis.angle_range
+_diffrn_scan_axis.angle_increment
+_diffrn_scan_axis.displacement_start
+_diffrn_scan_axis.displacement_range
+_diffrn_scan_axis.displacement_increment
+ scan_1 GONIOMETER_PHI    0.0 0.0 0.0 0.0 0.0 0.0
+ scan_1 GONIOMETER_KAPPA  0.0 0.0 0.0 0.0 0.0 0.0
+ scan_1 DETECTOR_Z        0.0 0.0 0.0 0.0 0.0 0.0
+ scan_1 rotation          0.0 0.0 0.0 0.0 0.0 0.0
+
+
+_diffrn_scan_frame.frame_id frame_1
+_diffrn_scan_frame.frame_number 1
+_diffrn_scan_frame.integration_time 0.1975
+_diffrn_scan_frame.scan_id scan_1
+_diffrn_scan_frame.time_period 0.2
+
+loop_
+_diffrn_scan_frame_axis.angle
+_diffrn_scan_frame_axis.axis_id
+_diffrn_scan_frame_axis.displacement
+_diffrn_scan_frame_axis.frame_id
+ 180 rotation 0 frame_1
+ 0 DETECTOR_Z 0.19018 frame_1
+ 0 GONIOMETER_PHI 0 frame_1
+ 0 GONIOMETER_KAPPA 0 frame_1
+
+_array_data.array_id array_0
+_array_data.binary_id 1
+_array_data.data .
+
