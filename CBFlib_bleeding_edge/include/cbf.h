@@ -280,6 +280,7 @@ _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 #define CBF_SVN_REVISION_STRING _CBF_STR(CBF_SVN_REVISION)
 #define CBF_SVN_DATE_STRING _CBF_STR(CBF_SVN_DATE)
 #include "cbf_tree.h"
+#include <hdf5.h>
 
 #include <stdlib.h>
 #include <limits.h>
