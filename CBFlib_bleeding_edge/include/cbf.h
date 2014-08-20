@@ -264,8 +264,6 @@ extern "C" {
                              /* For pre-releases like RC1                 */
                              /* Empty string for real releases.           */
                              /* Must be a quoted string                   */
-#define CBF_SVN_REVISION $Rev$
-#define CBF_SVN_DATE     $Date$
 #define CBF_APIVERS_CUR  3   /* Number of major interface version         */
 #define CBF_APIVERS_REV  0   /* Interface changes                         */
 #define CBF_APIVERS_AGE  0   /* Number of interfaces added                */
@@ -277,10 +275,10 @@ extern "C" {
 _CBF_STR(CBF_VERS_MINOR) "." \
 _CBF_STR(CBF_VERS_RELEASE) CBF_VERS_SUBRELEASE
 
-#define CBF_SVN_REVISION_STRING _CBF_STR(CBF_SVN_REVISION)
-#define CBF_SVN_DATE_STRING _CBF_STR(CBF_SVN_DATE)
+#define CBF_SVN_REVISION_STRING "$Rev$"
+#define CBF_SVN_DATE_STRING "$Date$"
 #include "cbf_tree.h"
-#include <hdf5.h>
+#include "hdf5.h"
 
 #include <stdlib.h>
 #include <limits.h>

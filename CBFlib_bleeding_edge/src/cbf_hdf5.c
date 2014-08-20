@@ -6654,11 +6654,11 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
         
         CBF_START_ARRAY(char,base,plen+1);
             
-        pathparts[2] = base;
+        pathparts[0] = base;
             
         pathparts[1] = name;
         
-        pathparts[0] = 0;
+        pathparts[2] = 0;
         
             plen = H5Iget_name(hid,base,plen+1);
             
