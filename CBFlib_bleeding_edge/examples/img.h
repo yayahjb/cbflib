@@ -57,7 +57,7 @@ typedef img_object *img_handle;
 #define img_columns(img)    ((img)->size [0])
 #define img_rows(img)       ((img)->size [1])
 
-img_handle  img_make_handle    ();
+img_handle  img_make_handle    ( void );
 int         img_read           (img_handle img, const char *name);
 int         img_free_handle    (img_handle img);
 int         img_delete_field   (img_handle img, const char *tag);

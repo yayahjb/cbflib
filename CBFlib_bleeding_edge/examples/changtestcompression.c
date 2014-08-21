@@ -19,7 +19,7 @@
 
 #define NSTEPS 5
 
-double urand()
+double urand( void )
 {
   return rand() * 1.0 / RAND_MAX;
 }
@@ -42,7 +42,7 @@ double urand()
  * distance of NSTEPS/2 and have height uniformly distributed over (positive
  * part of) data range
  */
-size_t createtestimage(void **data, int type, int nelem)
+static size_t createtestimage(void **data, int type, int nelem)
 {
   unsigned char *ucdata;
   signed char *scdata;
@@ -207,7 +207,7 @@ size_t createtestimage(void **data, int type, int nelem)
   return elsize;
 }
 
-int createtestfile(const char *fn, int isreal, int rows, int columns,
+static int createtestfile(const char *fn, int isreal, int rows, int columns,
     int compression, void *data, size_t elsize, int elsigned)
 {
     int status;
@@ -255,7 +255,7 @@ int createtestfile(const char *fn, int isreal, int rows, int columns,
     return status;
 }
 
-size_t readtestimage(const char *fn, void **data, size_t *size, int *sign)
+static size_t readtestimage(const char *fn, void **data, size_t *size, int *sign)
 {
     cbf_handle ch;
     int status;
@@ -343,7 +343,7 @@ size_t readtestimage(const char *fn, void **data, size_t *size, int *sign)
     return rsize;
 }
 
-void checkdata(int type, int nelem, void *data, void *idata)
+static void checkdata(int type, int nelem, void *data, void *idata)
 {
   unsigned char *ucdata, *ucidata;
   signed char *scdata, *scidata;
@@ -560,7 +560,7 @@ void checkdata(int type, int nelem, void *data, void *idata)
   }
 }
 
-void testinteger(const char *fn, int rows, int cols, int type, int comp)
+static void testinteger(const char *fn, int rows, int cols, int type, int comp)
 {
   void *data, *idata;
   size_t elsize;
@@ -593,7 +593,7 @@ void testinteger(const char *fn, int rows, int cols, int type, int comp)
   free(idata);
 }
 
-void testreal(const char *fn, int rows, int cols, int type, int comp)
+static void testreal(const char *fn, int rows, int cols, int type, int comp)
 {
   void *data, *idata;
   size_t elsize;
@@ -622,7 +622,7 @@ void testreal(const char *fn, int rows, int cols, int type, int comp)
   free(idata);
 }
 
-void testall(const char *fn)
+static void testall(const char *fn)
 {
   int rows = 512;
   int cols = 10;

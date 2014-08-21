@@ -82,7 +82,7 @@ fprintf(stderr,"%s: Error: %s\n",__WHERE__,cbf_strerror(err)); \
 int cmp_dbl_exact(const void * expected, const void * existing, size_t length, const void * const params)
 #else
 #define CBFM_cmp_dbl_exact(exp,ext,len,prm) cmp_dbl_exact(exp,ext,len)
-int cmp_dbl_exact(const void * expected, const void * existing, size_t length)
+static int cmp_dbl_exact(const void * expected, const void * existing, size_t length)
 #endif
 {
 	const double * A = (const double*)expected;
@@ -96,7 +96,7 @@ int cmp_dbl_exact(const void * expected, const void * existing, size_t length)
 int cmp_int_exact(const void * expected, const void * existing, size_t length, const void * const params)
 #else
 #define CBFM_cmp_int_exact(exp,ext,len,prm) cmp_int_exact(exp,ext,len)
-int cmp_int_exact(const void * expected, const void * existing, size_t length)
+static int cmp_int_exact(const void * expected, const void * existing, size_t length)
 #endif
 {
 	const int * A = (const int*)expected;
@@ -110,7 +110,7 @@ int cmp_int_exact(const void * expected, const void * existing, size_t length)
 int cmp_hsize_t_exact(const void * expected, const void * existing, size_t length, const void * const params)
 #else
 #define CBFM_cmp_hsize_t_exact(exp,ext,len,prm) cmp_hsize_t_exact(exp,ext,len)
-int cmp_hsize_t_exact(const void * expected, const void * existing, size_t length)
+static int cmp_hsize_t_exact(const void * expected, const void * existing, size_t length)
 #endif
 {
 	const hsize_t * A = (const hsize_t*)expected;
@@ -119,7 +119,7 @@ int cmp_hsize_t_exact(const void * expected, const void * existing, size_t lengt
 	return length;
 }
 
-testResult_t test_H5Acreate
+static testResult_t test_H5Acreate
 		(const hid_t obj,
 		hid_t * const attr,
 		const char * const name,
@@ -181,7 +181,7 @@ testResult_t test_H5Acreate
 	return r;
 }
 
-testResult_t test_H5Afree
+static testResult_t test_H5Afree
 		(const hid_t attr)
 {
 	int error = CBF_SUCCESS;
@@ -207,7 +207,7 @@ testResult_t test_H5Afree
 	return r;
 }
 
-testResult_t test_H5Afind
+static testResult_t test_H5Afind
 		(const hid_t obj,
 		 const char * const validAttr,
 		 const char * const invalidAttr,
@@ -305,7 +305,7 @@ testResult_t test_H5Afind
 	return r;
 }
 
-testResult_t _test_H5Arequire_cmp
+static testResult_t _test_H5Arequire_cmp
 (const hid_t obj,
  const char * const attrName,
  const int rank,
@@ -326,6 +326,8 @@ testResult_t _test_H5Arequire_cmp
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
+    
+    CBF_UNUSED( cmp_params );
     
 	if (rank<0) {
 		fprintf(stderr,"%s: Error: test function called incorrectly\n",__WHERE__);
@@ -370,7 +372,7 @@ testResult_t _test_H5Arequire_cmp
 	return r;
 }
 
-testResult_t test_H5Arequire_cmp(const hid_t obj)
+static testResult_t test_H5Arequire_cmp(const hid_t obj)
 {
 	testResult_t r = {0,0,0};
 	/*
@@ -429,7 +431,7 @@ testResult_t test_H5Arequire_cmp(const hid_t obj)
 	return r;
 }
 
-testResult_t test_H5Arequire_string(const hid_t obj)
+static testResult_t test_H5Arequire_string(const hid_t obj)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -475,7 +477,7 @@ testResult_t test_H5Arequire_string(const hid_t obj)
 	return r;
 }
 
-testResult_t test_attribute
+static testResult_t test_attribute
 		(const hid_t obj)
 {
 	int error = CBF_SUCCESS;
@@ -511,7 +513,7 @@ testResult_t test_attribute
 	return r;
 }
 
-testResult_t testDatasetFind(const hid_t grp, hsize_t * const buf)
+static testResult_t testDatasetFind(const hid_t grp, hsize_t * const buf)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -612,7 +614,7 @@ testResult_t testDatasetFind(const hid_t grp, hsize_t * const buf)
 	return r;
 }
 
-testResult_t test_H5Dcreate(const hid_t grp, hid_t * const dset, const char * name)
+static testResult_t test_H5Dcreate(const hid_t grp, hid_t * const dset, const char * name)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -666,7 +668,7 @@ testResult_t test_H5Dcreate(const hid_t grp, hid_t * const dset, const char * na
 	return r;
 }
 
-testResult_t test_H5Dfree(const hid_t grp, const hid_t dset, const char * name)
+static testResult_t test_H5Dfree(const hid_t grp, const hid_t dset, const char * name)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -700,7 +702,7 @@ testResult_t test_H5Dfree(const hid_t grp, const hid_t dset, const char * name)
 	return r;
 }
 
-testResult_t test_H5Drequire_flstring(const hid_t grp)
+static testResult_t test_H5Drequire_flstring(const hid_t grp)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -757,7 +759,7 @@ testResult_t test_H5Drequire_flstring(const hid_t grp)
 	return r;
 }
 
-testResult_t test_H5Drequire_F64LE(const hid_t grp)
+static testResult_t test_H5Drequire_F64LE(const hid_t grp)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -813,7 +815,7 @@ testResult_t test_H5Drequire_F64LE(const hid_t grp)
 	return r;
 }
 
-testResult_t test_H5Dset_extent(const hid_t grp)
+static testResult_t test_H5Dset_extent(const hid_t grp)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -878,7 +880,7 @@ testResult_t test_H5Dset_extent(const hid_t grp)
 	return r;
 }
 
-void fill_array(int * array, size_t length, const int fill)
+static void fill_array(int * array, size_t length, const int fill)
 {
 	while (length) {
 		--length;
@@ -886,7 +888,7 @@ void fill_array(int * array, size_t length, const int fill)
 	}
 }
 
-testResult_t testDataset_read_write(const hid_t grp)
+static testResult_t testDataset_read_write(const hid_t grp)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -1041,7 +1043,7 @@ testResult_t testDataset_read_write(const hid_t grp)
 }
 
 /* wrapper for common tests, expected failures checked in calling function */
-testResult_t test_H5Drequire
+static testResult_t test_H5Drequire
 (const hid_t grp,
  const char * const name,
  const int rank,
@@ -1089,7 +1091,7 @@ testResult_t test_H5Drequire
 }
 
 /* wrapper for common tests, expected failures checked in calling function */
-testResult_t test_H5Dinsert
+static testResult_t test_H5Dinsert
 (const hid_t dset,
  const hsize_t * const off,
  const hsize_t * const std,
@@ -1109,6 +1111,8 @@ testResult_t test_H5Dinsert
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
     
+    CBF_UNUSED( cmp_params );
+    
 	TEST(H5I_DATASET==H5Iget_type(dset));
     
 	/* pre-conditions */
@@ -1127,7 +1131,7 @@ testResult_t test_H5Dinsert
 	return r;
 }
 
-testResult_t testDatasets(const hid_t grp)
+static testResult_t testDatasets(const hid_t grp)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -1268,7 +1272,7 @@ testResult_t testDatasets(const hid_t grp)
 /*
  Test the group API in hdf5 file or group 'obj'.
  */
-testResult_t testGroups(const hid_t obj)
+static testResult_t testGroups(const hid_t obj)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -1426,7 +1430,7 @@ testResult_t testGroups(const hid_t obj)
 	return r;
 }
 
-testResult_t testDatatypes()
+static testResult_t testDatatypes( void )
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -1459,13 +1463,13 @@ testResult_t testDatatypes()
 		TEST(H5T_STRING==H5Tget_class(type));
 		TEST(H5T_STR_NULLTERM==H5Tget_strpad(type));
 		TEST(H5Tis_variable_str(type)==0);
-		TEST(H5Tget_size(type)==1+len);
+		TEST(H5Tget_size(type)==(size_t)(1+len));
 		cbf_H5Tfree(type);
 	}
 	return r;
 }
 
-testResult_t testDataspaces()
+static testResult_t testDataspaces( void )
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
@@ -1576,13 +1580,16 @@ testResult_t testDataspaces()
 	return r;
 }
 
-int main()
+int main(int argc, char ** argv)
 {
 	int error = CBF_SUCCESS;
 	testResult_t r = {0,0,0};
     hid_t error_stack;
     H5E_auto2_t  old_func;
     void *old_client_data;
+    
+    CBF_UNUSED(argc);
+    CBF_UNUSED(argv);
     
 	/* test the test functions a bit */
     

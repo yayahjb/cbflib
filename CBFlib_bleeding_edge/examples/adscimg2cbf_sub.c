@@ -183,6 +183,8 @@
 #include <ctype.h>
 #include <time.h>
 
+int local_exit(int status);
+
 int local_exit(int status) {
   exit(status);
   return status;    /* to avoid warning messages */
@@ -231,9 +233,7 @@ int getbo()
 }
 */
 
-void	short_swap(p,n)
-unsigned short  *p;
-int     n;
+static void	short_swap(unsigned short  *p,int     n)
 {
         register int            i,j;
         register unsigned short *q;
@@ -245,7 +245,7 @@ int     n;
         }
 }
 
-void gethd ( char* field, char* value, char* header )
+static void gethd ( char* field, char* value, char* header )
 {
   char *hp, *lhp, *fp, *vp;
   int l, j;
@@ -292,7 +292,7 @@ void gethd ( char* field, char* value, char* header )
  *	returning 1 if there is an 'n'th item, else 0.
  */
 
-int gethdn ( int n, char* field, char* value, char* header )
+static int gethdn ( int n, char* field, char* value, char* header )
 {
   char *hp, *sp;
   int i;
@@ -330,7 +330,7 @@ int gethdn ( int n, char* field, char* value, char* header )
   return 1;
 }
 
-char	*which_facility(int serial_number)
+static char	*which_facility(int serial_number)
 {
 	switch(serial_number)
 	{
@@ -398,7 +398,7 @@ char	*which_facility(int serial_number)
 			break;
 	}
 }
-void	smv_date_to_cbf_date(char *smv_date, char *cbf_date)
+static void	smv_date_to_cbf_date(char *smv_date, char *cbf_date)
 {
     char 	monthstring [16];
     int 	month, day, hour, minute, year;

@@ -181,6 +181,8 @@
 #include <ctype.h>
 #include <time.h>
 
+int local_exit(int status);
+
 int local_exit(int status) {
   exit(status);
   return status;    /* to avoid warning messages */

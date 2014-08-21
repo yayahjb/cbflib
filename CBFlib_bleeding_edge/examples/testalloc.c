@@ -60,7 +60,7 @@ behave in a similar way to free, if given 0 for 'elsize' or 'nelem';
 retain the contents of any allocated block up to the minimum of
 '*old_nelem * elsize' (the old size) and 'nelem * elsize' (the new size).
 */
-testResult_t test_cbf_realloc()
+testResult_t test_cbf_realloc( void )
 {
 	testResult_t r = {0,0,0};
 	int error = CBF_SUCCESS;
@@ -107,8 +107,11 @@ testResult_t test_cbf_realloc()
 	return r;
 }
 
-int main()
+int main(int argc, char ** argv)
 {
+
+    CBF_UNUSED(argc);
+    CBF_UNUSED(argv);
 	testResult_t r = {0,0,0};
     
 	TEST_COMPONENT(test_cbf_realloc());

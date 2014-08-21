@@ -25,7 +25,7 @@ extern "C" {
 
   /* I/O functions */
 
-int img_swap_i4 (int i4)
+static int img_swap_i4 (int i4)
 {
   return ((i4 << 24) & 0x0FF000000) |
          ((i4 <<  8) & 0x000FF0000) |
@@ -34,7 +34,7 @@ int img_swap_i4 (int i4)
 }
 
 
-float img_float_i4 (int i4, int VAX)
+static float img_float_i4 (int i4, int VAX)
 {
   int O;
 
@@ -82,7 +82,7 @@ float img_float_i4 (int i4, int VAX)
 }
 
 
-int img_read_i4 (FILE *file, int *i4)
+static int img_read_i4 (FILE *file, int *i4)
 {
   int O = 1;
 
@@ -100,7 +100,7 @@ int img_read_i4 (FILE *file, int *i4)
 
   /* Read the header of an smv file */
 
-int img_read_smvheader (img_handle img, FILE *file)
+static int img_read_smvheader (img_handle img, FILE *file)
 {
     /* Start : {
        Line  : tag=data;
@@ -337,7 +337,7 @@ int img_read_smvheader (img_handle img, FILE *file)
 
   /* Read the image data from an smv file */
 
-int img_read_smvdata (img_handle img, FILE *file)
+static int img_read_smvdata (img_handle img, FILE *file)
 {
   const char *order, *type;
 
@@ -393,7 +393,7 @@ int img_read_smvdata (img_handle img, FILE *file)
 
   if (sign) {
 
-    if (size < sizeof (int)) {
+    if (size < (ssize_t)sizeof (int)) {
 
       sign = -(1 << (size * 8));
 
@@ -548,7 +548,7 @@ int img_read_smvdata (img_handle img, FILE *file)
 }
 
 
-int img_read_smv (img_handle img, const char *name)
+static int img_read_smv (img_handle img, const char *name)
 {
   FILE * file;
 
@@ -578,7 +578,7 @@ int img_read_smv (img_handle img, const char *name)
 
   /* Write an smv-format file */
 
-int img_write_smv (img_object   *img,
+static int img_write_smv (img_object   *img,
                    const char   *name,
                    unsigned int  bits)
 {
@@ -848,7 +848,7 @@ int img_write_smv (img_object   *img,
 
   /* Read the header of an old-style MAR file */
 
-int img_read_mar300header (img_handle img, FILE *file, int *org_data)
+static int img_read_mar300header (img_handle img, FILE *file, int *org_data)
 {
   int i4_data [25], count, swap, status, model;
 
@@ -1102,7 +1102,7 @@ int img_read_mar300header (img_handle img, FILE *file, int *org_data)
 
   /* Read the image data from an old-style MAR file */
 
-int img_read_mar300data (img_handle img, FILE *file, int *org_data)
+static int img_read_mar300data (img_handle img, FILE *file, int *org_data)
 {
   int x, y, little;
 
@@ -1193,7 +1193,7 @@ int img_read_mar300data (img_handle img, FILE *file, int *org_data)
 
   /* Read an old-style MAR file */
 
-int img_read_mar300 (img_handle img, const char *name)
+static int img_read_mar300 (img_handle img, const char *name)
 {
   FILE * file;
 
@@ -1223,7 +1223,7 @@ int img_read_mar300 (img_handle img, const char *name)
 
   /* Read the header of a new-style MAR file */
 
-int img_read_mar345header (img_handle img, FILE *file, int *org_data)
+static int img_read_mar345header (img_handle img, FILE *file, int *org_data)
 {
   int i4_data [16], count, swap;
 
@@ -1411,7 +1411,7 @@ int img_read_mar345header (img_handle img, FILE *file, int *org_data)
 
   /* Read the image data from a new-style MAR file */
 
-int img_read_mar345data (img_handle img, FILE *file, int *org_data)
+static int img_read_mar345data (img_handle img, FILE *file, int *org_data)
 {
   int *O_data = NULL;
 
@@ -1677,7 +1677,7 @@ int img_read_mar345data (img_handle img, FILE *file, int *org_data)
 
   /* Read a new-style MAR file */
 
-int img_read_mar345 (img_handle img, const char *name)
+static int img_read_mar345 (img_handle img, const char *name)
 {
   FILE * file;
 
@@ -1740,7 +1740,7 @@ int img_read (img_handle img, const char *name)
 }
 
 
-img_handle img_make_handle ()
+img_handle img_make_handle ( void )
 {
   img_handle img = (img_handle) malloc (sizeof (img_object));
 
@@ -1817,7 +1817,7 @@ int img_set_tags (img_handle img, int tags)
 }
 
 
-int img_get_tags (img_handle img)
+static int img_get_tags (img_handle img)
 {
   int x;
 
@@ -1853,7 +1853,7 @@ int img_free_handle (img_handle img)
 }
 
 
-int img_delete_fieldnumber (img_handle img, int x)
+static int img_delete_fieldnumber (img_handle img, int x)
 {
   if (!img)
 

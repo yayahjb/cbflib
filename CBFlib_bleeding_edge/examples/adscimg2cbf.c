@@ -57,7 +57,7 @@ static void gethd ( char* field, char* value, char* header )
   free (newfield);
 }
 
-int	endswith(char *haystack, char *needle)
+static int	endswith(char *haystack, char *needle)
 {
 	char	*cp;
 
@@ -68,7 +68,7 @@ int	endswith(char *haystack, char *needle)
 	return(0);
 }
 
-void usage()
+static void usage( void )
 {
 		fprintf(stderr,"Usage: adscimg2cbf [--flag[,modifier]] file1.img ... filen.img     (creates file1.cbf ... filen.cbf)\n");
 		fprintf(stderr,"       Image files may also be compressed (.gz, .bz2, .Z)\n");

@@ -145,7 +145,7 @@
 
 static char * array_id;
 
-void puthd (char* field, char* value, char* header)
+static void puthd (char* field, char* value, char* header)
 {
   char   temp[6];
   int    i, diff;
@@ -195,7 +195,7 @@ void puthd (char* field, char* value, char* header)
 
 }
 
-void clrhd ( char* header )
+static void clrhd ( char* header )
 {
 static char temp[] = "{ HEADER_BYTES";
 
@@ -206,7 +206,7 @@ puthd (temp, "    0", header);
 
 }
 
-void padhd (char* header, int size)
+static void padhd (char* header, int size)
 {
   int i, diff;
   char temp[6], *hp, *tp;
@@ -240,7 +240,7 @@ void padhd (char* header, int size)
 
 }
 
-int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
+static int cbfhandle2img_sub(cbf_handle cbf, char **header, unsigned short **data)
 {
 	cbf_detector	this_detector;
 	int 		id, index;

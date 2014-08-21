@@ -48,7 +48,7 @@ static void gethd ( char* field, char* value, char* header )
   free (newfield);
 }
 
-int	endswith(char *haystack, char *needle)
+static int	endswith(char *haystack, char *needle)
 {
 	char	*cp;
 
@@ -59,7 +59,7 @@ int	endswith(char *haystack, char *needle)
 	return(0);
 }
 
-void usage()
+static void usage( void )
 {
 		fprintf(stderr,"Usage: cbf2adscimg [--flag] file1.cbf ... filen.cbf     (creates file1.img ... filen.img)\n");
 		fprintf(stderr,"       Image files may be compressed on output: (.gz, .bz2) by using the flags below.\n");
@@ -191,7 +191,7 @@ int	main(int argc, char *argv[])
 		header_size_char = atoi(header_bytes);
 		
 
-		if(header_size_char != fwrite(header, sizeof (char), header_size_char, fp))
+		if((size_t)header_size_char != fwrite(header, sizeof (char), header_size_char, fp))
 		{
 			fprintf(stderr, "cbf2adscimg: Cannot write header, size %d bytes, of file %s.\n", header_size_char, in_filename);
 			if(0 == output_packing)
@@ -240,14 +240,14 @@ int	main(int argc, char *argv[])
 		  unsigned char temp;
 		  size_t ii;
 		  p = (unsigned char *)data;
-		  for (ii=0; ii<data_size; ii+=2) {
+		  for (ii=0; ii<(size_t)data_size; ii+=2) {
 		    temp = p[ii];
 		    p[ii] = p[ii+1];
 		    p[ii+1] = temp;
                   }
 		}
 
-		if(data_size != fwrite(data, sizeof (char), data_size, fp))
+		if((size_t)data_size != fwrite(data, sizeof (char), data_size, fp))
 		{
 			fprintf(stderr, "cbf2adscimg: Cannot write data (size %d bytes) from input file %s.\n", 
 					data_size, in_filename);

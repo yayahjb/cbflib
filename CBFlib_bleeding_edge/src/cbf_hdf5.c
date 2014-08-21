@@ -17715,12 +17715,16 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 					for (i = 0; i != 2; ++i) {
 						hid_t pixel_data = CBF_H5FAIL;
 						hid_t data_space = CBF_H5FAIL;
+                        htri_t l;
 						const char * path = _cbf_strdup(pixel_offset_name[i]);
 						double disp = 0.; /*< read from '*:NXdetector/[xy]_pixel_offset' */
 						double disp_incr = 0.; /*< read from '*:NXdetector/[xy]_pixel_size' */
 						int sign = 0;
 						/* extract pixel offset data */
-						if (!cbf_H5Ivalid(pixel_data=H5Dopen2(detector,pixel_offset_name[i],H5P_DEFAULT))) {
+                        if (H5Lexists(detector,pixel_offset_name[i],H5P_DEFAULT)<= 0) {
+                            cbf_debug_print2("pixel_offset_name axis '%s' not found\n",pixel_offset_name[i]);
+                            error |= CBF_NOTFOUND;
+                        } else if (!cbf_H5Ivalid(pixel_data=H5Dopen2(detector,pixel_offset_name[i],H5P_DEFAULT))) {
 							cbf_debug_print("error: couldn't open a dataset");
 							error |= CBF_H5ERROR;
 						} else if (!cbf_H5Ivalid(data_space=H5Dget_space(pixel_data))) {
@@ -17778,7 +17782,10 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                          Extract pixel size data.
                          TODO: make the presence of this data optional, using the pixel_offset fields as a backup option.
                          */
-						if (!cbf_H5Ivalid(pixel_data=H5Dopen2(detector,pixel_size_name[i],H5P_DEFAULT))) {
+                        if (H5Lexists(detector,pixel_size_name[i],H5P_DEFAULT)<= 0) {
+                            cbf_debug_print2("pixel_offset_size field '%s' not found\n",pixel_size_name[i]);
+                            error |= CBF_NOTFOUND;
+                        } else if (!cbf_H5Ivalid(pixel_data=H5Dopen2(detector,pixel_size_name[i],H5P_DEFAULT))) {
 							cbf_debug_print("error: couldn't open a dataset");
 							error |= CBF_H5ERROR;
 						} else if (!cbf_H5Ivalid(data_space=H5Dget_space(pixel_data))) {

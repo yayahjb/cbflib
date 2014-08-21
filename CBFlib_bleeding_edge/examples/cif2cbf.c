@@ -549,7 +549,7 @@ int main (int argc, char *argv [])
     int ciftmpused;
     int padflag;
     int dimflag;
-    int nbytes;
+    size_t nbytes;
     int ndict = 0;
     int kd;
     int wide = 0;
@@ -1366,7 +1366,7 @@ int main (int argc, char *argv [])
                                         if (dimflag == HDR_FINDDIMS && dim1==0) {
                                             cbf_get_arraydimensions(cif,NULL,&dim1,&dim2,&dim3);
                                         }
-                                        if (IorR == 0 || (IorR == CBF_CPY_SETINTEGER && (nelsize==elsize||nelsize==0))) {
+                                        if (IorR == 0 || (IorR == CBF_CPY_SETINTEGER && (nelsize==(ssize_t)elsize||nelsize==0))) {
                                             cbf_failnez(cbf_set_integerarray_wdims_fs(
                                                                                       cbf, compression,
                                                                                       binary_id, array, elsize, elsigned, elements,
@@ -1374,7 +1374,7 @@ int main (int argc, char *argv [])
                                         } else {
                                             free(array); arrayfreed=1;
                                             cbf_failnez(cbf_copy_value(cbf,cif,category_name,column_name,rownum,compression,dimflag,IorR,
-                                                                       nelsize?nelsize:elsize,0,cliplow,cliphigh))
+                                                                       nelsize?((size_t)nelsize):elsize,0,cliplow,cliphigh))
                                         }
                                     } else {
                                         cbf_failnez (cbf_get_realarray(
@@ -1383,7 +1383,7 @@ int main (int argc, char *argv [])
                                         if (dimflag == HDR_FINDDIMS && dim1==0) {
                                             cbf_get_arraydimensions(cif,NULL,&dim1,&dim2,&dim3);
                                         }
-                                        if (IorR == 0 || (IorR == CBF_CPY_SETREAL && (nelsize==elsize||nelsize==0))) {
+                                        if (IorR == 0 || (IorR == CBF_CPY_SETREAL && ((size_t)nelsize==elsize||nelsize==0))) {
                                             cbf_failnez(cbf_set_realarray_wdims_fs(
                                                                                    cbf, compression,
                                                                                    binary_id, array, elsize, elements,
@@ -1391,7 +1391,7 @@ int main (int argc, char *argv [])
                                         } else {
                                             free(array); arrayfreed=1;
                                             cbf_failnez(cbf_copy_value(cbf,cif,category_name,column_name,rownum,compression,dimflag,IorR,
-                                                                       nelsize?nelsize:elsize,CBF_CPY_SETSIGNED,cliplow,cliphigh))
+                                                                       nelsize?((size_t)nelsize):elsize,CBF_CPY_SETSIGNED,cliplow,cliphigh))
                                         }
 
                                     }

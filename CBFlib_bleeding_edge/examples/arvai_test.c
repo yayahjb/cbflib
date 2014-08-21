@@ -25,6 +25,9 @@ int main (int argc, char ** argv) {
 	int ierr;
 	cbf_handle cbf=NULL;
 	
+    CBF_UNUSED(argc);
+    CBF_UNUSED(argv);
+	
 	cbf_failnez (cbf_make_handle (&cbf))
     
 	sprintf(buf,"bunzip2 -c %s 2>/dev/null\n",filename);
@@ -66,7 +69,7 @@ int main (int argc, char ** argv) {
 }
 
 int
-big_endian ()
+big_endian ( void )
 {
 	int x=1;
     

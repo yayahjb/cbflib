@@ -489,7 +489,7 @@ int main (int argc, char *argv [])
                 }
 #endif
                 while ((nbytes = fread(buf, 1, C2CBUFSIZ, stdin))) {
-                    if(nbytes != fwrite(buf, 1, nbytes, file)) {
+                    if((size_t)nbytes != fwrite(buf, 1, nbytes, file)) {
                         fprintf(stderr,"Failed to write %s.\n", ciftmp);
 						error |= CBF_FILEWRITE;
 						break;
