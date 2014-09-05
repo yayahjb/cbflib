@@ -4553,6 +4553,7 @@ extern "C" {
 
         const char * cur_axis;
         const char * depends_on;
+        const char * deptype;
         int curlevel;
         unsigned int maxlevel;
 
@@ -4575,12 +4576,23 @@ extern "C" {
 
         while (curlevel >= 0) {
 
-            if (curlevel==0 ||
-                cbf_find_column   (handle, "depends_on")
-                || cbf_get_value     (handle, &depends_on)||
-                !((depends_on)[0])
-                || !cbf_cistrcmp(depends_on,".")
+            if (curlevel==0
+                || cbf_find_column   (handle, "depends_on")
+                || cbf_get_value     (handle, &depends_on)
+                || !(depends_on)
+                || cbf_get_typeofvalue(handle, &deptype)
+                || !cbf_cistrcmp(deptype,"null")) {
+                
+                return CBF_SUCCESS;
+            }
+            
+            if ( !cbf_cistrcmp(depends_on,".")
                 || !cbf_cistrcmp(depends_on,"?")){
+                
+                cbf_debug_print3("non-null dependency '%s' for axis '%s'\n",
+                                 depends_on,
+                                 axis_id);
+                
                 return CBF_SUCCESS;
 
             }
@@ -4606,6 +4618,7 @@ extern "C" {
 
         const char * cur_axis;
         const char * depends_on;
+        const char * deptype;
         int curlevel;
 
         /* Check for valid arguments */
@@ -4624,12 +4637,27 @@ extern "C" {
 
         while (curlevel >= 0) {
 
-            if (curlevel==0 ||
-                cbf_find_column   (handle, "depends_on")
-                || cbf_get_value     (handle, &depends_on)||
-                !((depends_on)[0])
-                || !cbf_cistrcmp(depends_on,".")
+            if (curlevel==0
+                || cbf_find_column   (handle, "depends_on")
+                || cbf_get_value     (handle, &depends_on)
+                || !((depends_on)[0])
+                || cbf_get_typeofvalue(handle, &deptype)
+                || !cbf_cistrcmp(deptype,"null")) {
+                
+                if (curlevel > 0) return CBF_NOTFOUND;
+                *ancestor = cur_axis;
+                return CBF_SUCCESS;
+                
+                
+            }
+            if (!cbf_cistrcmp(depends_on,".")
                 || !cbf_cistrcmp(depends_on,"?")){
+                
+                cbf_debug_print3("non-null dependency '%s' for axis '%s'\n",
+                                 depends_on,
+                                 axis_id);
+                
+                
                 if (curlevel > 0) return CBF_NOTFOUND;
                 *ancestor = cur_axis;
                 return CBF_SUCCESS;
@@ -4647,28 +4675,59 @@ extern "C" {
     }
 
 
-    /* Get the axis, if any, on which this axis depends */
+    /* Get the axis, if any, on which this axis depends
+     Will always return "." for the null case */
 
     int cbf_get_axis_depends_on (cbf_handle handle, const char *axis_id,
                                  const char * *depends_on)
     {
 
+        const char * deptype;
+        
         /* Check for valid arguments */
 
-        if (!handle || !axis_id || !depends_on) return CBF_ARGUMENT;
+        if (!handle || !depends_on) return CBF_ARGUMENT;
 
+        
         /* Get the axis dependency */
 
         cbf_failnez (cbf_find_category (handle, "axis"))
         cbf_failnez (cbf_find_column   (handle, "id"))
         cbf_failnez (cbf_find_row      (handle, axis_id))
+        
         if (cbf_find_column   (handle, "depends_on")) {
+            
             *depends_on = ".";  return CBF_SUCCESS;
+
         }
-        if (cbf_get_value     (handle, depends_on)||
-            !((*depends_on)[0])) {
+        
+        if (cbf_get_value     (handle, depends_on)
+            || !(*depends_on)) {
+            
             *depends_on = ".";  return CBF_SUCCESS;
+            
         }
+        
+        if (cbf_get_typeofvalue(handle,&deptype)
+            || !cbf_cistrcmp(deptype,"null")) {
+            
+            *depends_on = ".";  return CBF_SUCCESS;
+            
+        }
+        
+        
+        if (!cbf_cistrcmp(*depends_on,".")
+            || !cbf_cistrcmp(*depends_on,"?")) {
+            
+            cbf_debug_print3("non-null dependency '%s' for axis '%s'\n",
+                             *depends_on,
+                             axis_id);
+
+            
+            *depends_on = ".";  return CBF_SUCCESS;
+            
+        }
+        
         return CBF_SUCCESS;
 
     }
@@ -4689,8 +4748,9 @@ extern "C" {
         if (cbf_find_column   (handle, "equipment")) {
             *equipment = ".";  return CBF_SUCCESS;
         }
-        if (cbf_get_value     (handle, equipment)||
-            !((*equipment)[0])) {
+        if (cbf_get_value     (handle, equipment)
+            || !(*equipment)
+            || !((*equipment)[0])) {
             *equipment = ".";  return CBF_SUCCESS;
         }
         return CBF_SUCCESS;
@@ -4944,17 +5004,13 @@ extern "C" {
     {
         cbf_axis_type type;
 
-        const char * depends_on;
-
         if (reserved != 0 || !refsetting || !axis_id )
 
             return CBF_ARGUMENT;
 
-        /* Get the axis type  and dependency */
+        /* Get the axis type */
 
         cbf_failnez (cbf_get_axis_type (handle, axis_id, &type))
-
-        cbf_failnez (cbf_get_axis_depends_on (handle, axis_id, &depends_on))
 
         if (type == CBF_GENERAL_AXIS || !cbf_cistrcmp(axis_id,".")) {
 
@@ -5415,6 +5471,8 @@ extern "C" {
 
         cbf_axis_type axis_type;
 
+        const char *deptype;
+
         double vector1, vector2, vector3, offset1, offset2, offset3;
 
         double start, increment, rot;
@@ -5426,6 +5484,10 @@ extern "C" {
         cbf_failnez (cbf_find_row         (handle, axis_id));
         cbf_failnez (cbf_find_column      (handle, "depends_on"));
         cbf_failnez (cbf_get_value        (handle, &prev_id));
+        cbf_failnez (cbf_get_typeofvalue  (handle, &deptype));
+        if (cbf_cistrcmp(deptype, "null") == 0) {
+            prev_id = NULL;
+        }
 
         if (!cbf_find_column (handle, "rotation_axis")) {
 
@@ -6138,7 +6200,29 @@ extern "C" {
 
             rotation_axis = (*goniometer)->axis[axis_index].rotation_axis;
 
-            if (target_axis && cbf_cistrcmp (target_axis,".") !=0 ) {
+            if (target_axis
+                && (!cbf_cistrcmp (target_axis,".")
+                    ||!cbf_cistrcmp (target_axis,"?"))) {
+
+                    cbf_debug_print3("non-null dependency '%s' for axis '%s'\n",
+                                     target_axis,
+                                     (*goniometer)->axis[axis_index].name);
+                    target_axis = NULL;
+                    
+                }
+
+            if (rotation_axis
+                && (!cbf_cistrcmp (rotation_axis,".")
+                    ||!cbf_cistrcmp (rotation_axis,"?"))) {
+                    
+                    cbf_debug_print3("non-null rotation_axis '%s' for axis '%s'\n",
+                                     rotation_axis,
+                                     (*goniometer)->axis[axis_index].name);
+                    rotation_axis = NULL;
+                    
+                }
+
+            if ( target_axis ) {
 
                 found = 0;
 
@@ -6184,7 +6268,7 @@ extern "C" {
 
             }
 
-            if (rotation_axis && cbf_cistrcmp (rotation_axis,".") !=0 ) {
+            if ( rotation_axis ) {
 
                 found = 0;
 
@@ -9468,17 +9552,23 @@ extern "C" {
 
         cbf_axis_type axis_type;
 
+        const char *deptype;
+
         double vector1, vector2, vector3, offset1, offset2, offset3;
 
         double start, increment, rot;
 
         int errorcode;
 
-        cbf_failnez (cbf_find_category    (handle, "axis"))
-        cbf_failnez (cbf_find_column      (handle, "id"))
-        cbf_failnez (cbf_find_row         (handle, axis_id))
-        cbf_failnez (cbf_find_column      (handle, "depends_on"))
-        cbf_failnez (cbf_get_value        (handle, &next_id))
+        cbf_failnez (cbf_find_category    (handle, "axis"));
+        cbf_failnez (cbf_find_column      (handle, "id"));
+        cbf_failnez (cbf_find_row         (handle, axis_id));
+        cbf_failnez (cbf_find_column      (handle, "depends_on"));
+        cbf_failnez (cbf_get_value        (handle, &next_id));
+        cbf_failnez (cbf_get_typeofvalue  (handle, &deptype));
+        if (cbf_cistrcmp(deptype, "null") == 0) {
+            next_id = NULL;
+        }
 
         if (!cbf_find_column (handle, "rotation_axis")) {
 
