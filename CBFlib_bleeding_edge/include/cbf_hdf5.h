@@ -1402,6 +1402,38 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                                            const char* attribtext,
                                            const hsize_t slab,
                                            int errorcode);
+    
+    /* Count the number of links in an HDF5 group */
+    
+    int cbf_count_h5group_links (const hid_t parent,
+                                 const char * group,
+                                 hsize_t * numlinks);
+    
+    /* Count the number of attributes of an HDF5 object */
+    
+    int cbf_count_h5object_attributes (const hid_t parent,
+                                       const char * object,
+                                       hsize_t * numattribs);
+    
+    /* Find an hdf5 group link by name pattern */
+    
+    int cbf_find_h5group_link(const hid_t parent,
+                              const char * group,
+                              const char * name_pattern,
+                              hsize_t search_index,
+                              hsize_t *found_index,
+                              char ** name);
+    
+    /* Find an hdf5 attribute by name pattern */
+    
+    int cbf_find_h5attribute(const hid_t parent,
+                             const char * object_name,
+                             const char * name_pattern,
+                             hsize_t search_index,
+                             hsize_t *found_index,
+                             char ** name );
+
+    
     /* Get the rank of a dataset */
     
     int cbf_get_h5dataset_rank(hid_t hid, const char * datasetname, size_t * rank);
@@ -1701,6 +1733,7 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                         const size_t attrc, const cbf_name_value_pair * const attrv,
                         cbf_h5handle h5handle);
 
+    int cbf_cimatch(const char * name, const char * pattern);
     
     
 #ifdef __cplusplus
