@@ -464,6 +464,16 @@ int cbf_get_array_section_id (cbf_handle handle,
      long         *strides);
 
     
+    /* Get the pixel sizes for the given array section
+     Undetermined pixel sizes are set to zero
+     */
+    
+    int cbf_get_array_section_pixel_sizes (cbf_handle    handle,
+                                           const char   *array_id,
+                                           size_t       rank,
+                                           double       *psizes);
+
+    
     int cbf_get_array_section_rank(cbf_handle handle,
                                    const char * array_section_id,
                                    size_t * rank);

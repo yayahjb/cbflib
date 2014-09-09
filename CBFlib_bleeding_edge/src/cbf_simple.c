@@ -1469,6 +1469,168 @@ extern "C" {
         return CBF_SUCCESS;
     }
     
+    /* Get the pixel sizes for the given array section
+       Undetermined pixel sizes are set to zero
+     */
+
+    int cbf_get_array_section_pixel_sizes (cbf_handle    handle,
+                                     const char   *array_id,
+                                     size_t       rank,
+                                     double       *psizes)
+    {
+    
+        long index, precedence;
+        
+        unsigned int ii;
+        
+        unsigned int numrows;
+        
+        int error;
+        
+        const char * xarray_id, *yarray_id;
+        
+        if (rank < 1 || rank > 100 || !array_id || !psizes)
+            
+            return CBF_ARGUMENT;
+        
+        for (ii=0; ii < (ssize_t)rank; ii++) {
+            
+            psizes[ii] = 0.;
+            
+        }
+        
+        error = 0.;
+        
+        xarray_id = yarray_id = "";
+        
+
+        /* Get the array id for the array_section, if this is an
+           array section */
+        
+        cbf_reportnez(cbf_get_array_section_array_id(handle,array_id,&xarray_id),error);
+        
+        cbf_reportnez(cbf_find_category(handle,"array_element_size"),error);
+        
+        cbf_reportnez(cbf_find_column(handle,"size"),error);
+        
+        cbf_reportnez(cbf_count_rows(handle,&numrows),error);
+        
+        CBF_START_ARRAY(double,psize_by_index,rank);
+        
+        for (ii = 0; ii < rank; ii++) {
+            
+            psize_by_index[ii] = 0.;
+            
+        }
+        
+        /* collect the pixel sizes by index */
+        
+        for (ii = 0; ii < numrows && !error; ii++) {
+            
+            cbf_reportnez(cbf_find_column(handle,"array_id"),error);
+            
+            cbf_reportnez(cbf_select_row(handle,ii),error);
+            
+            cbf_reportnez(cbf_get_value(handle,&yarray_id),error);
+            
+            if (!cbf_cistrcmp(xarray_id,yarray_id)) {
+                
+                cbf_reportnez(cbf_find_column(handle,"index"),error);
+                
+                cbf_reportnez(cbf_get_longvalue(handle,&index),error);
+                
+                if (index < 1 || index > rank) error |= CBF_FORMAT;
+                
+                cbf_reportnez(cbf_find_column(handle,"size"),error);
+                
+                cbf_reportnez(cbf_get_doublevalue(handle,&(psize_by_index[index-1])),error);
+                
+            }
+            
+        }
+        
+        /* Convert the pixel sizes to be by precedence rather than by index */
+        
+        
+        cbf_reportnez(cbf_find_category(handle,"array_structure_list"),error);
+        
+        cbf_reportnez(cbf_find_column(handle,"precedence"),error);
+        
+        cbf_reportnez(cbf_count_rows(handle,&numrows),error);
+        
+        for (ii = 0; ii < numrows && !error; ii++) {
+            
+            cbf_reportnez(cbf_find_column(handle,"array_id"),error);
+            
+            if (error) error = cbf_find_column(handle,"array_section_id");
+            
+            cbf_reportnez(cbf_select_row(handle,ii),error);
+            
+            cbf_reportnez(cbf_get_value(handle,&yarray_id),error);
+            
+            if (!cbf_cistrcmp(xarray_id,yarray_id)|| (!cbf_cistrcmp(array_id,yarray_id))) {
+                
+                cbf_reportnez(cbf_find_column(handle,"index"),error);
+                
+                cbf_reportnez(cbf_get_longvalue(handle,&index),error);
+
+                cbf_reportnez(cbf_find_column(handle,"precedence"),error);
+                
+                cbf_reportnez(cbf_get_longvalue(handle,&precedence),error);
+
+                if (index < 1 || index > rank
+                    || precedence < 1 || precedence > rank) error |= CBF_FORMAT;
+                
+                if (!error) {
+                    
+                    psizes[precedence-1] = 1.e3*psize_by_index[index-1];
+                    
+                }
+                
+            }
+            
+        }
+        
+        CBF_END_ARRAY_REPORTNEZ(psize_by_index,error);
+        
+        if (error || psizes[0] == 0.||xarray_id[0] == '\0') {
+            
+            int oerror;
+            
+            unsigned int element_number;
+            
+            cbf_detector detector;
+            
+            oerror = error;
+            
+            error = 0;
+            
+            cbf_reportnez(cbf_get_element_number(handle,NULL,
+                                                 xarray_id,
+                                                 array_id,
+                                                 &element_number),error);
+            
+            cbf_reportnez(cbf_construct_detector(handle,
+                                                 &detector,
+                                                 element_number),error);
+            
+            for (ii=0; ii < rank && ii < (ssize_t)(detector-> axes); ii++) {
+                
+                cbf_reportnez(cbf_get_inferred_pixel_size(detector,ii+1,&(psizes[ii])),error);
+                
+                
+            }
+            
+            if (!error) return error;
+            
+            error |= oerror;
+            
+        }
+        
+        return error;
+
+     }
+
 
     
     /* Determine a rank for an array_section_id 

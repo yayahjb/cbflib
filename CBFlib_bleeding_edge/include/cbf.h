@@ -718,6 +718,9 @@ if (CBF_SUCCESS != err) \
 #define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
                       "\nCBFlib error %d \n", err); \
                          { c; } return err; }}
+#define cbf_reportnez(x,cerr) {int err; if (!(cerr)) {err = (x); (cerr)|=err; \
+                  if (err) { fprintf (stderr, "\nCBFlib error %d \n", err);}}}
+
 #else
 #ifndef __func__
 #define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
@@ -726,6 +729,9 @@ if (CBF_SUCCESS != err) \
 #define cbf_onfailnez(x,c) {int err; err = (x); if (err) { fprintf (stderr, \
                       "\nCBFlib error %d at %s:%d\n", err,__FILE__,__LINE__); \
                          { c; } return err; }}
+#define cbf_reportnez(x,cerr) {int err; if (!(cerr)) {err = (x); (cerr)|=err; \
+                       if (err) { fprintf (stderr, \
+                       "\nCBFlib error %d at %s:%d\n", err,__FILE__,__LINE__);}}}
 #else
 #define cbf_failnez(x) {int err; err = (x); if (err) { fprintf (stderr, \
                       "\nCBFlib error %d at %s:%d(%s)\n", err,__FILE__,__LINE__,__func__); return err; }}
@@ -734,6 +740,10 @@ if (CBF_SUCCESS != err) \
                       "\nCBFlib error %d at %s:%d(%s)\n", err,__FILE__,__LINE__,__func__); \
                          { c; } return err; }}
 
+#define cbf_reportnez(x,cerr) {int err; if (!(cerr)) {err = (x); (cerr)|=err; \
+                      if (err) { fprintf (stderr, \
+                      "\nCBFlib error %d at %s:%d(%s)\n", \
+                      err,__FILE__,__LINE__,__func__);}}}
 #endif
 #endif
 
@@ -742,6 +752,8 @@ if (CBF_SUCCESS != err) \
 #define cbf_failnez(f) { int err; err = (f); if (err) return err; }
 
 #define cbf_onfailnez(f,c) { int err; err = (f); if (err) {{ c; } return err; }}
+
+#define cbf_reportnez(x,cerr) {int err; if (!(cerr)) {err = (x); (cerr)|=err;}}
 
 #endif
 
@@ -768,6 +780,10 @@ void f
 #define CBF_END_ARRAY(name) \
       cbf_free((void **) &(name), NULL); } \
     }
+
+#define CBF_END_ARRAY_REPORTNEZ(name,error) \
+     cbf_free((void **) &(name), NULL); } else {error|=CBF_ALLOC;} \
+}
 
 
   /* string for an error */

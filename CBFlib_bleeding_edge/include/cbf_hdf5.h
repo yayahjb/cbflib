@@ -786,8 +786,6 @@ cbf_H5Drequire_scalar_F64LE2(loc,ds,nm,val,cmp)
 #define cbf_h5onfailneg(x,code,y) {int err; err = (x); if (err < 0) {{y;} return (code);}}
 #define cbf_h5reportneg(x,code,cerr) \
 {int err; if (!(cerr)) {err = (x); if (err < 0) {(cerr)|=code;}}}
-#define cbf_reportnez(x,cerr) \
-{int err; if (!(cerr)) {err = (x); (cerr)|=err;}}
 
 #define reportFail(f, errorCode, errorVar) \
 do { \
@@ -1402,6 +1400,13 @@ H5Gcreate2(loc_id,name,H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT)
                                            const char* attribtext,
                                            const hsize_t slab,
                                            int errorcode);
+    
+    /* add a double dataset to a group */
+    
+    int cbf_add_h5double_dataset(hid_t hid,
+                                 const char* datasetname,
+                                 const double datasetvalue,
+                                 int errorcode);
     
     /* Count the number of links in an HDF5 group */
     

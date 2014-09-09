@@ -6094,6 +6094,8 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 hsize_t count[1];
                 hsize_t buf[1];
                 hid_t dset = CBF_H5FAIL;
+                hid_t datasetid = CBF_H5FAIL;
+                
                 
                 CBF_START_ARRAY(size_t,cbf_dims,rank);
                 CBF_START_ARRAY(hsize_t,dims,rank);
@@ -6101,8 +6103,132 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                 CBF_START_ARRAY(hsize_t,origins,rank);
                 CBF_START_ARRAY(long,cbf_strides,rank);
                 CBF_START_ARRAY(hssize_t,strides,rank);
+                CBF_START_ARRAY(double,  psizes,     rank);
+                
+                cbf_reportnez(cbf_get_array_section_pixel_sizes(handle,array_id,rank,psizes),error);
                 
                 
+                if (!error && psizes[0] > 0.) {
+                    
+                    const char * xpixelsizepath;
+                    const char * x_pixel_size_parts[3];
+                    const char * fastpixelsizepath = "fast_pixel_size";
+                    
+                    htri_t dsexists;
+                    
+                    x_pixel_size_parts[0] = "x_pixel_size";
+                    x_pixel_size_parts[1] = array_id;
+                    x_pixel_size_parts[2] = 0;
+                    
+                    xpixelsizepath = _cbf_str_join(x_pixel_size_parts,'_');
+
+                    
+                    dsexists = H5Lexists(nxdetector,xpixelsizepath,H5P_DEFAULT);
+                    
+                    if (dsexists < 0 || !dsexists) {
+                        
+                        cbf_reportnez(cbf_add_h5double_dataset(nxdetector,
+                                                               xpixelsizepath,
+                                                               psizes[0],
+                                                               error),error);
+                        
+                        cbf_h5reportneg(datasetid = H5Dopen2(nxdetector,
+                                             xpixelsizepath, H5P_DEFAULT),CBF_H5ERROR,error);
+                        
+                        cbf_reportnez(cbf_apply_h5text_attribute(datasetid,
+                                                                 "units",
+                                                                 "mm",error),error);
+                        
+                        cbf_h5reportneg(H5Dclose(datasetid),CBF_H5ERROR,error);
+                        
+                    }
+                    
+                    cbf_free((void **)&xpixelsizepath,NULL);
+                    
+                    dsexists = H5Lexists(nxdetector_module,fastpixelsizepath,H5P_DEFAULT);
+                    
+                    if (dsexists < 0 || !dsexists) {
+                        
+                        error |= cbf_add_h5double_dataset(nxdetector_module,
+                                                          fastpixelsizepath,
+                                                          psizes[0],
+                                                          error);
+                        
+                        cbf_h5reportneg(datasetid = H5Dopen2(nxdetector_module,
+                                                             fastpixelsizepath, H5P_DEFAULT),CBF_H5ERROR,error);
+                        
+                        cbf_reportnez(cbf_apply_h5text_attribute(datasetid,
+                                                                 "units",
+                                                                 "mm",error),error);
+                        
+                        cbf_h5reportneg(H5Dclose(datasetid),CBF_H5ERROR,error);
+
+                    }
+                                        
+                }
+
+                if (!error && psizes[1] > 0. && rank > 1) {
+                    
+                    const char * ypixelsizepath;
+                    const char * y_pixel_size_parts[3];
+                    const char * slowpixelsizepath = "slow_pixel_size";
+                    
+                    htri_t dsexists;
+                    
+                    y_pixel_size_parts[0] = "y_pixel_size";
+                    y_pixel_size_parts[1] = array_id;
+                    y_pixel_size_parts[2] = 0;
+                    
+                    ypixelsizepath = _cbf_str_join(y_pixel_size_parts,'_');
+                    
+                    dsexists = H5Lexists(nxdetector,ypixelsizepath,H5P_DEFAULT);
+                    
+                    if (dsexists < 0 || !dsexists) {
+                        
+                        error |= cbf_add_h5double_dataset(nxdetector,
+                                                          ypixelsizepath,
+                                                          psizes[1],
+                                                          error);
+                        
+                        
+                        cbf_h5reportneg(datasetid = H5Dopen2(nxdetector,
+                                                             ypixelsizepath, H5P_DEFAULT),CBF_H5ERROR,error);
+                        
+                        cbf_reportnez(cbf_apply_h5text_attribute(datasetid,
+                                                                 "units",
+                                                                 "mm",error),error);
+                        
+                        cbf_h5reportneg(H5Dclose(datasetid),CBF_H5ERROR,error);
+                        
+
+                    }
+                    
+                    cbf_free((void **)&ypixelsizepath,NULL);
+                    
+                    dsexists = H5Lexists(nxdetector_module,slowpixelsizepath,H5P_DEFAULT);
+                    
+                    if (dsexists < 0 || !dsexists) {
+                        
+                        error |= cbf_add_h5double_dataset(nxdetector_module,
+                                                          slowpixelsizepath,
+                                                          psizes[1],
+                                                          error);
+                        
+                        cbf_h5reportneg(datasetid = H5Dopen2(nxdetector_module,
+                                                             slowpixelsizepath, H5P_DEFAULT),CBF_H5ERROR,error);
+                        
+                        cbf_reportnez(cbf_apply_h5text_attribute(datasetid,
+                                                                 "units",
+                                                                 "mm",error),error);
+                        
+                        cbf_h5reportneg(H5Dclose(datasetid),CBF_H5ERROR,error);
+                        
+
+                        
+                     }
+                    
+                }
+
                 error |= cbf_get_array_section_sizes(handle,array_id,rank,cbf_dims,cbf_origins,cbf_strides);
                 
                 chunk[0] = rank;
@@ -6204,9 +6330,115 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     CBF_START_ARRAY(hsize_t,origins,rank);
                                     CBF_START_ARRAY(long,cbf_strides,rank);
                                     CBF_START_ARRAY(hssize_t,strides,rank);
+                                    CBF_START_ARRAY(double,  psizes,     rank);
                                     
                                     
-                                    error |= cbf_get_array_section_sizes(handle,array_section_id,rank,cbf_dims,cbf_origins,cbf_strides);
+                                    cbf_reportnez(cbf_get_array_section_pixel_sizes(handle,array_section_id,rank,psizes),error);
+                                    
+                                    
+                                    if (!error && psizes[0] > 0.) {
+                                        
+                                        const char * xpixelsizepath;
+                                        const char * x_pixel_size_parts[3];
+                                        const char * fastpixelsizepath = "fast_pixel_size";
+                                        
+                                        htri_t dsexists;
+                                        
+                                        x_pixel_size_parts[0] = "x_pixel_size";
+                                        x_pixel_size_parts[1] = array_id;
+                                        x_pixel_size_parts[2] = 0;
+                                        
+                                        xpixelsizepath = _cbf_str_join(x_pixel_size_parts,'_');
+                                        
+                                        dsexists = H5Lexists(nxdetector,xpixelsizepath,H5P_DEFAULT);
+                                        
+                                        if (dsexists < 0 || !dsexists) {
+                                            
+                                            error |= cbf_add_h5double_dataset(nxdetector,
+                                                                              xpixelsizepath,
+                                                                              psizes[0],
+                                                                              error);
+                                        }
+                                        
+                                        cbf_free((void **)&xpixelsizepath,NULL);
+                                        
+                                        
+                                        dsexists = H5Lexists(nxdetector_module,fastpixelsizepath,H5P_DEFAULT);
+                                        
+                                        if (dsexists < 0 || !dsexists) {
+                                            
+                                            error |= cbf_add_h5double_dataset(nxdetector_module,
+                                                                              fastpixelsizepath,
+                                                                              psizes[0],
+                                                                              error);
+                                        }
+
+                                        
+                                    }
+                                    
+                                    if (!error && psizes[1] > 0. && rank > 1) {
+                                        
+                                        const char * ypixelsizepath;
+                                        const char * y_pixel_size_parts[3];
+                                        const char * slowpixelsizepath = "slow_pixel_size";
+                                        
+                                        htri_t dsexists;
+                                        
+                                        y_pixel_size_parts[0] = "y_pixel_size";
+                                        y_pixel_size_parts[1] = array_id;
+                                        y_pixel_size_parts[2] = 0;
+                                        
+                                        ypixelsizepath = _cbf_str_join(y_pixel_size_parts,'_');
+                                        
+                                        dsexists = H5Lexists(nxdetector,ypixelsizepath,H5P_DEFAULT);
+                                        
+                                        if (dsexists < 0 || !dsexists) {
+                                            
+                                            error |= cbf_add_h5double_dataset(nxdetector,
+                                                                              ypixelsizepath,
+                                                                              psizes[1],
+                                                                              error);
+                                            
+                                            cbf_h5reportneg(datasetid = H5Dopen2(nxdetector,
+                                                                                 ypixelsizepath, H5P_DEFAULT),CBF_H5ERROR,error);
+                                            
+                                            cbf_reportnez(cbf_apply_h5text_attribute(datasetid,
+                                                                                     "units",
+                                                                                     "mm",error),error);
+                                            
+                                            cbf_h5reportneg(H5Dclose(datasetid),CBF_H5ERROR,error);
+                                            
+
+                                        }
+                                        
+                                        cbf_free((void **)&ypixelsizepath,NULL);
+                                        
+                                        dsexists = H5Lexists(nxdetector_module,slowpixelsizepath,H5P_DEFAULT);
+                                        
+                                        if (dsexists < 0 || !dsexists) {
+                                            
+                                            error |= cbf_add_h5double_dataset(nxdetector_module,
+                                                                              slowpixelsizepath,
+                                                                              psizes[1],
+                                                                              error);
+                                            
+                                            cbf_h5reportneg(datasetid = H5Dopen2(nxdetector_module,
+                                                                                 slowpixelsizepath, H5P_DEFAULT),CBF_H5ERROR,error);
+                                            
+                                            cbf_reportnez(cbf_apply_h5text_attribute(datasetid,
+                                                                                     "units",
+                                                                                     "mm",error),error);
+                                            
+                                            cbf_h5reportneg(H5Dclose(datasetid),CBF_H5ERROR,error);
+                                            
+
+                                        }
+
+                                        
+                                    }
+
+                                    
+                                    cbf_reportnez(cbf_get_array_section_sizes(handle,array_section_id,rank,cbf_dims,cbf_origins,cbf_strides),error);
                                     
                                     chunk[0] = rank;
                                     
@@ -6253,7 +6485,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     }
                                     
                                     
-                                    
+                                    CBF_END_ARRAY(psizes);
                                     CBF_END_ARRAY(strides);
                                     CBF_END_ARRAY(cbf_strides);
                                     CBF_END_ARRAY(origins);
@@ -6271,6 +6503,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     
                 }
                 
+                CBF_END_ARRAY(psizes);
                 CBF_END_ARRAY(strides);
                 CBF_END_ARRAY(cbf_strides);
                 CBF_END_ARRAY(origins);
@@ -6429,7 +6662,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     
                                     cbf_h5reportneg(H5Lcreate_soft(axis_path,nxdetector_module,axis_id,H5P_DEFAULT, H5P_DEFAULT),CBF_FORMAT,error);
                                     
-                                    if (precedence == 1 && H5Lexists(nxdetector_module, "x_pixel_offset", H5P_DEFAULT)==0) {
+                                    if (precedence == 1 && H5Lexists(nxdetector_module, "fast_pixel_direction", H5P_DEFAULT)==0) {
                                         
                                         const char * xpixelpath;
                                         const char * x_pixel_offset_parts[3];
@@ -6438,7 +6671,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                         x_pixel_offset_parts[1] = array_id;
                                         x_pixel_offset_parts[2] = 0;
                                         
-                                        cbf_h5reportneg(H5Lcreate_soft(axis_path,nxdetector_module,"x_pixel_offset",H5P_DEFAULT, H5P_DEFAULT),CBF_FORMAT,error);
+                                        cbf_h5reportneg(H5Lcreate_soft(axis_path,nxdetector_module,"fast_pixel_offset",H5P_DEFAULT, H5P_DEFAULT),CBF_FORMAT,error);
                                         
                                         xpixelpath = _cbf_str_join(x_pixel_offset_parts,'_');
                                         
@@ -6456,7 +6689,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     
 
                                     
-                                    if (precedence == 2 && H5Lexists(nxdetector_module, "y_pixel_offset", H5P_DEFAULT)==0) {
+                                    if (precedence == 2 && H5Lexists(nxdetector_module, "slow_pixel_offset", H5P_DEFAULT)==0) {
                                         
                                         const char * ypixelpath;
                                         const char * y_pixel_offset_parts[3];
@@ -6465,7 +6698,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                         y_pixel_offset_parts[1] = array_id;
                                         y_pixel_offset_parts[2] = 0;
                                         
-                                        cbf_h5reportneg(H5Lcreate_soft(axis_path,nxdetector_module,"y_pixel_offset",H5P_DEFAULT, H5P_DEFAULT),CBF_FORMAT,error);
+                                        cbf_h5reportneg(H5Lcreate_soft(axis_path,nxdetector_module,"slow_pixel_offset",H5P_DEFAULT, H5P_DEFAULT),CBF_FORMAT,error);
                                         
                                         ypixelpath = _cbf_str_join(y_pixel_offset_parts,'_');
                                         
@@ -6480,7 +6713,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                         
                                     }
                                     
-                                    if (precedence == 3 && H5Lexists(nxdetector_module, "z_pixel_offset", H5P_DEFAULT)==0) {
+                                    if (precedence == 3 && H5Lexists(nxdetector_module, "slower_pixel_offset", H5P_DEFAULT)==0) {
                                         
                                         const char * zpixelpath;
                                         const char * z_pixel_offset_parts[3];
@@ -6490,7 +6723,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                         z_pixel_offset_parts[2] = 0;
 
                                         
-                                        cbf_h5reportneg(H5Lcreate_soft(axis_path,nxdetector_module,"z_pixel_offset",H5P_DEFAULT, H5P_DEFAULT),CBF_FORMAT,error);
+                                        cbf_h5reportneg(H5Lcreate_soft(axis_path,nxdetector_module,"slower_pixel_offset",H5P_DEFAULT, H5P_DEFAULT),CBF_FORMAT,error);
                                         
                                         zpixelpath = _cbf_str_join(z_pixel_offset_parts,'_');
                                         
@@ -6535,7 +6768,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                 
                                 if (cbf_get_array_section_rank(handle,xarray_section_id,&asrank)) asrank=0;
                                 
-                                if (precedence == (ssize_t)asrank && H5Lexists(nxdetector_module, "x_pixel_offset", H5P_DEFAULT)==0) {
+                                if (precedence == (ssize_t)asrank && H5Lexists(nxdetector_module, "fast_pixel_direction", H5P_DEFAULT)==0) {
                                     
                                     const char * xpixelpath;
                                     const char * x_pixel_offset_parts[3];
@@ -6545,7 +6778,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     x_pixel_offset_parts[2] = 0;
                                     
                                     
-                                    cbf_h5reportneg(H5Lcreate_soft(axis_path,nxdetector_module,"x_pixel_offset",H5P_DEFAULT, H5P_DEFAULT),CBF_FORMAT,error);
+                                    cbf_h5reportneg(H5Lcreate_soft(axis_path,nxdetector_module,"fast_pixel_direction",H5P_DEFAULT, H5P_DEFAULT),CBF_FORMAT,error);
                                     
                                     xpixelpath = _cbf_str_join(x_pixel_offset_parts,'_');
                                     
@@ -6560,7 +6793,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     
                                 }
 
-                                if (precedence == (ssize_t)asrank-1 && H5Lexists(nxdetector_module, "y_pixel_offset", H5P_DEFAULT)==0) {
+                                if (precedence == (ssize_t)asrank-1 && H5Lexists(nxdetector_module, "slow_pixel_offset", H5P_DEFAULT)==0) {
                                     
                                     const char * ypixelpath;
                                     const char * y_pixel_offset_parts[3];
@@ -6570,7 +6803,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     y_pixel_offset_parts[2] = 0;
 
                                     
-                                    cbf_h5reportneg(H5Lcreate_soft(axis_path,nxdetector_module,"y_pixel_offset",H5P_DEFAULT, H5P_DEFAULT),CBF_FORMAT,error);
+                                    cbf_h5reportneg(H5Lcreate_soft(axis_path,nxdetector_module,"slow_pixel_offset",H5P_DEFAULT, H5P_DEFAULT),CBF_FORMAT,error);
                                     
                                     ypixelpath = _cbf_str_join(y_pixel_offset_parts,'_');
                                     
@@ -6585,7 +6818,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     
                                 }
 
-                                if (precedence == (ssize_t)asrank-2 && H5Lexists(nxdetector_module, "z_pixel_offset", H5P_DEFAULT)==0) {
+                                if (precedence == (ssize_t)asrank-2 && H5Lexists(nxdetector_module, "slower_pixel_offset", H5P_DEFAULT)==0) {
                                     
                                     const char * zpixelpath;
                                     const char * z_pixel_offset_parts[3];
@@ -6594,7 +6827,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                                     z_pixel_offset_parts[1] = xarray_section_id;
                                     z_pixel_offset_parts[2] = 0;
                                     
-                                    cbf_h5reportneg(H5Lcreate_soft(axis_path,nxdetector_module,"z_pixel_offset",H5P_DEFAULT, H5P_DEFAULT),CBF_FORMAT,error);
+                                    cbf_h5reportneg(H5Lcreate_soft(axis_path,nxdetector_module,"slower_pixel_offset",H5P_DEFAULT, H5P_DEFAULT),CBF_FORMAT,error);
                                     
                                     zpixelpath = _cbf_str_join(z_pixel_offset_parts,'_');
                                     
@@ -9066,13 +9299,17 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
                     }
                 } else {
 
+                    const double zeropoint[1] = {0.};
+                    
+                    const hsize_t scanpointsfound[1] = {1};
+                    
                     hid_t mtype;
 
                     hsize_t chunk[] = {1};
 
                     hsize_t maxsize[] = {H5S_UNLIMITED};
                     
-                    cbf_h5reportneg(dspace = H5Screate_simple(1,&naught,maxsize),CBF_ALLOC,errorcode);
+                    cbf_h5reportneg(dspace = H5Screate_simple(1,scanpointsfound,maxsize),CBF_ALLOC,errorcode);
                     
                     cbf_h5reportneg(dtype = H5Tcopy(H5T_IEEE_F64LE),CBF_ALLOC,errorcode);
 
@@ -9084,8 +9321,15 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
                     cbf_h5reportneg(nxaxisid = H5Dcreatex(poiseid,axis_id,dtype,dspace,dprop),CBF_ALLOC,errorcode);
 
-                    cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zero),CBF_ALLOC,errorcode);
+                    cbf_h5reportneg(H5Dwrite(nxaxisid, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)zeropoint),CBF_ALLOC,errorcode);
 
+                    if (!errorcode) {
+                        
+                        cbf_debug_print4("write axis %s data %d points to %s\n",axis_id,(int)scanpointsfound[0], axispath);
+                    }
+                    
+                    
+                    
                     cbf_h5reportneg(H5Sclose(dspace),CBF_ALLOC,errorcode);
 
                     cbf_h5reportneg(H5Tclose(dtype),CBF_ALLOC,errorcode);
@@ -10634,7 +10878,7 @@ _cbf_pilatusAxis2nexusAxisAttrs(h4data,units,depends_on,exsisItem,cmp)
 
     /* add a double dataset to a group */
 
-    static int cbf_add_h5double_dataset(hid_t hid,
+    int cbf_add_h5double_dataset(hid_t hid,
                                const char* datasetname,
                                const double datasetvalue,
                                int errorcode)
