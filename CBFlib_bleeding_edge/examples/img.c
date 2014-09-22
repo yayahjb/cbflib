@@ -393,7 +393,7 @@ int img_read_smvdata (img_handle img, FILE *file)
 
   if (sign) {
 
-    if (size < (ssize_t)sizeof (int)) {
+    if (size < (long)sizeof (int)) {
 
       sign = -(1 << (size * 8));
 

@@ -1366,7 +1366,7 @@ int main (int argc, char *argv [])
                                         if (dimflag == HDR_FINDDIMS && dim1==0) {
                                             cbf_get_arraydimensions(cif,NULL,&dim1,&dim2,&dim3);
                                         }
-                                        if (IorR == 0 || (IorR == CBF_CPY_SETINTEGER && (nelsize==(ssize_t)elsize||nelsize==0))) {
+                                        if (IorR == 0 || (IorR == CBF_CPY_SETINTEGER && (nelsize==(long)elsize||nelsize==0))) {
                                             cbf_failnez(cbf_set_integerarray_wdims_fs(
                                                                                       cbf, compression,
                                                                                       binary_id, array, elsize, elsigned, elements,
