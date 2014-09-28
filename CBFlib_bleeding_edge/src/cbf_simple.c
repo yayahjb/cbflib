@@ -1539,7 +1539,7 @@ extern "C" {
                 
                 cbf_reportnez(cbf_get_longvalue(handle,&index),error);
                 
-                if (index < 1 || index > rank) error |= CBF_FORMAT;
+                if (index < 1 || index > (long)rank) error |= CBF_FORMAT;
                 
                 cbf_reportnez(cbf_find_column(handle,"size"),error);
                 
@@ -1578,8 +1578,8 @@ extern "C" {
                 
                 cbf_reportnez(cbf_get_longvalue(handle,&precedence),error);
 
-                if (index < 1 || index > rank
-                    || precedence < 1 || precedence > rank) error |= CBF_FORMAT;
+                if (index < 1 || index > (long)rank
+                    || precedence < 1 || precedence > (long)rank) error |= CBF_FORMAT;
                 
                 if (!error) {
                     

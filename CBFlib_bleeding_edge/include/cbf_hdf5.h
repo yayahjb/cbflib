@@ -295,6 +295,96 @@ field of the source */
     /** return the maximum of two numeric values */
 #define cbf_max(a,b) ((a)>(b)?(a):(b))    
     
+    
+    typedef enum cbf_axisEquipment_e
+	{
+		/* actual physical equipment */
+		axisEquipment_detector,
+		axisEquipment_image,
+		axisEquipment_goniometer,
+		/* special values */
+		axisEquipment_gravity,
+		axisEquipment_source,
+		/* other/undefined */
+		axisEquipment_general
+	} cbf_axisEquipment_e;
+    
+	typedef struct _cbf_axisData_t
+	{
+		const char * name;  /* either from the last path component or
+                             from the name attribute "long_name" */
+		hid_t axis;
+		cbf_axisEquipment_e equipment;
+        int flags;
+		struct _cbf_axisData_t * depends_on;
+        struct _cbf_axisData_t * rotation_axis;
+        struct _cbf_axisData_t * axis_hash_next_name;
+        struct _cbf_axisData_t * axis_hash_next_path;
+        struct _cbf_axisData_t * axis_hash_next_object;
+        ssize_t axisData_index;                  /* the index at which this entry appears */
+        const char * axis_path; /* A path to this axis */
+        const char * do_path;  
+        const char * ra_path;
+	}  cbf_axisData_t;
+    
+/*  Note the number of hash bins must be a power of 2 */
+#define CBF_NX2CBF_HASH_BINS 64
+
+    typedef struct cbf_nx2cbf_key_t
+	{
+		/*
+         keys - should not be modified once created.
+         */
+		const char * array_id;
+		int binary_id;
+		const char * datablock_id;
+		const char * diffrn_id;
+		const char * diffrn_detector_id;
+		const char * diffrn_detector_element_id;
+		const char * diffrn_measurement_id;
+		const char * frame_id;
+		const char * scan_id;
+		const char * wavelength_id;
+		/*
+         tables - should be modified as data is added and
+         will be modified when the table is first created.
+         */
+		cbf_node * array_data;
+		cbf_node * array_element_size;
+		cbf_node * array_intensities;
+		cbf_node * diffrn;
+		cbf_node * diffrn_data_frame;
+		cbf_node * diffrn_detector;
+		cbf_node * diffrn_detector_element;
+		cbf_node * diffrn_measurement;
+		cbf_node * diffrn_radiation;
+		cbf_node * diffrn_radiation_wavelength;
+		cbf_node * diffrn_scan;
+		cbf_node * diffrn_scan_frame;
+		cbf_node * diffrn_source;
+		/*
+         number of frames of data in the file - many array
+         data items must be scalar, have 1 element or be
+         this length.
+         */
+		hsize_t frames;  /* slowest index */
+		hsize_t xdim;    /* fast index */
+		hsize_t ydim;    /* mid index */
+        hsize_t zdim;    /* slow index */
+        int rank;    /* rank including the frame index */
+		/* axes */
+		cbf_axisData_t * * axisData;
+        cbf_axisData_t * axispathhash[CBF_NX2CBF_HASH_BINS];  /* path hash links */
+        cbf_axisData_t * axisnamehash[CBF_NX2CBF_HASH_BINS];  /* name hash links */
+        cbf_axisData_t * axisobjecthash[CBF_NX2CBF_HASH_BINS];/* object hash links */
+		size_t nAxes;
+		/* other data */
+		int has_scaling_factor;
+		int has_offset;
+		unsigned int indent;
+	} cbf_nx2cbf_key_t;
+
+    
     /****************************************************************
      The following section of code is extracted from J. Sloan's
      cbf_hdf5_common.h
