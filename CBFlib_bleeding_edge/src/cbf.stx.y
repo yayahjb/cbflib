@@ -267,9 +267,7 @@ extern "C" {
 
 #define yyparse       cbf_parse
 #define yylex         cbf_lex_wrapper
-#define yyerror(x)    cbf_syntax_error(((cbf_handle)(((void **)context)[2])),(x))
-#define YYLEX_PARAM   context
-#define YYPARSE_PARAM context
+#define yyerror(dummy,x)    cbf_syntax_error(((cbf_handle)(((void **)context)[2])),(x))
 typedef union
 {
   int          errorcode;
@@ -278,6 +276,7 @@ typedef union
 } YYSTYPE;
 #define YYSTYPE_IS_DECLARED
 
+#include "cbf_stx.h"
 
 #ifdef alloca
 #undef alloca
@@ -299,7 +298,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val );
 
 static int cbf_lex_wrapper (void *val, void *vcontext)
 {
-  int token;
+  enum yytokentype token;
   
   cbf_handle cbfhandle;
   
@@ -333,6 +332,14 @@ static int cbf_syntax_error (cbf_handle handle, const char *message)
 }
 
 %}
+%no-lines
+%expect 0
+
+%defines
+%lex-param {void * context}
+%parse-param {void * context}
+%pure-parser
+%token-table
 
 %union
 {
@@ -388,12 +395,6 @@ static int cbf_syntax_error (cbf_handle handle, const char *message)
 %type  <text> ItemName
 %type  <text> Value
 
-%pure_parser
-%no_lines
-%expect 0
-
-%defines
-%token-table
 
 %%
 
