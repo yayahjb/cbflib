@@ -2118,12 +2118,12 @@ extern "C" {
         
         xarray_id[len] = '\0';
         
-        if (!cbf_find_category(handle,"array_structure")
-            &&!cbf_find_column(handle,"id")
-            &&!cbf_rewind_row(handle)
-            &&!cbf_find_row(handle,xarray_id)
-            &&!cbf_get_value(handle,array_id)
-            && *array_id) {
+        if ((!cbf_find_category(handle,"array_structure"))
+            &&(!cbf_find_column(handle,"id"))
+            &&(!cbf_rewind_row(handle))
+            &&(!cbf_find_row(handle,xarray_id))
+            &&(!cbf_get_value(handle,array_id))
+            && (*array_id)) {
         
             cbf_free((void **) &xarray_id, NULL);
         
@@ -2131,12 +2131,12 @@ extern "C" {
         
         }
         
-        if (!cbf_find_category(handle,"array_structure_list")
-            &&!cbf_find_column(handle,"array_idid")
-            &&!cbf_rewind_row(handle)
-            &&!cbf_find_row(handle,xarray_id)
-            &&!cbf_get_value(handle,array_id)
-            && *array_id) {
+        if ((!cbf_find_category(handle,"array_structure_list"))
+            &&(!cbf_find_column(handle,"array_id"))
+            &&(!cbf_rewind_row(handle))
+            &&(!cbf_find_row(handle,xarray_id))
+            &&(!cbf_get_value(handle,array_id))
+            && (*array_id)) {
             
         cbf_free((void **) &xarray_id, NULL);
         
@@ -6705,6 +6705,8 @@ extern "C" {
 
         const char *surface_axis [2];  /* fast, slow */
 
+        const char *array_colname;
+
         double displacement [2], increment [2];
 
         cbf_positioner positioner;
@@ -6732,8 +6734,11 @@ extern "C" {
         cbf_failnez (cbf_get_array_id  (handle, element_number, &array_id));
         cbf_failnez (cbf_get_array_section_id  (handle, element_number, &array_section_id))
         cbf_failnez (cbf_find_category (handle, "array_structure_list"))
-        if (cbf_find_column(handle,"array_section_id")) {
-            cbf_failnez (cbf_find_column   (handle, "array_id"));
+        array_colname = "array_section_id";
+        if (cbf_find_column(handle,array_colname)) {
+            array_colname = "array_id";
+            cbf_failnez (cbf_find_category (handle, "array_structure_list"))
+            cbf_failnez (cbf_find_column   (handle, array_colname));
         }
 
         surface_axis [0] = surface_axis [1] = NULL;
@@ -6753,9 +6758,7 @@ extern "C" {
 
             cbf_failnez (cbf_find_column (handle, "axis_set_id"))
             cbf_failnez (cbf_get_value   (handle, &surface_axis [precedence - 1]))
-            if (cbf_find_column(handle,"array_section_id")) {
-                cbf_failnez (cbf_find_column   (handle, "array_id"));
-        }
+            cbf_failnez (cbf_find_column   (handle, array_colname));
         }
 
         if (!surface_axis [0])

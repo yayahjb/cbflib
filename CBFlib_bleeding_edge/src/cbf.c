@@ -1574,6 +1574,8 @@ int cbf_delete_row (cbf_handle handle, const int rownumber)
 
   cbf_failnez (cbf_count_rows (handle, &rows))
 
+  if (!rows) return CBF_NOTFOUND;
+
   cbf_failnez (cbf_count_columns (handle, &columns))
 
 
@@ -1594,11 +1596,11 @@ int cbf_delete_row (cbf_handle handle, const int rownumber)
 
   rows--;
 
-  if (handle->row > rownumber)
+  if (handle->row > rownumber && handle->row)
 
     handle->row--;
 
-  if (handle->search_row > rownumber)
+  if (handle->search_row > rownumber && handle->search_row)
 
     handle->search_row--;
 
